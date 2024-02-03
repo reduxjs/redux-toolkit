@@ -45,8 +45,8 @@ function trackProperties(
     tracked.children = {}
 
     for (const key in obj) {
-      const childPath = path ? path + '.' + key : key
-      if (ignorePaths.length && ignorePaths.indexOf(childPath) !== -1) {
+      const childPath = path ? `${path}.${key}` : key
+      if (ignorePaths.length && ignorePaths.includes(childPath)) {
         continue
       }
 
@@ -95,7 +95,7 @@ function detectMutations(
   const hasIgnoredPaths = ignoredPaths.length > 0
 
   for (const key in keysToDetect) {
-    const nestedPath = path ? path + '.' + key : key
+    const nestedPath = path ? `${path}.${key}` : key
 
     if (hasIgnoredPaths) {
       const hasMatches = ignoredPaths.some((ignored) => {
@@ -165,28 +165,26 @@ export function createImmutableStateInvariantMiddleware(
   if (process.env.NODE_ENV === 'production') {
     return () => (next) => (action) => next(action)
   } else {
-    function stringify(
+    const stringify = (
       obj: any,
       serializer?: EntryProcessor,
       indent?: string | number,
       decycler?: EntryProcessor,
-    ): string {
+    ): string => {
       return JSON.stringify(obj, getSerialize(serializer, decycler), indent)
     }
 
-    function getSerialize(
+    const getSerialize = (
       serializer?: EntryProcessor,
       decycler?: EntryProcessor,
-    ): EntryProcessor {
-      const stack: any[] = [],
-        keys: any[] = []
+    ): EntryProcessor => {
+      const stack: any[] = []
+      const keys: any[] = []
 
       if (!decycler)
-        decycler = function (_: string, value: any) {
+        decycler = (_: string, value: any) => {
           if (stack[0] === value) return '[Circular ~]'
-          return (
-            '[Circular ~.' + keys.slice(0, stack.indexOf(value)).join('.') + ']'
-          )
+          return `[Circular ~.${keys.slice(0, stack.indexOf(value)).join('.')}]`
         }
 
       return function (this: any, key: string, value: any) {
