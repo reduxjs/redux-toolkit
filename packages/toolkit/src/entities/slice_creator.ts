@@ -1,12 +1,10 @@
-import { E } from 'esbuild-extra/dist/types-9a0ea18a'
-import type { PayloadAction } from '../createAction'
 import type {
-  SliceCaseReducers,
-  ReducerCreatorEntry,
-  CaseReducerDefinition,
   ReducerCreator,
-  ReducerCreators,
-} from '../createSlice'
+  ReducerCreatorEntry,
+  SliceCaseReducers,
+} from '@reduxjs/toolkit'
+import type { PayloadAction } from '../createAction'
+import type { CaseReducerDefinition, ReducerCreators } from '../createSlice'
 import type { WithRequiredProp } from '../tsHelpers'
 import type {
   EntityAdapter,
@@ -106,7 +104,7 @@ export const entityMethodsCreator: ReducerCreator<
 > = {
   type: entityMethodsCreatorType,
   create(
-    adapter,
+    adapter: EntityStateAdapter<any, any>,
     {
       selectEntityState = (state) => state,
       name = '',
