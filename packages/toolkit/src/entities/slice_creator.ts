@@ -5,11 +5,7 @@ import type {
   SliceCaseReducers,
 } from '@reduxjs/toolkit'
 import type { PayloadAction } from '../createAction'
-import {
-  reducerCreator,
-  type CaseReducerDefinition,
-  type ReducerCreators,
-} from '../createSlice'
+import { reducerCreator, type CaseReducerDefinition } from '../createSlice'
 import type { WithRequiredProp } from '../tsHelpers'
 import type {
   EntityAdapter,
