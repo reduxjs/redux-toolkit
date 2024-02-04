@@ -112,6 +112,8 @@ export const entityMethodsCreator: ReducerCreator<
     adapter,
     {
       selectEntityState = (state) => state,
+      // template literal computed keys don't keep their type if there's an unresolved generic
+      // so we cast to some intermediate type to at least check we're using the right variables in the right places
       name = '' as 's',
       pluralName = name && (`${name}s` as 'p'),
     }: EntityMethodsCreatorConfig<any, any, any, 's', 'p'> = {},
