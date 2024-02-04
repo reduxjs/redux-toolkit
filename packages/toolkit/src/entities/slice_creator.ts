@@ -1,4 +1,5 @@
 import type {
+  CaseReducer,
   ReducerCreator,
   ReducerCreatorEntry,
   SliceCaseReducers,
@@ -21,18 +22,18 @@ type EntityReducers<
   Id extends EntityId,
   State = EntityState<T, Id>,
   Single extends string = '',
-  Plural extends string = `${Single}s`,
+  Plural extends string = Single extends '' ? '' : `${Single}s`,
 > = {
   [K in keyof EntityStateAdapter<
     T,
     Id
-  > as `${K}${Single extends '' ? '' : Capitalize<K extends `${string}One` ? Single : Plural>}`]: EntityStateAdapter<
+  > as `${K}${Capitalize<K extends `${string}One` ? Single : Plural>}`]: EntityStateAdapter<
     T,
     Id
   >[K] extends infer Method
-    ? Method extends (state: any, action: PayloadAction) => any
+    ? Method extends CaseReducer<any, PayloadAction>
       ? CaseReducerDefinition<State, PayloadAction>
-      : Method extends (state: any, action: PayloadAction<infer Payload>) => any
+      : Method extends CaseReducer<any, PayloadAction<infer Payload>>
         ? CaseReducerDefinition<State, PayloadAction<Payload>>
         : never
     : never
