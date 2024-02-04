@@ -129,7 +129,7 @@ describe('entity slice creator', () => {
       reducers: {
         ...entityMethodsCreator.create(bookAdapter, {
           // state can't be inferred here
-          selectEntityState: (state) => state,
+          selectEntityState: (state) => state as EntityState<BookModel, string>,
           name: 'book',
         }),
       },

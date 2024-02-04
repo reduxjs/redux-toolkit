@@ -6,7 +6,7 @@ import type {
 } from '@reduxjs/toolkit'
 import type { PayloadAction } from '../createAction'
 import { reducerCreator, type CaseReducerDefinition } from '../createSlice'
-import type { WithRequiredProp } from '../tsHelpers'
+import type { CastAny, WithRequiredProp } from '../tsHelpers'
 import type {
   EntityAdapter,
   EntityId,
@@ -50,7 +50,7 @@ export interface EntityMethodsCreatorConfig<
   Single extends string,
   Plural extends string,
 > {
-  selectEntityState?: (state: State) => EntityState<T, Id>
+  selectEntityState?: (state: CastAny<State, unknown>) => EntityState<T, Id>
   name?: Single
   pluralName?: Plural
 }
@@ -111,13 +111,13 @@ export const entityMethodsCreator: ReducerCreator<
   create(
     adapter,
     {
-      selectEntityState = (state) => state,
+      selectEntityState = (state) => state as EntityState<any, any>,
       // template literal computed keys don't keep their type if there's an unresolved generic
       // so we cast to some intermediate type to at least check we're using the right variables in the right places
       name = '' as 's',
       pluralName = name && (`${name}s` as 'p'),
     }: EntityMethodsCreatorConfig<any, any, any, 's', 'p'> = {},
-  ): EntityReducers<any, EntityId, any, 's', 'p'> {
+  ): EntityReducers<any, any, any, 's', 'p'> {
     const reducer = reducerCreator.create
     return {
       [`addOne${capitalize(name)}` as const]: reducer<any>((state, action) => {
