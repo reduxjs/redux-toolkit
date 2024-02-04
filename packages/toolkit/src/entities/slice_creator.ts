@@ -108,7 +108,7 @@ export const entityMethodsCreator: ReducerCreator<
     {
       selectEntityState = (state) => state,
       name = '',
-      pluralName = name ? `${name}s` : '',
+      pluralName = name && `${name}s`,
     }: EntityMethodsCreatorConfig<any, any, any, '', ''> = {},
   ): EntityReducers<any, EntityId, any> {
     return {
