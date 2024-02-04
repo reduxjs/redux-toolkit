@@ -17,12 +17,16 @@ import { capitalize } from './utils'
 
 export const entityMethodsCreatorType = Symbol()
 
+type DefaultPlural<Single extends string> = Single extends ''
+  ? ''
+  : `${Single}s`
+
 type EntityReducers<
   T,
   Id extends EntityId,
   State = EntityState<T, Id>,
   Single extends string = '',
-  Plural extends string = Single extends '' ? '' : `${Single}s`,
+  Plural extends string = DefaultPlural<Single>,
 > = {
   [K in keyof EntityStateAdapter<
     T,
@@ -58,7 +62,7 @@ type EntityMethodsCreator<State> =
           T,
           Id extends EntityId,
           Single extends string = '',
-          Plural extends string = `${Single}s`,
+          Plural extends string = DefaultPlural<Single>,
         >(
           this: ReducerCreators<State>,
           adapter: EntityAdapter<T, Id>,
@@ -67,7 +71,10 @@ type EntityMethodsCreator<State> =
             'selectEntityState'
           >,
         ): EntityReducers<T, Id, State, Single, Plural>
-        <Single extends string = '', Plural extends string = `${Single}s`>(
+        <
+          Single extends string = '',
+          Plural extends string = DefaultPlural<Single>,
+        >(
           this: ReducerCreators<State>,
           adapter: EntityAdapter<T, Id>,
           config?: Omit<
@@ -80,7 +87,7 @@ type EntityMethodsCreator<State> =
         T,
         Id extends EntityId,
         Single extends string = '',
-        Plural extends string = `${Single}s`,
+        Plural extends string = DefaultPlural<Single>,
       >(
         this: ReducerCreators<State>,
         adapter: EntityAdapter<T, Id>,
