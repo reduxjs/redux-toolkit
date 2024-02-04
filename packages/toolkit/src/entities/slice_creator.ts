@@ -104,7 +104,7 @@ export const entityMethodsCreator: ReducerCreator<
 > = {
   type: entityMethodsCreatorType,
   create(
-    adapter: EntityStateAdapter<any, any>,
+    adapter,
     {
       selectEntityState = (state) => state,
       name = '',
