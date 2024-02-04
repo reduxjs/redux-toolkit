@@ -12,6 +12,7 @@ import type {
   PayloadActionCreator,
   Reducer,
   ReducerCreators,
+  ReducerDefinition,
   SerializedError,
   SliceCaseReducers,
   ThunkDispatch,
@@ -891,7 +892,7 @@ describe('type tests', () => {
 
     const createGenericSlice = <
       T,
-      Reducers extends SliceCaseReducers<GenericState<T>>,
+      Reducers extends Record<string, ReducerDefinition>,
     >({
       name = '',
       initialState,
