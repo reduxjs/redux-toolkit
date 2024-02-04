@@ -52,7 +52,8 @@
     "@arethetypeswrong/cli": "^0.13.5",
     "@microsoft/api-extractor": "^7.13.2",
     "@phryneas/ts-version": "^1.0.2",
-    "@size-limit/preset-small-lib": "^4.11.0",
+    "@size-limit/file": "^11.0.1",
+    "@size-limit/webpack": "^11.0.1",
     "@testing-library/react": "^13.3.0",
     "@testing-library/user-event": "^13.1.5",
     "@types/json-stringify-safe": "^5.0.0",
@@ -86,7 +87,7 @@
     "prettier": "^3.2.4",
     "query-string": "^7.0.1",
     "rimraf": "^3.0.2",
-    "size-limit": "^4.11.0",
+    "size-limit": "^11.0.1",
     "tslib": "^1.10.0",
     "tsup": "^7.2.0",
     "tsx": "^3.12.2",
@@ -105,7 +106,8 @@
     "test": "vitest --run --typecheck",
     "test:watch": "vitest --watch",
     "type-tests": "yarn tsc -p tsconfig.test.json --noEmit",
-    "prepack": "yarn build"
+    "prepack": "yarn build",
+    "size": "size-limit"
   },
   "files": [
     "dist/",
