@@ -632,7 +632,7 @@ export const { addTodo, deleteTodo, fetchTodo } = todosSlice.actions
 
 #### RTK Creators
 
-These creators come built into RTK, and `reducer` and `preparedReducer` are always available on the `create` object passed to the `reducers` callback.
+These creators come built into RTK, and are always available on the `create` object passed to the `reducers` callback.
 
 ##### `create.reducer`
 
@@ -650,7 +650,7 @@ create.reducer<Todo>((state, action) => {
 
 :::tip
 
-The [creator definition](#creator-definitions) for `create.reducer` is exported from RTK as `reducerCreator`.
+The [creator definition](#creator-definitions) for `create.reducer` is exported from RTK as `reducerCreator`, to allow reuse.
 
 :::
 
@@ -679,33 +679,64 @@ create.preparedReducer(
 
 :::tip
 
-The [creator definition](#creator-definitions) for `create.preparedReducer` is exported from RTK as `preparedReducerCreator`.
+The [creator definition](#creator-definitions) for `create.preparedReducer` is exported from RTK as `preparedReducerCreator`, to allow reuse.
 
 :::
 
-##### `create.asyncThunk`
+#### Optional RTK Creators
 
-Creates an async thunk and adds any provided case reducers for lifecycle actions.
+These creators are not included in the default `create` object, but can be added by passing them to [`buildCreateSlice`](#buildcreateslice).
 
-:::caution Setup
-
-To avoid pulling `createAsyncThunk` into the bundle size of `createSlice` by default, the `asyncThunk` creator is not included in the default `createSlice` instance.
-
-This means it will not include an `asyncThunk` property on the `create` object.
-
-Instead, import [`buildCreateSlice`](#buildcreateslice) and `asyncThunkCreator`, and create your own version of `createSlice`:
+The name the creator is available under is based on the key used when calling `buildCreateSlice`. For example, to use `create.asyncThunk`:
 
 ```ts
 import { buildCreateSlice, asyncThunkCreator } from '@reduxjs/toolkit'
 
 export const createAppSlice = buildCreateSlice({
-  creators: { asyncThunk: asyncThunkCreator },
+  creators: {
+    // highlight-next-line
+    asyncThunk: asyncThunkCreator,
+  },
+})
+
+interface Post {
+  id: string
+  text: string
+}
+
+export const postsSlice = createAppSlice({
+  name: 'posts',
+  initialState: [] as Post[],
+  reducers: (create) => ({
+    // highlight-next-line
+    fetchPosts: create.asyncThunk(
+      async () => {
+        const res = await fetch('myApi/posts')
+        return (await res.json()) as Post[]
+      },
+      {
+        fulfilled(state, action) {
+          return action.payload
+        },
+      },
+    ),
+  }),
 })
 ```
 
-Then import this `createAppSlice` as needed instead of the exported version from RTK.
+For clarity these docs will use recommended names.
+
+:::tip
+
+We recommend using `createAppSlice` consistently throughout your app as a replacement for `createSlice`.
+
+This avoids having to consider whether the creators are needed for each slice.
 
 :::
+
+##### `create.asyncThunk` (`asyncThunkCreator`)
+
+Creates an async thunk and adds any provided case reducers for lifecycle actions.
 
 **Parameters**
 
@@ -797,6 +828,121 @@ reducers: (create) => {
 ```
 
 :::
+
+##### `create.entityMethods` (`entityMethodsCreator`)
+
+Creates a set of reducers for managing a normalized entity state, based on a provided [adapter](./createEntityAdapter).
+
+```ts
+import {
+  createEntityAdapter,
+  buildCreateSlice,
+  entityMethodsCreator,
+} from '@reduxjs/toolkit'
+
+const createAppSlice = buildCreateSlice({
+  creators: { entityMethods: entityMethodsCreator },
+})
+
+interface Post {
+  id: string
+  text: string
+}
+
+const postsAdapter = createEntityAdapter<Post>()
+
+const postsSlice = createAppSlice({
+  name: 'posts',
+  initialState: postsAdapter.getInitialState(),
+  reducers: (create) => ({
+    ...create.entityMethods(postsAdapter),
+  }),
+})
+
+export const { setOne, upsertMany, removeAll, ...etc } = postsSlice.actions
+```
+
+:::caution
+
+Because this creator returns an object of multiple reducer definitions, it should be spread into the final object returned by the `reducers` callback.
+
+:::
+
+:::warning Loss of context
+
+`create.entityMethods` relies on being called with its `this` value set to the `create` object.
+
+This happens automatically when called as `create.entityMethods(adapter)`, but can be accidentally lost if the method is destructured and called separately.
+
+```ts no-transpile
+reducers: ({ entityMethods }) => ({
+  // highlight-next-line
+  // ❌ `this` value has been lost
+  ...entityMethods(postsAdapter),
+})
+```
+
+:::
+
+**Parameters**
+
+- **adapter** The [adapter](./createEntityAdapter) to use.
+- **config** The configuration object. (optional)
+
+The configuration object can contain some of the following options:
+
+**`selectEntityState`**
+
+A selector to retrieve the entity state from the slice state. Defaults to `state => state`, but should be provided if the entity state is nested.
+
+```ts no-transpile
+const postsSlice = createAppSlice({
+  name: 'posts',
+  initialState: { posts: postsAdapter.getInitialState() },
+  reducers: (create) => ({
+    ...create.entityMethods(postsAdapter, {
+      selectEntityState: (state) => state.posts,
+    }),
+  }),
+})
+```
+
+**`name`, `pluralName`**
+
+It's often desirable to modify the reducer names to be specific to the data type being used. These options allow you to do that.
+
+```ts no-transpile
+const postsSlice = createAppSlice({
+  name: 'posts',
+  initialState: postsAdapter.getInitialState(),
+  reducers: (create) => ({
+    ...create.entityMethods(postsAdapter, {
+      name: 'post',
+    }),
+  }),
+})
+
+const { addOnePost, upsertManyPosts, removeAllPosts, ...etc } =
+  postsSlice.actions
+```
+
+`pluralName` defaults to `name + 's'`, but can be provided if this isn't desired.
+
+```ts no-transpile
+const gooseSlice = createAppSlice({
+  name: 'geese',
+  initialState: gooseAdapter.getInitialState(),
+  reducers: (create) => ({
+    ...create.entityMethods(gooseAdapter, {
+      name: 'goose',
+      pluralName: 'geese',
+    }),
+  }),
+})
+
+const { addOneGoose, upsertManyGeese, removeAllGeese, ...etc } =
+  gooseSlice.actions
+```
 
 ### Writing your own creators
 
