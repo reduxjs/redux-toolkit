@@ -112,10 +112,10 @@ export const entityMethodsCreator: ReducerCreator<
     adapter,
     {
       selectEntityState = (state) => state,
-      name = '',
-      pluralName = name && `${name}s`,
-    }: EntityMethodsCreatorConfig<any, any, any, '', ''> = {},
-  ): EntityReducers<any, EntityId, any> {
+      name = '' as 's',
+      pluralName = name && (`${name}s` as 'p'),
+    }: EntityMethodsCreatorConfig<any, any, any, 's', 'p'> = {},
+  ): EntityReducers<any, EntityId, any, 's', 'p'> {
     const reducer = reducerCreator.create
     return {
       [`addOne${capitalize(name)}` as const]: reducer<any>((state, action) => {
