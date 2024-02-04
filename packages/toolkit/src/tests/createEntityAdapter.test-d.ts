@@ -140,8 +140,8 @@ describe('type tests', () => {
     createSlice({
       name: 'test',
       initialState: { somethingElse: '' },
+      // @ts-expect-error
       reducers: {
-        // @ts-expect-error
         addOne: adapter.addOne,
       },
     })
