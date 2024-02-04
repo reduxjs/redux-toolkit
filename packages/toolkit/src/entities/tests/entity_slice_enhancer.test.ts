@@ -3,6 +3,7 @@ import {
   createEntityAdapter,
   createSlice,
   entityMethodsCreator,
+  createEntityMethods,
 } from '@reduxjs/toolkit'
 import type {
   PayloadAction,
@@ -126,7 +127,7 @@ describe('entity slice creator', () => {
       name: 'book',
       initialState: bookAdapter.getInitialState(),
       reducers: {
-        ...entityMethodsCreator.create(bookAdapter, {
+        ...createEntityMethods(bookAdapter, {
           name: 'book',
         }),
       },
@@ -138,7 +139,7 @@ describe('entity slice creator', () => {
       name: 'book',
       initialState,
       reducers: {
-        ...entityMethodsCreator.create(bookAdapter, {
+        ...createEntityMethods(bookAdapter, {
           // state can't be inferred, so needs to be annotated
           selectEntityState: (state: typeof initialState) => state.nested,
           name: 'nestedBook',

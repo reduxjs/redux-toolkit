@@ -3,6 +3,7 @@ import {
   buildCreateSlice,
   createEntityAdapter,
   entityMethodsCreator,
+  createEntityMethods,
 } from '@reduxjs/toolkit'
 import type { BookModel } from './fixtures/book'
 
@@ -29,7 +30,7 @@ describe('entity slice creator', () => {
       PayloadActionCreator<BookModel, 'books/addOne'>
     >()
   })
-  it('can be used in object form, and shows error if incompatible', () => {
+  it('exports createEntityMethods which can be used in object form', () => {
     const bookAdapter = createEntityAdapter<BookModel>()
 
     const initialState = { data: bookAdapter.getInitialState() }
@@ -39,7 +40,7 @@ describe('entity slice creator', () => {
       initialState: { data: bookAdapter.getInitialState() },
       // @ts-expect-error
       reducers: {
-        ...entityMethodsCreator.create(bookAdapter),
+        ...createEntityMethods(bookAdapter),
       },
     })
 
@@ -62,7 +63,7 @@ describe('entity slice creator', () => {
       name: 'books',
       initialState: bookAdapter.getInitialState(),
       reducers: {
-        ...entityMethodsCreator.create(bookAdapter),
+        ...createEntityMethods(bookAdapter),
       },
     })
 
