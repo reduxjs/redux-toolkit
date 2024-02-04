@@ -106,7 +106,8 @@
     "test": "vitest --run --typecheck",
     "test:watch": "vitest --watch",
     "type-tests": "yarn tsc -p tsconfig.test.json --noEmit",
-    "prepack": "yarn build"
+    "prepack": "yarn build",
+    "size": "size-limit"
   },
   "files": [
     "dist/",

@@ -12,19 +12,19 @@ function withRtkPath(suffix, cjs = false) {
     config.plugins.push(
       new webpack.NormalModuleReplacementPlugin(
         /@reduxjs\/toolkit\/query\/react/,
-        join(__dirname, `query/react`),
+        require.resolve('./query/react'),
       ),
       new webpack.NormalModuleReplacementPlugin(
         /@reduxjs\/toolkit\/query/,
-        join(__dirname, `query`),
+        require.resolve('./query'),
       ),
       new webpack.NormalModuleReplacementPlugin(
         /@reduxjs\/toolkit\/react/,
-        join(__dirname, 'react'),
+        require.resolve('./react'),
       ),
       new webpack.NormalModuleReplacementPlugin(
         /@reduxjs\/toolkit/,
-        join(__dirname),
+        require.resolve('.'),
       ),
       new webpack.NormalModuleReplacementPlugin(
         /rtk-query-react.modern.js/,
