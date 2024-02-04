@@ -77,6 +77,7 @@ export type {
   Slice,
   CaseReducerActions,
   SliceCaseReducers,
+  CreatorCaseReducers,
   ValidateSliceCaseReducers,
   CaseReducerWithPrepare,
   ReducerCreators,

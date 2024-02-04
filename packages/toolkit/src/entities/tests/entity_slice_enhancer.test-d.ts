@@ -29,4 +29,45 @@ describe('entity slice creator', () => {
       PayloadActionCreator<BookModel, 'books/addOne'>
     >()
   })
+  it('can be used in object form, and shows error if incompatible', () => {
+    const bookAdapter = createEntityAdapter<BookModel>()
+
+    const initialState = { data: bookAdapter.getInitialState() }
+
+    const bookSlice = createAppSlice({
+      name: 'books',
+      initialState: { data: bookAdapter.getInitialState() },
+      // @ts-expect-error
+      reducers: {
+        ...entityMethodsCreator.create(bookAdapter),
+      },
+    })
+
+    const bookSlice2 = createAppSlice({
+      name: 'books',
+      initialState,
+      reducers: {
+        ...entityMethodsCreator.create(bookAdapter, {
+          // cannot be inferred, needs annotation
+          selectEntityState: (state: typeof initialState) => state.data,
+        }),
+      },
+    })
+
+    expectTypeOf(bookSlice2.actions.addOne).toEqualTypeOf<
+      PayloadActionCreator<BookModel, 'books/addOne'>
+    >()
+
+    const bookSlice3 = createAppSlice({
+      name: 'books',
+      initialState: bookAdapter.getInitialState(),
+      reducers: {
+        ...entityMethodsCreator.create(bookAdapter),
+      },
+    })
+
+    expectTypeOf(bookSlice3.actions.addOne).toEqualTypeOf<
+      PayloadActionCreator<BookModel, 'books/addOne'>
+    >()
+  })
 })

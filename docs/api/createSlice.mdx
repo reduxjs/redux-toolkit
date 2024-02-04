@@ -1116,7 +1116,8 @@ const reducerCreatorType = Symbol()
 declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
     State = any,
-    CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
+    CaseReducers extends
+      CreatorCaseReducers<State> = CreatorCaseReducers<State>,
     Name extends string = string,
   > {
     [reducerCreatorType]: ReducerCreatorEntry<
@@ -1144,7 +1145,8 @@ const batchedCreatorType = Symbol()
 declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
     State = any,
-    CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
+    CaseReducers extends
+      CreatorCaseReducers<State> = CreatorCaseReducers<State>,
     Name extends string = string,
   > {
     [batchedCreatorType]: ReducerCreatorEntry<
@@ -1182,7 +1184,8 @@ const loaderCreatorType = Symbol()
 declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
     State = any,
-    CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
+    CaseReducers extends
+      CreatorCaseReducers<State> = CreatorCaseReducers<State>,
     Name extends string = string,
   > {
     [loaderCreatorType]: ReducerCreatorEntry<
@@ -1208,7 +1211,8 @@ const loaderCreatorType = Symbol()
 declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
     State = any,
-    CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
+    CaseReducers extends
+      CreatorCaseReducers<State> = CreatorCaseReducers<State>,
     Name extends string = string,
   > {
     [loaderCreatorType]: ReducerCreatorEntry<
@@ -1243,7 +1247,8 @@ const asyncThunkCreatorType = Symbol()
 declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
     State = any,
-    CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
+    CaseReducers extends
+      CreatorCaseReducers<State> = CreatorCaseReducers<State>,
     Name extends string = string,
   > {
     [asyncThunkCreatorType]: ReducerCreatorEntry<
@@ -1283,7 +1288,8 @@ const preparedReducerType = Symbol()
 declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
     State = any,
-    CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
+    CaseReducers extends
+      CreatorCaseReducers<State> = CreatorCaseReducers<State>,
     Name extends string = string,
   > {
     [preparedReducerType]: ReducerCreatorEntry<
@@ -1387,7 +1393,8 @@ interface ToastThunkCreator<
 declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
     State = any,
-    CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
+    CaseReducers extends
+      CreatorCaseReducers<State> = CreatorCaseReducers<State>,
     Name extends string = string,
   > {
     [toastCreatorType]: ReducerCreatorEntry<
@@ -1516,7 +1523,8 @@ interface PaginationState {
 declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
     State = any,
-    CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
+    CaseReducers extends
+      CreatorCaseReducers<State> = CreatorCaseReducers<State>,
     Name extends string = string,
   > {
     [paginationCreatorType]: ReducerCreatorEntry<
@@ -1586,7 +1594,7 @@ interface HistoryState<T> {
 declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
     State = any,
-    CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
+    CaseReducers extends CreatorCaseReducers<State> = CreatorCaseReducers<State>,
     Name extends string = string
   > {
     [paginationCreatorType]: ReducerCreatorEntry<
@@ -1695,7 +1703,8 @@ interface UndoableMeta {
 declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
     State = any,
-    CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
+    CaseReducers extends
+      CreatorCaseReducers<State> = CreatorCaseReducers<State>,
     Name extends string = string,
   > {
     [undoableCreatorType]: ReducerCreatorEntry<

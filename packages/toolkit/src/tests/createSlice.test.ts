@@ -5,6 +5,7 @@ import type {
   Action,
   CaseReducer,
   CaseReducerDefinition,
+  CreatorCaseReducers,
   PayloadAction,
   PayloadActionCreator,
   ReducerCreator,
@@ -13,7 +14,6 @@ import type {
   ReducerDefinition,
   ReducerNamesOfType,
   SliceActionType,
-  SliceCaseReducers,
   ThunkAction,
   WithSlice,
 } from '@reduxjs/toolkit'
@@ -910,6 +910,7 @@ describe('createSlice', () => {
         createSlice({
           name: 'test',
           initialState: [] as any[],
+          // @ts-expect-error
           reducers: (create) => ({
             prepared: {
               prepare: (p: string, m: number, e: { message: string }) => ({
@@ -917,7 +918,7 @@ describe('createSlice', () => {
                 meta: m,
                 error: e,
               }),
-              reducer: (state, action) => {
+              reducer: (state: any[], action: any) => {
                 state.push(action)
               },
             },
@@ -1237,7 +1238,8 @@ interface UndoableOptions {
 declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
     State = any,
-    CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
+    CaseReducers extends
+      CreatorCaseReducers<State> = CreatorCaseReducers<State>,
     Name extends string = string,
   > {
     [loaderCreatorType]: ReducerCreatorEntry<

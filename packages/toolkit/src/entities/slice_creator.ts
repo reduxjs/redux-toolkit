@@ -1,8 +1,8 @@
 import type {
   CaseReducer,
+  CreatorCaseReducers,
   ReducerCreator,
   ReducerCreatorEntry,
-  SliceCaseReducers,
 } from '@reduxjs/toolkit'
 import type { PayloadAction } from '../createAction'
 import { reducerCreator, type CaseReducerDefinition } from '../createSlice'
@@ -96,7 +96,8 @@ type EntityMethodsCreator<State> =
 declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
     State = any,
-    CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
+    CaseReducers extends
+      CreatorCaseReducers<State> = CreatorCaseReducers<State>,
     Name extends string = string,
   > {
     [entityMethodsCreatorType]: ReducerCreatorEntry<EntityMethodsCreator<State>>
