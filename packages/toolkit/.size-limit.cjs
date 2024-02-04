@@ -6,68 +6,75 @@ const cjsSuffixes = ['development.cjs', 'production.min.cjs']
 
 function withRtkPath(suffix, cjs = false) {
   /**
+   * @param {string} name
+   */
+  function alias(name) {
+    return `${cjs ? 'cjs/' : ''}${name}.${suffix}`
+  }
+  /**
    * @param {webpack.Configuration} config
    */
   return (config) => {
     config.plugins.push(
       new webpack.NormalModuleReplacementPlugin(
         /@reduxjs\/toolkit\/query\/react/,
-        require.resolve('./query/react'),
+        join(__dirname, 'dist/query/react/rtk-query-react.modern.mjs'),
       ),
       new webpack.NormalModuleReplacementPlugin(
         /@reduxjs\/toolkit\/query/,
-        require.resolve('./query'),
+        join(__dirname, 'dist/query/rtk-query.modern.mjs'),
       ),
       new webpack.NormalModuleReplacementPlugin(
         /@reduxjs\/toolkit\/react/,
-        require.resolve('./react'),
+        join(__dirname, 'dist/react/redux-toolkit-react.modern.mjs'),
       ),
       new webpack.NormalModuleReplacementPlugin(
         /@reduxjs\/toolkit/,
-        require.resolve('.'),
+        join(__dirname, 'dist/redux-toolkit.modern.mjs'),
       ),
       new webpack.NormalModuleReplacementPlugin(
-        /rtk-query-react.modern.js/,
+        /rtk-query-react.modern.mjs/,
         (r) => {
           const old = r.request
           r.request = r.request.replace(
-            /rtk-query-react.modern.js$/,
-            `${cjs ? 'cjs/' : ''}rtk-query-react.${suffix}`,
+            /rtk-query-react.modern.mjs$/,
+            alias('rtk-query-react'),
           )
-          // console.log(old, '=>', r.request)
+          //console.log(old, '=>', r.request)
         },
       ),
-      new webpack.NormalModuleReplacementPlugin(/rtk-query.modern.js/, (r) => {
+      new webpack.NormalModuleReplacementPlugin(/rtk-query.modern.mjs/, (r) => {
         const old = r.request
         r.request = r.request.replace(
-          /rtk-query.modern.js$/,
-          `${cjs ? 'cjs/' : ''}rtk-query.${suffix}`,
+          /rtk-query.modern.mjs$/,
+          alias('rtk-query'),
         )
-        // console.log(old, '=>', r.request)
+        //console.log(old, '=>', r.request)
       }),
       new webpack.NormalModuleReplacementPlugin(
-        /redux-toolkit-react.modern.js$/,
+        /redux-toolkit-react.modern.mjs$/,
         (r) => {
           const old = r.request
           r.request = r.request.replace(
-            /redux-toolkit-react.modern.js$/,
-            `${cjs ? 'cjs/' : ''}redux-toolkit-react.${suffix}`,
+            /redux-toolkit-react.modern.mjs$/,
+            alias('redux-toolkit-react'),
           )
-          // console.log(old, '=>', r.request)
+          //console.log(old, '=>', r.request)
         },
       ),
       new webpack.NormalModuleReplacementPlugin(
-        /redux-toolkit.modern.js$/,
+        /redux-toolkit.modern.mjs$/,
         (r) => {
           const old = r.request
           r.request = r.request.replace(
-            /redux-toolkit.modern.js$/,
-            `${cjs ? 'cjs/' : ''}redux-toolkit.${suffix}`,
+            /redux-toolkit.modern.mjs$/,
+            alias('redux-toolkit'),
           )
-          // console.log(old, '=>', r.request)
+          //console.log(old, '=>', r.request)
         },
       ),
     )
+
     if (suffix === 'production.min.cjs') {
       ;(config.resolve ??= {}).mainFields = ['main', 'module']
     }
@@ -178,6 +185,6 @@ module.exports = entryPoints
     ].map((e) => ({
       ...e,
       name: e.name + ` (.modern.mjs)`,
-      modifyWebpackConfig: withRtkPath('.modern.mjs'),
+      modifyWebpackConfig: withRtkPath('modern.mjs'),
     })),
   )
