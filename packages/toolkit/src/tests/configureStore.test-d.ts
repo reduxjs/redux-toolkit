@@ -13,11 +13,11 @@ import type {
   UnknownAction,
 } from '@reduxjs/toolkit'
 import {
+  Tuple,
   applyMiddleware,
   combineReducers,
   configureStore,
   createSlice,
-  Tuple,
 } from '@reduxjs/toolkit'
 import { thunk } from 'redux-thunk'
 import type { AnyNonNullishValue, EmptyObject } from '../tsHelpers'
@@ -437,7 +437,7 @@ describe('type tests', () => {
         reducer: reducerA,
       })
 
-      store.dispatch(thunkA())
+      void store.dispatch(thunkA())
       // @ts-expect-error
       store.dispatch(thunkB())
 
@@ -519,7 +519,7 @@ describe('type tests', () => {
         middleware: () => new Tuple(thunk as ThunkMiddleware<StateA>),
       })
 
-      store.dispatch(thunkA())
+      void store.dispatch(thunkA())
       // @ts-expect-error
       store.dispatch(thunkB())
     })
@@ -560,7 +560,7 @@ describe('type tests', () => {
     test('Accepts thunk with `unknown`, `undefined` or `null` ThunkAction extraArgument per default', () => {
       const store = configureStore({ reducer: {} })
       // undefined is the default value for the ThunkMiddleware extraArgument
-      store.dispatch(function () {} as ThunkAction<
+      store.dispatch((() => {}) as ThunkAction<
         void,
         AnyNonNullishValue,
         undefined,
@@ -569,7 +569,7 @@ describe('type tests', () => {
       // `null` for the `extra` generic was previously documented in the RTK "Advanced Tutorial", but
       // is a bad pattern and users should use `unknown` instead
       // @ts-expect-error
-      store.dispatch(function () {} as ThunkAction<
+      store.dispatch((() => {}) as ThunkAction<
         void,
         AnyNonNullishValue,
         null,
@@ -578,14 +578,14 @@ describe('type tests', () => {
       // unknown is the best way to type a ThunkAction if you do not care
       // about the value of the extraArgument, as it will always work with every
       // ThunkMiddleware, no matter the actual extraArgument type
-      store.dispatch(function () {} as ThunkAction<
+      store.dispatch((() => {}) as ThunkAction<
         void,
         AnyNonNullishValue,
         unknown,
         UnknownAction
       >)
       // @ts-expect-error
-      store.dispatch(function () {} as ThunkAction<
+      store.dispatch((() => {}) as ThunkAction<
         void,
         AnyNonNullishValue,
         boolean,

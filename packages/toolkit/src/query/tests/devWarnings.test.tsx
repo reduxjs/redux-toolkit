@@ -65,7 +65,7 @@ describe('missing middleware', () => {
       reducer: { [api1.reducerPath]: api1.reducer },
     })
     const doDispatch = () => {
-      store.dispatch(api1.endpoints.q1.initiate(undefined))
+      void store.dispatch(api1.endpoints.q1.initiate(undefined))
     }
     if (shouldWarn) {
       expect(doDispatch).toThrowError(reMatchMissingMiddlewareError)
@@ -79,7 +79,7 @@ describe('missing middleware', () => {
       reducer: { [api1.reducerPath]: api1.reducer },
       middleware: (gdm) => gdm().concat(api1.middleware),
     })
-    store.dispatch(api1.endpoints.q1.initiate(undefined))
+    void store.dispatch(api1.endpoints.q1.initiate(undefined))
     expect(getLog().log).toBe(``)
   })
 
@@ -88,7 +88,7 @@ describe('missing middleware', () => {
       reducer: { [api1.reducerPath]: api1.reducer },
     })
     const doDispatch = () => {
-      store.dispatch(api1.endpoints.q1.initiate(undefined))
+      void store.dispatch(api1.endpoints.q1.initiate(undefined))
     }
 
     expect(doDispatch).toThrowError(reMatchMissingMiddlewareError)
@@ -103,10 +103,10 @@ describe('missing middleware', () => {
       },
     })
     const doDispatch1 = () => {
-      store.dispatch(api1.endpoints.q1.initiate(undefined))
+      void store.dispatch(api1.endpoints.q1.initiate(undefined))
     }
     const doDispatch2 = () => {
-      store.dispatch(api2.endpoints.q1.initiate(undefined))
+      void store.dispatch(api2.endpoints.q1.initiate(undefined))
     }
     expect(doDispatch1).toThrowError(reMatchMissingMiddlewareError)
     expect(doDispatch2).toThrowError(
@@ -186,14 +186,14 @@ describe('missing reducer', () => {
   })
 })
 
-test('warns for reducer and also throws error if everything is missing', async () => {
+test('warns for reducer and also throws error if everything is missing', () => {
   const store = configureStore({
     reducer: { x: () => 0 },
   })
   // @ts-expect-error
   api1.endpoints.q1.select(undefined)(store.getState())
   const doDispatch = () => {
-    store.dispatch(api1.endpoints.q1.initiate(undefined))
+    void store.dispatch(api1.endpoints.q1.initiate(undefined))
   }
   expect(doDispatch).toThrowError(reMatchMissingMiddlewareError)
   expect(getLog().log).toBe(

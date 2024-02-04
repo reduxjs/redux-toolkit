@@ -1,6 +1,8 @@
-import { vi } from 'vitest'
 import type { ThunkAction, UnknownAction } from '@reduxjs/toolkit'
 import {
+  createAction,
+  createAsyncThunk,
+  createReducer,
   isAllOf,
   isAnyOf,
   isAsyncThunkAction,
@@ -8,9 +10,6 @@ import {
   isPending,
   isRejected,
   isRejectedWithValue,
-  createAction,
-  createAsyncThunk,
-  createReducer,
 } from '@reduxjs/toolkit'
 
 const thunk: ThunkAction<any, any, any, UnknownAction> = () => {}
@@ -178,10 +177,7 @@ describe('isPending', () => {
     const matchAC = isPending(thunkA, thunkC)
     const matchB = isPending(thunkB)
 
-    function testPendingAction(
-      thunk: typeof thunkA | typeof thunkB | typeof thunkC,
-      expected: boolean,
-    ) {
+    function testPendingAction(thunk: typeof thunkA, expected: boolean) {
       const pendingAction = thunk.pending('fakeRequestId')
       expect(matchAC(pendingAction)).toBe(expected)
       expect(matchB(pendingAction)).toBe(!expected)
@@ -236,10 +232,7 @@ describe('isRejected', () => {
     const matchAC = isRejected(thunkA, thunkC)
     const matchB = isRejected(thunkB)
 
-    function testRejectedAction(
-      thunk: typeof thunkA | typeof thunkB | typeof thunkC,
-      expected: boolean,
-    ) {
+    function testRejectedAction(thunk: typeof thunkA, expected: boolean) {
       const pendingAction = thunk.pending('fakeRequestId')
       expect(matchAC(pendingAction)).toBe(false)
 
@@ -308,10 +301,7 @@ describe('isRejectedWithValue', () => {
     const matchAC = isRejectedWithValue(thunkA, thunkC)
     const matchB = isRejectedWithValue(thunkB)
 
-    async function testRejectedAction(
-      thunk: typeof thunkA | typeof thunkB | typeof thunkC,
-      expected: boolean,
-    ) {
+    async function testRejectedAction(thunk: typeof thunkA, expected: boolean) {
       const pendingAction = thunk.pending('fakeRequestId')
       expect(matchAC(pendingAction)).toBe(false)
 
@@ -376,10 +366,7 @@ describe('isFulfilled', () => {
     const matchAC = isFulfilled(thunkA, thunkC)
     const matchB = isFulfilled(thunkB)
 
-    function testFulfilledAction(
-      thunk: typeof thunkA | typeof thunkB | typeof thunkC,
-      expected: boolean,
-    ) {
+    function testFulfilledAction(thunk: typeof thunkA, expected: boolean) {
       const pendingAction = thunk.pending('fakeRequestId')
       expect(matchAC(pendingAction)).toBe(false)
 
@@ -434,10 +421,7 @@ describe('isAsyncThunkAction', () => {
     const matchAC = isAsyncThunkAction(thunkA, thunkC)
     const matchB = isAsyncThunkAction(thunkB)
 
-    function testAllActions(
-      thunk: typeof thunkA | typeof thunkB | typeof thunkC,
-      expected: boolean,
-    ) {
+    function testAllActions(thunk: typeof thunkA, expected: boolean) {
       const pendingAction = thunk.pending('fakeRequestId')
       expect(matchAC(pendingAction)).toBe(expected)
       expect(matchB(pendingAction)).toBe(!expected)

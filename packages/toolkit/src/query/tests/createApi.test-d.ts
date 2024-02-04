@@ -238,9 +238,9 @@ describe('type tests', () => {
           },
         })
 
-        storeRef.store.dispatch(api1.endpoints.query1.initiate('in1'))
+        void storeRef.store.dispatch(api1.endpoints.query1.initiate('in1'))
 
-        storeRef.store.dispatch(api1.endpoints.query2.initiate('in2'))
+        void storeRef.store.dispatch(api1.endpoints.query2.initiate('in2'))
 
         enhanced.enhanceEndpoints({
           endpoints: {
@@ -296,10 +296,10 @@ describe('type tests', () => {
           },
         })
 
-        storeRef.store.dispatch(api1.endpoints.query1.initiate('in1'))
-        storeRef.store.dispatch(api1.endpoints.query2.initiate('in2'))
-        storeRef.store.dispatch(api1.endpoints.mutation1.initiate('in1'))
-        storeRef.store.dispatch(api1.endpoints.mutation2.initiate('in2'))
+        void storeRef.store.dispatch(api1.endpoints.query1.initiate('in1'))
+        void storeRef.store.dispatch(api1.endpoints.query2.initiate('in2'))
+        void storeRef.store.dispatch(api1.endpoints.mutation1.initiate('in1'))
+        void storeRef.store.dispatch(api1.endpoints.mutation2.initiate('in2'))
       })
 
       test('updated transform response types', async () => {

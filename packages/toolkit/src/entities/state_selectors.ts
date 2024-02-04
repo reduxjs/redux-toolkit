@@ -36,7 +36,7 @@ export function createSelectorsFactory<T, Id extends EntityId>() {
     const selectAll = createSelector(
       selectIds,
       selectEntities,
-      (ids, entities): T[] => ids.map((id) => entities[id]!),
+      (ids, entities): T[] => ids.map((id) => entities[id]),
     )
 
     const selectId = (_: unknown, id: Id) => id

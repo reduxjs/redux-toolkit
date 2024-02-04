@@ -1,18 +1,18 @@
-import { vi } from 'vitest'
 import type {
   CaseReducer,
-  PayloadAction,
   Draft,
+  PayloadAction,
   Reducer,
   UnknownAction,
 } from '@reduxjs/toolkit'
-import { isPlainObject } from '@reduxjs/toolkit'
-import { createReducer, createAction, createNextState } from '@reduxjs/toolkit'
 import {
-  mockConsole,
-  createConsole,
-  getLog,
-} from 'console-testing-library/pure'
+  createAction,
+  createNextState,
+  createReducer,
+  isPlainObject,
+} from '@reduxjs/toolkit'
+import { createConsole, mockConsole } from 'console-testing-library/pure'
+import { vi } from 'vitest'
 
 interface Todo {
   text: string
@@ -85,7 +85,7 @@ describe('createReducer', () => {
       const { createReducer } = await import('../createReducer')
       const wrapper = () => {
         // @ts-ignore
-        const dummyReducer = (createReducer as CreateReducer)([] as TodoState, {})
+        const dummyReducer = createReducer([] as TodoState, {})
       }
 
       expect(wrapper).toThrowError(
@@ -102,7 +102,7 @@ describe('createReducer', () => {
       const { createReducer } = await import('../createReducer')
       const wrapper = () => {
         // @ts-ignore
-        const dummyReducer = (createReducer as CreateReducer)([] as TodoState, {})
+        const dummyReducer = createReducer([] as TodoState, {})
       }
 
       expect(wrapper).toThrowError()

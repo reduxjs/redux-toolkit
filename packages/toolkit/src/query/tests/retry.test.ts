@@ -1,6 +1,6 @@
+import { setupApiStore } from '@internal/tests/utils/helpers'
 import type { BaseQueryFn } from '@reduxjs/toolkit/query'
 import { createApi, retry } from '@reduxjs/toolkit/query'
-import { setupApiStore } from '../../tests/utils/helpers'
 
 beforeEach(() => {
   vi.useFakeTimers()
@@ -36,7 +36,7 @@ describe('configuration', () => {
     const storeRef = setupApiStore(api, undefined, {
       withoutTestLifecycles: true,
     })
-    storeRef.store.dispatch(api.endpoints.q1.initiate({}))
+    void storeRef.store.dispatch(api.endpoints.q1.initiate({}))
 
     await loopTimers(7)
 
@@ -63,7 +63,7 @@ describe('configuration', () => {
     const storeRef = setupApiStore(api, undefined, {
       withoutTestLifecycles: true,
     })
-    storeRef.store.dispatch(api.endpoints.q1.initiate({}))
+    void storeRef.store.dispatch(api.endpoints.q1.initiate({}))
 
     await loopTimers(5)
 
@@ -95,14 +95,14 @@ describe('configuration', () => {
       withoutTestLifecycles: true,
     })
 
-    storeRef.store.dispatch(api.endpoints.q1.initiate({}))
+    void storeRef.store.dispatch(api.endpoints.q1.initiate({}))
     await loopTimers(5)
 
     expect(baseBaseQuery).toHaveBeenCalledTimes(4)
 
     baseBaseQuery.mockClear()
 
-    storeRef.store.dispatch(api.endpoints.q2.initiate({}))
+    void storeRef.store.dispatch(api.endpoints.q2.initiate({}))
 
     await loopTimers(10)
 
@@ -132,7 +132,7 @@ describe('configuration', () => {
     const storeRef = setupApiStore(api, undefined, {
       withoutTestLifecycles: true,
     })
-    storeRef.store.dispatch(api.endpoints.q1.initiate({}))
+    void storeRef.store.dispatch(api.endpoints.q1.initiate({}))
 
     await loopTimers(6)
 
@@ -160,7 +160,7 @@ describe('configuration', () => {
       withoutTestLifecycles: true,
     })
 
-    storeRef.store.dispatch(api.endpoints.m1.initiate({}))
+    void storeRef.store.dispatch(api.endpoints.m1.initiate({}))
 
     await loopTimers(5)
 
@@ -191,7 +191,7 @@ describe('configuration', () => {
       withoutTestLifecycles: true,
     })
 
-    storeRef.store.dispatch(api.endpoints.m1.initiate({}))
+    void storeRef.store.dispatch(api.endpoints.m1.initiate({}))
 
     await loopTimers(5)
 
@@ -218,7 +218,7 @@ describe('configuration', () => {
       withoutTestLifecycles: true,
     })
 
-    storeRef.store.dispatch(api.endpoints.q1.initiate({}))
+    void storeRef.store.dispatch(api.endpoints.q1.initiate({}))
 
     await loopTimers(2)
 
@@ -297,7 +297,7 @@ describe('configuration', () => {
       withoutTestLifecycles: true,
     })
 
-    storeRef.store.dispatch(api.endpoints.q1.initiate({}))
+    void storeRef.store.dispatch(api.endpoints.q1.initiate({}))
 
     await loopTimers(18)
 
@@ -333,7 +333,7 @@ describe('configuration', () => {
     const storeRef = setupApiStore(api, undefined, {
       withoutTestLifecycles: true,
     })
-    storeRef.store.dispatch(api.endpoints.q1.initiate({}))
+    void storeRef.store.dispatch(api.endpoints.q1.initiate({}))
 
     await loopTimers()
 
@@ -364,7 +364,7 @@ describe('configuration', () => {
     const storeRef = setupApiStore(api, undefined, {
       withoutTestLifecycles: true,
     })
-    storeRef.store.dispatch(api.endpoints.q1.initiate({}))
+    void storeRef.store.dispatch(api.endpoints.q1.initiate({}))
 
     await loopTimers()
 
@@ -396,7 +396,7 @@ describe('configuration', () => {
     const storeRef = setupApiStore(api, undefined, {
       withoutTestLifecycles: true,
     })
-    storeRef.store.dispatch(api.endpoints.q1.initiate({}))
+    void storeRef.store.dispatch(api.endpoints.q1.initiate({}))
 
     await loopTimers()
 
@@ -431,7 +431,7 @@ describe('configuration', () => {
     const storeRef = setupApiStore(api, undefined, {
       withoutTestLifecycles: true,
     })
-    storeRef.store.dispatch(api.endpoints.m1.initiate({}))
+    void storeRef.store.dispatch(api.endpoints.m1.initiate({}))
 
     await loopTimers()
 
@@ -459,7 +459,7 @@ describe('configuration', () => {
       withoutTestLifecycles: true,
     })
 
-    storeRef.store.dispatch(api.endpoints.q1.initiate({}))
+    void storeRef.store.dispatch(api.endpoints.q1.initiate({}))
     await loopTimers(2)
 
     expect(baseBaseQuery).toHaveBeenCalledTimes(1)

@@ -1,11 +1,12 @@
 import type { PayloadAction } from '@reduxjs/toolkit'
 import {
+  TaskAbortError,
   configureStore,
   createAction,
+  createListenerMiddleware,
   createSlice,
   isAnyOf,
 } from '@reduxjs/toolkit'
-import { createListenerMiddleware, TaskAbortError } from '../index'
 
 describe('Saga-style Effects Scenarios', () => {
   interface CounterState {
@@ -153,7 +154,7 @@ describe('Saga-style Effects Scenarios', () => {
     expect(workPerformed).toBe(1)
   })
 
-  test('takeEvery', async () => {
+  test('takeEvery', () => {
     // Runs the listener on every action match
     // Ref: https://redux-saga.js.org/docs/api#takeeverypattern-saga-args
 

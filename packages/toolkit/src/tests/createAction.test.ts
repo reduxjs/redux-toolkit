@@ -12,7 +12,7 @@ describe('createAction', () => {
   describe('when stringifying action', () => {
     it('should return the action type', () => {
       const actionCreator = createAction('A_TYPE')
-      expect(`${actionCreator}`).toEqual('A_TYPE')
+      expect(actionCreator.toString()).toEqual('A_TYPE')
     })
   })
 

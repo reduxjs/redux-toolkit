@@ -116,7 +116,7 @@ describe('type tests', () => {
       }
     >(
       'books/fetch',
-      async (arg, { getState, dispatch, extra, requestId, signal }) => {
+      (arg, { getState, dispatch, extra, requestId, signal }) => {
         const state = getState()
 
         expectTypeOf(arg).toBeNumber()
@@ -129,9 +129,9 @@ describe('type tests', () => {
       },
     )
 
-    correctDispatch(fetchBooksTAC(1))
+    void correctDispatch(fetchBooksTAC(1))
     // @ts-expect-error
-    defaultDispatch(fetchBooksTAC(1))
+    void defaultDispatch(fetchBooksTAC(1))
   })
 
   test('returning a rejected action from the promise creator is possible', async () => {
@@ -148,7 +148,7 @@ describe('type tests', () => {
       {
         rejectValue: RejectValue
       }
-    >('books/fetch', async (arg, { rejectWithValue }) => {
+    >('books/fetch', (arg, { rejectWithValue }) => {
       return rejectWithValue({ data: 'error' })
     })
 
@@ -167,7 +167,7 @@ describe('type tests', () => {
   })
 
   test('regression #1156: union return values fall back to allowing only single member', () => {
-    const fn = createAsyncThunk('session/isAdmin', async () => {
+    const fn = createAsyncThunk('session/isAdmin', () => {
       const response = false
       return response
     })
@@ -225,11 +225,11 @@ describe('type tests', () => {
           // let it be handled as any other unknown error
           throw err
         }
-        return rejectWithValue(error.response && error.response.data)
+        return rejectWithValue(error.response?.data)
       }
     })
 
-    defaultDispatch(fetchLiveCallsError('asd')).then((result) => {
+    void defaultDispatch(fetchLiveCallsError('asd')).then((result) => {
       if (fetchLiveCallsError.fulfilled.match(result)) {
         //success
         expectTypeOf(result).toEqualTypeOf<
@@ -254,7 +254,7 @@ describe('type tests', () => {
           expectTypeOf(result.error).not.toBeAny()
         }
       }
-      defaultDispatch(fetchLiveCallsError('asd'))
+      void defaultDispatch(fetchLiveCallsError('asd'))
         .then((result) => {
           expectTypeOf(result.payload).toEqualTypeOf<
             Item[] | ErrorFromServer | undefined
@@ -517,7 +517,7 @@ describe('type tests', () => {
       },
     )
 
-    defaultDispatch(asyncThunk())
+    void defaultDispatch(asyncThunk())
       .then((result) => {
         if (asyncThunk.fulfilled.match(result)) {
           expectTypeOf(result).toEqualTypeOf<
@@ -613,7 +613,7 @@ describe('type tests', () => {
 
     const getObj = createAsyncThunk(
       'slice/getObj',
-      async (_: any, { fulfillWithValue, rejectWithValue }) => {
+      (_: any, { fulfillWithValue, rejectWithValue }) => {
         try {
           return fulfillWithValue({ magic: 'object' })
         } catch (rejected: any) {
@@ -642,14 +642,14 @@ describe('type tests', () => {
     )
     createAsyncThunk<'ret', void, EmptyObject>(
       'test',
-      async (_, api) => 'ret' as const,
+      (_, api) => 'ret' as const,
     )
     createAsyncThunk<'ret', void, { fulfilledMeta: string }>('test', (_, api) =>
       api.fulfillWithValue('ret' as const, ''),
     )
     createAsyncThunk<'ret', void, { fulfilledMeta: string }>(
       'test',
-      async (_, api) => api.fulfillWithValue('ret' as const, ''),
+      (_, api) => api.fulfillWithValue('ret' as const, ''),
     )
     createAsyncThunk<'ret', void, { fulfilledMeta: string }>(
       'test',
@@ -659,7 +659,7 @@ describe('type tests', () => {
     createAsyncThunk<'ret', void, { fulfilledMeta: string }>(
       'test',
       // @ts-expect-error has to be a fulfilledWithValue call
-      async (_, api) => 'ret' as const,
+      (_, api) => 'ret' as const,
     )
     createAsyncThunk<'ret', void, { fulfilledMeta: string }>(
       'test', // @ts-expect-error should only allow returning with 'test'
@@ -667,7 +667,7 @@ describe('type tests', () => {
     )
     createAsyncThunk<'ret', void, { fulfilledMeta: string }>(
       'test', // @ts-expect-error should only allow returning with 'test'
-      async (_, api) => api.fulfillWithValue(5, ''),
+      (_, api) => api.fulfillWithValue(5, ''),
     )
 
     // reject values
@@ -676,7 +676,7 @@ describe('type tests', () => {
     )
     createAsyncThunk<'ret', void, { rejectValue: string }>(
       'test',
-      async (_, api) => api.rejectWithValue('ret'),
+      (_, api) => api.rejectWithValue('ret'),
     )
     createAsyncThunk<
       'ret',
@@ -687,7 +687,7 @@ describe('type tests', () => {
       'ret',
       void,
       { rejectValue: string; rejectedMeta: number }
-    >('test', async (_, api) => api.rejectWithValue('ret', 5))
+    >('test', (_, api) => api.rejectWithValue('ret', 5))
     createAsyncThunk<
       'ret',
       void,
@@ -709,7 +709,7 @@ describe('type tests', () => {
     >(
       'test',
       // @ts-expect-error wrong rejectedMeta type
-      async (_, api) => api.rejectWithValue('ret', ''),
+      (_, api) => api.rejectWithValue('ret', ''),
     )
     createAsyncThunk<
       'ret',
@@ -727,7 +727,7 @@ describe('type tests', () => {
     >(
       'test',
       // @ts-expect-error wrong rejectValue type
-      async (_, api) => api.rejectWithValue(5, ''),
+      (_, api) => api.rejectWithValue(5, ''),
     )
   })
 

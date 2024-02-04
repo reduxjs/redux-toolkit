@@ -50,7 +50,7 @@ describe('type tests', () => {
       const asyncThunk1 = createAsyncThunk<{ prop1: number; prop3: number }>(
         'asyncThunk1',
 
-        async () => {
+        () => {
           return {
             prop1: 1,
             prop3: 3,
@@ -61,7 +61,7 @@ describe('type tests', () => {
       const asyncThunk2 = createAsyncThunk<{ prop1: number; prop2: number }>(
         'asyncThunk2',
 
-        async () => {
+        () => {
           return {
             prop1: 1,
             prop2: 2,
@@ -153,7 +153,7 @@ describe('type tests', () => {
       const asyncThunk1 = createAsyncThunk<{ prop1: number; prop3: number }>(
         'asyncThunk1',
 
-        async () => {
+        () => {
           return {
             prop1: 1,
             prop3: 3,

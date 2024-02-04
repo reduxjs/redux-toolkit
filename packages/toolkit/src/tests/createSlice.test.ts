@@ -13,8 +13,6 @@ import {
   mockConsole,
 } from 'console-testing-library/pure'
 
-type CreateSlice = typeof createSlice
-
 describe('createSlice', () => {
   let restore: () => void
 
@@ -84,7 +82,9 @@ describe('createSlice', () => {
     })
 
     it('should create increment action', () => {
-      expect(Object.prototype.hasOwnProperty.call(actions, 'increment')).toBe(true)
+      expect(Object.prototype.hasOwnProperty.call(actions, 'increment')).toBe(
+        true,
+      )
     })
 
     it('should have the correct action for increment', () => {
@@ -101,7 +101,7 @@ describe('createSlice', () => {
     it('should include the generated case reducers', () => {
       expect(caseReducers).toBeTruthy()
       expect(caseReducers.increment).toBeTruthy()
-      expect(typeof caseReducers.increment).toBe('function')
+      expect(caseReducers.increment).toBeTypeOf('function')
     })
 
     it('getInitialState should return the state', () => {
@@ -408,7 +408,7 @@ describe('createSlice', () => {
     it('Throws an error if the legacy object notation is used', async () => {
       const { createSlice } = await import('../createSlice')
 
-      let dummySlice = (createSlice as CreateSlice)({
+      let dummySlice = createSlice({
         name: 'dummy',
         initialState: [],
         reducers: {},
@@ -428,7 +428,7 @@ describe('createSlice', () => {
         /The object notation for `createSlice.extraReducers` has been removed/,
       )
 
-      dummySlice = (createSlice as CreateSlice)({
+      dummySlice = createSlice({
         name: 'dummy',
         initialState: [],
         reducers: {},
@@ -448,7 +448,7 @@ describe('createSlice', () => {
 
       const { createSlice } = await import('../createSlice')
 
-      const dummySlice = (createSlice as CreateSlice)({
+      const dummySlice = createSlice({
         name: 'dummy',
         initialState: [],
         reducers: {},
@@ -808,7 +808,7 @@ describe('createSlice', () => {
       ])
     })
 
-    test('has caseReducers for the asyncThunk', async () => {
+    test('has caseReducers for the asyncThunk', () => {
       const slice = createAppSlice({
         name: 'test',
         initialState: [],
@@ -839,7 +839,7 @@ describe('createSlice', () => {
       ).not.toThrow()
     })
 
-    test('can define reducer with prepare statement using create.preparedReducer', async () => {
+    test('can define reducer with prepare statement using create.preparedReducer', () => {
       const slice = createSlice({
         name: 'test',
         initialState: [] as any[],
@@ -876,7 +876,7 @@ describe('createSlice', () => {
       `)
     })
 
-    test('throws an error when invoked with a normal `prepare` object that has not gone through a `create.preparedReducer` call', async () => {
+    test('throws an error when invoked with a normal `prepare` object that has not gone through a `create.preparedReducer` call', () => {
       expect(() =>
         createSlice({
           name: 'test',

@@ -1,6 +1,8 @@
 /**
  * Note: this file should import all other files for type discovery and declaration merging
  */
+import { assertCast, safeAssign } from '@internal/query/tsHelpers'
+import type { AnyNonNullishValue, AnyObject } from '@internal/tsHelpers'
 import type {
   ActionCreatorWithPayload,
   Middleware,
@@ -10,7 +12,6 @@ import type {
   UnknownAction,
 } from '@reduxjs/toolkit'
 import { enablePatches } from 'immer'
-import type { AnyNonNullishValue, AnyObject } from '../../tsHelpers'
 import type { Api, Module } from '../apiTypes'
 import type { BaseQueryFn } from '../baseQueryTypes'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
@@ -23,7 +24,6 @@ import type {
   TagDescription,
 } from '../endpointDefinitions'
 import { isMutationDefinition, isQueryDefinition } from '../endpointDefinitions'
-import { assertCast, safeAssign } from '../tsHelpers'
 import type {
   CombinedState,
   MutationKeys,
@@ -68,8 +68,11 @@ export type PrefetchOptions =
 export const coreModuleName = /* @__PURE__ */ Symbol()
 export type CoreModule =
   | typeof coreModuleName
+  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
   | ReferenceCacheLifecycle
+  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents, @typescript-eslint/no-duplicate-type-constituents
   | ReferenceQueryLifecycle
+  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents, @typescript-eslint/no-duplicate-type-constituents
   | ReferenceCacheCollection
 
 export interface ThunkWithReturnValue<T>

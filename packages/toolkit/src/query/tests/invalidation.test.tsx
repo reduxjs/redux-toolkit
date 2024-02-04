@@ -106,8 +106,8 @@ test.each(caseMatrix)(
       { withoutTestLifecycles: true },
     )
 
-    store.dispatch(providing.initiate())
-    store.dispatch(unrelated.initiate())
+    void store.dispatch(providing.initiate())
+    void store.dispatch(unrelated.initiate())
     expect(queryCount).toBe(1)
     await waitFor(() => {
       expect(api.endpoints.providing.select()(store.getState()).status).toBe(
@@ -134,7 +134,7 @@ test.each(caseMatrix)(
       expect(toInvalidate).toEqual([])
     }
 
-    store.dispatch(invalidating.initiate())
+    void store.dispatch(invalidating.initiate())
     expect(queryCount).toBe(1)
     await delay(2)
     expect(queryCount).toBe(shouldInvalidate ? 2 : 1)

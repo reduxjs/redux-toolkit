@@ -162,7 +162,7 @@ describe('wrong tagTypes log errors', () => {
     ['invalidateWrongTypeWithIdAndCallback', true],
   ])(`endpoint %s should log an error? %s`, async (endpoint, shouldError) => {
     // @ts-ignore
-    store.dispatch(api.endpoints[endpoint].initiate())
+    void store.dispatch(api.endpoints[endpoint].initiate())
     let result: { status: string }
     do {
       await delay(5)
@@ -335,14 +335,14 @@ describe('endpoint definition typings', () => {
       api = getNewApi()
     })
 
-    test('pre-modification behaviour', async () => {
+    test('pre-modification behaviour', () => {
       const storeRef = setupApiStore(api, undefined, {
         withoutTestLifecycles: true,
       })
-      storeRef.store.dispatch(api.endpoints.query1.initiate('in1'))
-      storeRef.store.dispatch(api.endpoints.query2.initiate('in2'))
-      storeRef.store.dispatch(api.endpoints.mutation1.initiate('in1'))
-      storeRef.store.dispatch(api.endpoints.mutation2.initiate('in2'))
+      void storeRef.store.dispatch(api.endpoints.query1.initiate('in1'))
+      void storeRef.store.dispatch(api.endpoints.query2.initiate('in2'))
+      void storeRef.store.dispatch(api.endpoints.mutation1.initiate('in1'))
+      void storeRef.store.dispatch(api.endpoints.mutation2.initiate('in2'))
 
       expect(baseQuery.mock.calls).toEqual([
         [
@@ -418,11 +418,11 @@ describe('endpoint definition typings', () => {
         },
       })
 
-      storeRef.store.dispatch(api.endpoints.query1.initiate('in1'))
+      void storeRef.store.dispatch(api.endpoints.query1.initiate('in1'))
       await delay(1)
       expect(spy).not.toHaveBeenCalled()
 
-      storeRef.store.dispatch(api.endpoints.query2.initiate('in2'))
+      void storeRef.store.dispatch(api.endpoints.query2.initiate('in2'))
       await delay(1)
       expect(spy).toHaveBeenCalledWith(
         "Tag type 'missing' was used, but not specified in `tagTypes`!",
@@ -460,10 +460,10 @@ describe('endpoint definition typings', () => {
         },
       })
 
-      storeRef.store.dispatch(api.endpoints.query1.initiate('in1'))
-      storeRef.store.dispatch(api.endpoints.query2.initiate('in2'))
-      storeRef.store.dispatch(api.endpoints.mutation1.initiate('in1'))
-      storeRef.store.dispatch(api.endpoints.mutation2.initiate('in2'))
+      void storeRef.store.dispatch(api.endpoints.query1.initiate('in1'))
+      void storeRef.store.dispatch(api.endpoints.query2.initiate('in2'))
+      void storeRef.store.dispatch(api.endpoints.mutation1.initiate('in1'))
+      void storeRef.store.dispatch(api.endpoints.mutation2.initiate('in2'))
 
       expect(baseQuery.mock.calls).toEqual([
         ['modified1', commonBaseQueryApi, undefined],
@@ -605,7 +605,7 @@ describe('additional transformResponse behaviors', () => {
       }),
       queryWithMeta: build.query<SuccessResponse, void>({
         query: () => '/success',
-        transformResponse: async (response: SuccessResponse, meta) => {
+        transformResponse: (response: SuccessResponse, meta) => {
           return {
             ...response,
             meta: {
@@ -822,13 +822,13 @@ test('providesTags and invalidatesTags can use baseQueryMeta', async () => {
   })
 
   await storeRef.store.dispatch(api.endpoints.query.initiate())
-  expect('request' in _meta! && 'response' in _meta!).toBe(true)
+  expect('request' in _meta! && 'response' in _meta).toBe(true)
 
   _meta = undefined
 
   await storeRef.store.dispatch(api.endpoints.mutation.initiate())
 
-  expect('request' in _meta! && 'response' in _meta!).toBe(true)
+  expect('request' in _meta! && 'response' in _meta).toBe(true)
 })
 
 describe('structuralSharing flag behaviors', () => {

@@ -200,7 +200,7 @@ const getListenerEntryPropsFrom = (options: FallbackAddListenerOptions) => {
   if (type) {
     predicate = createAction(type).match
   } else if (actionCreator) {
-    type = actionCreator!.type
+    type = actionCreator.type
     predicate = actionCreator.match
   } else if (matcher) {
     predicate = matcher
@@ -324,7 +324,7 @@ export const createListenerMiddleware = <
   assertFunction(onError, 'onError')
 
   const insertEntry = (entry: ListenerEntry) => {
-    entry.unsubscribe = () => listenerMap.delete(entry!.id)
+    entry.unsubscribe = () => listenerMap.delete(entry.id)
 
     listenerMap.set(entry.id, entry)
     return (cancelOptions?: UnsubscribeListenerOptions) => {
@@ -388,7 +388,7 @@ export const createListenerMiddleware = <
   ) => {
     const internalTaskController = new AbortController()
     const take = createTakePattern(
-      startListening as AddListenerOverloads<any>,
+      startListening ,
       internalTaskController.signal,
     )
     const autoJoinPromises: Array<Promise<any>> = []

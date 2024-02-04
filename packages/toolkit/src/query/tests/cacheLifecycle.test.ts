@@ -31,7 +31,7 @@ beforeEach(() => {
 describe.each([['query'], ['mutation']] as const)(
   'generic cases: %s',
   (type) => {
-    test(`${type}: new cache entry only`, async () => {
+    test(`${type}: new cache entry only`, () => {
       const extended = api.injectEndpoints({
         overrideExisting: true,
         endpoints: (build) => ({
@@ -43,7 +43,7 @@ describe.each([['query'], ['mutation']] as const)(
           }),
         }),
       })
-      storeRef.store.dispatch(extended.endpoints.injected.initiate('arg'))
+      void storeRef.store.dispatch(extended.endpoints.injected.initiate('arg'))
       expect(onNewCacheEntry).toHaveBeenCalledWith('arg')
     })
 
@@ -557,7 +557,7 @@ test('dispatching further actions does not trigger another lifecycle', async () 
     endpoints: (build) => ({
       injected: build.query<unknown, void>({
         query: () => '/success',
-        async onCacheEntryAdded() {
+        onCacheEntryAdded() {
           onNewCacheEntry()
         },
       }),
@@ -581,7 +581,7 @@ test('dispatching a query initializer with `subscribe: false` does also start a 
     endpoints: (build) => ({
       injected: build.query<unknown, void>({
         query: () => '/success',
-        async onCacheEntryAdded() {
+        onCacheEntryAdded() {
           onNewCacheEntry()
         },
       }),
@@ -603,7 +603,7 @@ test('dispatching a mutation initializer with `track: false` does not start a li
     endpoints: (build) => ({
       injected: build.mutation<unknown, void>({
         query: () => '/success',
-        async onCacheEntryAdded() {
+        onCacheEntryAdded() {
           onNewCacheEntry()
         },
       }),

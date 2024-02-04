@@ -62,29 +62,29 @@ describe('queryFn base implementation tests', () => {
         },
       }),
       withAsyncQueryFn: build.query<string, string>({
-        async queryFn(arg: string) {
+        queryFn(arg: string) {
           return { data: `resultFrom(${arg})` }
         },
       }),
       withInvalidDataAsyncQueryFn: build.query<string, string>({
         // @ts-expect-error
-        async queryFn(arg: string) {
+        queryFn(arg: string) {
           return { data: 5 }
         },
       }),
       withAsyncErrorQueryFn: build.query<string, string>({
-        async queryFn(arg: string) {
+        queryFn(arg: string) {
           return { error: `resultFrom(${arg})` }
         },
       }),
       withInvalidAsyncErrorQueryFn: build.query<string, string>({
         // @ts-expect-error
-        async queryFn(arg: string) {
+        queryFn(arg: string) {
           return { error: 5 }
         },
       }),
       withAsyncThrowingQueryFn: build.query<string, string>({
-        async queryFn(arg: string) {
+        queryFn(arg: string) {
           throw new Error(`resultFrom(${arg})`)
         },
       }),
@@ -116,29 +116,29 @@ describe('queryFn base implementation tests', () => {
         },
       }),
       mutationWithAsyncQueryFn: build.mutation<string, string>({
-        async queryFn(arg: string) {
+        queryFn(arg: string) {
           return { data: `resultFrom(${arg})` }
         },
       }),
       mutationWithInvalidAsyncQueryFn: build.mutation<string, string>({
         // @ts-expect-error
-        async queryFn(arg: string) {
+        queryFn(arg: string) {
           return { data: 5 }
         },
       }),
       mutationWithAsyncErrorQueryFn: build.mutation<string, string>({
-        async queryFn(arg: string) {
+        queryFn(arg: string) {
           return { error: `resultFrom(${arg})` }
         },
       }),
       mutationWithInvalidAsyncErrorQueryFn: build.mutation<string, string>({
         // @ts-expect-error
-        async queryFn(arg: string) {
+        queryFn(arg: string) {
           return { error: 5 }
         },
       }),
       mutationWithAsyncThrowingQueryFn: build.mutation<string, string>({
-        async queryFn(arg: string) {
+        queryFn(arg: string) {
           throw new Error(`resultFrom(${arg})`)
         },
       }),

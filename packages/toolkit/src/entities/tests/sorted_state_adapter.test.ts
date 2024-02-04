@@ -251,8 +251,8 @@ describe('Sorted State Adapter', () => {
     expect(entities.a).toBeTruthy()
     expect(entities.b).not.toBeTruthy()
     expect(entities.c).toBeTruthy()
-    expect(entities.c!.id).toBe('c')
-    expect(entities.c!.title).toBe('Second')
+    expect(entities.c.id).toBe('c')
+    expect(entities.c.title).toBe('Second')
   })
 
   it('should not change ids state if you attempt to update an entity that does not impact sorting', () => {
@@ -581,7 +581,7 @@ describe('Sorted State Adapter', () => {
     })
 
     expect(withUpdate.ids).toEqual(['b'])
-    expect(withUpdate.entities['b']!.title).toBe(book1.title)
+    expect(withUpdate.entities['b'].title).toBe(book1.title)
   })
 
   describe('can be used mutably when wrapped in createNextState', () => {

@@ -13,8 +13,8 @@ import {
 } from '@testing-library/react'
 import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios'
 import axios from 'axios'
-import { http, HttpResponse } from 'msw'
-import * as React from 'react'
+import { HttpResponse, http } from 'msw'
+import React from 'react'
 import { useDispatch } from 'react-redux'
 
 const baseQuery = fetchBaseQuery({ baseUrl: 'https://example.com' })
@@ -633,7 +633,7 @@ describe('error handling in a component', () => {
       })
     })
 
-    test(`an un-subscribed mutation will still be unwrappable (error case, track: ${track})`, async () => {
+    test(`an un-subscribed mutation will still be unwrappable (error case, track: ${track})`, () => {
       const hook = renderHook(useDispatch, { wrapper: storeRef.wrapper })
 
       const dispatch = hook.result.current as ThunkDispatch<
@@ -650,7 +650,7 @@ describe('error handling in a component', () => {
         )
       })
       const unwrappedPromise = mutationqueryFulfilled!.unwrap()
-      expect(unwrappedPromise).rejects.toMatchObject({
+      void expect(unwrappedPromise).rejects.toMatchObject({
         status: 500,
         data: { value: 'error' },
       })

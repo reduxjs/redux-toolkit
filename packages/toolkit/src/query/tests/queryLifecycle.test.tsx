@@ -24,7 +24,7 @@ beforeEach(() => {
 describe.each([['query'], ['mutation']] as const)(
   'generic cases: %s',
   (type) => {
-    test(`${type}: onStart only`, async () => {
+    test(`${type}: onStart only`, () => {
       const extended = api.injectEndpoints({
         overrideExisting: true,
         endpoints: (build) => ({
@@ -36,7 +36,7 @@ describe.each([['query'], ['mutation']] as const)(
           }),
         }),
       })
-      storeRef.store.dispatch(extended.endpoints.injected.initiate('arg'))
+      void storeRef.store.dispatch(extended.endpoints.injected.initiate('arg'))
       expect(onStart).toHaveBeenCalledWith('arg')
     })
 
@@ -56,7 +56,7 @@ describe.each([['query'], ['mutation']] as const)(
           }),
         }),
       })
-      storeRef.store.dispatch(extended.endpoints.injected.initiate('arg'))
+      void storeRef.store.dispatch(extended.endpoints.injected.initiate('arg'))
       expect(onStart).toHaveBeenCalledWith('arg')
       await waitFor(() => {
         expect(onSuccess).toHaveBeenCalledWith({
@@ -87,7 +87,7 @@ describe.each([['query'], ['mutation']] as const)(
           }),
         }),
       })
-      storeRef.store.dispatch(extended.endpoints.injected.initiate('arg'))
+      void storeRef.store.dispatch(extended.endpoints.injected.initiate('arg'))
       expect(onStart).toHaveBeenCalledWith('arg')
       await waitFor(() => {
         expect(onError).toHaveBeenCalledWith({
@@ -400,7 +400,7 @@ test('query: updateCachedData', async () => {
       { once: true },
     ),
   )
-  storeRef.store.dispatch(
+  void storeRef.store.dispatch(
     extended.endpoints.injected.initiate('arg', { forceRefetch: true }),
   )
 
@@ -412,7 +412,7 @@ test('query: updateCachedData', async () => {
   // request 3: success
   expect(onSuccess).not.toHaveBeenCalled()
 
-  storeRef.store.dispatch(
+  void storeRef.store.dispatch(
     extended.endpoints.injected.initiate('arg', { forceRefetch: true }),
   )
 
@@ -439,10 +439,10 @@ test('query: will only start lifecycle if query is not skipped due to `condition
     extended.endpoints.injected.initiate('arg'),
   )
   expect(onStart).toHaveBeenCalledTimes(1)
-  storeRef.store.dispatch(extended.endpoints.injected.initiate('arg'))
+  void storeRef.store.dispatch(extended.endpoints.injected.initiate('arg'))
   expect(onStart).toHaveBeenCalledTimes(1)
   await promise
-  storeRef.store.dispatch(
+  void storeRef.store.dispatch(
     extended.endpoints.injected.initiate('arg', { forceRefetch: true }),
   )
   expect(onStart).toHaveBeenCalledTimes(2)

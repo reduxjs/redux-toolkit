@@ -84,7 +84,7 @@ describe('polling tests', () => {
       }),
     )
 
-    storeRef.store.dispatch(
+    void storeRef.store.dispatch(
       getPosts.initiate(1, {
         subscriptionOptions: { pollingInterval: 10 },
         subscribe: true,
@@ -104,14 +104,14 @@ describe('polling tests', () => {
   })
 
   it('uses lowest specified interval when two components are mounted', async () => {
-    storeRef.store.dispatch(
+    await storeRef.store.dispatch(
       getPosts.initiate(1, {
-        subscriptionOptions: { pollingInterval: 30000 },
+        subscriptionOptions: { pollingInterval: 30_000 },
         subscribe: true,
       }),
     )
 
-    storeRef.store.dispatch(
+    await storeRef.store.dispatch(
       getPosts.initiate(1, {
         subscriptionOptions: { pollingInterval: 10 },
         subscribe: true,
@@ -125,7 +125,7 @@ describe('polling tests', () => {
 
   it('respects skipPollingIfUnfocused', async () => {
     mockBaseQuery.mockClear()
-    storeRef.store.dispatch(
+    void storeRef.store.dispatch(
       getPosts.initiate(2, {
         subscriptionOptions: {
           pollingInterval: 10,
@@ -139,7 +139,7 @@ describe('polling tests', () => {
     await delay(50)
     const callsWithSkip = mockBaseQuery.mock.calls.length
 
-    storeRef.store.dispatch(
+    void storeRef.store.dispatch(
       getPosts.initiate(2, {
         subscriptionOptions: {
           pollingInterval: 10,
@@ -161,7 +161,7 @@ describe('polling tests', () => {
   })
 
   it('respects skipPollingIfUnfocused if at least one subscription has it', async () => {
-    storeRef.store.dispatch(
+    await storeRef.store.dispatch(
       getPosts.initiate(3, {
         subscriptionOptions: {
           pollingInterval: 10,
@@ -174,7 +174,7 @@ describe('polling tests', () => {
     await delay(50)
     const callsWithoutSkip = mockBaseQuery.mock.calls.length
 
-    storeRef.store.dispatch(
+    await storeRef.store.dispatch(
       getPosts.initiate(3, {
         subscriptionOptions: {
           pollingInterval: 15,
@@ -184,7 +184,7 @@ describe('polling tests', () => {
       }),
     )
 
-    storeRef.store.dispatch(
+    await storeRef.store.dispatch(
       getPosts.initiate(3, {
         subscriptionOptions: {
           pollingInterval: 20,

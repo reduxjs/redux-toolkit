@@ -426,7 +426,7 @@ describe('Unsorted State Adapter', () => {
     })
 
     expect(withUpdate.ids).toEqual(['b'])
-    expect(withUpdate.entities['b']!.title).toBe(book1.title)
+    expect(withUpdate.entities['b'].title).toBe(book1.title)
   })
 
   describe('can be used mutably when wrapped in createNextState', () => {

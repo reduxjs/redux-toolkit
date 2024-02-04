@@ -518,7 +518,7 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
       ThunkArg,
       ThunkApiConfig
     > = createAction(
-      typePrefix + '/fulfilled',
+      `${typePrefix}/fulfilled`,
       (
         payload: Returned,
         requestId: string,
@@ -537,7 +537,7 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
 
     const pending: AsyncThunkPendingActionCreator<ThunkArg, ThunkApiConfig> =
       createAction(
-        typePrefix + '/pending',
+        `${typePrefix}/pending`,
         (requestId: string, arg: ThunkArg, meta?: PendingMeta) => ({
           payload: undefined,
           meta: {
@@ -551,7 +551,7 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
 
     const rejected: AsyncThunkRejectedActionCreator<ThunkArg, ThunkApiConfig> =
       createAction(
-        typePrefix + '/rejected',
+        `${typePrefix}/rejected`,
         (
           error: Error | null,
           requestId: string,
