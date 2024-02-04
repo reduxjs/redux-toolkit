@@ -6,7 +6,7 @@ import {
 } from '@reduxjs/toolkit'
 import type { BookModel } from './fixtures/book'
 
-describe('Entity Slice Enhancer', () => {
+describe('entity slice creator', () => {
   const createAppSlice = buildCreateSlice({
     creators: { entityMethods: entityMethodsCreator },
   })
