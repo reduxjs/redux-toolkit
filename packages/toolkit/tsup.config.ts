@@ -214,7 +214,9 @@ export default defineConfig((options) => {
             } else if (generateTypedefs) {
               if (folder === '') {
                 // we need to delete the declaration file and replace it with the original source file
-                fs.rmSync(path.join(outputFolder, 'uncheckedindexed.d.ts'))
+                fs.rmSync(path.join(outputFolder, 'uncheckedindexed.d.ts'), {
+                  force: true,
+                })
 
                 fs.copyFileSync(
                   'src/uncheckedindexed.ts',
