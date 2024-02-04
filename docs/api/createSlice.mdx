@@ -734,6 +734,22 @@ This avoids having to consider whether the creators are needed for each slice.
 
 :::
 
+:::caution
+
+To avoid collision, names used by [RTK creators](#rtk-creators) are reserved - passing creators under the `reducer` or `preparedReducer` keys is not allowed, and only `asyncThunkCreator` is allowed to be passed under the `asyncThunk` key.
+
+```ts no-transpile
+const createAppSlice = buildCreateSlice({
+  creators: {
+    reducer: aCustomCreator, // not allowed, name is reserved
+    asyncThunk: aCustomCreator, // not allowed, must be asyncThunkCreator
+    asyncThunk: asyncThunkCreator, // allowed
+  },
+})
+```
+
+:::
+
 ##### `create.asyncThunk` (`asyncThunkCreator`)
 
 Creates an async thunk and adds any provided case reducers for lifecycle actions.
@@ -1006,22 +1022,6 @@ const todoSlice = createSlice({
   }),
 })
 ```
-
-:::warning
-
-To avoid collision, names used by [RTK creators](#rtk-creators) are reserved - passing creators under the `reducer` or `preparedReducer` keys is not allowed, and only `asyncThunkCreator` is allowed to be passed under the `asyncThunk` key.
-
-```ts no-transpile
-const createAppSlice = buildCreateSlice({
-  creators: {
-    reducer: aCustomCreator, // not allowed, name is reserved
-    asyncThunk: aCustomCreator, // not allowed, must be asyncThunkCreator
-    asyncThunk: asyncThunkCreator, // allowed
-  },
-})
-```
-
-:::
 
 The `type` property of the definition should be the same constant used for reducer definitions to be handled by this creator. To avoid collision, we recommend using Symbols for this. It's also used for defining/retrieving types - see [Typescript](#typescript).
 
