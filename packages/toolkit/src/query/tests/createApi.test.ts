@@ -1,20 +1,20 @@
-import { server } from '@internal/query/tests/mocks/server'
+import { server } from '@internal/query/tests/mocks/server';
 import {
   getSerializedHeaders,
-  setupApiStore,
-} from '@internal/tests/utils/helpers'
-import { configureStore, createAction, createReducer } from '@reduxjs/toolkit'
+  setupApiStore
+} from '@internal/tests/utils/helpers';
+import { configureStore, createAction, createReducer } from '@reduxjs/toolkit';
 import type {
   DefinitionsFromApi,
   FetchBaseQueryMeta,
   OverrideResultType,
   SerializeQueryArgs,
-  TagTypesFromApi,
-} from '@reduxjs/toolkit/query'
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
-import { delay, http, HttpResponse } from 'msw'
-import nodeFetch from 'node-fetch'
-import type { MockInstance } from 'vitest'
+  TagTypesFromApi
+} from '@reduxjs/toolkit/query';
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query';
+import { delay, http, HttpResponse } from 'msw';
+import nodeFetch from 'node-fetch';
+import type { MockInstance } from 'vitest';
 
 beforeAll(() => {
   vi.stubEnv('NODE_ENV', 'development')
@@ -822,13 +822,13 @@ test('providesTags and invalidatesTags can use baseQueryMeta', async () => {
   })
 
   await storeRef.store.dispatch(api.endpoints.query.initiate())
-  expect('request' in _meta! && 'response' in _meta).toBe(true)
+  expect(_meta && 'request' in _meta && 'response' in _meta).toBe(true)
 
   _meta = undefined
 
   await storeRef.store.dispatch(api.endpoints.mutation.initiate())
 
-  expect('request' in _meta! && 'response' in _meta).toBe(true)
+  expect(_meta && 'request' in _meta && 'response' in _meta).toBe(true)
 })
 
 describe('structuralSharing flag behaviors', () => {
