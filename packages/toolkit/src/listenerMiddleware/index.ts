@@ -388,7 +388,7 @@ export const createListenerMiddleware = <
   ) => {
     const internalTaskController = new AbortController()
     const take = createTakePattern(
-      startListening ,
+      startListening,
       internalTaskController.signal,
     )
     const autoJoinPromises: Array<Promise<any>> = []

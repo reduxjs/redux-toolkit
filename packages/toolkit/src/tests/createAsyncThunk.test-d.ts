@@ -647,9 +647,8 @@ describe('type tests', () => {
     createAsyncThunk<'ret', void, { fulfilledMeta: string }>('test', (_, api) =>
       api.fulfillWithValue('ret' as const, ''),
     )
-    createAsyncThunk<'ret', void, { fulfilledMeta: string }>(
-      'test',
-      (_, api) => api.fulfillWithValue('ret' as const, ''),
+    createAsyncThunk<'ret', void, { fulfilledMeta: string }>('test', (_, api) =>
+      api.fulfillWithValue('ret' as const, ''),
     )
     createAsyncThunk<'ret', void, { fulfilledMeta: string }>(
       'test',
@@ -674,9 +673,8 @@ describe('type tests', () => {
     createAsyncThunk<'ret', void, { rejectValue: string }>('test', (_, api) =>
       api.rejectWithValue('ret'),
     )
-    createAsyncThunk<'ret', void, { rejectValue: string }>(
-      'test',
-      (_, api) => api.rejectWithValue('ret'),
+    createAsyncThunk<'ret', void, { rejectValue: string }>('test', (_, api) =>
+      api.rejectWithValue('ret'),
     )
     createAsyncThunk<
       'ret',

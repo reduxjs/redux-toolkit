@@ -1,26 +1,26 @@
-import type { SubscriptionOptions } from '@internal/query/core/apiState';
-import type { SubscriptionSelectors } from '@internal/query/core/buildMiddleware/types';
-import { server } from '@internal/query/tests/mocks/server';
-import { countObjectKeys } from '@internal/query/utils/countObjectKeys';
+import type { SubscriptionOptions } from '@internal/query/core/apiState'
+import type { SubscriptionSelectors } from '@internal/query/core/buildMiddleware/types'
+import { server } from '@internal/query/tests/mocks/server'
+import { countObjectKeys } from '@internal/query/utils/countObjectKeys'
 import {
   actionsReducer,
   setupApiStore,
   useRenderCounter,
   waitMs,
   withProvider,
-} from '@internal/tests/utils/helpers';
-import type { UnknownAction } from '@reduxjs/toolkit';
+} from '@internal/tests/utils/helpers'
+import type { UnknownAction } from '@reduxjs/toolkit'
 import {
   configureStore,
   createListenerMiddleware,
   createSlice,
-} from '@reduxjs/toolkit';
+} from '@reduxjs/toolkit'
 import {
   QueryStatus,
   createApi,
   fetchBaseQuery,
   skipToken,
-} from '@reduxjs/toolkit/query/react';
+} from '@reduxjs/toolkit/query/react'
 import {
   act,
   fireEvent,
@@ -28,11 +28,11 @@ import {
   renderHook,
   screen,
   waitFor,
-} from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { HttpResponse, http } from 'msw';
-import { useEffect, useState } from 'react';
-import type { MockInstance } from 'vitest';
+} from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { HttpResponse, http } from 'msw'
+import { useEffect, useState } from 'react'
+import type { MockInstance } from 'vitest'
 
 // Just setup a temporary in-memory counter for tests that `getIncrementedAmount`.
 // This can be used to test how many renders happen due to data changes or
@@ -2647,7 +2647,7 @@ describe('skip behaviour', () => {
     // also no subscription on `getUser(skipToken)` or similar:
     expect(getSubscriptions()).toEqual({})
 
-    await act(async() => {
+    await act(async () => {
       rerender([1])
     })
     expect(result.current).toMatchObject({ status: QueryStatus.fulfilled })

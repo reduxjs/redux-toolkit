@@ -54,7 +54,9 @@ export const createDynamicMiddleware = <
   ) as WithMiddleware<State, Dispatch>
 
   const addMiddleware = Object.assign(
-    function addMiddleware(...middlewares: Array<Middleware<any, State, Dispatch>>) {
+    function addMiddleware(
+      ...middlewares: Array<Middleware<any, State, Dispatch>>
+    ) {
       middlewares.forEach((middleware) => {
         let entry = find(
           Array.from(middlewareMap.values()),

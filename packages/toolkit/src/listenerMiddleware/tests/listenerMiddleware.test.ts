@@ -511,17 +511,19 @@ describe('createListenerMiddleware', () => {
       expect(wasCancelled).toBe(true)
     })
 
-    const addListenerOptions: Array<[
-      string,
-      Omit<
-        AddListenerOverloads<
-          () => void,
-          typeof store.getState,
-          typeof store.dispatch
+    const addListenerOptions: Array<
+      [
+        string,
+        Omit<
+          AddListenerOverloads<
+            () => void,
+            typeof store.getState,
+            typeof store.dispatch
+          >,
+          'effect' | 'withTypes'
         >,
-        'effect' | 'withTypes'
-      >,
-    ]> = [
+      ]
+    > = [
       ['predicate', { predicate: () => true }],
       ['actionCreator', { actionCreator: testAction1 }],
       ['matcher', { matcher: isAnyOf(testAction1, testAction2) }],
