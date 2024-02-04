@@ -27,6 +27,7 @@ import {
   createSlice,
   isAnyOf,
   nanoid,
+  preparedReducerCreator,
   reducerCreator,
 } from '@reduxjs/toolkit'
 import {
@@ -926,6 +927,27 @@ describe('createSlice', () => {
         `[Error: Please use reducer creators passed to callback. Each reducer definition must have a \`_reducerDefinitionType\` property indicating which handler to use.]`,
       )
     })
+  })
+  test('reducer and preparedReducer creators can be invoked for object syntax', () => {
+    const counterSlice = createSlice({
+      name: 'counter',
+      initialState: 0,
+      reducers: {
+        incrementBy: reducerCreator.create<number>(
+          (state, action) => state + action.payload,
+        ),
+        decrementBy: preparedReducerCreator.create(
+          (amount: number) => ({
+            payload: amount,
+          }),
+          (state, action) => state - action.payload,
+        ),
+      },
+    })
+
+    const { incrementBy, decrementBy } = counterSlice.actions
+    expect(counterSlice.reducer(0, incrementBy(1))).toBe(1)
+    expect(counterSlice.reducer(0, decrementBy(3))).toBe(-3)
   })
   describe('custom slice reducer creators', () => {
     const loaderCreator: ReducerCreator<typeof loaderCreatorType> = {

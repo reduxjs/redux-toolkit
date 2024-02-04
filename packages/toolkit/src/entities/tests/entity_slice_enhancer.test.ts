@@ -3,6 +3,7 @@ import {
   createEntityAdapter,
   createSlice,
   entityMethodsCreator,
+  preparedReducerCreator,
 } from '@reduxjs/toolkit'
 import type {
   PayloadAction,
@@ -110,5 +111,29 @@ describe('entity slice creator', () => {
         )
         .selectById(withNestedBook, AClockworkOrange.id),
     ).toBe(AClockworkOrange)
+  })
+  it('should be able to be called without this context', () => {
+    const bookSlice = createAppSlice({
+      name: 'book',
+      initialState: bookAdapter.getInitialState(),
+      reducers: ({ entityMethods }) => ({
+        ...entityMethods(bookAdapter),
+      }),
+    })
+    expect(bookSlice.actions.addOne).toBeTypeOf('function')
+  })
+  it('can be called with object syntax', () => {
+    const bookSlice = createAppSlice({
+      name: 'book',
+      initialState: bookAdapter.getInitialState(),
+      reducers: {
+        ...entityMethodsCreator.create(bookAdapter, {
+          // state can't be inferred here
+          selectEntityState: (state) => state,
+          name: 'book',
+        }),
+      },
+    })
+    expect(bookSlice.actions.addOneBook).toBeTypeOf('function')
   })
 })

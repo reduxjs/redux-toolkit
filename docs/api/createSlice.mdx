@@ -884,22 +884,6 @@ Because this creator returns an object of multiple reducer definitions, it shoul
 
 :::
 
-:::warning Loss of context
-
-`create.entityMethods` relies on being called with its `this` value set to the `create` object.
-
-This happens automatically when called as `create.entityMethods(adapter)`, but can be accidentally lost if the method is destructured and called separately.
-
-```ts no-transpile
-reducers: ({ entityMethods }) => ({
-  // highlight-next-line
-  // ❌ `this` value has been lost
-  ...entityMethods(postsAdapter),
-})
-```
-
-:::
-
 **Parameters**
 
 - **adapter** The [adapter](./createEntityAdapter) to use.

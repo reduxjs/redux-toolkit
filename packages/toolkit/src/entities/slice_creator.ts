@@ -5,7 +5,11 @@ import type {
   SliceCaseReducers,
 } from '@reduxjs/toolkit'
 import type { PayloadAction } from '../createAction'
-import type { CaseReducerDefinition, ReducerCreators } from '../createSlice'
+import {
+  reducerCreator,
+  type CaseReducerDefinition,
+  type ReducerCreators,
+} from '../createSlice'
 import type { WithRequiredProp } from '../tsHelpers'
 import type {
   EntityAdapter,
@@ -64,7 +68,6 @@ type EntityMethodsCreator<State> =
           Single extends string = '',
           Plural extends string = DefaultPlural<Single>,
         >(
-          this: ReducerCreators<State>,
           adapter: EntityAdapter<T, Id>,
           config: WithRequiredProp<
             EntityMethodsCreatorConfig<T, Id, State, Single, Plural>,
@@ -75,7 +78,6 @@ type EntityMethodsCreator<State> =
           Single extends string = '',
           Plural extends string = DefaultPlural<Single>,
         >(
-          this: ReducerCreators<State>,
           adapter: EntityAdapter<T, Id>,
           config?: Omit<
             EntityMethodsCreatorConfig<T, Id, State, Single, Plural>,
@@ -89,7 +91,6 @@ type EntityMethodsCreator<State> =
         Single extends string = '',
         Plural extends string = DefaultPlural<Single>,
       >(
-        this: ReducerCreators<State>,
         adapter: EntityAdapter<T, Id>,
         config: WithRequiredProp<
           EntityMethodsCreatorConfig<T, Id, State, Single, Plural>,
@@ -119,61 +120,58 @@ export const entityMethodsCreator: ReducerCreator<
       pluralName = name && `${name}s`,
     }: EntityMethodsCreatorConfig<any, any, any, '', ''> = {},
   ): EntityReducers<any, EntityId, any> {
+    const reducer = reducerCreator.create
     return {
-      [`addOne${capitalize(name)}` as const]: this.reducer<any>(
-        (state, action) => {
-          adapter.addOne(selectEntityState(state), action.payload)
-        },
-      ),
-      [`addMany${capitalize(pluralName)}` as const]: this.reducer<any>(
+      [`addOne${capitalize(name)}` as const]: reducer<any>((state, action) => {
+        adapter.addOne(selectEntityState(state), action.payload)
+      }),
+      [`addMany${capitalize(pluralName)}` as const]: reducer<any>(
         (state, action) => {
           adapter.addMany(selectEntityState(state), action.payload)
         },
       ),
-      [`setOne${capitalize(name)}` as const]: this.reducer<any>(
-        (state, action) => {
-          adapter.setOne(selectEntityState(state), action.payload)
-        },
-      ),
-      [`setMany${capitalize(pluralName)}` as const]: this.reducer<any>(
+      [`setOne${capitalize(name)}` as const]: reducer<any>((state, action) => {
+        adapter.setOne(selectEntityState(state), action.payload)
+      }),
+      [`setMany${capitalize(pluralName)}` as const]: reducer<any>(
         (state, action) => {
           adapter.setMany(selectEntityState(state), action.payload)
         },
       ),
-      [`setAll${capitalize(pluralName)}` as const]: this.reducer<any>(
+      [`setAll${capitalize(pluralName)}` as const]: reducer<any>(
         (state, action) => {
           adapter.setAll(selectEntityState(state), action.payload)
         },
       ),
-      [`removeOne${capitalize(name)}` as const]: this.reducer<any>(
+      [`removeOne${capitalize(name)}` as const]: reducer<any>(
         (state, action) => {
           adapter.removeOne(selectEntityState(state), action.payload)
         },
       ),
-      [`removeMany${capitalize(pluralName)}` as const]: this.reducer<any>(
+      [`removeMany${capitalize(pluralName)}` as const]: reducer<any>(
         (state, action) => {
           adapter.removeMany(selectEntityState(state), action.payload)
         },
       ),
-      [`removeAll${capitalize(pluralName)}` as const]: this.reducer((state) => {
+      [`removeAll${capitalize(pluralName)}` as const]: reducer((state) => {
         adapter.removeAll(selectEntityState(state))
       }),
-      [`upsertOne${capitalize(name)}` as const]: this.reducer<any>(
+      [`upsertOne${capitalize(name)}` as const]: reducer<any>(
         (state, action) => {
           adapter.upsertOne(selectEntityState(state), action.payload)
         },
       ),
-      [`upsertMany${capitalize(pluralName)}` as const]: this.reducer<any>(
+      [`upsertMany${capitalize(pluralName)}` as const]: reducer<any>(
         (state, action) => {
           adapter.upsertMany(selectEntityState(state), action.payload)
         },
       ),
-      [`updateOne${capitalize(name)}` as const]: this.reducer<any>(
+      [`updateOne${capitalize(name)}` as const]: reducer<any>(
         (state, action) => {
           adapter.updateOne(selectEntityState(state), action.payload)
         },
       ),
-      [`updateMany${capitalize(pluralName)}` as const]: this.reducer<any>(
+      [`updateMany${capitalize(pluralName)}` as const]: reducer<any>(
         (state, action) => {
           adapter.updateMany(selectEntityState(state), action.payload)
         },
