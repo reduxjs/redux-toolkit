@@ -840,32 +840,33 @@ function getType(slice: string, actionKey: string): string {
   return `${slice}/${actionKey}`
 }
 
-export const reducerCreator: ReducerCreator<ReducerType.reducer> = {
-  type: ReducerType.reducer,
-  create(caseReducer: CaseReducer<any, any>) {
-    return Object.assign(
-      {
-        // hack so the wrapping function has the same name as the original
-        // we need to create a wrapper so the `reducerDefinitionType` is not assigned to the original
-        [caseReducer.name](...args: Parameters<typeof caseReducer>) {
-          return caseReducer(...args)
-        },
-      }[caseReducer.name],
-      {
-        _reducerDefinitionType: ReducerType.reducer,
-      } as const,
-    )
-  },
-  handle({ type, reducerName }, reducer, context) {
-    context
-      .addCase(type, reducer as any)
-      .exposeCaseReducer(reducerName, reducer)
-      .exposeAction(reducerName, createAction(type))
-  },
-}
+export const reducerCreator: ReducerCreator<ReducerType.reducer> =
+  /*#__PURE__*/ {
+    type: ReducerType.reducer,
+    create(caseReducer: CaseReducer<any, any>) {
+      return Object.assign(
+        {
+          // hack so the wrapping function has the same name as the original
+          // we need to create a wrapper so the `reducerDefinitionType` is not assigned to the original
+          [caseReducer.name](...args: Parameters<typeof caseReducer>) {
+            return caseReducer(...args)
+          },
+        }[caseReducer.name],
+        {
+          _reducerDefinitionType: ReducerType.reducer,
+        } as const,
+      )
+    },
+    handle({ type, reducerName }, reducer, context) {
+      context
+        .addCase(type, reducer as any)
+        .exposeCaseReducer(reducerName, reducer)
+        .exposeAction(reducerName, createAction(type))
+    },
+  }
 
 export const preparedReducerCreator: ReducerCreator<ReducerType.reducerWithPrepare> =
-  {
+  /*#__PURE__*/ {
     type: ReducerType.reducerWithPrepare,
     create(prepare, reducer) {
       return {
@@ -882,53 +883,54 @@ export const preparedReducerCreator: ReducerCreator<ReducerType.reducerWithPrepa
     },
   }
 
-export const asyncThunkCreator: ReducerCreator<ReducerType.asyncThunk> = {
-  type: ReducerType.asyncThunk,
-  create: /* @__PURE__ */ (() => {
-    function asyncThunk(
-      payloadCreator: AsyncThunkPayloadCreator<any, any>,
-      config: AsyncThunkSliceReducerConfig<any, any>,
-    ): AsyncThunkSliceReducerDefinition<any, any> {
-      return {
-        _reducerDefinitionType: ReducerType.asyncThunk,
-        payloadCreator,
-        ...config,
+export const asyncThunkCreator: ReducerCreator<ReducerType.asyncThunk> =
+  /*#__PURE__*/ {
+    type: ReducerType.asyncThunk,
+    create: /* @__PURE__ */ (() => {
+      function asyncThunk(
+        payloadCreator: AsyncThunkPayloadCreator<any, any>,
+        config: AsyncThunkSliceReducerConfig<any, any>,
+      ): AsyncThunkSliceReducerDefinition<any, any> {
+        return {
+          _reducerDefinitionType: ReducerType.asyncThunk,
+          payloadCreator,
+          ...config,
+        }
       }
-    }
-    asyncThunk.withTypes = () => asyncThunk
-    return asyncThunk as AsyncThunkCreator<any>
-  })(),
-  handle({ type, reducerName }, definition, context) {
-    const { payloadCreator, fulfilled, pending, rejected, settled, options } =
-      definition
-    const thunk = createAsyncThunk(type, payloadCreator, options as any)
-    context.exposeAction(reducerName, thunk)
+      asyncThunk.withTypes = () => asyncThunk
+      return asyncThunk as AsyncThunkCreator<any>
+    })(),
+    handle({ type, reducerName }, definition, context) {
+      const { payloadCreator, fulfilled, pending, rejected, settled, options } =
+        definition
+      const thunk = createAsyncThunk(type, payloadCreator, options as any)
+      context.exposeAction(reducerName, thunk)
 
-    if (fulfilled) {
-      context.addCase(thunk.fulfilled, fulfilled)
-    }
-    if (pending) {
-      context.addCase(thunk.pending, pending)
-    }
-    if (rejected) {
-      context.addCase(thunk.rejected, rejected)
-    }
-    if (settled) {
-      context.addMatcher(thunk.settled, settled)
-    }
+      if (fulfilled) {
+        context.addCase(thunk.fulfilled, fulfilled)
+      }
+      if (pending) {
+        context.addCase(thunk.pending, pending)
+      }
+      if (rejected) {
+        context.addCase(thunk.rejected, rejected)
+      }
+      if (settled) {
+        context.addMatcher(thunk.settled, settled)
+      }
 
-    context.exposeCaseReducer(reducerName, {
-      fulfilled: fulfilled || noop,
-      pending: pending || noop,
-      rejected: rejected || noop,
-      settled: settled || noop,
-    })
-  },
-}
+      context.exposeCaseReducer(reducerName, {
+        fulfilled: fulfilled || noop,
+        pending: pending || noop,
+        rejected: rejected || noop,
+        settled: settled || noop,
+      })
+    },
+  }
 
 function noop() {}
 
-const isCreatorCallback = <
+const isCreatorCallback = /*#__PURE__*/ <
   State,
   CreatorMap extends Record<string, RegisteredReducerType>,
 >(
@@ -1298,4 +1300,4 @@ function wrapSelector<State, NewState, S extends Selector<State>>(
  *
  * @public
  */
-export const createSlice = buildCreateSlice()
+export const createSlice = /*#__PURE__*/ buildCreateSlice()

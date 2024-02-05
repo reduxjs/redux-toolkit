@@ -16,7 +16,7 @@ import type {
 } from './models'
 import { capitalize } from './utils'
 
-export const entityMethodsCreatorType = Symbol()
+export const entityMethodsCreatorType = /*#__PURE__*/ Symbol()
 
 type DefaultPlural<Single extends string> = Single extends ''
   ? ''
