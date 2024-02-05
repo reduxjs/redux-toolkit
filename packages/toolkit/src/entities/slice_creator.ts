@@ -104,7 +104,7 @@ declare module '@reduxjs/toolkit' {
   }
 }
 
-export function createEntityMethods<
+/*#__PURE__*/ export function createEntityMethods<
   T,
   Id extends EntityId,
   State = EntityState<T, Id>,
@@ -181,7 +181,7 @@ export function createEntityMethods<
 
 export const entityMethodsCreator: ReducerCreator<
   typeof entityMethodsCreatorType
-> = {
+> = /*#__PURE__*/ {
   type: entityMethodsCreatorType,
   create: createEntityMethods,
 }
