@@ -1,8 +1,8 @@
 const webpack = require('webpack')
 let { join } = require('path')
 
-const esmSuffixes = ['modern.mjs', 'browser.mjs', 'legacy-esm.js']
-const cjsSuffixes = ['development.cjs', 'production.min.cjs']
+const esmSuffixes = ['modern.mjs' /*, 'browser.mjs', 'legacy-esm.js'*/]
+const cjsSuffixes = [/*'development.cjs',*/ 'production.min.cjs']
 
 function withRtkPath(suffix, cjs = false) {
   /**
@@ -199,14 +199,6 @@ module.exports = entryPoints
       {
         name: `3. fetchBaseQuery`,
         import: { '@reduxjs/toolkit/query': '{ fetchBaseQuery }' },
-      },
-      {
-        name: `3. setupListeners`,
-        import: { '@reduxjs/toolkit/query': '{ setupListeners }' },
-      },
-      {
-        name: `3. ApiProvider`,
-        import: { '@reduxjs/toolkit/query/react': '{ ApiProvider }' },
       },
     ].map((e) => ({
       ...e,
