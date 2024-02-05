@@ -18,3 +18,4 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           build_script: build-only
           package_manager: yarn
+          size_margin: non-zero
