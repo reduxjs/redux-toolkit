@@ -1,8 +1,8 @@
 const webpack = require('webpack')
 let { join } = require('path')
 
-const esmSuffixes = ['modern.mjs', 'browser.mjs', 'legacy-esm.js']
-const cjsSuffixes = ['development.cjs', 'production.min.cjs']
+const esmSuffixes = ['modern.mjs' /*, 'browser.mjs', 'legacy-esm.js'*/]
+const cjsSuffixes = [/*'development.cjs',*/ 'production.min.cjs']
 
 function withRtkPath(suffix, cjs = false) {
   /**
@@ -149,10 +149,20 @@ module.exports = entryPoints
     ),
   )
   .concat(
-    ...[
+    [
       {
         name: `3. createSlice`,
         import: { '@reduxjs/toolkit': '{ createSlice }' },
+      },
+      {
+        name: `3. createAsyncThunk`,
+        import: { '@reduxjs/toolkit': '{ createAsyncThunk }' },
+      },
+      {
+        name: `3. buildCreateSlice and asyncThunkCreator`,
+        import: {
+          '@reduxjs/toolkit': '{ buildCreateSlice, asyncThunkCreator }',
+        },
       },
       {
         name: `3. createEntityAdapter`,
@@ -161,6 +171,22 @@ module.exports = entryPoints
       {
         name: `3. configureStore`,
         import: { '@reduxjs/toolkit': '{ configureStore }' },
+      },
+      {
+        name: `3. combineSlices`,
+        import: { '@reduxjs/toolkit': '{ combineSlices }' },
+      },
+      {
+        name: `3. createDynamicMiddleware`,
+        import: { '@reduxjs/toolkit': '{ createDynamicMiddleware }' },
+      },
+      {
+        name: `3. createDynamicMiddleware (react)`,
+        import: { '@reduxjs/toolkit/react': '{ createDynamicMiddleware }' },
+      },
+      {
+        name: `3. createListenerMiddleware`,
+        import: { '@reduxjs/toolkit': '{ createListenerMiddleware }' },
       },
       {
         name: `3. createApi`,
@@ -173,14 +199,6 @@ module.exports = entryPoints
       {
         name: `3. fetchBaseQuery`,
         import: { '@reduxjs/toolkit/query': '{ fetchBaseQuery }' },
-      },
-      {
-        name: `3. setupListeners`,
-        import: { '@reduxjs/toolkit/query': '{ setupListeners }' },
-      },
-      {
-        name: `3. ApiProvider`,
-        import: { '@reduxjs/toolkit/query/react': '{ ApiProvider }' },
       },
     ].map((e) => ({
       ...e,
