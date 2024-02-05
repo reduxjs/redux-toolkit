@@ -34,7 +34,7 @@ const asyncThunkSymbol = /* @__PURE__ */ Symbol.for(
 // type is annotated because it's too long to infer
 export const asyncThunkCreator: {
   [asyncThunkSymbol]: typeof _createAsyncThunk
-} = /* @__PURE__ */ {
+} = {
   [asyncThunkSymbol]: _createAsyncThunk,
 }
 
