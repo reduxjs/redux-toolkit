@@ -16,7 +16,7 @@ import type {
 } from './models'
 import { capitalize } from './utils'
 
-export const entityMethodsCreatorType = /*#__PURE__*/ Symbol()
+export const entityMethodsCreatorType = /*@__PURE__*/ Symbol()
 
 type DefaultPlural<Single extends string> = Single extends ''
   ? ''
@@ -104,7 +104,7 @@ declare module '@reduxjs/toolkit' {
   }
 }
 
-/*#__PURE__*/ export function createEntityMethods<
+export function createEntityMethods<
   T,
   Id extends EntityId,
   State = EntityState<T, Id>,
@@ -181,7 +181,7 @@ declare module '@reduxjs/toolkit' {
 
 export const entityMethodsCreator: ReducerCreator<
   typeof entityMethodsCreatorType
-> = /*#__PURE__*/ {
+> = {
   type: entityMethodsCreatorType,
   create: createEntityMethods,
 }
