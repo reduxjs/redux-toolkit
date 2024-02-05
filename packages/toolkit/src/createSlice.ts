@@ -983,7 +983,10 @@ export function buildCreateSlice<
       throw new Error(
         `Cannot use reserved creator type: ${String(creator.type)}`,
       )
-    } else if (name === 'asyncThunk' && creator !== asyncThunkCreator) {
+    } else if (
+      name === 'asyncThunk' &&
+      creator.type !== ReducerType.asyncThunk
+    ) {
       throw new Error(
         "If provided, `asyncThunk` creator must be `asyncThunkCreator` from '@reduxjs/toolkit'",
       )
