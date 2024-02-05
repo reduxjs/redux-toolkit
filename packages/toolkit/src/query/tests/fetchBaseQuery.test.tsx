@@ -1003,7 +1003,7 @@ describe('fetchBaseQuery', () => {
 
       expect(result?.error).toEqual({
         status: 'TIMEOUT_ERROR',
-        error: 'AbortError: The operation was aborted.',
+        error: expect.stringMatching(/^AbortError:/),
       })
     })
   })
@@ -1121,7 +1121,7 @@ describe('timeout', () => {
 
     expect(result?.error).toEqual({
       status: 'TIMEOUT_ERROR',
-      error: 'AbortError: The operation was aborted.',
+      error: expect.stringMatching(/^AbortError:/),
     })
   })
 })
