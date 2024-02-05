@@ -928,6 +928,14 @@ export const asyncThunkCreator: ReducerCreator<ReducerType.asyncThunk> = {
 
 function noop() {}
 
+const isCreatorCallback = <
+  State,
+  CreatorMap extends Record<string, RegisteredReducerType>,
+>(
+  reducers: any,
+): reducers is CreatorCallback<State, CreatorMap> =>
+  typeof reducers === 'function'
+
 interface BuildCreateSliceConfig<
   CreatorMap extends Record<string, RegisteredReducerType>,
 > {
@@ -1072,7 +1080,7 @@ export function buildCreateSlice<
       getInitialState,
     }
 
-    if (typeof options.reducers === 'function') {
+    if (isCreatorCallback(options.reducers)) {
       const reducers = options.reducers(creators as any)
       for (const [reducerName, reducerDefinition] of Object.entries(reducers)) {
         const { _reducerDefinitionType: type } = reducerDefinition
@@ -1093,7 +1101,7 @@ export function buildCreateSlice<
       }
     } else {
       for (const [reducerName, reducerDefinition] of Object.entries(
-        options.reducers,
+        options.reducers as SliceCaseReducers<State>,
       )) {
         const reducerDetails: ReducerDetails = {
           reducerName,
