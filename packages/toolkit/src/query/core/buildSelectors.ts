@@ -23,6 +23,7 @@ import { expandTagDescription } from '../endpointDefinitions'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import { getMutationCacheKey } from './buildSlice'
 import { flatten } from '../utils'
+import { weakMapMemoize } from 'reselect'
 
 export type SkipToken = typeof skipToken
 /**
@@ -79,12 +80,15 @@ declare module './module' {
   }
 }
 
+type WeakMapMemoizeKeys = Omit<ReturnType<typeof weakMapMemoize>, ''>
+
 type QueryResultSelectorFactory<
   Definition extends QueryDefinition<any, any, any, any>,
   RootState,
-> = (
+> = ((
   queryArg: QueryArgFrom<Definition> | SkipToken,
-) => (state: RootState) => QueryResultSelectorResult<Definition>
+) => (state: RootState) => QueryResultSelectorResult<Definition>) &
+  WeakMapMemoizeKeys
 
 export type QueryResultSelectorResult<
   Definition extends QueryDefinition<any, any, any, any>,
@@ -93,12 +97,13 @@ export type QueryResultSelectorResult<
 type MutationResultSelectorFactory<
   Definition extends MutationDefinition<any, any, any, any>,
   RootState,
-> = (
+> = ((
   requestId:
     | string
     | { requestId: string | undefined; fixedCacheKey: string | undefined }
     | SkipToken,
-) => (state: RootState) => MutationResultSelectorResult<Definition>
+) => (state: RootState) => MutationResultSelectorResult<Definition>) &
+  WeakMapMemoizeKeys
 
 export type MutationResultSelectorResult<
   Definition extends MutationDefinition<any, any, any, any>,
@@ -169,7 +174,7 @@ export function buildSelectors<
     endpointName: string,
     endpointDefinition: QueryDefinition<any, any, any, any>,
   ) {
-    return ((queryArgs: any) => {
+    return weakMapMemoize((queryArgs: any) => {
       const serializedArgs = serializeQueryArgs({
         queryArgs,
         endpointDefinition,
@@ -186,7 +191,7 @@ export function buildSelectors<
   }
 
   function buildMutationSelector() {
-    return ((id) => {
+    return weakMapMemoize((id) => {
       let mutationId: string | typeof skipToken
       if (typeof id === 'object') {
         mutationId = getMutationCacheKey(id) ?? skipToken
