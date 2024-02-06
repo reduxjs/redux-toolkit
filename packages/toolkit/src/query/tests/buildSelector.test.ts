@@ -37,4 +37,27 @@ describe('buildSelector', () => {
       exampleApi.endpoints.getTodos.select('1')(store.store.getState()),
     ).toBe(exampleApi.endpoints.getTodos.select('1')(store.store.getState()))
   })
+  it('exposes memoize methods on select', () => {
+    expect(exampleApi.endpoints.getTodos.select.resultsCount).toBeTypeOf(
+      'function',
+    )
+    expect(exampleApi.endpoints.getTodos.select.resetResultsCount).toBeTypeOf(
+      'function',
+    )
+    expect(exampleApi.endpoints.getTodos.select.clearCache).toBeTypeOf(
+      'function',
+    )
+
+    const firstResult = exampleApi.endpoints.getTodos.select('1')
+
+    exampleApi.endpoints.getTodos.select.clearCache()
+
+    const secondResult = exampleApi.endpoints.getTodos.select('1')
+
+    expect(firstResult).not.toBe(secondResult)
+
+    expect(firstResult(store.store.getState())).not.toBe(
+      secondResult(store.store.getState()),
+    )
+  })
 })
