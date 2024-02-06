@@ -72,6 +72,12 @@ export interface CommonOptions {
    * `true` will not generate separate types for read-only and write-only properties.
    */
   mergeReadWriteOnly?: boolean;
+  /**
+   * defaults to undefined
+   * If present the given file will be used as prettier config when formatting the generated code. If undefined the default prettier config
+   * resolution mechanism will be used.
+   */
+  prettierConfigFile?: string;
 }
 
 export type TextMatcher = string | RegExp | (string | RegExp)[];
