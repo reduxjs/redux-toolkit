@@ -138,7 +138,7 @@ describe('buildCreateApi', () => {
       name: 'Timmy',
     })
 
-    expect(memoize).toHaveBeenCalledTimes(4)
+    expect(memoize).toHaveBeenCalledTimes(2)
 
     memoize.mockClear()
 
@@ -163,6 +163,6 @@ describe('buildCreateApi', () => {
     )
 
     // select() + selectFromResult
-    expect(memoize).toHaveBeenCalledTimes(8)
+    expect(memoize).toHaveBeenCalledTimes(4)
   })
 })
