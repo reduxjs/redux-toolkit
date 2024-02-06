@@ -174,7 +174,7 @@ export function buildSelectors<
     endpointName: string,
     endpointDefinition: QueryDefinition<any, any, any, any>,
   ) {
-    return weakMapMemoize((queryArgs: any) => {
+    const memoized = weakMapMemoize((queryArgs: any) => {
       const serializedArgs = serializeQueryArgs({
         queryArgs,
         endpointDefinition,
@@ -187,11 +187,15 @@ export function buildSelectors<
         queryArgs === skipToken ? selectSkippedQuery : selectQuerySubstate
 
       return createSelector(finalSelectQuerySubState, withRequestFlags)
-    }) as QueryResultSelectorFactory<any, RootState>
+    })
+    return Object.assign(
+      (arg: any) => memoized(arg),
+      memoized,
+    ) as QueryResultSelectorFactory<any, RootState>
   }
 
   function buildMutationSelector() {
-    return weakMapMemoize((id) => {
+    const memoized = weakMapMemoize((id) => {
       let mutationId: string | typeof skipToken
       if (typeof id === 'object') {
         mutationId = getMutationCacheKey(id) ?? skipToken
@@ -207,7 +211,11 @@ export function buildSelectors<
           : selectMutationSubstate
 
       return createSelector(finalSelectMutationSubstate, withRequestFlags)
-    }) as MutationResultSelectorFactory<any, RootState>
+    })
+    return Object.assign(
+      (arg: any) => memoized(arg),
+      memoized,
+    ) as MutationResultSelectorFactory<any, RootState>
   }
 
   function selectInvalidatedBy(

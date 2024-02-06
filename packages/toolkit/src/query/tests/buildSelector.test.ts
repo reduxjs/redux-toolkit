@@ -17,42 +17,49 @@ describe('buildSelector', () => {
       baseUrl: 'https://jsonplaceholder.typicode.com',
     }),
     endpoints: (build) => ({
-      getTodos: build.query<Todos, string>({
+      getTodos: build.query<Todos, void>({
         query: () => '/todos',
+      }),
+      getTodo: build.query<Todo, string>({
+        query: (id) => `/todos/${id}`,
       }),
     }),
   })
 
   const store = setupApiStore(exampleApi)
   it('should memoize selector creation', () => {
-    expect(exampleApi.endpoints.getTodos.select('1')).toBe(
-      exampleApi.endpoints.getTodos.select('1'),
+    expect(exampleApi.endpoints.getTodo.select('1')).toBe(
+      exampleApi.endpoints.getTodo.select('1'),
     )
 
-    expect(exampleApi.endpoints.getTodos.select('1')).not.toBe(
-      exampleApi.endpoints.getTodos.select('2'),
+    expect(exampleApi.endpoints.getTodo.select('1')).not.toBe(
+      exampleApi.endpoints.getTodo.select('2'),
     )
 
     expect(
-      exampleApi.endpoints.getTodos.select('1')(store.store.getState()),
-    ).toBe(exampleApi.endpoints.getTodos.select('1')(store.store.getState()))
+      exampleApi.endpoints.getTodo.select('1')(store.store.getState()),
+    ).toBe(exampleApi.endpoints.getTodo.select('1')(store.store.getState()))
+
+    expect(exampleApi.endpoints.getTodos.select()).toBe(
+      exampleApi.endpoints.getTodos.select(undefined),
+    )
   })
   it('exposes memoize methods on select', () => {
-    expect(exampleApi.endpoints.getTodos.select.resultsCount).toBeTypeOf(
+    expect(exampleApi.endpoints.getTodo.select.resultsCount).toBeTypeOf(
       'function',
     )
-    expect(exampleApi.endpoints.getTodos.select.resetResultsCount).toBeTypeOf(
+    expect(exampleApi.endpoints.getTodo.select.resetResultsCount).toBeTypeOf(
       'function',
     )
-    expect(exampleApi.endpoints.getTodos.select.clearCache).toBeTypeOf(
+    expect(exampleApi.endpoints.getTodo.select.clearCache).toBeTypeOf(
       'function',
     )
 
-    const firstResult = exampleApi.endpoints.getTodos.select('1')
+    const firstResult = exampleApi.endpoints.getTodo.select('1')
 
-    exampleApi.endpoints.getTodos.select.clearCache()
+    exampleApi.endpoints.getTodo.select.clearCache()
 
-    const secondResult = exampleApi.endpoints.getTodos.select('1')
+    const secondResult = exampleApi.endpoints.getTodo.select('1')
 
     expect(firstResult).not.toBe(secondResult)
 
