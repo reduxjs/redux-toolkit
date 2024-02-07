@@ -44,7 +44,7 @@ Done
   }, 25_000);
 
   test('paths are relative to config file, not to cwd', async () => {
-    const out = await cli([`./test/config.example.js`], path.resolve(__dirname, '../src'));
+    const out = await cli([`./test/config.example.js`], __dirname);
 
     expect(out).toEqual({
       stdout: `Generating ./tmp/example.ts
