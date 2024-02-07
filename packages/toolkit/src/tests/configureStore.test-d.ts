@@ -1,3 +1,5 @@
+import { noop } from '@internal/listenerMiddleware/utils'
+import type { AnyNonNullishValue } from '@internal/tsHelpers'
 import type {
   Action,
   ConfigureStoreOptions,
@@ -21,7 +23,7 @@ import {
 } from '@reduxjs/toolkit'
 import { thunk } from 'redux-thunk'
 
-const _anyMiddleware: any = () => () => () => {}
+const _anyMiddleware: any = () => () => noop
 
 describe('type tests', () => {
   test('configureStore() requires a valid reducer or reducer map.', () => {
@@ -423,12 +425,14 @@ describe('type tests', () => {
     type StateA = number
     const reducerA = () => 0
     const thunkA = () => {
-      return (() => {}) as any as ThunkAction<Promise<'A'>, StateA, any, any>
+      return noop as any as ThunkAction<Promise<'A'>, StateA, any, any>
     }
 
     type StateB = string
     const thunkB = () => {
-      return (dispatch: Dispatch, getState: () => StateB) => {}
+      return (dispatch: Dispatch, getState: () => StateB) => {
+        /** No-Op */
+      }
     }
 
     test('by default, dispatching Thunks is possible', () => {
@@ -559,47 +563,32 @@ describe('type tests', () => {
     test('Accepts thunk with `unknown`, `undefined` or `null` ThunkAction extraArgument per default', () => {
       const store = configureStore({ reducer: {} })
       // undefined is the default value for the ThunkMiddleware extraArgument
-      store.dispatch(function () {} as ThunkAction<
-        void,
-        {},
-        undefined,
-        UnknownAction
-      >)
+      store.dispatch(
+        noop as ThunkAction<void, AnyNonNullishValue, undefined, UnknownAction>,
+      )
       // `null` for the `extra` generic was previously documented in the RTK "Advanced Tutorial", but
       // is a bad pattern and users should use `unknown` instead
-      // @ts-expect-error
-      store.dispatch(function () {} as ThunkAction<
-        void,
-        {},
-        null,
-        UnknownAction
-      >)
+      store.dispatch(
+        // @ts-expect-error
+        noop as ThunkAction<void, AnyNonNullishValue, null, UnknownAction>,
+      )
       // unknown is the best way to type a ThunkAction if you do not care
       // about the value of the extraArgument, as it will always work with every
       // ThunkMiddleware, no matter the actual extraArgument type
-      store.dispatch(function () {} as ThunkAction<
-        void,
-        {},
-        unknown,
-        UnknownAction
-      >)
-      // @ts-expect-error
-      store.dispatch(function () {} as ThunkAction<
-        void,
-        {},
-        boolean,
-        UnknownAction
-      >)
+      store.dispatch(
+        noop as ThunkAction<void, AnyNonNullishValue, unknown, UnknownAction>,
+      )
+      store.dispatch(
+        // @ts-expect-error
+        noop as ThunkAction<void, AnyNonNullishValue, boolean, UnknownAction>,
+      )
     })
 
     test('custom middleware and getDefaultMiddleware', () => {
       const store = configureStore({
         reducer: reducerA,
         middleware: (gDM) =>
-          gDM().prepend((() => {}) as any as Middleware<
-            (a: 'a') => 'A',
-            StateA
-          >),
+          gDM().prepend(noop as any as Middleware<(a: 'a') => 'A', StateA>),
       })
 
       expectTypeOf(store.dispatch('a')).toEqualTypeOf<'A'>()
@@ -665,10 +654,9 @@ describe('type tests', () => {
       const store = configureStore({
         reducer: reducerA,
         middleware: (getDefaultMiddleware) =>
-          getDefaultMiddleware().prepend((() => {}) as any as Middleware<
-            (a: 'a') => 'A',
-            StateA
-          >),
+          getDefaultMiddleware().prepend(
+            noop as any as Middleware<(a: 'a') => 'A', StateA>,
+          ),
       })
 
       expectTypeOf(store.dispatch('a')).toEqualTypeOf<'A'>()
@@ -707,7 +695,7 @@ describe('type tests', () => {
         reducer: reducerA,
         middleware: (getDefaultMiddleware) =>
           getDefaultMiddleware({ thunk: false }).prepend(
-            (() => {}) as any as Middleware<(a: 'a') => 'A', StateA>,
+            noop as any as Middleware<(a: 'a') => 'A', StateA>,
           ),
       })
 
@@ -779,7 +767,9 @@ describe('type tests', () => {
     const dummyMiddleware: Middleware<
       (action: Action<'actionListenerMiddleware/add'>) => Unsubscribe,
       CounterState
-    > = (storeApi) => (next) => (action) => {}
+    > = (storeApi) => (next) => (action) => {
+      /** No-Op */
+    }
 
     const store = configureStore({
       reducer: counterSlice.reducer,

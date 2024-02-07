@@ -1,6 +1,9 @@
-import { vi } from 'vitest'
+import { noop } from '@internal/listenerMiddleware/utils'
 import type { ThunkAction, UnknownAction } from '@reduxjs/toolkit'
 import {
+  createAction,
+  createAsyncThunk,
+  createReducer,
   isAllOf,
   isAnyOf,
   isAsyncThunkAction,
@@ -8,12 +11,9 @@ import {
   isPending,
   isRejected,
   isRejectedWithValue,
-  createAction,
-  createAsyncThunk,
-  createReducer,
 } from '@reduxjs/toolkit'
 
-const thunk: ThunkAction<any, any, any, UnknownAction> = () => {}
+const thunk: ThunkAction<any, any, any, UnknownAction> = noop
 
 describe('isAnyOf', () => {
   it('returns true only if any matchers match (match function)', () => {

@@ -365,7 +365,9 @@ describe('customListenersHandler', () => {
     })
     const dispatchSpy = vi.spyOn(storeRef.store, 'dispatch')
 
-    let unsubscribe = () => {}
+    let unsubscribe = () => {
+      /** No-Op */
+    }
     unsubscribe = setupListeners(
       storeRef.store.dispatch,
       (dispatch, actions) => {

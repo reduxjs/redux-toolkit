@@ -3,12 +3,13 @@ import {
   createActionCreatorInvariantMiddleware,
   getMessage,
 } from '@internal/actionCreatorInvariantMiddleware'
+import { noop } from '@internal/listenerMiddleware/utils'
+import type { AnyFunction } from '@internal/tsHelpers'
 import type { MiddlewareAPI } from '@reduxjs/toolkit'
 import { createAction } from '@reduxjs/toolkit'
-import type { AnyFunction } from '../tsHelpers'
 
 describe('createActionCreatorInvariantMiddleware', () => {
-  const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+  const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(noop)
 
   afterEach(() => {
     consoleSpy.mockClear()

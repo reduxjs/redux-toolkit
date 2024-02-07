@@ -234,7 +234,9 @@ test('inferred types', () => {
         )
         .addMatcher(
           api.endpoints.querySuccess.matchRejected,
-          (state, action) => {},
+          (state, action) => {
+            /** No-Op */
+          },
         )
     },
   })

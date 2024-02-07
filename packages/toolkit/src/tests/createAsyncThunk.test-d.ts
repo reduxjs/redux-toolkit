@@ -1,4 +1,6 @@
-import type { AsyncThunkDispatchConfig } from '@internal/createAsyncThunk'
+import type { AsyncThunkDispatchConfig } from '@internal/createAsyncThunk.js'
+import { noop } from '@internal/listenerMiddleware/utils'
+import type { AnyFunction, AnyNonNullishValue } from '@internal/tsHelpers'
 import type { TSVersion } from '@phryneas/ts-version'
 import type {
   AsyncThunk,
@@ -15,11 +17,12 @@ import {
 } from '@reduxjs/toolkit'
 import type { AxiosError } from 'axios'
 import apiRequest from 'axios'
-import type { AnyFunction, AnyNonNullishValue } from '../tsHelpers'
 
-const defaultDispatch = (() => {
-  /* No-Op */
-}) as ThunkDispatch<AnyNonNullishValue, any, UnknownAction>
+const defaultDispatch = noop as ThunkDispatch<
+  AnyNonNullishValue,
+  any,
+  UnknownAction
+>
 const unknownAction = { type: 'foo' } as UnknownAction
 
 describe('type tests', () => {
@@ -99,9 +102,11 @@ describe('type tests', () => {
       { id: 'a', title: 'First' },
     ]
 
-    const correctDispatch = (() => {
-      /* No-Op */
-    }) as ThunkDispatch<BookModel[], { userAPI: AnyFunction }, UnknownAction>
+    const correctDispatch = noop as ThunkDispatch<
+      BookModel[],
+      { userAPI: AnyFunction },
+      UnknownAction
+    >
 
     // Verify that the the first type args to createAsyncThunk line up right
     const fetchBooksTAC = createAsyncThunk<
@@ -556,26 +561,18 @@ describe('type tests', () => {
     }
 
     // has to stay on one line or type tests fail in older TS versions
-    const shouldFail = createAsyncThunk(
-      'without generics',
-      () => {
-        /* No-Op */
-      },
+    const shouldFail = createAsyncThunk('without generics', noop, {
       // @ts-expect-error
-      { serializeError: funkySerializeError },
-    )
+      serializeError: funkySerializeError,
+    })
 
     const shouldWork = createAsyncThunk<
       any,
       void,
       { serializedErrorType: Funky }
-    >(
-      'with generics',
-      () => {
-        /* No-Op */
-      },
-      { serializeError: funkySerializeError },
-    )
+    >('with generics', noop, {
+      serializeError: funkySerializeError,
+    })
 
     if (shouldWork.rejected.match(unknownAction)) {
       expectTypeOf(unknownAction.error).toEqualTypeOf<Funky>()
@@ -585,30 +582,22 @@ describe('type tests', () => {
   test('`idGenerator` option takes no arguments, and returns a string', () => {
     const returnsNumWithArgs = (foo: any) => 100
     // has to stay on one line or type tests fail in older TS versions
-    const shouldFailNumWithArgs = createAsyncThunk(
-      'foo',
-      () => {
-        /* No-Op */
-      },
+    const shouldFailNumWithArgs = createAsyncThunk('foo', noop, {
       // @ts-expect-error
-      { idGenerator: returnsNumWithArgs },
-    )
+      idGenerator: returnsNumWithArgs,
+    })
 
     const returnsNumWithoutArgs = () => 100
-    const shouldFailNumWithoutArgs = createAsyncThunk(
-      'foo',
-      () => {
-        /* No-Op */
-      },
+    const shouldFailNumWithoutArgs = createAsyncThunk('foo', noop, {
       // @ts-expect-error
-      { idGenerator: returnsNumWithoutArgs },
-    )
+      idGenerator: returnsNumWithoutArgs,
+    })
 
     const returnsStrWithNumberArg = (foo: number) => 'foo'
     const shouldFailWrongArgs = createAsyncThunk(
       'foo',
       (arg: string) => {
-        /* No-Op */
+        /** No-Op */
       },
       // @ts-expect-error
       { idGenerator: returnsStrWithNumberArg },
@@ -618,7 +607,7 @@ describe('type tests', () => {
     const shoulducceedCorrectArgs = createAsyncThunk(
       'foo',
       (arg: string) => {
-        /* No-Op */
+        /** No-Op */
       },
       {
         idGenerator: returnsStrWithStringArg,
@@ -626,13 +615,9 @@ describe('type tests', () => {
     )
 
     const returnsStrWithoutArgs = () => 'foo'
-    const shouldSucceed = createAsyncThunk(
-      'foo',
-      () => {
-        /* No-Op */
-      },
-      { idGenerator: returnsStrWithoutArgs },
-    )
+    const shouldSucceed = createAsyncThunk('foo', noop, {
+      idGenerator: returnsStrWithoutArgs,
+    })
   })
 
   test('fulfillWithValue should infer return value', () => {

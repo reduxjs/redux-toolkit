@@ -157,11 +157,15 @@ const initialSubState: QuerySubState<any> = {
 // abuse immer to freeze default states
 const defaultQuerySubState = /* @__PURE__ */ createNextState(
   initialSubState,
-  () => {},
+  () => {
+    /** No-Op */
+  },
 )
 const defaultMutationSubState = /* @__PURE__ */ createNextState(
   initialSubState as MutationSubState<any>,
-  () => {},
+  () => {
+    /** No-Op */
+  },
 )
 
 export type AllSelectors = ReturnType<typeof buildSelectors>

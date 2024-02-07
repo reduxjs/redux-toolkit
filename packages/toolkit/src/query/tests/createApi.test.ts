@@ -21,7 +21,7 @@ import {
   createApi,
   fetchBaseQuery,
 } from '@reduxjs/toolkit/query'
-import { delay, http, HttpResponse } from 'msw'
+import { HttpResponse, delay, http } from 'msw'
 import nodeFetch from 'node-fetch'
 import * as v from 'valibot'
 import type { SchemaFailureHandler } from '../endpointDefinitions'

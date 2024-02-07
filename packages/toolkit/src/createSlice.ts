@@ -1070,4 +1070,6 @@ function handleThunkCaseReducerDefinition<State>(
   })
 }
 
-function noop() {}
+function noop() {
+  /** No-Op */
+}

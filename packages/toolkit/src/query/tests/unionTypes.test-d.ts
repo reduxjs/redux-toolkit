@@ -662,7 +662,9 @@ describe('union types', () => {
       isLoading: true,
       isSuccess: false,
       isError: false,
-      reset: () => {},
+      reset: () => {
+        /** No-Op */
+      },
     }).toMatchTypeOf(result)
   })
 
