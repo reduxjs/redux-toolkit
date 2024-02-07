@@ -1,4 +1,4 @@
-import { vi } from 'vitest'
+import { noop } from '@internal/tests/utils/helpers'
 import type {
   CaseReducer,
   PayloadAction,
@@ -157,7 +157,7 @@ describe('createReducer', () => {
 
     test('Freezes initial state', () => {
       const initialState = [{ text: 'Buy milk' }]
-      const todosReducer = createReducer(initialState, () => {})
+      const todosReducer = createReducer(initialState, noop)
       const frozenInitialState = todosReducer(undefined, { type: 'dummy' })
 
       const mutateStateOutsideReducer = () =>
@@ -168,7 +168,7 @@ describe('createReducer', () => {
     })
     test('does not throw error if initial state is not draftable', () => {
       expect(() =>
-        createReducer(new URLSearchParams(), () => {}),
+        createReducer(new URLSearchParams(), noop),
       ).not.toThrowError()
     })
   })
@@ -221,7 +221,7 @@ describe('createReducer', () => {
     it('Should only call the init function when `undefined` state is passed in', () => {
       const spy = vi.fn().mockReturnValue(42)
 
-      const dummyReducer = createReducer(spy, () => {})
+      const dummyReducer = createReducer(spy, noop)
       expect(spy).not.toHaveBeenCalled()
 
       dummyReducer(123, { type: 'dummy' })
@@ -308,7 +308,9 @@ describe('createReducer', () => {
       const reducer = createReducer(0, (builder) =>
         builder.addCase(
           'decrement',
-          (state, action: { type: 'decrement'; payload: number }) => {},
+          (state, action: { type: 'decrement'; payload: number }) => {
+            /** No-Op */
+          },
         ),
       )
       expect(() => reducer(5, decrement(5))).toThrowErrorMatchingInlineSnapshot(
@@ -509,31 +511,29 @@ describe('createReducer', () => {
       expect(() =>
         createReducer(initialState, (builder: any) =>
           builder
-            .addMatcher(numberActionMatcher, () => {})
-            .addCase(incrementBy, () => {}),
+            .addMatcher(numberActionMatcher, noop)
+            .addCase(incrementBy, noop),
         ),
       ).toThrowErrorMatchingInlineSnapshot(
         `[Error: \`builder.addCase\` should only be called before calling \`builder.addMatcher\`]`,
       )
       expect(() =>
         createReducer(initialState, (builder: any) =>
-          builder.addDefaultCase(() => {}).addCase(incrementBy, () => {}),
+          builder.addDefaultCase(noop).addCase(incrementBy, noop),
         ),
       ).toThrowErrorMatchingInlineSnapshot(
         `[Error: \`builder.addCase\` should only be called before calling \`builder.addDefaultCase\`]`,
       )
       expect(() =>
         createReducer(initialState, (builder: any) =>
-          builder
-            .addDefaultCase(() => {})
-            .addMatcher(numberActionMatcher, () => {}),
+          builder.addDefaultCase(noop).addMatcher(numberActionMatcher, noop),
         ),
       ).toThrowErrorMatchingInlineSnapshot(
         `[Error: \`builder.addMatcher\` should only be called before calling \`builder.addDefaultCase\`]`,
       )
       expect(() =>
         createReducer(initialState, (builder: any) =>
-          builder.addDefaultCase(() => {}).addDefaultCase(() => {}),
+          builder.addDefaultCase(noop).addDefaultCase(noop),
         ),
       ).toThrowErrorMatchingInlineSnapshot(
         `[Error: \`builder.addDefaultCase\` can only be called once]`,
