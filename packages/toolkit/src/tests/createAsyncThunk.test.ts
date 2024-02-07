@@ -1,3 +1,5 @@
+import { noop } from '@internal/tests/utils/helpers'
+import { delay } from '@internal/utils'
 import type { UnknownAction } from '@reduxjs/toolkit'
 import {
   configureStore,
@@ -91,7 +93,7 @@ describe('createAsyncThunk', () => {
 
     const thunkFunction = thunkActionCreator(args)
 
-    const thunkPromise = thunkFunction(dispatch, () => {}, undefined)
+    const thunkPromise = thunkFunction(dispatch, noop, undefined)
 
     expect(thunkPromise.requestId).toBe(generatedRequestId)
     expect(thunkPromise.arg).toBe(args)
@@ -130,7 +132,7 @@ describe('createAsyncThunk', () => {
     const thunkFunction = thunkActionCreator(args)
 
     try {
-      await thunkFunction(dispatch, () => {}, undefined)
+      await thunkFunction(dispatch, noop, undefined)
     } catch (e) {
       /* empty */
     }
@@ -168,7 +170,7 @@ describe('createAsyncThunk', () => {
     const thunkFunction = thunkActionCreator(args)
 
     try {
-      await thunkFunction(dispatch, () => {}, undefined)
+      await thunkFunction(dispatch, noop, undefined)
     } catch (e) {
       /* empty */
     }
@@ -209,7 +211,7 @@ describe('createAsyncThunk', () => {
     const thunkFunction = thunkActionCreator(args)
 
     try {
-      await thunkFunction(dispatch, () => {}, undefined)
+      await thunkFunction(dispatch, noop, undefined)
     } catch (e) {
       /* empty */
     }
@@ -256,7 +258,7 @@ describe('createAsyncThunk', () => {
     const thunkFunction = thunkActionCreator(args)
 
     try {
-      await thunkFunction(dispatch, () => {}, undefined)
+      await thunkFunction(dispatch, noop, undefined)
     } catch (e) {
       /* empty */
     }
@@ -303,7 +305,7 @@ describe('createAsyncThunk', () => {
     const thunkFunction = thunkActionCreator(args)
 
     try {
-      await thunkFunction(dispatch, () => {}, undefined)
+      await thunkFunction(dispatch, noop, undefined)
     } catch (e) {
       /* empty */
     }
@@ -359,7 +361,7 @@ describe('createAsyncThunk', () => {
     const thunkFunction = thunkActionCreator(args)
 
     try {
-      await thunkFunction(dispatch, () => {}, undefined)
+      await thunkFunction(dispatch, noop, undefined)
     } catch (e) {
       /* empty */
     }
@@ -510,7 +512,7 @@ describe('createAsyncThunk with abortController', () => {
   describe('behavior with missing AbortController', () => {
     let keepAbortController: (typeof window)['AbortController']
     let freshlyLoadedModule: typeof import('../createAsyncThunk')
-    let restore: () => void = () => {}
+    let restore: () => void = noop
     let nodeEnv: string
 
     beforeEach(async () => {
@@ -546,7 +548,9 @@ describe('createAsyncThunk with abortController', () => {
 test('non-serializable arguments are ignored by serializableStateInvariantMiddleware', async () => {
   const restore = mockConsole(createConsole())
   const nonSerializableValue = new Map()
-  const asyncThunk = createAsyncThunk('test', (arg: Map<any, any>) => {})
+  const asyncThunk = createAsyncThunk('test', (arg: Map<any, any>) => {
+    /** No-Op */
+  })
 
   configureStore({
     reducer: () => 0,
@@ -916,13 +920,19 @@ describe('meta', () => {
   })
 
   test('pendingMeta', () => {
-    const pendingThunk = createAsyncThunk('test', (arg: string) => {}, {
-      getPendingMeta({ arg, requestId }) {
-        expect(arg).toBe('testArg')
-        expect(requestId).toEqual(expect.any(String))
-        return { extraProp: 'foo' }
+    const pendingThunk = createAsyncThunk(
+      'test',
+      (arg: string) => {
+        /** No-Op */
       },
-    })
+      {
+        getPendingMeta({ arg, requestId }) {
+          expect(arg).toBe('testArg')
+          expect(requestId).toEqual(expect.any(String))
+          return { extraProp: 'foo' }
+        },
+      },
+    )
     const ret = store.dispatch(pendingThunk('testArg'))
     expect(store.getState()[1]).toEqual({
       meta: {
