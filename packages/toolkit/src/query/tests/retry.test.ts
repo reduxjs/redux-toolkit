@@ -1,6 +1,6 @@
-import { setupApiStore } from '@internal/tests/utils/helpers'
-import type { BaseQueryFn } from '@reduxjs/toolkit/query'
-import { createApi, retry } from '@reduxjs/toolkit/query'
+import { noop, setupApiStore } from '@internal/tests/utils/helpers';
+import type { BaseQueryFn } from '@reduxjs/toolkit/query';
+import { createApi, retry } from '@reduxjs/toolkit/query';
 
 beforeEach(() => {
   vi.useFakeTimers()
@@ -28,7 +28,7 @@ describe('configuration', () => {
       baseQuery,
       endpoints: (build) => ({
         q1: build.query({
-          query: () => {},
+          query: noop,
         }),
       }),
     })
@@ -55,7 +55,7 @@ describe('configuration', () => {
       baseQuery,
       endpoints: (build) => ({
         q1: build.query({
-          query: () => {},
+          query: noop,
         }),
       }),
     })
@@ -82,10 +82,10 @@ describe('configuration', () => {
       baseQuery,
       endpoints: (build) => ({
         q1: build.query({
-          query: () => {},
+          query: noop,
         }),
         q2: build.query({
-          query: () => {},
+          query: noop,
           extraOptions: { maxRetries: 8 },
         }),
       }),
@@ -124,7 +124,7 @@ describe('configuration', () => {
       baseQuery,
       endpoints: (build) => ({
         q1: build.mutation({
-          query: () => {},
+          query: noop,
         }),
       }),
     })
@@ -209,7 +209,7 @@ describe('configuration', () => {
       baseQuery,
       endpoints: (build) => ({
         q1: build.query({
-          query: () => {},
+          query: noop,
         }),
       }),
     })
@@ -241,7 +241,7 @@ describe('configuration', () => {
       baseQuery,
       endpoints: (build) => ({
         q1: build.query({
-          query: () => {},
+          query: noop,
         }),
       }),
     })
@@ -288,7 +288,7 @@ describe('configuration', () => {
       baseQuery,
       endpoints: (build) => ({
         q1: build.query({
-          query: () => {},
+          query: noop,
         }),
       }),
     })
@@ -325,7 +325,7 @@ describe('configuration', () => {
       baseQuery,
       endpoints: (build) => ({
         q1: build.query({
-          query: () => {},
+          query: noop,
         }),
       }),
     })
@@ -356,7 +356,7 @@ describe('configuration', () => {
       baseQuery,
       endpoints: (build) => ({
         q1: build.query({
-          query: () => {},
+          query: noop,
         }),
       }),
     })
@@ -385,7 +385,7 @@ describe('configuration', () => {
       baseQuery,
       endpoints: (build) => ({
         q1: build.query({
-          query: () => {},
+          query: noop,
           extraOptions: {
             retryCondition: (_, __, { attempt }) => attempt <= 5,
           },
@@ -450,7 +450,7 @@ describe('configuration', () => {
       baseQuery,
       endpoints: (build) => ({
         q1: build.query({
-          query: () => {},
+          query: noop,
         }),
       }),
     })

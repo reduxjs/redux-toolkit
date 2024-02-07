@@ -314,7 +314,9 @@ export function fetchBaseQuery({
         // we *have* to "use up" both streams at the same time or they will stop running in node-fetch scenarios
         responseClone.text().then(
           (r) => (responseText = r),
-          () => {},
+          () => {
+            /** No-Op */
+          },
         ),
       ])
       if (handleResponseError) throw handleResponseError

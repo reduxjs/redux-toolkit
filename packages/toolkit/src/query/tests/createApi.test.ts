@@ -1,6 +1,7 @@
 import { server } from '@internal/query/tests/mocks/server'
 import {
   getSerializedHeaders,
+  noop,
   setupApiStore,
 } from '@internal/tests/utils/helpers'
 import { configureStore, createAction, createReducer } from '@reduxjs/toolkit'
@@ -12,7 +13,7 @@ import type {
   TagTypesFromApi,
 } from '@reduxjs/toolkit/query'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
-import { delay, http, HttpResponse } from 'msw'
+import { HttpResponse, delay, http } from 'msw'
 import nodeFetch from 'node-fetch'
 import type { MockInstance } from 'vitest'
 
@@ -25,7 +26,7 @@ beforeAll(() => {
 let spy: MockInstance
 
 beforeAll(() => {
-  spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+  spy = vi.spyOn(console, 'error').mockImplementation(noop)
 })
 afterEach(() => {
   spy.mockReset()

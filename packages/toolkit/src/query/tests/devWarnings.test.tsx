@@ -1,12 +1,13 @@
+import { noop } from '@internal/tests/utils/helpers'
 import { configureStore } from '@reduxjs/toolkit'
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 import {
-  mockConsole,
   createConsole,
   getLog,
+  mockConsole,
 } from 'console-testing-library/pure'
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 
-let restore: () => void = () => {}
+let restore: () => void = noop
 let nodeEnv: string
 
 beforeEach(() => {
@@ -297,7 +298,11 @@ describe('`console.error` on unhandled errors during `initiate`', () => {
         throw new Error('this was kinda expected')
       },
       endpoints: (build) => ({
-        baseQuery: build.query<any, void>({ query() {} }),
+        baseQuery: build.query<any, void>({
+          query() {
+            /** No-Op */
+          },
+        }),
       }),
     })
     const store = configureStore({
@@ -342,7 +347,9 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated". 
       },
       endpoints: (build) => ({
         transformRspn: build.query<any, void>({
-          query() {},
+          query() {
+            /** No-Op */
+          },
           transformResponse() {
             throw new Error('this was kinda expected')
           },

@@ -288,3 +288,7 @@ export const hasBodyAndHeaders = (
     'body' in request
   )
 }
+
+export const noop = () => {
+  /** No-Op */
+}

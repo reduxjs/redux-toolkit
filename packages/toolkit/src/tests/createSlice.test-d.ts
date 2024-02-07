@@ -1,3 +1,5 @@
+import { noop } from '@internal/tests/utils/helpers'
+import type { AnyNonNullishValue, EmptyObject } from '@internal/tsHelpers'
 import type {
   Action,
   ActionCreatorWithNonInferrablePayload,
@@ -27,7 +29,6 @@ import {
   isRejected,
 } from '@reduxjs/toolkit'
 import { castDraft } from 'immer'
-import type { AnyNonNullishValue, EmptyObject } from '../tsHelpers'
 
 describe('type tests', () => {
   const counterSlice = createSlice({
@@ -251,7 +252,9 @@ describe('type tests', () => {
       reducers: {
         // case: meta and error not used in reducer
         testDefaultMetaAndError: {
-          reducer(_, action: PayloadAction<number, string>) {},
+          reducer(_, action: PayloadAction<number, string>) {
+            /** No-Op */
+          },
           prepare: (payload: number) => ({
             payload,
             meta: 'meta' as const,
@@ -260,10 +263,9 @@ describe('type tests', () => {
         },
         // case: meta and error marked as "unknown" in reducer
         testUnknownMetaAndError: {
-          reducer(
-            _,
-            action: PayloadAction<number, string, unknown, unknown>,
-          ) {},
+          reducer(_, action: PayloadAction<number, string, unknown, unknown>) {
+            /** No-Op */
+          },
           prepare: (payload: number) => ({
             payload,
             meta: 'meta' as const,
@@ -272,7 +274,9 @@ describe('type tests', () => {
         },
         // case: meta and error are typed in the reducer as returned by prepare
         testMetaAndError: {
-          reducer(_, action: PayloadAction<number, string, 'meta', 'error'>) {},
+          reducer(_, action: PayloadAction<number, string, 'meta', 'error'>) {
+            /** No-Op */
+          },
           prepare: (payload: number) => ({
             payload,
             meta: 'meta' as const,
@@ -281,7 +285,9 @@ describe('type tests', () => {
         },
         // case: meta is typed differently in the reducer than returned from prepare
         testErroneousMeta: {
-          reducer(_, action: PayloadAction<number, string, 'meta', 'error'>) {},
+          reducer(_, action: PayloadAction<number, string, 'meta', 'error'>) {
+            /** No-Op */
+          },
           // @ts-expect-error
           prepare: (payload: number) => ({
             payload,
@@ -291,7 +297,9 @@ describe('type tests', () => {
         },
         // case: error is typed differently in the reducer than returned from prepare
         testErroneousError: {
-          reducer(_, action: PayloadAction<number, string, 'meta', 'error'>) {},
+          reducer(_, action: PayloadAction<number, string, 'meta', 'error'>) {
+            /** No-Op */
+          },
           // @ts-expect-error
           prepare: (payload: number) => ({
             payload,
@@ -612,7 +620,7 @@ describe('type tests', () => {
         }>()
 
         // @ts-expect-error
-        create.asyncThunk<any, any, { state: StoreState }>(() => {})
+        create.asyncThunk<any, any, { state: StoreState }>(noop)
 
         // @ts-expect-error
         create.asyncThunk.withTypes<{

@@ -5,9 +5,9 @@ import { createAction } from '../createAction'
 import { nanoid } from '../nanoid'
 import { find } from '../utils'
 import {
+  TaskAbortError,
   listenerCancelled,
   listenerCompleted,
-  TaskAbortError,
   taskCancelled,
   taskCompleted,
 } from './exceptions'
@@ -24,9 +24,9 @@ import type {
   AnyListenerPredicate,
   CreateListenerMiddlewareOptions,
   FallbackAddListenerOptions,
+  ForkOptions,
   ForkedTask,
   ForkedTaskExecutor,
-  ForkOptions,
   ListenerEntry,
   ListenerErrorHandler,
   ListenerErrorInfo,
@@ -145,7 +145,9 @@ const createTakePattern = <S>(
     validateActive(signal)
 
     // Placeholder unsubscribe function until the listener is added
-    let unsubscribe: UnsubscribeListener = () => {}
+    let unsubscribe: UnsubscribeListener = () => {
+      /** No-Op */
+    }
 
     const tuplePromise = new Promise<[Action, S, S]>((resolve, reject) => {
       // Inside the Promise, we synchronously add the listener.

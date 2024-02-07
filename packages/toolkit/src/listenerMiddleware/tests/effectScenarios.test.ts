@@ -1,3 +1,4 @@
+import { noop } from '@internal/tests/utils/helpers'
 import type { PayloadAction } from '@reduxjs/toolkit'
 import {
   TaskAbortError,
@@ -54,7 +55,6 @@ describe('Saga-style Effects Scenarios', () => {
   }
 
   beforeAll(() => {
-    const noop = () => {}
     vi.spyOn(console, 'error').mockImplementation(noop)
   })
 

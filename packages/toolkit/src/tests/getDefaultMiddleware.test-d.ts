@@ -142,7 +142,9 @@ describe('type tests', () => {
     const dummyMiddleware2: Middleware<
       AnyNonNullishValue,
       { counter: number }
-    > = (storeApi) => (next) => (action) => {}
+    > = (storeApi) => (next) => (action) => {
+      /** No-Op */
+    }
 
     const testThunk: ThunkAction<
       void,
