@@ -20,7 +20,7 @@ yarn global add @reduxjs/rtk-codemods
 ## Local Usage
 
 ```
-node ./bin/cli.js createSliceReducerBuilder path/of/files/ or/some**/*glob.js
+node ./bin/cli.mjs createSliceReducerBuilder path/of/files/ or/some**/*glob.js
 ```
 
 ## Input / Output
