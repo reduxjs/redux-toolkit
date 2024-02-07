@@ -39,7 +39,9 @@ describe('findNonSerializableValue', () => {
   })
 
   it('Should return a keypath and the value if it finds a non-serializable value', () => {
-    function testFunction() {}
+    function testFunction() {
+      /* empty */
+    }
 
     const obj = {
       a: 42,
