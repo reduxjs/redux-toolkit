@@ -1,6 +1,7 @@
 {
   "name": "@reduxjs/rtk-codemods",
   "version": "0.1.1",
+  "type": "module",
   "scripts": {
     "lint": "eslint .",
     "test": "vitest --run",
