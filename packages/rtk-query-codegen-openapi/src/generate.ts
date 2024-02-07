@@ -1,27 +1,25 @@
-import * as path from 'path';
-
+import { camelCase } from 'lodash';
+import path from 'node:path';
 import ApiGenerator, {
   getOperationName as _getOperationName,
   getReferenceName,
   isReference,
   supportDeepObjects,
 } from 'oazapfts/lib/codegen/generate';
-import type { EndpointMatcher, EndpointOverrides, GenerationOptions, OperationDefinition, TextMatcher } from './types';
-import { capitalize, getOperationDefinitions, getV3Doc, removeUndefined, isQuery as testIsQuery } from './utils';
 import {
   createPropertyAssignment,
   createQuestionToken,
   isValidIdentifier,
   keywordType,
 } from 'oazapfts/lib/codegen/tscodegen';
-import { generateCreateApiCall, generateEndpointDefinition, generateImportNode, generateTagTypes } from './codegen';
-
-import type { ObjectPropertyDefinitions } from './codegen';
 import type { OpenAPIV3 } from 'openapi-types';
-import { camelCase } from 'lodash';
-import { factory } from './utils/factory';
-import { generateReactHooks } from './generators/react-hooks';
 import ts from 'typescript';
+import type { ObjectPropertyDefinitions } from './codegen';
+import { generateCreateApiCall, generateEndpointDefinition, generateImportNode, generateTagTypes } from './codegen';
+import { generateReactHooks } from './generators/react-hooks';
+import type { EndpointMatcher, EndpointOverrides, GenerationOptions, OperationDefinition, TextMatcher } from './types';
+import { capitalize, getOperationDefinitions, getV3Doc, removeUndefined, isQuery as testIsQuery } from './utils';
+import { factory } from './utils/factory';
 
 const generatedApiName = 'injectedRtkApi';
 
@@ -136,7 +134,7 @@ export async function generateApi(
     if (apiFile.startsWith('.')) {
       apiFile = path.relative(path.dirname(outputFile), apiFile);
       apiFile = apiFile.replace(/\\/g, '/');
-      if (!apiFile.startsWith('.')) apiFile = './' + apiFile;
+      if (!apiFile.startsWith('.')) apiFile = `./${apiFile}`;
     }
   }
   apiFile = apiFile.replace(/\.[jt]sx?$/, '');
@@ -191,7 +189,7 @@ export async function generateApi(
   );
 
   function extractAllTagTypes({ operationDefinitions }: { operationDefinitions: OperationDefinition[] }) {
-    let allTagTypes = new Set<string>();
+    const allTagTypes = new Set<string>();
 
     for (const operationDefinition of operationDefinitions) {
       const { verb, pathItem } = operationDefinition;
@@ -280,7 +278,7 @@ export async function generateApi(
       }
       // if there are still any naming conflicts, prepend with underscore
       while (name in queryArg) {
-        name = '_' + name;
+        name = `_${name}`;
       }
       return name;
     }

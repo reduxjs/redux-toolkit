@@ -1,8 +1,7 @@
 import SwaggerParser from '@apidevtools/swagger-parser';
+import type { OpenAPIV3 } from 'openapi-types';
 // @ts-ignore
 import converter from 'swagger2openapi';
-
-import type { OpenAPIV3 } from 'openapi-types';
 
 export async function getV3Doc(spec: string): Promise<OpenAPIV3.Document> {
   const doc = await SwaggerParser.bundle(spec);
