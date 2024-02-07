@@ -18,7 +18,7 @@ function cli(args: string[], cwd: string): Promise<{ error: ExecException | null
   });
 }
 
-const tmpDir = path.join(__dirname, 'tmp');
+const tmpDir = path.resolve(__dirname, 'tmp');
 
 describe('CLI options testing', () => {
   beforeAll(() => {
