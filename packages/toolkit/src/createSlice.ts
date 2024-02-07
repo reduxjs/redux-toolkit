@@ -34,7 +34,9 @@ import type {
 } from './tsHelpers'
 import { emplace } from './utils'
 
-const asyncThunkSymbol = Symbol.for('rtk-slice-createasyncthunk')
+const asyncThunkSymbol = /* @__PURE__ */ Symbol.for(
+  'rtk-slice-createasyncthunk',
+)
 // type is annotated because it's too long to infer
 export const asyncThunkCreator: {
   [asyncThunkSymbol]: typeof _createAsyncThunk
@@ -870,7 +872,7 @@ function wrapSelector<State, NewState, S extends Selector<State>>(
  *
  * @public
  */
-export const createSlice = buildCreateSlice()
+export const createSlice = /* @__PURE__ */ buildCreateSlice()
 
 interface ReducerHandlingContext<State> {
   sliceCaseReducersByName: Record<

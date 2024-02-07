@@ -1,0 +1,22 @@
+diff --git a/get-config.js b/get-config.js
+index 76ebaee5455b2a4bacb986784bd1b53ad89adeb7..1b092e645b258f4a6533ca88b7d36dbcde4eb6de 100644
+--- a/get-config.js
++++ b/get-config.js
+@@ -132,7 +132,7 @@ export default async function getConfig(plugins, process, args, pkg) {
+         } else if (!check.entry) {
+           if (pkg.packageJson.main) {
+             processed.files = [
+-              require.resolve(join(dirname(pkg.path), pkg.packageJson.main))
++              import.meta.resolve(join(dirname(pkg.path), pkg.packageJson.main))
+             ]
+           } else {
+             processed.files = [join(dirname(pkg.path), 'index.js')]
+@@ -177,7 +177,7 @@ export default async function getConfig(plugins, process, args, pkg) {
+       for (let i in check.import) {
+         if (peer.includes(i)) {
+           check.ignore = check.ignore.filter(j => j !== i)
+-          imports[require.resolve(i, config.cwd)] = check.import[i]
++          imports[import.meta.resolve(i, config.cwd)] = check.import[i]
+         } else {
+           imports[toAbsolute(i, config.cwd)] = check.import[i]
+         }
