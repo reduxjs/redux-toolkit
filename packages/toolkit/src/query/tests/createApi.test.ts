@@ -13,7 +13,7 @@ import type {
   TagTypesFromApi,
 } from '@reduxjs/toolkit/query'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
-import { delay, http, HttpResponse } from 'msw'
+import { HttpResponse, delay, http } from 'msw'
 import nodeFetch from 'node-fetch'
 
 beforeAll(() => {

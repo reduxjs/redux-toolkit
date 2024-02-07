@@ -1,59 +1,52 @@
-import type { Action, PayloadAction, UnknownAction } from '@reduxjs/toolkit'
-import {
-  combineReducers,
-  createAction,
-  createSlice,
-  isAnyOf,
-  isFulfilled,
-  isRejectedWithValue,
-  createNextState,
-  prepareAutoBatched,
-  SHOULD_AUTOBATCH,
-  nanoid,
-} from './rtkImports'
-import type {
-  QuerySubstateIdentifier,
-  QuerySubState,
-  MutationSubstateIdentifier,
-  MutationSubState,
-  MutationState,
-  QueryState,
-  InvalidationState,
-  Subscribers,
-  QueryCacheKey,
-  SubscriptionState,
-  ConfigState,
-  QueryKeys,
-} from './apiState'
-import { QueryStatus } from './apiState'
-import type {
-  MutationThunk,
-  QueryThunk,
-  QueryThunkArg,
-  RejectedAction,
-} from './buildThunks'
-import { calculateProvidedByThunk } from './buildThunks'
+import type { PayloadAction } from '@reduxjs/toolkit'
+import type { Patch } from 'immer'
+import { applyPatches, isDraft, original } from 'immer'
+import type { ApiContext } from '../apiTypes'
+import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import type {
   AssertTagTypes,
-  DefinitionType,
   EndpointDefinitions,
   FullTagDescription,
   QueryArgFrom,
   QueryDefinition,
   ResultTypeFrom,
 } from '../endpointDefinitions'
-import type { Patch } from 'immer'
-import { isDraft } from 'immer'
-import { applyPatches, original } from 'immer'
-import { onFocus, onFocusLost, onOffline, onOnline } from './setupListeners'
 import {
+  copyWithStructuralSharing,
   isDocumentVisible,
   isOnline,
-  copyWithStructuralSharing,
 } from '../utils'
-import type { ApiContext } from '../apiTypes'
+import type {
+  ConfigState,
+  InvalidationState,
+  MutationState,
+  MutationSubState,
+  MutationSubstateIdentifier,
+  QueryCacheKey,
+  QueryKeys,
+  QueryState,
+  QuerySubState,
+  QuerySubstateIdentifier,
+  Subscribers,
+  SubscriptionState,
+} from './apiState'
+import { QueryStatus } from './apiState'
 import { isUpsertQuery } from './buildInitiate'
-import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
+import type { MutationThunk, QueryThunk, QueryThunkArg } from './buildThunks'
+import { calculateProvidedByThunk } from './buildThunks'
+import {
+  SHOULD_AUTOBATCH,
+  combineReducers,
+  createAction,
+  createNextState,
+  createSlice,
+  isAnyOf,
+  isFulfilled,
+  isRejectedWithValue,
+  nanoid,
+  prepareAutoBatched,
+} from './rtkImports'
+import { onFocus, onFocusLost, onOffline, onOnline } from './setupListeners'
 
 /**
  * A typesafe single entry to be upserted into the cache
@@ -595,7 +588,9 @@ export function buildSlice({
       ) {
         // Dummy
       },
-      internal_getRTKQSubscriptions() {},
+      internal_getRTKQSubscriptions() {
+        /** No-Op */
+      },
     },
   })
 

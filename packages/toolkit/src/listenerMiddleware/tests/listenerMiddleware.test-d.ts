@@ -1,4 +1,5 @@
 import { createListenerEntry } from '@internal/listenerMiddleware'
+import { noop } from '@internal/listenerMiddleware/utils'
 import type {
   Action,
   PayloadAction,
@@ -89,7 +90,7 @@ describe('type tests', () => {
     const unsubscribe = store.dispatch(
       addListener({
         actionCreator: testAction1,
-        effect: () => {},
+        effect: noop,
       }),
     )
 
@@ -168,7 +169,9 @@ describe('type tests', () => {
 
         return true
       },
-      effect: (action, listenerApi) => {},
+      effect: (action, listenerApi) => {
+        /** No-Op */
+      },
     })
 
     startListening({
