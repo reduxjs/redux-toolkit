@@ -1,3 +1,5 @@
+import { noop } from '@internal/listenerMiddleware/utils'
+import type { AnyFunction, AnyNonNullishValue } from '@internal/tsHelpers'
 import type { TSVersion } from '@phryneas/ts-version'
 import type {
   AsyncThunk,
@@ -14,9 +16,12 @@ import {
 } from '@reduxjs/toolkit'
 import type { AxiosError } from 'axios'
 import apiRequest from 'axios'
-import type { AnyFunction } from '../tsHelpers'
 
-const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, UnknownAction>
+const defaultDispatch = noop as ThunkDispatch<
+  AnyNonNullishValue,
+  any,
+  UnknownAction
+>
 const unknownAction = { type: 'foo' } as UnknownAction
 
 describe('type tests', () => {
@@ -96,7 +101,7 @@ describe('type tests', () => {
       { id: 'a', title: 'First' },
     ]
 
-    const correctDispatch = (() => {}) as ThunkDispatch<
+    const correctDispatch = noop as ThunkDispatch<
       BookModel[],
       { userAPI: AnyFunction },
       UnknownAction
@@ -546,13 +551,13 @@ describe('type tests', () => {
     // has to stay on one line or type tests fail in older TS versions
     // prettier-ignore
     // @ts-expect-error
-    const shouldFail = createAsyncThunk('without generics', () => {}, { serializeError: funkySerializeError })
+    const shouldFail = createAsyncThunk('without generics', noop, { serializeError: funkySerializeError })
 
     const shouldWork = createAsyncThunk<
       any,
       void,
       { serializedErrorType: Funky }
-    >('with generics', () => {}, {
+    >('with generics', noop, {
       serializeError: funkySerializeError,
     })
 
@@ -566,29 +571,31 @@ describe('type tests', () => {
     // has to stay on one line or type tests fail in older TS versions
     // prettier-ignore
     // @ts-expect-error
-    const shouldFailNumWithArgs = createAsyncThunk('foo', () => {}, { idGenerator: returnsNumWithArgs })
+    const shouldFailNumWithArgs = createAsyncThunk('foo', noop, { idGenerator: returnsNumWithArgs })
 
     const returnsNumWithoutArgs = () => 100
     // prettier-ignore
     // @ts-expect-error
-    const shouldFailNumWithoutArgs = createAsyncThunk('foo', () => {}, { idGenerator: returnsNumWithoutArgs })
+    const shouldFailNumWithoutArgs = createAsyncThunk('foo', noop, { idGenerator: returnsNumWithoutArgs })
 
     const returnsStrWithNumberArg = (foo: number) => 'foo'
     // prettier-ignore
     // @ts-expect-error
-    const shouldFailWrongArgs = createAsyncThunk('foo', (arg: string) => {}, { idGenerator: returnsStrWithNumberArg })
+    const shouldFailWrongArgs = createAsyncThunk('foo', (arg: string) => { /** No-Op */ }, { idGenerator: returnsStrWithNumberArg })
 
     const returnsStrWithStringArg = (foo: string) => 'foo'
     const shoulducceedCorrectArgs = createAsyncThunk(
       'foo',
-      (arg: string) => {},
+      (arg: string) => {
+        /** No-Op */
+      },
       {
         idGenerator: returnsStrWithStringArg,
       },
     )
 
     const returnsStrWithoutArgs = () => 'foo'
-    const shouldSucceed = createAsyncThunk('foo', () => {}, {
+    const shouldSucceed = createAsyncThunk('foo', noop, {
       idGenerator: returnsStrWithoutArgs,
     })
   })
