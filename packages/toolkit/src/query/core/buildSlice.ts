@@ -42,16 +42,25 @@ import type {
   QueryDefinition,
   ResultTypeFrom,
 } from '../endpointDefinitions'
-import type { Patch } from 'immer'
-import { isDraft } from 'immer'
-import { applyPatches, original } from 'immer'
-import { onFocus, onFocusLost, onOffline, onOnline } from './setupListeners'
 import {
+  copyWithStructuralSharing,
   isDocumentVisible,
   isOnline,
-  copyWithStructuralSharing,
 } from '../utils'
-import type { ApiContext } from '../apiTypes'
+import type {
+  ConfigState,
+  InvalidationState,
+  MutationState,
+  MutationSubState,
+  MutationSubstateIdentifier,
+  QueryCacheKey,
+  QueryState,
+  QuerySubState,
+  QuerySubstateIdentifier,
+  Subscribers,
+  SubscriptionState,
+} from './apiState'
+import { QueryStatus } from './apiState'
 import { isUpsertQuery } from './buildInitiate'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 
@@ -96,6 +105,19 @@ export type UpsertEntries<Definitions extends EndpointDefinitions> = <
     },
   ],
 ) => PayloadAction<NormalizedQueryUpsertEntryPayload[]>
+import type { MutationThunk, QueryThunk } from './buildThunks'
+import { calculateProvidedByThunk } from './buildThunks'
+import {
+  combineReducers,
+  createAction,
+  createNextState,
+  createSlice,
+  isAnyOf,
+  isFulfilled,
+  isRejectedWithValue,
+  prepareAutoBatched,
+} from './rtkImports'
+import { onFocus, onFocusLost, onOffline, onOnline } from './setupListeners'
 
 function updateQuerySubstateIfExists(
   state: QueryState<any>,
@@ -588,7 +610,9 @@ export function buildSlice({
       ) {
         // Dummy
       },
-      internal_getRTKQSubscriptions() {},
+      internal_getRTKQSubscriptions() {
+        /** No-Op */
+      },
     },
   })
 

@@ -1,4 +1,4 @@
-import { vi } from 'vitest'
+import { noop } from '@internal/tests/utils/helpers'
 import type { ThunkAction, UnknownAction } from '@reduxjs/toolkit'
 import {
   isAllOf,
@@ -13,7 +13,7 @@ import {
   createReducer,
 } from '@reduxjs/toolkit'
 
-const thunk: ThunkAction<any, any, any, UnknownAction> = () => {}
+const thunk: ThunkAction<any, any, any, UnknownAction> = noop
 
 describe('isAnyOf', () => {
   it('returns true only if any matchers match (match function)', () => {

@@ -1,21 +1,23 @@
-import {
-  mockConsole,
-  createConsole,
-  getLog,
-} from 'console-testing-library/pure'
+import { isNestedFrozen } from '@internal/serializableStateInvariantMiddleware'
 import type { Reducer } from '@reduxjs/toolkit'
 import {
-  createNextState,
   configureStore,
+  createNextState,
   createSerializableStateInvariantMiddleware,
   findNonSerializableValue,
   isPlain,
   Tuple,
 } from '@reduxjs/toolkit'
-import { isNestedFrozen } from '@internal/serializableStateInvariantMiddleware'
+import {
+  createConsole,
+  getLog,
+  mockConsole,
+} from 'console-testing-library/pure'
 
 // Mocking console
-let restore = () => {}
+let restore = () => {
+  /* empty */
+}
 beforeEach(() => {
   restore = mockConsole(createConsole())
 })
@@ -37,7 +39,9 @@ describe('findNonSerializableValue', () => {
   })
 
   it('Should return a keypath and the value if it finds a non-serializable value', () => {
-    function testFunction() {}
+    function testFunction() {
+      /* empty */
+    }
 
     const obj = {
       a: 42,
