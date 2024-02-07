@@ -7438,7 +7438,7 @@ __metadata:
     typescript: ^5.3.3
     vitest: ^1.2.1
   bin:
-    rtk-codemods: ./bin/cli.js
+    rtk-codemods: ./bin/cli.mjs
   languageName: unknown
   linkType: soft
 
