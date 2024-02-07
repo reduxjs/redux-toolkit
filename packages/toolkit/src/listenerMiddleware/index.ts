@@ -145,7 +145,9 @@ const createTakePattern = <S>(
     validateActive(signal)
 
     // Placeholder unsubscribe function until the listener is added
-    let unsubscribe: UnsubscribeListener = () => {}
+    let unsubscribe: UnsubscribeListener = () => {
+      /** No-Op */
+    }
 
     const tuplePromise = new Promise<[Action, S, S]>((resolve, reject) => {
       // Inside the Promise, we synchronously add the listener.
