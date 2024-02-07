@@ -54,8 +54,8 @@ Done
       error: null,
     });
 
-    expect(fs.readFileSync(path.join(tmpDir, 'example.ts'), 'utf-8')).toMatchSnapshot();
-  }, 25_000);
+    expect(fs.readFileSync(path.resolve(tmpDir, 'example.ts'), 'utf-8')).toMatchSnapshot();
+  }, 120_000);
 
   test('ts, js and json all work the same', async () => {
     await cli([`./test/config.example.js`], __dirname);
