@@ -1,6 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit'
 import { createApi, fakeBaseQuery } from '@reduxjs/toolkit/query'
-import '../../tests/utils/helpers'
 
 interface CustomErrorType {
   type: 'Custom'
