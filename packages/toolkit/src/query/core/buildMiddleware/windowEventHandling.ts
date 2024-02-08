@@ -1,4 +1,4 @@
-import { countObjectKeys } from '@internal/query/utils/countObjectKeys'
+import { countObjectKeys } from '../../utils/countObjectKeys'
 import type { QueryCacheKey } from '../apiState'
 import { QueryStatus } from '../apiState'
 import { onFocus, onOnline } from '../setupListeners'
