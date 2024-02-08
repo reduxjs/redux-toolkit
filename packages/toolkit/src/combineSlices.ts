@@ -122,7 +122,7 @@ export interface CombinedSliceReducer<
     config?: InjectConfig,
   ): CombinedSliceReducer<
     InitialState,
-    Id<DeclaredState & WithSlice<SliceLike<ReducerPath, string>>>
+    Id<DeclaredState & WithSlice<SliceLike<ReducerPath, State>>>
   >
 
   /**
