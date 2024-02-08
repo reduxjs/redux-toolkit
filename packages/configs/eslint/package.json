@@ -6,7 +6,8 @@
   "types": "./dist/eslint.config.d.ts",
   "scripts": {
     "build": "yarn clean && tsc",
-    "clean": "rimraf dist"
+    "clean": "rimraf dist",
+    "prepack": "yarn build"
   },
   "keywords": [
     "eslint",
