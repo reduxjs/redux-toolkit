@@ -14,6 +14,10 @@ on:
           - '@rtk-query/codegen-openapi'
           - '@rtk-query/graphql-request-base-query'
           - '@reduxjs/rtk-codemods'
+          - '@reduxjs/eslint-config'
+          - '@reduxjs/prettier-config'
+          - '@reduxjs/tsconfig'
+          - '@reduxjs/vitest-config'
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -28,7 +32,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           cache: 'yarn'
       - run: yarn install --frozen-lockfile
-      - run: yarn workspace ${{ inputs.package }} test
+      - run: yarn workspaces foreach --include "${{ inputs.package }}" run test
       - run: yarn workspace ${{ inputs.package }} exec npm publish --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
