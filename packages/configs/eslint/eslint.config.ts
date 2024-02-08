@@ -51,6 +51,16 @@ const eslintConfig: Linter.Config = {
       { allowDeclarations: true, allowDefinitionFiles: true },
     ],
     '@typescript-eslint/ban-ts-comment': [0],
+    'sort-imports': [
+      2,
+      {
+        ignoreCase: false,
+        ignoreDeclarationSort: true,
+        ignoreMemberSort: false,
+        memberSyntaxSortOrder: ['none', 'all', 'multiple', 'single'],
+        allowSeparatedGroups: true,
+      },
+    ],
   },
   parser: '@typescript-eslint/parser',
   parserOptions: { project: true, ecmaVersion: 'latest' },
