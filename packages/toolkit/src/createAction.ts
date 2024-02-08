@@ -277,7 +277,7 @@ export function createAction(type: string, prepareAction?: AnyFunction): any {
     return { type, payload: args[0] }
   }
 
-  actionCreator.toString = () => type
+  actionCreator.toString = () => `${type}`
 
   actionCreator.type = type
 
