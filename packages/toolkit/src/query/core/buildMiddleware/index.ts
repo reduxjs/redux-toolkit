@@ -1,10 +1,10 @@
+import type { AnyNonNullishValue } from '@internal/tsHelpers'
 import type {
   Action,
   Middleware,
   ThunkDispatch,
   UnknownAction,
 } from '@reduxjs/toolkit'
-import type { AnyNonNullishValue } from '@reduxjs/toolkit/dist/tsHelpers'
 import type {
   EndpointDefinitions,
   FullTagDescription,
