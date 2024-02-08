@@ -1,3 +1,4 @@
+import type { UnknownAction } from '@reduxjs/toolkit'
 import nodeFetch, { Headers, Request } from 'node-fetch'
 import { server } from './src/query/tests/mocks/server'
 
@@ -57,4 +58,38 @@ afterEach(() => {
 
 afterAll(() => {
   server.close()
+})
+
+declare global {
+  namespace jest {
+    interface Matchers<R> {
+      toMatchSequence(...matchers: Array<(arg: any) => boolean>): R
+    }
+  }
+}
+
+expect.extend({
+  toMatchSequence(
+    _actions: UnknownAction[],
+    ...matchers: Array<(arg: any) => boolean>
+  ) {
+    const actions = _actions.concat()
+    actions.shift() // remove INIT
+
+    for (let i = 0; i < matchers.length; i++) {
+      if (!matchers[i](actions[i])) {
+        return {
+          message: () =>
+            `Action ${actions[i].type} does not match sequence at position ${i}.
+All actions:
+${actions.map((a) => a.type).join('\n')}`,
+          pass: false,
+        }
+      }
+    }
+    return {
+      message: () => `All actions match the sequence.`,
+      pass: true,
+    }
+  },
 })
