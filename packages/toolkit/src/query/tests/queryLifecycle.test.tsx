@@ -3,7 +3,6 @@ import { setupApiStore } from '@internal/tests/utils/helpers'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 import { waitFor } from '@testing-library/react'
 import { HttpResponse, http } from 'msw'
-import { vi } from 'vitest'
 
 const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
