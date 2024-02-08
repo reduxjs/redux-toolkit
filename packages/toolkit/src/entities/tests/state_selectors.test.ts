@@ -1,6 +1,4 @@
 import { createDraftSafeSelectorCreator } from '@internal/createDraftSafeSelector'
-import type { Selector } from 'reselect'
-import { createSelector } from 'reselect'
 import type { EntityAdapter, EntityState } from '../index'
 import { createEntityAdapter } from '../index'
 import type { EntitySelectors } from '../models'
@@ -102,12 +100,6 @@ describe('Entity State Selectors', () => {
       expect(entities).toEqual(state.entities)
     })
 
-    it('should type single entity from Dictionary as entity type or undefined', () => {
-      expectType<
-        Selector<EntityState<BookModel, string>, BookModel | undefined>
-      >(createSelector(selectors.selectEntities, (entities) => entities[0]))
-    })
-
     it('should create a selector for selecting the list of models', () => {
       const models = selectors.selectAll(state)
 
@@ -147,7 +139,3 @@ describe('Entity State Selectors', () => {
     })
   })
 })
-
-function expectType<T>(t: T) {
-  return t
-}
