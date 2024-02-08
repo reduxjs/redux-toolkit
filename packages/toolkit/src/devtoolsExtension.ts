@@ -223,7 +223,9 @@ export const composeWithDevTools: ComposeWithDevTools =
     ? (window as any).__REDUX_DEVTOOLS_EXTENSION_COMPOSE__
     : function () {
         if (arguments.length === 0) return undefined
+        // eslint-disable-next-line prefer-rest-params
         if (typeof arguments[0] === 'object') return compose
+        // eslint-disable-next-line prefer-spread, prefer-rest-params
         return compose.apply(null, arguments as any as AnyFunction[])
       }
 

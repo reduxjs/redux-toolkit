@@ -978,6 +978,7 @@ describe('fetchBaseQuery', () => {
       const baseQuery = fetchBaseQuery({
         prepareHeaders(headers, api) {
           expectTypeOf(api.extraOptions).toEqualTypeOf<unknown>()
+          // eslint-disable-next-line prefer-spread, prefer-rest-params
           prepare.apply(undefined, arguments as unknown as any[])
         },
       })
