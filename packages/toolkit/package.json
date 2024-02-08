@@ -100,7 +100,7 @@
     "build": "yarn clean && echo Compiling TS... &&  yarn tsc -p tsconfig.build.json && yarn run-build",
     "build-only": "yarn clean && yarn run-build",
     "format": "prettier --write .",
-    "format:check": "prettier --list-different .",
+    "format:check": "prettier --check .",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
     "test": "vitest --run --typecheck",
