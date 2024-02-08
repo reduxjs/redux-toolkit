@@ -1,8 +1,4 @@
 import type { Api, ApiContext } from '@internal/query/apiTypes'
-import type {
-  AssertTagTypes,
-  EndpointDefinitions,
-} from '@internal/query/endpointDefinitions'
 import type { AnyNonNullishValue, EmptyObject } from '@internal/tsHelpers'
 import type {
   Action,
@@ -12,6 +8,10 @@ import type {
   ThunkDispatch,
   UnknownAction,
 } from '@reduxjs/toolkit'
+import type {
+  AssertTagTypes,
+  EndpointDefinitions,
+} from '../../endpointDefinitions'
 import type {
   QueryStatus,
   QuerySubState,
