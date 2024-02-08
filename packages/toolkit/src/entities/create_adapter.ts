@@ -1,13 +1,13 @@
-import type {
-  EntityDefinition,
-  Comparer,
-  IdSelector,
-  EntityAdapter,
-  EntityId,
-} from './models'
 import { createInitialStateFactory } from './entity_state'
-import { createSelectorsFactory } from './state_selectors'
+import type {
+  Comparer,
+  EntityAdapter,
+  EntityDefinition,
+  EntityId,
+  IdSelector,
+} from './models'
 import { createSortedStateAdapter } from './sorted_state_adapter'
+import { createSelectorsFactory } from './state_selectors'
 import { createUnsortedStateAdapter } from './unsorted_state_adapter'
 
 export interface EntityAdapterOptions<T, Id extends EntityId> {

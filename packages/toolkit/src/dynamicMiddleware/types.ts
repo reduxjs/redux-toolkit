@@ -1,7 +1,7 @@
 import type {
-  Dispatch as ReduxDispatch,
   Middleware,
   MiddlewareAPI,
+  Dispatch as ReduxDispatch,
   UnknownAction,
 } from 'redux'
 import type { BaseActionCreator, PayloadAction } from '../createAction'

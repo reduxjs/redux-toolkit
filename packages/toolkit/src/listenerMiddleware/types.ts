@@ -1,8 +1,8 @@
 import type {
-  Action as ReduxAction,
-  Dispatch as ReduxDispatch,
   Middleware,
   MiddlewareAPI,
+  Action as ReduxAction,
+  Dispatch as ReduxDispatch,
   UnknownAction,
 } from 'redux'
 import type { ThunkDispatch } from 'redux-thunk'

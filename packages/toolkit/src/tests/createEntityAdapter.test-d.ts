@@ -1,6 +1,6 @@
 import type {
-  ActionCreatorWithoutPayload,
   ActionCreatorWithPayload,
+  ActionCreatorWithoutPayload,
   EntityAdapter,
   EntityId,
   EntityStateAdapter,

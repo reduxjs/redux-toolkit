@@ -1,8 +1,7 @@
-import { vi } from 'vitest'
 import {
-  isOnline,
-  isDocumentVisible,
   flatten,
+  isDocumentVisible,
+  isOnline,
   joinUrls,
 } from '@internal/query/utils'
 

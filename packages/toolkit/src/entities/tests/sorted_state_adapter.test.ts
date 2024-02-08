@@ -1,14 +1,14 @@
-import type { EntityAdapter, EntityState } from '../models'
+import { createAction } from '@reduxjs/toolkit'
+import { createNextState } from '../..'
 import { createEntityAdapter } from '../create_adapter'
-import { createAction, createSlice, configureStore } from '@reduxjs/toolkit'
+import type { EntityAdapter, EntityState } from '../models'
 import type { BookModel } from './fixtures/book'
 import {
-  TheGreatGatsby,
   AClockworkOrange,
   AnimalFarm,
+  TheGreatGatsby,
   TheHobbit,
 } from './fixtures/book'
-import { createNextState } from '../..'
 
 describe('Sorted State Adapter', () => {
   let adapter: EntityAdapter<BookModel, string>

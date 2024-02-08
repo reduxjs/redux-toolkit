@@ -1,6 +1,8 @@
-import { useEffect, useRef, useMemo } from 'react'
-import type { SerializeQueryArgs } from '@reduxjs/toolkit/query'
-import type { EndpointDefinition } from '@reduxjs/toolkit/query'
+import type {
+  EndpointDefinition,
+  SerializeQueryArgs,
+} from '@reduxjs/toolkit/query'
+import { useEffect, useMemo, useRef } from 'react'
 
 export function useStableQueryArgs<T>(
   queryArgs: T,

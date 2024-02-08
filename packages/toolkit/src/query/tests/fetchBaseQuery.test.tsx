@@ -1,11 +1,10 @@
+import { hasBodyAndHeaders, setupApiStore } from '@internal/tests/utils/helpers'
 import { createSlice } from '@reduxjs/toolkit'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 import { headersToObject } from 'headers-polyfill'
-import { delay, http, HttpResponse } from 'msw'
+import { HttpResponse, delay, http } from 'msw'
 import nodeFetch from 'node-fetch'
 import queryString from 'query-string'
-import { vi } from 'vitest'
-import { hasBodyAndHeaders, setupApiStore } from '../../tests/utils/helpers'
 import type { BaseQueryApi } from '../baseQueryTypes'
 import { server } from './mocks/server'
 

@@ -1,5 +1,5 @@
 import { headersToObject } from 'headers-polyfill'
-import { http, HttpResponse } from 'msw'
+import { HttpResponse, http } from 'msw'
 
 export interface Post {
   id: number

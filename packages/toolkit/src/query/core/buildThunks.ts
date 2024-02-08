@@ -8,6 +8,7 @@ import type {
 } from '@reduxjs/toolkit'
 import type { Patch } from 'immer'
 import { isDraftable, produceWithPatches } from 'immer'
+import { HandledError } from '../HandledError'
 import type { Api, ApiContext } from '../apiTypes'
 import type {
   BaseQueryError,
@@ -25,6 +26,7 @@ import type {
   ResultTypeFrom,
 } from '../endpointDefinitions'
 import { calculateProvidedBy, isQueryDefinition } from '../endpointDefinitions'
+import type { UnwrapPromise } from '../tsHelpers'
 import type { QueryKeys, QuerySubstateIdentifier, RootState } from './apiState'
 import { QueryStatus } from './apiState'
 import type {
@@ -32,20 +34,16 @@ import type {
   StartQueryActionCreatorOptions,
 } from './buildInitiate'
 import { forceQueryFnSymbol, isUpsertQuery } from './buildInitiate'
+import type { ApiEndpointQuery, PrefetchOptions } from './module'
 import {
+  SHOULD_AUTOBATCH,
   createAsyncThunk,
   isAllOf,
   isFulfilled,
   isPending,
   isRejected,
   isRejectedWithValue,
-  SHOULD_AUTOBATCH,
 } from './rtkImports'
-
-import { HandledError } from '../HandledError'
-
-import type { UnwrapPromise } from '../tsHelpers'
-import type { ApiEndpointQuery, PrefetchOptions } from './module'
 
 declare module './module' {
   export interface ApiEndpointQuery<

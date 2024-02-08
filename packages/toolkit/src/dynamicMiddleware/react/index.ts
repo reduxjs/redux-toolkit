@@ -9,14 +9,14 @@ import { createDynamicMiddleware as cDM } from '@reduxjs/toolkit'
 import type { Context } from 'react'
 import type { ReactReduxContextValue } from 'react-redux'
 import {
-  createDispatchHook,
   ReactReduxContext,
+  createDispatchHook,
   useDispatch as useDefaultDispatch,
 } from 'react-redux'
 import type {
+  Middleware,
   Action as ReduxAction,
   Dispatch as ReduxDispatch,
-  Middleware,
   UnknownAction,
 } from 'redux'
 
