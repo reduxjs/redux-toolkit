@@ -186,4 +186,21 @@ describe('type tests', () => {
       (rootState: RootState, num: number) => rootState.inner,
     )
   })
+
+  test('correct type of state is inferred when not declared via `withLazyLoadedSlices`', () => {
+    // Related to https://github.com/reduxjs/redux-toolkit/issues/4171
+
+    const combinedReducer = combineSlices(stringSlice)
+
+    const withNumber = combinedReducer.inject(numberSlice)
+
+    expectTypeOf(withNumber).returns.toEqualTypeOf<{
+      string: string
+      number: number
+    }>()
+
+    expectTypeOf(withNumber(undefined, { type: '' }).number).toMatchTypeOf<
+      number | undefined
+    >()
+  })
 })
