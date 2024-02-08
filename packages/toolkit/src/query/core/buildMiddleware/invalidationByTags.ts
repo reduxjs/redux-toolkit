@@ -1,9 +1,9 @@
 import type {
   EndpointDefinitions,
   FullTagDescription,
-} from '../../endpointDefinitions'
-import { calculateProvidedBy } from '../../endpointDefinitions'
-import { countObjectKeys } from '../../utils/countObjectKeys'
+} from '@internal/query/endpointDefinitions'
+import { calculateProvidedBy } from '@internal/query/endpointDefinitions'
+import { countObjectKeys } from '@internal/query/utils/countObjectKeys'
 import type { CombinedState, QueryCacheKey } from '../apiState'
 import { QueryStatus } from '../apiState'
 import { calculateProvidedByThunk } from '../buildThunks'

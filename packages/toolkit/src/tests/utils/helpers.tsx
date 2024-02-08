@@ -1,3 +1,4 @@
+import type { AnyObject } from '@internal/tsHelpers'
 import type {
   EnhancedStore,
   Middleware,
@@ -15,7 +16,6 @@ import {
 } from 'console-testing-library/pure'
 import { useCallback, useEffect, useRef } from 'react'
 import { Provider } from 'react-redux'
-import type { AnyObject } from '../../tsHelpers'
 
 export const ANY = 0 as any
 

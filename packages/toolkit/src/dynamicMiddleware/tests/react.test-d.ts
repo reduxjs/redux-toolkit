@@ -1,8 +1,8 @@
+import type { AnyNonNullishValue } from '@internal/tsHelpers'
 import type { Context } from 'react'
 import type { ReactReduxContextValue } from 'react-redux'
 import type { Action, Middleware, UnknownAction } from 'redux'
 import type { ThunkDispatch } from 'redux-thunk'
-import type { AnyNonNullishValue } from '../../tsHelpers'
 import { createDynamicMiddleware } from '../react'
 
 interface AppDispatch extends ThunkDispatch<number, undefined, UnknownAction> {

@@ -2,9 +2,9 @@ import type {
   BaseQueryError,
   BaseQueryFn,
   BaseQueryMeta,
-} from '../../baseQueryTypes'
-import type { QueryFulfilledRejectionReason } from '../../endpointDefinitions'
-import { DefinitionType } from '../../endpointDefinitions'
+} from '@internal/query/baseQueryTypes'
+import type { QueryFulfilledRejectionReason } from '@internal/query/endpointDefinitions'
+import { DefinitionType } from '@internal/query/endpointDefinitions'
 import type { Recipe } from '../buildThunks'
 import { isFulfilled, isPending, isRejected } from '../rtkImports'
 import type {

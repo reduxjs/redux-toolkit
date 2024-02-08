@@ -1,9 +1,7 @@
-import type { Action } from 'redux'
-import type { ThunkAction } from 'redux-thunk'
-import { describe, expect, test } from 'vitest'
-import { configureStore } from '../../configureStore'
-import { createAsyncThunk } from '../../createAsyncThunk'
-import { createSlice } from '../../createSlice'
+import { configureStore } from '@internal/configureStore'
+import { createAsyncThunk } from '@internal/createAsyncThunk'
+import { createSlice } from '@internal/createSlice'
+import type { Action, ThunkAction } from '@reduxjs/toolkit'
 import { addListener, createListenerMiddleware, removeListener } from '../index'
 
 export interface CounterState {

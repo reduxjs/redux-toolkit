@@ -5,11 +5,6 @@ import type { Context } from 'react'
 import React, { useContext, useEffect } from 'react'
 import type { ReactReduxContextValue } from 'react-redux'
 import { Provider, ReactReduxContext } from 'react-redux'
-import type {
-  AnyNonNullishValue,
-  AnyObject,
-  EmptyObject,
-} from '../../tsHelpers'
 
 /**
  * Can be used as a `Provider` if you **do not already have a Redux store**.

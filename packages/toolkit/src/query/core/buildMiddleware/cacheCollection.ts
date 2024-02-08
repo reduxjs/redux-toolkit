@@ -1,5 +1,5 @@
-import type { BaseQueryFn } from '../../baseQueryTypes'
-import type { QueryDefinition } from '../../endpointDefinitions'
+import type { BaseQueryFn } from '@internal/query/baseQueryTypes'
+import type { QueryDefinition } from '@internal/query/endpointDefinitions'
 import type { ConfigState, QueryCacheKey } from '../apiState'
 import type {
   ApiMiddlewareInternalHandler,

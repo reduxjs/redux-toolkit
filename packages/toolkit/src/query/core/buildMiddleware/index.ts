@@ -1,14 +1,14 @@
 import type {
+  EndpointDefinitions,
+  FullTagDescription,
+} from '@internal/query/endpointDefinitions'
+import type {
   Action,
   Middleware,
   ThunkDispatch,
   UnknownAction,
 } from '@reduxjs/toolkit'
 import type { AnyNonNullishValue } from '@reduxjs/toolkit/dist/tsHelpers'
-import type {
-  EndpointDefinitions,
-  FullTagDescription,
-} from '../../endpointDefinitions'
 import type { QueryStatus, QuerySubState, RootState } from '../apiState'
 import type { QueryThunkArg } from '../buildThunks'
 import { createAction, isAction } from '../rtkImports'

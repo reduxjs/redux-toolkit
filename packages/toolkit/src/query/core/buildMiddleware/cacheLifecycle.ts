@@ -1,7 +1,7 @@
+import type { BaseQueryFn, BaseQueryMeta } from '@internal/query/baseQueryTypes'
+import { DefinitionType } from '@internal/query/endpointDefinitions'
 import type { UnknownAction } from 'redux'
 import type { ThunkDispatch } from 'redux-thunk'
-import type { BaseQueryFn, BaseQueryMeta } from '../../baseQueryTypes'
-import { DefinitionType } from '../../endpointDefinitions'
 import type { RootState } from '../apiState'
 import type {
   MutationResultSelectorResult,

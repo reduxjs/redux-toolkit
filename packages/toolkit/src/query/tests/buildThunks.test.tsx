@@ -1,7 +1,7 @@
+import { withProvider } from '@internal/tests/utils/helpers'
 import { configureStore } from '@reduxjs/toolkit'
 import { createApi } from '@reduxjs/toolkit/query/react'
 import { renderHook, waitFor } from '@testing-library/react'
-import { withProvider } from '../../tests/utils/helpers'
 import type { BaseQueryApi } from '../baseQueryTypes'
 
 test('handles a non-async baseQuery without error', async () => {

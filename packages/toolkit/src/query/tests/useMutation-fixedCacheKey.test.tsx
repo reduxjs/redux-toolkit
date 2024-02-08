@@ -1,4 +1,4 @@
-import { setupApiStore } from '../../tests/utils/helpers'
+import { setupApiStore } from '@internal/tests/utils/helpers'
 import { createApi } from '@reduxjs/toolkit/query/react'
 import {
   act,
