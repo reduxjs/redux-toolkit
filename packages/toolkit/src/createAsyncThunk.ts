@@ -8,7 +8,6 @@ import { createAction } from './createAction'
 import { isAnyOf } from './matchers'
 import { nanoid } from './nanoid'
 import type {
-  AnyNonNullishValue,
   EmptyObject,
   FallbackIfUnknown,
   Id,
@@ -355,7 +354,7 @@ export type AsyncThunkOptions<
 
 export type AsyncThunkPendingActionCreator<
   ThunkArg,
-  ThunkApiConfig = AnyNonNullishValue,
+  ThunkApiConfig extends AsyncThunkConfig = EmptyObject,
 > = ActionCreatorWithPreparedPayload<
   [string, ThunkArg, GetPendingMeta<ThunkApiConfig>?],
   undefined,
@@ -370,7 +369,7 @@ export type AsyncThunkPendingActionCreator<
 
 export type AsyncThunkRejectedActionCreator<
   ThunkArg,
-  ThunkApiConfig = AnyNonNullishValue,
+  ThunkApiConfig extends AsyncThunkConfig = EmptyObject,
 > = ActionCreatorWithPreparedPayload<
   [
     Error | null,
@@ -399,7 +398,7 @@ export type AsyncThunkRejectedActionCreator<
 export type AsyncThunkFulfilledActionCreator<
   Returned,
   ThunkArg,
-  ThunkApiConfig = AnyNonNullishValue,
+  ThunkApiConfig extends AsyncThunkConfig = EmptyObject,
 > = ActionCreatorWithPreparedPayload<
   [Returned, string, ThunkArg, GetFulfilledMeta<ThunkApiConfig>?],
   Returned,
