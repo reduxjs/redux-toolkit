@@ -200,7 +200,7 @@ describe('type tests', () => {
     }>()
 
     expectTypeOf(withNumber(undefined, { type: '' }).number).toMatchTypeOf<
-      number | undefined
+      number
     >()
   })
 })
