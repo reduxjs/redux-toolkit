@@ -67,10 +67,6 @@ const eslintConfig: Linter.Config = {
   plugins: ['@typescript-eslint'],
   ignorePatterns: ['dist'],
   root: true,
-  overrides: [
-    { files: ['*.{c,m,}{t,j}s', '*.{t,j}sx'] },
-    { files: ['*{test,spec}.{t,j}s?(x)'] },
-  ],
 }
 
 module.exports = eslintConfig
