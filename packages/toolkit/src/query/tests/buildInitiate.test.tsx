@@ -1,4 +1,4 @@
-import { setupApiStore } from '@internal/tests/utils/helpers'
+import { setupApiStore } from '../../tests/utils/helpers'
 import { createApi } from '../core'
 import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
 import { fakeBaseQuery } from '../fakeBaseQuery'

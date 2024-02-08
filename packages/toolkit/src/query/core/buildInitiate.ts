@@ -1,11 +1,11 @@
-import type { SafePromise } from '@internal/tsHelpers'
-import { asSafePromise } from '@internal/tsHelpers'
 import type {
   SerializedError,
   ThunkAction,
   UnknownAction,
 } from '@reduxjs/toolkit'
 import type { Dispatch } from 'redux'
+import type { SafePromise } from '../../tsHelpers'
+import { asSafePromise } from '../../tsHelpers'
 import type { Api, ApiContext } from '../apiTypes'
 import type { BaseQueryError, QueryReturnValue } from '../baseQueryTypes'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'

@@ -1,4 +1,3 @@
-import type { AnyObject } from '@internal/tsHelpers'
 import type {
   Selector,
   ThunkAction,
@@ -43,6 +42,7 @@ import {
   useState,
 } from 'react'
 import { shallowEqual } from 'react-redux'
+import type { AnyObject } from '../../tsHelpers'
 import type { BaseQueryFn } from '../baseQueryTypes'
 import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
 import { defaultSerializeQueryArgs } from '../defaultSerializeQueryArgs'

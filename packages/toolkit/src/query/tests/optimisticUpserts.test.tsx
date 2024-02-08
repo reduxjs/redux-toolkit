@@ -1,11 +1,11 @@
+import { createApi } from '@reduxjs/toolkit/query/react'
+import { act, renderHook, waitFor } from '@testing-library/react'
+import { delay } from 'msw'
 import {
   actionsReducer,
   hookWaitFor,
   setupApiStore,
-} from '@internal/tests/utils/helpers'
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { act, renderHook, waitFor } from '@testing-library/react'
-import { delay } from 'msw'
+} from '../../tests/utils/helpers'
 
 interface Post {
   id: string

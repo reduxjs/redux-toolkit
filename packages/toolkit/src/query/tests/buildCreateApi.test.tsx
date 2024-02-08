@@ -1,4 +1,3 @@
-import { setupApiStore, useRenderCounter } from '@internal/tests/utils/helpers'
 import { createSelectorCreator, lruMemoize } from '@reduxjs/toolkit'
 import {
   buildCreateApi,
@@ -15,6 +14,7 @@ import {
   createSelectorHook,
   createStoreHook,
 } from 'react-redux'
+import { setupApiStore, useRenderCounter } from '../../tests/utils/helpers'
 
 const MyContext = React.createContext<ReactReduxContextValue>(null as any)
 

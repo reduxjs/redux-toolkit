@@ -1,4 +1,5 @@
-import type { ThunkDispatch, UnknownAction } from '@reduxjs/toolkit'
+import type { UnknownAction } from 'redux'
+import type { ThunkDispatch } from 'redux-thunk'
 import type { BaseQueryFn, BaseQueryMeta } from '../../baseQueryTypes'
 import { DefinitionType } from '../../endpointDefinitions'
 import type { RootState } from '../apiState'

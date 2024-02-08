@@ -1,12 +1,12 @@
-import { countObjectKeys } from '../../utils/countObjectKeys'
-import type { QueryCacheKey } from '../apiState'
 import { QueryStatus } from '../apiState'
+import type { QueryCacheKey } from '../apiState'
 import { onFocus, onOnline } from '../setupListeners'
 import type {
   ApiMiddlewareInternalHandler,
   InternalHandlerBuilder,
   SubMiddlewareApi,
 } from './types'
+import { countObjectKeys } from '../../utils/countObjectKeys'
 
 export const buildWindowEventHandler: InternalHandlerBuilder = ({
   reducerPath,

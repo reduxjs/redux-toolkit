@@ -1,11 +1,7 @@
-import { configureStore } from '@internal/configureStore'
-import type { AnyNonNullishValue } from '@internal/tsHelpers'
-import type {
-  Action,
-  Middleware,
-  ThunkDispatch,
-  UnknownAction,
-} from '@reduxjs/toolkit'
+import type { Action, Middleware, UnknownAction } from 'redux'
+import type { ThunkDispatch } from 'redux-thunk'
+import { configureStore } from '../../configureStore'
+import type { AnyNonNullishValue } from '../../tsHelpers'
 import { createDynamicMiddleware } from '../index'
 
 const untypedInstance = createDynamicMiddleware()

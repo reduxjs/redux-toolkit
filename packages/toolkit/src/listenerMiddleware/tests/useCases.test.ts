@@ -1,6 +1,6 @@
-import type { AnyObject } from '@internal/tsHelpers'
 import type { PayloadAction } from '@reduxjs/toolkit'
 import { configureStore, createAction, createSlice } from '@reduxjs/toolkit'
+import type { AnyObject } from '../../tsHelpers'
 import { TaskAbortError } from '../exceptions'
 import { createListenerMiddleware } from '../index'
 
