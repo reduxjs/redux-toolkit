@@ -1,5 +1,4 @@
-import type { UnknownAction } from 'redux'
-import type { SerializedError } from '../../src'
+import type { SerializedError, UnknownAction } from '@reduxjs/toolkit'
 import {
   createAction,
   createAsyncThunk,
@@ -10,7 +9,7 @@ import {
   isPending,
   isRejected,
   isRejectedWithValue,
-} from '../../src'
+} from '@reduxjs/toolkit'
 
 const action: UnknownAction = { type: 'foo' }
 
