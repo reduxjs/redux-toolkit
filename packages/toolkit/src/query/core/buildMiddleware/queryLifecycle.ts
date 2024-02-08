@@ -2,7 +2,7 @@ import type {
   BaseQueryError,
   BaseQueryFn,
   BaseQueryMeta,
-} from '@internal/query/baseQueryTypes'
+} from '../../baseQueryTypes'
 import type { QueryFulfilledRejectionReason } from '../../endpointDefinitions'
 import { DefinitionType } from '../../endpointDefinitions'
 import type { Recipe } from '../buildThunks'
