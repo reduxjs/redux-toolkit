@@ -1,11 +1,15 @@
-import type { CreateSelectorFunction, Selector } from 'reselect'
+import type {
+  CreateSelectorFunction,
+  Selector,
+  UnknownMemoizer,
+} from 'reselect'
 import { createDraftSafeSelector } from '../createDraftSafeSelector'
+import type { AnyFunction } from '../tsHelpers'
 import type { EntityId, EntitySelectors, EntityState } from './models'
 
-type AnyFunction = (...args: any) => any
 type AnyCreateSelectorFunction = CreateSelectorFunction<
-  <F extends AnyFunction>(f: F) => F,
-  <F extends AnyFunction>(f: F) => F
+  UnknownMemoizer<AnyFunction>,
+  UnknownMemoizer<AnyFunction>
 >
 
 export interface GetSelectorsOptions {
