@@ -13,7 +13,6 @@ import {
   isPlainObject,
 } from '@reduxjs/toolkit'
 import { createConsole, mockConsole } from 'console-testing-library/pure'
-import { vi } from 'vitest'
 
 interface Todo {
   text: string
