@@ -1,6 +1,6 @@
-import { noop, setupApiStore } from '@internal/tests/utils/helpers';
-import type { BaseQueryFn } from '@reduxjs/toolkit/query';
-import { createApi, retry } from '@reduxjs/toolkit/query';
+import { noop, setupApiStore } from '@internal/tests/utils/helpers'
+import type { BaseQueryFn } from '@reduxjs/toolkit/query'
+import { createApi, retry } from '@reduxjs/toolkit/query'
 
 beforeEach(() => {
   vi.useFakeTimers()
