@@ -4,6 +4,11 @@
   "description": "TypeScript configuration for Redux projects",
   "main": "tsconfig.base.json",
   "type": "module",
+  "exports": {
+    ".": "./tsconfig.base.json",
+    "./base": "./tsconfig.base.json",
+    "./test": "./tsconfig.test.json"
+  },
   "files": [
     "tsconfig*.json"
   ],
