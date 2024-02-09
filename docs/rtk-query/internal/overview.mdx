@@ -1,6 +1,12 @@
 # RTKQ internal
 
 ## Overview
+
+> RTK Query is a powerful data fetching and caching tool built on top of Redux Toolkit. It is designed to simplify the process of fetching, caching, and updating server state in your application. It is built on top of Redux Toolkit and uses Redux internally.
+
+This documentation is intended to provide a high-level overview of the internal architecture of RTK-Query. It is not intended to be a comprehensive guide to the library, but rather a guide to the internal architecture and how it works.
+
+## createApi - The Entry Point
 When `createApi()` is called it takes the options provided and calls internally the `buildCreateApi()` function passing into it two modules:
 
 *Modules are RTK-Query's method of customizing how the `createApi` method handles endpoints.*
