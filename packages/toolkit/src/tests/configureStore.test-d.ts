@@ -11,6 +11,7 @@ import type {
   ThunkDispatch,
   ThunkMiddleware,
   UnknownAction,
+  WithSlice,
 } from '@reduxjs/toolkit'
 import {
   Tuple,
@@ -121,8 +122,8 @@ describe('type tests', () => {
       preloadedState: 0,
     })
 
+    // @ts-expect-error
     configureStore({
-      // @ts-expect-error
       reducer: (_: number) => 0,
       preloadedState: 'non-matching state type',
     })
@@ -308,9 +309,9 @@ describe('type tests', () => {
     })
 
     test('excess properties in preloaded state', () => {
+      // @ts-expect-error
       const store = configureStore({
         reducer: {
-          // @ts-expect-error
           counter1: counterReducer1,
           counter2: counterReducer2,
         },
@@ -319,16 +320,12 @@ describe('type tests', () => {
           counter3: 5,
         },
       })
-
-      expectTypeOf(store.getState().counter1).toBeNumber()
-
-      expectTypeOf(store.getState().counter2).toBeNumber()
     })
 
     test('mismatching properties in preloaded state', () => {
+      // @ts-expect-error
       const store = configureStore({
         reducer: {
-          // @ts-expect-error
           counter1: counterReducer1,
           counter2: counterReducer2,
         },
@@ -336,25 +333,17 @@ describe('type tests', () => {
           counter3: 5,
         },
       })
-
-      expectTypeOf(store.getState().counter1).toBeNumber()
-
-      expectTypeOf(store.getState().counter2).toBeNumber()
     })
 
     test('string preloaded state when expecting object', () => {
+      // @ts-expect-error
       const store = configureStore({
         reducer: {
-          // @ts-expect-error
           counter1: counterReducer1,
           counter2: counterReducer2,
         },
         preloadedState: 'test',
       })
-
-      expectTypeOf(store.getState().counter1).toBeNumber()
-
-      expectTypeOf(store.getState().counter2).toBeNumber()
     })
 
     test('nested combineReducers allows partial', () => {
@@ -396,9 +385,9 @@ describe('type tests', () => {
       const group1Reducer: Reducer<GroupState> = (state = initialState) => state
       const group2Reducer: Reducer<GroupState> = (state = initialState) => state
 
+      // @ts-expect-error
       const store = configureStore({
         reducer: {
-          // @ts-expect-error
           group1: group1Reducer,
           group2: group2Reducer,
         },
@@ -408,14 +397,6 @@ describe('type tests', () => {
           },
         },
       })
-
-      expectTypeOf(store.getState().group1.counter1).toBeNumber()
-
-      expectTypeOf(store.getState().group1.counter2).toBeNumber()
-
-      expectTypeOf(store.getState().group2.counter1).toBeNumber()
-
-      expectTypeOf(store.getState().group2.counter2).toBeNumber()
     })
   })
 
@@ -801,5 +782,47 @@ describe('type tests', () => {
     } as const)
 
     expectTypeOf(unsubscribe).toEqualTypeOf<Unsubscribe>()
+  })
+  test('slices overload', () => {
+    const counterSlice = createSlice({
+      name: 'counter',
+      initialState: { value: 0 },
+      reducers: {
+        increment(state) {
+          state.value += 1
+        },
+      },
+    })
+
+    const store = configureStore({
+      slices: [counterSlice, { number: () => 9 }],
+    })
+
+    expectTypeOf(store.getState()).toMatchTypeOf<
+      WithSlice<typeof counterSlice> & { number: number }
+    >()
+
+    configureStore({
+      slices: [counterSlice],
+      preloadedState: { counter: { value: 0 } },
+    })
+    // @ts-expect-error
+    configureStore({ slices: [] })
+    // @ts-expect-error
+    configureStore({
+      slices: [counterSlice],
+      preloadedState: { counter: 1 },
+    })
+    // @ts-expect-error
+    configureStore({
+      slices: [counterSlice],
+      reducers: {},
+    })
+
+    store.dispatch((dispatch, getState) => {
+      expectTypeOf(getState()).toMatchTypeOf<
+        WithSlice<typeof counterSlice> & { number: number }
+      >()
+    })
   })
 })
