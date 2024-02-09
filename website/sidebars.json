@@ -143,6 +143,21 @@
               ]
             }
           ]
+        },
+        {
+          "type": "category",
+          "label": "Internal Docs",
+          "collapsed": true,
+          "items": [
+            {
+              "type": "category",
+                "label": "Middleware",
+                "collapsed": true,
+              "items": [
+                "rtk-query/internal/buildMiddleware/invalidationByTags"
+              ]
+            }
+          ]
         }
       ]
     }
