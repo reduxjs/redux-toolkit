@@ -358,7 +358,7 @@ This example demonstrates request deduplication and caching behavior:
 2. A second later, another `Pokemon` component is rendered with 'bulbasaur'
    - Notice that this one doesn't ever show 'Loading...' and no new network request happens? It's using the cache here.
 3. A moment after that, a `Pokemon` component for 'pikachu' is added, and a new request happens.
-4. When you click 'Refetch' of a particular pokemon type, it'll update all of them with one request.
+4. When you click 'Refetch' for a specific `Pokemon`, it'll update all instances of that `Pokemon` with one request.
 
 :::note Try it out
 Click the 'Add bulbasaur' button. You'll observe the same behavior described above until you click the 'Refetch' button on one of the components.
