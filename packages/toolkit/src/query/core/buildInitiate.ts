@@ -58,6 +58,7 @@ type StartQueryActionCreator<
 > = (
   arg: QueryArgFrom<D>,
   options?: StartQueryActionCreatorOptions,
+  isPrefetch?: boolean
 ) => ThunkAction<QueryActionCreatorResult<D>, any, any, UnknownAction>
 
 export type QueryActionCreatorResult<
@@ -302,6 +303,7 @@ You must add the middleware for RTK-Query to function correctly!`,
           subscriptionOptions,
           [forceQueryFnSymbol]: forceQueryFn,
         } = {},
+        isPrefetch
       ) =>
       (dispatch, getState) => {
         const queryCacheKey = serializeQueryArgs({
@@ -319,6 +321,7 @@ You must add the middleware for RTK-Query to function correctly!`,
           originalArgs: arg,
           queryCacheKey,
           [forceQueryFnSymbol]: forceQueryFn,
+          isPrefetch
         })
         const selector = (
           api.endpoints[endpointName] as ApiEndpointQuery<any, any>

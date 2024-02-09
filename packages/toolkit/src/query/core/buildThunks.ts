@@ -112,6 +112,7 @@ export interface QueryThunkArg
   type: 'query'
   originalArgs: unknown
   endpointName: string
+  isPrefetch?: boolean
 }
 
 export interface MutationThunkArg {
@@ -613,6 +614,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
         (api.endpoints[endpointName] as ApiEndpointQuery<any, any>).initiate(
           arg,
           { forceRefetch: force },
+          true
         )
       const latestStateValue = (
         api.endpoints[endpointName] as ApiEndpointQuery<any, any>
