@@ -4,7 +4,7 @@
 ## Overview
 `InvalidationByTagsHandler` is a handler instantiated during the (BuildMiddleware) step of the build. The handler acts as a (Middleware) and executes each step in response to matching of internal asyncThunk actions.
 
-i.e. the primary trigger for a "invalidation sequence" are these two cases:
+The matchers used for a "invalidation sequence" are these two cases:
 ```ts no-transpile
 const isThunkActionWithTags = isAnyOf(
   isFulfilled(mutationThunk),
@@ -25,7 +25,7 @@ The handler has 3 core conditionals that trigger a sequence:
 
 1. Mutation trigger
 2. Query trigger
-3. manual invalidation via `api.util.invalidateTags` Sequence
+3. Manual invalidation via `api.util.invalidateTags` trigger
 ```ts no-transpile
 const handler: ApiMiddlewareInternalHandler = (action, mwApi) => {
   if (isThunkActionWithTags(action)) {
@@ -61,11 +61,11 @@ const handler: ApiMiddlewareInternalHandler = (action, mwApi) => {
 1. `invalidateTags()` initiates:
 	1. invalidateTags function is called with a list of tags generated from the action metadata
 	2. in the case of a [queryThunk] resolution an empty set of tags is always provided
-2. the tags calculated are added to the list of pending tags to invalidate (see [delayed](### Delayed) )
+2. The tags calculated are added to the list of pending tags to invalidate (see [delayed](Delayed) )
 3. (optional: 'Delayed') the invalidateTags function is ended if the `apiSlice.invalidationBehaviour` is set to "delayed" and there are any pending thunks/queries running in that `apiSlice`
-4. pending tags are reset to an empty list, if there are no tags the function ends here
-5. selects all `{ endpointName, originalArgs, queryCacheKey }` combinations that would be invalidated by a specific set of tags.
-6. iterates through queryCacheKeys selected and performs one of two actions if the query exists*
+4. Pending tags are reset to an empty list, if there are no tags the function ends here
+5. Selects all `{ endpointName, originalArgs, queryCacheKey }` combinations that would be invalidated by a specific set of tags.
+6. Iterates through queryCacheKeys selected and performs one of two actions if the query exists*
 	1. removes cached query result - via the `removeQueryResult` action - if no subscription is active
 	2. if the query is "uninitialized" it initiates a `refetchQuery` action
 ```js no-transpile
