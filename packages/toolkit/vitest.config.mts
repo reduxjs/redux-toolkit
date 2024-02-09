@@ -8,7 +8,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 export default defineConfig({
-  plugins: [tsconfigPaths({ root: import.meta.dirname })],
+  plugins: [tsconfigPaths({ root: __dirname })],
   test: {
     globals: true,
     environment: 'jsdom',
