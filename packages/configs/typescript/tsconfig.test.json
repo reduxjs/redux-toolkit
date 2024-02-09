@@ -5,15 +5,6 @@
     "emitDeclarationOnly": false,
     "noEmit": true,
     "jsx": "react-jsx",
-    "skipLibCheck": true,
     "noImplicitReturns": false
-  },
-  "exclude": ["dist"],
-  "include": [
-    "./**/*.test.ts*",
-    "./**/*.test-d.ts*",
-    "./**/*.spec.ts*",
-    "./**/tests/**/*",
-    "./**/*.typetest.ts*"
-  ]
+  }
 }
