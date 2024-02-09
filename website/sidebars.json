@@ -149,6 +149,7 @@
           "label": "Internal Docs",
           "collapsed": true,
           "items": [
+            "rtk-query/internal/queryThunk",
             {
               "type": "category",
                 "label": "Middleware",
