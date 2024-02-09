@@ -2,7 +2,7 @@
   "name": "@reduxjs/tsconfig",
   "version": "0.0.1",
   "description": "TypeScript configuration for Redux projects",
-  "main": "tsconfig.json",
+  "main": "tsconfig.base.json",
   "type": "module",
   "files": [
     "tsconfig*.json"
