@@ -139,6 +139,12 @@ export interface EntityStateAdapter<T> {
   addMany<S extends EntityState<T>>(state: S, entities: T[]): S
   addMany<S extends EntityState<T>>(state: S, entities: PayloadAction<T[]>): S
 
+  setOne<S extends EntityState<T>>(state: S, entity: T): S
+  setOne<S extends EntityState<T>>(state: S, action: PayloadAction<T>): S
+
+  setMany<S extends EntityState<T>>(state: S, entities: T[]): S
+  setMany<S extends EntityState<T>>(state: S, entities: PayloadAction<T[]>): S
+
   setAll<S extends EntityState<T>>(state: S, entities: T[]): S
   setAll<S extends EntityState<T>>(state: S, entities: PayloadAction<T[]>): S
 

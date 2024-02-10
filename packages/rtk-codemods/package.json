@@ -1,13 +1,13 @@
 {
   "name": "@reduxjs/rtk-codemods",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "scripts": {
     "lint": "eslint .",
     "test": "vitest --run",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage"
   },
-  "bin": "./bin/cli.js",
+  "bin": "./bin/cli.mjs",
   "files": [
     "bin/*",
     "transforms/**/index.ts",

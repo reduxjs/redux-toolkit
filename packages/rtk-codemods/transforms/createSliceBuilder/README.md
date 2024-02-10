@@ -18,7 +18,7 @@ rtk-codemods createSliceBuilder path/of/files/ or/some**/*glob.js
 ## Local Usage
 
 ```
-node ./bin/cli.js createSliceBuilder path/of/files/ or/some**/*glob.js
+node ./bin/cli.mjs createSliceBuilder path/of/files/ or/some**/*glob.js
 ```
 
 ## Input / Output
