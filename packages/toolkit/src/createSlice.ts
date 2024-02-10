@@ -243,7 +243,6 @@ interface ReducerHandlingContextMethods<State> {
    */
   exposeAction(
     name: string,
-    // TODO: see if there's a way to get the actual type cleanly
     actionCreator: unknown,
   ): ReducerHandlingContextMethods<State>
   /**
@@ -259,7 +258,6 @@ interface ReducerHandlingContextMethods<State> {
    */
   exposeCaseReducer(
     name: string,
-    // TODO: see if there's a way to get the actual type cleanly
     reducer: unknown,
   ): ReducerHandlingContextMethods<State>
   /**
