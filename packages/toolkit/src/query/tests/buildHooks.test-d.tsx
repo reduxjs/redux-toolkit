@@ -193,7 +193,7 @@ describe('type tests', () => {
     }
   })
 
-  test('selectFromResult (query) behaviors', () => {
+  test('top level named hooks', () => {
     interface Post {
       id: number
       name: string

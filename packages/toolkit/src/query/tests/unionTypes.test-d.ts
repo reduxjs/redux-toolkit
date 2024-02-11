@@ -3,8 +3,16 @@ import type {
   FetchBaseQueryError,
   TypedUseMutationResult,
   TypedUseQueryHookResult,
+  TypedUseQueryState,
   TypedUseQueryStateResult,
   TypedUseQuerySubscriptionResult,
+  TypedLazyQueryTrigger,
+  TypedUseLazyQuery,
+  TypedUseLazyQuerySubscription,
+  TypedUseMutation,
+  TypedUseMutationTrigger,
+  TypedUseQuerySubscription,
+  TypedUseQuery,
 } from '@reduxjs/toolkit/query/react'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 
@@ -725,6 +733,10 @@ describe('union types', () => {
 
 describe('"Typed" helper types', () => {
   test('useQuery', () => {
+    expectTypeOf<TypedUseQuery<string, void, typeof baseQuery>>().toMatchTypeOf(
+      api.endpoints.getTest.useQuery,
+    )
+
     const result = api.endpoints.getTest.useQuery()
 
     expectTypeOf<
@@ -743,6 +755,10 @@ describe('"Typed" helper types', () => {
   })
 
   test('useQueryState', () => {
+    expectTypeOf<
+      TypedUseQueryState<string, void, typeof baseQuery>
+    >().toMatchTypeOf(api.endpoints.getTest.useQueryState)
+
     const result = api.endpoints.getTest.useQueryState()
 
     expectTypeOf<
@@ -761,6 +777,10 @@ describe('"Typed" helper types', () => {
   })
 
   test('useQuerySubscription', () => {
+    expectTypeOf<
+      TypedUseQuerySubscription<string, void, typeof baseQuery>
+    >().toMatchTypeOf(api.endpoints.getTest.useQuerySubscription)
+
     const result = api.endpoints.getTest.useQuerySubscription()
 
     expectTypeOf<
@@ -768,11 +788,101 @@ describe('"Typed" helper types', () => {
     >().toEqualTypeOf(result)
   })
 
+  test('useLazyQuery', () => {
+    expectTypeOf<
+      TypedUseLazyQuery<string, void, typeof baseQuery>
+    >().toMatchTypeOf(api.endpoints.getTest.useLazyQuery)
+
+    const [trigger, result] = api.endpoints.getTest.useLazyQuery()
+
+    expectTypeOf<
+      TypedLazyQueryTrigger<string, void, typeof baseQuery>
+    >().toMatchTypeOf(trigger)
+
+    expectTypeOf<
+      TypedUseQueryHookResult<string, void, typeof baseQuery>
+    >().toMatchTypeOf(result)
+  })
+
+  test('useLazyQuery with selectFromResult', () => {
+    const [trigger, result] = api.endpoints.getTest.useLazyQuery({
+      selectFromResult: () => ({ x: true }),
+    })
+
+    expectTypeOf<
+      TypedLazyQueryTrigger<string, void, typeof baseQuery>
+    >().toMatchTypeOf(trigger)
+
+    expectTypeOf<
+      TypedUseQueryHookResult<string, void, typeof baseQuery, { x: boolean }>
+    >().toMatchTypeOf(result)
+  })
+
+  test('useLazyQuerySubscription', () => {
+    expectTypeOf<
+      TypedUseLazyQuerySubscription<string, void, typeof baseQuery>
+    >().toMatchTypeOf(api.endpoints.getTest.useLazyQuerySubscription)
+
+    const [trigger] = api.endpoints.getTest.useLazyQuerySubscription()
+
+    expectTypeOf<
+      TypedLazyQueryTrigger<string, void, typeof baseQuery>
+    >().toMatchTypeOf(trigger)
+  })
+
   test('useMutation', () => {
+    expectTypeOf<
+      TypedUseMutation<string, void, typeof baseQuery>
+    >().toMatchTypeOf(api.endpoints.mutation.useMutation)
+
     const [trigger, result] = api.endpoints.mutation.useMutation()
+
+    expectTypeOf<
+      TypedUseMutationTrigger<string, void, typeof baseQuery>
+    >().toMatchTypeOf(trigger)
 
     expectTypeOf<
       TypedUseMutationResult<string, void, typeof baseQuery>
     >().toMatchTypeOf(result)
+  })
+
+  test('useQuery - defining selectFromResult separately', () => {
+    const selectFromResult = (
+      result: TypedUseQueryStateResult<string, void, typeof baseQuery>,
+    ) => ({ x: true })
+
+    const result = api.endpoints.getTest.useQuery(undefined, {
+      selectFromResult,
+    })
+
+    expectTypeOf(result).toEqualTypeOf<
+      TypedUseQueryHookResult<
+        string,
+        void,
+        typeof baseQuery,
+        ReturnType<typeof selectFromResult>
+      >
+    >()
+  })
+
+  test('useMutation - defining selectFromResult separately', () => {
+    const selectFromResult = (
+      result: Omit<
+        TypedUseMutationResult<string, void, typeof baseQuery>,
+        'reset' | 'originalArgs'
+      >,
+    ) => ({ x: true })
+
+    const [trigger, result] = api.endpoints.mutation.useMutation({
+      selectFromResult,
+    })
+    expectTypeOf(result).toEqualTypeOf<
+      TypedUseMutationResult<
+        string,
+        void,
+        typeof baseQuery,
+        ReturnType<typeof selectFromResult>
+      >
+    >()
   })
 })
