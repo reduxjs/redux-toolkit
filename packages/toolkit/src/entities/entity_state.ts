@@ -15,11 +15,9 @@ export function getInitialEntityState<T, Id extends EntityId>(): EntityState<
   }
 }
 
-export function createInitialStateFactory<T, Id extends EntityId>({
-  stateAdapter,
-}: {
-  stateAdapter: EntityStateAdapter<T, Id>
-}): EntityStateFactory<T, Id> {
+export function createInitialStateFactory<T, Id extends EntityId>(
+  stateAdapter: EntityStateAdapter<T, Id>,
+): EntityStateFactory<T, Id> {
   function getInitialState(
     state?: undefined,
     entities?: readonly T[] | Record<Id, T>,
