@@ -312,6 +312,7 @@ You must add the middleware for RTK-Query to function correctly!`,
         })
 
         const thunk = queryThunk({
+          ...rest,
           type: 'query',
           subscribe,
           forceRefetch: forceRefetch,
@@ -320,7 +321,6 @@ You must add the middleware for RTK-Query to function correctly!`,
           originalArgs: arg,
           queryCacheKey,
           [forceQueryFnSymbol]: forceQueryFn,
-          ...rest
         })
         const selector = (
           api.endpoints[endpointName] as ApiEndpointQuery<any, any>
