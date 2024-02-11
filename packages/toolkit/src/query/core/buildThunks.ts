@@ -112,7 +112,6 @@ export interface QueryThunkArg
   type: 'query'
   originalArgs: unknown
   endpointName: string
-  isPrefetch?: boolean
 }
 
 export interface MutationThunkArg {
@@ -610,13 +609,12 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
       const force = hasTheForce(options) && options.force
       const maxAge = hasMaxAge(options) && options.ifOlderThan
 
-      const queryAction = (force: boolean = true) =>{
+      const queryAction = (force: boolean = true) => {
         const options = { forceRefetch: force, isPrefetch: true }
-        return (api.endpoints[endpointName] as ApiEndpointQuery<any, any>).initiate(
-          arg,
-          options
-          )
-        }
+        return (
+          api.endpoints[endpointName] as ApiEndpointQuery<any, any>
+        ).initiate(arg, options)
+      }
       const latestStateValue = (
         api.endpoints[endpointName] as ApiEndpointQuery<any, any>
       ).select(arg)(getState())
