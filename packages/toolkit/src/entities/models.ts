@@ -35,9 +35,9 @@ export interface EntityState<T, Id extends EntityId> {
 /**
  * @public
  */
-export interface EntityDefinition<T, Id extends EntityId> {
-  selectId: IdSelector<T, Id>
-  sortComparer: false | Comparer<T>
+export interface EntityAdapterOptions<T, Id extends EntityId> {
+  selectId?: IdSelector<T, Id>
+  sortComparer?: false | Comparer<T>
 }
 
 export type PreventAny<S, T, Id extends EntityId> = CastAny<
@@ -166,6 +166,9 @@ export interface EntitySelectors<T, V, Id extends EntityId> {
   selectById: (state: V, id: Id) => Compute<UncheckedIndexedAccess<T>>
 }
 
+/**
+ * @public
+ */
 export interface EntityStateFactory<T, Id extends EntityId> {
   getInitialState(
     state?: undefined,
@@ -182,9 +185,8 @@ export interface EntityStateFactory<T, Id extends EntityId> {
  */
 export interface EntityAdapter<T, Id extends EntityId>
   extends EntityStateAdapter<T, Id>,
-    EntityStateFactory<T, Id> {
-  selectId: IdSelector<T, Id>
-  sortComparer: false | Comparer<T>
+    EntityStateFactory<T, Id>,
+    Required<EntityAdapterOptions<T, Id>> {
   getSelectors(
     selectState?: undefined,
     options?: GetSelectorsOptions,
