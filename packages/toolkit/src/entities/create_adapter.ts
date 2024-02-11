@@ -42,11 +42,11 @@ export function createEntityAdapter<T>(
     ...options,
   }
 
-  const stateFactory = createInitialStateFactory<T, EntityId>()
-  const selectorsFactory = createSelectorsFactory<T, EntityId>()
   const stateAdapter = sortComparer
     ? createSortedStateAdapter(selectId, sortComparer)
     : createUnsortedStateAdapter(selectId)
+  const stateFactory = createInitialStateFactory({ stateAdapter })
+  const selectorsFactory = createSelectorsFactory<T, EntityId>()
 
   return {
     selectId,

@@ -166,15 +166,25 @@ export interface EntitySelectors<T, V, Id extends EntityId> {
   selectById: (state: V, id: Id) => Compute<UncheckedIndexedAccess<T>>
 }
 
+export interface EntityStateFactory<T, Id extends EntityId> {
+  getInitialState(
+    state?: undefined,
+    entities?: Record<Id, T> | readonly T[],
+  ): EntityState<T, Id>
+  getInitialState<S extends object>(
+    state: S,
+    entities?: Record<Id, T> | readonly T[],
+  ): EntityState<T, Id> & S
+}
+
 /**
  * @public
  */
 export interface EntityAdapter<T, Id extends EntityId>
-  extends EntityStateAdapter<T, Id> {
+  extends EntityStateAdapter<T, Id>,
+    EntityStateFactory<T, Id> {
   selectId: IdSelector<T, Id>
   sortComparer: false | Comparer<T>
-  getInitialState(): EntityState<T, Id>
-  getInitialState<S extends object>(state: S): EntityState<T, Id> & S
   getSelectors(
     selectState?: undefined,
     options?: GetSelectorsOptions,
