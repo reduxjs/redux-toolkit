@@ -37,6 +37,13 @@ describe('type tests', () => {
     const rootReducer = combineSlices()
 
     expectTypeOf(rootReducer(undefined, { type: '' })).toEqualTypeOf<{}>()
+
+    const declaredLazy =
+      combineSlices().withLazyLoadedSlices<WithSlice<typeof numberSlice>>()
+
+    expectTypeOf(declaredLazy(undefined, { type: '' })).toEqualTypeOf<{
+      number?: number
+    }>()
   })
 
   test('withLazyLoadedSlices adds partial to state', () => {
