@@ -33,7 +33,7 @@ describe('type tests', () => {
     }>()
   })
 
-  test('combineSlices allows for no initial reducers', () => {
+  test('combineSlices allows passing no initial reducers', () => {
     const rootReducer = combineSlices()
 
     expectTypeOf(rootReducer(undefined, { type: '' })).toEqualTypeOf<{}>()
