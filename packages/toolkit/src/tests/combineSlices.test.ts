@@ -64,6 +64,16 @@ describe('combineSlices', () => {
       api: api.reducer.getInitialState(),
     })
   })
+  it('allows passing no initial reducers', () => {
+    const combinedReducer = combineSlices()
+
+    const result = combinedReducer(undefined, dummyAction())
+
+    expect(result).toEqual({})
+
+    // no-op if we have no reducers yet
+    expect(combinedReducer(result, dummyAction())).toBe(result)
+  })
   describe('injects', () => {
     beforeEach(() => {
       vi.stubEnv('NODE_ENV', 'development')
