@@ -1,5 +1,14 @@
 {
   "semi": false,
   "singleQuote": true,
-  "endOfLine": "auto"
+  "endOfLine": "auto",
+  "overrides": [
+    {
+      "files": [
+        "examples/query/react/**/tsconfig*.json",
+        "examples/action-listener/counter/**/tsconfig*.json"
+      ],
+      "options": { "parser": "json" }
+    }
+  ]
 }
