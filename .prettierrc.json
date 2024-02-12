@@ -4,10 +4,7 @@
   "endOfLine": "auto",
   "overrides": [
     {
-      "files": [
-        "examples/query/react/**/tsconfig*.json",
-        "examples/action-listener/counter/**/tsconfig*.json"
-      ],
+      "files": ["examples/**/tsconfig*.json"],
       "options": { "parser": "json" }
     }
   ]
