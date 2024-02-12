@@ -1,18 +1,18 @@
 import type { SerializedError } from '@reduxjs/toolkit'
 import type {
   FetchBaseQueryError,
-  TypedUseMutationResult,
-  TypedUseQueryHookResult,
-  TypedUseQueryState,
-  TypedUseQueryStateResult,
-  TypedUseQuerySubscriptionResult,
   TypedLazyQueryTrigger,
   TypedUseLazyQuery,
   TypedUseLazyQuerySubscription,
   TypedUseMutation,
+  TypedUseMutationResult,
   TypedUseMutationTrigger,
-  TypedUseQuerySubscription,
   TypedUseQuery,
+  TypedUseQueryHookResult,
+  TypedUseQueryState,
+  TypedUseQueryStateResult,
+  TypedUseQuerySubscription,
+  TypedUseQuerySubscriptionResult,
 } from '@reduxjs/toolkit/query/react'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 

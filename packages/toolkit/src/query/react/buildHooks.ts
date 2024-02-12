@@ -277,8 +277,7 @@ export type LazyQueryTrigger<D extends QueryDefinition<any, any, any, any>> =
   (
     arg: QueryArgFrom<D>,
     preferCacheValue?: boolean,
-  ): QueryActionCreatorResult<D>
-}
+  ) => QueryActionCreatorResult<D>
 
 export type TypedLazyQueryTrigger<
   ResultType,
