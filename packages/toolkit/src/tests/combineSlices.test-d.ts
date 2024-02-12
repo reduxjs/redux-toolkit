@@ -33,6 +33,19 @@ describe('type tests', () => {
     }>()
   })
 
+  test('combineSlices allows passing no initial reducers', () => {
+    const rootReducer = combineSlices()
+
+    expectTypeOf(rootReducer(undefined, { type: '' })).toEqualTypeOf<{}>()
+
+    const declaredLazy =
+      combineSlices().withLazyLoadedSlices<WithSlice<typeof numberSlice>>()
+
+    expectTypeOf(declaredLazy(undefined, { type: '' })).toEqualTypeOf<{
+      number?: number
+    }>()
+  })
+
   test('withLazyLoadedSlices adds partial to state', () => {
     const rootReducer = combineSlices(stringSlice).withLazyLoadedSlices<
       WithSlice<typeof numberSlice> & WithSlice<typeof exampleApi>
@@ -199,8 +212,8 @@ describe('type tests', () => {
       number: number
     }>()
 
-    expectTypeOf(withNumber(undefined, { type: '' }).number).toMatchTypeOf<
-      number
-    >()
+    expectTypeOf(
+      withNumber(undefined, { type: '' }).number,
+    ).toMatchTypeOf<number>()
   })
 })

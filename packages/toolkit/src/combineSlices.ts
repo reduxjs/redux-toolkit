@@ -359,15 +359,15 @@ const original = (state: any) => {
   return state[ORIGINAL_STATE]
 }
 
-export function combineSlices<
-  Slices extends [
-    AnySliceLike | ReducerMap,
-    ...Array<AnySliceLike | ReducerMap>,
-  ],
->(...slices: Slices): CombinedSliceReducer<Id<InitialState<Slices>>> {
+const noopReducer: Reducer<Record<string, any>> = (state = {}) => state
+
+export function combineSlices<Slices extends Array<AnySliceLike | ReducerMap>>(
+  ...slices: Slices
+): CombinedSliceReducer<Id<InitialState<Slices>>> {
   const reducerMap = Object.fromEntries<Reducer>(getReducers(slices))
 
-  const getReducer = () => combineReducers(reducerMap)
+  const getReducer = () =>
+    Object.keys(reducerMap).length ? combineReducers(reducerMap) : noopReducer
 
   let reducer = getReducer()
 
