@@ -1200,16 +1200,6 @@ describe('createSlice', () => {
         store.dispatch(reset())
         expect(selectValue(store.getState())).toBe(1)
       })
-      test.skip('creators can discourage their use if state is incompatible (types only)', () => {
-        const counterSlice = createAppSlice({
-          name: 'counter',
-          initialState: { value: 0 },
-          reducers: (create) => ({
-            // @ts-expect-error incompatible state
-            ...create.historyMethods(),
-          }),
-        })
-      })
     })
   })
 })

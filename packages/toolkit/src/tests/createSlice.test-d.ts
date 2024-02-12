@@ -8,13 +8,19 @@ import type {
   ActionReducerMapBuilder,
   AsyncThunk,
   CaseReducer,
+  CreatorCaseReducers,
   PayloadAction,
   PayloadActionCreator,
   Reducer,
+  ReducerCreator,
+  ReducerCreatorEntry,
   ReducerCreators,
   ReducerDefinition,
+  ReducerHandlingContextMethods,
+  ReducerNamesOfType,
   SerializedError,
   SliceCaseReducers,
+  ThunkAction,
   ThunkDispatch,
   UnknownAction,
   ValidateSliceCaseReducers,
@@ -27,8 +33,11 @@ import {
   createAsyncThunk,
   createSlice,
   isRejected,
+  nanoid,
 } from '@reduxjs/toolkit'
 import { castDraft } from 'immer'
+
+const toasterCreatorType = Symbol()
 
 describe('type tests', () => {
   const counterSlice = createSlice({
@@ -983,4 +992,104 @@ describe('type tests', () => {
       },
     })
   })
+  test('creators can disable themselves if state is incompatible', () => {
+    const toastCreator: ReducerCreator<typeof toasterCreatorType> = {
+      type: toasterCreatorType,
+      create: () => ({
+        _reducerDefinitionType: toasterCreatorType,
+      }),
+      handle({ type, reducerName }, _definition, context) {
+        const toastOpened = createAction<{ message: string; id: string }>(
+          type + '/opened',
+        )
+        const toastClosed = createAction<string>(type + '/closed')
+        function openToast(
+          ms: number,
+          message: string,
+        ): ThunkAction<void, unknown, unknown, UnknownAction> {
+          return (dispatch, getState) => {
+            const id = nanoid()
+            dispatch(toastOpened({ message, id }))
+            setTimeout(() => {
+              dispatch(toastClosed(id))
+            }, ms)
+          }
+        }
+        Object.assign(openToast, { toastOpened, toastClosed })
+        ;(context as ReducerHandlingContextMethods<ToastState>)
+          .addCase(toastOpened, (state, { payload: { message, id } }) => {
+            state.toasts[id] = { message }
+          })
+          .addCase(toastClosed, (state, action) => {
+            delete state.toasts[action.payload]
+          })
+          .exposeAction(reducerName, openToast)
+      },
+    }
+
+    const createAppSlice = buildCreateSlice({
+      creators: { toaster: toastCreator },
+    })
+
+    const toastSlice = createAppSlice({
+      name: 'toast',
+      initialState: { toasts: {} } as ToastState,
+      reducers: (create) => ({
+        toast: create.toaster(),
+      }),
+    })
+
+    expectTypeOf(toastSlice.actions.toast).toEqualTypeOf<AddToastThunk>()
+
+    expectTypeOf(toastSlice.actions.toast).toBeCallableWith(100, 'hello')
+
+    const incompatibleSlice = createAppSlice({
+      name: 'incompatible',
+      initialState: {},
+      reducers: (create) => {
+        expectTypeOf(create).not.toHaveProperty('toaster')
+        return {}
+      },
+    })
+  })
 })
+
+interface Toast {
+  message: string
+}
+
+interface ToastState {
+  toasts: Record<string, Toast>
+}
+
+interface AddToastThunk {
+  (
+    ms: number,
+    message: string,
+  ): ThunkAction<void, unknown, unknown, UnknownAction>
+  toastOpened: PayloadActionCreator<{ message: string; id: string }>
+  toastClosed: PayloadActionCreator<string>
+}
+
+declare module '@reduxjs/toolkit' {
+  export interface SliceReducerCreators<
+    State = any,
+    CaseReducers extends
+      CreatorCaseReducers<State> = CreatorCaseReducers<State>,
+    Name extends string = string,
+  > {
+    [toasterCreatorType]: ReducerCreatorEntry<
+      State extends ToastState
+        ? () => ReducerDefinition<typeof toasterCreatorType>
+        : never,
+      {
+        actions: {
+          [ReducerName in ReducerNamesOfType<
+            CaseReducers,
+            typeof toasterCreatorType
+          >]: AddToastThunk
+        }
+      }
+    >
+  }
+}
