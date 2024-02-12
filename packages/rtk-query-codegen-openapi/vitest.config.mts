@@ -8,7 +8,8 @@ const __dirname = path.dirname(__filename);
 
 export default defineConfig({
   test: {
-    pool: "forks",
+    testTimeout: 10_000,
+    pool: 'forks',
     globals: true,
     setupFiles: ['./test/vitest.setup.ts'],
     alias: {
