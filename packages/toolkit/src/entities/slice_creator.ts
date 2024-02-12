@@ -1,46 +1,21 @@
 import type {
-  CaseReducer,
   CreatorCaseReducers,
   ReducerCreator,
   ReducerCreatorEntry,
 } from '@reduxjs/toolkit'
-import type { PayloadAction } from '../createAction'
-import { reducerCreator, type CaseReducerDefinition } from '../createSlice'
+import { reducerCreator } from '../createSlice'
 import type { WithRequiredProp } from '../tsHelpers'
 import type {
   Update,
   EntityAdapter,
   EntityId,
   EntityState,
-  EntityStateAdapter,
+  DefaultPlural,
+  EntityReducers,
 } from './models'
 import { capitalize } from './utils'
 
 export const entityMethodsCreatorType = /*@__PURE__*/ Symbol()
-
-type DefaultPlural<Single extends string> = Single extends ''
-  ? ''
-  : `${Single}s`
-
-type EntityReducers<
-  T,
-  Id extends EntityId,
-  State = EntityState<T, Id>,
-  Single extends string = '',
-  Plural extends string = DefaultPlural<Single>,
-> = {
-  [K in keyof EntityStateAdapter<
-    T,
-    Id
-  > as `${K}${Capitalize<K extends `${string}One` ? Single : Plural>}`]: EntityStateAdapter<
-    T,
-    Id
-  >[K] extends (state: any) => any
-    ? CaseReducerDefinition<State, PayloadAction>
-    : EntityStateAdapter<T, Id>[K] extends CaseReducer<any, infer A>
-      ? CaseReducerDefinition<State, A>
-      : never
-}
 
 export interface EntityMethodsCreatorConfig<
   T,

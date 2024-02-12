@@ -3,6 +3,8 @@ import type { Draft } from 'immer'
 import type { PayloadAction } from '../createAction'
 import type { GetSelectorsOptions } from './state_selectors'
 import type { CastAny, Id as Compute } from '../tsHelpers'
+import type { CaseReducerDefinition } from '../createSlice'
+import type { CaseReducer } from '../createReducer'
 
 /**
  * @public
@@ -158,12 +160,49 @@ export interface EntityStateAdapter<T, Id extends EntityId> {
 /**
  * @public
  */
-export interface EntitySelectors<T, V, Id extends EntityId> {
-  selectIds: (state: V) => Id[]
-  selectEntities: (state: V) => Record<Id, T>
-  selectAll: (state: V) => T[]
-  selectTotal: (state: V) => number
-  selectById: (state: V, id: Id) => Compute<UncheckedIndexedAccess<T>>
+export type EntitySelectors<
+  T,
+  V,
+  Id extends EntityId,
+  Single extends string = '',
+  Plural extends string = DefaultPlural<Single>,
+> = {
+  [K in `select${Capitalize<Single>}Ids`]: (state: V) => Id[]
+} & {
+  [K in `select${Capitalize<Single>}Entities`]: (state: V) => Record<Id, T>
+} & {
+  [K in `selectAll${Capitalize<Plural>}`]: (state: V) => T[]
+} & {
+  [K in `selectTotal${Capitalize<Plural>}`]: (state: V) => number
+} & {
+  [K in `select${Capitalize<Single>}ById`]: (
+    state: V,
+    id: Id,
+  ) => Compute<UncheckedIndexedAccess<T>>
+}
+
+export type DefaultPlural<Single extends string> = Single extends ''
+  ? ''
+  : `${Single}s`
+
+export type EntityReducers<
+  T,
+  Id extends EntityId,
+  State = EntityState<T, Id>,
+  Single extends string = '',
+  Plural extends string = DefaultPlural<Single>,
+> = {
+  [K in keyof EntityStateAdapter<
+    T,
+    Id
+  > as `${K}${Capitalize<K extends `${string}One` ? Single : Plural>}`]: EntityStateAdapter<
+    T,
+    Id
+  >[K] extends (state: any) => any
+    ? CaseReducerDefinition<State, PayloadAction>
+    : EntityStateAdapter<T, Id>[K] extends CaseReducer<any, infer A>
+      ? CaseReducerDefinition<State, A>
+      : never
 }
 
 /**
@@ -175,12 +214,19 @@ export interface EntityAdapter<T, Id extends EntityId>
   sortComparer: false | Comparer<T>
   getInitialState(): EntityState<T, Id>
   getInitialState<S extends object>(state: S): EntityState<T, Id> & S
-  getSelectors(
+  getSelectors<
+    Single extends string = '',
+    Plural extends string = DefaultPlural<Single>,
+  >(
     selectState?: undefined,
-    options?: GetSelectorsOptions,
-  ): EntitySelectors<T, EntityState<T, Id>, Id>
-  getSelectors<V>(
+    options?: GetSelectorsOptions<Single, Plural>,
+  ): EntitySelectors<T, EntityState<T, Id>, Id, Single, Plural>
+  getSelectors<
+    V,
+    Single extends string = '',
+    Plural extends string = DefaultPlural<Single>,
+  >(
     selectState: (state: V) => EntityState<T, Id>,
-    options?: GetSelectorsOptions,
-  ): EntitySelectors<T, V, Id>
+    options?: GetSelectorsOptions<Single, Plural>,
+  ): EntitySelectors<T, V, Id, Single, Plural>
 }
