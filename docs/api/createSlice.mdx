@@ -1126,11 +1126,23 @@ declare module '@reduxjs/toolkit' {
 }
 ```
 
+The type parameters for `SliceReducerCreators` are:
+
+- `State` - The state type used by the slice.
+- `CaseReducers` - The case reducer definitions returned by the creator callback.
+- `Name` - The [`name`](#name) used by the slice.
+
 The `ReducerCreatorEntry<Create, Exposes>` utility has two type parameters:
 
 ##### `Create`
 
 The signature of the `create` method of the creator definition.
+
+:::caution `CaseReducers` and `Name`
+
+Your `Create` type should not depend on the `CaseReducers` and `Name` type parameters, as these will not yet exist when the creator is being called.
+
+:::
 
 :::tip Using `this` to access other creators
 
@@ -1223,7 +1235,7 @@ declare module '@reduxjs/toolkit' {
 
 :::
 
-##### `Exposes`
+##### `Exposes` (optional)
 
 The second type parameter for `ReducerCreatorEntry` is optional, but should be used if the creator will handle some reducer definitions itself. It indicates what actions and case reducers will be attached to the slice, and is used to determine the final types of `slice.actions` and `slice.caseReducers`.
 
