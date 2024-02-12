@@ -1017,7 +1017,7 @@ describe('type tests', () => {
           }
         }
         Object.assign(openToast, { toastOpened, toastClosed })
-        ;(context as ReducerHandlingContextMethods<ToastState>)
+        ;(context as any as ReducerHandlingContextMethods<ToastState>)
           .addCase(toastOpened, (state, { payload: { message, id } }) => {
             state.toasts[id] = { message }
           })
