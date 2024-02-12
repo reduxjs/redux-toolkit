@@ -378,13 +378,13 @@ export interface Slice<
    * Action creators for the types of actions that are handled by the slice
    * reducer.
    */
-  actions: CaseReducerActions<CaseReducers, Name>
+  actions: CaseReducerActions<CaseReducers, Name, State>
 
   /**
    * The individual case reducer functions that were passed in the `reducers` parameter.
    * This enables reuse and testing if they were defined inline when calling `createSlice`.
    */
-  caseReducers: SliceDefinedCaseReducers<CaseReducers, Name>
+  caseReducers: SliceDefinedCaseReducers<CaseReducers, Name, State>
 
   /**
    * Provides access to the initial state value given to the slice.
@@ -750,10 +750,11 @@ export type CaseReducerActions<
     | SliceCaseReducers<any>
     | Record<string, ReducerDefinition>,
   SliceName extends string,
+  State = any,
 > = Id<
   UnionToIntersection<
     SliceReducerCreators<
-      any,
+      State,
       CaseReducers,
       SliceName
     >[RegisteredReducerType]['actions']
@@ -795,10 +796,11 @@ type SliceDefinedCaseReducers<
     | SliceCaseReducers<any>
     | Record<string, ReducerDefinition>,
   SliceName extends string = string,
+  State = any,
 > = Id<
   UnionToIntersection<
     SliceReducerCreators<
-      any,
+      State,
       CaseReducers,
       SliceName
     >[RegisteredReducerType]['caseReducers']
