@@ -273,14 +273,13 @@ describe('import paths', () => {
       hooks: true,
       tag: true,
     });
-    expect(await fs.promises.readFile('./test/tmp/out.ts', 'utf8')).toContain("import { api } from '../../fixtures/emptyApi'");
+    expect(await fs.promises.readFile('./test/tmp/out.ts', 'utf8')).toContain(
+      "import { api } from '../../fixtures/emptyApi'"
+    );
   });
 
   test('should create paths relative to `outFile` when `apiFile` is relative (same folder)', async () => {
-    await fs.promises.writeFile(
-      './test/tmp/emptyApi.ts',
-      await fs.promises.readFile('./test/fixtures/emptyApi.ts')
-    );
+    await fs.promises.writeFile('./test/tmp/emptyApi.ts', await fs.promises.readFile('./test/fixtures/emptyApi.ts'));
 
     await generateEndpoints({
       unionUndefined: true,

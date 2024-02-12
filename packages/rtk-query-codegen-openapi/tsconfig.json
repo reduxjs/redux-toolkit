@@ -13,7 +13,7 @@
     "types": ["vitest/globals", "vitest/importMeta"],
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
   },
-  "exclude": ["test", "lib", "vitest.config.mts"]
+  "exclude": ["test", "lib", "vitest.config.mts"],
 }
