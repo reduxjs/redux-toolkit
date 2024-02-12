@@ -274,6 +274,39 @@ const booksSlice = createSlice({
 })
 ```
 
+You can also pass in an array of entities or a `Record<EntityId, T>` object to pre-populate the initial state with some entities:
+
+```js
+const booksSlice = createSlice({
+  name: 'books',
+  initialState: booksAdapter.getInitialState(
+    {
+      loading: 'idle',
+    },
+    [
+      { id: 'a', title: 'First' },
+      { id: 'b', title: 'Second' },
+    ],
+  ),
+  reducers: {},
+})
+```
+
+This is equivalent to calling:
+
+```js
+const initialState = booksAdapter.getInitialState({
+  loading: 'idle',
+})
+
+const prePopulatedState = booksAdapter.setAll(initialState, [
+  { id: 'a', title: 'First' },
+  { id: 'b', title: 'Second' },
+])
+```
+
+The first parameter can be `undefined` if no additional properties are needed.
+
 ### Selector Functions
 
 The entity adapter will contain a `getSelectors()` function that returns a set of selectors that know how to read the contents of an entity state object:
