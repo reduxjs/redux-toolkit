@@ -19,6 +19,7 @@ import type {
   ReducerHandlingContextMethods,
   ReducerNamesOfType,
   SerializedError,
+  SliceActionType,
   SliceCaseReducers,
   ThunkAction,
   ThunkDispatch,
@@ -1032,16 +1033,22 @@ describe('type tests', () => {
     })
 
     const toastSlice = createAppSlice({
-      name: 'toast',
+      name: 'toasts',
       initialState: { toasts: {} } as ToastState,
       reducers: (create) => ({
         toast: create.toaster(),
       }),
     })
 
-    expectTypeOf(toastSlice.actions.toast).toEqualTypeOf<AddToastThunk>()
+    expectTypeOf(toastSlice.actions.toast).toEqualTypeOf<
+      AddToastThunk<'toasts', 'toast'>
+    >()
 
     expectTypeOf(toastSlice.actions.toast).toBeCallableWith(100, 'hello')
+
+    expectTypeOf(
+      toastSlice.actions.toast.toastOpened.type,
+    ).toEqualTypeOf<'toasts/toast/opened'>()
 
     const incompatibleSlice = createAppSlice({
       name: 'incompatible',
@@ -1062,13 +1069,19 @@ interface ToastState {
   toasts: Record<string, Toast>
 }
 
-interface AddToastThunk {
+interface AddToastThunk<Name extends string, ReducerName extends PropertyKey> {
   (
     ms: number,
     message: string,
   ): ThunkAction<void, unknown, unknown, UnknownAction>
-  toastOpened: PayloadActionCreator<{ message: string; id: string }>
-  toastClosed: PayloadActionCreator<string>
+  toastOpened: PayloadActionCreator<
+    { message: string; id: string },
+    `${SliceActionType<Name, ReducerName>}/opened`
+  >
+  toastClosed: PayloadActionCreator<
+    string,
+    `${SliceActionType<Name, ReducerName>}/closed`
+  >
 }
 
 declare module '@reduxjs/toolkit' {
@@ -1087,7 +1100,7 @@ declare module '@reduxjs/toolkit' {
           [ReducerName in ReducerNamesOfType<
             CaseReducers,
             typeof toasterCreatorType
-          >]: AddToastThunk
+          >]: AddToastThunk<Name, ReducerName>
         }
       }
     >

@@ -1210,6 +1210,23 @@ interface LoaderReducerDefinition<State>
   ended?: CaseReducer<State, PayloadAction<string>>
 }
 
+interface LoaderThunk<Name extends string, ReducerName extends PropertyKey> {
+  (): ThunkAction<
+    { loaderId: string; end: () => void },
+    unknown,
+    unknown,
+    Action
+  >
+  started: PayloadActionCreator<
+    string,
+    `${SliceActionType<Name, ReducerName>}/started`
+  >
+  ended: PayloadActionCreator<
+    string,
+    `${SliceActionType<Name, ReducerName>}/ended`
+  >
+}
+
 interface PatchesState {
   undo: Patch[]
   redo: Patch[]
@@ -1241,21 +1258,7 @@ declare module '@reduxjs/toolkit' {
           [ReducerName in ReducerNamesOfType<
             CaseReducers,
             typeof loaderCreatorType
-          >]: (() => ThunkAction<
-            { loaderId: string; end: () => void },
-            unknown,
-            unknown,
-            Action
-          >) & {
-            started: PayloadActionCreator<
-              string,
-              `${SliceActionType<Name, ReducerName>}/started`
-            >
-            ended: PayloadActionCreator<
-              string,
-              `${SliceActionType<Name, ReducerName>}/ended`
-            >
-          }
+          >]: LoaderThunk<Name, ReducerName>
         }
         caseReducers: {
           [ReducerName in ReducerNamesOfType<
