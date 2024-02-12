@@ -1,5 +1,11 @@
 {
   "semi": false,
   "singleQuote": true,
-  "endOfLine": "auto"
+  "endOfLine": "auto",
+  "overrides": [
+    {
+      "files": ["examples/**/tsconfig*.json"],
+      "options": { "parser": "json" }
+    }
+  ]
 }
