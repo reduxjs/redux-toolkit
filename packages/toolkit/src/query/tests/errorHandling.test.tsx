@@ -390,7 +390,7 @@ describe('custom axios baseQuery', () => {
     ): BaseQueryFn<
       {
         url: string
-        method: AxiosRequestConfig['method']
+        method?: AxiosRequestConfig['method']
         data?: AxiosRequestConfig['data']
       },
       unknown,
