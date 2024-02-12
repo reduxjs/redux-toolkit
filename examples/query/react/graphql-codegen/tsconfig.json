@@ -16,6 +16,6 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "baseUrl": "src",
-  },
+    "baseUrl": "src"
+  }
 }
