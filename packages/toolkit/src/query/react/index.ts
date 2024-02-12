@@ -18,5 +18,13 @@ export type {
   TypedUseQueryHookResult,
   TypedUseQueryStateResult,
   TypedUseQuerySubscriptionResult,
+  TypedLazyQueryTrigger,
+  TypedUseLazyQuery,
+  TypedUseMutation,
+  TypedUseMutationTrigger,
+  TypedUseQueryState,
+  TypedUseQuery,
+  TypedUseQuerySubscription,
+  TypedUseLazyQuerySubscription,
 } from './buildHooks'
 export { createApi, reactHooksModule, reactHooksModuleName }

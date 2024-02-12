@@ -98,6 +98,12 @@ export type UseQuery<D extends QueryDefinition<any, any, any, any>> = <
   options?: UseQuerySubscriptionOptions & UseQueryStateOptions<D, R>,
 ) => UseQueryHookResult<D, R>
 
+export type TypedUseQuery<
+  ResultType,
+  QueryArg,
+  BaseQuery extends BaseQueryFn,
+> = UseQuery<QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>>
+
 export type UseQueryHookResult<
   D extends QueryDefinition<any, any, any, any>,
   R = UseQueryStateDefaultResult<D>,
@@ -182,6 +188,14 @@ export type UseQuerySubscription<
   options?: UseQuerySubscriptionOptions,
 ) => UseQuerySubscriptionResult<D>
 
+export type TypedUseQuerySubscription<
+  ResultType,
+  QueryArg,
+  BaseQuery extends BaseQueryFn,
+> = UseQuerySubscription<
+  QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
+>
+
 export type UseQuerySubscriptionResult<
   D extends QueryDefinition<any, any, any, any>,
 > = Pick<QueryActionCreatorResult<D>, 'refetch'>
@@ -231,6 +245,14 @@ export type UseLazyQuery<D extends QueryDefinition<any, any, any, any>> = <
   UseLazyQueryLastPromiseInfo<D>,
 ]
 
+export type TypedUseLazyQuery<
+  ResultType,
+  QueryArg,
+  BaseQuery extends BaseQueryFn,
+> = UseLazyQuery<
+  QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
+>
+
 export type LazyQueryTrigger<D extends QueryDefinition<any, any, any, any>> =
   /**
    * Triggers a lazy query.
@@ -255,7 +277,16 @@ export type LazyQueryTrigger<D extends QueryDefinition<any, any, any, any>> =
   (
     arg: QueryArgFrom<D>,
     preferCacheValue?: boolean,
-  ) => QueryActionCreatorResult<D>
+  ): QueryActionCreatorResult<D>
+}
+
+export type TypedLazyQueryTrigger<
+  ResultType,
+  QueryArg,
+  BaseQuery extends BaseQueryFn,
+> = LazyQueryTrigger<
+  QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
+>
 
 /**
  * A React hook similar to [`useQuerySubscription`](#usequerysubscription), but with manual control over when the data fetching occurs.
@@ -273,6 +304,14 @@ export type UseLazyQuerySubscription<
 > = (
   options?: SubscriptionOptions,
 ) => readonly [LazyQueryTrigger<D>, QueryArgFrom<D> | UninitializedValue]
+
+export type TypedUseLazyQuerySubscription<
+  ResultType,
+  QueryArg,
+  BaseQuery extends BaseQueryFn,
+> = UseLazyQuerySubscription<
+  QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
+>
 
 export type QueryStateSelector<
   R extends AnyObject,
@@ -295,6 +334,14 @@ export type UseQueryState<D extends QueryDefinition<any, any, any, any>> = <
   arg: QueryArgFrom<D> | SkipToken,
   options?: UseQueryStateOptions<D, R>,
 ) => UseQueryStateResult<D, R>
+
+export type TypedUseQueryState<
+  ResultType,
+  QueryArg,
+  BaseQuery extends BaseQueryFn,
+> = UseQueryState<
+  QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
+>
 
 export interface UseQueryStateOptions<
   D extends QueryDefinition<any, any, any, any>,
@@ -513,6 +560,14 @@ export type UseMutation<D extends MutationDefinition<any, any, any, any>> = <
   options?: UseMutationStateOptions<D, R>,
 ) => readonly [MutationTrigger<D>, UseMutationStateResult<D, R>]
 
+export type TypedUseMutation<
+  ResultType,
+  QueryArg,
+  BaseQuery extends BaseQueryFn,
+> = UseMutation<
+  MutationDefinition<QueryArg, BaseQuery, string, ResultType, string>
+>
+
 export type MutationTrigger<D extends MutationDefinition<any, any, any, any>> =
   /**
    * Triggers the mutation and returns a Promise.
@@ -531,6 +586,14 @@ export type MutationTrigger<D extends MutationDefinition<any, any, any, any>> =
    * ```
    */
   (arg: QueryArgFrom<D>) => MutationActionCreatorResult<D>
+
+export type TypedUseMutationTrigger<
+  ResultType,
+  QueryArg,
+  BaseQuery extends BaseQueryFn,
+> = MutationTrigger<
+  MutationDefinition<QueryArg, BaseQuery, string, ResultType, string>
+>
 
 /**
  * Wrapper around `defaultQueryStateSelector` to be used in `useQuery`.

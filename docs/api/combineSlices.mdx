@@ -86,17 +86,6 @@ However, typing will not be able to account for this. It's best to ensure that a
 
 :::
 
-:::warning
-
-Like [`combineReducers`](https://redux.js.org/api/combinereducers), `combineSlices` requires at least one reducer at initialisation.
-
-```ts no-transpile
-// will throw an error
-const rootReducer = combineSlices()
-```
-
-:::
-
 ## Return Value
 
 `combineSlices` returns a reducer function, with attached methods.
