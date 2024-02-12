@@ -352,9 +352,7 @@ interface InjectIntoConfig<NewReducerPath extends string> extends InjectConfig {
  */
 export interface Slice<
   State = any,
-  CaseReducers extends
-    | SliceCaseReducers<State>
-    | Record<string, ReducerDefinition> = SliceCaseReducers<State>,
+  CaseReducers extends CreatorCaseReducers<State> = SliceCaseReducers<State>,
   Name extends string = string,
   ReducerPath extends string = Name,
   Selectors extends SliceSelectors<State> = SliceSelectors<State>,
@@ -442,9 +440,7 @@ export interface Slice<
  */
 interface InjectedSlice<
   State = any,
-  CaseReducers extends
-    | SliceCaseReducers<State>
-    | Record<string, ReducerDefinition> = SliceCaseReducers<State>,
+  CaseReducers extends CreatorCaseReducers<State> = SliceCaseReducers<State>,
   Name extends string = string,
   ReducerPath extends string = Name,
   Selectors extends SliceSelectors<State> = SliceSelectors<State>,
@@ -746,9 +742,7 @@ export type SliceActionType<
  * @public
  */
 export type CaseReducerActions<
-  CaseReducers extends
-    | SliceCaseReducers<any>
-    | Record<string, ReducerDefinition>,
+  CaseReducers extends CreatorCaseReducers<State>,
   SliceName extends string,
   State = any,
 > = Id<
@@ -792,9 +786,7 @@ type ActionCreatorForCaseReducer<CR, Type extends string> = CR extends (
  * @internal
  */
 type SliceDefinedCaseReducers<
-  CaseReducers extends
-    | SliceCaseReducers<any>
-    | Record<string, ReducerDefinition>,
+  CaseReducers extends CreatorCaseReducers<State>,
   SliceName extends string = string,
   State = any,
 > = Id<
