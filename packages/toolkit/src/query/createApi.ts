@@ -353,16 +353,17 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
         evaluatedEndpoints,
       )) {
         if (
-          !inject.overrideExisting &&
+          inject.overrideExisting !== true &&
           endpointName in context.endpointDefinitions
         ) {
-          if (
+          const errorMessage = `called \`injectEndpoints\` to override already-existing endpointName ${endpointName} without specifying \`overrideExisting: true\``
+          if (inject.overrideExisting === 'throw') {
+            throw new Error(errorMessage)
+          } else if (
             typeof process !== 'undefined' &&
             process.env.NODE_ENV === 'development'
           ) {
-            console.error(
-              `called \`injectEndpoints\` to override already-existing endpointName ${endpointName} without specifying \`overrideExisting: true\``,
-            )
+            console.error(errorMessage)
           }
 
           continue
