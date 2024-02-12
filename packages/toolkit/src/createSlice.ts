@@ -39,7 +39,7 @@ export enum ReducerType {
   asyncThunk = 'asyncThunk',
 }
 
-export type RegisteredReducerType = keyof SliceReducerCreators
+export type RegisteredReducerType = keyof SliceReducerCreators<any, any, any>
 
 export interface ReducerDefinition<
   T extends RegisteredReducerType = RegisteredReducerType,
@@ -68,9 +68,9 @@ export type CreatorCaseReducers<State> =
   | SliceCaseReducers<State>
 
 export interface SliceReducerCreators<
-  State = any,
-  CaseReducers extends CreatorCaseReducers<State> = CreatorCaseReducers<State>,
-  Name extends string = string,
+  State,
+  CaseReducers extends CreatorCaseReducers<State>,
+  Name extends string,
 > {
   [ReducerType.reducer]: ReducerCreatorEntry<
     {
@@ -179,12 +179,20 @@ export type ReducerCreators<
   State,
   CreatorMap extends Record<string, RegisteredReducerType> = {},
 > = {
-  reducer: SliceReducerCreators<State>[ReducerType.reducer]['create']
-  preparedReducer: SliceReducerCreators<State>[ReducerType.reducerWithPrepare]['create']
+  reducer: SliceReducerCreators<State, any, any>[ReducerType.reducer]['create']
+  preparedReducer: SliceReducerCreators<
+    State,
+    any,
+    any
+  >[ReducerType.reducerWithPrepare]['create']
 } & {
-  [Name in keyof CreatorMap as SliceReducerCreators<State>[CreatorMap[Name]]['create'] extends never
+  [Name in keyof CreatorMap as SliceReducerCreators<
+    State,
+    any,
+    any
+  >[CreatorMap[Name]]['create'] extends never
     ? never
-    : Name]: SliceReducerCreators<State>[CreatorMap[Name]]['create']
+    : Name]: SliceReducerCreators<State, any, any>[CreatorMap[Name]]['create']
 }
 
 interface ReducerHandlingContext<State> {
@@ -289,23 +297,31 @@ type RecursiveExtractDefinition<
       : never)
 
 type ReducerDefinitionsForType<Type extends RegisteredReducerType> = {
-  [CreatorType in keyof SliceReducerCreators]:
+  [CreatorType in RegisteredReducerType]:
     | RecursiveExtractDefinition<
-        ReturnType<SliceReducerCreators[CreatorType]['create']>,
+        ReturnType<SliceReducerCreators<any, any, any>[CreatorType]['create']>,
         Type
       >
     | {
-        [K in keyof SliceReducerCreators[CreatorType]['create']]: SliceReducerCreators[CreatorType]['create'][K] extends (
+        [K in keyof SliceReducerCreators<
+          any,
+          any,
+          any
+        >[CreatorType]['create']]: SliceReducerCreators<
+          any,
+          any,
+          any
+        >[CreatorType]['create'][K] extends (
           ...args: any[]
         ) => infer Definitions
           ? RecursiveExtractDefinition<Definitions, Type>
           : never
-      }[keyof SliceReducerCreators[CreatorType]['create']]
-}[keyof SliceReducerCreators]
+      }[keyof SliceReducerCreators<any, any, any>[CreatorType]['create']]
+}[keyof SliceReducerCreators<any, any, any>]
 
 export type ReducerCreator<Type extends RegisteredReducerType> = {
   type: Type
-  create: SliceReducerCreators[Type]['create']
+  create: SliceReducerCreators<any, any, any>[Type]['create']
 } & (ReducerDefinitionsForType<Type> extends never
   ? {}
   : {
@@ -368,7 +384,7 @@ export interface Slice<
    * The individual case reducer functions that were passed in the `reducers` parameter.
    * This enables reuse and testing if they were defined inline when calling `createSlice`.
    */
-  caseReducers: SliceDefinedCaseReducers<CaseReducers>
+  caseReducers: SliceDefinedCaseReducers<CaseReducers, Name>
 
   /**
    * Provides access to the initial state value given to the slice.
@@ -778,12 +794,13 @@ type SliceDefinedCaseReducers<
   CaseReducers extends
     | SliceCaseReducers<any>
     | Record<string, ReducerDefinition>,
+  SliceName extends string = string,
 > = Id<
   UnionToIntersection<
     SliceReducerCreators<
       any,
       CaseReducers,
-      any
+      SliceName
     >[RegisteredReducerType]['caseReducers']
   >
 >

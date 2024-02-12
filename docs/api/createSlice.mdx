@@ -1115,10 +1115,9 @@ const reducerCreatorType = Symbol()
 
 declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
-    State = any,
-    CaseReducers extends
-      CreatorCaseReducers<State> = CreatorCaseReducers<State>,
-    Name extends string = string,
+    State,
+    CaseReducers extends CreatorCaseReducers<State>,
+    Name extends string,
   > {
     [reducerCreatorType]: ReducerCreatorEntry<
       () => ReducerDefinition<typeof reducerCreatorType>
@@ -1144,10 +1143,9 @@ const batchedCreatorType = Symbol()
 
 declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
-    State = any,
-    CaseReducers extends
-      CreatorCaseReducers<State> = CreatorCaseReducers<State>,
-    Name extends string = string,
+    State,
+    CaseReducers extends CreatorCaseReducers<State>,
+    Name extends string,
   > {
     [batchedCreatorType]: ReducerCreatorEntry<
       <Payload>(
@@ -1183,10 +1181,9 @@ const loaderCreatorType = Symbol()
 
 declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
-    State = any,
-    CaseReducers extends
-      CreatorCaseReducers<State> = CreatorCaseReducers<State>,
-    Name extends string = string,
+    State,
+    CaseReducers extends CreatorCaseReducers<State>,
+    Name extends string,
   > {
     [loaderCreatorType]: ReducerCreatorEntry<
       // highlight-next-line
@@ -1210,10 +1207,9 @@ const loaderCreatorType = Symbol()
 
 declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
-    State = any,
-    CaseReducers extends
-      CreatorCaseReducers<State> = CreatorCaseReducers<State>,
-    Name extends string = string,
+    State,
+    CaseReducers extends CreatorCaseReducers<State>,
+    Name extends string,
   > {
     [loaderCreatorType]: ReducerCreatorEntry<
       () => {
@@ -1246,10 +1242,9 @@ const asyncThunkCreatorType = Symbol()
 
 declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
-    State = any,
-    CaseReducers extends
-      CreatorCaseReducers<State> = CreatorCaseReducers<State>,
-    Name extends string = string,
+    State,
+    CaseReducers extends CreatorCaseReducers<State>,
+    Name extends string,
   > {
     [asyncThunkCreatorType]: ReducerCreatorEntry<
       <ThunkArg, Returned>(
@@ -1287,10 +1282,9 @@ const preparedReducerType = Symbol()
 
 declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
-    State = any,
-    CaseReducers extends
-      CreatorCaseReducers<State> = CreatorCaseReducers<State>,
-    Name extends string = string,
+    State,
+    CaseReducers extends CreatorCaseReducers<State>,
+    Name extends string,
   > {
     [preparedReducerType]: ReducerCreatorEntry<
       <Prepare extends PrepareAction<any>>(
@@ -1392,10 +1386,9 @@ interface ToastThunkCreator<
 // register the creator types
 declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
-    State = any,
-    CaseReducers extends
-      CreatorCaseReducers<State> = CreatorCaseReducers<State>,
-    Name extends string = string,
+    State,
+    CaseReducers extends CreatorCaseReducers<State>,
+    Name extends string,
   > {
     [toastCreatorType]: ReducerCreatorEntry<
       (
@@ -1522,10 +1515,9 @@ interface PaginationState {
 
 declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
-    State = any,
-    CaseReducers extends
-      CreatorCaseReducers<State> = CreatorCaseReducers<State>,
-    Name extends string = string,
+    State,
+    CaseReducers extends CreatorCaseReducers<State>,
+    Name extends string,
   > {
     [paginationCreatorType]: ReducerCreatorEntry<
       // make sure the creator is only called when state is compatible
@@ -1593,9 +1585,10 @@ interface HistoryState<T> {
 
 declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
-    State = any,
-    CaseReducers extends CreatorCaseReducers<State> = CreatorCaseReducers<State>,
-    Name extends string = string
+    State,
+    CaseReducers extends
+      CreatorCaseReducers<State>,
+    Name extends string,
   > {
     [paginationCreatorType]: ReducerCreatorEntry<
       // make sure the creator is only called when state is compatibleState extends HistoryState<unknown>
@@ -1702,10 +1695,9 @@ interface UndoableMeta {
 
 declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
-    State = any,
-    CaseReducers extends
-      CreatorCaseReducers<State> = CreatorCaseReducers<State>,
-    Name extends string = string,
+    State,
+    CaseReducers extends CreatorCaseReducers<State>,
+    Name extends string,
   > {
     [undoableCreatorType]: ReducerCreatorEntry<
       State extends HistoryState<infer Data>

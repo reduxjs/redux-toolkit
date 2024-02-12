@@ -1244,10 +1244,9 @@ interface UndoableOptions {
 
 declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
-    State = any,
-    CaseReducers extends
-      CreatorCaseReducers<State> = CreatorCaseReducers<State>,
-    Name extends string = string,
+    State,
+    CaseReducers extends CreatorCaseReducers<State>,
+    Name extends string,
   > {
     [loaderCreatorType]: ReducerCreatorEntry<
       (

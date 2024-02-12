@@ -1086,10 +1086,9 @@ interface AddToastThunk<Name extends string, ReducerName extends PropertyKey> {
 
 declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
-    State = any,
-    CaseReducers extends
-      CreatorCaseReducers<State> = CreatorCaseReducers<State>,
-    Name extends string = string,
+    State,
+    CaseReducers extends CreatorCaseReducers<State>,
+    Name extends string,
   > {
     [toasterCreatorType]: ReducerCreatorEntry<
       State extends ToastState
