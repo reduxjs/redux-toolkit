@@ -50,5 +50,9 @@
     "eslint-config-prettier": "^9.1.0",
     "rimraf": "^5.0.5",
     "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "@typescript-eslint/utils": "^7.0.1",
+    "typescript-eslint": "^7.0.1"
   }
 }
