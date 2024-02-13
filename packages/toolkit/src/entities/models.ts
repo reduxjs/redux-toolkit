@@ -166,20 +166,22 @@ export type EntitySelectors<
   Id extends EntityId,
   Single extends string = '',
   Plural extends string = DefaultPlural<Single>,
-> = {
-  [K in `select${Capitalize<Single>}Ids`]: (state: V) => Id[]
-} & {
-  [K in `select${Capitalize<Single>}Entities`]: (state: V) => Record<Id, T>
-} & {
-  [K in `selectAll${Capitalize<Plural>}`]: (state: V) => T[]
-} & {
-  [K in `selectTotal${Capitalize<Plural>}`]: (state: V) => number
-} & {
-  [K in `select${Capitalize<Single>}ById`]: (
-    state: V,
-    id: Id,
-  ) => Compute<UncheckedIndexedAccess<T>>
-}
+> = Compute<
+  {
+    [K in `select${Capitalize<Single>}Ids`]: (state: V) => Id[]
+  } & {
+    [K in `select${Capitalize<Single>}Entities`]: (state: V) => Record<Id, T>
+  } & {
+    [K in `selectAll${Capitalize<Plural>}`]: (state: V) => T[]
+  } & {
+    [K in `selectTotal${Capitalize<Plural>}`]: (state: V) => number
+  } & {
+    [K in `select${Capitalize<Single>}ById`]: (
+      state: V,
+      id: Id,
+    ) => Compute<UncheckedIndexedAccess<T>>
+  }
+>
 
 export type DefaultPlural<Single extends string> = Single extends ''
   ? ''
