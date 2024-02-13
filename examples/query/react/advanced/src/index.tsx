@@ -10,5 +10,5 @@ const reactRoot = ReactDOM.createRoot(rootElement as HTMLElement)
 reactRoot.render(
   <ApiProvider api={pokemonApi}>
     <App />
-  </ApiProvider>
+  </ApiProvider>,
 )

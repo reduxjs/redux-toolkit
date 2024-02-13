@@ -57,7 +57,7 @@ const customBaseQuery = (
   // highlight-start
   args,
   { signal, dispatch, getState },
-  extraOptions
+  extraOptions,
   // highlight-end
 ) => {
   // omitted
@@ -77,7 +77,7 @@ const customBaseQuery = (
 const customBaseQuery = (
   args,
   { signal, dispatch, getState },
-  extraOptions
+  extraOptions,
 ) => {
   // highlight-start
   if (Math.random() > 0.5) return { error: 'Too high!' }
@@ -97,18 +97,21 @@ At its core, a `baseQuery` function only needs to have the minimum return value 
 For [`fetchBaseQuery`](../api/fetchBaseQuery) specifically, the return type is as follows:
 
 ```ts title="Return types of fetchBaseQuery" no-transpile
-Promise<{
-    data: any;
-    error?: undefined;
-    meta?: { request: Request; response: Response };
-} | {
-    error: {
-        status: number;
-        data: any;
-    };
-    data?: undefined;
-    meta?: { request: Request; response: Response };
-}>
+Promise<
+  | {
+      data: any
+      error?: undefined
+      meta?: { request: Request; response: Response }
+    }
+  | {
+      error: {
+        status: number
+        data: any
+      }
+      data?: undefined
+      meta?: { request: Request; response: Response }
+    }
+>
 ```
 
 1.  ```ts title="Expected success result format with fetchBaseQuery" no-transpile
@@ -130,7 +133,7 @@ By default, the payload from the server is returned directly.
 function defaultTransformResponse(
   baseQueryReturnValue: unknown,
   meta: unknown,
-  arg: unknown
+  arg: unknown,
 ) {
   return baseQueryReturnValue
 }
@@ -211,7 +214,7 @@ By default, the payload from the server is returned directly.
 function defaultTransformResponse(
   baseQueryReturnValue: unknown,
   meta: unknown,
-  arg: unknown
+  arg: unknown,
 ) {
   return baseQueryReturnValue
 }
@@ -232,7 +235,7 @@ dependent on the `baseQuery` used.
 transformErrorResponse: (
   response: { data: { sideA: Tracks; sideB: Tracks } },
   meta,
-  arg
+  arg,
 ) => {
   if (meta?.coinFlip === 'heads') {
     return response.data.sideA
@@ -317,7 +320,7 @@ const queryFn = (
   args,
   { signal, dispatch, getState },
   extraOptions,
-  baseQuery
+  baseQuery,
   // highlight-end
 ) => {
   // omitted
@@ -338,7 +341,7 @@ const queryFn = (
   args,
   { signal, dispatch, getState },
   extraOptions,
-  baseQuery
+  baseQuery,
 ) => {
   // highlight-start
   if (Math.random() > 0.5) return { error: 'Too high!' }
@@ -362,11 +365,11 @@ import type { AxiosRequestConfig, AxiosError } from 'axios'
 // highlight-start
 const axiosBaseQuery =
   (
-    { baseUrl }: { baseUrl: string } = { baseUrl: '' }
+    { baseUrl }: { baseUrl: string } = { baseUrl: '' },
   ): BaseQueryFn<
     {
       url: string
-      method: AxiosRequestConfig['method']
+      method?: AxiosRequestConfig['method']
       data?: AxiosRequestConfig['data']
       params?: AxiosRequestConfig['params']
       headers?: AxiosRequestConfig['headers']
@@ -565,7 +568,7 @@ const baseQueryWithReauth: BaseQueryFn<
         const refreshResult = await baseQuery(
           '/refreshToken',
           api,
-          extraOptions
+          extraOptions,
         )
         if (refreshResult.data) {
           api.dispatch(tokenReceived(refreshResult.data))
@@ -627,7 +630,7 @@ const staggeredBaseQueryWithBailOut = retry(
     const result = await fetchBaseQuery({ baseUrl: '/api/' })(
       args,
       api,
-      extraOptions
+      extraOptions,
     )
 
     // bail out of re-tries immediately if unauthorized,
@@ -640,7 +643,7 @@ const staggeredBaseQueryWithBailOut = retry(
   },
   {
     maxRetries: 5,
-  }
+  },
 )
 // highlight-end
 
@@ -711,7 +714,7 @@ const metaBaseQuery: BaseQueryFn<
   const baseResult = await fetchBaseQuery({ baseUrl: '/' })(
     args,
     api,
-    extraOptions
+    extraOptions,
   )
 
   return {
@@ -746,7 +749,7 @@ const api = createApi({
         // These properties can be used to transform the response as desired.
         if (!meta) return []
         return returnValue.filter(
-          (post) => post.timestamp >= meta.timestamp - DAY_MS
+          (post) => post.timestamp >= meta.timestamp - DAY_MS,
         )
       },
       // highlight-end

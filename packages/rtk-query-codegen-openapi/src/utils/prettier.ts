@@ -1,5 +1,5 @@
-import * as prettier from 'prettier';
-import * as path from 'path';
+import path from 'node:path';
+import prettier from 'prettier';
 
 const EXTENSION_TO_PARSER: Record<string, string> = {
   ts: 'typescript',

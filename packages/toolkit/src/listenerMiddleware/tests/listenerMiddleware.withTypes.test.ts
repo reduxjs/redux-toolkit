@@ -26,7 +26,7 @@ export const counterSlice = createSlice({
 
 export function fetchCount(amount = 1) {
   return new Promise<{ data: number }>((resolve) =>
-    setTimeout(() => resolve({ data: amount }), 500)
+    setTimeout(() => resolve({ data: amount }), 500),
   )
 }
 
@@ -36,7 +36,7 @@ export const incrementAsync = createAsyncThunk(
     const response = await fetchCount(amount)
     // The value we return becomes the `fulfilled` action payload
     return response.data
-  }
+  },
 )
 
 const { increment } = counterSlice.actions
@@ -76,7 +76,7 @@ describe('startAppListening.withTypes', () => {
     expect(startAppListening.withTypes).toEqual(expect.any(Function))
 
     expect(startAppListening.withTypes().withTypes).toEqual(
-      expect.any(Function)
+      expect.any(Function),
     )
 
     expect(startAppListening).toBe(listenerMiddleware.startListening)
@@ -108,7 +108,7 @@ describe('removeAppListener.withTypes', () => {
     expect(removeAppListener.withTypes).toEqual(expect.any(Function))
 
     expect(removeAppListener.withTypes().withTypes).toEqual(
-      expect.any(Function)
+      expect.any(Function),
     )
 
     expect(removeAppListener).toBe(removeListener)

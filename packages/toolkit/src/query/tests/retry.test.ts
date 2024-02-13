@@ -1,8 +1,6 @@
-import { vi } from 'vitest'
 import type { BaseQueryFn } from '@reduxjs/toolkit/query'
 import { createApi, retry } from '@reduxjs/toolkit/query'
-import { setupApiStore, waitMs } from './helpers'
-import type { RetryOptions } from '../retry'
+import { setupApiStore } from '../../tests/utils/helpers'
 
 beforeEach(() => {
   vi.useFakeTimers()
@@ -12,12 +10,10 @@ const loopTimers = async (max: number = 12) => {
   let count = 0
   while (count < max) {
     await vi.advanceTimersByTimeAsync(1)
-    vi.advanceTimersByTime(120000)
+    vi.advanceTimersByTime(120_000)
     count++
   }
 }
-
-vi.fn()
 
 describe('configuration', () => {
   test('retrying without any config options', async () => {
@@ -321,7 +317,7 @@ describe('configuration', () => {
         const attempts = Math.min(attempt, maxRetries)
         const timeout = attempts * 300 // Scale up by 300ms per request, ex: 300ms, 600ms, 900ms, 1200ms...
         await new Promise((resolve) =>
-          setTimeout((res: any) => resolve(res), timeout)
+          setTimeout((res: any) => resolve(res), timeout),
         )
       },
     })
@@ -467,13 +463,5 @@ describe('configuration', () => {
     await loopTimers(2)
 
     expect(baseBaseQuery).toHaveBeenCalledTimes(1)
-  })
-
-  test.skip('RetryOptions only accepts one of maxRetries or retryCondition', () => {
-    // @ts-expect-error Should complain if both exist at once
-    const ro: RetryOptions = {
-      maxRetries: 5,
-      retryCondition: () => false,
-    }
   })
 })

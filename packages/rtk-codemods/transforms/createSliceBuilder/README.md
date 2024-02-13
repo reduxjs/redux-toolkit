@@ -18,7 +18,7 @@ rtk-codemods createSliceBuilder path/of/files/ or/some**/*glob.js
 ## Local Usage
 
 ```
-node ./bin/cli.js createSliceBuilder path/of/files/ or/some**/*glob.js
+node ./bin/cli.mjs createSliceBuilder path/of/files/ or/some**/*glob.js
 ```
 
 ## Input / Output
@@ -42,9 +42,9 @@ const slice1 = createSlice({
   extraReducers: {
     [todoAdded]: (state: SliceState, action: PayloadAction<string>) => {
       // stuff
-    },
-  },
-});
+    }
+  }
+})
 
 const slice2 = createSlice({
   name: 'b',
@@ -52,9 +52,9 @@ const slice2 = createSlice({
   extraReducers: {
     [todoAdded](state: SliceState, action: PayloadAction<string>) {
       // stuff
-    },
-  },
-});
+    }
+  }
+})
 ```
 
 **Output** (<small>[basic-ts.output.ts](transforms\createSliceBuilder__testfixtures__\basic-ts.output.ts)</small>):
@@ -65,22 +65,28 @@ const slice1 = createSlice({
   initialState,
 
   extraReducers: (builder) => {
-    builder.addCase(todoAdded, (state: SliceState, action: PayloadAction<string>) => {
-      // stuff
-    });
-  },
-});
+    builder.addCase(
+      todoAdded,
+      (state: SliceState, action: PayloadAction<string>) => {
+        // stuff
+      }
+    )
+  }
+})
 
 const slice2 = createSlice({
   name: 'b',
   initialState,
 
   extraReducers: (builder) => {
-    builder.addCase(todoAdded, (state: SliceState, action: PayloadAction<string>) => {
-      // stuff
-    });
-  },
-});
+    builder.addCase(
+      todoAdded,
+      (state: SliceState, action: PayloadAction<string>) => {
+        // stuff
+      }
+    )
+  }
+})
 ```
 
 ---
@@ -109,9 +115,9 @@ const slice1 = createSlice({
     },
     todoAdded1f: (state, action) => {
       //stuff
-    },
-  },
-});
+    }
+  }
+})
 
 const slice2 = createSlice({
   name: 'b',
@@ -125,9 +131,9 @@ const slice2 = createSlice({
     },
     [todoAdded2c]: function (state, action) {
       // stuff
-    },
-  },
-});
+    }
+  }
+})
 ```
 
 **Output** (<small>[basic.output.js](transforms\createSliceBuilder__testfixtures__\basic.output.js)</small>):
@@ -140,27 +146,27 @@ const slice1 = createSlice({
   extraReducers: (builder) => {
     builder.addCase(todoAdded1a, (state, action) => {
       // stuff
-    });
+    })
 
-    builder.addCase(todoAdded1b, (state, action) => action.payload);
+    builder.addCase(todoAdded1b, (state, action) => action.payload)
 
     builder.addCase(todoAdded1c + 'test', (state, action) => {
       // stuff
-    });
+    })
 
     builder.addCase(todoAdded1d, (state, action) => {
       // stuff
-    });
+    })
 
     builder.addCase(todoAdded1e, (state, action) => {
       // stuff
-    });
+    })
 
     builder.addCase(todoAdded1f, (state, action) => {
       //stuff
-    });
-  },
-});
+    })
+  }
+})
 
 const slice2 = createSlice({
   name: 'b',
@@ -169,17 +175,17 @@ const slice2 = createSlice({
   extraReducers: (builder) => {
     builder.addCase(todoAdded2a, (state, action) => {
       // stuff
-    });
+    })
 
     builder.addCase(todoAdded2b, (state, action) => {
       // stuff
-    });
+    })
 
     builder.addCase(todoAdded2c, (state, action) => {
       // stuff
-    });
-  },
-});
+    })
+  }
+})
 ```
 
 <!--FIXTURES_CONTENT_END-->

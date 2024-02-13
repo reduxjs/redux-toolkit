@@ -65,7 +65,7 @@ const api = createApi({
       transformErrorResponse: (
         response: { status: string | number },
         meta,
-        arg
+        arg,
       ) => response.status,
       providesTags: (result, error, id) => [{ type: 'Post', id }],
       // The 2nd parameter is the destructured `QueryLifecycleApi`
@@ -79,7 +79,7 @@ const api = createApi({
           queryFulfilled,
           getCacheEntry,
           updateCachedData,
-        }
+        },
       ) {},
       // The 2nd parameter is the destructured `QueryCacheLifecycleApi`
       async onCacheEntryAdded(
@@ -93,7 +93,7 @@ const api = createApi({
           cacheDataLoaded,
           getCacheEntry,
           updateCachedData,
-        }
+        },
       ) {},
       // highlight-end
     }),
@@ -287,9 +287,7 @@ function PostsList() {
 
   return (
     <ul>
-      {posts?.data?.map((post) => (
-        <PostById key={post.id} id={post.id} />
-      ))}
+      {posts?.data?.map((post) => <PostById key={post.id} id={post.id} />)}
     </ul>
   )
 }
@@ -346,7 +344,7 @@ If you're not using React Hooks, you can access `refetch` like this:
 
 ```ts no-transpile
 const { status, data, error, refetch } = dispatch(
-  pokemonApi.endpoints.getPokemon.initiate('bulbasaur')
+  pokemonApi.endpoints.getPokemon.initiate('bulbasaur'),
 )
 ```
 
@@ -360,7 +358,7 @@ This example demonstrates request deduplication and caching behavior:
 2. A second later, another `Pokemon` component is rendered with 'bulbasaur'
    - Notice that this one doesn't ever show 'Loading...' and no new network request happens? It's using the cache here.
 3. A moment after that, a `Pokemon` component for 'pikachu' is added, and a new request happens.
-4. When you click 'Refetch' of a particular pokemon type, it'll update all of them with one request.
+4. When you click 'Refetch' for a specific `Pokemon`, it'll update all instances of that `Pokemon` with one request.
 
 :::note Try it out
 Click the 'Add bulbasaur' button. You'll observe the same behavior described above until you click the 'Refetch' button on one of the components.

@@ -86,8 +86,8 @@ type EndpointNames = keyof typeof api.endpoints
 
 export function usePrefetchImmediately<T extends EndpointNames>(
   endpoint: T,
-  arg: Parameters<typeof api.endpoints[T]['initiate']>[0],
-  options: PrefetchOptions = {}
+  arg: Parameters<(typeof api.endpoints)[T]['initiate']>[0],
+  options: PrefetchOptions = {},
 ) {
   const dispatch = useAppDispatch()
   useEffect(() => {
@@ -107,7 +107,7 @@ When dispatching the `prefetch` thunk as shown below you will see the same exact
 
 ```ts title="Non-hook prefetching example" no-transpile
 store.dispatch(
-  api.util.prefetch(endpointName, arg, { force: false, ifOlderThan: 10 })
+  api.util.prefetch(endpointName, arg, { force: false, ifOlderThan: 10 }),
 )
 ```
 

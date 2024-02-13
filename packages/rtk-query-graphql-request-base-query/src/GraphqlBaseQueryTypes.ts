@@ -3,21 +3,24 @@ import type {
   GraphQLClient,
   RequestOptions,
   RequestDocument,
-  ClientError
+  ClientError,
 } from 'graphql-request'
 
 export type Document = RequestDocument
 export type RequestHeaders = RequestOptions['requestHeaders']
 export type PrepareHeaders = (
   headers: Headers,
-  api: Pick<BaseQueryApi, 'getState' | 'endpoint' | 'type' | 'forced' | 'extra'>
+  api: Pick<
+    BaseQueryApi,
+    'getState' | 'endpoint' | 'type' | 'forced' | 'extra'
+  >,
 ) => MaybePromise<Headers>
 
 export type ErrorResponse = {
-  message: string;
-  stack: string;
-  name: string;
-};
+  message: string
+  stack: string
+  name: string
+}
 
 export type GraphqlRequestBaseQueryArgs<E = ErrorResponse> = (
   | {
@@ -26,8 +29,8 @@ export type GraphqlRequestBaseQueryArgs<E = ErrorResponse> = (
   | { client: GraphQLClient }
 ) & {
   requestHeaders?: RequestHeaders
-  prepareHeaders?: PrepareHeaders,
-  customErrors?: (args: ClientError) =>  E;
+  prepareHeaders?: PrepareHeaders
+  customErrors?: (args: ClientError) => E
 }
 
 export type QueryReturnValue<T = unknown, E = unknown, M = unknown> =

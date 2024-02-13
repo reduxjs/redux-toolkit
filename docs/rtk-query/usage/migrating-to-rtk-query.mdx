@@ -72,7 +72,7 @@ export const fetchPokemonByName = createAsyncThunk<Pokemon, string>(
       return rejectWithValue(data)
     }
     return data
-  }
+  },
 )
 // highlight-end
 
@@ -187,7 +187,7 @@ render(
     <App />
   </Provider>,
   // highlight-end
-  rootElement
+  rootElement,
 )
 ```
 
@@ -201,7 +201,7 @@ import { AsyncThunkAction } from '@reduxjs/toolkit'
 import { RootState } from '../store'
 interface Pokemon {}
 export declare const fetchPokemonByName: (
-  arg: string
+  arg: string,
 ) => AsyncThunkAction<Pokemon, string, {}>
 
 export const selectStatusByName = (state: RootState, name: string) =>
@@ -243,7 +243,7 @@ export function useGetPokemonByNameQuery(name: string) {
   const dispatch = useAppDispatch()
   // select the current status from the store state for the provided name
   const status = useSelector((state: RootState) =>
-    selectStatusByName(state, name)
+    selectStatusByName(state, name),
   )
   // select the current data from the store state for the provided name
   const data = useSelector((state: RootState) => selectDataByName(state, name))

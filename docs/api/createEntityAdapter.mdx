@@ -82,7 +82,7 @@ console.log(store.getState().books)
 
 // Can create a set of memoized selectors based on the location of this entity state
 const booksSelectors = booksAdapter.getSelectors<RootState>(
-  (state) => state.books
+  (state) => state.books,
 )
 
 // And then use the selectors to retrieve values
@@ -139,6 +139,12 @@ export interface EntityStateAdapter<T> {
   addMany<S extends EntityState<T>>(state: S, entities: T[]): S
   addMany<S extends EntityState<T>>(state: S, entities: PayloadAction<T[]>): S
 
+  setOne<S extends EntityState<T>>(state: S, entity: T): S
+  setOne<S extends EntityState<T>>(state: S, action: PayloadAction<T>): S
+
+  setMany<S extends EntityState<T>>(state: S, entities: T[]): S
+  setMany<S extends EntityState<T>>(state: S, entities: PayloadAction<T[]>): S
+
   setAll<S extends EntityState<T>>(state: S, entities: T[]): S
   setAll<S extends EntityState<T>>(state: S, entities: PayloadAction<T[]>): S
 
@@ -148,7 +154,7 @@ export interface EntityStateAdapter<T> {
   removeMany<S extends EntityState<T>>(state: S, keys: EntityId[]): S
   removeMany<S extends EntityState<T>>(
     state: S,
-    keys: PayloadAction<EntityId[]>
+    keys: PayloadAction<EntityId[]>,
   ): S
 
   removeAll<S extends EntityState<T>>(state: S): S
@@ -156,13 +162,13 @@ export interface EntityStateAdapter<T> {
   updateOne<S extends EntityState<T>>(state: S, update: Update<T>): S
   updateOne<S extends EntityState<T>>(
     state: S,
-    update: PayloadAction<Update<T>>
+    update: PayloadAction<Update<T>>,
   ): S
 
   updateMany<S extends EntityState<T>>(state: S, updates: Update<T>[]): S
   updateMany<S extends EntityState<T>>(
     state: S,
-    updates: PayloadAction<Update<T>[]>
+    updates: PayloadAction<Update<T>[]>,
   ): S
 
   upsertOne<S extends EntityState<T>>(state: S, entity: T): S
@@ -171,7 +177,7 @@ export interface EntityStateAdapter<T> {
   upsertMany<S extends EntityState<T>>(state: S, entities: T[]): S
   upsertMany<S extends EntityState<T>>(
     state: S,
-    entities: PayloadAction<T[]>
+    entities: PayloadAction<T[]>,
   ): S
 }
 
@@ -190,7 +196,7 @@ export interface EntityAdapter<T> extends EntityStateAdapter<T> {
   getInitialState<S extends object>(state: S): EntityState<T> & S
   getSelectors(): EntitySelectors<T, EntityState<T>>
   getSelectors<V>(
-    selectState: (state: V) => EntityState<T>
+    selectState: (state: V) => EntityState<T>,
   ): EntitySelectors<T, V>
 }
 ```
@@ -225,7 +231,8 @@ All three options will insert _new_ entities into the list. However they differ 
 Each method has a signature that looks like:
 
 ```ts no-transpile
-(state: EntityState<T>, argument: TypeOrPayloadAction<Argument<T>>) => EntityState<T>
+;(state: EntityState<T>, argument: TypeOrPayloadAction<Argument<T>>) =>
+  EntityState<T>
 ```
 
 In other words, they accept a state that looks like `{ids: [], entities: {}}`, and calculate and return a new state.
@@ -266,6 +273,39 @@ const booksSlice = createSlice({
   },
 })
 ```
+
+You can also pass in an array of entities or a `Record<EntityId, T>` object to pre-populate the initial state with some entities:
+
+```js
+const booksSlice = createSlice({
+  name: 'books',
+  initialState: booksAdapter.getInitialState(
+    {
+      loading: 'idle',
+    },
+    [
+      { id: 'a', title: 'First' },
+      { id: 'b', title: 'Second' },
+    ],
+  ),
+  reducers: {},
+})
+```
+
+This is equivalent to calling:
+
+```js
+const initialState = booksAdapter.getInitialState({
+  loading: 'idle',
+})
+
+const prePopulatedState = booksAdapter.setAll(initialState, [
+  { id: 'a', title: 'First' },
+  { id: 'b', title: 'Second' },
+])
+```
+
+The first parameter can be `undefined` if no additional properties are needed.
 
 ### Selector Functions
 
@@ -407,7 +447,7 @@ store.dispatch(
   booksReceived([
     { id: 'b', title: 'Book 3' },
     { id: 'c', title: 'Book 2' },
-  ])
+  ]),
 )
 
 console.log(booksSelectors.selectIds(store.getState()))

@@ -1,47 +1,20 @@
-import * as React from 'react'
-import type { ReactReduxContextValue } from 'react-redux'
-import {
-  createDispatchHook,
-  createSelectorHook,
-  createStoreHook,
-  Provider,
-} from 'react-redux'
+import { createSelectorCreator, lruMemoize } from '@reduxjs/toolkit'
 import {
   buildCreateApi,
   coreModule,
   reactHooksModule,
 } from '@reduxjs/toolkit/query/react'
+import { render, screen, waitFor } from '@testing-library/react'
+import { delay } from 'msw'
+import * as React from 'react'
+import type { ReactReduxContextValue } from 'react-redux'
 import {
-  act,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-  renderHook,
-} from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { rest } from 'msw'
-import {
-  actionsReducer,
-  ANY,
-  expectExactType,
-  expectType,
-  setupApiStore,
-  withProvider,
-  useRenderCounter,
-  waitMs,
-} from './helpers'
-import { server } from './mocks/server'
-import type { UnknownAction } from 'redux'
-import type { SubscriptionOptions } from '@reduxjs/toolkit/dist/query/core/apiState'
-import type { SerializedError } from '@reduxjs/toolkit'
-import {
-  createListenerMiddleware,
-  configureStore,
-  lruMemoize,
-  createSelectorCreator,
-} from '@reduxjs/toolkit'
-import { delay } from '../../utils'
+  Provider,
+  createDispatchHook,
+  createSelectorHook,
+  createStoreHook,
+} from 'react-redux'
+import { setupApiStore, useRenderCounter } from '../../tests/utils/helpers'
 
 const MyContext = React.createContext<ReactReduxContextValue>(null as any)
 
@@ -55,12 +28,12 @@ describe('buildCreateApi', () => {
           useSelector: createSelectorHook(MyContext),
           useStore: createStoreHook(MyContext),
         },
-      })
+      }),
     )
 
     const api = customCreateApi({
       baseQuery: async (arg: any) => {
-        await waitMs()
+        await delay(150)
 
         return {
           data: arg?.body ? { ...arg.body } : {},
@@ -105,7 +78,7 @@ describe('buildCreateApi', () => {
     expect(getRenderCount()).toBe(2)
 
     await waitFor(() =>
-      expect(screen.getByTestId('isFetching').textContent).toBe('false')
+      expect(screen.getByTestId('isFetching').textContent).toBe('false'),
     )
     expect(getRenderCount()).toBe(3)
   })
@@ -120,7 +93,7 @@ describe('buildCreateApi', () => {
             useDispatch: createDispatchHook(MyContext),
             useSelector: createSelectorHook(MyContext),
           },
-        })
+        }),
       )
     }
 
@@ -128,7 +101,7 @@ describe('buildCreateApi', () => {
       `
       [Error: When using custom hooks for context, all 3 hooks need to be provided: useDispatch, useSelector, useStore.
       Hook useStore was either not provided or not a function.]
-    `
+    `,
     )
   })
   test('allows passing createSelector instance', async () => {
@@ -136,11 +109,11 @@ describe('buildCreateApi', () => {
     const createSelector = createSelectorCreator(memoize)
     const createApi = buildCreateApi(
       coreModule({ createSelector }),
-      reactHooksModule({ createSelector })
+      reactHooksModule({ createSelector }),
     )
     const api = createApi({
       baseQuery: async (arg: any) => {
-        await waitMs()
+        await delay(150)
 
         return {
           data: arg?.body ? { ...arg.body } : {},
@@ -186,7 +159,7 @@ describe('buildCreateApi', () => {
     render(<User />, { wrapper: Wrapper })
 
     await waitFor(() =>
-      expect(screen.getByTestId('isFetching').textContent).toBe('false')
+      expect(screen.getByTestId('isFetching').textContent).toBe('false'),
     )
 
     // select() + selectFromResult

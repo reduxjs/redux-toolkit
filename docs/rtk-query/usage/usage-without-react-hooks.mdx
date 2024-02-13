@@ -71,13 +71,13 @@ Because the `endpoint.select(arg)` function returns a new selector each time it'
 ```ts title="Creating a memoized selector creator" no-transpile
 const createGetPostSelector = createSelector(
   (id: string) => id,
-  (id) => api.endpoints.getPost.select(id)
+  (id) => api.endpoints.getPost.select(id),
 )
 
 const selectGetPostError = createSelector(
   (state: RootState) => state,
   (state: RootState, id: string) => createGetPostSelector(id),
-  (state, selectGetPost) => selectGetPost(state).error
+  (state, selectGetPost) => selectGetPost(state).error,
 )
 ```
 

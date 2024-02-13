@@ -156,14 +156,14 @@ type CreateCacheSelectorFactory =
   | MutationResultSelectorFactory
 
 type QueryResultSelectorFactory = (
-  queryArg: QueryArg | SkipToken
+  queryArg: QueryArg | SkipToken,
 ) => (state: RootState) => QueryResultSelectorResult<Definition>
 
 type MutationResultSelectorFactory<
   Definition extends MutationDefinition<any, any, any, any>,
-  RootState
+  RootState,
 > = (
-  requestId: string | SkipToken
+  requestId: string | SkipToken,
 ) => (state: RootState) => MutationSubState<Definition> & RequestStatusFlags
 
 type SkipToken = typeof Symbol
@@ -200,7 +200,7 @@ function App() {
   // Each call will create a new selector function instance
   const selectPost = useMemo(
     () => api.endpoints.getPost.select(postId),
-    [postId]
+    [postId],
   )
   const { data, isLoading } = useAppSelector(selectPost)
   // highlight-end
@@ -234,14 +234,14 @@ function App() {
   const dispatch = useAppDispatch()
   const [newPost, setNewPost] = useState({ name: 'Ash' })
   const [requestId, setRequestId] = useState<typeof skipToken | string>(
-    skipToken
+    skipToken,
   )
   // highlight-start
   // useMemo is used to only call `.select(..)` when required.
   // Each call will create a new selector function instance
   const selectMutationResult = useMemo(
     () => api.endpoints.addPost.select(requestId),
-    [requestId]
+    [requestId],
   )
   const { isLoading } = useAppSelector(selectMutationResult)
   // highlight-end
