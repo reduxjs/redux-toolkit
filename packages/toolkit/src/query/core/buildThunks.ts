@@ -48,13 +48,11 @@ import {
 declare module './module' {
   export interface ApiEndpointQuery<
     Definition extends QueryDefinition<any, any, any, any, any>,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     Definitions extends EndpointDefinitions,
   > extends Matchers<QueryThunk, Definition> {}
 
   export interface ApiEndpointMutation<
     Definition extends MutationDefinition<any, any, any, any, any>,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     Definitions extends EndpointDefinitions,
   > extends Matchers<MutationThunk, Definition> {}
 }

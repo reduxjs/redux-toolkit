@@ -300,7 +300,6 @@ describe('upsertQueryData', () => {
   test('upsert while a normal query is running (rejected)', async () => {
     baseQuery.mockImplementationOnce(async () => {
       await delay(20)
-      // eslint-disable-next-line no-throw-literal
       throw 'Error!'
     })
     const upsertedData = {

@@ -68,11 +68,8 @@ export type PrefetchOptions =
 export const coreModuleName = /* @__PURE__ */ Symbol()
 export type CoreModule =
   | typeof coreModuleName
-  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
   | ReferenceCacheLifecycle
-  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents, @typescript-eslint/no-duplicate-type-constituents
   | ReferenceQueryLifecycle
-  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents, @typescript-eslint/no-duplicate-type-constituents
   | ReferenceCacheCollection
 
 export interface ThunkWithReturnValue<T>
@@ -80,7 +77,6 @@ export interface ThunkWithReturnValue<T>
 
 declare module '../apiTypes' {
   export interface ApiModules<
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     BaseQuery extends BaseQueryFn,
     Definitions extends EndpointDefinitions,
     ReducerPath extends string,
@@ -392,9 +388,7 @@ declare module '../apiTypes' {
 }
 
 export interface ApiEndpointQuery<
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Definition extends QueryDefinition<any, any, any, any, any>,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Definitions extends EndpointDefinitions,
 > {
   name: string
@@ -404,11 +398,8 @@ export interface ApiEndpointQuery<
   Types: NonNullable<Definition['Types']>
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export interface ApiEndpointMutation<
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Definition extends MutationDefinition<any, any, any, any, any>,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Definitions extends EndpointDefinitions,
 > {
   name: string

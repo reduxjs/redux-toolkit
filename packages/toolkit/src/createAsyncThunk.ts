@@ -559,7 +559,7 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
           meta?: RejectedMeta,
         ) => ({
           payload,
-          error: ((options && options.serializeError) || miniSerializeError)(
+          error: ((options?.serializeError) || miniSerializeError)(
             error || 'Rejected',
           ) as GetSerializedErrorType<ThunkApiConfig>,
           meta: {
@@ -600,7 +600,6 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
             }
 
             if (conditionResult === false || abortController.signal.aborted) {
-              // eslint-disable-next-line no-throw-literal
               throw {
                 name: 'ConditionError',
                 message: 'Aborted due to condition callback returning false.',
