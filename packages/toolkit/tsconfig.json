@@ -6,6 +6,8 @@
   "compilerOptions": {
     "skipLibCheck": true,
     "rootDir": ".",
+    "allowJs": true,
+    "checkJs": true
   },
   "include": ["."],
 }
