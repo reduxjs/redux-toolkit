@@ -65,6 +65,7 @@ export const reduxESLintLegacyConfig: Linter.Config = {
   plugins: ['@typescript-eslint'],
   ignorePatterns: ['dist', '.*'],
   reportUnusedDisableDirectives: true,
+  root: true,
 }
 
 module.exports = reduxESLintLegacyConfig
