@@ -1,5 +1,5 @@
 import eslint from '@eslint/js'
-import { Linter } from 'eslint'
+import type { Linter } from 'eslint'
 import prettierConfig from 'eslint-config-prettier'
 import globals from 'globals'
 import tsEslint from 'typescript-eslint'
