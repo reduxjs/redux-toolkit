@@ -1,3 +1,4 @@
+// @ts-expect-error
 import { reduxESLintConfig } from '@reduxjs/eslint-config'
 
 /**
