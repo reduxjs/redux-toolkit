@@ -34,6 +34,11 @@
   "publishConfig": {
     "access": "public"
   },
+  "peerDependencies": {
+    "@typescript-eslint/parser": "^7.0.1",
+    "eslint": "^8.56.0",
+    "typescript": "^5.3.3"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/reduxjs/redux-toolkit.git"
