@@ -1,4 +1,5 @@
 import type { Linter } from 'eslint'
+import globals from 'globals'
 
 export const vitestGlobals = {
   suite: true,
@@ -27,6 +28,9 @@ export const reduxESLintLegacyConfig: Linter.Config = {
   env: { browser: true, node: true, es2024: true },
   globals: {
     ...vitestGlobals,
+    ...globals.browser,
+    ...globals.node,
+    ...globals.nodeBuiltin,
   },
   rules: {
     '@typescript-eslint/consistent-type-imports': [
@@ -60,7 +64,6 @@ export const reduxESLintLegacyConfig: Linter.Config = {
   parserOptions: { project: ['./tsconfig.json'], ecmaVersion: 'latest' },
   plugins: ['@typescript-eslint'],
   ignorePatterns: ['dist', '.*'],
-  root: true,
   reportUnusedDisableDirectives: true,
 }
 
