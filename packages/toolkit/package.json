@@ -103,7 +103,7 @@
     "build-only": "yarn clean && yarn run-build",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "lint": "ESLINT_USE_FLAT_CONFIG=true eslint . -c eslint.config.mjs",
+    "lint": "eslint .",
     "lint:fix": "eslint --fix .",
     "test": "vitest --run --typecheck",
     "test:watch": "vitest --watch",
