@@ -4,7 +4,6 @@
   "description": "Prettier configuration for Redux projects",
   "main": "./dist/prettier.config.mjs",
   "types": "./dist/prettier.config.d.mts",
-  "type": "module",
   "scripts": {
     "build": "yarn clean && tsc",
     "clean": "rimraf dist",
