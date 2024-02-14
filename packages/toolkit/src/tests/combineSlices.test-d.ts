@@ -37,7 +37,9 @@ describe('type tests', () => {
   test('combineSlices allows passing no initial reducers', () => {
     const rootReducer = combineSlices()
 
-    expectTypeOf(rootReducer(undefined, { type: '' })).toMatchTypeOf<EmptyObject>()
+    expectTypeOf(
+      rootReducer(undefined, { type: '' }),
+    ).toMatchTypeOf<EmptyObject>()
 
     const declaredLazy =
       combineSlices().withLazyLoadedSlices<WithSlice<typeof numberSlice>>()

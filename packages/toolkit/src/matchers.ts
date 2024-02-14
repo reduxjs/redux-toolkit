@@ -2,14 +2,14 @@ import type {
   AsyncThunk,
   AsyncThunkFulfilledActionCreator,
   AsyncThunkPendingActionCreator,
-  AsyncThunkRejectedActionCreator
-} from './createAsyncThunk';
+  AsyncThunkRejectedActionCreator,
+} from './createAsyncThunk'
 import type {
   ActionFromMatcher,
   Matcher,
   UnionToIntersection,
-} from './tsHelpers';
-import { hasMatchFunction } from './tsHelpers';
+} from './tsHelpers'
+import { hasMatchFunction } from './tsHelpers'
 
 /** @public */
 export type ActionMatchingAnyOf<Matchers extends [...Array<Matcher<any>>]> =

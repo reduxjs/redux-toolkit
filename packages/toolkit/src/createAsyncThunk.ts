@@ -559,7 +559,7 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
           meta?: RejectedMeta,
         ) => ({
           payload,
-          error: ((options?.serializeError) || miniSerializeError)(
+          error: (options?.serializeError || miniSerializeError)(
             error || 'Rejected',
           ) as GetSerializedErrorType<ThunkApiConfig>,
           meta: {
