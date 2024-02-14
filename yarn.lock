@@ -7584,7 +7584,7 @@ __metadata:
     husky: ^4.3.6
     msw: ^2.1.5
     node-fetch: ^3.3.2
-    oazapfts: ^4.8.0
+    oazapfts: ^6.0.2
     openapi-types: ^9.1.0
     prettier: ^3.2.4
     pretty-quick: ^3.1.0
@@ -21367,18 +21367,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oazapfts@npm:^4.8.0":
-  version: 4.10.0
-  resolution: "oazapfts@npm:4.10.0"
+"oazapfts@npm:^6.0.2":
+  version: 6.0.2
+  resolution: "oazapfts@npm:6.0.2"
   dependencies:
     "@apidevtools/swagger-parser": ^10.1.0
     lodash: ^4.17.21
     minimist: ^1.2.8
     swagger2openapi: ^7.0.8
-    typescript: ^5.2.2
+    typescript: ^5.3.3
+  peerDependencies:
+    "@oazapfts/runtime": "*"
   bin:
-    oazapfts: lib/codegen/cli.js
-  checksum: dbed3d73ba2c3a758b3e5a9ffb62486c628f020232ad513bceb0562a437a45350cc5262689191c664423980421d9f2690b9574a56f75bdaf1375772d179b1210
+    oazapfts: dist/cli.js
+  checksum: 0504183adf344fa530605b7fb1a891ceffef8c139cf7a6b6af011064f31df80f8f2465162e636105634025272a19744f8b564c637fe4d5649a7c6217654107e5
   languageName: node
   linkType: hard
 
