@@ -482,5 +482,22 @@ describe('type tests', () => {
         }),
       })
     })
+    describe('unspecified', () => {
+      const baseQuery = (args: string) => ({ data: 'success' })
+
+      const api = createApi({
+        baseQuery,
+        endpoints: (build) => ({
+          noExtra: build.query<unknown, string>({
+            query: (id) => id,
+          }),
+          withExtra: build.query<unknown, string>({
+            query: (id) => id,
+            // @ts-expect-error no extra options specified
+            extraOptions: 'value',
+          }),
+        }),
+      })
+    })
   })
 })
