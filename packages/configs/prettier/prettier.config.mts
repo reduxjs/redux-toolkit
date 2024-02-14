@@ -1,8 +1,8 @@
 import type { Config } from 'prettier'
 
-export const prettierConfig: Config = {
+export const reduxPrettierConfig: Config = {
   semi: false,
   singleQuote: true,
 }
 
-export default prettierConfig
+export default reduxPrettierConfig
