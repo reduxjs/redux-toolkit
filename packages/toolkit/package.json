@@ -103,7 +103,7 @@
     "build-only": "yarn clean && yarn run-build",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "lint": "eslint .",
+    "lint": "eslint . --cache --cache-strategy content",
     "lint:fix": "eslint --fix .",
     "test": "vitest --run --typecheck",
     "test:watch": "vitest --watch",
