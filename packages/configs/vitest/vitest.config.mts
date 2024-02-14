@@ -9,6 +9,7 @@ export const vitestConfig = defineConfig({
     testTimeout: 10_000,
     setupFiles: ['./vitest.setup.ts'],
   },
+  define: { 'import.meta.vitest': 'undefined' },
 })
 
 export default vitestConfig
