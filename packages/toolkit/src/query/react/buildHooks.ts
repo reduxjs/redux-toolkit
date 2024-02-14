@@ -589,13 +589,22 @@ export type MutationTrigger<D extends MutationDefinition<any, any, any, any>> =
     (arg: QueryArgFrom<D>): MutationActionCreatorResult<D>
   }
 
-export type TypedUseMutationTrigger<
+export type TypedMutationTrigger<
   ResultType,
   QueryArg,
   BaseQuery extends BaseQueryFn,
 > = MutationTrigger<
   MutationDefinition<QueryArg, BaseQuery, string, ResultType, string>
 >
+
+/**
+ * @deprecated Prefer `TypedMutationTrigger`, this will be removed in the next major version.
+ */
+export type TypedUseMutationTrigger<
+  ResultType,
+  QueryArg,
+  BaseQuery extends BaseQueryFn,
+> = TypedMutationTrigger<ResultType, QueryArg, BaseQuery>
 
 /**
  * Wrapper around `defaultQueryStateSelector` to be used in `useQuery`.
