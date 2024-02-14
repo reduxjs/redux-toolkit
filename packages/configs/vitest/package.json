@@ -4,7 +4,7 @@
   "description": "Vitest configuration for Redux projects",
   "main": "./dist/vitest.config.mjs",
   "types": "./dist/vitest.config.d.mts",
-  "type": "module",
+  "module": "./dist/vitest.config.mjs",
   "scripts": {
     "build": "yarn clean && tsc",
     "clean": "rimraf dist",
