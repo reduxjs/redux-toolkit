@@ -2,6 +2,7 @@
   "name": "@reduxjs/eslint-config",
   "version": "0.0.1",
   "description": "ESLint configuration for Redux projects",
+  "types": "./dist/eslint.legacy.config.d.ts",
   "exports": {
     ".": {
       "require": {
