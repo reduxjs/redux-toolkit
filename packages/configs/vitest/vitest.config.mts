@@ -1,7 +1,8 @@
-import path from 'node:path'
+import tsconfigPaths from 'vite-tsconfig-paths'
 import { defineConfig } from 'vitest/config'
 
 export const vitestConfig = defineConfig({
+  plugins: [tsconfigPaths({ projects: ['./tsconfig.json'] })],
   test: {
     watch: false,
     globals: true,
