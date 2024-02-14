@@ -373,7 +373,7 @@ describe('configuration', () => {
 
   test('retryCondition with endpoint config that overrides baseQuery config', async () => {
     const baseBaseQuery = vi.fn<
-      Parameters<BaseQueryFn>,
+      Parameters<BaseQueryFn<any, unknown, unknown, {}>>,
       ReturnType<BaseQueryFn>
     >()
     baseBaseQuery.mockResolvedValue({ error: 'rejected' })
@@ -405,7 +405,7 @@ describe('configuration', () => {
 
   test('retryCondition also works with mutations', async () => {
     const baseBaseQuery = vi.fn<
-      Parameters<BaseQueryFn>,
+      Parameters<BaseQueryFn<any, unknown, unknown, {}>>,
       ReturnType<BaseQueryFn>
     >()
 
