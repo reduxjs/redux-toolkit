@@ -33,6 +33,6 @@
   },
   "devDependencies": {
     "netlify-plugin-cache": "^1.0.3",
-    "prettier": "^3.2.4"
+    "prettier": "^3.2.5"
   }
 }
