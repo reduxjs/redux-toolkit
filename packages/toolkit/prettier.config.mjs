@@ -1,3 +1,4 @@
+// @ts-ignore
 import { reduxPrettierConfig } from '@reduxjs/prettier-config'
 
 /**
