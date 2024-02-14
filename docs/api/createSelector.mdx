@@ -94,7 +94,8 @@ const draftSafeSelector = createWeakMapDraftSafeSelector(
 As of RTK 2.1, you can define a "pre-typed" version of `createDraftSafeSelector` that can have the type for `state` built in. This lets you set up those types once, so you don't have to repeat them each time you call `createDraftSafeSelector`.
 
 ```ts no-transpile
-const createTypedDraftSafeSelector = createDraftSafeSelector.withTypes<RootState>()
+const createTypedDraftSafeSelector =
+  createDraftSafeSelector.withTypes<RootState>()
 ```
 
 Import and use the pre-typed `createTypedDraftSafeSelector` function, and it will automatically know that the `state` argument is of type `RootState`.
@@ -125,13 +126,14 @@ export interface RootState {
   alerts: Alert[]
 }
 
-export const createTypedDraftSafeSelector = createDraftSafeSelector.withTypes<RootState>()
+export const createTypedDraftSafeSelector =
+  createDraftSafeSelector.withTypes<RootState>()
 
 const selectTodoIds = createTypedDraftSafeSelector(
   // Type of `state` is set to `RootState`, no need to manually set the type
-  state => state.todos,
+  (state) => state.todos,
   // ❌ Known limitation: Parameter types are not inferred in this scenario
   // so you will have to manually annotate them.
-  (todos: Todo[]) => todos.map(({ id }) => id)
+  (todos: Todo[]) => todos.map(({ id }) => id),
 )
 ```
