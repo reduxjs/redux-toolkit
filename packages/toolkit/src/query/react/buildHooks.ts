@@ -598,15 +598,6 @@ export type TypedMutationTrigger<
 >
 
 /**
- * @deprecated Prefer `TypedMutationTrigger`, this will be removed in the next major version.
- */
-export type TypedUseMutationTrigger<
-  ResultType,
-  QueryArg,
-  BaseQuery extends BaseQueryFn,
-> = TypedMutationTrigger<ResultType, QueryArg, BaseQuery>
-
-/**
  * Wrapper around `defaultQueryStateSelector` to be used in `useQuery`.
  * We want the initial render to already come back with
  * `{ isUninitialized: false, isFetching: true, isLoading: true }`
