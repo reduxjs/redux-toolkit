@@ -9,6 +9,7 @@ import type {
   QueryDefinition,
   TagDescription,
   TagTypesFromApi,
+  BaseQueryFn,
 } from '@reduxjs/toolkit/query'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 
@@ -371,6 +372,114 @@ describe('type tests', () => {
           | { data: Transformed }
           | { error: FetchBaseQueryError | SerializedError }
         >()
+      })
+    })
+  })
+  describe('extraOptions', () => {
+    describe('object with optional properties', () => {
+      const baseQuery: BaseQueryFn<
+        string,
+        unknown,
+        unknown,
+        { extra?: string }
+      > = (args, api, extraOptions) => {
+        expectTypeOf(extraOptions).toEqualTypeOf<{ extra?: string }>()
+        return { data: 'success' }
+      }
+
+      const api = createApi({
+        baseQuery,
+        endpoints: (build) => ({
+          noExtra: build.query<unknown, string>({
+            query: (id) => id,
+          }),
+          withEmptyExtra: build.query<unknown, string>({
+            query: (id) => id,
+            extraOptions: {},
+          }),
+          withExtra: build.query<unknown, string>({
+            query: (id) => id,
+            extraOptions: { extra: 'value' },
+          }),
+        }),
+      })
+    })
+    describe('object with required properties', () => {
+      const baseQuery: BaseQueryFn<
+        string,
+        unknown,
+        unknown,
+        { extra: string }
+      > = (args, api, extraOptions) => {
+        expectTypeOf(extraOptions).toEqualTypeOf<{ extra: string }>()
+        return { data: 'success' }
+      }
+
+      const api = createApi({
+        baseQuery,
+        endpoints: (build) => ({
+          // @ts-expect-error missing extra
+          noExtra: build.query<unknown, string>({
+            query: (id) => id,
+          }),
+          withEmptyExtra: build.query<unknown, string>({
+            query: (id) => id,
+            // @ts-expect-error key is missing
+            extraOptions: {},
+          }),
+          withExtra: build.query<unknown, string>({
+            query: (id) => id,
+            extraOptions: { extra: 'value' },
+          }),
+        }),
+      })
+    })
+    describe('non-object', () => {
+      const baseQuery: BaseQueryFn<string, unknown, unknown, string> = (
+        args,
+        api,
+        extraOptions,
+      ) => {
+        expectTypeOf(extraOptions).toEqualTypeOf<string>()
+        return { data: 'success' }
+      }
+
+      const api = createApi({
+        baseQuery,
+        endpoints: (build) => ({
+          // @ts-expect-error
+          noExtra: build.query<unknown, string>({
+            query: (id) => id,
+          }),
+          withExtra: build.query<unknown, string>({
+            query: (id) => id,
+            extraOptions: 'value',
+          }),
+        }),
+      })
+    })
+    describe('optional non-object', () => {
+      const baseQuery: BaseQueryFn<
+        string,
+        unknown,
+        unknown,
+        string | undefined
+      > = (args, api, extraOptions) => {
+        expectTypeOf(extraOptions).toEqualTypeOf<string | undefined>()
+        return { data: 'success' }
+      }
+
+      const api = createApi({
+        baseQuery,
+        endpoints: (build) => ({
+          noExtra: build.query<unknown, string>({
+            query: (id) => id,
+          }),
+          withExtra: build.query<unknown, string>({
+            query: (id) => id,
+            extraOptions: 'value',
+          }),
+        }),
       })
     })
   })
