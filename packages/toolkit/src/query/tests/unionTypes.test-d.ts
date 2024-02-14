@@ -2,11 +2,11 @@ import type { SerializedError } from '@reduxjs/toolkit'
 import type {
   FetchBaseQueryError,
   TypedLazyQueryTrigger,
+  TypedMutationTrigger,
   TypedUseLazyQuery,
   TypedUseLazyQuerySubscription,
   TypedUseMutation,
   TypedUseMutationResult,
-  TypedUseMutationTrigger,
   TypedUseQuery,
   TypedUseQueryHookResult,
   TypedUseQueryState,
@@ -840,7 +840,7 @@ describe('"Typed" helper types', () => {
     const [trigger, result] = api.endpoints.mutation.useMutation()
 
     expectTypeOf<
-      TypedUseMutationTrigger<string, void, typeof baseQuery>
+      TypedMutationTrigger<string, void, typeof baseQuery>
     >().toMatchTypeOf(trigger)
 
     expectTypeOf<
