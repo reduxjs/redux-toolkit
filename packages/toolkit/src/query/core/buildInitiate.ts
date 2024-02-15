@@ -362,7 +362,23 @@ You must add the middleware for RTK-Query to function correctly!`,
               const result = await statePromise
 
               if (result.isError) {
-                throw result.error
+                let errorMessage = '';
+                const errorMap = result.error as any;
+
+                if (errorMap && errorMap.data && errorMap.status) {
+                  errorMessage = `RTK Query responded with ${errorMap.status} when requesting ${errorMap.data.path}`
+                } else {
+                  errorMessage = errorMap.message || errorMap.name || 'RTK Query Error'
+                }
+
+                const errorToThrow: any = new Error(errorMessage)
+                for (const prop in errorMap) {
+                  if (!errorToThrow[prop]) {
+                    errorToThrow[prop] = errorMap[prop]
+                  }
+                }
+
+                throw errorToThrow
               }
 
               return result.data
