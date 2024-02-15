@@ -5,6 +5,15 @@
   "main": "./dist/vitest.config.mjs",
   "types": "./dist/vitest.config.d.mts",
   "module": "./dist/vitest.config.mjs",
+  "exports": {
+    ".": {
+      "import": {
+        "default": "./dist/vitest.config.mjs",
+        "types": "./dist/vitest.config.d.mts"
+      }
+    },
+    "./package.json": "./package.json"
+  },
   "scripts": {
     "build": "yarn clean && tsc",
     "clean": "rimraf dist",
