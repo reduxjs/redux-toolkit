@@ -6,7 +6,7 @@
   "exports": {
     ".": "./tsconfig.base.json",
     "./base": "./tsconfig.base.json",
-    "./test": "./tsconfig.test.json"
+    "./package.json": "./package.json"
   },
   "files": [
     "tsconfig*.json"
