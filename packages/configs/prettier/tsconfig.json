@@ -10,6 +10,6 @@
     "outDir": "dist",
     "forceConsistentCasingInFileNames": true,
     "strict": true,
-    "skipLibCheck": true,
-  },
+    "skipLibCheck": true
+  }
 }
