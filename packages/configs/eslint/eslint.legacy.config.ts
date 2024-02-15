@@ -2,20 +2,20 @@ import type { Linter } from 'eslint'
 import globals from 'globals'
 
 export const vitestGlobals = {
-  suite: true,
-  test: true,
-  describe: true,
-  it: true,
-  expectTypeOf: true,
-  assertType: true,
-  expect: true,
-  assert: true,
-  vitest: true,
-  vi: true,
-  beforeAll: true,
-  afterAll: true,
-  beforeEach: true,
-  afterEach: true,
+  suite: false,
+  test: false,
+  describe: false,
+  it: false,
+  expectTypeOf: false,
+  assertType: false,
+  expect: false,
+  assert: false,
+  vitest: false,
+  vi: false,
+  beforeAll: false,
+  afterAll: false,
+  beforeEach: false,
+  afterEach: false,
 } satisfies Record<string, boolean>
 
 export const reduxESLintLegacyConfig: Linter.Config = {
