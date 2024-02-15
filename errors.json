@@ -37,5 +37,6 @@
   "35": "Existing Redux context detected. If you already have a store set up, please use the traditional Redux setup.",
   "36": "When using custom hooks for context, all  hooks need to be provided: .\\nHook  was either not provided or not a function.",
   "37": "Warning: Middleware for RTK-Query API at reducerPath \"\" has not been added to the store.\n    You must add the middleware for RTK-Query to function correctly!",
-  "38": "Cannot refetch a query that has not been started yet."
+  "38": "Cannot refetch a query that has not been started yet.",
+  "39": "called \\`injectEndpoints\\` to override already-existing endpointName  without specifying \\`overrideExisting: true\\`"
 }
