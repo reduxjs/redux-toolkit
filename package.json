@@ -70,8 +70,10 @@
     "console-testing-library@0.6.1": "patch:console-testing-library@npm%3A0.6.1#./.yarn/patches/console-testing-library-npm-0.6.1-4d9957d402.patch"
   },
   "scripts": {
+    "postinstall": "yarn build:configs",
     "build": "yarn build:packages",
     "test": "yarn test:packages",
+    "build:configs": "yarn workspaces foreach --include '@reduxjs/*' --include 'yarn workspaces foreach --include '@reduxjs/*config' -vtp run build' --include '@examples-action-listener/*' -vtp run build",
     "build:examples": "yarn workspaces foreach --include '@reduxjs/*' --include '@examples-query-react/*' --include '@examples-action-listener/*' -vtp run build",
     "build:docs": "yarn workspace website run build",
     "build:packages": "yarn workspaces foreach --include '@reduxjs/*' --include '@rtk-query/*' --topological-dev run build",

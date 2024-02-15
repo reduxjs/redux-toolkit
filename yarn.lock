@@ -7268,7 +7268,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@reduxjs/eslint-config@workspace:packages/configs/eslint":
+"@reduxjs/eslint-config@workspace:^, @reduxjs/eslint-config@workspace:packages/configs/eslint":
   version: 0.0.0-use.local
   resolution: "@reduxjs/eslint-config@workspace:packages/configs/eslint"
   dependencies:
@@ -7294,7 +7294,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@reduxjs/prettier-config@workspace:packages/configs/prettier":
+"@reduxjs/prettier-config@workspace:^, @reduxjs/prettier-config@workspace:packages/configs/prettier":
   version: 0.0.0-use.local
   resolution: "@reduxjs/prettier-config@workspace:packages/configs/prettier"
   dependencies:
@@ -7333,6 +7333,10 @@ __metadata:
     "@arethetypeswrong/cli": ^0.13.5
     "@microsoft/api-extractor": ^7.13.2
     "@phryneas/ts-version": ^1.0.2
+    "@reduxjs/eslint-config": "workspace:^"
+    "@reduxjs/prettier-config": "workspace:^"
+    "@reduxjs/tsconfig": "workspace:^"
+    "@reduxjs/vitest-config": "workspace:^"
     "@size-limit/file": ^11.0.1
     "@size-limit/webpack": ^11.0.1
     "@testing-library/react": ^13.3.0
@@ -7431,13 +7435,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@reduxjs/tsconfig@workspace:packages/configs/typescript":
+"@reduxjs/tsconfig@workspace:^, @reduxjs/tsconfig@workspace:packages/configs/typescript":
   version: 0.0.0-use.local
   resolution: "@reduxjs/tsconfig@workspace:packages/configs/typescript"
   languageName: unknown
   linkType: soft
 
-"@reduxjs/vitest-config@workspace:packages/configs/vitest":
+"@reduxjs/vitest-config@workspace:^, @reduxjs/vitest-config@workspace:packages/configs/vitest":
   version: 0.0.0-use.local
   resolution: "@reduxjs/vitest-config@workspace:packages/configs/vitest"
   dependencies:
