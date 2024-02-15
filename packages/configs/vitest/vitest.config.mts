@@ -1,7 +1,7 @@
 import tsconfigPaths from 'vite-tsconfig-paths'
 import { defineConfig } from 'vitest/config'
 
-export const vitestConfig = defineConfig({
+export const reduxVitestConfig = defineConfig({
   plugins: [tsconfigPaths({ projects: ['./tsconfig.json'] })],
   test: {
     watch: false,
@@ -12,4 +12,4 @@ export const vitestConfig = defineConfig({
   define: { 'import.meta.vitest': 'undefined' },
 })
 
-export default vitestConfig
+export default reduxVitestConfig
