@@ -50,6 +50,7 @@ import type { ReferenceQueryLifecycle } from './buildMiddleware/queryLifecycle'
 import type { ReferenceCacheCollection } from './buildMiddleware/cacheCollection'
 import { enablePatches } from 'immer'
 import { createSelector as _createSelector } from './rtkImports'
+import { RemoveQueryDataThunk } from '@internal/query/core/buildThunks'
 
 /**
  * `ifOlderThan` - (default: `false` | `number`) - _number is value in seconds_
@@ -299,6 +300,22 @@ declare module '../apiTypes' {
          * ```
          */
         patchQueryData: PatchQueryDataThunk<
+          Definitions,
+          RootState<Definitions, string, ReducerPath>
+        >
+
+        /**
+         * A Redux thunk that removes a specific query result from the cache. This immediately updates the Redux state with those changes.
+         *
+         * The thunk accepts two arguments: the name of the endpoint we are updating (such as `'getPost'`) and the appropriate query arg values to construct the desired cache key.
+         *
+         * @example
+         *
+         * ```ts
+         * dispatch(api.util.removeQueryData('getPost', { id: 1 }))
+         * ```
+         */
+        removeQueryData: RemoveQueryDataThunk<
           Definitions,
           RootState<Definitions, string, ReducerPath>
         >
