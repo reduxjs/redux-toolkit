@@ -874,7 +874,7 @@ export const reducerCreator: ReducerCreator<ReducerType.reducer> = {
 }
 
 export const preparedReducerCreator: ReducerCreator<ReducerType.reducerWithPrepare> =
-  /*@__PURE__*/ {
+  {
     type: ReducerType.reducerWithPrepare,
     create(prepare, reducer) {
       return {
