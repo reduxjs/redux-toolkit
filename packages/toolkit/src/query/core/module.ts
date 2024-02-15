@@ -502,6 +502,7 @@ export const coreModule = ({
       patchQueryData,
       updateQueryData,
       upsertQueryData,
+      removeQueryData,
       prefetch,
       buildMatchThunkActions,
     } = buildThunks({
@@ -533,6 +534,7 @@ export const coreModule = ({
       patchQueryData,
       updateQueryData,
       upsertQueryData,
+      removeQueryData,
       prefetch,
       resetApiState: sliceActions.resetApiState,
     })
