@@ -5,6 +5,7 @@ import type {
   PatchQueryDataThunk,
   UpdateQueryDataThunk,
   UpsertQueryDataThunk,
+  RemoveQueryDataThunk,
 } from './buildThunks'
 import { buildThunks } from './buildThunks'
 import type {
@@ -50,7 +51,6 @@ import type { ReferenceQueryLifecycle } from './buildMiddleware/queryLifecycle'
 import type { ReferenceCacheCollection } from './buildMiddleware/cacheCollection'
 import { enablePatches } from 'immer'
 import { createSelector as _createSelector } from './rtkImports'
-import { RemoveQueryDataThunk } from '@internal/query/core/buildThunks'
 
 /**
  * `ifOlderThan` - (default: `false` | `number`) - _number is value in seconds_
