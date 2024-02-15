@@ -8,9 +8,6 @@
     "./base": "./tsconfig.base.json",
     "./package.json": "./package.json"
   },
-  "files": [
-    "tsconfig*.json"
-  ],
   "keywords": [
     "config",
     "reduxjs",
