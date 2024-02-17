@@ -1,7 +1,11 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-const fs = require('node:fs')
-const path = require('node:path')
-const helperModuleImports = require('@babel/helper-module-imports')
+import { addNamed } from '@babel/helper-module-imports'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+// No __dirname under Node ESM
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 /**
  * Converts an AST type into a javascript string so that it can be added to the error message lookup.
@@ -59,15 +63,15 @@ const evalToString = (ast) => {
  *    throw new Error(node.process.NODE_ENV === 'production' ? 0 : "This is my error message.");
  *    throw new Error(node.process.NODE_ENV === 'production' ? 1 : "This is a second error message.");
  */
-module.exports = (/** @type {{ types: any; }} */ babel) => {
+export default (/** @type {{ types: any; }} */ babel) => {
   const t = babel.types
   // When the plugin starts up, we'll load in the existing file. This allows us to continually add to it so that the
   // indexes do not change between builds.
   let errorsFiles = ''
   // Save this to the root
   const errorsPath = path.join(__dirname, '../../../errors.json')
-  if (fs.existsSync(errorsPath)) {
-    errorsFiles = fs.readFileSync(errorsPath).toString()
+  if (existsSync(errorsPath)) {
+    errorsFiles = readFileSync(errorsPath).toString()
   }
   const errors = Object.values(JSON.parse(errorsFiles || '{}'))
   // This variable allows us to skip writing back to the file if the errors array hasn't changed
@@ -126,7 +130,7 @@ module.exports = (/** @type {{ types: any; }} */ babel) => {
           }
 
           // Import the error message function
-          const formatProdErrorMessageIdentifier = helperModuleImports.addNamed(
+          const formatProdErrorMessageIdentifier = addNamed(
             path,
             'formatProdErrorMessage',
             '@reduxjs/toolkit',
@@ -168,7 +172,7 @@ module.exports = (/** @type {{ types: any; }} */ babel) => {
     post: () => {
       // If there is a new error in the array, convert it to an indexed object and write it back to the file.
       if (changeInArray) {
-        fs.writeFileSync(errorsPath, JSON.stringify({ ...errors }, null, 2))
+        writeFileSync(errorsPath, JSON.stringify({ ...errors }, null, 2))
       }
     },
   }

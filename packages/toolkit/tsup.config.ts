@@ -133,14 +133,17 @@ const mangleErrorsTransform: Plugin = {
   setup(build) {
     const { onTransform } = getBuildExtensions(build, 'mangle-errors-plugin')
 
-    onTransform({ loaders: ['ts', 'tsx'] }, (args) => {
+    onTransform({ loaders: ['ts', 'tsx'] }, async (args) => {
       try {
-        const res = babel.transformSync(args.code, {
+        const res = await babel.transformAsync(args.code, {
           parserOpts: {
             plugins: ['typescript', 'jsx'],
           },
-          plugins: [['./scripts/mangleErrors.cjs', { minify: false }]],
+          plugins: [['./scripts/mangleErrors.mjs', { minify: false }]],
         })!
+        if (res == null) {
+          throw new Error('Babel transformAsync returned null')
+        }
         return {
           code: res.code!,
           map: res.map!,
