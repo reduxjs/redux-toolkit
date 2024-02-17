@@ -589,7 +589,7 @@ export type MutationTrigger<D extends MutationDefinition<any, any, any, any>> =
     (arg: QueryArgFrom<D>): MutationActionCreatorResult<D>
   }
 
-export type TypedUseMutationTrigger<
+export type TypedMutationTrigger<
   ResultType,
   QueryArg,
   BaseQuery extends BaseQueryFn,

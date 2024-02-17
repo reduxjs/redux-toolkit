@@ -7261,7 +7261,7 @@ __metadata:
     execa: ^8.0.1
     globby: ^14.0.0
     jscodeshift: ^0.15.1
-    prettier: ^3.2.4
+    prettier: ^3.2.5
     ts-node: ^10.9.2
     typescript: ^5.3.3
     vitest: ^1.2.1
@@ -7309,7 +7309,7 @@ __metadata:
     json-stringify-safe: ^5.0.1
     msw: ^2.1.4
     node-fetch: ^3.3.2
-    prettier: ^3.2.4
+    prettier: ^3.2.5
     query-string: ^7.0.1
     redux: ^5.0.1
     redux-thunk: ^3.1.0
@@ -7320,6 +7320,7 @@ __metadata:
     tsup: ^7.2.0
     tsx: ^3.12.2
     typescript: ^5.3.3
+    vite-tsconfig-paths: ^4.3.1
     vitest: ^1.1.3
     yargs: ^15.3.1
   peerDependencies:
@@ -7585,7 +7586,7 @@ __metadata:
     node-fetch: ^3.3.2
     oazapfts: ^4.8.0
     openapi-types: ^9.1.0
-    prettier: ^3.2.4
+    prettier: ^3.2.5
     pretty-quick: ^3.1.0
     rimraf: ^5.0.5
     semver: ^7.3.5
@@ -23611,12 +23612,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier@npm:^3.2.4":
-  version: 3.2.4
-  resolution: "prettier@npm:3.2.4"
+"prettier@npm:^3.2.5":
+  version: 3.2.5
+  resolution: "prettier@npm:3.2.5"
   bin:
     prettier: bin/prettier.cjs
-  checksum: 6ec9385a836e0b9bac549e585101c086d1521c31d7b882d5c8bb7d7646da0693da5f31f4fff6dc080710e5e2d34c85e6fb2f8766876b3645c8be2f33b9c3d1a3
+  checksum: 2ee4e1417572372afb7a13bb446b34f20f1bf1747db77cf6ccaf57a9be005f2f15c40f903d41a6b79eec3f57fff14d32a20fb6dee1f126da48908926fe43c311
   languageName: node
   linkType: hard
 
@@ -25487,7 +25488,7 @@ __metadata:
     eslint-plugin-react: ^7.23.2
     eslint-plugin-react-hooks: ^4.2.0
     netlify-plugin-cache: ^1.0.3
-    prettier: ^3.2.4
+    prettier: ^3.2.5
     release-it: ^14.12.5
     serve: ^14.2.0
     ts-node: ^10.9.2
@@ -27800,6 +27801,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"tsconfck@npm:^3.0.1":
+  version: 3.0.2
+  resolution: "tsconfck@npm:3.0.2"
+  peerDependencies:
+    typescript: ^5.0.0
+  peerDependenciesMeta:
+    typescript:
+      optional: true
+  bin:
+    tsconfck: bin/tsconfck.js
+  checksum: bf40e547a01610571a55ff33beb74751942561963f9c5f1152ad415ad4bd27eb90d65e9fb2edbb60ecb9407b115d1d52a633fc1f83cf4ea0424041a10e7eeea3
+  languageName: node
+  linkType: hard
+
 "tsconfig-paths@npm:^3.14.1":
   version: 3.14.1
   resolution: "tsconfig-paths@npm:3.14.1"
@@ -28818,6 +28833,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"vite-tsconfig-paths@npm:^4.3.1":
+  version: 4.3.1
+  resolution: "vite-tsconfig-paths@npm:4.3.1"
+  dependencies:
+    debug: ^4.1.1
+    globrex: ^0.1.2
+    tsconfck: ^3.0.1
+  peerDependencies:
+    vite: "*"
+  peerDependenciesMeta:
+    vite:
+      optional: true
+  checksum: 2934d5d674e0b6ab8d435d4262ff30143c30512072d71ece5a3859a70a188cbdbcc2b0370277049ab551f7bbb6ffb2be94a0bf30154e5c58d38b32adce9740bd
+  languageName: node
+  linkType: hard
+
 "vite@npm:^5.0.0":
   version: 5.0.11
   resolution: "vite@npm:5.0.11"
@@ -29462,7 +29493,7 @@ __metadata:
     "@docusaurus/preset-classic": 2.1.0
     classnames: ^2.2.6
     netlify-plugin-cache: ^1.0.3
-    prettier: ^3.2.4
+    prettier: ^3.2.5
     react: ^18.1.0
     react-dom: ^18.1.0
     react-lite-youtube-embed: ^2.0.3

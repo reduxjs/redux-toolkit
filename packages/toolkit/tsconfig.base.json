@@ -31,21 +31,14 @@
     "downlevelIteration": false,
     "allowSyntheticDefaultImports": true,
     "emitDeclarationOnly": true,
-    "baseUrl": ".",
     "types": ["vitest/globals", "vitest/importMeta"],
     "paths": {
-      "@reduxjs/toolkit": ["src/index.ts"], // @remap-prod-remove-line
-      "@reduxjs/toolkit/react": ["src/react/index.ts"], // @remap-prod-remove-line
-      "@reduxjs/toolkit/query": ["src/query/index.ts"], // @remap-prod-remove-line
-      "@reduxjs/toolkit/query/react": ["src/query/react/index.ts"], // @remap-prod-remove-line
-      // for type imports in tests only
-      "@reduxjs/toolkit/dist/*": ["src/*"], // @remap-prod-remove-line
-      // for type imports in tests only
-      "@reduxjs/toolkit/dist/query/*": ["src/query/*"], // @remap-prod-remove-line
+      "@reduxjs/toolkit": ["./src/index.ts"], // @remap-prod-remove-line
+      "@reduxjs/toolkit/react": ["./src/react/index.ts"], // @remap-prod-remove-line
+      "@reduxjs/toolkit/query": ["./src/query/index.ts"], // @remap-prod-remove-line
+      "@reduxjs/toolkit/query/react": ["./src/query/react/index.ts"], // @remap-prod-remove-line
       // internal imports in tests only
-      "@internal/*": ["src/*"],
-      // prevent resolving "react" to "@reduxjs/toolkit/react" entry point
-      "react": ["node_modules/react"]
+      "@internal/*": ["./src/*"]
     }
   }
 }

@@ -302,7 +302,7 @@ You must add the middleware for RTK-Query to function correctly!`,
           subscriptionOptions,
           [forceQueryFnSymbol]: forceQueryFn,
           ...rest
-        } = {}
+        } = {},
       ) =>
       (dispatch, getState) => {
         const queryCacheKey = serializeQueryArgs({
