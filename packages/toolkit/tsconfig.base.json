@@ -1,5 +1,5 @@
 {
-  "extends": "@reduxjs/tsconfig",
+  "extends": "@reduxjs/tsconfig/base",
   "compilerOptions": {
     "rootDir": "./src",
     "paths": {
