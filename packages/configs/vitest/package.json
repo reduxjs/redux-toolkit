@@ -17,7 +17,8 @@
   "scripts": {
     "build": "yarn clean && tsc",
     "clean": "rimraf dist",
-    "prepack": "yarn build"
+    "prepack": "yarn build",
+    "preinstall": "yarn prepack"
   },
   "keywords": [
     "config",

@@ -70,7 +70,6 @@
     "console-testing-library@0.6.1": "patch:console-testing-library@npm%3A0.6.1#./.yarn/patches/console-testing-library-npm-0.6.1-4d9957d402.patch"
   },
   "scripts": {
-    "postinstall": "yarn build:configs",
     "build": "yarn build:packages",
     "test": "yarn test:packages",
     "build:configs": "yarn workspaces foreach --include '@reduxjs/*config' -vtp run build",
