@@ -1,4 +1,6 @@
 {
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "Redux Base TSConfig",
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
     // output .d.ts declaration files for consumers
