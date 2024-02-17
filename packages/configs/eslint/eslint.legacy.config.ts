@@ -61,11 +61,35 @@ export const reduxESLintLegacyConfig: Linter.Config = {
     ],
   },
   parser: '@typescript-eslint/parser',
-  parserOptions: { project: ['./tsconfig.json'], ecmaVersion: 'latest' },
+  parserOptions: {
+    project: ['./tsconfig.json'],
+    ecmaVersion: 'latest',
+    projectFolderIgnoreList: ['dist'],
+  },
   plugins: ['@typescript-eslint'],
   ignorePatterns: ['dist', '.*'],
   reportUnusedDisableDirectives: true,
   root: true,
+  overrides: [
+    {
+      files: ['**/*.m{t,j}s'],
+      parserOptions: {
+        project: ['./tsconfig.json'],
+        ecmaVersion: 'latest',
+        projectFolderIgnoreList: ['dist'],
+        sourceType: 'module',
+      },
+    },
+    {
+      files: ['**/*.c{t,j}s'],
+      parserOptions: {
+        project: ['./tsconfig.json'],
+        ecmaVersion: 'latest',
+        projectFolderIgnoreList: ['dist'],
+        sourceType: 'script',
+      },
+    },
+  ],
 }
 
 module.exports = reduxESLintLegacyConfig
