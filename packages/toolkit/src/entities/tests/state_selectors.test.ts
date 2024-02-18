@@ -1,6 +1,6 @@
 import { createDraftSafeSelectorCreator } from '../../createDraftSafeSelector'
-import type { EntityAdapter, EntityState } from '../models'
-import { createEntityAdapter } from '../create_adapter'
+import type { EntityAdapter, EntityState } from '../index'
+import { createEntityAdapter } from '../index'
 import type { EntitySelectors } from '../models'
 import type { BookModel } from './fixtures/book'
 import { AClockworkOrange, AnimalFarm, TheGreatGatsby } from './fixtures/book'
