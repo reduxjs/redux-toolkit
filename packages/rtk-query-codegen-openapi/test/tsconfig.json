@@ -1,21 +1,12 @@
 {
+  "extends": "@reduxjs/tsconfig/base",
   "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
     "paths": {
       "@/*": ["./test/fixtures/*"],
       "@rtk-query/codegen-openapi": ["./src"]
-    },
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "module": "ESNext",
-    "moduleResolution": "Node",
-    "strict": true,
-    "noEmit": true,
-    "target": "ESNext",
-    "jsx": "react",
-    "baseUrl": "..",
-    "resolveJsonModule": true,
-    "types": ["vitest/globals", "vitest/importMeta"],
-    "allowJs": true,
-    "checkJs": true
+    }
   }
 }

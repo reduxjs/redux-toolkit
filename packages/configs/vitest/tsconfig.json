@@ -1,15 +1,6 @@
 {
+  "extends": "@reduxjs/tsconfig/base",
   "compilerOptions": {
-    "allowSyntheticDefaultImports": true,
-    "declaration": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "isolatedModules": true,
-    "module": "ESNext",
-    "moduleResolution": "Node",
-    "outDir": "dist",
-    "skipLibCheck": true,
-    "strict": true,
-    "target": "ESNext"
+    "outDir": "dist"
   }
 }
