@@ -1,11 +1,4 @@
 import type {
-  ReducerNamesOfType,
-  ReducerCreatorEntry,
-  ReducerCreator,
-  ReducerDefinition,
-  CreatorCaseReducers,
-} from '@reduxjs/toolkit'
-import type {
   AsyncThunk,
   AsyncThunkConfig,
   AsyncThunkOptions,
@@ -14,53 +7,8 @@ import type {
 } from './createAsyncThunk'
 import { createAsyncThunk } from './createAsyncThunk'
 import type { CaseReducer } from './createReducer'
+import type { ReducerCreator, ReducerDefinition } from './createSlice'
 import { ReducerType } from './createSlice'
-import type { Id } from './tsHelpers'
-
-declare module '@reduxjs/toolkit' {
-  export interface SliceReducerCreators<
-    State,
-    CaseReducers extends CreatorCaseReducers<State>,
-    Name extends string,
-  > {
-    [ReducerType.asyncThunk]: ReducerCreatorEntry<
-      AsyncThunkCreator<State>,
-      {
-        actions: {
-          [ReducerName in ReducerNamesOfType<
-            CaseReducers,
-            ReducerType.asyncThunk
-          >]: CaseReducers[ReducerName] extends AsyncThunkSliceReducerDefinition<
-            State,
-            infer ThunkArg,
-            infer Returned,
-            infer ThunkApiConfig
-          >
-            ? AsyncThunk<Returned, ThunkArg, ThunkApiConfig>
-            : never
-        }
-        caseReducers: {
-          [ReducerName in ReducerNamesOfType<
-            CaseReducers,
-            ReducerType.asyncThunk
-          >]: CaseReducers[ReducerName] extends AsyncThunkSliceReducerDefinition<
-            State,
-            any,
-            any,
-            any
-          >
-            ? Id<
-                Pick<
-                  Required<CaseReducers[ReducerName]>,
-                  'fulfilled' | 'rejected' | 'pending' | 'settled'
-                >
-              >
-            : never
-        }
-      }
-    >
-  }
-}
 
 export interface AsyncThunkSliceReducerConfig<
   State,
@@ -113,7 +61,7 @@ type PreventCircular<ThunkApiConfig> = {
     : ThunkApiConfig[K]
 }
 
-interface AsyncThunkCreator<
+export interface AsyncThunkCreator<
   State,
   CurriedThunkApiConfig extends
     PreventCircular<AsyncThunkConfig> = PreventCircular<AsyncThunkConfig>,
