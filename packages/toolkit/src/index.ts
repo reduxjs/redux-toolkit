@@ -67,9 +67,9 @@ export {
   buildCreateSlice,
   reducerCreator,
   preparedReducerCreator,
-  asyncThunkCreator,
   ReducerType,
 } from './createSlice'
+export { asyncThunkCreator } from './asyncThunkCreator'
 
 export type {
   // types
@@ -92,8 +92,8 @@ export type {
   SliceActionType,
   CaseReducerDefinition,
   PreparedCaseReducerDefinition,
-  AsyncThunkSliceReducerDefinition,
 } from './createSlice'
+export type { AsyncThunkSliceReducerDefinition } from './asyncThunkCreator'
 export type { ActionCreatorInvariantMiddlewareOptions } from './actionCreatorInvariantMiddleware'
 export { createActionCreatorInvariantMiddleware } from './actionCreatorInvariantMiddleware'
 export {
