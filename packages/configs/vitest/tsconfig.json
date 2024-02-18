@@ -1,13 +1,15 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
+    "allowSyntheticDefaultImports": true,
+    "declaration": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
     "module": "ESNext",
     "moduleResolution": "Node",
-    "esModuleInterop": true,
-    "declaration": true,
     "outDir": "dist",
-    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
     "strict": true,
-    "skipLibCheck": true
+    "target": "ESNext"
   }
 }
