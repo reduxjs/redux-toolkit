@@ -3,8 +3,6 @@ import type { Draft } from 'immer'
 import type { PayloadAction } from '../createAction'
 import type { GetSelectorsOptions } from './state_selectors'
 import type { CastAny, Id as Compute } from '../tsHelpers'
-import type { CaseReducerDefinition } from '../createSlice'
-import type { CaseReducer } from '../createReducer'
 
 /**
  * @public
@@ -160,51 +158,12 @@ export interface EntityStateAdapter<T, Id extends EntityId> {
 /**
  * @public
  */
-export type EntitySelectors<
-  T,
-  V,
-  Id extends EntityId,
-  Single extends string = '',
-  Plural extends string = DefaultPlural<Single>,
-> = Compute<
-  {
-    [K in `select${Capitalize<Single>}Ids`]: (state: V) => Id[]
-  } & {
-    [K in `select${Capitalize<Single>}Entities`]: (state: V) => Record<Id, T>
-  } & {
-    [K in `selectAll${Capitalize<Plural>}`]: (state: V) => T[]
-  } & {
-    [K in `selectTotal${Capitalize<Plural>}`]: (state: V) => number
-  } & {
-    [K in `select${Capitalize<Single>}ById`]: (
-      state: V,
-      id: Id,
-    ) => Compute<UncheckedIndexedAccess<T>>
-  }
->
-
-export type DefaultPlural<Single extends string> = Single extends ''
-  ? ''
-  : `${Single}s`
-
-export type EntityReducers<
-  T,
-  Id extends EntityId,
-  State = EntityState<T, Id>,
-  Single extends string = '',
-  Plural extends string = DefaultPlural<Single>,
-> = {
-  [K in keyof EntityStateAdapter<
-    T,
-    Id
-  > as `${K}${Capitalize<K extends `${string}One` ? Single : Plural>}`]: EntityStateAdapter<
-    T,
-    Id
-  >[K] extends (state: any) => any
-    ? CaseReducerDefinition<State, PayloadAction>
-    : EntityStateAdapter<T, Id>[K] extends CaseReducer<any, infer A>
-      ? CaseReducerDefinition<State, A>
-      : never
+export interface EntitySelectors<T, V, Id extends EntityId> {
+  selectIds: (state: V) => Id[]
+  selectEntities: (state: V) => Record<Id, T>
+  selectAll: (state: V) => T[]
+  selectTotal: (state: V) => number
+  selectById: (state: V, id: Id) => Compute<UncheckedIndexedAccess<T>>
 }
 
 /**
@@ -228,19 +187,12 @@ export interface EntityAdapter<T, Id extends EntityId>
   extends EntityStateAdapter<T, Id>,
     EntityStateFactory<T, Id>,
     Required<EntityAdapterOptions<T, Id>> {
-  getSelectors<
-    Single extends string = '',
-    Plural extends string = DefaultPlural<Single>,
-  >(
+  getSelectors(
     selectState?: undefined,
-    options?: GetSelectorsOptions<Single, Plural>,
-  ): EntitySelectors<T, EntityState<T, Id>, Id, Single, Plural>
-  getSelectors<
-    V,
-    Single extends string = '',
-    Plural extends string = DefaultPlural<Single>,
-  >(
+    options?: GetSelectorsOptions,
+  ): EntitySelectors<T, EntityState<T, Id>, Id>
+  getSelectors<V>(
     selectState: (state: V) => EntityState<T, Id>,
-    options?: GetSelectorsOptions<Single, Plural>,
-  ): EntitySelectors<T, V, Id, Single, Plural>
+    options?: GetSelectorsOptions,
+  ): EntitySelectors<T, V, Id>
 }

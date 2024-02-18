@@ -1,12 +1,6 @@
 import type { CreateSelectorFunction, Selector, createSelector } from 'reselect'
 import { createDraftSafeSelector } from '../createDraftSafeSelector'
-import type {
-  EntityState,
-  EntitySelectors,
-  EntityId,
-  DefaultPlural,
-} from './models'
-import { capitalize } from './utils'
+import type { EntityState, EntitySelectors, EntityId } from './models'
 
 type AnyFunction = (...args: any) => any
 type AnyCreateSelectorFunction = CreateSelectorFunction<
@@ -14,43 +8,25 @@ type AnyCreateSelectorFunction = CreateSelectorFunction<
   <F extends AnyFunction>(f: F) => F
 >
 
-export interface GetSelectorsOptions<
-  Single extends string = '',
-  Plural extends string = DefaultPlural<''>,
-> {
+export interface GetSelectorsOptions {
   createSelector?: AnyCreateSelectorFunction
-  name?: Single
-  pluralName?: Plural
 }
 
 export function createSelectorsFactory<T, Id extends EntityId>() {
-  function getSelectors<
-    Single extends string = '',
-    Plural extends string = DefaultPlural<Single>,
-  >(
+  function getSelectors(
     selectState?: undefined,
-    options?: GetSelectorsOptions<Single, Plural>,
-  ): EntitySelectors<T, EntityState<T, Id>, Id, Single, Plural>
-  function getSelectors<
-    V,
-    Single extends string = '',
-    Plural extends string = DefaultPlural<Single>,
-  >(
+    options?: GetSelectorsOptions,
+  ): EntitySelectors<T, EntityState<T, Id>, Id>
+  function getSelectors<V>(
     selectState: (state: V) => EntityState<T, Id>,
-    options?: GetSelectorsOptions<Single, Plural>,
-  ): EntitySelectors<T, V, Id, Single, Plural>
-  function getSelectors<
-    V,
-    Single extends string = '',
-    Plural extends string = DefaultPlural<Single>,
-  >(
+    options?: GetSelectorsOptions,
+  ): EntitySelectors<T, V, Id>
+  function getSelectors<V>(
     selectState?: (state: V) => EntityState<T, Id>,
-    options: GetSelectorsOptions<Single, Plural> = {},
-  ): EntitySelectors<T, any, Id, Single, Plural> {
+    options: GetSelectorsOptions = {},
+  ): EntitySelectors<T, any, Id> {
     const {
       createSelector = createDraftSafeSelector as AnyCreateSelectorFunction,
-      name = '',
-      pluralName = name && `${name}s`,
     } = options
 
     const selectIds = (state: EntityState<T, Id>) => state.ids
@@ -69,25 +45,14 @@ export function createSelectorsFactory<T, Id extends EntityId>() {
 
     const selectTotal = createSelector(selectIds, (ids) => ids.length)
 
-    // template literal computed keys don't keep their type if there's an unresolved generic
-    // so we cast to some intermediate type to at least check we're using the right variables in the right places
-
-    const single = name as 's'
-    const plural = pluralName as 'p'
-
     if (!selectState) {
-      const selectors: EntitySelectors<T, any, Id, 's', 'p'> = {
-        [`select${capitalize(single)}Ids` as const]: selectIds,
-        [`select${capitalize(single)}Entities` as const]: selectEntities,
-        [`selectAll${capitalize(plural)}` as const]: selectAll,
-        [`selectTotal${capitalize(plural)}` as const]: selectTotal,
-        [`select${capitalize(single)}ById` as const]: createSelector(
-          selectEntities,
-          selectId,
-          selectById,
-        ),
+      return {
+        selectIds,
+        selectEntities,
+        selectAll,
+        selectTotal,
+        selectById: createSelector(selectEntities, selectId, selectById),
       }
-      return selectors as any
     }
 
     const selectGlobalizedEntities = createSelector(
@@ -95,28 +60,17 @@ export function createSelectorsFactory<T, Id extends EntityId>() {
       selectEntities,
     )
 
-    const selectors: EntitySelectors<T, any, Id, 's', 'p'> = {
-      [`select${capitalize(single)}Ids` as const]: createSelector(
-        selectState,
-        selectIds,
-      ),
-      [`select${capitalize(single)}Entities` as const]:
-        selectGlobalizedEntities,
-      [`selectAll${capitalize(plural)}` as const]: createSelector(
-        selectState,
-        selectAll,
-      ),
-      [`selectTotal${capitalize(plural)}` as const]: createSelector(
-        selectState,
-        selectTotal,
-      ),
-      [`select${capitalize(single)}ById` as const]: createSelector(
+    return {
+      selectIds: createSelector(selectState, selectIds),
+      selectEntities: selectGlobalizedEntities,
+      selectAll: createSelector(selectState, selectAll),
+      selectTotal: createSelector(selectState, selectTotal),
+      selectById: createSelector(
         selectGlobalizedEntities,
         selectId,
         selectById,
       ),
     }
-    return selectors as any
   }
 
   return { getSelectors }

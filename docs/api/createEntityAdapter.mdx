@@ -239,7 +239,7 @@ In other words, they accept a state that looks like `{ids: [], entities: {}}`, a
 
 These CRUD methods may be used in multiple ways:
 
-- They may be passed as case reducers directly to `createReducer` and `createSlice`. (also see the [`create.entityMethods`](./createSlice#createentitymethods-entitymethodscreator) slice creator which can assist with this)
+- They may be passed as case reducers directly to `createReducer` and `createSlice`.
 - They may be used as "mutating" helper methods when called manually, such as a separate hand-written call to `addOne()` inside of an existing case reducer, if the `state` argument is actually an Immer `Draft` value.
 - They may be used as immutable update methods when called manually, if the `state` argument is actually a plain JS object or array.
 
