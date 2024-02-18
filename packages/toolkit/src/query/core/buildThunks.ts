@@ -317,6 +317,10 @@ export function buildThunks<
         }
       }
 
+      if (ret.patches.length === 0) {
+        return ret
+      }
+
       dispatch(
         api.util.patchQueryData(
           endpointName,
