@@ -1,7 +1,3 @@
-import { defineConfig } from 'vitest/config'
+import { reduxVitestConfig } from '@reduxjs/vitest-config'
 
-export default defineConfig({
-  test: {
-    globals: true
-  }
-})
+export default reduxVitestConfig
