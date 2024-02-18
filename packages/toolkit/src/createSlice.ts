@@ -276,9 +276,11 @@ export interface ReducerHandlingContextMethods<State> {
 }
 
 export interface ReducerDetails {
+  /** The name of the slice */
+  sliceName: string
   /** The key the reducer was defined under */
   reducerName: string
-  /** The predefined action type, i.e. `${slice.name}/${reducerName}` */
+  /** The predefined action type, i.e. `${sliceName}/${reducerName}` */
   type: string
 }
 
@@ -1106,6 +1108,7 @@ export function buildCreateSlice<
           throw new Error(`Unsupported reducer type: ${String(type)}`)
         }
         const reducerDetails: ReducerDetails = {
+          sliceName: name,
           reducerName,
           type: getType(name, reducerName),
         }
@@ -1116,6 +1119,7 @@ export function buildCreateSlice<
         options.reducers as SliceCaseReducers<State>,
       )) {
         const reducerDetails: ReducerDetails = {
+          sliceName: name,
           reducerName,
           type: getType(name, reducerName),
         }
