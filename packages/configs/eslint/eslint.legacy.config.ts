@@ -92,4 +92,11 @@ export const reduxESLintLegacyConfig: Linter.Config = {
   ],
 }
 
+export const createLegacyESLintConfig = (
+  overrides: Partial<Linter.Config> = {},
+): Linter.Config => ({
+  ...reduxESLintLegacyConfig,
+  ...overrides,
+})
+
 module.exports = reduxESLintLegacyConfig
