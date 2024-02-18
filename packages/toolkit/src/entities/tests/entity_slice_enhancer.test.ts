@@ -1,44 +1,47 @@
-import { createEntityAdapter, createSlice } from '@reduxjs/toolkit'
+import { createEntityAdapter, createSlice } from '../..'
 import type {
   PayloadAction,
+  Slice,
   SliceCaseReducers,
-  ValidateSliceCaseReducers,
+  UnknownAction,
 } from '../..'
 import type { EntityId, EntityState, IdSelector } from '../models'
-import { AClockworkOrange, type BookModel } from './fixtures/book'
+import type { BookModel } from './fixtures/book'
 
 describe('Entity Slice Enhancer', () => {
-  let slice: ReturnType<typeof entitySliceEnhancer<BookModel, string>>
+  let slice: Slice<EntityState<BookModel, BookModel['id']>>
 
   beforeEach(() => {
-    slice = entitySliceEnhancer({
+    const indieSlice = entitySliceEnhancer({
       name: 'book',
       selectId: (book: BookModel) => book.id,
     })
+    slice = indieSlice
   })
 
   it('exposes oneAdded', () => {
-    const action = slice.actions.oneAdded(AClockworkOrange)
-    const oneAdded = slice.reducer(undefined, action)
-    expect(oneAdded.entities[AClockworkOrange.id]).toBe(AClockworkOrange)
+    const book = {
+      id: '0',
+      title: 'Der Steppenwolf',
+      author: 'Herman Hesse',
+    }
+    const action = slice.actions.oneAdded(book)
+    const oneAdded = slice.reducer(undefined, action as UnknownAction)
+    expect(oneAdded.entities['0']).toBe(book)
   })
 })
 
-interface EntitySliceArgs<
-  T,
-  Id extends EntityId,
-  CaseReducers extends SliceCaseReducers<EntityState<T, Id>>,
-> {
+interface EntitySliceArgs<T, Id extends EntityId> {
   name: string
   selectId: IdSelector<T, Id>
-  modelReducer?: ValidateSliceCaseReducers<EntityState<T, Id>, CaseReducers>
+  modelReducer?: SliceCaseReducers<T>
 }
 
-function entitySliceEnhancer<
-  T,
-  Id extends EntityId,
-  CaseReducers extends SliceCaseReducers<EntityState<T, Id>> = {},
->({ name, selectId, modelReducer }: EntitySliceArgs<T, Id, CaseReducers>) {
+function entitySliceEnhancer<T, Id extends EntityId>({
+  name,
+  selectId,
+  modelReducer,
+}: EntitySliceArgs<T, Id>) {
   const modelAdapter = createEntityAdapter({
     selectId,
   })

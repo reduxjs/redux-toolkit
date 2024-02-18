@@ -1,5 +1,5 @@
-import type { EntityAdapter } from '../models'
-import { createEntityAdapter } from '../create_adapter'
+import type { EntityAdapter } from '../index'
+import { createEntityAdapter } from '../index'
 import type { PayloadAction } from '../../createAction'
 import { createAction } from '../../createAction'
 import { createSlice } from '../../createSlice'
