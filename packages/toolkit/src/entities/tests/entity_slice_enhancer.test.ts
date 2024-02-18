@@ -7,47 +7,44 @@ import {
 } from '@reduxjs/toolkit'
 import type {
   PayloadAction,
-  Slice,
   SliceCaseReducers,
-  UnknownAction,
+  ValidateSliceCaseReducers,
 } from '../..'
 import type { EntityId, EntityState, IdSelector } from '../models'
-import type { BookModel } from './fixtures/book'
+import { AClockworkOrange, type BookModel } from './fixtures/book'
 
 describe('Entity Slice Enhancer', () => {
-  let slice: Slice<EntityState<BookModel, BookModel['id']>>
+  let slice: ReturnType<typeof entitySliceEnhancer<BookModel, string>>
 
   beforeEach(() => {
-    const indieSlice = entitySliceEnhancer({
+    slice = entitySliceEnhancer({
       name: 'book',
       selectId: (book: BookModel) => book.id,
     })
-    slice = indieSlice
   })
 
   it('exposes oneAdded', () => {
-    const book = {
-      id: '0',
-      title: 'Der Steppenwolf',
-      author: 'Herman Hesse',
-    }
-    const action = slice.actions.oneAdded(book)
-    const oneAdded = slice.reducer(undefined, action as UnknownAction)
-    expect(oneAdded.entities['0']).toBe(book)
+    const action = slice.actions.oneAdded(AClockworkOrange)
+    const oneAdded = slice.reducer(undefined, action)
+    expect(oneAdded.entities[AClockworkOrange.id]).toBe(AClockworkOrange)
   })
 })
 
-interface EntitySliceArgs<T, Id extends EntityId> {
+interface EntitySliceArgs<
+  T,
+  Id extends EntityId,
+  CaseReducers extends SliceCaseReducers<EntityState<T, Id>>,
+> {
   name: string
   selectId: IdSelector<T, Id>
-  modelReducer?: SliceCaseReducers<T>
+  modelReducer?: ValidateSliceCaseReducers<EntityState<T, Id>, CaseReducers>
 }
 
-function entitySliceEnhancer<T, Id extends EntityId>({
-  name,
-  selectId,
-  modelReducer,
-}: EntitySliceArgs<T, Id>) {
+function entitySliceEnhancer<
+  T,
+  Id extends EntityId,
+  CaseReducers extends SliceCaseReducers<EntityState<T, Id>> = {},
+>({ name, selectId, modelReducer }: EntitySliceArgs<T, Id, CaseReducers>) {
   const modelAdapter = createEntityAdapter({
     selectId,
   })
