@@ -6,8 +6,6 @@ import type {
   ActionCreatorWithPreparedPayload,
   ActionCreatorWithoutPayload,
   ActionReducerMapBuilder,
-  AsyncThunk,
-  CaseReducer,
   CreatorCaseReducers,
   PayloadAction,
   PayloadActionCreator,
@@ -18,11 +16,9 @@ import type {
   ReducerDefinition,
   ReducerHandlingContextMethods,
   ReducerNamesOfType,
-  SerializedError,
   SliceActionType,
   SliceCaseReducers,
   ThunkAction,
-  ThunkDispatch,
   UnknownAction,
   ValidateSliceCaseReducers,
 } from '@reduxjs/toolkit'
@@ -33,7 +29,6 @@ import {
   createAction,
   createAsyncThunk,
   createSlice,
-  isRejected,
   nanoid,
 } from '@reduxjs/toolkit'
 import { castDraft } from 'immer'
@@ -614,215 +609,40 @@ describe('type tests', () => {
       cause: string
     }
 
-    const createAppSlice = buildCreateSlice({
-      creators: { asyncThunk: asyncThunkCreator },
-    })
-
-    const slice = createAppSlice({
+    const slice = createSlice({
       name: 'test',
       initialState: {} as TestState,
-      reducers: (create) => {
-        const preTypedAsyncThunk = create.asyncThunk.withTypes<{
-          rejectValue: TestReject
-        }>()
+      reducers: (create) => ({
+        normalReducer: create.reducer<string>((state, action) => {
+          expectTypeOf(state).toEqualTypeOf<TestState>()
 
-        // @ts-expect-error
-        create.asyncThunk<any, any, { state: StoreState }>(() => {})
+          expectTypeOf(action.payload).toBeString()
+        }),
+        optionalReducer: create.reducer<string | undefined>((state, action) => {
+          expectTypeOf(state).toEqualTypeOf<TestState>()
 
-        // @ts-expect-error
-        create.asyncThunk.withTypes<{
-          rejectValue: string
-          dispatch: StoreDispatch
-        }>()
-
-        return {
-          normalReducer: create.reducer<string>((state, action) => {
+          expectTypeOf(action.payload).toEqualTypeOf<string | undefined>()
+        }),
+        noActionReducer: create.reducer((state) => {
+          expectTypeOf(state).toEqualTypeOf<TestState>()
+        }),
+        preparedReducer: create.preparedReducer(
+          (payload: string) => ({
+            payload,
+            meta: 'meta' as const,
+            error: 'error' as const,
+          }),
+          (state, action) => {
             expectTypeOf(state).toEqualTypeOf<TestState>()
 
             expectTypeOf(action.payload).toBeString()
-          }),
-          optionalReducer: create.reducer<string | undefined>(
-            (state, action) => {
-              expectTypeOf(state).toEqualTypeOf<TestState>()
 
-              expectTypeOf(action.payload).toEqualTypeOf<string | undefined>()
-            },
-          ),
-          noActionReducer: create.reducer((state) => {
-            expectTypeOf(state).toEqualTypeOf<TestState>()
-          }),
-          preparedReducer: create.preparedReducer(
-            (payload: string) => ({
-              payload,
-              meta: 'meta' as const,
-              error: 'error' as const,
-            }),
-            (state, action) => {
-              expectTypeOf(state).toEqualTypeOf<TestState>()
+            expectTypeOf(action.meta).toEqualTypeOf<'meta'>()
 
-              expectTypeOf(action.payload).toBeString()
-
-              expectTypeOf(action.meta).toEqualTypeOf<'meta'>()
-
-              expectTypeOf(action.error).toEqualTypeOf<'error'>()
-            },
-          ),
-          testInfer: create.asyncThunk(
-            function payloadCreator(arg: TestArg, api) {
-              return Promise.resolve<TestReturned>({ payload: 'foo' })
-            },
-            {
-              pending(state, action) {
-                expectTypeOf(state).toEqualTypeOf<TestState>()
-
-                expectTypeOf(action.meta.arg).toEqualTypeOf<TestArg>()
-              },
-              fulfilled(state, action) {
-                expectTypeOf(state).toEqualTypeOf<TestState>()
-
-                expectTypeOf(action.meta.arg).toEqualTypeOf<TestArg>()
-
-                expectTypeOf(action.payload).toEqualTypeOf<TestReturned>()
-              },
-              rejected(state, action) {
-                expectTypeOf(state).toEqualTypeOf<TestState>()
-
-                expectTypeOf(action.meta.arg).toEqualTypeOf<TestArg>()
-
-                expectTypeOf(action.error).toEqualTypeOf<SerializedError>()
-              },
-              settled(state, action) {
-                expectTypeOf(state).toEqualTypeOf<TestState>()
-
-                expectTypeOf(action.meta.arg).toEqualTypeOf<TestArg>()
-
-                if (isRejected(action)) {
-                  expectTypeOf(action.error).toEqualTypeOf<SerializedError>()
-                } else {
-                  expectTypeOf(action.payload).toEqualTypeOf<TestReturned>()
-                }
-              },
-            },
-          ),
-          testExplicitType: create.asyncThunk<
-            TestReturned,
-            TestArg,
-            {
-              rejectValue: TestReject
-            }
-          >(
-            function payloadCreator(arg, api) {
-              // here would be a circular reference
-              expectTypeOf(api.getState()).toBeUnknown()
-              // here would be a circular reference
-              expectTypeOf(api.dispatch).toMatchTypeOf<
-                ThunkDispatch<any, any, any>
-              >()
-
-              // so you need to cast inside instead
-              const getState = api.getState as () => StoreState
-              const dispatch = api.dispatch as StoreDispatch
-
-              expectTypeOf(arg).toEqualTypeOf<TestArg>()
-
-              expectTypeOf(api.rejectWithValue).toMatchTypeOf<
-                (value: TestReject) => any
-              >()
-
-              return Promise.resolve({ payload: 'foo' })
-            },
-            {
-              pending(state, action) {
-                expectTypeOf(state).toEqualTypeOf<TestState>()
-
-                expectTypeOf(action.meta.arg).toEqualTypeOf<TestArg>()
-              },
-              fulfilled(state, action) {
-                expectTypeOf(state).toEqualTypeOf<TestState>()
-
-                expectTypeOf(action.meta.arg).toEqualTypeOf<TestArg>()
-
-                expectTypeOf(action.payload).toEqualTypeOf<TestReturned>()
-              },
-              rejected(state, action) {
-                expectTypeOf(state).toEqualTypeOf<TestState>()
-
-                expectTypeOf(action.meta.arg).toEqualTypeOf<TestArg>()
-
-                expectTypeOf(action.error).toEqualTypeOf<SerializedError>()
-
-                expectTypeOf(action.payload).toEqualTypeOf<
-                  TestReject | undefined
-                >()
-              },
-              settled(state, action) {
-                expectTypeOf(state).toEqualTypeOf<TestState>()
-
-                expectTypeOf(action.meta.arg).toEqualTypeOf<TestArg>()
-
-                if (isRejected(action)) {
-                  expectTypeOf(action.error).toEqualTypeOf<SerializedError>()
-
-                  expectTypeOf(action.payload).toEqualTypeOf<
-                    TestReject | undefined
-                  >()
-                } else {
-                  expectTypeOf(action.payload).toEqualTypeOf<TestReturned>()
-                }
-              },
-            },
-          ),
-          testPreTyped: preTypedAsyncThunk(
-            function payloadCreator(arg: TestArg, api) {
-              expectTypeOf(api.rejectWithValue).toMatchTypeOf<
-                (value: TestReject) => any
-              >()
-
-              return Promise.resolve<TestReturned>({ payload: 'foo' })
-            },
-            {
-              pending(state, action) {
-                expectTypeOf(state).toEqualTypeOf<TestState>()
-
-                expectTypeOf(action.meta.arg).toEqualTypeOf<TestArg>()
-              },
-              fulfilled(state, action) {
-                expectTypeOf(state).toEqualTypeOf<TestState>()
-
-                expectTypeOf(action.meta.arg).toEqualTypeOf<TestArg>()
-
-                expectTypeOf(action.payload).toEqualTypeOf<TestReturned>()
-              },
-              rejected(state, action) {
-                expectTypeOf(state).toEqualTypeOf<TestState>()
-
-                expectTypeOf(action.meta.arg).toEqualTypeOf<TestArg>()
-
-                expectTypeOf(action.error).toEqualTypeOf<SerializedError>()
-
-                expectTypeOf(action.payload).toEqualTypeOf<
-                  TestReject | undefined
-                >()
-              },
-              settled(state, action) {
-                expectTypeOf(state).toEqualTypeOf<TestState>()
-
-                expectTypeOf(action.meta.arg).toEqualTypeOf<TestArg>()
-
-                if (isRejected(action)) {
-                  expectTypeOf(action.error).toEqualTypeOf<SerializedError>()
-
-                  expectTypeOf(action.payload).toEqualTypeOf<
-                    TestReject | undefined
-                  >()
-                } else {
-                  expectTypeOf(action.payload).toEqualTypeOf<TestReturned>()
-                }
-              },
-            },
-          ),
-        }
-      },
+            expectTypeOf(action.error).toEqualTypeOf<'error'>()
+          },
+        ),
+      }),
     })
 
     const store = configureStore({ reducer: { test: slice.reducer } })
@@ -869,28 +689,6 @@ describe('type tests', () => {
         'error',
         'meta'
       >
-    >()
-
-    expectTypeOf(slice.actions.testInfer).toEqualTypeOf<
-      AsyncThunk<TestReturned, TestArg, {}>
-    >()
-
-    expectTypeOf(slice.actions.testExplicitType).toEqualTypeOf<
-      AsyncThunk<TestReturned, TestArg, { rejectValue: TestReject }>
-    >()
-
-    type TestInferThunk = AsyncThunk<TestReturned, TestArg, {}>
-
-    expectTypeOf(slice.caseReducers.testInfer.pending).toEqualTypeOf<
-      CaseReducer<TestState, ReturnType<TestInferThunk['pending']>>
-    >()
-
-    expectTypeOf(slice.caseReducers.testInfer.fulfilled).toEqualTypeOf<
-      CaseReducer<TestState, ReturnType<TestInferThunk['fulfilled']>>
-    >()
-
-    expectTypeOf(slice.caseReducers.testInfer.rejected).toEqualTypeOf<
-      CaseReducer<TestState, ReturnType<TestInferThunk['rejected']>>
     >()
   })
 
