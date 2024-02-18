@@ -24,6 +24,7 @@ import { executeReducerBuilderCallback } from './mapBuilders'
 import type { Id, TypeGuard, UnionToIntersection } from './tsHelpers'
 import type { InjectConfig } from './combineSlices'
 import { emplace } from './utils'
+import { DistributiveOmit } from 'react-redux'
 
 export enum ReducerType {
   reducer = 'reducer',
@@ -75,23 +76,23 @@ export interface SliceReducerCreators<
     },
     {
       actions: {
-        [ReducerName in keyof CaseReducers as CaseReducers[ReducerName] extends CaseReducer<
+        [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends CaseReducer<
           State,
           any
         >
-          ? ReducerName
-          : never]: ActionCreatorForCaseReducer<
-          CaseReducers[ReducerName],
-          SliceActionType<Name, ReducerName>
-        >
+          ? ActionCreatorForCaseReducer<
+              CaseReducers[ReducerName],
+              SliceActionType<Name, ReducerName>
+            >
+          : never
       }
       caseReducers: {
-        [ReducerName in keyof CaseReducers as CaseReducers[ReducerName] extends CaseReducer<
+        [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends CaseReducer<
           State,
           any
         >
-          ? ReducerName
-          : never]: CaseReducers[ReducerName]
+          ? CaseReducers[ReducerName]
+          : never
       }
     }
   >
@@ -105,26 +106,26 @@ export interface SliceReducerCreators<
     ) => PreparedCaseReducerDefinition<State, Prepare>,
     {
       actions: {
-        [ReducerName in keyof CaseReducers as CaseReducers[ReducerName] extends CaseReducerWithPrepare<
+        [ReducerName in keyof CaseReducers as ReducerName]: CaseReducers[ReducerName] extends CaseReducerWithPrepare<
           State,
           any
         >
-          ? ReducerName
-          : never]: CaseReducers[ReducerName] extends { prepare: any }
-          ? ActionCreatorForCaseReducerWithPrepare<
-              CaseReducers[ReducerName],
-              SliceActionType<Name, ReducerName>
-            >
+          ? CaseReducers[ReducerName] extends { prepare: any }
+            ? ActionCreatorForCaseReducerWithPrepare<
+                CaseReducers[ReducerName],
+                SliceActionType<Name, ReducerName>
+              >
+            : never
           : never
       }
       caseReducers: {
-        [ReducerName in keyof CaseReducers as CaseReducers[ReducerName] extends CaseReducerWithPrepare<
+        [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends CaseReducerWithPrepare<
           State,
           any
         >
-          ? ReducerName
-          : never]: CaseReducers[ReducerName] extends { reducer: infer Reducer }
-          ? Reducer
+          ? CaseReducers[ReducerName] extends { reducer: infer Reducer }
+            ? Reducer
+            : never
           : never
       }
     }
@@ -133,10 +134,7 @@ export interface SliceReducerCreators<
     AsyncThunkCreator<State>,
     {
       actions: {
-        [ReducerName in ReducerNamesOfType<
-          CaseReducers,
-          ReducerType.asyncThunk
-        >]: CaseReducers[ReducerName] extends AsyncThunkSliceReducerDefinition<
+        [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends AsyncThunkSliceReducerDefinition<
           State,
           infer ThunkArg,
           infer Returned,
@@ -146,10 +144,7 @@ export interface SliceReducerCreators<
           : never
       }
       caseReducers: {
-        [ReducerName in ReducerNamesOfType<
-          CaseReducers,
-          ReducerType.asyncThunk
-        >]: CaseReducers[ReducerName] extends AsyncThunkSliceReducerDefinition<
+        [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends AsyncThunkSliceReducerDefinition<
           State,
           any,
           any,
@@ -631,6 +626,10 @@ export type SliceActionType<
   ActionName extends keyof any,
 > = ActionName extends string | number ? `${SliceName}/${ActionName}` : string
 
+type ConvertNeverKeysToUnknown<T> = T extends any
+  ? { [K in keyof T]: T[K] extends never ? unknown : T[K] }
+  : never
+
 /**
  * Derives the slice's `actions` property from the `reducers` options
  *
@@ -642,11 +641,13 @@ export type CaseReducerActions<
   State = any,
 > = Id<
   UnionToIntersection<
-    SliceReducerCreators<
-      State,
-      CaseReducers,
-      SliceName
-    >[RegisteredReducerType]['actions']
+    ConvertNeverKeysToUnknown<
+      SliceReducerCreators<
+        State,
+        CaseReducers,
+        SliceName
+      >[RegisteredReducerType]['actions']
+    >
   >
 >
 
@@ -686,11 +687,13 @@ type SliceDefinedCaseReducers<
   State = any,
 > = Id<
   UnionToIntersection<
-    SliceReducerCreators<
-      State,
-      CaseReducers,
-      SliceName
-    >[RegisteredReducerType]['caseReducers']
+    ConvertNeverKeysToUnknown<
+      SliceReducerCreators<
+        State,
+        CaseReducers,
+        SliceName
+      >[RegisteredReducerType]['caseReducers']
+    >
   >
 >
 

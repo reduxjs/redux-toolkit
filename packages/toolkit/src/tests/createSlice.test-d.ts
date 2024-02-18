@@ -15,7 +15,6 @@ import type {
   ReducerCreators,
   ReducerDefinition,
   ReducerHandlingContextMethods,
-  ReducerNamesOfType,
   SliceActionType,
   SliceCaseReducers,
   ThunkAction,
@@ -894,10 +893,11 @@ declare module '@reduxjs/toolkit' {
         : never,
       {
         actions: {
-          [ReducerName in ReducerNamesOfType<
-            CaseReducers,
+          [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends ReducerDefinition<
             typeof toasterCreatorType
-          >]: AddToastThunk<Name, ReducerName>
+          >
+            ? AddToastThunk<Name, ReducerName>
+            : never
         }
       }
     >

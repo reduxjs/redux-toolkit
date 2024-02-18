@@ -12,13 +12,11 @@ import type {
   ReducerCreatorEntry,
   ReducerCreators,
   ReducerDefinition,
-  ReducerNamesOfType,
   SliceActionType,
   ThunkAction,
   WithSlice,
 } from '@reduxjs/toolkit'
 import {
-  asyncThunkCreator,
   buildCreateSlice,
   combineSlices,
   configureStore,
@@ -998,18 +996,20 @@ declare module '@reduxjs/toolkit' {
       ) => LoaderReducerDefinition<State>,
       {
         actions: {
-          [ReducerName in ReducerNamesOfType<
-            CaseReducers,
+          [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends ReducerDefinition<
             typeof loaderCreatorType
-          >]: LoaderThunk<Name, ReducerName>
+          >
+            ? LoaderThunk<Name, ReducerName>
+            : never
         }
         caseReducers: {
-          [ReducerName in ReducerNamesOfType<
-            CaseReducers,
+          [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends ReducerDefinition<
             typeof loaderCreatorType
-          >]: Required<
-            Pick<LoaderReducerDefinition<State>, 'ended' | 'started'>
           >
+            ? Required<
+                Pick<LoaderReducerDefinition<State>, 'ended' | 'started'>
+              >
+            : never
         }
       }
     >
@@ -1025,18 +1025,16 @@ declare module '@reduxjs/toolkit' {
         : never,
       {
         actions: {
-          [ReducerName in ReducerNamesOfType<
-            CaseReducers,
+          [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends ReducerDefinition<
             typeof historyMethodsCreatorType
-          >]: CaseReducers[ReducerName] extends { type: 'reset' }
+          > & { type: 'reset' }
             ? PayloadActionCreator<void, SliceActionType<Name, ReducerName>>
             : never
         }
         caseReducers: {
-          [ReducerName in ReducerNamesOfType<
-            CaseReducers,
+          [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends ReducerDefinition<
             typeof historyMethodsCreatorType
-          >]: CaseReducers[ReducerName] extends { type: 'reset' }
+          > & { type: 'reset' }
             ? CaseReducer<State, PayloadAction>
             : never
         }
