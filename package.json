@@ -71,10 +71,10 @@
   "scripts": {
     "build": "yarn build:packages",
     "test": "yarn test:packages",
-    "build:examples": "yarn workspaces foreach --include '@reduxjs/*' --include '@examples-query-react/*' --include '@examples-action-listener/*' -vtp run build",
+    "build:examples": "yarn workspaces foreach -A --include '@reduxjs/*' --include '@examples-query-react/*' --include '@examples-action-listener/*' -vtp run build",
     "build:docs": "yarn workspace website run build",
-    "build:packages": "yarn workspaces foreach --include '@reduxjs/*' --include '@rtk-query/*' --topological-dev run build",
-    "test:packages": "yarn workspaces foreach --include '@reduxjs/*' --include '@rtk-query/*'  --include '@rtk-incubator/*' run test",
+    "build:packages": "yarn workspaces foreach -A --include '@reduxjs/*' --include '@rtk-query/*' --topological-dev run build",
+    "test:packages": "yarn workspaces foreach -A --include '@reduxjs/*' --include '@rtk-query/*'  --include '@rtk-incubator/*' run test",
     "dev:docs": "yarn workspace website run start"
   },
   "packageManager": "yarn@4.1.0"
