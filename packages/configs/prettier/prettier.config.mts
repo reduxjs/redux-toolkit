@@ -5,7 +5,9 @@ export const reduxPrettierConfig: Config = {
   singleQuote: true,
 }
 
-export const createPrettierConfig = (overrides: Partial<Config>): Config => ({
+export const createPrettierConfig = (
+  overrides: Partial<Config> = {},
+): Config => ({
   ...reduxPrettierConfig,
   ...overrides,
 })
