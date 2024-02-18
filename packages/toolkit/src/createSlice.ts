@@ -1119,19 +1119,11 @@ export function buildCreateSlice<
           reducerName,
           type: getType(name, reducerName),
         }
-        if ('reducer' in reducerDefinition) {
-          preparedReducerCreator.handle(
-            reducerDetails,
-            reducerDefinition as any,
-            contextMethods,
-          )
-        } else {
-          reducerCreator.handle(
-            reducerDetails,
-            reducerDefinition as any,
-            contextMethods,
-          )
-        }
+        const handler =
+          'reduce' in reducerDefinition
+            ? preparedReducerCreator
+            : reducerCreator
+        handler.handle(reducerDetails, reducerDefinition as any, contextMethods)
       }
     }
 
