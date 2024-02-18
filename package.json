@@ -24,6 +24,10 @@
     "packages/configs/*"
   ],
   "devDependencies": {
+    "@reduxjs/eslint-config": "workspace:^",
+    "@reduxjs/prettier-config": "workspace:^",
+    "@reduxjs/tsconfig": "workspace:^",
+    "@reduxjs/vitest-config": "workspace:^",
     "@typescript-eslint/eslint-plugin": "^7.0.1",
     "@typescript-eslint/parser": "^7.0.1",
     "eslint": "^7.25.0",

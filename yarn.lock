@@ -7333,10 +7333,6 @@ __metadata:
     "@arethetypeswrong/cli": ^0.13.5
     "@microsoft/api-extractor": ^7.13.2
     "@phryneas/ts-version": ^1.0.2
-    "@reduxjs/eslint-config": "workspace:^"
-    "@reduxjs/prettier-config": "workspace:^"
-    "@reduxjs/tsconfig": "workspace:^"
-    "@reduxjs/vitest-config": "workspace:^"
     "@size-limit/file": ^11.0.1
     "@size-limit/webpack": ^11.0.1
     "@testing-library/react": ^13.3.0
@@ -25633,6 +25629,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "rtk-monorepo@workspace:."
   dependencies:
+    "@reduxjs/eslint-config": "workspace:^"
+    "@reduxjs/prettier-config": "workspace:^"
+    "@reduxjs/tsconfig": "workspace:^"
+    "@reduxjs/vitest-config": "workspace:^"
     "@typescript-eslint/eslint-plugin": ^7.0.1
     "@typescript-eslint/parser": ^7.0.1
     eslint: ^7.25.0
