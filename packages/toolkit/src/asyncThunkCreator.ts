@@ -1,4 +1,11 @@
 import type {
+  ReducerNamesOfType,
+  ReducerCreatorEntry,
+  ReducerCreator,
+  ReducerDefinition,
+  CreatorCaseReducers,
+} from '@reduxjs/toolkit'
+import type {
   AsyncThunk,
   AsyncThunkConfig,
   AsyncThunkOptions,
@@ -7,13 +14,6 @@ import type {
 } from './createAsyncThunk'
 import { createAsyncThunk } from './createAsyncThunk'
 import type { CaseReducer } from './createReducer'
-import type {
-  CreatorCaseReducers,
-  ReducerCreator,
-  ReducerCreatorEntry,
-  ReducerDefinition,
-  ReducerNamesOfType,
-} from './createSlice'
 import { ReducerType } from './createSlice'
 import type { Id } from './tsHelpers'
 
@@ -21,7 +21,7 @@ declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
     State,
     CaseReducers extends CreatorCaseReducers<State>,
-    Name extends string = string,
+    Name extends string,
   > {
     [ReducerType.asyncThunk]: ReducerCreatorEntry<
       AsyncThunkCreator<State>,
