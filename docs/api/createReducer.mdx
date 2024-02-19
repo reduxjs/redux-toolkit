@@ -52,7 +52,7 @@ const increment = createAction('counter/increment')
 const decrement = createAction('counter/decrement')
 const incrementByAmount = createAction<number>('counter/incrementByAmount')
 
-const initialState = { value: 0 } as CounterState
+const initialState = { value: 0 } satisfies CounterState as CounterState
 
 const counterReducer = createReducer(initialState, (builder) => {
   builder
