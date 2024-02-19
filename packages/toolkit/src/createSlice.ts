@@ -321,15 +321,6 @@ export type ReducerCreator<Type extends RegisteredReducerType> = {
       ): void
     })
 
-export type ReducerNamesOfType<
-  CaseReducers extends CreatorCaseReducers<any>,
-  Type extends RegisteredReducerType,
-> = {
-  [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends ReducerDefinition<Type>
-    ? ReducerName
-    : never
-}[keyof CaseReducers]
-
 interface InjectIntoConfig<NewReducerPath extends string> extends InjectConfig {
   reducerPath?: NewReducerPath
 }

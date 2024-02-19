@@ -84,7 +84,6 @@ export type {
   SliceSelectors,
   SliceReducerCreators,
   ReducerDefinition,
-  ReducerNamesOfType,
   ReducerCreatorEntry,
   ReducerCreator,
   ReducerDetails,
