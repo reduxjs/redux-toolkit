@@ -1245,7 +1245,13 @@ It should be an object with some of the following properties:
 
 The actions property will typically be a [mapped type](https://www.typescriptlang.org/docs/handbook/2/mapped-types.html) over the `CaseReducers` type parameter, returning what the creator's `handle` would expose when given that definition.
 
-The `ReducerNamesOfType` utility is exported to easily filter down to reducers that would be passed to the `handle` callback.
+In order to ensure that the definitions are correctly filtered to only include those handled by the creator, a conditional type should be used, typically checking the definition extends a `ReducerDefinition` with the right type.
+
+```ts no-transpile
+{
+  [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends ReducerDefinition<typeof creatorType> ? ActionTypeHere : never
+}
+```
 
 For example, with (a simplified version of) the `asyncThunk` creator:
 
@@ -1265,10 +1271,7 @@ declare module '@reduxjs/toolkit' {
       {
         // highlight-start
         actions: {
-          [ReducerName in ReducerNamesOfType<
-            CaseReducers,
-            typeof asyncThunkCreatorType
-          >]: CaseReducers[ReducerName] extends AsyncThunkReducerDefinition<
+          [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends AsyncThunkReducerDefinition<
             State,
             infer ThunkArg,
             infer Returned
@@ -1305,23 +1308,25 @@ declare module '@reduxjs/toolkit' {
       ) => PreparedCaseReducerDefinition<State, Prepare>,
       {
         actions: {
-          [ReducerName in ReducerNamesOfType<
-            CaseReducers,
+          [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends ReducerDefinition<
             typeof preparedReducerType
-          >]: CaseReducers[ReducerName] extends { prepare: any }
-            ? ActionCreatorForCaseReducerWithPrepare<
-                CaseReducers[ReducerName],
-                SliceActionType<Name, ReducerName>
-              >
+          >
+            ? CaseReducers[ReducerName] extends { prepare: any }
+              ? ActionCreatorForCaseReducerWithPrepare<
+                  CaseReducers[ReducerName],
+                  SliceActionType<Name, ReducerName>
+                >
+              : never
             : never
         }
         // highlight-start
         caseReducers: {
-          [ReducerName in ReducerNamesOfType<
-            CaseReducers,
+          [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends ReducerDefinition<
             typeof preparedReducerType
-          >]: CaseReducers[ReducerName] extends { reducer: infer Reducer }
-            ? Reducer
+          >
+            ? CaseReducers[ReducerName] extends { reducer: infer Reducer }
+              ? Reducer
+              : never
             : never
         }
         // highlight-end
@@ -1375,6 +1380,10 @@ interface ToastReducerConfig<State> {
   hidden?: CaseReducer<State, PayloadAction<undefined, string, { id: string }>>
 }
 
+interface ToastReducerDefinition<State>
+  extends ReducerDefinition<typeof toastCreatorType>,
+    ToastReducerConfig<State> {}
+
 interface ToastThunkCreator<
   SliceName extends string,
   ReducerName extends string,
@@ -1403,20 +1412,17 @@ declare module '@reduxjs/toolkit' {
     Name extends string,
   > {
     [toastCreatorType]: ReducerCreatorEntry<
-      (
-        config: ToastReducerConfig<State>,
-      ) => ToastReducerConfig<State> &
-        ReducerDefinition<typeof toastCreatorType>,
+      (config: ToastReducerConfig<State>) => ToastReducerDefinition<State>,
       {
         actions: {
-          [ReducerName in ReducerNamesOfType<
-            typeof toastCreatorType
-          >]: ToastThunkCreator<Name, ReducerName>
+          [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends ToastReducerDefinition<State>
+            ? ToastThunkCreator<Name, ReducerName>
+            : never
         }
         caseReducers: {
-          [ReducerName in ReducerNamesOfType<
-            typeof toastCreatorType
-          >]: Required<ToastReducerConfig<State>>
+          [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends ToastReducerDefinition<State>
+            ? Required<ToastReducerConfig<State>>
+            : never
         }
       }
     >
@@ -1598,38 +1604,41 @@ interface HistoryState<T> {
 declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
     State,
-    CaseReducers extends
-      CreatorCaseReducers<State>,
+    CaseReducers extends CreatorCaseReducers<State>,
     Name extends string,
   > {
-    [paginationCreatorType]: ReducerCreatorEntry<
+    [historyCreatorType]: ReducerCreatorEntry<
       // make sure the creator is only called when state is compatibleState extends HistoryState<unknown>
-        ?
-      (this: ReducerCreators<State>) => {
+      State extends HistoryState<any>
+        ? (this: ReducerCreators<State>) => {
             undo: CaseReducerDefinition<State, PayloadAction>
             redo: CaseReducerDefinition<State, PayloadAction>
-            reset: ReducerDefinition<typeof paginationCreatorType> & {
+            reset: ReducerDefinition<typeof historyCreatorType> & {
               type: 'reset'
             }
           }
-        : never, {
-      actions: {
-        [ReducerName in ReducerNamesOfType<
-          CaseReducers,
-          typeof historyMethodsCreatorType
-        >]: CaseReducers[ReducerName] extends { type: 'reset' }
-          ? PayloadActionCreator<void, SliceActionType<Name, ReducerName>>
-          : never
+        : never,
+      {
+        actions: {
+          [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends ReducerDefinition<
+            typeof historyCreatorType
+          >
+            ? CaseReducers[ReducerName] extends { type: 'reset' }
+              ? PayloadActionCreator<void, SliceActionType<Name, ReducerName>>
+              : never
+            : never
+        }
+        caseReducers: {
+          [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends ReducerDefinition<
+            typeof historyCreatorType
+          >
+            ? CaseReducers[ReducerName] extends { type: 'reset' }
+              ? CaseReducer<State, PayloadAction>
+              : never
+            : never
+        }
       }
-      caseReducers: {
-        [ReducerName in ReducerNamesOfType<
-          CaseReducers,
-          typeof historyMethodsCreatorType
-        >]: CaseReducers[ReducerName] extends { type: 'reset' }
-          ? CaseReducer<State, PayloadAction>
-          : never
-      }
-    }>
+    >
   }
 }
 
