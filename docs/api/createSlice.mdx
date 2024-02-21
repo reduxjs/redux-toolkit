@@ -25,7 +25,7 @@ interface CounterState {
   value: number
 }
 
-const initialState = { value: 0 } as CounterState
+const initialState = { value: 0 } satisfies CounterState as CounterState
 
 const counterSlice = createSlice({
   name: 'counter',
@@ -162,7 +162,7 @@ const todosSlice = createAppSlice({
   initialState: {
     loading: false,
     todos: [],
-  } as TodoState,
+  } satisfies TodoState as TodoState,
   reducers: (create) => ({
     fetchTodo: create.asyncThunk(
       // payload creator
@@ -357,7 +357,7 @@ interface CounterState {
 
 const counterSlice = createSlice({
   name: 'counter',
-  initialState: { value: 0 } as CounterState,
+  initialState: { value: 0 } satisfies CounterState as CounterState,
   reducers: {
     // omitted
   },
@@ -386,7 +386,7 @@ interface CounterState {
 
 const counterSlice = createSlice({
   name: 'counter',
-  initialState: { value: 0 } as CounterState,
+  initialState: { value: 0 } satisfies CounterState as CounterState,
   reducers: {
     // omitted
   },
@@ -452,7 +452,7 @@ const decrementBy = createAction<number>('decrementBy')
 
 const counter = createSlice({
   name: 'counter',
-  initialState: 0 as number,
+  initialState: 0 satisfies number as number,
   reducers: {
     increment: (state) => state + 1,
     decrement: (state) => state - 1,
@@ -946,7 +946,7 @@ const { addOneGoose, upsertManyGeese, removeAllGeese, ...etc } =
 
 ### Writing your own creators
 
-In version v2.2.0 (TODO), we introduced a system for including your own creators.
+In version v2.3.0, we introduced a system for including your own creators.
 
 The below documentation will cover how to write your own creators, and how to use them with `createSlice`.
 
