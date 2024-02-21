@@ -11,7 +11,7 @@ jobs:
     outputs:
       toolkit: ${{ steps.filter.outputs.toolkit }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v2
         id: filter
         with:
@@ -34,7 +34,7 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Use node ${{ matrix.node }}
         uses: actions/setup-node@v2
@@ -70,7 +70,7 @@ jobs:
         node: ['20.x']
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Use node ${{ matrix.node }}
         uses: actions/setup-node@v2
@@ -108,7 +108,7 @@ jobs:
         ts: ['4.7', '4.8', '4.9', '5.0', '5.1', '5.2', '5.3']
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Use node ${{ matrix.node }}
         uses: actions/setup-node@v2
@@ -164,10 +164,10 @@ jobs:
       run:
         working-directory: ./examples/publish-ci/${{ matrix.example }}
     env:
-      YARN_ENABLE_IMMUTABLE_INSTALLS: "false"
+      YARN_ENABLE_IMMUTABLE_INSTALLS: 'false'
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Use node ${{ matrix.node }}
         uses: actions/setup-node@v2
@@ -219,7 +219,7 @@ jobs:
         node: ['20.x']
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Use node ${{ matrix.node }}
         uses: actions/setup-node@v2
