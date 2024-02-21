@@ -18,7 +18,7 @@ rtk-codemods <TRANSFORM NAME> path/of/files/ or/some**/*glob.js
 ## Local Usage
 
 ```
-node ./bin/cli.js <TRANSFORM NAME> path/of/files/ or/some**/*glob.js
+node ./bin/cli.mjs <TRANSFORM NAME> path/of/files/ or/some**/*glob.js
 ```
 
 ## Transforms

@@ -301,6 +301,7 @@ You must add the middleware for RTK-Query to function correctly!`,
           forceRefetch,
           subscriptionOptions,
           [forceQueryFnSymbol]: forceQueryFn,
+          ...rest
         } = {},
       ) =>
       (dispatch, getState) => {
@@ -311,6 +312,7 @@ You must add the middleware for RTK-Query to function correctly!`,
         })
 
         const thunk = queryThunk({
+          ...rest,
           type: 'query',
           subscribe,
           forceRefetch: forceRefetch,

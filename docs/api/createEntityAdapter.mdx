@@ -139,6 +139,12 @@ export interface EntityStateAdapter<T> {
   addMany<S extends EntityState<T>>(state: S, entities: T[]): S
   addMany<S extends EntityState<T>>(state: S, entities: PayloadAction<T[]>): S
 
+  setOne<S extends EntityState<T>>(state: S, entity: T): S
+  setOne<S extends EntityState<T>>(state: S, action: PayloadAction<T>): S
+
+  setMany<S extends EntityState<T>>(state: S, entities: T[]): S
+  setMany<S extends EntityState<T>>(state: S, entities: PayloadAction<T[]>): S
+
   setAll<S extends EntityState<T>>(state: S, entities: T[]): S
   setAll<S extends EntityState<T>>(state: S, entities: PayloadAction<T[]>): S
 
@@ -267,6 +273,39 @@ const booksSlice = createSlice({
   },
 })
 ```
+
+You can also pass in an array of entities or a `Record<EntityId, T>` object to pre-populate the initial state with some entities:
+
+```js
+const booksSlice = createSlice({
+  name: 'books',
+  initialState: booksAdapter.getInitialState(
+    {
+      loading: 'idle',
+    },
+    [
+      { id: 'a', title: 'First' },
+      { id: 'b', title: 'Second' },
+    ],
+  ),
+  reducers: {},
+})
+```
+
+This is equivalent to calling:
+
+```js
+const initialState = booksAdapter.getInitialState({
+  loading: 'idle',
+})
+
+const prePopulatedState = booksAdapter.setAll(initialState, [
+  { id: 'a', title: 'First' },
+  { id: 'b', title: 'Second' },
+])
+```
+
+The first parameter can be `undefined` if no additional properties are needed.
 
 ### Selector Functions
 

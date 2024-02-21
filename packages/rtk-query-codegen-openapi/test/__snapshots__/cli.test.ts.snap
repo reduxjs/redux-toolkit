@@ -1,7 +1,7 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`CLI options testing generation with \`config.example.js\` 1`] = `
-import { api } from '../fixtures/emptyApi';
+exports[`CLI options testing > generation with \`config.example.js\` 1`] = `
+"import { api } from '../fixtures/emptyApi';
 const injectedRtkApi = api.injectEndpoints({
   endpoints: (build) => ({
     updatePet: build.mutation<UpdatePetApiResponse, UpdatePetApiArg>({
@@ -217,11 +217,11 @@ export type User = {
   phone?: string;
   userStatus?: number;
 };
-
+"
 `;
 
-exports[`CLI options testing paths are relative to configfile, not to cwd 1`] = `
-import { api } from '../fixtures/emptyApi';
+exports[`CLI options testing > paths are relative to config file, not to cwd 1`] = `
+"import { api } from '../fixtures/emptyApi';
 const injectedRtkApi = api.injectEndpoints({
   endpoints: (build) => ({
     updatePet: build.mutation<UpdatePetApiResponse, UpdatePetApiArg>({
@@ -437,5 +437,5 @@ export type User = {
   phone?: string;
   userStatus?: number;
 };
-
+"
 `;

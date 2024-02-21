@@ -321,6 +321,10 @@ export function buildThunks<
         }
       }
 
+      if (ret.patches.length === 0) {
+        return ret
+      }
+
       dispatch(
         api.util.patchQueryData(
           endpointName,
@@ -609,11 +613,12 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
       const force = hasTheForce(options) && options.force
       const maxAge = hasMaxAge(options) && options.ifOlderThan
 
-      const queryAction = (force: boolean = true) =>
-        (api.endpoints[endpointName] as ApiEndpointQuery<any, any>).initiate(
-          arg,
-          { forceRefetch: force },
-        )
+      const queryAction = (force: boolean = true) => {
+        const options = { forceRefetch: force, isPrefetch: true }
+        return (
+          api.endpoints[endpointName] as ApiEndpointQuery<any, any>
+        ).initiate(arg, options)
+      }
       const latestStateValue = (
         api.endpoints[endpointName] as ApiEndpointQuery<any, any>
       ).select(arg)(getState())
