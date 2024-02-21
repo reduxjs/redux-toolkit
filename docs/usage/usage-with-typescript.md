@@ -273,7 +273,7 @@ createSlice({
 
 You might have noticed that it is not a good idea to pass your `SliceState` type as a generic to `createSlice`. This is due to the fact that in almost all cases, follow-up generic parameters to `createSlice` need to be inferred, and TypeScript cannot mix explicit declaration and inference of generic types within the same "generic block".
 
-The standard approach is to declare an interface or type for your state, create an initial state value that uses that type, and pass the initial state value to `createSlice`. You can also use the construct `initialState: myInitialState as SliceState`.
+The standard approach is to declare an interface or type for your state, create an initial state value that uses that type, and pass the initial state value to `createSlice`. You can also use the construct `initialState: myInitialState satisfies SliceState as SliceState`.
 
 ```ts {1,4,8,15}
 type SliceState = { state: 'loading' } | { state: 'finished'; data: string }
@@ -290,7 +290,7 @@ createSlice({
 // Or, cast the initial state as necessary
 createSlice({
   name: 'test2',
-  initialState: { state: 'loading' } as SliceState,
+  initialState: { state: 'loading' } satisfies SliceState as SliceState,
   reducers: {},
 })
 ```
@@ -368,14 +368,14 @@ const fetchUserById = createAsyncThunk(
 )
 
 interface UsersState {
-  entities: []
+  entities: User[]
   loading: 'idle' | 'pending' | 'succeeded' | 'failed'
 }
 
 const initialState = {
   entities: [],
   loading: 'idle',
-} as UsersState
+} satisfies UsersState as UsersState
 
 const usersSlice = createSlice({
   name: 'users',
