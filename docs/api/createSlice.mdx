@@ -25,7 +25,7 @@ interface CounterState {
   value: number
 }
 
-const initialState = { value: 0 } as CounterState
+const initialState = { value: 0 } satisfies CounterState as CounterState
 
 const counterSlice = createSlice({
   name: 'counter',
@@ -158,7 +158,7 @@ const todosSlice = createSlice({
   initialState: {
     loading: false,
     todos: [],
-  } as TodoState,
+  } satisfies TodoState as TodoState,
   reducers: (create) => ({
     deleteTodo: create.reducer<number>((state, action) => {
       state.todos.splice(action.payload, 1)
@@ -513,7 +513,7 @@ interface CounterState {
 
 const counterSlice = createSlice({
   name: 'counter',
-  initialState: { value: 0 } as CounterState,
+  initialState: { value: 0 } satisfies CounterState as CounterState,
   reducers: {
     // omitted
   },
@@ -542,7 +542,7 @@ interface CounterState {
 
 const counterSlice = createSlice({
   name: 'counter',
-  initialState: { value: 0 } as CounterState,
+  initialState: { value: 0 } satisfies CounterState as CounterState,
   reducers: {
     // omitted
   },
@@ -608,7 +608,7 @@ const decrementBy = createAction<number>('decrementBy')
 
 const counter = createSlice({
   name: 'counter',
-  initialState: 0 as number,
+  initialState: 0 satisfies number as number,
   reducers: {
     increment: (state) => state + 1,
     decrement: (state) => state - 1,
