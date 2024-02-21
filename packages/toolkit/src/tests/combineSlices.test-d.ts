@@ -33,6 +33,19 @@ describe('type tests', () => {
     }>()
   })
 
+  test('combineSlices allows passing no initial reducers', () => {
+    const rootReducer = combineSlices()
+
+    expectTypeOf(rootReducer(undefined, { type: '' })).toEqualTypeOf<{}>()
+
+    const declaredLazy =
+      combineSlices().withLazyLoadedSlices<WithSlice<typeof numberSlice>>()
+
+    expectTypeOf(declaredLazy(undefined, { type: '' })).toEqualTypeOf<{
+      number?: number
+    }>()
+  })
+
   test('withLazyLoadedSlices adds partial to state', () => {
     const rootReducer = combineSlices(stringSlice).withLazyLoadedSlices<
       WithSlice<typeof numberSlice> & WithSlice<typeof exampleApi>
@@ -185,5 +198,22 @@ describe('type tests', () => {
       // @ts-ignore
       (rootState: RootState, num: number) => rootState.inner,
     )
+  })
+
+  test('correct type of state is inferred when not declared via `withLazyLoadedSlices`', () => {
+    // Related to https://github.com/reduxjs/redux-toolkit/issues/4171
+
+    const combinedReducer = combineSlices(stringSlice)
+
+    const withNumber = combinedReducer.inject(numberSlice)
+
+    expectTypeOf(withNumber).returns.toEqualTypeOf<{
+      string: string
+      number: number
+    }>()
+
+    expectTypeOf(
+      withNumber(undefined, { type: '' }).number,
+    ).toMatchTypeOf<number>()
   })
 })

@@ -18,7 +18,7 @@ rtk-codemods createReducerBuilder path/of/files/ or/some**/*glob.js
 ## Local Usage
 
 ```
-node ./bin/cli.js createReducerBuilder path/of/files/ or/some**/*glob.js
+node ./bin/cli.mjs createReducerBuilder path/of/files/ or/some**/*glob.js
 ```
 
 ## Input / Output

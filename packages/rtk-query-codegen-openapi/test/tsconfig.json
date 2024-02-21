@@ -1,22 +1,21 @@
 {
   "compilerOptions": {
-    "lib": ["es2019"],
     "paths": {
       "@/*": ["./test/fixtures/*"],
-      "@rtk-query/codegen-openapi": ["./src"],
+      "@rtk-query/codegen-openapi": ["./src"]
     },
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "node",
+    "module": "ESNext",
+    "moduleResolution": "Node",
     "strict": true,
     "noEmit": true,
-    "target": "es2018",
+    "target": "ESNext",
     "jsx": "react",
     "baseUrl": "..",
     "resolveJsonModule": true,
-    "types": ["node", "jest"],
+    "types": ["vitest/globals", "vitest/importMeta"],
     "allowJs": true,
-    "checkJs": true,
-  },
+    "checkJs": true
+  }
 }

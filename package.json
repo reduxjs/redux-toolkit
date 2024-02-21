@@ -35,9 +35,10 @@
     "eslint-plugin-react": "^7.23.2",
     "eslint-plugin-react-hooks": "^4.2.0",
     "netlify-plugin-cache": "^1.0.3",
-    "prettier": "^3.2.4",
+    "prettier": "^3.2.5",
     "release-it": "^14.12.5",
     "serve": "^14.2.0",
+    "ts-node": "^10.9.2",
     "typescript": "^5.2.2"
   },
   "resolutions": {
@@ -53,7 +54,6 @@
     "react": "npm:18.2.0",
     "react-dom": "npm:18.2.0",
     "resolve": "1.22.1",
-    "ts-node": "10.4.0",
     "@types/react": "npm:18.0.12",
     "@types/react-dom": "npm:18.0.5",
     "@types/inquirer": "npm:8.2.1",
@@ -71,10 +71,11 @@
   "scripts": {
     "build": "yarn build:packages",
     "test": "yarn test:packages",
-    "build:examples": "yarn workspaces foreach --include '@reduxjs/*' --include '@examples-query-react/*' --include '@examples-action-listener/*' -vtp run build",
+    "build:examples": "yarn workspaces foreach -A --include '@reduxjs/*' --include '@examples-query-react/*' --include '@examples-action-listener/*' -vtp run build",
     "build:docs": "yarn workspace website run build",
-    "build:packages": "yarn workspaces foreach --include '@reduxjs/*' --include '@rtk-query/*' --topological-dev run build",
-    "test:packages": "yarn workspaces foreach --include '@reduxjs/*' --include '@rtk-query/*'  --include '@rtk-incubator/*' run test",
+    "build:packages": "yarn workspaces foreach -A --include '@reduxjs/*' --include '@rtk-query/*' --topological-dev run build",
+    "test:packages": "yarn workspaces foreach -A --include '@reduxjs/*' --include '@rtk-query/*'  --include '@rtk-incubator/*' run test",
     "dev:docs": "yarn workspace website run start"
-  }
+  },
+  "packageManager": "yarn@4.1.0"
 }
