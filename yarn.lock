@@ -23637,11 +23637,11 @@ __metadata:
   linkType: hard
 
 "prettier@npm:^2.1.1":
-  version: 2.3.1
-  resolution: "prettier@npm:2.3.1"
+  version: 2.8.8
+  resolution: "prettier@npm:2.8.8"
   bin:
     prettier: bin-prettier.js
-  checksum: 10/dae97c14da795b789f89c84f83f86003a10482b572d1fc365b54fea81277721795da1a6a44599a655d1131ff2ea8467bae0c5ecd9def15dca67b7fe740fe2e0e
+  checksum: 10/00cdb6ab0281f98306cd1847425c24cbaaa48a5ff03633945ab4c701901b8e96ad558eb0777364ffc312f437af9b5a07d0f45346266e8245beaf6247b9c62b24
   languageName: node
   linkType: hard
 
