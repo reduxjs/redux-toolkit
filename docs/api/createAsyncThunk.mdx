@@ -39,14 +39,14 @@ const fetchUserById = createAsyncThunk(
 )
 
 interface UsersState {
-  entities: []
+  entities: User[]
   loading: 'idle' | 'pending' | 'succeeded' | 'failed'
 }
 
 const initialState = {
   entities: [],
   loading: 'idle',
-} as UsersState
+} satisfies UserState as UsersState
 
 // Then, handle actions in your reducers:
 const usersSlice = createSlice({
@@ -699,7 +699,7 @@ interface UsersState {
 const initialState = {
   entities: {},
   error: null,
-} as UsersState
+} satisfies UsersState as UsersState
 
 const usersSlice = createSlice({
   name: 'users',
