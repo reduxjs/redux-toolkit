@@ -1,6 +1,6 @@
 import { createDraftSafeSelectorCreator } from '../../createDraftSafeSelector'
-import type { EntityAdapter, EntityState } from '../index'
-import { createEntityAdapter } from '../index'
+import type { EntityAdapter, EntityState } from '../models'
+import { createEntityAdapter } from '../create_adapter'
 import type { EntitySelectors } from '../models'
 import type { BookModel } from './fixtures/book'
 import { AClockworkOrange, AnimalFarm, TheGreatGatsby } from './fixtures/book'
@@ -145,6 +145,61 @@ describe('Entity State Selectors', () => {
       expect(memoizeSpy).toHaveBeenCalled()
 
       memoizeSpy.mockClear()
+    })
+  })
+  describe('named selectors', () => {
+    interface State {
+      books: EntityState<BookModel, string>
+    }
+
+    let adapter: EntityAdapter<BookModel, string>
+    let state: State
+
+    beforeEach(() => {
+      adapter = createEntityAdapter({
+        selectId: (book: BookModel) => book.id,
+      })
+
+      state = {
+        books: adapter.setAll(adapter.getInitialState(), [
+          AClockworkOrange,
+          AnimalFarm,
+          TheGreatGatsby,
+        ]),
+      }
+    })
+    it('should use the provided name and pluralName', () => {
+      const selectors = adapter.getSelectors(undefined, {
+        name: 'book',
+      })
+
+      expect(selectors.selectAllBooks).toBeTypeOf('function')
+      expect(selectors.selectTotalBooks).toBeTypeOf('function')
+      expect(selectors.selectBookById).toBeTypeOf('function')
+
+      expect(selectors.selectAllBooks(state.books)).toEqual([
+        AClockworkOrange,
+        AnimalFarm,
+        TheGreatGatsby,
+      ])
+      expect(selectors.selectTotalBooks(state.books)).toEqual(3)
+    })
+    it('should use the plural of the provided name', () => {
+      const selectors = adapter.getSelectors((state: State) => state.books, {
+        name: 'book',
+        pluralName: 'bookies',
+      })
+
+      expect(selectors.selectAllBookies).toBeTypeOf('function')
+      expect(selectors.selectTotalBookies).toBeTypeOf('function')
+      expect(selectors.selectBookById).toBeTypeOf('function')
+
+      expect(selectors.selectAllBookies(state)).toEqual([
+        AClockworkOrange,
+        AnimalFarm,
+        TheGreatGatsby,
+      ])
+      expect(selectors.selectTotalBookies(state)).toEqual(3)
     })
   })
 })
