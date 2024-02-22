@@ -5,8 +5,8 @@
     "checkJs": true,
     "noEmit": true,
     "paths": {
-      "@/*": ["./test/fixtures/*"],
-      "@rtk-query/codegen-openapi": ["./src"]
+      "@/*": ["../test/fixtures/*"],
+      "@rtk-query/codegen-openapi": ["../src"]
     }
   }
 }

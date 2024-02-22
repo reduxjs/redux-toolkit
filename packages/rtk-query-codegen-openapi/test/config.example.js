@@ -1,5 +1,5 @@
 /**
- * @type {import("@rtk-query/codegen-openapi").ConfigFile}
+ * @type {import("../src").ConfigFile}
  */
 module.exports = {
   schemaFile: './fixtures/petstore.yaml',
