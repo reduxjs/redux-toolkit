@@ -3,9 +3,14 @@
   "version": "0.0.1",
   "description": "ESLint configuration for Redux projects",
   "types": "./dist/eslint.legacy.config.d.ts",
+  "main": "./dist/eslint.legacy.config.js",
   "exports": {
     ".": {
       "require": {
+        "default": "./dist/eslint.legacy.config.js",
+        "types": "./dist/eslint.legacy.config.d.ts"
+      },
+      "import": {
         "default": "./dist/eslint.legacy.config.js",
         "types": "./dist/eslint.legacy.config.d.ts"
       }
