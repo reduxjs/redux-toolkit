@@ -1,7 +1,6 @@
 {
   "extends": "@reduxjs/tsconfig/base",
   "compilerOptions": {
-    "importHelpers": true,
     "module": "CommonJS",
     "outDir": "lib",
     "rootDir": "src",
