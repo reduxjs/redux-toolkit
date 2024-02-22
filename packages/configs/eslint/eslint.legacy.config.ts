@@ -99,4 +99,4 @@ export const createLegacyESLintConfig = (
   ...overrides,
 })
 
-module.exports = reduxESLintLegacyConfig
+export default reduxESLintLegacyConfig
