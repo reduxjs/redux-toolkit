@@ -1,6 +1,9 @@
 import type { Linter } from 'eslint'
 import globals from 'globals'
 
+/**
+ * An object representing the globals provided by Vitest for use in testing.
+ */
 export const vitestGlobals = {
   suite: false,
   test: false,
@@ -18,6 +21,9 @@ export const vitestGlobals = {
   afterEach: false,
 } satisfies Record<string, boolean>
 
+/**
+ * ESLint configuration tailored for internal Redux projects using TypeScript.
+ */
 export const reduxESLintLegacyConfig: Linter.Config = {
   extends: [
     'eslint:recommended',
@@ -92,11 +98,20 @@ export const reduxESLintLegacyConfig: Linter.Config = {
   ],
 }
 
+/**
+ * A function that returns {@linkcode reduxESLintLegacyConfig}
+ * along with optional additional overrides.
+ * It's made mainly to provide intellisense and eliminate
+ * the need for manual type annotations using JSDoc comments.
+ *
+ * @param additionalOverrides - Optional additional overrides to apply to the configuration.
+ * @returns An augmented version of the default `reduxESLintLegacyConfig`, incorporating any provided overrides.
+ */
 export const createLegacyESLintConfig = (
-  overrides: Partial<Linter.Config> = {},
+  additionalOverrides: Partial<Linter.Config> = {},
 ): Linter.Config => ({
   ...reduxESLintLegacyConfig,
-  ...overrides,
+  ...additionalOverrides,
 })
 
 export default reduxESLintLegacyConfig
