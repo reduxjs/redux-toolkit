@@ -24,6 +24,11 @@ export type GenerationOptions = Id<
     }
 >;
 
+export type UuidHandlingOptions = {
+  typeName: string;
+  importfile: string;
+}
+
 export interface CommonOptions {
   apiFile: string;
   /**
@@ -72,6 +77,9 @@ export interface CommonOptions {
    * `true` will not generate separate types for read-only and write-only properties.
    */
   mergeReadWriteOnly?: boolean;
+
+  uuidHandling: UuidHandlingOptions | null;
+  requireAllProperties: boolean;
 }
 
 export type TextMatcher = string | RegExp | (string | RegExp)[];

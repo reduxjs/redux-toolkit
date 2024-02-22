@@ -15,5 +15,5 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "exclude": ["test", "lib", "vitest.config.mts"]
+  "exclude": ["test", "lib", "vitest.config.mts", "output.ts"]
 }
