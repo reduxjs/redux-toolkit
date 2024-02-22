@@ -7,8 +7,6 @@ hide_title: true
 
 # Custom Slice Creators
 
-## Slice creators
-
 Redux Toolkit 2.0 introduces the concept of "slice creators", which allow you to define reusable logic for creating slices.
 
 These "creators" have the capability to:
@@ -46,7 +44,7 @@ const { undo, redo, reset, updateTitle, togglePinned } =
   postSliceWithHistory.actions
 ```
 
-### The `reducers` "creator callback" notation
+## The `reducers` "creator callback" notation
 
 In order to use slice creators, `reducers` becomes a callback, which receives a `create` object. This `create` object contains a couple of [inbuilt creators](#rtk-creators), along with any creators passed to [`buildCreateSlice`](#buildcreateslice).
 
@@ -111,11 +109,11 @@ const todosSlice = createAppSlice({
 export const { addTodo, deleteTodo, fetchTodo } = todosSlice.actions
 ```
 
-#### RTK Creators
+### RTK Creators
 
 These creators come built into RTK, and are always available on the `create` object passed to the `reducers` callback.
 
-##### `create.reducer`
+#### `create.reducer`
 
 A standard slice case reducer. Creates an action creator with the same name as the reducer.
 
@@ -135,7 +133,7 @@ The [creator definition](#creator-definitions) for `create.reducer` is exported 
 
 :::
 
-##### `create.preparedReducer`
+#### `create.preparedReducer`
 
 A [prepared](#customizing-generated-action-creators) reducer, to customize the action creator. Creates a prepared action creator with the same name as the reducer.
 
@@ -164,7 +162,7 @@ The [creator definition](#creator-definitions) for `create.preparedReducer` is e
 
 :::
 
-#### Optional RTK Creators
+### Optional RTK Creators
 
 These creators are not included in the default `create` object, but can be added by passing them to [`buildCreateSlice`](#buildcreateslice).
 
@@ -231,7 +229,7 @@ const createAppSlice = buildCreateSlice({
 
 :::
 
-##### `create.asyncThunk` (`asyncThunkCreator`)
+#### `create.asyncThunk` (`asyncThunkCreator`)
 
 Creates an async thunk and adds any provided case reducers for lifecycle actions.
 
@@ -326,13 +324,13 @@ reducers: (create) => {
 
 :::
 
-### Writing your own creators
+## Writing your own creators
 
 In version v2.3.0, we introduced a system for including your own creators.
 
 The below documentation will cover how to write your own creators, and how to use them with `createSlice`.
 
-#### Reducer definitions
+### Reducer definitions
 
 A reducer definition is an object (or function) with a `_reducerDefinitionType` property indicating which creator should handle it. Other than this property, it is entirely up to the creator what this definition object can look like.
 
@@ -363,7 +361,7 @@ const definitions = {
 
 Typically a creator will return a [single reducer definition](#single-definitions), but it could return an object of [multiple definitions](#multiple-definitions) to be spread into the final object, or [something else entirely](#other)!
 
-#### Creator definitions
+### Creator definitions
 
 A creator definition contains the actual runtime logic for that creator. It's an object with a `type` property, a `create` method, and an optional `handle` method.
 
@@ -413,7 +411,7 @@ const reducerCreator: ReducerCreator<typeof reducerCreatorType> = {
 }
 ```
 
-##### `create`
+#### `create`
 
 The `create` method is the function that will be attached to the `create` object, before it's passed to the `reducers` callback.
 
@@ -421,7 +419,7 @@ Because it's a function, the `this` value will be the final `create` object when
 
 See the [Further examples](#further-examples) section for some examples of these.
 
-#### `handle`
+### `handle`
 
 The `handle` callback of a creator will be called for any reducer definitions with a matching `_reducerDefinitionType` property.
 
@@ -438,7 +436,7 @@ The reducer details object has two properties:
 
 The context object includes:
 
-##### `addCase`
+#### `addCase`
 
 The same as [`addCase`](./createReducer#builderaddcase) for `createReducer` and `extraReducers`. Adds a case reducer for a given action type, and can receive an action type string or an action creator with a `.type` property.
 
@@ -447,7 +445,7 @@ const action = createAction(type)
 context.addCase(action, reducer)
 ```
 
-##### `addMatcher`
+#### `addMatcher`
 
 The same as [`addMatcher`](./createReducer#builderaddmatcher) for `createReducer` and `extraReducers`. Adds a case reducer which will be called when a given matcher returns true.
 
@@ -456,7 +454,7 @@ const matcher = isAnyOf(action, action2)
 context.addMatcher(matcher, reducer)
 ```
 
-##### `exposeAction`
+#### `exposeAction`
 
 Attaches a value to `slice.actions`. Receives the key to be set under (typically `reducerName`) and the value to be set.
 
@@ -465,7 +463,7 @@ const action = createAction(type)
 context.exposeAction(reducerName, action)
 ```
 
-##### `exposeCaseReducer`
+#### `exposeCaseReducer`
 
 Attaches a value to `slice.caseReducers`. Receives the key to be set under (typically `reducerName`) and the value to be set.
 
@@ -473,7 +471,7 @@ Attaches a value to `slice.caseReducers`. Receives the key to be set under (typi
 context.exposeCaseReducer(reducerName, reducer)
 ```
 
-##### `getInitialState`
+#### `getInitialState`
 
 Returns the initial state value for the slice. If a lazy state initializer has been provided, it will be called and a fresh value returned.
 
@@ -486,7 +484,7 @@ context
   .exposeCaseReducer(reducerName, resetReducer)
 ```
 
-#### Typescript
+### Typescript
 
 The Typescript system for custom slice creators uses a "creator registry" system similar to the module system for [RTK Query](/rtk-query/usage/customizing-create-api#creating-your-own-module).
 
@@ -516,7 +514,7 @@ The type parameters for `SliceReducerCreators` are:
 
 The `ReducerCreatorEntry<Create, Exposes>` utility has two type parameters:
 
-##### `Create`
+#### `Create`
 
 The signature of the `create` method of the creator definition.
 
@@ -617,13 +615,13 @@ declare module '@reduxjs/toolkit' {
 
 :::
 
-##### `Exposes` (optional)
+#### `Exposes` (optional)
 
 The second type parameter for `ReducerCreatorEntry` is optional, but should be used if the creator will handle some reducer definitions itself. It indicates what actions and case reducers will be attached to the slice, and is used to determine the final types of `slice.actions` and `slice.caseReducers`.
 
 It should be an object with some of the following properties:
 
-###### `actions`
+##### `actions`
 
 The actions property will typically be a [mapped type](https://www.typescriptlang.org/docs/handbook/2/mapped-types.html) over the `CaseReducers` type parameter, returning what the creator's `handle` would expose when given that definition.
 
@@ -668,7 +666,7 @@ declare module '@reduxjs/toolkit' {
 }
 ```
 
-###### `caseReducers`
+##### `caseReducers`
 
 Similar to `actions`, except for `slice.caseReducers`.
 
@@ -718,7 +716,7 @@ declare module '@reduxjs/toolkit' {
 }
 ```
 
-#### Further examples
+### Further examples
 
 This section will cover in depth examples, for potential applications with hopefully applicable lessons to other use cases.
 
@@ -743,7 +741,7 @@ export const createAppSlice = buildCreateSlice({
 
 :::
 
-##### Single definitions
+#### Single definitions
 
 Commonly, a creator will return a single reducer definition, to be handled by either itself or another creator.
 
@@ -900,7 +898,7 @@ const { showToast } = toastSlice.actions
 toastSlice.caseReducers.showToast.hidden({}, showToast.hidden('id'))
 ```
 
-##### Multiple definitions
+#### Multiple definitions
 
 A creator could also return multiple definitions, which would then be spread into the final definitions object. This is a more composable alternative to the [wrapping `createSlice`](usage/usage-with-typescript#wrapping-createslice) approach, as you could call multiple creators as needed.
 
@@ -1081,7 +1079,7 @@ const postSliceWithHistory = createAppSlice({
 const { undo, redo, reset } = postSliceWithHistory.actions
 ```
 
-##### Other
+#### Other
 
 A creator doesn't have to return any reducer definitions, it could be any sort of utility for defining reducers.
 

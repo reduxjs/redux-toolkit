@@ -183,13 +183,13 @@ const todosSlice = createAppSlice({
         return (await res.json()) as Item
       },
       {
-        pending: (state) => {
+        pending(state) {
           state.loading = true
         },
-        rejected: (state, action) => {
+        rejected(state, action) {
           state.loading = false
         },
-        fulfilled: (state, action) => {
+        fulfilled(state, action) {
           state.loading = false
           state.todos.push(action.payload)
         },
@@ -284,16 +284,16 @@ create.asyncThunk(
     return (await res.json()) as Item
   },
   {
-    pending: (state) => {
+    pending(state) {
       state.loading = true
     },
-    rejected: (state, action) => {
+    rejected(state, action)  {
       state.error = action.payload ?? action.error
     },
-    fulfilled: (state, action) => {
+    fulfilled(state, action)  {
       state.todos.push(action.payload)
     },
-    settled: (state, action) => {
+    settled(state, action)  {
       state.loading = false
     }
     options: {
@@ -673,7 +673,7 @@ store.dispatch(user.actions.setUserName('eric'))
 
 `buildCreateSlice` allows you to create a custom version of `createSlice` with some configuration.
 
-Currently, this is only used for [slice creators](#slice-reducer-creators).
+Currently, this is only used for [slice creators](../usage/custom-slice-creators).
 
 ### Parameters
 
