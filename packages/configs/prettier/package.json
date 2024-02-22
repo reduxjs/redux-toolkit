@@ -4,9 +4,14 @@
   "description": "Prettier configuration for Redux projects",
   "types": "./dist/prettier.config.d.mts",
   "module": "./dist/prettier.config.mjs",
+  "main": "./dist/prettier.config.mjs",
   "exports": {
     ".": {
       "import": {
+        "default": "./dist/prettier.config.mjs",
+        "types": "./dist/prettier.config.d.mts"
+      },
+      "require": {
         "default": "./dist/prettier.config.mjs",
         "types": "./dist/prettier.config.d.mts"
       }
