@@ -1,25 +1,25 @@
 {
-  "name": "@rtk-query/codegen-openapi",
-  "version": "1.2.0",
+  "name": "@timtutenel/codegen-openapi",
+  "version": "1.0.0",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
-  "author": "Lenz Weber",
+  "author": "Lenz Weber, Tim Tutenel",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/reduxjs/redux-toolkit.git"
+    "url": "git+https://github.com/timt00/redux-toolkit-macomi.git"
   },
   "bugs": {
-    "url": "https://github.com/reduxjs/redux-toolkit/issues"
+    "url": "https://github.com/timt00/redux-toolkit-macomi/issues"
   },
   "homepage": "https://redux-toolkit.js.org",
   "bin": {
-    "rtk-query-codegen-openapi": "lib/bin/cli.js"
+    "rtk-query-codegen-openapi-macomi": "lib/bin/cli.js"
   },
   "scripts": {
-    "build": "yarn clean && tsc && chmod +x lib/bin/cli.js",
+    "build": "yarn clean && tsc",
     "clean": "rimraf lib",
-    "prepare": "yarn build && chmod +x lib/bin/cli.js",
+    "prepare": "yarn build",
     "format": "prettier --write \"src/**/*.ts\"",
     "test:update": "vitest --run --update",
     "test:update:enum": "lib/bin/cli.js test/config.example.enum.ts",
