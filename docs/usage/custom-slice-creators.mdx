@@ -46,7 +46,7 @@ const { undo, redo, reset, updateTitle, togglePinned } =
 
 ## The `reducers` "creator callback" notation
 
-In order to use slice creators, `reducers` becomes a callback, which receives a `create` object. This `create` object contains a couple of [inbuilt creators](#rtk-creators), along with any creators passed to [`buildCreateSlice`](#buildcreateslice).
+In order to use slice creators, `reducers` becomes a callback, which receives a `create` object. This `create` object contains a couple of [inbuilt creators](#rtk-creators), along with any creators passed to [`buildCreateSlice`](../api/createSlice#buildcreateslice).
 
 ```ts title="Creator callback for reducers"
 import { buildCreateSlice, asyncThunkCreator, nanoid } from '@reduxjs/toolkit'
@@ -135,11 +135,11 @@ The [creator definition](#creator-definitions) for `create.reducer` is exported 
 
 #### `create.preparedReducer`
 
-A [prepared](#customizing-generated-action-creators) reducer, to customize the action creator. Creates a prepared action creator with the same name as the reducer.
+A [prepared](../api/createSlice#customizing-generated-action-creators) reducer, to customize the action creator. Creates a prepared action creator with the same name as the reducer.
 
 **Parameters**
 
-- **prepareAction** The [`prepare callback`](./createAction#using-prepare-callbacks-to-customize-action-contents).
+- **prepareAction** The [`prepare callback`](../api/createAction#using-prepare-callbacks-to-customize-action-contents).
 - **reducer** The slice case reducer to use.
 
 The action passed to the case reducer will be inferred from the prepare callback's return.
@@ -164,7 +164,7 @@ The [creator definition](#creator-definitions) for `create.preparedReducer` is e
 
 ### Optional RTK Creators
 
-These creators are not included in the default `create` object, but can be added by passing them to [`buildCreateSlice`](#buildcreateslice).
+These creators are not included in the default `create` object, but can be added by passing them to [`buildCreateSlice`](../api/createSlice#buildcreateslice).
 
 The name the creator is available under is based on the key used when calling `buildCreateSlice`. For example, to use `create.asyncThunk`:
 
@@ -235,14 +235,14 @@ Creates an async thunk and adds any provided case reducers for lifecycle actions
 
 **Parameters**
 
-- **payloadCreator** The thunk [payload creator](./createAsyncThunk#payloadcreator).
+- **payloadCreator** The thunk [payload creator](../api/createAsyncThunk#payloadcreator).
 - **config** The configuration object. (optional)
 
-The configuration object can contain case reducers for each of the [lifecycle actions](./createAsyncThunk#promise-lifecycle-actions) (`pending`, `fulfilled`, and `rejected`), as well as a `settled` reducer that will run for both fulfilled and rejected actions (note that this will run _after_ any provided `fulfilled`/`rejected` reducers. Conceptually it can be thought of like a `finally` block.).
+The configuration object can contain case reducers for each of the [lifecycle actions](../api/createAsyncThunk#promise-lifecycle-actions) (`pending`, `fulfilled`, and `rejected`), as well as a `settled` reducer that will run for both fulfilled and rejected actions (note that this will run _after_ any provided `fulfilled`/`rejected` reducers. Conceptually it can be thought of like a `finally` block.).
 
 Each case reducer will be attached to the slice's `caseReducers` object, e.g. `slice.caseReducers.fetchTodo.fulfilled`.
 
-The configuration object can also contain [`options`](./createAsyncThunk#options).
+The configuration object can also contain [`options`](../api/createAsyncThunk#options).
 
 ```ts no-transpile
 create.asyncThunk(
@@ -272,7 +272,7 @@ create.asyncThunk(
 
 :::note
 
-Typing for `create.asyncThunk` works in the same way as [`createAsyncThunk`](../usage/usage-with-typescript#createasyncthunk), with one key difference.
+Typing for `create.asyncThunk` works in the same way as [`createAsyncThunk`](./usage-with-typescript#createasyncthunk), with one key difference.
 
 A type for `state` and/or `dispatch` _cannot_ be provided as part of the `ThunkApiConfig`, as this would cause circular types.
 
@@ -299,7 +299,7 @@ create.asyncThunk<Todo, string, { rejectValue: { error: string } }>(
 )
 ```
 
-For common thunk API configuration options, a [`withTypes` helper](../usage/usage-with-typescript#defining-a-pre-typed-createasyncthunk) is provided:
+For common thunk API configuration options, a [`withTypes` helper](./usage-with-typescript#defining-a-pre-typed-createasyncthunk) is provided:
 
 ```ts no-transpile
 reducers: (create) => {
@@ -365,7 +365,7 @@ Typically a creator will return a [single reducer definition](#single-definition
 
 A creator definition contains the actual runtime logic for that creator. It's an object with a `type` property, a `create` method, and an optional `handle` method.
 
-It's passed to [`buildCreateSlice`](#buildcreateslice) as part of the `creators` object, and the name used when calling `buildCreateSlice` will be the key the creator is nested under in the `create` object.
+It's passed to [`buildCreateSlice`](../api/createSlice#buildcreateslice) as part of the `creators` object, and the name used when calling `buildCreateSlice` will be the key the creator is nested under in the `create` object.
 
 ```ts no-transpile
 import { buildCreateSlice } from '@reduxjs/toolkit'
@@ -438,7 +438,7 @@ The context object includes:
 
 #### `addCase`
 
-The same as [`addCase`](./createReducer#builderaddcase) for `createReducer` and `extraReducers`. Adds a case reducer for a given action type, and can receive an action type string or an action creator with a `.type` property.
+The same as [`addCase`](../api/createReducer#builderaddcase) for `createReducer` and `extraReducers`. Adds a case reducer for a given action type, and can receive an action type string or an action creator with a `.type` property.
 
 ```ts no-transpile
 const action = createAction(type)
@@ -447,7 +447,7 @@ context.addCase(action, reducer)
 
 #### `addMatcher`
 
-The same as [`addMatcher`](./createReducer#builderaddmatcher) for `createReducer` and `extraReducers`. Adds a case reducer which will be called when a given matcher returns true.
+The same as [`addMatcher`](../api/createReducer#builderaddmatcher) for `createReducer` and `extraReducers`. Adds a case reducer which will be called when a given matcher returns true.
 
 ```ts no-transpile
 const matcher = isAnyOf(action, action2)
@@ -510,7 +510,7 @@ The type parameters for `SliceReducerCreators` are:
 
 - `State` - The state type used by the slice.
 - `CaseReducers` - The case reducer definitions returned by the creator callback.
-- `Name` - The [`name`](#name) used by the slice.
+- `Name` - The [`name`](../api/createSlice#name) used by the slice.
 
 The `ReducerCreatorEntry<Create, Exposes>` utility has two type parameters:
 
@@ -900,7 +900,7 @@ toastSlice.caseReducers.showToast.hidden({}, showToast.hidden('id'))
 
 #### Multiple definitions
 
-A creator could also return multiple definitions, which would then be spread into the final definitions object. This is a more composable alternative to the [wrapping `createSlice`](usage/usage-with-typescript#wrapping-createslice) approach, as you could call multiple creators as needed.
+A creator could also return multiple definitions, which would then be spread into the final definitions object. This is a more composable alternative to the [wrapping `createSlice`](./usage-with-typescript#wrapping-createslice) approach, as you could call multiple creators as needed.
 
 One example could be returning some pagination related reducers.
 
