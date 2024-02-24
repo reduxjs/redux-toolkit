@@ -10,10 +10,6 @@
       "import": {
         "default": "./dist/vitest.config.mjs",
         "types": "./dist/vitest.config.d.mts"
-      },
-      "require": {
-        "default": "./dist/vitest.config.mjs",
-        "types": "./dist/vitest.config.d.mts"
       }
     },
     "./package.json": "./package.json"
