@@ -1,12 +1,8 @@
-import { reduxVitestConfig } from '@reduxjs/vitest-config'
-import { defineConfig, mergeConfig } from 'vitest/config'
+import { createVitestConfig } from '@reduxjs/vitest-config'
 
-export default mergeConfig(
-  reduxVitestConfig,
-  defineConfig({
-    test: {
-      environment: 'jsdom',
-      server: { deps: { inline: ['redux', '@reduxjs/toolkit'] } },
-    },
-  }),
-)
+export default createVitestConfig({
+  test: {
+    environment: 'jsdom',
+    server: { deps: { inline: ['redux', '@reduxjs/toolkit'] } },
+  },
+})
