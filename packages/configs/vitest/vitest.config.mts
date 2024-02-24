@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs'
 import tsconfigPaths from 'vite-tsconfig-paths'
-import { defineConfig } from 'vitest/config'
+import type { UserConfig } from 'vitest/config'
+import { defineConfig, mergeConfig } from 'vitest/config'
 
 /**
  * Vitest configuration tailored for internal Redux projects using TypeScript.
@@ -15,5 +16,15 @@ export const reduxVitestConfig = defineConfig({
   },
   define: { 'import.meta.vitest': 'undefined' },
 })
+
+/**
+ * A function that returns {@linkcode reduxVitestConfig}
+ * along with optional additional overrides.
+ *
+ * @param additionalOverrides - Optional additional overrides to apply to the configuration.
+ * @returns An augmented version of the default `reduxVitestConfig`, incorporating any provided overrides.
+ */
+export const createVitestConfig = (additionalOverrides: UserConfig) =>
+  mergeConfig(reduxVitestConfig, defineConfig(additionalOverrides))
 
 export default reduxVitestConfig
