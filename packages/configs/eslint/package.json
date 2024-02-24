@@ -2,17 +2,18 @@
   "name": "@reduxjs/eslint-config",
   "version": "0.0.1",
   "description": "ESLint configuration for Redux projects",
-  "types": "./dist/eslint.legacy.config.d.ts",
-  "main": "./dist/eslint.legacy.config.js",
+  "types": "./dist/eslint.config.d.ts",
+  "main": "./dist/eslint.config.js",
+  "module": "./dist/eslint.config.js",
   "exports": {
     ".": {
       "require": {
-        "default": "./dist/eslint.legacy.config.js",
-        "types": "./dist/eslint.legacy.config.d.ts"
+        "default": "./dist/eslint.config.js",
+        "types": "./dist/eslint.config.d.ts"
       },
       "import": {
-        "default": "./dist/eslint.legacy.config.js",
-        "types": "./dist/eslint.legacy.config.d.ts"
+        "default": "./dist/eslint.config.js",
+        "types": "./dist/eslint.config.d.ts"
       }
     },
     "./package.json": "./package.json"
@@ -35,8 +36,10 @@
     "access": "public"
   },
   "peerDependencies": {
-    "@typescript-eslint/parser": "^7.0.1",
-    "eslint": "^8.56.0",
+    "@typescript-eslint/parser": "^7.0.2",
+    "@typescript-eslint/utils": "^7.0.2",
+    "eslint": "^8.57.0",
+    "prettier": "^3.2.5",
     "typescript": "^5.3.3"
   },
   "repository": {
