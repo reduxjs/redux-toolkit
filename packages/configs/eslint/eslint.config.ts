@@ -24,6 +24,9 @@ export const vitestGlobals = {
   afterEach: false,
 } satisfies Record<string, boolean>
 
+/**
+ * ESLint configuration tailored for internal Redux projects using TypeScript.
+ */
 export const reduxESLintConfig = tsEslint.config(
   // `ignores` must be first.
   { ignores: ['dist/', '.*'] },
