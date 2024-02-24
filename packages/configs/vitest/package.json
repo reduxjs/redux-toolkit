@@ -35,7 +35,7 @@
   "peerDependencies": {
     "typescript": "^5.3.3",
     "vite-tsconfig-paths": "^4.3.1",
-    "vitest": "^1.3.0"
+    "vitest": "^1.3.1"
   },
   "repository": {
     "type": "git",
@@ -47,6 +47,6 @@
   },
   "dependencies": {
     "vite-tsconfig-paths": "^4.3.1",
-    "vitest": "^1.3.0"
+    "vitest": "^1.3.1"
   }
 }

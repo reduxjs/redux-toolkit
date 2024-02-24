@@ -7451,11 +7451,11 @@ __metadata:
     rimraf: "npm:^5.0.5"
     typescript: "npm:^5.3.3"
     vite-tsconfig-paths: "npm:^4.3.1"
-    vitest: "npm:^1.3.0"
+    vitest: "npm:^1.3.1"
   peerDependencies:
     typescript: ^5.3.3
     vite-tsconfig-paths: ^4.3.1
-    vitest: ^1.3.0
+    vitest: ^1.3.1
   languageName: unknown
   linkType: soft
 
@@ -9665,14 +9665,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vitest/expect@npm:1.3.0":
-  version: 1.3.0
-  resolution: "@vitest/expect@npm:1.3.0"
+"@vitest/expect@npm:1.3.1":
+  version: 1.3.1
+  resolution: "@vitest/expect@npm:1.3.1"
   dependencies:
-    "@vitest/spy": "npm:1.3.0"
-    "@vitest/utils": "npm:1.3.0"
+    "@vitest/spy": "npm:1.3.1"
+    "@vitest/utils": "npm:1.3.1"
     chai: "npm:^4.3.10"
-  checksum: 10/32bc76108a608acb614dfb46ee9b588fc1a3f1fb68ba400a49d6ab80de463a2ab8a6a5dd51960ca76417b300d7c5ce16e2e346a0b0ebe25ca3b80232a378d6dc
+  checksum: 10/7c2818b2080ec107cffcc1566195132695c8e87cba883e878c2f36ac4d8107bb0a1f8d3823ccc0da5989e245ea114b8afffe790512aebcde8537ac8c1bcf3454
   languageName: node
   linkType: hard
 
@@ -9709,14 +9709,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vitest/runner@npm:1.3.0":
-  version: 1.3.0
-  resolution: "@vitest/runner@npm:1.3.0"
+"@vitest/runner@npm:1.3.1":
+  version: 1.3.1
+  resolution: "@vitest/runner@npm:1.3.1"
   dependencies:
-    "@vitest/utils": "npm:1.3.0"
+    "@vitest/utils": "npm:1.3.1"
     p-limit: "npm:^5.0.0"
     pathe: "npm:^1.1.1"
-  checksum: 10/7212e457fa89425c1e0b75e1817b50dc9c7d554617faf2178784a5fe0b97e6e4fe417e20886bd189f5385d01ac3f389d90ebca2a01ea4dee8a26897921db70c1
+  checksum: 10/dcd452216b83406df49e298da5e49dbc45c542f755a726a132461b94a84c386b6cabcdfce17fc2d31fa66fd5ea4e57be3618c7dc627b17791e2a1a065d919616
   languageName: node
   linkType: hard
 
@@ -9753,14 +9753,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vitest/snapshot@npm:1.3.0":
-  version: 1.3.0
-  resolution: "@vitest/snapshot@npm:1.3.0"
+"@vitest/snapshot@npm:1.3.1":
+  version: 1.3.1
+  resolution: "@vitest/snapshot@npm:1.3.1"
   dependencies:
     magic-string: "npm:^0.30.5"
     pathe: "npm:^1.1.1"
     pretty-format: "npm:^29.7.0"
-  checksum: 10/b39bfee8ba9424e672e1c3076e3ee679d530ab8d38a5ad94ceec109063925caae10d4656d9256e331d2f8ed4a3169bfdc8ae584afe171fd51bbe70892dbce1b9
+  checksum: 10/2212ae82eb8d458ddaa6c28c7e33b6a8c8897e298b88e458bf83e7f9bf767fd716ed507f3cd41ebbe145d59baa72220e9f494552f92cc22b39241dc32b8ad8e1
   languageName: node
   linkType: hard
 
@@ -9791,12 +9791,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vitest/spy@npm:1.3.0":
-  version: 1.3.0
-  resolution: "@vitest/spy@npm:1.3.0"
+"@vitest/spy@npm:1.3.1":
+  version: 1.3.1
+  resolution: "@vitest/spy@npm:1.3.1"
   dependencies:
     tinyspy: "npm:^2.2.0"
-  checksum: 10/780c6b678aeb3cc1ccd730ff35fb6596e1a0adb78b39934e37bc6ae712b99bcf46a9387b34f8e76265c6805aef1dff72f47a921695ae5c567d59490d097c90a0
+  checksum: 10/544c8a30fdeb32fb7bf2c2b5816519be943f5ef90668c306b14efdde7676771d0e83cf0e0a5c79fad722be3839432226bcf74173110a032299821e00b67f47e6
   languageName: node
   linkType: hard
 
@@ -9836,15 +9836,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vitest/utils@npm:1.3.0":
-  version: 1.3.0
-  resolution: "@vitest/utils@npm:1.3.0"
+"@vitest/utils@npm:1.3.1":
+  version: 1.3.1
+  resolution: "@vitest/utils@npm:1.3.1"
   dependencies:
     diff-sequences: "npm:^29.6.3"
     estree-walker: "npm:^3.0.3"
     loupe: "npm:^2.3.7"
     pretty-format: "npm:^29.7.0"
-  checksum: 10/9d544b24e25659d9f715f43906b9e40571450bbc14cb0320487dae67e4561acb61820200f4e185e1f7b805a17225b70802ebace9fb5c313bfff82ee3841278a9
+  checksum: 10/170c62e6c348562f611d8caddc893e8cba75ed89986e09aa2f0fe6812c96664e8d0f6e329f7a96a4c9cdecf147f4853e4054c3db597b111ec993d3cdd546eddc
   languageName: node
   linkType: hard
 
@@ -28945,9 +28945,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite-node@npm:1.3.0":
-  version: 1.3.0
-  resolution: "vite-node@npm:1.3.0"
+"vite-node@npm:1.3.1":
+  version: 1.3.1
+  resolution: "vite-node@npm:1.3.1"
   dependencies:
     cac: "npm:^6.7.14"
     debug: "npm:^4.3.4"
@@ -28956,7 +28956,7 @@ __metadata:
     vite: "npm:^5.0.0"
   bin:
     vite-node: vite-node.mjs
-  checksum: 10/39a473a927547416ee72e01310929b02ee6724f1671c20cd1f1bd65494850906624b6a06b813ba2e3f742c42e5e2d2718e4f4248032cf1ad9c95c696659dd832
+  checksum: 10/d6ca8cd5b84768f9a0f12d4327a6aca5200001bd9111991df89ad742e059566a95f8298047af7144ca128120fc67cbd7d37b3fda9700ab07f8fc130d2ad58665
   languageName: node
   linkType: hard
 
@@ -29169,15 +29169,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vitest@npm:^1.3.0":
-  version: 1.3.0
-  resolution: "vitest@npm:1.3.0"
+"vitest@npm:^1.3.1":
+  version: 1.3.1
+  resolution: "vitest@npm:1.3.1"
   dependencies:
-    "@vitest/expect": "npm:1.3.0"
-    "@vitest/runner": "npm:1.3.0"
-    "@vitest/snapshot": "npm:1.3.0"
-    "@vitest/spy": "npm:1.3.0"
-    "@vitest/utils": "npm:1.3.0"
+    "@vitest/expect": "npm:1.3.1"
+    "@vitest/runner": "npm:1.3.1"
+    "@vitest/snapshot": "npm:1.3.1"
+    "@vitest/spy": "npm:1.3.1"
+    "@vitest/utils": "npm:1.3.1"
     acorn-walk: "npm:^8.3.2"
     chai: "npm:^4.3.10"
     debug: "npm:^4.3.4"
@@ -29191,13 +29191,13 @@ __metadata:
     tinybench: "npm:^2.5.1"
     tinypool: "npm:^0.8.2"
     vite: "npm:^5.0.0"
-    vite-node: "npm:1.3.0"
+    vite-node: "npm:1.3.1"
     why-is-node-running: "npm:^2.2.2"
   peerDependencies:
     "@edge-runtime/vm": "*"
     "@types/node": ^18.0.0 || >=20.0.0
-    "@vitest/browser": 1.3.0
-    "@vitest/ui": 1.3.0
+    "@vitest/browser": 1.3.1
+    "@vitest/ui": 1.3.1
     happy-dom: "*"
     jsdom: "*"
   peerDependenciesMeta:
@@ -29215,7 +29215,7 @@ __metadata:
       optional: true
   bin:
     vitest: vitest.mjs
-  checksum: 10/4aabfb972f5f2c165f1f751a063a07a5be952bc684f93ab19ea617fad633fd3db7473ebc7c59c1afdb902334364710476785f01d1cc3cc071a48fcaaf4bac2fa
+  checksum: 10/41a8405d65b3b3a48b97b020fae50bdc928a8ebb55b4d24e8867e1ba23d298ea810b37ca6530ab87f6b51d3dc1ada1e067e7bc252a99d8f5439ca4ce6831d1f6
   languageName: node
   linkType: hard
 
