@@ -1,5 +1,3 @@
 import { createPrettierConfig } from '@reduxjs/prettier-config'
 
-export default createPrettierConfig({
-  endOfLine: 'auto',
-})
+export default createPrettierConfig()
