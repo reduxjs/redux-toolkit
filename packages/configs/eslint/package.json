@@ -39,6 +39,7 @@
     "@typescript-eslint/utils": "^7.1.0",
     "eslint": "^8.57.0",
     "prettier": "^3.2.5",
+    "tslib": "2.6.2",
     "typescript": "^5.3.3"
   },
   "repository": {
@@ -47,6 +48,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^8.57.0",
+    "@reduxjs/tsconfig": "workspace:^",
     "@types/eslint": "^8.56.3",
     "@types/eslint-config-prettier": "^6.11.3",
     "@types/eslint__eslintrc": "^2.1.1",
@@ -61,7 +63,9 @@
   },
   "dependencies": {
     "@typescript-eslint/utils": "^7.1.0",
+    "eslint-config-prettier": "^9.1.0",
     "globals": "^14.0.0",
+    "tslib": "2.6.2",
     "typescript-eslint": "^7.1.0"
   }
 }

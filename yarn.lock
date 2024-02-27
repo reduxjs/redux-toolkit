@@ -7278,6 +7278,7 @@ __metadata:
   resolution: "@reduxjs/eslint-config@workspace:packages/configs/eslint"
   dependencies:
     "@eslint/js": "npm:^8.57.0"
+    "@reduxjs/tsconfig": "workspace:^"
     "@types/eslint": "npm:^8.56.3"
     "@types/eslint-config-prettier": "npm:^6.11.3"
     "@types/eslint__eslintrc": "npm:^2.1.1"
@@ -7290,6 +7291,7 @@ __metadata:
     eslint-plugin-prettier: "npm:^5.1.3"
     globals: "npm:^14.0.0"
     rimraf: "npm:^5.0.5"
+    tslib: "npm:2.6.2"
     typescript: "npm:^5.3.3"
     typescript-eslint: "npm:^7.1.0"
   peerDependencies:
@@ -7297,6 +7299,7 @@ __metadata:
     "@typescript-eslint/utils": ^7.1.0
     eslint: ^8.57.0
     prettier: ^3.2.5
+    tslib: 2.6.2
     typescript: ^5.3.3
   languageName: unknown
   linkType: soft
@@ -27752,6 +27755,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"tslib@npm:2.6.2, tslib@npm:^2.6.2":
+  version: 2.6.2
+  resolution: "tslib@npm:2.6.2"
+  checksum: 10/bd26c22d36736513980091a1e356378e8b662ded04204453d353a7f34a4c21ed0afc59b5f90719d4ba756e581a162ecbf93118dc9c6be5acf70aa309188166ca
+  languageName: node
+  linkType: hard
+
 "tslib@npm:^1.0.0, tslib@npm:^1.10.0, tslib@npm:^1.8.1, tslib@npm:^1.9.0, tslib@npm:^1.9.3":
   version: 1.14.1
   resolution: "tslib@npm:1.14.1"
@@ -27763,13 +27773,6 @@ __metadata:
   version: 2.4.0
   resolution: "tslib@npm:2.4.0"
   checksum: 10/d8379e68b36caf082c1905ec25d17df8261e1d68ddc1abfd6c91158a064f6e4402039ae7c02cf4c81d12e3a2a2c7cd8ea2f57b233eb80136a2e3e7279daf2911
-  languageName: node
-  linkType: hard
-
-"tslib@npm:^2.6.2":
-  version: 2.6.2
-  resolution: "tslib@npm:2.6.2"
-  checksum: 10/bd26c22d36736513980091a1e356378e8b662ded04204453d353a7f34a4c21ed0afc59b5f90719d4ba756e581a162ecbf93118dc9c6be5acf70aa309188166ca
   languageName: node
   linkType: hard
 
