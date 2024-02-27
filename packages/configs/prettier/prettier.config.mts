@@ -18,7 +18,7 @@ export const reduxPrettierConfig: Config = {
  * @returns An augmented version of the default {@linkcode reduxPrettierConfig}, incorporating any provided overrides.
  */
 export const createPrettierConfig = (
-  additionalOverrides: Partial<Config> = {},
+  additionalOverrides: Config = {},
 ): Config => ({
   ...reduxPrettierConfig,
   ...additionalOverrides,
