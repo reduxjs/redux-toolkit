@@ -21,8 +21,7 @@
   "scripts": {
     "build": "yarn clean && tsc",
     "clean": "rimraf dist",
-    "prepack": "yarn build",
-    "preinstall": "yarn prepack"
+    "prepack": "yarn build"
   },
   "keywords": [
     "prettier",
