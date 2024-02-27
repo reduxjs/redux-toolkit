@@ -15,7 +15,7 @@ export const reduxPrettierConfig: Config = {
  * the need for manual type annotations using JSDoc comments.
  *
  * @param additionalOverrides - Optional additional overrides to apply to the configuration.
- * @returns An augmented version of the default `reduxPrettierConfig`, incorporating any provided overrides.
+ * @returns An augmented version of the default {@linkcode reduxPrettierConfig}, incorporating any provided overrides.
  */
 export const createPrettierConfig = (
   additionalOverrides: Partial<Config> = {},

@@ -91,7 +91,7 @@ export const reduxESLintConfig = tsEslint.config(
  * the need for manual type annotations using JSDoc comments.
  *
  * @param additionalOverrides - Optional additional overrides to apply to the configuration.
- * @returns An augmented version of the default `reduxESLintConfig`, incorporating any provided overrides.
+ * @returns An augmented version of the default {@linkcode reduxESLintConfig}, incorporating any provided overrides.
  */
 export const createESLintConfig = (
   additionalOverrides: TSESLint.FlatConfig.ConfigArray = [],
