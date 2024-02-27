@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: ['18.x']
+        node: ['20.x']
 
     steps:
       - name: Checkout repo
@@ -67,7 +67,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: ['18.x']
+        node: ['20.x']
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
@@ -91,7 +91,7 @@ jobs:
       - name: Install build artifact
         run: yarn workspace @reduxjs/toolkit add $(pwd)/package.tgz
 
-      - run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json ./vitest.config.ts ./src/tests/*.* ./src/query/tests/*.*
+      - run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json ./vitest.config.mts ./src/tests/*.* ./src/query/tests/*.*
 
       - name: Run tests, against dist
         run: yarn test
@@ -104,7 +104,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: ['18.x']
+        node: ['20.x']
         ts: ['4.7', '4.8', '4.9', '5.0', '5.1', '5.2', '5.3']
     steps:
       - name: Checkout repo
@@ -133,7 +133,7 @@ jobs:
       - name: Show installed RTK versions
         run: yarn info @reduxjs/toolkit
 
-      - run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json ./vitest.config.ts ./src/tests/*.* ./src/query/tests/*.*
+      - run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json ./vitest.config.mts ./src/tests/*.* ./src/query/tests/*.*
 
       - name: Test types
         run: |
@@ -148,11 +148,23 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: ['18.x']
-        example: ['cra4', 'cra5', 'next', 'vite', 'node-standard', 'node-esm', 'expo']
+        node: ['20.x']
+        example:
+          [
+            'cra4',
+            'cra5',
+            'next',
+            'vite',
+            'node-standard',
+            'node-esm',
+            'react-native',
+            'expo',
+          ]
     defaults:
       run:
         working-directory: ./examples/publish-ci/${{ matrix.example }}
+    env:
+      YARN_ENABLE_IMMUTABLE_INSTALLS: "false"
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
@@ -204,7 +216,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: ['18.x']
+        node: ['20.x']
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2

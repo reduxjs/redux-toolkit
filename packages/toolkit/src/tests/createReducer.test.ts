@@ -89,11 +89,11 @@ describe('createReducer', () => {
       }
 
       expect(wrapper).toThrowError(
-        /The object notation for `createReducer` has been removed/
+        /The object notation for `createReducer` has been removed/,
       )
 
       expect(wrapper).toThrowError(
-        /The object notation for `createReducer` has been removed/
+        /The object notation for `createReducer` has been removed/,
       )
     })
 
@@ -145,7 +145,7 @@ describe('createReducer', () => {
 
       const mutateStateOutsideReducer = () => (result[0].text = 'edited')
       expect(mutateStateOutsideReducer).toThrowError(
-        'Cannot add property text, object is not extensible'
+        'Cannot add property text, object is not extensible',
       )
     })
 
@@ -157,12 +157,12 @@ describe('createReducer', () => {
       const mutateStateOutsideReducer = () =>
         (frozenInitialState[0].text = 'edited')
       expect(mutateStateOutsideReducer).toThrowError(
-        /Cannot assign to read only property/
+        /Cannot assign to read only property/,
       )
     })
     test('does not throw error if initial state is not draftable', () => {
       expect(() =>
-        createReducer(new URLSearchParams(), () => {})
+        createReducer(new URLSearchParams(), () => {}),
       ).not.toThrowError()
     })
   })
@@ -263,7 +263,7 @@ describe('createReducer', () => {
       const reducer = createReducer(0, (builder) =>
         builder
           .addCase(increment, (state, action) => state + action.payload)
-          .addCase(decrement, (state, action) => state - action.payload)
+          .addCase(decrement, (state, action) => state - action.payload),
       )
       expect(reducer(0, increment(5))).toBe(5)
       expect(reducer(5, decrement(5))).toBe(0)
@@ -274,13 +274,13 @@ describe('createReducer', () => {
           .addCase(
             'increment',
             (state, action: { type: 'increment'; payload: number }) =>
-              state + action.payload
+              state + action.payload,
           )
           .addCase(
             'decrement',
             (state, action: { type: 'decrement'; payload: number }) =>
-              state - action.payload
-          )
+              state - action.payload,
+          ),
       )
       expect(reducer(0, increment(5))).toBe(5)
       expect(reducer(5, decrement(5))).toBe(0)
@@ -292,8 +292,8 @@ describe('createReducer', () => {
           .addCase(
             'decrement',
             (state, action: { type: 'decrement'; payload: number }) =>
-              state - action.payload
-          )
+              state - action.payload,
+          ),
       )
       expect(reducer(0, increment(5))).toBe(5)
       expect(reducer(5, decrement(5))).toBe(0)
@@ -302,11 +302,11 @@ describe('createReducer', () => {
       const reducer = createReducer(0, (builder) =>
         builder.addCase(
           'decrement',
-          (state, action: { type: 'decrement'; payload: number }) => {}
-        )
+          (state, action: { type: 'decrement'; payload: number }) => {},
+        ),
       )
       expect(() => reducer(5, decrement(5))).toThrowErrorMatchingInlineSnapshot(
-        `"A case reducer on a non-draftable value must not return undefined"`
+        `[Error: A case reducer on a non-draftable value must not return undefined]`,
       )
     })
     test('allows you to return undefined if the state was null, thus skipping an update', () => {
@@ -318,8 +318,8 @@ describe('createReducer', () => {
               return state - action.payload
             }
             return undefined
-          }
-        )
+          },
+        ),
       )
       expect(reducer(0, decrement(5))).toBe(-5)
       expect(reducer(null, decrement(5))).toBe(null)
@@ -330,8 +330,8 @@ describe('createReducer', () => {
           'decrement',
           (state, action: { type: 'decrement'; payload: number }) => {
             return null
-          }
-        )
+          },
+        ),
       )
       expect(reducer(5, decrement(5))).toBe(null)
     })
@@ -340,8 +340,8 @@ describe('createReducer', () => {
         builder.addCase(
           'decrement',
           (state, action: { type: 'decrement'; payload: number }) =>
-            state - action.payload
-        )
+            state - action.payload,
+        ),
       )
       expect(reducer(5, decrement(5))).toBe(0)
     })
@@ -351,20 +351,20 @@ describe('createReducer', () => {
           builder
             .addCase(increment, (state, action) => state + action.payload)
             .addCase(increment, (state, action) => state + action.payload)
-            .addCase(decrement, (state, action) => state - action.payload)
-        )
+            .addCase(decrement, (state, action) => state - action.payload),
+        ),
       ).toThrowErrorMatchingInlineSnapshot(
-        '"`builder.addCase` cannot be called with two reducers for the same action type \'increment\'"'
+        `[Error: \`builder.addCase\` cannot be called with two reducers for the same action type 'increment']`,
       )
       expect(() =>
         createReducer(0, (builder) =>
           builder
             .addCase(increment, (state, action) => state + action.payload)
             .addCase('increment', (state) => state + 1)
-            .addCase(decrement, (state, action) => state - action.payload)
-        )
+            .addCase(decrement, (state, action) => state - action.payload),
+        ),
       ).toThrowErrorMatchingInlineSnapshot(
-        '"`builder.addCase` cannot be called with two reducers for the same action type \'increment\'"'
+        `[Error: \`builder.addCase\` cannot be called with two reducers for the same action type 'increment']`,
       )
     })
 
@@ -373,16 +373,16 @@ describe('createReducer', () => {
         type: 'custom_action',
         payload,
       })
-      customActionCreator.type = ""
+      customActionCreator.type = ''
       expect(() =>
         createReducer(0, (builder) =>
           builder.addCase(
             customActionCreator,
-            (state, action) => state + action.payload
-          )
-        )
+            (state, action) => state + action.payload,
+          ),
+        ),
       ).toThrowErrorMatchingInlineSnapshot(
-        '"`builder.addCase` cannot be called with an empty action type"'
+        `[Error: \`builder.addCase\` cannot be called with an empty action type]`,
       )
     })
   })
@@ -398,14 +398,14 @@ describe('createReducer', () => {
     })
 
     const numberActionMatcher = (
-      a: UnknownAction
+      a: UnknownAction,
     ): a is PayloadAction<number> =>
       isPlainObject(a.meta) &&
       'type' in a.meta &&
       (a.meta as Record<'type', unknown>).type === 'number_action'
 
     const stringActionMatcher = (
-      a: UnknownAction
+      a: UnknownAction,
     ): a is PayloadAction<string> =>
       isPlainObject(a.meta) &&
       'type' in a.meta &&
@@ -425,7 +425,7 @@ describe('createReducer', () => {
           })
           .addMatcher(stringActionMatcher, (state) => {
             state.stringActions += 1
-          })
+          }),
       )
       expect(reducer(undefined, incrementBy(1))).toEqual({
         numberActions: 1,
@@ -452,7 +452,7 @@ describe('createReducer', () => {
           .addDefaultCase((state) => {
             state.numberActions = -1
             state.stringActions = -1
-          })
+          }),
       )
       expect(reducer(undefined, { type: 'somethingElse' })).toEqual({
         numberActions: -1,
@@ -473,7 +473,7 @@ describe('createReducer', () => {
           })
           .addMatcher(numberActionMatcher, (state) => {
             state.numberActions = state.numberActions * 10 + 3
-          })
+          }),
       )
       expect(reducer(undefined, incrementBy(1))).toEqual({
         numberActions: 123,
@@ -492,7 +492,7 @@ describe('createReducer', () => {
       const reducer = createReducer(initialState, (builder) =>
         builder.addMatcher(incrementBy.match, (state) => {
           state.numberActions += 100
-        })
+        }),
       )
       expect(reducer(undefined, incrementBy(1))).toEqual({
         numberActions: 100,
@@ -504,33 +504,33 @@ describe('createReducer', () => {
         createReducer(initialState, (builder: any) =>
           builder
             .addMatcher(numberActionMatcher, () => {})
-            .addCase(incrementBy, () => {})
-        )
+            .addCase(incrementBy, () => {}),
+        ),
       ).toThrowErrorMatchingInlineSnapshot(
-        `"\`builder.addCase\` should only be called before calling \`builder.addMatcher\`"`
+        `[Error: \`builder.addCase\` should only be called before calling \`builder.addMatcher\`]`,
       )
       expect(() =>
         createReducer(initialState, (builder: any) =>
-          builder.addDefaultCase(() => {}).addCase(incrementBy, () => {})
-        )
+          builder.addDefaultCase(() => {}).addCase(incrementBy, () => {}),
+        ),
       ).toThrowErrorMatchingInlineSnapshot(
-        `"\`builder.addCase\` should only be called before calling \`builder.addDefaultCase\`"`
+        `[Error: \`builder.addCase\` should only be called before calling \`builder.addDefaultCase\`]`,
       )
       expect(() =>
         createReducer(initialState, (builder: any) =>
           builder
             .addDefaultCase(() => {})
-            .addMatcher(numberActionMatcher, () => {})
-        )
+            .addMatcher(numberActionMatcher, () => {}),
+        ),
       ).toThrowErrorMatchingInlineSnapshot(
-        `"\`builder.addMatcher\` should only be called before calling \`builder.addDefaultCase\`"`
+        `[Error: \`builder.addMatcher\` should only be called before calling \`builder.addDefaultCase\`]`,
       )
       expect(() =>
         createReducer(initialState, (builder: any) =>
-          builder.addDefaultCase(() => {}).addDefaultCase(() => {})
-        )
+          builder.addDefaultCase(() => {}).addDefaultCase(() => {}),
+        ),
       ).toThrowErrorMatchingInlineSnapshot(
-        `"\`builder.addDefaultCase\` can only be called once"`
+        `[Error: \`builder.addDefaultCase\` can only be called once]`,
       )
     })
   })
@@ -547,7 +547,7 @@ function behavesLikeReducer(todosReducer: TodosReducer) {
       todosReducer([], {
         type: 'ADD_TODO',
         payload: { newTodo: { text: 'Run the tests' } },
-      })
+      }),
     ).toEqual([
       {
         text: 'Run the tests',
@@ -566,8 +566,8 @@ function behavesLikeReducer(todosReducer: TodosReducer) {
         {
           type: 'ADD_TODO',
           payload: { newTodo: { text: 'Use Redux' } },
-        }
-      )
+        },
+      ),
     ).toEqual([
       {
         text: 'Run the tests',
@@ -594,8 +594,8 @@ function behavesLikeReducer(todosReducer: TodosReducer) {
         {
           type: 'ADD_TODO',
           payload: { newTodo: { text: 'Fix the tests' } },
-        }
-      )
+        },
+      ),
     ).toEqual([
       {
         text: 'Run the tests',
@@ -628,8 +628,8 @@ function behavesLikeReducer(todosReducer: TodosReducer) {
         {
           type: 'TOGGLE_TODO',
           payload: { index: 0 },
-        }
-      )
+        },
+      ),
     ).toEqual([
       {
         text: 'Run the tests',

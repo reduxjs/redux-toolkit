@@ -298,7 +298,7 @@ const todosSlice = createSlice({
       // In this case, `action.payload` is the default field in the action,
       // and can hold the `id` value - no need for `action.id` separately
       const matchingTodo = state.todos.find(
-        (todo) => todo.id === action.payload
+        (todo) => todo.id === action.payload,
       )
 
       if (matchingTodo) {
@@ -796,7 +796,7 @@ const initialState: TodosState = []
 
 export default function todosReducer(
   state = initialState,
-  action: TodoActions
+  action: TodoActions,
 ) {
   switch (action.type) {
     // omit reducer logic
@@ -944,7 +944,7 @@ const mapDispatchToProps2 = (dispatch) => {
       todoDeleted,
       todoToggled,
     },
-    dispatch
+    dispatch,
   )
 }
 

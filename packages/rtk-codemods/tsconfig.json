@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "isolatedModules": true,
+    "checkJs": true,
+    "baseUrl": ".",
+    "noEmit": true,
+    "strict": true,
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "allowJs": true,
+    "jsx": "preserve",
+    "noErrorTruncation": true,
+    "forceConsistentCasingInFileNames": true,
+    "paths": {
+      "@reduxjs/toolkit": ["../toolkit/src/index.ts"], // @remap-prod-remove-line
+      "@reduxjs/toolkit/query": ["../toolkit/src/query/index.ts"], // @remap-prod-remove-line
+      "@reduxjs/toolkit/react": ["../toolkit/src/react/index.ts"], // @remap-prod-remove-line
+      "@reduxjs/toolkit/query/react": ["../toolkit/src/query/react/index.ts"] // @remap-prod-remove-line
+    }
+  },
+  "include": ["**/*.ts", "**/*.tsx", "bin/cli.mjs"]
+}

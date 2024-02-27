@@ -28,7 +28,7 @@ test('handles drafts correctly', () => {
   const unsafeSelector = createSelector(selectSelf, (state) => state.value)
   const draftSafeSelector = createDraftSafeSelector(
     selectSelf,
-    (state) => state.value
+    (state) => state.value,
   )
 
   produce({ value: 1 }, (state) => {

@@ -87,14 +87,14 @@ export type UnionToIntersection<U> = (
 // Appears to have a convenient side effect of ignoring `never` even if that's not what you specified
 export type ExcludeFromTuple<T, E, Acc extends unknown[] = []> = T extends [
   infer Head,
-  ...infer Tail
+  ...infer Tail,
 ]
   ? ExcludeFromTuple<Tail, E, [...Acc, ...([Head] extends [E] ? [] : [Head])]>
   : Acc
 
 type ExtractDispatchFromMiddlewareTuple<
   MiddlewareTuple extends readonly any[],
-  Acc extends {}
+  Acc extends {},
 > = MiddlewareTuple extends [infer Head, ...infer Tail]
   ? ExtractDispatchFromMiddlewareTuple<
       Tail,
@@ -102,17 +102,16 @@ type ExtractDispatchFromMiddlewareTuple<
     >
   : Acc
 
-export type ExtractDispatchExtensions<M> = M extends Tuple<
-  infer MiddlewareTuple
->
-  ? ExtractDispatchFromMiddlewareTuple<MiddlewareTuple, {}>
-  : M extends ReadonlyArray<Middleware>
-  ? ExtractDispatchFromMiddlewareTuple<[...M], {}>
-  : never
+export type ExtractDispatchExtensions<M> =
+  M extends Tuple<infer MiddlewareTuple>
+    ? ExtractDispatchFromMiddlewareTuple<MiddlewareTuple, {}>
+    : M extends ReadonlyArray<Middleware>
+      ? ExtractDispatchFromMiddlewareTuple<[...M], {}>
+      : never
 
 type ExtractStoreExtensionsFromEnhancerTuple<
   EnhancerTuple extends readonly any[],
-  Acc extends {}
+  Acc extends {},
 > = EnhancerTuple extends [infer Head, ...infer Tail]
   ? ExtractStoreExtensionsFromEnhancerTuple<
       Tail,
@@ -120,21 +119,22 @@ type ExtractStoreExtensionsFromEnhancerTuple<
     >
   : Acc
 
-export type ExtractStoreExtensions<E> = E extends Tuple<infer EnhancerTuple>
-  ? ExtractStoreExtensionsFromEnhancerTuple<EnhancerTuple, {}>
-  : E extends ReadonlyArray<StoreEnhancer>
-  ? UnionToIntersection<
-      E[number] extends StoreEnhancer<infer Ext>
-        ? Ext extends {}
-          ? IsAny<Ext, {}, Ext>
-          : {}
-        : {}
-    >
-  : never
+export type ExtractStoreExtensions<E> =
+  E extends Tuple<infer EnhancerTuple>
+    ? ExtractStoreExtensionsFromEnhancerTuple<EnhancerTuple, {}>
+    : E extends ReadonlyArray<StoreEnhancer>
+      ? UnionToIntersection<
+          E[number] extends StoreEnhancer<infer Ext>
+            ? Ext extends {}
+              ? IsAny<Ext, {}, Ext>
+              : {}
+            : {}
+        >
+      : never
 
 type ExtractStateExtensionsFromEnhancerTuple<
   EnhancerTuple extends readonly any[],
-  Acc extends {}
+  Acc extends {},
 > = EnhancerTuple extends [infer Head, ...infer Tail]
   ? ExtractStateExtensionsFromEnhancerTuple<
       Tail,
@@ -145,17 +145,18 @@ type ExtractStateExtensionsFromEnhancerTuple<
     >
   : Acc
 
-export type ExtractStateExtensions<E> = E extends Tuple<infer EnhancerTuple>
-  ? ExtractStateExtensionsFromEnhancerTuple<EnhancerTuple, {}>
-  : E extends ReadonlyArray<StoreEnhancer>
-  ? UnionToIntersection<
-      E[number] extends StoreEnhancer<any, infer StateExt>
-        ? StateExt extends {}
-          ? IsAny<StateExt, {}, StateExt>
-          : {}
-        : {}
-    >
-  : never
+export type ExtractStateExtensions<E> =
+  E extends Tuple<infer EnhancerTuple>
+    ? ExtractStateExtensionsFromEnhancerTuple<EnhancerTuple, {}>
+    : E extends ReadonlyArray<StoreEnhancer>
+      ? UnionToIntersection<
+          E[number] extends StoreEnhancer<any, infer StateExt>
+            ? StateExt extends {}
+              ? IsAny<StateExt, {}, StateExt>
+              : {}
+            : {}
+        >
+      : never
 
 /**
  * Helper type. Passes T out again, but boxes it in a way that it cannot
@@ -185,7 +186,7 @@ export interface HasMatchFunction<T> {
 }
 
 export const hasMatchFunction = <T>(
-  v: Matcher<T>
+  v: Matcher<T>,
 ): v is HasMatchFunction<T> => {
   return v && typeof (v as HasMatchFunction<T>).match === 'function'
 }
@@ -194,14 +195,31 @@ export const hasMatchFunction = <T>(
 export type Matcher<T> = HasMatchFunction<T> | TypeGuard<T>
 
 /** @public */
-export type ActionFromMatcher<M extends Matcher<any>> = M extends Matcher<
-  infer T
->
-  ? T
-  : never
+export type ActionFromMatcher<M extends Matcher<any>> =
+  M extends Matcher<infer T> ? T : never
 
 export type Id<T> = { [K in keyof T]: T[K] } & {}
 
 export type Tail<T extends any[]> = T extends [any, ...infer Tail]
   ? Tail
   : never
+
+export type UnknownIfNonSpecific<T> = {} extends T ? unknown : T
+
+/**
+ * A Promise that will never reject.
+ * @see https://github.com/reduxjs/redux-toolkit/issues/4101
+ */
+export type SafePromise<T> = Promise<T> & {
+  __linterBrands: 'SafePromise'
+}
+
+/**
+ * Properly wraps a Promise as a {@link SafePromise} with .catch(fallback).
+ */
+export function asSafePromise<Resolved, Rejected>(
+  promise: Promise<Resolved>,
+  fallback: (error: unknown) => Rejected,
+) {
+  return promise.catch(fallback) as SafePromise<Resolved | Rejected>
+}

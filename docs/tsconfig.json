@@ -18,36 +18,18 @@
     "baseUrl": "..",
     "jsx": "preserve",
     "paths": {
-      "react": [
-        "../node_modules/@types/react"
-      ],
-      "react-dom": [
-        "../node_modules/@types/react-dom"
-      ],
-      "@reduxjs/toolkit": [
-        "packages/toolkit/src/index.ts"
-      ],
-      "@reduxjs/toolkit/query": [
-        "packages/toolkit/src/query/index.ts"
-      ],
+      "react": ["../node_modules/@types/react"],
+      "react-dom": ["../node_modules/@types/react-dom"],
+      "@reduxjs/toolkit": ["packages/toolkit/src/index.ts"],
+      "@reduxjs/toolkit/query": ["packages/toolkit/src/query/index.ts"],
       "@reduxjs/toolkit/query/react": [
         "packages/toolkit/src/query/react/index.ts"
       ],
-      "@reduxjs/toolkit/dist/query/*": [
-        "packages/toolkit/src/query/*"
-      ],
-      "@virtual/*": [
-        "docs/virtual/*"
-      ],
-      "your-cool-library": [
-        "docs/virtual/your-cool-library/index.ts"
-      ],
-      "redux-logger": [
-        "docs/virtual/redux-logger/index.ts"
-      ],
-      "petstore-api.generated": [
-        "docs/virtual/petstore-api.generated/index.ts"
-      ]
+      "@reduxjs/toolkit/dist/query/*": ["packages/toolkit/src/query/*"],
+      "@virtual/*": ["docs/virtual/*"],
+      "your-cool-library": ["docs/virtual/your-cool-library/index.ts"],
+      "redux-logger": ["docs/virtual/redux-logger/index.ts"],
+      "petstore-api.generated": ["docs/virtual/petstore-api.generated/index.ts"]
     }
   }
 }

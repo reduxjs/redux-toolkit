@@ -84,6 +84,14 @@ export type SubscriptionOptions = {
    */
   pollingInterval?: number
   /**
+   *  Defaults to 'false'. This setting allows you to control whether RTK Query will continue polling if the window is not focused.
+   *
+   *  If pollingInterval is not set or set to 0, this **will not be evaluated** until pollingInterval is greater than 0.
+   *
+   *  Note: requires [`setupListeners`](./setupListeners) to have been called.
+   */
+  skipPollingIfUnfocused?: boolean
+  /**
    * Defaults to `false`. This setting allows you to control whether RTK Query will try to refetch all subscribed queries after regaining a network connection.
    *
    * If you specify this option alongside `skip: true`, this **will not be evaluated** until `skip` is false.
@@ -221,7 +229,7 @@ export type MutationSubState<D extends BaseEndpointDefinition<any, any, any>> =
 export type CombinedState<
   D extends EndpointDefinitions,
   E extends string,
-  ReducerPath extends string
+  ReducerPath extends string,
 > = {
   queries: QueryState<D>
   mutations: MutationState<D>
@@ -264,7 +272,7 @@ export type MutationState<D extends EndpointDefinitions> = {
 export type RootState<
   Definitions extends EndpointDefinitions,
   TagTypes extends string,
-  ReducerPath extends string
+  ReducerPath extends string,
 > = {
   [P in ReducerPath]: CombinedState<Definitions, TagTypes, P>
 }

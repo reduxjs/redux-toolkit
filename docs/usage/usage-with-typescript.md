@@ -122,7 +122,7 @@ const store = configureStore({
         untypedMiddleware as Middleware<
           (action: Action<'specialAction'>) => number,
           RootState
-        >
+        >,
       )
       // prepend and concat calls can be chained
       .concat(logger),
@@ -213,7 +213,7 @@ createReducer(0, (builder) =>
     })
     .addCase(decrement, (state, action: PayloadAction<string>) => {
       // this would error out
-    })
+    }),
 )
 ```
 
@@ -273,7 +273,7 @@ createSlice({
 
 You might have noticed that it is not a good idea to pass your `SliceState` type as a generic to `createSlice`. This is due to the fact that in almost all cases, follow-up generic parameters to `createSlice` need to be inferred, and TypeScript cannot mix explicit declaration and inference of generic types within the same "generic block".
 
-The standard approach is to declare an interface or type for your state, create an initial state value that uses that type, and pass the initial state value to `createSlice`. You can also use the construct `initialState: myInitialState as SliceState`.
+The standard approach is to declare an interface or type for your state, create an initial state value that uses that type, and pass the initial state value to `createSlice`. You can also use the construct `initialState: myInitialState satisfies SliceState as SliceState`.
 
 ```ts {1,4,8,15}
 type SliceState = { state: 'loading' } | { state: 'finished'; data: string }
@@ -290,7 +290,7 @@ createSlice({
 // Or, cast the initial state as necessary
 createSlice({
   name: 'test2',
-  initialState: { state: 'loading' } as SliceState,
+  initialState: { state: 'loading' } satisfies SliceState as SliceState,
   reducers: {},
 })
 ```
@@ -311,7 +311,7 @@ const blogSlice = createSlice({
     receivedAll: {
       reducer(
         state,
-        action: PayloadAction<Page[], string, { currentPage: number }>
+        action: PayloadAction<Page[], string, { currentPage: number }>,
       ) {
         state.all = action.payload
         state.meta = action.meta
@@ -364,18 +364,18 @@ const fetchUserById = createAsyncThunk(
   async (userId: number) => {
     const response = await fetch(`https://reqres.in/api/users/${userId}`)
     return (await response.json()) as Returned
-  }
+  },
 )
 
 interface UsersState {
-  entities: []
+  entities: User[]
   loading: 'idle' | 'pending' | 'succeeded' | 'failed'
 }
 
 const initialState = {
   entities: [],
   loading: 'idle',
-} as UsersState
+} satisfies UsersState as UsersState
 
 const usersSlice = createSlice({
   name: 'users',
@@ -438,7 +438,7 @@ create.asyncThunk<Todo, string, { rejectValue: { error: string } }>(
         error: 'Oh no!',
       })
     }
-  }
+  },
 )
 ```
 
@@ -446,8 +446,9 @@ For common thunk API configuration options, a [`withTypes` helper](../usage/usag
 
 ```ts no-transpile
 reducers: (create) => {
-  const createAThunk =
-    create.asyncThunk.withTypes<{ rejectValue: { error: string } }>()
+  const createAThunk = create.asyncThunk.withTypes<{
+    rejectValue: { error: string }
+  }>()
 
   return {
     fetchTodo: createAThunk<Todo, string>(async (id, thunkApi) => {
@@ -478,7 +479,7 @@ interface GenericState<T> {
 
 const createGenericSlice = <
   T,
-  Reducers extends SliceCaseReducers<GenericState<T>>
+  Reducers extends SliceCaseReducers<GenericState<T>>,
 >({
   name = '',
   initialState,
@@ -547,7 +548,7 @@ const fetchUserById = createAsyncThunk(
     // Inferred return type: Promise<MyData>
     // highlight-next-line
     return (await response.json()) as MyData
-  }
+  },
 )
 
 // the parameter of `fetchUserById` is automatically inferred to `number` here
@@ -791,7 +792,7 @@ export const fetchArticle = createAsyncThunk(
       }
     >(data, articleEntity)
     return normalized.entities
-  }
+  },
 )
 
 export const slice = createSlice({

@@ -9,6 +9,8 @@ hide_title: true
 
 # `createSelector`
 
+## Overview
+
 The `createSelector` utility from the [Reselect library](https://github.com/reduxjs/reselect), re-exported for ease of use.
 
 For more details on using `createSelector`, see:
@@ -24,7 +26,7 @@ allowed using string keypaths as input selectors. This was removed, as it ultima
 the string keypaths made static typing for selectors difficult.
 :::
 
-# `createDraftSafeSelector`
+## `createDraftSafeSelector`
 
 In general, we recommend against using selectors inside of reducers:
 
@@ -44,7 +46,7 @@ const selectSelf = (state: State) => state
 const unsafeSelector = createSelector(selectSelf, (state) => state.value)
 const draftSafeSelector = createDraftSafeSelector(
   selectSelf,
-  (state) => state.value
+  (state) => state.value,
 )
 
 // in your reducer:
@@ -81,8 +83,57 @@ const createWeakMapDraftSafeSelector =
 const selectSelf = (state: State) => state
 const draftSafeSelector = createWeakMapDraftSafeSelector(
   selectSelf,
-  (state) => state.value
+  (state) => state.value,
 )
 ```
 
 :::
+
+### Defining a Pre-Typed `createDraftSelector`
+
+As of RTK 2.1, you can define a "pre-typed" version of `createDraftSafeSelector` that can have the type for `state` built in. This lets you set up those types once, so you don't have to repeat them each time you call `createDraftSafeSelector`.
+
+```ts no-transpile
+const createTypedDraftSafeSelector =
+  createDraftSafeSelector.withTypes<RootState>()
+```
+
+Import and use the pre-typed `createTypedDraftSafeSelector` function, and it will automatically know that the `state` argument is of type `RootState`.
+
+:::warning Known Limitations
+Currently this approach only works if input selectors are provided as a single array.
+
+If you pass the input selectors as separate inline arguments, the parameter types of the result function will not be inferred. As a workaround you can either
+
+1. Wrap your input selectors in a single array
+2. You can annotate the parameter types of the result function:
+
+```ts no-transpile
+import { createSelector } from 'reselect'
+
+interface Todo {
+  id: number
+  completed: boolean
+}
+
+interface Alert {
+  id: number
+  read: boolean
+}
+
+export interface RootState {
+  todos: Todo[]
+  alerts: Alert[]
+}
+
+export const createTypedDraftSafeSelector =
+  createDraftSafeSelector.withTypes<RootState>()
+
+const selectTodoIds = createTypedDraftSafeSelector(
+  // Type of `state` is set to `RootState`, no need to manually set the type
+  (state) => state.todos,
+  // ❌ Known limitation: Parameter types are not inferred in this scenario
+  // so you will have to manually annotate them.
+  (todos: Todo[]) => todos.map(({ id }) => id),
+)
+```

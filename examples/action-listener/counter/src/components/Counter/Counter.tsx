@@ -14,7 +14,7 @@ const delayMs = 2_000
 
 export const Counter = memo(function Counter({ counterId }: CounterProps) {
   const counter = useAppSelector((state) =>
-    counterSelectors.selectById(state, counterId)
+    counterSelectors.selectById(state, counterId),
   )
   const appDispatch = useAppDispatch()
 
@@ -34,7 +34,7 @@ export const Counter = memo(function Counter({ counterId }: CounterProps) {
       appDispatch(counterActions.cancelAsyncUpdates(id))
     } else {
       appDispatch(
-        counterActions.updateByPeriodically({ id, delta: 1, intervalMs })
+        counterActions.updateByPeriodically({ id, delta: 1, intervalMs }),
       )
     }
   }

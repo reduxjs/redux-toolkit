@@ -1,9 +1,8 @@
-import { configureStore } from '@reduxjs/toolkit'
-import { vi } from 'vitest'
+import { configureStore, isAllOf } from '@reduxjs/toolkit'
 import { createApi } from '@reduxjs/toolkit/query/react'
 import { renderHook, waitFor } from '@testing-library/react'
+import { actionsReducer, withProvider } from '../../tests/utils/helpers'
 import type { BaseQueryApi } from '../baseQueryTypes'
-import { withProvider } from './helpers'
 
 test('handles a non-async baseQuery without error', async () => {
   const baseQuery = (args?: any) => ({ data: args })
@@ -96,7 +95,7 @@ describe('re-triggering behavior on arg change', () => {
       {
         wrapper: withProvider(store),
         initialProps: 5,
-      }
+      },
     )
 
     await waitFor(() => {
@@ -128,7 +127,7 @@ describe('re-triggering behavior on arg change', () => {
       {
         wrapper: withProvider(store),
         initialProps: { name: 'Bob', likes: 'iceCream' },
-      }
+      },
     )
 
     await waitFor(() => {
@@ -161,7 +160,7 @@ describe('re-triggering behavior on arg change', () => {
       {
         wrapper: withProvider(store),
         initialProps: { person: { name } },
-      }
+      },
     )
 
     await waitFor(() => {
@@ -184,7 +183,7 @@ describe('re-triggering behavior on arg change', () => {
       {
         wrapper: withProvider(store),
         initialProps: { name: 'Tim', likes: 'Bananas' },
-      }
+      },
     )
 
     await waitFor(() => {
@@ -199,5 +198,54 @@ describe('re-triggering behavior on arg change', () => {
       })
       expect(spy).toHaveBeenCalledTimes(1)
     }
+  })
+})
+
+describe('prefetch', () => {
+  const baseQuery = () => ({ data: null })
+  const api = createApi({
+    baseQuery,
+    endpoints: (build) => ({
+      getUser: build.query<any, any>({
+        query: (obj) => obj,
+      }),
+    }),
+  })
+
+  const store = configureStore({
+    reducer: { [api.reducerPath]: api.reducer, ...actionsReducer },
+    middleware: (gDM) => gDM().concat(api.middleware),
+  })
+  it('should attach isPrefetch if prefetching', async () => {
+    store.dispatch(api.util.prefetch('getUser', 1, {}))
+
+    await Promise.all(store.dispatch(api.util.getRunningQueriesThunk()))
+
+    const isPrefetch = (
+      action: any,
+    ): action is { meta: { arg: { isPrefetch: true } } } =>
+      action?.meta?.arg?.isPrefetch
+
+    expect(store.getState().actions).toMatchSequence(
+      api.internalActions.middlewareRegistered.match,
+      isAllOf(api.endpoints.getUser.matchPending, isPrefetch),
+      isAllOf(api.endpoints.getUser.matchFulfilled, isPrefetch),
+    )
+
+    // compare against a regular initiate call
+    await store.dispatch(
+      api.endpoints.getUser.initiate(1, { forceRefetch: true }),
+    )
+
+    const isNotPrefetch = (action: any): action is unknown =>
+      !isPrefetch(action)
+
+    expect(store.getState().actions).toMatchSequence(
+      api.internalActions.middlewareRegistered.match,
+      isAllOf(api.endpoints.getUser.matchPending, isPrefetch),
+      isAllOf(api.endpoints.getUser.matchFulfilled, isPrefetch),
+      isAllOf(api.endpoints.getUser.matchPending, isNotPrefetch),
+      isAllOf(api.endpoints.getUser.matchFulfilled, isNotPrefetch),
+    )
   })
 })

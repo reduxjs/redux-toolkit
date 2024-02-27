@@ -1,15 +1,20 @@
-import { createEntityAdapter, createSlice } from "../..";
-import type { PayloadAction, Slice, SliceCaseReducers, UnknownAction } from "../..";
-import type { EntityId, EntityState, IdSelector } from "../models";
-import type { BookModel } from "./fixtures/book";
+import { createEntityAdapter, createSlice } from '../..'
+import type {
+  PayloadAction,
+  Slice,
+  SliceCaseReducers,
+  UnknownAction,
+} from '../..'
+import type { EntityId, EntityState, IdSelector } from '../models'
+import type { BookModel } from './fixtures/book'
 
 describe('Entity Slice Enhancer', () => {
-  let slice: Slice<EntityState<BookModel, BookModel['id']>>;
+  let slice: Slice<EntityState<BookModel, BookModel['id']>>
 
   beforeEach(() => {
     const indieSlice = entitySliceEnhancer({
       name: 'book',
-      selectId: (book: BookModel) => book.id
+      selectId: (book: BookModel) => book.id,
     })
     slice = indieSlice
   })
@@ -18,7 +23,7 @@ describe('Entity Slice Enhancer', () => {
     const book = {
       id: '0',
       title: 'Der Steppenwolf',
-      author: 'Herman Hesse'
+      author: 'Herman Hesse',
     }
     const action = slice.actions.oneAdded(book)
     const oneAdded = slice.reducer(undefined, action as UnknownAction)
@@ -35,23 +40,20 @@ interface EntitySliceArgs<T, Id extends EntityId> {
 function entitySliceEnhancer<T, Id extends EntityId>({
   name,
   selectId,
-  modelReducer
+  modelReducer,
 }: EntitySliceArgs<T, Id>) {
   const modelAdapter = createEntityAdapter({
-    selectId
-  });
+    selectId,
+  })
 
   return createSlice({
     name,
     initialState: modelAdapter.getInitialState(),
     reducers: {
       oneAdded(state, action: PayloadAction<T>) {
-        modelAdapter.addOne(
-          state,
-          action.payload
-        )
+        modelAdapter.addOne(state, action.payload)
       },
-      ...modelReducer
-    }
+      ...modelReducer,
+    },
   })
 }

@@ -380,13 +380,13 @@ It is worth noting that initializing the store with a `useEffect` would not work
 
 ### Caching
 
-The App Router has four seperate caches including `fetch` request and route caches. The most likely cache to cause issues is the route cache. If you have an application that accepts login you may have routes (e.g. the home route, `/`) that render different data based on the user you will need to disable the route cache by using the [`dynamic` export from the route handler](https://nextjs.org/docs/app/api-reference/file-conventions/route-segment-config#dynamic):
+The App Router has four separate caches including `fetch` request and route caches. The most likely cache to cause issues is the route cache. If you have an application that accepts login you may have routes (e.g. the home route, `/`) that render different data based on the user you will need to disable the route cache by using the [`dynamic` export from the route handler](https://nextjs.org/docs/app/api-reference/file-conventions/route-segment-config#dynamic):
 
 ```ts
 export const dynamic = 'force-dynamic'
 ```
 
-After a mutation you should also invalidate the cache by calling (`revalidatePath`)[https://nextjs.org/docs/app/api-reference/functions/revalidatePath] or (`revalidateTag`)[https://nextjs.org/docs/app/api-reference/functions/revalidateTag] as appropriate.
+After a mutation you should also invalidate the cache by calling [`revalidatePath`](https://nextjs.org/docs/app/api-reference/functions/revalidatePath) or [`revalidateTag`](https://nextjs.org/docs/app/api-reference/functions/revalidateTag) as appropriate.
 
 ### RTK Query
 

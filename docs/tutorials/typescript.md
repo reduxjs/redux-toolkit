@@ -149,7 +149,7 @@ In some cases, [TypeScript may unnecessarily tighten the type of the initial sta
 // Workaround: cast state instead of declaring variable type
 const initialState = {
   value: 0,
-} as CounterState
+} satisfies CounterState as CounterState
 ```
 
 ### Use Typed Hooks in Components

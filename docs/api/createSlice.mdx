@@ -25,7 +25,7 @@ interface CounterState {
   value: number
 }
 
-const initialState = { value: 0 } as CounterState
+const initialState = { value: 0 } satisfies CounterState as CounterState
 
 const counterSlice = createSlice({
   name: 'counter',
@@ -158,7 +158,7 @@ const todosSlice = createSlice({
   initialState: {
     loading: false,
     todos: [],
-  } as TodoState,
+  } satisfies TodoState as TodoState,
   reducers: (create) => ({
     deleteTodo: create.reducer<number>((state, action) => {
       state.todos.splice(action.payload, 1)
@@ -171,7 +171,7 @@ const todosSlice = createSlice({
       // action type is inferred from prepare callback
       (state, action) => {
         state.todos.push(action.payload)
-      }
+      },
     ),
     fetchTodo: create.asyncThunk(
       async (id: string, thunkApi) => {
@@ -189,7 +189,7 @@ const todosSlice = createSlice({
           state.loading = false
           state.todos.push(action.payload)
         },
-      }
+      },
     ),
   }),
 })
@@ -232,7 +232,7 @@ create.preparedReducer(
   },
   (state, action) => {
     state.todos.push(action.payload)
-  }
+  },
 )
 ```
 
@@ -240,7 +240,7 @@ create.preparedReducer(
 
 Creates an async thunk instead of an action creator.
 
-:::warning Setup
+:::caution Setup
 
 To avoid pulling `createAsyncThunk` into the bundle size of `createSlice` by default, some extra setup is required to use `create.asyncThunk`.
 
@@ -251,13 +251,12 @@ Instead, import `buildCreateSlice` and `asyncThunkCreator`, and create your own 
 ```ts
 import { buildCreateSlice, asyncThunkCreator } from '@reduxjs/toolkit'
 
-// name is up to you
-export const createSliceWithThunks = buildCreateSlice({
+export const createAppSlice = buildCreateSlice({
   creators: { asyncThunk: asyncThunkCreator },
 })
 ```
 
-Then import this `createSlice` as needed instead of the exported version from RTK.
+Then import this `createAppSlice` as needed instead of the exported version from RTK.
 
 :::
 
@@ -323,7 +322,7 @@ create.asyncThunk<Todo, string, { rejectValue: { error: string } }>(
         error: 'Oh no!',
       })
     }
-  }
+  },
 )
 ```
 
@@ -331,8 +330,9 @@ For common thunk API configuration options, a [`withTypes` helper](../usage/usag
 
 ```ts no-transpile
 reducers: (create) => {
-  const createAThunk =
-    create.asyncThunk.withTypes<{ rejectValue: { error: string } }>()
+  const createAThunk = create.asyncThunk.withTypes<{
+    rejectValue: { error: string }
+  }>()
 
   return {
     fetchTodo: createAThunk<Todo, string>(async (id, thunkApi) => {
@@ -371,7 +371,7 @@ Similar to `createReducer`, the `extraReducers` field uses a "builder callback" 
 
 [examples](docblock://createSlice.ts?token=CreateSliceOptions.extraReducers)
 
-See [the "Builder Callback Notation" section of the `createReducer` reference](./createReducer.mdx#usage-with-the-builder-callback-notation) for details on how to use `builder.addCase`, `builder.addMatcher`, and `builder.addDefault`
+See [the "Builder Callback Notation" section of the `createReducer` reference](./createReducer.mdx#usage-with-the-builder-callback-notation) for details on how to use `builder.addCase`, `builder.addMatcher`, and `builder.addDefaultCase`
 
 ### `reducerPath`
 
@@ -433,7 +433,7 @@ const counterSlice = createSlice({
   reducers: (create) => ({
     getCountData: create.asyncThunk(async (_arg, { getState }) => {
       const currentCount = counterSlice.selectors.selectValue(
-        getState() as RootState
+        getState() as RootState,
       )
       // highlight-start
       // this would cause a circular type, but the type annotation breaks the circle
@@ -513,7 +513,7 @@ interface CounterState {
 
 const counterSlice = createSlice({
   name: 'counter',
-  initialState: { value: 0 } as CounterState,
+  initialState: { value: 0 } satisfies CounterState as CounterState,
   reducers: {
     // omitted
   },
@@ -542,14 +542,14 @@ interface CounterState {
 
 const counterSlice = createSlice({
   name: 'counter',
-  initialState: { value: 0 } as CounterState,
+  initialState: { value: 0 } satisfies CounterState as CounterState,
   reducers: {
     // omitted
   },
   selectors: {
     selectDouble: createSelector(
       (sliceState: CounterState) => sliceState.value,
-      (value) => value * 2
+      (value) => value * 2,
     ),
   },
 })
@@ -569,7 +569,7 @@ console.log(selectDouble.unwrapped.recomputations) // 2
 
 ```ts no-transpile
 const { selectValue } = counterSlice.getSelectors(
-  (rootState: RootState) => rootState.aCounter
+  (rootState: RootState) => rootState.aCounter,
 )
 
 console.log(selectValue({ aCounter: { value: 2 } })) // 2
@@ -590,7 +590,7 @@ The [`slice.selectors`](#selectors-2) object is the equivalent of calling
 const { selectValue } = counterSlice.getSelectors(counterSlice.selectSlice)
 // or
 const { selectValue } = counterSlice.getSelectors(
-  (state: RootState) => state[counterSlice.reducerPath]
+  (state: RootState) => state[counterSlice.reducerPath],
 )
 ```
 
@@ -608,7 +608,7 @@ const decrementBy = createAction<number>('decrementBy')
 
 const counter = createSlice({
   name: 'counter',
-  initialState: 0 as number,
+  initialState: 0 satisfies number as number,
   reducers: {
     increment: (state) => state + 1,
     decrement: (state) => state - 1,
