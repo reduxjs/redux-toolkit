@@ -76,6 +76,7 @@
   "scripts": {
     "build": "yarn build:packages",
     "test": "yarn test:packages",
+    "install": "yarn build:configs",
     "build:configs": "yarn workspaces foreach -A --include '@reduxjs/*config' -vtp run build",
     "build:examples": "yarn workspaces foreach -A --include '@reduxjs/*' --include '@examples-query-react/*' --include '@examples-action-listener/*' -vtp run build",
     "build:docs": "yarn workspace website run build",
