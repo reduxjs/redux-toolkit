@@ -39,6 +39,7 @@
     "url": "git+https://github.com/reduxjs/redux-toolkit.git"
   },
   "devDependencies": {
+    "@reduxjs/tsconfig": "workspace:^",
     "prettier": "^3.2.5",
     "rimraf": "^5.0.5",
     "typescript": "^5.3.3"
