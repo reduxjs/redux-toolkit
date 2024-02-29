@@ -10,7 +10,7 @@ import type {
   TypedUseLazyQuery,
   TypedUseLazyQuerySubscription,
   TypedUseMutation,
-  TypedUseMutationTrigger,
+  TypedMutationTrigger,
   TypedUseQuerySubscription,
   TypedUseQuery,
 } from '@reduxjs/toolkit/query/react'
@@ -838,7 +838,7 @@ describe('"Typed" helper types', () => {
     const [trigger, result] = api.endpoints.mutation.useMutation()
 
     expectTypeOf<
-      TypedUseMutationTrigger<string, void, typeof baseQuery>
+      TypedMutationTrigger<string, void, typeof baseQuery>
     >().toMatchTypeOf(trigger)
 
     expectTypeOf<
