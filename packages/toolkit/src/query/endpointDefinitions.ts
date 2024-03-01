@@ -212,6 +212,8 @@ export type BaseEndpointDefinition<
 export enum DefinitionType {
   query = 'query',
   mutation = 'mutation',
+  // hijacking query temporarily to get the definition to build
+  infinitequery = 'query',
 }
 
 export type GetResultDescriptionFn<
@@ -536,6 +538,76 @@ export type QueryDefinition<
 > = BaseEndpointDefinition<QueryArg, BaseQuery, ResultType> &
   QueryExtraOptions<TagTypes, ResultType, QueryArg, BaseQuery, ReducerPath>
 
+// cloning Query Endpoint Definition with an extra option to begin with
+export interface InfiniteQueryTypes<
+  QueryArg,
+  BaseQuery extends BaseQueryFn,
+  TagTypes extends string,
+  ResultType,
+  ReducerPath extends string = string,
+> extends BaseEndpointTypes<QueryArg, BaseQuery, ResultType> {
+  /**
+   * The endpoint definition type. To be used with some internal generic types.
+   * @example
+   * ```ts
+   * const useMyWrappedHook: UseQuery<typeof api.endpoints.query.Types.QueryDefinition> = ...
+   * ```
+   */
+  InfiniteQueryDefinition: InfiniteQueryDefinition<
+    QueryArg,
+    BaseQuery,
+    TagTypes,
+    ResultType,
+    ReducerPath
+  >
+  TagTypes: TagTypes
+  ReducerPath: ReducerPath
+}
+
+export interface InfiniteQueryExtraOptions<
+  TagTypes extends string,
+  ResultType,
+  QueryArg,
+  BaseQuery extends BaseQueryFn,
+  ReducerPath extends string = string,
+> {
+  type: DefinitionType.infinitequery
+
+  providesTags?: never
+  /**
+   * Not to be used. A query should not invalidate tags in the cache.
+   */
+  invalidatesTags?: never
+
+  selection: ({ from, to }: any, { read }: any) => any
+
+  /**
+   * All of these are `undefined` at runtime, purely to be used in TypeScript declarations!
+   */
+  Types?: InfiniteQueryTypes<
+    QueryArg,
+    BaseQuery,
+    TagTypes,
+    ResultType,
+    ReducerPath
+  >
+}
+
+export type InfiniteQueryDefinition<
+  QueryArg,
+  BaseQuery extends BaseQueryFn,
+  TagTypes extends string,
+  ResultType,
+  ReducerPath extends string = string,
+> = BaseEndpointDefinition<QueryArg, BaseQuery, ResultType> &
+  InfiniteQueryExtraOptions<
+    TagTypes,
+    ResultType,
+    QueryArg,
+    BaseQuery,
+    ReducerPath
+  >
+
 type MutationTypes<
   QueryArg,
   BaseQuery extends BaseQueryFn,
@@ -665,6 +737,13 @@ export type EndpointDefinition<
 > =
   | QueryDefinition<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>
   | MutationDefinition<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>
+  | InfiniteQueryDefinition<
+      QueryArg,
+      BaseQuery,
+      TagTypes,
+      ResultType,
+      ReducerPath
+    >
 
 export type EndpointDefinitions = Record<
   string,
@@ -681,6 +760,12 @@ export function isMutationDefinition(
   e: EndpointDefinition<any, any, any, any>,
 ): e is MutationDefinition<any, any, any, any> {
   return e.type === DefinitionType.mutation
+}
+
+export function isInfiniteQueryDefinition(
+  e: EndpointDefinition<any, any, any, any>,
+): e is InfiniteQueryDefinition<any, any, any, any> {
+  return e.type === DefinitionType.infinitequery
 }
 
 export type EndpointBuilder<
@@ -758,6 +843,25 @@ export type EndpointBuilder<
       'type'
     >,
   ): MutationDefinition<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>
+
+  infiniteQuery<ResultType, QueryArg>(
+    definition: OmitFromUnion<
+      InfiniteQueryDefinition<
+        QueryArg,
+        BaseQuery,
+        TagTypes,
+        ResultType,
+        ReducerPath
+      >,
+      'type'
+    >,
+  ): InfiniteQueryDefinition<
+    QueryArg,
+    BaseQuery,
+    TagTypes,
+    ResultType,
+    ReducerPath
+  >
 }
 
 export type AssertTagTypes = <T extends FullTagDescription<string>>(t: T) => T
