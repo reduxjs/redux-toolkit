@@ -52,6 +52,15 @@ type StartQueryActionCreator<
   options?: StartQueryActionCreatorOptions,
 ) => ThunkAction<QueryActionCreatorResult<D>, any, any, UnknownAction>
 
+// placeholder type which
+// may attempt to derive the list of args to query in pagination
+type StartInfiniteQueryActionCreator<
+  D extends QueryDefinition<any, any, any, any, any>,
+> = (
+  arg: QueryArgFrom<D>,
+  options?: StartQueryActionCreatorOptions,
+) => ThunkAction<QueryActionCreatorResult<D>, any, any, UnknownAction>
+
 export type QueryActionCreatorResult<
   D extends QueryDefinition<any, any, any, any>,
 > = SafePromise<QueryResultSelectorResult<D>> & {
@@ -215,6 +224,7 @@ export function buildInitiate({
   } = api.internalActions
   return {
     buildInitiateQuery,
+    buildInitiateInfiniteQuery,
     buildInitiateMutation,
     getRunningQueryThunk,
     getRunningMutationThunk,
@@ -406,6 +416,27 @@ You must add the middleware for RTK-Query to function correctly!`,
       }
     return queryAction
   }
+
+  // Concept for the pagination thunk which queries for each page
+
+  // function buildInitiateInfiniteQuery(
+  //   endpointName: string,
+  //   endpointDefinition: InfiniteQueryDefinition<any, any, any, any>
+  // ) {
+  //   const infiniteQueryAction: StartInfiniteQueryActionCreator<any> =
+  //     (
+  //       args,
+  //       {
+  //         subscribe = true,
+  //         forceRefetch,
+  //         subscriptionOptions,
+  //         [forceQueryFnSymbol]: forceQueryFn,
+  //       } = {}
+  //     ) =>
+  //       // iterate through all the args and initiate a query for each to utilise inbuilt behaviour
+  //     }
+  //   return infiniteQueryAction
+  // }
 
   function buildInitiateMutation(
     endpointName: string,
