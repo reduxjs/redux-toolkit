@@ -15,13 +15,13 @@ import type {
   ThunkDispatch,
   UnknownAction,
 } from '@reduxjs/toolkit'
-import type {
+import {
   EndpointDefinitions,
   QueryArgFrom,
   QueryDefinition,
   MutationDefinition,
   AssertTagTypes,
-  TagDescription,
+  TagDescription, isInfiniteQueryDefinition
 } from '../endpointDefinitions'
 import { isQueryDefinition, isMutationDefinition } from '../endpointDefinitions'
 import type {
@@ -542,6 +542,7 @@ export const coreModule = (): Module<CoreModule> => ({
 
     const {
       buildQuerySelector,
+      buildInfiniteQuerySelector,
       buildMutationSelector,
       selectInvalidatedBy,
       selectCachedArgsForQuery,
@@ -554,6 +555,7 @@ export const coreModule = (): Module<CoreModule> => ({
 
     const {
       buildInitiateQuery,
+      buildInitiateInfiniteQuery,
       buildInitiateMutation,
       getRunningMutationThunk,
       getRunningMutationsThunk,
@@ -595,7 +597,7 @@ export const coreModule = (): Module<CoreModule> => ({
             },
             buildMatchThunkActions(queryThunk, endpointName)
           )
-        } else if (isMutationDefinition(definition)) {
+        } if (isMutationDefinition(definition)) {
           safeAssign(
             anyApi.endpoints[endpointName],
             {
@@ -604,6 +606,16 @@ export const coreModule = (): Module<CoreModule> => ({
               initiate: buildInitiateMutation(endpointName),
             },
             buildMatchThunkActions(mutationThunk, endpointName)
+          )
+        } if (isInfiniteQueryDefinition(definition)) {
+          safeAssign(
+            anyApi.endpoints[endpointName],
+            {
+              name: endpointName,
+              select: buildInfiniteQuerySelector(endpointName, definition),
+              initiate: buildInitiateInfiniteQuery(endpointName, definition),
+            },
+            buildMatchThunkActions(queryThunk, endpointName)
           )
         }
       },
