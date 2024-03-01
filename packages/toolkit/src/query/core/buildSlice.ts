@@ -422,6 +422,39 @@ export function buildSlice({
     },
   })
 
+  const infiniteQuerySlice = createSlice({
+    name: `${reducerPath}/infinitequeries`,
+    initialState: initialState as QueryState<any>,
+    reducers: {
+      changeDirection: {
+        reducer(
+          draft,
+          { payload: { queryCacheKey } }: PayloadAction<QuerySubstateIdentifier>
+        ) {
+        },
+        prepare: prepareAutoBatched<QuerySubstateIdentifier>(),
+      },
+      combineArgsFromSelection: {
+        reducer(
+          draft,
+          {
+            payload: { queryCacheKey, patches },
+          }: PayloadAction<
+            QuerySubstateIdentifier & { patches: readonly Patch[] }
+          >
+        ) {
+          updateQuerySubstateIfExists(draft, queryCacheKey, (substate) => {
+            substate.originalArgs = substate
+          })
+        },
+        prepare: prepareAutoBatched<
+          QuerySubstateIdentifier & { patches: readonly Patch[] }
+        >(),
+      },
+    },
+  })
+
+
   // Dummy slice to generate actions
   const subscriptionSlice = createSlice({
     name: `${reducerPath}/subscriptions`,
