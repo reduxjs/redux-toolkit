@@ -1,6 +1,7 @@
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import type {
   EndpointDefinitions,
+  InfiniteQueryDefinition,
   MutationDefinition,
   QueryArgFrom,
   QueryDefinition,
@@ -135,6 +136,7 @@ export function buildSelectors<
 
   return {
     buildQuerySelector,
+    buildInfiniteQuerySelector,
     buildMutationSelector,
     selectInvalidatedBy,
     selectCachedArgsForQuery,
@@ -166,6 +168,28 @@ export function buildSelectors<
   function buildQuerySelector(
     endpointName: string,
     endpointDefinition: QueryDefinition<any, any, any, any>,
+  ) {
+    return ((queryArgs: any) => {
+      const serializedArgs = serializeQueryArgs({
+        queryArgs,
+        endpointDefinition,
+        endpointName,
+      })
+      const selectQuerySubstate = (state: RootState) =>
+        selectInternalState(state)?.queries?.[serializedArgs] ??
+        defaultQuerySubState
+      const finalSelectQuerySubState =
+        queryArgs === skipToken ? selectSkippedQuery : selectQuerySubstate
+
+      return createSelector(finalSelectQuerySubState, withRequestFlags)
+    }) as QueryResultSelectorFactory<any, RootState>
+  }
+
+  // Selector will merge all existing entries in the cache and return the result
+  // selector currently is just a clone of Query though
+  function buildInfiniteQuerySelector(
+    endpointName: string,
+    endpointDefinition: InfiniteQueryDefinition<any, any, any, any>,
   ) {
     return ((queryArgs: any) => {
       const serializedArgs = serializeQueryArgs({
