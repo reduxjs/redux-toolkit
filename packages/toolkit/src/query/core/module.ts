@@ -21,7 +21,11 @@ import type {
   QueryDefinition,
   TagDescription,
 } from '../endpointDefinitions'
-import { isMutationDefinition, isQueryDefinition } from '../endpointDefinitions'
+import {
+  isInfiniteQueryDefinition,
+  isMutationDefinition,
+  isQueryDefinition,
+} from '../endpointDefinitions'
 import { assertCast, safeAssign } from '../tsHelpers'
 import type {
   CombinedState,
@@ -567,6 +571,7 @@ export const coreModule = ({
 
     const {
       buildQuerySelector,
+      buildInfiniteQuerySelector,
       buildMutationSelector,
       selectInvalidatedBy,
       selectCachedArgsForQuery,
@@ -580,6 +585,7 @@ export const coreModule = ({
 
     const {
       buildInitiateQuery,
+      buildInitiateInfiniteQuery,
       buildInitiateMutation,
       getRunningMutationThunk,
       getRunningMutationsThunk,
@@ -621,7 +627,8 @@ export const coreModule = ({
             },
             buildMatchThunkActions(queryThunk, endpointName),
           )
-        } else if (isMutationDefinition(definition)) {
+        }
+        if (isMutationDefinition(definition)) {
           safeAssign(
             anyApi.endpoints[endpointName],
             {
@@ -630,6 +637,17 @@ export const coreModule = ({
               initiate: buildInitiateMutation(endpointName),
             },
             buildMatchThunkActions(mutationThunk, endpointName),
+          )
+        }
+        if (isInfiniteQueryDefinition(definition)) {
+          safeAssign(
+            anyApi.endpoints[endpointName],
+            {
+              name: endpointName,
+              select: buildInfiniteQuerySelector(endpointName, definition),
+              initiate: buildInitiateInfiniteQuery(endpointName, definition),
+            },
+            buildMatchThunkActions(queryThunk, endpointName),
           )
         }
       },
