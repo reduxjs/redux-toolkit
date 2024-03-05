@@ -7295,6 +7295,7 @@ __metadata:
     typescript: "npm:^5.3.3"
     typescript-eslint: "npm:^7.1.1"
   peerDependencies:
+    "@eslint/js": ^8.57.0
     "@typescript-eslint/parser": ^7.1.0
     "@typescript-eslint/utils": ^7.1.0
     eslint: ^8.57.0
