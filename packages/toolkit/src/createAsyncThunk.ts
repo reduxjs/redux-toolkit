@@ -617,7 +617,7 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
               }
               abortController.signal.addEventListener('abort', abortHandler)
             })
-            dispatch(
+            ;(dispatch as ThunkDispatch<unknown, unknown, UnknownAction>)(
               pending(
                 requestId,
                 arg,
@@ -679,7 +679,9 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
             (finalAction as any).meta.condition
 
           if (!skipDispatch) {
-            dispatch(finalAction as any)
+            ;(dispatch as ThunkDispatch<unknown, unknown, UnknownAction>)(
+              finalAction as any,
+            )
           }
           return finalAction
         })()
