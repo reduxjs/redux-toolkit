@@ -28,6 +28,34 @@ export type RefetchConfigOptions = {
   refetchOnFocus: boolean
 }
 
+export type GetNextPageParamFunction<TPageParam, TQueryFnData = unknown> = (
+  lastPage: TQueryFnData,
+  allPages: Array<TQueryFnData>,
+  lastPageParam: TPageParam,
+  allPageParams: Array<TPageParam>,
+) => TPageParam | undefined | null
+
+export type GetPreviousPageParamFunction<TPageParam, TQueryFnData = unknown> = (
+  firstPage: TQueryFnData,
+  allPages: Array<TQueryFnData>,
+  firstPageParam: TPageParam,
+  allPageParams: Array<TPageParam>,
+) => TPageParam | undefined | null
+
+export type InfiniteQueryConfigOptions<TQueryFnData = unknown, TPageParam = unknown> = {
+  /**
+   * This function can be set to automatically get the previous cursor for infinite queries.
+   * The result will also be used to determine the value of `hasPreviousPage`.
+   */
+  getPreviousPageParam?: GetPreviousPageParamFunction<TPageParam, TQueryFnData>
+  getNextPageParam: GetNextPageParamFunction<TPageParam, TQueryFnData>
+}
+
+export interface InfiniteData<TData, TPageParam = unknown> {
+  pages: Array<TData>
+  pageParams: Array<TPageParam>
+}
+
 /**
  * Strings describing the query state at any given time.
  */
