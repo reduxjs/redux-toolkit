@@ -43,10 +43,13 @@ describe('type tests', () => {
 
     // @ts-expect-error
     createReducer<string>(0 as number, (builder) => {
-      // @ts-expect-error
-      builder
-        .addCase('increment', incrementHandler)
-        .addCase('decrement', decrementHandler)
+      expectTypeOf(builder.addCase)
+        .parameter(1)
+        .not.toMatchTypeOf(incrementHandler)
+
+      expectTypeOf(builder.addCase)
+        .parameter(1)
+        .not.toMatchTypeOf(decrementHandler)
     })
   })
 
