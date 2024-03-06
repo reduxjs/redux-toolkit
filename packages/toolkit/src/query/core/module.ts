@@ -512,6 +512,7 @@ export const coreModule = ({
 
     const {
       queryThunk,
+      infiniteQueryThunk,
       mutationThunk,
       patchQueryData,
       updateQueryData,
@@ -530,6 +531,7 @@ export const coreModule = ({
     const { reducer, actions: sliceActions } = buildSlice({
       context,
       queryThunk,
+      infiniteQueryThunk,
       mutationThunk,
       reducerPath,
       assertTagType,
@@ -589,6 +591,7 @@ export const coreModule = ({
     } = buildInitiate({
       queryThunk,
       mutationThunk,
+      infiniteQueryThunk,
       api,
       serializeQueryArgs: serializeQueryArgs as any,
       context,
