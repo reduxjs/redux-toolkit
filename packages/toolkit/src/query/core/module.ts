@@ -515,6 +515,7 @@ export const coreModule = ({
 
     const {
       queryThunk,
+      infiniteQueryThunk,
       mutationThunk,
       patchQueryData,
       updateQueryData,
@@ -533,6 +534,7 @@ export const coreModule = ({
     const { reducer, actions: sliceActions } = buildSlice({
       context,
       queryThunk,
+      infiniteQueryThunk,
       mutationThunk,
       serializeQueryArgs,
       reducerPath,
@@ -594,6 +596,7 @@ export const coreModule = ({
     } = buildInitiate({
       queryThunk,
       mutationThunk,
+      infiniteQueryThunk,
       api,
       serializeQueryArgs: serializeQueryArgs as any,
       context,
