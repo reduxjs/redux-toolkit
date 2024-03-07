@@ -1,8 +1,9 @@
 import eslint from '@eslint/js'
 import type { TSESLint } from '@typescript-eslint/utils'
 import prettierConfig from 'eslint-config-prettier'
-import { browser, node, nodeBuiltin } from 'globals'
+import globals from 'globals'
 import tsEslint from 'typescript-eslint'
+const { browser, node, nodeBuiltin } = globals
 
 /**
  * An object representing the globals provided by Vitest for use in testing.
