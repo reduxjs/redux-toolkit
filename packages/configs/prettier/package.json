@@ -11,10 +11,6 @@
       "import": {
         "types": "./dist/prettier.config.d.mts",
         "default": "./dist/prettier.config.mjs"
-      },
-      "require": {
-        "types": "./dist/prettier.config.d.mts",
-        "default": "./dist/prettier.config.mjs"
       }
     }
   },
