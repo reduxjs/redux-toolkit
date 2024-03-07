@@ -2,19 +2,19 @@
   "name": "@reduxjs/prettier-config",
   "version": "0.0.1",
   "description": "Prettier configuration for Redux projects",
-  "types": "./dist/prettier.config.d.ts",
-  "module": "./dist/prettier.config.js",
-  "main": "./dist/prettier.config.js",
+  "types": "./dist/prettier.config.d.mts",
+  "module": "./dist/prettier.config.mjs",
+  "main": "./dist/prettier.config.mjs",
   "exports": {
     "./package.json": "./package.json",
     ".": {
       "import": {
-        "types": "./dist/prettier.config.d.ts",
-        "default": "./dist/prettier.config.js"
+        "types": "./dist/prettier.config.d.mts",
+        "default": "./dist/prettier.config.mjs"
       },
       "require": {
-        "types": "./dist/prettier.config.d.ts",
-        "default": "./dist/prettier.config.js"
+        "types": "./dist/prettier.config.d.mts",
+        "default": "./dist/prettier.config.mjs"
       }
     }
   },
