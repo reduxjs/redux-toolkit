@@ -4,9 +4,9 @@
   "description": "TypeScript configuration for Redux projects",
   "main": "base/tsconfig.json",
   "exports": {
+    "./package.json": "./package.json",
     ".": "./base/tsconfig.json",
-    "./base": "./base/tsconfig.json",
-    "./package.json": "./package.json"
+    "./base": "./base/tsconfig.json"
   },
   "keywords": [
     "config",

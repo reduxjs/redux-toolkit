@@ -6,13 +6,13 @@
   "types": "./dist/vitest.config.d.mts",
   "module": "./dist/vitest.config.mjs",
   "exports": {
+    "./package.json": "./package.json",
     ".": {
       "import": {
-        "default": "./dist/vitest.config.mjs",
-        "types": "./dist/vitest.config.d.mts"
+        "types": "./dist/vitest.config.d.mts",
+        "default": "./dist/vitest.config.mjs"
       }
-    },
-    "./package.json": "./package.json"
+    }
   },
   "scripts": {
     "build": "yarn clean && tsc",

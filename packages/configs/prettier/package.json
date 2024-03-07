@@ -6,17 +6,17 @@
   "module": "./dist/prettier.config.js",
   "main": "./dist/prettier.config.js",
   "exports": {
+    "./package.json": "./package.json",
     ".": {
       "import": {
-        "default": "./dist/prettier.config.js",
-        "types": "./dist/prettier.config.d.ts"
+        "types": "./dist/prettier.config.d.ts",
+        "default": "./dist/prettier.config.js"
       },
       "require": {
-        "default": "./dist/prettier.config.js",
-        "types": "./dist/prettier.config.d.ts"
+        "types": "./dist/prettier.config.d.ts",
+        "default": "./dist/prettier.config.js"
       }
-    },
-    "./package.json": "./package.json"
+    }
   },
   "scripts": {
     "build": "yarn clean && tsc",

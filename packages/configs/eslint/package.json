@@ -6,17 +6,17 @@
   "main": "./dist/eslint.config.js",
   "module": "./dist/eslint.config.js",
   "exports": {
+    "./package.json": "./package.json",
     ".": {
       "require": {
-        "default": "./dist/eslint.config.js",
-        "types": "./dist/eslint.config.d.ts"
+        "types": "./dist/eslint.config.d.ts",
+        "default": "./dist/eslint.config.js"
       },
       "import": {
-        "default": "./dist/eslint.config.js",
-        "types": "./dist/eslint.config.d.ts"
+        "types": "./dist/eslint.config.d.ts",
+        "default": "./dist/eslint.config.js"
       }
-    },
-    "./package.json": "./package.json"
+    }
   },
   "scripts": {
     "build": "yarn clean && tsc",
