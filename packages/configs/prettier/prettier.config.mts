@@ -16,9 +16,8 @@ import type { Config } from 'prettier'
  * <caption>__CommonJS (CJS) usage inside a file like `prettier.config.cjs`__</caption>
  *
  * ```js
- * const { reduxPrettierConfig } = require('@reduxjs/prettier-config')
- *
- * module.exports = reduxPrettierConfig
+ * module.exports = (async () =>
+ *   (await import('@reduxjs/prettier-config')).reduxPrettierConfig)()
  * ```
  */
 export const reduxPrettierConfig: Config = {
@@ -49,12 +48,11 @@ export const reduxPrettierConfig: Config = {
  * @example
  * <caption>__CommonJS (CJS) usage inside a file like `prettier.config.cjs`__</caption>
  * ```js
- * const { createPrettierConfig } = require('@reduxjs/prettier-config')
- *
- * module.exports = createPrettierConfig({
- *   arrowParens: 'avoid',
- *   // ...Other additional overrides
- * })
+ * module.exports = (async () =>
+ *   (await import('@reduxjs/prettier-config')).createPrettierConfig({
+ *     arrowParens: 'avoid',
+ *     // ...Other additional overrides
+ *   }))()
  * ```
  */
 export const createPrettierConfig = (
