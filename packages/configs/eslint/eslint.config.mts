@@ -41,9 +41,8 @@ export const vitestGlobals = {
  * <caption>__CommonJS (CJS) usage inside a file like `eslint.config.cjs`__</caption>
  *
  * ```js
- * const { reduxESLintConfig } = require('@reduxjs/eslint-config')
- *
- * module.exports = reduxESLintConfig
+ * module.exports = (async () =>
+ *   (await import('@reduxjs/eslint-config')).reduxESLintConfig)()
  * ```
  */
 export const reduxESLintConfig = tsEslint.config(
@@ -133,19 +132,17 @@ export const reduxESLintConfig = tsEslint.config(
  * @example
  * <caption>__CommonJS (CJS) usage inside a file like `eslint.config.cjs`__</caption>
  * ```js
- * const { createESLintConfig } = require('@reduxjs/eslint-config')
- *
- * module.exports = createESLintConfig([
- *   {
- *     rules: {
- *       'no-console': [0],
+ * module.exports = (async () =>
+ *   (await import('@reduxjs/eslint-config')).createESLintConfig([
+ *     {
+ *       rules: {
+ *         'no-console': [0],
+ *       },
  *     },
- *   },
- *   {
- *     // ...Other additional overrides
- *   },
- * ])
- *
+ *     {
+ *       // ...Other additional overrides
+ *     },
+ *   ]))()
  * ```
  */
 export const createESLintConfig = (
