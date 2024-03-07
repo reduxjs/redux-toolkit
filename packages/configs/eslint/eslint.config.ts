@@ -1,7 +1,7 @@
 import eslint from '@eslint/js'
 import type { TSESLint } from '@typescript-eslint/utils'
 import prettierConfig from 'eslint-config-prettier'
-import globals from 'globals'
+import { browser, node, nodeBuiltin } from 'globals'
 import tsEslint from 'typescript-eslint'
 
 /**
@@ -38,9 +38,9 @@ export const reduxESLintConfig = tsEslint.config(
     languageOptions: {
       globals: {
         ...vitestGlobals,
-        ...globals.nodeBuiltin,
-        ...globals.browser,
-        ...globals.node,
+        ...nodeBuiltin,
+        ...browser,
+        ...node,
       },
       parser: tsEslint.parser,
       parserOptions: {
