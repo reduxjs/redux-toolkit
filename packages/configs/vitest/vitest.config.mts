@@ -19,9 +19,8 @@ import { defineConfig, mergeConfig } from 'vitest/config'
  * <caption>__CommonJS (CJS) usage inside a file like `vitest.config.cts` or `vitest.config.cjs`__</caption>
  *
  * ```ts
- * const { reduxVitestConfig } = require('@reduxjs/vitest-config')
- *
- * module.exports = reduxVitestConfig
+ * module.exports = (async () =>
+ *   (await import('@reduxjs/vitest-config')).reduxVitestConfig)()
  * ```
  */
 export const reduxVitestConfig = defineConfig({
