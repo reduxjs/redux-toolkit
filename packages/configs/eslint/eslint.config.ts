@@ -26,6 +26,24 @@ export const vitestGlobals = {
 
 /**
  * ESLint configuration tailored for internal Redux projects using TypeScript.
+ *
+ * @example
+ * <caption>__ECMAScript Modules (ESM) usage inside a file like `eslint.config.mjs`__</caption>
+ *
+ * ```js
+ * import { reduxESLintConfig } from '@reduxjs/eslint-config'
+ *
+ * export default reduxESLintConfig
+ * ```
+ *
+ * @example
+ * <caption>__CommonJS (CJS) usage inside a file like `eslint.config.cjs`__</caption>
+ *
+ * ```js
+ * const { reduxESLintConfig } = require('@reduxjs/eslint-config')
+ *
+ * module.exports = reduxESLintConfig
+ * ```
  */
 export const reduxESLintConfig = tsEslint.config(
   // `ignores` must be first.
@@ -92,6 +110,42 @@ export const reduxESLintConfig = tsEslint.config(
  *
  * @param additionalOverrides - Optional additional overrides to apply to the configuration.
  * @returns An augmented version of the default {@linkcode reduxESLintConfig}, incorporating any provided overrides.
+ *
+ * @example
+ * <caption>__ECMAScript Modules (ESM) usage inside a file like `eslint.config.mjs`__</caption>
+ * ```js
+ * import { createESLintConfig } from '@reduxjs/eslint-config'
+ *
+ * export default createESLintConfig([
+ *   {
+ *     rules: {
+ *       'no-console': [0],
+ *     },
+ *   },
+ *   {
+ *     // ...Other additional overrides
+ *   },
+ * ])
+ *
+ * ```
+ *
+ * @example
+ * <caption>__CommonJS (CJS) usage inside a file like `eslint.config.cjs`__</caption>
+ * ```js
+ * const { createESLintConfig } = require('@reduxjs/eslint-config')
+ *
+ * module.exports = createESLintConfig([
+ *   {
+ *     rules: {
+ *       'no-console': [0],
+ *     },
+ *   },
+ *   {
+ *     // ...Other additional overrides
+ *   },
+ * ])
+ *
+ * ```
  */
 export const createESLintConfig = (
   additionalOverrides: TSESLint.FlatConfig.ConfigArray = [],
