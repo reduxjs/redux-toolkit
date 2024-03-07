@@ -2,19 +2,15 @@
   "name": "@reduxjs/eslint-config",
   "version": "0.0.1",
   "description": "ESLint configuration for Redux projects",
-  "types": "./dist/eslint.config.d.ts",
-  "main": "./dist/eslint.config.js",
-  "module": "./dist/eslint.config.js",
+  "types": "./dist/eslint.config.d.mts",
+  "main": "./dist/eslint.config.mjs",
+  "module": "./dist/eslint.config.mjs",
   "exports": {
     "./package.json": "./package.json",
     ".": {
-      "require": {
-        "types": "./dist/eslint.config.d.ts",
-        "default": "./dist/eslint.config.js"
-      },
       "import": {
-        "types": "./dist/eslint.config.d.ts",
-        "default": "./dist/eslint.config.js"
+        "types": "./dist/eslint.config.d.mts",
+        "default": "./dist/eslint.config.mjs"
       }
     }
   },
