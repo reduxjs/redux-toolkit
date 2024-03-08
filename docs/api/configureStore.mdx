@@ -154,14 +154,15 @@ An optional initial state value to be passed to the Redux `createStore` function
 
 ### `enhancers`
 
-An optional array of Redux store enhancers, or a callback function to customize the array of enhancers.
+A callback function to customize the array of enhancers.
 
-If defined as an array, these will be passed to [the Redux `compose` function](https://redux.js.org/api/compose), and the combined enhancer will be passed to `createStore`.
+Enhancers returned by this callback will be passed to [the Redux `compose` function](https://redux.js.org/api/compose), and the combined enhancer will be passed to `createStore`.
 
 :::tip Dev Tools
 This should _not_ include the Redux DevTools Extension `composeWithDevTools`, as this is already handled by `configureStore`.
 
-Example: `enhancers: new Tuple(offline)` will result in a final setup of `[offline, devToolsExtension]`.
+Example: `enhancers: () => new Tuple(offline)` will result in a final setup of `[offline, devToolsExtension]`.
+:::
 
 If not provided, `configureStore` will call `getDefaultEnhancers` and use the array of enhancers it returns (including `applyMiddleware` with specified middleware).
 
@@ -174,7 +175,7 @@ For more details on how the `enhancer` parameter works and the list of enhancers
 
 :::caution Middleware
 
-If you provide an array, this `applyMiddleware` enhancer will _not_ be used.
+If you don't use `getDefaultEnhancers` and instead return an array, the `applyMiddleware` enhancer will _not_ be used.
 
 `configureStore` will warn in console if any middleware are provided (or left as default) but not included in the final list of enhancers.
 
@@ -196,23 +197,24 @@ configureStore({
 configureStore({
   reducer,
   middleware: () => [],
-  enhancers: ()  => [offline(offlineConfig)],
+  enhancers: () => [offline(offlineConfig)],
 })
 ```
+
+Note that if using Typescript, the `middleware` option is required to be provided _before_ the enhancer option, as the type of `getDefaultEnhancers` depends on its result.
 
 :::
 
 :::note Tuple
 Typescript users are required to use a `Tuple` instance (if not using a `getDefaultEnhancer` result, which is already a `Tuple`), for better inference.
 
-```
+```ts no-transpile
 import { configureStore, Tuple } from '@reduxjs/toolkit'
 
 configureStore({
-reducer: rootReducer,
-enhancers: () => new Tuple(offline),
+  reducer: rootReducer,
+  enhancers: () => new Tuple(offline),
 })
-
 ```
 
 Javascript-only users are free to use a plain array if preferred.
