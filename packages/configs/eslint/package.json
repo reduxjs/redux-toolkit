@@ -36,8 +36,8 @@
   },
   "peerDependencies": {
     "@eslint/js": "^8.57.0",
-    "@typescript-eslint/parser": "^7.1.0",
-    "@typescript-eslint/utils": "^7.1.0",
+    "@typescript-eslint/parser": "^7.1.1",
+    "@typescript-eslint/utils": "^7.1.1",
     "eslint": "^8.57.0",
     "prettier": "^3.2.5",
     "tslib": "2.6.2",
