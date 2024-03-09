@@ -1,8 +1,7 @@
 import eslint from '@eslint/js'
-import type { TSESLint } from '@typescript-eslint/utils'
 import prettierConfig from 'eslint-config-prettier'
 import globals from 'globals'
-import tsEslint from 'typescript-eslint'
+import { config, configs, parser, plugin } from 'typescript-eslint'
 const { browser, node, nodeBuiltin } = globals
 
 /**
@@ -45,12 +44,12 @@ export const vitestGlobals = {
  *   (await import('@reduxjs/eslint-config')).reduxESLintConfig)()
  * ```
  */
-export const reduxESLintConfig = tsEslint.config(
+export const reduxESLintConfig = config(
   // `ignores` must be first.
   { ignores: ['dist/', '.*'] },
   eslint.configs.recommended,
-  ...tsEslint.configs.recommended,
-  ...tsEslint.configs.stylistic,
+  ...configs.recommended,
+  ...configs.stylistic,
   prettierConfig,
   {
     languageOptions: {
@@ -60,7 +59,7 @@ export const reduxESLintConfig = tsEslint.config(
         ...browser,
         ...node,
       },
-      parser: tsEslint.parser,
+      parser,
       parserOptions: {
         project: ['./tsconfig.json'],
         ecmaVersion: 'latest',
@@ -97,7 +96,7 @@ export const reduxESLintConfig = tsEslint.config(
         },
       ],
     },
-    plugins: { '@typescript-eslint': tsEslint.plugin },
+    plugins: { ts: plugin },
     linterOptions: { reportUnusedDisableDirectives: 2 },
   },
 )
@@ -146,7 +145,7 @@ export const reduxESLintConfig = tsEslint.config(
  * ```
  */
 export const createESLintConfig = (
-  additionalOverrides: TSESLint.FlatConfig.ConfigArray = [],
+  additionalOverrides: Parameters<typeof config> = [],
 ) => reduxESLintConfig.concat(additionalOverrides)
 
 export default reduxESLintConfig
