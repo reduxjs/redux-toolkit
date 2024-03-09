@@ -11,6 +11,10 @@
       "import": {
         "types": "./dist/eslint.config.d.mts",
         "default": "./dist/eslint.config.mjs"
+      },
+      "node": {
+        "types": "./dist/eslint.config.d.mts",
+        "default": "./dist/eslint.config.mjs"
       }
     }
   },
