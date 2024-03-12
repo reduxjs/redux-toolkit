@@ -274,8 +274,8 @@ export interface ReducerDetails {
 type RecursiveExtractDefinition<
   Definitions,
   Type extends RegisteredReducerType,
-> =
-  | CastAny<Extract<Definitions, ReducerDefinition<Type>>, never>
+> = CastAny<
+  | Extract<Definitions, ReducerDefinition<Type>>
   | (Definitions extends object
       ? {
           [K in keyof Definitions]-?: RecursiveExtractDefinition<
@@ -283,7 +283,9 @@ type RecursiveExtractDefinition<
             Type
           >
         }[keyof Definitions]
-      : never)
+      : never),
+  never
+>
 
 type ReducerDefinitionsForType<Type extends RegisteredReducerType> = {
   [CreatorType in RegisteredReducerType]:
