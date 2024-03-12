@@ -49,6 +49,7 @@ export const THIRTY_TWO_BIT_MAX_TIMER_SECONDS = 2_147_483_647 / 1_000 - 1
 export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
   reducerPath,
   api,
+  queryThunk,
   context,
   internalState,
 }) => {
@@ -99,6 +100,22 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
           state.config
         )
       }
+    }
+
+    if (
+      queryThunk.fulfilled.match(action) ||
+      queryThunk.rejected.match(action)
+    ) {
+      const state = mwApi.getState()[reducerPath]
+      const queryCacheKey = action.meta.arg.queryCacheKey
+
+      handleUnsubscribe(
+        queryCacheKey,
+        state.queries[queryCacheKey]?.endpointName,
+        mwApi,
+        state.config
+      )
+
     }
   }
 
