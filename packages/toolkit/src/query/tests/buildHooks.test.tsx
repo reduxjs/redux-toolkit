@@ -757,7 +757,7 @@ describe('hooks tests', () => {
       }
 
       function User() {
-        const [fetchTest, { data: hookData, isFetching, isUninitialized }] =
+        const [fetchTest, { isFetching, isUninitialized }] =
           pokemonApi.endpoints.getTest.useLazyQuery()
 
         return (
@@ -772,15 +772,12 @@ describe('hooks tests', () => {
       }
 
       render(<User />, { wrapper: storeRef.wrapper })
-      await act(async () => {
-        await delay(2000)
-      })
       fireEvent.click(screen.getByTestId('fetchButton'))
       fireEvent.click(screen.getByTestId('fetchButton'))
       fireEvent.click(screen.getByTestId('fetchButton'))
 
       await act(async () => {
-        await delay(2000)
+        await delay(1000)
       })
 
       // There should only be one stored query once they have had time to resolve
