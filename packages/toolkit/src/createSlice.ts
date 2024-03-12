@@ -21,7 +21,7 @@ import type {
 import { createReducer, makeGetInitialState } from './createReducer'
 import type { ActionReducerMapBuilder, TypedActionCreator } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
-import type { Id, TypeGuard, UnionToIntersection } from './tsHelpers'
+import type { CastAny, Id, TypeGuard, UnionToIntersection } from './tsHelpers'
 import type { InjectConfig } from './combineSlices'
 import { emplace } from './utils'
 import { DistributiveOmit } from 'react-redux'
@@ -275,7 +275,7 @@ type RecursiveExtractDefinition<
   Definitions,
   Type extends RegisteredReducerType,
 > =
-  | Extract<Definitions, ReducerDefinition<Type>>
+  | CastAny<Extract<Definitions, ReducerDefinition<Type>>, never>
   | (Definitions extends object
       ? {
           [K in keyof Definitions]-?: RecursiveExtractDefinition<
