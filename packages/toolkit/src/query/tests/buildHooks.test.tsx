@@ -730,6 +730,63 @@ describe('hooks tests', () => {
       expect(res.data!.amount).toBeGreaterThan(originalAmount)
     })
 
+    // See https://github.com/reduxjs/redux-toolkit/issues/4267 - Memory leak in useQuery rapid query arg changes
+    test('Hook subscriptions are properly cleaned up when query is fulfilled/rejected', async () => {
+      const pokemonApi = createApi({
+        baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
+        endpoints: (builder) => ({
+          getTest: builder.query<string, number>({
+            async queryFn() {
+              await new Promise((resolve) => setTimeout(resolve, 1000));
+              return { data: "data!" };
+            },
+            keepUnusedDataFor: 0,
+          }),
+        }),
+      })
+
+      const storeRef = setupApiStore(pokemonApi, undefined, {
+        withoutTestLifecycles: true,
+      })
+
+      const checkNumQueries = (count: number) => {
+        const cacheEntries = Object.keys((storeRef.store.getState()).api.queries)
+        const queries = cacheEntries.length
+
+        expect(queries).toBe(count)
+      }
+
+      function User() {
+        const [fetchTest, { data: hookData, isFetching, isUninitialized }] =
+          pokemonApi.endpoints.getTest.useLazyQuery()
+
+        return (
+          <div>
+            <div data-testid="isUninitialized">{String(isUninitialized)}</div>
+            <div data-testid="isFetching">{String(isFetching)}</div>
+            <button data-testid="fetchButton" onClick={() => fetchTest(Math.random())}>
+              fetchUser
+            </button>
+          </div>
+        )
+      }
+
+      render(<User />, { wrapper: storeRef.wrapper })
+      await act(async () => {
+        await delay(2000)
+      })
+      fireEvent.click(screen.getByTestId('fetchButton'))
+      fireEvent.click(screen.getByTestId('fetchButton'))
+      fireEvent.click(screen.getByTestId('fetchButton'))
+
+      await act(async () => {
+        await delay(2000)
+      })
+
+      // There should only be one stored query once they have had time to resolve
+      checkNumQueries( 1)
+    })
+
     // See https://github.com/reduxjs/redux-toolkit/issues/3182
     test('Hook subscriptions are properly cleaned up when changing skip back and forth', async () => {
       const pokemonApi = createApi({
