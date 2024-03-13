@@ -116,7 +116,7 @@ export const miniSerializeError = (value: any): SerializedError => {
 
 export type AsyncThunkConfig = {
   state?: unknown
-  dispatch?: Dispatch
+  dispatch?: ThunkDispatch<unknown, unknown, UnknownAction>
   extra?: unknown
   rejectValue?: unknown
   serializedErrorType?: unknown
@@ -577,7 +577,7 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
 
     function actionCreator(
       arg: ThunkArg,
-    ): AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> {
+    ): AsyncThunkAction<Returned, ThunkArg, Required<ThunkApiConfig>> {
       return (dispatch, getState, extra) => {
         const requestId = options?.idGenerator
           ? options.idGenerator(arg)
@@ -617,7 +617,7 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
               }
               abortController.signal.addEventListener('abort', abortHandler)
             })
-            ;(dispatch as ThunkDispatch<unknown, unknown, UnknownAction>)(
+            dispatch(
               pending(
                 requestId,
                 arg,
@@ -679,9 +679,7 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
             (finalAction as any).meta.condition
 
           if (!skipDispatch) {
-            ;(dispatch as ThunkDispatch<unknown, unknown, UnknownAction>)(
-              finalAction as any,
-            )
+            dispatch(finalAction as any)
           }
           return finalAction
         })()
