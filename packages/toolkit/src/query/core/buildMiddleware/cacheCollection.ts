@@ -69,9 +69,11 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
   ) => {
     if (unsubscribeQueryResult.match(action) ||
       queryThunk.fulfilled.match(action) ||
-      queryThunk.rejected.match(action)) {
+      queryThunk.rejected.match(action)
+    ) {
       const state = mwApi.getState()[reducerPath]
       let queryCacheKey: QueryCacheKey
+
       if (unsubscribeQueryResult.match(action)) {
         queryCacheKey = action.payload.queryCacheKey
       } else {
