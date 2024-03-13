@@ -732,6 +732,11 @@ describe('hooks tests', () => {
 
     // See https://github.com/reduxjs/redux-toolkit/issues/4267 - Memory leak in useQuery rapid query arg changes
     test('Hook subscriptions are properly cleaned up when query is fulfilled/rejected', async () => {
+      // This is imported already, but it seems to be causing issues with the test on certain matrixes
+      function delay(ms: number) {
+        return new Promise((resolve) => setTimeout(resolve, ms))
+      }
+
       const pokemonApi = createApi({
         baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
         endpoints: (builder) => ({
@@ -756,6 +761,8 @@ describe('hooks tests', () => {
         expect(queries).toBe(count)
       }
 
+      let i = 0;
+
       function User() {
         const [fetchTest, { isFetching, isUninitialized }] =
           pokemonApi.endpoints.getTest.useLazyQuery()
@@ -764,7 +771,7 @@ describe('hooks tests', () => {
           <div>
             <div data-testid="isUninitialized">{String(isUninitialized)}</div>
             <div data-testid="isFetching">{String(isFetching)}</div>
-            <button data-testid="fetchButton" onClick={() => fetchTest(Math.random())}>
+            <button data-testid="fetchButton" onClick={() => fetchTest(i++)}>
               fetchUser
             </button>
           </div>
@@ -777,7 +784,7 @@ describe('hooks tests', () => {
       fireEvent.click(screen.getByTestId('fetchButton'))
 
       await act(async () => {
-        await delay(1000)
+        await delay(1500)
       })
 
       // There should only be one stored query once they have had time to resolve
