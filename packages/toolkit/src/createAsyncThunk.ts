@@ -240,7 +240,7 @@ export type AsyncThunkAction<
   ThunkArg,
   ThunkApiConfig extends AsyncThunkConfig,
 > = (
-  dispatch: GetDispatch<ThunkApiConfig>,
+  dispatch: NonNullable<GetDispatch<ThunkApiConfig>>,
   getState: () => GetState<ThunkApiConfig>,
   extra: GetExtra<ThunkApiConfig>,
 ) => SafePromise<
