@@ -18,6 +18,10 @@
       }
     }
   },
+  "files": [
+    "dist",
+    "*.mts"
+  ],
   "scripts": {
     "build": "yarn clean && tsc",
     "clean": "rimraf dist",
