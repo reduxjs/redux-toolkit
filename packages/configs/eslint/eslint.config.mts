@@ -1,6 +1,7 @@
 import eslint from '@eslint/js'
 import prettierConfig from 'eslint-config-prettier'
 import globals from 'globals'
+import type { ConfigWithExtends } from 'typescript-eslint'
 import { config, configs, parser, plugin } from 'typescript-eslint'
 const { browser, node, nodeBuiltin } = globals
 
@@ -145,7 +146,7 @@ export const reduxESLintConfig = config(
  * ```
  */
 export const createESLintConfig = (
-  additionalOverrides: Parameters<typeof config> = [],
+  additionalOverrides: ConfigWithExtends[] = [],
 ) => reduxESLintConfig.concat(additionalOverrides)
 
 export default reduxESLintConfig
