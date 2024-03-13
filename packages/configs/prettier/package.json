@@ -40,7 +40,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/reduxjs/redux-toolkit.git"
+    "url": "https://github.com/reduxjs/redux-toolkit.git",
+    "directory": "packages/configs/prettier"
+  },
+  "bugs": {
+    "url": "https://github.com/reduxjs/redux-toolkit/issues"
   },
   "devDependencies": {
     "@reduxjs/tsconfig": "workspace:^",

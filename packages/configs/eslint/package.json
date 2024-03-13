@@ -38,6 +38,14 @@
   "publishConfig": {
     "access": "public"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/reduxjs/redux-toolkit.git",
+    "directory": "packages/configs/eslint"
+  },
+  "bugs": {
+    "url": "https://github.com/reduxjs/redux-toolkit/issues"
+  },
   "peerDependencies": {
     "@eslint/js": "^8.57.0",
     "@typescript-eslint/parser": "^7.2.0",
@@ -45,10 +53,6 @@
     "eslint": "^8.57.0",
     "prettier": "^3.2.5",
     "typescript": "^5.4.2"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/reduxjs/redux-toolkit.git"
   },
   "devDependencies": {
     "@reduxjs/tsconfig": "workspace:^",
