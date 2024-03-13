@@ -2,17 +2,17 @@
 # Manual changes might be lost - proceed with caution!
 
 __metadata:
-  version: 6
-  cacheKey: 8
+  version: 8
+  cacheKey: 10
 
 "@reduxjs/toolkit@npm:^2.0.0-rc.3":
   version: 2.0.0-rc.3
   resolution: "@reduxjs/toolkit@npm:2.0.0-rc.3"
   dependencies:
-    immer: ^10.0.3
-    redux: ^5.0.0-rc.1
-    redux-thunk: ^3.0.0-rc.0
-    reselect: ^5.0.0-rc.1
+    immer: "npm:^10.0.3"
+    redux: "npm:^5.0.0-rc.1"
+    redux-thunk: "npm:^3.0.0-rc.0"
+    reselect: "npm:^5.0.0-rc.1"
   peerDependencies:
     react: ^16.9.0 || ^17.0.0 || ^18
     react-redux: ^7.2.1 || ^8.1.3 || ^9.0.0-rc.0
@@ -21,21 +21,21 @@ __metadata:
       optional: true
     react-redux:
       optional: true
-  checksum: 4ac1f1900e9d174e2736cd0378317c198129d9377d5d037323ad807972900fb1e5389b10ee78991cbf472fac7ce2c5b348d945e0fd35e689559b34b1f255edbd
+  checksum: 10/edbb642fd62b2c0da1952fca911bdea32c00c9dad7e4537c2467330ce37ab5f98afa5ad080456c4f19faf131986fd78f5242bd06517b25fc1e55afbdd388d300
   languageName: node
   linkType: hard
 
 "@types/use-sync-external-store@npm:^0.0.3":
   version: 0.0.3
   resolution: "@types/use-sync-external-store@npm:0.0.3"
-  checksum: 161ddb8eec5dbe7279ac971531217e9af6b99f7783213566d2b502e2e2378ea19cf5e5ea4595039d730aa79d3d35c6567d48599f69773a02ffcff1776ec2a44e
+  checksum: 10/161ddb8eec5dbe7279ac971531217e9af6b99f7783213566d2b502e2e2378ea19cf5e5ea4595039d730aa79d3d35c6567d48599f69773a02ffcff1776ec2a44e
   languageName: node
   linkType: hard
 
 "callsites@npm:~4.0.0":
   version: 4.0.0
   resolution: "callsites@npm:4.0.0"
-  checksum: ad3c3a57328a539c0d671cf1ca500abf09461b762807fc545a132026bdf87705fee9c299e1adb38b133c29201a3b04fbf4f2b90d8fa1d9e00ef507e803737cf2
+  checksum: 10/ad3c3a57328a539c0d671cf1ca500abf09461b762807fc545a132026bdf87705fee9c299e1adb38b133c29201a3b04fbf4f2b90d8fa1d9e00ef507e803737cf2
   languageName: node
   linkType: hard
 
@@ -43,25 +43,25 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "dual-module-test@workspace:."
   dependencies:
-    "@reduxjs/toolkit": ^2.0.0-rc.3
-    react: ^18.2.0
-    react-dom: ^18.2.0
-    react-redux: ^9.0.0-rc.0
-    resolve-esm: ^1.4.0
+    "@reduxjs/toolkit": "npm:^2.0.0-rc.3"
+    react: "npm:^18.2.0"
+    react-dom: "npm:^18.2.0"
+    react-redux: "npm:^9.0.0-rc.0"
+    resolve-esm: "npm:^1.4.0"
   languageName: unknown
   linkType: soft
 
 "immer@npm:^10.0.3":
   version: 10.0.3
   resolution: "immer@npm:10.0.3"
-  checksum: 76acabe6f40e752028313762ba477a5d901e57b669f3b8fb406b87b9bb9b14e663a6fbbf5a6d1ab323737dd38f4b2494a4e28002045b88948da8dbf482309f28
+  checksum: 10/0be07be2f278bd1988112613648e0cf9a64fc316d5b4817f273b519fbfed0f1714275b041911f0b8c560c199b2e3430824ce620c23262c96c9d4efc9909ff1cc
   languageName: node
   linkType: hard
 
 "js-tokens@npm:^3.0.0 || ^4.0.0":
   version: 4.0.0
   resolution: "js-tokens@npm:4.0.0"
-  checksum: 8a95213a5a77deb6cbe94d86340e8d9ace2b93bc367790b260101d2f36a2eaf4e4e22d9fa9cf459b38af3a32fb4190e638024cf82ec95ef708680e405ea7cc78
+  checksum: 10/af37d0d913fb56aec6dc0074c163cc71cd23c0b8aad5c2350747b6721d37ba118af35abdd8b33c47ec2800de07dedb16a527ca9c530ee004093e04958bd0cbf2
   languageName: node
   linkType: hard
 
@@ -69,10 +69,10 @@ __metadata:
   version: 1.4.0
   resolution: "loose-envify@npm:1.4.0"
   dependencies:
-    js-tokens: ^3.0.0 || ^4.0.0
+    js-tokens: "npm:^3.0.0 || ^4.0.0"
   bin:
     loose-envify: cli.js
-  checksum: 6517e24e0cad87ec9888f500c5b5947032cdfe6ef65e1c1936a0c48a524b81e65542c9c3edc91c97d5bddc806ee2a985dbc79be89215d613b1de5db6d1cfe6f4
+  checksum: 10/6517e24e0cad87ec9888f500c5b5947032cdfe6ef65e1c1936a0c48a524b81e65542c9c3edc91c97d5bddc806ee2a985dbc79be89215d613b1de5db6d1cfe6f4
   languageName: node
   linkType: hard
 
@@ -80,11 +80,11 @@ __metadata:
   version: 18.2.0
   resolution: "react-dom@npm:18.2.0"
   dependencies:
-    loose-envify: ^1.1.0
-    scheduler: ^0.23.0
+    loose-envify: "npm:^1.1.0"
+    scheduler: "npm:^0.23.0"
   peerDependencies:
     react: ^18.2.0
-  checksum: 7d323310bea3a91be2965f9468d552f201b1c27891e45ddc2d6b8f717680c95a75ae0bc1e3f5cf41472446a2589a75aed4483aee8169287909fcd59ad149e8cc
+  checksum: 10/ca5e7762ec8c17a472a3605b6f111895c9f87ac7d43a610ab7024f68cd833d08eda0625ce02ec7178cc1f3c957cf0b9273cdc17aa2cd02da87544331c43b1d21
   languageName: node
   linkType: hard
 
@@ -92,8 +92,8 @@ __metadata:
   version: 9.0.0-rc.0
   resolution: "react-redux@npm:9.0.0-rc.0"
   dependencies:
-    "@types/use-sync-external-store": ^0.0.3
-    use-sync-external-store: ^1.0.0
+    "@types/use-sync-external-store": "npm:^0.0.3"
+    use-sync-external-store: "npm:^1.0.0"
   peerDependencies:
     "@types/react": ^18.0
     "@types/react-dom": ^18.0
@@ -112,7 +112,7 @@ __metadata:
       optional: true
     redux:
       optional: true
-  checksum: 7acc5760b7a4f6e43fb08d8e2ba4bf67638a604c15974e58c1597c37b0b55ee96db89c54bfc753c915a48081684f2051606fe430556cdf83204cceed3aaa64a3
+  checksum: 10/40738b44857466d69644302b167125fe39a06476221de705ad2c5a66d6c9a9bfb64de871dd61fed4b17cb9e0a833bc57c976307719b7b862c187e91a1e6d65c0
   languageName: node
   linkType: hard
 
@@ -120,8 +120,8 @@ __metadata:
   version: 18.2.0
   resolution: "react@npm:18.2.0"
   dependencies:
-    loose-envify: ^1.1.0
-  checksum: 88e38092da8839b830cda6feef2e8505dec8ace60579e46aa5490fc3dc9bba0bd50336507dc166f43e3afc1c42939c09fe33b25fae889d6f402721dcd78fca1b
+    loose-envify: "npm:^1.1.0"
+  checksum: 10/b9214a9bd79e99d08de55f8bef2b7fc8c39630be97c4e29d7be173d14a9a10670b5325e94485f74cd8bff4966ef3c78ee53c79a7b0b9b70cba20aa8973acc694
   languageName: node
   linkType: hard
 
@@ -130,21 +130,21 @@ __metadata:
   resolution: "redux-thunk@npm:3.0.0-rc.0"
   peerDependencies:
     redux: ^5.0.0-rc.0
-  checksum: d56a4bb700c742294496699366090bad22d13112cacc16b4858321cb6d88e05dcbab3c0f0d3b34848bbfedf4a04cdcc1b999e6cfdf7a9af713018fe35a35016e
+  checksum: 10/24ddf5ebfd372b548b16b8d05e57ff01d6d7c01bafb58d7122bb0c0415668949f7529f047443cee50892495e019ffb4c10562ac2509699ef337c416e5d1332fe
   languageName: node
   linkType: hard
 
 "redux@npm:^5.0.0-rc.1":
   version: 5.0.0-rc.1
   resolution: "redux@npm:5.0.0-rc.1"
-  checksum: e3a26c5df84fb5705c82e17ca59c19374e3da3e87e5582201ca9b727e2569671bc1f01d738044f34bf38baaa296646a42714207a3dbc83d92ddf186ee0fc21c8
+  checksum: 10/34a91d79ba9019fc4a0536bae14a6a74d3dd710fe39ec0cb9a84a48e24d46e8edf632d24f1d42c168c8afbd90b3e3ff0adcb844a344e3adac2743d0638cb7548
   languageName: node
   linkType: hard
 
 "reselect@npm:^5.0.0-rc.1":
   version: 5.0.0-rc.1
   resolution: "reselect@npm:5.0.0-rc.1"
-  checksum: 214254264b576dbf2558e66e43f8a97773e9d30f92911ec095feefd915cec82d0109a69a3cbbd5e38eb020e2819a2039c3eea7b2498c4933f438bfcade122165
+  checksum: 10/c3458fef3935ac9aa69848d6a67b26684ea6fcda42ddacb12b0b2aea69dddfd77e9cd8be518cbf85db338e98856c3c549299b934ed8605e2b9c5cc844e30082f
   languageName: node
   linkType: hard
 
@@ -152,8 +152,8 @@ __metadata:
   version: 1.4.0
   resolution: "resolve-esm@npm:1.4.0"
   dependencies:
-    callsites: ~4.0.0
-  checksum: f0e1fad4c49abe41012ec9f59958d9d8d356b12c92a784765b6d69f8dccd07a609656f83a86278c76b579a953b02b893d3c3ea7c2ad2be607b15d7f0c942b8f8
+    callsites: "npm:~4.0.0"
+  checksum: 10/89b6657f5a0c6c4420db1452691f04f84c4981b0369c67551260e139ddc37320f18a8c8cab82a8b8a22bfb04726a7dc23d527ff6514da50a5179189e4c3970a8
   languageName: node
   linkType: hard
 
@@ -161,8 +161,8 @@ __metadata:
   version: 0.23.0
   resolution: "scheduler@npm:0.23.0"
   dependencies:
-    loose-envify: ^1.1.0
-  checksum: d79192eeaa12abef860c195ea45d37cbf2bbf5f66e3c4dcd16f54a7da53b17788a70d109ee3d3dde1a0fd50e6a8fc171f4300356c5aee4fc0171de526bf35f8a
+    loose-envify: "npm:^1.1.0"
+  checksum: 10/0c4557aa37bafca44ff21dc0ea7c92e2dbcb298bc62eae92b29a39b029134f02fb23917d6ebc8b1fa536b4184934314c20d8864d156a9f6357f3398aaf7bfda8
   languageName: node
   linkType: hard
 
@@ -171,6 +171,6 @@ __metadata:
   resolution: "use-sync-external-store@npm:1.2.0"
   peerDependencies:
     react: ^16.8.0 || ^17.0.0 || ^18.0.0
-  checksum: 5c639e0f8da3521d605f59ce5be9e094ca772bd44a4ce7322b055a6f58eeed8dda3c94cabd90c7a41fb6fa852210092008afe48f7038792fd47501f33299116a
+  checksum: 10/a676216affc203876bd47981103f201f28c2731361bb186367e12d287a7566763213a8816910c6eb88265eccd4c230426eb783d64c373c4a180905be8820ed8e
   languageName: node
   linkType: hard
