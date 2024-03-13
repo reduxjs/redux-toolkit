@@ -67,9 +67,16 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
     mwApi,
     internalState
   ) => {
-    if (unsubscribeQueryResult.match(action)) {
+    if (unsubscribeQueryResult.match(action) ||
+      queryThunk.fulfilled.match(action) ||
+      queryThunk.rejected.match(action)) {
       const state = mwApi.getState()[reducerPath]
-      const { queryCacheKey } = action.payload
+      let queryCacheKey: QueryCacheKey
+      if (unsubscribeQueryResult.match(action)) {
+        queryCacheKey = action.payload.queryCacheKey
+      } else {
+        queryCacheKey = action.meta.arg.queryCacheKey
+      }
 
       handleUnsubscribe(
         queryCacheKey,
@@ -100,22 +107,6 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
           state.config
         )
       }
-    }
-
-    if (
-      queryThunk.fulfilled.match(action) ||
-      queryThunk.rejected.match(action)
-    ) {
-      const state = mwApi.getState()[reducerPath]
-      const queryCacheKey = action.meta.arg.queryCacheKey
-
-      handleUnsubscribe(
-        queryCacheKey,
-        state.queries[queryCacheKey]?.endpointName,
-        mwApi,
-        state.config
-      )
-
     }
   }
 
