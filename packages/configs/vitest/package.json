@@ -11,6 +11,10 @@
       "import": {
         "types": "./dist/vitest.config.d.mts",
         "default": "./dist/vitest.config.mjs"
+      },
+      "node": {
+        "types": "./dist/vitest.config.d.mts",
+        "default": "./dist/vitest.config.mjs"
       }
     }
   },
