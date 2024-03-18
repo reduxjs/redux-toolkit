@@ -782,6 +782,7 @@ describe('hooks tests', () => {
       fireEvent.click(screen.getByTestId('fetchButton'))
       fireEvent.click(screen.getByTestId('fetchButton'))
       fireEvent.click(screen.getByTestId('fetchButton'))
+      checkNumQueries(3)
 
       await act(async () => {
         await delay(1500)
