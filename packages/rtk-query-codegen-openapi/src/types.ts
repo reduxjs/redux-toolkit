@@ -47,6 +47,10 @@ export interface CommonOptions {
    */
   responseSuffix?: string;
   /**
+   * defaults to empty
+   */
+  operationNameSuffix?: string;
+  /**
    * defaults to `false`
    * `true` will generate hooks for queries and mutations, but no lazyQueries
    */
