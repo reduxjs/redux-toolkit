@@ -2,6 +2,7 @@ import type {
   BaseQueryApi,
   BaseQueryArg,
   BaseQueryEnhancer,
+  BaseQueryError,
   BaseQueryExtraOptions,
   BaseQueryFn,
 } from './baseQueryTypes'
@@ -31,7 +32,7 @@ async function defaultBackoff(attempt: number = 0, maxRetries: number = 5) {
 }
 
 type RetryConditionFunction = (
-  error: FetchBaseQueryError,
+  error: BaseQueryError<BaseQueryFn>,
   args: BaseQueryArg<BaseQueryFn>,
   extraArgs: {
     attempt: number
