@@ -921,6 +921,91 @@ describe('hooks tests', () => {
       expect(res.data!.amount).toBeGreaterThan(originalAmount)
     })
 
+
+    test('Infinite Query Hook', async () => {
+      function delay(ms: number) {
+        return new Promise((resolve) => setTimeout(resolve, ms))
+      }
+
+      function paginate<T>(array: T[], page_size: number, page_number: number) {
+        // human-readable page numbers usually start with 1, so we reduce 1 in the first argument
+        return array.slice((page_number - 1) * page_size, page_number * page_size)
+      }
+
+      server.use(
+        http.get('https://example.com/listItems', ({ request }) => {
+          const url = new URL(request.url)
+          const pageString = url.searchParams.get('page')
+          const pageNum = parseInt(pageString || '0')
+
+          const results = {title: `page ${pageNum}`, info: "more name"}
+          return HttpResponse.json(results)
+        }),
+      )
+
+
+      const pokemonApi = createApi({
+        baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
+        endpoints: (builder) => ({
+          getInfinitePokemon: builder.infiniteQuery<any, number>({
+            infiniteQueryOptions: {
+              getNextPageParam: (lastPage) => lastPage + 1,
+            },
+            query(pageParam = 0) {
+              return `https://example.com/listItems?page=${pageParam}`
+            }
+          }),
+        }),
+      })
+
+
+      const storeRef = setupApiStore(pokemonApi, undefined, {
+        withoutTestLifecycles: true,
+      })
+
+      const checkNumQueries = (count: number) => {
+        const cacheEntries = Object.keys((storeRef.store.getState()).api.queries)
+        const queries = cacheEntries.length
+        console.log('queries', queries)
+        console.log(storeRef.store.getState().api.queries)
+
+        expect(queries).toBe(count)
+      }
+
+      let i = 0;
+
+      function User() {
+        const { data, isFetching, isUninitialized } =
+          pokemonApi.useGetInfinitePokemonQuery(0)
+
+        return (
+          <div>
+            <div data-testid="isUninitialized">{String(isUninitialized)}</div>
+            <div data-testid="isFetching">{String(isFetching)}</div>
+            <div data-testid="data">
+              {String(data)}
+            </div>
+            <button data-testid="nextPage" onClick={() => console.log(pokemonApi.endpoints?.getInfinitePokemon)}>
+              nextPage
+            </button>
+          </div>
+        )
+      }
+
+      render(<User />, { wrapper: storeRef.wrapper })
+      expect(screen.getByTestId('data').textContent).toBe('undefined')
+      checkNumQueries(1)
+
+      await waitFor(() =>
+        expect(screen.getByTestId('isUninitialized').textContent).toBe('false'),
+      )
+      await waitFor(() =>
+        expect(screen.getByTestId('isFetching').textContent).toBe('false'),
+      )
+      fireEvent.click(screen.getByTestId('nextPage'))
+      checkNumQueries(2)
+    })
+
     // See https://github.com/reduxjs/redux-toolkit/issues/4267 - Memory leak in useQuery rapid query arg changes
     test('Hook subscriptions are properly cleaned up when query is fulfilled/rejected', async () => {
       // This is imported already, but it seems to be causing issues with the test on certain matrixes
