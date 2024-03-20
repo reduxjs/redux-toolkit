@@ -427,6 +427,8 @@ export function buildThunks<
           param: unknown,
           previous?: boolean,
         ): Promise<QueryReturnValue> => {
+          console.log('fetchPage', data, param, previous)
+
           if (param == null && data.pages.length) {
             return Promise.resolve({ data })
           }
@@ -437,25 +439,28 @@ export function buildThunks<
             endpointDefinition.extraOptions as any,
           )
 
-          const { maxPages } = endpointDefinition.extraOptions as any
+          const maxPages = 20
           const addTo = previous ? addToStart : addToEnd
 
           return {
             data: {
-              pages: addTo(data.pages, page, maxPages),
+              pages: addTo(data.pages, page.data, maxPages),
               pageParams: addTo(data.pageParams, param, maxPages),
             },
           }
         }
 
-        if ('direction' in arg && arg.infiniteQueryOptions) {
+        if ('infiniteQueryOptions' in endpointDefinition) {
           if (arg.direction && arg.data.pages.length) {
             const previous = arg.direction === 'backwards'
             const pageParamFn = previous
               ? getPreviousPageParam
               : getNextPageParam
             const oldData = arg.data
-            const param = pageParamFn(arg.infiniteQueryOptions, oldData)
+            const param = pageParamFn(
+              endpointDefinition.infiniteQueryOptions,
+              oldData,
+            )
 
             result = await fetchPage(oldData, param, previous)
           } else {

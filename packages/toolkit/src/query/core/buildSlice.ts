@@ -38,6 +38,7 @@ import type {
   DefinitionType,
   EndpointDefinitions,
   FullTagDescription,
+  InfiniteQueryDefinition,
   QueryArgFrom,
   QueryDefinition,
   ResultTypeFrom,
@@ -573,34 +574,72 @@ export function buildSlice({
     name: `${reducerPath}/infinitequeries`,
     initialState: initialState as QueryState<any>,
     reducers: {
-      changeDirection: {
-        reducer(
-          draft,
-          { payload: { queryCacheKey } }: PayloadAction<QuerySubstateIdentifier>
-        ) {
-        },
-        prepare: prepareAutoBatched<QuerySubstateIdentifier>(),
-      },
-      combineArgsFromSelection: {
-        reducer(
-          draft,
+      fetchNextPage(
+        d,
+        a: PayloadAction<
           {
-            payload: { queryCacheKey, patches },
-          }: PayloadAction<
-            QuerySubstateIdentifier & { patches: readonly Patch[] }
-          >
-        ) {
-          updateQuerySubstateIfExists(draft, queryCacheKey, (substate) => {
-            substate.originalArgs = substate
-          })
-        },
-        prepare: prepareAutoBatched<
-          QuerySubstateIdentifier & { patches: readonly Patch[] }
-        >(),
+            endpointName: string
+            requestId: string
+            options: Subscribers[number]
+          } & QuerySubstateIdentifier
+        >,
+      ) {
+        // Dummy
       },
+      unsubscribeQueryResult(
+        d,
+        a: PayloadAction<{ requestId: string } & QuerySubstateIdentifier>,
+      ) {
+        // Dummy
+      },
+      internal_getRTKQSubscriptions() {},
     },
-  })
+    // extraReducers(builder) {
+    //   builder
+    //     .addCase(queryThunk.fulfilled, (draft, { meta, payload }) => {
+    //       updateQuerySubstateIfExists(
+    //         draft,
+    //         meta.arg.queryCacheKey,
+    //         (substate) => {
+    //           const { infiniteQueryOptions } = definitions[
+    //             meta.arg.endpointName
+    //             ] as InfiniteQueryDefinition<any, any, any, any>
+    //           substate.status = QueryStatus.fulfilled
+    //           if(!infiniteQueryOptions) return
+    //
+    //             if (substate.data !== undefined) {
+    //               const { fulfilledTimeStamp, arg, baseQueryMeta, requestId } =
+    //                 meta
+    //               // There's existing cache data. Let the user merge it in themselves.
+    //               // We're already inside an Immer-powered reducer, and the user could just mutate `substate.data`
+    //               // themselves inside of `merge()`. But, they might also want to return a new value.
+    //               // Try to let Immer figure that part out, save the result, and assign it to `substate.data`.
+    //               substate.data = payload
+    //             } else {
+    //               // Presumably a fresh request. Just cache the response data.
+    //               substate.data = payload
+    //             }
+    //           } else {
+    //             // Assign or safely update the cache data.
+    //             substate.data =
+    //               definitions[meta.arg.endpointName].structuralSharing ?? true
+    //                 ? copyWithStructuralSharing(
+    //                   isDraft(substate.data)
+    //                     ? original(substate.data)
+    //                     : substate.data,
+    //                   payload,
+    //                 )
+    //                 : payload
+    //           }
+    //
+    //           delete substate.error
+    //           substate.fulfilledTimeStamp = meta.fulfilledTimeStamp
+    //         },
+    //       )
+    //     })
 
+    // },
+  })
 
   // Dummy slice to generate actions
   const subscriptionSlice = createSlice({
