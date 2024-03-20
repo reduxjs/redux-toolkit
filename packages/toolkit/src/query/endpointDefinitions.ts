@@ -1,5 +1,11 @@
 import type { SerializeQueryArgs } from './defaultSerializeQueryArgs'
-import type { QuerySubState, RootState } from './core/apiState'
+import type {
+  GetNextPageParamFunction,
+  GetPreviousPageParamFunction,
+  InfiniteQueryConfigOptions,
+  QuerySubState,
+  RootState
+} from './core/apiState'
 import type {
   BaseQueryExtraOptions,
   BaseQueryFn,
@@ -553,7 +559,7 @@ export interface InfiniteQueryExtraOptions<
    */
   invalidatesTags?: never
 
-  selection: ({ from, to }: any, { read }: any) => any
+  infiniteQueryOptions: InfiniteQueryConfigOptions
 
   /**
    * All of these are `undefined` at runtime, purely to be used in TypeScript declarations!
