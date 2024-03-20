@@ -22,6 +22,7 @@ import { capitalize, getOperationDefinitions, getV3Doc, removeUndefined, isQuery
 import { factory } from './utils/factory';
 
 const generatedApiName = 'injectedRtkApi';
+const v3DocCache: Record<string, OpenAPIV3.Document> = {}
 
 function defaultIsDataResponse(code: string) {
   const parsedCode = Number(code);
@@ -95,7 +96,7 @@ export async function generateApi(
     mergeReadWriteOnly = false,
   }: GenerationOptions
 ) {
-  const v3Doc = await getV3Doc(spec);
+  const v3Doc = v3DocCache[spec] ??= await getV3Doc(spec);
 
   const apiGen = new ApiGenerator(v3Doc, {
     unionUndefined,
