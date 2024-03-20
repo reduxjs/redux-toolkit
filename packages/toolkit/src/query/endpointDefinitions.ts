@@ -1,5 +1,12 @@
 import type { Api } from '@reduxjs/toolkit/query'
 import type {
+  GetNextPageParamFunction,
+  GetPreviousPageParamFunction,
+  InfiniteQueryConfigOptions,
+  QuerySubState,
+  RootState,
+} from './core/apiState'
+import type {
   BaseQueryApi,
   BaseQueryArg,
   BaseQueryError,
@@ -9,7 +16,6 @@ import type {
   BaseQueryResult,
   QueryReturnValue,
 } from './baseQueryTypes'
-import type { QuerySubState, RootState } from './core'
 import type { CacheCollectionQueryExtraOptions } from './core/buildMiddleware/cacheCollection'
 import type {
   CacheLifecycleMutationExtraOptions,
@@ -578,7 +584,7 @@ export interface InfiniteQueryExtraOptions<
    */
   invalidatesTags?: never
 
-  selection: ({ from, to }: any, { read }: any) => any
+  infiniteQueryOptions: InfiniteQueryConfigOptions
 
   /**
    * All of these are `undefined` at runtime, purely to be used in TypeScript declarations!
