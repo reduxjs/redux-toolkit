@@ -57,6 +57,17 @@ export type SubMiddlewareApi = MiddlewareAPI<
   RootState<EndpointDefinitions, string, string>
 >
 
+export interface BuildInfMiddlewareInput
+  extends BuildMiddlewareInput<EndpointDefinitions, string, string> {
+  internalState: InternalMiddlewareState
+  fetchNextPage(
+    querySubState: QuerySubState<any>,
+    queryCacheKey: string,
+    arg: unknown,
+  ): AsyncThunkAction<ThunkResult, QueryThunkArg, {}>
+  isThisApiSliceAction: (action: Action) => boolean
+  }
+
 export interface BuildSubMiddlewareInput
   extends BuildMiddlewareInput<EndpointDefinitions, string, string> {
   internalState: InternalMiddlewareState
@@ -68,6 +79,14 @@ export interface BuildSubMiddlewareInput
   ): ThunkAction<QueryActionCreatorResult<any>, any, any, UnknownAction>
   isThisApiSliceAction: (action: Action) => boolean
 }
+
+export type InfMiddlewareBuilder = (
+  input: BuildInfMiddlewareInput,
+) => Middleware<
+  {},
+  RootState<EndpointDefinitions, string, string>,
+  ThunkDispatch<any, any, UnknownAction>
+>
 
 export type SubMiddlewareBuilder = (
   input: BuildSubMiddlewareInput,
@@ -86,7 +105,7 @@ export type ApiMiddlewareInternalHandler<Return = void> = (
 ) => Return
 
 export type InternalHandlerBuilder<ReturnType = void> = (
-  input: BuildSubMiddlewareInput,
+  input: BuildSubMiddlewareInput | BuildInfMiddlewareInput,
 ) => ApiMiddlewareInternalHandler<ReturnType>
 
 export interface PromiseConstructorWithKnownReason {
