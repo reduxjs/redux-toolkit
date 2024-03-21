@@ -3,7 +3,11 @@
 import { formatProdErrorMessage } from '@reduxjs/toolkit'
 
 import { buildCreateApi, coreModule } from '@reduxjs/toolkit/query'
-import { reactHooksModule, reactHooksModuleName } from './module'
+import {
+  reactHooksModule,
+  reactHooksModuleName,
+  buildHooksForApi,
+} from './module'
 
 export * from '@reduxjs/toolkit/query'
 export { ApiProvider } from './ApiProvider'
@@ -27,4 +31,4 @@ export type {
   TypedUseQuerySubscription,
   TypedUseLazyQuerySubscription,
 } from './buildHooks'
-export { createApi, reactHooksModule, reactHooksModuleName }
+export { createApi, reactHooksModule, reactHooksModuleName, buildHooksForApi }

@@ -28,6 +28,16 @@ export interface ApiModules<
 
 export type ModuleName = keyof ApiModules<any, any, any, any>
 
+export type DefaultedOptions =
+  | 'reducerPath'
+  | 'serializeQueryArgs'
+  | 'keepUnusedDataFor'
+  | 'refetchOnMountOrArgChange'
+  | 'refetchOnFocus'
+  | 'refetchOnReconnect'
+  | 'invalidationBehavior'
+  | 'tagTypes'
+
 export type Module<Name extends ModuleName> = {
   name: Name
   init<
@@ -39,14 +49,7 @@ export type Module<Name extends ModuleName> = {
     api: Api<BaseQuery, EndpointDefinitions, ReducerPath, TagTypes, ModuleName>,
     options: WithRequiredProp<
       CreateApiOptions<BaseQuery, Definitions, ReducerPath, TagTypes>,
-      | 'reducerPath'
-      | 'serializeQueryArgs'
-      | 'keepUnusedDataFor'
-      | 'refetchOnMountOrArgChange'
-      | 'refetchOnFocus'
-      | 'refetchOnReconnect'
-      | 'invalidationBehavior'
-      | 'tagTypes'
+      DefaultedOptions
     >,
     context: ApiContext<Definitions>,
   ): {
@@ -124,4 +127,11 @@ export type Api<
     TagTypes | NewTagTypes,
     Enhancers
   >
+  internal: {
+    options: WithRequiredProp<
+      CreateApiOptions<any, any, any, any>,
+      DefaultedOptions
+    >
+    endpoints: Definitions
+  }
 }
