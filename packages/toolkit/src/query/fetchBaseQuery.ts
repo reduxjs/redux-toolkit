@@ -188,6 +188,20 @@ export type FetchBaseQueryMeta = { request: Request; response?: Response }
  * @param {number} timeout
  * A number in milliseconds that represents the maximum time a request can take before timing out.
  */
+export function fetchBaseQuery(options?: FetchBaseQueryArgs<{}>): BaseQueryFn<
+string | FetchArgs,
+unknown,
+FetchBaseQueryError,
+{},
+FetchBaseQueryMeta
+>
+export function fetchBaseQuery<ExtraOptions>(options?: FetchBaseQueryArgs<ExtraOptions>): BaseQueryFn<
+string | FetchArgs,
+unknown,
+FetchBaseQueryError,
+ExtraOptions,
+FetchBaseQueryMeta
+>
 export function fetchBaseQuery<ExtraOptions>({
   baseUrl,
   prepareHeaders = (x) => x,
