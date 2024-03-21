@@ -257,10 +257,12 @@ export async function generateApi(
       ).name
     );
 
-    const parameters = supportDeepObjects([
-      ...apiGen.resolveArray(pathItem.parameters),
-      ...apiGen.resolveArray(operation.parameters),
-    ]);
+    const operationParameters = apiGen.resolveArray(operation.parameters);
+    const pathItemParameters = apiGen
+      .resolveArray(pathItem.parameters)
+      .filter((pp) => !operationParameters.some((op) => op.name === pp.name && op.in === pp.in));
+
+    const parameters = supportDeepObjects([...pathItemParameters, ...operationParameters]);
 
     const allNames = parameters.map((p) => p.name);
     const queryArg: QueryArgDefinitions = {};

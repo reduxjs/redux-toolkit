@@ -1,0 +1,23 @@
+openapi: 3.0.2
+info:
+  title: parameterOverride
+  version: 1.0.0
+paths:
+  /users/{id}:
+    parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+    get:
+      summary: Gets one or more users by ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
