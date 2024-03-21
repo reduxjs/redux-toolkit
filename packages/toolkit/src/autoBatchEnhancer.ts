@@ -44,7 +44,7 @@ export type AutoBatchOptions =
  * By default, it will queue a notification for the end of the event loop tick.
  * However, you can pass several other options to configure the behavior:
  * - `{type: 'tick'}`: queues using `queueMicrotask`
- * - `{type: 'timer, timeout: number}`: queues using `setTimeout`
+ * - `{type: 'timer', timeout: number}`: queues using `setTimeout`
  * - `{type: 'raf'}`: queues using `requestAnimationFrame` (default)
  * - `{type: 'callback', queueNotification: (notify: () => void) => void}`: lets you provide your own callback
  *
