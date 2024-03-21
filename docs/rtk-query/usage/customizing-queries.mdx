@@ -375,7 +375,8 @@ const axiosBaseQuery =
       headers?: AxiosRequestConfig['headers']
     },
     unknown,
-    unknown
+    unknown,
+    {}
   > =>
   async ({ url, method, data, params, headers }) => {
     try {
@@ -491,19 +492,14 @@ declare function loggedOut(): void
 export { tokenReceived, loggedOut }
 // file: baseQueryWithReauth.ts
 import { fetchBaseQuery } from '@reduxjs/toolkit/query'
-import type {
-  BaseQueryFn,
-  FetchArgs,
-  FetchBaseQueryError,
-} from '@reduxjs/toolkit/query'
 import { tokenReceived, loggedOut } from './authSlice'
 
 const baseQuery = fetchBaseQuery({ baseUrl: '/' })
-const baseQueryWithReauth: BaseQueryFn<
-  string | FetchArgs,
-  unknown,
-  FetchBaseQueryError
-> = async (args, api, extraOptions) => {
+const baseQueryWithReauth: typeof baseQuery = async (
+  args,
+  api,
+  extraOptions,
+) => {
   let result = await baseQuery(args, api, extraOptions)
   if (result.error && result.error.status === 401) {
     // try to get a new token
@@ -782,11 +778,6 @@ export interface Post {
 
 // file: src/services/api.ts
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-import type {
-  BaseQueryFn,
-  FetchArgs,
-  FetchBaseQueryError,
-} from '@reduxjs/toolkit/query/react'
 import type { Post } from './types'
 import { selectProjectId } from './projectSlice'
 import type { RootState } from '../store'
@@ -795,11 +786,11 @@ const rawBaseQuery = fetchBaseQuery({
   baseUrl: 'www.my-cool-site.com/',
 })
 
-const dynamicBaseQuery: BaseQueryFn<
-  string | FetchArgs,
-  unknown,
-  FetchBaseQueryError
-> = async (args, api, extraOptions) => {
+const dynamicBaseQuery: typeof rawBaseQuery = async (
+  args,
+  api,
+  extraOptions,
+) => {
   const projectId = selectProjectId(api.getState() as RootState)
   // gracefully handle scenarios where data to generate the URL is missing
   if (!projectId) {
