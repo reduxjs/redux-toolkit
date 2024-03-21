@@ -311,26 +311,34 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
 
     const api = {
       injectEndpoints,
+      addTagTypes(...addTagTypes) {
+        for (const eT of addTagTypes) {
+          if (!optionsWithDefaults.tagTypes!.includes(eT as any)) {
+            ;(optionsWithDefaults.tagTypes as any[]).push(eT)
+          }
+        }
+        return api
+      },
+      enhanceEndpoint(endpointName, partialDefinition) {
+        if (typeof partialDefinition === 'function') {
+          ;(partialDefinition as any)(context.endpointDefinitions[endpointName])
+        } else {
+          Object.assign(
+            context.endpointDefinitions[endpointName] || {},
+            partialDefinition,
+          )
+        }
+        return api
+      },
       enhanceEndpoints({ addTagTypes, endpoints }) {
         if (addTagTypes) {
-          for (const eT of addTagTypes) {
-            if (!optionsWithDefaults.tagTypes!.includes(eT as any)) {
-              ;(optionsWithDefaults.tagTypes as any[]).push(eT)
-            }
-          }
+          api.addTagTypes(...addTagTypes)
         }
         if (endpoints) {
           for (const [endpointName, partialDefinition] of Object.entries(
             endpoints,
           )) {
-            if (typeof partialDefinition === 'function') {
-              partialDefinition(context.endpointDefinitions[endpointName])
-            } else {
-              Object.assign(
-                context.endpointDefinitions[endpointName] || {},
-                partialDefinition,
-              )
-            }
+            ;(api.enhanceEndpoint as any)(endpointName, partialDefinition)
           }
         }
         return api
@@ -381,6 +389,6 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
       return api as any
     }
 
-    return api.injectEndpoints({ endpoints: options.endpoints as any })
+    return api.injectEndpoints({ endpoints: options.endpoints as any }) as any
   }
 }

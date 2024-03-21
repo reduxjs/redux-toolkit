@@ -47,9 +47,3 @@ export const api = createApi({
    */
   endpoints: () => ({}),
 })
-
-export const enhancedApi = api.enhanceEndpoints({
-  endpoints: () => ({
-    getPost: () => 'test',
-  }),
-})

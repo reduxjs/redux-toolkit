@@ -8,11 +8,11 @@ import { DefinitionType } from '../../endpointDefinitions'
 import type { QueryFulfilledRejectionReason } from '../../endpointDefinitions'
 import type { Recipe } from '../buildThunks'
 import type {
-  PromiseWithKnownReason,
-  PromiseConstructorWithKnownReason,
   InternalHandlerBuilder,
   ApiMiddlewareInternalHandler,
 } from './types'
+import type { PromiseWithKnownReason, PromiseWithResolvers } from '../../utils'
+import { promiseWithResolvers } from '../../utils'
 
 export type ReferenceQueryLifecycle = never
 
@@ -211,10 +211,14 @@ export const buildQueryLifecycleHandler: InternalHandlerBuilder = ({
   const isRejectedThunk = isRejected(queryThunk, mutationThunk)
   const isFullfilledThunk = isFulfilled(queryThunk, mutationThunk)
 
-  type CacheLifecycle = {
-    resolve(value: { data: unknown; meta: unknown }): unknown
-    reject(value: QueryFulfilledRejectionReason<any>): unknown
-  }
+  type CacheLifecycle = Omit<
+    PromiseWithResolvers<
+      { data: unknown; meta: unknown },
+      QueryFulfilledRejectionReason<any>
+    >,
+    'promise'
+  >
+
   const lifecycleMap: Record<string, CacheLifecycle> = {}
 
   const handler: ApiMiddlewareInternalHandler = (action, mwApi) => {
@@ -226,15 +230,10 @@ export const buildQueryLifecycleHandler: InternalHandlerBuilder = ({
       const endpointDefinition = context.endpointDefinitions[endpointName]
       const onQueryStarted = endpointDefinition?.onQueryStarted
       if (onQueryStarted) {
-        const lifecycle = {} as CacheLifecycle
-        const queryFulfilled =
-          new (Promise as PromiseConstructorWithKnownReason)<
-            { data: unknown; meta: unknown },
-            QueryFulfilledRejectionReason<any>
-          >((resolve, reject) => {
-            lifecycle.resolve = resolve
-            lifecycle.reject = reject
-          })
+        const { promise: queryFulfilled, ...lifecycle } = promiseWithResolvers<
+          { data: unknown; meta: unknown },
+          QueryFulfilledRejectionReason<any>
+        >()
         // prevent uncaught promise rejections from happening.
         // if the original promise is used in any way, that will create a new promise that will throw again
         queryFulfilled.catch(() => {})

@@ -4,6 +4,7 @@ import {
   isDocumentVisible,
   flatten,
   joinUrls,
+  promiseWithResolvers,
 } from '@internal/query/utils'
 
 afterAll(() => {
@@ -105,5 +106,32 @@ describe('flatten', () => {
     const flattenResult = flatten([1, 2, [3, 4, [5, 6]]])
     expect(flattenResult).not.toEqual([1, 2, 3, 4, 5, 6])
     expect(flattenResult).toEqual([1, 2, 3, 4, [5, 6]])
+  })
+})
+
+describe('promiseWithResolvers', () => {
+  test('provides promise along with lifecycle methods', async () => {
+    const stringPromise = promiseWithResolvers<string>()
+
+    stringPromise.resolve('foo')
+
+    if (2 < 1) {
+      // only type test this
+      // @ts-expect-error
+      stringPromise.resolve(0)
+    }
+
+    await expect(stringPromise.promise).resolves.toBe('foo')
+
+    const thrownPromise = promiseWithResolvers<void, string>()
+
+    thrownPromise.reject('an error')
+
+    if (2 < 1) {
+      // @ts-expect-error
+      thrownPromise.reject(0)
+    }
+
+    await expect(thrownPromise.promise).rejects.toThrow('an error')
   })
 })

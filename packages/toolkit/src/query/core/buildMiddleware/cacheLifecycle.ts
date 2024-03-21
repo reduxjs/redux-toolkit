@@ -13,9 +13,10 @@ import type { PatchCollection, Recipe } from '../buildThunks'
 import type {
   ApiMiddlewareInternalHandler,
   InternalHandlerBuilder,
-  PromiseWithKnownReason,
   SubMiddlewareApi,
 } from './types'
+import type { PromiseWithKnownReason } from '../../utils'
+import { promiseWithResolvers } from '../../utils'
 
 export type ReferenceCacheLifecycle = never
 
@@ -276,20 +277,22 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
 
     let lifecycle = {} as CacheLifecycle
 
-    const cacheEntryRemoved = new Promise<void>((resolve) => {
-      lifecycle.cacheEntryRemoved = resolve
-    })
-    const cacheDataLoaded: PromiseWithKnownReason<
+    let cacheEntryRemoved: Promise<void>
+    ;({ promise: cacheEntryRemoved, resolve: lifecycle.cacheEntryRemoved } =
+      promiseWithResolvers<void>())
+
+    const {
+      promise: cacheDataLoaded,
+      resolve,
+      reject,
+    } = promiseWithResolvers<
       { data: unknown; meta: unknown },
       typeof neverResolvedError
-    > = Promise.race([
-      new Promise<{ data: unknown; meta: unknown }>((resolve) => {
-        lifecycle.valueResolved = resolve
-      }),
-      cacheEntryRemoved.then(() => {
-        throw neverResolvedError
-      }),
-    ])
+    >()
+    lifecycle.valueResolved = resolve
+
+    cacheEntryRemoved.then(() => reject(neverResolvedError), reject)
+
     // prevent uncaught promise rejections from happening.
     // if the original promise is used in any way, that will create a new promise that will throw again
     cacheDataLoaded.catch(() => {})

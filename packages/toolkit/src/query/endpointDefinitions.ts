@@ -812,6 +812,70 @@ export type OverrideResultType<Definition, NewResultType> =
         >
       : never
 
+export type AddTagTypes<
+  Definitions extends EndpointDefinitions,
+  NewTagTypes extends string,
+> = {
+  [K in keyof Definitions]: Definitions[K] extends QueryDefinition<
+    infer QueryArg,
+    infer BaseQuery,
+    any,
+    infer ResultType,
+    infer ReducerPath
+  >
+    ? QueryDefinition<QueryArg, BaseQuery, NewTagTypes, ResultType, ReducerPath>
+    : Definitions[K] extends MutationDefinition<
+          infer QueryArg,
+          infer BaseQuery,
+          any,
+          infer ResultType,
+          infer ReducerPath
+        >
+      ? MutationDefinition<
+          QueryArg,
+          BaseQuery,
+          NewTagTypes,
+          ResultType,
+          ReducerPath
+        >
+      : never
+}
+
+export type EnhanceEndpoint<
+  Definition extends EndpointDefinition<any, any, any, any, any>,
+  NewQueryArg,
+  NewResultType,
+> =
+  Definition extends QueryDefinition<
+    any,
+    infer BaseQuery,
+    infer TagTypes,
+    any,
+    infer ReducerPath
+  >
+    ? QueryDefinition<
+        NewQueryArg,
+        BaseQuery,
+        TagTypes,
+        NewResultType,
+        ReducerPath
+      >
+    : Definition extends MutationDefinition<
+          any,
+          infer BaseQuery,
+          infer TagTypes,
+          any,
+          infer ReducerPath
+        >
+      ? MutationDefinition<
+          NewQueryArg,
+          BaseQuery,
+          TagTypes,
+          NewResultType,
+          ReducerPath
+        >
+      : never
+
 export type UpdateDefinitions<
   Definitions extends EndpointDefinitions,
   NewTagTypes extends string,

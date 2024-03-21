@@ -42,7 +42,13 @@ type Api = {
 
   // Code splitting and generation
   injectEndpoints: (options: InjectEndpointsOptions) => UpdatedApi
-  enhanceEndpoints: (options: EnhanceEndpointsOptions) => UpdatedApi
+  addTagTypes: (...newTags: readonly string[]) => UpdatedApi
+  enhanceEndpoint: (
+    endpointName: string,
+    partialDefinition:
+      | Partial<EndpointDefinition>
+      | ((definition: EndpointDefinition) => void)
+  ) => UpdatedApi
 
   // Utilities
   utils: {
@@ -118,7 +124,7 @@ Each API slice allows [additional endpoint definitions to be injected at runtime
 
 The individual API slice endpoint definitions can also be split across multiple files. This is primarily useful for working with API slices that were [code-generated from an API schema file](../../usage/code-generation.mdx), allowing you to add additional custom behavior and configuration to a set of automatically-generated endpoint definitions.
 
-Each API slice object has `injectEndpoints` and `enhanceEndpoints` functions to support these use cases.
+Each API slice object has `injectEndpoints`, `addTagTypes` and `enhanceEndpoint` functions to support these use cases.
 
 :::info API Reference
 

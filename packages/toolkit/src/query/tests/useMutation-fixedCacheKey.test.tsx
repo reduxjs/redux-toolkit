@@ -359,12 +359,8 @@ describe('fixedCacheKey', () => {
   })
 
   test('using fixedCacheKey should create a new cache entry', async () => {
-    api.enhanceEndpoints({
-      endpoints: {
-        send: {
-          onCacheEntryAdded: (arg) => onNewCacheEntry(arg),
-        },
-      },
+    api.enhanceEndpoint('send', {
+      onCacheEntryAdded: (arg) => onNewCacheEntry(arg),
     })
 
     render(<Component name="C1" fixedCacheKey={'testKey'} />, {
@@ -383,12 +379,8 @@ describe('fixedCacheKey', () => {
 
     expect(onNewCacheEntry).toHaveBeenCalledWith('C1')
 
-    api.enhanceEndpoints({
-      endpoints: {
-        send: {
-          onCacheEntryAdded: undefined,
-        },
-      },
+    api.enhanceEndpoint('send', {
+      onCacheEntryAdded: undefined,
     })
   })
 })
