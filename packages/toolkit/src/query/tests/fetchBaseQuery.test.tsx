@@ -859,10 +859,10 @@ describe('fetchBaseQuery', () => {
       const baseQuery = fetchBaseQuery<{ foo?: string; bar?: number }>({
         prepareHeaders(headers, api) {
           expectTypeOf(api.extraOptions).toEqualTypeOf<{ foo?: string; bar?: number }>()
-          prepare.call(undefined, arguments)
+          prepare.apply(undefined, arguments)
         },
       })
-      baseQuery('', commonBaseQueryApi, { foo: 'baz', bar: 5 })
+      baseQuery('http://example.com', commonBaseQueryApi, { foo: 'baz', bar: 5 })
       expect(prepare).toHaveBeenCalledWith(
         expect.anything(),
         expect.objectContaining({ extraOptions: { foo: 'baz', bar: 5 } })
