@@ -20,7 +20,8 @@
     "docs",
     "website",
     "examples/query/react/*",
-    "examples/action-listener/*"
+    "examples/action-listener/*",
+    "examples/lazy-injection/*"
   ],
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "6.12.0",
