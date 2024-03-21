@@ -2,6 +2,7 @@ import { createSlice } from '@reduxjs/toolkit'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 import { headersToObject } from 'headers-polyfill'
 import { HttpResponse, delay, http } from 'msw'
+// @ts-ignore
 import nodeFetch from 'node-fetch'
 import queryString from 'query-string'
 import { vi } from 'vitest'
@@ -851,6 +852,52 @@ describe('fetchBaseQuery', () => {
       expect(_type).toBe('query')
       expect(_forced).toBe(true)
       expect(_extra).toBe(fakeAuth0Client)
+    })
+
+    test('can be instantiated with a `ExtraOptions` generic and `extraOptions` will be available in `prepareHeaders', async () => {
+      const prepare = vitest.fn()
+      const baseQuery = fetchBaseQuery<{ foo?: string; bar?: number }>({
+        prepareHeaders(headers, api) {
+          expectTypeOf(api.extraOptions).toEqualTypeOf<{ foo?: string; bar?: number }>()
+          prepare.call(undefined, arguments)
+        },
+      })
+      baseQuery('', commonBaseQueryApi, { foo: 'baz', bar: 5 })
+      expect(prepare).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ extraOptions: { foo: 'baz', bar: 5 } })
+      )
+
+      // ensure types
+      createApi({
+        baseQuery,
+        endpoints(build) {
+          return {
+            testQuery: build.query({
+              query: () => ({ url: '/echo', headers: {} }),
+              extraOptions: {
+                foo: 'asd',
+                bar: 1,
+                // @ts-expect-error
+                baz: 5,
+              },
+            }),
+            testMutation: build.mutation({
+              query: () => ({
+                url: '/echo',
+                method: 'POST',
+                credentials: 'omit',
+              }),
+              extraOptions: {
+                foo: 'qwe',
+                bar: 15,
+                // @ts-expect-error
+                baz: 5,
+              },
+            }),
+          }
+        },
+      })
     })
   })
 
