@@ -17,7 +17,15 @@ import ts from 'typescript';
 import type { ObjectPropertyDefinitions } from './codegen';
 import { generateCreateApiCall, generateEndpointDefinition, generateImportNode, generateTagTypes } from './codegen';
 import { generateReactHooks } from './generators/react-hooks';
-import type { EndpointMatcher, EndpointOverrides, GenerationOptions, OperationDefinition, TextMatcher } from './types';
+import type {
+  ParameterDefinition,
+  ParameterMatcher,
+  EndpointMatcher,
+  EndpointOverrides,
+  GenerationOptions,
+  OperationDefinition,
+  TextMatcher,
+} from './types';
 import { capitalize, getOperationDefinitions, getV3Doc, removeUndefined, isQuery as testIsQuery } from './utils';
 import { factory } from './utils/factory';
 
@@ -55,6 +63,15 @@ function operationMatches(pattern?: EndpointMatcher) {
   };
 }
 
+function argumentMatches(pattern?: ParameterMatcher) {
+  const checkMatch = typeof pattern === 'function' ? pattern : patternMatches(pattern);
+  return function matcher(argumentDefinition: ParameterDefinition) {
+    if (!pattern || argumentDefinition.in === 'path') return true;
+    const argumentName = argumentDefinition.name;
+    return checkMatch(argumentName, argumentDefinition);
+  };
+}
+
 function withQueryComment<T extends ts.Node>(node: T, def: QueryArgDefinition, hasTrailingNewLine: boolean): T {
   const comment = def.origin === 'param' ? def.param.description : def.body.description;
   if (comment) {
@@ -89,6 +106,7 @@ export async function generateApi(
     isDataResponse = defaultIsDataResponse,
     filterEndpoints,
     endpointOverrides,
+    filterParameters,
     unionUndefined,
     flattenArg = false,
     useEnumType = false,
@@ -260,7 +278,7 @@ export async function generateApi(
     const parameters = supportDeepObjects([
       ...apiGen.resolveArray(pathItem.parameters),
       ...apiGen.resolveArray(operation.parameters),
-    ]);
+    ]).filter(argumentMatches(filterParameters));
 
     const allNames = parameters.map((p) => p.name);
     const queryArg: QueryArgDefinitions = {};
