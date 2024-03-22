@@ -48,7 +48,7 @@
     "url": "https://github.com/reduxjs/redux-toolkit/issues"
   },
   "peerDependencies": {
-    "typescript": "^5.4.2"
+    "typescript": "^5.4.3"
   },
   "peerDependenciesMeta": {
     "typescript": {
@@ -58,7 +58,7 @@
   "devDependencies": {
     "@reduxjs/tsconfig": "workspace:^",
     "rimraf": "^5.0.5",
-    "typescript": "^5.4.2"
+    "typescript": "^5.4.3"
   },
   "dependencies": {
     "vite-tsconfig-paths": "^4.3.2",
