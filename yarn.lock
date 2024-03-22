@@ -7281,7 +7281,7 @@ __metadata:
     "@reduxjs/tsconfig": "workspace:^"
     prettier: "npm:^3.2.5"
     rimraf: "npm:^5.0.5"
-    typescript: "npm:^5.4.2"
+    typescript: "npm:^5.4.3"
   languageName: unknown
   linkType: soft
 
