@@ -22,6 +22,48 @@ test('calling without `outputFile` returns the generated api', async () => {
   expect(api).toMatchSnapshot();
 });
 
+describe('non-path parameter filtering', () => {
+  it('should filter parameters by string', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      filterParameters: 'status',
+    });
+    expect(api).toMatchSnapshot('should only have the "status" parameter from the endpoints');
+  });
+
+  it('should filter parameters by regex', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      filterParameters: /e/,
+    });
+    expect(api).toMatchSnapshot('should only have the parameters with an "e"');
+  });
+
+  it('should filter by array of parameter strings / regex', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      filterParameters: [/e/, 'status'],
+    });
+    expect(api).toMatchSnapshot('should only have the parameters with an "e" or is "status"');
+  });
+
+  it('should filter by function', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      filterParameters: (_, param) => !(param.in === 'header'),
+    });
+    expect(api).toMatchSnapshot('should remove any parameters from the header');
+  });
+});
+
 test('endpoint filtering', async () => {
   const api = await generateEndpoints({
     unionUndefined: true,

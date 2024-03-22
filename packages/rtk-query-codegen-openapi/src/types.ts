@@ -7,6 +7,8 @@ export type OperationDefinition = {
   operation: OpenAPIV3.OperationObject;
 };
 
+export type ParameterDefinition = OpenAPIV3.ParameterObject;
+
 type Require<T, K extends keyof T> = { [k in K]-?: NonNullable<T[k]> } & Omit<T, K>;
 type Optional<T, K extends keyof T> = { [k in K]?: NonNullable<T[k]> } & Omit<T, K>;
 type Id<T> = { [K in keyof T]: T[K] } & {};
@@ -80,15 +82,23 @@ export type EndpointMatcherFunction = (operationName: string, operationDefinitio
 
 export type EndpointMatcher = TextMatcher | EndpointMatcherFunction;
 
+export type ParameterMatcherFunction = (argumentName: string, argumentDefinition: ParameterDefinition) => boolean;
+export type ParameterMatcher = TextMatcher | ParameterMatcherFunction;
+
 export interface OutputFileOptions extends Partial<CommonOptions> {
   outputFile: string;
   filterEndpoints?: EndpointMatcher;
+  filterParameters?: ParameterMatcher;
   endpointOverrides?: EndpointOverrides[];
   /**
    * defaults to false
    * If passed as true it will generate TS enums instead of union of strings
    */
   useEnumType?: boolean;
+}
+
+export interface ArgumentFilters {
+  pattern: ParameterMatcher;
 }
 
 export interface EndpointOverrides {
