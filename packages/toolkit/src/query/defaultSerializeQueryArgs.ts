@@ -10,7 +10,7 @@ export const defaultSerializeQueryArgs: SerializeQueryArgs<any> = ({
   endpointName,
   queryArgs,
 }) => {
-  let serialized = ''
+  let serialized
 
   const cached = cache?.get(queryArgs)
 
