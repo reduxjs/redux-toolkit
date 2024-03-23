@@ -74,7 +74,7 @@ const api = createApi({
     }
   },
   endpoints: (build) => ({
-    getUser: build.query<{ name: string }, number>({
+    getUser: build.query<{ name: string }, number | bigint>({
       query: () => ({
         body: { name: 'Timmy' },
       }),
@@ -627,59 +627,85 @@ describe('hooks tests', () => {
       )
     })
 
-    test(`useQuery refetches when query args object changes even if serialized args don't change`, async () => {
-      function ItemList() {
-        const [pageNumber, setPageNumber] = useState(0)
-        const { data = [] } = api.useListItemsQuery({ pageNumber })
-
-        const renderedItems = data.map((item) => (
-          <li key={item.id}>ID: {item.id}</li>
-        ))
-        return (
-          <div>
-            <button onClick={() => setPageNumber(pageNumber + 1)}>
-              Next Page
-            </button>
-            <ul>{renderedItems}</ul>
-          </div>
-        )
-      }
-
-      render(<ItemList />, { wrapper: storeRef.wrapper })
-
-      await screen.findByText('ID: 0')
-
-      await act(async () => {
-        screen.getByText('Next Page').click()
+    describe("serializeQueryArgs handling", () => {
+      beforeEach(() => {
+        nextItemId = 0
       })
 
-      await screen.findByText('ID: 3')
-    })
+      test(`useQuery refetches when query args object changes even if serialized args don't change`, async () => {
+        function ItemList() {
+          const [pageNumber, setPageNumber] = useState(0)
+          const { data = [] } = api.useListItemsQuery({ pageNumber })
 
-    // See https://github.com/reduxjs/redux-toolkit/issues/4279 - current limitation is that the hook will not refetch
-    // when the user defined serializeQueryArgs remains consistent and the defaultSerializeQueryArgs throws an error
-    test('useQuery gracefully handles non-serializable queryArgs but does not trigger a refetch', async () => {
-      nextItemId = 0
-      function ItemList() {
-        const [pageNumber, setPageNumber] = useState(0)
-        const { data = [] } = api.useListItemsQuery({ pageNumber: BigInt(pageNumber) })
+          const renderedItems = data.map((item) => (
+            <li key={item.id}>ID: {item.id}</li>
+          ))
+          return (
+            <div>
+              <button onClick={() => setPageNumber(pageNumber + 1)}>
+                Next Page
+              </button>
+              <ul>{renderedItems}</ul>
+            </div>
+          )
+        }
 
-        const renderedItems = data.map((item) => (
-          <li key={item.id}>ID: {item.id}</li>
-        ))
-        return (
-          <div>
-            <button onClick={() => setPageNumber(pageNumber + 1)}>
-              Next Page
-            </button>
-            <ul>{renderedItems}</ul>
-          </div>
+        render(<ItemList />, { wrapper: storeRef.wrapper })
+
+        await screen.findByText('ID: 0')
+
+        await act(async () => {
+          screen.getByText('Next Page').click()
+        })
+
+        await screen.findByText('ID: 3')
+      })
+
+      // See https://github.com/reduxjs/redux-toolkit/issues/4279 - current limitation is that the hook will not refetch
+      // when the user defined serializeQueryArgs remains consistent and the defaultSerializeQueryArgs throws an error
+      test('useQuery gracefully handles non-serializable queryArgs but does not trigger a refetch', async () => {
+        function ItemList() {
+          const [pageNumber, setPageNumber] = useState(0)
+          const { data = [] } = api.useListItemsQuery({ pageNumber: BigInt(pageNumber) })
+
+          const renderedItems = data.map((item) => (
+            <li key={item.id}>ID: {item.id}</li>
+          ))
+          return (
+            <div>
+              <button onClick={() => setPageNumber(pageNumber + 1)}>
+                Next Page
+              </button>
+              <ul>{renderedItems}</ul>
+            </div>
+          )
+        }
+
+        render(<ItemList />, { wrapper: storeRef.wrapper })
+
+        await screen.findByText('ID: 0')
+      })
+
+      test('Non-serializable values do not impact base render assumptions', async () => {
+        function User() {
+          const { isFetching } = api.endpoints.getUser.useQuery(BigInt(1))
+          getRenderCount = useRenderCounter()
+
+          return (
+            <div>
+              <div data-testid="isFetching">{String(isFetching)}</div>
+            </div>
+          )
+        }
+
+        render(<User />, { wrapper: storeRef.wrapper })
+        expect(getRenderCount()).toBe(2)
+
+        await waitFor(() =>
+          expect(screen.getByTestId('isFetching').textContent).toBe('false'),
         )
-      }
-
-      render(<ItemList />, { wrapper: storeRef.wrapper })
-
-      await screen.findByText('ID: 0')
+        expect(getRenderCount()).toBe(3)
+      })
     })
 
     describe('api.util.resetApiState resets hook', () => {
