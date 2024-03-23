@@ -100,7 +100,7 @@ const api = createApi({
     getError: build.query({
       query: () => '/error',
     }),
-    listItems: build.query<Item[], { pageNumber: bigint | number }>({
+    listItems: build.query<Item[], { pageNumber: number | bigint }>({
       serializeQueryArgs: ({ endpointName }) => {
         return endpointName
       },
