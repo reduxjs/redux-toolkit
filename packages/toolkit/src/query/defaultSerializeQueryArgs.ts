@@ -10,14 +10,16 @@ export const defaultSerializeQueryArgs: SerializeQueryArgs<any> = ({
   endpointName,
   queryArgs,
 }) => {
-  let serialized = ''
+  let serialized
 
   const cached = cache?.get(queryArgs)
 
   if (typeof cached === 'string') {
     serialized = cached
   } else {
-    const stringified = JSON.stringify(queryArgs, (key, value) =>
+    let stringified = ''
+    try {
+    stringified = JSON.stringify(queryArgs, (key, value) =>
       isPlainObject(value)
         ? Object.keys(value)
             .sort()
@@ -27,6 +29,12 @@ export const defaultSerializeQueryArgs: SerializeQueryArgs<any> = ({
             }, {})
         : value,
     )
+    } catch (e) {
+      if (
+        typeof process !== 'undefined' &&
+        process.env.NODE_ENV === 'development'
+      ) console.warn("Failed to serialize query args for hook", endpointName, e)
+    }
     if (isPlainObject(queryArgs)) {
       cache?.set(queryArgs, stringified)
     }
