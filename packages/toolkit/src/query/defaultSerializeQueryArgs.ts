@@ -29,7 +29,6 @@ export const defaultSerializeQueryArgs: SerializeQueryArgs<any> = ({
             }, {})
         : value,
     )
-      // Non-serializable values will trigger the catch and the users
     } catch (e) {
       if (
         typeof process !== 'undefined' &&
