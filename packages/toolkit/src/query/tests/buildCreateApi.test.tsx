@@ -163,6 +163,6 @@ describe('buildCreateApi', () => {
     )
 
     // select() + selectFromResult
-    expect(memoize).toHaveBeenCalledTimes(8)
+    expect(memoize).toHaveBeenCalledTimes(4)
   })
 })

@@ -135,6 +135,11 @@ export function buildSelectors<
   const selectSkippedQuery = (state: RootState) => defaultQuerySubState
   const selectSkippedMutation = (state: RootState) => defaultMutationSubState
 
+  const aMemoizedSelector = createSelector(
+    () => {},
+    () => ({}),
+  )
+
   return {
     buildQuerySelector,
     buildMutationSelector,
@@ -169,7 +174,7 @@ export function buildSelectors<
     endpointName: string,
     endpointDefinition: QueryDefinition<any, any, any, any>,
   ) {
-    return ((queryArgs: any) => {
+    const memoized = aMemoizedSelector.memoize((queryArgs: any) => {
       const serializedArgs = serializeQueryArgs({
         queryArgs,
         endpointDefinition,
@@ -182,11 +187,15 @@ export function buildSelectors<
         queryArgs === skipToken ? selectSkippedQuery : selectQuerySubstate
 
       return createSelector(finalSelectQuerySubState, withRequestFlags)
-    }) as QueryResultSelectorFactory<any, RootState>
+    })
+    return Object.assign(
+      (arg: any) => memoized(arg),
+      memoized,
+    ) as QueryResultSelectorFactory<any, RootState>
   }
 
   function buildMutationSelector() {
-    return ((id) => {
+    const memoized = aMemoizedSelector.memoize((id) => {
       let mutationId: string | typeof skipToken
       if (typeof id === 'object') {
         mutationId = getMutationCacheKey(id) ?? skipToken
@@ -202,7 +211,11 @@ export function buildSelectors<
           : selectMutationSubstate
 
       return createSelector(finalSelectMutationSubstate, withRequestFlags)
-    }) as MutationResultSelectorFactory<any, RootState>
+    })
+    return Object.assign(
+      (arg: any) => memoized(arg),
+      memoized,
+    ) as MutationResultSelectorFactory<any, RootState>
   }
 
   function selectInvalidatedBy(
