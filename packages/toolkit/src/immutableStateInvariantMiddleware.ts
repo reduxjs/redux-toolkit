@@ -1,4 +1,5 @@
 import type { Middleware } from 'redux'
+import type { AnyObject } from './tsHelpers'
 import { getTimeMeasureUtils } from './utils'
 
 type EntryProcessor = (key: string, value: any) => any
@@ -27,15 +28,15 @@ export function trackForMutations(
 
 interface TrackedProperty {
   value: any
-  children: Record<string, any>
+  children: AnyObject
 }
 
 function trackProperties(
   isImmutable: IsImmutableFunc,
   ignorePaths: IgnorePaths = [],
-  obj: Record<string, any>,
-  path: string = '',
-  checkedObjects: Set<Record<string, any>> = new Set(),
+  obj: AnyObject,
+  path = '',
+  checkedObjects = new Set<AnyObject>(),
 ) {
   const tracked: Partial<TrackedProperty> = { value: obj }
 
@@ -44,8 +45,8 @@ function trackProperties(
     tracked.children = {}
 
     for (const key in obj) {
-      const childPath = path ? path + '.' + key : key
-      if (ignorePaths.length && ignorePaths.indexOf(childPath) !== -1) {
+      const childPath = path ? `${path}.${key}` : key
+      if (ignorePaths.length && ignorePaths.includes(childPath)) {
         continue
       }
 
@@ -60,15 +61,15 @@ function trackProperties(
   return tracked as TrackedProperty
 }
 
-type IgnorePaths = readonly (string | RegExp)[]
+type IgnorePaths = ReadonlyArray<string | RegExp>
 
 function detectMutations(
   isImmutable: IsImmutableFunc,
   ignoredPaths: IgnorePaths = [],
   trackedProperty: TrackedProperty,
   obj: any,
-  sameParentRef: boolean = false,
-  path: string = '',
+  sameParentRef = false,
+  path = '',
 ): { wasMutated: boolean; path?: string } {
   const prevObj = trackedProperty ? trackedProperty.value : undefined
 
@@ -84,17 +85,17 @@ function detectMutations(
 
   // Gather all keys from prev (tracked) and after objs
   const keysToDetect: Record<string, boolean> = {}
-  for (let key in trackedProperty.children) {
+  for (const key in trackedProperty.children) {
     keysToDetect[key] = true
   }
-  for (let key in obj) {
+  for (const key in obj) {
     keysToDetect[key] = true
   }
 
   const hasIgnoredPaths = ignoredPaths.length > 0
 
-  for (let key in keysToDetect) {
-    const nestedPath = path ? path + '.' + key : key
+  for (const key in keysToDetect) {
+    const nestedPath = path ? `${path}.${key}` : key
 
     if (hasIgnoredPaths) {
       const hasMatches = ignoredPaths.some((ignored) => {
@@ -135,12 +136,12 @@ export interface ImmutableStateInvariantMiddlewareOptions {
   /**
     Callback function to check if a value is considered to be immutable.
     This function is applied recursively to every value contained in the state.
-    The default implementation will return true for primitive types 
+    The default implementation will return true for primitive types
     (like numbers, strings, booleans, null and undefined).
    */
   isImmutable?: IsImmutableFunc
-  /** 
-    An array of dot-separated path strings that match named nodes from 
+  /**
+    An array of dot-separated path strings that match named nodes from
     the root state to ignore when checking for immutability.
     Defaults to undefined
    */
@@ -164,33 +165,31 @@ export function createImmutableStateInvariantMiddleware(
   if (process.env.NODE_ENV === 'production') {
     return () => (next) => (action) => next(action)
   } else {
-    function stringify(
+    const stringify = (
       obj: any,
       serializer?: EntryProcessor,
       indent?: string | number,
       decycler?: EntryProcessor,
-    ): string {
+    ): string => {
       return JSON.stringify(obj, getSerialize(serializer, decycler), indent)
     }
 
-    function getSerialize(
+    const getSerialize = (
       serializer?: EntryProcessor,
       decycler?: EntryProcessor,
-    ): EntryProcessor {
-      let stack: any[] = [],
-        keys: any[] = []
+    ): EntryProcessor => {
+      const stack: any[] = []
+      const keys: any[] = []
 
       if (!decycler)
-        decycler = function (_: string, value: any) {
+        decycler = (_: string, value: any) => {
           if (stack[0] === value) return '[Circular ~]'
-          return (
-            '[Circular ~.' + keys.slice(0, stack.indexOf(value)).join('.') + ']'
-          )
+          return `[Circular ~.${keys.slice(0, stack.indexOf(value)).join('.')}]`
         }
 
       return function (this: any, key: string, value: any) {
         if (stack.length > 0) {
-          var thisPos = stack.indexOf(this)
+          const thisPos = stack.indexOf(this)
           ~thisPos ? stack.splice(thisPos + 1) : stack.push(this)
           ~thisPos ? keys.splice(thisPos, Infinity, key) : keys.push(key)
           if (~stack.indexOf(value)) value = decycler!.call(this, key, value)
@@ -200,7 +199,7 @@ export function createImmutableStateInvariantMiddleware(
       }
     }
 
-    let {
+    const {
       isImmutable = isImmutableDefault,
       ignoredPaths,
       warnAfter = 32,

@@ -1,28 +1,28 @@
-import type { createSelector as _createSelector } from './rtkImports'
-import { createNextState } from './rtkImports'
+import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
+import type {
+  EndpointDefinitions,
+  MutationDefinition,
+  QueryArgFrom,
+  QueryDefinition,
+  ReducerPathFrom,
+  TagDescription,
+  TagTypesFrom,
+} from '../endpointDefinitions'
+import { expandTagDescription } from '../endpointDefinitions'
+import { flatten } from '../utils'
 import type {
   MutationSubState,
-  QuerySubState,
-  RootState as _RootState,
-  RequestStatusFlags,
   QueryCacheKey,
   QueryKeys,
   QueryState,
+  QuerySubState,
+  RequestStatusFlags,
+  RootState as _RootState,
 } from './apiState'
 import { QueryStatus, getRequestStatusFlags } from './apiState'
-import type {
-  EndpointDefinitions,
-  QueryDefinition,
-  MutationDefinition,
-  QueryArgFrom,
-  TagTypesFrom,
-  ReducerPathFrom,
-  TagDescription,
-} from '../endpointDefinitions'
-import { expandTagDescription } from '../endpointDefinitions'
-import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import { getMutationCacheKey } from './buildSlice'
-import { flatten } from '../utils'
+import type { createSelector as _createSelector } from './rtkImports'
+import { createNextState } from './rtkImports'
 
 export type SkipToken = typeof skipToken
 /**
@@ -111,11 +111,15 @@ const initialSubState: QuerySubState<any> = {
 // abuse immer to freeze default states
 const defaultQuerySubState = /* @__PURE__ */ createNextState(
   initialSubState,
-  () => {},
+  () => {
+    /** No-Op */
+  },
 )
 const defaultMutationSubState = /* @__PURE__ */ createNextState(
   initialSubState as MutationSubState<any>,
-  () => {},
+  () => {
+    /** No-Op */
+  },
 )
 
 export function buildSelectors<
@@ -221,7 +225,7 @@ export function buildSelectors<
         continue
       }
 
-      let invalidateSubscriptions =
+      const invalidateSubscriptions =
         (tag.id !== undefined
           ? // id given: invalidate all queries that provide this type & id
             provided[tag.id]

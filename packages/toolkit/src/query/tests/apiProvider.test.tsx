@@ -2,7 +2,7 @@ import { configureStore } from '@reduxjs/toolkit'
 import { ApiProvider, createApi } from '@reduxjs/toolkit/query/react'
 import { fireEvent, render, waitFor } from '@testing-library/react'
 import { delay } from 'msw'
-import * as React from 'react'
+import React from 'react'
 import { Provider } from 'react-redux'
 
 const api = createApi({

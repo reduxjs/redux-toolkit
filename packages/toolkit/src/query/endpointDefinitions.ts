@@ -1,25 +1,26 @@
-import type { SerializeQueryArgs } from './defaultSerializeQueryArgs'
-import type { QuerySubState, RootState } from './core/apiState'
+import type { Api } from '@reduxjs/toolkit/query'
+import type { AnyFunction, EmptyObject } from '../tsHelpers'
 import type {
+  BaseQueryApi,
+  BaseQueryArg,
+  BaseQueryError,
   BaseQueryExtraOptions,
   BaseQueryFn,
-  BaseQueryResult,
-  BaseQueryArg,
-  BaseQueryApi,
-  QueryReturnValue,
-  BaseQueryError,
   BaseQueryMeta,
+  BaseQueryResult,
+  QueryReturnValue,
 } from './baseQueryTypes'
+import type { QuerySubState, RootState } from './core/apiState'
+import type { SerializeQueryArgs } from './defaultSerializeQueryArgs'
+import type { NEVER } from './fakeBaseQuery'
 import type {
+  CastAny,
   HasRequiredProps,
   MaybePromise,
-  OmitFromUnion,
-  CastAny,
   NonUndefined,
+  OmitFromUnion,
   UnwrapPromise,
 } from './tsHelpers'
-import type { NEVER } from './fakeBaseQuery'
-import type { Api } from '@reduxjs/toolkit/query'
 
 const resultType = /* @__PURE__ */ Symbol()
 const baseQuery = /* @__PURE__ */ Symbol()
@@ -188,7 +189,7 @@ export type BaseEndpointDefinition<
   BaseQuery extends BaseQueryFn,
   ResultType,
 > = (
-  | ([CastAny<BaseQueryResult<BaseQuery>, {}>] extends [NEVER]
+  | ([CastAny<BaseQueryResult<BaseQuery>, EmptyObject>] extends [NEVER]
       ? never
       : EndpointDefinitionWithQuery<QueryArg, BaseQuery, ResultType>)
   | EndpointDefinitionWithQueryFn<QueryArg, BaseQuery, ResultType>
@@ -221,7 +222,7 @@ export type GetResultDescriptionFn<
   meta: MetaType,
 ) => ReadonlyArray<TagDescription<TagTypes>>
 
-export type FullTagDescription<TagType> = {
+export interface FullTagDescription<TagType> {
   type: TagType
   id?: number | string
 }
@@ -642,11 +643,11 @@ export function isMutationDefinition(
   return e.type === DefinitionType.mutation
 }
 
-export type EndpointBuilder<
+export interface EndpointBuilder<
   BaseQuery extends BaseQueryFn,
   TagTypes extends string,
   ReducerPath extends string,
-> = {
+> {
   /**
    * An endpoint definition that retrieves data, and may provide tags to the cache.
    *
@@ -730,7 +731,7 @@ export function calculateProvidedBy<ResultType, QueryArg, ErrorType, MetaType>(
   queryArg: QueryArg,
   meta: MetaType | undefined,
   assertTagTypes: AssertTagTypes,
-): readonly FullTagDescription<string>[] {
+): ReadonlyArray<FullTagDescription<string>> {
   if (isFunction(description)) {
     return description(
       result as ResultType,
@@ -747,7 +748,7 @@ export function calculateProvidedBy<ResultType, QueryArg, ErrorType, MetaType>(
   return []
 }
 
-function isFunction<T>(t: T): t is Extract<T, Function> {
+function isFunction<T>(t: T): t is Extract<T, AnyFunction> {
   return typeof t === 'function'
 }
 

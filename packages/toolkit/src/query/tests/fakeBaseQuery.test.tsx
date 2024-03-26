@@ -1,8 +1,9 @@
 import { configureStore } from '@reduxjs/toolkit'
 import { createApi, fakeBaseQuery } from '@reduxjs/toolkit/query'
-import '../../tests/utils/helpers'
 
-type CustomErrorType = { type: 'Custom' }
+interface CustomErrorType {
+  type: 'Custom'
+}
 
 const api = createApi({
   baseQuery: fakeBaseQuery<CustomErrorType>(),
@@ -40,24 +41,24 @@ const api = createApi({
       },
     }),
     withAsyncQueryFn: build.query<string, string>({
-      async queryFn(arg: string) {
+      queryFn(arg: string) {
         return { data: `resultFrom(${arg})` }
       },
     }),
     withInvalidDataAsyncQueryFn: build.query<string, string>({
       // @ts-expect-error
-      async queryFn(arg: string) {
+      queryFn(arg: string) {
         return { data: 5 }
       },
     }),
     withAsyncErrorQueryFn: build.query<string, string>({
-      async queryFn(arg: string) {
+      queryFn(arg: string) {
         return { error: { type: 'Custom' } }
       },
     }),
     withInvalidAsyncErrorQueryFn: build.query<string, string>({
       // @ts-expect-error
-      async queryFn(arg: string) {
+      queryFn(arg: string) {
         return { error: 5 }
       },
     }),
@@ -86,24 +87,24 @@ const api = createApi({
     }),
 
     mutationWithAsyncQueryFn: build.mutation<string, string>({
-      async queryFn(arg: string) {
+      queryFn(arg: string) {
         return { data: `resultFrom(${arg})` }
       },
     }),
     mutationWithInvalidAsyncQueryFn: build.mutation<string, string>({
       // @ts-expect-error
-      async queryFn(arg: string) {
+      queryFn(arg: string) {
         return { data: 5 }
       },
     }),
     mutationWithAsyncErrorQueryFn: build.mutation<string, string>({
-      async queryFn(arg: string) {
+      queryFn(arg: string) {
         return { error: { type: 'Custom' } }
       },
     }),
     mutationWithInvalidAsyncErrorQueryFn: build.mutation<string, string>({
       // @ts-expect-error
-      async queryFn(arg: string) {
+      queryFn(arg: string) {
         return { error: 5 }
       },
     }),

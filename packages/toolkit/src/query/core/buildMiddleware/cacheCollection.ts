@@ -3,12 +3,11 @@ import type { BaseQueryFn } from '../../baseQueryTypes'
 import type { QueryDefinition } from '../../endpointDefinitions'
 import type { ConfigState, QueryCacheKey } from '../apiState'
 import type {
+  ApiMiddlewareInternalHandler,
+  InternalHandlerBuilder,
   QueryStateMeta,
   SubMiddlewareApi,
   TimeoutId,
-  InternalHandlerBuilder,
-  ApiMiddlewareInternalHandler,
-  InternalMiddlewareState,
 } from './types'
 
 export type ReferenceCacheCollection = never
@@ -16,7 +15,7 @@ export type ReferenceCacheCollection = never
 function isObjectEmpty(obj: Record<any, any>) {
   // Apparently a for..in loop is faster than `Object.keys()` here:
   // https://stackoverflow.com/a/59787784/62937
-  for (let k in obj) {
+  for (const k in obj) {
     // If there is at least one key, it's not empty
     return false
   }
@@ -59,7 +58,7 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
   const canTriggerUnsubscribe = isAnyOf(
     unsubscribeQueryResult.match,
     queryThunk.fulfilled,
-    queryThunk.rejected
+    queryThunk.rejected,
   )
 
   function anySubscriptionsRemainingForKey(queryCacheKey: string) {

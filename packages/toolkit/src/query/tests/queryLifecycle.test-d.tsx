@@ -10,7 +10,7 @@ const api = createApi({
 })
 
 describe('type tests', () => {
-  test(`mutation: onStart and onSuccess`, async () => {
+  test(`mutation: onStart and onSuccess`, () => {
     const extended = api.injectEndpoints({
       overrideExisting: true,
       endpoints: (build) => ({

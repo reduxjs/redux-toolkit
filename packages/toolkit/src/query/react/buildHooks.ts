@@ -41,8 +41,8 @@ import {
   useRef,
   useState,
 } from 'react'
-
 import { shallowEqual } from 'react-redux'
+import type { AnyObject } from '../../tsHelpers'
 import type { BaseQueryFn } from '../baseQueryTypes'
 import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
 import { defaultSerializeQueryArgs } from '../defaultSerializeQueryArgs'
@@ -92,7 +92,7 @@ export interface MutationHooks<
  * - Re-renders as the request status changes and data becomes available
  */
 export type UseQuery<D extends QueryDefinition<any, any, any, any>> = <
-  R extends Record<string, any> = UseQueryStateDefaultResult<D>,
+  R extends AnyObject = UseQueryStateDefaultResult<D>,
 >(
   arg: QueryArgFrom<D> | SkipToken,
   options?: UseQuerySubscriptionOptions & UseQueryStateOptions<D, R>,
@@ -212,9 +212,9 @@ export type TypedUseQuerySubscriptionResult<
   QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
 >
 
-export type UseLazyQueryLastPromiseInfo<
+export interface UseLazyQueryLastPromiseInfo<
   D extends QueryDefinition<any, any, any, any>,
-> = {
+> {
   lastArg: QueryArgFrom<D>
 }
 
@@ -236,7 +236,7 @@ export type UseLazyQueryLastPromiseInfo<
  * When the trigger function returned from a LazyQuery is called, it always initiates a new request to the server even if there is cached data. Set `preferCacheValue`(the second argument to the function) as `true` if you want it to immediately return a cached value if one exists.
  */
 export type UseLazyQuery<D extends QueryDefinition<any, any, any, any>> = <
-  R extends Record<string, any> = UseQueryStateDefaultResult<D>,
+  R extends AnyObject = UseQueryStateDefaultResult<D>,
 >(
   options?: SubscriptionOptions & Omit<UseQueryStateOptions<D, R>, 'skip'>,
 ) => [
@@ -253,7 +253,7 @@ export type TypedUseLazyQuery<
   QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
 >
 
-export type LazyQueryTrigger<D extends QueryDefinition<any, any, any, any>> = {
+export type LazyQueryTrigger<D extends QueryDefinition<any, any, any, any>> =
   /**
    * Triggers a lazy query.
    *
@@ -277,8 +277,7 @@ export type LazyQueryTrigger<D extends QueryDefinition<any, any, any, any>> = {
   (
     arg: QueryArgFrom<D>,
     preferCacheValue?: boolean,
-  ): QueryActionCreatorResult<D>
-}
+  ) => QueryActionCreatorResult<D>
 
 export type TypedLazyQueryTrigger<
   ResultType,
@@ -314,7 +313,7 @@ export type TypedUseLazyQuerySubscription<
 >
 
 export type QueryStateSelector<
-  R extends Record<string, any>,
+  R extends AnyObject,
   D extends QueryDefinition<any, any, any, any>,
 > = (state: UseQueryStateDefaultResult<D>) => R
 
@@ -329,7 +328,7 @@ export type QueryStateSelector<
  * - Re-renders as the request status changes and data becomes available
  */
 export type UseQueryState<D extends QueryDefinition<any, any, any, any>> = <
-  R extends Record<string, any> = UseQueryStateDefaultResult<D>,
+  R extends AnyObject = UseQueryStateDefaultResult<D>,
 >(
   arg: QueryArgFrom<D> | SkipToken,
   options?: UseQueryStateOptions<D, R>,
@@ -343,10 +342,10 @@ export type TypedUseQueryState<
   QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
 >
 
-export type UseQueryStateOptions<
+export interface UseQueryStateOptions<
   D extends QueryDefinition<any, any, any, any>,
-  R extends Record<string, any>,
-> = {
+  R extends AnyObject,
+> {
   /**
    * Prevents a query from automatically running.
    *
@@ -504,14 +503,14 @@ type UseQueryStateDefaultResult<D extends QueryDefinition<any, any, any, any>> =
   }
 
 export type MutationStateSelector<
-  R extends Record<string, any>,
+  R extends AnyObject,
   D extends MutationDefinition<any, any, any, any>,
 > = (state: MutationResultSelectorResult<D>) => R
 
-export type UseMutationStateOptions<
+export interface UseMutationStateOptions<
   D extends MutationDefinition<any, any, any, any>,
-  R extends Record<string, any>,
-> = {
+  R extends AnyObject,
+> {
   selectFromResult?: MutationStateSelector<R, D>
   fixedCacheKey?: string
 }
@@ -555,7 +554,7 @@ export type TypedUseMutationResult<
  * - Re-renders as the request status changes and data becomes available
  */
 export type UseMutation<D extends MutationDefinition<any, any, any, any>> = <
-  R extends Record<string, any> = MutationResultSelectorResult<D>,
+  R extends AnyObject = MutationResultSelectorResult<D>,
 >(
   options?: UseMutationStateOptions<D, R>,
 ) => readonly [MutationTrigger<D>, UseMutationStateResult<D, R>]
@@ -569,25 +568,23 @@ export type TypedUseMutation<
 >
 
 export type MutationTrigger<D extends MutationDefinition<any, any, any, any>> =
-  {
-    /**
-     * Triggers the mutation and returns a Promise.
-     * @remarks
-     * If you need to access the error or success payload immediately after a mutation, you can chain .unwrap().
-     *
-     * @example
-     * ```ts
-     * // codeblock-meta title="Using .unwrap with async await"
-     * try {
-     *   const payload = await addPost({ id: 1, name: 'Example' }).unwrap();
-     *   console.log('fulfilled', payload)
-     * } catch (error) {
-     *   console.error('rejected', error);
-     * }
-     * ```
-     */
-    (arg: QueryArgFrom<D>): MutationActionCreatorResult<D>
-  }
+  /**
+   * Triggers the mutation and returns a Promise.
+   * @remarks
+   * If you need to access the error or success payload immediately after a mutation, you can chain .unwrap().
+   *
+   * @example
+   * ```ts
+   * // codeblock-meta title="Using .unwrap with async await"
+   * try {
+   *   const payload = await addPost({ id: 1, name: 'Example' }).unwrap();
+   *   console.log('fulfilled', payload)
+   * } catch (error) {
+   *   console.error('rejected', error);
+   * }
+   * ```
+   */
+  (arg: QueryArgFrom<D>) => MutationActionCreatorResult<D>
 
 export type TypedMutationTrigger<
   ResultType,
@@ -783,7 +780,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
       const promiseRef = useRef<QueryActionCreatorResult<any>>()
 
-      let { queryCacheKey, requestId } = promiseRef.current || {}
+      const { queryCacheKey, requestId } = promiseRef.current || {}
 
       // HACK We've saved the middleware subscription lookup callbacks into a ref,
       // so we can directly check here if the subscription exists for this query.

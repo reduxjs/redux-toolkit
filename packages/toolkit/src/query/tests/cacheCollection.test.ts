@@ -1,7 +1,6 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+import type { Middleware, Reducer } from '@reduxjs/toolkit'
 import { configureStore } from '@reduxjs/toolkit'
-import { vi } from 'vitest'
-import type { Middleware, Reducer } from 'redux'
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 import {
   THIRTY_TWO_BIT_MAX_INT,
   THIRTY_TWO_BIT_MAX_TIMER_SECONDS,

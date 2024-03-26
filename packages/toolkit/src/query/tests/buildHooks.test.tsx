@@ -4,6 +4,7 @@ import { server } from '@internal/query/tests/mocks/server'
 import { countObjectKeys } from '@internal/query/utils/countObjectKeys'
 import {
   actionsReducer,
+  noop,
   setupApiStore,
   useRenderCounter,
   waitMs,
@@ -272,7 +273,7 @@ describe('hooks tests', () => {
     })
 
     test('useQuery hook sets isLoading and isFetching to the correct states', async () => {
-      let refetchMe: () => void = () => {}
+      let refetchMe: () => void = noop
       function User() {
         const [value, setValue] = useState(0)
         getRenderCount = useRenderCounter()
@@ -353,7 +354,9 @@ describe('hooks tests', () => {
         )
       }
 
-      let { rerender } = render(<User id={1} />, { wrapper: storeRef.wrapper })
+      const { rerender } = render(<User id={1} />, {
+        wrapper: storeRef.wrapper,
+      })
 
       await waitFor(() =>
         expect(screen.getByTestId('status').textContent).toBe('1'),
@@ -649,7 +652,7 @@ describe('hooks tests', () => {
 
       await screen.findByText('ID: 0')
 
-      await act(async () => {
+      act(() => {
         screen.getByText('Next Page').click()
       })
 
@@ -716,7 +719,7 @@ describe('hooks tests', () => {
       const { refetch } = result.current
 
       let resPromise: ReturnType<typeof refetch> = null as any
-      await act(async () => {
+      act(() => {
         resPromise = refetch()
       })
       expect(resPromise).toBeInstanceOf(Promise)
@@ -736,8 +739,8 @@ describe('hooks tests', () => {
         endpoints: (builder) => ({
           getTest: builder.query<string, number>({
             async queryFn() {
-              await new Promise((resolve) => setTimeout(resolve, 1000));
-              return { data: "data!" };
+              await new Promise((resolve) => setTimeout(resolve, 1000))
+              return { data: 'data!' }
             },
             keepUnusedDataFor: 0,
           }),
@@ -749,13 +752,13 @@ describe('hooks tests', () => {
       })
 
       const checkNumQueries = (count: number) => {
-        const cacheEntries = Object.keys((storeRef.store.getState()).api.queries)
+        const cacheEntries = Object.keys(storeRef.store.getState().api.queries)
         const queries = cacheEntries.length
 
         expect(queries).toBe(count)
       }
 
-      let i = 0;
+      let i = 0
 
       function User() {
         const [fetchTest, { isFetching, isUninitialized }] =
@@ -783,7 +786,7 @@ describe('hooks tests', () => {
       })
 
       // There should only be one stored query once they have had time to resolve
-      checkNumQueries( 1)
+      checkNumQueries(1)
     })
 
     // See https://github.com/reduxjs/redux-toolkit/issues/3182
@@ -828,13 +831,13 @@ describe('hooks tests', () => {
       })
 
       // 2) Set the current subscription to `{skip: true}
-      await act(async () => {
+      act(() => {
         rerender(['a', { skip: true }])
       })
 
       // 3) Change _both_ the cache key _and_ `{skip: false}` at the same time.
       // This causes the `subscriptionRemoved` check to be `true`.
-      await act(async () => {
+      act(() => {
         rerender(['b'])
       })
 
@@ -845,7 +848,7 @@ describe('hooks tests', () => {
       // This causes the `subscriptionRemoved` check to be `false`.
       // Correct behavior is this does _not_ clear the promise ref,
       // so
-      await act(async () => {
+      act(() => {
         rerender(['b'])
       })
 
@@ -877,14 +880,14 @@ describe('hooks tests', () => {
       let mock: MockInstance
 
       beforeEach(() => {
-        mock = vi.spyOn(console, 'error').mockImplementation(() => {})
+        mock = vi.spyOn(console, 'error').mockImplementation(noop)
       })
 
       afterEach(() => {
         mock.mockReset()
       })
 
-      test('Throws error if middleware is not added to the store', async () => {
+      test('Throws error if middleware is not added to the store', () => {
         const store = configureStore({
           reducer: {
             [api.reducerPath]: api.reducer,
@@ -927,7 +930,12 @@ describe('hooks tests', () => {
           <div>
             <div data-testid="isUninitialized">{String(isUninitialized)}</div>
             <div data-testid="isFetching">{String(isFetching)}</div>
-            <button data-testid="fetchButton" onClick={() => fetchUser(1)}>
+            <button
+              data-testid="fetchButton"
+              onClick={() => {
+                void fetchUser(1)
+              }}
+            >
               fetchUser
             </button>
           </div>
@@ -978,7 +986,12 @@ describe('hooks tests', () => {
             <div data-testid="isUninitialized">{String(isUninitialized)}</div>
             <div data-testid="isFetching">{String(isFetching)}</div>
 
-            <button data-testid="fetchButton" onClick={() => fetchUser(1)}>
+            <button
+              data-testid="fetchButton"
+              onClick={() => {
+                void fetchUser(1)
+              }}
+            >
               fetchUser
             </button>
             <button
@@ -1057,10 +1070,20 @@ describe('hooks tests', () => {
             <div data-testid="isUninitialized">{String(isUninitialized)}</div>
             <div data-testid="isFetching">{String(isFetching)}</div>
 
-            <button data-testid="fetchUser1" onClick={() => fetchUser(1)}>
+            <button
+              data-testid="fetchUser1"
+              onClick={() => {
+                void fetchUser(1)
+              }}
+            >
               fetchUser1
             </button>
-            <button data-testid="fetchUser2" onClick={() => fetchUser(2)}>
+            <button
+              data-testid="fetchUser2"
+              onClick={() => {
+                void fetchUser(2)
+              }}
+            >
               fetchUser2
             </button>
           </div>
@@ -1130,7 +1153,7 @@ describe('hooks tests', () => {
           isAborted: false,
         })
 
-        const handleClick = (abort: boolean) => async () => {
+        const handleClick = (abort: boolean) => () => {
           const res = getUser(1)
 
           // abort the query immediately to force an error
@@ -1205,7 +1228,13 @@ describe('hooks tests', () => {
 
         return (
           <div>
-            <button onClick={handleClick}>Fetch User</button>
+            <button
+              onClick={() => {
+                void handleClick()
+              }}
+            >
+              Fetch User
+            </button>
             <div data-testid="result">{JSON.stringify(data)}</div>
             <div data-testid="error">{JSON.stringify(error)}</div>
             <div data-testid="unwrappedError">
@@ -1257,7 +1286,13 @@ describe('hooks tests', () => {
 
         return (
           <div>
-            <button onClick={handleClick}>Fetch User</button>
+            <button
+              onClick={() => {
+                void handleClick()
+              }}
+            >
+              Fetch User
+            </button>
             <div data-testid="result">{JSON.stringify(data)}</div>
             <div data-testid="error">{JSON.stringify(error)}</div>
             <div data-testid="unwrappedResult">
@@ -1301,7 +1336,11 @@ describe('hooks tests', () => {
         return (
           <div>
             <div data-testid="isLoading">{String(isLoading)}</div>
-            <button onClick={() => updateUser({ name: 'Banana' })}>
+            <button
+              onClick={() => {
+                void updateUser({ name: 'Banana' })
+              }}
+            >
               Update User
             </button>
           </div>
@@ -1331,7 +1370,11 @@ describe('hooks tests', () => {
         return (
           <div>
             <div data-testid="result">{JSON.stringify(data)}</div>
-            <button onClick={() => updateUser({ name: 'Banana' })}>
+            <button
+              onClick={() => {
+                void updateUser({ name: 'Banana' })
+              }}
+            >
               Update User
             </button>
           </div>
@@ -1355,7 +1398,7 @@ describe('hooks tests', () => {
         const [errMsg, setErrMsg] = useState('')
         const [isAborted, setIsAborted] = useState(false)
 
-        const handleClick = async () => {
+        const handleClick = () => {
           const res = updateUser({ name: 'Banana' })
 
           // abort the mutation immediately to force an error
@@ -1398,7 +1441,7 @@ describe('hooks tests', () => {
       screen.getByText('Request was aborted')
     })
 
-    test('useMutation return value contains originalArgs', async () => {
+    test('useMutation return value contains originalArgs', () => {
       const { result } = renderHook(
         () => api.endpoints.updateUser.useMutation(),
         {
@@ -1428,7 +1471,13 @@ describe('hooks tests', () => {
                   : 'other'}
             </span>
             <span>{result.originalArgs?.name}</span>
-            <button onClick={() => updateUser({ name: 'Yay' })}>trigger</button>
+            <button
+              onClick={() => {
+                void updateUser({ name: 'Yay' })
+              }}
+            >
+              trigger
+            </button>
             <button onClick={result.reset}>reset</button>
           </>
         )
@@ -1782,7 +1831,13 @@ describe('hooks tests', () => {
             <div data-testid="isError">{String(isError)}</div>
             <div data-testid="user">{JSON.stringify(data)}</div>
             <div data-testid="loginLoading">{String(loginLoading)}</div>
-            <button onClick={() => login(null)}>Login</button>
+            <button
+              onClick={() => {
+                void login(null)
+              }}
+            >
+              Login
+            </button>
           </div>
         )
       }
@@ -1837,7 +1892,7 @@ describe('hooks with createApi defaults set', () => {
   const defaultApi = createApi({
     baseQuery: async (arg: any) => {
       await waitMs()
-      if ('amount' in arg?.body) {
+      if ('body' in arg && 'amount' in arg.body) {
         amount += 1
       }
       return {
@@ -1930,7 +1985,7 @@ describe('hooks with createApi defaults set', () => {
       )
     }
 
-    let { unmount } = render(<User />, { wrapper: storeRef.wrapper })
+    const { unmount } = render(<User />, { wrapper: storeRef.wrapper })
 
     await waitFor(() =>
       expect(screen.getByTestId('isLoading').textContent).toBe('true'),
@@ -2087,7 +2142,9 @@ describe('hooks with createApi defaults set', () => {
           <div>
             <button
               data-testid="addPost"
-              onClick={() => addPost({ name: `some text ${posts?.length}` })}
+              onClick={() => {
+                void addPost({ name: `some text ${posts?.length}` })
+              }}
             >
               Add random post
             </button>
@@ -2152,12 +2209,12 @@ describe('hooks with createApi defaults set', () => {
           <div>
             <button
               data-testid="addPost"
-              onClick={() =>
-                addPost({
+              onClick={() => {
+                void addPost({
                   name: `some text ${posts?.length}`,
                   fetched_at: new Date().toISOString(),
                 })
-              }
+              }}
             >
               Add random post
             </button>
@@ -2217,12 +2274,12 @@ describe('hooks with createApi defaults set', () => {
           <div>
             <button
               data-testid="addPost"
-              onClick={() =>
-                addPost({
+              onClick={() => {
+                void addPost({
                   name: `some text ${posts?.length}`,
                   fetched_at: new Date().toISOString(),
                 })
-              }
+              }}
             >
               Add random post
             </button>
@@ -2272,18 +2329,20 @@ describe('hooks with createApi defaults set', () => {
           <div>
             <button
               data-testid="addPost"
-              onClick={() =>
-                addPost({
+              onClick={() => {
+                void addPost({
                   name: `some text ${posts?.length}`,
                   fetched_at: new Date().toISOString(),
                 })
-              }
+              }}
             >
               Add random post
             </button>
             <button
               data-testid="updatePost"
-              onClick={() => updatePost({ id: 1, name: 'supercoooll!' })}
+              onClick={() => {
+                void updatePost({ id: 1, name: 'supercoooll!' })
+              }}
             >
               Update post
             </button>
@@ -2382,7 +2441,7 @@ describe('hooks with createApi defaults set', () => {
       expect(getRenderCount()).toBe(2)
     })
 
-    test('useQuery with selectFromResult option has a type error if the result is not an object', async () => {
+    test('useQuery with selectFromResult option has a type error if the result is not an object', () => {
       function SelectedPost() {
         const res2 = api.endpoints.getPosts.useQuery(undefined, {
           // selectFromResult must always return an object
@@ -2411,7 +2470,7 @@ describe('hooks with createApi defaults set', () => {
     const api = createApi({
       baseQuery: async (arg: any) => {
         await waitMs()
-        if ('amount' in arg?.body) {
+        if ('body' in arg && 'amount' in arg.body) {
           amount += 1
         }
         return {
@@ -2448,8 +2507,10 @@ describe('hooks with createApi defaults set', () => {
           <div>
             <button
               data-testid="incrementButton"
-              onClick={() => increment(1)}
-            ></button>
+              onClick={() => {
+                void increment(1)
+              }}
+            />
           </div>
         )
       }
@@ -2489,8 +2550,10 @@ describe('hooks with createApi defaults set', () => {
           <div>
             <button
               data-testid="incrementButton"
-              onClick={() => increment(1)}
-            ></button>
+              onClick={() => {
+                void increment(1)
+              }}
+            />
             <div data-testid="data">{JSON.stringify(data)}</div>
           </div>
         )
@@ -2526,8 +2589,10 @@ describe('hooks with createApi defaults set', () => {
           <div>
             <button
               data-testid="incrementButton"
-              onClick={() => increment(1)}
-            ></button>
+              onClick={() => {
+                void increment(1)
+              }}
+            />
             <div data-testid="status">{String(data.status)}</div>
           </div>
         )
@@ -2558,7 +2623,7 @@ describe('hooks with createApi defaults set', () => {
       expect(getRenderCount()).toBe(5)
     })
 
-    it('useMutation with selectFromResult option has a type error if the result is not an object', async () => {
+    it('useMutation with selectFromResult option has a type error if the result is not an object', () => {
       function Counter() {
         const [increment] = api.endpoints.increment.useMutation({
           // selectFromResult must always return an object
@@ -2570,8 +2635,10 @@ describe('hooks with createApi defaults set', () => {
           <div>
             <button
               data-testid="incrementButton"
-              onClick={() => increment(1)}
-            ></button>
+              onClick={() => {
+                void increment(1)
+              }}
+            />
           </div>
         )
       }
@@ -2614,7 +2681,7 @@ describe('skip behaviour', () => {
     await waitMs(1)
     expect(getSubscriptionCount('getUser(1)')).toBe(1)
 
-    await act(async () => {
+    act(() => {
       rerender([1, { skip: true }])
     })
     expect(result.current).toEqual({
@@ -2651,7 +2718,7 @@ describe('skip behaviour', () => {
     expect(getSubscriptionCount('getUser(1)')).toBe(1)
     expect(getSubscriptions()).not.toEqual({})
 
-    await act(async () => {
+    act(() => {
       rerender([skipToken])
     })
     expect(result.current).toEqual({

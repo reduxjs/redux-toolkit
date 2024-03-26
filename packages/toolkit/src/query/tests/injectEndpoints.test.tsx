@@ -7,7 +7,7 @@ const api = createApi({
 })
 
 describe('injectEndpoints', () => {
-  test("query: overridding with `overrideEndpoints`='throw' throws an error", async () => {
+  test("query: overriding with `overrideEndpoints`='throw' throws an error", async () => {
     const extended = api.injectEndpoints({
       endpoints: (build) => ({
         injected: build.query<unknown, string>({
@@ -32,8 +32,8 @@ describe('injectEndpoints', () => {
     )
   })
 
-  test('query: overridding an endpoint with `overrideEndpoints`=false does nothing in production', async () => {
-    const consoleMock = vi.spyOn(console, 'error').mockImplementation(() => {})
+  test('query: overriding an endpoint with `overrideEndpoints`=false does nothing in production', async () => {
+    const consoleMock = vi.spyOn(console, 'error')
 
     process.env.NODE_ENV = 'development'
 
@@ -59,8 +59,8 @@ describe('injectEndpoints', () => {
     )
   })
 
-  test('query: overridding with `overrideEndpoints`=false logs an error in development', async () => {
-    const consoleMock = vi.spyOn(console, 'error').mockImplementation(() => {})
+  test('query: overriding with `overrideEndpoints`=false logs an error in development', async () => {
+    const consoleMock = vi.spyOn(console, 'error')
 
     process.env.NODE_ENV = 'production'
 

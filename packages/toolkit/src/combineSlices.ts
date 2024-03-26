@@ -1,4 +1,4 @@
-import type { UnknownAction, Reducer, StateFromReducersMapObject } from 'redux'
+import type { Reducer, StateFromReducersMapObject, UnknownAction } from 'redux'
 import { combineReducers } from 'redux'
 import { nanoid } from './nanoid'
 import type {
@@ -10,7 +10,7 @@ import type {
 } from './tsHelpers'
 import { emplace } from './utils'
 
-type SliceLike<ReducerPath extends string, State> = {
+interface SliceLike<ReducerPath extends string, State> {
   reducerPath: ReducerPath
   reducer: Reducer<State>
 }
@@ -36,7 +36,7 @@ type ExistingSliceLike<DeclaredState> = {
   >
 }[keyof DeclaredState]
 
-export type InjectConfig = {
+export interface InjectConfig {
   /**
    * Allow replacing reducer with a different reference. Normally, an error will be thrown if a different reducer instance to the one already injected is used.
    */
@@ -79,7 +79,7 @@ export interface CombinedSliceReducer<
    * const withCustom = rootReducer.inject({ reducerPath: "customName", reducer: customSlice.reducer })
    * ```
    */
-  withLazyLoadedSlices<Lazy = {}>(): CombinedSliceReducer<
+  withLazyLoadedSlices<Lazy>(): CombinedSliceReducer<
     InitialState,
     Id<DeclaredState & Partial<Lazy>>
   >

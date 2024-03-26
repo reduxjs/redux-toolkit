@@ -1,8 +1,8 @@
 import type {
+  DraftableEntityState,
+  EntityId,
   IdSelector,
   Update,
-  EntityId,
-  DraftableEntityState,
 } from './models'
 
 export function selectIdValue<T, Id extends EntityId>(
@@ -39,11 +39,11 @@ export function splitAddedUpdatedEntities<T, Id extends EntityId>(
   newEntities: readonly T[] | Record<Id, T>,
   selectId: IdSelector<T, Id>,
   state: DraftableEntityState<T, Id>,
-): [T[], Update<T, Id>[]] {
+): [T[], Array<Update<T, Id>>] {
   newEntities = ensureEntitiesArray(newEntities)
 
   const added: T[] = []
-  const updated: Update<T, Id>[] = []
+  const updated: Array<Update<T, Id>> = []
 
   for (const entity of newEntities) {
     const id = selectIdValue(entity, selectId)

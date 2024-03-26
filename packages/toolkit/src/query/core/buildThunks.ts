@@ -1,17 +1,21 @@
-import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
+import type {
+  AsyncThunk,
+  AsyncThunkPayloadCreator,
+  Draft,
+  ThunkAction,
+  ThunkDispatch,
+  UnknownAction,
+} from '@reduxjs/toolkit'
+import type { Patch } from 'immer'
+import { isDraftable, produceWithPatches } from 'immer'
+import { HandledError } from '../HandledError'
 import type { Api, ApiContext } from '../apiTypes'
 import type {
-  BaseQueryFn,
   BaseQueryError,
+  BaseQueryFn,
   QueryReturnValue,
 } from '../baseQueryTypes'
-import type { RootState, QueryKeys, QuerySubstateIdentifier } from './apiState'
-import { QueryStatus } from './apiState'
-import type {
-  StartQueryActionCreatorOptions,
-  QueryActionCreatorResult,
-} from './buildInitiate'
-import { forceQueryFnSymbol, isUpsertQuery } from './buildInitiate'
+import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import type {
   AssertTagTypes,
   EndpointDefinition,
@@ -20,43 +24,35 @@ import type {
   QueryArgFrom,
   QueryDefinition,
   ResultTypeFrom,
-  FullTagDescription,
 } from '../endpointDefinitions'
-import { isQueryDefinition } from '../endpointDefinitions'
-import { calculateProvidedBy } from '../endpointDefinitions'
+import { calculateProvidedBy, isQueryDefinition } from '../endpointDefinitions'
+import type { UnwrapPromise } from '../tsHelpers'
+import type { QueryKeys, QuerySubstateIdentifier, RootState } from './apiState'
+import { QueryStatus } from './apiState'
 import type {
-  AsyncThunkPayloadCreator,
-  Draft,
-  UnknownAction,
-} from '@reduxjs/toolkit'
+  QueryActionCreatorResult,
+  StartQueryActionCreatorOptions,
+} from './buildInitiate'
+import { forceQueryFnSymbol, isUpsertQuery } from './buildInitiate'
+import type { ApiEndpointQuery, PrefetchOptions } from './module'
 import {
+  SHOULD_AUTOBATCH,
+  createAsyncThunk,
   isAllOf,
   isFulfilled,
   isPending,
   isRejected,
   isRejectedWithValue,
-  createAsyncThunk,
-  SHOULD_AUTOBATCH,
 } from './rtkImports'
-import type { Patch } from 'immer'
-import { isDraftable, produceWithPatches } from 'immer'
-import type { ThunkAction, ThunkDispatch, AsyncThunk } from '@reduxjs/toolkit'
-
-import { HandledError } from '../HandledError'
-
-import type { ApiEndpointQuery, PrefetchOptions } from './module'
-import type { UnwrapPromise } from '../tsHelpers'
 
 declare module './module' {
   export interface ApiEndpointQuery<
     Definition extends QueryDefinition<any, any, any, any, any>,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     Definitions extends EndpointDefinitions,
   > extends Matchers<QueryThunk, Definition> {}
 
   export interface ApiEndpointMutation<
     Definition extends MutationDefinition<any, any, any, any, any>,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     Definitions extends EndpointDefinitions,
   > extends Matchers<MutationThunk, Definition> {}
 }
@@ -124,7 +120,7 @@ export interface MutationThunkArg {
 
 export type ThunkResult = unknown
 
-export type ThunkApiMetaConfig = {
+export interface ThunkApiMetaConfig {
   pendingMeta: {
     startedTimeStamp: number
     [SHOULD_AUTOBATCH]: true
@@ -201,7 +197,7 @@ export type UpsertQueryDataThunk<
 /**
  * An object returned from dispatching a `api.util.updateQueryData` call.
  */
-export type PatchCollection = {
+export interface PatchCollection {
   /**
    * An `immer` Patch describing the cache update.
    */
@@ -284,7 +280,7 @@ export function buildThunks<
         getState() as RootState<any, any, any>,
       )
 
-      let ret: PatchCollection = {
+      const ret: PatchCollection = {
         patches: [],
         inversePatches: [],
         undo: () =>
@@ -613,7 +609,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
       const force = hasTheForce(options) && options.force
       const maxAge = hasMaxAge(options) && options.ifOlderThan
 
-      const queryAction = (force: boolean = true) => {
+      const queryAction = (force = true) => {
         const options = { forceRefetch: force, isPrefetch: true }
         return (
           api.endpoints[endpointName] as ApiEndpointQuery<any, any>

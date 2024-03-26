@@ -1,4 +1,3 @@
-import { isAsyncThunkAction, isFulfilled } from '../rtkImports'
 import type { UnknownAction } from 'redux'
 import type { ThunkDispatch } from 'redux-thunk'
 import type { BaseQueryFn, BaseQueryMeta } from '../../baseQueryTypes'
@@ -10,6 +9,7 @@ import type {
 } from '../buildSelectors'
 import { getMutationCacheKey } from '../buildSlice'
 import type { PatchCollection, Recipe } from '../buildThunks'
+import { isAsyncThunkAction, isFulfilled } from '../rtkImports'
 import type {
   ApiMiddlewareInternalHandler,
   InternalHandlerBuilder,
@@ -189,7 +189,7 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
   const isMutationThunk = isAsyncThunkAction(mutationThunk)
   const isFulfilledThunk = isFulfilled(queryThunk, mutationThunk)
 
-  type CacheLifecycle = {
+  interface CacheLifecycle {
     valueResolved?(value: { data: unknown; meta: unknown }): unknown
     cacheEntryRemoved(): void
   }
@@ -274,7 +274,7 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
     const onCacheEntryAdded = endpointDefinition?.onCacheEntryAdded
     if (!onCacheEntryAdded) return
 
-    let lifecycle = {} as CacheLifecycle
+    const lifecycle = {} as CacheLifecycle
 
     const cacheEntryRemoved = new Promise<void>((resolve) => {
       lifecycle.cacheEntryRemoved = resolve
@@ -292,7 +292,9 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
     ])
     // prevent uncaught promise rejections from happening.
     // if the original promise is used in any way, that will create a new promise that will throw again
-    cacheDataLoaded.catch(() => {})
+    cacheDataLoaded.catch(() => {
+      /** No-Op */
+    })
     lifecycleMap[queryCacheKey] = lifecycle
     const selector = (api.endpoints[endpointName] as any).select(
       endpointDefinition.type === DefinitionType.query

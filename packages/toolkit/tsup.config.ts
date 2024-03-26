@@ -1,7 +1,7 @@
-import * as babel from '@babel/core'
+import babel from '@babel/core'
 import type { Plugin } from 'esbuild'
 import { getBuildExtensions } from 'esbuild-extra'
-import fs from 'node:fs'
+import fs from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { Options as TsupOptions } from 'tsup'
@@ -115,8 +115,8 @@ const entryPoints: EntryPointOptions[] = [
   },
 ]
 
-function writeCommonJSEntry(folder: string, prefix: string) {
-  fs.writeFileSync(
+async function writeCommonJSEntry(folder: string, prefix: string) {
+  await fs.writeFile(
     path.join(folder, 'index.js'),
     `'use strict'
 if (process.env.NODE_ENV === 'production') {
@@ -135,12 +135,15 @@ const mangleErrorsTransform: Plugin = {
 
     onTransform({ loaders: ['ts', 'tsx'] }, async (args) => {
       try {
-        const res = babel.transformSync(args.code, {
+        const res = await babel.transformAsync(args.code, {
           parserOpts: {
             plugins: ['typescript', 'jsx'],
           },
-          plugins: [['./scripts/mangleErrors.cjs', { minify: false }]],
+          plugins: [['./scripts/mangleErrors.mjs', { minify: false }]],
         })!
+        if (res == null) {
+          throw new Error('Babel transformAsync returned null')
+        }
         return {
           code: res.code!,
           map: res.map!,
@@ -184,7 +187,7 @@ export default defineConfig((options) => {
           })
         }
 
-        const generateTypedefs = name === 'modern' && format === 'esm'
+        const generateTypeDefs = name === 'modern' && format === 'esm'
 
         return {
           entry: {
@@ -210,15 +213,15 @@ export default defineConfig((options) => {
           define: defineValues,
           async onSuccess() {
             if (format === 'cjs' && name === 'production.min') {
-              writeCommonJSEntry(outputFolder, prefix)
-            } else if (generateTypedefs) {
+              await writeCommonJSEntry(outputFolder, prefix)
+            } else if (generateTypeDefs) {
               if (folder === '') {
                 // we need to delete the declaration file and replace it with the original source file
-                fs.rmSync(path.join(outputFolder, 'uncheckedindexed.d.ts'), {
+                await fs.rm(path.join(outputFolder, 'uncheckedindexed.d.ts'), {
                   force: true,
                 })
 
-                fs.copyFileSync(
+                await fs.copyFile(
                   'src/uncheckedindexed.ts',
                   path.join(outputFolder, 'uncheckedindexed.ts'),
                 )

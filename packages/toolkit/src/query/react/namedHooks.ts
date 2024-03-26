@@ -1,10 +1,10 @@
-import type { UseMutation, UseLazyQuery, UseQuery } from './buildHooks'
 import type {
   DefinitionType,
   EndpointDefinitions,
   MutationDefinition,
   QueryDefinition,
 } from '@reduxjs/toolkit/query'
+import type { UseLazyQuery, UseMutation, UseQuery } from './buildHooks'
 
 type QueryHookNames<Definitions extends EndpointDefinitions> = {
   [K in keyof Definitions as Definitions[K] extends {
