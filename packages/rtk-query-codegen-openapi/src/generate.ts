@@ -15,7 +15,15 @@ import ts from 'typescript';
 import type { ObjectPropertyDefinitions } from './codegen';
 import { generateCreateApiCall, generateEndpointDefinition, generateImportNode, generateTagTypes } from './codegen';
 import { generateReactHooks } from './generators/react-hooks';
-import type { EndpointMatcher, EndpointOverrides, GenerationOptions, OperationDefinition, TextMatcher } from './types';
+import type {
+  EndpointMatcher,
+  EndpointOverrides,
+  GenerationOptions,
+  OperationDefinition,
+  ParameterDefinition,
+  ParameterMatcher,
+  TextMatcher,
+} from './types';
 import { capitalize, getOperationDefinitions, getV3Doc, removeUndefined, isQuery as testIsQuery } from './utils';
 import { factory } from './utils/factory';
 
@@ -54,6 +62,15 @@ function operationMatches(pattern?: EndpointMatcher) {
     if (!pattern) return true;
     const operationName = getOperationName(operationDefinition);
     return checkMatch(operationName, operationDefinition);
+  };
+}
+
+function argumentMatches(pattern?: ParameterMatcher) {
+  const checkMatch = typeof pattern === 'function' ? pattern : patternMatches(pattern);
+  return function matcher(argumentDefinition: ParameterDefinition) {
+    if (!pattern || argumentDefinition.in === 'path') return true;
+    const argumentName = argumentDefinition.name;
+    return checkMatch(argumentName, argumentDefinition);
   };
 }
 
@@ -264,7 +281,7 @@ export async function generateApi(
     const parameters = supportDeepObjects([
       ...apiGen.resolveArray(pathItem.parameters),
       ...apiGen.resolveArray(operation.parameters),
-    ]);
+    ]).filter(argumentMatches(overrides?.parameterFilter));
 
     const allNames = parameters.map((p) => p.name);
     const queryArg: QueryArgDefinitions = {};
