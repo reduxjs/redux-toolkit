@@ -51,7 +51,7 @@ jobs:
           cache: 'yarn'
 
       - name: Install dependencies
-        run: yarn install
+        run: yarn workspaces focus @rtk-query/codegen-openapi
 
       - name: Pack
         run: yarn pack
@@ -98,7 +98,7 @@ jobs:
           name: ${{ matrix.os }}-${{ matrix.node-version }}
 
       - name: Install dependencies
-        run: yarn install
+        run: yarn workspaces focus @rtk-query/codegen-openapi
 
       - name: Install build artifact
         run: yarn add ./package.tgz
