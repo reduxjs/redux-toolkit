@@ -63,6 +63,10 @@ jobs:
           name: ${{ matrix.os }}-${{ matrix.node-version }}
           path: ./packages/rtk-query-codegen-openapi/package.tgz
 
+      - name: Did we fail?
+        if: failure()
+        run: ls -R
+
   test:
     needs: build
     defaults:
@@ -104,3 +108,7 @@ jobs:
 
       - name: Run tests
         run: yarn test
+
+      - name: Did we fail?
+        if: failure()
+        run: ls -R
