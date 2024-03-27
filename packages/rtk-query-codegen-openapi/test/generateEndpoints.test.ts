@@ -1,7 +1,7 @@
+import { generateEndpoints } from '@rtk-query/codegen-openapi';
 import del from 'del';
 import fs from 'node:fs';
 import path, { resolve } from 'node:path';
-import { generateEndpoints } from '../src';
 
 const tmpDir = path.resolve(__dirname, 'tmp');
 
