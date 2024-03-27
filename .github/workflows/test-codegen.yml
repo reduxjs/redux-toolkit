@@ -27,19 +27,76 @@ jobs:
     # needs: changes
     # if: ${{ needs.changes.outputs.codegen == 'true' }}
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+
+    name: Build artifact for ${{ matrix.os }} with Node.js ${{ matrix.node-version }}
 
     strategy:
       matrix:
         node-version: ['20.x']
+        os: [windows-latest, ubuntu-latest, macos-latest]
 
     steps:
-      - uses: actions/checkout@v4
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'yarn'
 
-      - run: yarn install
-      - run: yarn test
+      - name: Install dependencies
+        run: yarn workspaces focus @rtk-query/codegen-openapi
+
+      - name: Pack
+        run: yarn pack
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        id: artifact-upload-step
+        with:
+          name: ${{ matrix.os }}-${{ matrix.node-version }}
+          path: ./*.tgz
+
+  test:
+    needs: build
+    defaults:
+      run:
+        working-directory: ./packages/rtk-query-codegen-openapi
+    name: Test final build artifact with Node.js ${{ matrix.node-version }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [18.x, 20.x]
+        os: [windows-latest, ubuntu-latest, macos-latest]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'yarn'
+
+      - name: Download artifact
+        id: download-artifact
+        uses: actions/download-artifact@v4
+        with:
+          path: ./
+          name: ${{ matrix.os }}-${{ matrix.node-version }}
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Install build artifact
+        run: yarn install ./package.tgz
+
+      - name: Remove path alias
+        run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.json
+
+      - name: Run tests
+        run: yarn test
