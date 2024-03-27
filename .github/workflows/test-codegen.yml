@@ -61,7 +61,7 @@ jobs:
         id: artifact-upload-step
         with:
           name: ${{ matrix.os }}-${{ matrix.node-version }}
-          path: ./packages/rtk-query-codegen-openapi
+          path: ./packages/rtk-query-codegen-openapi/package.tgz
 
   test:
     needs: build
