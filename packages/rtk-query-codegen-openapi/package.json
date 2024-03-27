@@ -20,6 +20,7 @@
     "build": "yarn clean && tsc && chmod +x lib/bin/cli.js",
     "clean": "rimraf lib",
     "prepare": "yarn build && chmod +x lib/bin/cli.js",
+    "prepack": "yarn build",
     "format": "prettier --write \"src/**/*.ts\"",
     "test:update": "vitest --run --update",
     "test:update:enum": "lib/bin/cli.js test/config.example.enum.ts",
