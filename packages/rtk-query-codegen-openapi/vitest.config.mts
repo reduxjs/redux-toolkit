@@ -5,6 +5,7 @@ export default defineConfig({
   plugins: [tsconfigPaths({ projects: ['./tsconfig.json'] })],
   test: {
     testTimeout: 10_000,
+    fileParallelism: false,
     pool: 'threads',
     globals: true,
     setupFiles: ['./test/vitest.setup.ts'],
