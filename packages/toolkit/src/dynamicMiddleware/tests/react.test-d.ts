@@ -15,7 +15,7 @@ const typedInstance = createDynamicMiddleware<number, AppDispatch>()
 declare const compatibleMiddleware: Middleware<{}, number, AppDispatch>
 declare const incompatibleMiddleware: Middleware<{}, string, AppDispatch>
 
-declare const customContext: Context<ReactReduxContextValue>
+declare const customContext: Context<ReactReduxContextValue | null>
 
 declare const addedMiddleware: Middleware<(n: 2) => 2>
 
