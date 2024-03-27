@@ -71,7 +71,7 @@ describe('createReactDynamicMiddleware', () => {
           gDM().prepend(dynamicInstance.middleware).concat(staticMiddleware),
       })
 
-      const context = React.createContext<ReactReduxContextValue>(null as any)
+      const context = React.createContext<ReactReduxContextValue | null>(null)
 
       const createDispatchWithMiddlewareHook =
         dynamicInstance.createDispatchWithMiddlewareHookFactory(context)
@@ -89,7 +89,10 @@ describe('createReactDynamicMiddleware', () => {
       render(<Component />, {
         wrapper: ({ children }) => (
           <Provider store={store}>
-            <Provider context={context} store={store2}>
+            <Provider
+              context={context as React.Context<ReactReduxContextValue | null>}
+              store={store2}
+            >
               {children}
             </Provider>
           </Provider>
