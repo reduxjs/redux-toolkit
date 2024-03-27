@@ -37,8 +37,9 @@ describe('CLI options testing', () => {
     }
   });
 
-  afterEach(async () => {
-    await rimraf(`${tmpDir}/*.ts`, { glob: true });
+  afterEach(async ({ task }) => {
+    const sanitizedPath = path.join(tmpDir, convertSpecialCharsToHyphens(task.name));
+    await rimraf(sanitizedPath);
   });
 
   afterAll(async () => {
