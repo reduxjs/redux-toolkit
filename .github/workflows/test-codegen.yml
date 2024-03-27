@@ -9,23 +9,23 @@ defaults:
 on: [push, pull_request]
 
 jobs:
-  changes:
-    name: Check for changes
-    runs-on: ubuntu-latest
-    outputs:
-      codegen: ${{ steps.filter.outputs.codegen }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            codegen:
-              - 'packages/rtk-query-codegen-openapi/**'
+  # changes:
+  #   name: Check for changes
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     codegen: ${{ steps.filter.outputs.codegen }}
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: dorny/paths-filter@v3
+  #       id: filter
+  #       with:
+  #         filters: |
+  #           codegen:
+  #             - 'packages/rtk-query-codegen-openapi/**'
 
   build:
-    needs: changes
-    if: ${{ needs.changes.outputs.codegen == 'true' }}
+    # needs: changes
+    # if: ${{ needs.changes.outputs.codegen == 'true' }}
 
     runs-on: ubuntu-latest
 
