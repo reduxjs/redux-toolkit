@@ -17,9 +17,9 @@
     "rtk-query-codegen-openapi": "lib/bin/cli.js"
   },
   "scripts": {
-    "build": "yarn clean && tsc && chmod +x lib/bin/cli.js",
+    "build": "yarn clean && tsc -p tsconfig.build.json && chmod +x lib/bin/cli.js",
     "clean": "rimraf lib",
-    "prepare": "yarn build && chmod +x lib/bin/cli.js",
+    "prepack": "yarn build",
     "format": "prettier --write \"src/**/*.ts\"",
     "test:update": "vitest --run --update",
     "test:update:enum": "lib/bin/cli.js test/config.example.enum.ts",
@@ -52,6 +52,7 @@
     "pretty-quick": "^3.1.0",
     "rimraf": "^5.0.5",
     "ts-node": "^10.9.2",
+    "vite-tsconfig-paths": "^4.3.2",
     "vitest": "^1.2.2",
     "yalc": "^1.0.0-pre.47"
   },
