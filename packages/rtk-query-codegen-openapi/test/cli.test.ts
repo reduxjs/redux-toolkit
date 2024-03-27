@@ -14,6 +14,10 @@ const cli = async (args: string[]) => {
 
 const tmpDir = path.resolve(__dirname, 'tmp');
 
+export const removeTempDir = async () => {
+  await rimraf(tmpDir);
+};
+
 export const isDir = async (filePath: string) => {
   try {
     const stat = await fs.lstat(filePath);
@@ -23,29 +27,16 @@ export const isDir = async (filePath: string) => {
   }
 };
 
-const convertSpecialCharsToHyphens = (str: string) => str.replace(/[^a-zA-Z0-9]+/g, '-');
-
 describe('CLI options testing', () => {
   beforeAll(async () => {
     if (!(await isDir(tmpDir))) {
       await fs.mkdir(tmpDir, { recursive: true });
     }
+    return removeTempDir;
   });
 
-  beforeEach(async ({ task }) => {
-    const sanitizedPath = path.join(tmpDir, convertSpecialCharsToHyphens(task.name));
-    if (!(await isDir(sanitizedPath))) {
-      await fs.mkdir(sanitizedPath, { recursive: true });
-    }
-  });
-
-  afterEach(async ({ task }) => {
-    const sanitizedPath = path.join(tmpDir, convertSpecialCharsToHyphens(task.name));
-    await rimraf(sanitizedPath);
-  });
-
-  afterAll(async () => {
-    await rimraf(tmpDir);
+  afterEach(async () => {
+    await rimraf(`${tmpDir}/*.ts`, { glob: true });
   });
 
   test('generation with `config.example.js`', async () => {
