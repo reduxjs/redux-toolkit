@@ -1,19 +1,22 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
-    "module": "CommonJS",
     "declaration": true,
-    "sourceMap": true,
-    "outDir": "lib",
-    "rootDir": "src",
-    "strict": true,
-    "noUnusedLocals": false,
-    "resolveJsonModule": true,
-    "moduleResolution": "Node",
-    "types": ["vitest/globals", "vitest/importMeta"],
     "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "noUnusedLocals": false,
+    "outDir": "lib",
+    "paths": {
+      "@rtk-query/codegen-openapi": ["./src/index.ts"]
+    },
+    "resolveJsonModule": true,
+    "rootDir": "src",
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "sourceMap": true,
+    "strict": true,
+    "target": "ESNext",
+    "types": ["vitest/globals", "vitest/importMeta"]
   },
   "exclude": ["test", "lib", "vitest.config.mts"]
 }
