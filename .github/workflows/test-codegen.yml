@@ -94,10 +94,10 @@ jobs:
           name: ${{ matrix.os }}-${{ matrix.node-version }}
 
       - name: Install dependencies
-        run: yarn install
+        run: yarn workspaces focus @rtk-query/codegen-openapi
 
       - name: Install build artifact
-        run: yarn install ./package.tgz
+        run: yarn add ./package.tgz
 
       - name: Remove path alias
         run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.json
