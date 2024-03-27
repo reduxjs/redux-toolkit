@@ -7,18 +7,20 @@
     "forceConsistentCasingInFileNames": true,
     "importHelpers": true,
     "isolatedModules": true,
+    "jsx": "react",
     "module": "CommonJS",
     "moduleResolution": "Node",
     "noErrorTruncation": true,
+    "noImplicitReturns": true,
     "noUnusedLocals": false,
-    "outDir": "./lib",
+    "outDir": "lib",
     "resolveJsonModule": true,
-    "rootDir": "./src",
+    "rootDir": "src",
     "skipLibCheck": true,
     "sourceMap": true,
     "strict": true,
     "target": "ESNext",
     "types": ["vitest/globals", "vitest/importMeta"]
   },
-  "include": ["./src"]
+  "include": ["src"]
 }
