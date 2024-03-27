@@ -1,21 +1,21 @@
 {
   "compilerOptions": {
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": "..",
+    "checkJs": true,
+    "esModuleInterop": true,
+    "jsx": "react",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "noEmit": true,
     "paths": {
       "@/*": ["./test/fixtures/*"],
       "@rtk-query/codegen-openapi": ["./src"] // @remap-prod-remove-line
     },
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "module": "ESNext",
-    "moduleResolution": "Node",
-    "strict": true,
-    "noEmit": true,
-    "target": "ESNext",
-    "jsx": "react",
-    "baseUrl": "..",
     "resolveJsonModule": true,
-    "types": ["vitest/globals", "vitest/importMeta"],
-    "allowJs": true,
-    "checkJs": true
+    "strict": true,
+    "target": "ESNext",
+    "types": ["vitest/globals", "vitest/importMeta"]
   }
 }
