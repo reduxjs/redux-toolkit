@@ -17,7 +17,7 @@
     "rtk-query-codegen-openapi": "lib/bin/cli.js"
   },
   "scripts": {
-    "build": "yarn clean && tsc && chmod +x lib/bin/cli.js",
+    "build": "yarn clean && tsc -p tsconfig.build.json && chmod +x lib/bin/cli.js",
     "clean": "rimraf lib",
     "prepack": "yarn build",
     "format": "prettier --write \"src/**/*.ts\"",

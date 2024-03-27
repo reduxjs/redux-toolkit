@@ -1,19 +1,11 @@
 {
+  "extends": "./tsconfig.json",
   "compilerOptions": {
-    "target": "ESNext",
+    "allowJs": false,
+    "checkJs": false,
     "module": "CommonJS",
-    "declaration": true,
-    "sourceMap": true,
-    "rootDir": "src",
-    "strict": true,
-    "noUnusedLocals": false,
-    "outDir": "lib",
-    "resolveJsonModule": true,
-    "moduleResolution": "Node",
-    "types": ["vitest/globals", "vitest/importMeta"],
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "noEmit": false,
+    "rootDir": "src"
   },
   "exclude": ["test", "lib", "vitest.config.mts"]
 }
