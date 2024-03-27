@@ -1,19 +1,24 @@
 {
   "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
     "declaration": true,
+    "downlevelIteration": false,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
+    "importHelpers": true,
+    "isolatedModules": true,
     "module": "CommonJS",
     "moduleResolution": "Node",
+    "noErrorTruncation": true,
     "noUnusedLocals": false,
-    "outDir": "lib",
+    "outDir": "./lib",
     "resolveJsonModule": true,
-    "rootDir": "src",
+    "rootDir": "./src",
     "skipLibCheck": true,
     "sourceMap": true,
     "strict": true,
     "target": "ESNext",
     "types": ["vitest/globals", "vitest/importMeta"]
   },
-  "exclude": ["test", "lib", "vitest.config.mts"]
+  "include": ["./src"]
 }
