@@ -79,7 +79,12 @@ export const createDynamicMiddleware = <
       // @ts-ignore
       context === ReactReduxContext
         ? useDefaultDispatch
-        : createDispatchHook(context)
+        : createDispatchHook(
+            context as Context<ReactReduxContextValue<
+              State,
+              ActionFromDispatch<Dispatch>
+            > | null>,
+          )
     function createDispatchWithMiddlewareHook<
       Middlewares extends Middleware<any, State, Dispatch>[],
     >(...middlewares: Middlewares) {
