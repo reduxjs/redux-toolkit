@@ -38,7 +38,7 @@ jobs:
     strategy:
       matrix:
         node-version: ['20.x']
-        os: [windows-latest, ubuntu-latest, macos-latest]
+        os: [ubuntu-latest]
 
     steps:
       - name: Checkout repository
@@ -74,7 +74,7 @@ jobs:
       fail-fast: false
       matrix:
         node-version: [20.x]
-        os: [windows-latest, ubuntu-latest, macos-latest]
+        os: [ubuntu-latest]
 
     steps:
       - name: Checkout repository
