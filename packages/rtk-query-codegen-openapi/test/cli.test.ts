@@ -6,8 +6,10 @@ import { rimraf } from 'rimraf';
 
 const exec = promisify(_exec);
 
+const cliPath = process.env.CI ? 'rtk-query-codegen-openapi' : `yarn cli`;
+
 const cli = async (args: string[]) => {
-  return await exec(`node ${path.resolve('lib', 'bin', 'cli.js')} ${args.join(' ')}`);
+  return await exec(`${cliPath} ${args.join(' ')}`);
 };
 
 const tmpDir = path.resolve(__dirname, 'tmp');
