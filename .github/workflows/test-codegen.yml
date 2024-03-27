@@ -104,7 +104,7 @@ jobs:
         run: yarn add ./package.tgz
 
       - name: Remove path alias
-        run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.json
+        run: sed -i -e /@remap-prod-remove-line/d ./test/tsconfig.json
 
       - name: Run tests
         run: yarn test

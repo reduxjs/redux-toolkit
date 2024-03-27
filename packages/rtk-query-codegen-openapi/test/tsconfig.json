@@ -2,7 +2,7 @@
   "compilerOptions": {
     "paths": {
       "@/*": ["./test/fixtures/*"],
-      "@rtk-query/codegen-openapi": ["./src"]
+      "@rtk-query/codegen-openapi": ["./src"] // @remap-prod-remove-line
     },
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
