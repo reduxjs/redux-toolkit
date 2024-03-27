@@ -1,21 +1,13 @@
 {
+  "extends": "../tsconfig.json",
   "compilerOptions": {
     "allowJs": true,
-    "allowSyntheticDefaultImports": true,
-    "baseUrl": "..",
     "checkJs": true,
-    "esModuleInterop": true,
-    "jsx": "react",
     "module": "ESNext",
-    "moduleResolution": "Node",
     "noEmit": true,
     "paths": {
-      "@/*": ["./test/fixtures/*"],
-      "@rtk-query/codegen-openapi": ["./src"] // @remap-prod-remove-line
-    },
-    "resolveJsonModule": true,
-    "strict": true,
-    "target": "ESNext",
-    "types": ["vitest/globals", "vitest/importMeta"]
+      "@/*": ["../test/fixtures/*"],
+      "@rtk-query/codegen-openapi": ["../src"] // @remap-prod-remove-line
+    }
   }
 }
