@@ -388,14 +388,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/generator@npm:7.19.3":
-  version: 7.19.3
-  resolution: "@babel/generator@npm:7.19.3"
+"@babel/generator@npm:^7.12.5, @babel/generator@npm:^7.18.7, @babel/generator@npm:^7.19.3, @babel/generator@npm:^7.24.1, @babel/generator@npm:^7.5.0, @babel/generator@npm:^7.7.2":
+  version: 7.24.1
+  resolution: "@babel/generator@npm:7.24.1"
   dependencies:
-    "@babel/types": "npm:^7.19.3"
-    "@jridgewell/gen-mapping": "npm:^0.3.2"
+    "@babel/types": "npm:^7.24.0"
+    "@jridgewell/gen-mapping": "npm:^0.3.5"
+    "@jridgewell/trace-mapping": "npm:^0.3.25"
     jsesc: "npm:^2.5.1"
-  checksum: 10/7e486ef57f0874cc0ef7f923da81f33e178582bb765554db16ece003e71d0ecb38040208aed45e6d418c57cf4f6cbe69ed85ff90fbc9cdefd0573442b8813d04
+  checksum: 10/c6160e9cd63d7ed7168dee27d827f9c46fab820c45861a5df56cd5c78047f7c3fc97c341e9ccfa1a6f97c87ec2563d9903380b5f92794e3540a6c5f99eb8f075
   languageName: node
   linkType: hard
 
@@ -6742,7 +6743,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jridgewell/trace-mapping@npm:^0.3.24":
+"@jridgewell/trace-mapping@npm:^0.3.24, @jridgewell/trace-mapping@npm:^0.3.25":
   version: 0.3.25
   resolution: "@jridgewell/trace-mapping@npm:0.3.25"
   dependencies:
@@ -25593,6 +25594,7 @@ __metadata:
   dependencies:
     "@babel/code-frame": "npm:^7.24.2"
     "@babel/core": "npm:^7.24.3"
+    "@babel/generator": "npm:^7.24.1"
     "@typescript-eslint/eslint-plugin": "npm:6.12.0"
     "@typescript-eslint/parser": "npm:6.12.0"
     eslint: "npm:^7.25.0"
