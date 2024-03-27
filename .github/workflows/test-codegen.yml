@@ -27,6 +27,10 @@ jobs:
     # needs: changes
     # if: ${{ needs.changes.outputs.codegen == 'true' }}
 
+    defaults:
+      run:
+        working-directory: ./packages/rtk-query-codegen-openapi
+
     runs-on: ${{ matrix.os }}
 
     name: Build artifact for ${{ matrix.os }} with Node.js ${{ matrix.node-version }}
