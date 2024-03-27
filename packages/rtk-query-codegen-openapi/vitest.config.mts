@@ -14,9 +14,5 @@ export default defineConfig({
     pool: 'forks',
     globals: true,
     setupFiles: ['./test/vitest.setup.ts'],
-    alias: {
-      '@': path.join(__dirname, 'test/fixtures'),
-      '@rtk-query/codegen-openapi': path.join(__dirname, 'src'),
-    },
   },
 });
