@@ -64,7 +64,7 @@ npx @rtk-query/codegen-openapi openapi-config.ts
 
 #### Generating tags
 
-If your OpenAPI specification uses [tags](https://swagger.io/docs/specification/grouping-operations-with-tags/), you can specify the `tag` option to the codegen.  
+If your OpenAPI specification uses [tags](https://swagger.io/docs/specification/grouping-operations-with-tags/), you can specify the `tag` option to the codegen.
 That will result in all generated endpoints having `providesTags`/`invalidatesTags` declarations for the `tags` of their respective operation definition.
 
 Note that this will only result in string tags with no ids, so it might lead to scenarios where too much is invalidated and unneccessary requests are made on mutation.
@@ -143,6 +143,34 @@ const withOverride: ConfigFile = {
     {
       pattern: 'loginUser',
       type: 'mutation',
+    },
+  ],
+}
+```
+
+You can also filter the parameters that are included for an endpoint, as long as they aren't a path parameter. This filter is of type `ParameterMatcher`. For example, to only include parameters that begin with "x-" for the 'loginUser' endpoint, see the below example.
+
+```ts no-transpile title="openapi-config.ts"
+const withOverride: ConfigFile = {
+  // ...
+  endpointOverrides: [
+    {
+      pattern: 'loginUser',
+      parameterFilter: /^x-/,
+    },
+  ],
+}
+```
+
+For more complex requirements, consider the other possible matchers, such as a `ParameterMatcherFunction`. The below example filters out any parameters that are in the header of the request.
+
+```ts no-transpile title="openapi-config.ts"
+const withOverride: ConfigFile = {
+  // ...
+  endpointOverrides: [
+    {
+      pattern: /.*/,
+      parameterFilter: (_name, parameter) => parameter.in !== "header",
     },
   ],
 }
