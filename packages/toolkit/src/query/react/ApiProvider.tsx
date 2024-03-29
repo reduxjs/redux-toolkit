@@ -32,9 +32,9 @@ import type { Api } from '@reduxjs/toolkit/query'
  * conflict with each other - please use the traditional redux setup
  * in that case.
  */
-export function ApiProvider<A extends Api<any, {}, any, any>>(props: {
+export function ApiProvider(props: {
   children: any
-  api: A
+  api: Api<any, {}, any, any>
   setupListeners?: Parameters<typeof setupListeners>[1] | false
   context?: Context<ReactReduxContextValue | null>
 }) {
