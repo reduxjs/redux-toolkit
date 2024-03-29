@@ -36,10 +36,9 @@ export function ApiProvider<A extends Api<any, {}, any, any>>(props: {
   children: any
   api: A
   setupListeners?: Parameters<typeof setupListeners>[1] | false
-  context?: Context<ReactReduxContextValue>
+  context?: Context<ReactReduxContextValue | null>
 }) {
-  const context = (props.context ||
-    ReactReduxContext) as Context<ReactReduxContextValue | null>
+  const context = props.context || ReactReduxContext
   const existingContext = useContext(context)
   if (existingContext) {
     throw new Error(
