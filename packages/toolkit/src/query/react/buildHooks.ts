@@ -45,7 +45,7 @@ import {
 import { shallowEqual } from 'react-redux'
 import type { BaseQueryFn } from '../baseQueryTypes'
 import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
-import { bigIntSafeSerializeQueryArgs } from '../defaultSerializeQueryArgs'
+import { defaultSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import type { UninitializedValue } from './constants'
 import { UNINITIALIZED_VALUE } from './constants'
 import type { ReactHooksModuleOptions } from './module'
@@ -761,6 +761,8 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         subscriptionSelectorsRef.current =
           returnedValue as unknown as SubscriptionSelectors
       }
+      const bigIntReplacer = (_: string, value: any) =>
+        typeof value === 'bigint' ? { $bigint: value.toString() } : value
       const stableArg = useStableQueryArgs(
         skip ? skipToken : arg,
         // Even if the user provided a per-endpoint `serializeQueryArgs` with
@@ -768,7 +770,8 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         // so we can tell if _anything_ actually changed. Otherwise, we can end up
         // with a case where the query args did change but the serialization doesn't,
         // and then we never try to initiate a refetch.
-        bigIntSafeSerializeQueryArgs,
+        (params) =>
+          defaultSerializeQueryArgs({ replacer: bigIntReplacer, ...params }),
         context.endpointDefinitions[name],
         name,
       )
