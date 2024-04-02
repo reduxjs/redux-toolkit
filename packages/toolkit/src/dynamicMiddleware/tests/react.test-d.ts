@@ -24,7 +24,7 @@ declare const incompatibleMiddleware: Middleware<
   AppDispatch
 >
 
-declare const customContext: Context<ReactReduxContextValue>
+declare const customContext: Context<ReactReduxContextValue | null>
 
 declare const addedMiddleware: Middleware<(n: 2) => 2>
 

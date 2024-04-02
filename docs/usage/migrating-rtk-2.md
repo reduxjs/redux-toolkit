@@ -448,7 +448,6 @@ React Redux supports creating `hooks` (and `connect`) with a [custom context](ht
 import { createContext } from 'react'
 import {
   ReactReduxContextValue,
-  TypedUseSelectorHook,
   createDispatchHook,
   createSelectorHook,
   createStoreHook,
@@ -458,10 +457,9 @@ import { AppStore, RootState, AppDispatch } from './store'
 // highlight-next-line
 const context = createContext<ReactReduxContextValue>(null as any)
 
-export const useStore: () => AppStore = createStoreHook(context)
-export const useDispatch: () => AppDispatch = createDispatchHook(context)
-export const useSelector: TypedUseSelectorHook<RootState> =
-  createSelectorHook(context)
+export const useStore = createStoreHook(context).withTypes<AppStore>()
+export const useDispatch = createDispatchHook(context).withTypes<AppDispatch>()
+export const useSelector = createSelectorHook(context).withTypes<RootState>()
 ```
 
 In v9, the types now match the runtime behaviour. The context is typed to hold `ReactReduxContextValue | null`, and the hooks know that if they receive `null` they'll throw an error so it doesn't affect the return type.
@@ -472,7 +470,6 @@ The above example now becomes:
 import { createContext } from 'react'
 import {
   ReactReduxContextValue,
-  TypedUseSelectorHook,
   createDispatchHook,
   createSelectorHook,
   createStoreHook,
@@ -482,10 +479,9 @@ import { AppStore, RootState, AppDispatch } from './store'
 // highlight-next-line
 const context = createContext<ReactReduxContextValue | null>(null)
 
-export const useStore: () => AppStore = createStoreHook(context)
-export const useDispatch: () => AppDispatch = createDispatchHook(context)
-export const useSelector: TypedUseSelectorHook<RootState> =
-  createSelectorHook(context)
+export const useStore = createStoreHook(context).withTypes<AppStore>()
+export const useDispatch = createDispatchHook(context).withTypes<AppDispatch>()
+export const useSelector = createSelectorHook(context).withTypes<RootState>()
 ```
 
 </div>

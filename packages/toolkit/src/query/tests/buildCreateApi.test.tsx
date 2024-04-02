@@ -16,7 +16,7 @@ import {
   createStoreHook,
 } from 'react-redux'
 
-const MyContext = React.createContext<ReactReduxContextValue>(null as any)
+const MyContext = React.createContext<ReactReduxContextValue | null>(null)
 
 describe('buildCreateApi', () => {
   test('Works with all hooks provided', async () => {

@@ -35,13 +35,11 @@ import type {
  * conflict with each other - please use the traditional redux setup
  * in that case.
  */
-export function ApiProvider<
-  A extends Api<any, Record<never, never>, any, any>,
->(props: {
+export function ApiProvider(props: {
   children: any
-  api: A
+  api: Api<any, {}, any, any>
   setupListeners?: Parameters<typeof setupListeners>[1] | false
-  context?: Context<ReactReduxContextValue>
+  context?: Context<ReactReduxContextValue | null>
 }) {
   const context = props.context || ReactReduxContext
   const existingContext = useContext(context)

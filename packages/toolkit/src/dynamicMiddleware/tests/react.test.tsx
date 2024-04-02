@@ -71,7 +71,7 @@ describe('createReactDynamicMiddleware', () => {
           gDM().prepend(dynamicInstance.middleware).concat(staticMiddleware),
       })
 
-      const context = React.createContext<ReactReduxContextValue>(null as any)
+      const context = React.createContext<ReactReduxContextValue | null>(null)
 
       const createDispatchWithMiddlewareHook =
         dynamicInstance.createDispatchWithMiddlewareHookFactory(context)
