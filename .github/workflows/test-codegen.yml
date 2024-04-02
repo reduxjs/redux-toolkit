@@ -38,7 +38,7 @@ jobs:
     strategy:
       matrix:
         node-version: ['20.x']
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest]
 
     steps:
       - name: Checkout repository
@@ -60,7 +60,7 @@ jobs:
         uses: actions/upload-artifact@v4
         id: artifact-upload-step
         with:
-          name: ${{ matrix.os }}-${{ matrix.node-version }}
+          name: package
           path: ./packages/rtk-query-codegen-openapi/package.tgz
 
       - name: Did we fail?
@@ -95,7 +95,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: ./packages/rtk-query-codegen-openapi
-          name: ${{ matrix.os }}-${{ matrix.node-version }}
+          name: package
 
       - name: Install dependencies
         run: yarn workspaces focus @rtk-query/codegen-openapi
