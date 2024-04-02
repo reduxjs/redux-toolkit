@@ -8,14 +8,9 @@
   "exports": {
     "./package.json": "./package.json",
     ".": {
-      "import": {
-        "types": "./dist/eslint.config.d.mts",
-        "default": "./dist/eslint.config.mjs"
-      },
-      "node": {
-        "types": "./dist/eslint.config.d.mts",
-        "default": "./dist/eslint.config.mjs"
-      }
+      "types": "./dist/eslint.config.d.mts",
+      "import": "./dist/eslint.config.mjs",
+      "default": "./dist/eslint.config.mjs"
     }
   },
   "files": [
