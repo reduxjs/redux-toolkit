@@ -950,18 +950,19 @@ describe('createSlice', () => {
       const makeSliceWithHandler = (
         handle: ReducerCreator<typeof loaderCreatorType>['handle'],
       ) => {
+        const loaderCreator: ReducerCreator<typeof loaderCreatorType> = {
+          type: loaderCreatorType,
+          create(reducers) {
+            return {
+              _reducerDefinitionType: loaderCreatorType,
+              ...reducers,
+            }
+          },
+          handle,
+        }
         const createAppSlice = buildCreateSlice({
           creators: {
-            loader: {
-              type: loaderCreatorType,
-              create(reducers) {
-                return {
-                  _reducerDefinitionType: loaderCreatorType,
-                  ...reducers,
-                }
-              },
-              handle,
-            } satisfies ReducerCreator<typeof loaderCreatorType>,
+            loader: loaderCreator,
           },
         })
         return createAppSlice({
@@ -1086,7 +1087,9 @@ describe('createSlice', () => {
               person.name = 'Charlie'
             }),
           ),
-        ).toThrowErrorMatchingInlineSnapshot(`[Error: Could not find "person" slice in state. In order for slice creators to use \`context.selectSlice\`, the slice must be nested in the state under its reducerPath: "person"]`)
+        ).toThrowErrorMatchingInlineSnapshot(
+          `[Error: Could not find "person" slice in state. In order for slice creators to use \`context.selectSlice\`, the slice must be nested in the state under its reducerPath: "person"]`,
+        )
       })
     })
   })
