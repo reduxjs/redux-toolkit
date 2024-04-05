@@ -490,7 +490,7 @@ context
 
 Tries to select the slice's state from the root state, using the original `reducerPath` option passed when calling `createSlice` (which defaults to the `name` option). Throws an error if it can't find the slice.
 
-```ts
+```ts no-transpile
 const aThunk =
   (): ThunkAction<void, Record<string, unknown>, unknown, Action> =>
   (dispatch, getState) => {
