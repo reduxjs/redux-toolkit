@@ -498,6 +498,7 @@ declare module '@reduxjs/toolkit' {
     State,
     CaseReducers extends CreatorCaseReducers<State>,
     Name extends string,
+    ReducerPath extends string,
   > {
     [reducerCreatorType]: ReducerCreatorEntry<
       () => ReducerDefinition<typeof reducerCreatorType>
@@ -538,6 +539,7 @@ declare module '@reduxjs/toolkit' {
     State,
     CaseReducers extends CreatorCaseReducers<State>,
     Name extends string,
+    ReducerPath extends string,
   > {
     [batchedCreatorType]: ReducerCreatorEntry<
       <Payload>(
@@ -576,6 +578,7 @@ declare module '@reduxjs/toolkit' {
     State,
     CaseReducers extends CreatorCaseReducers<State>,
     Name extends string,
+    ReducerPath extends string,
   > {
     [loaderCreatorType]: ReducerCreatorEntry<
       // highlight-next-line
@@ -602,6 +605,7 @@ declare module '@reduxjs/toolkit' {
     State,
     CaseReducers extends CreatorCaseReducers<State>,
     Name extends string,
+    ReducerPath extends string,
   > {
     [loaderCreatorType]: ReducerCreatorEntry<
       () => {
@@ -643,6 +647,7 @@ declare module '@reduxjs/toolkit' {
     State,
     CaseReducers extends CreatorCaseReducers<State>,
     Name extends string,
+    ReducerPath extends string,
   > {
     [asyncThunkCreatorType]: ReducerCreatorEntry<
       <ThunkArg, Returned>(
@@ -680,6 +685,7 @@ declare module '@reduxjs/toolkit' {
     State,
     CaseReducers extends CreatorCaseReducers<State>,
     Name extends string,
+    ReducerPath extends string,
   > {
     [preparedReducerType]: ReducerCreatorEntry<
       <Prepare extends PrepareAction<any>>(
@@ -790,6 +796,7 @@ declare module '@reduxjs/toolkit' {
     State,
     CaseReducers extends CreatorCaseReducers<State>,
     Name extends string,
+    ReducerPath extends string,
   > {
     [toastCreatorType]: ReducerCreatorEntry<
       (config: ToastReducerConfig<State>) => ToastReducerDefinition<State>,
@@ -914,6 +921,7 @@ declare module '@reduxjs/toolkit' {
     State,
     CaseReducers extends CreatorCaseReducers<State>,
     Name extends string,
+    ReducerPath extends string,
   > {
     [paginationCreatorType]: ReducerCreatorEntry<
       // make sure the creator is only called when state is compatible
@@ -984,6 +992,7 @@ declare module '@reduxjs/toolkit' {
     State,
     CaseReducers extends CreatorCaseReducers<State>,
     Name extends string,
+    ReducerPath extends string,
   > {
     [historyCreatorType]: ReducerCreatorEntry<
       // make sure the creator is only called when state is compatibleState extends HistoryState<unknown>
@@ -1097,6 +1106,7 @@ declare module '@reduxjs/toolkit' {
     State,
     CaseReducers extends CreatorCaseReducers<State>,
     Name extends string,
+    ReducerPath extends string,
   > {
     [undoableCreatorType]: ReducerCreatorEntry<
       State extends HistoryState<infer Data>
