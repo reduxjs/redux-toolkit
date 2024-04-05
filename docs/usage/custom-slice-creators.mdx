@@ -429,10 +429,12 @@ A creator only needs a `handle` callback if it expects to be called with reducer
 
 It receives three arguments: details about the reducer, the definition, and a `context` object with methods to modify the slice.
 
-The reducer details object has two properties:
+The reducer details object has the following properties:
 
+- `sliceName` - the name of the slice the reducer is being added to (e.g. `entities/todos`)
+- `reducerPath` - the `reducerPath` passed to `createSlice` (e.g. `todos`) (defaults to `sliceName` if not provided)
 - `reducerName` - the key the reducer definition was under (e.g. `addTodo`)
-- `type` - the automatically generated type string for the reducer (e.g. `todos/addTodo`)
+- `type` - the automatically generated type string for the reducer (e.g. `entities/todos/addTodo`)
 
 The context object includes:
 
@@ -484,6 +486,19 @@ context
   .exposeCaseReducer(resetReducer)
 ```
 
+#### `selectSlice`
+
+Tries to select the slice's state from the root state, using the original `reducerPath` option passed when calling `createSlice` (which defaults to the `name` option). Throws an error if it can't find the slice.
+
+```ts
+const aThunk =
+  (): ThunkAction<void, Record<string, unknown>, unknown, Action> =>
+  (dispatch, getState) => {
+    const state = context.selectSlice(getState())
+    // do something with state
+  }
+```
+
 ### Typescript
 
 The Typescript system for custom slice creators uses a "creator registry" system similar to the module system for [RTK Query](/rtk-query/usage/customizing-create-api#creating-your-own-module).
@@ -512,6 +527,7 @@ The type parameters for `SliceReducerCreators` are:
 - `State` - The state type used by the slice.
 - `CaseReducers` - The case reducer definitions returned by the creator callback.
 - `Name` - The [`name`](../api/createSlice#name) used by the slice.
+- `ReducerPath` - The [`reducerPath`](../api/createSlice#reducerpath) used by the slice.
 
 The `ReducerCreatorEntry<Create, Exposes>` utility has two type parameters:
 
