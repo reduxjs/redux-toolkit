@@ -35,7 +35,7 @@ The basics of using `configureStore` are shown in [TypeScript Quick Start tutori
 
 ### Getting the `State` type
 
-The easiest way of getting the `State` type is to define the root reducer in advance and extract its `ReturnType`.  
+The easiest way of getting the `State` type is to define the root reducer in advance and extract its `ReturnType`.
 It is recommended to give the type a different name like `RootState` to prevent confusion, as the type name `State` is usually overused.
 
 ```typescript
@@ -89,7 +89,7 @@ const store = configureStore({
 
 // highlight-start
 export type AppDispatch = typeof store.dispatch
-export const useAppDispatch: () => AppDispatch = useDispatch // Export a hook that can be reused to resolve types
+export const useAppDispatch = useDispatch.withTypes<AppDispatch>() // Export a hook that can be reused to resolve types
 // highlight-end
 
 export default store

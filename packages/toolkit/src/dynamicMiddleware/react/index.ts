@@ -54,9 +54,10 @@ interface ReactDynamicMiddlewareInstance<
   Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>,
 > extends DynamicMiddlewareInstance<State, Dispatch> {
   createDispatchWithMiddlewareHookFactory: (
-    context?: Context<
-      ReactReduxContextValue<State, ActionFromDispatch<Dispatch>>
-    >,
+    context?: Context<ReactReduxContextValue<
+      State,
+      ActionFromDispatch<Dispatch>
+    > | null>,
   ) => CreateDispatchWithMiddlewareHook<State, Dispatch>
   createDispatchWithMiddlewareHook: CreateDispatchWithMiddlewareHook<
     State,
@@ -71,12 +72,12 @@ export const createDynamicMiddleware = <
   const instance = cDM<State, Dispatch>()
   const createDispatchWithMiddlewareHookFactory = (
     // @ts-ignore
-    context: Context<
-      ReactReduxContextValue<State, ActionFromDispatch<Dispatch>>
-    > = ReactReduxContext,
+    context: Context<ReactReduxContextValue<
+      State,
+      ActionFromDispatch<Dispatch>
+    > | null> = ReactReduxContext,
   ) => {
     const useDispatch =
-      // @ts-ignore
       context === ReactReduxContext
         ? useDefaultDispatch
         : createDispatchHook(context)
