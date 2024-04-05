@@ -22,6 +22,7 @@ jobs:
           filters: |
             codegen:
               - 'packages/rtk-query-codegen-openapi/**'
+              - 'yarn.lock'
 
   build:
     needs: changes
