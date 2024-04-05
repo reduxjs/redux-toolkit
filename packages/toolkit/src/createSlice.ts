@@ -227,6 +227,9 @@ export interface ReducerHandlingContext<State> {
   ): ReducerHandlingContext<State>
   /**
    * Add an action to be exposed under the final `slice.actions[reducerName]` key.
+   *
+   * Should only be called once per handler.
+   *
    * @param actionCreator The action to expose.
    * @example
    * context.exposeAction(createAction<Post>(type));
@@ -238,6 +241,9 @@ export interface ReducerHandlingContext<State> {
   exposeAction(actionCreator: unknown): ReducerHandlingContext<State>
   /**
    * Add a case reducer to be exposed under the final `slice.caseReducers[reducerName]` key.
+   *
+   * Should only be called once per handler.
+   *
    * @param reducer The reducer to expose.
    * @example
    * context.exposeCaseReducer((state, action: PayloadAction<Post>) => {
