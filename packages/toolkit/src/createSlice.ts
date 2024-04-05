@@ -922,7 +922,7 @@ export function buildCreateSlice<
         exposeAction(actionCreator) {
           if (reducerName in internalContext.actionCreators) {
             throw new Error(
-              'context.exposeAction cannot be called twice for the same reducer definition:' +
+              'context.exposeAction cannot be called twice for the same reducer definition: ' +
                 reducerName,
             )
           }
@@ -932,7 +932,7 @@ export function buildCreateSlice<
         exposeCaseReducer(reducer) {
           if (reducerName in internalContext.sliceCaseReducersByName) {
             throw new Error(
-              'context.exposeCaseReducer cannot be called twice for the same reducer definition:' +
+              'context.exposeCaseReducer cannot be called twice for the same reducer definition: ' +
                 reducerName,
             )
           }

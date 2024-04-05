@@ -12,6 +12,8 @@ import type {
   ReducerCreatorEntry,
   ReducerCreators,
   ReducerDefinition,
+  ReducerDetails,
+  ReducerHandlingContext,
   SliceActionType,
   ThunkAction,
   WithSlice,
@@ -941,6 +943,69 @@ describe('createSlice', () => {
 
         store.dispatch(reset())
         expect(selectValue(store.getState())).toBe(1)
+      })
+    })
+    describe('context methods throw errors if used incorrectly', () => {
+      const makeSliceWithHandler = (
+        handle: ReducerCreator<typeof loaderCreatorType>['handle'],
+      ) => {
+        const createAppSlice = buildCreateSlice({
+          creators: {
+            loader: {
+              type: loaderCreatorType,
+              create(reducers) {
+                return {
+                  _reducerDefinitionType: loaderCreatorType,
+                  ...reducers,
+                }
+              },
+              handle,
+            } satisfies ReducerCreator<typeof loaderCreatorType>,
+          },
+        })
+        return createAppSlice({
+          name: 'loader',
+          initialState: {} as Partial<Record<string, true>>,
+          reducers: (create) => ({
+            addLoader: create.loader({}),
+          }),
+        })
+      }
+      test('context.addCase throws if called twice for same type', () => {
+        expect(() =>
+          makeSliceWithHandler((_details, _def, context) => {
+            context.addCase('foo', () => {}).addCase('foo', () => {})
+          }),
+        ).toThrowErrorMatchingInlineSnapshot(
+          `[Error: \`context.addCase\` cannot be called with two reducers for the same action type: foo]`,
+        )
+      })
+      test('context.addCase throws if empty action type', () => {
+        expect(() =>
+          makeSliceWithHandler((_details, _def, context) => {
+            context.addCase('', () => {})
+          }),
+        ).toThrowErrorMatchingInlineSnapshot(
+          `[Error: \`context.addCase\` cannot be called with an empty action type]`,
+        )
+      })
+      test('context.exposeAction throws if called twice for same reducer name', () => {
+        expect(() =>
+          makeSliceWithHandler((_details, _def, context) => {
+            context.exposeAction(() => {}).exposeAction(() => {})
+          }),
+        ).toThrowErrorMatchingInlineSnapshot(
+          `[Error: context.exposeAction cannot be called twice for the same reducer definition: addLoader]`,
+        )
+      })
+      test('context.exposeCaseReducer throws if called twice for same reducer name', () => {
+        expect(() =>
+          makeSliceWithHandler((_details, _def, context) => {
+            context.exposeCaseReducer({}).exposeCaseReducer({})
+          }),
+        ).toThrowErrorMatchingInlineSnapshot(
+          `[Error: context.exposeCaseReducer cannot be called twice for the same reducer definition: addLoader]`,
+        )
       })
     })
   })
