@@ -1,5 +1,5 @@
 import { vi } from 'vitest'
-import type { Patch } from 'immer'
+import type { Draft, Patch } from 'immer'
 import { applyPatches, enablePatches, produceWithPatches } from 'immer'
 import type {
   Action,
@@ -40,9 +40,10 @@ enablePatches()
 
 type CreateSlice = typeof createSlice
 
-const loaderCreatorType = Symbol()
-const historyMethodsCreatorType = Symbol()
-const undoableCreatorType = Symbol()
+const loaderCreatorType = Symbol('loaderCreatorType')
+const historyMethodsCreatorType = Symbol('historyMethodsCreatorType')
+const undoableCreatorType = Symbol('undoableCreatorType')
+const patchCreatorType = Symbol('patchCreatorType')
 
 describe('createSlice', () => {
   let restore: () => void
@@ -1007,6 +1008,86 @@ describe('createSlice', () => {
           `[Error: context.exposeCaseReducer cannot be called twice for the same reducer definition: addLoader]`,
         )
       })
+      test('context.selectSlice throws if unable to find slice state', () => {
+        const patchCreator: ReducerCreator<typeof patchCreatorType> = {
+          type: patchCreatorType,
+          create() {
+            return { _reducerDefinitionType: patchCreatorType }
+          },
+          handle({ type }, _def, context) {
+            const patchedAction = createAction<Patch[]>(type)
+            function patchThunk(
+              recipe: (draft: Draft<any>) => void,
+            ): ThunkAction<void, Record<string, any>, unknown, Action> {
+              return (dispatch, getState) => {
+                const [, patches] = produceWithPatches(
+                  context.selectSlice(getState()),
+                  recipe,
+                )
+                dispatch(patchedAction(patches))
+              }
+            }
+            Object.assign(patchThunk, { patched: patchedAction })
+
+            function applyPatchesReducer(
+              state: Objectish,
+              action: PayloadAction<Patch[]>,
+            ) {
+              return applyPatches(state, action.payload)
+            }
+
+            ;(context as ReducerHandlingContext<Objectish>)
+              .addCase(patchedAction, applyPatchesReducer)
+              .exposeAction(patchThunk)
+              .exposeCaseReducer(applyPatchesReducer)
+          },
+        }
+
+        const createAppSlice = buildCreateSlice({
+          creators: { patcher: patchCreator },
+        })
+
+        const personSlice = createAppSlice({
+          name: 'person',
+          initialState: { name: 'Alice' },
+          reducers: (create) => ({
+            patchPerson: create.patcher(),
+          }),
+        })
+
+        const { patchPerson } = personSlice.actions
+
+        const correctStore = configureStore({
+          reducer: combineSlices(personSlice),
+        })
+
+        expect(correctStore.getState().person.name).toBe('Alice')
+
+        expect(() =>
+          correctStore.dispatch(
+            patchPerson((person) => {
+              person.name = 'Bob'
+            }),
+          ),
+        ).not.toThrow()
+
+        expect(correctStore.getState().person.name).toBe('Bob')
+
+        const incorrectStore = configureStore({
+          reducer: {
+            somewhere: personSlice.reducer,
+          },
+        })
+
+        expect(() =>
+          incorrectStore.dispatch(
+            // @ts-expect-error state mismatch
+            patchPerson((person) => {
+              person.name = 'Charlie'
+            }),
+          ),
+        ).toThrowErrorMatchingInlineSnapshot(`[Error: Could not find "person" slice in state. In order for slice creators to use \`context.selectSlice\`, the slice must be nested in the state under its reducerPath: "person"]`)
+      })
     })
   })
 })
@@ -1049,11 +1130,33 @@ interface UndoableOptions {
   undoable?: boolean
 }
 
+// nicked from immer
+type Objectish = AnyObject | AnyArray | AnyMap | AnySet
+type AnyObject = {
+  [key: string]: any
+}
+type AnyArray = Array<any>
+type AnySet = Set<any>
+type AnyMap = Map<any, any>
+
+type PatchThunk<
+  Name extends string,
+  ReducerName extends PropertyKey,
+  ReducerPath extends string,
+  State,
+> = {
+  (
+    recipe: (draft: Draft<State>) => void,
+  ): ThunkAction<void, Record<ReducerPath, State>, unknown, Action>
+  patched: PayloadActionCreator<Patch[], SliceActionType<Name, ReducerName>>
+}
+
 declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
     State,
     CaseReducers extends CreatorCaseReducers<State>,
     Name extends string,
+    ReducerPath extends string,
   > {
     [loaderCreatorType]: ReducerCreatorEntry<
       (
@@ -1125,6 +1228,27 @@ declare module '@reduxjs/toolkit' {
             ) => { payload: P; meta: UndoableOptions | undefined }
           }
         : never
+    >
+    [patchCreatorType]: ReducerCreatorEntry<
+      State extends Objectish
+        ? () => ReducerDefinition<typeof patchCreatorType>
+        : never,
+      {
+        actions: {
+          [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends ReducerDefinition<
+            typeof patchCreatorType
+          >
+            ? PatchThunk<Name, ReducerName, ReducerPath, State>
+            : never
+        }
+        caseReducers: {
+          [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends ReducerDefinition<
+            typeof patchCreatorType
+          >
+            ? CaseReducer<State, PayloadAction<Patch[]>>
+            : never
+        }
+      }
     >
   }
 }

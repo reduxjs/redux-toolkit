@@ -796,7 +796,7 @@ describe('type tests', () => {
       create: () => ({
         _reducerDefinitionType: toasterCreatorType,
       }),
-      handle({ type, reducerName }, _definition, context) {
+      handle({ type }, _definition, context) {
         const toastOpened = createAction<{ message: string; id: string }>(
           type + '/opened',
         )
@@ -886,6 +886,7 @@ declare module '@reduxjs/toolkit' {
     State,
     CaseReducers extends CreatorCaseReducers<State>,
     Name extends string,
+    ReducerPath extends string,
   > {
     [toasterCreatorType]: ReducerCreatorEntry<
       State extends ToastState
