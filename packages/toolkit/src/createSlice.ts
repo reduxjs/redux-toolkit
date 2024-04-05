@@ -287,7 +287,7 @@ export interface ReducerHandlingContext<State> {
    *
    * *Note that only the original `reducerPath` option is used - if a different `reducerPath` is used when injecting, this will not be reflected.*
    */
-  selectSlice(state: Record<string, State>): State
+  selectSlice(state: Record<string, unknown>): State
 }
 
 export interface ReducerDetails {
@@ -1004,7 +1004,7 @@ export function buildCreateSlice<
               `Could not find "${name}" slice in state. In order for slice creators to use \`context.selectSlice\`, the slice must be nested in the state under its reducerPath: "${reducerPath}"`,
             )
           }
-          return sliceState
+          return sliceState as State
         },
       }
       return context
