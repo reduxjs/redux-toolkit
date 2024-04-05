@@ -125,11 +125,11 @@ export const asyncThunkCreator: ReducerCreator<ReducerType.asyncThunk> = {
     asyncThunk.withTypes = () => asyncThunk
     return asyncThunk as AsyncThunkCreator<any>
   })(),
-  handle({ type, reducerName }, definition, context) {
+  handle({ type }, definition, context) {
     const { payloadCreator, fulfilled, pending, rejected, settled, options } =
       definition
     const thunk = createAsyncThunk(type, payloadCreator, options as any)
-    context.exposeAction(reducerName, thunk)
+    context.exposeAction(thunk)
 
     if (fulfilled) {
       context.addCase(thunk.fulfilled, fulfilled)
@@ -144,7 +144,7 @@ export const asyncThunkCreator: ReducerCreator<ReducerType.asyncThunk> = {
       context.addMatcher(thunk.settled, settled)
     }
 
-    context.exposeCaseReducer(reducerName, {
+    context.exposeCaseReducer({
       fulfilled: fulfilled || noop,
       pending: pending || noop,
       rejected: rejected || noop,

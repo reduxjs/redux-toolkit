@@ -226,35 +226,27 @@ export interface ReducerHandlingContext<State> {
     reducer: CaseReducer<State, A extends Action ? A : A & Action>,
   ): ReducerHandlingContext<State>
   /**
-   * Add an action to be exposed under the final `slice.actions` key.
-   * @param name The key to be exposed as.
+   * Add an action to be exposed under the final `slice.actions[reducerName]` key.
    * @param actionCreator The action to expose.
    * @example
-   * context.exposeAction("addPost", createAction<Post>("addPost"));
+   * context.exposeAction(createAction<Post>(type));
    *
    * export const { addPost } = slice.actions
    *
    * dispatch(addPost(post))
    */
-  exposeAction(
-    name: string,
-    actionCreator: unknown,
-  ): ReducerHandlingContext<State>
+  exposeAction(actionCreator: unknown): ReducerHandlingContext<State>
   /**
-   * Add a case reducer to be exposed under the final `slice.caseReducers` key.
-   * @param name The key to be exposed as.
+   * Add a case reducer to be exposed under the final `slice.caseReducers[reducerName]` key.
    * @param reducer The reducer to expose.
    * @example
-   * context.exposeCaseReducer("addPost", (state, action: PayloadAction<Post>) => {
+   * context.exposeCaseReducer((state, action: PayloadAction<Post>) => {
    *   state.push(action.payload)
    * })
    *
    * slice.caseReducers.addPost([], addPost(post))
    */
-  exposeCaseReducer(
-    name: string,
-    reducer: unknown,
-  ): ReducerHandlingContext<State>
+  exposeCaseReducer(reducer: unknown): ReducerHandlingContext<State>
   /**
    * Provides access to the initial state value given to the slice.
    * If a lazy state initializer was provided, it will be called and a fresh value returned.
@@ -756,11 +748,11 @@ export const reducerCreator: ReducerCreator<ReducerType.reducer> = {
       } as const,
     )
   },
-  handle({ type, reducerName }, reducer, context) {
+  handle({ type }, reducer, context) {
     context
       .addCase(type, reducer as any)
-      .exposeCaseReducer(reducerName, reducer)
-      .exposeAction(reducerName, createAction(type))
+      .exposeCaseReducer(reducer)
+      .exposeAction(createAction(type))
   },
 }
 
@@ -774,11 +766,11 @@ export const preparedReducerCreator: ReducerCreator<ReducerType.reducerWithPrepa
         reducer,
       }
     },
-    handle({ type, reducerName }, { prepare, reducer }, context) {
+    handle({ type }, { prepare, reducer }, context) {
       context
         .addCase(type, reducer)
-        .exposeCaseReducer(reducerName, reducer)
-        .exposeAction(reducerName, createAction(type, prepare))
+        .exposeCaseReducer(reducer)
+        .exposeAction(createAction(type, prepare))
     },
   }
 
@@ -892,49 +884,64 @@ export function buildCreateSlice<
 
     const getInitialState = makeGetInitialState(options.initialState)
 
-    const context: InternalReducerHandlingContext<State> = {
+    const internalContext: InternalReducerHandlingContext<State> = {
       sliceCaseReducersByName: {},
       sliceCaseReducersByType: {},
       actionCreators: {},
       sliceMatchers: [],
     }
 
-    const contextMethods: ReducerHandlingContext<State> = {
-      addCase(
-        typeOrActionCreator: string | TypedActionCreator<any>,
-        reducer: CaseReducer<State>,
-      ) {
-        const type =
-          typeof typeOrActionCreator === 'string'
-            ? typeOrActionCreator
-            : typeOrActionCreator.type
-        if (!type) {
-          throw new Error(
-            '`context.addCase` cannot be called with an empty action type',
-          )
-        }
-        if (type in context.sliceCaseReducersByType) {
-          throw new Error(
-            '`context.addCase` cannot be called with two reducers for the same action type: ' +
-              type,
-          )
-        }
-        context.sliceCaseReducersByType[type] = reducer
-        return contextMethods
-      },
-      addMatcher(matcher, reducer) {
-        context.sliceMatchers.push({ matcher, reducer })
-        return contextMethods
-      },
-      exposeAction(name, actionCreator) {
-        context.actionCreators[name] = actionCreator
-        return contextMethods
-      },
-      exposeCaseReducer(name, reducer) {
-        context.sliceCaseReducersByName[name] = reducer
-        return contextMethods
-      },
-      getInitialState,
+    function getContext({ reducerName }: ReducerDetails) {
+      const context: ReducerHandlingContext<State> = {
+        addCase(
+          typeOrActionCreator: string | TypedActionCreator<any>,
+          reducer: CaseReducer<State>,
+        ) {
+          const type =
+            typeof typeOrActionCreator === 'string'
+              ? typeOrActionCreator
+              : typeOrActionCreator.type
+          if (!type) {
+            throw new Error(
+              '`context.addCase` cannot be called with an empty action type',
+            )
+          }
+          if (type in internalContext.sliceCaseReducersByType) {
+            throw new Error(
+              '`context.addCase` cannot be called with two reducers for the same action type: ' +
+                type,
+            )
+          }
+          internalContext.sliceCaseReducersByType[type] = reducer
+          return context
+        },
+        addMatcher(matcher, reducer) {
+          internalContext.sliceMatchers.push({ matcher, reducer })
+          return context
+        },
+        exposeAction(actionCreator) {
+          if (reducerName in internalContext.actionCreators) {
+            throw new Error(
+              'context.exposeAction cannot be called twice for the same reducer definition:' +
+                reducerName,
+            )
+          }
+          internalContext.actionCreators[reducerName] = actionCreator
+          return context
+        },
+        exposeCaseReducer(reducer) {
+          if (reducerName in internalContext.sliceCaseReducersByName) {
+            throw new Error(
+              'context.exposeCaseReducer cannot be called twice for the same reducer definition:' +
+                reducerName,
+            )
+          }
+          internalContext.sliceCaseReducersByName[reducerName] = reducer
+          return context
+        },
+        getInitialState,
+      }
+      return context
     }
 
     if (isCreatorCallback(options.reducers)) {
@@ -955,7 +962,11 @@ export function buildCreateSlice<
           reducerName,
           type: getType(name, reducerName),
         }
-        handler(reducerDetails, reducerDefinition as any, contextMethods)
+        handler(
+          reducerDetails,
+          reducerDefinition as any,
+          getContext(reducerDetails),
+        )
       }
     } else {
       for (const [reducerName, reducerDefinition] of Object.entries(
@@ -970,7 +981,11 @@ export function buildCreateSlice<
           'reducer' in reducerDefinition
             ? preparedReducerCreator
             : reducerCreator
-        handler.handle(reducerDetails, reducerDefinition as any, contextMethods)
+        handler.handle(
+          reducerDetails,
+          reducerDefinition as any,
+          getContext(reducerDetails),
+        )
       }
     }
 
@@ -993,14 +1008,14 @@ export function buildCreateSlice<
 
       const finalCaseReducers = {
         ...extraReducers,
-        ...context.sliceCaseReducersByType,
+        ...internalContext.sliceCaseReducersByType,
       }
 
       return createReducer(options.initialState, (builder) => {
         for (let key in finalCaseReducers) {
           builder.addCase(key, finalCaseReducers[key] as CaseReducer)
         }
-        for (let sM of context.sliceMatchers) {
+        for (let sM of internalContext.sliceMatchers) {
           builder.addMatcher(sM.matcher, sM.reducer)
         }
         for (let m of actionMatchers) {
@@ -1101,8 +1116,8 @@ export function buildCreateSlice<
     > = {
       name,
       reducer,
-      actions: context.actionCreators as any,
-      caseReducers: context.sliceCaseReducersByName as any,
+      actions: internalContext.actionCreators as any,
+      caseReducers: internalContext.sliceCaseReducersByName as any,
       getInitialState,
       ...makeSelectorProps(reducerPath),
       injectInto(injectable, { reducerPath: pathOpt, ...config } = {}) {

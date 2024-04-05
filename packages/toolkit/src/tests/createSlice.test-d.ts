@@ -821,7 +821,7 @@ describe('type tests', () => {
           .addCase(toastClosed, (state, action) => {
             delete state.toasts[action.payload]
           })
-          .exposeAction(reducerName, openToast)
+          .exposeAction(openToast)
       },
     }
 

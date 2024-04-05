@@ -400,13 +400,13 @@ const reducerCreator: ReducerCreator<typeof reducerCreatorType> = {
       reducer,
     }
   },
-  handle({ reducerName, type }, definition, context) {
+  handle({ type }, definition, context) {
     const { reducer } = definition
     const actionCreator = createAction(type)
     context
       .addCase(actionCreator, reducer)
-      .exposeAction(reducerName, actionCreator)
-      .exposeCaseReducer(reducerName, reducer)
+      .exposeAction(actionCreator)
+      .exposeCaseReducer(reducer)
   },
 }
 ```
@@ -456,19 +456,19 @@ context.addMatcher(matcher, reducer)
 
 #### `exposeAction`
 
-Attaches a value to `slice.actions`. Receives the key to be set under (typically `reducerName`) and the value to be set.
+Attaches a value to `slice.actions[reducerName]`.
 
 ```ts no-transpile
 const action = createAction(type)
-context.exposeAction(reducerName, action)
+context.exposeAction(action)
 ```
 
 #### `exposeCaseReducer`
 
-Attaches a value to `slice.caseReducers`. Receives the key to be set under (typically `reducerName`) and the value to be set.
+Attaches a value to `slice.caseReducers[reducerName]`.
 
 ```ts no-transpile
-context.exposeCaseReducer(reducerName, reducer)
+context.exposeCaseReducer(reducer)
 ```
 
 #### `getInitialState`
@@ -480,8 +480,8 @@ const resetAction = createAction(type)
 const resetReducer = () => context.getInitialState()
 context
   .addCase(resetAction, resetReducer)
-  .exposeAction(reducerName, resetAction)
-  .exposeCaseReducer(reducerName, resetReducer)
+  .exposeAction(resetAction)
+  .exposeCaseReducer(resetReducer)
 ```
 
 ### Typescript
@@ -820,7 +820,7 @@ const toastCreator: ReducerCreator<typeof toastCreatorType> = {
     }
   },
   // handle the reducer definition
-  handle({ reducerName, type }, definition, context) {
+  handle({ type }, definition, context) {
     // make the action creators
     const shown = createAction(type + '/shown', (toast: Toast, id: string) => ({
       payload: toast,
@@ -859,12 +859,10 @@ const toastCreator: ReducerCreator<typeof toastCreatorType> = {
     }
 
     // expose the thunk creator as `slice.actions[reducerName]` and the case reducers as `slice.caseReducers[reducerName]["shown" | "hidden"]`
-    context
-      .exposeAction(reducerName, thunkCreator)
-      .exposeCaseReducer(reducerName, {
-        shown: definition.shown || noop,
-        hidden: definition.hidden || noop,
-      })
+    context.exposeAction(thunkCreator).exposeCaseReducer({
+      shown: definition.shown || noop,
+      hidden: definition.hidden || noop,
+    })
   },
 }
 

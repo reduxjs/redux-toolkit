@@ -730,8 +730,8 @@ describe('createSlice', () => {
         if (started) context.addCase(startedAction, started)
         if (ended) context.addCase(endedAction, ended)
 
-        context.exposeAction(reducerName, thunkCreator)
-        context.exposeCaseReducer(reducerName, { started, ended })
+        context.exposeAction(thunkCreator)
+        context.exposeCaseReducer({ started, ended })
       },
     }
     test('allows passing custom reducer creators, which can add actions and case reducers', () => {
