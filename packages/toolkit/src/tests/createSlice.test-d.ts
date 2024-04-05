@@ -14,7 +14,7 @@ import type {
   ReducerCreatorEntry,
   ReducerCreators,
   ReducerDefinition,
-  ReducerHandlingContextMethods,
+  ReducerHandlingContext,
   SliceActionType,
   SliceCaseReducers,
   ThunkAction,
@@ -814,7 +814,7 @@ describe('type tests', () => {
           }
         }
         Object.assign(openToast, { toastOpened, toastClosed })
-        ;(context as any as ReducerHandlingContextMethods<ToastState>)
+        ;(context as any as ReducerHandlingContext<ToastState>)
           .addCase(toastOpened, (state, { payload: { message, id } }) => {
             state.toasts[id] = { message }
           })
