@@ -43,5 +43,8 @@
   "41": "Cannot use reserved creator type: ",
   "42": "Unsupported reducer type: ",
   "43": "If provided, `asyncThunk` creator must be `asyncThunkCreator` from '@reduxjs/toolkit'",
-  "44": "called \\`injectEndpoints\\` to override already-existing endpointName  without specifying \\`overrideExisting: true\\`"
+  "44": "called \\`injectEndpoints\\` to override already-existing endpointName  without specifying \\`overrideExisting: true\\`",
+  "45": "context.exposeAction cannot be called twice for the same reducer definition: reducerName",
+  "46": "context.exposeCaseReducer cannot be called twice for the same reducer definition: reducerName",
+  "47": "Could not find \"\" slice in state. In order for slice creators to use \\`context.selectSlice\\`, the slice must be nested in the state under its reducerPath: \"\""
 }
