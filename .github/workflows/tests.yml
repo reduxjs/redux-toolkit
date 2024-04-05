@@ -20,6 +20,7 @@ jobs:
               - 'packages/toolkit/**'
               - 'examples/publish-ci/**'
               - '.github/workflows/tests.yml'
+              - 'yarn.lock'
 
   build:
     needs: changes
