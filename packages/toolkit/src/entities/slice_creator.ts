@@ -73,6 +73,7 @@ declare module '@reduxjs/toolkit' {
     State,
     CaseReducers extends CreatorCaseReducers<State>,
     Name extends string,
+    ReducerPath extends string,
   > {
     [entityMethodsCreatorType]: ReducerCreatorEntry<EntityMethodsCreator<State>>
   }
