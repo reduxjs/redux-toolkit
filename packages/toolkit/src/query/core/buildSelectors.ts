@@ -53,6 +53,7 @@ declare module './module' {
   export interface ApiEndpointQuery<
     Definition extends QueryDefinition<any, any, any, any, any>,
     Definitions extends EndpointDefinitions,
+    EndpointName extends PropertyKey = string,
   > {
     select: QueryResultSelectorFactory<
       Definition,
@@ -67,6 +68,7 @@ declare module './module' {
   export interface ApiEndpointMutation<
     Definition extends MutationDefinition<any, any, any, any, any>,
     Definitions extends EndpointDefinitions,
+    EndpointName extends PropertyKey = string,
   > {
     select: MutationResultSelectorFactory<
       Definition,

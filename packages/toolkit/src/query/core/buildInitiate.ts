@@ -29,6 +29,7 @@ declare module './module' {
     Definition extends QueryDefinition<any, any, any, any, any>,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     Definitions extends EndpointDefinitions,
+    EndpointName extends PropertyKey = string,
   > {
     initiate: StartQueryActionCreator<Definition>
   }
@@ -37,6 +38,7 @@ declare module './module' {
     Definition extends MutationDefinition<any, any, any, any, any>,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     Definitions extends EndpointDefinitions,
+    EndpointName extends PropertyKey = string,
   > {
     initiate: StartMutationActionCreator<Definition>
   }

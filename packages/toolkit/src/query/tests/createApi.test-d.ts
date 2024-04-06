@@ -51,6 +51,26 @@ describe('type tests', () => {
       tagTypes: ['typeA', 'typeB'],
     })
 
+    test('strongly typed name property', () => {
+      const injectedApi = api.injectEndpoints({
+        endpoints: (build) => ({
+          getPost: build.query({
+            query: () => 'From',
+          }),
+          updatePost: build.mutation({
+            query: () => 'From',
+          }),
+        }),
+      })
+
+      expectTypeOf(
+        injectedApi.endpoints.getPost.name,
+      ).toEqualTypeOf<'getPost'>()
+      expectTypeOf(
+        injectedApi.endpoints.updatePost.name,
+      ).toEqualTypeOf<'updatePost'>()
+    })
+
     test('query: query & transformResponse types', () => {
       api.injectEndpoints({
         endpoints: (build) => ({

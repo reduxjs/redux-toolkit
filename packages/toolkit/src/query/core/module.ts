@@ -379,9 +379,9 @@ declare module '../apiTypes' {
           any,
           any
         >
-          ? ApiEndpointQuery<Definitions[K], Definitions>
+          ? ApiEndpointQuery<Definitions[K], Definitions, K>
           : Definitions[K] extends MutationDefinition<any, any, any, any, any>
-            ? ApiEndpointMutation<Definitions[K], Definitions>
+            ? ApiEndpointMutation<Definitions[K], Definitions, K>
             : never
       }
     }
@@ -393,8 +393,9 @@ export interface ApiEndpointQuery<
   Definition extends QueryDefinition<any, any, any, any, any>,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Definitions extends EndpointDefinitions,
+  EndpointName extends PropertyKey = string,
 > {
-  name: string
+  name: EndpointName
   /**
    * All of these are `undefined` at runtime, purely to be used in TypeScript declarations!
    */
@@ -407,8 +408,9 @@ export interface ApiEndpointMutation<
   Definition extends MutationDefinition<any, any, any, any, any>,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Definitions extends EndpointDefinitions,
+  EndpointName extends PropertyKey = string,
 > {
-  name: string
+  name: EndpointName
   /**
    * All of these are `undefined` at runtime, purely to be used in TypeScript declarations!
    */
