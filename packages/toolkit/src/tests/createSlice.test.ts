@@ -738,6 +738,15 @@ describe('createSlice', () => {
       },
     }
     test('allows passing custom reducer creators, which can add actions and case reducers', () => {
+      expect(() =>
+        createSlice({
+          name: 'loader',
+          initialState: {} as Partial<Record<string, true>>,
+          reducers: () => ({
+            addLoader: loaderCreator.create({}),
+          }),
+        }),
+      ).toThrowErrorMatchingInlineSnapshot(`[Error: Unsupported reducer type: Symbol(loaderCreatorType)]`)
       const createAppSlice = buildCreateSlice({
         creators: { loader: loaderCreator },
       })
