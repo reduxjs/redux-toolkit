@@ -1045,11 +1045,11 @@ export function buildCreateSlice<
           reducerPath,
           type: getType(name, reducerName),
         }
-        const handler =
+        const { handle } =
           'reducer' in reducerDefinition
             ? preparedReducerCreator
             : reducerCreator
-        handler.handle(
+        handle(
           reducerDetails,
           reducerDefinition as any,
           getContext(reducerDetails),
