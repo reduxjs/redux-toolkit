@@ -390,7 +390,7 @@ const todoSlice = createSlice({
 The `type` property of the definition should be the same constant used for reducer definitions to be handled by this creator. To avoid collision, we recommend using Symbols for this. It's also used for defining/retrieving types - see [Typescript](#typescript).
 
 ```ts no-transpile
-const reducerCreatorType = Symbol()
+const reducerCreatorType = Symbol('reducerCreatorType')
 
 const reducerCreator: ReducerCreator<typeof reducerCreatorType> = {
   type: reducerCreatorType,
@@ -506,7 +506,7 @@ The Typescript system for custom slice creators uses a "creator registry" system
 Creators are registered by using module augmentation to add a new key (their unique `type`) to the `SliceReducerCreators` interface. The interface receives three type parameters (`State`, `CaseReducers` and `Name`), and each entry should use the `ReducerCreatorEntry` type utility.
 
 ```ts no-transpile
-const reducerCreatorType = Symbol()
+const reducerCreatorType = Symbol('reducerCreatorType')
 
 declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
@@ -548,7 +548,7 @@ Assuming the creator is called as `create.yourCreator()`, the `this` value for t
 However, this should be specifically included in the function signature, so Typescript can warn if called with an incorrect context (for example, if the user destructures from the `create` value).
 
 ```ts no-transpile
-const batchedCreatorType = Symbol()
+const batchedCreatorType = Symbol('batchedCreatorType')
 
 declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
@@ -587,7 +587,7 @@ The second argument to the `ReducerCreators` type is a map from creator names to
 Sometimes it's useful to have a reducer creator that only works with a specific state shape. You can ensure the creator is only callable if the state matches, using a conditional type:
 
 ```ts no-transpile
-const loaderCreatorType = Symbol()
+const loaderCreatorType = Symbol('loaderCreatorType')
 
 declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
@@ -614,7 +614,7 @@ Any creators that evaluate to the `never` type are omitted from the final `creat
 An alternative would be just using that required type _as_ the `State` type for the reducer definitions, so Typescript then complains when the creator is used.
 
 ```ts no-transpile
-const loaderCreatorType = Symbol()
+const loaderCreatorType = Symbol('loaderCreatorType')
 
 declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
@@ -656,7 +656,7 @@ In order to ensure that the definitions are correctly filtered to only include t
 For example, with (a simplified version of) the `asyncThunk` creator:
 
 ```ts no-transpile
-const asyncThunkCreatorType = Symbol()
+const asyncThunkCreatorType = Symbol('asyncThunkCreatorType')
 
 declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
@@ -694,7 +694,7 @@ Similar to `actions`, except for `slice.caseReducers`.
 For example, with the `preparedReducer` creator:
 
 ```ts no-transpile
-const preparedReducerType = Symbol()
+const preparedReducerType = Symbol('preparedReducerType')
 
 declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
@@ -771,7 +771,7 @@ One example would be reusable toast logic; you could have a reducer creator that
 
 ```ts no-transpile
 // create the unique type
-const toastCreatorType = Symbol()
+const toastCreatorType = Symbol('toastCreatorType')
 
 interface Toast {
   message: string
@@ -926,7 +926,7 @@ A creator could also return multiple definitions, which would then be spread int
 One example could be returning some pagination related reducers.
 
 ```ts no-transpile
-const paginationCreatorType = Symbol()
+const paginationCreatorType = Symbol('paginationCreatorType')
 
 interface PaginationState {
   page: number
@@ -990,7 +990,7 @@ const { prevPage, nextPage, goToPage, toggleLoading } = paginationSlice.actions
 A creator could return a mix of reducer definitions for itself and other creators to handle:
 
 ```ts no-transpile
-const historyCreatorType = Symbol()
+const historyCreatorType = Symbol('historyCreatorType')
 
 interface PatchesState {
   undo: Patch[]
@@ -1111,7 +1111,7 @@ Following on from the `HistoryState` example above, it would be useful to make s
 Fortunately, this is possible with a creator:
 
 ```ts no-transpile
-const undoableCreatorType = Symbol()
+const undoableCreatorType = Symbol('undoableCreatorType')
 
 interface UndoableMeta {
   undoable?: boolean
