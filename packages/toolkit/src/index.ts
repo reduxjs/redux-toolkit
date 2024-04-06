@@ -87,7 +87,7 @@ export type {
   ReducerCreatorEntry,
   ReducerCreator,
   ReducerDetails,
-  ReducerHandlingContextMethods,
+  ReducerHandlingContext,
   SliceActionType,
   CaseReducerDefinition,
   PreparedCaseReducerDefinition,

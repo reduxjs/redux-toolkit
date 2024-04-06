@@ -1,5 +1,5 @@
 import { vi } from 'vitest'
-import type { Patch } from 'immer'
+import type { Draft, Patch } from 'immer'
 import { applyPatches, enablePatches, produceWithPatches } from 'immer'
 import type {
   Action,
@@ -12,6 +12,8 @@ import type {
   ReducerCreatorEntry,
   ReducerCreators,
   ReducerDefinition,
+  ReducerDetails,
+  ReducerHandlingContext,
   SliceActionType,
   ThunkAction,
   WithSlice,
@@ -38,9 +40,10 @@ enablePatches()
 
 type CreateSlice = typeof createSlice
 
-const loaderCreatorType = Symbol()
-const historyMethodsCreatorType = Symbol()
-const undoableCreatorType = Symbol()
+const loaderCreatorType = Symbol('loaderCreatorType')
+const historyMethodsCreatorType = Symbol('historyMethodsCreatorType')
+const undoableCreatorType = Symbol('undoableCreatorType')
+const patchCreatorType = Symbol('patchCreatorType')
 
 describe('createSlice', () => {
   let restore: () => void
@@ -730,11 +733,20 @@ describe('createSlice', () => {
         if (started) context.addCase(startedAction, started)
         if (ended) context.addCase(endedAction, ended)
 
-        context.exposeAction(reducerName, thunkCreator)
-        context.exposeCaseReducer(reducerName, { started, ended })
+        context.exposeAction(thunkCreator)
+        context.exposeCaseReducer({ started, ended })
       },
     }
     test('allows passing custom reducer creators, which can add actions and case reducers', () => {
+      expect(() =>
+        createSlice({
+          name: 'loader',
+          initialState: {} as Partial<Record<string, true>>,
+          reducers: () => ({
+            addLoader: loaderCreator.create({}),
+          }),
+        }),
+      ).toThrowErrorMatchingInlineSnapshot(`[Error: Unsupported reducer type: Symbol(loaderCreatorType)]`)
       const createAppSlice = buildCreateSlice({
         creators: { loader: loaderCreator },
       })
@@ -943,6 +955,152 @@ describe('createSlice', () => {
         expect(selectValue(store.getState())).toBe(1)
       })
     })
+    describe('context methods throw errors if used incorrectly', () => {
+      const makeSliceWithHandler = (
+        handle: ReducerCreator<typeof loaderCreatorType>['handle'],
+      ) => {
+        const loaderCreator: ReducerCreator<typeof loaderCreatorType> = {
+          type: loaderCreatorType,
+          create(reducers) {
+            return {
+              _reducerDefinitionType: loaderCreatorType,
+              ...reducers,
+            }
+          },
+          handle,
+        }
+        const createAppSlice = buildCreateSlice({
+          creators: {
+            loader: loaderCreator,
+          },
+        })
+        return createAppSlice({
+          name: 'loader',
+          initialState: {} as Partial<Record<string, true>>,
+          reducers: (create) => ({
+            addLoader: create.loader({}),
+          }),
+        })
+      }
+      test('context.addCase throws if called twice for same type', () => {
+        expect(() =>
+          makeSliceWithHandler((_details, _def, context) => {
+            context.addCase('foo', () => {}).addCase('foo', () => {})
+          }),
+        ).toThrowErrorMatchingInlineSnapshot(
+          `[Error: \`context.addCase\` cannot be called with two reducers for the same action type: foo]`,
+        )
+      })
+      test('context.addCase throws if empty action type', () => {
+        expect(() =>
+          makeSliceWithHandler((_details, _def, context) => {
+            context.addCase('', () => {})
+          }),
+        ).toThrowErrorMatchingInlineSnapshot(
+          `[Error: \`context.addCase\` cannot be called with an empty action type]`,
+        )
+      })
+      test('context.exposeAction throws if called twice for same reducer name', () => {
+        expect(() =>
+          makeSliceWithHandler((_details, _def, context) => {
+            context.exposeAction(() => {}).exposeAction(() => {})
+          }),
+        ).toThrowErrorMatchingInlineSnapshot(
+          `[Error: context.exposeAction cannot be called twice for the same reducer definition: addLoader]`,
+        )
+      })
+      test('context.exposeCaseReducer throws if called twice for same reducer name', () => {
+        expect(() =>
+          makeSliceWithHandler((_details, _def, context) => {
+            context.exposeCaseReducer({}).exposeCaseReducer({})
+          }),
+        ).toThrowErrorMatchingInlineSnapshot(
+          `[Error: context.exposeCaseReducer cannot be called twice for the same reducer definition: addLoader]`,
+        )
+      })
+      test('context.selectSlice throws if unable to find slice state', () => {
+        const patchCreator: ReducerCreator<typeof patchCreatorType> = {
+          type: patchCreatorType,
+          create() {
+            return { _reducerDefinitionType: patchCreatorType }
+          },
+          handle({ type }, _def, context) {
+            const patchedAction = createAction<Patch[]>(type)
+            function patchThunk(
+              recipe: (draft: Draft<any>) => void,
+            ): ThunkAction<void, Record<string, any>, unknown, Action> {
+              return (dispatch, getState) => {
+                const [, patches] = produceWithPatches(
+                  context.selectSlice(getState()),
+                  recipe,
+                )
+                dispatch(patchedAction(patches))
+              }
+            }
+            Object.assign(patchThunk, { patched: patchedAction })
+
+            function applyPatchesReducer(
+              state: Objectish,
+              action: PayloadAction<Patch[]>,
+            ) {
+              return applyPatches(state, action.payload)
+            }
+
+            ;(context as ReducerHandlingContext<Objectish>)
+              .addCase(patchedAction, applyPatchesReducer)
+              .exposeAction(patchThunk)
+              .exposeCaseReducer(applyPatchesReducer)
+          },
+        }
+
+        const createAppSlice = buildCreateSlice({
+          creators: { patcher: patchCreator },
+        })
+
+        const personSlice = createAppSlice({
+          name: 'person',
+          initialState: { name: 'Alice' },
+          reducers: (create) => ({
+            patchPerson: create.patcher(),
+          }),
+        })
+
+        const { patchPerson } = personSlice.actions
+
+        const correctStore = configureStore({
+          reducer: combineSlices(personSlice),
+        })
+
+        expect(correctStore.getState().person.name).toBe('Alice')
+
+        expect(() =>
+          correctStore.dispatch(
+            patchPerson((person) => {
+              person.name = 'Bob'
+            }),
+          ),
+        ).not.toThrow()
+
+        expect(correctStore.getState().person.name).toBe('Bob')
+
+        const incorrectStore = configureStore({
+          reducer: {
+            somewhere: personSlice.reducer,
+          },
+        })
+
+        expect(() =>
+          incorrectStore.dispatch(
+            // @ts-expect-error state mismatch
+            patchPerson((person) => {
+              person.name = 'Charlie'
+            }),
+          ),
+        ).toThrowErrorMatchingInlineSnapshot(
+          `[Error: Could not find "person" slice in state. In order for slice creators to use \`context.selectSlice\`, the slice must be nested in the state under its reducerPath: "person"]`,
+        )
+      })
+    })
   })
 })
 
@@ -984,11 +1142,33 @@ interface UndoableOptions {
   undoable?: boolean
 }
 
+// nicked from immer
+type Objectish = AnyObject | AnyArray | AnyMap | AnySet
+type AnyObject = {
+  [key: string]: any
+}
+type AnyArray = Array<any>
+type AnySet = Set<any>
+type AnyMap = Map<any, any>
+
+type PatchThunk<
+  Name extends string,
+  ReducerName extends PropertyKey,
+  ReducerPath extends string,
+  State,
+> = {
+  (
+    recipe: (draft: Draft<State>) => void,
+  ): ThunkAction<void, Record<ReducerPath, State>, unknown, Action>
+  patched: PayloadActionCreator<Patch[], SliceActionType<Name, ReducerName>>
+}
+
 declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
     State,
     CaseReducers extends CreatorCaseReducers<State>,
     Name extends string,
+    ReducerPath extends string,
   > {
     [loaderCreatorType]: ReducerCreatorEntry<
       (
@@ -1060,6 +1240,27 @@ declare module '@reduxjs/toolkit' {
             ) => { payload: P; meta: UndoableOptions | undefined }
           }
         : never
+    >
+    [patchCreatorType]: ReducerCreatorEntry<
+      State extends Objectish
+        ? () => ReducerDefinition<typeof patchCreatorType>
+        : never,
+      {
+        actions: {
+          [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends ReducerDefinition<
+            typeof patchCreatorType
+          >
+            ? PatchThunk<Name, ReducerName, ReducerPath, State>
+            : never
+        }
+        caseReducers: {
+          [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends ReducerDefinition<
+            typeof patchCreatorType
+          >
+            ? CaseReducer<State, PayloadAction<Patch[]>>
+            : never
+        }
+      }
     >
   }
 }

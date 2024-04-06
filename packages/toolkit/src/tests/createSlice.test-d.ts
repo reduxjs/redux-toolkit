@@ -14,7 +14,7 @@ import type {
   ReducerCreatorEntry,
   ReducerCreators,
   ReducerDefinition,
-  ReducerHandlingContextMethods,
+  ReducerHandlingContext,
   SliceActionType,
   SliceCaseReducers,
   ThunkAction,
@@ -796,7 +796,7 @@ describe('type tests', () => {
       create: () => ({
         _reducerDefinitionType: toasterCreatorType,
       }),
-      handle({ type, reducerName }, _definition, context) {
+      handle({ type }, _definition, context) {
         const toastOpened = createAction<{ message: string; id: string }>(
           type + '/opened',
         )
@@ -814,14 +814,14 @@ describe('type tests', () => {
           }
         }
         Object.assign(openToast, { toastOpened, toastClosed })
-        ;(context as any as ReducerHandlingContextMethods<ToastState>)
+        ;(context as any as ReducerHandlingContext<ToastState>)
           .addCase(toastOpened, (state, { payload: { message, id } }) => {
             state.toasts[id] = { message }
           })
           .addCase(toastClosed, (state, action) => {
             delete state.toasts[action.payload]
           })
-          .exposeAction(reducerName, openToast)
+          .exposeAction(openToast)
       },
     }
 
@@ -886,6 +886,7 @@ declare module '@reduxjs/toolkit' {
     State,
     CaseReducers extends CreatorCaseReducers<State>,
     Name extends string,
+    ReducerPath extends string,
   > {
     [toasterCreatorType]: ReducerCreatorEntry<
       State extends ToastState
