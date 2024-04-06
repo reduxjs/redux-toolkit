@@ -1160,9 +1160,7 @@ export function buildCreateSlice<
 
     const slice: Slice<
       State,
-      CaseReducers extends CreatorCallback<State, Name, ReducerPath, CreatorMap>
-        ? ReturnType<CaseReducers>
-        : CaseReducers,
+      GetCaseReducers<CaseReducers>,
       Name,
       ReducerPath,
       Selectors
