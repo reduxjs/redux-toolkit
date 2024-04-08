@@ -544,6 +544,8 @@ The same as [`addCase`](../api/createReducer#builderaddcase) for `createReducer`
 ```ts no-transpile
 const action = createAction(type)
 context.addCase(action, reducer)
+// or
+context.addCase(type, reducer)
 ```
 
 #### `addMatcher`
@@ -564,6 +566,12 @@ const action = createAction(type)
 context.exposeAction(action)
 ```
 
+:::caution
+
+`exposeAction` should only be called once (at maximum) within a `handle` callback - the same applies to `exposeCaseReducer`.
+
+:::
+
 #### `exposeCaseReducer`
 
 Attaches a value to `slice.caseReducers[reducerName]`.
@@ -577,12 +585,12 @@ context.exposeCaseReducer(reducer)
 Returns the initial state value for the slice. If a lazy state initializer has been provided, it will be called and a fresh value returned.
 
 ```ts no-transpile
-const resetAction = createAction(type)
+const resetAction = createAction(type + '/reset')
 const resetReducer = () => context.getInitialState()
 context
   .addCase(resetAction, resetReducer)
-  .exposeAction(resetAction)
-  .exposeCaseReducer(resetReducer)
+  .exposeAction({ reset: resetAction })
+  .exposeCaseReducer({ reset: resetReducer })
 ```
 
 #### `selectSlice`
@@ -602,7 +610,7 @@ const aThunk =
 
 The Typescript system for custom slice creators uses a "creator registry" system similar to the module system for [RTK Query](/rtk-query/usage/customizing-create-api#creating-your-own-module).
 
-Creators are registered by using module augmentation to add a new key (their unique `type`) to the `SliceReducerCreators` interface. The interface receives three type parameters (`State`, `CaseReducers` and `Name`), and each entry should use the `ReducerCreatorEntry` type utility.
+Creators are registered by using module augmentation to add a new key (their unique `type`) to the `SliceReducerCreators` interface. Each entry should use the `ReducerCreatorEntry` type utility.
 
 ```ts no-transpile
 const reducerCreatorType = Symbol('reducerCreatorType')
@@ -634,9 +642,9 @@ The `ReducerCreatorEntry<Create, Exposes>` utility has two type parameters:
 
 The signature of the `create` method of the creator definition.
 
-:::caution `CaseReducers` and `Name`
+:::caution `CaseReducers`
 
-Your `Create` type should not depend on the `CaseReducers` and `Name` type parameters, as these will not yet exist when the creator is being called.
+Your `Create` type should not depend on the `CaseReducers` type parameter, as these will not yet exist when the creator is being called.
 
 :::
 
@@ -678,6 +686,39 @@ const batchedCreator: ReducerCreator<typeof batchedCreatorType> = {
 ```
 
 The second argument to the `ReducerCreators` type is a map from creator names to types, which you should supply if you're expecting to use any custom creators (anything other than `reducer` and `preparedReducer`) within your own creator. For example, `ReducerCreators<State, { asyncThunk: typeof asyncThunkCreator.type }>` would allow you to call `this.asyncThunk`.
+
+Alternatively, you can import the other creator's definition and use it directly.
+
+```ts no-transpile
+import { preparedReducerCreator } from '@reduxjs/toolkit'
+
+const batchedCreatorType = Symbol('batchedCreatorType')
+
+declare module '@reduxjs/toolkit' {
+  export interface SliceReducerCreators<
+    State,
+    CaseReducers extends CreatorCaseReducers<State>,
+    Name extends string,
+    ReducerPath extends string,
+  > {
+    [batchedCreatorType]: ReducerCreatorEntry<
+      <Payload>(
+        reducer: CaseReducer<State, PayloadAction<Payload>>,
+      ) => PreparedCaseReducerDefinition<
+        State,
+        (payload: Payload) => { payload: Payload; meta: unknown }
+      >
+    >
+  }
+}
+
+const batchedCreator: ReducerCreator<typeof batchedCreatorType> = {
+  type: batchedCreatorType,
+  create(reducer) {
+    return preparedReducerCreator.create(prepareAutoBatched(), reducer)
+  },
+}
+```
 
 :::
 
@@ -752,6 +793,8 @@ In order to ensure that the definitions are correctly filtered to only include t
 }
 ```
 
+To relate back to the context methods, it should describe what you will pass to `context.exposeAction` from a handler.
+
 For example, with (a simplified version of) the `asyncThunk` creator:
 
 ```ts no-transpile
@@ -789,6 +832,8 @@ declare module '@reduxjs/toolkit' {
 ##### `caseReducers`
 
 Similar to `actions`, except for `slice.caseReducers`.
+
+It describes what you will pass to `context.exposeCaseReducer` from a handler.
 
 For example, with the `preparedReducer` creator:
 
@@ -1055,6 +1100,8 @@ const paginationCreator: ReducerCreator<typeof paginationCreatorType> = {
   type: paginationCreatorType,
   create() {
     return {
+      // calling `this.reducer` assumes we'll be calling the creator as `create.paginationMethods()`
+      // if we don't want this assumption, we could use `reducerCreator.create` instead
       prevPage: this.reducer((state: PaginationState) => {
         state.page--
       }),
@@ -1110,7 +1157,7 @@ declare module '@reduxjs/toolkit' {
     ReducerPath extends string,
   > {
     [historyCreatorType]: ReducerCreatorEntry<
-      // make sure the creator is only called when state is compatibleState extends HistoryState<unknown>
+      // make sure the creator is only called when state is compatible
       State extends HistoryState<any>
         ? (this: ReducerCreators<State>) => {
             undo: CaseReducerDefinition<State, PayloadAction>
@@ -1162,18 +1209,22 @@ const historyCreator: ReducerCreator<typeof historyCreatorType> = {
           state.past.push(historyEntry)
         }
       }),
+      // highlight-start
+      // here we're creating a reducer definition that our `handle` method will be called with
       reset: {
         _reducerDefinitionType: historyCreatorType,
         type: 'reset',
       },
+      // highlight-end
     }
   },
   handle(details, definition, context) {
     if (definition.type !== 'reset') {
       throw new Error('Unrecognised definition type: ' + definition.type)
     }
-    // use the normal reducer creator to create a case reducer and action creator
     const resetReducer = () => context.getInitialState()
+    // you can call other creators' `handle` methods if needed
+    // here we're reusing `reducerCreator` to get the expected behaviour of making an action creator for our reducer
     reducerCreator.handle(details, reducerCreator.create(resetReducer), context)
   },
 }
@@ -1250,7 +1301,7 @@ const undoableCreator: ReducerCreator<typeof undoableCreatorType> = {
       reducer: CaseReducer<any, A>,
     ): CaseReducer<HistoryState<any>, A> {
       return (state, action) => {
-        const [nextState, redoPatch, undoPatch] = produceWithPatches(
+        const [nextState, redoPatches, undoPatches] = produceWithPatches(
           state,
           (draft) => {
             const result = reducer(draft.present, action)
@@ -1264,8 +1315,8 @@ const undoableCreator: ReducerCreator<typeof undoableCreatorType> = {
         if (undoable) {
           finalState = createNextState(finalState, (draft) => {
             draft.past.push({
-              undo: undoPatch,
-              redo: redoPatch,
+              undo: undoPatches,
+              redo: redoPatches,
             })
             draft.future = []
           })
@@ -1320,3 +1371,55 @@ const postSliceWithHistory = createAppSlice({
 const { undo, redo, reset, updateTitle, togglePinned } =
   postSliceWithHistory.actions
 ```
+
+:::tip `history-adapter`
+
+This example is a somewhat simplified version of the [`history-adapter`](https://www.npmjs.com/package/history-adapter) package, which provides a `createHistoryAdapter` utility that can be used to add undo/redo functionality to a slice.
+
+```ts no-transpile
+import {
+  createHistoryAdapter,
+  historyMethodsCreator,
+  undoableCreatorsCreator,
+} from 'history-adapter/redux'
+
+const createAppSlice = buildCreateSlice({
+  creators: {
+    historyMethods: historyMethodsCreator,
+    undoableCreators: undoableCreatorsCreator,
+  },
+})
+
+const postHistoryAdapter = createHistoryAdapter<Post>({ limit: 5 })
+
+const postSliceWithHistory = createAppSlice({
+  name: 'post',
+  initialState: postHistoryAdapter.getInitialState({
+    title: '',
+    pinned: false,
+  }),
+  reducers: (create) => {
+    const createUndoable = create.undoableCreators(postHistoryAdapter)
+    return {
+      ...create.historyMethods(postHistoryAdapter),
+      updateTitle: createUndoable.preparedReducer(
+        postHistoryAdapter.withPayload<string>(),
+        (state, action) => {
+          state.title = action.payload
+        },
+      ),
+      togglePinned: createUndoable.preparedReducer(
+        postHistoryAdapter.withoutPayload(),
+        (state, action) => {
+          state.pinned = !state.pinned
+        },
+      ),
+    }
+  },
+})
+
+const { undo, redo, reset, updateTitle, togglePinned } =
+  postSliceWithHistory.actions
+```
+
+:::

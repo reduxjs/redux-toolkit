@@ -1017,8 +1017,8 @@ export function buildCreateSlice<
             'Please use reducer creators passed to callback. Each reducer definition must have a `_reducerDefinitionType` property indicating which handler to use.',
           )
         }
-        const handler = handlers[type as RegisteredReducerType]
-        if (!handler) {
+        const handle = handlers[type]
+        if (!handle) {
           throw new Error(`Unsupported reducer type: ${String(type)}`)
         }
         const reducerDetails: ReducerDetails = {
@@ -1027,7 +1027,7 @@ export function buildCreateSlice<
           reducerPath,
           type: getType(name, reducerName),
         }
-        handler(
+        handle(
           reducerDetails,
           reducerDefinition as any,
           getContext(reducerDetails),
@@ -1184,8 +1184,10 @@ export function buildCreateSlice<
       caseReducers: internalContext.sliceCaseReducersByName as any,
       getInitialState,
       ...makeSelectorProps(reducerPath),
-      injectInto(injectable, { reducerPath: pathOpt, ...config } = {}) {
-        const newReducerPath = pathOpt ?? reducerPath
+      injectInto(
+        injectable,
+        { reducerPath: newReducerPath = reducerPath, ...config } = {},
+      ) {
         injectable.inject({ reducerPath: newReducerPath, reducer }, config)
         return {
           ...slice,
