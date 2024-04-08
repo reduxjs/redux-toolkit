@@ -507,8 +507,15 @@ type CreatorCallback<
 ) => Record<string, ReducerDefinition>
 
 type GetCaseReducers<
-  CR extends SliceCaseReducers<any> | CreatorCallback<any, any, any, any>,
-> = CR extends CreatorCallback<any, any, any, any> ? ReturnType<CR> : CR
+  State,
+  Name extends string,
+  ReducerPath extends string,
+  CreatorMap extends Record<string, RegisteredReducerType>,
+  CR extends SliceCaseReducers<State> | CreatorCallback<State, any, any, any>,
+> =
+  CR extends CreatorCallback<State, Name, ReducerPath, CreatorMap>
+    ? ReturnType<CR>
+    : CR
 
 /**
  * Options for `createSlice()`.
@@ -907,7 +914,13 @@ export function buildCreateSlice<
       Selectors,
       CreatorMap
     >,
-  ): Slice<State, GetCaseReducers<CaseReducers>, Name, ReducerPath, Selectors> {
+  ): Slice<
+    State,
+    GetCaseReducers<State, Name, ReducerPath, CreatorMap, CaseReducers>,
+    Name,
+    ReducerPath,
+    Selectors
+  > {
     const { name, reducerPath = name as unknown as ReducerPath } = options
     if (!name) {
       throw new Error('`name` is a required option for createSlice')
@@ -1104,7 +1117,7 @@ export function buildCreateSlice<
     ): Pick<
       Slice<
         State,
-        GetCaseReducers<CaseReducers>,
+        GetCaseReducers<State, Name, ReducerPath, CreatorMap, CaseReducers>,
         Name,
         CurrentReducerPath,
         Selectors
@@ -1160,7 +1173,7 @@ export function buildCreateSlice<
 
     const slice: Slice<
       State,
-      GetCaseReducers<CaseReducers>,
+      GetCaseReducers<State, Name, ReducerPath, CreatorMap, CaseReducers>,
       Name,
       ReducerPath,
       Selectors
