@@ -9,7 +9,6 @@ const cache: WeakMap<any, string> | undefined = WeakMap
 export const defaultSerializeQueryArgs: SerializeQueryArgs<any> = ({
   endpointName,
   queryArgs,
-  replacer,
 }) => {
   let serialized = ''
 
@@ -19,8 +18,8 @@ export const defaultSerializeQueryArgs: SerializeQueryArgs<any> = ({
     serialized = cached
   } else {
     const stringified = JSON.stringify(queryArgs, (key, value) => {
-      // Use custom replacer first before applying key-sorting behavior:
-      value = replacer ? replacer(key, value) : value
+      // Handle bigints
+      value = typeof value === 'bigint' ? { $bigint: value.toString() } : value
       // Sort the object keys before stringifying, to prevent useQuery({ a: 1, b: 2 }) having a different cache key than useQuery({ b: 2, a: 1 })
       value = isPlainObject(value)
         ? Object.keys(value)
@@ -44,14 +43,10 @@ export type SerializeQueryArgs<QueryArgs, ReturnType = string> = (_: {
   queryArgs: QueryArgs
   endpointDefinition: EndpointDefinition<any, any, any, any>
   endpointName: string
-  // Allows for a custom stringify replacer while keeping key-sorting behavior. e.g. for serializing bigint.
-  replacer?: (key: string, value: any) => {}
 }) => ReturnType
 
 export type InternalSerializeQueryArgs = (_: {
   queryArgs: any
   endpointDefinition: EndpointDefinition<any, any, any, any>
   endpointName: string
-  // Allows for a custom stringify replacer while keeping key-sorting behavior. e.g. for serializing bigint.
-  replacer?: (key: string, value: any) => {}
 }) => QueryCacheKey

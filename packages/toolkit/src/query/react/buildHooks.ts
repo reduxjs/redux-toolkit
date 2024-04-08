@@ -761,8 +761,6 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         subscriptionSelectorsRef.current =
           returnedValue as unknown as SubscriptionSelectors
       }
-      const bigIntReplacer = (_: string, value: any) =>
-        typeof value === 'bigint' ? { $bigint: value.toString() } : value
       const stableArg = useStableQueryArgs(
         skip ? skipToken : arg,
         // Even if the user provided a per-endpoint `serializeQueryArgs` with
@@ -770,8 +768,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         // so we can tell if _anything_ actually changed. Otherwise, we can end up
         // with a case where the query args did change but the serialization doesn't,
         // and then we never try to initiate a refetch.
-        (params) =>
-          defaultSerializeQueryArgs({ replacer: bigIntReplacer, ...params }),
+        defaultSerializeQueryArgs,
         context.endpointDefinitions[name],
         name,
       )
