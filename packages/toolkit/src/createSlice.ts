@@ -1184,8 +1184,10 @@ export function buildCreateSlice<
       caseReducers: internalContext.sliceCaseReducersByName as any,
       getInitialState,
       ...makeSelectorProps(reducerPath),
-      injectInto(injectable, { reducerPath: pathOpt, ...config } = {}) {
-        const newReducerPath = pathOpt ?? reducerPath
+      injectInto(
+        injectable,
+        { reducerPath: newReducerPath = reducerPath, ...config } = {},
+      ) {
         injectable.inject({ reducerPath: newReducerPath, reducer }, config)
         return {
           ...slice,
