@@ -97,7 +97,7 @@ export const reduxESLintConfig = config(
         },
       ],
     },
-    plugins: { ts: plugin },
+    plugins: { '@typescript-eslint': plugin },
     linterOptions: { reportUnusedDisableDirectives: 2 },
   },
 )
