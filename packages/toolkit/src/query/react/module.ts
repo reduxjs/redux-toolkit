@@ -124,7 +124,7 @@ export interface ReactHooksModuleOptions {
  *
  *  @example
  * ```ts
- * const MyContext = React.createContext<ReactReduxContextValue>(null as any);
+ * const MyContext = React.createContext<ReactReduxContextValue | null>(null);
  * const customCreateApi = buildCreateApi(
  *   coreModule(),
  *   reactHooksModule({
