@@ -13,6 +13,7 @@ on:
           - '@reduxjs/toolkit'
           - '@rtk-query/codegen-openapi'
           - '@rtk-query/graphql-request-base-query'
+          - '@rtk-query/codegen-openapi'
           - '@reduxjs/rtk-codemods'
 jobs:
   publish:
