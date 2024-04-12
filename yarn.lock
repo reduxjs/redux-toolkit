@@ -5175,7 +5175,7 @@ __metadata:
     jest-watch-typeahead: "npm:^1.1.0"
     react: "npm:^18.1.0"
     react-dom: "npm:^18.1.0"
-    react-redux: "npm:^8.0.2"
+    react-redux: "npm:^9.1.0"
     react-scripts: "npm:5.0.1"
     typescript: "npm:~4.9"
   languageName: unknown
@@ -5190,7 +5190,7 @@ __metadata:
     "@types/react-dom": "npm:^18.0.5"
     react: "npm:^18.1.0"
     react-dom: "npm:^18.1.0"
-    react-redux: "npm:^8.0.2"
+    react-redux: "npm:^9.1.0"
     react-scripts: "npm:5.0.1"
     typescript: "npm:~4.9"
   languageName: unknown
@@ -5211,7 +5211,7 @@ __metadata:
     react: "npm:^18.1.0"
     react-dom: "npm:^18.1.0"
     react-icons: "npm:3.11.0"
-    react-redux: "npm:^8.0.2"
+    react-redux: "npm:^9.1.0"
     react-router-dom: "npm:6.3.0"
     react-scripts: "npm:5.0.1"
     typescript: "npm:~4.9"
@@ -5233,7 +5233,7 @@ __metadata:
     react: "npm:^18.1.0"
     react-dom: "npm:^18.1.0"
     react-icons: "npm:3.11.0"
-    react-redux: "npm:^8.0.2"
+    react-redux: "npm:^9.1.0"
     react-router-dom: "npm:6.3.0"
     react-scripts: "npm:5.0.1"
     typescript: "npm:~4.9"
@@ -5252,7 +5252,7 @@ __metadata:
     msw: "npm:^0.40.2"
     react: "npm:^18.1.0"
     react-dom: "npm:^18.1.0"
-    react-redux: "npm:^8.0.2"
+    react-redux: "npm:^9.1.0"
     react-scripts: "npm:5.0.1"
     typescript: "npm:~4.9"
   languageName: unknown
@@ -5267,7 +5267,7 @@ __metadata:
     "@types/react-dom": "npm:^18.0.5"
     react: "npm:^18.1.0"
     react-dom: "npm:^18.1.0"
-    react-redux: "npm:^8.0.2"
+    react-redux: "npm:^9.1.0"
     react-scripts: "npm:5.0.1"
     typescript: "npm:~4.9"
   languageName: unknown
@@ -5282,7 +5282,7 @@ __metadata:
     "@types/react-dom": "npm:^18.0.5"
     react: "npm:^18.1.0"
     react-dom: "npm:^18.1.0"
-    react-redux: "npm:^8.0.2"
+    react-redux: "npm:^9.1.0"
     react-scripts: "npm:5.0.1"
     typescript: "npm:~4.9"
   languageName: unknown
@@ -5321,7 +5321,7 @@ __metadata:
     react: "npm:^18.1.0"
     react-dom: "npm:^18.1.0"
     react-icons: "npm:3.11.0"
-    react-redux: "npm:^8.0.2"
+    react-redux: "npm:^9.1.0"
     react-router-dom: "npm:6.3.0"
     react-scripts: "npm:5.0.1"
     ts-node: "npm:^10.0.0"
@@ -5350,7 +5350,7 @@ __metadata:
     react: "npm:^18.1.0"
     react-dom: "npm:^18.1.0"
     react-icons: "npm:3.11.0"
-    react-redux: "npm:^8.0.2"
+    react-redux: "npm:^9.1.0"
     react-router-dom: "npm:6.3.0"
     react-scripts: "npm:5.0.1"
     typescript: "npm:~4.2.4"
@@ -5371,7 +5371,7 @@ __metadata:
     msw: "npm:^0.40.2"
     react: "npm:^18.1.0"
     react-dom: "npm:^18.1.0"
-    react-redux: "npm:^8.0.2"
+    react-redux: "npm:^9.1.0"
     react-router-dom: "npm:6.3.0"
     react-scripts: "npm:5.0.1"
     typescript: "npm:~4.9"
@@ -5395,7 +5395,7 @@ __metadata:
     react: "npm:^18.1.0"
     react-dom: "npm:^18.1.0"
     react-icons: "npm:3.11.0"
-    react-redux: "npm:^8.0.2"
+    react-redux: "npm:^9.1.0"
     react-router-dom: "npm:6.3.0"
     react-scripts: "npm:5.0.1"
     typescript: "npm:~4.9"
@@ -5418,7 +5418,7 @@ __metadata:
     react: "npm:^18.1.0"
     react-dom: "npm:^18.1.0"
     react-icons: "npm:3.11.0"
-    react-redux: "npm:^8.0.2"
+    react-redux: "npm:^9.1.0"
     react-router-dom: "npm:6.3.0"
     react-scripts: "npm:5.0.1"
     typescript: "npm:~4.9"
@@ -5445,7 +5445,7 @@ __metadata:
     react: "npm:^18.1.0"
     react-dom: "npm:^18.1.0"
     react-icons: "npm:3.11.0"
-    react-redux: "npm:^8.0.2"
+    react-redux: "npm:^9.1.0"
     react-router-dom: "npm:6.3.0"
     react-scripts: "npm:5.0.1"
     typescript: "npm:~4.9"
@@ -5461,7 +5461,7 @@ __metadata:
     "@types/react-dom": "npm:^18.0.5"
     react: "npm:^18.1.0"
     react-dom: "npm:^18.1.0"
-    react-redux: "npm:^8.0.2"
+    react-redux: "npm:^9.1.0"
     react-scripts: "npm:5.0.1"
     typescript: "npm:~4.9"
   languageName: unknown
@@ -5485,7 +5485,7 @@ __metadata:
     react: "npm:^18.1.0"
     react-dom: "npm:^18.1.0"
     react-icons: "npm:3.11.0"
-    react-redux: "npm:^8.0.2"
+    react-redux: "npm:^9.1.0"
     react-router-dom: "npm:6.3.0"
     react-scripts: "npm:5.0.1"
     typescript: "npm:~4.9"
@@ -5510,7 +5510,7 @@ __metadata:
     react: "npm:^18.1.0"
     react-dom: "npm:^18.1.0"
     react-icons: "npm:3.11.0"
-    react-redux: "npm:^8.0.2"
+    react-redux: "npm:^9.1.0"
     react-router-dom: "npm:6.3.0"
     react-scripts: "npm:5.0.1"
     typescript: "npm:~4.9"
@@ -5535,7 +5535,7 @@ __metadata:
     react: "npm:^18.1.0"
     react-dom: "npm:^18.1.0"
     react-icons: "npm:3.11.0"
-    react-redux: "npm:^8.0.2"
+    react-redux: "npm:^9.1.0"
     react-router-dom: "npm:6.3.0"
     react-scripts: "npm:5.0.1"
     typescript: "npm:~4.9"
@@ -5551,7 +5551,7 @@ __metadata:
     "@types/react-dom": "npm:^18.0.5"
     react: "npm:^18.1.0"
     react-dom: "npm:^18.1.0"
-    react-redux: "npm:^8.0.2"
+    react-redux: "npm:^9.1.0"
     react-scripts: "npm:5.0.1"
     typescript: "npm:~4.9"
   languageName: unknown
@@ -8492,16 +8492,6 @@ __metadata:
   version: 4.7.11
   resolution: "@types/history@npm:4.7.11"
   checksum: 10/1da529a3485f3015daf794effa3185493bf7dd2551c26932389c614f5a0aab76ab97645897d1eef9c74ead216a3848fcaa019f165bbd6e4b71da6eff164b4c68
-  languageName: node
-  linkType: hard
-
-"@types/hoist-non-react-statics@npm:^3.3.1":
-  version: 3.3.5
-  resolution: "@types/hoist-non-react-statics@npm:3.3.5"
-  dependencies:
-    "@types/react": "npm:*"
-    hoist-non-react-statics: "npm:^3.3.0"
-  checksum: 10/b645b062a20cce6ab1245ada8274051d8e2e0b2ee5c6bd58215281d0ec6dae2f26631af4e2e7c8abe238cdcee73fcaededc429eef569e70908f82d0cc0ea31d7
   languageName: node
   linkType: hard
 
@@ -16924,7 +16914,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"hoist-non-react-statics@npm:^3.1.0, hoist-non-react-statics@npm:^3.3.0, hoist-non-react-statics@npm:^3.3.1, hoist-non-react-statics@npm:^3.3.2":
+"hoist-non-react-statics@npm:^3.1.0, hoist-non-react-statics@npm:^3.3.0, hoist-non-react-statics@npm:^3.3.1":
   version: 3.3.2
   resolution: "hoist-non-react-statics@npm:3.3.2"
   dependencies:
@@ -24263,38 +24253,6 @@ __metadata:
     react-loadable: "*"
     webpack: ">=4.41.1 || 5.x"
   checksum: 10/d419ff4085ed38e6433e86a2a4c2b58c3b8df6b5d890f5fd5d768fdd3729bd50af31a47e39a40a55c6f508f71c273deb2d964e3ee1362f981cfae9a72ad188cc
-  languageName: node
-  linkType: hard
-
-"react-redux@npm:^8.0.2":
-  version: 8.1.3
-  resolution: "react-redux@npm:8.1.3"
-  dependencies:
-    "@babel/runtime": "npm:^7.12.1"
-    "@types/hoist-non-react-statics": "npm:^3.3.1"
-    "@types/use-sync-external-store": "npm:^0.0.3"
-    hoist-non-react-statics: "npm:^3.3.2"
-    react-is: "npm:^18.0.0"
-    use-sync-external-store: "npm:^1.0.0"
-  peerDependencies:
-    "@types/react": ^16.8 || ^17.0 || ^18.0
-    "@types/react-dom": ^16.8 || ^17.0 || ^18.0
-    react: ^16.8 || ^17.0 || ^18.0
-    react-dom: ^16.8 || ^17.0 || ^18.0
-    react-native: ">=0.59"
-    redux: ^4 || ^5.0.0-beta.0
-  peerDependenciesMeta:
-    "@types/react":
-      optional: true
-    "@types/react-dom":
-      optional: true
-    react-dom:
-      optional: true
-    react-native:
-      optional: true
-    redux:
-      optional: true
-  checksum: 10/c4c7586cff3abeb784e73598d330f5301116a4e9942fd36895f2bccd8990001709c6c3ea1817edb75ee477470d6c67c9113e05a7f86b2b68a3950c9c29fe20cb
   languageName: node
   linkType: hard
 
