@@ -7301,12 +7301,12 @@ __metadata:
     globals: "npm:^15.0.0"
     rimraf: "npm:^5.0.5"
     tslib: "npm:^2.6.2"
-    typescript: "npm:^5.4.4"
+    typescript: "npm:^5.4.5"
     typescript-eslint: "npm:^7.6.0"
   peerDependencies:
     eslint: ^9.0.0
     prettier: ^3.2.5
-    typescript: ^5.4.4
+    typescript: ^5.4.5
   languageName: unknown
   linkType: soft
 
