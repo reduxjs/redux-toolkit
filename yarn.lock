@@ -24662,7 +24662,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:18.2.0":
+"react@npm:17.0.2":
+  version: 17.0.2
+  resolution: "react@npm:17.0.2"
+  dependencies:
+    loose-envify: "npm:^1.1.0"
+    object-assign: "npm:^4.1.1"
+  checksum: 10/ece60c31c1d266d132783aaaffa185d2e4c9b4db144f853933ec690cee1e0600c8929a1dd0a9e79323eea8e2df636c9a06d40f6cfdc9f797f65225433e67f707
+  languageName: node
+  linkType: hard
+
+"react@npm:^18.1.0, react@npm:^18.2.0":
   version: 18.2.0
   resolution: "react@npm:18.2.0"
   dependencies:
@@ -25744,6 +25754,7 @@ __metadata:
     eslint-plugin-react-hooks: "npm:^4.2.0"
     netlify-plugin-cache: "npm:^1.0.3"
     prettier: "npm:^3.2.5"
+    react: "npm:^18.2.0"
     release-it: "npm:^14.12.5"
     serve: "npm:^14.2.0"
     ts-node: "npm:^10.9.2"
