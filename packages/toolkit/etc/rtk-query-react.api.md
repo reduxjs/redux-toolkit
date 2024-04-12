@@ -72,7 +72,7 @@ export function ApiProvider<A extends Api<any, {}, any, any>>(props: {
   children: any
   api: A
   setupListeners?: Parameters<typeof setupListeners>[1]
-  context?: Context<ReactReduxContextValue>
+  context?: Context<ReactReduxContextValue | null>
 }): JSX.Element
 
 // @public (undocumented)
