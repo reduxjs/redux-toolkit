@@ -55,14 +55,6 @@
     "esbuild": "0.19.7",
     "jest-snapshot": "29.3.1",
     "react-redux": "npm:9.1.0",
-    "website/react": "npm:17.0.2",
-    "website/react-dom": "npm:17.0.2",
-    "website/@types/react-dom": "npm:17.0.11",
-    "website/@types/react": "npm:17.0.11",
-    "docs/react": "npm:17.0.2",
-    "docs/react-dom": "npm:17.0.2",
-    "docs/@types/react-dom": "npm:17.0.11",
-    "docs/@types/react": "npm:17.0.11",
     "console-testing-library@0.6.1": "patch:console-testing-library@npm%3A0.6.1#./.yarn/patches/console-testing-library-npm-0.6.1-4d9957d402.patch"
   },
   "scripts": {
