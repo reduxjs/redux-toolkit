@@ -9006,14 +9006,24 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:18.0.12":
-  version: 18.0.12
-  resolution: "@types/react@npm:18.0.12"
+"@types/react@npm:*, @types/react@npm:^18.0.12, @types/react@npm:^18.0.5, @types/react@npm:^18.2.77":
+  version: 18.2.77
+  resolution: "@types/react@npm:18.2.77"
+  dependencies:
+    "@types/prop-types": "npm:*"
+    csstype: "npm:^3.0.2"
+  checksum: 10/80d7ad9cf13e15895a857c66f5b0c1ce758c1e7580a76936d8d1b19c71e4485fa4b35d762a1de98de4eb91506cbc8507582c9a979f357b6f5f75f86009d8ca07
+  languageName: node
+  linkType: hard
+
+"@types/react@npm:17.0.11":
+  version: 17.0.11
+  resolution: "@types/react@npm:17.0.11"
   dependencies:
     "@types/prop-types": "npm:*"
     "@types/scheduler": "npm:*"
     csstype: "npm:^3.0.2"
-  checksum: 10/b010b0d300555a8f70f0513b79d5c35400500cbada71303bbeb72167ddf6154803f92a2edab923c7460a2f1eaa430658b88953ca4a5fe08b276c3587ec91f4f7
+  checksum: 10/392a9ff5303ef5fdc63419052b6ace974af5f27e1aad605264630a1e9226054abb2026269e334f29e6380fb63fd002bf065be67e34a3ee5d2d9041184ad11a39
   languageName: node
   linkType: hard
 
@@ -25754,6 +25764,7 @@ __metadata:
     "@babel/helper-compilation-targets": "npm:^7.23.6"
     "@babel/traverse": "npm:^7.24.1"
     "@babel/types": "npm:^7.24.0"
+    "@types/react": "npm:^18.2.77"
     "@typescript-eslint/eslint-plugin": "npm:6.12.0"
     "@typescript-eslint/parser": "npm:6.12.0"
     eslint: "npm:^7.25.0"
