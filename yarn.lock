@@ -8644,13 +8644,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/inquirer@npm:8.2.1":
-  version: 8.2.1
-  resolution: "@types/inquirer@npm:8.2.1"
+"@types/inquirer@npm:^7.3.1":
+  version: 7.3.3
+  resolution: "@types/inquirer@npm:7.3.3"
   dependencies:
     "@types/through": "npm:*"
-    rxjs: "npm:^7.2.0"
-  checksum: 10/7cee20a39c41b85412b05390216b941b0034b250bd0ff0b2a403f23f5c82406836e020210a6619c81098cb92db7dae1c43e0e3d38bd3086010a9db0fcc7a2ed6
+    rxjs: "npm:^6.4.0"
+  checksum: 10/1d273d569942086a44613969df4dceb0701bfe373f6bbddc2a625f16017e214dd49787ae292f74b604e57a706d5fe21923f9c8948b5fe406c8337ba8f78b7db1
   languageName: node
   linkType: hard
 
@@ -25825,7 +25825,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rxjs@npm:^6.3.3, rxjs@npm:^6.6.0, rxjs@npm:^6.6.2, rxjs@npm:^6.6.3":
+"rxjs@npm:^6.3.3, rxjs@npm:^6.4.0, rxjs@npm:^6.6.0, rxjs@npm:^6.6.2, rxjs@npm:^6.6.3":
   version: 6.6.7
   resolution: "rxjs@npm:6.6.7"
   dependencies:
