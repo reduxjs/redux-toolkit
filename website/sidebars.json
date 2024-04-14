@@ -143,24 +143,6 @@
               ]
             }
           ]
-        },
-        {
-          "type": "category",
-          "label": "Internal Docs",
-          "collapsed": true,
-          "items": [
-            "rtk-query/internal/overview",
-            "rtk-query/internal/buildSlice",
-            "rtk-query/internal/queryThunk",
-            {
-              "type": "category",
-                "label": "Middleware",
-                "collapsed": true,
-              "items": [
-                "rtk-query/internal/buildMiddleware/invalidationByTags"
-              ]
-            }
-          ]
         }
       ]
     }
