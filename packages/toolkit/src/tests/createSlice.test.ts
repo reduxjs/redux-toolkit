@@ -35,7 +35,7 @@ import {
   mockConsole,
 } from 'console-testing-library/pure'
 import type { IfMaybeUndefined, NoInfer } from '../tsHelpers'
-import { delay } from 'msw'
+
 enablePatches()
 
 type CreateSlice = typeof createSlice
