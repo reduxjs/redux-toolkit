@@ -46,5 +46,6 @@
   "44": "called \\`injectEndpoints\\` to override already-existing endpointName  without specifying \\`overrideExisting: true\\`",
   "45": "context.exposeAction cannot be called twice for the same reducer definition: reducerName",
   "46": "context.exposeCaseReducer cannot be called twice for the same reducer definition: reducerName",
-  "47": "Could not find \"\" slice in state. In order for slice creators to use \\`context.selectSlice\\`, the slice must be nested in the state under its reducerPath: \"\""
+  "47": "Could not find \"\" slice in state. In order for slice creators to use \\`context.selectSlice\\`, the slice must be nested in the state under its reducerPath: \"\"",
+  "48": "A creator with the name  has already been provided to buildCreateSlice"
 }

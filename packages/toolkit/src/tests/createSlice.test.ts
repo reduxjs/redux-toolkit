@@ -12,7 +12,6 @@ import type {
   ReducerCreatorEntry,
   ReducerCreators,
   ReducerDefinition,
-  ReducerDetails,
   ReducerHandlingContext,
   SliceActionType,
   ThunkAction,
@@ -36,6 +35,7 @@ import {
   mockConsole,
 } from 'console-testing-library/pure'
 import type { IfMaybeUndefined, NoInfer } from '../tsHelpers'
+import { delay } from 'msw'
 enablePatches()
 
 type CreateSlice = typeof createSlice
@@ -746,7 +746,9 @@ describe('createSlice', () => {
             addLoader: loaderCreator.create({}),
           }),
         }),
-      ).toThrowErrorMatchingInlineSnapshot(`[Error: Unsupported reducer type: Symbol(loaderCreatorType)]`)
+      ).toThrowErrorMatchingInlineSnapshot(
+        `[Error: Unsupported reducer type: Symbol(loaderCreatorType)]`,
+      )
       const createAppSlice = buildCreateSlice({
         creators: { loader: loaderCreator },
       })
@@ -1100,6 +1102,23 @@ describe('createSlice', () => {
           `[Error: Could not find "person" slice in state. In order for slice creators to use \`context.selectSlice\`, the slice must be nested in the state under its reducerPath: "person"]`,
         )
       })
+    })
+    test('creators can be provided per createSlice call', () => {
+      const loaderSlice = createSlice({
+        name: 'loader',
+        initialState: {} as Partial<Record<string, true>>,
+        creators: { loader: loaderCreator },
+        reducers: (create) => ({
+          addLoader: create.loader({}),
+        }),
+      })
+      expect(loaderSlice.actions.addLoader).toEqual(expect.any(Function))
+      expect(loaderSlice.actions.addLoader.started).toEqual(
+        expect.any(Function),
+      )
+      expect(loaderSlice.actions.addLoader.started.type).toBe(
+        'loader/addLoader/started',
+      )
     })
   })
 })
