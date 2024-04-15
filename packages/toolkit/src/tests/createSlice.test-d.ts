@@ -856,6 +856,37 @@ describe('type tests', () => {
       },
     })
   })
+  test('creators can be provided during createSlice call but cannot overlap', () => {
+    const createAppSlice = buildCreateSlice({
+      creators: { asyncThunk: asyncThunkCreator },
+    })
+
+    createAppSlice({
+      name: 'counter',
+      initialState: 0,
+      creators: {
+        something: asyncThunkCreator,
+      },
+      reducers: (create) => {
+        expectTypeOf(create).toHaveProperty('asyncThunk')
+        expectTypeOf(create).toHaveProperty('something')
+        return {}
+      },
+    })
+
+    createAppSlice({
+      name: 'counter',
+      initialState: 0,
+      // @ts-expect-error
+      creators: {
+        asyncThunk: asyncThunkCreator,
+      },
+      reducers: (create) => {
+        expectTypeOf(create).toHaveProperty('asyncThunk')
+        return {}
+      },
+    })
+  })
 })
 
 interface Toast {
