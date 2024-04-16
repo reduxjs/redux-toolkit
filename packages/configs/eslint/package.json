@@ -42,9 +42,20 @@
     "url": "https://github.com/reduxjs/redux-toolkit/issues"
   },
   "peerDependencies": {
-    "eslint": "^9.0.0",
-    "prettier": "^3.2.5",
-    "typescript": "^5.4.5"
+    "eslint": "^8.56.0 || ^9",
+    "prettier": "^3",
+    "typescript": "^5"
+  },
+  "peerDependenciesMeta": {
+    "eslint": {
+      "optional": true
+    },
+    "prettier": {
+      "optional": true
+    },
+    "typescript": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@reduxjs/tsconfig": "workspace:^",
