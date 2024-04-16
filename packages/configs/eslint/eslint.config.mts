@@ -102,6 +102,14 @@ export const reduxESLintConfig = config(
     plugins: { '@typescript-eslint': plugin },
     linterOptions: { reportUnusedDisableDirectives: 2 },
   },
+  {
+    files: ['**/*.cjs'],
+    languageOptions: { sourceType: 'commonjs' },
+    rules: {
+      '@typescript-eslint/no-var-requires': [0],
+      '@typescript-eslint/no-require-imports': [0],
+    },
+  },
 )
 
 /**
