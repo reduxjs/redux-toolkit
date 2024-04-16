@@ -43,7 +43,7 @@
     "url": "https://github.com/reduxjs/redux-toolkit/issues"
   },
   "peerDependencies": {
-    "typescript": "^5.4.4"
+    "typescript": "^4.7 || ^5"
   },
   "peerDependenciesMeta": {
     "typescript": {
