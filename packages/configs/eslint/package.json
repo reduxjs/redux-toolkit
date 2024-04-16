@@ -62,6 +62,6 @@
     "@eslint/js": "^9.0.0",
     "eslint-config-prettier": "^9.1.0",
     "globals": "^15.0.0",
-    "typescript-eslint": "^7.6.0"
+    "typescript-eslint": "^7.7.0"
   }
 }
