@@ -67,6 +67,7 @@ export const reduxESLintConfig = config(
       },
     },
     rules: {
+      'no-undef': [0],
       '@typescript-eslint/consistent-type-imports': [
         2,
         { fixStyle: 'separate-type-imports', disallowTypeAnnotations: false },
