@@ -7462,6 +7462,9 @@ __metadata:
 "@reduxjs/tsconfig@workspace:^, @reduxjs/tsconfig@workspace:packages/configs/typescript":
   version: 0.0.0-use.local
   resolution: "@reduxjs/tsconfig@workspace:packages/configs/typescript"
+  peerDependenciesMeta:
+    typescript:
+      optional: true
   languageName: unknown
   linkType: soft
 

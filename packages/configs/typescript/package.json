@@ -27,5 +27,10 @@
   },
   "bugs": {
     "url": "https://github.com/reduxjs/redux-toolkit/issues"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
   }
 }
