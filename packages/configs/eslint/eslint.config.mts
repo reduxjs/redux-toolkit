@@ -47,7 +47,7 @@ export const vitestGlobals = {
  */
 export const reduxESLintConfig = config(
   // `ignores` must be first.
-  { ignores: ['dist/', '.*'] },
+  { ignores: ['**/dist/', '.*/'] },
   eslint.configs.recommended,
   ...configs.recommended,
   ...configs.stylistic,
