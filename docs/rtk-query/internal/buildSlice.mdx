@@ -1,0 +1,151 @@
+# BuildSlice
+
+## Slices
+
+### querySlice
+#### reducers
+ - `removeQueryResult` - delete a specific cacheKey's stored result
+ - `queryResultPatched` - patch a specific cacheKey's result
+#### extraReducers - matching queryThunk cases
+- `queryThunk.pending`
+	- Initially sets QueryStatus to uninitialized
+	- updates QueryStatus to pending
+	- Generates requestId
+	- stores originalArgs
+	- stores startedTimeStamp
+- `queryThunk.fulfilled`
+	- handles merge functionality first
+	- otherwise updates the cache data, creates a fulfilledTimeStamp and deletes the substates error
+
+```ts no-transpile
+if (merge) {
+  if (substate.data !== undefined) {
+    const { fulfilledTimeStamp, arg, baseQueryMeta, requestId } =
+      meta
+    // There's existing cache data. Let the user merge it in themselves.
+    // We're already inside an Immer-powered reducer, and the user could just mutate `substate.data`
+    // themselves inside of `merge()`. But, they might also want to return a new value.
+    // Try to let Immer figure that part out, save the result, and assign it to `substate.data`.
+let newData = createNextState(
+      substate.data,
+      (draftSubstateData) => {
+        // As usual with Immer, you can mutate _or_ return inside here, but not both
+        return merge(draftSubstateData, payload, {
+          arg: arg.originalArgs,
+          baseQueryMeta,
+          fulfilledTimeStamp,
+          requestId,
+        })
+      },
+    )
+    substate.data = newData
+  } else {
+    // Presumably a fresh request. Just cache the response data.
+    substate.data = payload
+  }
+}
+```
+
+- `queryThunk.rejected`
+	- utilises `condition()` from `queryThunk` and does nothing if the rejection is a result of `condition()` (indicates a thunk is already running here)
+	- else substate.error is set and the status is changed to rejected
+- `hasRehydrationInfo`
+	- iterates through and resets entries for all fulfilled or rejected status
+
+### mutationSlice
+#### reducers
+- `removeMutationResult`
+	- calls `getMutationCacheKey` from payload
+	- if cacheKey is in draft it deletes `draft[cacheKey`(?)
+#### extraReducers - matching mutationThunk cases
+- `mutationThunk.pending`
+	- exits if track is set to false
+	- otherwise updates appropriate cacheKey with requestId, pending status and startedTimeStamp
+- `mutationThunk.fulfilled`
+	- exits if track is set to false
+	- otherwise sets data off payload and fulfilledTimeStamp
+- `mutationThunk.rejected`
+	- exits if track is set to false
+	- otherwise sets error and status to rejected
+- `hasRehydrationInfo`
+	- iterates through and resets entries for all fulfilled or rejected status
+
+### invalidationSlice
+
+#### reducers
+- updateProvidedBy
+	- takes queryCacheKey and providedTags from payload
+	- appends to a list of idSubscriptions the queryCacheKey that are currently subscribed to for each tag
+#### extraReducers
+- `querySlice.actions.removeQueryResult`,
+	- deletes relevant queryCacheKey entry from list of subscription ids
+- `hasRehydrationInfo`
+	- TODO
+- `queryThunk.fulfilled` or `queryThunk.rejected`
+	- gets list of tags from action and endpoint definition
+	- gets queryCacheKey
+	- calls updateProvidedBy action
+
+### subscriptionSlice / internalSubscriptionSlice
+#### reducers
+- updateSubscriptionOptions
+- unsubscribeQueryResult
+- internal_getRTKQSubscriptions
+- subscriptionsUpdated
+	- applyPatches() to the state from the payload
+
+### configSlice
+#### reducers
+- middlewareRegistered
+	- toggles whether the middleware is registered or if there is a conflict
+#### extraReducers
+- `onOnline`
+	- manages state.online in response to listenerMiddleware
+- `onOffline`
+	- manages state.online in response to listenerMiddleware
+- `onFocus`
+	- manages state.focused in response to listenerMiddleware
+- `onFocusLost`
+	- manages state.focused in response to listenerMiddleware
+- `hasRehydrationInfo`
+	-  lists a comment that says: "update the state to be a new object to be picked up as a "state change" by redux-persist's `autoMergeLevel2`"
+
+
+## Functions
+### `updateQuerySubstateIfExists`
+Utility function that takes the api/endpoint state, queryCacheKey and Update function.
+The "SubState" is determined by accessing the `queryCacheKey` value inside the state. If the substate exists, the update function is executed on the substate.
+```js no-transpile
+function updateQuerySubstateIfExists(state, queryCacheKey, update) {
+  const substate = state[queryCacheKey];
+  if (substate) {
+    update(substate);
+  }
+}
+```
+
+### `getMutationCacheKey`
+conditionally determines the cachekey to be used for the mutation, prioritising the argument provided, followed by the provided cacheKey, and the generated requestId otherwise
+```ts no-transpile
+export function getMutationCacheKey(
+  id:
+    | { fixedCacheKey?: string; requestId?: string }
+    | MutationSubstateIdentifier
+    | { requestId: string; arg: { fixedCacheKey?: string | undefined } },
+): string | undefined {
+  return ('arg' in id ? id.arg.fixedCacheKey : id.fixedCacheKey) ?? id.requestId
+}
+```
+
+### `getMutationSubstateIfExists`
+
+same as query version except it uses the id instead of the queryCacheKey, and uses the `getMutationCacheKey` to determine the cachekey
+```js no-transpile
+function updateMutationSubstateIfExists(state, id, update) {
+  const substate = state[getMutationCacheKey(id)];
+  if (substate) {
+    update(substate);
+  }
+}
+```
+
