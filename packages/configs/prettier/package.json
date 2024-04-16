@@ -41,6 +41,14 @@
   "bugs": {
     "url": "https://github.com/reduxjs/redux-toolkit/issues"
   },
+  "peerDependencies": {
+    "prettier": "^3"
+  },
+  "peerDependenciesMeta": {
+    "prettier": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@reduxjs/tsconfig": "workspace:^",
     "prettier": "^3.2.5",
