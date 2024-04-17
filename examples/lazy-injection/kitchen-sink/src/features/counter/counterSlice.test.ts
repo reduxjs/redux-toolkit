@@ -1,4 +1,3 @@
-import type { AppStore } from "../../app/store"
 import { makeStore } from "../../app/store"
 import type { CounterSliceState } from "./counterSlice"
 import {
@@ -9,20 +8,16 @@ import {
   selectCount,
 } from "./counterSlice"
 
-interface LocalTestContext {
-  store: AppStore
-}
+describe("counter reducer", it => {
+  let store = makeStore()
 
-describe<LocalTestContext>("counter reducer", it => {
-  beforeEach<LocalTestContext>(context => {
+  beforeEach(() => {
     const initialState: CounterSliceState = {
       value: 3,
       status: "idle",
     }
 
-    const store = makeStore({ counter: initialState })
-
-    context.store = store
+    store = makeStore({ counter: initialState })
   })
 
   it("should handle initial state", () => {
@@ -32,7 +27,7 @@ describe<LocalTestContext>("counter reducer", it => {
     })
   })
 
-  it("should handle increment", ({ store }) => {
+  it("should handle increment", () => {
     expect(selectCount(store.getState())).toBe(3)
 
     store.dispatch(increment())
@@ -40,7 +35,7 @@ describe<LocalTestContext>("counter reducer", it => {
     expect(selectCount(store.getState())).toBe(4)
   })
 
-  it("should handle decrement", ({ store }) => {
+  it("should handle decrement", () => {
     expect(selectCount(store.getState())).toBe(3)
 
     store.dispatch(decrement())
@@ -48,7 +43,7 @@ describe<LocalTestContext>("counter reducer", it => {
     expect(selectCount(store.getState())).toBe(2)
   })
 
-  it("should handle incrementByAmount", ({ store }) => {
+  it("should handle incrementByAmount", () => {
     expect(selectCount(store.getState())).toBe(3)
 
     store.dispatch(incrementByAmount(2))
