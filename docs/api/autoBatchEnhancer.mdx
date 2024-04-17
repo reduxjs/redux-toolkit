@@ -99,7 +99,7 @@ Any action that is tagged with `action.meta[SHOULD_AUTOBATCH] = true` will be tr
 
 - `{type: 'raf'}`: queues using `requestAnimationFrame` (default)
 - `{type: 'tick'}`: queues using `queueMicrotask`
-- `{type: 'timer, timeout: number}`: queues using `setTimeout`
+- `{type: 'timer', timeout: number}`: queues using `setTimeout`
 - `{type: 'callback', queueNotification: (notify: () => void) => void}`: lets you provide your own callback, such as a debounced or throttled function
 
 The default behavior is to queue the notifications using `requestAnimationFrame`.

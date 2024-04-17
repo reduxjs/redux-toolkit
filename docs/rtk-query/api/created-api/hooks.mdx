@@ -277,7 +277,7 @@ type UseQueryResult<T> = {
   isSuccess: boolean // Query has data from a successful load.
   isError: boolean // Query is currently in an "error" state.
 
-  refetch: () => void // A function to force refetch the query
+  refetch: () => QueryActionCreatorResult // A function to force refetch the query - returns a Promise with additional methods
 }
 ```
 
