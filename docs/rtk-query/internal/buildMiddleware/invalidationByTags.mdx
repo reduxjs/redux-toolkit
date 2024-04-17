@@ -1,10 +1,11 @@
 # invalidationByTags
 
-
 ## Overview
+
 `InvalidationByTagsHandler` is a handler instantiated during the (BuildMiddleware) step of the build. The handler acts as a (Middleware) and executes each step in response to matching of internal asyncThunk actions.
 
 The matchers used for a "invalidation sequence" are these two cases:
+
 ```ts no-transpile
 const isThunkActionWithTags = isAnyOf(
   isFulfilled(mutationThunk),
@@ -21,11 +22,12 @@ const isQueryEnd = isAnyOf(
 
 The handler has 3 core conditionals that trigger a sequence:
 
-*Conditional 1 AND 3 are identical in process except the tags are calculated from the payload rather than from the action and endpointDefinition*
+_Conditional 1 AND 3 are identical in process except the tags are calculated from the payload rather than from the action and endpointDefinition_
 
 1. Mutation trigger
 2. Query trigger
 3. Manual invalidation via `api.util.invalidateTags` trigger
+
 ```ts no-transpile
 const handler: ApiMiddlewareInternalHandler = (action, mwApi) => {
   if (isThunkActionWithTags(action)) {
@@ -56,38 +58,40 @@ const handler: ApiMiddlewareInternalHandler = (action, mwApi) => {
 }
 ```
 
-
 ## Core Sequence
+
 1. `invalidateTags()` initiates:
-	1. invalidateTags function is called with a list of tags generated from the action metadata
-	2. in the case of a [queryThunk] resolution an empty set of tags is always provided
-2. The tags calculated are added to the list of pending tags to invalidate (see [delayed](Delayed) )
+   1. invalidateTags function is called with a list of tags generated from the action metadata
+   2. in the case of a [queryThunk] resolution an empty set of tags is always provided
+2. The tags calculated are added to the list of pending tags to invalidate (see [delayed](#Delayed))
 3. (optional: 'Delayed') the invalidateTags function is ended if the `apiSlice.invalidationBehaviour` is set to "delayed" and there are any pending thunks/queries running in that `apiSlice`
 4. Pending tags are reset to an empty list, if there are no tags the function ends here
 5. Selects all `{ endpointName, originalArgs, queryCacheKey }` combinations that would be invalidated by a specific set of tags.
-6. Iterates through queryCacheKeys selected and performs one of two actions if the query exists*
-	1. removes cached query result - via the `removeQueryResult` action - if no subscription is active
-	2. if the query is "uninitialized" it initiates a `refetchQuery` action
+6. Iterates through queryCacheKeys selected and performs one of two actions if the query exists\*
+   1. removes cached query result - via the `removeQueryResult` action - if no subscription is active
+   2. if the query is "uninitialized" it initiates a `refetchQuery` action
+
 ```js no-transpile
-const toInvalidate = api.util.selectInvalidatedBy(rootState, tags);
+const toInvalidate = api.util.selectInvalidatedBy(rootState, tags)
 context.batch(() => {
-  const valuesArray = Array.from(toInvalidate.values());
-  for (const {
-    queryCacheKey
-  } of valuesArray) {
-    const querySubState = state.queries[queryCacheKey];
-    const subscriptionSubState = internalState.currentSubscriptions[queryCacheKey] ?? {};
+  const valuesArray = Array.from(toInvalidate.values())
+  for (const { queryCacheKey } of valuesArray) {
+    const querySubState = state.queries[queryCacheKey]
+    const subscriptionSubState =
+      internalState.currentSubscriptions[queryCacheKey] ?? {}
     if (querySubState) {
       if (countObjectKeys(subscriptionSubState) === 0) {
-        mwApi.dispatch(removeQueryResult({
-          queryCacheKey
-        }));
-      } else if (querySubState.status !== "uninitialized" /* uninitialized */) {
-        mwApi.dispatch(refetchQuery(querySubState, queryCacheKey));
+        mwApi.dispatch(
+          removeQueryResult({
+            queryCacheKey,
+          }),
+        )
+      } else if (querySubState.status !== 'uninitialized' /* uninitialized */) {
+        mwApi.dispatch(refetchQuery(querySubState, queryCacheKey))
       }
     }
   }
-});
+})
 ```
 
 :::note
@@ -99,6 +103,7 @@ Step 6 is performed within a `context.batch()` call.
 RTKQ now has internal logic to delay tag invalidation briefly, to allow multiple invalidations to get handled together. This is controlled by a new `invalidationBehavior: 'immediate' | 'delayed'` flag on `createApi`. The new default behavior is `'delayed'`. Set it to `'immediate'` to revert to the behavior in RTK 1.9.
 
 The `'delayed'` behaviour enables a check inside `invalidationByTags` that will cause any invalidation that is triggered while a query/mutation is still pending to batch the invalidation until no query/mutation is running.
+
 ```ts no-transpile
 function invalidateTags(
   newTags: readonly FullTagDescription<string>[],
