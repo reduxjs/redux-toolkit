@@ -1,5 +1,4 @@
 import { nanoid } from "@reduxjs/toolkit"
-import type { AppStore } from "../../app/store"
 import { makeStore } from "../../app/store"
 import type { Todo } from "./todoSlice"
 import {
@@ -14,19 +13,14 @@ import {
   todoSlice,
 } from "./todoSlice"
 
-interface LocalTestContext {
-  store: AppStore
-}
-
 const initialTodo: Todo = { id: nanoid(), title: "Initial todo" }
 
-describe<LocalTestContext>("counter reducer", it => {
-  beforeEach<LocalTestContext>(context => {
-    const store = makeStore({
+describe("counter reducer", () => {
+  let store = makeStore()
+  beforeEach(() => {
+    store = makeStore({
       todo: todoAdapter.setOne(todoAdapter.getInitialState(), initialTodo),
     })
-
-    context.store = store
   })
 
   it("should handle initial state", () => {
@@ -35,7 +29,7 @@ describe<LocalTestContext>("counter reducer", it => {
     )
   })
 
-  it("should handle addTodo", ({ store }) => {
+  it("should handle addTodo", () => {
     expect(selectTodoIds(store.getState())).toStrictEqual([initialTodo.id])
 
     store.dispatch(addTodo({ title: "Second todo!" }))
@@ -48,7 +42,7 @@ describe<LocalTestContext>("counter reducer", it => {
     })
   })
 
-  it("should handle deleteTodo", ({ store }) => {
+  it("should handle deleteTodo", () => {
     expect(selectAllTodos(store.getState())).toStrictEqual([initialTodo])
 
     store.dispatch(deleteTodo(initialTodo.id))
