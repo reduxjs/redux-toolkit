@@ -7,9 +7,10 @@
 This documentation is intended to provide a high-level overview of the internal architecture of RTK-Query. It is not intended to be a comprehensive guide to the library, but rather a guide to the internal architecture and how it works.
 
 ## createApi - The Entry Point
+
 When `createApi()` is called it takes the options provided and calls internally the `buildCreateApi()` function passing into it two modules:
 
-*Modules are RTK-Query's method of customizing how the `createApi` method handles endpoints.*
+_Modules are RTK-Query's method of customizing how the `createApi` method handles endpoints._
 
 - `coreModule()` - responsible for the majority of the internal handling using core redux logic i.e. slices, reducers, asyncThunks.
 - `reactHooksModule()` - a module that generates react hooks from endpoints using react-redux
@@ -19,6 +20,7 @@ When `createApi()` is called it takes the options provided and calls internally 
 The core module takes the `api` and the options passed to `createApi()`. In turn an internal set of "build" methods are called. Each of these build methods create a set of functions which are assigned to either `api.util` or `api.internalActions` and/or passed to a future "build" step.
 
 ### buildThunks
+
 RTK-Query's internal functionality operates using the same `asyncThunk` exposed from RTK. In the first "build" method, a number of thunks are generated for the core module to use:
 
 - `queryThunk`
@@ -30,10 +32,12 @@ RTK-Query's internal functionality operates using the same `asyncThunk` exposed 
 - `buildMatchThunkActions`
 
 ### buildSlice
+
 RTK-Query uses a very familiar redux-centric architecture. Where the `api` is a slice of your store, the `api` has its own slices created within it. These slices are where the majority of the RTKQ magic happens.
 
 The slices built inside this "build" are:
-*Some of which have their own actions*
+_Some of which have their own actions_
+
 - querySlice
 - mutationSlice
 - invalidationSlice
@@ -44,6 +48,7 @@ The slices built inside this "build" are:
 buildSlice also exposes the core action `resetApiState` which is subsequently added to the `api.util`
 
 ### buildMiddleware
+
 RTK-Query has a series of custom middlewares established within its store to handle additional responses in addition to the core logic established within the slices from buildSlice.
 
 Each middleware built during this step is referred to internally as a "Handler" and are as follows:
@@ -56,6 +61,7 @@ Each middleware built during this step is referred to internally as a "Handler" 
 - `buildQueryLifecycleHandler
 
 ### buildSelectors
+
 build selectors is a crucial step that exposes to the `api` and utils:
 
 - `buildQuerySelector
@@ -64,4 +70,5 @@ build selectors is a crucial step that exposes to the `api` and utils:
 - `selectCachedArgsForQuery
 
 ### return
+
 Finally each endpoint passed into the `createApi()` is iterated over and assigned either the query or the mutation selectors, initiators and match cases.
