@@ -18,6 +18,7 @@ module.exports = {
           include: [
             '{api,assets,introduction,migrations,rtk-query,tutorials,usage}/**/*.{md,mdx}',
           ], // no other way to exclude node_modules
+          exclude: ['rtk-query/internal'],
           remarkPlugins: [
             [
               linkDocblocks,
