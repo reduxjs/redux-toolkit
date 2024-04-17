@@ -14,7 +14,6 @@ const initialState: CounterSliceState = {
   status: "idle",
 }
 
-// If you are not using async thunks you can use the standalone `createSlice`.
 export const counterSlice = createAppSlice({
   name: "counter",
   // `createSlice` will infer the state type from the `initialState` argument
