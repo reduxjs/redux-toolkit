@@ -1,6 +1,11 @@
 import type { EntityAdapter, EntityState } from '../models'
 import { createEntityAdapter } from '../create_adapter'
-import { createAction, createSlice, configureStore } from '@reduxjs/toolkit'
+import {
+  createAction,
+  createSlice,
+  configureStore,
+  nanoid,
+} from '@reduxjs/toolkit'
 import type { BookModel } from './fixtures/book'
 import {
   TheGreatGatsby,
@@ -247,7 +252,7 @@ describe('Sorted State Adapter', () => {
 
     const { ids, entities } = withUpdated
 
-    expect(ids.length).toBe(2)
+    expect(ids).toEqual(['a', 'c'])
     expect(entities.a).toBeTruthy()
     expect(entities.b).not.toBeTruthy()
     expect(entities.c).toBeTruthy()
@@ -582,6 +587,86 @@ describe('Sorted State Adapter', () => {
 
     expect(withUpdate.ids).toEqual(['b'])
     expect(withUpdate.entities['b']!.title).toBe(book1.title)
+  })
+
+  it('should minimize the amount of sorting work needed', () => {
+    const PARAMETERS = {
+      NUM_ITEMS: 10_000,
+    }
+
+    type Entity = { id: string; name: string; position: number }
+
+    let numSorts = 0
+
+    const adaptor = createEntityAdapter({
+      selectId: (entity: Entity) => entity.id,
+      sortComparer: (a, b) => {
+        numSorts++
+        if (a.position < b.position) return -1
+        else if (a.position > b.position) return 1
+        return 0
+      },
+    })
+
+    const initialState: Entity[] = new Array(PARAMETERS.NUM_ITEMS)
+      .fill(undefined)
+      .map((x, i) => ({
+        name: `${i}`,
+        position: Math.random(),
+        id: nanoid(),
+      }))
+
+    const entitySlice = createSlice({
+      name: 'entity',
+      initialState: adaptor.getInitialState(undefined, initialState),
+      reducers: {
+        updateOne: adaptor.updateOne,
+        upsertOne: adaptor.upsertOne,
+        upsertMany: adaptor.upsertMany,
+      },
+    })
+
+    const store = configureStore({
+      reducer: {
+        entity: entitySlice.reducer,
+      },
+      middleware: (getDefaultMiddleware) => {
+        return getDefaultMiddleware({
+          serializableCheck: false,
+          immutableCheck: false,
+        })
+      },
+    })
+
+    store.dispatch(
+      entitySlice.actions.upsertOne({
+        id: nanoid(),
+        position: Math.random(),
+        name: 'test',
+      }),
+    )
+
+    // These numbers will vary because of the randomness, but generally
+    // with 10K items the old code had 200K+ sort calls, while the new code
+    // is around 130K sort calls.
+    expect(numSorts).toBeLessThan(200_000)
+
+    const { ids } = store.getState().entity
+    const middleItemId = ids[(ids.length / 2) | 0]
+
+    numSorts = 0
+
+    store.dispatch(
+      // Move this middle item near the end
+      entitySlice.actions.updateOne({
+        id: middleItemId,
+        changes: {
+          position: 0.99999,
+        },
+      }),
+    )
+    // The old code was around 120K, the new code is around 10K.
+    expect(numSorts).toBeLessThan(25_000)
   })
 
   describe('can be used mutably when wrapped in createNextState', () => {

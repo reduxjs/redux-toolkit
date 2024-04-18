@@ -76,6 +76,7 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
     state: R,
   ): void {
     let appliedUpdates = false
+    let replacedIds = false
 
     for (let update of updates) {
       const entity: T | undefined = (state.entities as Record<Id, T>)[update.id]
@@ -88,13 +89,16 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
       Object.assign(entity, update.changes)
       const newId = selectId(entity)
       if (update.id !== newId) {
+        replacedIds = true
         delete (state.entities as Record<Id, T>)[update.id]
+        const oldIndex = (state.ids as Id[]).indexOf(update.id)
+        state.ids[oldIndex] = newId
         ;(state.entities as Record<Id, T>)[newId] = entity
       }
     }
 
     if (appliedUpdates) {
-      resortEntities(state)
+      resortEntities(state, [], replacedIds)
     }
   }
 
@@ -136,11 +140,44 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
       ;(state.entities as Record<Id, T>)[selectId(model)] = model
     })
 
-    resortEntities(state)
+    resortEntities(state, models)
   }
 
-  function resortEntities(state: R) {
-    const allEntities = Object.values(state.entities) as T[]
+  function resortEntities(
+    state: R,
+    addedItems: readonly T[] = [],
+    replacedIds = false,
+  ) {
+    let allEntities: T[]
+
+    allEntities = Object.values(state.entities) as T[]
+    if (replacedIds) {
+      // This is a really annoying edge case. Just figure this out from scratch
+      // rather than try to be clever. This will be more expensive since it isn't sorted right.
+      allEntities = Object.values(state.entities) as T[]
+    } else {
+      // We're starting with an already-sorted list.
+      let existingIds = state.ids
+
+      if (addedItems.length) {
+        // There's a couple edge cases where we can have duplicate item IDs.
+        // Ensure we don't have duplicates.
+        const uniqueIds = new Set(existingIds as Id[])
+
+        addedItems.forEach((item) => {
+          uniqueIds.add(selectId(item))
+        })
+        existingIds = Array.from(uniqueIds)
+      }
+
+      // By this point `ids` and `entities` should be 1:1, but not necessarily sorted.
+      // Make this a sorta-mostly-sorted array.
+      allEntities = existingIds.map(
+        (id) => (state.entities as Record<Id, T>)[id as Id],
+      )
+    }
+
+    // Now when we sort, things should be _close_ already, and fewer comparisons are needed.
     allEntities.sort(sort)
 
     const newSortedIds = allEntities.map(selectId)
