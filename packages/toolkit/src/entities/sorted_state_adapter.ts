@@ -1,3 +1,4 @@
+import { current, isDraft } from 'immer'
 import type {
   IdSelector,
   Comparer,
@@ -13,6 +14,40 @@ import {
   ensureEntitiesArray,
   splitAddedUpdatedEntities,
 } from './utils'
+
+export function findInsertIndex<T>(
+  sortedItems: T[],
+  item: T,
+  comparisonFunction: Comparer<T>,
+): number {
+  let lowIndex = 0
+  let highIndex = sortedItems.length
+  while (lowIndex < highIndex) {
+    let middleIndex = (lowIndex + highIndex) >>> 1
+    const currentItem = sortedItems[middleIndex]
+    const res = comparisonFunction(item, currentItem)
+    // console.log('Res: ', item, currentItem, res)
+    if (res >= 0) {
+      lowIndex = middleIndex + 1
+    } else {
+      highIndex = middleIndex
+    }
+  }
+
+  return lowIndex
+}
+
+export function insert<T>(
+  sortedItems: T[],
+  item: T,
+  comparisonFunction: Comparer<T>,
+): T[] {
+  const insertAtIndex = findInsertIndex(sortedItems, item, comparisonFunction)
+
+  sortedItems.splice(insertAtIndex, 0, item)
+
+  return sortedItems
+}
 
 export function createSortedStateAdapter<T, Id extends EntityId>(
   selectId: IdSelector<T, Id>,
@@ -38,7 +73,7 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
     )
 
     if (models.length !== 0) {
-      merge(models, state)
+      mergeFunction(state, models)
     }
   }
 
@@ -52,7 +87,11 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
   ): void {
     newEntities = ensureEntitiesArray(newEntities)
     if (newEntities.length !== 0) {
-      merge(newEntities, state)
+      //const updatedIds = new Set<Id>(newEntities.map((item) => selectId(item)))
+      for (const item of newEntities) {
+        delete (state.entities as Record<Id, T>)[selectId(item)]
+      }
+      mergeFunction(state, newEntities)
     }
   }
 
@@ -77,6 +116,7 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
   ): void {
     let appliedUpdates = false
     let replacedIds = false
+    const updatedIds = new Set<Id>()
 
     for (let update of updates) {
       const entity: T | undefined = (state.entities as Record<Id, T>)[update.id]
@@ -88,9 +128,11 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
 
       Object.assign(entity, update.changes)
       const newId = selectId(entity)
+      updatedIds.add(newId)
       if (update.id !== newId) {
         replacedIds = true
         delete (state.entities as Record<Id, T>)[update.id]
+        updatedIds.delete(update.id)
         const oldIndex = (state.ids as Id[]).indexOf(update.id)
         state.ids[oldIndex] = newId
         ;(state.entities as Record<Id, T>)[newId] = entity
@@ -98,7 +140,8 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
     }
 
     if (appliedUpdates) {
-      resortEntities(state, [], replacedIds)
+      mergeFunction(state, [], updatedIds, replacedIds)
+      // resortEntities(state, [], replacedIds)
     }
   }
 
@@ -142,6 +185,317 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
 
     resortEntities(state, models)
   }
+
+  function cleanItem(item: T) {
+    return isDraft(item) ? current(item) : item
+  }
+
+  type MergeFunction = (
+    state: R,
+    addedItems: readonly T[],
+    updatedIds?: Set<Id>,
+    replacedIds?: boolean,
+  ) => void
+
+  // const mergeFunction: MergeFunction = (state, addedItems) => {
+  //   const actualMergeFunction: MergeFunction = mergeOriginal
+  //   console.log('Merge function: ', actualMergeFunction.name)
+  //   actualMergeFunction(state, addedItems)
+  // }
+
+  const mergeOriginal: MergeFunction = (state, addedItems) => {
+    // Insert/overwrite all new/updated
+    addedItems.forEach((model) => {
+      ;(state.entities as Record<Id, T>)[selectId(model)] = model
+    })
+    resortEntities(state)
+
+    function resortEntities(state: R) {
+      const allEntities = Object.values(state.entities) as T[]
+      allEntities.sort(sort)
+      const newSortedIds = allEntities.map(selectId)
+      const { ids } = state
+      if (!areArraysEqual(ids, newSortedIds)) {
+        state.ids = newSortedIds
+      }
+    }
+  }
+
+  const mergeLenz: MergeFunction = (
+    state,
+    addedItems: readonly T[],
+    updatedIds,
+    replacedIds,
+  ) => {
+    const entities = state.entities as Record<Id, T>
+    let ids = state.ids as Id[]
+    if (replacedIds) {
+      ids = Array.from(new Set(ids))
+    }
+    const oldEntities = ids // Array.from(new Set(state.ids as Id[]))
+      .map((id) => entities[id])
+      .filter(Boolean)
+
+    let newSortedIds: Id[] = []
+    const seenIds = new Set<Id>()
+
+    if (addedItems.length) {
+      const newEntities = addedItems.slice().sort(sort)
+
+      // Insert/overwrite all new/updated
+      newEntities.forEach((model) => {
+        entities[selectId(model)] = model
+      })
+
+      let o = 0,
+        n = 0
+      while (o < oldEntities.length && n < newEntities.length) {
+        const oldEntity = oldEntities[o] as T,
+          oldId = selectId(oldEntity),
+          newEntity = newEntities[n],
+          newId = selectId(newEntity)
+
+        if (seenIds.has(newId)) {
+          n++
+          continue
+        }
+
+        const comparison = sort(oldEntity, newEntity)
+        if (comparison < 0) {
+          // Sort the existing item first
+          newSortedIds.push(oldId)
+          seenIds.add(oldId)
+          o++
+          continue
+        }
+
+        if (comparison > 0) {
+          // Sort the new item first
+          newSortedIds.push(newId)
+          seenIds.add(newId)
+          n++
+          continue
+        }
+        // The items are equivalent. Maintain stable sorting by
+        // putting the existing  item first.
+        newSortedIds.push(oldId)
+        seenIds.add(oldId)
+        o++
+        newSortedIds.push(newId)
+        seenIds.add(newId)
+        n++
+      }
+      // Add any remaining existing items
+      while (o < oldEntities.length) {
+        newSortedIds.push(selectId(oldEntities[o]))
+        o++
+      }
+      // Add any remaining new items
+      while (n < newEntities.length) {
+        newSortedIds.push(selectId(newEntities[n]))
+        n++
+      }
+    } else if (updatedIds) {
+      oldEntities.sort(sort)
+      newSortedIds = oldEntities.map(selectId)
+    }
+
+    if (!areArraysEqual(state.ids, newSortedIds)) {
+      state.ids = newSortedIds
+    }
+  }
+
+  const mergeInsertion: MergeFunction = (
+    state,
+    addedItems,
+    updatedIds,
+    replacedIds,
+  ) => {
+    const entities = state.entities as Record<Id, T>
+    let ids = state.ids as Id[]
+    if (replacedIds) {
+      ids = Array.from(new Set(ids))
+    }
+
+    // //let sortedEntities: T[] = []
+
+    // const wasPreviouslyEmpty = ids.length === 0
+
+    // let sortedEntities = ids // Array.from(new Set(state.ids as Id[]))
+    //   .map((id) => entities[id])
+    //   .filter(Boolean)
+
+    // if (addedItems.length) {
+    //   if (wasPreviouslyEmpty) {
+    //     sortedEntities = addedItems.slice().sort()
+    //   }
+
+    //   for (const item of addedItems) {
+    //     entities[selectId(item)] = item
+    //     if (!wasPreviouslyEmpty) {
+    //       insert(sortedEntities, item, sort)
+    //     }
+    //   }
+    // }
+    const sortedEntities = ids // Array.from(new Set(state.ids as Id[]))
+      .map((id) => entities[id])
+      .filter(Boolean)
+
+    // let oldIds = state.ids as Id[]
+    // // if (updatedIds) {
+    // //   oldIds = oldIds.filter((id) => !updatedIds.has(id))
+    // //   const updatedItems = Array.from(updatedIds)
+    // //     .map((id) => entities[id])
+    // //     .filter(Boolean)
+    // //   models = updatedItems.concat(models)
+    // // }
+    // // console.log('Old IDs: ', oldIds)
+    // const sortedEntities = oldIds
+    //   .map((id) => (state.entities as Record<Id, T>)[id as Id])
+    //   .filter(Boolean)
+
+    // Insert/overwrite all new/updated
+    addedItems.forEach((item) => {
+      entities[selectId(item)] = item
+      // console.log('Inserting: ', isDraft(item) ? current(item) : item)
+      insert(sortedEntities, item, sort)
+    })
+
+    if (updatedIds?.size) {
+      sortedEntities.sort(sort)
+    }
+
+    const newSortedIds = sortedEntities.map(selectId)
+    // console.log('New sorted IDs: ', newSortedIds)
+    if (!areArraysEqual(state.ids, newSortedIds)) {
+      state.ids = newSortedIds
+    }
+  }
+
+  const mergeInitialPR: MergeFunction = (
+    state,
+    addedItems,
+    updatedIds,
+    replacedIds,
+  ) => {
+    // Insert/overwrite all new/updated
+    addedItems.forEach((model) => {
+      ;(state.entities as Record<Id, T>)[selectId(model)] = model
+    })
+
+    let allEntities: T[]
+
+    if (replacedIds) {
+      // This is a really annoying edge case. Just figure this out from scratch
+      // rather than try to be clever. This will be more expensive since it isn't sorted right.
+      allEntities = Object.values(state.entities) as T[]
+    } else {
+      // We're starting with an already-sorted list.
+      let existingIds = state.ids
+
+      if (addedItems.length) {
+        // There's a couple edge cases where we can have duplicate item IDs.
+        // Ensure we don't have duplicates.
+        const uniqueIds = new Set(existingIds as Id[])
+
+        addedItems.forEach((item) => {
+          uniqueIds.add(selectId(item))
+        })
+        existingIds = Array.from(uniqueIds)
+      }
+
+      // By this point `ids` and `entities` should be 1:1, but not necessarily sorted.
+      // Make this a sorta-mostly-sorted array.
+      allEntities = existingIds.map(
+        (id) => (state.entities as Record<Id, T>)[id as Id],
+      )
+    }
+
+    // Now when we sort, things should be _close_ already, and fewer comparisons are needed.
+    allEntities.sort(sort)
+
+    const newSortedIds = allEntities.map(selectId)
+    const { ids } = state
+
+    if (!areArraysEqual(ids, newSortedIds)) {
+      state.ids = newSortedIds
+    }
+  }
+
+  const mergeTweakedPR: MergeFunction = (
+    state,
+    addedItems,
+    updatedIds,
+    replacedIds,
+  ) => {
+    let allEntities: T[]
+
+    let existingIds = state.ids
+    const uniqueIds = new Set(existingIds as Id[])
+    existingIds = Array.from(uniqueIds)
+
+    if (addedItems.length) {
+      // There's a couple edge cases where we can have duplicate item IDs.
+      // Ensure we don't have duplicates.
+
+      addedItems.forEach((item) => {
+        ;(state.entities as Record<Id, T>)[selectId(item)] = item
+        uniqueIds.add(selectId(item))
+      })
+      existingIds = Array.from(uniqueIds)
+    }
+
+    // By this point `ids` and `entities` should be 1:1, but not necessarily sorted.
+    // Make this a sorta-mostly-sorted array.
+    allEntities = existingIds.map(
+      (id) => (state.entities as Record<Id, T>)[id as Id],
+    )
+
+    // if (replacedIds) {
+    //     // There's a couple edge cases where we can have duplicate item IDs.
+    //     // Ensure we don't have duplicates.
+    //     const uniqueIds = new Set(existingIds as Id[])
+    //   // This is a really annoying edge case. Just figure this out from scratch
+    //   // rather than try to be clever. This will be more expensive since it isn't sorted right.
+    //   allEntities = state.ids.map(
+    //     (id) => (state.entities as Record<Id, T>)[id as Id],
+    //   )
+    // } else {
+    //   // We're starting with an already-sorted list.
+    //   let existingIds = state.ids
+
+    //   if (addedItems.length) {
+    //     // There's a couple edge cases where we can have duplicate item IDs.
+    //     // Ensure we don't have duplicates.
+    //     const uniqueIds = new Set(existingIds as Id[])
+
+    //     addedItems.forEach((item) => {
+
+    //       ;(state.entities as Record<Id, T>)[selectId(item)] = item
+    //       uniqueIds.add(selectId(item))
+    //     })
+    //     existingIds = Array.from(uniqueIds)
+    //   }
+
+    //   // By this point `ids` and `entities` should be 1:1, but not necessarily sorted.
+    //   // Make this a sorta-mostly-sorted array.
+    //   allEntities = existingIds.map(
+    //     (id) => (state.entities as Record<Id, T>)[id as Id],
+    //   )
+    // }
+
+    // Now when we sort, things should be _close_ already, and fewer comparisons are needed.
+    allEntities.sort(sort)
+
+    const newSortedIds = allEntities.map(selectId)
+    const { ids } = state
+
+    if (!areArraysEqual(ids, newSortedIds)) {
+      state.ids = newSortedIds
+    }
+  }
+
+  const mergeFunction: MergeFunction = mergeInsertion
 
   function resortEntities(
     state: R,

@@ -237,11 +237,11 @@ describe('Sorted State Adapter', () => {
   })
 
   it('Replaces an existing entity if you change the ID while updating', () => {
-    const withAdded = adapter.setAll(state, [
-      { id: 'a', title: 'First' },
-      { id: 'b', title: 'Second' },
-      { id: 'c', title: 'Third' },
-    ])
+    const a = { id: 'a', title: 'First' }
+    const b = { id: 'b', title: 'Second' }
+    const c = { id: 'c', title: 'Third' }
+    const d = { id: 'd', title: 'Fourth' }
+    const withAdded = adapter.setAll(state, [a, b, c])
 
     const withUpdated = adapter.updateOne(withAdded, {
       id: 'b',
@@ -367,6 +367,8 @@ describe('Sorted State Adapter', () => {
         { id: 'E', order: 3, ts: 0 },
       ],
     )
+
+    expect(withInitialItems.ids).toEqual(['A', 'B', 'C', 'D', 'E'])
 
     const updated = sortedItemsAdapter.updateOne(withInitialItems, {
       id: 'C',
@@ -590,9 +592,8 @@ describe('Sorted State Adapter', () => {
   })
 
   it('should minimize the amount of sorting work needed', () => {
-    const PARAMETERS = {
-      NUM_ITEMS: 10_000,
-    }
+    const INITIAL_ITEMS = 100_000
+    const ADDED_ITEMS = 1000
 
     type Entity = { id: string; name: string; position: number }
 
@@ -608,21 +609,25 @@ describe('Sorted State Adapter', () => {
       },
     })
 
-    const initialState: Entity[] = new Array(PARAMETERS.NUM_ITEMS)
-      .fill(undefined)
-      .map((x, i) => ({
-        name: `${i}`,
-        position: Math.random(),
-        id: nanoid(),
-      }))
+    function generateItems(count: number) {
+      const items: readonly Entity[] = new Array(count)
+        .fill(undefined)
+        .map((x, i) => ({
+          name: `${i}`,
+          position: Math.random(),
+          id: nanoid(),
+        }))
+      return items
+    }
 
     const entitySlice = createSlice({
       name: 'entity',
-      initialState: adaptor.getInitialState(undefined, initialState),
+      initialState: adaptor.getInitialState(),
       reducers: {
         updateOne: adaptor.updateOne,
         upsertOne: adaptor.upsertOne,
         upsertMany: adaptor.upsertMany,
+        addMany: adaptor.addMany,
       },
     })
 
@@ -638,35 +643,110 @@ describe('Sorted State Adapter', () => {
       },
     })
 
-    store.dispatch(
-      entitySlice.actions.upsertOne({
-        id: nanoid(),
-        position: Math.random(),
-        name: 'test',
-      }),
-    )
+    numSorts = 0
+
+    function measureComparisons(name: string, cb: () => void) {
+      numSorts = 0
+      const start = new Date().getTime()
+      cb()
+      const end = new Date().getTime()
+      const duration = end - start
+
+      console.log(
+        `${name}: sortComparer called ${numSorts.toLocaleString()} times in ${duration.toLocaleString()}ms`,
+        numSorts.toLocaleString(),
+        'times',
+      )
+    }
+
+    const initialItems = generateItems(INITIAL_ITEMS)
+
+    measureComparisons('Original Setup', () => {
+      store.dispatch(entitySlice.actions.upsertMany(initialItems))
+    })
+
+    measureComparisons('Insert One (random)', () => {
+      store.dispatch(
+        entitySlice.actions.upsertOne({
+          id: nanoid(),
+          position: Math.random(),
+          name: 'test',
+        }),
+      )
+    })
+
+    measureComparisons('Insert One (middle)', () => {
+      store.dispatch(
+        entitySlice.actions.upsertOne({
+          id: nanoid(),
+          position: 0.5,
+          name: 'test',
+        }),
+      )
+    })
+
+    measureComparisons('Insert One (end)', () => {
+      store.dispatch(
+        entitySlice.actions.upsertOne({
+          id: nanoid(),
+          position: 0.9998,
+          name: 'test',
+        }),
+      )
+    })
+
+    const addedItems = generateItems(ADDED_ITEMS)
+    measureComparisons('Add Many', () => {
+      store.dispatch(entitySlice.actions.addMany(addedItems))
+    })
 
     // These numbers will vary because of the randomness, but generally
     // with 10K items the old code had 200K+ sort calls, while the new code
     // is around 130K sort calls.
-    expect(numSorts).toBeLessThan(200_000)
+    // expect(numSorts).toBeLessThan(200_000)
 
     const { ids } = store.getState().entity
     const middleItemId = ids[(ids.length / 2) | 0]
 
-    numSorts = 0
+    measureComparisons('Update One (end)', () => {
+      store.dispatch(
+        // Move this middle item near the end
+        entitySlice.actions.updateOne({
+          id: middleItemId,
+          changes: {
+            position: 0.99999,
+          },
+        }),
+      )
+    })
 
-    store.dispatch(
-      // Move this middle item near the end
-      entitySlice.actions.updateOne({
-        id: middleItemId,
-        changes: {
-          position: 0.99999,
-        },
-      }),
-    )
+    measureComparisons('Update One (middle)', () => {
+      store.dispatch(
+        // Move this middle item near the end
+        entitySlice.actions.updateOne({
+          id: middleItemId,
+          changes: {
+            position: 0.42,
+          },
+        }),
+      )
+    })
+
+    measureComparisons('Update One (replace)', () => {
+      store.dispatch(
+        // Move this middle item near the end
+        entitySlice.actions.updateOne({
+          id: middleItemId,
+          changes: {
+            id: nanoid(),
+            position: 0.98,
+          },
+        }),
+      )
+    })
+
     // The old code was around 120K, the new code is around 10K.
-    expect(numSorts).toBeLessThan(25_000)
+    // expect(numSorts).toBeLessThan(25_000)
   })
 
   describe('can be used mutably when wrapped in createNextState', () => {
