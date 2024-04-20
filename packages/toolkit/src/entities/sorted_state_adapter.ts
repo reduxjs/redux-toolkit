@@ -499,6 +499,103 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
     }
   }
 
+  const mergeJackman: MergeFunction = (
+    state,
+    addedItems,
+    updatedIds,
+    replacedIds,
+  ) => {
+    const entities = state.entities as Record<Id, T>
+    let ids = state.ids as Id[]
+    if (replacedIds) {
+      ids = Array.from(new Set(ids))
+    }
+    const existingSortedItems = ids // Array.from(new Set(state.ids as Id[]))
+      .map((id) => entities[id])
+      .filter(Boolean)
+
+    function findInsertIndex2<T>(
+      sortedItems: T[],
+      item: T,
+      comparisonFunction: Comparer<T>,
+      lowIndexOverride?: number,
+    ): number {
+      let lowIndex = lowIndexOverride ?? 0
+      let highIndex = sortedItems.length
+      while (lowIndex < highIndex) {
+        const middleIndex = (lowIndex + highIndex) >>> 1
+        const currentItem = sortedItems[middleIndex]
+        if (comparisonFunction(item, currentItem) > 0) {
+          lowIndex = middleIndex + 1
+        } else {
+          highIndex = middleIndex
+        }
+      }
+
+      return lowIndex
+    }
+
+    if (addedItems.length) {
+      const newEntities = addedItems.slice().sort(comparer)
+
+      // Insert/overwrite all new/updated
+      newEntities.forEach((model) => {
+        entities[selectId(model)] = model
+      })
+
+      const firstInstanceId = newEntities[0]
+      const lastInstanceId = newEntities[newEntities.length - 1]
+
+      const startIndex = findInsertIndex2(
+        existingSortedItems,
+        firstInstanceId,
+        comparer,
+      )
+      const endIndex = findInsertIndex2(
+        existingSortedItems,
+        lastInstanceId,
+        comparer,
+        startIndex,
+      )
+
+      const overlappingExistingIds = existingSortedItems.slice(
+        startIndex,
+        endIndex,
+      )
+      let newIdIndexOfLastInsert = 0
+      let lastRelativeInsertIndex = 0
+      for (let i = 1; i < newEntities.length; i++) {
+        const relativeInsertIndex = findInsertIndex2(
+          overlappingExistingIds,
+          newEntities[i],
+          comparer,
+          lastRelativeInsertIndex,
+        )
+        if (lastRelativeInsertIndex !== relativeInsertIndex) {
+          const insertIndex =
+            startIndex + newIdIndexOfLastInsert + lastRelativeInsertIndex
+          const arrayToInsert = newEntities.slice(newIdIndexOfLastInsert, i)
+          existingSortedItems.splice(insertIndex, 0, ...arrayToInsert)
+          newIdIndexOfLastInsert = i
+          lastRelativeInsertIndex = relativeInsertIndex
+        }
+      }
+      existingSortedItems.splice(
+        startIndex + newIdIndexOfLastInsert + lastRelativeInsertIndex,
+        0,
+        ...newEntities.slice(newIdIndexOfLastInsert),
+      )
+    } else if (updatedIds?.size) {
+      existingSortedItems.sort(comparer)
+    }
+
+    const newSortedIds = existingSortedItems.map(selectId)
+
+    if (!areArraysEqual(ids, newSortedIds)) {
+      state.ids = newSortedIds
+    }
+  }
+
   const mergeFunction: MergeFunction = mergeInsertion
 
   function resortEntities(

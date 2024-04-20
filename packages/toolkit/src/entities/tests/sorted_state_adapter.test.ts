@@ -592,8 +592,8 @@ describe('Sorted State Adapter', () => {
   })
 
   it('should minimize the amount of sorting work needed', () => {
-    const INITIAL_ITEMS = 100_000
-    const ADDED_ITEMS = 1000
+    const INITIAL_ITEMS = 10_000
+    const ADDED_ITEMS = 1_000
 
     type Entity = { id: string; name: string; position: number }
 
@@ -663,6 +663,8 @@ describe('Sorted State Adapter', () => {
       store.dispatch(entitySlice.actions.upsertMany(initialItems))
     })
 
+    expect(numSorts).toBeLessThan(INITIAL_ITEMS * 20)
+
     measureComparisons('Insert One (random)', () => {
       store.dispatch(
         entitySlice.actions.upsertOne({
@@ -672,6 +674,8 @@ describe('Sorted State Adapter', () => {
         }),
       )
     })
+
+    expect(numSorts).toBeLessThan(50)
 
     measureComparisons('Insert One (middle)', () => {
       store.dispatch(
@@ -683,6 +687,8 @@ describe('Sorted State Adapter', () => {
       )
     })
 
+    expect(numSorts).toBeLessThan(50)
+
     measureComparisons('Insert One (end)', () => {
       store.dispatch(
         entitySlice.actions.upsertOne({
@@ -693,10 +699,14 @@ describe('Sorted State Adapter', () => {
       )
     })
 
+    expect(numSorts).toBeLessThan(50)
+
     const addedItems = generateItems(ADDED_ITEMS)
     measureComparisons('Add Many', () => {
       store.dispatch(entitySlice.actions.addMany(addedItems))
     })
+
+    expect(numSorts).toBeLessThan(ADDED_ITEMS * 20)
 
     // These numbers will vary because of the randomness, but generally
     // with 10K items the old code had 200K+ sort calls, while the new code
@@ -718,6 +728,12 @@ describe('Sorted State Adapter', () => {
       )
     })
 
+    const SORTING_COUNT_BUFFER = 100
+
+    expect(numSorts).toBeLessThan(
+      INITIAL_ITEMS + ADDED_ITEMS + SORTING_COUNT_BUFFER,
+    )
+
     measureComparisons('Update One (middle)', () => {
       store.dispatch(
         // Move this middle item near the end
@@ -729,6 +745,10 @@ describe('Sorted State Adapter', () => {
         }),
       )
     })
+
+    expect(numSorts).toBeLessThan(
+      INITIAL_ITEMS + ADDED_ITEMS + SORTING_COUNT_BUFFER,
+    )
 
     measureComparisons('Update One (replace)', () => {
       store.dispatch(
@@ -742,6 +762,10 @@ describe('Sorted State Adapter', () => {
         }),
       )
     })
+
+    expect(numSorts).toBeLessThan(
+      INITIAL_ITEMS + ADDED_ITEMS + SORTING_COUNT_BUFFER,
+    )
 
     // The old code was around 120K, the new code is around 10K.
     // expect(numSorts).toBeLessThan(25_000)
