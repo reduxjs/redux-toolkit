@@ -654,8 +654,6 @@ describe('Sorted State Adapter', () => {
 
       console.log(
         `${name}: sortComparer called ${numSorts.toLocaleString()} times in ${duration.toLocaleString()}ms`,
-        numSorts.toLocaleString(),
-        'times',
       )
     }
 

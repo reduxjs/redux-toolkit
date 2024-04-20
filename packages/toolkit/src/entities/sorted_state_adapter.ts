@@ -51,7 +51,7 @@ export function insert<T>(
 
 export function createSortedStateAdapter<T, Id extends EntityId>(
   selectId: IdSelector<T, Id>,
-  sort: Comparer<T>,
+  comparer: Comparer<T>,
 ): EntityStateAdapter<T, Id> {
   type R = DraftableEntityState<T, Id>
 
@@ -212,7 +212,7 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
 
     function resortEntities(state: R) {
       const allEntities = Object.values(state.entities) as T[]
-      allEntities.sort(sort)
+      allEntities.sort(comparer)
       const newSortedIds = allEntities.map(selectId)
       const { ids } = state
       if (!areArraysEqual(ids, newSortedIds)) {
@@ -240,7 +240,7 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
     const seenIds = new Set<Id>()
 
     if (addedItems.length) {
-      const newEntities = addedItems.slice().sort(sort)
+      const newEntities = addedItems.slice().sort(comparer)
 
       // Insert/overwrite all new/updated
       newEntities.forEach((model) => {
@@ -260,7 +260,7 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
           continue
         }
 
-        const comparison = sort(oldEntity, newEntity)
+        const comparison = comparer(oldEntity, newEntity)
         if (comparison < 0) {
           // Sort the existing item first
           newSortedIds.push(oldId)
@@ -296,7 +296,7 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
         n++
       }
     } else if (updatedIds) {
-      oldEntities.sort(sort)
+      oldEntities.sort(comparer)
       newSortedIds = oldEntities.map(selectId)
     }
 
@@ -319,8 +319,6 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
 
     // //let sortedEntities: T[] = []
 
-    // const wasPreviouslyEmpty = ids.length === 0
-
     // let sortedEntities = ids // Array.from(new Set(state.ids as Id[]))
     //   .map((id) => entities[id])
     //   .filter(Boolean)
@@ -337,9 +335,11 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
     //     }
     //   }
     // }
-    const sortedEntities = ids // Array.from(new Set(state.ids as Id[]))
+    let sortedEntities = ids // Array.from(new Set(state.ids as Id[]))
       .map((id) => entities[id])
       .filter(Boolean)
+
+    const wasPreviouslyEmpty = sortedEntities.length === 0
 
     // let oldIds = state.ids as Id[]
     // // if (updatedIds) {
@@ -355,14 +355,18 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
     //   .filter(Boolean)
 
     // Insert/overwrite all new/updated
-    addedItems.forEach((item) => {
+    for (const item of addedItems) {
       entities[selectId(item)] = item
       // console.log('Inserting: ', isDraft(item) ? current(item) : item)
-      insert(sortedEntities, item, sort)
-    })
+      if (!wasPreviouslyEmpty) {
+        insert(sortedEntities, item, comparer)
+      }
+    }
 
-    if (updatedIds?.size) {
-      sortedEntities.sort(sort)
+    if (wasPreviouslyEmpty) {
+      sortedEntities = addedItems.slice().sort(comparer)
+    } else if (updatedIds?.size) {
+      sortedEntities.sort(comparer)
     }
 
     const newSortedIds = sortedEntities.map(selectId)
@@ -412,7 +416,7 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
     }
 
     // Now when we sort, things should be _close_ already, and fewer comparisons are needed.
-    allEntities.sort(sort)
+    allEntities.sort(comparer)
 
     const newSortedIds = allEntities.map(selectId)
     const { ids } = state
@@ -485,7 +489,7 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
     // }
 
     // Now when we sort, things should be _close_ already, and fewer comparisons are needed.
-    allEntities.sort(sort)
+    allEntities.sort(comparer)
 
     const newSortedIds = allEntities.map(selectId)
     const { ids } = state
@@ -532,7 +536,7 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
     }
 
     // Now when we sort, things should be _close_ already, and fewer comparisons are needed.
-    allEntities.sort(sort)
+    allEntities.sort(comparer)
 
     const newSortedIds = allEntities.map(selectId)
     const { ids } = state
