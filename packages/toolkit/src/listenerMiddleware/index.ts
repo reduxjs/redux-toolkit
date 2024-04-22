@@ -82,52 +82,6 @@ const INTERNAL_NIL_TOKEN = {} as const
 
 const alm = 'listenerMiddleware' as const
 
-const createFork = (
-  parentAbortSignal: AbortSignalWithReason<unknown>,
-  parentBlockingPromises: Promise<any>[],
-) => {
-  const linkControllers = (controller: AbortController) =>
-    addAbortSignalListener(parentAbortSignal, () =>
-      abortControllerWithReason(controller, parentAbortSignal.reason),
-    )
-
-  return <T>(
-    taskExecutor: ForkedTaskExecutor<T>,
-    opts?: ForkOptions,
-  ): ForkedTask<T> => {
-    assertFunction(taskExecutor, 'taskExecutor')
-    const childAbortController = new AbortController()
-
-    linkControllers(childAbortController)
-
-    const result = runTask<T>(
-      async (): Promise<T> => {
-        validateActive(parentAbortSignal)
-        validateActive(childAbortController.signal)
-        const result = (await taskExecutor({
-          pause: createPause(childAbortController.signal),
-          delay: createDelay(childAbortController.signal),
-          signal: childAbortController.signal,
-        })) as T
-        validateActive(childAbortController.signal)
-        return result
-      },
-      () => abortControllerWithReason(childAbortController, taskCompleted),
-    )
-
-    if (opts?.autoJoin) {
-      parentBlockingPromises.push(result.catch(noop))
-    }
-
-    return {
-      result: createPause<TaskResult<T>>(parentAbortSignal)(result),
-      cancel() {
-        abortControllerWithReason(childAbortController, taskCancelled)
-      },
-    }
-  }
-}
-
 const createTakePattern = <S>(
   startListening: AddListenerOverloads<UnsubscribeListener, S, Dispatch>,
   signal: AbortSignal,
@@ -190,6 +144,77 @@ const createTakePattern = <S>(
 
   return ((predicate: AnyListenerPredicate<S>, timeout: number | undefined) =>
     catchRejection(take(predicate, timeout))) as TakePattern<S>
+}
+
+const createFork = (
+  parentAbortSignal: AbortSignalWithReason<unknown>,
+  parentBlockingPromises: Promise<any>[],
+  startListening: AddListenerOverloads<any>,
+) => {
+  const linkControllers = (controller: AbortController) =>
+    addAbortSignalListener(parentAbortSignal, () =>
+      abortControllerWithReason(controller, parentAbortSignal.reason),
+    )
+
+  return <T>(
+    taskExecutor: ForkedTaskExecutor<T>,
+    opts?: ForkOptions,
+  ): ForkedTask<T> => {
+    assertFunction(taskExecutor, 'taskExecutor')
+    const childAbortController = new AbortController()
+
+    linkControllers(childAbortController)
+
+    const take = createTakePattern(
+      startListening as AddListenerOverloads<any>,
+      childAbortController.signal,
+    )
+
+    const autoJoinPromises: Promise<any>[] = []
+
+    const result = runTask<T>(
+      async (): Promise<T> => {
+        try {
+          validateActive(parentAbortSignal)
+          validateActive(childAbortController.signal)
+          const result = (await taskExecutor({
+            condition: (
+              predicate: AnyListenerPredicate<any>,
+              timeout?: number,
+            ) => take(predicate, timeout).then(Boolean),
+            take,
+            delay: createDelay(childAbortController.signal),
+            pause: createPause(childAbortController.signal),
+            signal: childAbortController.signal,
+            fork: createFork(
+              childAbortController.signal,
+              autoJoinPromises,
+              startListening,
+            ),
+            throwIfCancelled: () => {
+              validateActive(childAbortController.signal)
+            },
+          })) as T
+          validateActive(childAbortController.signal)
+          return result
+        } finally {
+          await Promise.all(autoJoinPromises)
+        }
+      },
+      () => abortControllerWithReason(childAbortController, taskCompleted),
+    )
+
+    if (opts?.autoJoin) {
+      parentBlockingPromises.push(result.catch(noop))
+    }
+
+    return {
+      result: createPause<TaskResult<T>>(parentAbortSignal)(result),
+      cancel() {
+        abortControllerWithReason(childAbortController, taskCancelled)
+      },
+    }
+  }
 }
 
 const getListenerEntryPropsFrom = (options: FallbackAddListenerOptions) => {
@@ -408,7 +433,11 @@ export const createListenerMiddleware = <
             pause: createPause<any>(internalTaskController.signal),
             extra,
             signal: internalTaskController.signal,
-            fork: createFork(internalTaskController.signal, autoJoinPromises),
+            fork: createFork(
+              internalTaskController.signal,
+              autoJoinPromises,
+              startListening,
+            ),
             unsubscribe: entry.unsubscribe,
             subscribe: () => {
               listenerMap.set(entry.id, entry)
