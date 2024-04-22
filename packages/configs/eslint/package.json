@@ -59,7 +59,7 @@
   },
   "devDependencies": {
     "@reduxjs/tsconfig": "workspace:^",
-    "@types/eslint": "^8.56.9",
+    "@types/eslint": "^8.56.10",
     "@types/eslint-config-prettier": "^6.11.3",
     "@types/eslint__eslintrc": "^2.1.1",
     "@types/eslint__js": "^8.42.3",
