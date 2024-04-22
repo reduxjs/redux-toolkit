@@ -13,6 +13,7 @@ import {
   selectIdValue,
   ensureEntitiesArray,
   splitAddedUpdatedEntities,
+  getCurrent,
 } from './utils'
 
 export function findInsertIndex<T>(
@@ -65,11 +66,17 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
   function addManyMutably(
     newEntities: readonly T[] | Record<Id, T>,
     state: R,
+    existingIds?: Id[],
   ): void {
     newEntities = ensureEntitiesArray(newEntities)
 
+    const existingKeys = new Set<Id>(
+      existingIds ?? (current(state.ids) as Id[]),
+    )
+
     const models = newEntities.filter(
-      (model) => !(selectIdValue(model, selectId) in state.entities),
+      // (model) => !(selectId(model) in state.entities),
+      (model) => !existingKeys.has(selectIdValue(model, selectId)),
     )
 
     if (models.length !== 0) {
@@ -103,7 +110,7 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
     state.entities = {} as Record<Id, T>
     state.ids = []
 
-    addManyMutably(newEntities, state)
+    addManyMutably(newEntities, state, [])
   }
 
   function updateOneMutably(update: Update<T, Id>, state: R): void {
@@ -153,14 +160,18 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
     newEntities: readonly T[] | Record<Id, T>,
     state: R,
   ): void {
-    const [added, updated] = splitAddedUpdatedEntities<T, Id>(
+    const [added, updated, existingIdsArray] = splitAddedUpdatedEntities<T, Id>(
       newEntities,
       selectId,
       state,
     )
 
-    updateManyMutably(updated, state)
-    addManyMutably(added, state)
+    if (updated.length) {
+      updateManyMutably(updated, state)
+    }
+    if (added.length) {
+      addManyMutably(added, state, existingIdsArray)
+    }
   }
 
   function areArraysEqual(a: readonly unknown[], b: readonly unknown[]) {
@@ -311,10 +322,14 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
     updatedIds,
     replacedIds,
   ) => {
-    const entities = state.entities as Record<Id, T>
-    let ids = state.ids as Id[]
+    const currentEntities = getCurrent(state.entities) as Record<Id, T>
+    const currentIds = getCurrent(state.ids) as Id[]
+    // const entities = state.entities as Record<Id, T>
+    const stateEntities = state.entities as Record<Id, T>
+    // let ids = state.ids as Id[]
+    let ids = currentIds
     if (replacedIds) {
-      ids = Array.from(new Set(ids))
+      ids = Array.from(new Set(currentIds))
     }
 
     // //let sortedEntities: T[] = []
@@ -335,9 +350,16 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
     //     }
     //   }
     // }
-    let sortedEntities = ids // Array.from(new Set(state.ids as Id[]))
-      .map((id) => entities[id])
-      .filter(Boolean)
+    let sortedEntities: T[] = []
+    for (const id of ids) {
+      const entity = currentEntities[id]
+      if (entity) {
+        sortedEntities.push(entity)
+      }
+    }
+    // let sortedEntities = ids // Array.from(new Set(state.ids as Id[]))
+    //   .map((id) => currentEntities[id])
+    //   .filter(Boolean)
 
     const wasPreviouslyEmpty = sortedEntities.length === 0
 
@@ -356,7 +378,7 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
 
     // Insert/overwrite all new/updated
     for (const item of addedItems) {
-      entities[selectId(item)] = item
+      stateEntities[selectId(item)] = item
       // console.log('Inserting: ', isDraft(item) ? current(item) : item)
       if (!wasPreviouslyEmpty) {
         insert(sortedEntities, item, comparer)
@@ -366,12 +388,18 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
     if (wasPreviouslyEmpty) {
       sortedEntities = addedItems.slice().sort(comparer)
     } else if (updatedIds?.size) {
+      for (const updatedId of updatedIds) {
+        const item: T = currentEntities[updatedId]
+        // const currentIndex = sortedEntities.indexOf(item)
+        // const newIndex = findInsertIndex(sortedEntities, item, comparer)
+        // console.log('Item: ', updatedId, { currentIndex, newIndex })
+      }
       sortedEntities.sort(comparer)
     }
 
     const newSortedIds = sortedEntities.map(selectId)
     // console.log('New sorted IDs: ', newSortedIds)
-    if (!areArraysEqual(state.ids, newSortedIds)) {
+    if (!areArraysEqual(currentIds, newSortedIds)) {
       state.ids = newSortedIds
     }
   }
