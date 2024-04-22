@@ -687,12 +687,6 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
     const hasData = data !== undefined
 
-    // error is the last known error we have tracked - or if none has been tracked yet the last errored result for the current args
-    let error = currentState.isError ? currentState.error : lastResult?.error
-    if (error === undefined) error = currentState.error
-
-    const hasError = error !== undefined
-
     // isFetching = true any time a request is in flight
     const isFetching = currentState.isLoading
     // isLoading = true only when loading while no data is present yet (initial load with no data in the cache)
