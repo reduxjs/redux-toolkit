@@ -1,6 +1,7 @@
 import type {
   SerializedError,
   ThunkAction,
+  ThunkDispatch,
   UnknownAction,
 } from '@reduxjs/toolkit'
 import type { Dispatch } from 'redux'
@@ -11,6 +12,7 @@ import type { BaseQueryError, QueryReturnValue } from '../baseQueryTypes'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import type {
   EndpointDefinitions,
+  InfiniteQueryDefinition,
   MutationDefinition,
   QueryArgFrom,
   QueryDefinition,
@@ -36,6 +38,14 @@ export type BuildInitiateApiEndpointQuery<
   Definition extends QueryDefinition<any, any, any, any, any>,
 > = {
   initiate: StartQueryActionCreator<Definition>
+}
+
+export type BuildApiEndpointInfiniteQuery<
+  Definition extends InfiniteQueryDefinition<any, any, any, any, any>,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  Definitions extends EndpointDefinitions,
+> = {
+  initiate: StartInfiniteQueryActionCreator<Definition>
 }
 
 export type BuildInitiateApiEndpointMutation<
@@ -77,7 +87,7 @@ type StartQueryActionCreator<
 // placeholder type which
 // may attempt to derive the list of args to query in pagination
 type StartInfiniteQueryActionCreator<
-  D extends QueryDefinition<any, any, any, any, any>,
+  D extends InfiniteQueryDefinition<any, any, any, any, any>,
 > = (
   arg: QueryArgFrom<D>,
   options?: StartInfiniteQueryActionCreatorOptions,
@@ -101,7 +111,7 @@ export type QueryActionCreatorResult<
 }
 
 export type InfiniteQueryActionCreatorResult<
-  D extends QueryDefinition<any, any, any, any>,
+  D extends InfiniteQueryDefinition<any, any, any, any>,
 > = Promise<QueryResultSelectorResult<D>> & {
   arg: QueryArgFrom<D>
   requestId: string
@@ -467,7 +477,7 @@ You must add the middleware for RTK-Query to function correctly!`,
 
   function buildInitiateInfiniteQuery(
     endpointName: string,
-    endpointDefinition: QueryDefinition<any, any, any, any>,
+    endpointDefinition: InfiniteQueryDefinition<any, any, any, any>,
     pages?: number,
   ) {
     const infiniteQueryAction: StartInfiniteQueryActionCreator<any> =
