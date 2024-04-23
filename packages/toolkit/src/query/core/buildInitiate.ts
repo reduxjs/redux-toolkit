@@ -34,6 +34,15 @@ declare module './module' {
     initiate: StartQueryActionCreator<Definition>
   }
 
+  export interface ApiEndpointInfiniteQuery<
+    Definition extends InfiniteQueryDefinition<any, any, any, any, any>,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    Definitions extends EndpointDefinitions,
+  > {
+    initiate: StartInfiniteQueryActionCreator<Definition>
+  }
+
+
   export interface ApiEndpointMutation<
     Definition extends MutationDefinition<any, any, any, any, any>,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -459,7 +468,7 @@ You must add the middleware for RTK-Query to function correctly!`,
 
   function buildInitiateInfiniteQuery(
     endpointName: string,
-    endpointDefinition: QueryDefinition<any, any, any, any>,
+    endpointDefinition: InfiniteQueryDefinition<any, any, any, any>,
     pages?: number,
   ) {
     const infiniteQueryAction: StartInfiniteQueryActionCreator<any> =

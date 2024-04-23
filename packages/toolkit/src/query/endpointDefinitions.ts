@@ -213,7 +213,7 @@ export enum DefinitionType {
   query = 'query',
   mutation = 'mutation',
   // hijacking query temporarily to get the definition to build
-  infinitequery = 'query',
+  infinitequery = 'infinitequery',
 }
 
 export type GetResultDescriptionFn<
@@ -264,7 +264,7 @@ export interface QueryTypes<
     TagTypes,
     ResultType,
     ReducerPath
-  >
+  > | InfiniteQueryDefinition<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>
   TagTypes: TagTypes
   ReducerPath: ReducerPath
 }
@@ -890,6 +890,14 @@ export type OverrideResultType<Definition, NewResultType> =
           NewResultType,
           ReducerPath
         >
+      : Definition extends InfiniteQueryDefinition<
+        infer QueryArg,
+        infer BaseQuery,
+        infer TagTypes,
+        any,
+        infer ReducerPath
+      >
+      ? InfiniteQueryDefinition<QueryArg, BaseQuery, TagTypes, NewResultType, ReducerPath>
       : never
 
 export type UpdateDefinitions<
@@ -925,5 +933,19 @@ export type UpdateDefinitions<
           TransformedResponse<NewDefinitions, K, ResultType>,
           ReducerPath
         >
-      : never
+      : Definitions[K] extends InfiniteQueryDefinition<
+        infer QueryArg,
+        infer BaseQuery,
+        any,
+        infer ResultType,
+        infer ReducerPath
+      >
+      ? InfiniteQueryDefinition<
+          QueryArg,
+          BaseQuery,
+          NewTagTypes,
+          TransformedResponse<NewDefinitions, K, ResultType>,
+          ReducerPath
+        >
+        : never
 }
