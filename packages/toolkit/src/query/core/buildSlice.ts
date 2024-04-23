@@ -27,6 +27,7 @@ import type {
 } from './apiState'
 import { QueryStatus } from './apiState'
 import type {
+  InfiniteQueryThunk,
   MutationThunk,
   QueryThunk,
   QueryThunkArg,
@@ -163,6 +164,7 @@ export function buildSlice({
 }: {
   reducerPath: string
   queryThunk: QueryThunk
+  infiniteQueryThunk: InfiniteQueryThunk
   mutationThunk: MutationThunk
   serializeQueryArgs: InternalSerializeQueryArgs
   context: ApiContext<EndpointDefinitions>
