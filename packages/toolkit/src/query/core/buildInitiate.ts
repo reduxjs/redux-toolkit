@@ -75,12 +75,33 @@ export interface StartInfiniteQueryActionCreatorOptions {
   previous?: boolean
 }
 
+export interface StartInfiniteQueryActionCreatorOptions {
+  subscribe?: boolean
+  forceRefetch?: boolean | number
+  subscriptionOptions?: SubscriptionOptions
+  infiniteQueryOptions?: InfiniteQueryConfigOptions
+  direction?: "forward" | "backwards"
+  [forceQueryFnSymbol]?: () => QueryReturnValue
+  data?: InfiniteData<unknown>
+  param?: unknown
+  previous?: boolean
+}
+
 type StartQueryActionCreator<
   D extends QueryDefinition<any, any, any, any, any>,
 > = (
   arg: QueryArgFrom<D>,
   options?: StartQueryActionCreatorOptions,
 ) => ThunkAction<QueryActionCreatorResult<D>, any, any, UnknownAction>
+
+// placeholder type which
+// may attempt to derive the list of args to query in pagination
+type StartInfiniteQueryActionCreator<
+  D extends QueryDefinition<any, any, any, any, any>
+> = (
+  arg: QueryArgFrom<D>,
+  options?: StartInfiniteQueryActionCreatorOptions
+) => (dispatch: ThunkDispatch<any, any, UnknownAction>, getState: () => any) => InfiniteQueryActionCreatorResult<any>
 
 // placeholder type which
 // may attempt to derive the list of args to query in pagination
@@ -120,6 +141,22 @@ export type InfiniteQueryActionCreatorResult<
   fetchPreviousPage(): QueryActionCreatorResult<D>
   updateSubscriptionOptions(options: SubscriptionOptions): void
   updateInfiniteQueryOptions(options: InfiniteQueryConfigOptions): void
+  queryCacheKey: string
+}
+
+export type InfiniteQueryActionCreatorResult<
+  D extends QueryDefinition<any, any, any, any>
+> = Promise<QueryResultSelectorResult<D>> & {
+  arg: QueryArgFrom<D>
+  requestId: string
+  subscriptionOptions: SubscriptionOptions | undefined
+  abort(): void
+  unwrap(): Promise<ResultTypeFrom<D>>
+  unsubscribe(): void
+  refetch(): QueryActionCreatorResult<D>
+  fetchNextPage(): QueryActionCreatorResult<D>
+  fetchPreviousPage(): QueryActionCreatorResult<D>
+  updateSubscriptionOptions(options: SubscriptionOptions): void
   queryCacheKey: string
 }
 
@@ -469,6 +506,145 @@ You must add the middleware for RTK-Query to function correctly!`,
   function buildInitiateInfiniteQuery(
     endpointName: string,
     endpointDefinition: InfiniteQueryDefinition<any, any, any, any>,
+    pages?: number,
+  ) {
+    const infiniteQueryAction: StartInfiniteQueryActionCreator<any> =
+      (
+        arg,
+        {
+          subscribe = true,
+          forceRefetch,
+          subscriptionOptions,
+          [forceQueryFnSymbol]: forceQueryFn,
+          direction,
+          data = { pages: [], pageParams: [] },
+          param = arg,
+          previous
+        } = {}
+      ) =>
+        (dispatch, getState) => {
+          const queryCacheKey = serializeQueryArgs({
+            queryArgs: param,
+            endpointDefinition,
+            endpointName,
+          })
+
+
+          const thunk = infiniteQueryThunk({
+            type: 'query',
+            subscribe,
+            forceRefetch: forceRefetch,
+            subscriptionOptions,
+            endpointName,
+            originalArgs: arg,
+            queryCacheKey,
+            [forceQueryFnSymbol]: forceQueryFn,
+            data,
+            param,
+            previous,
+            direction
+          })
+          const selector = (
+            api.endpoints[endpointName] as ApiEndpointQuery<any, any>
+          ).select(arg)
+
+          const thunkResult = dispatch(thunk)
+          const stateAfter = selector(getState())
+
+          middlewareWarning(dispatch)
+
+          const { requestId, abort } = thunkResult
+
+          const skippedSynchronously = stateAfter.requestId !== requestId
+
+          const runningQuery = runningQueries.get(dispatch)?.[queryCacheKey]
+          const selectFromState = () => selector(getState())
+
+          const statePromise: InfiniteQueryActionCreatorResult<any> = Object.assign(
+            forceQueryFn
+              ? // a query has been forced (upsertQueryData)
+                // -> we want to resolve it once data has been written with the data that will be written
+              thunkResult.then(selectFromState)
+              : skippedSynchronously && !runningQuery
+                ? // a query has been skipped due to a condition and we do not have any currently running query
+                  // -> we want to resolve it immediately with the current data
+                Promise.resolve(stateAfter)
+                : // query just started or one is already in flight
+                  // -> wait for the running query, then resolve with data from after that
+                Promise.all([runningQuery, thunkResult]).then(selectFromState),
+            {
+              arg,
+              requestId,
+              subscriptionOptions,
+              queryCacheKey,
+              abort,
+              async unwrap() {
+                const result = await statePromise
+
+                if (result.isError) {
+                  throw result.error
+                }
+
+                return result.data
+              },
+              refetch: () =>
+                dispatch(
+                  infiniteQueryAction(arg, { subscribe: false, forceRefetch: true })
+                ),
+              fetchNextPage: () =>
+                dispatch(
+                  infiniteQueryAction(arg, { subscribe: false, forceRefetch: true, direction: "forward"})
+                ),
+              fetchPreviousPage: () =>
+                dispatch(
+                  infiniteQueryAction(arg, {subscribe: false, forceRefetch: true, direction: "backwards"})
+                ),
+              unsubscribe() {
+                if (subscribe)
+                  dispatch(
+                    unsubscribeQueryResult({
+                      queryCacheKey,
+                      requestId,
+                    })
+                  )
+              },
+              updateSubscriptionOptions(options: SubscriptionOptions) {
+                statePromise.subscriptionOptions = options
+                dispatch(
+                  updateSubscriptionOptions({
+                    endpointName,
+                    requestId,
+                    queryCacheKey,
+                    options,
+                  })
+                )
+              },
+            }
+          )
+
+          if (!runningQuery && !skippedSynchronously && !forceQueryFn) {
+            const running = runningQueries.get(dispatch) || {}
+            running[queryCacheKey] = statePromise
+            runningQueries.set(dispatch, running)
+
+            statePromise.then(() => {
+              delete running[queryCacheKey]
+              if (!countObjectKeys(running)) {
+                runningQueries.delete(dispatch)
+              }
+            })
+          }
+          return statePromise
+
+        }
+    return infiniteQueryAction
+  }
+
+  // Concept for the pagination thunk which queries for each page
+
+  function buildInitiateInfiniteQuery(
+    endpointName: string,
+    endpointDefinition: QueryDefinition<any, any, any, any>,
     pages?: number,
   ) {
     const infiniteQueryAction: StartInfiniteQueryActionCreator<any> =

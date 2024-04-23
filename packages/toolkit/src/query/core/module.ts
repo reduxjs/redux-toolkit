@@ -644,6 +644,16 @@ export const coreModule = ({
             },
             buildMatchThunkActions(queryThunk, endpointName)
           )
+        } if (isInfiniteQueryDefinition(definition)) {
+          safeAssign(
+            anyApi.endpoints[endpointName],
+            {
+              name: endpointName,
+              select: buildInfiniteQuerySelector(endpointName, definition),
+              initiate: buildInitiateInfiniteQuery(endpointName, definition),
+            },
+            buildMatchThunkActions(queryThunk, endpointName)
+          )
         }
       },
     }
