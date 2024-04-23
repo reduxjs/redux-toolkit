@@ -23,7 +23,7 @@ import type {
   ConfigState,
 } from './apiState'
 import { QueryStatus } from './apiState'
-import type { MutationThunk, QueryThunk, RejectedAction } from './buildThunks'
+import type { InfiniteQueryThunk, MutationThunk, QueryThunk, RejectedAction } from './buildThunks'
 import { calculateProvidedByThunk } from './buildThunks'
 import type {
   AssertTagTypes,
@@ -103,6 +103,7 @@ export function buildSlice({
 }: {
   reducerPath: string
   queryThunk: QueryThunk
+  infiniteQueryThunk: InfiniteQueryThunk
   mutationThunk: MutationThunk
   context: ApiContext<EndpointDefinitions>
   assertTagType: AssertTagTypes

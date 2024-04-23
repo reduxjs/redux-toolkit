@@ -21,7 +21,7 @@ import {
   QueryDefinition,
   MutationDefinition,
   AssertTagTypes,
-  TagDescription, isInfiniteQueryDefinition
+  TagDescription, isInfiniteQueryDefinition, InfiniteQueryDefinition
 } from '../endpointDefinitions'
 import { isQueryDefinition, isMutationDefinition } from '../endpointDefinitions'
 import type {
@@ -391,6 +391,19 @@ declare module '../apiTypes' {
 export interface ApiEndpointQuery<
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Definition extends QueryDefinition<any, any, any, any, any>,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  Definitions extends EndpointDefinitions,
+> {
+  name: string
+  /**
+   * All of these are `undefined` at runtime, purely to be used in TypeScript declarations!
+   */
+  Types: NonNullable<Definition['Types']>
+}
+
+export interface ApiEndpointInfiniteQuery<
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  Definition extends InfiniteQueryDefinition<any, any, any, any, any>,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Definitions extends EndpointDefinitions,
 > {
