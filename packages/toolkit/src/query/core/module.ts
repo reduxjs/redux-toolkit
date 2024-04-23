@@ -16,6 +16,7 @@ import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import type {
   AssertTagTypes,
   EndpointDefinitions,
+  InfiniteQueryDefinition,
   MutationDefinition,
   QueryArgFrom,
   QueryDefinition,
@@ -409,6 +410,19 @@ export interface ApiEndpointQuery<
 > extends BuildThunksApiEndpointQuery<Definition>,
     BuildInitiateApiEndpointQuery<Definition>,
     BuildSelectorsApiEndpointQuery<Definition, Definitions> {
+  name: string
+  /**
+   * All of these are `undefined` at runtime, purely to be used in TypeScript declarations!
+   */
+  Types: NonNullable<Definition['Types']>
+}
+
+export interface ApiEndpointInfiniteQuery<
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  Definition extends InfiniteQueryDefinition<any, any, any, any, any>,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  Definitions extends EndpointDefinitions,
+> {
   name: string
   /**
    * All of these are `undefined` at runtime, purely to be used in TypeScript declarations!
