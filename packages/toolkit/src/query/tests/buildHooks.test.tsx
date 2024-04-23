@@ -820,8 +820,8 @@ describe('hooks tests', () => {
       let i = 0;
 
       function User() {
-        const { data, isFetching, isUninitialized } =
-          pokemonApi.useGetInfinitePokemonQuery(0)
+        const { data, isFetching, isUninitialized, fetchNextPage } =
+          pokemonApi.useGetInfinitePokemonInfiniteQuery(0)
 
         return (
           <div>
