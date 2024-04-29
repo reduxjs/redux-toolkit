@@ -7486,6 +7486,7 @@ __metadata:
     vitest: "npm:^1.5.2"
   peerDependencies:
     typescript: ^4.7 || ^5
+    vitest: ^1
   peerDependenciesMeta:
     typescript:
       optional: true
