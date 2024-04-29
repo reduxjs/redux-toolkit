@@ -582,7 +582,12 @@ export type TypedAddListener<
         unknown,
         UnknownAction
       >,
-    >() => TypedAddListener<OverrideStateType, OverrideDispatchType>
+      OverrideExtraArgument extends ExtraArgument = ExtraArgument,
+    >() => TypedAddListener<
+      OverrideStateType,
+      OverrideDispatchType,
+      OverrideExtraArgument
+    >
   }
 
 /**
@@ -692,7 +697,11 @@ export type TypedStartListening<
       unknown,
       UnknownAction
     >,
-  >() => TypedStartListening<OverrideStateType, OverrideDispatchType>
+  >() => TypedStartListening<
+    OverrideStateType,
+    OverrideDispatchType,
+    ExtraArgument
+  >
 }
 
 /**

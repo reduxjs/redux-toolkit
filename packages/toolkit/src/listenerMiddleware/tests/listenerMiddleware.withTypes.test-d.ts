@@ -66,7 +66,9 @@ type AppThunk<ThunkReturnType = void> = ThunkAction<
 >
 
 describe('listenerMiddleware.withTypes<RootState, AppDispatch>()', () => {
-  const listenerMiddleware = createListenerMiddleware()
+  const listenerMiddleware = createListenerMiddleware({
+    extra: 'foo' as const,
+  })
   let timeout: number | undefined = undefined
   let done = false
 
@@ -81,7 +83,7 @@ describe('listenerMiddleware.withTypes<RootState, AppDispatch>()', () => {
     >()
 
     expectTypeOf(startAppListening).toEqualTypeOf<
-      TypedStartListening<RootState, AppDispatch>
+      TypedStartListening<RootState, AppDispatch, 'foo'>
     >()
 
     startAppListening({
@@ -111,10 +113,14 @@ describe('listenerMiddleware.withTypes<RootState, AppDispatch>()', () => {
   })
 
   test('addListener.withTypes', () => {
-    const addAppListener = addListener.withTypes<RootState, AppDispatch>()
+    const addAppListener = addListener.withTypes<
+      RootState,
+      AppDispatch,
+      'foo'
+    >()
 
     expectTypeOf(addAppListener).toEqualTypeOf<
-      TypedAddListener<RootState, AppDispatch>
+      TypedAddListener<RootState, AppDispatch, 'foo'>
     >()
 
     store.dispatch(
@@ -126,6 +132,8 @@ describe('listenerMiddleware.withTypes<RootState, AppDispatch>()', () => {
           expectTypeOf(state).toEqualTypeOf<RootState>()
 
           expectTypeOf(listenerApi.dispatch).toEqualTypeOf<AppDispatch>()
+
+          expectTypeOf(listenerApi.extra).toEqualTypeOf<'foo'>()
         },
       }),
     )
