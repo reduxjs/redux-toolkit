@@ -360,22 +360,30 @@ describe('Sorted State Adapter', () => {
     const withInitialItems = sortedItemsAdapter.setAll(
       sortedItemsAdapter.getInitialState(),
       [
-        { id: 'A', order: 1, ts: 0 },
-        { id: 'B', order: 2, ts: 0 },
         { id: 'C', order: 3, ts: 0 },
+        { id: 'A', order: 1, ts: 0 },
+        { id: 'F', order: 4, ts: 0 },
+        { id: 'B', order: 2, ts: 0 },
         { id: 'D', order: 3, ts: 0 },
         { id: 'E', order: 3, ts: 0 },
       ],
     )
 
-    expect(withInitialItems.ids).toEqual(['A', 'B', 'C', 'D', 'E'])
+    expect(withInitialItems.ids).toEqual(['A', 'B', 'C', 'D', 'E', 'F'])
 
     const updated = sortedItemsAdapter.updateOne(withInitialItems, {
       id: 'C',
       changes: { ts: 5 },
     })
 
-    expect(updated.ids).toEqual(['A', 'B', 'C', 'D', 'E'])
+    expect(updated.ids).toEqual(['A', 'B', 'C', 'D', 'E', 'F'])
+
+    const updated2 = sortedItemsAdapter.updateOne(withInitialItems, {
+      id: 'D',
+      changes: { ts: 6 },
+    })
+
+    expect(updated2.ids).toEqual(['A', 'B', 'C', 'D', 'E', 'F'])
   })
 
   it('should let you update many entities by id in the state', () => {
