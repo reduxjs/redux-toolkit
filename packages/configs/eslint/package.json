@@ -72,7 +72,7 @@
   "dependencies": {
     "@eslint/js": "^9.1.1",
     "eslint-config-prettier": "^9.1.0",
-    "globals": "^15.0.0",
+    "globals": "^15.1.0",
     "typescript-eslint": "^7.7.1"
   }
 }
