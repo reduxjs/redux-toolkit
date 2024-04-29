@@ -23,6 +23,8 @@ export const vitestGlobals = {
   afterAll: false,
   beforeEach: false,
   afterEach: false,
+  onTestFailed: false,
+  onTestFinished: false,
 } satisfies Record<string, boolean>
 
 /**
