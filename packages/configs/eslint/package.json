@@ -47,9 +47,6 @@
     "typescript": "^5"
   },
   "peerDependenciesMeta": {
-    "eslint": {
-      "optional": true
-    },
     "prettier": {
       "optional": true
     },

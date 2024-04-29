@@ -7315,8 +7315,6 @@ __metadata:
     prettier: ^3
     typescript: ^5
   peerDependenciesMeta:
-    eslint:
-      optional: true
     prettier:
       optional: true
     typescript:
