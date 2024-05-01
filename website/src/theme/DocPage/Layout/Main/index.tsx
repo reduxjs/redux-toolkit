@@ -1,4 +1,4 @@
-import type { ComponentProps } from 'react'
+import type { ComponentProps, JSX } from 'react'
 import React from 'react'
 import Main from '@theme-original/DocPage/Layout/Main'
 import type MainType from '@theme-original/DocPage/Layout/Main'
