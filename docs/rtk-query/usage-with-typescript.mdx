@@ -593,7 +593,7 @@ When using `fetchBaseQuery`, the `error` property returned from a hook will have
 If an error is present, you can access error properties after narrowing the type to either `FetchBaseQueryError` or `SerializedError`.
 
 ```tsx no-transpile
-import { api } from './services/api'
+import { usePostsQuery } from './services/api'
 
 function PostDetail() {
   const { data, error, isLoading } = usePostsQuery()
@@ -613,10 +613,9 @@ function PostDetail() {
           <div>{errMsg}</div>
         </div>
       )
-    } else {
-      // you can access all properties of `SerializedError` here
-      return <div>{error.message}</div>
-    }
+    } 
+    // you can access all properties of `SerializedError` here
+    return <div>{error.message}</div>
   }
 
   if (data) {
