@@ -23,7 +23,7 @@ export const setupTests = () => {
     path?: string
   }
   function renderWithProvider(
-    children: React.ReactChild,
+    children: React.ReactElement | number | string,
     { route, path }: RenderOptions = { route: '/', path: '' },
   ) {
     const history = createMemoryHistory()
