@@ -629,17 +629,20 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
               }
               abortController.signal.addEventListener('abort', abortHandler)
             })
-            tryDispatch(
-              dispatch,
-              pending(
-                requestId,
-                arg,
-                options?.getPendingMeta?.(
-                  { requestId, arg },
-                  { getState, extra },
-                ),
-              ) as any,
-            )
+            try {
+              dispatch(
+                pending(
+                  requestId,
+                  arg,
+                  options?.getPendingMeta?.(
+                    { requestId, arg },
+                    { getState, extra },
+                  ),
+                ) as any,
+              )
+            } catch (err) {
+              throw new DispatchError(err)
+            }
             finalAction = await Promise.race([
               abortedPromise,
               Promise.resolve(
