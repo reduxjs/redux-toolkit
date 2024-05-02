@@ -241,10 +241,6 @@ export function isRejectedWithValue<
     return action && action.meta && action.meta.rejectedWithValue
   }
 
-  if (asyncThunks.length === 0) {
-    return isAllOf(isRejected(...asyncThunks), hasFlag)
-  }
-
   if (!isAsyncThunkArray(asyncThunks)) {
     return isRejectedWithValue()(asyncThunks[0])
   }
