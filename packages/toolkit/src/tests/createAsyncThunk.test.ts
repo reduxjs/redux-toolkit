@@ -1011,9 +1011,9 @@ describe('reducer errors will be rethrown', () => {
       },
     })
   // TODO: this breaks our promise that not unwrapping will never throw - do we care?
-  it('rethrows errors found when dispatching pending action', () => {
+  it('rethrows errors found when dispatching pending action', async () => {
     const store = faultStoreForType('pending')
-    expect(store.dispatch(asyncThunk(false))).rejects.toThrowError(
+    await expect(store.dispatch(asyncThunk(false))).rejects.toThrowError(
       'Error in reducer',
     )
   })
