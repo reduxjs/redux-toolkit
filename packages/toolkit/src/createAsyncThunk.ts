@@ -118,14 +118,6 @@ export class DispatchError {
   constructor(public readonly cause: unknown) {}
 }
 
-function tryDispatch(dispatch: Dispatch, action: Action) {
-  try {
-    return dispatch(action)
-  } catch (err) {
-    throw new DispatchError(err)
-  }
-}
-
 export type AsyncThunkConfig = {
   state?: unknown
   dispatch?: Dispatch
