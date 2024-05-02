@@ -361,11 +361,5 @@ export function isAsyncThunkAction<
     return isAsyncThunkAction()(asyncThunks[0])
   }
 
-  const matchers: Matcher<any>[] = []
-
-  for (const asyncThunk of asyncThunks) {
-    matchers.push(asyncThunk.pending, asyncThunk.rejected, asyncThunk.fulfilled)
-  }
-
-  return isAnyOf(...matchers)
+  return isAnyOf(...asyncThunks.flatMap(asyncThunk => [asyncThunk.pending, asyncThunk.rejected, asyncThunk.fulfilled]))
 }
