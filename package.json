@@ -46,6 +46,7 @@
     "prettier": "^3.2.5",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-redux": "^9.1.0",
     "release-it": "^14.12.5",
     "serve": "^14.2.0",
     "ts-node": "^10.9.2",
@@ -54,7 +55,6 @@
   "resolutions": {
     "esbuild": "0.19.7",
     "jest-snapshot": "29.3.1",
-    "react-redux": "npm:9.1.0",
     "console-testing-library@0.6.1": "patch:console-testing-library@npm%3A0.6.1#./.yarn/patches/console-testing-library-npm-0.6.1-4d9957d402.patch"
   },
   "scripts": {
