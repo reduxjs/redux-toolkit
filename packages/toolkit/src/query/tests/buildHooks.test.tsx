@@ -922,25 +922,16 @@ describe('hooks tests', () => {
     })
 
 
-    test('Infinite Query Hook', async () => {
-      function delay(ms: number) {
-        return new Promise((resolve) => setTimeout(resolve, ms))
-      }
-
-      function paginate<T>(array: T[], page_size: number, page_number: number) {
-        // human-readable page numbers usually start with 1, so we reduce 1 in the first argument
-        return array.slice((page_number - 1) * page_size, page_number * page_size)
-      }
-
+    test('Infinite Query Hook getNextPage Trigger', async () => {
       server.use(
         http.get('https://example.com/listItems', ({ request }) => {
           const url = new URL(request.url)
           const pageString = url.searchParams.get('page')
           const pageNum = parseInt(pageString || '0')
 
-          const results = {title: `page ${pageNum}`, info: "more name"}
+          const results = { title: `page ${pageNum}`, info: 'more name' }
           return HttpResponse.json(results)
-        }),
+        })
       )
 
 
@@ -949,18 +940,18 @@ describe('hooks tests', () => {
         endpoints: (builder) => ({
           getInfinitePokemon: builder.infiniteQuery<any, number>({
             infiniteQueryOptions: {
-              getNextPageParam: (lastPage) => lastPage + 1,
+              getNextPageParam: (lastPage, allPages, lastPageParam, allPageParams) => lastPageParam + 1
             },
             query(pageParam = 0) {
               return `https://example.com/listItems?page=${pageParam}`
             }
-          }),
-        }),
+          })
+        })
       })
 
 
       const storeRef = setupApiStore(pokemonApi, undefined, {
-        withoutTestLifecycles: true,
+        withoutTestLifecycles: true
       })
 
       const checkNumQueries = (count: number) => {
@@ -972,20 +963,20 @@ describe('hooks tests', () => {
         expect(queries).toBe(count)
       }
 
-      let i = 0;
-
       function User() {
         const { data, isFetching, isUninitialized, fetchNextPage } =
-          pokemonApi.useGetInfinitePokemonInfiniteQuery(0)
+          pokemonApi.endpoints.getInfinitePokemon.useInfiniteQuery(0, { getNextPageParam: (lastPageParam) => lastPageParam + 1 })
 
         return (
           <div>
             <div data-testid="isUninitialized">{String(isUninitialized)}</div>
             <div data-testid="isFetching">{String(isFetching)}</div>
             <div data-testid="data">
-              {String(data)}
+              {data?.pages.map((page: any, i: number | null | undefined) => (
+                <div key={i}>{JSON.stringify(page)}</div>
+                ))}
             </div>
-            <button data-testid="nextPage" onClick={() => console.log(pokemonApi.endpoints?.getInfinitePokemon)}>
+            <button data-testid="nextPage" onClick={() => fetchNextPage()}>
               nextPage
             </button>
           </div>
@@ -993,7 +984,7 @@ describe('hooks tests', () => {
       }
 
       render(<User />, { wrapper: storeRef.wrapper })
-      expect(screen.getByTestId('data').textContent).toBe('undefined')
+      expect(screen.getByTestId('data').textContent).toBe('')
       checkNumQueries(1)
 
       await waitFor(() =>
@@ -1003,7 +994,11 @@ describe('hooks tests', () => {
         expect(screen.getByTestId('isFetching').textContent).toBe('false'),
       )
       fireEvent.click(screen.getByTestId('nextPage'))
-      checkNumQueries(2)
+      checkNumQueries(1)
+      await waitFor(() =>
+        expect(screen.getByTestId('isFetching').textContent).toBe('false'),
+      )
+      expect(screen.getByTestId('data').textContent).toBe('{"title":"page 0","info":"more name"}{"title":"page 1","info":"more name"}')
     })
 
     // See https://github.com/reduxjs/redux-toolkit/issues/4267 - Memory leak in useQuery rapid query arg changes
