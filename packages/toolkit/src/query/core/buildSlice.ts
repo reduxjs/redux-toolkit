@@ -29,8 +29,8 @@ import { calculateProvidedByThunk } from './buildThunks'
 import type {
   AssertTagTypes,
   EndpointDefinitions,
-  FullTagDescription, InfiniteQueryDefinition,
-  QueryDefinition
+  FullTagDescription,
+  QueryDefinition,
 } from '../endpointDefinitions'
 import type { Patch } from 'immer'
 import { isDraft } from 'immer'

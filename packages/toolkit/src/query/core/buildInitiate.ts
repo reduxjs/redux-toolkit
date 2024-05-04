@@ -119,7 +119,6 @@ export type InfiniteQueryActionCreatorResult<
   arg: QueryArgFrom<D>
   requestId: string
   subscriptionOptions: SubscriptionOptions | undefined
-  infiniteQueryOptions: InfiniteQueryConfigOptions | undefined
   abort(): void
   unwrap(): Promise<ResultTypeFrom<D>>
   unsubscribe(): void
