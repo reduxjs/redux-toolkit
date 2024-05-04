@@ -15,9 +15,9 @@ import type {
 import type { SubscriptionOptions, RootState, InfiniteQueryConfigOptions, InfiniteData } from './apiState'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import type { Api, ApiContext } from '../apiTypes'
-import type { ApiEndpointQuery } from './module'
+import type { ApiEndpointInfiniteQuery, ApiEndpointQuery } from './module'
 import type { BaseQueryError, QueryReturnValue } from '../baseQueryTypes'
-import type { QueryResultSelectorResult } from './buildSelectors'
+import type { InfiniteQueryResultSelectorResult, QueryResultSelectorResult } from './buildSelectors'
 import type { Dispatch } from 'redux'
 import { isNotNullish } from '../utils/isNotNullish'
 import { countObjectKeys } from '../utils/countObjectKeys'
@@ -85,7 +85,7 @@ type StartQueryActionCreator<
 // placeholder type which
 // may attempt to derive the list of args to query in pagination
 type StartInfiniteQueryActionCreator<
-  D extends QueryDefinition<any, any, any, any, any>
+  D extends InfiniteQueryDefinition<any, any, any, any, any>
 > = (
   arg: QueryArgFrom<D>,
   options?: StartInfiniteQueryActionCreatorOptions
@@ -106,8 +106,8 @@ export type QueryActionCreatorResult<
 }
 
 export type InfiniteQueryActionCreatorResult<
-  D extends QueryDefinition<any, any, any, any>
-> = Promise<QueryResultSelectorResult<D>> & {
+  D extends InfiniteQueryDefinition<any, any, any, any>
+> = Promise<InfiniteQueryResultSelectorResult<D>> & {
   arg: QueryArgFrom<D>
   requestId: string
   subscriptionOptions: SubscriptionOptions | undefined
@@ -115,11 +115,8 @@ export type InfiniteQueryActionCreatorResult<
   abort(): void
   unwrap(): Promise<ResultTypeFrom<D>>
   unsubscribe(): void
-  refetch(): QueryActionCreatorResult<D>
-  fetchNextPage(): QueryActionCreatorResult<D>
-  fetchPreviousPage(): QueryActionCreatorResult<D>
+  refetch(): InfiniteQueryActionCreatorResult<D>
   updateSubscriptionOptions(options: SubscriptionOptions): void
-  updateInfiniteQueryOptions(options: InfiniteQueryConfigOptions): void
   queryCacheKey: string
 }
 
@@ -256,7 +253,7 @@ export function buildInitiate({
 }) {
   const runningQueries: Map<
     Dispatch,
-    Record<string, QueryActionCreatorResult<any> | undefined>
+    Record<string, QueryActionCreatorResult<any> | InfiniteQueryActionCreatorResult<any> | undefined>
   > = new Map()
   const runningMutations: Map<
     Dispatch,
@@ -478,6 +475,7 @@ You must add the middleware for RTK-Query to function correctly!`,
           subscribe = true,
           forceRefetch,
           subscriptionOptions,
+          infiniteQueryOptions,
           [forceQueryFnSymbol]: forceQueryFn,
           direction,
           data = { pages: [], pageParams: [] },
@@ -491,7 +489,6 @@ You must add the middleware for RTK-Query to function correctly!`,
             endpointDefinition,
             endpointName,
           })
-
 
           const thunk = infiniteQueryThunk({
             type: 'query',
@@ -508,7 +505,7 @@ You must add the middleware for RTK-Query to function correctly!`,
             direction
           })
           const selector = (
-            api.endpoints[endpointName] as ApiEndpointQuery<any, any>
+            api.endpoints[endpointName] as ApiEndpointInfiniteQuery<any, any>
           ).select(arg)
 
           const thunkResult = dispatch(thunk)
@@ -524,7 +521,7 @@ You must add the middleware for RTK-Query to function correctly!`,
           const selectFromState = () => selector(getState())
 
           const statePromise: InfiniteQueryActionCreatorResult<any> = Object.assign(
-            forceQueryFn
+            (forceQueryFn
               ? // a query has been forced (upsertQueryData)
                 // -> we want to resolve it once data has been written with the data that will be written
               thunkResult.then(selectFromState)
@@ -534,11 +531,14 @@ You must add the middleware for RTK-Query to function correctly!`,
                 Promise.resolve(stateAfter)
                 : // query just started or one is already in flight
                   // -> wait for the running query, then resolve with data from after that
-                Promise.all([runningQuery, thunkResult]).then(selectFromState),
+                Promise.all([runningQuery, thunkResult]).then(
+                  selectFromState,
+                )) as SafePromise<any>,
             {
               arg,
               requestId,
               subscriptionOptions,
+              infiniteQueryOptions,
               queryCacheKey,
               abort,
               async unwrap() {
@@ -553,14 +553,6 @@ You must add the middleware for RTK-Query to function correctly!`,
               refetch: () =>
                 dispatch(
                   infiniteQueryAction(arg, { subscribe: false, forceRefetch: true })
-                ),
-              fetchNextPage: () =>
-                dispatch(
-                  infiniteQueryAction(arg, { subscribe: false, forceRefetch: true, direction: "forward"})
-                ),
-              fetchPreviousPage: () =>
-                dispatch(
-                  infiniteQueryAction(arg, {subscribe: false, forceRefetch: true, direction: "backwards"})
                 ),
               unsubscribe() {
                 if (subscribe)
