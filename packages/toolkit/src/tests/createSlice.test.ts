@@ -1120,6 +1120,26 @@ describe('createSlice', () => {
         'loader/addLoader/started',
       )
     })
+    test('error is thrown if there is name overlap between creators', () => {
+      const createAppSlice = buildCreateSlice({
+        creators: {
+          loader: loaderCreator,
+        },
+      })
+      expect(() =>
+        createAppSlice({
+          name: 'loader',
+          initialState: {} as Partial<Record<string, true>>,
+          // @ts-expect-error name overlap
+          creators: { loader: loaderCreator },
+          reducers: (create) => ({
+            addLoader: create.loader({}),
+          }),
+        }),
+      ).toThrowErrorMatchingInlineSnapshot(
+        `[Error: A creator with the name loader has already been provided to buildCreateSlice]`,
+      )
+    })
   })
 })
 
