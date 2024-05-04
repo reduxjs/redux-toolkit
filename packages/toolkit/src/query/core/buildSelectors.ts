@@ -7,7 +7,7 @@ import type {
   RequestStatusFlags,
   QueryCacheKey,
   QueryKeys,
-  QueryState,
+  QueryState, InfiniteQuerySubState
 } from './apiState'
 import { QueryStatus, getRequestStatusFlags } from './apiState'
 import type {
@@ -64,6 +64,20 @@ declare module './module' {
     >
   }
 
+  export interface ApiEndpointInfiniteQuery<
+    Definition extends InfiniteQueryDefinition<any, any, any, any, any>,
+    Definitions extends EndpointDefinitions,
+  > {
+    select: InfiniteQueryResultSelectorFactory<
+      Definition,
+      _RootState<
+        Definitions,
+        TagTypesFrom<Definition>,
+        ReducerPathFrom<Definition>
+      >
+    >
+  }
+
   export interface ApiEndpointMutation<
     Definition extends MutationDefinition<any, any, any, any, any>,
     Definitions extends EndpointDefinitions,
@@ -89,6 +103,17 @@ type QueryResultSelectorFactory<
 export type QueryResultSelectorResult<
   Definition extends QueryDefinition<any, any, any, any>,
 > = QuerySubState<Definition> & RequestStatusFlags
+
+type InfiniteQueryResultSelectorFactory<
+  Definition extends InfiniteQueryDefinition<any, any, any, any>,
+  RootState,
+> = (
+  queryArg: QueryArgFrom<Definition> | SkipToken,
+) => (state: RootState) => InfiniteQueryResultSelectorResult<Definition>
+
+export type InfiniteQueryResultSelectorResult<
+  Definition extends InfiniteQueryDefinition<any, any, any, any>,
+> = InfiniteQuerySubState<Definition> & RequestStatusFlags
 
 type MutationResultSelectorFactory<
   Definition extends MutationDefinition<any, any, any, any>,
