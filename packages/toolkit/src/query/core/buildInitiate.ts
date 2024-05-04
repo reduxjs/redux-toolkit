@@ -68,7 +68,7 @@ export type StartQueryActionCreatorOptions = {
   [forceQueryFnSymbol]?: () => QueryReturnValue
 }
 
-export interface StartInfiniteQueryActionCreatorOptions {
+export type StartInfiniteQueryActionCreatorOptions = {
   subscribe?: boolean
   forceRefetch?: boolean | number
   subscriptionOptions?: SubscriptionOptions
