@@ -72,6 +72,7 @@ export { createApi, coreModule, coreModuleName } from './core'
 export type {
   ApiEndpointMutation,
   ApiEndpointQuery,
+  ApiEndpointInfiniteQuery,
   ApiModules,
   CoreModule,
   PrefetchOptions,
