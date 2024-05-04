@@ -432,8 +432,6 @@ export function buildThunks<
           param: unknown,
           previous?: boolean,
         ): Promise<QueryReturnValue> => {
-          console.log('fetchPage', data, param, previous)
-
           if (param == null && data.pages.length) {
             return Promise.resolve({ data })
           }

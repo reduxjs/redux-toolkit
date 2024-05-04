@@ -40,7 +40,6 @@ import type {
   DefinitionType,
   EndpointDefinitions,
   FullTagDescription,
-  InfiniteQueryDefinition,
   QueryArgFrom,
   QueryDefinition,
   ResultTypeFrom,
