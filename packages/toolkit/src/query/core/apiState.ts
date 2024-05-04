@@ -191,6 +191,13 @@ type BaseQuerySubState<D extends BaseEndpointDefinition<any, any, any>> = {
    * Time that the latest query was fulfilled
    */
   fulfilledTimeStamp?: number
+  /**
+   * Infinite Query Specific substate properties
+   */
+  hasNextPage?: boolean
+  hasPreviousPage?: boolean
+  direction?: 'forward' | 'backwards'
+  param?: QueryArgFrom<D>
 }
 
 export type QuerySubState<D extends BaseEndpointDefinition<any, any, any>> = Id<
@@ -217,6 +224,15 @@ export type QuerySubState<D extends BaseEndpointDefinition<any, any, any>> = Id<
       fulfilledTimeStamp?: undefined
     }
 >
+
+export type InfiniteQuerySubState<D extends BaseEndpointDefinition<any, any, any>> = QuerySubState<D> & {
+  hasNextPage: boolean
+  hasPreviousPage: boolean
+  isFetchingNextPage: boolean
+  isFetchingPreviousPage: boolean
+  param?: QueryArgFrom<D>
+  direction?: 'forward' | 'backwards'
+}
 
 type BaseMutationSubState<D extends BaseEndpointDefinition<any, any, any>> = {
   requestId: string
@@ -274,7 +290,7 @@ export type InvalidationState<TagTypes extends string> = {
 }
 
 export type QueryState<D extends EndpointDefinitions> = {
-  [queryCacheKey: string]: QuerySubState<D[string]> | undefined
+  [queryCacheKey: string]: QuerySubState<D[string]> | InfiniteQuerySubState<D[string]> | undefined
 }
 
 export type SubscriptionState = {
