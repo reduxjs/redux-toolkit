@@ -383,7 +383,9 @@ declare module '../apiTypes' {
           ? ApiEndpointQuery<Definitions[K], Definitions>
           : Definitions[K] extends MutationDefinition<any, any, any, any, any>
             ? ApiEndpointMutation<Definitions[K], Definitions>
-            : never
+            : Definitions[K] extends InfiniteQueryDefinition<any, any, any, any, any>
+              ? ApiEndpointInfiniteQuery<Definitions[K], Definitions>
+              : never;
       }
     }
   }
