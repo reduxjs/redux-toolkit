@@ -12,6 +12,7 @@ import type {
 import { expandTagDescription } from '../endpointDefinitions'
 import { flatten } from '../utils'
 import type {
+  InfiniteQuerySubState,
   MutationSubState,
   QueryCacheKey,
   QueryKeys,
@@ -64,6 +65,20 @@ export type BuildSelectorsApiEndpointQuery<
   >
 }
 
+export type ApiEndpointInfiniteQuery<
+  Definition extends InfiniteQueryDefinition<any, any, any, any, any>,
+  Definitions extends EndpointDefinitions,
+> = {
+  select: InfiniteQueryResultSelectorFactory<
+    Definition,
+    _RootState<
+      Definitions,
+      TagTypesFrom<Definition>,
+      ReducerPathFrom<Definition>
+    >
+  >
+}
+
 export type BuildSelectorsApiEndpointMutation<
   Definition extends MutationDefinition<any, any, any, any, any>,
   Definitions extends EndpointDefinitions,
@@ -88,6 +103,17 @@ type QueryResultSelectorFactory<
 export type QueryResultSelectorResult<
   Definition extends QueryDefinition<any, any, any, any>,
 > = QuerySubState<Definition> & RequestStatusFlags
+
+type InfiniteQueryResultSelectorFactory<
+  Definition extends InfiniteQueryDefinition<any, any, any, any>,
+  RootState,
+> = (
+  queryArg: QueryArgFrom<Definition> | SkipToken,
+) => (state: RootState) => InfiniteQueryResultSelectorResult<Definition>
+
+export type InfiniteQueryResultSelectorResult<
+  Definition extends InfiniteQueryDefinition<any, any, any, any>,
+> = InfiniteQuerySubState<Definition> & RequestStatusFlags
 
 type MutationResultSelectorFactory<
   Definition extends MutationDefinition<any, any, any, any>,
