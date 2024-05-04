@@ -16,12 +16,13 @@ jobs:
       codegen: ${{ steps.filter.outputs.codegen }}
     steps:
       - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v2
+      - uses: dorny/paths-filter@v3
         id: filter
         with:
           filters: |
             codegen:
               - 'packages/rtk-query-codegen-openapi/**'
+              - 'yarn.lock'
 
   build:
     needs: changes
@@ -36,7 +37,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
           cache: 'yarn'
