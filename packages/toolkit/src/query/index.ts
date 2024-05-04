@@ -76,6 +76,7 @@ export type {
 export type {
   ApiEndpointMutation,
   ApiEndpointQuery,
+  ApiEndpointInfiniteQuery,
   ApiModules,
   CoreModule,
   PrefetchOptions,
