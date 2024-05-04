@@ -1,8 +1,8 @@
 import type {
   Action,
-  AsyncThunkAction,
   Middleware,
   MiddlewareAPI,
+  ThunkAction,
   ThunkDispatch,
   UnknownAction,
 } from '@reduxjs/toolkit'
@@ -64,9 +64,7 @@ export interface BuildSubMiddlewareInput
       QuerySubState<any>,
       { status: QueryStatus.uninitialized }
     >,
-    queryCacheKey: string,
-    override?: Partial<QueryThunkArg>,
-  ): AsyncThunkAction<ThunkResult, QueryThunkArg, {}>
+  ): ThunkAction<unknown, unknown, unknown, UnknownAction>
   isThisApiSliceAction: (action: Action) => boolean
 }
 
