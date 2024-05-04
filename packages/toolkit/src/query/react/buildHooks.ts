@@ -54,7 +54,8 @@ import { useShallowStableValue } from './useShallowStableValue'
 import type { InfiniteQueryDefinition } from '@internal/query/endpointDefinitions'
 import type { ApiEndpointInfiniteQuery } from '@internal/query/core/module'
 import type { InfiniteQueryActionCreatorResult } from '@internal/query/core/buildInitiate'
-import { InfiniteQueryConfigOptions } from '@internal/query/core/apiState'
+import type { InfiniteData, InfiniteQueryConfigOptions } from '@internal/query/core/apiState'
+import type { InfiniteQueryResultSelectorResult } from '@internal/query/core/buildSelectors'
 
 // Copy-pasted from React-Redux
 export const useIsomorphicLayoutEffect =
@@ -515,6 +516,34 @@ type UseQueryStateDefaultResult<D extends QueryDefinition<any, any, any, any>> =
     status: QueryStatus
   }
 
+export type LazyInfiniteQueryTrigger<D extends InfiniteQueryDefinition<any, any, any, any>> = {
+  /**
+   * Triggers a lazy query.
+   *
+   * By default, this will start a new request even if there is already a value in the cache.
+   * If you want to use the cache value and only start a request if there is no cache value, set the second argument to `true`.
+   *
+   * @remarks
+   * If you need to access the error or success payload immediately after a lazy query, you can chain .unwrap().
+   *
+   * @example
+   * ```ts
+   * // codeblock-meta title="Using .unwrap with async await"
+   * try {
+   *   const payload = await getUserById(1).unwrap();
+   *   console.log('fulfilled', payload)
+   * } catch (error) {
+   *   console.error('rejected', error);
+   * }
+   * ```
+   */
+  (
+    arg: QueryArgFrom<D>,
+    data: InfiniteData<any>,
+    direction: 'forward' | 'backwards',
+  ): InfiniteQueryActionCreatorResult<D>
+}
+
 interface UseInfiniteQuerySubscriptionOptions extends SubscriptionOptions {
   /**
    * Prevents a query from automatically running.
@@ -570,7 +599,7 @@ export type TypedUseInfiniteQuerySubscription<
 
 export type UseInfiniteQuerySubscriptionResult<
   D extends InfiniteQueryDefinition<any, any, any, any>,
-> = Pick<InfiniteQueryActionCreatorResult<D>, 'refetch'>
+> = LazyInfiniteQueryTrigger<D>
 
 /**
  * Helper type to manually type the result
@@ -593,7 +622,7 @@ export type UseInfiniteQuery<D extends InfiniteQueryDefinition<any, any, any, an
   R extends Record<string, any> = UseInfiniteQueryStateDefaultResult<D>,
 >(
   arg: QueryArgFrom<D> | SkipToken,
-  options?: UseInfiniteQuerySubscriptionOptions & UseInfiniteQueryStateOptions<D, R> & InfiniteQueryConfigOptions,
+  options?: UseInfiniteQuerySubscriptionOptions & UseInfiniteQueryStateOptions<D, R> & InfiniteQueryConfigOptions<ResultTypeFrom<D>, QueryArgFrom<D>>,
 ) => UseInfiniteQueryHookResult<D, R>
 
 
@@ -618,13 +647,13 @@ export type UseInfiniteQuerySubscription<
 > = (
   arg: QueryArgFrom<D> | SkipToken,
   options?: UseInfiniteQuerySubscriptionOptions,
-) => UseInfiniteQuerySubscriptionResult<D>
+) => readonly [LazyInfiniteQueryTrigger<D>, QueryArgFrom<D> | UninitializedValue]
 
 
 export type UseInfiniteQueryHookResult<
   D extends InfiniteQueryDefinition<any, any, any, any>,
   R = UseInfiniteQueryStateDefaultResult<D>,
-> = UseInfiniteQueryStateResult<D, R> & UseInfiniteQuerySubscriptionResult<D>
+> = UseInfiniteQueryStateResult<D, R>
 
 
 export type UseInfiniteQueryStateOptions<
@@ -695,6 +724,8 @@ export type UseInfiniteQueryStateOptions<
    * ```
    */
   selectFromResult?: InfiniteQueryStateSelector<R, D>
+  // TODO: This shouldn't be any
+  trigger?: any,
 }
 
 export type UseInfiniteQueryStateResult<
@@ -984,6 +1015,64 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       isLoading,
       isSuccess,
     } as UseQueryStateDefaultResult<any>
+  }
+
+  function infiniteQueryStatePreSelector(
+    currentState: InfiniteQueryResultSelectorResult<any>,
+    lastResult: UseInfiniteQueryStateDefaultResult<any> | undefined,
+    queryArgs: any,
+  ): UseInfiniteQueryStateDefaultResult<any> {
+    // if we had a last result and the current result is uninitialized,
+    // we might have called `api.util.resetApiState`
+    // in this case, reset the hook
+    if (lastResult?.endpointName && currentState.isUninitialized) {
+      const { endpointName } = lastResult
+      const endpointDefinition = context.endpointDefinitions[endpointName]
+      if (
+        serializeQueryArgs({
+          queryArgs: lastResult.originalArgs,
+          endpointDefinition,
+          endpointName,
+        }) ===
+        serializeQueryArgs({
+          queryArgs,
+          endpointDefinition,
+          endpointName,
+        })
+      )
+        lastResult = undefined
+    }
+
+    // data is the last known good request result we have tracked - or if none has been tracked yet the last good result for the current args
+    let data = currentState.isSuccess ? currentState.data : lastResult?.data
+    if (data === undefined) data = currentState.data
+
+    const hasData = data !== undefined
+
+    // isFetching = true any time a request is in flight
+    const isFetching = currentState.isLoading
+    // isLoading = true only when loading while no data is present yet (initial load with no data in the cache)
+    const isLoading = !hasData && isFetching
+    // isSuccess = true when data is present
+    const isSuccess = currentState.isSuccess || (isFetching && hasData)
+
+    const isFetchingNextPage =
+      isFetching && currentState.direction === 'forward'
+
+    const isFetchingPreviousPage =
+      isFetching && currentState.direction === 'backwards'
+
+
+    return {
+      ...currentState,
+      data,
+      currentData: currentState.data,
+      isFetching,
+      isLoading,
+      isSuccess,
+      isFetchingNextPage,
+      isFetchingPreviousPage,
+    } as UseInfiniteQueryStateDefaultResult<any>
   }
 
   function usePrefetch<EndpointName extends QueryKeys<Definitions>>(
@@ -1371,7 +1460,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         skipPollingIfUnfocused = false,
       } = {},
     ) => {
-      const { initiate } = api.endpoints[name] as unknown as ApiEndpointInfiniteQuery<
+      const { initiate } = api.endpoints[name] as ApiEndpointInfiniteQuery<
         InfiniteQueryDefinition<any, any, any, any, any>,
         Definitions
       >
@@ -1417,7 +1506,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
       const lastRenderHadSubscription = useRef(false)
 
-      const promiseRef = useRef<QueryActionCreatorResult<any>>()
+      const promiseRef = useRef<InfiniteQueryActionCreatorResult<any>>()
 
       let { queryCacheKey, requestId } = promiseRef.current || {}
 
@@ -1485,6 +1574,35 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         subscriptionRemoved,
       ])
 
+      const subscriptionOptionsRef = useRef(stableSubscriptionOptions)
+      usePossiblyImmediateEffect(() => {
+        subscriptionOptionsRef.current = stableSubscriptionOptions
+      }, [stableSubscriptionOptions])
+
+      const trigger = useCallback(
+        function (arg: any, data: InfiniteData<any>, direction: 'forward' | 'backwards') {
+          let promise: InfiniteQueryActionCreatorResult<any>
+
+          batch(() => {
+            promiseRef.current?.unsubscribe()
+
+            promiseRef.current = promise = dispatch(
+              initiate(arg, {
+                data: data,
+                subscriptionOptions: subscriptionOptionsRef.current,
+                direction,
+              }),
+            )
+
+            // setArg(arg)
+          })
+
+          return promise!
+        },
+        [dispatch, initiate],
+      )
+
+
       useEffect(() => {
         return () => {
           promiseRef.current?.unsubscribe()
@@ -1492,30 +1610,16 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         }
       }, [])
 
-      return useMemo(
-        () => ({
-          /**
-           * A method to manually refetch data for the query
-           */
-          refetch: () => {
-            if (!promiseRef.current)
-              throw new Error(
-                'Cannot refetch a query that has not been started yet.',
-              )
-            return promiseRef.current?.refetch()
-          },
-        }),
-        [],
-      )
+      return useMemo(() => [trigger, arg] as const, [trigger, arg])
     }
 
     const useInfiniteQueryState: UseInfiniteQueryState<any> = (
       arg: any,
       {getNextPageParam, getPreviousPageParam},
-      { skip = false, selectFromResult } = {},
+      { skip = false, selectFromResult , trigger} = {},
     ) => {
-      const { select } = api.endpoints[name] as ApiEndpointQuery<
-        QueryDefinition<any, any, any, any, any>,
+      const { select, initiate } = api.endpoints[name] as ApiEndpointInfiniteQuery<
+        InfiniteQueryDefinition<any, any, any, any, any>,
         Definitions
       >
       const stableArg = useStableQueryArgs(
@@ -1537,14 +1641,14 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
               (_: ApiRootState, lastResult: any) => lastResult,
               (_: ApiRootState) => stableArg,
             ],
-            queryStatePreSelector,
+            infiniteQueryStatePreSelector,
             {
               memoizeOptions: {
                 resultEqualityCheck: shallowEqual,
               },
             },
           ),
-        [select, stableArg],
+        [select, stableArg, trigger],
       )
 
       const querySelector: Selector<ApiRootState, any, [any]> = useMemo(
@@ -1579,14 +1683,18 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       useInfiniteQueryState,
       useInfiniteQuerySubscription,
       useInfiniteQuery(arg, options) {
-        const querySubscriptionResults = useInfiniteQuerySubscription(arg, options)
-        const queryStateResults = useInfiniteQueryState(arg, {getNextPageParam: options?.getNextPageParam, getPreviousPageParam: options?.getPreviousPageParam},{
+        const [trigger] = useInfiniteQuerySubscription(arg, options)
+        const queryStateResults = useInfiniteQueryState(arg, {getNextPageParam: options?.getNextPageParam!, getPreviousPageParam: options?.getPreviousPageParam},{
           selectFromResult:
             arg === skipToken || options?.skip
               ? undefined
               : noPendingQueryStateSelector,
+          trigger,
           ...options,
         })
+
+        const info = useMemo(() => ({ lastArg: arg }), [arg])
+
 
         const {
           data,
@@ -1597,8 +1705,6 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           error,
           hasNextPage,
           hasPreviousPage,
-          isFetchingNextPage,
-          isFetchingPreviousPage
         } =
           queryStateResults
         useDebugValue({
@@ -1610,13 +1716,21 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           error,
           hasNextPage,
           hasPreviousPage,
-          isFetchingNextPage,
-          isFetchingPreviousPage
         })
 
+        const fetchNextPage = useCallback(() => {
+          // if (!hasNextPage) return
+          return trigger(arg,queryStateResults.data, 'forward')
+        }, [trigger, hasNextPage, queryStateResults.data])
+
+        const fetchPreviousPage = useCallback(() => {
+          if (!hasPreviousPage) return
+          return trigger(arg, queryStateResults.data, 'backwards')
+        }, [trigger, hasPreviousPage, queryStateResults.data])
+
         return useMemo(
-          () => ({ ...queryStateResults, ...querySubscriptionResults }),
-          [queryStateResults, querySubscriptionResults],
+          () => ({ ...queryStateResults, fetchNextPage, fetchPreviousPage }),
+          [queryStateResults, fetchNextPage, fetchPreviousPage],
         )
       }
     }
