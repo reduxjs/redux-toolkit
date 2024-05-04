@@ -27,6 +27,7 @@ import type {
 import { calculateProvidedBy, isQueryDefinition } from '../endpointDefinitions'
 import { HandledError } from '../HandledError'
 import type { UnwrapPromise } from '../tsHelpers'
+import type { InfiniteQueryDefinition } from '@internal/query/endpointDefinitions'
 import type {
   RootState,
   QueryKeys,
@@ -37,6 +38,7 @@ import type {
 import { QueryStatus } from './apiState'
 import type {
   QueryActionCreatorResult,
+  StartInfiniteQueryActionCreatorOptions,
   StartQueryActionCreatorOptions,
 } from './buildInitiate'
 import { forceQueryFnSymbol, isUpsertQuery } from './buildInitiate'
@@ -53,6 +55,12 @@ import {
 
 export type BuildThunksApiEndpointQuery<
   Definition extends QueryDefinition<any, any, any, any, any>,
+> = Matchers<QueryThunk, Definition>
+
+export type ApiEndpointInfiniteQuery<
+  Definition extends InfiniteQueryDefinition<any, any, any, any, any>,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  Definitions extends EndpointDefinitions,
 > = Matchers<QueryThunk, Definition>
 
 export type BuildThunksApiEndpointMutation<
@@ -111,17 +119,16 @@ export type QueryThunkArg = QuerySubstateIdentifier &
     endpointName: string
   }
 
-export interface InfiniteQueryThunkArg
-  extends QuerySubstateIdentifier,
-    StartInfiniteQueryActionCreatorOptions {
-  type: `query`
-  originalArgs: unknown
-  endpointName: string
-  data: InfiniteData<unknown>
-  param: unknown
-  previous?: boolean
-  direction?: 'forward' | 'backwards'
-}
+export type InfiniteQueryThunkArg = QuerySubstateIdentifier &
+  StartInfiniteQueryActionCreatorOptions & {
+    type: `query`
+    originalArgs: unknown
+    endpointName: string
+    data: InfiniteData<unknown>
+    param: unknown
+    previous?: boolean
+    direction?: 'forward' | 'backwards'
+  }
 
 type MutationThunkArg = {
   type: 'mutation'
@@ -417,8 +424,6 @@ export function buildThunks<
       if (forceQueryFn) {
         result = forceQueryFn()
       } else if (endpointDefinition.query) {
-        //TODO: these will come from the hook/initiate/middleware?
-        let pages: number
         const oldPages: any[] = []
         const oldPageParams: any[] = []
 
@@ -434,7 +439,7 @@ export function buildThunks<
           }
 
           const page = await baseQuery(
-            endpointDefinition.query(arg.originalArgs),
+            endpointDefinition.query(param),
             baseQueryApi,
             endpointDefinition.extraOptions as any,
           )
@@ -451,7 +456,7 @@ export function buildThunks<
         }
 
         if ('infiniteQueryOptions' in endpointDefinition) {
-          if (arg.direction && arg.data.pages.length) {
+          if ('direction' in arg && arg.direction && arg.data.pages.length) {
             const previous = arg.direction === 'backwards'
             const pageParamFn = previous
               ? getPreviousPageParam
@@ -476,6 +481,7 @@ export function buildThunks<
 
             // Fetch remaining pages
             for (let i = 1; i < remainingPages; i++) {
+              // @ts-ignore
               const param = getNextPageParam(
                 arg.infiniteQueryOptions,
                 result.data as InfiniteData<unknown>,
@@ -709,8 +715,13 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
     InfiniteQueryThunkArg,
     ThunkApiMetaConfig & { state: RootState<any, string, ReducerPath> }
   >(`${reducerPath}/executeQuery`, executeEndpoint, {
-    getPendingMeta() {
-      return { startedTimeStamp: Date.now(), [SHOULD_AUTOBATCH]: true }
+    getPendingMeta(queryThunkArgs) {
+      return {
+        startedTimeStamp: Date.now(),
+        [SHOULD_AUTOBATCH]: true,
+        direction: queryThunkArgs.arg.direction,
+        data: queryThunkArgs.arg.data,
+      }
     },
     condition(queryThunkArgs, { getState }) {
       const state = getState()
@@ -722,6 +733,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
       const previousArg = requestState?.originalArgs
       const endpointDefinition =
         endpointDefinitions[queryThunkArgs.endpointName]
+      const direction = queryThunkArgs.direction
 
       // Order of these checks matters.
       // In order for `upsertQueryData` to successfully run while an existing request is in flight,
@@ -753,7 +765,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
       }
 
       // Pull from the cache unless we explicitly force refetch or qualify based on time
-      if (fulfilledVal) {
+      if (fulfilledVal && !direction) {
         // Value is cached and we didn't specify to refresh, skip it.
         return false
       }
