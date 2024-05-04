@@ -24,6 +24,7 @@ import type {
   SubscriptionState,
   ConfigState,
   QueryKeys,
+  InfiniteQuerySubState,
 } from './apiState'
 import { QueryStatus } from './apiState'
 import type {
@@ -106,7 +107,7 @@ export type UpsertEntries<Definitions extends EndpointDefinitions> = (<
 function updateQuerySubstateIfExists(
   state: QueryState<any>,
   queryCacheKey: QueryCacheKey,
-  update: (substate: QuerySubState<any>) => void,
+  update: (substate: QuerySubState<any> | InfiniteQuerySubState<any>) => void,
 ) {
   const substate = state[queryCacheKey]
   if (substate) {
@@ -204,6 +205,17 @@ export function buildSlice({
         substate.originalArgs = arg.originalArgs
       }
       substate.startedTimeStamp = meta.startedTimeStamp
+
+      // TODO: Awful - fix this most likely by just moving it to its own slice that only works on InfQuery's
+      if ('param' in substate && 'direction' in substate) {
+        if ('param' in arg && 'direction' in arg) {
+          substate.param = arg.param
+          substate.direction = arg.direction as
+            | 'forward'
+            | 'backwards'
+            | undefined
+        }
+      }
     })
   }
 
