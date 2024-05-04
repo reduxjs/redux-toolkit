@@ -25,14 +25,17 @@ import type {
   InfiniteQueryConfigOptions,
   InfiniteData,
 } from './apiState'
-import type { QueryResultSelectorResult } from './buildSelectors'
+import type {
+  InfiniteQueryResultSelectorResult,
+  QueryResultSelectorResult,
+} from './buildSelectors'
 import type {
   InfiniteQueryThunk,
   MutationThunk,
   QueryThunk,
   QueryThunkArg,
 } from './buildThunks'
-import type { ApiEndpointQuery } from './module'
+import type { ApiEndpointInfiniteQuery, ApiEndpointQuery } from './module'
 
 export type BuildInitiateApiEndpointQuery<
   Definition extends QueryDefinition<any, any, any, any, any>,
@@ -112,7 +115,7 @@ export type QueryActionCreatorResult<
 
 export type InfiniteQueryActionCreatorResult<
   D extends InfiniteQueryDefinition<any, any, any, any>,
-> = Promise<QueryResultSelectorResult<D>> & {
+> = Promise<InfiniteQueryResultSelectorResult<D>> & {
   arg: QueryArgFrom<D>
   requestId: string
   subscriptionOptions: SubscriptionOptions | undefined
@@ -120,11 +123,8 @@ export type InfiniteQueryActionCreatorResult<
   abort(): void
   unwrap(): Promise<ResultTypeFrom<D>>
   unsubscribe(): void
-  refetch(): QueryActionCreatorResult<D>
-  fetchNextPage(): QueryActionCreatorResult<D>
-  fetchPreviousPage(): QueryActionCreatorResult<D>
+  refetch(): InfiniteQueryActionCreatorResult<D>
   updateSubscriptionOptions(options: SubscriptionOptions): void
-  updateInfiniteQueryOptions(options: InfiniteQueryConfigOptions): void
   queryCacheKey: string
 }
 
@@ -265,7 +265,12 @@ export function buildInitiate({
 }) {
   const runningQueries: Map<
     Dispatch,
-    Record<string, QueryActionCreatorResult<any> | undefined>
+    Record<
+      string,
+      | QueryActionCreatorResult<any>
+      | InfiniteQueryActionCreatorResult<any>
+      | undefined
+    >
   > = new Map()
   const runningMutations: Map<
     Dispatch,
@@ -486,6 +491,7 @@ You must add the middleware for RTK-Query to function correctly!`,
           subscribe = true,
           forceRefetch,
           subscriptionOptions,
+          infiniteQueryOptions,
           [forceQueryFnSymbol]: forceQueryFn,
           direction,
           data = { pages: [], pageParams: [] },
@@ -515,7 +521,7 @@ You must add the middleware for RTK-Query to function correctly!`,
           direction,
         })
         const selector = (
-          api.endpoints[endpointName] as ApiEndpointQuery<any, any>
+          api.endpoints[endpointName] as ApiEndpointInfiniteQuery<any, any>
         ).select(arg)
 
         const thunkResult = dispatch(thunk)
@@ -532,7 +538,7 @@ You must add the middleware for RTK-Query to function correctly!`,
 
         const statePromise: InfiniteQueryActionCreatorResult<any> =
           Object.assign(
-            forceQueryFn
+            (forceQueryFn
               ? // a query has been forced (upsertQueryData)
                 // -> we want to resolve it once data has been written with the data that will be written
                 thunkResult.then(selectFromState)
@@ -544,11 +550,12 @@ You must add the middleware for RTK-Query to function correctly!`,
                   // -> wait for the running query, then resolve with data from after that
                   Promise.all([runningQuery, thunkResult]).then(
                     selectFromState,
-                  ),
+                  )) as SafePromise<any>,
             {
               arg,
               requestId,
               subscriptionOptions,
+              infiniteQueryOptions,
               queryCacheKey,
               abort,
               async unwrap() {
@@ -565,22 +572,6 @@ You must add the middleware for RTK-Query to function correctly!`,
                   infiniteQueryAction(arg, {
                     subscribe: false,
                     forceRefetch: true,
-                  }),
-                ),
-              fetchNextPage: () =>
-                dispatch(
-                  infiniteQueryAction(arg, {
-                    subscribe: false,
-                    forceRefetch: true,
-                    direction: 'forward',
-                  }),
-                ),
-              fetchPreviousPage: () =>
-                dispatch(
-                  infiniteQueryAction(arg, {
-                    subscribe: false,
-                    forceRefetch: true,
-                    direction: 'backwards',
                   }),
                 ),
               unsubscribe() {
