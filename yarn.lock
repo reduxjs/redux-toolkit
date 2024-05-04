@@ -5444,9 +5444,8 @@ __metadata:
     msw: "npm:^0.40.2"
     react: "npm:^18.1.0"
     react-dom: "npm:^18.1.0"
-    react-icons: "npm:3.11.0"
+    react-icons: "npm:^5.0.1"
     react-redux: "npm:^9.1.0"
-    react-router-dom: "npm:6.3.0"
     react-scripts: "npm:5.0.1"
     typescript: "npm:~4.9"
   languageName: unknown
@@ -24161,6 +24160,15 @@ __metadata:
   peerDependencies:
     react: "*"
   checksum: 10/dd3b0a458f0cfba1e0fab0b97b102c791b91a2a16fbd3a66d350bfc203f972452ec6f843834692c28f93cf540828d7521dc012ae54339343e55d31bad0ba65b4
+  languageName: node
+  linkType: hard
+
+"react-icons@npm:^5.0.1":
+  version: 5.0.1
+  resolution: "react-icons@npm:5.0.1"
+  peerDependencies:
+    react: "*"
+  checksum: 10/c4458c643ae32a793ddebc5fa1235c7ec051be1b131205510e8199d15a4c89221a501f95a71fa21c2da93e8dd225290e2e24bb80abd3fb85801e43009e692098
   languageName: node
   linkType: hard
 
