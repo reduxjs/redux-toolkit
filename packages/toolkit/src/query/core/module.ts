@@ -15,15 +15,16 @@ import type {
   ThunkDispatch,
   UnknownAction,
 } from '@reduxjs/toolkit'
-import {
+import type {
   EndpointDefinitions,
   QueryArgFrom,
   QueryDefinition,
   MutationDefinition,
   AssertTagTypes,
-  TagDescription, isInfiniteQueryDefinition, InfiniteQueryDefinition
+  TagDescription,
+  InfiniteQueryDefinition
 } from '../endpointDefinitions'
-import { isQueryDefinition, isMutationDefinition } from '../endpointDefinitions'
+import { isQueryDefinition, isMutationDefinition, isInfiniteQueryDefinition } from '../endpointDefinitions'
 import type {
   CombinedState,
   QueryKeys,
