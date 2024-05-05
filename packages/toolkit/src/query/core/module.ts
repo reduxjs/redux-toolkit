@@ -39,6 +39,7 @@ import { buildSelectors } from './buildSelectors'
 import type {
   MutationActionCreatorResult,
   QueryActionCreatorResult,
+  InfiniteQueryActionCreatorResult
 } from './buildInitiate'
 import { buildInitiate } from './buildInitiate'
 import { assertCast, safeAssign } from '../tsHelpers'
@@ -159,6 +160,7 @@ declare module '../apiTypes' {
           | QueryActionCreatorResult<
               Definitions[EndpointName] & { type: 'query' }
             >
+          | InfiniteQueryActionCreatorResult<Definitions[EndpointName] & {type: 'infinitequery'}>
           | undefined
         >
 
@@ -191,7 +193,7 @@ declare module '../apiTypes' {
          * See https://redux-toolkit.js.org/rtk-query/usage/server-side-rendering for details.
          */
         getRunningQueriesThunk(): ThunkWithReturnValue<
-          Array<QueryActionCreatorResult<any>>
+          Array<QueryActionCreatorResult<any> | InfiniteQueryActionCreatorResult<any>>
         >
 
         /**
@@ -561,6 +563,7 @@ export const coreModule = ({
       context,
       queryThunk,
       mutationThunk,
+      infiniteQueryThunk,
       api,
       assertTagType,
     })

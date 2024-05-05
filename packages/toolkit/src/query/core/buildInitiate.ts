@@ -284,6 +284,7 @@ export function buildInitiate({
       })
       return runningQueries.get(dispatch)?.[queryCacheKey] as
         | QueryActionCreatorResult<never>
+        | InfiniteQueryActionCreatorResult<never>
         | undefined
     }
   }
