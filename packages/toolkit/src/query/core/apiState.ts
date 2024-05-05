@@ -229,10 +229,11 @@ export type QuerySubState<D extends BaseEndpointDefinition<any, any, any>> = Id<
 >
 
 export type InfiniteQuerySubState<D extends BaseEndpointDefinition<any, any, any>> = QuerySubState<D> & {
-  hasNextPage: boolean
-  hasPreviousPage: boolean
-  isFetchingNextPage: boolean
-  isFetchingPreviousPage: boolean
+  // TODO: These shouldn't be optional
+  hasNextPage?: boolean
+  hasPreviousPage?: boolean
+  isFetchingNextPage?: boolean
+  isFetchingPreviousPage?: boolean
   param?: QueryArgFrom<D>
   direction?: 'forward' | 'backwards'
 }
