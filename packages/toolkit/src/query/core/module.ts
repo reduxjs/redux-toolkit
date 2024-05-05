@@ -39,6 +39,7 @@ import type {
   BuildInitiateApiEndpointQuery,
   MutationActionCreatorResult,
   QueryActionCreatorResult,
+  InfiniteQueryActionCreatorResult,
 } from './buildInitiate'
 import { buildInitiate } from './buildInitiate'
 import type {
@@ -170,6 +171,9 @@ export interface ApiModules<
         | QueryActionCreatorResult<
             Definitions[EndpointName] & { type: 'query' }
           >
+        | InfiniteQueryActionCreatorResult<
+            Definitions[EndpointName] & { type: 'infinitequery' }
+          >
         | undefined
       >
 
@@ -202,7 +206,9 @@ export interface ApiModules<
        * See https://redux-toolkit.js.org/rtk-query/usage/server-side-rendering for details.
        */
       getRunningQueriesThunk(): ThunkWithReturnValue<
-        Array<QueryActionCreatorResult<any>>
+        Array<
+          QueryActionCreatorResult<any> | InfiniteQueryActionCreatorResult<any>
+        >
       >
 
       /**
@@ -586,6 +592,7 @@ export const coreModule = ({
       context,
       queryThunk,
       mutationThunk,
+      infiniteQueryThunk,
       api,
       assertTagType,
     })
