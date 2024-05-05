@@ -230,7 +230,7 @@ export function buildSelectors<
         queryArgs === skipToken ? selectSkippedQuery : selectQuerySubstate
 
       return createSelector(finalSelectQuerySubState, withRequestFlags)
-    }) as QueryResultSelectorFactory<any, RootState>
+    }) as InfiniteQueryResultSelectorFactory<any, RootState>
   }
 
   function buildMutationSelector() {
