@@ -119,6 +119,8 @@ export type EndpointMatcherFunction = (
 #### Filtering endpoints
 
 If you only want to include a few endpoints, you can use the `filterEndpoints` config option to filter your endpoints.
+Note that endpoints are transformed to camel case. For example, `login_user` will become `loginUser`. 
+`filterEndpoints` will be checked against this camel case version of the endpoint.
 
 ```ts no-transpile title="openapi-config.ts"
 const filteredConfig: ConfigFile = {
