@@ -116,7 +116,7 @@ export const miniSerializeError = (value: any): SerializedError => {
 
 export type AsyncThunkConfig = {
   state?: unknown
-  dispatch?: Dispatch
+  dispatch?: ThunkDispatch<unknown, unknown, UnknownAction>
   extra?: unknown
   rejectValue?: unknown
   serializedErrorType?: unknown
@@ -240,7 +240,7 @@ export type AsyncThunkAction<
   ThunkArg,
   ThunkApiConfig extends AsyncThunkConfig,
 > = (
-  dispatch: GetDispatch<ThunkApiConfig>,
+  dispatch: NonNullable<GetDispatch<ThunkApiConfig>>,
   getState: () => GetState<ThunkApiConfig>,
   extra: GetExtra<ThunkApiConfig>,
 ) => SafePromise<
@@ -577,7 +577,7 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
 
     function actionCreator(
       arg: ThunkArg,
-    ): AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> {
+    ): AsyncThunkAction<Returned, ThunkArg, Required<ThunkApiConfig>> {
       return (dispatch, getState, extra) => {
         const requestId = options?.idGenerator
           ? options.idGenerator(arg)
