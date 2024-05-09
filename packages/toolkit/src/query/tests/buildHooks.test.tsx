@@ -100,7 +100,7 @@ const api = createApi({
     getError: build.query({
       query: () => '/error',
     }),
-    listItems: build.query<Item[], { pageNumber: number }>({
+    listItems: build.query<Item[], { pageNumber: number | bigint }>({
       serializeQueryArgs: ({ endpointName }) => {
         return endpointName
       },
@@ -151,6 +151,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  nextItemId = 0
   amount = 0
   listenerMiddleware.clearListeners()
 })
@@ -630,7 +631,40 @@ describe('hooks tests', () => {
     test(`useQuery refetches when query args object changes even if serialized args don't change`, async () => {
       function ItemList() {
         const [pageNumber, setPageNumber] = useState(0)
-        const { data = [] } = api.useListItemsQuery({ pageNumber })
+        const { data = [] } = api.useListItemsQuery({
+          pageNumber: pageNumber,
+        })
+
+        const renderedItems = data.map((item) => (
+          <li key={item.id}>ID: {item.id}</li>
+        ))
+        return (
+          <div>
+            <button onClick={() => setPageNumber(pageNumber + 1)}>
+              Next Page
+            </button>
+            <ul>{renderedItems}</ul>
+          </div>
+        )
+      }
+
+      render(<ItemList />, { wrapper: storeRef.wrapper })
+
+      await screen.findByText('ID: 0')
+
+      await act(async () => {
+        screen.getByText('Next Page').click()
+      })
+
+      await screen.findByText('ID: 3')
+    })
+
+    test(`useQuery gracefully handles bigint types`, async () => {
+      function ItemList() {
+        const [pageNumber, setPageNumber] = useState(0)
+        const { data = [] } = api.useListItemsQuery({
+          pageNumber: BigInt(pageNumber),
+        })
 
         const renderedItems = data.map((item) => (
           <li key={item.id}>ID: {item.id}</li>
