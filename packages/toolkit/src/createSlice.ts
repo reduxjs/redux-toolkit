@@ -427,15 +427,7 @@ export interface ReducerCreators<State> {
  * @public
  */
 export type SliceCaseReducers<State> =
-  | Record<
-      string,
-      | CaseReducerDefinition<State, PayloadAction<any>>
-      | CaseReducerWithPrepareDefinition<
-          State,
-          PayloadAction<any, string, any, any>
-        >
-      | AsyncThunkSliceReducerDefinition<State, any, any, any>
-    >
+  | Record<string, ReducerDefinition>
   | Record<
       string,
       | CaseReducer<State, PayloadAction<any>>
@@ -692,7 +684,7 @@ export function buildCreateSlice({ creators }: BuildCreateSliceConfig = {}) {
       } else {
         handleNormalReducerDefinition<State>(
           reducerDetails,
-          reducerDefinition,
+          reducerDefinition as any,
           contextMethods,
         )
       }
