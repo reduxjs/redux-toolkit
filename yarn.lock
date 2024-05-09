@@ -7365,7 +7365,7 @@ __metadata:
     query-string: "npm:^7.0.1"
     redux: "npm:^5.0.1"
     redux-thunk: "npm:^3.1.0"
-    reselect: "npm:^5.0.1"
+    reselect: "npm:^5.1.0"
     rimraf: "npm:^3.0.2"
     size-limit: "npm:^11.0.1"
     tslib: "npm:^1.10.0"
@@ -25101,7 +25101,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"reselect@npm:^5.0.1":
+"reselect@npm:^5.1.0":
   version: 5.1.0
   resolution: "reselect@npm:5.1.0"
   checksum: 10/657c379d9461781b7cb5f0a32133e23b4266886660c94fcc77c102bec8abe484b32bf43a911b99b747ecf7439f157696561d744d40dc920024611beb1a0d921f
