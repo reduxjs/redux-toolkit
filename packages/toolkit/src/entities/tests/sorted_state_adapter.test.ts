@@ -653,6 +653,8 @@ describe('Sorted State Adapter', () => {
 
     numSorts = 0
 
+    const logComparisons = false
+
     function measureComparisons(name: string, cb: () => void) {
       numSorts = 0
       const start = new Date().getTime()
@@ -660,9 +662,11 @@ describe('Sorted State Adapter', () => {
       const end = new Date().getTime()
       const duration = end - start
 
-      console.log(
-        `${name}: sortComparer called ${numSorts.toLocaleString()} times in ${duration.toLocaleString()}ms`,
-      )
+      if (logComparisons) {
+        console.log(
+          `${name}: sortComparer called ${numSorts.toLocaleString()} times in ${duration.toLocaleString()}ms`,
+        )
+      }
     }
 
     const initialItems = generateItems(INITIAL_ITEMS)
@@ -718,8 +722,8 @@ describe('Sorted State Adapter', () => {
 
     // These numbers will vary because of the randomness, but generally
     // with 10K items the old code had 200K+ sort calls, while the new code
-    // is around 130K sort calls.
-    // expect(numSorts).toBeLessThan(200_000)
+    // is around 13K sort calls.
+    expect(numSorts).toBeLessThan(20_000)
 
     const { ids } = store.getState().entity
     const middleItemId = ids[(ids.length / 2) | 0]
@@ -776,7 +780,7 @@ describe('Sorted State Adapter', () => {
     )
 
     // The old code was around 120K, the new code is around 10K.
-    // expect(numSorts).toBeLessThan(25_000)
+    //expect(numSorts).toBeLessThan(25_000)
   })
 
   describe('can be used mutably when wrapped in createNextState', () => {

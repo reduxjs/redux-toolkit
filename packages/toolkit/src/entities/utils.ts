@@ -56,7 +56,6 @@ export function splitAddedUpdatedEntities<T, Id extends EntityId>(
   for (const entity of newEntities) {
     const id = selectIdValue(entity, selectId)
     if (existingIds.has(id)) {
-      // if (id in state.entities) {
       updated.push({ id, changes: entity })
     } else {
       added.push(entity)
