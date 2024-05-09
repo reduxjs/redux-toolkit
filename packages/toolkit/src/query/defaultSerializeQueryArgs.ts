@@ -17,22 +17,25 @@ export const defaultSerializeQueryArgs: SerializeQueryArgs<any> = ({
   if (typeof cached === 'string') {
     serialized = cached
   } else {
-    const stringified = JSON.stringify(queryArgs, (key, value) =>
-      isPlainObject(value)
+    const stringified = JSON.stringify(queryArgs, (key, value) => {
+      // Handle bigints
+      value = typeof value === 'bigint' ? { $bigint: value.toString() } : value
+      // Sort the object keys before stringifying, to prevent useQuery({ a: 1, b: 2 }) having a different cache key than useQuery({ b: 2, a: 1 })
+      value = isPlainObject(value)
         ? Object.keys(value)
             .sort()
             .reduce<any>((acc, key) => {
               acc[key] = (value as any)[key]
               return acc
             }, {})
-        : value,
-    )
+        : value
+      return value
+    })
     if (isPlainObject(queryArgs)) {
       cache?.set(queryArgs, stringified)
     }
     serialized = stringified
   }
-  // Sort the object keys before stringifying, to prevent useQuery({ a: 1, b: 2 }) having a different cache key than useQuery({ b: 2, a: 1 })
   return `${endpointName}(${serialized})`
 }
 

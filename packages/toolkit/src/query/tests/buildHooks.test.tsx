@@ -100,7 +100,7 @@ const api = createApi({
     getError: build.query({
       query: () => '/error',
     }),
-    listItems: build.query<Item[], { pageNumber: number }>({
+    listItems: build.query<Item[], { pageNumber: number | bigint }>({
       serializeQueryArgs: ({ endpointName }) => {
         return endpointName
       },
@@ -151,6 +151,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  nextItemId = 0
   amount = 0
   listenerMiddleware.clearListeners()
 })
@@ -630,7 +631,40 @@ describe('hooks tests', () => {
     test(`useQuery refetches when query args object changes even if serialized args don't change`, async () => {
       function ItemList() {
         const [pageNumber, setPageNumber] = useState(0)
-        const { data = [] } = api.useListItemsQuery({ pageNumber })
+        const { data = [] } = api.useListItemsQuery({
+          pageNumber: pageNumber,
+        })
+
+        const renderedItems = data.map((item) => (
+          <li key={item.id}>ID: {item.id}</li>
+        ))
+        return (
+          <div>
+            <button onClick={() => setPageNumber(pageNumber + 1)}>
+              Next Page
+            </button>
+            <ul>{renderedItems}</ul>
+          </div>
+        )
+      }
+
+      render(<ItemList />, { wrapper: storeRef.wrapper })
+
+      await screen.findByText('ID: 0')
+
+      await act(async () => {
+        screen.getByText('Next Page').click()
+      })
+
+      await screen.findByText('ID: 3')
+    })
+
+    test(`useQuery gracefully handles bigint types`, async () => {
+      function ItemList() {
+        const [pageNumber, setPageNumber] = useState(0)
+        const { data = [] } = api.useListItemsQuery({
+          pageNumber: BigInt(pageNumber),
+        })
 
         const renderedItems = data.map((item) => (
           <li key={item.id}>ID: {item.id}</li>
@@ -871,6 +905,57 @@ describe('hooks tests', () => {
       for (const cacheKeyEntry of Object.values(finalSubscriptions)) {
         expect(Object.values(cacheKeyEntry!).length).toBe(0)
       }
+    })
+
+    test('Hook subscription failures do not reset isLoading state', async () => {
+      const states: boolean[] = []
+
+      function Parent() {
+        const { isLoading } = api.endpoints.getUserAndForceError.useQuery(1)
+
+        // Collect loading states to verify that it does not revert back to true.
+        states.push(isLoading)
+
+        // Parent conditionally renders child when loading.
+        if (isLoading) return null
+
+        return <Child />
+      }
+
+      function Child() {
+        // Using the same args as the parent
+        api.endpoints.getUserAndForceError.useQuery(1)
+
+        return null
+      }
+
+      render(<Parent />, { wrapper: storeRef.wrapper })
+
+      // Allow at least three state effects to hit.
+      // Trying to see if any [true, false, true] occurs.
+      await act(async () => {
+        await waitMs(1)
+      })
+
+      await act(async () => {
+        await waitMs(1)
+      })
+
+      await act(async () => {
+        await waitMs(1)
+      })
+
+      // Find if at any time the isLoading state has reverted
+      // E.G.: `[..., true, false, ..., true]`
+      //              ^^^^  ^^^^^       ^^^^
+      const firstTrue = states.indexOf(true)
+      const firstFalse = states.slice(firstTrue).indexOf(false)
+      const revertedState = states.slice(firstFalse).indexOf(true)
+
+      expect(
+        revertedState,
+        `Expected isLoading state to never revert back to true but did after ${revertedState} renders...`,
+      ).toBe(-1)
     })
 
     describe('Hook middleware requirements', () => {

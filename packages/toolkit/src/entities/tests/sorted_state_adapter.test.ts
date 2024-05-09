@@ -1,6 +1,11 @@
 import type { EntityAdapter, EntityState } from '../models'
 import { createEntityAdapter } from '../create_adapter'
-import { createAction, createSlice, configureStore } from '@reduxjs/toolkit'
+import {
+  createAction,
+  createSlice,
+  configureStore,
+  nanoid,
+} from '@reduxjs/toolkit'
 import type { BookModel } from './fixtures/book'
 import {
   TheGreatGatsby,
@@ -232,11 +237,11 @@ describe('Sorted State Adapter', () => {
   })
 
   it('Replaces an existing entity if you change the ID while updating', () => {
-    const withAdded = adapter.setAll(state, [
-      { id: 'a', title: 'First' },
-      { id: 'b', title: 'Second' },
-      { id: 'c', title: 'Third' },
-    ])
+    const a = { id: 'a', title: 'First' }
+    const b = { id: 'b', title: 'Second' }
+    const c = { id: 'c', title: 'Third' }
+    const d = { id: 'd', title: 'Fourth' }
+    const withAdded = adapter.setAll(state, [a, b, c])
 
     const withUpdated = adapter.updateOne(withAdded, {
       id: 'b',
@@ -247,7 +252,7 @@ describe('Sorted State Adapter', () => {
 
     const { ids, entities } = withUpdated
 
-    expect(ids.length).toBe(2)
+    expect(ids).toEqual(['a', 'c'])
     expect(entities.a).toBeTruthy()
     expect(entities.b).not.toBeTruthy()
     expect(entities.c).toBeTruthy()
@@ -355,20 +360,30 @@ describe('Sorted State Adapter', () => {
     const withInitialItems = sortedItemsAdapter.setAll(
       sortedItemsAdapter.getInitialState(),
       [
-        { id: 'A', order: 1, ts: 0 },
-        { id: 'B', order: 2, ts: 0 },
         { id: 'C', order: 3, ts: 0 },
+        { id: 'A', order: 1, ts: 0 },
+        { id: 'F', order: 4, ts: 0 },
+        { id: 'B', order: 2, ts: 0 },
         { id: 'D', order: 3, ts: 0 },
         { id: 'E', order: 3, ts: 0 },
       ],
     )
+
+    expect(withInitialItems.ids).toEqual(['A', 'B', 'C', 'D', 'E', 'F'])
 
     const updated = sortedItemsAdapter.updateOne(withInitialItems, {
       id: 'C',
       changes: { ts: 5 },
     })
 
-    expect(updated.ids).toEqual(['A', 'B', 'C', 'D', 'E'])
+    expect(updated.ids).toEqual(['A', 'B', 'C', 'D', 'E', 'F'])
+
+    const updated2 = sortedItemsAdapter.updateOne(withInitialItems, {
+      id: 'D',
+      changes: { ts: 6 },
+    })
+
+    expect(updated2.ids).toEqual(['A', 'B', 'C', 'D', 'E', 'F'])
   })
 
   it('should let you update many entities by id in the state', () => {
@@ -582,6 +597,190 @@ describe('Sorted State Adapter', () => {
 
     expect(withUpdate.ids).toEqual(['b'])
     expect(withUpdate.entities['b']!.title).toBe(book1.title)
+  })
+
+  it('should minimize the amount of sorting work needed', () => {
+    const INITIAL_ITEMS = 10_000
+    const ADDED_ITEMS = 1_000
+
+    type Entity = { id: string; name: string; position: number }
+
+    let numSorts = 0
+
+    const adaptor = createEntityAdapter({
+      selectId: (entity: Entity) => entity.id,
+      sortComparer: (a, b) => {
+        numSorts++
+        if (a.position < b.position) return -1
+        else if (a.position > b.position) return 1
+        return 0
+      },
+    })
+
+    function generateItems(count: number) {
+      const items: readonly Entity[] = new Array(count)
+        .fill(undefined)
+        .map((x, i) => ({
+          name: `${i}`,
+          position: Math.random(),
+          id: nanoid(),
+        }))
+      return items
+    }
+
+    const entitySlice = createSlice({
+      name: 'entity',
+      initialState: adaptor.getInitialState(),
+      reducers: {
+        updateOne: adaptor.updateOne,
+        upsertOne: adaptor.upsertOne,
+        upsertMany: adaptor.upsertMany,
+        addMany: adaptor.addMany,
+      },
+    })
+
+    const store = configureStore({
+      reducer: {
+        entity: entitySlice.reducer,
+      },
+      middleware: (getDefaultMiddleware) => {
+        return getDefaultMiddleware({
+          serializableCheck: false,
+          immutableCheck: false,
+        })
+      },
+    })
+
+    numSorts = 0
+
+    const logComparisons = false
+
+    function measureComparisons(name: string, cb: () => void) {
+      numSorts = 0
+      const start = new Date().getTime()
+      cb()
+      const end = new Date().getTime()
+      const duration = end - start
+
+      if (logComparisons) {
+        console.log(
+          `${name}: sortComparer called ${numSorts.toLocaleString()} times in ${duration.toLocaleString()}ms`,
+        )
+      }
+    }
+
+    const initialItems = generateItems(INITIAL_ITEMS)
+
+    measureComparisons('Original Setup', () => {
+      store.dispatch(entitySlice.actions.upsertMany(initialItems))
+    })
+
+    expect(numSorts).toBeLessThan(INITIAL_ITEMS * 20)
+
+    measureComparisons('Insert One (random)', () => {
+      store.dispatch(
+        entitySlice.actions.upsertOne({
+          id: nanoid(),
+          position: Math.random(),
+          name: 'test',
+        }),
+      )
+    })
+
+    expect(numSorts).toBeLessThan(50)
+
+    measureComparisons('Insert One (middle)', () => {
+      store.dispatch(
+        entitySlice.actions.upsertOne({
+          id: nanoid(),
+          position: 0.5,
+          name: 'test',
+        }),
+      )
+    })
+
+    expect(numSorts).toBeLessThan(50)
+
+    measureComparisons('Insert One (end)', () => {
+      store.dispatch(
+        entitySlice.actions.upsertOne({
+          id: nanoid(),
+          position: 0.9998,
+          name: 'test',
+        }),
+      )
+    })
+
+    expect(numSorts).toBeLessThan(50)
+
+    const addedItems = generateItems(ADDED_ITEMS)
+    measureComparisons('Add Many', () => {
+      store.dispatch(entitySlice.actions.addMany(addedItems))
+    })
+
+    expect(numSorts).toBeLessThan(ADDED_ITEMS * 20)
+
+    // These numbers will vary because of the randomness, but generally
+    // with 10K items the old code had 200K+ sort calls, while the new code
+    // is around 13K sort calls.
+    expect(numSorts).toBeLessThan(20_000)
+
+    const { ids } = store.getState().entity
+    const middleItemId = ids[(ids.length / 2) | 0]
+
+    measureComparisons('Update One (end)', () => {
+      store.dispatch(
+        // Move this middle item near the end
+        entitySlice.actions.updateOne({
+          id: middleItemId,
+          changes: {
+            position: 0.99999,
+          },
+        }),
+      )
+    })
+
+    const SORTING_COUNT_BUFFER = 100
+
+    expect(numSorts).toBeLessThan(
+      INITIAL_ITEMS + ADDED_ITEMS + SORTING_COUNT_BUFFER,
+    )
+
+    measureComparisons('Update One (middle)', () => {
+      store.dispatch(
+        // Move this middle item near the end
+        entitySlice.actions.updateOne({
+          id: middleItemId,
+          changes: {
+            position: 0.42,
+          },
+        }),
+      )
+    })
+
+    expect(numSorts).toBeLessThan(
+      INITIAL_ITEMS + ADDED_ITEMS + SORTING_COUNT_BUFFER,
+    )
+
+    measureComparisons('Update One (replace)', () => {
+      store.dispatch(
+        // Move this middle item near the end
+        entitySlice.actions.updateOne({
+          id: middleItemId,
+          changes: {
+            id: nanoid(),
+            position: 0.98,
+          },
+        }),
+      )
+    })
+
+    expect(numSorts).toBeLessThan(
+      INITIAL_ITEMS + ADDED_ITEMS + SORTING_COUNT_BUFFER,
+    )
+
+    // The old code was around 120K, the new code is around 10K.
+    //expect(numSorts).toBeLessThan(25_000)
   })
 
   describe('can be used mutably when wrapped in createNextState', () => {
