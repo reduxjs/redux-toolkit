@@ -660,6 +660,43 @@ describe('type tests', () => {
               expectTypeOf(action.error).toEqualTypeOf<'error'>()
             },
           ),
+          testInferVoid: create.asyncThunk(
+            () => {
+              /* empty */
+            },
+            {
+              pending(state, action) {
+                expectTypeOf(state).toEqualTypeOf<TestState>()
+
+                expectTypeOf(action.meta.arg).toBeVoid()
+              },
+              fulfilled(state, action) {
+                expectTypeOf(state).toEqualTypeOf<TestState>()
+
+                expectTypeOf(action.meta.arg).toBeVoid()
+
+                expectTypeOf(action.payload).toBeVoid()
+              },
+              rejected(state, action) {
+                expectTypeOf(state).toEqualTypeOf<TestState>()
+
+                expectTypeOf(action.meta.arg).toBeVoid()
+
+                expectTypeOf(action.error).toEqualTypeOf<SerializedError>()
+              },
+              settled(state, action) {
+                expectTypeOf(state).toEqualTypeOf<TestState>()
+
+                expectTypeOf(action.meta.arg).toBeVoid()
+
+                if (isRejected(action)) {
+                  expectTypeOf(action.error).toEqualTypeOf<SerializedError>()
+                } else {
+                  expectTypeOf(action.payload).toBeVoid()
+                }
+              },
+            },
+          ),
           testInfer: create.asyncThunk(
             function payloadCreator(arg: TestArg, api) {
               return Promise.resolve<TestReturned>({ payload: 'foo' })
@@ -863,6 +900,18 @@ describe('type tests', () => {
         'meta'
       >
     >()
+
+    expectTypeOf(slice.actions.testInferVoid).toEqualTypeOf<
+      AsyncThunk<
+        void,
+        void,
+        {
+          /* empty */
+        }
+      >
+    >()
+
+    expectTypeOf(slice.actions.testInferVoid).toBeCallableWith()
 
     expectTypeOf(slice.actions.testInfer).toEqualTypeOf<
       AsyncThunk<TestReturned, TestArg, EmptyObject>

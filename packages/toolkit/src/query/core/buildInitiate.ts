@@ -90,8 +90,12 @@ type StartMutationActionCreator<
 export type MutationActionCreatorResult<
   D extends MutationDefinition<any, any, any, any>,
 > = SafePromise<
-  | { data: ResultTypeFrom<D> }
   | {
+      data: ResultTypeFrom<D>
+      error?: undefined
+    }
+  | {
+      data?: undefined
       error:
         | Exclude<
             BaseQueryError<

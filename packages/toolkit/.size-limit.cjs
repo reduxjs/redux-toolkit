@@ -5,9 +5,9 @@ const esmSuffixes = ['modern.mjs' /*, 'browser.mjs', 'legacy-esm.js'*/]
 const cjsSuffixes = [/*'development.cjs',*/ 'production.min.cjs']
 
 /**
-   * @param {string} suffix
-   * @param {boolean} cjs
-   */
+ * @param {string} suffix
+ * @param {boolean} cjs
+ */
 function withRtkPath(suffix, cjs = false) {
   /**
    * @param {string} name

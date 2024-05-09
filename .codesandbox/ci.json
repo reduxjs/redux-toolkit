@@ -2,7 +2,6 @@
   "sandboxes": [
     "vanilla",
     "vanilla-ts",
-    "github/reduxjs/rtk-github-issues-example",
     "/examples/query/react/basic",
     "/examples/query/react/advanced",
     "/examples/action-listener/counter",

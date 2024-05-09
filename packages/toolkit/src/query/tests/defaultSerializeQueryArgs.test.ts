@@ -23,6 +23,16 @@ test('number arg', () => {
   ).toMatchInlineSnapshot(`"test(5)"`)
 })
 
+test('bigint arg has non-default serialization (intead of throwing)', () => {
+  expect(
+    defaultSerializeQueryArgs({
+      endpointDefinition,
+      endpointName,
+      queryArgs: BigInt(10),
+    }),
+  ).toMatchInlineSnapshot(`"test({"$bigint":"10"})"`)
+})
+
 test('simple object arg is sorted', () => {
   expect(
     defaultSerializeQueryArgs({
