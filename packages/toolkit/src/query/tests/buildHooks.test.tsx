@@ -770,8 +770,8 @@ describe('hooks tests', () => {
         endpoints: (builder) => ({
           getTest: builder.query<string, number>({
             async queryFn() {
-              await new Promise((resolve) => setTimeout(resolve, 1000));
-              return { data: "data!" };
+              await new Promise((resolve) => setTimeout(resolve, 1000))
+              return { data: 'data!' }
             },
             keepUnusedDataFor: 0,
           }),
@@ -783,13 +783,13 @@ describe('hooks tests', () => {
       })
 
       const checkNumQueries = (count: number) => {
-        const cacheEntries = Object.keys((storeRef.store.getState()).api.queries)
+        const cacheEntries = Object.keys(storeRef.store.getState().api.queries)
         const queries = cacheEntries.length
 
         expect(queries).toBe(count)
       }
 
-      let i = 0;
+      let i = 0
 
       function User() {
         const [fetchTest, { isFetching, isUninitialized }] =
@@ -817,7 +817,7 @@ describe('hooks tests', () => {
       })
 
       // There should only be one stored query once they have had time to resolve
-      checkNumQueries( 1)
+      checkNumQueries(1)
     })
 
     // See https://github.com/reduxjs/redux-toolkit/issues/3182
