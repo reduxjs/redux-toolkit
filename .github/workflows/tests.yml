@@ -62,13 +62,27 @@ jobs:
           path: packages/toolkit/package.tgz
 
   test-dist:
-    name: Test against dist
+    name: Run local tests against build artifact (React ${{ matrix.react.version }})
     needs: [build]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         node: ['20.x']
+        react:
+          [
+            {
+              version: '^18',
+              types: ^18,
+              react-dom: { version: '^18', types: '^18' },
+            },
+            {
+              version: 'rc',
+              types: 'npm:types-react@rc',
+              react-dom: { version: 'rc', types: 'npm:types-react-dom@rc' },
+            },
+          ]
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -82,17 +96,23 @@ jobs:
       - name: Install deps
         run: yarn install
 
-      - uses: actions/download-artifact@v4
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
         with:
           name: package
           path: packages/toolkit
 
-      - run: ls -lah
+      - name: Check folder contents
+        run: ls -lah
+
+      - name: Install React ${{ matrix.react.version }} and React-DOM ${{ matrix.react.react-dom.version }}
+        run: yarn up react@${{ matrix.react.version }} react-dom@${{ matrix.react.react-dom.version }} @types/react@${{ matrix.react.types }} @types/react-dom@${{ matrix.react.react-dom.types }}
 
       - name: Install build artifact
         run: yarn workspace @reduxjs/toolkit add $(pwd)/package.tgz
 
-      - run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json
+      - name: Erase path aliases
+        run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json
 
       - name: Run tests, against dist
         env:
@@ -103,7 +123,7 @@ jobs:
         run: rm -rf dist && yarn tsc -p . --moduleResolution Bundler --module ESNext --noEmit false --declaration --emitDeclarationOnly --outDir dist --target ESNext && rm -rf dist
 
   test-types:
-    name: 'Test Types: TS ${{ matrix.ts }}'
+    name: 'Test Types: TS ${{ matrix.ts }} and React ${{ matrix.react.version }}'
 
     needs: [build]
     runs-on: ubuntu-latest
@@ -112,6 +132,20 @@ jobs:
       matrix:
         node: ['20.x']
         ts: ['5.0', '5.1', '5.2', '5.3', '5.4', '5.5']
+        react:
+          [
+            {
+              version: '^18',
+              types: ^18,
+              react-dom: { version: '^18', types: '^18' },
+            },
+            {
+              version: 'rc',
+              types: 'npm:types-react@rc',
+              react-dom: { version: 'rc', types: 'npm:types-react-dom@rc' },
+            },
+          ]
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -124,6 +158,9 @@ jobs:
 
       - name: Install deps
         run: yarn install
+
+      - name: Install React ${{ matrix.react.version }} and React-DOM ${{ matrix.react.react-dom.version }}
+        run: yarn up react@${{ matrix.react.version }} react-dom@${{ matrix.react.react-dom.version }} @types/react@${{ matrix.react.types }} @types/react-dom@${{ matrix.react.react-dom.types }}
 
       - name: Install TypeScript ${{ matrix.ts }}
         run: yarn add typescript@${{ matrix.ts }}
@@ -139,7 +176,8 @@ jobs:
       - name: Show installed RTK versions
         run: yarn info @reduxjs/toolkit
 
-      - run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json
+      - name: Erase path aliases
+        run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json
 
       - name: Test types
         env:
