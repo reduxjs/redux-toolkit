@@ -73,10 +73,6 @@ describe('refetchOnFocus tests', () => {
 
     fireEvent.focus(window)
 
-    await act(async () => {
-      await delay(150)
-    })
-
     await waitFor(() =>
       expect(screen.getByTestId('amount').textContent).toBe('2'),
     )
@@ -113,8 +109,6 @@ describe('refetchOnFocus tests', () => {
 
     fireEvent.focus(window)
 
-    await delay(150)
-
     await waitFor(() =>
       expect(screen.getByTestId('amount').textContent).toBe('1'),
     )
@@ -139,8 +133,8 @@ describe('refetchOnFocus tests', () => {
 
     function UserWithRefetchTrue() {
       ;({ data, isFetching, isLoading } =
-        defaultApi.endpoints.getIncrementedAmount.useQuery(undefined, {
-          refetchOnFocus: true,
+      defaultApi.endpoints.getIncrementedAmount.useQuery(undefined, {
+        refetchOnFocus: true,
         }))
       return <div />
     }
