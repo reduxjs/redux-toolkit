@@ -90,6 +90,8 @@
     "node-fetch": "^3.3.2",
     "prettier": "^3.2.5",
     "query-string": "^7.0.1",
+    "react": "19.0.0-beta-04b058868c-20240508",
+    "react-dom": "19.0.0-beta-04b058868c-20240508",
     "rimraf": "^3.0.2",
     "size-limit": "^11.0.1",
     "tslib": "^1.10.0",
