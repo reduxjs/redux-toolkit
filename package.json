@@ -47,7 +47,7 @@
     "prettier": "^3.2.5",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-redux": "^9.1.0",
+    "react-redux": "^9.1.2",
     "release-it": "^14.12.5",
     "serve": "^14.2.0",
     "ts-node": "^10.9.2",
