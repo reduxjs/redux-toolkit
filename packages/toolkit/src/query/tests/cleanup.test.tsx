@@ -7,10 +7,6 @@ import { act, render, screen, waitFor } from '@testing-library/react'
 import { setupApiStore } from '../../tests/utils/helpers'
 import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
 
-const tick = () => new Promise((res) => setImmediate(res))
-
-export const runAllTimers = async () => vi.runAllTimers() && (await tick())
-
 const api = createApi({
   baseQuery: () => ({ data: 42 }),
   endpoints: (build) => ({
