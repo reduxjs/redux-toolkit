@@ -5274,7 +5274,7 @@ __metadata:
     jest-watch-typeahead: "npm:^1.1.0"
     react: "npm:19.0.0-beta-04b058868c-20240508"
     react-dom: "npm:19.0.0-beta-04b058868c-20240508"
-    react-redux: "npm:^9.1.0"
+    react-redux: "npm:^9.1.2"
     react-scripts: "npm:5.0.1"
     typescript: "npm:~4.9"
   languageName: unknown
@@ -5289,7 +5289,7 @@ __metadata:
     "@types/react-dom": "npm:types-react-dom@19.0.0-beta.1"
     react: "npm:19.0.0-beta-04b058868c-20240508"
     react-dom: "npm:19.0.0-beta-04b058868c-20240508"
-    react-redux: "npm:^9.1.0"
+    react-redux: "npm:^9.1.2"
     react-scripts: "npm:5.0.1"
     typescript: "npm:~4.9"
   languageName: unknown
@@ -5310,7 +5310,7 @@ __metadata:
     react: "npm:19.0.0-beta-04b058868c-20240508"
     react-dom: "npm:19.0.0-beta-04b058868c-20240508"
     react-icons: "npm:3.11.0"
-    react-redux: "npm:^9.1.0"
+    react-redux: "npm:^9.1.2"
     react-router-dom: "npm:6.3.0"
     react-scripts: "npm:5.0.1"
     typescript: "npm:~4.9"
@@ -5332,7 +5332,7 @@ __metadata:
     react: "npm:19.0.0-beta-04b058868c-20240508"
     react-dom: "npm:19.0.0-beta-04b058868c-20240508"
     react-icons: "npm:3.11.0"
-    react-redux: "npm:^9.1.0"
+    react-redux: "npm:^9.1.2"
     react-router-dom: "npm:6.3.0"
     react-scripts: "npm:5.0.1"
     typescript: "npm:~4.9"
@@ -5351,7 +5351,7 @@ __metadata:
     msw: "npm:^0.40.2"
     react: "npm:19.0.0-beta-04b058868c-20240508"
     react-dom: "npm:19.0.0-beta-04b058868c-20240508"
-    react-redux: "npm:^9.1.0"
+    react-redux: "npm:^9.1.2"
     react-scripts: "npm:5.0.1"
     typescript: "npm:~4.9"
   languageName: unknown
@@ -5366,7 +5366,7 @@ __metadata:
     "@types/react-dom": "npm:types-react-dom@19.0.0-beta.1"
     react: "npm:19.0.0-beta-04b058868c-20240508"
     react-dom: "npm:19.0.0-beta-04b058868c-20240508"
-    react-redux: "npm:^9.1.0"
+    react-redux: "npm:^9.1.2"
     react-scripts: "npm:5.0.1"
     typescript: "npm:~4.9"
   languageName: unknown
@@ -5381,7 +5381,7 @@ __metadata:
     "@types/react-dom": "npm:types-react-dom@19.0.0-beta.1"
     react: "npm:19.0.0-beta-04b058868c-20240508"
     react-dom: "npm:19.0.0-beta-04b058868c-20240508"
-    react-redux: "npm:^9.1.0"
+    react-redux: "npm:^9.1.2"
     react-scripts: "npm:5.0.1"
     typescript: "npm:~4.9"
   languageName: unknown
@@ -5420,7 +5420,7 @@ __metadata:
     react: "npm:19.0.0-beta-04b058868c-20240508"
     react-dom: "npm:19.0.0-beta-04b058868c-20240508"
     react-icons: "npm:3.11.0"
-    react-redux: "npm:^9.1.0"
+    react-redux: "npm:^9.1.2"
     react-router-dom: "npm:6.3.0"
     react-scripts: "npm:5.0.1"
     ts-node: "npm:^10.0.0"
@@ -5449,7 +5449,7 @@ __metadata:
     react: "npm:19.0.0-beta-04b058868c-20240508"
     react-dom: "npm:19.0.0-beta-04b058868c-20240508"
     react-icons: "npm:3.11.0"
-    react-redux: "npm:^9.1.0"
+    react-redux: "npm:^9.1.2"
     react-router-dom: "npm:6.3.0"
     react-scripts: "npm:5.0.1"
     typescript: "npm:~4.2.4"
@@ -5470,7 +5470,7 @@ __metadata:
     msw: "npm:^0.40.2"
     react: "npm:19.0.0-beta-04b058868c-20240508"
     react-dom: "npm:19.0.0-beta-04b058868c-20240508"
-    react-redux: "npm:^9.1.0"
+    react-redux: "npm:^9.1.2"
     react-router-dom: "npm:6.3.0"
     react-scripts: "npm:5.0.1"
     typescript: "npm:~4.9"
@@ -5494,7 +5494,7 @@ __metadata:
     react: "npm:19.0.0-beta-04b058868c-20240508"
     react-dom: "npm:19.0.0-beta-04b058868c-20240508"
     react-icons: "npm:3.11.0"
-    react-redux: "npm:^9.1.0"
+    react-redux: "npm:^9.1.2"
     react-router-dom: "npm:6.3.0"
     react-scripts: "npm:5.0.1"
     typescript: "npm:~4.9"
@@ -5517,7 +5517,7 @@ __metadata:
     react: "npm:19.0.0-beta-04b058868c-20240508"
     react-dom: "npm:19.0.0-beta-04b058868c-20240508"
     react-icons: "npm:3.11.0"
-    react-redux: "npm:^9.1.0"
+    react-redux: "npm:^9.1.2"
     react-router-dom: "npm:6.3.0"
     react-scripts: "npm:5.0.1"
     typescript: "npm:~4.9"
@@ -5544,7 +5544,7 @@ __metadata:
     react: "npm:19.0.0-beta-04b058868c-20240508"
     react-dom: "npm:19.0.0-beta-04b058868c-20240508"
     react-icons: "npm:^5.0.1"
-    react-redux: "npm:^9.1.0"
+    react-redux: "npm:^9.1.2"
     react-scripts: "npm:5.0.1"
     typescript: "npm:~4.9"
   languageName: unknown
@@ -5559,7 +5559,7 @@ __metadata:
     "@types/react-dom": "npm:types-react-dom@19.0.0-beta.1"
     react: "npm:19.0.0-beta-04b058868c-20240508"
     react-dom: "npm:19.0.0-beta-04b058868c-20240508"
-    react-redux: "npm:^9.1.0"
+    react-redux: "npm:^9.1.2"
     react-scripts: "npm:5.0.1"
     typescript: "npm:~4.9"
   languageName: unknown
@@ -5583,7 +5583,7 @@ __metadata:
     react: "npm:19.0.0-beta-04b058868c-20240508"
     react-dom: "npm:19.0.0-beta-04b058868c-20240508"
     react-icons: "npm:3.11.0"
-    react-redux: "npm:^9.1.0"
+    react-redux: "npm:^9.1.2"
     react-router-dom: "npm:6.3.0"
     react-scripts: "npm:5.0.1"
     typescript: "npm:~4.9"
@@ -5608,7 +5608,7 @@ __metadata:
     react: "npm:19.0.0-beta-04b058868c-20240508"
     react-dom: "npm:19.0.0-beta-04b058868c-20240508"
     react-icons: "npm:3.11.0"
-    react-redux: "npm:^9.1.0"
+    react-redux: "npm:^9.1.2"
     react-router-dom: "npm:6.3.0"
     react-scripts: "npm:5.0.1"
     typescript: "npm:~4.9"
@@ -5633,7 +5633,7 @@ __metadata:
     react: "npm:19.0.0-beta-04b058868c-20240508"
     react-dom: "npm:19.0.0-beta-04b058868c-20240508"
     react-icons: "npm:3.11.0"
-    react-redux: "npm:^9.1.0"
+    react-redux: "npm:^9.1.2"
     react-router-dom: "npm:6.3.0"
     react-scripts: "npm:5.0.1"
     typescript: "npm:~4.9"
@@ -5649,7 +5649,7 @@ __metadata:
     "@types/react-dom": "npm:types-react-dom@19.0.0-beta.1"
     react: "npm:19.0.0-beta-04b058868c-20240508"
     react-dom: "npm:19.0.0-beta-04b058868c-20240508"
-    react-redux: "npm:^9.1.0"
+    react-redux: "npm:^9.1.2"
     react-scripts: "npm:5.0.1"
     typescript: "npm:~4.9"
   languageName: unknown
@@ -24428,25 +24428,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-redux@npm:^9.1.0":
-  version: 9.1.0
-  resolution: "react-redux@npm:9.1.0"
+"react-redux@npm:^9.1.2":
+  version: 9.1.2
+  resolution: "react-redux@npm:9.1.2"
   dependencies:
     "@types/use-sync-external-store": "npm:^0.0.3"
     use-sync-external-store: "npm:^1.0.0"
   peerDependencies:
     "@types/react": ^18.2.25
     react: ^18.0
-    react-native: ">=0.69"
     redux: ^5.0.0
   peerDependenciesMeta:
     "@types/react":
       optional: true
-    react-native:
-      optional: true
     redux:
       optional: true
-  checksum: 10/e2e5fe1c6965aedf3a80d7d5252ccbe6f231448cc1010ce19036fe8965f996cbafa2f81cacab77e54e75d6a14caa40540b8907459ef36af26b65c14f1bf89d80
+  checksum: 10/319b3286f538da7e609ca90fc6762ffae007c5cf75e525a25237ac2feaee63d9cf76fe766817de1fc8f27e7bde825ca409c463037d26dd8e57c435d383f80c50
   languageName: node
   linkType: hard
 
@@ -25746,7 +25743,7 @@ __metadata:
     prettier: "npm:^3.2.5"
     react: "npm:19.0.0-beta-04b058868c-20240508"
     react-dom: "npm:19.0.0-beta-04b058868c-20240508"
-    react-redux: "npm:^9.1.0"
+    react-redux: "npm:^9.1.2"
     release-it: "npm:^14.12.5"
     serve: "npm:^14.2.0"
     ts-node: "npm:^10.9.2"
