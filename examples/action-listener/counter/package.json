@@ -5,8 +5,8 @@
   "dependencies": {
     "@reduxjs/toolkit": "^1.8.0",
     "@types/node": "^12.0.0",
-    "@types/react": "^18.0.12",
-    "@types/react-dom": "^18.0.5",
+    "@types/react": "npm:types-react@rc",
+    "@types/react-dom": "npm:types-react-dom@rc",
     "clsx": "1.1.1",
     "react": "19.0.0-rc.1",
     "react-dom": "19.0.0-rc.1",

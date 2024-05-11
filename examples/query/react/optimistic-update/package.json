@@ -22,8 +22,8 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "@types/react": "^18.0.5",
-    "@types/react-dom": "^18.0.5",
+    "@types/react": "npm:types-react@rc",
+    "@types/react-dom": "npm:types-react-dom@rc",
     "typescript": "~4.9",
     "whatwg-fetch": "^3.4.1"
   },

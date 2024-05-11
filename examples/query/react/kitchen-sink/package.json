@@ -20,8 +20,8 @@
     "@testing-library/react": "^16.0.1",
     "@types/jest": "^26.0.23",
     "@types/node": "^14.14.6",
-    "@types/react": "^18.0.5",
-    "@types/react-dom": "^18.0.5",
+    "@types/react": "npm:types-react@rc",
+    "@types/react-dom": "npm:types-react-dom@rc",
     "typescript": "~4.9",
     "whatwg-fetch": "^3.4.1"
   },
