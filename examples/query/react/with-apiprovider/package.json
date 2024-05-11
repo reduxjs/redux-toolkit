@@ -9,7 +9,7 @@
     "@reduxjs/toolkit": "^1.6.0-rc.1",
     "react": "19.0.0-beta-26f2496093-20240514",
     "react-dom": "19.0.0-beta-26f2496093-20240514",
-    "react-redux": "^9.1.0",
+    "react-redux": "^9.1.2",
     "react-scripts": "5.0.1"
   },
   "devDependencies": {
