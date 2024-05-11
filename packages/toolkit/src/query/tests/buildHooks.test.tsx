@@ -29,7 +29,7 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import { userEvent } from '@testing-library/user-event'
 import { HttpResponse, http } from 'msw'
 import { useEffect, useState } from 'react'
 import type { MockInstance } from 'vitest'
@@ -1263,9 +1263,12 @@ describe('hooks tests', () => {
       expect(screen.queryByText(/Successfully fetched user/i)).toBeNull()
       screen.getByText('Request was aborted')
 
-      fireEvent.click(
+      const user = userEvent.setup()
+
+      await user.click(
         screen.getByRole('button', { name: 'Fetch User successfully' }),
       )
+
       await screen.findByText('Successfully fetched user Timmy')
       expect(screen.queryByText(/An error has occurred/i)).toBeNull()
       expect(screen.queryByText('Request was aborted')).toBeNull()
@@ -1475,7 +1478,9 @@ describe('hooks tests', () => {
       expect(screen.queryByText(/Successfully updated user/i)).toBeNull()
       expect(screen.queryByText('Request was aborted')).toBeNull()
 
-      fireEvent.click(
+      const user = userEvent.setup()
+
+      await user.click(
         screen.getByRole('button', { name: 'Update User and abort' }),
       )
       await screen.findByText('An error has occurred updating user Banana')
@@ -1524,13 +1529,15 @@ describe('hooks tests', () => {
       expect(screen.queryByText('Yay')).toBeNull()
       expect(countObjectKeys(storeRef.store.getState().api.mutations)).toBe(0)
 
-      userEvent.click(screen.getByRole('button', { name: 'trigger' }))
+      const user = userEvent.setup()
+
+      await user.click(screen.getByRole('button', { name: 'trigger' }))
 
       await screen.findByText(/isSuccess/i)
       expect(screen.queryByText('Yay')).not.toBeNull()
       expect(countObjectKeys(storeRef.store.getState().api.mutations)).toBe(1)
 
-      userEvent.click(screen.getByRole('button', { name: 'reset' }))
+      await user.click(screen.getByRole('button', { name: 'reset' }))
 
       await screen.findByText(/isUninitialized/i)
       expect(screen.queryByText('Yay')).toBeNull()
@@ -1566,7 +1573,10 @@ describe('hooks tests', () => {
         expect(screen.getByTestId('isFetching').textContent).toBe('false'),
       )
 
-      userEvent.hover(screen.getByTestId('highPriority'))
+      const user = userEvent.setup({ delay: null })
+
+      await user.hover(screen.getByTestId('highPriority'))
+
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any),
       ).toEqual({
@@ -1633,8 +1643,11 @@ describe('hooks tests', () => {
       await waitFor(() =>
         expect(screen.getByTestId('isFetching').textContent).toBe('false'),
       )
+
+      const user = userEvent.setup()
+
       // Try to prefetch what we just loaded
-      userEvent.hover(screen.getByTestId('lowPriority'))
+      await user.hover(screen.getByTestId('lowPriority'))
 
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any),
@@ -1702,8 +1715,11 @@ describe('hooks tests', () => {
       // Wait 400ms, making it respect ifOlderThan
       await waitMs(400)
 
+      const user = userEvent.setup({ delay: null })
+
       // This should run the query being that we're past the threshold
-      userEvent.hover(screen.getByTestId('lowPriority'))
+      await user.hover(screen.getByTestId('lowPriority'))
+
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any),
       ).toEqual({
@@ -1775,7 +1791,10 @@ describe('hooks tests', () => {
         storeRef.store.getState() as any,
       )
 
-      userEvent.hover(screen.getByTestId('lowPriority'))
+      const user = userEvent.setup()
+
+      await user.hover(screen.getByTestId('lowPriority'))
+
       //  Serve up the result from the cache being that the condition wasn't met
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any),
@@ -1803,7 +1822,9 @@ describe('hooks tests', () => {
 
       render(<User />, { wrapper: storeRef.wrapper })
 
-      userEvent.hover(screen.getByTestId('lowPriority'))
+      const user = userEvent.setup({ delay: null })
+
+      await user.hover(screen.getByTestId('lowPriority'))
 
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any),
