@@ -265,7 +265,7 @@ describe('fork', () => {
       },
       expected: { status: 'ok', value: 5 },
     },
-  ])('%# - %j', async ({ executor, expected, cancelAfterMs }) => {
+  ])('$desc', async ({ executor, expected, cancelAfterMs }) => {
     let deferredResult = deferred()
     let forkedTask: any = {}
 
