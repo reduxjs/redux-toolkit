@@ -4542,8 +4542,8 @@ __metadata:
   dependencies:
     "@reduxjs/toolkit": "npm:^1.8.0"
     "@types/node": "npm:^12.0.0"
-    "@types/react": "npm:^18.0.12"
-    "@types/react-dom": "npm:^18.0.5"
+    "@types/react": "npm:types-react@19.0.0-beta.1"
+    "@types/react-dom": "npm:types-react-dom@19.0.0-beta.1"
     clsx: "npm:1.1.1"
     jest-watch-typeahead: "npm:^1.1.0"
     react: "npm:19.0.0-beta-26f2496093-20240514"
@@ -4559,8 +4559,8 @@ __metadata:
   resolution: "@examples-query-react/advanced@workspace:examples/query/react/advanced"
   dependencies:
     "@reduxjs/toolkit": "npm:^1.6.0-rc.1"
-    "@types/react": "npm:^18.0.5"
-    "@types/react-dom": "npm:^18.0.5"
+    "@types/react": "npm:types-react@19.0.0-beta.1"
+    "@types/react-dom": "npm:types-react-dom@19.0.0-beta.1"
     react: "npm:19.0.0-beta-26f2496093-20240514"
     react-dom: "npm:19.0.0-beta-26f2496093-20240514"
     react-redux: "npm:^9.1.0"
@@ -4577,8 +4577,8 @@ __metadata:
     "@emotion/react": "npm:^11.4.0"
     "@emotion/styled": "npm:^11.3.0"
     "@reduxjs/toolkit": "npm:^1.6.0-rc.1"
-    "@types/react": "npm:^18.0.5"
-    "@types/react-dom": "npm:^18.0.5"
+    "@types/react": "npm:types-react@19.0.0-beta.1"
+    "@types/react-dom": "npm:types-react-dom@19.0.0-beta.1"
     framer-motion: "npm:^2.9.5"
     msw: "npm:^0.40.2"
     react: "npm:19.0.0-beta-26f2496093-20240514"
@@ -4599,8 +4599,8 @@ __metadata:
     "@emotion/react": "npm:^11.4.0"
     "@emotion/styled": "npm:^11.3.0"
     "@reduxjs/toolkit": "npm:^1.6.0-rc.1"
-    "@types/react": "npm:^18.0.5"
-    "@types/react-dom": "npm:^18.0.5"
+    "@types/react": "npm:types-react@19.0.0-beta.1"
+    "@types/react-dom": "npm:types-react-dom@19.0.0-beta.1"
     framer-motion: "npm:^2.9.5"
     msw: "npm:^0.40.2"
     react: "npm:19.0.0-beta-26f2496093-20240514"
@@ -4620,8 +4620,8 @@ __metadata:
     "@reduxjs/toolkit": "npm:^1.6.0-rc.1"
     "@testing-library/react": "npm:^13.3.0"
     "@types/jest": "npm:^26.0.23"
-    "@types/react": "npm:^18.0.5"
-    "@types/react-dom": "npm:^18.0.5"
+    "@types/react": "npm:types-react@19.0.0-beta.1"
+    "@types/react-dom": "npm:types-react-dom@19.0.0-beta.1"
     msw: "npm:^0.40.2"
     react: "npm:19.0.0-beta-26f2496093-20240514"
     react-dom: "npm:19.0.0-beta-26f2496093-20240514"
@@ -4636,8 +4636,8 @@ __metadata:
   resolution: "@examples-query-react/conditional-fetching@workspace:examples/query/react/conditional-fetching"
   dependencies:
     "@reduxjs/toolkit": "npm:^1.6.0-rc.1"
-    "@types/react": "npm:^18.0.5"
-    "@types/react-dom": "npm:^18.0.5"
+    "@types/react": "npm:types-react@19.0.0-beta.1"
+    "@types/react-dom": "npm:types-react-dom@19.0.0-beta.1"
     react: "npm:19.0.0-beta-26f2496093-20240514"
     react-dom: "npm:19.0.0-beta-26f2496093-20240514"
     react-redux: "npm:^9.1.0"
@@ -4651,8 +4651,8 @@ __metadata:
   resolution: "@examples-query-react/deduping-queries@workspace:examples/query/react/deduping-queries"
   dependencies:
     "@reduxjs/toolkit": "npm:^1.6.0-rc.1"
-    "@types/react": "npm:^18.0.5"
-    "@types/react-dom": "npm:^18.0.5"
+    "@types/react": "npm:types-react@19.0.0-beta.1"
+    "@types/react-dom": "npm:types-react-dom@19.0.0-beta.1"
     react: "npm:19.0.0-beta-26f2496093-20240514"
     react-dom: "npm:19.0.0-beta-26f2496093-20240514"
     react-redux: "npm:^9.1.0"
@@ -4681,8 +4681,8 @@ __metadata:
     "@reduxjs/toolkit": "npm:^1.6.0"
     "@rtk-query/graphql-request-base-query": "npm:^2.0.0"
     "@types/faker": "npm:^5.5.5"
-    "@types/react": "npm:^18.0.5"
-    "@types/react-dom": "npm:^18.0.5"
+    "@types/react": "npm:types-react@19.0.0-beta.1"
+    "@types/react-dom": "npm:types-react-dom@19.0.0-beta.1"
     "@types/webpack-env": "npm:^1.16.0"
     concurrently: "npm:^6.2.0"
     cross-env: "npm:^7.0.3"
@@ -4713,8 +4713,8 @@ __metadata:
     "@reduxjs/toolkit": "npm:^1.6.0-rc.1"
     "@rtk-query/graphql-request-base-query": "npm:^2.0.0"
     "@types/faker": "npm:^5.5.5"
-    "@types/react": "npm:^18.0.5"
-    "@types/react-dom": "npm:^18.0.5"
+    "@types/react": "npm:types-react@19.0.0-beta.1"
+    "@types/react-dom": "npm:types-react-dom@19.0.0-beta.1"
     faker: "npm:^5.5.3"
     framer-motion: "npm:^2.9.5"
     graphql: "npm:^15.5.0"
@@ -4739,8 +4739,8 @@ __metadata:
     "@testing-library/react": "npm:^13.3.0"
     "@types/jest": "npm:^26.0.23"
     "@types/node": "npm:^14.14.6"
-    "@types/react": "npm:^18.0.5"
-    "@types/react-dom": "npm:^18.0.5"
+    "@types/react": "npm:types-react@19.0.0-beta.1"
+    "@types/react-dom": "npm:types-react-dom@19.0.0-beta.1"
     msw: "npm:^0.40.2"
     react: "npm:19.0.0-beta-26f2496093-20240514"
     react-dom: "npm:19.0.0-beta-26f2496093-20240514"
@@ -4761,8 +4761,8 @@ __metadata:
     "@emotion/styled": "npm:^11.3.0"
     "@mswjs/data": "npm:^0.3.0"
     "@reduxjs/toolkit": "npm:^1.6.0-rc.1"
-    "@types/react": "npm:^18.0.5"
-    "@types/react-dom": "npm:^18.0.5"
+    "@types/react": "npm:types-react@19.0.0-beta.1"
+    "@types/react-dom": "npm:types-react-dom@19.0.0-beta.1"
     framer-motion: "npm:^2.9.5"
     msw: "npm:^0.40.2"
     react: "npm:19.0.0-beta-26f2496093-20240514"
@@ -4784,8 +4784,8 @@ __metadata:
     "@emotion/styled": "npm:^11.3.0"
     "@mswjs/data": "npm:^0.3.0"
     "@reduxjs/toolkit": "npm:^1.6.0-rc.1"
-    "@types/react": "npm:^18.0.5"
-    "@types/react-dom": "npm:^18.0.5"
+    "@types/react": "npm:types-react@19.0.0-beta.1"
+    "@types/react-dom": "npm:types-react-dom@19.0.0-beta.1"
     framer-motion: "npm:^2.9.5"
     msw: "npm:^0.40.2"
     react: "npm:19.0.0-beta-26f2496093-20240514"
@@ -4810,8 +4810,8 @@ __metadata:
     "@mswjs/data": "npm:^0.3.0"
     "@reduxjs/toolkit": "npm:^1.6.0-rc.1"
     "@types/faker": "npm:^5.5.5"
-    "@types/react": "npm:^18.0.5"
-    "@types/react-dom": "npm:^18.0.5"
+    "@types/react": "npm:types-react@19.0.0-beta.1"
+    "@types/react-dom": "npm:types-react-dom@19.0.0-beta.1"
     faker: "npm:^5.5.3"
     framer-motion: "npm:^2.9.5"
     msw: "npm:^0.40.2"
@@ -4829,8 +4829,8 @@ __metadata:
   resolution: "@examples-query-react/polling@workspace:examples/query/react/polling"
   dependencies:
     "@reduxjs/toolkit": "npm:^1.6.0-rc.1"
-    "@types/react": "npm:^18.0.5"
-    "@types/react-dom": "npm:^18.0.5"
+    "@types/react": "npm:types-react@19.0.0-beta.1"
+    "@types/react-dom": "npm:types-react-dom@19.0.0-beta.1"
     react: "npm:19.0.0-beta-26f2496093-20240514"
     react-dom: "npm:19.0.0-beta-26f2496093-20240514"
     react-redux: "npm:^9.1.0"
@@ -4849,8 +4849,8 @@ __metadata:
     "@mswjs/data": "npm:^0.3.0"
     "@reduxjs/toolkit": "npm:^1.6.0-rc.1"
     "@types/faker": "npm:^5.5.5"
-    "@types/react": "npm:^18.0.5"
-    "@types/react-dom": "npm:^18.0.5"
+    "@types/react": "npm:types-react@19.0.0-beta.1"
+    "@types/react-dom": "npm:types-react-dom@19.0.0-beta.1"
     faker: "npm:^5.5.3"
     framer-motion: "npm:^2.9.5"
     msw: "npm:^0.40.2"
@@ -4874,8 +4874,8 @@ __metadata:
     "@mswjs/data": "npm:^0.3.0"
     "@reduxjs/toolkit": "npm:^1.6.0-rc.1"
     "@types/faker": "npm:^5.5.5"
-    "@types/react": "npm:^18.0.5"
-    "@types/react-dom": "npm:^18.0.5"
+    "@types/react": "npm:types-react@19.0.0-beta.1"
+    "@types/react-dom": "npm:types-react-dom@19.0.0-beta.1"
     faker: "npm:^5.5.3"
     framer-motion: "npm:^2.9.5"
     msw: "npm:^0.40.2"
@@ -4899,8 +4899,8 @@ __metadata:
     "@mswjs/data": "npm:^0.3.0"
     "@reduxjs/toolkit": "npm:^1.6.0-rc.1"
     "@types/faker": "npm:^5.5.5"
-    "@types/react": "npm:^18.0.5"
-    "@types/react-dom": "npm:^18.0.5"
+    "@types/react": "npm:types-react@19.0.0-beta.1"
+    "@types/react-dom": "npm:types-react-dom@19.0.0-beta.1"
     faker: "npm:^5.5.3"
     framer-motion: "npm:^2.9.5"
     msw: "npm:^0.40.2"
@@ -4919,8 +4919,8 @@ __metadata:
   resolution: "@examples-query-react/with-apiprovider@workspace:examples/query/react/with-apiprovider"
   dependencies:
     "@reduxjs/toolkit": "npm:^1.6.0-rc.1"
-    "@types/react": "npm:^18.0.5"
-    "@types/react-dom": "npm:^18.0.5"
+    "@types/react": "npm:types-react@19.0.0-beta.1"
+    "@types/react-dom": "npm:types-react-dom@19.0.0-beta.1"
     react: "npm:19.0.0-beta-26f2496093-20240514"
     react-dom: "npm:19.0.0-beta-26f2496093-20240514"
     react-redux: "npm:^9.1.0"
@@ -4935,8 +4935,8 @@ __metadata:
   dependencies:
     "@reduxjs/toolkit": "workspace:^"
     "@types/node": "npm:^20.14.11"
-    "@types/react": "npm:^18.3.3"
-    "@types/react-dom": "npm:^18.3.0"
+    "@types/react": "npm:types-react@19.0.0-beta.1"
+    "@types/react-dom": "npm:types-react-dom@19.0.0-beta.1"
     react: "npm:19.0.0-beta-26f2496093-20240514"
     react-dom: "npm:19.0.0-beta-26f2496093-20240514"
     react-redux: "npm:^9.1.2"
@@ -4952,8 +4952,8 @@ __metadata:
   dependencies:
     "@reduxjs/toolkit": "workspace:^"
     "@types/node": "npm:^20.14.11"
-    "@types/react": "npm:^18.3.3"
-    "@types/react-dom": "npm:^18.3.0"
+    "@types/react": "npm:types-react@19.0.0-beta.1"
+    "@types/react-dom": "npm:types-react-dom@19.0.0-beta.1"
     react: "npm:19.0.0-beta-26f2496093-20240514"
     react-dom: "npm:19.0.0-beta-26f2496093-20240514"
     react-redux: "npm:^9.1.2"
@@ -4969,8 +4969,8 @@ __metadata:
   dependencies:
     "@reduxjs/toolkit": "workspace:^"
     "@types/node": "npm:^20.14.11"
-    "@types/react": "npm:^18.3.3"
-    "@types/react-dom": "npm:^18.3.0"
+    "@types/react": "npm:types-react@19.0.0-beta.1"
+    "@types/react-dom": "npm:types-react-dom@19.0.0-beta.1"
     react: "npm:19.0.0-beta-26f2496093-20240514"
     react-dom: "npm:19.0.0-beta-26f2496093-20240514"
     react-redux: "npm:^9.1.2"
@@ -6684,8 +6684,8 @@ __metadata:
     "@types/nanoid": "npm:^2.1.0"
     "@types/node": "npm:^20.11.0"
     "@types/query-string": "npm:^6.3.0"
-    "@types/react": "npm:^18.0.12"
-    "@types/react-dom": "npm:^18.0.5"
+    "@types/react": "npm:types-react@19.0.0-beta.1"
+    "@types/react-dom": "npm:types-react-dom@19.0.0-beta.1"
     "@types/yargs": "npm:^16.0.1"
     "@typescript-eslint/eslint-plugin": "npm:^6"
     "@typescript-eslint/parser": "npm:^6"
@@ -8206,12 +8206,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:^18.0.0, @types/react-dom@npm:^18.0.5, @types/react-dom@npm:^18.2.25, @types/react-dom@npm:^18.3.0":
+"@types/react-dom@npm:^18.0.0":
   version: 18.3.0
   resolution: "@types/react-dom@npm:18.3.0"
   dependencies:
     "@types/react": "npm:*"
   checksum: 10/6ff53f5a7b7fba952a68e114d3b542ebdc1e87a794234785ebab0bcd9bde7fb4885f21ebaf93d26dc0a1b5b93287f42cad68b78ae04dddf6b20da7aceff0beaf
+  languageName: node
+  linkType: hard
+
+"@types/react-dom@npm:types-react-dom@19.0.0-beta.1":
+  version: 19.0.0-beta.1
+  resolution: "types-react-dom@npm:19.0.0-beta.1"
+  dependencies:
+    "@types/react": "npm:*"
+  checksum: 10/679cfba702ff7a301f9781e81992536a142edac0bc093b09addd98d8a87bbbd67d454fa2a661c9fdebe553ed3e9f11276ca6e9fb6341beee6d81d723750b0c5e
   languageName: node
   linkType: hard
 
@@ -8247,13 +8256,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:*, @types/react@npm:^18.0, @types/react@npm:^18.0.12, @types/react@npm:^18.0.5, @types/react@npm:^18.2.77, @types/react@npm:^18.3.3":
+"@types/react@npm:*":
   version: 18.3.3
   resolution: "@types/react@npm:18.3.3"
   dependencies:
     "@types/prop-types": "npm:*"
     csstype: "npm:^3.0.2"
   checksum: 10/68e203b7f1f91d6cf21f33fc7af9d6d228035a26c83f514981e54aa3da695d0ec6af10c277c6336de1dd76c4adbe9563f3a21f80c4462000f41e5f370b46e96c
+  languageName: node
+  linkType: hard
+
+"@types/react@npm:types-react@19.0.0-beta.1":
+  version: 19.0.0-beta.1
+  resolution: "types-react@npm:19.0.0-beta.1"
+  dependencies:
+    csstype: "npm:^3.0.2"
+  checksum: 10/12a242d19768b529ee3783b479ef229b439d78efbefa5a662e810ac3afb96fd4f93c506603feffb69bb43c31441062404641c8ec13af689524cacb18f99ef986
   languageName: node
   linkType: hard
 
@@ -13116,7 +13134,7 @@ __metadata:
   dependencies:
     "@manaflair/redux-batch": "npm:^1.0.0"
     "@types/nanoid": "npm:^2.1.0"
-    "@types/react": "npm:^18.0"
+    "@types/react": "npm:types-react@19.0.0-beta.1"
     async-mutex: "npm:^0.3.2"
     axios: "npm:^0.20.0"
     formik: "npm:^2.1.5"
@@ -24585,8 +24603,8 @@ __metadata:
     "@babel/helper-compilation-targets": "npm:^7.23.6"
     "@babel/traverse": "npm:^7.24.1"
     "@babel/types": "npm:^7.24.0"
-    "@types/react": "npm:^18.2.77"
-    "@types/react-dom": "npm:^18.2.25"
+    "@types/react": "npm:types-react@19.0.0-beta.1"
+    "@types/react-dom": "npm:types-react-dom@19.0.0-beta.1"
     "@typescript-eslint/eslint-plugin": "npm:6.12.0"
     "@typescript-eslint/parser": "npm:6.12.0"
     eslint: "npm:^7.25.0"
