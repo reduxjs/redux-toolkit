@@ -30,7 +30,7 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import { userEvent } from '@testing-library/user-event'
 import { HttpResponse, http } from 'msw'
 import { useEffect, useState } from 'react'
 import type { MockInstance } from 'vitest'
@@ -1368,6 +1368,8 @@ describe('hooks tests', () => {
     })
 
     test('useLazyQuery hook callback returns various properties to handle the result', async () => {
+      const user = userEvent.setup()
+
       function User() {
         const [getUser] = api.endpoints.getUser.useLazyQuery()
         const [{ successMsg, errMsg, isAborted }, setValues] = useState({
@@ -1424,9 +1426,10 @@ describe('hooks tests', () => {
       expect(screen.queryByText(/Successfully fetched user/i)).toBeNull()
       screen.getByText('Request was aborted')
 
-      fireEvent.click(
+      await user.click(
         screen.getByRole('button', { name: 'Fetch User successfully' }),
       )
+
       await screen.findByText('Successfully fetched user Timmy')
       expect(screen.queryByText(/An error has occurred/i)).toBeNull()
       expect(screen.queryByText('Request was aborted')).toBeNull()
@@ -1732,6 +1735,8 @@ describe('hooks tests', () => {
     })
 
     test('useMutation hook callback returns various properties to handle the result', async () => {
+      const user = userEvent.setup()
+
       function User() {
         const [updateUser] = api.endpoints.updateUser.useMutation()
         const [successMsg, setSuccessMsg] = useState('')
@@ -1773,7 +1778,7 @@ describe('hooks tests', () => {
       expect(screen.queryByText(/Successfully updated user/i)).toBeNull()
       expect(screen.queryByText('Request was aborted')).toBeNull()
 
-      fireEvent.click(
+      await user.click(
         screen.getByRole('button', { name: 'Update User and abort' }),
       )
       await screen.findByText('An error has occurred updating user Banana')
@@ -1799,6 +1804,8 @@ describe('hooks tests', () => {
     })
 
     test('`reset` sets state back to original state', async () => {
+      const user = userEvent.setup()
+
       function User() {
         const [updateUser, result] = api.endpoints.updateUser.useMutation()
         return (
@@ -1822,13 +1829,13 @@ describe('hooks tests', () => {
       expect(screen.queryByText('Yay')).toBeNull()
       expect(countObjectKeys(storeRef.store.getState().api.mutations)).toBe(0)
 
-      userEvent.click(screen.getByRole('button', { name: 'trigger' }))
+      await user.click(screen.getByRole('button', { name: 'trigger' }))
 
       await screen.findByText(/isSuccess/i)
       expect(screen.queryByText('Yay')).not.toBeNull()
       expect(countObjectKeys(storeRef.store.getState().api.mutations)).toBe(1)
 
-      userEvent.click(screen.getByRole('button', { name: 'reset' }))
+      await user.click(screen.getByRole('button', { name: 'reset' }))
 
       await screen.findByText(/isUninitialized/i)
       expect(screen.queryByText('Yay')).toBeNull()
@@ -1864,7 +1871,9 @@ describe('hooks tests', () => {
         expect(screen.getByTestId('isFetching').textContent).toBe('false'),
       )
 
-      await userEvent.hover(screen.getByTestId('highPriority'))
+      const user = await userEvent.setup({ delay: null })
+
+      await user.hover(screen.getByTestId('highPriority'))
 
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any),
@@ -1905,6 +1914,8 @@ describe('hooks tests', () => {
     })
 
     test('usePrefetch does not make an additional request if already in the cache and force=false', async () => {
+      const user = userEvent.setup()
+
       const { usePrefetch } = api
       const USER_ID = 2
 
@@ -1933,7 +1944,7 @@ describe('hooks tests', () => {
         expect(screen.getByTestId('isFetching').textContent).toBe('false'),
       )
       // Try to prefetch what we just loaded
-      userEvent.hover(screen.getByTestId('lowPriority'))
+      await user.hover(screen.getByTestId('lowPriority'))
 
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any),
@@ -2001,8 +2012,11 @@ describe('hooks tests', () => {
       // Wait 400ms, making it respect ifOlderThan
       await waitMs(400)
 
+      const user = userEvent.setup({ delay: null })
+
       // This should run the query being that we're past the threshold
-      await userEvent.hover(screen.getByTestId('lowPriority'))
+      await user.hover(screen.getByTestId('lowPriority'))
+
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any),
       ).toEqual({
@@ -2041,6 +2055,8 @@ describe('hooks tests', () => {
     })
 
     test('usePrefetch returns the last success result when ifOlderThan evalutes to false', async () => {
+      const user = userEvent.setup()
+
       const { usePrefetch } = api
       const USER_ID = 2
 
@@ -2074,7 +2090,8 @@ describe('hooks tests', () => {
         storeRef.store.getState() as any,
       )
 
-      userEvent.hover(screen.getByTestId('lowPriority'))
+      await user.hover(screen.getByTestId('lowPriority'))
+
       //  Serve up the result from the cache being that the condition wasn't met
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any),
@@ -2102,7 +2119,9 @@ describe('hooks tests', () => {
 
       render(<User />, { wrapper: storeRef.wrapper })
 
-      await userEvent.hover(screen.getByTestId('lowPriority'))
+      const user = await userEvent.setup({ delay: null })
+
+      await user.hover(screen.getByTestId('lowPriority'))
 
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any),
