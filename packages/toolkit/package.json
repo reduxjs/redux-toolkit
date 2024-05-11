@@ -84,7 +84,7 @@
     "eslint-plugin-react-hooks": "^4.2.0",
     "fs-extra": "^9.1.0",
     "invariant": "^2.2.4",
-    "jsdom": "^21.0.0",
+    "jsdom": "^25.0.1",
     "json-stringify-safe": "^5.0.1",
     "msw": "^2.1.4",
     "node-fetch": "^3.3.2",
