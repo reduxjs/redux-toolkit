@@ -7480,6 +7480,8 @@ __metadata:
     node-fetch: "npm:^3.3.2"
     prettier: "npm:^3.2.5"
     query-string: "npm:^7.0.1"
+    react: "npm:19.0.0-beta-04b058868c-20240508"
+    react-dom: "npm:19.0.0-beta-04b058868c-20240508"
     redux: "npm:^5.0.1"
     redux-thunk: "npm:^3.1.0"
     reselect: "npm:^5.1.0"
