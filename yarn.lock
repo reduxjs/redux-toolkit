@@ -7611,6 +7611,7 @@ __metadata:
   dependencies:
     "@reduxjs/tsconfig": "workspace:^"
     rimraf: "npm:^5.0.7"
+    tslib: "npm:^2.6.2"
     typescript: "npm:^5.4.5"
     vite-tsconfig-paths: "npm:^4.3.2"
     vitest: "npm:^1.6.0"
