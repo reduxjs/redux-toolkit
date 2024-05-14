@@ -1,3 +1,4 @@
+import { noop } from '@internal/listenerMiddleware/utils'
 import type { SubscriptionOptions } from '@internal/query/core/apiState'
 import type { SubscriptionSelectors } from '@internal/query/core/buildMiddleware/types'
 import { server } from '@internal/query/tests/mocks/server'
@@ -33,7 +34,6 @@ import {
 import { userEvent } from '@testing-library/user-event'
 import { HttpResponse, http } from 'msw'
 import { useEffect, useState } from 'react'
-import type { MockInstance } from 'vitest'
 
 // Just setup a temporary in-memory counter for tests that `getIncrementedAmount`.
 // This can be used to test how many renders happen due to data changes or
@@ -1120,14 +1120,16 @@ describe('hooks tests', () => {
     })
 
     describe('Hook middleware requirements', () => {
-      let mock: MockInstance
-
-      beforeEach(() => {
-        mock = vi.spyOn(console, 'error').mockImplementation(() => {})
-      })
+      const consoleErrorSpy = vi
+        .spyOn(console, 'error')
+        .mockImplementation(noop)
 
       afterEach(() => {
-        mock.mockReset()
+        consoleErrorSpy.mockClear()
+      })
+
+      afterAll(() => {
+        consoleErrorSpy.mockRestore()
       })
 
       test('Throws error if middleware is not added to the store', async () => {
