@@ -7,8 +7,8 @@
   "main": "src/index.tsx",
   "dependencies": {
     "@reduxjs/toolkit": "^1.6.0-rc.1",
-    "react": "19.0.0-beta-04b058868c-20240508",
-    "react-dom": "19.0.0-beta-04b058868c-20240508",
+    "react": "19.0.0-beta-9d76c954cf-20240510",
+    "react-dom": "19.0.0-beta-9d76c954cf-20240510",
     "react-redux": "^9.1.2",
     "react-scripts": "5.0.1"
   },
