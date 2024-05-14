@@ -1041,6 +1041,7 @@ configureStore({
 If using Redux-Persist, you should specifically ignore all the action types it dispatches:
 
 ```jsx
+import { createRoot } from 'react-dom/client'
 import { configureStore } from '@reduxjs/toolkit'
 import {
   persistStore,
@@ -1078,14 +1079,23 @@ const store = configureStore({
 
 let persistor = persistStore(store)
 
-ReactDOM.render(
-  <Provider store={store}>
-    <PersistGate loading={null} persistor={persistor}>
-      <App />
-    </PersistGate>
-  </Provider>,
-  document.getElementById('root'),
-)
+const container = document.getElementById('root')
+
+if (container) {
+  const root = createRoot(container)
+
+  root.render(
+    <Provider store={store}>
+      <PersistGate loading={null} persistor={persistor}>
+        <App />
+      </PersistGate>
+    </Provider>,
+  )
+} else {
+  throw new Error(
+    "Root element with ID 'root' was not found in the document. Ensure there is a corresponding HTML element with the ID 'root' in your HTML file.",
+  )
+}
 ```
 
 Additionally, you can purge any persisted state by adding an extra reducer to the specific slice that you would like to clear when calling persistor.purge(). This is especially helpful when you are looking to clear persisted state on a dispatched logout action.
