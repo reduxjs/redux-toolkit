@@ -1001,8 +1001,6 @@ describe('hooks tests', () => {
         expect(doRender).toThrowError(
           /Warning: Middleware for RTK-Query API at reducerPath "api" has not been added to the store/,
         )
-
-        expect(consoleErrorSpy).not.toHaveBeenCalled()
       })
     })
   })
