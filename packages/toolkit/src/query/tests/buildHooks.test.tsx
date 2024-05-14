@@ -31,7 +31,7 @@ import {
   waitFor,
 } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
-import { HttpResponse, http } from 'msw'
+import { HttpResponse, delay, http } from 'msw'
 import { useEffect, useState } from 'react'
 
 // Just setup a temporary in-memory counter for tests that `getIncrementedAmount`.
@@ -46,7 +46,7 @@ interface Item {
 
 const api = createApi({
   baseQuery: async (arg: any) => {
-    await waitMs(150)
+    await delay(50)
     if (arg?.body && 'amount' in arg.body) {
       amount += 1
     }
@@ -632,7 +632,7 @@ describe('hooks tests', () => {
       function ItemList() {
         const [pageNumber, setPageNumber] = useState(0)
         const { data = [] } = api.useListItemsQuery({
-          pageNumber: pageNumber,
+          pageNumber,
         })
 
         const renderedItems = data.map((item) => (
@@ -698,7 +698,9 @@ describe('hooks tests', () => {
 
         await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
-        act(() => void storeRef.store.dispatch(api.util.resetApiState()))
+        act(() => {
+          storeRef.store.dispatch(api.util.resetApiState())
+        })
 
         expect(result.current).toEqual(
           expect.objectContaining({
@@ -723,7 +725,9 @@ describe('hooks tests', () => {
 
         await waitFor(() => expect(result.current.isSuccess).toBe(true))
         selectFromResult.mockClear()
-        act(() => void storeRef.store.dispatch(api.util.resetApiState()))
+        act(() => {
+          storeRef.store.dispatch(api.util.resetApiState())
+        })
 
         expect(selectFromResult).toHaveBeenNthCalledWith(1, {
           isError: false,
@@ -754,8 +758,10 @@ describe('hooks tests', () => {
         resPromise = refetch()
       })
       expect(resPromise).toBeInstanceOf(Promise)
-      const res = await resPromise
-      expect(res.data!.amount).toBeGreaterThan(originalAmount)
+      await act(async () => {
+        const res = await resPromise
+        expect(res.data!.amount).toBeGreaterThan(originalAmount)
+      })
     })
 
     // See https://github.com/reduxjs/redux-toolkit/issues/4267 - Memory leak in useQuery rapid query arg changes
@@ -931,19 +937,27 @@ describe('hooks tests', () => {
 
       render(<Parent />, { wrapper: storeRef.wrapper })
 
+      expect(states).toHaveLength(2)
+
       // Allow at least three state effects to hit.
       // Trying to see if any [true, false, true] occurs.
       await act(async () => {
-        await waitMs(1)
+        await delay(51)
       })
 
-      await act(async () => {
-        await waitMs(1)
-      })
+      expect(states).toHaveLength(4)
 
       await act(async () => {
-        await waitMs(1)
+        await delay(51)
       })
+
+      expect(states).toHaveLength(5)
+
+      await act(async () => {
+        await delay(51)
+      })
+
+      expect(states).toHaveLength(5)
 
       // Find if at any time the isLoading state has reverted
       // E.G.: `[..., true, false, ..., true]`
@@ -979,17 +993,16 @@ describe('hooks tests', () => {
         })
 
         const doRender = () => {
-          const { result } = renderHook(
-            () => api.endpoints.getIncrementedAmount.useQuery(),
-            {
-              wrapper: withProvider(store),
-            },
-          )
+          renderHook(() => api.endpoints.getIncrementedAmount.useQuery(), {
+            wrapper: withProvider(store),
+          })
         }
 
         expect(doRender).toThrowError(
           /Warning: Middleware for RTK-Query API at reducerPath "api" has not been added to the store/,
         )
+
+        expect(consoleErrorSpy).not.toHaveBeenCalled()
       })
     })
   })
@@ -1501,7 +1514,9 @@ describe('hooks tests', () => {
 
       const firstRenderResult = result.current
       expect(firstRenderResult[1].originalArgs).toBe(undefined)
-      act(() => void firstRenderResult[0](arg))
+      act(() => {
+        firstRenderResult[0](arg)
+      })
       const secondRenderResult = result.current
       expect(firstRenderResult[1].originalArgs).toBe(undefined)
       expect(secondRenderResult[1].originalArgs).toBe(arg)
@@ -1575,7 +1590,7 @@ describe('hooks tests', () => {
         expect(screen.getByTestId('isFetching').textContent).toBe('false'),
       )
 
-      const user = userEvent.setup({ delay: null })
+      const user = userEvent.setup()
 
       await user.hover(screen.getByTestId('highPriority'))
 
@@ -1715,9 +1730,9 @@ describe('hooks tests', () => {
       )
 
       // Wait 400ms, making it respect ifOlderThan
-      await waitMs(400)
+      await delay(400)
 
-      const user = userEvent.setup({ delay: null })
+      const user = userEvent.setup()
 
       // This should run the query being that we're past the threshold
       await user.hover(screen.getByTestId('lowPriority'))
@@ -1824,13 +1839,13 @@ describe('hooks tests', () => {
 
       render(<User />, { wrapper: storeRef.wrapper })
 
-      const user = userEvent.setup({ delay: null })
+      const user = userEvent.setup()
 
       await user.hover(screen.getByTestId('lowPriority'))
 
       expect(
-        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any),
-      ).toEqual({
+        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState()),
+      ).toMatchObject({
         endpointName: 'getUser',
         isError: false,
         isLoading: true,
@@ -2718,6 +2733,11 @@ describe('skip behaviour', () => {
     await act(async () => {
       rerender([1])
     })
+
+    await act(async () => {
+      await delay(51)
+    })
+
     expect(result.current).toMatchObject({ status: QueryStatus.fulfilled })
     await waitMs(1)
     expect(getSubscriptionCount('getUser(1)')).toBe(1)
@@ -2754,6 +2774,11 @@ describe('skip behaviour', () => {
     await act(async () => {
       rerender([1])
     })
+
+    await act(async () => {
+      await delay(51)
+    })
+
     expect(result.current).toMatchObject({ status: QueryStatus.fulfilled })
     await waitMs(1)
     expect(getSubscriptionCount('getUser(1)')).toBe(1)
@@ -2782,7 +2807,7 @@ describe('skip behaviour', () => {
     )
 
     await act(async () => {
-      await waitMs(1)
+      await delay(51)
     })
 
     // Normal fulfilled result, with both `data` and `currentData`
