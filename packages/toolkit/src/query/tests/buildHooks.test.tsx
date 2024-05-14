@@ -782,10 +782,12 @@ describe('hooks tests', () => {
     })
 
     test(`useQuery refetches when query args object changes even if serialized args don't change`, async () => {
+      const user = userEvent.setup()
+
       function ItemList() {
         const [pageNumber, setPageNumber] = useState(0)
         const { data = [] } = api.useListItemsQuery({
-          pageNumber: pageNumber,
+          pageNumber,
         })
 
         const renderedItems = data.map((item) => (
@@ -805,9 +807,7 @@ describe('hooks tests', () => {
 
       await screen.findByText('ID: 0')
 
-      await act(async () => {
-        screen.getByText('Next Page').click()
-      })
+      await user.click(screen.getByText('Next Page'))
 
       await screen.findByText('ID: 3')
     })
@@ -821,6 +821,8 @@ describe('hooks tests', () => {
     })
 
     test(`useQuery gracefully handles bigint types`, async () => {
+      const user = userEvent.setup()
+
       function ItemList() {
         const [pageNumber, setPageNumber] = useState(0)
         const { data = [] } = api.useListItemsQuery({
@@ -844,9 +846,7 @@ describe('hooks tests', () => {
 
       await screen.findByText('ID: 0')
 
-      await act(async () => {
-        screen.getByText('Next Page').click()
-      })
+      await user.click(screen.getByText('Next Page'))
 
       await screen.findByText('ID: 3')
     })
@@ -884,7 +884,9 @@ describe('hooks tests', () => {
 
         await waitFor(() => expect(result.current.isSuccess).toBe(true))
         selectFromResult.mockClear()
-        act(() => void storeRef.store.dispatch(api.util.resetApiState()))
+        act(() => {
+          storeRef.store.dispatch(api.util.resetApiState())
+        })
 
         expect(selectFromResult).toHaveBeenNthCalledWith(1, {
           isError: false,
@@ -1023,15 +1025,11 @@ describe('hooks tests', () => {
       })
 
       // 2) Set the current subscription to `{skip: true}
-      await act(async () => {
-        rerender(['a', { skip: true }])
-      })
+      rerender(['a', { skip: true }])
 
       // 3) Change _both_ the cache key _and_ `{skip: false}` at the same time.
       // This causes the `subscriptionRemoved` check to be `true`.
-      await act(async () => {
-        rerender(['b'])
-      })
+      rerender(['b'])
 
       // There should only be one active subscription after changing the arg
       checkNumSubscriptions('b', 1)
@@ -1040,9 +1038,7 @@ describe('hooks tests', () => {
       // This causes the `subscriptionRemoved` check to be `false`.
       // Correct behavior is this does _not_ clear the promise ref,
       // so
-      await act(async () => {
-        rerender(['b'])
-      })
+      rerender(['b'])
 
       // There should only be one active subscription after changing the arg
       checkNumSubscriptions('b', 1)
@@ -1092,19 +1088,27 @@ describe('hooks tests', () => {
 
       render(<Parent />, { wrapper: storeRef.wrapper })
 
+      expect(states).toHaveLength(2)
+
       // Allow at least three state effects to hit.
       // Trying to see if any [true, false, true] occurs.
       await act(async () => {
         await waitForFakeTimer(150)
       })
 
-      await act(async () => {
-        await waitForFakeTimer(150)
-      })
+      expect(states).toHaveLength(4)
 
       await act(async () => {
         await waitForFakeTimer(150)
       })
+
+      expect(states).toHaveLength(5)
+
+      await act(async () => {
+        await waitForFakeTimer(150)
+      })
+
+      expect(states).toHaveLength(5)
 
       // Find if at any time the isLoading state has reverted
       // E.G.: `[..., true, false, ..., true]`
@@ -1140,12 +1144,9 @@ describe('hooks tests', () => {
         })
 
         const doRender = () => {
-          const { result } = renderHook(
-            () => api.endpoints.getIncrementedAmount.useQuery(),
-            {
-              wrapper: withProvider(store),
-            },
-          )
+          renderHook(() => api.endpoints.getIncrementedAmount.useQuery(), {
+            wrapper: withProvider(store),
+          })
         }
 
         expect(doRender).toThrowError(
@@ -1543,6 +1544,8 @@ describe('hooks tests', () => {
     })
 
     test('useLazyQuery trigger promise returns the correctly updated data', async () => {
+      const user = userEvent.setup()
+
       const LazyUnwrapUseEffect = () => {
         const [triggerGetIncrementedAmount, { isFetching, isSuccess, data }] =
           api.endpoints.getIncrementedAmount.useLazyQuery()
@@ -1610,9 +1613,7 @@ describe('hooks tests', () => {
       render(<LazyUnwrapUseEffect />, { wrapper: storeRef.wrapper })
 
       // Kick off the initial fetch via lazy query trigger
-      act(() => {
-        userEvent.click(screen.getByText('Load Data'))
-      })
+      await user.click(screen.getByText('Load Data'))
 
       // We get back initial data, which should get copied into local state,
       // and also should come back as valid via the lazy trigger promise
@@ -1622,9 +1623,7 @@ describe('hooks tests', () => {
       })
 
       // If we mutate and then re-run the lazy trigger afterwards...
-      act(() => {
-        userEvent.click(screen.getByText('Update Data'))
-      })
+      await user.click(screen.getByText('Update Data'))
 
       // We should see both sets of data agree (ie, the lazy trigger promise
       // should not return stale data or be out of sync with the hook).
@@ -1636,6 +1635,8 @@ describe('hooks tests', () => {
     })
 
     test('`reset` sets state back to original state', async () => {
+      const user = userEvent.setup()
+
       function User() {
         const [getUser, { isSuccess, isUninitialized, reset }, _lastInfo] =
           api.endpoints.getUser.useLazyQuery()
@@ -1664,12 +1665,12 @@ describe('hooks tests', () => {
       await screen.findByText(/isUninitialized/i)
       expect(countObjectKeys(storeRef.store.getState().api.queries)).toBe(0)
 
-      userEvent.click(screen.getByRole('button', { name: 'Fetch User' }))
+      await user.click(screen.getByRole('button', { name: 'Fetch User' }))
 
       await screen.findByText(/isSuccess/i)
       expect(countObjectKeys(storeRef.store.getState().api.queries)).toBe(1)
 
-      userEvent.click(
+      await user.click(
         screen.getByRole('button', {
           name: 'Reset',
         }),
@@ -1799,7 +1800,9 @@ describe('hooks tests', () => {
 
       const firstRenderResult = result.current
       expect(firstRenderResult[1].originalArgs).toBe(undefined)
-      act(() => void firstRenderResult[0](arg))
+      await act(async () => {
+        await firstRenderResult[0](arg)
+      })
       const secondRenderResult = result.current
       expect(firstRenderResult[1].originalArgs).toBe(undefined)
       expect(secondRenderResult[1].originalArgs).toBe(arg)
@@ -1847,6 +1850,8 @@ describe('hooks tests', () => {
 
   describe('usePrefetch', () => {
     test('usePrefetch respects force arg', async () => {
+      const user = userEvent.setup()
+
       const { usePrefetch } = api
       const USER_ID = 4
       function User() {
@@ -1872,8 +1877,6 @@ describe('hooks tests', () => {
       await waitFor(() =>
         expect(screen.getByTestId('isFetching').textContent).toBe('false'),
       )
-
-      const user = await userEvent.setup({ delay: null })
 
       await user.hover(screen.getByTestId('highPriority'))
 
@@ -1984,6 +1987,8 @@ describe('hooks tests', () => {
     })
 
     test('usePrefetch respects ifOlderThan when it evaluates to true', async () => {
+      const user = userEvent.setup()
+
       const { usePrefetch } = api
       const USER_ID = 47
 
@@ -2013,8 +2018,6 @@ describe('hooks tests', () => {
 
       // Wait 400ms, making it respect ifOlderThan
       await waitMs(400)
-
-      const user = userEvent.setup({ delay: null })
 
       // This should run the query being that we're past the threshold
       await user.hover(screen.getByTestId('lowPriority'))
@@ -2101,6 +2104,8 @@ describe('hooks tests', () => {
     })
 
     test('usePrefetch executes a query even if conditions fail when the cache is empty', async () => {
+      const user = userEvent.setup()
+
       const { usePrefetch } = api
       const USER_ID = 2
 
@@ -2121,12 +2126,10 @@ describe('hooks tests', () => {
 
       render(<User />, { wrapper: storeRef.wrapper })
 
-      const user = await userEvent.setup({ delay: null })
-
       await user.hover(screen.getByTestId('lowPriority'))
 
       expect(
-        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any),
+        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState()),
       ).toEqual({
         endpointName: 'getUser',
         isError: false,
@@ -3012,9 +3015,7 @@ describe('skip behavior', () => {
     await waitMs(1)
     expect(getSubscriptionCount('getUser(1)')).toBe(0)
 
-    await act(async () => {
-      rerender([1])
-    })
+    rerender([1])
 
     await act(async () => {
       await waitForFakeTimer(150)
@@ -3024,9 +3025,8 @@ describe('skip behavior', () => {
     await waitMs(1)
     expect(getSubscriptionCount('getUser(1)')).toBe(1)
 
-    await act(async () => {
-      rerender([1, { skip: true }])
-    })
+    rerender([1, { skip: true }])
+
     expect(result.current).toEqual({
       ...uninitialized,
       isSuccess: true,
@@ -3054,9 +3054,7 @@ describe('skip behavior', () => {
     // also no subscription on `getUser(skipToken)` or similar:
     expect(getSubscriptions()).toEqual({})
 
-    await act(async () => {
-      rerender([1])
-    })
+    rerender([1])
 
     await act(async () => {
       await waitForFakeTimer(150)
@@ -3067,9 +3065,8 @@ describe('skip behavior', () => {
     expect(getSubscriptionCount('getUser(1)')).toBe(1)
     expect(getSubscriptions()).not.toEqual({})
 
-    await act(async () => {
-      rerender([skipToken])
-    })
+    rerender([skipToken])
+
     expect(result.current).toEqual({
       ...uninitialized,
       isSuccess: true,
@@ -3102,10 +3099,7 @@ describe('skip behavior', () => {
       currentData: { name: 'Timmy' },
     })
 
-    await act(async () => {
-      rerender([1, { skip: true }])
-      await waitMs(1)
-    })
+    rerender([1, { skip: true }])
 
     // After skipping, the query is "uninitialized", but still retains the last fetched `data`
     // even though it's skipped. `currentData` is undefined, since that matches the current arg.
