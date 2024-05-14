@@ -59,8 +59,7 @@ describe('missing middleware', () => {
   test.each([
     ['development', true],
     ['production', false],
-  ])('%s warns if middleware is missing: %s', ([env, shouldWarn]) => {
-    ;(process.env as any).NODE_ENV = env
+  ])('%s warns if middleware is missing: %s', (env, shouldWarn) => {
     const store = configureStore({
       reducer: { [api1.reducerPath]: api1.reducer },
     })
@@ -119,8 +118,7 @@ describe('missing reducer', () => {
   describe.each([
     ['development', true],
     ['production', false],
-  ])('%s warns if reducer is missing: %s', ([env, shouldWarn]) => {
-    ;(process.env as any).NODE_ENV = env
+  ])('%s warns if reducer is missing: %s', (env, shouldWarn) => {
     test('middleware not crashing if reducer is missing', async () => {
       const store = configureStore({
         reducer: { x: () => 0 },
