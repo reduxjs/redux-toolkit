@@ -184,7 +184,7 @@ describe('queryFn base implementation tests', () => {
     ['withAsyncQueryFn', withAsyncQueryFn, 'data'],
     ['withAsyncErrorQueryFn', withAsyncErrorQueryFn, 'error'],
     ['withAsyncThrowingQueryFn', withAsyncThrowingQueryFn, 'throw'],
-  ])('%s1', async (endpointName, endpoint, expectedResult) => {
+  ])('%s', async (endpointName, endpoint, expectedResult) => {
     const thunk = endpoint.initiate(endpointName)
     let result: undefined | QuerySubState<any> = undefined
     await expect(async () => {
