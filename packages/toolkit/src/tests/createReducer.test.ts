@@ -64,14 +64,12 @@ describe('createReducer', () => {
   })
 
   describe('Deprecation warnings', () => {
-    let originalNodeEnv = process.env.NODE_ENV
-
     beforeEach(() => {
       vi.resetModules()
     })
 
     afterEach(() => {
-      process.env.NODE_ENV = originalNodeEnv
+      vi.unstubAllEnvs()
     })
 
     it('Throws an error if the legacy object notation is used', async () => {
@@ -94,7 +92,7 @@ describe('createReducer', () => {
     })
 
     it('Crashes in production', async () => {
-      process.env.NODE_ENV = 'production'
+      vi.stubEnv('NODE_ENV', 'production')
       const { createReducer } = await import('../createReducer')
       const wrapper = () => {
         const dummyReducer = (createReducer as CreateReducer)(
@@ -109,15 +107,13 @@ describe('createReducer', () => {
   })
 
   describe('Immer in a production environment', () => {
-    let originalNodeEnv = process.env.NODE_ENV
-
     beforeEach(() => {
       vi.resetModules()
-      process.env.NODE_ENV = 'production'
+      vi.stubEnv('NODE_ENV', 'production')
     })
 
     afterEach(() => {
-      process.env.NODE_ENV = originalNodeEnv
+      vi.unstubAllEnvs()
     })
 
     test('Freezes data in production', async () => {
