@@ -13,7 +13,6 @@ describe('Entity utils', () => {
     afterEach(() => {
       consoleWarnSpy.mockClear()
       vi.unstubAllEnvs()
-      vi.resetAllMocks()
     })
 
     afterAll(() => {
