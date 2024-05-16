@@ -1,211 +1,132 @@
-const webpack = require('webpack')
-let { join } = require('path')
+import type { Check, SizeLimitConfig } from 'size-limit'
+import type { Configuration } from 'webpack'
 
-const esmSuffixes = ['modern.mjs', 'browser.mjs' /*, 'legacy-esm.js'*/]
-const cjsSuffixes = [
-  /*'development.cjs',*/
-  /*'production.min.cjs'*/
-]
+/**
+ * An array of all possible Node environments.
+ */
+const allNodeEnvs = ['production'] as const
 
-function withRtkPath(suffix, cjs = false) {
-  /**
-   * @param {string} name
-   */
-  function alias(name) {
-    return `${cjs ? 'cjs/' : ''}${name}.${suffix}`
-  }
-  /**
-   * @param {webpack.Configuration} config
-   */
-  return (config) => {
-    config.plugins.push(
-      new webpack.NormalModuleReplacementPlugin(
-        /@reduxjs\/toolkit\/query\/react/,
-        join(__dirname, 'dist/query/react/rtk-query-react.modern.mjs'),
-      ),
-      new webpack.NormalModuleReplacementPlugin(
-        /@reduxjs\/toolkit\/query/,
-        join(__dirname, 'dist/query/rtk-query.modern.mjs'),
-      ),
-      new webpack.NormalModuleReplacementPlugin(
-        /@reduxjs\/toolkit\/react/,
-        join(__dirname, 'dist/react/redux-toolkit-react.modern.mjs'),
-      ),
-      new webpack.NormalModuleReplacementPlugin(
-        /@reduxjs\/toolkit/,
-        join(__dirname, 'dist/redux-toolkit.modern.mjs'),
-      ),
-      new webpack.NormalModuleReplacementPlugin(
-        /rtk-query-react.modern.mjs/,
-        (r) => {
-          const old = r.request
-          r.request = r.request.replace(
-            /rtk-query-react.modern.mjs$/,
-            alias('rtk-query-react'),
-          )
-          //console.log(old, '=>', r.request)
-        },
-      ),
-      new webpack.NormalModuleReplacementPlugin(/rtk-query.modern.mjs/, (r) => {
-        const old = r.request
-        r.request = r.request.replace(
-          /rtk-query.modern.mjs$/,
-          alias('rtk-query'),
-        )
-        //console.log(old, '=>', r.request)
-      }),
-      new webpack.NormalModuleReplacementPlugin(
-        /redux-toolkit-react.modern.mjs$/,
-        (r) => {
-          const old = r.request
-          r.request = r.request.replace(
-            /redux-toolkit-react.modern.mjs$/,
-            alias('redux-toolkit-react'),
-          )
-          //console.log(old, '=>', r.request)
-        },
-      ),
-      new webpack.NormalModuleReplacementPlugin(
-        /redux-toolkit.modern.mjs$/,
-        (r) => {
-          const old = r.request
-          r.request = r.request.replace(
-            /redux-toolkit.modern.mjs$/,
-            alias('redux-toolkit'),
-          )
-          //console.log(old, '=>', r.request)
-        },
-      ),
-    )
+/**
+ * Represents a specific environment for a Node.js application.
+ */
+type NodeEnv = (typeof allNodeEnvs)[number]
 
-    if (suffix === 'production.min.cjs') {
-      ;(config.resolve ??= {}).mainFields = ['main', 'module']
-    }
-    ;(config.optimization ??= {}).nodeEnv = 'production'
-    return config
-  }
+/**
+ * Gets all import configurations for a given entry point.
+ * This function dynamically imports the specified entry point and
+ * generates a size limit configuration for each named export found
+ * within the module. It includes configurations for named imports,
+ * wildcard imports, and the default import.
+ *
+ * @param entryPoint - The entry point to import.
+ * @param index - The index of the entry point in the list.
+ * @returns A promise that resolves to a size limit configuration object.
+ */
+const getAllImportsForEntryPoint = async (
+  entryPoint: string,
+  index: number,
+): Promise<SizeLimitConfig> => {
+  const allNamedImports = Object.keys(await import(entryPoint)).filter(
+    (namedImport) => namedImport !== 'default',
+  )
+
+  return allNamedImports
+    .map<Check>((namedImport) => ({
+      path: entryPoint,
+      name: `${index + 1}. import { ${namedImport} } from "${entryPoint}"`,
+      import: `{ ${namedImport} }`,
+    }))
+    .concat([
+      {
+        path: entryPoint,
+        name: `${index + 1}. import * from "${entryPoint}"`,
+        import: '*',
+      },
+      {
+        path: entryPoint,
+        name: `${index + 1}. import "${entryPoint}"`,
+      },
+    ])
 }
 
-const ignoreAll = [
-  '@reduxjs/toolkit',
-  '@reduxjs/toolkit/query',
-  'immer',
-  'redux',
-  'reselect',
-  'redux-thunk',
-]
+/**
+ * Sets the `NODE_ENV` for a given Webpack configuration.
+ *
+ * @param nodeEnv - The `NODE_ENV` to set (either 'development' or 'production').
+ * @returns A function that modifies the Webpack configuration.
+ */
+const setNodeEnv = (nodeEnv: NodeEnv) => {
+  const modifyWebpackConfig = ((config: Configuration) => {
+    ;(config.optimization ??= {}).nodeEnv = nodeEnv
 
-const entryPoints = [
-  {
-    name: `1. entry point: @reduxjs/toolkit`,
-    path: 'dist/redux-toolkit.modern.mjs',
-  },
-  {
-    name: `1. entry point: @reduxjs/toolkit/react`,
-    path: 'dist/react/redux-toolkit-react.modern.mjs',
-  },
-  {
-    name: `1. entry point: @reduxjs/toolkit/query`,
-    path: 'dist/query/rtk-query.modern.mjs',
-  },
-  {
-    name: `1. entry point: @reduxjs/toolkit/query/react`,
-    path: 'dist/query/react/rtk-query-react.modern.mjs',
-  },
-  {
-    name: `2. entry point: @reduxjs/toolkit (without dependencies)`,
-    path: 'dist/redux-toolkit.modern.mjs',
-    ignore: ignoreAll,
-  },
-  {
-    name: `2. entry point: @reduxjs/toolkit/react (without dependencies)`,
-    path: 'dist/react/redux-toolkit-react.modern.mjs',
-    ignore: ignoreAll,
-  },
-  {
-    name: `2. entry point: @reduxjs/toolkit/query (without dependencies)`,
-    path: 'dist/query/rtk-query.modern.mjs',
-    ignore: ignoreAll,
-  },
-  {
-    name: `2. entry point: @reduxjs/toolkit/query/react (without dependencies)`,
-    path: 'dist/query/react/rtk-query-react.modern.mjs',
-    ignore: ignoreAll,
-  },
-]
+    return config
+  }) satisfies Check['modifyWebpackConfig']
 
-module.exports = entryPoints
-  .flatMap((e) =>
-    esmSuffixes.map((suffix) => ({
-      ...e,
-      name: e.name + ` (${suffix})`,
-      modifyWebpackConfig: withRtkPath(suffix),
-    })),
+  return modifyWebpackConfig
+}
+
+/**
+ * Gets all import configurations with a specified `NODE_ENV`.
+ *
+ * @param nodeEnv - The `NODE_ENV` to set (either 'development' or 'production').
+ * @returns A promise that resolves to a size limit configuration object.
+ */
+const getAllImportsWithNodeEnv = async (nodeEnv: NodeEnv) => {
+  const allPackageEntryPoints = [
+    './dist/redux-toolkit.modern.mjs',
+    './dist/react/redux-toolkit-react.modern.mjs',
+    './dist/query/rtk-query.modern.mjs',
+    './dist/query/react/rtk-query-react.modern.mjs',
+  ]
+
+  const allImportsFromAllEntryPoints = (
+    await Promise.all(allPackageEntryPoints.map(getAllImportsForEntryPoint))
+  ).flat()
+
+  const modifyWebpackConfig = setNodeEnv(nodeEnv)
+
+  const allImportsWithNodeEnv = allImportsFromAllEntryPoints.map<Check>(
+    (importsFromEntryPoint) => ({
+      ...importsFromEntryPoint,
+      name: `${importsFromEntryPoint.name} ('${nodeEnv}' mode)`,
+      modifyWebpackConfig,
+    }),
   )
-  .concat(
-    entryPoints.flatMap((e) =>
-      cjsSuffixes.map((suffix) => ({
-        ...e,
-        name: e.name + ` (cjs, ${suffix})`,
-        modifyWebpackConfig: withRtkPath(suffix, true),
-      })),
-    ),
-  )
-  .concat(
-    [
-      {
-        name: `3. createSlice`,
-        import: { '@reduxjs/toolkit': '{ createSlice }' },
-      },
-      {
-        name: `3. createAsyncThunk`,
-        import: { '@reduxjs/toolkit': '{ createAsyncThunk }' },
-      },
-      {
-        name: `3. buildCreateSlice and asyncThunkCreator`,
-        import: {
-          '@reduxjs/toolkit': '{ buildCreateSlice, asyncThunkCreator }',
-        },
-      },
-      {
-        name: `3. createEntityAdapter`,
-        import: { '@reduxjs/toolkit': '{ createEntityAdapter }' },
-      },
-      {
-        name: `3. configureStore`,
-        import: { '@reduxjs/toolkit': '{ configureStore }' },
-      },
-      {
-        name: `3. combineSlices`,
-        import: { '@reduxjs/toolkit': '{ combineSlices }' },
-      },
-      {
-        name: `3. createDynamicMiddleware`,
-        import: { '@reduxjs/toolkit': '{ createDynamicMiddleware }' },
-      },
-      {
-        name: `3. createDynamicMiddleware (react)`,
-        import: { '@reduxjs/toolkit/react': '{ createDynamicMiddleware }' },
-      },
-      {
-        name: `3. createListenerMiddleware`,
-        import: { '@reduxjs/toolkit': '{ createListenerMiddleware }' },
-      },
-      {
-        name: `3. createApi`,
-        import: { '@reduxjs/toolkit/query': '{ createApi }' },
-      },
-      {
-        name: `3. createApi (react)`,
-        import: { '@reduxjs/toolkit/query/react': '{ createApi }' },
-      },
-      {
-        name: `3. fetchBaseQuery`,
-        import: { '@reduxjs/toolkit/query': '{ fetchBaseQuery }' },
-      },
-    ].map((e) => ({
-      ...e,
-      name: e.name + ` (.modern.mjs)`,
-      modifyWebpackConfig: withRtkPath('modern.mjs'),
-    })),
-  )
+
+  return allImportsWithNodeEnv
+}
+
+/**
+ * Gets the size limit configuration for all `NODE_ENV`s.
+ *
+ * @returns A promise that resolves to the size limit configuration object.
+ */
+const getSizeLimitConfig = async (): Promise<SizeLimitConfig> => {
+  const packageJson = (
+    await import('./package.json', { with: { type: 'json' } })
+  ).default
+
+  const sizeLimitConfig = (
+    await Promise.all(allNodeEnvs.map(getAllImportsWithNodeEnv))
+  ).flat()
+
+  if ('dependencies' in packageJson) {
+    const dependencies = Object.keys(packageJson.dependencies ?? {})
+
+    const sizeLimitConfigWithoutDependencies = sizeLimitConfig.map<Check>(
+      (check) => ({
+        ...check,
+        name: `${check.name} (excluding dependencies)`,
+        ignore: dependencies,
+      }),
+    )
+
+    return sizeLimitConfigWithoutDependencies
+  }
+
+  return sizeLimitConfig
+}
+
+const sizeLimitConfig: Promise<SizeLimitConfig> = getSizeLimitConfig()
+
+export default sizeLimitConfig
