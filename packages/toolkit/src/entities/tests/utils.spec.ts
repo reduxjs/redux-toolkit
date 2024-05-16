@@ -12,7 +12,6 @@ describe('Entity utils', () => {
 
     afterEach(() => {
       process.env = OLD_ENV
-      vi.resetAllMocks()
     })
 
     it('should not warn when key does exist', async () => {
