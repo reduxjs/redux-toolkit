@@ -607,7 +607,7 @@ describe('conditional skipping of asyncThunks', () => {
     const condition = () => Promise.resolve(false)
     const asyncThunk = createAsyncThunk('test', payloadCreator, { condition })
     await asyncThunk(arg)(dispatch, getState, extra)
-    expect(dispatch).toHaveBeenCalledTimes(0)
+    expect(dispatch).not.toHaveBeenCalled()
   })
 
   test('async condition with rejected promise', async () => {
@@ -632,14 +632,14 @@ describe('conditional skipping of asyncThunks', () => {
       thunkPromise.abort()
       await thunkPromise
     } catch (err) {}
-    expect(dispatch).toHaveBeenCalledTimes(0)
+    expect(dispatch).not.toHaveBeenCalled()
   })
 
   test('rejected action is not dispatched by default', async () => {
     const asyncThunk = createAsyncThunk('test', payloadCreator, { condition })
     await asyncThunk(arg)(dispatch, getState, extra)
 
-    expect(dispatch).toHaveBeenCalledTimes(0)
+    expect(dispatch).not.toHaveBeenCalled()
   })
 
   test('does not fail when attempting to abort a canceled promise', async () => {

@@ -1016,7 +1016,7 @@ describe('custom serializeQueryArgs per endpoint', () => {
       api.endpoints.queryWithNoSerializer.initiate(99),
     )
 
-    expect(serializer1).toHaveBeenCalledTimes(0)
+    expect(serializer1).not.toHaveBeenCalled()
 
     await storeRef.store.dispatch(
       api.endpoints.queryWithCustomSerializer.initiate(42),
@@ -1045,7 +1045,7 @@ describe('custom serializeQueryArgs per endpoint', () => {
   })
 
   it('Works via injectEndpoints', async () => {
-    expect(serializer2).toHaveBeenCalledTimes(0)
+    expect(serializer2).not.toHaveBeenCalled()
 
     await storeRef.store.dispatch(
       injectedApi.endpoints.injectedQueryWithCustomSerializer.initiate(5),

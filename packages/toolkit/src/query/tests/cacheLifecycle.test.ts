@@ -505,7 +505,7 @@ test('updateCachedData', async () => {
             draft.value = 'TEST'
             trackCalls()
           })
-          expect(trackCalls).toHaveBeenCalledTimes(0)
+          expect(trackCalls).not.toHaveBeenCalled()
           expect(getCacheEntry().data).toEqual(undefined)
 
           gotFirstValue(await cacheDataLoaded)
@@ -612,7 +612,7 @@ test('dispatching a mutation initializer with `track: false` does not start a li
   await storeRef.store.dispatch(
     extended.endpoints.injected.initiate(undefined, { track: false }),
   )
-  expect(onNewCacheEntry).toHaveBeenCalledTimes(0)
+  expect(onNewCacheEntry).not.toHaveBeenCalled()
 
   await storeRef.store.dispatch(extended.endpoints.injected.initiate(undefined))
   expect(onNewCacheEntry).toHaveBeenCalledOnce()
