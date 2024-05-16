@@ -587,7 +587,7 @@ describe('conditional skipping of asyncThunks', () => {
     const asyncThunk = createAsyncThunk('test', payloadCreator, { condition })
     await asyncThunk(arg)(dispatch, getState, extra)
 
-    expect(condition).toHaveBeenCalledTimes(1)
+    expect(condition).toHaveBeenCalledOnce()
     expect(condition).toHaveBeenLastCalledWith(
       arg,
       expect.objectContaining({ getState, extra }),
@@ -598,7 +598,7 @@ describe('conditional skipping of asyncThunks', () => {
     const condition = () => true
     const asyncThunk = createAsyncThunk('test', payloadCreator, { condition })
     const thunkCallPromise = asyncThunk(arg)(dispatch, getState, extra)
-    expect(dispatch).toHaveBeenCalledTimes(1)
+    expect(dispatch).toHaveBeenCalledOnce()
     await thunkCallPromise
     expect(dispatch).toHaveBeenCalledTimes(2)
   })
@@ -614,7 +614,7 @@ describe('conditional skipping of asyncThunks', () => {
     const condition = () => Promise.reject()
     const asyncThunk = createAsyncThunk('test', payloadCreator, { condition })
     await asyncThunk(arg)(dispatch, getState, extra)
-    expect(dispatch).toHaveBeenCalledTimes(1)
+    expect(dispatch).toHaveBeenCalledOnce()
     expect(dispatch).toHaveBeenLastCalledWith(
       expect.objectContaining({ type: 'test/rejected' }),
     )
@@ -664,7 +664,7 @@ describe('conditional skipping of asyncThunks', () => {
     })
     await asyncThunk(arg)(dispatch, getState, extra)
 
-    expect(dispatch).toHaveBeenCalledTimes(1)
+    expect(dispatch).toHaveBeenCalledOnce()
     expect(dispatch).toHaveBeenLastCalledWith(
       expect.objectContaining({
         error: {
@@ -872,9 +872,9 @@ test('`condition` will see state changes from a synchronously invoked asyncThunk
   })
 
   store.dispatch(asyncThunk({ force: false }))
-  expect(onStart).toHaveBeenCalledTimes(1)
+  expect(onStart).toHaveBeenCalledOnce()
   store.dispatch(asyncThunk({ force: false }))
-  expect(onStart).toHaveBeenCalledTimes(1)
+  expect(onStart).toHaveBeenCalledOnce()
   store.dispatch(asyncThunk({ force: true }))
   expect(onStart).toHaveBeenCalledTimes(2)
 })

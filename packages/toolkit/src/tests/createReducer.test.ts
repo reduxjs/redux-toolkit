@@ -217,7 +217,7 @@ describe('createReducer', () => {
       expect(spy).not.toHaveBeenCalled()
 
       const initialState = dummyReducer(undefined, { type: 'dummy' })
-      expect(spy).toHaveBeenCalledTimes(1)
+      expect(spy).toHaveBeenCalledOnce()
     })
   })
 
