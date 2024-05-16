@@ -1,18 +1,16 @@
-import { vi } from 'vitest'
 import type {
   CaseReducer,
-  PayloadAction,
   Draft,
+  PayloadAction,
   Reducer,
   UnknownAction,
 } from '@reduxjs/toolkit'
-import { isPlainObject } from '@reduxjs/toolkit'
-import { createReducer, createAction, createNextState } from '@reduxjs/toolkit'
 import {
-  mockConsole,
-  createConsole,
-  getLog,
-} from 'console-testing-library/pure'
+  createAction,
+  createNextState,
+  createReducer,
+  isPlainObject,
+} from '@reduxjs/toolkit'
 
 interface Todo {
   text: string
@@ -42,11 +40,6 @@ type ToggleTodoReducer = CaseReducer<
 type CreateReducer = typeof createReducer
 
 describe('createReducer', () => {
-  let restore: () => void
-
-  beforeEach(() => {
-    restore = mockConsole(createConsole())
-  })
   describe('given impure reducers with immer', () => {
     const addTodo: AddTodoReducer = (state, action) => {
       const { newTodo } = action.payload
@@ -84,8 +77,11 @@ describe('createReducer', () => {
     it('Throws an error if the legacy object notation is used', async () => {
       const { createReducer } = await import('../createReducer')
       const wrapper = () => {
-        // @ts-ignore
-        let dummyReducer = (createReducer as CreateReducer)([] as TodoState, {})
+        const dummyReducer = (createReducer as CreateReducer)(
+          [] as TodoState,
+          // @ts-ignore
+          {},
+        )
       }
 
       expect(wrapper).toThrowError(
@@ -101,8 +97,11 @@ describe('createReducer', () => {
       process.env.NODE_ENV = 'production'
       const { createReducer } = await import('../createReducer')
       const wrapper = () => {
-        // @ts-ignore
-        let dummyReducer = (createReducer as CreateReducer)([] as TodoState, {})
+        const dummyReducer = (createReducer as CreateReducer)(
+          [] as TodoState,
+          // @ts-ignore
+          {},
+        )
       }
 
       expect(wrapper).toThrowError()
