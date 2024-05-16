@@ -492,19 +492,17 @@ describe('createAsyncThunk with abortController', () => {
   describe('behaviour with missing AbortController', () => {
     let keepAbortController: (typeof window)['AbortController']
     let freshlyLoadedModule: typeof import('../createAsyncThunk')
-    let nodeEnv: string
 
     beforeEach(async () => {
       keepAbortController = window.AbortController
       delete (window as any).AbortController
       vi.resetModules()
       freshlyLoadedModule = await import('../createAsyncThunk')
-      nodeEnv = process.env.NODE_ENV!
-      ;(process.env as any).NODE_ENV = 'development'
+      vi.stubEnv('NODE_ENV', 'development')
     })
 
     afterEach(() => {
-      ;(process.env as any).NODE_ENV = nodeEnv
+      vi.unstubAllEnvs()
       window.AbortController = keepAbortController
       vi.resetModules()
     })
