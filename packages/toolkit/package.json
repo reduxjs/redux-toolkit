@@ -1,6 +1,6 @@
 {
   "name": "@reduxjs/toolkit",
-  "version": "2.2.4",
+  "version": "2.2.5",
   "description": "The official, opinionated, batteries-included toolset for efficient Redux development",
   "author": "Mark Erikson <mark@isquaredsoftware.com>",
   "license": "MIT",
@@ -102,7 +102,7 @@
     "format:check": "prettier --check .",
     "lint": "eslint . --cache --cache-strategy content",
     "lint:fix": "eslint --fix .",
-    "test": "vitest --run --typecheck",
+    "test": "vitest --typecheck --run ",
     "test:watch": "vitest --watch",
     "type-tests": "yarn tsc -p tsconfig.test.json --noEmit",
     "prepack": "yarn build",
