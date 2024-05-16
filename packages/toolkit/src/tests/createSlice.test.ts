@@ -1,3 +1,4 @@
+import { noop } from '@internal/listenerMiddleware/utils'
 import type { PayloadAction, WithSlice } from '@reduxjs/toolkit'
 import {
   asyncThunkCreator,
@@ -7,21 +8,10 @@ import {
   createAction,
   createSlice,
 } from '@reduxjs/toolkit'
-import {
-  createConsole,
-  getLog,
-  mockConsole,
-} from 'console-testing-library/pure'
 
 type CreateSlice = typeof createSlice
 
 describe('createSlice', () => {
-  let restore: () => void
-
-  beforeEach(() => {
-    restore = mockConsole(createConsole())
-  })
-
   describe('when slice is undefined', () => {
     it('should throw an error', () => {
       expect(() =>
@@ -55,10 +45,19 @@ describe('createSlice', () => {
   })
 
   describe('when initial state is undefined', () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(noop)
+
     beforeEach(() => {
       vi.stubEnv('NODE_ENV', 'development')
 
-      return vi.unstubAllEnvs
+      return () => {
+        vi.unstubAllEnvs()
+        consoleErrorSpy.mockClear()
+      }
+    })
+
+    afterAll(() => {
+      consoleErrorSpy.mockRestore()
     })
 
     it('should throw an error', () => {
@@ -68,7 +67,9 @@ describe('createSlice', () => {
         initialState: undefined,
       })
 
-      expect(getLog().log).toBe(
+      expect(consoleErrorSpy).toHaveBeenCalledOnce()
+
+      expect(consoleErrorSpy).toHaveBeenLastCalledWith(
         'You must provide an `initialState` value that is not `undefined`. You may have misspelled `initialState`',
       )
     })
@@ -397,7 +398,6 @@ describe('createSlice', () => {
 
     beforeEach(() => {
       vi.resetModules()
-      restore = mockConsole(createConsole())
     })
 
     afterEach(() => {
