@@ -12,51 +12,62 @@ const allPackageEntryPoints = [
   './dist/react/redux-toolkit-react.modern.mjs',
   './dist/query/rtk-query.modern.mjs',
   './dist/query/react/rtk-query-react.modern.mjs',
-] as const
+] as const satisfies string[]
 
-const dependencies = Object.keys(packageJson.dependencies ?? {})
+const peerAndProductionDependencies = Object.keys({
+  ...packageJson.dependencies,
+  ...packageJson.peerDependencies,
+} as const)
 
 const sizeLimitConfig: SizeLimitConfig = (
   await Promise.all(
     allNodeEnvs.flatMap((nodeEnv) => {
-      const modifyWebpackConfig = ((config: Configuration) => {
-        ;(config.optimization ??= {}).nodeEnv = nodeEnv
-
-        return config
-      }) satisfies Check['modifyWebpackConfig']
+      const modifyWebpackConfig = ((config: Configuration): Configuration =>
+        ({
+          ...config,
+          optimization: {
+            ...config.optimization,
+            nodeEnv,
+          },
+        }) as const satisfies Configuration) satisfies Check['modifyWebpackConfig']
 
       return allPackageEntryPoints.map(async (entryPoint, index) => {
         const allNamedImports = Object.keys(await import(entryPoint)).filter(
           (namedImport) => namedImport !== 'default',
         )
 
-        const sizeLimitConfigWithDependencies = allNamedImports
-          .map<Check>((namedImport, namedImportIndex) => ({
+        const sizeLimitConfigWithDependencies = [
+          ...allNamedImports.map(
+            (namedImport, namedImportIndex) =>
+              ({
+                path: entryPoint,
+                name: `${(index + 1).toString()}-${(namedImportIndex + 1).toString()}. import { ${namedImport} } from "${entryPoint}" ('${nodeEnv}' mode)`,
+                import: `{ ${namedImport} }`,
+                modifyWebpackConfig,
+              }) as const satisfies Check,
+          ),
+          {
             path: entryPoint,
-            name: `${index + 1}-${namedImportIndex + 1}. import { ${namedImport} } from "${entryPoint}" ('${nodeEnv}' mode)`,
-            import: `{ ${namedImport} }`,
+            name: `${(index + 1).toString()}-${(allNamedImports.length + 1).toString()}. import * from "${entryPoint}" ('${nodeEnv}' mode)`,
+            import: '*',
             modifyWebpackConfig,
-          }))
-          .concat([
-            {
-              path: entryPoint,
-              name: `${index + 1}-${allNamedImports.length + 1}. import * from "${entryPoint}" ('${nodeEnv}' mode)`,
-              import: '*',
-              modifyWebpackConfig,
-            },
-            {
-              path: entryPoint,
-              name: `${index + 1}-${allNamedImports.length + 2}. import "${entryPoint}" ('${nodeEnv}' mode)`,
-              modifyWebpackConfig,
-            },
-          ])
+          },
+          {
+            path: entryPoint,
+            name: `${(index + 1).toString()}-${(allNamedImports.length + 2).toString()}. import "${entryPoint}" ('${nodeEnv}' mode)`,
+            modifyWebpackConfig,
+          },
+        ] as const satisfies SizeLimitConfig
 
         const sizeLimitConfigWithoutDependencies =
-          sizeLimitConfigWithDependencies.map((check) => ({
-            ...check,
-            name: `${check.name} (excluding dependencies)`,
-            ignore: dependencies,
-          }))
+          sizeLimitConfigWithDependencies.map(
+            (check) =>
+              ({
+                ...check,
+                name: `${check.name} (excluding dependencies)`,
+                ignore: peerAndProductionDependencies,
+              }) as const satisfies Check,
+          )
 
         return [
           // ...sizeLimitConfigWithDependencies,
