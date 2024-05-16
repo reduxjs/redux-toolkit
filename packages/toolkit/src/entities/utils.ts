@@ -47,7 +47,7 @@ export function splitAddedUpdatedEntities<T, Id extends EntityId>(
 ): [T[], Update<T, Id>[], Id[]] {
   newEntities = ensureEntitiesArray(newEntities)
 
-  const existingIdsArray = current(state.ids) as Id[]
+  const existingIdsArray = getCurrent(state.ids) as Id[]
   const existingIds = new Set<Id>(existingIdsArray)
 
   const added: T[] = []
