@@ -397,14 +397,12 @@ describe('createSlice', () => {
   })
 
   describe('Deprecation warnings', () => {
-    let originalNodeEnv = process.env.NODE_ENV
-
     beforeEach(() => {
       vi.resetModules()
     })
 
     afterEach(() => {
-      process.env.NODE_ENV = originalNodeEnv
+      vi.unstubAllEnvs()
     })
 
     // NOTE: This needs to be in front of the later `createReducer` call to check the one-time warning
