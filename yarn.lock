@@ -7582,8 +7582,8 @@ __metadata:
     "@babel/helper-module-imports": "npm:^7.24.7"
     "@microsoft/api-extractor": "npm:^7.13.2"
     "@phryneas/ts-version": "npm:^1.0.2"
-    "@size-limit/file": "npm:^11.0.1"
-    "@size-limit/webpack": "npm:^11.0.1"
+    "@size-limit/file": "npm:^12.0.1"
+    "@size-limit/webpack": "npm:^12.0.1"
     "@standard-schema/spec": "npm:^1.0.0"
     "@standard-schema/utils": "npm:^0.3.0"
     "@tanstack/intent": "npm:^0.0.19"
@@ -7612,6 +7612,7 @@ __metadata:
     eslint-plugin-react: "npm:^7.23.2"
     eslint-plugin-react-hooks: "npm:^4.2.0"
     immer: "npm:^11.0.0"
+    jiti: "npm:^2.6.1"
     jsdom: "npm:^25.0.1"
     msw: "npm:^2.1.4"
     node-fetch: "npm:^3.3.2"
@@ -7624,7 +7625,7 @@ __metadata:
     redux-thunk: "npm:^3.1.0"
     reselect: "npm:^5.1.0"
     rimraf: "npm:^6.1.3"
-    size-limit: "npm:^11.0.1"
+    size-limit: "npm:^12.0.1"
     tsup: "npm:^8.4.0"
     tsx: "npm:^4.19.0"
     typescript: "npm:^5.9.3"
@@ -8463,24 +8464,24 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@size-limit/file@npm:^11.0.1":
-  version: 11.2.0
-  resolution: "@size-limit/file@npm:11.2.0"
+"@size-limit/file@npm:^12.0.1":
+  version: 12.0.1
+  resolution: "@size-limit/file@npm:12.0.1"
   peerDependencies:
-    size-limit: 11.2.0
-  checksum: 10/0802fddafe68c29268feb683a0b9d41dabe29d39278ddf704674d62485e1ea23743e88a435517dea6553da148e559d2537f3c459f9f7c92fd838563b2e97b3cf
+    size-limit: 12.0.1
+  checksum: 10/5b8dcd036b2548787c4dadcb19324043da7a67718d85504784cd92ec65a31f71c668f22aec553ee5f51e462c838061a06c22f02dd6af6b91ea4b212009533585
   languageName: node
   linkType: hard
 
-"@size-limit/webpack@npm:^11.0.1":
-  version: 11.2.0
-  resolution: "@size-limit/webpack@npm:11.2.0"
+"@size-limit/webpack@npm:^12.0.1":
+  version: 12.0.1
+  resolution: "@size-limit/webpack@npm:12.0.1"
   dependencies:
-    nanoid: "npm:^5.1.0"
-    webpack: "npm:^5.98.0"
+    nanoid: "npm:^5.1.6"
+    webpack: "npm:^5.105.4"
   peerDependencies:
-    size-limit: 11.2.0
-  checksum: 10/7c7e25ffbdf097973c1fb7f50a706a8fb3e407223eb6e35caa36b90d2057ccb17a9269243ea46b0bd9db0183a4f9cc194849f5facd19701437b24fdf101a6573
+    size-limit: 12.0.1
+  checksum: 10/94c7a8d143e373ea965ebc5f8d6296bf848896bd8368ddb227c26d1c76689572b47b23ec9f213bfe32ebe7d51fd2e2531c1e8484817948cea4a6fa6ed92cd690
   languageName: node
   linkType: hard
 
@@ -15193,9 +15194,9 @@ __metadata:
   linkType: hard
 
 "electron-to-chromium@npm:^1.5.263":
-  version: 1.5.313
-  resolution: "electron-to-chromium@npm:1.5.313"
-  checksum: 10/cf23275f15a0bb53ed7811fe75715a4c4bea33cb552caf80f3caf28cb1b46b7299bbc014afc2d4d89d14254723625f1e94be7f4c5a584285f967124c44dcdea4
+  version: 1.5.321
+  resolution: "electron-to-chromium@npm:1.5.321"
+  checksum: 10/ccb635798bf9451f4b77ef10288c43f39f30904300c176aac38dbb082ab080828588c3f48952f27b4157dcf068405dc44a7df439715907dadf9d65d9785215e7
   languageName: node
   linkType: hard
 
@@ -17128,9 +17129,9 @@ __metadata:
   linkType: hard
 
 "flatted@npm:^3.2.9":
-  version: 3.4.1
-  resolution: "flatted@npm:3.4.1"
-  checksum: 10/39a308e2ef82d2d8c80ebc74b67d4ff3f668be168137b649440b6735eb9c115d1e0c13ab0d9958b3d2ea9c85087ab7e14c14aa6f625a22b2916d89bbd91bc4a0
+  version: 3.4.2
+  resolution: "flatted@npm:3.4.2"
+  checksum: 10/a9e78fe5c2c1fcd98209a015ccee3a6caa953e01729778e83c1fe92e68601a63e1e69cd4e573010ca99eaf585a581b80ccf1018b99283e6cbc2117bcba1e030f
   languageName: node
   linkType: hard
 
@@ -20739,7 +20740,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jiti@npm:^2.4.2":
+"jiti@npm:^2.6.1":
   version: 2.6.1
   resolution: "jiti@npm:2.6.1"
   bin:
@@ -23731,7 +23732,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nanoid@npm:^5.1.0":
+"nanoid@npm:^5.1.6":
   version: 5.1.7
   resolution: "nanoid@npm:5.1.7"
   bin:
@@ -29920,20 +29921,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"size-limit@npm:^11.0.1":
-  version: 11.2.0
-  resolution: "size-limit@npm:11.2.0"
+"size-limit@npm:^12.0.1":
+  version: 12.0.1
+  resolution: "size-limit@npm:12.0.1"
   dependencies:
     bytes-iec: "npm:^3.1.1"
-    chokidar: "npm:^4.0.3"
-    jiti: "npm:^2.4.2"
     lilconfig: "npm:^3.1.3"
     nanospinner: "npm:^1.2.2"
     picocolors: "npm:^1.1.1"
-    tinyglobby: "npm:^0.2.11"
+    tinyglobby: "npm:^0.2.15"
+  peerDependencies:
+    jiti: ^2.0.0
+  peerDependenciesMeta:
+    jiti:
+      optional: true
   bin:
     size-limit: bin.js
-  checksum: 10/76c81693783a51621bca7a359777f8028f21ee1b77be8008768757d3f40bd8b6d173206b9c003d47e73b326090af9c05022d74004651f4a8e0895b3001c242e2
+  checksum: 10/2c47e4d4969109ba78045b23856af501b3f3d92072cd97b81e54bae890d23d3bba9f619cb0922fb3c1a025eaad550f9ed985d56e884c51955e861813ac81d8fb
   languageName: node
   linkType: hard
 
@@ -33002,7 +33006,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"webpack@npm:^5.64.4, webpack@npm:^5.88.1, webpack@npm:^5.95.0, webpack@npm:^5.98.0":
+"webpack@npm:^5.105.4, webpack@npm:^5.64.4, webpack@npm:^5.88.1, webpack@npm:^5.95.0":
   version: 5.105.4
   resolution: "webpack@npm:5.105.4"
   dependencies:
