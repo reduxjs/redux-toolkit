@@ -5,6 +5,7 @@ import {
   createSlice,
   configureStore,
   nanoid,
+  PayloadAction,
 } from '@reduxjs/toolkit'
 import type { BookModel } from './fixtures/book'
 import {
@@ -781,6 +782,30 @@ describe('Sorted State Adapter', () => {
 
     // The old code was around 120K, the new code is around 10K.
     //expect(numSorts).toBeLessThan(25_000)
+  })
+
+  it('should not throw an Immer `current` error when `state.ids` is a plain array', () => {
+    const book1: BookModel = { id: 'a', title: 'First' }
+    const initialState = adapter.getInitialState()
+    const withItems = adapter.addMany(initialState, [book1])
+    const booksSlice = createSlice({
+      name: 'books',
+      initialState,
+      reducers: {
+        testCurrentBehavior(state, action: PayloadAction<BookModel>) {
+          // Will overwrite `state.ids` with a plain array
+          adapter.removeAll(state)
+
+          // will call `splitAddedUpdatedEntities` and call `current(state.ids)`
+          adapter.upsertMany(state, [book1])
+        },
+      },
+    })
+
+    booksSlice.reducer(
+      initialState,
+      booksSlice.actions.testCurrentBehavior(book1),
+    )
   })
 
   describe('can be used mutably when wrapped in createNextState', () => {
