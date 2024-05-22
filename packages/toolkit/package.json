@@ -1,6 +1,6 @@
 {
   "name": "@reduxjs/toolkit",
-  "version": "2.2.3",
+  "version": "2.2.5",
   "description": "The official, opinionated, batteries-included toolset for efficient Redux development",
   "author": "Mark Erikson <mark@isquaredsoftware.com>",
   "license": "MIT",
@@ -90,7 +90,7 @@
     "tslib": "^1.10.0",
     "tsup": "^7.2.0",
     "tsx": "^3.12.2",
-    "typescript": "^5.3.3",
+    "typescript": "^5.4.5",
     "vite-tsconfig-paths": "^4.3.1",
     "vitest": "^1.1.3",
     "yargs": "^15.3.1"
@@ -103,7 +103,7 @@
     "format": "prettier --write \"(src|examples)/**/*.{ts,tsx}\" \"**/*.md\"",
     "format:check": "prettier --list-different \"(src|examples)/**/*.{ts,tsx}\" \"docs/*/**.md\"",
     "lint": "eslint src examples",
-    "test": "vitest --run --typecheck",
+    "test": "vitest --typecheck --run ",
     "test:watch": "vitest --watch",
     "type-tests": "yarn tsc -p tsconfig.test.json --noEmit",
     "prepack": "yarn build",
@@ -119,7 +119,7 @@
     "immer": "^10.0.3",
     "redux": "^5.0.1",
     "redux-thunk": "^3.1.0",
-    "reselect": "^5.0.1"
+    "reselect": "^5.1.0"
   },
   "peerDependencies": {
     "react": "^16.9.0 || ^17.0.0 || ^18",

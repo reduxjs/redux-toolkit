@@ -24,7 +24,6 @@ import { executeReducerBuilderCallback } from './mapBuilders'
 import type { CastAny, Id, TypeGuard, UnionToIntersection } from './tsHelpers'
 import type { InjectConfig } from './combineSlices'
 import { emplace } from './utils'
-import { DistributiveOmit } from 'react-redux'
 
 export enum ReducerType {
   reducer = 'reducer',

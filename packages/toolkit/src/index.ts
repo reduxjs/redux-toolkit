@@ -143,6 +143,7 @@ export type {
   AsyncThunkAction,
   AsyncThunkPayloadCreatorReturnValue,
   AsyncThunkPayloadCreator,
+  GetThunkAPI,
   SerializedError,
 } from './createAsyncThunk'
 

@@ -638,6 +638,10 @@ describe('type tests', () => {
 
             expectTypeOf(action.meta).toEqualTypeOf<'meta'>()
 
+            expectTypeOf(action.payload).toBeString()
+
+            expectTypeOf(action.meta).toEqualTypeOf<'meta'>()
+
             expectTypeOf(action.error).toEqualTypeOf<'error'>()
           },
         ),

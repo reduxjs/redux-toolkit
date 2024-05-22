@@ -12,7 +12,6 @@ import type {
   ReducerCreatorEntry,
   ReducerCreators,
   ReducerDefinition,
-  ReducerDetails,
   ReducerHandlingContext,
   SliceActionType,
   ThunkAction,
@@ -746,7 +745,9 @@ describe('createSlice', () => {
             addLoader: loaderCreator.create({}),
           }),
         }),
-      ).toThrowErrorMatchingInlineSnapshot(`[Error: Unsupported reducer type: Symbol(loaderCreatorType)]`)
+      ).toThrowErrorMatchingInlineSnapshot(
+        `[Error: Unsupported reducer type: Symbol(loaderCreatorType)]`,
+      )
       const createAppSlice = buildCreateSlice({
         creators: { loader: loaderCreator },
       })
