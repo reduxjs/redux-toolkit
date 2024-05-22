@@ -690,7 +690,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     // isFetching = true any time a request is in flight
     const isFetching = currentState.isLoading
     // isLoading = true only when loading while no data is present yet (initial load with no data in the cache)
-    const isLoading = !hasData && isFetching
+    const isLoading = (!lastResult || lastResult.isLoading || lastResult.isUninitialized) && !hasData && isFetching
     // isSuccess = true when data is present
     const isSuccess = currentState.isSuccess || (isFetching && hasData)
 
@@ -740,7 +740,15 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         Definitions
       >
       const dispatch = useDispatch<ThunkDispatch<any, any, UnknownAction>>()
-      const subscriptionSelectorsRef = useRef<SubscriptionSelectors>()
+
+      // TODO: Change this to `useRef<SubscriptionSelectors>(undefined)` after upgrading to React 19.
+      /**
+       * @todo Change this to `useRef<SubscriptionSelectors>(undefined)` after upgrading to React 19.
+       */
+      const subscriptionSelectorsRef = useRef<
+        SubscriptionSelectors | undefined
+      >(undefined)
+
       if (!subscriptionSelectorsRef.current) {
         const returnedValue = dispatch(
           api.internalActions.internal_getRTKQSubscriptions(),
@@ -781,7 +789,13 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
       const lastRenderHadSubscription = useRef(false)
 
-      const promiseRef = useRef<QueryActionCreatorResult<any>>()
+      // TODO: Change this to `useRef<QueryActionCreatorResult<any>>(undefined)` after upgrading to React 19.
+      /**
+       * @todo Change this to `useRef<QueryActionCreatorResult<any>>(undefined)` after upgrading to React 19.
+       */
+      const promiseRef = useRef<QueryActionCreatorResult<any> | undefined>(
+        undefined,
+      )
 
       let { queryCacheKey, requestId } = promiseRef.current || {}
 
@@ -886,7 +900,14 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       const dispatch = useDispatch<ThunkDispatch<any, any, UnknownAction>>()
 
       const [arg, setArg] = useState<any>(UNINITIALIZED_VALUE)
-      const promiseRef = useRef<QueryActionCreatorResult<any> | undefined>()
+
+      // TODO: Change this to `useRef<QueryActionCreatorResult<any>>(undefined)` after upgrading to React 19.
+      /**
+       * @todo Change this to `useRef<QueryActionCreatorResult<any>>(undefined)` after upgrading to React 19.
+       */
+      const promiseRef = useRef<QueryActionCreatorResult<any> | undefined>(
+        undefined,
+      )
 
       const stableSubscriptionOptions = useShallowStableValue({
         refetchOnReconnect,
@@ -966,7 +987,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
       type ApiRootState = Parameters<ReturnType<typeof select>>[0]
 
-      const lastValue = useRef<any>()
+      const lastValue = useRef<any>(undefined)
 
       const selectDefaultResult: Selector<ApiRootState, any, [any]> = useMemo(
         () =>
