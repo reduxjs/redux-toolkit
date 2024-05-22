@@ -1,12 +1,13 @@
 import type {
+  CaseReducerDefinition,
   CreatorCaseReducers,
+  PayloadAction,
   ReducerCreator,
   ReducerCreatorEntry,
 } from '@reduxjs/toolkit'
 import { reducerCreator } from '../createSlice'
 import type { WithRequiredProp } from '../tsHelpers'
 import type {
-  Update,
   EntityAdapter,
   EntityId,
   EntityState,
@@ -79,6 +80,20 @@ declare module '@reduxjs/toolkit' {
   }
 }
 
+const makeWrappedReducerCreator =
+  <T, Id extends EntityId, State>(
+    selectEntityState: (state: State) => EntityState<T, Id>,
+  ) =>
+  <Payload>(
+    reducer: (
+      state: EntityState<T, Id>,
+      action: PayloadAction<Payload>,
+    ) => void,
+  ): CaseReducerDefinition<State, PayloadAction<Payload>> =>
+    reducerCreator.create<Payload>((state: State, action) =>
+      reducer(selectEntityState(state), action),
+    )
+
 export function createEntityMethods<
   T,
   Id extends EntityId,
@@ -98,58 +113,26 @@ export function createEntityMethods<
 
   const name = nameParam as 's'
   const pluralName = pluralParam as 'p'
-  const reducer = reducerCreator.create
+  const reducer = makeWrappedReducerCreator(selectEntityState)
   const reducers: EntityReducers<T, Id, State, 's', 'p'> = {
-    [`addOne${capitalize(name)}` as const]: reducer<T>((state, action) => {
-      adapter.addOne(selectEntityState(state), action)
-    }),
-    [`addMany${capitalize(pluralName)}` as const]: reducer<
-      readonly T[] | Record<Id, T>
-    >((state, action) => {
-      adapter.addMany(selectEntityState(state), action)
-    }),
-    [`setOne${capitalize(name)}` as const]: reducer<T>((state, action) => {
-      adapter.setOne(selectEntityState(state), action)
-    }),
-    [`setMany${capitalize(pluralName)}` as const]: reducer<
-      readonly T[] | Record<Id, T>
-    >((state, action) => {
-      adapter.setMany(selectEntityState(state), action)
-    }),
-    [`setAll${capitalize(pluralName)}` as const]: reducer<
-      readonly T[] | Record<Id, T>
-    >((state, action) => {
-      adapter.setAll(selectEntityState(state), action)
-    }),
-    [`removeOne${capitalize(name)}` as const]: reducer<Id>((state, action) => {
-      adapter.removeOne(selectEntityState(state), action)
-    }),
-    [`removeMany${capitalize(pluralName)}` as const]: reducer<readonly Id[]>(
-      (state, action) => {
-        adapter.removeMany(selectEntityState(state), action)
-      },
+    [`addOne${capitalize(name)}` as const]: reducer(adapter.addOne),
+    [`addMany${capitalize(pluralName)}` as const]: reducer(adapter.addMany),
+    [`setOne${capitalize(name)}` as const]: reducer(adapter.setOne),
+    [`setMany${capitalize(pluralName)}` as const]: reducer(adapter.setMany),
+    [`setAll${capitalize(pluralName)}` as const]: reducer(adapter.setAll),
+    [`removeOne${capitalize(name)}` as const]: reducer(adapter.removeOne),
+    [`removeMany${capitalize(pluralName)}` as const]: reducer(
+      adapter.removeMany,
     ),
-    [`removeAll${capitalize(pluralName)}` as const]: reducer((state) => {
-      adapter.removeAll(selectEntityState(state))
-    }),
-    [`upsertOne${capitalize(name)}` as const]: reducer<T>((state, action) => {
-      adapter.upsertOne(selectEntityState(state), action)
-    }),
-    [`upsertMany${capitalize(pluralName)}` as const]: reducer<
-      readonly T[] | Record<Id, T>
-    >((state, action) => {
-      adapter.upsertMany(selectEntityState(state), action)
-    }),
-    [`updateOne${capitalize(name)}` as const]: reducer<Update<T, Id>>(
-      (state, action) => {
-        adapter.updateOne(selectEntityState(state), action)
-      },
+    [`removeAll${capitalize(pluralName)}` as const]: reducer(adapter.removeAll),
+    [`upsertOne${capitalize(name)}` as const]: reducer(adapter.upsertOne),
+    [`upsertMany${capitalize(pluralName)}` as const]: reducer(
+      adapter.upsertMany,
     ),
-    [`updateMany${capitalize(pluralName)}` as const]: reducer<
-      readonly Update<T, Id>[]
-    >((state, action) => {
-      adapter.updateMany(selectEntityState(state), action)
-    }),
+    [`updateOne${capitalize(name)}` as const]: reducer(adapter.updateOne),
+    [`updateMany${capitalize(pluralName)}` as const]: reducer(
+      adapter.updateMany,
+    ),
   }
   return reducers as any
 }
