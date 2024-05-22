@@ -85,14 +85,14 @@ const makeWrappedReducerCreator =
     selectEntityState: (state: State) => EntityState<T, Id>,
   ) =>
   <Payload>(
-    reducer: (
+    mutator: (
       state: EntityState<T, Id>,
       action: PayloadAction<Payload>,
     ) => void,
   ): CaseReducerDefinition<State, PayloadAction<Payload>> =>
-    reducerCreator.create<Payload>((state: State, action) =>
-      reducer(selectEntityState(state), action),
-    )
+    reducerCreator.create<Payload>((state: State, action) => {
+      mutator(selectEntityState(state), action)
+    })
 
 export function createEntityMethods<
   T,
