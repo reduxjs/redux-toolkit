@@ -1,5 +1,4 @@
 import { produce as createNextState, isDraftable } from 'immer'
-import type { Middleware, StoreEnhancer } from 'redux'
 
 export function getTimeMeasureUtils(maxDelay: number, fnName: string) {
   let elapsed = 0
