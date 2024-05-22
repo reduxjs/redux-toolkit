@@ -16,7 +16,7 @@ import type {
 import { ReducerType } from './createSlice'
 import type { Id } from './tsHelpers'
 
-declare module '@reduxjs/toolkit' {
+declare module './createSlice' {
   export interface SliceReducerCreators<
     State,
     CaseReducers extends CreatorCaseReducers<State>,
