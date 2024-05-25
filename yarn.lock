@@ -7537,7 +7537,7 @@ __metadata:
     axios: "npm:^0.19.2"
     console-testing-library: "npm:0.6.1"
     esbuild-extra: "npm:^0.3.1"
-    eslint: "npm:^8.57.0"
+    eslint: "npm:^9.3.0"
     eslint-config-prettier: "npm:^9.1.0"
     eslint-config-react-app: "npm:^7.0.1"
     eslint-plugin-flowtype: "npm:^5.7.2"
@@ -15309,7 +15309,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint@npm:^8.3.0, eslint@npm:^8.56.0, eslint@npm:^8.57.0":
+"eslint@npm:^8.3.0, eslint@npm:^8.56.0":
   version: 8.57.0
   resolution: "eslint@npm:8.57.0"
   dependencies:
