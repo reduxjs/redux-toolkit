@@ -7562,7 +7562,7 @@ __metadata:
     size-limit: "npm:^11.0.1"
     tslib: "npm:^1.10.0"
     tsup: "npm:^7.2.0"
-    tsx: "npm:^3.12.2"
+    tsx: "npm:^4.11.0"
     typescript: "npm:^5.4.5"
     vitest: "npm:^1.5.2"
     yargs: "npm:^15.3.1"
@@ -16598,12 +16598,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"get-tsconfig@npm:^4.7.2":
-  version: 4.7.2
-  resolution: "get-tsconfig@npm:4.7.2"
+"get-tsconfig@npm:^4.7.5":
+  version: 4.7.5
+  resolution: "get-tsconfig@npm:4.7.5"
   dependencies:
     resolve-pkg-maps: "npm:^1.0.0"
-  checksum: 10/f21135848fb5d16012269b7b34b186af7a41824830f8616aba17a15eb4d9e54fdc876833f1e21768395215a826c8145582f5acd594ae2b4de3284d10b38d20f8
+  checksum: 10/de7de5e4978354e8e6d9985baf40ea32f908a13560f793bc989930c229cc8d5c3f7b6b2896d8e43eb1a9b4e9e30018ef4b506752fd2a4b4d0dfee4af6841b119
   languageName: node
   linkType: hard
 
@@ -26967,7 +26967,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"source-map-support@npm:^0.5.16, source-map-support@npm:^0.5.17, source-map-support@npm:^0.5.21, source-map-support@npm:^0.5.6, source-map-support@npm:~0.5.20":
+"source-map-support@npm:^0.5.16, source-map-support@npm:^0.5.17, source-map-support@npm:^0.5.6, source-map-support@npm:~0.5.20":
   version: 0.5.21
   resolution: "source-map-support@npm:0.5.21"
   dependencies:
@@ -28512,20 +28512,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tsx@npm:^3.12.2":
-  version: 3.14.0
-  resolution: "tsx@npm:3.14.0"
+"tsx@npm:^4.11.0":
+  version: 4.11.0
+  resolution: "tsx@npm:4.11.0"
   dependencies:
-    esbuild: "npm:~0.18.20"
+    esbuild: "npm:~0.20.2"
     fsevents: "npm:~2.3.3"
-    get-tsconfig: "npm:^4.7.2"
-    source-map-support: "npm:^0.5.21"
+    get-tsconfig: "npm:^4.7.5"
   dependenciesMeta:
     fsevents:
       optional: true
   bin:
     tsx: dist/cli.mjs
-  checksum: 10/7147970975344d779f495169c0246dff5110a3e110b0a89e8cec6403fcd6c03ede3abbf4c7ccc03dae7fb17d7f1a4c21992c5c6d7ab2130cb2f7a3ffaeae1ce1
+  checksum: 10/04fca21db8d518d103b05ab42b0196b9f8ab11769c475446eb5d56d19f313ddad357b98992ed5d96749472ffd459e0ae9ea2d5f0ebe8bbc27c611d1f6df6ec9b
   languageName: node
   linkType: hard
 
