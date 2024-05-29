@@ -591,7 +591,10 @@ The second argument to the `ReducerCreators` type is a map from creator names to
 Alternatively, you can import the other creator's definition and use it directly.
 
 ```ts no-transpile
-import { preparedReducerCreator } from '@reduxjs/toolkit'
+import {
+  preparedReducerCreator,
+  PreparedCaseReducerDefinition,
+} from '@reduxjs/toolkit'
 
 const batchedCreatorType = Symbol('batchedCreatorType')
 
@@ -755,25 +758,23 @@ declare module '@reduxjs/toolkit' {
       ) => PreparedCaseReducerDefinition<State, Prepare>,
       {
         actions: {
-          [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends ReducerDefinition<
-            typeof preparedReducerType
+          [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends PreparedCaseReducerDefinition<
+            any,
+            any
           >
-            ? CaseReducers[ReducerName] extends { prepare: any }
-              ? ActionCreatorForCaseReducerWithPrepare<
-                  CaseReducers[ReducerName],
-                  SliceActionType<Name, ReducerName>
-                >
-              : never
+            ? ActionCreatorForCaseReducerWithPrepare<
+                CaseReducers[ReducerName],
+                SliceActionType<Name, ReducerName>
+              >
             : never
         }
         // highlight-start
         caseReducers: {
-          [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends ReducerDefinition<
-            typeof preparedReducerType
+          [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends PreparedCaseReducerDefinition<
+            any,
+            any
           >
-            ? CaseReducers[ReducerName] extends { reducer: infer Reducer }
-              ? Reducer
-              : never
+            ? CaseReducers[ReducerName]['reducer']
             : never
         }
         // highlight-end
