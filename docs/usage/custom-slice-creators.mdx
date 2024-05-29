@@ -462,6 +462,14 @@ context.addMatcher(matcher, reducer)
 
 Returns the context object to allow chaining.
 
+:::tip
+
+Unlike in `createReducer` and `extraReducers`, there is no requirement to call `addMatcher` _after_ `addCase` - the correct order will be applied when the reducer is built.
+
+You should still be aware that case reducers will be called before matcher reducers, if both match a given action.
+
+:::
+
 #### `exposeAction`
 
 Attaches a value to `slice.actions[reducerName]`.
