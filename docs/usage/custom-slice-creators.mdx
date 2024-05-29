@@ -449,6 +449,8 @@ context.addCase(action, reducer)
 context.addCase(type, reducer)
 ```
 
+Returns the context object to allow chaining.
+
 #### `addMatcher`
 
 The same as [`addMatcher`](../api/createReducer#builderaddmatcher) for `createReducer` and `extraReducers`. Adds a case reducer which will be called when a given matcher returns true.
@@ -457,6 +459,8 @@ The same as [`addMatcher`](../api/createReducer#builderaddmatcher) for `createRe
 const matcher = isAnyOf(action, action2)
 context.addMatcher(matcher, reducer)
 ```
+
+Returns the context object to allow chaining.
 
 #### `exposeAction`
 
@@ -467,9 +471,18 @@ const action = createAction(type)
 context.exposeAction(action)
 ```
 
+Returns the context object to allow chaining.
+
 :::caution
 
-`exposeAction` should only be called once (at maximum) within a `handle` callback - the same applies to `exposeCaseReducer`.
+`exposeAction` should only be called once (at maximum) within a `handle` callback.
+
+If you want to expose multiple values for a given case reducer's actions, you can pass an object to `exposeAction`.
+
+```ts no-transpile
+context.exposeAction({ hidden: hiddenAction, shown: shownAction })
+// available as slice.actions[reducerName].hidden and slice.actions[reducerName].shown
+```
 
 :::
 
@@ -480,6 +493,49 @@ Attaches a value to `slice.caseReducers[reducerName]`.
 ```ts no-transpile
 context.exposeCaseReducer(reducer)
 ```
+
+Returns the context object to allow chaining.
+
+:::caution
+
+Just like `exposeAction`, `exposeCaseReducer` should only be called once (at maximum) within a `handle` callback.
+
+If you want to expose multiple values for a given case reducer definition, you can pass an object to `exposeCaseReducer`.
+
+```ts no-transpile
+context.exposeCaseReducer({
+  hidden: config.hidden || noop,
+  shown: config.shown || noop,
+})
+// available as slice.caseReducers[reducerName].hidden and slice.caseReducers[reducerName].shown
+```
+
+You can see an example of this with the `asyncThunk` creator in the [RTK creators](#rtk-creators) section, which exposes case reducers for each of the lifecycle actions.
+
+```ts no-transpile
+const asyncThunkCreator: ReducerCreator<typeof asyncThunkCreatorType> = {
+  type: asyncThunkCreatorType,
+  create(payloadCreator, config) {
+    return {
+      _reducerDefinitionType: asyncThunkCreatorType,
+      payloadCreator,
+      config,
+    }
+  },
+  handle({ type }, definition, context) {
+    const { payloadCreator, config } = definition
+    const thunk = createAsyncThunk(type, payloadCreator, config)
+    context.exposeAction(thunk).exposeCaseReducer({
+      pending: config.pending || noop,
+      rejected: config.rejected || noop,
+      fulfilled: config.fulfilled || noop,
+      settled: config.settled || noop,
+    })
+  },
+}
+```
+
+:::
 
 #### `getInitialState`
 
