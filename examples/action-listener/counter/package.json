@@ -8,8 +8,8 @@
     "@types/react": "npm:types-react@rc",
     "@types/react-dom": "npm:types-react-dom@rc",
     "clsx": "1.1.1",
-    "react": "19.0.0-rc-935180c7e0-20240524",
-    "react-dom": "19.0.0-rc-935180c7e0-20240524",
+    "react": "19.0.0-rc-6d3110b4d9-20240531",
+    "react-dom": "19.0.0-rc-6d3110b4d9-20240531",
     "react-redux": "^9.1.2",
     "react-scripts": "5.0.1",
     "typescript": "~4.9"

@@ -8,8 +8,8 @@
   "dependencies": {
     "@reduxjs/toolkit": "1.8.1",
     "msw": "^0.40.2",
-    "react": "19.0.0-rc-935180c7e0-20240524",
-    "react-dom": "19.0.0-rc-935180c7e0-20240524",
+    "react": "19.0.0-rc-6d3110b4d9-20240531",
+    "react-dom": "19.0.0-rc-6d3110b4d9-20240531",
     "react-redux": "^9.1.2",
     "react-router-dom": "6.3.0",
     "react-scripts": "5.0.1"
