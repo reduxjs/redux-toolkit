@@ -537,7 +537,7 @@ export type UseMutationStateResult<
 > = TSHelpersNoInfer<R> & {
   originalArgs?: QueryArgFrom<D>
   /**
-   * Resets the hook state to it's initial `uninitialized` state.
+   * Resets the hook state to its initial `uninitialized` state.
    * This will also remove the last result from the cache.
    */
   reset: () => void

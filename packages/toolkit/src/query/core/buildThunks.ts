@@ -519,7 +519,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
       arg.forceRefetch ?? (arg.subscribe && baseFetchOnMountOrArgChange)
 
     if (refetchVal) {
-      // Return if its true or compare the dates because it must be a number
+      // Return if it's true or compare the dates because it must be a number
       return (
         refetchVal === true ||
         (Number(new Date()) - Number(fulfilledVal)) / 1000 >= refetchVal
