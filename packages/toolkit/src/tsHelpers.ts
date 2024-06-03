@@ -223,3 +223,22 @@ export function asSafePromise<Resolved, Rejected>(
 ) {
   return promise.catch(fallback) as SafePromise<Resolved | Rejected>
 }
+
+export type OverloadedReturnType<Fn extends (...args: any[]) => any> =
+  Fn extends {
+    (...args: any): infer R1
+    (...args: any): infer R2
+    (...args: any): infer R3
+  }
+    ? R1 | R2 | R3
+    : Fn extends {
+          (...args: any): infer R1
+          (...args: any): infer R2
+        }
+      ? R1 | R2
+      : ReturnType<Fn>
+
+export type Increment<
+  N extends number,
+  Acc extends 0[] = [],
+> = Acc['length'] extends N ? [...Acc, 0]['length'] : Increment<N, [...Acc, 0]>

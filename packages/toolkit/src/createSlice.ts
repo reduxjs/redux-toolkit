@@ -16,7 +16,15 @@ import type {
 import { createReducer, makeGetInitialState } from './createReducer'
 import type { ActionReducerMapBuilder, TypedActionCreator } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
-import type { CastAny, Id, TypeGuard, UnionToIntersection } from './tsHelpers'
+import type {
+  CastAny,
+  Id,
+  Increment,
+  IsAny,
+  OverloadedReturnType,
+  TypeGuard,
+  UnionToIntersection,
+} from './tsHelpers'
 import type { InjectConfig } from './combineSlices'
 import { emplace } from './utils'
 
@@ -265,54 +273,48 @@ export interface ReducerDetails {
   type: string
 }
 
-type RecursiveExtractDefinition<
-  Definitions,
+type DefinitionFromValue<
+  T extends object,
   Type extends RegisteredReducerType,
-> = CastAny<
-  | Extract<Definitions, ReducerDefinition<Type>>
-  | (Definitions extends object
-      ? {
-          [K in keyof Definitions]-?: RecursiveExtractDefinition<
-            Definitions[K],
-            Type
-          >
-        }[keyof Definitions]
-      : never),
-  never
->
+  RecursionDepth extends number = 0,
+> = RecursionDepth extends 5
+  ? never
+  : IsAny<
+      T,
+      never,
+      | Extract<T, ReducerDefinition<Type>>
+      | {
+          [K in keyof T]-?: T[K] extends object
+            ? DefinitionFromValue<T[K], Type, Increment<RecursionDepth>>
+            : never
+        }[keyof T]
+      | (T extends (...args: any[]) => object
+          ? DefinitionFromValue<
+              OverloadedReturnType<T>,
+              Type,
+              Increment<RecursionDepth>
+            >
+          : never)
+    >
 
 type ReducerDefinitionsForType<Type extends RegisteredReducerType> = {
-  [CreatorType in RegisteredReducerType]:
-    | RecursiveExtractDefinition<
-        ReturnType<
-          SliceReducerCreators<any, any, any, any>[CreatorType]['create']
-        >,
-        Type
-      >
-    | {
-        [K in keyof SliceReducerCreators<
-          any,
-          any,
-          any,
-          any
-        >[CreatorType]['create']]: SliceReducerCreators<
-          any,
-          any,
-          any,
-          any
-        >[CreatorType]['create'][K] extends (
-          ...args: any[]
-        ) => infer Definitions
-          ? RecursiveExtractDefinition<Definitions, Type>
-          : never
-      }[keyof SliceReducerCreators<any, any, any, any>[CreatorType]['create']]
+  [CreatorType in RegisteredReducerType]: DefinitionFromValue<
+    SliceReducerCreators<any, any, any, any>[CreatorType]['create'],
+    Type
+  >
 }[RegisteredReducerType]
 
 export type ReducerCreator<Type extends RegisteredReducerType> = {
   type: Type
   create: SliceReducerCreators<any, any, any, any>[Type]['create']
 } & (ReducerDefinitionsForType<Type> extends never
-  ? {}
+  ? {
+      handle?<State>(
+        details: ReducerDetails,
+        definition: unknown,
+        context: ReducerHandlingContext<State>,
+      ): void
+    }
   : {
       handle<State>(
         details: ReducerDetails,
