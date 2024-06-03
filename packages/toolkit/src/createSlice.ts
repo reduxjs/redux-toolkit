@@ -17,7 +17,6 @@ import { createReducer, makeGetInitialState } from './createReducer'
 import type { ActionReducerMapBuilder, TypedActionCreator } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
 import type {
-  CastAny,
   Id,
   Increment,
   IsAny,
