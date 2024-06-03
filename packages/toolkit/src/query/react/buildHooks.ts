@@ -53,12 +53,27 @@ import { useStableQueryArgs } from './useSerializedStableValue'
 import { useShallowStableValue } from './useShallowStableValue'
 
 // Copy-pasted from React-Redux
+const canUseDOM = () =>
+  !!(
+    typeof window !== 'undefined' &&
+    typeof window.document !== 'undefined' &&
+    typeof window.document.createElement !== 'undefined'
+  )
+
+const isDOM = /* @__PURE__ */ canUseDOM()
+
+// Under React Native, we know that we always want to use useLayoutEffect
+
+const isRunningInReactNative = () =>
+  typeof navigator !== 'undefined' && navigator.product === 'ReactNative'
+
+const isReactNative = /* @__PURE__ */ isRunningInReactNative()
+
+const getUseIsomorphicLayoutEffect = () =>
+  isDOM || isReactNative ? useLayoutEffect : useEffect
+
 export const useIsomorphicLayoutEffect =
-  typeof window !== 'undefined' &&
-  !!window.document &&
-  !!window.document.createElement
-    ? useLayoutEffect
-    : useEffect
+  /* @__PURE__ */ getUseIsomorphicLayoutEffect()
 
 export interface QueryHooks<
   Definition extends QueryDefinition<any, any, any, any, any>,
@@ -522,7 +537,7 @@ export type UseMutationStateResult<
 > = TSHelpersNoInfer<R> & {
   originalArgs?: QueryArgFrom<D>
   /**
-   * Resets the hook state to it's initial `uninitialized` state.
+   * Resets the hook state to its initial `uninitialized` state.
    * This will also remove the last result from the cache.
    */
   reset: () => void
@@ -690,7 +705,10 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     // isFetching = true any time a request is in flight
     const isFetching = currentState.isLoading
     // isLoading = true only when loading while no data is present yet (initial load with no data in the cache)
-    const isLoading = (!lastResult || lastResult.isLoading || lastResult.isUninitialized) && !hasData && isFetching
+    const isLoading =
+      (!lastResult || lastResult.isLoading || lastResult.isUninitialized) &&
+      !hasData &&
+      isFetching
     // isSuccess = true when data is present
     const isSuccess = currentState.isSuccess || (isFetching && hasData)
 
