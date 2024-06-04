@@ -7797,6 +7797,7 @@ __metadata:
     "@typescript-eslint/parser": "npm:^6"
     axios: "npm:^0.19.2"
     console-testing-library: "npm:0.6.1"
+    esbuild: "npm:^0.21.4"
     esbuild-extra: "npm:^0.3.1"
     eslint: "npm:^7.25.0"
     eslint-config-prettier: "npm:^9.1.0"
