@@ -231,14 +231,16 @@ export type OverloadedReturnType<Fn extends (...args: any[]) => any> =
     (...args: any[]): infer R1
     (...args: any[]): infer R2
     (...args: any[]): infer R3
+    (...args: any[]): infer R4
+    (...args: any[]): infer R5
   }
-    ? NotUnknown<R1> | NotUnknown<R2> | NotUnknown<R3>
-    : Fn extends {
-          (...args: any[]): infer R1
-          (...args: any[]): infer R2
-        }
-      ? NotUnknown<R1> | NotUnknown<R2>
-      : ReturnType<Fn>
+    ?
+        | NotUnknown<R1>
+        | NotUnknown<R2>
+        | NotUnknown<R3>
+        | NotUnknown<R4>
+        | NotUnknown<R5>
+    : ReturnType<Fn>
 
 export type Increment<
   N extends number,
