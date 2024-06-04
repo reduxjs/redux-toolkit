@@ -724,9 +724,35 @@ Import and use that pre-typed `createAppAsyncThunk` instead of the original, and
 
 ## `createEntityAdapter`
 
-Typing `createEntityAdapter` only requires you to specify the entity type as the single generic argument.
+Usage of `createEntityAdapter` with Typescript varies based on whether your entities are normalized by an `id` property, or whether a custom `selectId` is needed.
 
-The example from the `createEntityAdapter` documentation would look like this in TypeScript:
+If your entities are normalized by an `id` property, `createEntityAdapter` only requires you to specify the entity type as the single generic argument. For example:
+
+```ts
+interface Book {
+  id: number
+  title: string
+}
+
+// no selectId needed here, as the entity has an `id` property we can default to
+// highlight-next-line
+const booksAdapter = createEntityAdapter<Book>({
+  sortComparer: (a, b) => a.title.localeCompare(b.title),
+})
+
+const booksSlice = createSlice({
+  name: 'books',
+  initialState: booksAdapter.getInitialState(),
+  reducers: {
+    bookAdded: booksAdapter.addOne,
+    booksReceived(state, action: PayloadAction<{ books: Book[] }>) {
+      booksAdapter.setAll(state, action.payload.books)
+    },
+  },
+})
+```
+
+On the other hand, if the entity needs to be normalized by a different property, we instead recommend passing a custom `selectId` function and annotating there. This allows proper inference of the ID's type, instead of having to provide it manually.
 
 ```ts
 interface Book {
@@ -735,9 +761,9 @@ interface Book {
   // ...
 }
 
-// highlight-next-line
-const booksAdapter = createEntityAdapter<Book>({
-  selectId: (book) => book.bookId,
+const booksAdapter = createEntityAdapter({
+  // highlight-next-line
+  selectId: (book: Book) => book.bookId,
   sortComparer: (a, b) => a.title.localeCompare(b.title),
 })
 
