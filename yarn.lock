@@ -7488,7 +7488,7 @@ __metadata:
     "@reduxjs/tsconfig": "workspace:^"
     prettier: "npm:^3.2.5"
     rimraf: "npm:^5.0.7"
-    tslib: "npm:^2.6.2"
+    tslib: "npm:^2.6.3"
     typescript: "npm:^5.4.5"
   peerDependencies:
     prettier: ^3
