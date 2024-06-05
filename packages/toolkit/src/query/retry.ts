@@ -103,7 +103,6 @@ const retryWithBackoff: BaseQueryEnhancer<
   }
   let retry = 0
 
-   
   while (true) {
     try {
       const result = await baseQuery(args, api, extraOptions)
