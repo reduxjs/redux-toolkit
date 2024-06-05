@@ -5270,14 +5270,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@eslint/js@npm:9.3.0, @eslint/js@npm:^9.3.0":
+"@eslint/js@npm:9.3.0":
   version: 9.3.0
   resolution: "@eslint/js@npm:9.3.0"
   checksum: 10/3fb4b30561c34b52e7c6c6b55ea61df1cead73a525e1ccd77b1454d893dcf06f99fe9c46bf410a044ef7d3339c455bc4f75769b40c4734343f5b46d2d76b89ef
   languageName: node
   linkType: hard
 
-"@eslint/js@npm:9.4.0":
+"@eslint/js@npm:9.4.0, @eslint/js@npm:^9.4.0":
   version: 9.4.0
   resolution: "@eslint/js@npm:9.4.0"
   checksum: 10/f1fa9acda8bab02dad21e9b7f46c6ba8cb3949979846caf7667f0c682ed0b56d9e8db143b00aab587ef2d02603df202eb5f7017d8f3a98be94be6efa763865ab
@@ -7455,7 +7455,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@reduxjs/eslint-config@workspace:packages/configs/eslint"
   dependencies:
-    "@eslint/js": "npm:^9.3.0"
+    "@eslint/js": "npm:^9.4.0"
     "@reduxjs/tsconfig": "workspace:^"
     "@types/eslint": "npm:^8.56.10"
     "@types/eslint-config-prettier": "npm:^6.11.3"
