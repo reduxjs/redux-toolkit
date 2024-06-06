@@ -7587,7 +7587,7 @@ __metadata:
     size-limit: "npm:^11.0.1"
     tslib: "npm:^1.10.0"
     tsup: "npm:^7.2.0"
-    tsx: "npm:^4.11.0"
+    tsx: "npm:^4.12.0"
     typescript: "npm:^5.4.5"
     vitest: "npm:^1.6.0"
     yargs: "npm:^15.3.1"
@@ -28543,9 +28543,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tsx@npm:^4.11.0":
-  version: 4.11.0
-  resolution: "tsx@npm:4.11.0"
+"tsx@npm:^4.12.0":
+  version: 4.12.0
+  resolution: "tsx@npm:4.12.0"
   dependencies:
     esbuild: "npm:~0.20.2"
     fsevents: "npm:~2.3.3"
@@ -28555,7 +28555,7 @@ __metadata:
       optional: true
   bin:
     tsx: dist/cli.mjs
-  checksum: 10/04fca21db8d518d103b05ab42b0196b9f8ab11769c475446eb5d56d19f313ddad357b98992ed5d96749472ffd459e0ae9ea2d5f0ebe8bbc27c611d1f6df6ec9b
+  checksum: 10/231ca3d80fe83a286160b43d02d1cbf6fc163ecbbf101d907a0ea614b2876668cc2e490c15dbf8f29c99f7f78f2417d328cf92cf95ba28dd725b5bf9a132cf5e
   languageName: node
   linkType: hard
 
