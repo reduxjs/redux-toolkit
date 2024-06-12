@@ -83,6 +83,7 @@ export async function generateApi(
     exportName = 'enhancedApi',
     argSuffix = 'ApiArg',
     responseSuffix = 'ApiResponse',
+    operationNameSuffix = '',
     hooks = false,
     tag = false,
     outputFile,
@@ -250,7 +251,7 @@ export async function generateApi(
       registerInterface(
         factory.createTypeAliasDeclaration(
           [factory.createModifier(ts.SyntaxKind.ExportKeyword)],
-          capitalize(operationName + responseSuffix),
+          capitalize(operationName + operationNameSuffix + responseSuffix),
           undefined,
           ResponseType
         )
@@ -329,7 +330,7 @@ export async function generateApi(
       registerInterface(
         factory.createTypeAliasDeclaration(
           [factory.createModifier(ts.SyntaxKind.ExportKeyword)],
-          capitalize(operationName + argSuffix),
+          capitalize(operationName + operationNameSuffix + argSuffix),
           undefined,
           queryArgValues.length > 0
             ? isFlatArg
@@ -354,7 +355,7 @@ export async function generateApi(
     );
 
     return generateEndpointDefinition({
-      operationName,
+      operationName: operationNameSuffix ? capitalize(operationName + operationNameSuffix) : operationName,
       type: isQuery ? 'query' : 'mutation',
       Response: ResponseTypeName,
       QueryArg,
