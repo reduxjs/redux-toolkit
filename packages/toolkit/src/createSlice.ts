@@ -47,7 +47,7 @@ export interface ReducerDefinition<
 }
 
 export type ReducerCreatorEntry<
-  Create extends (...args: any[]) => any,
+  Create,
   Exposes extends {
     actions?: Record<string, unknown>
     caseReducers?: Record<string, unknown>
@@ -160,14 +160,14 @@ export type ReducerCreators<
 } & {
   [CreatorName in keyof CreatorMap as SliceReducerCreators<
     State,
-    any,
+    never,
     Name,
     ReducerPath
   >[CreatorMap[CreatorName]]['create'] extends never
     ? never
     : CreatorName]: SliceReducerCreators<
     State,
-    any,
+    never,
     Name,
     ReducerPath
   >[CreatorMap[CreatorName]]['create']

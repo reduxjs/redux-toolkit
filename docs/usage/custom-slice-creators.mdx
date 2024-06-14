@@ -363,7 +363,7 @@ Typically a creator will return a [single reducer definition](#single-definition
 
 ### Creator definitions
 
-A creator definition contains the actual runtime logic for that creator. It's an object with a `type` property, a `create` method, and an optional `handle` method.
+A creator definition contains the actual runtime logic for that creator. It's an object with a `type` property, a `create` value (typically a function or set of functions), and an optional `handle` method.
 
 It's passed to [`buildCreateSlice`](../api/createSlice#buildcreateslice) as part of the `creators` object, and the name used when calling `buildCreateSlice` will be the key the creator is nested under in the `create` object.
 
@@ -413,9 +413,9 @@ const reducerCreator: ReducerCreator<typeof reducerCreatorType> = {
 
 #### `create`
 
-The `create` method is the function that will be attached to the `create` object, before it's passed to the `reducers` callback.
+The `create` value will be attached to the `create` object, before it's passed to the `reducers` callback.
 
-Because it's a function, the `this` value will be the final `create` object when called (assuming a `create.creator()` call). It also could have additional methods attached.
+If it's a function, the `this` value will be the final `create` object when called (assuming a `create.creator()` call). It also could have additional methods attached, or be an object with methods.
 
 See the [Further examples](#further-examples) section for some examples of these.
 
@@ -605,7 +605,7 @@ The `ReducerCreatorEntry<Create, Exposes>` utility has two type parameters:
 
 #### `Create`
 
-The signature of the `create` method of the creator definition.
+The type of the `create` value of the creator definition (typically a function signature).
 
 :::caution `CaseReducers`
 
