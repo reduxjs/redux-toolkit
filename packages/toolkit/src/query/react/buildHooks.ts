@@ -75,9 +75,9 @@ const getUseIsomorphicLayoutEffect = () =>
 export const useIsomorphicLayoutEffect =
   /* @__PURE__ */ getUseIsomorphicLayoutEffect()
 
-export interface QueryHooks<
+export type QueryHooks<
   Definition extends QueryDefinition<any, any, any, any, any>,
-> {
+> = {
   useQuery: UseQuery<Definition>
   useLazyQuery: UseLazyQuery<Definition>
   useQuerySubscription: UseQuerySubscription<Definition>
@@ -138,7 +138,7 @@ export type TypedUseQueryHookResult<
 > = TypedUseQueryStateResult<ResultType, QueryArg, BaseQuery, R> &
   TypedUseQuerySubscriptionResult<ResultType, QueryArg, BaseQuery>
 
-interface UseQuerySubscriptionOptions extends SubscriptionOptions {
+type UseQuerySubscriptionOptions = SubscriptionOptions & {
   /**
    * Prevents a query from automatically running.
    *
