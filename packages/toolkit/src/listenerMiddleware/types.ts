@@ -7,6 +7,7 @@ import type {
 } from 'redux'
 import type { ThunkDispatch } from 'redux-thunk'
 import type { BaseActionCreator, PayloadAction } from '../createAction'
+import type { TypedActionCreator } from '../mapBuilders'
 import type { TaskAbortError } from './exceptions'
 
 /**
@@ -20,9 +21,8 @@ export type AbortSignalWithReason<T> = AbortSignal & { reason?: T }
  */
 
 /** @internal */
-export interface TypedActionCreator<Type extends string> {
-  (...args: any[]): Action<Type>
-  type: Type
+interface TypedActionCreatorWithMatchFunction<Type extends string>
+  extends TypedActionCreator<Type> {
   match: MatchFunction<any>
 }
 
@@ -439,7 +439,7 @@ export interface AddListenerOverloads<
   ): Return
 
   /** Accepts an RTK action creator, like `incrementByAmount` */
-  <ActionCreatorType extends TypedActionCreator<any>>(
+  <ActionCreatorType extends TypedActionCreatorWithMatchFunction<any>>(
     options: {
       actionCreator: ActionCreatorType
       type?: never
@@ -814,7 +814,7 @@ export type ListenerEntry<
  * A shorthand form of the accepted args, solely so that `createListenerEntry` has validly-typed conditional logic when checking the options contents
  */
 export type FallbackAddListenerOptions = {
-  actionCreator?: TypedActionCreator<string>
+  actionCreator?: TypedActionCreatorWithMatchFunction<string>
   type?: string
   matcher?: MatchFunction<any>
   predicate?: ListenerPredicate<any, any>
