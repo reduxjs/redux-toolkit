@@ -99,7 +99,7 @@
   "scripts": {
     "clean": "rimraf dist",
     "run-build": "tsup",
-    "build": "yarn clean && yarn run-build",
+    "build": "yarn clean && yarn run-build && tsx scripts/fixUniqueSymbolExports.mts",
     "build-only": "yarn clean && yarn run-build",
     "format": "prettier --write \"(src|examples)/**/*.{ts,tsx}\" \"**/*.md\"",
     "format:check": "prettier --list-different \"(src|examples)/**/*.{ts,tsx}\" \"docs/*/**.md\"",
