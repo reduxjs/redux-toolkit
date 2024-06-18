@@ -249,6 +249,57 @@ export default defineConfig((options) => {
       return artifactOptions
     })
     .flat()
+    .concat([
+      {
+        name: 'Redux-Toolkit-Type-Definitions',
+        format: ['cjs'],
+        tsconfig,
+        entry: { index: './src/index.ts' },
+        external: [/uncheckedindexed/],
+        dts: {
+          only: true,
+        },
+      },
+      {
+        name: 'RTK-React-Type-Definitions',
+        format: ['cjs'],
+        tsconfig,
+        entry: { 'react/index': './src/react/index.ts' },
+        external: ['@reduxjs/toolkit', /uncheckedindexed/],
+        dts: {
+          only: true,
+        },
+      },
+      {
+        name: 'RTK-Query-Type-Definitions',
+        format: ['cjs'],
+        tsconfig,
+        entry: { 'query/index': './src/query/index.ts' },
+        external: [
+          '@reduxjs/toolkit',
+          '@reduxjs/toolkit/react',
+          /uncheckedindexed/,
+        ],
+        dts: {
+          only: true,
+        },
+      },
+      {
+        name: 'RTK-Query-React-Type-Definitions',
+        format: ['cjs'],
+        tsconfig,
+        entry: { 'query/react/index': './src/query/react/index.ts' },
+        external: [
+          '@reduxjs/toolkit',
+          '@reduxjs/toolkit/react',
+          '@reduxjs/toolkit/query',
+          /uncheckedindexed/,
+        ],
+        dts: {
+          only: true,
+        },
+      },
+    ])
 
   return configs
 })
