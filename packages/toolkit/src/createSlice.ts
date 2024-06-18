@@ -276,11 +276,10 @@ type ReducerDefinition<T extends ReducerType = ReducerType> = {
   _reducerDefinitionType: T
 }
 
-export interface CaseReducerDefinition<
+export type CaseReducerDefinition<
   S = any,
   A extends Action = UnknownAction,
-> extends CaseReducer<S, A>,
-    ReducerDefinition<ReducerType.reducer> {}
+> = CaseReducer<S, A> & ReducerDefinition<ReducerType.reducer>
 
 /**
  * A CaseReducer with a `prepare` method.
