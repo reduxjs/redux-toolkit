@@ -247,7 +247,7 @@ export default defineConfig((options) => {
         }
       })
 
-      return artifactOptions
+      return artifactOptions satisfies TsupOptions[]
     })
     .flat()
     .concat([
