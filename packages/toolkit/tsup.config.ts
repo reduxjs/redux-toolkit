@@ -187,6 +187,7 @@ export default defineConfig((options) => {
         const generateTypedefs = name === 'modern' && format === 'esm'
 
         return {
+          name: `${prefix}-${name}`,
           entry: {
             [outputFilename]: entryPoint,
           },
