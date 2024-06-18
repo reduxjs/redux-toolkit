@@ -198,7 +198,7 @@ export type Matcher<T> = HasMatchFunction<T> | TypeGuard<T>
 export type ActionFromMatcher<M extends Matcher<any>> =
   M extends Matcher<infer T> ? T : never
 
-export type Id<T> = { [K in keyof T]: T[K] } & {}
+export type Simplify<T> = { [K in keyof T]: T[K] } & {}
 
 export type Tail<T extends any[]> = T extends [any, ...infer Tail]
   ? Tail
