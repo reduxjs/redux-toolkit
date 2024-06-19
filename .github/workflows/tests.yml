@@ -97,6 +97,9 @@ jobs:
       - name: Run tests, against dist
         run: yarn test
 
+      - name: Run type tests with `moduleResolution Bundler`
+        run: rm -rf dist && yarn tsc -p . --moduleResolution Bundler --module ESNext --noEmit false --declaration --emitDeclarationOnly --outDir dist --target ESNext && rm -rf dist
+
   test-types:
     name: Test Types with TypeScript ${{ matrix.ts }}
 
