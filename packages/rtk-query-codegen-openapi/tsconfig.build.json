@@ -3,7 +3,7 @@
   "compilerOptions": {
     "allowJs": false,
     "checkJs": false,
-    "module": "CommonJS",
+    "module": "ESNext",
     "noEmit": false,
     "rootDir": "src"
   },
