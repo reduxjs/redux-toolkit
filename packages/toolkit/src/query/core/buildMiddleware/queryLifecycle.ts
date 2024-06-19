@@ -19,10 +19,7 @@ import type {
 
 export type ReferenceQueryLifecycle = never
 
-export type QueryLifecyclePromises<
-  ResultType,
-  BaseQuery extends BaseQueryFn,
-> = {
+type QueryLifecyclePromises<ResultType, BaseQuery extends BaseQueryFn> = {
   /**
    * Promise that will resolve with the (transformed) query result.
    *
