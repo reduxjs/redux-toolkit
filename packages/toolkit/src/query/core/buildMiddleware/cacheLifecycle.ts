@@ -17,7 +17,7 @@ import type {
   SubMiddlewareApi,
 } from './types'
 
-export type LifecycleApi<ReducerPath extends string = string> = {
+type LifecycleApi<ReducerPath extends string = string> = {
   /**
    * The dispatch method for the store
    */
