@@ -52,7 +52,7 @@ jobs:
           cache: 'yarn'
 
       - name: Install dependencies
-        run: yarn workspaces focus @rtk-query/codegen-openapi
+        run: yarn install
 
       - name: Pack
         run: yarn pack
@@ -99,7 +99,7 @@ jobs:
           name: package
 
       - name: Install dependencies
-        run: yarn workspaces focus @rtk-query/codegen-openapi
+        run: yarn install
 
       - name: Install build artifact
         run: yarn add ./package.tgz
