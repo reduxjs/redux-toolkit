@@ -1,10 +1,20 @@
 {
   "extends": "@reduxjs/tsconfig/base",
   "compilerOptions": {
-    "module": "CommonJS",
+    "declaration": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "noUnusedLocals": false,
     "outDir": "lib",
+    "resolveJsonModule": true,
     "rootDir": "src",
-    "sourceMap": true
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "strict": true,
+    "target": "ESNext",
+    "types": ["vitest/globals", "vitest/importMeta"]
   },
   "exclude": ["test", "lib", "vitest.config.mts"]
 }
