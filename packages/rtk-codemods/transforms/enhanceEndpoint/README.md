@@ -1,6 +1,6 @@
 # enhanceEndpoint
 
-Transforms enhanceEndpoints calls into addTagType and enhanceEndpoint calls, in preparation for RTK 2.0.
+Transforms enhanceEndpoints calls into addTagType and enhanceEndpoint calls, in preparation for RTK 3.0.
 
 ## Usage
 
