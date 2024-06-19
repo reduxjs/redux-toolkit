@@ -1,38 +1,35 @@
 import type {
+  Action,
+  Middleware,
   Reducer,
   ReducersMapObject,
-  Middleware,
-  Action,
-  StoreEnhancer,
   Store,
+  StoreEnhancer,
   UnknownAction,
 } from 'redux'
 import {
   applyMiddleware,
-  createStore,
-  compose,
   combineReducers,
+  compose,
+  createStore,
   isPlainObject,
 } from 'redux'
 import type { DevToolsEnhancerOptions as DevToolsOptions } from './devtoolsExtension'
 import { composeWithDevTools } from './devtoolsExtension'
-
+import type { GetDefaultEnhancers } from './getDefaultEnhancers'
+import { buildGetDefaultEnhancers } from './getDefaultEnhancers'
 import type {
-  ThunkMiddlewareFor,
   GetDefaultMiddleware,
+  ThunkMiddlewareFor,
 } from './getDefaultMiddleware'
 import { buildGetDefaultMiddleware } from './getDefaultMiddleware'
 import type {
   ExtractDispatchExtensions,
-  ExtractStoreExtensions,
   ExtractStateExtensions,
+  ExtractStoreExtensions,
   UnknownIfNonSpecific,
 } from './tsHelpers'
 import type { Tuple } from './utils'
-import type { GetDefaultEnhancers } from './getDefaultEnhancers'
-import { buildGetDefaultEnhancers } from './getDefaultEnhancers'
-
-const IS_PRODUCTION = process.env.NODE_ENV === 'production'
 
 /**
  * Options for `configureStore()`.
@@ -146,7 +143,11 @@ export function configureStore<
     )
   }
 
-  if (!IS_PRODUCTION && middleware && typeof middleware !== 'function') {
+  if (
+    process.env.NODE_ENV !== 'production' &&
+    middleware &&
+    typeof middleware !== 'function'
+  ) {
     throw new Error('`middleware` field must be a callback')
   }
 
@@ -154,7 +155,10 @@ export function configureStore<
   if (typeof middleware === 'function') {
     finalMiddleware = middleware(getDefaultMiddleware)
 
-    if (!IS_PRODUCTION && !Array.isArray(finalMiddleware)) {
+    if (
+      process.env.NODE_ENV !== 'production' &&
+      !Array.isArray(finalMiddleware)
+    ) {
       throw new Error(
         'when using a middleware builder function, an array of middleware must be returned',
       )
@@ -163,7 +167,7 @@ export function configureStore<
     finalMiddleware = getDefaultMiddleware()
   }
   if (
-    !IS_PRODUCTION &&
+    process.env.NODE_ENV !== 'production' &&
     finalMiddleware.some((item: any) => typeof item !== 'function')
   ) {
     throw new Error(
@@ -176,7 +180,7 @@ export function configureStore<
   if (devTools) {
     finalCompose = composeWithDevTools({
       // Enable capture of stack traces for dispatched Redux actions
-      trace: !IS_PRODUCTION,
+      trace: process.env.NODE_ENV !== 'production',
       ...(typeof devTools === 'object' && devTools),
     })
   }
@@ -185,7 +189,11 @@ export function configureStore<
 
   const getDefaultEnhancers = buildGetDefaultEnhancers<M>(middlewareEnhancer)
 
-  if (!IS_PRODUCTION && enhancers && typeof enhancers !== 'function') {
+  if (
+    process.env.NODE_ENV !== 'production' &&
+    enhancers &&
+    typeof enhancers !== 'function'
+  ) {
     throw new Error('`enhancers` field must be a callback')
   }
 
@@ -194,11 +202,11 @@ export function configureStore<
       ? enhancers(getDefaultEnhancers)
       : getDefaultEnhancers()
 
-  if (!IS_PRODUCTION && !Array.isArray(storeEnhancers)) {
+  if (process.env.NODE_ENV !== 'production' && !Array.isArray(storeEnhancers)) {
     throw new Error('`enhancers` callback must return an array')
   }
   if (
-    !IS_PRODUCTION &&
+    process.env.NODE_ENV !== 'production' &&
     storeEnhancers.some((item: any) => typeof item !== 'function')
   ) {
     throw new Error(
@@ -206,7 +214,7 @@ export function configureStore<
     )
   }
   if (
-    !IS_PRODUCTION &&
+    process.env.NODE_ENV !== 'production' &&
     finalMiddleware.length &&
     !storeEnhancers.includes(middlewareEnhancer)
   ) {
