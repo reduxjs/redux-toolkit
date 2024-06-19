@@ -7752,7 +7752,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^6"
     "@typescript-eslint/parser": "npm:^6"
     axios: "npm:^0.19.2"
-    console-testing-library: "npm:0.6.1"
+    console-testing-library: "patch:console-testing-library@npm%3A0.6.1#~/.yarn/patches/console-testing-library-npm-0.6.1-4d9957d402.patch"
     esbuild: "npm:^0.21.5"
     esbuild-extra: "npm:^0.3.1"
     eslint: "npm:^7.25.0"
@@ -13100,14 +13100,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"console-testing-library@patch:console-testing-library@npm%3A0.6.1#./.yarn/patches/console-testing-library-npm-0.6.1-4d9957d402.patch::locator=rtk-monorepo%40workspace%3A.":
+"console-testing-library@patch:console-testing-library@npm%3A0.6.1#~/.yarn/patches/console-testing-library-npm-0.6.1-4d9957d402.patch":
   version: 0.6.1
-  resolution: "console-testing-library@patch:console-testing-library@npm%3A0.6.1#./.yarn/patches/console-testing-library-npm-0.6.1-4d9957d402.patch::version=0.6.1&hash=90f1d4&locator=rtk-monorepo%40workspace%3A."
+  resolution: "console-testing-library@patch:console-testing-library@npm%3A0.6.1#~/.yarn/patches/console-testing-library-npm-0.6.1-4d9957d402.patch::version=0.6.1&hash=a5b9a7"
   dependencies:
     jest-snapshot: "npm:^26.0.0"
     pretty-format: "npm:^26.0.0"
     strip-ansi: "npm:^6.0.0"
-  checksum: 10/d0e3de3e810ced722530b65d82cc58c62aefbda7c9d4f76ff4770053f4be864af3c76bf0827caf67a9b3020b2aef6c27d5f07cdb8e3ef966a512a94c056b88e5
+  checksum: 10/0ad183b81732ef68fc2f873cd6b0594742da42554ca327547a5a44ffa56447b6d41c09c8e42ba06fae91c651c6a6b3e0dc63d9770f3a266de587bf0c4d75b84b
   languageName: node
   linkType: hard
 
@@ -25355,16 +25355,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"redux-thunk@npm:^2.4.1":
-  version: 2.4.1
-  resolution: "redux-thunk@npm:2.4.1"
-  peerDependencies:
-    redux: ^4
-  checksum: 10/b81cdb5fa83dbfb49abc220242dfb9bc76143924d2bf4b62c0730d5dc7eed716b5800e4284e8fed8bd9fc9ea0d7757e5fe8e4a1380e63656782b9f474da25efa
-  languageName: node
-  linkType: hard
-
-"redux-thunk@npm:^2.4.2":
+"redux-thunk@npm:^2.4.1, redux-thunk@npm:^2.4.2":
   version: 2.4.2
   resolution: "redux-thunk@npm:2.4.2"
   peerDependencies:
@@ -25382,16 +25373,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"redux@npm:^4.1.2":
-  version: 4.1.2
-  resolution: "redux@npm:4.1.2"
-  dependencies:
-    "@babel/runtime": "npm:^7.9.2"
-  checksum: 10/764a64692f7184fb373dd38bcddbe1581e2c9cd3766a3ad6a5c5d19177db1fb164240f07b97cef40d29a632620b6c5e3a08abd8ea912e4c232b2f31bbd2431e6
-  languageName: node
-  linkType: hard
-
-"redux@npm:^4.2.0":
+"redux@npm:^4.1.2, redux@npm:^4.2.0":
   version: 4.2.1
   resolution: "redux@npm:4.2.1"
   dependencies:
@@ -25828,14 +25810,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"reselect@npm:^4.1.5":
-  version: 4.1.5
-  resolution: "reselect@npm:4.1.5"
-  checksum: 10/eabf06f34ef316526cb6841cb3fcf0c03a77bec296e03f94e9520d354d539f3f62cfcc50ad07523a74ce21bda9d8009995eca43b60c34b89cb7a264721c81380
-  languageName: node
-  linkType: hard
-
-"reselect@npm:^4.1.7":
+"reselect@npm:^4.1.5, reselect@npm:^4.1.7":
   version: 4.1.8
   resolution: "reselect@npm:4.1.8"
   checksum: 10/199984d9872f71cd207f4aa6e6fd2bd48d95154f7aa9b3aee3398335f39f5491059e732f28c12e9031d5d434adab2c458dc8af5afb6564d0ad37e1644445e09c

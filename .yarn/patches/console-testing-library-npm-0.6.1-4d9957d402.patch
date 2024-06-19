@@ -1,3 +1,23 @@
+diff --git a/package.json b/package.json
+index b924e066ecfdb30917b9c1056b360834da357698..15e155bd84f9d16537ffe36f9a87debcb0ec3591 100644
+--- a/package.json
++++ b/package.json
+@@ -8,12 +8,15 @@
+   "type": "module",
+   "main": "dist/index.js",
+   "typings": "index.d.ts",
++  "types": "index.d.ts",
+   "exports": {
+     ".": {
++      "types": "./index.d.ts",
+       "require": "./dist/index.js",
+       "default": "./src/index.js"
+     },
+     "./pure": {
++      "types": "./pure.d.ts",
+       "require": "./dist/pure.js",
+       "default": "./src/pure.js"
+     }
 diff --git a/src/index.js b/src/index.js
 index 90ff7fa3d7d4fa62dbbf638958ae4e28abd089a8..28434687b5163b7472e86bdb11bed69e0868e660 100644
 --- a/src/index.js
@@ -5,7 +25,7 @@ index 90ff7fa3d7d4fa62dbbf638958ae4e28abd089a8..28434687b5163b7472e86bdb11bed69e
 @@ -1,4 +1,4 @@
 -import { mockConsole, createConsole } from './pure';
 +import { mockConsole, createConsole } from './pure.js';
- 
+
  // Keep an instance of the original console and export it
  const originalConsole = global.console;
 diff --git a/src/pure.js b/src/pure.js
@@ -15,7 +35,7 @@ index b00ea2abbaea833e336676aa46e7ced2d59d6d88..42b83ed83fa16cf2234571500fe09868
 @@ -228,10 +228,11 @@ export function restore() {
    global.console = global.originalConsole;
  }
- 
+
 +/*
  if (typeof expect === 'function' && typeof expect.extend === 'function') {
    expect.extend({
@@ -24,13 +44,13 @@ index b00ea2abbaea833e336676aa46e7ced2d59d6d88..42b83ed83fa16cf2234571500fe09868
 +      // Workaround for custom inline snapshot matchers
        const error = new Error();
        const stacks = error.stack.split('\n');
- 
+
 @@ -245,7 +246,6 @@ if (typeof expect === 'function' && typeof expect.extend === 'function') {
        error.stack = stacks.join('\n');
- 
+
        const context = Object.assign(this, { error });
 -      /* -------------------------------------------------------------- */
- 
+
        const testingConsoleInstance =
          (received && received.testingConsole) || received;
 @@ -270,3 +270,4 @@ if (typeof expect === 'function' && typeof expect.extend === 'function') {
