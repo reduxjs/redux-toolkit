@@ -1,11 +1,8 @@
 import type { Dispatch, UnknownAction } from 'redux'
 import type { ThunkDispatch } from 'redux-thunk'
-import type {
-  ActionCreatorWithPreparedPayload,
-  PayloadAction,
-} from './createAction'
-import type { GetState } from './dynamicMiddleware/types'
+import type { ActionCreatorWithPreparedPayload } from './createAction'
 import { createAction } from './createAction'
+import type { GetState } from './dynamicMiddleware/types'
 import { isAnyOf } from './matchers'
 import { nanoid } from './nanoid'
 import type {
@@ -124,7 +121,7 @@ export type AsyncThunkConfig = {
 type GetExtra<ThunkApiConfig> = ThunkApiConfig extends { extra: infer Extra }
   ? Extra
   : unknown
-type GetDispatch<ThunkApiConfig> = ThunkApiConfig extends {
+type GetDispatchType<ThunkApiConfig> = ThunkApiConfig extends {
   dispatch: infer Dispatch
 }
   ? FallbackIfUnknown<
@@ -144,7 +141,7 @@ type GetDispatch<ThunkApiConfig> = ThunkApiConfig extends {
 export type GetThunkAPI<ThunkApiConfig> = BaseThunkAPI<
   GetState<ThunkApiConfig>,
   GetExtra<ThunkApiConfig>,
-  GetDispatch<ThunkApiConfig>,
+  GetDispatchType<ThunkApiConfig>,
   GetRejectValue<ThunkApiConfig>,
   GetRejectedMeta<ThunkApiConfig>,
   GetFulfilledMeta<ThunkApiConfig>
@@ -231,7 +228,7 @@ export type AsyncThunkAction<
   ThunkArg,
   ThunkApiConfig extends AsyncThunkConfig,
 > = (
-  dispatch: NonNullable<GetDispatch<ThunkApiConfig>>,
+  dispatch: NonNullable<GetDispatchType<ThunkApiConfig>>,
   getState: () => GetState<ThunkApiConfig>,
   extra: GetExtra<ThunkApiConfig>,
 ) => SafePromise<
