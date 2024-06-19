@@ -100,6 +100,38 @@ jobs:
       - name: Run type tests with `moduleResolution Bundler`
         run: rm -rf dist && yarn tsc -p . --moduleResolution Bundler --module ESNext --noEmit false --declaration --emitDeclarationOnly --outDir dist --target ESNext && rm -rf dist
 
+  test-type-portability:
+    name: Test Type Portability
+    needs: [build]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['20.x']
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Use node ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: 'yarn'
+
+      - name: Install deps
+        run: yarn install
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: package
+          path: packages/toolkit
+
+      - name: Install build artifact
+        run: yarn workspace @examples-type-portability/bundler add $(pwd)/package.tgz
+
+      - name: Test type portability with `moduleResolution Bundler`
+        run: yarn workspace @examples-type-portability/bundler run test
+
   test-types:
     name: Test Types with TypeScript ${{ matrix.ts }}
 
