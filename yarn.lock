@@ -8343,7 +8343,7 @@ __metadata:
     husky: "npm:^4.3.6"
     msw: "npm:^2.1.5"
     node-fetch: "npm:^3.3.2"
-    oazapfts: "npm:^4.8.0"
+    oazapfts: "npm:^6.0.2"
     openapi-types: "npm:^9.1.0"
     prettier: "npm:^3.2.5"
     pretty-quick: "npm:^4.0.0"
@@ -22630,18 +22630,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oazapfts@npm:^4.8.0":
-  version: 4.10.0
-  resolution: "oazapfts@npm:4.10.0"
+"oazapfts@npm:^6.0.2":
+  version: 6.0.2
+  resolution: "oazapfts@npm:6.0.2"
   dependencies:
     "@apidevtools/swagger-parser": "npm:^10.1.0"
     lodash: "npm:^4.17.21"
     minimist: "npm:^1.2.8"
     swagger2openapi: "npm:^7.0.8"
-    typescript: "npm:^5.2.2"
+    typescript: "npm:^5.3.3"
+  peerDependencies:
+    "@oazapfts/runtime": "*"
   bin:
-    oazapfts: lib/codegen/cli.js
-  checksum: 10/361915b5bafea470b63e54274a54ec19a1d5de09f017f11a4dc380f6e00bd7fb043ae7e0b6a166a46276c41e19a9206cc13b9213d7e7a4e0e08f783ef7b4ec07
+    oazapfts: dist/cli.js
+  checksum: 10/9132e4bbc589cefba2b93a2421309c89e7685cf75108ac8611d93f78c4e985a0d95829feb2f2b109fa22cb6feb12a6a1e03a679bba9892633c22fe9fb21bd91c
   languageName: node
   linkType: hard
 
@@ -29480,7 +29482,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:5.3.3, typescript@npm:^5.2.2, typescript@npm:^5.3.3":
+"typescript@npm:5.3.3, typescript@npm:^5.3.3":
   version: 5.3.3
   resolution: "typescript@npm:5.3.3"
   bin:
@@ -29550,7 +29552,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@npm%3A5.3.3#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^5.2.2#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^5.3.3#optional!builtin<compat/typescript>":
+"typescript@patch:typescript@npm%3A5.3.3#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^5.3.3#optional!builtin<compat/typescript>":
   version: 5.3.3
   resolution: "typescript@patch:typescript@npm%3A5.3.3#optional!builtin<compat/typescript>::version=5.3.3&hash=e012d7"
   bin:
