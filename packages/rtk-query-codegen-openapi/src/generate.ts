@@ -5,13 +5,11 @@ import ApiGenerator, {
   getReferenceName,
   isReference,
   supportDeepObjects,
-} from 'oazapfts/lib/codegen/generate';
-import {
   createPropertyAssignment,
   createQuestionToken,
   isValidIdentifier,
   keywordType,
-} from 'oazapfts/lib/codegen/tscodegen';
+} from 'oazapfts/generate';
 import type { OpenAPIV3 } from 'openapi-types';
 import ts from 'typescript';
 import type { ObjectPropertyDefinitions } from './codegen';

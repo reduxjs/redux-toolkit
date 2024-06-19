@@ -34,6 +34,7 @@ export type {
 } from './endpointDefinitions'
 export { fetchBaseQuery } from './fetchBaseQuery'
 export type {
+  FetchBaseQueryArgs,
   FetchBaseQueryError,
   FetchBaseQueryMeta,
   FetchArgs,
