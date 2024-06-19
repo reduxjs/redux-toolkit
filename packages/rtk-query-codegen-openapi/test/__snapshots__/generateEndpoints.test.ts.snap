@@ -698,6 +698,7 @@ export type Pet = {
   category?: Category | undefined;
   photoUrls: string[];
   tags?: Tag[] | undefined;
+  /** pet status in the store */
   status?: ("available" | "pending" | "sold") | undefined;
 };
 export type ApiResponse = {
@@ -710,6 +711,7 @@ export type Order = {
   petId?: number | undefined;
   quantity?: number | undefined;
   shipDate?: string | undefined;
+  /** Order Status */
   status?: ("placed" | "approved" | "delivered") | undefined;
   complete?: boolean | undefined;
 };
@@ -721,6 +723,7 @@ export type User = {
   email?: string | undefined;
   password?: string | undefined;
   phone?: string | undefined;
+  /** User Status */
   userStatus?: number | undefined;
 };
 "
@@ -826,6 +829,7 @@ export type Order = {
   petId?: number | undefined;
   quantity?: number | undefined;
   shipDate?: string | undefined;
+  /** Order Status */
   status?: ("placed" | "approved" | "delivered") | undefined;
   complete?: boolean | undefined;
 };
@@ -934,6 +938,7 @@ export type Pet = {
   category?: Category | undefined;
   photoUrls: string[];
   tags?: Tag[] | undefined;
+  /** pet status in the store */
   status?: ("available" | "pending" | "sold") | undefined;
 };
 export const { useAddPetMutation, useGetPetByIdQuery } = injectedRtkApi;
@@ -1120,6 +1125,7 @@ export type Pet = {
   category?: Category;
   photoUrls: string[];
   tags?: Tag[];
+  /** pet status in the store */
   status?: "available" | "pending" | "sold";
 };
 export const { useAddPetMutation, useGetPetByIdQuery, useLazyGetPetByIdQuery } =
@@ -1169,6 +1175,7 @@ export type Pet = {
   category?: Category;
   photoUrls: string[];
   tags?: Tag[];
+  /** pet status in the store */
   status?: "available" | "pending" | "sold";
 };
 export const { useLazyGetPetByIdQuery } = injectedRtkApi;
@@ -1217,6 +1224,7 @@ export type Pet = {
   category?: Category;
   photoUrls: string[];
   tags?: Tag[];
+  /** pet status in the store */
   status?: "available" | "pending" | "sold";
 };
 export const { useAddPetMutation } = injectedRtkApi;
@@ -1265,6 +1273,7 @@ export type Pet = {
   category?: Category;
   photoUrls: string[];
   tags?: Tag[];
+  /** pet status in the store */
   status?: "available" | "pending" | "sold";
 };
 export const { useGetPetByIdQuery } = injectedRtkApi;
@@ -1593,6 +1602,7 @@ export type Pet = {
   category?: Category | undefined;
   photoUrls: string[];
   tags?: Tag[] | undefined;
+  /** pet status in the store */
   status?: ("available" | "pending" | "sold") | undefined;
 };
 export type ApiResponse = {
@@ -1605,6 +1615,7 @@ export type Order = {
   petId?: number | undefined;
   quantity?: number | undefined;
   shipDate?: string | undefined;
+  /** Order Status */
   status?: ("placed" | "approved" | "delivered") | undefined;
   complete?: boolean | undefined;
 };
@@ -1616,6 +1627,7 @@ export type User = {
   email?: string | undefined;
   password?: string | undefined;
   phone?: string | undefined;
+  /** User Status */
   userStatus?: number | undefined;
 };
 export const {
@@ -1977,6 +1989,7 @@ export type Pet = {
   category?: Category | undefined;
   photoUrls: string[];
   tags?: Tag[] | undefined;
+  /** pet status in the store */
   status?: ("available" | "pending" | "sold") | undefined;
 };
 export type ApiResponse = {
@@ -1989,6 +2002,7 @@ export type Order = {
   petId?: number | undefined;
   quantity?: number | undefined;
   shipDate?: string | undefined;
+  /** Order Status */
   status?: ("placed" | "approved" | "delivered") | undefined;
   complete?: boolean | undefined;
 };
@@ -2000,6 +2014,7 @@ export type User = {
   email?: string | undefined;
   password?: string | undefined;
   phone?: string | undefined;
+  /** User Status */
   userStatus?: number | undefined;
 };
 export const {
