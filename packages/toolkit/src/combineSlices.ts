@@ -2,8 +2,8 @@ import type { Reducer, StateFromReducersMapObject, UnknownAction } from 'redux'
 import { combineReducers } from 'redux'
 import { nanoid } from './nanoid'
 import type {
+  Id,
   NonUndefined,
-  Simplify,
   Tail,
   UnionToIntersection,
   WithOptionalProp,
@@ -81,7 +81,7 @@ export interface CombinedSliceReducer<
    */
   withLazyLoadedSlices<Lazy = {}>(): CombinedSliceReducer<
     InitialState,
-    Simplify<DeclaredState & Partial<Lazy>>
+    Id<DeclaredState & Partial<Lazy>>
   >
 
   /**
@@ -96,10 +96,10 @@ export interface CombinedSliceReducer<
    * ```
    *
    */
-  inject<Sl extends Simplify<ExistingSliceLike<DeclaredState>>>(
+  inject<Sl extends Id<ExistingSliceLike<DeclaredState>>>(
     slice: Sl,
     config?: InjectConfig,
-  ): CombinedSliceReducer<InitialState, Simplify<DeclaredState & WithSlice<Sl>>>
+  ): CombinedSliceReducer<InitialState, Id<DeclaredState & WithSlice<Sl>>>
 
   /**
    * Inject a slice.
@@ -121,7 +121,7 @@ export interface CombinedSliceReducer<
     config?: InjectConfig,
   ): CombinedSliceReducer<
     InitialState,
-    Simplify<DeclaredState & WithSlice<SliceLike<ReducerPath, State>>>
+    Id<DeclaredState & WithSlice<SliceLike<ReducerPath, State>>>
   >
 
   /**
@@ -363,7 +363,7 @@ const noopReducer: Reducer<Record<string, any>> = (state = {}) => state
 
 export function combineSlices<Slices extends Array<AnySliceLike | ReducerMap>>(
   ...slices: Slices
-): CombinedSliceReducer<Simplify<InitialState<Slices>>> {
+): CombinedSliceReducer<Id<InitialState<Slices>>> {
   const reducerMap = Object.fromEntries<Reducer>(getReducers(slices))
 
   const getReducer = () =>

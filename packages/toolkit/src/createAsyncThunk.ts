@@ -7,10 +7,10 @@ import { isAnyOf } from './matchers'
 import { nanoid } from './nanoid'
 import type {
   FallbackIfUnknown,
+  Id,
   IsAny,
   IsUnknown,
   SafePromise,
-  Simplify,
 } from './tsHelpers'
 
 export type BaseThunkAPI<
@@ -428,7 +428,7 @@ export type AsyncThunk<
   typePrefix: string
 }
 
-export type OverrideThunkApiConfigs<OldConfig, NewConfig> = Simplify<
+export type OverrideThunkApiConfigs<OldConfig, NewConfig> = Id<
   NewConfig & Omit<OldConfig, keyof NewConfig>
 >
 

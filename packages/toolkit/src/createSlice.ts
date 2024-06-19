@@ -25,7 +25,7 @@ import type {
 import { createReducer } from './createReducer'
 import type { ActionReducerMapBuilder, TypedActionCreator } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
-import type { Simplify, TypeGuard } from './tsHelpers'
+import type { Id, TypeGuard } from './tsHelpers'
 import { emplace } from './utils'
 
 const asyncThunkSymbol = /* @__PURE__ */ Symbol.for(
@@ -90,21 +90,21 @@ export interface Slice<
   /**
    * Get localised slice selectors (expects to be called with *just* the slice's state as the first parameter)
    */
-  getSelectors(): Simplify<SliceDefinedSelectors<State, Selectors, State>>
+  getSelectors(): Id<SliceDefinedSelectors<State, Selectors, State>>
 
   /**
    * Get globalised slice selectors (`selectState` callback is expected to receive first parameter and return slice state)
    */
   getSelectors<RootState>(
     selectState: (rootState: RootState) => State,
-  ): Simplify<SliceDefinedSelectors<State, Selectors, RootState>>
+  ): Id<SliceDefinedSelectors<State, Selectors, RootState>>
 
   /**
    * Selectors that assume the slice's state is `rootState[slice.reducerPath]` (which is usually the case)
    *
    * Equivalent to `slice.getSelectors((state: RootState) => state[slice.reducerPath])`.
    */
-  get selectors(): Simplify<
+  get selectors(): Id<
     SliceDefinedSelectors<State, Selectors, { [K in ReducerPath]: State }>
   >
 
@@ -148,23 +148,21 @@ type InjectedSlice<
   /**
    * Get localised slice selectors (expects to be called with *just* the slice's state as the first parameter)
    */
-  getSelectors(): Simplify<
-    SliceDefinedSelectors<State, Selectors, State | undefined>
-  >
+  getSelectors(): Id<SliceDefinedSelectors<State, Selectors, State | undefined>>
 
   /**
    * Get globalised slice selectors (`selectState` callback is expected to receive first parameter and return slice state)
    */
   getSelectors<RootState>(
     selectState: (rootState: RootState) => State | undefined,
-  ): Simplify<SliceDefinedSelectors<State, Selectors, RootState>>
+  ): Id<SliceDefinedSelectors<State, Selectors, RootState>>
 
   /**
    * Selectors that assume the slice's state is `rootState[slice.name]` (which is usually the case)
    *
    * Equivalent to `slice.getSelectors((state: RootState) => state[slice.name])`.
    */
-  get selectors(): Simplify<
+  get selectors(): Id<
     SliceDefinedSelectors<
       State,
       Selectors,
@@ -509,7 +507,7 @@ type ActionCreatorForCaseReducer<CR, Type extends string> = CR extends (
 type SliceDefinedCaseReducers<CaseReducers extends SliceCaseReducers<any>> = {
   [Type in keyof CaseReducers]: CaseReducers[Type] extends infer Definition
     ? Definition extends AsyncThunkSliceReducerDefinition<any, any, any>
-      ? Simplify<
+      ? Id<
           Pick<
             Required<Definition>,
             'fulfilled' | 'rejected' | 'pending' | 'settled'
