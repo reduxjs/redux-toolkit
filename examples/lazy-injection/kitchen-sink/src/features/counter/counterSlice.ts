@@ -1,7 +1,8 @@
-import type { PayloadAction } from "@reduxjs/toolkit"
+import type { PayloadAction, WithSlice } from "@reduxjs/toolkit"
 import { createAppSlice } from "../../app/createAppSlice"
 import type { AppThunk } from "../../app/store"
 import { fetchCount } from "./counterAPI"
+import { rootReducer } from "../../app/reducer"
 
 export interface CounterSliceState {
   value: number
@@ -19,6 +20,9 @@ export const counterSlice = createAppSlice({
   initialState,
   // The `reducers` field lets us define reducers and generate associated actions
   reducers: create => ({
+    getCount: create.reducer(() => {
+      // dummy for middleware
+    }),
     increment: create.reducer(state => {
       // Redux Toolkit allows us to write "mutating" logic in reducers. It
       // doesn't actually mutate the state because it uses the Immer library,
@@ -69,11 +73,24 @@ export const counterSlice = createAppSlice({
 })
 
 // Action creators are generated for each case reducer function.
-export const { decrement, increment, incrementByAmount, incrementAsync } =
-  counterSlice.actions
+export const {
+  getCount,
+  decrement,
+  increment,
+  incrementByAmount,
+  incrementAsync,
+} = counterSlice.actions
+
+// we can call both inject and injectInto, because the reducer reference is the same - injection only happens once regardless
+const withCounterSlice = rootReducer.inject(counterSlice)
+const injectedCounterSlice = counterSlice.injectInto(rootReducer)
+
+declare module "../../app/reducer" {
+  export interface LazyLoadedSlices extends WithSlice<typeof counterSlice> {}
+}
 
 // Selectors returned by `slice.selectors` take the root state as their first argument.
-export const { selectCount, selectStatus } = counterSlice.selectors
+export const { selectCount, selectStatus } = injectedCounterSlice.selectors
 
 // We can also write thunks by hand, which may contain both sync and async logic.
 // Here's an example of conditionally dispatching actions based on current state.
@@ -86,3 +103,7 @@ export const incrementIfOdd =
       dispatch(incrementByAmount(amount))
     }
   }
+
+export const selectDouble = withCounterSlice.selector(
+  state => selectCount(state) * 2,
+)
