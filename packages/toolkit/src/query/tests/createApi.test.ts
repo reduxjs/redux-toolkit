@@ -416,15 +416,9 @@ describe('endpoint definition typings', () => {
         })
       }
 
-      // @ts-expect-error
-      const enhanced = api
-        .addTagTypes('new')
-        .enhanceEndpoint('query1', {
-          providesTags: ['new'],
-        })
-        .enhanceEndpoint('query2', {
-          providesTags: ['missing'],
-        })
+      // @ts-expect-error the location of the error varies depending on TS version, so this needs to be one line
+      // prettier-ignore
+      const enhanced = api.addTagTypes('new').enhanceEndpoint('query1', { providesTags: ['new'] }).enhanceEndpoint('query2', { providesTags: ['missing'] })
 
       storeRef.store.dispatch(api.endpoints.query1.initiate('in1'))
       await delay(1)

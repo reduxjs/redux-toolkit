@@ -209,14 +209,9 @@ describe('type tests', () => {
           withoutTestLifecycles: true,
         })
 
-        // @ts-expect-error
-        api1
-          .enhanceEndpoint('query1', {
-            providesTags: ['new'],
-          })
-          .enhanceEndpoint('query2', {
-            providesTags: ['missing'],
-          })
+        // @ts-expect-error the location of the error varies depending on TS version, so this needs to be one line
+        // prettier-ignore
+        api1.enhanceEndpoint('query1', { providesTags: ['new'] }).enhanceEndpoint('query2', { providesTags: ['missing'] })
 
         const enhanced = api1
           .addTagTypes('new')
