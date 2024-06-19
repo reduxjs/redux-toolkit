@@ -20,7 +20,8 @@
     "docs",
     "website",
     "examples/query/react/*",
-    "examples/action-listener/*"
+    "examples/action-listener/*",
+    "examples/type-portability"
   ],
   "devDependencies": {
     "@babel/code-frame": "^7.24.2",
