@@ -17,7 +17,7 @@
     "rtk-query-codegen-openapi": "lib/bin/cli.js"
   },
   "scripts": {
-    "build": "yarn clean && tsc && chmod +x lib/bin/cli.js",
+    "build": "yarn clean && tsup && chmod +x lib/bin/cli.js",
     "clean": "rimraf lib",
     "prepare": "yarn build && chmod +x lib/bin/cli.js",
     "format": "prettier --write \"src/**/*.ts\"",
@@ -43,7 +43,7 @@
     "@types/semver": "^7.3.9",
     "chalk": "^4.1.0",
     "del": "^6.0.0",
-    "esbuild": "~0.17",
+    "esbuild": "^0.21.5",
     "esbuild-runner": "^2.2.1",
     "husky": "^4.3.6",
     "msw": "^2.1.5",
@@ -63,7 +63,7 @@
     "prettier": "^3.2.5",
     "semver": "^7.3.5",
     "swagger2openapi": "^7.0.4",
-    "typescript": "^5.3.3"
+    "typescript": "^5.4.5"
   },
   "husky": {
     "hooks": {
