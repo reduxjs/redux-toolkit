@@ -1,7 +1,7 @@
 import type { Draft } from 'immer'
 import type { PayloadAction } from '../createAction'
 import type { CastAny, Simplify } from '../tsHelpers'
-import type { UncheckedIndexedAccess } from '../uncheckedindexed'
+import type { UncheckedIndexedAccess } from '../uncheckedindexed.js'
 import type { GetSelectorsOptions } from './state_selectors'
 
 /**
