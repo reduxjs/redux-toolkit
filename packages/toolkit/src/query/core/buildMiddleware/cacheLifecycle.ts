@@ -59,7 +59,7 @@ export interface QueryBaseLifecycleApi<
   updateCachedData(updateRecipe: Recipe<ResultType>): PatchCollection
 }
 
-export type CacheLifecyclePromises<ResultType = unknown, MetaType = unknown> = {
+type CacheLifecyclePromises<ResultType = unknown, MetaType = unknown> = {
   /**
    * Promise that will resolve with the first value for this cache key.
    * This allows you to `await` until an actual value is in cache.
