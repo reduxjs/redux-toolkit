@@ -36,7 +36,7 @@ export function ApiProvider(props: {
   children: any
   api: ApiModules<any, any, any, any>[CoreModule]
   setupListeners?: Parameters<typeof setupListeners>[1] | false
-  context?: Context<ReactReduxContextValue>
+  context?: Context<ReactReduxContextValue | null>
 }) {
   const context = props.context || ReactReduxContext
   const existingContext = useContext(context)

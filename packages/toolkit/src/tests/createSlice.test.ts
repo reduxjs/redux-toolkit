@@ -678,7 +678,7 @@ describe('createSlice', () => {
         initialState: [] as any[],
         reducers: (create) => ({
           thunkReducers: create.asyncThunk(
-            function payloadCreator(arg, api) {
+            function payloadCreator(arg: string, api) {
               return Promise.resolve('resolved payload')
             },
             { pending, fulfilled, rejected, settled },
@@ -722,7 +722,7 @@ describe('createSlice', () => {
         reducers: (create) => ({
           thunkReducers: create.asyncThunk(
             // payloadCreator isn't allowed to return never
-            function payloadCreator(arg, api): any {
+            function payloadCreator(arg: string, api): any {
               throw new Error('')
             },
             { pending, fulfilled, rejected, settled },
@@ -765,7 +765,7 @@ describe('createSlice', () => {
         initialState: [] as any[],
         reducers: (create) => ({
           thunkReducers: create.asyncThunk(
-            function payloadCreator(arg, api) {
+            function payloadCreator(arg: string, api) {
               return 'should not call this'
             },
             {
@@ -833,7 +833,6 @@ describe('createSlice', () => {
           slice.actions.thunkReducers.rejected(
             new Error('test'),
             'fakeRequestId',
-            {},
           ),
         ),
       ).not.toThrow()

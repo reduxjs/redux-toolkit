@@ -1,3 +1,4 @@
+import { isAnyOf } from '@reduxjs/toolkit'
 import type { BaseQueryFn } from '../../baseQueryTypes'
 import type { QueryDefinition } from '../../endpointDefinitions'
 import type { ConfigState, QueryCacheKey } from '../apiState'
@@ -49,10 +50,17 @@ export const THIRTY_TWO_BIT_MAX_TIMER_SECONDS = 2_147_483_647 / 1_000 - 1
 export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
   reducerPath,
   api,
+  queryThunk,
   context,
   internalState,
 }) => {
   const { removeQueryResult, unsubscribeQueryResult } = api.internalActions
+
+  const canTriggerUnsubscribe = isAnyOf(
+    unsubscribeQueryResult.match,
+    queryThunk.fulfilled,
+    queryThunk.rejected
+  )
 
   function anySubscriptionsRemainingForKey(queryCacheKey: string) {
     const subscriptions = internalState.currentSubscriptions[queryCacheKey]
@@ -66,9 +74,11 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
     mwApi,
     internalState,
   ) => {
-    if (unsubscribeQueryResult.match(action)) {
+    if (canTriggerUnsubscribe(action)) {
       const state = mwApi.getState()[reducerPath]
-      const { queryCacheKey } = action.payload
+      const { queryCacheKey } = unsubscribeQueryResult.match(action)
+        ? action.payload
+        : action.meta.arg
 
       handleUnsubscribe(
         queryCacheKey,

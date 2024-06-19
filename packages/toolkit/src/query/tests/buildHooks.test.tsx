@@ -100,7 +100,7 @@ const api = createApi({
     getError: build.query({
       query: () => '/error',
     }),
-    listItems: build.query<Item[], { pageNumber: number }>({
+    listItems: build.query<Item[], { pageNumber: number | bigint }>({
       serializeQueryArgs: ({ endpointName }) => {
         return endpointName
       },
@@ -151,6 +151,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  nextItemId = 0
   amount = 0
   listenerMiddleware.clearListeners()
 })
@@ -630,7 +631,40 @@ describe('hooks tests', () => {
     test(`useQuery refetches when query args object changes even if serialized args don't change`, async () => {
       function ItemList() {
         const [pageNumber, setPageNumber] = useState(0)
-        const { data = [] } = api.useListItemsQuery({ pageNumber })
+        const { data = [] } = api.useListItemsQuery({
+          pageNumber: pageNumber,
+        })
+
+        const renderedItems = data.map((item) => (
+          <li key={item.id}>ID: {item.id}</li>
+        ))
+        return (
+          <div>
+            <button onClick={() => setPageNumber(pageNumber + 1)}>
+              Next Page
+            </button>
+            <ul>{renderedItems}</ul>
+          </div>
+        )
+      }
+
+      render(<ItemList />, { wrapper: storeRef.wrapper })
+
+      await screen.findByText('ID: 0')
+
+      await act(async () => {
+        screen.getByText('Next Page').click()
+      })
+
+      await screen.findByText('ID: 3')
+    })
+
+    test(`useQuery gracefully handles bigint types`, async () => {
+      function ItemList() {
+        const [pageNumber, setPageNumber] = useState(0)
+        const { data = [] } = api.useListItemsQuery({
+          pageNumber: BigInt(pageNumber),
+        })
 
         const renderedItems = data.map((item) => (
           <li key={item.id}>ID: {item.id}</li>
@@ -724,6 +758,68 @@ describe('hooks tests', () => {
       expect(res.data!.amount).toBeGreaterThan(originalAmount)
     })
 
+    // See https://github.com/reduxjs/redux-toolkit/issues/4267 - Memory leak in useQuery rapid query arg changes
+    test('Hook subscriptions are properly cleaned up when query is fulfilled/rejected', async () => {
+      // This is imported already, but it seems to be causing issues with the test on certain matrixes
+      function delay(ms: number) {
+        return new Promise((resolve) => setTimeout(resolve, ms))
+      }
+
+      const pokemonApi = createApi({
+        baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
+        endpoints: (builder) => ({
+          getTest: builder.query<string, number>({
+            async queryFn() {
+              await new Promise((resolve) => setTimeout(resolve, 1000));
+              return { data: "data!" };
+            },
+            keepUnusedDataFor: 0,
+          }),
+        }),
+      })
+
+      const storeRef = setupApiStore(pokemonApi, undefined, {
+        withoutTestLifecycles: true,
+      })
+
+      const checkNumQueries = (count: number) => {
+        const cacheEntries = Object.keys((storeRef.store.getState()).api.queries)
+        const queries = cacheEntries.length
+
+        expect(queries).toBe(count)
+      }
+
+      let i = 0;
+
+      function User() {
+        const [fetchTest, { isFetching, isUninitialized }] =
+          pokemonApi.endpoints.getTest.useLazyQuery()
+
+        return (
+          <div>
+            <div data-testid="isUninitialized">{String(isUninitialized)}</div>
+            <div data-testid="isFetching">{String(isFetching)}</div>
+            <button data-testid="fetchButton" onClick={() => fetchTest(i++)}>
+              fetchUser
+            </button>
+          </div>
+        )
+      }
+
+      render(<User />, { wrapper: storeRef.wrapper })
+      fireEvent.click(screen.getByTestId('fetchButton'))
+      fireEvent.click(screen.getByTestId('fetchButton'))
+      fireEvent.click(screen.getByTestId('fetchButton'))
+      checkNumQueries(3)
+
+      await act(async () => {
+        await delay(1500)
+      })
+
+      // There should only be one stored query once they have had time to resolve
+      checkNumQueries( 1)
+    })
+
     // See https://github.com/reduxjs/redux-toolkit/issues/3182
     test('Hook subscriptions are properly cleaned up when changing skip back and forth', async () => {
       const pokemonApi = createApi({
@@ -809,6 +905,57 @@ describe('hooks tests', () => {
       for (const cacheKeyEntry of Object.values(finalSubscriptions)) {
         expect(Object.values(cacheKeyEntry!).length).toBe(0)
       }
+    })
+
+    test('Hook subscription failures do not reset isLoading state', async () => {
+      const states: boolean[] = []
+
+      function Parent() {
+        const { isLoading } = api.endpoints.getUserAndForceError.useQuery(1)
+
+        // Collect loading states to verify that it does not revert back to true.
+        states.push(isLoading)
+
+        // Parent conditionally renders child when loading.
+        if (isLoading) return null
+
+        return <Child />
+      }
+
+      function Child() {
+        // Using the same args as the parent
+        api.endpoints.getUserAndForceError.useQuery(1)
+
+        return null
+      }
+
+      render(<Parent />, { wrapper: storeRef.wrapper })
+
+      // Allow at least three state effects to hit.
+      // Trying to see if any [true, false, true] occurs.
+      await act(async () => {
+        await waitMs(1)
+      })
+
+      await act(async () => {
+        await waitMs(1)
+      })
+
+      await act(async () => {
+        await waitMs(1)
+      })
+
+      // Find if at any time the isLoading state has reverted
+      // E.G.: `[..., true, false, ..., true]`
+      //              ^^^^  ^^^^^       ^^^^
+      const firstTrue = states.indexOf(true)
+      const firstFalse = states.slice(firstTrue).indexOf(false)
+      const revertedState = states.slice(firstFalse).indexOf(true)
+
+      expect(
+        revertedState,
+        `Expected isLoading state to never revert back to true but did after ${revertedState} renders...`,
+      ).toBe(-1)
     })
 
     describe('Hook middleware requirements', () => {

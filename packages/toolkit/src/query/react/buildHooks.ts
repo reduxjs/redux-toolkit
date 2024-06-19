@@ -54,12 +54,27 @@ import { useStableQueryArgs } from './useSerializedStableValue'
 import { useShallowStableValue } from './useShallowStableValue'
 
 // Copy-pasted from React-Redux
+const canUseDOM = () =>
+  !!(
+    typeof window !== 'undefined' &&
+    typeof window.document !== 'undefined' &&
+    typeof window.document.createElement !== 'undefined'
+  )
+
+const isDOM = /* @__PURE__ */ canUseDOM()
+
+// Under React Native, we know that we always want to use useLayoutEffect
+
+const isRunningInReactNative = () =>
+  typeof navigator !== 'undefined' && navigator.product === 'ReactNative'
+
+const isReactNative = /* @__PURE__ */ isRunningInReactNative()
+
+const getUseIsomorphicLayoutEffect = () =>
+  isDOM || isReactNative ? useLayoutEffect : useEffect
+
 export const useIsomorphicLayoutEffect =
-  typeof window !== 'undefined' &&
-  !!window.document &&
-  !!window.document.createElement
-    ? useLayoutEffect
-    : useEffect
+  /* @__PURE__ */ getUseIsomorphicLayoutEffect()
 
 export interface QueryHooks<
   Definition extends QueryDefinition<any, any, any, any, any>,
@@ -523,7 +538,7 @@ export type UseMutationStateResult<
 > = TSHelpersNoInfer<R> & {
   originalArgs?: QueryArgFrom<D>
   /**
-   * Resets the hook state to it's initial `uninitialized` state.
+   * Resets the hook state to its initial `uninitialized` state.
    * This will also remove the last result from the cache.
    */
   reset: () => void
@@ -691,7 +706,10 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     // isFetching = true any time a request is in flight
     const isFetching = currentState.isLoading
     // isLoading = true only when loading while no data is present yet (initial load with no data in the cache)
-    const isLoading = !hasData && isFetching
+    const isLoading =
+      (!lastResult || lastResult.isLoading || lastResult.isUninitialized) &&
+      !hasData &&
+      isFetching
     // isSuccess = true when data is present
     const isSuccess = currentState.isSuccess || (isFetching && hasData)
 
@@ -741,7 +759,15 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         Definitions
       >
       const dispatch = useDispatch<ThunkDispatch<any, any, UnknownAction>>()
-      const subscriptionSelectorsRef = useRef<SubscriptionSelectors>()
+
+      // TODO: Change this to `useRef<SubscriptionSelectors>(undefined)` after upgrading to React 19.
+      /**
+       * @todo Change this to `useRef<SubscriptionSelectors>(undefined)` after upgrading to React 19.
+       */
+      const subscriptionSelectorsRef = useRef<
+        SubscriptionSelectors | undefined
+      >(undefined)
+
       if (!subscriptionSelectorsRef.current) {
         const returnedValue = dispatch(
           api.internalActions.internal_getRTKQSubscriptions(),
@@ -782,7 +808,13 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
       const lastRenderHadSubscription = useRef(false)
 
-      const promiseRef = useRef<QueryActionCreatorResult<any>>()
+      // TODO: Change this to `useRef<QueryActionCreatorResult<any>>(undefined)` after upgrading to React 19.
+      /**
+       * @todo Change this to `useRef<QueryActionCreatorResult<any>>(undefined)` after upgrading to React 19.
+       */
+      const promiseRef = useRef<QueryActionCreatorResult<any> | undefined>(
+        undefined,
+      )
 
       let { queryCacheKey, requestId } = promiseRef.current || {}
 
@@ -887,7 +919,14 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       const dispatch = useDispatch<ThunkDispatch<any, any, UnknownAction>>()
 
       const [arg, setArg] = useState<any>(UNINITIALIZED_VALUE)
-      const promiseRef = useRef<QueryActionCreatorResult<any> | undefined>()
+
+      // TODO: Change this to `useRef<QueryActionCreatorResult<any>>(undefined)` after upgrading to React 19.
+      /**
+       * @todo Change this to `useRef<QueryActionCreatorResult<any>>(undefined)` after upgrading to React 19.
+       */
+      const promiseRef = useRef<QueryActionCreatorResult<any> | undefined>(
+        undefined,
+      )
 
       const stableSubscriptionOptions = useShallowStableValue({
         refetchOnReconnect,
@@ -967,7 +1006,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
       type ApiRootState = Parameters<ReturnType<typeof select>>[0]
 
-      const lastValue = useRef<any>()
+      const lastValue = useRef<any>(undefined)
 
       const selectDefaultResult: Selector<ApiRootState, any, [any]> = useMemo(
         () =>

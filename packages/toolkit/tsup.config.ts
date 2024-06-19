@@ -71,7 +71,7 @@ const buildTargets: BuildOptions[] = [
   {
     format: 'esm',
     name: 'legacy-esm',
-    target: 'esnext',
+    target: 'es2017',
     minify: false,
     env: '',
   },
