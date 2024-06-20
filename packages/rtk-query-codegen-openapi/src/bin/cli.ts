@@ -35,10 +35,10 @@ program.version(meta.version).usage('</path/to/config.js>').parse(process.argv);
 
 const configFile = program.args[0];
 
-if (program.args.length === 0 || !/\.(c?(jsx?|tsx?)|jsonc?)?$/.test(configFile)) {
+if (program.args.length === 0 || !/\.([mc]?(jsx?|tsx?)|jsonc?)?$/.test(configFile)) {
   program.help();
 } else {
-  if (/\.tsx?$/.test(configFile) && !ts) {
+  if (/\.[mc]?tsx?$/.test(configFile) && !ts) {
     console.error('Encountered a TypeScript configfile, but neither esbuild-runner nor ts-node are installed.');
     process.exit(1);
   }
