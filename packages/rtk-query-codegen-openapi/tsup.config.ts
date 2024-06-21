@@ -5,7 +5,6 @@ const tsconfig = 'tsconfig.json' satisfies Options['tsconfig'];
 
 export default defineConfig((options): Options[] => {
   const commonOptions: Options = {
-    // format: ['cjs', 'esm'],
     entry: { index: 'src/index.ts' },
     sourcemap: true,
     tsconfig,
@@ -25,7 +24,7 @@ export default defineConfig((options): Options[] => {
       format: ['esm', 'cjs'],
       name: 'BIN',
       entry: { 'bin/cli': 'src/bin/cli.ts' },
-      external: ['@rtk-query/codegen-openapi', 'esbuild', './transpilers/swc.js'],
+      external: ['ts-node', '@rtk-query/codegen-openapi'],
     },
   ];
 });
