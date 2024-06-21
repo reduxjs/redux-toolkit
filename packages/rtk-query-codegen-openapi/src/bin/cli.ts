@@ -1,8 +1,11 @@
 #!/usr/bin/env node
 
-import program from 'commander';
-import { dirname, resolve } from 'node:path';
 import { generateEndpoints, parseConfig } from '@rtk-query/codegen-openapi';
+import program from 'commander';
+import { createRequire } from 'node:module';
+import { dirname, resolve } from 'node:path';
+
+const require = createRequire(import.meta.url);
 
 let ts = false;
 try {

@@ -1,8 +1,11 @@
 import fs from 'node:fs';
+import { createRequire } from 'node:module';
 import path from 'node:path';
 import type { CommonOptions, ConfigFile, GenerationOptions, OutputFileOptions } from './types';
 import { isValidUrl, prettify } from './utils';
 export type { ConfigFile } from './types';
+
+const require = createRequire(import.meta.url);
 
 export async function generateEndpoints(options: GenerationOptions): Promise<string | void> {
   const schemaLocation = options.schemaFile;
