@@ -11,6 +11,9 @@
     "moduleResolution": "Bundler",
     "noUnusedLocals": false,
     "outDir": "lib",
+    "paths": {
+      "@rtk-query/codegen-openapi": ["./src/index.ts"] // @remap-prod-remove-line
+    },
     "resolveJsonModule": true,
     "rootDir": ".",
     "skipLibCheck": true,
@@ -19,9 +22,6 @@
     "target": "ESNext",
     "types": ["vitest/globals", "vitest/importMeta"],
     "useDefineForClassFields": true,
-    "paths": {
-      "@rtk-query/codegen-openapi": ["./src/index.ts"] // @remap-prod-remove-line
-    },
     "useUnknownInCatchVariables": true
   },
   "exclude": ["test", "lib", "vitest.config.mts"],
