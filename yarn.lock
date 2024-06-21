@@ -7831,7 +7831,7 @@ __metadata:
     size-limit: "npm:^11.0.1"
     tslib: "npm:^1.10.0"
     tsup: "npm:^8.1.0"
-    tsx: "npm:^4.15.6"
+    tsx: "npm:^4.15.7"
     typescript: "npm:^5.4.5"
     vite-tsconfig-paths: "npm:^4.3.1"
     vitest: "npm:^1.6.0"
@@ -28963,9 +28963,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tsx@npm:^4.15.6":
-  version: 4.15.6
-  resolution: "tsx@npm:4.15.6"
+"tsx@npm:^4.15.7":
+  version: 4.15.7
+  resolution: "tsx@npm:4.15.7"
   dependencies:
     esbuild: "npm:~0.21.4"
     fsevents: "npm:~2.3.3"
@@ -28975,7 +28975,7 @@ __metadata:
       optional: true
   bin:
     tsx: dist/cli.mjs
-  checksum: 10/d4d33a75e0fce7691b6a51375acef986f3567c461e1f3f0762bfe64336b309ea7840baec7dea46fd3707fd5858f97b0d449de76c3530f36b458c0989ee3ad144
+  checksum: 10/b313d7b07e017bc5c69a8c8bf33c005c2090cf1160df31e9e871bb86bbd4f582fff49849ecaf212f0f79286be98dc48d761ff16181496e88a674c7eec16274b6
   languageName: node
   linkType: hard
 
