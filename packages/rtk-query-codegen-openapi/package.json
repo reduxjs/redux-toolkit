@@ -5,6 +5,7 @@
   "types": "lib/index.d.ts",
   "author": "Lenz Weber",
   "license": "MIT",
+  "sideEffects": false,
   "repository": {
     "type": "git",
     "url": "git+https://github.com/reduxjs/redux-toolkit.git"
