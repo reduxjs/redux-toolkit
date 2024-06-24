@@ -7489,7 +7489,7 @@ __metadata:
     prettier: "npm:^3.3.2"
     rimraf: "npm:^5.0.7"
     tslib: "npm:^2.6.3"
-    typescript: "npm:^5.4.5"
+    typescript: "npm:^5.5.2"
   peerDependencies:
     prettier: ^3
   peerDependenciesMeta:
