@@ -1,4 +1,3 @@
-import { current, isDraft } from 'immer'
 import type {
   IdSelector,
   Comparer,
@@ -71,7 +70,7 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
     newEntities = ensureEntitiesArray(newEntities)
 
     const existingKeys = new Set<Id>(
-      existingIds ?? (current(state.ids) as Id[]),
+      existingIds ?? (getCurrent(state.ids) as Id[]),
     )
 
     const models = newEntities.filter(
