@@ -145,9 +145,7 @@ export function createUnsortedStateAdapter<T, Id extends EntityId>(
           // Spreads ignore falsy values, so this works even if there isn't
           // an existing update already at this key
           changes: {
-            ...(updatesPerEntity[update.id]
-              ? updatesPerEntity[update.id].changes
-              : null),
+            ...updatesPerEntity[update.id]?.changes,
             ...update.changes,
           },
         }
