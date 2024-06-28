@@ -1,4 +1,3 @@
-import { current, isDraft } from 'immer'
 import type {
   IdSelector,
   Comparer,
@@ -70,9 +69,7 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
   ): void {
     newEntities = ensureEntitiesArray(newEntities)
 
-    const existingKeys = new Set<Id>(
-      existingIds ?? (current(state.ids) as Id[]),
-    )
+    const existingKeys = new Set<Id>(existingIds ?? getCurrent(state.ids))
 
     const models = newEntities.filter(
       (model) => !existingKeys.has(selectIdValue(model, selectId)),
@@ -176,7 +173,7 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
       return false
     }
 
-    for (let i = 0; i < a.length && i < b.length; i++) {
+    for (let i = 0; i < a.length; i++) {
       if (a[i] === b[i]) {
         continue
       }
@@ -192,20 +189,20 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
     replacedIds?: boolean,
   ) => void
 
-  const mergeInsertion: MergeFunction = (
+  const mergeFunction: MergeFunction = (
     state,
     addedItems,
     appliedUpdates,
     replacedIds,
   ) => {
-    const currentEntities = getCurrent(state.entities) as Record<Id, T>
-    const currentIds = getCurrent(state.ids) as Id[]
+    const currentEntities = getCurrent(state.entities)
+    const currentIds = getCurrent(state.ids)
 
     const stateEntities = state.entities as Record<Id, T>
 
-    let ids = currentIds
+    let ids: Iterable<Id> = currentIds
     if (replacedIds) {
-      ids = Array.from(new Set(currentIds))
+      ids = new Set(currentIds)
     }
 
     let sortedEntities: T[] = []
@@ -241,8 +238,6 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
       state.ids = newSortedIds
     }
   }
-
-  const mergeFunction: MergeFunction = mergeInsertion
 
   return {
     removeOne,
