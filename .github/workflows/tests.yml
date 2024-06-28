@@ -112,9 +112,11 @@ jobs:
         run: yarn workspace @reduxjs/toolkit add $(pwd)/package.tgz
 
       - name: Erase path aliases
-        run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json ./vitest.config.mts ./src/tests/*.* ./src/query/tests/*.*
+        run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json
 
       - name: Run tests, against dist
+        env:
+          TEST_DIST: true
         run: yarn test
 
   test-types:
@@ -172,9 +174,11 @@ jobs:
         run: yarn info @reduxjs/toolkit
 
       - name: Erase path aliases
-        run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json ./vitest.config.mts ./src/tests/*.* ./src/query/tests/*.*
+        run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json
 
       - name: Test types
+        env:
+          TEST_DIST: true
         run: |
           yarn tsc --version
           yarn type-tests
