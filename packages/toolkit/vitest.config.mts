@@ -10,6 +10,14 @@ const __dirname = path.dirname(__filename)
 export default defineConfig({
   plugins: [tsconfigPaths({ root: __dirname })],
   test: {
+    alias: process.env.TEST_DIST
+      ? {
+          '@reduxjs/toolkit': new URL(
+            'node_modules/@reduxjs/toolkit',
+            import.meta.url,
+          ).pathname,
+        }
+      : undefined,
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
