@@ -1,25 +1,190 @@
-import type { SerializeQueryArgs } from './defaultSerializeQueryArgs'
-import type { QuerySubState, RootState } from './core/apiState'
+import type { Api } from '@reduxjs/toolkit/query'
 import type {
+  BaseQueryApi,
+  BaseQueryArg,
+  BaseQueryError,
   BaseQueryExtraOptions,
   BaseQueryFn,
-  BaseQueryResult,
-  BaseQueryArg,
-  BaseQueryApi,
-  QueryReturnValue,
-  BaseQueryError,
   BaseQueryMeta,
+  BaseQueryResult,
+  QueryReturnValue,
 } from './baseQueryTypes'
 import type {
+  MutationCacheLifecycleApi,
+  MutationLifecycleApi,
+  QueryCacheLifecycleApi,
+  QueryLifecycleApi,
+  QuerySubState,
+  RootState,
+} from './core'
+import type { SerializeQueryArgs } from './defaultSerializeQueryArgs'
+import type { NEVER } from './fakeBaseQuery'
+import type {
+  CastAny,
   HasRequiredProps,
   MaybePromise,
-  OmitFromUnion,
-  CastAny,
   NonUndefined,
+  OmitFromUnion,
   UnwrapPromise,
 } from './tsHelpers'
-import type { NEVER } from './fakeBaseQuery'
-import type { Api } from '@reduxjs/toolkit/query'
+
+export interface QueryExtraOptions<
+  TagTypes extends string,
+  ResultType,
+  QueryArg,
+  BaseQuery extends BaseQueryFn,
+  ReducerPath extends string = string,
+> {
+  onCacheEntryAdded?(
+    arg: QueryArg,
+    api: QueryCacheLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
+  ): Promise<void> | void
+}
+
+export interface MutationExtraOptions<
+  TagTypes extends string,
+  ResultType,
+  QueryArg,
+  BaseQuery extends BaseQueryFn,
+  ReducerPath extends string = string,
+> {
+  onCacheEntryAdded?(
+    arg: QueryArg,
+    api: MutationCacheLifecycleApi<
+      QueryArg,
+      BaseQuery,
+      ResultType,
+      ReducerPath
+    >,
+  ): Promise<void> | void
+}
+
+export interface QueryExtraOptions<
+  TagTypes extends string,
+  ResultType,
+  QueryArg,
+  BaseQuery extends BaseQueryFn,
+  ReducerPath extends string = string,
+> {
+  /**
+   * Overrides the api-wide definition of `keepUnusedDataFor` for this endpoint only. _(This value is in seconds.)_
+   *
+   * This is how long RTK Query will keep your data cached for **after** the last component unsubscribes. For example, if you query an endpoint, then unmount the component, then mount another component that makes the same request within the given time frame, the most recent value will be served from the cache.
+   */
+  keepUnusedDataFor?: number
+}
+
+export interface QueryExtraOptions<
+  TagTypes extends string,
+  ResultType,
+  QueryArg,
+  BaseQuery extends BaseQueryFn,
+  ReducerPath extends string = string,
+> {
+  /**
+   * A function that is called when the individual query is started. The function is called with a lifecycle api object containing properties such as `queryFulfilled`, allowing code to be run when a query is started, when it succeeds, and when it fails (i.e. throughout the lifecycle of an individual query/mutation call).
+   *
+   * Can be used to perform side-effects throughout the lifecycle of the query.
+   *
+   * @example
+   * ```ts
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+   * import { messageCreated } from './notificationsSlice
+   * export interface Post {
+   *   id: number
+   *   name: string
+   * }
+   *
+   * const api = createApi({
+   *   baseQuery: fetchBaseQuery({
+   *     baseUrl: '/',
+   *   }),
+   *   endpoints: (build) => ({
+   *     getPost: build.query<Post, number>({
+   *       query: (id) => `post/${id}`,
+   *       async onQueryStarted(id, { dispatch, queryFulfilled }) {
+   *         // `onStart` side-effect
+   *         dispatch(messageCreated('Fetching posts...'))
+   *         try {
+   *           const { data } = await queryFulfilled
+   *           // `onSuccess` side-effect
+   *           dispatch(messageCreated('Posts received!'))
+   *         } catch (err) {
+   *           // `onError` side-effect
+   *           dispatch(messageCreated('Error fetching posts!'))
+   *         }
+   *       }
+   *     }),
+   *   }),
+   * })
+   * ```
+   */
+  onQueryStarted?(
+    arg: QueryArg,
+    api: QueryLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
+  ): Promise<void> | void
+}
+
+export interface MutationExtraOptions<
+  TagTypes extends string,
+  ResultType,
+  QueryArg,
+  BaseQuery extends BaseQueryFn,
+  ReducerPath extends string = string,
+> {
+  /**
+   * A function that is called when the individual mutation is started. The function is called with a lifecycle api object containing properties such as `queryFulfilled`, allowing code to be run when a query is started, when it succeeds, and when it fails (i.e. throughout the lifecycle of an individual query/mutation call).
+   *
+   * Can be used for `optimistic updates`.
+   *
+   * @example
+   *
+   * ```ts
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+   * export interface Post {
+   *   id: number
+   *   name: string
+   * }
+   *
+   * const api = createApi({
+   *   baseQuery: fetchBaseQuery({
+   *     baseUrl: '/',
+   *   }),
+   *   tagTypes: ['Post'],
+   *   endpoints: (build) => ({
+   *     getPost: build.query<Post, number>({
+   *       query: (id) => `post/${id}`,
+   *       providesTags: ['Post'],
+   *     }),
+   *     updatePost: build.mutation<void, Pick<Post, 'id'> & Partial<Post>>({
+   *       query: ({ id, ...patch }) => ({
+   *         url: `post/${id}`,
+   *         method: 'PATCH',
+   *         body: patch,
+   *       }),
+   *       invalidatesTags: ['Post'],
+   *       async onQueryStarted({ id, ...patch }, { dispatch, queryFulfilled }) {
+   *         const patchResult = dispatch(
+   *           api.util.updateQueryData('getPost', id, (draft) => {
+   *             Object.assign(draft, patch)
+   *           })
+   *         )
+   *         try {
+   *           await queryFulfilled
+   *         } catch {
+   *           patchResult.undo()
+   *         }
+   *       },
+   *     }),
+   *   }),
+   * })
+   * ```
+   */
+  onQueryStarted?(
+    arg: QueryArg,
+    api: MutationLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
+  ): Promise<void> | void
+}
 
 const resultType = /* @__PURE__ */ Symbol()
 const baseQuery = /* @__PURE__ */ Symbol()
@@ -173,11 +338,7 @@ interface EndpointDefinitionWithQueryFn<
   structuralSharing?: boolean
 }
 
-export interface BaseEndpointTypes<
-  QueryArg,
-  BaseQuery extends BaseQueryFn,
-  ResultType,
-> {
+type BaseEndpointTypes<QueryArg, BaseQuery extends BaseQueryFn, ResultType> = {
   QueryArg: QueryArg
   BaseQuery: BaseQuery
   ResultType: ResultType
@@ -236,13 +397,13 @@ export type ResultDescription<
   | ReadonlyArray<TagDescription<TagTypes>>
   | GetResultDescriptionFn<TagTypes, ResultType, QueryArg, ErrorType, MetaType>
 
-export interface QueryTypes<
+type QueryTypes<
   QueryArg,
   BaseQuery extends BaseQueryFn,
   TagTypes extends string,
   ResultType,
   ReducerPath extends string = string,
-> extends BaseEndpointTypes<QueryArg, BaseQuery, ResultType> {
+> = BaseEndpointTypes<QueryArg, BaseQuery, ResultType> & {
   /**
    * The endpoint definition type. To be used with some internal generic types.
    * @example
@@ -510,13 +671,13 @@ export type QueryDefinition<
 > = BaseEndpointDefinition<QueryArg, BaseQuery, ResultType> &
   QueryExtraOptions<TagTypes, ResultType, QueryArg, BaseQuery, ReducerPath>
 
-export interface MutationTypes<
+type MutationTypes<
   QueryArg,
   BaseQuery extends BaseQueryFn,
   TagTypes extends string,
   ResultType,
   ReducerPath extends string = string,
-> extends BaseEndpointTypes<QueryArg, BaseQuery, ResultType> {
+> = BaseEndpointTypes<QueryArg, BaseQuery, ResultType> & {
   /**
    * The endpoint definition type. To be used with some internal generic types.
    * @example

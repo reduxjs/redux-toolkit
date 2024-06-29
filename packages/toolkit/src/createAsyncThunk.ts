@@ -1,24 +1,17 @@
 import type { Dispatch, UnknownAction } from 'redux'
-import type {
-  PayloadAction,
-  ActionCreatorWithPreparedPayload,
-} from './createAction'
-import { createAction } from './createAction'
 import type { ThunkDispatch } from 'redux-thunk'
+import type { ActionCreatorWithPreparedPayload } from './createAction'
+import { createAction } from './createAction'
+import type { GetState } from './dynamicMiddleware/types'
+import { isAnyOf } from './matchers'
+import { nanoid } from './nanoid'
 import type {
-  ActionFromMatcher,
   FallbackIfUnknown,
   Id,
   IsAny,
   IsUnknown,
   SafePromise,
-  TypeGuard,
 } from './tsHelpers'
-import { nanoid } from './nanoid'
-import { isAnyOf } from './matchers'
-
-// @ts-ignore we need the import of these types due to a bundling issue.
-type _Keep = PayloadAction | ActionCreatorWithPreparedPayload<any, unknown>
 
 export type BaseThunkAPI<
   S,
@@ -125,15 +118,10 @@ export type AsyncThunkConfig = {
   rejectedMeta?: unknown
 }
 
-type GetState<ThunkApiConfig> = ThunkApiConfig extends {
-  state: infer State
-}
-  ? State
-  : unknown
 type GetExtra<ThunkApiConfig> = ThunkApiConfig extends { extra: infer Extra }
   ? Extra
   : unknown
-type GetDispatch<ThunkApiConfig> = ThunkApiConfig extends {
+type GetDispatchType<ThunkApiConfig> = ThunkApiConfig extends {
   dispatch: infer Dispatch
 }
   ? FallbackIfUnknown<
@@ -153,7 +141,7 @@ type GetDispatch<ThunkApiConfig> = ThunkApiConfig extends {
 export type GetThunkAPI<ThunkApiConfig> = BaseThunkAPI<
   GetState<ThunkApiConfig>,
   GetExtra<ThunkApiConfig>,
-  GetDispatch<ThunkApiConfig>,
+  GetDispatchType<ThunkApiConfig>,
   GetRejectValue<ThunkApiConfig>,
   GetRejectedMeta<ThunkApiConfig>,
   GetFulfilledMeta<ThunkApiConfig>
@@ -240,7 +228,7 @@ export type AsyncThunkAction<
   ThunkArg,
   ThunkApiConfig extends AsyncThunkConfig,
 > = (
-  dispatch: NonNullable<GetDispatch<ThunkApiConfig>>,
+  dispatch: NonNullable<GetDispatchType<ThunkApiConfig>>,
   getState: () => GetState<ThunkApiConfig>,
   extra: GetExtra<ThunkApiConfig>,
 ) => SafePromise<

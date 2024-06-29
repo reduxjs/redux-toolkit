@@ -50,6 +50,7 @@ export type {
 export type {
   QueryActionCreatorResult,
   MutationActionCreatorResult,
+  StartQueryActionCreatorOptions,
 } from './core/buildInitiate'
 export type { CreateApi, CreateApiOptions } from './createApi'
 export { buildCreateApi } from './createApi'

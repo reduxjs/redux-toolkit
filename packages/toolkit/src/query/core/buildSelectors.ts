@@ -1,28 +1,26 @@
-import type { createSelector as _createSelector } from './rtkImports'
-import { createNextState } from './rtkImports'
-import type {
-  MutationSubState,
-  QuerySubState,
-  RootState as _RootState,
-  RequestStatusFlags,
-  QueryCacheKey,
-  QueryKeys,
-  QueryState,
-} from './apiState'
-import { QueryStatus, getRequestStatusFlags } from './apiState'
+import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import type {
   EndpointDefinitions,
-  QueryDefinition,
   MutationDefinition,
   QueryArgFrom,
-  TagTypesFrom,
-  ReducerPathFrom,
+  QueryDefinition,
   TagDescription,
 } from '../endpointDefinitions'
 import { expandTagDescription } from '../endpointDefinitions'
-import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
-import { getMutationCacheKey } from './buildSlice'
 import { flatten } from '../utils'
+import type {
+  MutationSubState,
+  QueryCacheKey,
+  QueryKeys,
+  QueryState,
+  QuerySubState,
+  RequestStatusFlags,
+  RootState as _RootState,
+} from './apiState'
+import { QueryStatus, getRequestStatusFlags } from './apiState'
+import { getMutationCacheKey } from './buildSlice'
+import type { createSelector as _createSelector } from './rtkImports'
+import { createNextState } from './rtkImports'
 
 export type SkipToken = typeof skipToken
 /**
@@ -49,48 +47,14 @@ export type SkipToken = typeof skipToken
  */
 export const skipToken = /* @__PURE__ */ Symbol.for('RTKQ/skipToken')
 
-declare module './module' {
-  export interface ApiEndpointQuery<
-    Definition extends QueryDefinition<any, any, any, any, any>,
-    Definitions extends EndpointDefinitions,
-  > {
-    select: QueryResultSelectorFactory<
-      Definition,
-      _RootState<
-        Definitions,
-        TagTypesFrom<Definition>,
-        ReducerPathFrom<Definition>
-      >
-    >
-  }
-
-  export interface ApiEndpointMutation<
-    Definition extends MutationDefinition<any, any, any, any, any>,
-    Definitions extends EndpointDefinitions,
-  > {
-    select: MutationResultSelectorFactory<
-      Definition,
-      _RootState<
-        Definitions,
-        TagTypesFrom<Definition>,
-        ReducerPathFrom<Definition>
-      >
-    >
-  }
-}
-
-type QueryResultSelectorFactory<
+export type QueryResultSelectorFactory<
   Definition extends QueryDefinition<any, any, any, any>,
   RootState,
 > = (
   queryArg: QueryArgFrom<Definition> | SkipToken,
 ) => (state: RootState) => QueryResultSelectorResult<Definition>
 
-export type QueryResultSelectorResult<
-  Definition extends QueryDefinition<any, any, any, any>,
-> = QuerySubState<Definition> & RequestStatusFlags
-
-type MutationResultSelectorFactory<
+export type MutationResultSelectorFactory<
   Definition extends MutationDefinition<any, any, any, any>,
   RootState,
 > = (
@@ -99,6 +63,10 @@ type MutationResultSelectorFactory<
     | { requestId: string | undefined; fixedCacheKey: string | undefined }
     | SkipToken,
 ) => (state: RootState) => MutationResultSelectorResult<Definition>
+
+export type QueryResultSelectorResult<
+  Definition extends QueryDefinition<any, any, any, any>,
+> = QuerySubState<Definition> & RequestStatusFlags
 
 export type MutationResultSelectorResult<
   Definition extends MutationDefinition<any, any, any, any>,
