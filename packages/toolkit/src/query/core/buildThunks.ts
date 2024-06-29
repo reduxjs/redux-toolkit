@@ -168,7 +168,12 @@ export type PatchQueryDataThunk<
   args: QueryArgFrom<Definitions[EndpointName]>,
   patches: readonly Patch[],
   updateProvided?: boolean,
-) => ThunkAction<void, PartialState, any, UnknownAction>
+) => ThunkAction<
+  ThunkDispatch<PartialState, any, UnknownAction>,
+  PartialState,
+  any,
+  void
+>
 
 export type UpdateQueryDataThunk<
   Definitions extends EndpointDefinitions,
@@ -178,7 +183,12 @@ export type UpdateQueryDataThunk<
   args: QueryArgFrom<Definitions[EndpointName]>,
   updateRecipe: Recipe<ResultTypeFrom<Definitions[EndpointName]>>,
   updateProvided?: boolean,
-) => ThunkAction<PatchCollection, PartialState, any, UnknownAction>
+) => ThunkAction<
+  ThunkDispatch<PartialState, any, UnknownAction>,
+  PartialState,
+  any,
+  PatchCollection
+>
 
 export type UpsertQueryDataThunk<
   Definitions extends EndpointDefinitions,
@@ -188,14 +198,14 @@ export type UpsertQueryDataThunk<
   args: QueryArgFrom<Definitions[EndpointName]>,
   value: ResultTypeFrom<Definitions[EndpointName]>,
 ) => ThunkAction<
+  ThunkDispatch<PartialState, any, UnknownAction>,
+  PartialState,
+  any,
   QueryActionCreatorResult<
     Definitions[EndpointName] extends QueryDefinition<any, any, any, any>
       ? Definitions[EndpointName]
       : never
-  >,
-  PartialState,
-  any,
-  UnknownAction
+  >
 >
 
 /**
@@ -608,7 +618,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
       endpointName: EndpointName,
       arg: any,
       options: PrefetchOptions,
-    ): ThunkAction<void, any, any, UnknownAction> =>
+    ): ThunkAction<ThunkDispatch<any, any, UnknownAction>, any, any, void> =>
     (dispatch: ThunkDispatch<any, any, any>, getState: () => any) => {
       const force = hasTheForce(options) && options.force
       const maxAge = hasMaxAge(options) && options.ifOlderThan

@@ -10,6 +10,7 @@ import type {
   ThunkAction,
   ThunkDispatch,
   ThunkMiddleware,
+  ThunkOverload,
   UnknownAction,
 } from '@reduxjs/toolkit'
 import {
@@ -150,9 +151,7 @@ describe('type tests', () => {
       enhancers: () => [enhancer],
     })
 
-    expectTypeOf(store.dispatch).toMatchTypeOf<
-      Dispatch & ThunkDispatch<number, undefined, UnknownAction>
-    >()
+    expectTypeOf(store.dispatch).toMatchTypeOf<Dispatch>()
 
     configureStore({
       reducer: () => 0,
@@ -202,9 +201,7 @@ describe('type tests', () => {
           .concat(somePropertyStoreEnhancer),
     })
 
-    expectTypeOf(store3.dispatch).toMatchTypeOf<
-      Dispatch & ThunkDispatch<number, undefined, UnknownAction>
-    >()
+    expectTypeOf(store3.dispatch).toMatchTypeOf<Dispatch>()
 
     expectTypeOf(store3.someProperty).toBeString()
 
@@ -423,7 +420,12 @@ describe('type tests', () => {
     type StateA = number
     const reducerA = () => 0
     const thunkA = () => {
-      return (() => {}) as any as ThunkAction<Promise<'A'>, StateA, any, any>
+      return (() => {}) as any as ThunkAction<
+        ThunkDispatch<StateA, any, any>,
+        StateA,
+        any,
+        Promise<'A'>
+      >
     }
 
     type StateB = string
@@ -560,35 +562,35 @@ describe('type tests', () => {
       const store = configureStore({ reducer: {} })
       // undefined is the default value for the ThunkMiddleware extraArgument
       store.dispatch(function () {} as ThunkAction<
-        void,
+        ThunkDispatch<{}, undefined, UnknownAction>,
         {},
         undefined,
-        UnknownAction
+        void
       >)
       // `null` for the `extra` generic was previously documented in the RTK "Advanced Tutorial", but
       // is a bad pattern and users should use `unknown` instead
       // @ts-expect-error
       store.dispatch(function () {} as ThunkAction<
-        void,
+        ThunkDispatch<{}, null, UnknownAction>,
         {},
         null,
-        UnknownAction
+        void
       >)
       // unknown is the best way to type a ThunkAction if you do not care
       // about the value of the extraArgument, as it will always work with every
       // ThunkMiddleware, no matter the actual extraArgument type
       store.dispatch(function () {} as ThunkAction<
-        void,
+        ThunkDispatch<{}, unknown, UnknownAction>,
         {},
         unknown,
-        UnknownAction
+        void
       >)
       // @ts-expect-error
       store.dispatch(function () {} as ThunkAction<
-        void,
+        ThunkDispatch<{}, boolean, UnknownAction>,
         {},
         boolean,
-        UnknownAction
+        void
       >)
     })
 
@@ -792,7 +794,7 @@ describe('type tests', () => {
     // the thunk middleware type kicks in and TS thinks a plain action is being returned
     expectTypeOf(store.dispatch).toEqualTypeOf<
       ((action: Action<'actionListenerMiddleware/add'>) => Unsubscribe) &
-        ThunkDispatch<CounterState, undefined, UnknownAction> &
+        ThunkOverload<CounterState, undefined> &
         Dispatch<UnknownAction>
     >()
 

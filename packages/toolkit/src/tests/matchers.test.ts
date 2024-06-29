@@ -13,7 +13,7 @@ import {
   createReducer,
 } from '@reduxjs/toolkit'
 
-const thunk: ThunkAction<any, any, any, UnknownAction> = () => {}
+const thunk: ThunkAction<any, any, any, any> = () => {}
 
 describe('isAnyOf', () => {
   it('returns true only if any matchers match (match function)', () => {

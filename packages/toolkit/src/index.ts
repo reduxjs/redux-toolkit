@@ -22,7 +22,12 @@ export {
   createDraftSafeSelector,
   createDraftSafeSelectorCreator,
 } from './createDraftSafeSelector'
-export type { ThunkAction, ThunkDispatch, ThunkMiddleware } from 'redux-thunk'
+export type {
+  ThunkAction,
+  ThunkOverload,
+  ThunkDispatch,
+  ThunkMiddleware,
+} from 'redux-thunk'
 
 export {
   // js

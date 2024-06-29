@@ -148,10 +148,10 @@ describe('type tests', () => {
       (storeApi) => (next) => (action) => {}
 
     const testThunk: ThunkAction<
-      void,
+      ThunkDispatch<{ counter: number }, number, UnknownAction>,
       { counter: number },
       number,
-      UnknownAction
+      void
     > = (dispatch, getState, extraArg) => {
       expect(extraArg).toBe(extraArgument)
     }

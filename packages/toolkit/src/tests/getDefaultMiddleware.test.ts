@@ -3,6 +3,7 @@ import type {
   Action,
   Middleware,
   ThunkAction,
+  ThunkDispatch,
   UnknownAction,
 } from '@reduxjs/toolkit'
 import { configureStore } from '@reduxjs/toolkit'
@@ -88,10 +89,10 @@ describe('getDefaultMiddleware', () => {
       (storeApi) => (next) => (action) => {}
 
     const testThunk: ThunkAction<
-      void,
+      ThunkDispatch<{ counter: number }, number, UnknownAction>,
       { counter: number },
       number,
-      UnknownAction
+      void
     > = (dispatch, getState, extraArg) => {
       expect(extraArg).toBe(extraArgument)
     }

@@ -11,6 +11,7 @@ import type {
   UnknownAction,
   ThunkAction,
   SerializedError,
+  ThunkDispatch,
 } from '@reduxjs/toolkit'
 import type { SubscriptionOptions, RootState } from './apiState'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
@@ -58,7 +59,12 @@ type StartQueryActionCreator<
 > = (
   arg: QueryArgFrom<D>,
   options?: StartQueryActionCreatorOptions,
-) => ThunkAction<QueryActionCreatorResult<D>, any, any, UnknownAction>
+) => ThunkAction<
+  ThunkDispatch<any, any, UnknownAction>,
+  any,
+  any,
+  QueryActionCreatorResult<D>
+>
 
 export type QueryActionCreatorResult<
   D extends QueryDefinition<any, any, any, any>,
@@ -88,7 +94,12 @@ type StartMutationActionCreator<
     track?: boolean
     fixedCacheKey?: string
   },
-) => ThunkAction<MutationActionCreatorResult<D>, any, any, UnknownAction>
+) => ThunkAction<
+  ThunkDispatch<any, any, UnknownAction>,
+  any,
+  any,
+  MutationActionCreatorResult<D>
+>
 
 export type MutationActionCreatorResult<
   D extends MutationDefinition<any, any, any, any>,
