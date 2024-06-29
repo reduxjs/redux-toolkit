@@ -6,7 +6,7 @@ import type {
   ThunkDispatch,
   UnknownAction,
 } from '@reduxjs/toolkit'
-
+import type { AnyNonNullishValue, EmptyObject } from '../../../tsHelpers'
 import type { Api, ApiContext } from '../../apiTypes'
 import type {
   AssertTagTypes,
@@ -66,14 +66,14 @@ export interface BuildSubMiddlewareInput
     >,
     queryCacheKey: string,
     override?: Partial<QueryThunkArg>,
-  ): AsyncThunkAction<ThunkResult, QueryThunkArg, {}>
+  ): AsyncThunkAction<ThunkResult, QueryThunkArg, EmptyObject>
   isThisApiSliceAction: (action: Action) => boolean
 }
 
 export type SubMiddlewareBuilder = (
   input: BuildSubMiddlewareInput,
 ) => Middleware<
-  {},
+  AnyNonNullishValue,
   RootState<EndpointDefinitions, string, string>,
   ThunkDispatch<any, any, UnknownAction>
 >
@@ -90,7 +90,7 @@ export type InternalHandlerBuilder<ReturnType = void> = (
   input: BuildSubMiddlewareInput,
 ) => ApiMiddlewareInternalHandler<ReturnType>
 
-export interface PromiseConstructorWithKnownReason {
+export type PromiseConstructorWithKnownReason =
   /**
    * Creates a new Promise with a known rejection reason.
    * @param executor A callback used to initialize the promise. This callback is passed two arguments:
@@ -102,8 +102,7 @@ export interface PromiseConstructorWithKnownReason {
       resolve: (value: T | PromiseLike<T>) => void,
       reject: (reason?: R) => void,
     ) => void,
-  ): PromiseWithKnownReason<T, R>
-}
+  ) => PromiseWithKnownReason<T, R>
 
 export interface PromiseWithKnownReason<T, R>
   extends Omit<Promise<T>, 'then' | 'catch'> {

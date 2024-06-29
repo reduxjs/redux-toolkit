@@ -1,10 +1,10 @@
-import { createApi } from '@reduxjs/toolkit/query/react'
 import {
   actionsReducer,
   hookWaitFor,
   setupApiStore,
-} from '../../tests/utils/helpers'
-import { renderHook, act, waitFor } from '@testing-library/react'
+} from '@internal/tests/utils/helpers'
+import { createApi } from '@reduxjs/toolkit/query/react'
+import { act, renderHook, waitFor } from '@testing-library/react'
 import { delay } from 'msw'
 
 interface Post {
@@ -37,10 +37,10 @@ const api = createApi({
         method: 'PATCH',
         body: patch,
       }),
-      async onQueryStarted(arg, { dispatch, queryFulfilled, getState }) {
+      onQueryStarted(arg, { dispatch, queryFulfilled, getState }) {
         const currentItem = api.endpoints.post.select(arg.id)(getState())
         if (currentItem?.data) {
-          dispatch(
+          void dispatch(
             api.util.upsertQueryData('post', arg.id, {
               ...currentItem.data,
               ...arg,
@@ -70,9 +70,9 @@ const storeRef = setupApiStore(api, {
 })
 
 describe('basic lifecycle', () => {
-  let onStart = vi.fn(),
-    onError = vi.fn(),
-    onSuccess = vi.fn()
+  const onStart = vi.fn()
+  const onError = vi.fn()
+  const onSuccess = vi.fn()
 
   const extendedApi = api.injectEndpoints({
     endpoints: (build) => ({
@@ -209,7 +209,7 @@ describe('upsertQueryData', () => {
     })
 
     await act(async () => {
-      storeRef.store.dispatch(
+      await storeRef.store.dispatch(
         api.util.upsertQueryData('post', '3', {
           id: '3',
           title: 'All about cheese.',
@@ -229,7 +229,7 @@ describe('upsertQueryData', () => {
   test('does update non-existing values', async () => {
     baseQuery
       // throw an error to make sure there is no cached data
-      .mockImplementationOnce(async () => {
+      .mockImplementationOnce(() => {
         throw new Error('failed to load')
       })
       .mockResolvedValueOnce(42)
@@ -247,8 +247,8 @@ describe('upsertQueryData', () => {
     await hookWaitFor(() => expect(result.current.isError).toBeTruthy())
 
     // upsert the data
-    act(() => {
-      storeRef.store.dispatch(
+    await act(async () => {
+      await storeRef.store.dispatch(
         api.util.upsertQueryData('post', '4', {
           id: '4',
           title: 'All about cheese',
@@ -300,7 +300,6 @@ describe('upsertQueryData', () => {
   test('upsert while a normal query is running (rejected)', async () => {
     baseQuery.mockImplementationOnce(async () => {
       await delay(20)
-      // eslint-disable-next-line no-throw-literal
       throw 'Error!'
     })
     const upsertedData = {

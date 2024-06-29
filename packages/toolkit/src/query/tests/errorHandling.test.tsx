@@ -1,5 +1,7 @@
+import { server } from '@internal/query/tests/mocks/server'
+import { hookWaitFor, setupApiStore } from '@internal/tests/utils/helpers'
 import type { ThunkDispatch, UnknownAction } from '@reduxjs/toolkit'
-import type { BaseQueryFn, BaseQueryApi } from '@reduxjs/toolkit/query/react'
+import type { BaseQueryApi, BaseQueryFn } from '@reduxjs/toolkit/query/react'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import {
   act,
@@ -12,10 +14,8 @@ import {
 import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios'
 import axios from 'axios'
 import { HttpResponse, http } from 'msw'
-import * as React from 'react'
+import React from 'react'
 import { useDispatch } from 'react-redux'
-import { hookWaitFor, setupApiStore } from '@internal/tests/utils/helpers'
-import { server } from '@internal/query/tests/mocks/server'
 
 const baseQuery = fetchBaseQuery({ baseUrl: 'https://example.com' })
 
@@ -418,7 +418,9 @@ describe('custom axios baseQuery', () => {
       }
     }
 
-  type SuccessResponse = { value: 'success' }
+  interface SuccessResponse {
+    value: 'success'
+  }
   const api = createApi({
     baseQuery: axiosBaseQuery({
       baseUrl: 'https://example.com',
@@ -631,7 +633,7 @@ describe('error handling in a component', () => {
       })
     })
 
-    test(`an un-subscribed mutation will still be unwrappable (error case, track: ${track})`, async () => {
+    test(`an un-subscribed mutation will still be unwrappable (error case, track: ${track})`, () => {
       const hook = renderHook(useDispatch, { wrapper: storeRef.wrapper })
 
       const dispatch = hook.result.current as ThunkDispatch<
@@ -648,7 +650,7 @@ describe('error handling in a component', () => {
         )
       })
       const unwrappedPromise = mutationqueryFulfilled!.unwrap()
-      expect(unwrappedPromise).rejects.toMatchObject({
+      void expect(unwrappedPromise).rejects.toMatchObject({
         status: 500,
         data: { value: 'error' },
       })

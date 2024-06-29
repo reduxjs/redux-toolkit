@@ -1,5 +1,5 @@
+import { actionsReducer, setupApiStore } from '@internal/tests/utils/helpers'
 import { createApi } from '@reduxjs/toolkit/query'
-import { actionsReducer, setupApiStore } from '../../tests/utils/helpers'
 import { delay } from 'msw'
 
 const baseQuery = (args?: any) => ({ data: args })

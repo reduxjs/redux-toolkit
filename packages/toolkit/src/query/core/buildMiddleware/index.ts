@@ -1,30 +1,30 @@
+import type { AnyNonNullishValue } from '@internal/tsHelpers'
 import type {
   Action,
   Middleware,
   ThunkDispatch,
   UnknownAction,
 } from '@reduxjs/toolkit'
-import { isAction, createAction } from '../rtkImports'
-
 import type {
   EndpointDefinitions,
   FullTagDescription,
 } from '../../endpointDefinitions'
 import type { QueryStatus, QuerySubState, RootState } from '../apiState'
 import type { QueryThunkArg } from '../buildThunks'
+import { createAction, isAction } from '../rtkImports'
+import { buildBatchedActionsHandler } from './batchActions'
 import { buildCacheCollectionHandler } from './cacheCollection'
+import { buildCacheLifecycleHandler } from './cacheLifecycle'
+import { buildDevCheckHandler } from './devMiddleware'
 import { buildInvalidationByTagsHandler } from './invalidationByTags'
 import { buildPollingHandler } from './polling'
+import { buildQueryLifecycleHandler } from './queryLifecycle'
 import type {
   BuildMiddlewareInput,
   InternalHandlerBuilder,
   InternalMiddlewareState,
 } from './types'
 import { buildWindowEventHandler } from './windowEventHandling'
-import { buildCacheLifecycleHandler } from './cacheLifecycle'
-import { buildQueryLifecycleHandler } from './queryLifecycle'
-import { buildDevCheckHandler } from './devMiddleware'
-import { buildBatchedActionsHandler } from './batchActions'
 
 export function buildMiddleware<
   Definitions extends EndpointDefinitions,
@@ -53,13 +53,13 @@ export function buildMiddleware<
   ]
 
   const middleware: Middleware<
-    {},
+    AnyNonNullishValue,
     RootState<Definitions, string, ReducerPath>,
     ThunkDispatch<any, any, UnknownAction>
   > = (mwApi) => {
     let initialized = false
 
-    let internalState: InternalMiddlewareState = {
+    const internalState: InternalMiddlewareState = {
       currentSubscriptions: {},
     }
 
@@ -105,7 +105,7 @@ export function buildMiddleware<
           res = internalProbeResult
         }
 
-        if (!!mwApi.getState()[reducerPath]) {
+        if (mwApi.getState()[reducerPath]) {
           // Only run these checks if the middleware is registered okay
 
           // This looks for actions that aren't specific to the API slice
@@ -117,7 +117,7 @@ export function buildMiddleware<
           ) {
             // Only run these additional checks if the actions are part of the API slice,
             // or the action has hydration-related data
-            for (let handler of handlers) {
+            for (const handler of handlers) {
               handler(action, mwApiWithNext, stateBefore)
             }
           }

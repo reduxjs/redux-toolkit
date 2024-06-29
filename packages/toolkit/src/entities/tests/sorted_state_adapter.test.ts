@@ -1,27 +1,29 @@
-import type { EntityAdapter, EntityState } from '../models'
-import { createEntityAdapter } from '../create_adapter'
-import {
-  createAction,
-  createSlice,
-  configureStore,
-  nanoid,
+import type {
+  EntityAdapter,
+  EntityState,
   PayloadAction,
+} from '@reduxjs/toolkit'
+import {
+  configureStore,
+  createAction,
+  createEntityAdapter,
+  createNextState,
+  createSlice,
+  nanoid,
 } from '@reduxjs/toolkit'
 import type { BookModel } from './fixtures/book'
 import {
-  TheGreatGatsby,
   AClockworkOrange,
   AnimalFarm,
+  TheGreatGatsby,
   TheHobbit,
 } from './fixtures/book'
-import { createNextState } from '../..'
 
 describe('Sorted State Adapter', () => {
   let adapter: EntityAdapter<BookModel, string>
   let state: EntityState<BookModel, string>
 
   beforeAll(() => {
-    //eslint-disable-next-line
     Object.defineProperty(Array.prototype, 'unwantedField', {
       enumerable: true,
       configurable: true,
@@ -257,8 +259,8 @@ describe('Sorted State Adapter', () => {
     expect(entities.a).toBeTruthy()
     expect(entities.b).not.toBeTruthy()
     expect(entities.c).toBeTruthy()
-    expect(entities.c!.id).toBe('c')
-    expect(entities.c!.title).toBe('Second')
+    expect(entities.c.id).toBe('c')
+    expect(entities.c.title).toBe('Second')
   })
 
   it('should not change ids state if you attempt to update an entity that does not impact sorting', () => {
@@ -604,7 +606,11 @@ describe('Sorted State Adapter', () => {
     const INITIAL_ITEMS = 10_000
     const ADDED_ITEMS = 1_000
 
-    type Entity = { id: string; name: string; position: number }
+    interface Entity {
+      id: string
+      name: string
+      position: number
+    }
 
     let numSorts = 0
 

@@ -3,7 +3,6 @@ import { isAction } from 'redux'
 import type { ThunkDispatch } from 'redux-thunk'
 import { createAction } from '../createAction'
 import { nanoid } from '../nanoid'
-
 import { find } from '../utils'
 import {
   TaskAbortError,
@@ -84,7 +83,7 @@ const alm = 'listenerMiddleware' as const
 
 const createFork = (
   parentAbortSignal: AbortSignalWithReason<unknown>,
-  parentBlockingPromises: Promise<any>[],
+  parentBlockingPromises: Array<Promise<any>>,
 ) => {
   const linkControllers = (controller: AbortController) =>
     addAbortSignalListener(parentAbortSignal, () =>
@@ -146,11 +145,13 @@ const createTakePattern = <S>(
     validateActive(signal)
 
     // Placeholder unsubscribe function until the listener is added
-    let unsubscribe: UnsubscribeListener = () => {}
+    let unsubscribe: UnsubscribeListener = () => {
+      /** No-Op */
+    }
 
     const tuplePromise = new Promise<[Action, S, S]>((resolve, reject) => {
       // Inside the Promise, we synchronously add the listener.
-      let stopListening = startListening({
+      const stopListening = startListening({
         predicate: predicate as any,
         effect: (action, listenerApi): void => {
           // One-shot listener that cleans up as soon as the predicate passes
@@ -169,7 +170,9 @@ const createTakePattern = <S>(
       }
     })
 
-    const promises: (Promise<null> | Promise<[Action, S, S]>)[] = [tuplePromise]
+    const promises: Array<Promise<null> | Promise<[Action, S, S]>> = [
+      tuplePromise,
+    ]
 
     if (timeout != null) {
       promises.push(
@@ -193,12 +196,13 @@ const createTakePattern = <S>(
 }
 
 const getListenerEntryPropsFrom = (options: FallbackAddListenerOptions) => {
-  let { type, actionCreator, matcher, predicate, effect } = options
+  let { type, predicate } = options
+  const { actionCreator, matcher, effect } = options
 
   if (type) {
     predicate = createAction(type).match
   } else if (actionCreator) {
-    type = actionCreator!.type
+    type = actionCreator.type
     predicate = actionCreator.match
   } else if (matcher) {
     predicate = matcher
@@ -322,7 +326,7 @@ export const createListenerMiddleware = <
   assertFunction(onError, 'onError')
 
   const insertEntry = (entry: ListenerEntry) => {
-    entry.unsubscribe = () => listenerMap.delete(entry!.id)
+    entry.unsubscribe = () => listenerMap.delete(entry.id)
 
     listenerMap.set(entry.id, entry)
     return (cancelOptions?: UnsubscribeListenerOptions) => {
@@ -386,10 +390,10 @@ export const createListenerMiddleware = <
   ) => {
     const internalTaskController = new AbortController()
     const take = createTakePattern(
-      startListening as AddListenerOverloads<any>,
+      startListening,
       internalTaskController.signal,
     )
-    const autoJoinPromises: Promise<any>[] = []
+    const autoJoinPromises: Array<Promise<any>> = []
 
     try {
       entry.pending.add(internalTaskController)

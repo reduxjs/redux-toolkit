@@ -1,17 +1,19 @@
 import type { SerializedError } from '@reduxjs/toolkit'
 import type { BaseQueryError } from '../baseQueryTypes'
 import type {
-  QueryDefinition,
-  MutationDefinition,
-  EndpointDefinitions,
   BaseEndpointDefinition,
-  ResultTypeFrom,
+  EndpointDefinitions,
+  MutationDefinition,
   QueryArgFrom,
+  QueryDefinition,
+  ResultTypeFrom,
 } from '../endpointDefinitions'
 import type { Id, WithRequiredProp } from '../tsHelpers'
 
 export type QueryCacheKey = string & { _type: 'queryCacheKey' }
-export type QuerySubstateIdentifier = { queryCacheKey: QueryCacheKey }
+export interface QuerySubstateIdentifier {
+  queryCacheKey: QueryCacheKey
+}
 export type MutationSubstateIdentifier =
   | {
       requestId: string
@@ -22,7 +24,7 @@ export type MutationSubstateIdentifier =
       fixedCacheKey: string
     }
 
-export type RefetchConfigOptions = {
+export interface RefetchConfigOptions {
   refetchOnMountOrArgChange: boolean | number
   refetchOnReconnect: boolean
   refetchOnFocus: boolean
@@ -78,7 +80,7 @@ export function getRequestStatusFlags(status: QueryStatus): RequestStatusFlags {
   } as any
 }
 
-export type SubscriptionOptions = {
+export interface SubscriptionOptions {
   /**
    * How frequently to automatically re-fetch data (in milliseconds). Defaults to `0` (off).
    */
@@ -108,7 +110,7 @@ export type SubscriptionOptions = {
    */
   refetchOnFocus?: boolean
 }
-export type Subscribers = { [requestId: string]: SubscriptionOptions }
+export type Subscribers = Record<string, SubscriptionOptions>
 export type QueryKeys<Definitions extends EndpointDefinitions> = {
   [K in keyof Definitions]: Definitions[K] extends QueryDefinition<
     any,
@@ -130,7 +132,7 @@ export type MutationKeys<Definitions extends EndpointDefinitions> = {
     : never
 }[keyof Definitions]
 
-type BaseQuerySubState<D extends BaseEndpointDefinition<any, any, any>> = {
+interface BaseQuerySubState<D extends BaseEndpointDefinition<any, any, any>> {
   /**
    * The argument originally passed into the hook or `initiate` action call
    */
@@ -190,7 +192,9 @@ export type QuerySubState<D extends BaseEndpointDefinition<any, any, any>> = Id<
     }
 >
 
-type BaseMutationSubState<D extends BaseEndpointDefinition<any, any, any>> = {
+interface BaseMutationSubState<
+  D extends BaseEndpointDefinition<any, any, any>,
+> {
   requestId: string
   data?: ResultTypeFrom<D>
   error?:
@@ -226,11 +230,11 @@ export type MutationSubState<D extends BaseEndpointDefinition<any, any, any>> =
       fulfilledTimeStamp?: undefined
     }
 
-export type CombinedState<
+export interface CombinedState<
   D extends EndpointDefinitions,
   E extends string,
   ReducerPath extends string,
-> = {
+> {
   queries: QueryState<D>
   mutations: MutationState<D>
   provided: InvalidationState<E>
@@ -240,18 +244,17 @@ export type CombinedState<
 
 export type InvalidationState<TagTypes extends string> = {
   [_ in TagTypes]: {
-    [id: string]: Array<QueryCacheKey>
-    [id: number]: Array<QueryCacheKey>
+    [id: string]: QueryCacheKey[]
+    [id: number]: QueryCacheKey[]
   }
 }
 
-export type QueryState<D extends EndpointDefinitions> = {
-  [queryCacheKey: string]: QuerySubState<D[string]> | undefined
-}
+export type QueryState<D extends EndpointDefinitions> = Record<
+  string,
+  QuerySubState<D[string]> | undefined
+>
 
-export type SubscriptionState = {
-  [queryCacheKey: string]: Subscribers | undefined
-}
+export type SubscriptionState = Record<string, Subscribers | undefined>
 
 export type ConfigState<ReducerPath> = RefetchConfigOptions & {
   reducerPath: ReducerPath
@@ -265,9 +268,10 @@ export type ModifiableConfigState = {
   invalidationBehavior: 'delayed' | 'immediately'
 } & RefetchConfigOptions
 
-export type MutationState<D extends EndpointDefinitions> = {
-  [requestId: string]: MutationSubState<D[string]> | undefined
-}
+export type MutationState<D extends EndpointDefinitions> = Record<
+  string,
+  MutationSubState<D[string]> | undefined
+>
 
 export type RootState<
   Definitions extends EndpointDefinitions,

@@ -1,5 +1,4 @@
-import type { UnknownAction } from 'redux'
-import type { SerializedError } from '../../src'
+import type { SerializedError, UnknownAction } from '@reduxjs/toolkit'
 import {
   createAction,
   createAsyncThunk,
@@ -10,7 +9,7 @@ import {
   isPending,
   isRejected,
   isRejectedWithValue,
-} from '../../src'
+} from '@reduxjs/toolkit'
 
 const action: UnknownAction = { type: 'foo' }
 
@@ -50,7 +49,7 @@ describe('type tests', () => {
       const asyncThunk1 = createAsyncThunk<{ prop1: number; prop3: number }>(
         'asyncThunk1',
 
-        async () => {
+        () => {
           return {
             prop1: 1,
             prop3: 3,
@@ -61,7 +60,7 @@ describe('type tests', () => {
       const asyncThunk2 = createAsyncThunk<{ prop1: number; prop2: number }>(
         'asyncThunk2',
 
-        async () => {
+        () => {
           return {
             prop1: 1,
             prop2: 2,
@@ -153,7 +152,7 @@ describe('type tests', () => {
       const asyncThunk1 = createAsyncThunk<{ prop1: number; prop3: number }>(
         'asyncThunk1',
 
-        async () => {
+        () => {
           return {
             prop1: 1,
             prop3: 3,

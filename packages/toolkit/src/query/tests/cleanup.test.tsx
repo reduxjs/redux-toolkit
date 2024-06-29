@@ -1,10 +1,8 @@
 // tests for "cleanup-after-unsubscribe" behaviour
-import React from 'react'
-
+import { setupApiStore } from '@internal/tests/utils/helpers'
 import { createListenerMiddleware } from '@reduxjs/toolkit'
-import { createApi, QueryStatus } from '@reduxjs/toolkit/query/react'
+import { QueryStatus, createApi } from '@reduxjs/toolkit/query/react'
 import { act, render, screen, waitFor } from '@testing-library/react'
-import { setupApiStore } from '../../tests/utils/helpers'
 import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
 
 const tick = () => new Promise((res) => setImmediate(res))

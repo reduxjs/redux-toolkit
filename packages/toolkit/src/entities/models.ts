@@ -1,8 +1,8 @@
-import type { UncheckedIndexedAccess } from '../uncheckedindexed'
 import type { Draft } from 'immer'
 import type { PayloadAction } from '../createAction'
-import type { GetSelectorsOptions } from './state_selectors'
 import type { CastAny, Id as Compute } from '../tsHelpers'
+import type { UncheckedIndexedAccess } from '../uncheckedindexed'
+import type { GetSelectorsOptions } from './state_selectors'
 
 /**
  * @public
@@ -22,7 +22,10 @@ export type IdSelector<T, Id extends EntityId> = (model: T) => Id
 /**
  * @public
  */
-export type Update<T, Id extends EntityId> = { id: Id; changes: Partial<T> }
+export interface Update<T, Id extends EntityId> {
+  id: Id
+  changes: Partial<T>
+}
 
 /**
  * @public

@@ -1,9 +1,10 @@
-import { Draft, current, isDraft } from 'immer'
+import type { Draft } from 'immer'
+import { current, isDraft } from 'immer'
 import type {
+  DraftableEntityState,
+  EntityId,
   IdSelector,
   Update,
-  EntityId,
-  DraftableEntityState,
 } from './models'
 
 export function selectIdValue<T, Id extends EntityId>(
@@ -44,14 +45,14 @@ export function splitAddedUpdatedEntities<T, Id extends EntityId>(
   newEntities: readonly T[] | Record<Id, T>,
   selectId: IdSelector<T, Id>,
   state: DraftableEntityState<T, Id>,
-): [T[], Update<T, Id>[], Id[]] {
+): [T[], Array<Update<T, Id>>, Id[]] {
   newEntities = ensureEntitiesArray(newEntities)
 
   const existingIdsArray = getCurrent(state.ids)
   const existingIds = new Set<Id>(existingIdsArray)
 
   const added: T[] = []
-  const updated: Update<T, Id>[] = []
+  const updated: Array<Update<T, Id>> = []
 
   for (const entity of newEntities) {
     const id = selectIdValue(entity, selectId)

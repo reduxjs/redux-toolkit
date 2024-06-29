@@ -1,22 +1,22 @@
 import type {
-  ActionFromMatcher,
-  Matcher,
-  UnionToIntersection,
-} from './tsHelpers'
-import { hasMatchFunction } from './tsHelpers'
-import type {
   AsyncThunk,
   AsyncThunkFulfilledActionCreator,
   AsyncThunkPendingActionCreator,
   AsyncThunkRejectedActionCreator,
 } from './createAsyncThunk'
+import type {
+  ActionFromMatcher,
+  Matcher,
+  UnionToIntersection,
+} from './tsHelpers'
+import { hasMatchFunction } from './tsHelpers'
 
 /** @public */
-export type ActionMatchingAnyOf<Matchers extends Matcher<any>[]> =
+export type ActionMatchingAnyOf<Matchers extends Array<Matcher<any>>> =
   ActionFromMatcher<Matchers[number]>
 
 /** @public */
-export type ActionMatchingAllOf<Matchers extends Matcher<any>[]> =
+export type ActionMatchingAllOf<Matchers extends Array<Matcher<any>>> =
   UnionToIntersection<ActionMatchingAnyOf<Matchers>>
 
 const matches = (matcher: Matcher<any>, action: any) => {
@@ -36,7 +36,7 @@ const matches = (matcher: Matcher<any>, action: any) => {
  *
  * @public
  */
-export function isAnyOf<Matchers extends Matcher<any>[]>(
+export function isAnyOf<Matchers extends Array<Matcher<any>>>(
   ...matchers: Matchers
 ) {
   return (action: any): action is ActionMatchingAnyOf<Matchers> => {
@@ -53,7 +53,7 @@ export function isAnyOf<Matchers extends Matcher<any>[]>(
  *
  * @public
  */
-export function isAllOf<Matchers extends Matcher<any>[]>(
+export function isAllOf<Matchers extends Array<Matcher<any>>>(
   ...matchers: Matchers
 ) {
   return (action: any): action is ActionMatchingAllOf<Matchers> => {
@@ -140,7 +140,7 @@ export function isPending<
 }
 
 export type UnknownAsyncThunkRejectedAction = ReturnType<
-  AsyncThunkRejectedActionCreator<unknown, unknown>
+  AsyncThunkRejectedActionCreator<unknown>
 >
 
 export type RejectedActionFromAsyncThunk<T extends AnyAsyncThunk> =
@@ -192,7 +192,7 @@ export function isRejected<
 }
 
 export type UnknownAsyncThunkRejectedWithValueAction = ReturnType<
-  AsyncThunkRejectedActionCreator<unknown, unknown>
+  AsyncThunkRejectedActionCreator<unknown>
 >
 
 export type RejectedWithValueActionFromAsyncThunk<T extends AnyAsyncThunk> =
@@ -309,7 +309,7 @@ export type UnknownAsyncThunkAction =
   | UnknownAsyncThunkRejectedAction
   | UnknownAsyncThunkFulfilledAction
 
-export type AnyAsyncThunk = {
+export interface AnyAsyncThunk {
   pending: { match: (action: any) => action is any }
   fulfilled: { match: (action: any) => action is any }
   rejected: { match: (action: any) => action is any }
@@ -361,5 +361,11 @@ export function isAsyncThunkAction<
     return isAsyncThunkAction()(asyncThunks[0])
   }
 
-  return isAnyOf(...asyncThunks.flatMap(asyncThunk => [asyncThunk.pending, asyncThunk.rejected, asyncThunk.fulfilled]))
+  return isAnyOf(
+    ...asyncThunks.flatMap((asyncThunk) => [
+      asyncThunk.pending,
+      asyncThunk.rejected,
+      asyncThunk.fulfilled,
+    ]),
+  )
 }

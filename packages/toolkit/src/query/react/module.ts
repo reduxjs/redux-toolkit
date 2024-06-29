@@ -7,14 +7,6 @@ import type {
   QueryArgFrom,
   QueryDefinition,
 } from '@reduxjs/toolkit/query'
-import { isMutationDefinition, isQueryDefinition } from '../endpointDefinitions'
-import { safeAssign } from '../tsHelpers'
-import { capitalize } from '../utils'
-import type { MutationHooks, QueryHooks } from './buildHooks'
-import { buildHooks } from './buildHooks'
-
-import type { HooksWithUniqueNames } from './namedHooks'
-
 import {
   batch as rrBatch,
   useDispatch as rrUseDispatch,
@@ -22,21 +14,25 @@ import {
   useStore as rrUseStore,
 } from 'react-redux'
 import { createSelector as _createSelector } from 'reselect'
+import type { AnyObject } from '../../tsHelpers'
 import type { QueryKeys } from '../core/apiState'
 import type { PrefetchOptions } from '../core/module'
+import { isMutationDefinition, isQueryDefinition } from '../endpointDefinitions'
+import { safeAssign } from '../tsHelpers'
+import { capitalize } from '../utils'
 import { countObjectKeys } from '../utils/countObjectKeys'
+import type { MutationHooks, QueryHooks } from './buildHooks'
+import { buildHooks } from './buildHooks'
+import type { HooksWithUniqueNames } from './namedHooks'
 
 export const reactHooksModuleName = /* @__PURE__ */ Symbol()
 export type ReactHooksModule = typeof reactHooksModuleName
 
 declare module '@reduxjs/toolkit/query' {
   export interface ApiModules<
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     BaseQuery extends BaseQueryFn,
     Definitions extends EndpointDefinitions,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     ReducerPath extends string,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     TagTypes extends string,
   > {
     [reactHooksModuleName]: {
@@ -187,7 +183,7 @@ export const reactHooksModule = ({
     init(api, { serializeQueryArgs }, context) {
       const anyApi = api as any as Api<
         any,
-        Record<string, any>,
+        AnyObject,
         any,
         any,
         ReactHooksModule

@@ -1,3 +1,10 @@
+import { noop } from '@internal/tests/utils/helpers'
+import type {
+  AnyFunction,
+  AnyNonNullishValue,
+  EmptyObject,
+} from '@internal/tsHelpers'
+import type { TSVersion } from '@phryneas/ts-version'
 import type {
   AsyncThunk,
   SerializedError,
@@ -11,12 +18,14 @@ import {
   createSlice,
   unwrapResult,
 } from '@reduxjs/toolkit'
-
-import type { TSVersion } from '@phryneas/ts-version'
 import type { AxiosError } from 'axios'
 import apiRequest from 'axios'
 
-const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, UnknownAction>
+const defaultDispatch = noop as ThunkDispatch<
+  AnyNonNullishValue,
+  any,
+  UnknownAction
+>
 const unknownAction = { type: 'foo' } as UnknownAction
 
 describe('type tests', () => {
@@ -96,9 +105,9 @@ describe('type tests', () => {
       { id: 'a', title: 'First' },
     ]
 
-    const correctDispatch = (() => {}) as ThunkDispatch<
+    const correctDispatch = noop as ThunkDispatch<
       BookModel[],
-      { userAPI: Function },
+      { userAPI: AnyFunction },
       UnknownAction
     >
 
@@ -108,31 +117,35 @@ describe('type tests', () => {
       number,
       {
         state: BooksState
-        extra: { userAPI: Function }
+        extra: { userAPI: AnyFunction }
       }
     >(
       'books/fetch',
-      async (arg, { getState, dispatch, extra, requestId, signal }) => {
+      (arg, { getState, dispatch, extra, requestId, signal }) => {
         const state = getState()
 
         expectTypeOf(arg).toBeNumber()
 
         expectTypeOf(state).toEqualTypeOf<BookModel[]>()
 
-        expectTypeOf(extra).toEqualTypeOf<{ userAPI: Function }>()
+        expectTypeOf(extra).toEqualTypeOf<{ userAPI: AnyFunction }>()
 
         return fakeBooks
       },
     )
 
-    correctDispatch(fetchBooksTAC(1))
+    void correctDispatch(fetchBooksTAC(1))
     // @ts-expect-error
-    defaultDispatch(fetchBooksTAC(1))
+    void defaultDispatch(fetchBooksTAC(1))
   })
 
   test('returning a rejected action from the promise creator is possible', async () => {
-    type ReturnValue = { data: 'success' }
-    type RejectValue = { data: 'error' }
+    interface ReturnValue {
+      data: 'success'
+    }
+    interface RejectValue {
+      data: 'error'
+    }
 
     const fetchBooksTAC = createAsyncThunk<
       ReturnValue,
@@ -140,7 +153,7 @@ describe('type tests', () => {
       {
         rejectValue: RejectValue
       }
-    >('books/fetch', async (arg, { rejectWithValue }) => {
+    >('books/fetch', (arg, { rejectWithValue }) => {
       return rejectWithValue({ data: 'error' })
     })
 
@@ -159,14 +172,14 @@ describe('type tests', () => {
   })
 
   test('regression #1156: union return values fall back to allowing only single member', () => {
-    const fn = createAsyncThunk('session/isAdmin', async () => {
-      const response: boolean = false
+    const fn = createAsyncThunk('session/isAdmin', () => {
+      const response = false
       return response
     })
   })
 
   test('Should handle reject with value within a try catch block. Note: this is a sample code taken from #1605', () => {
-    type ResultType = {
+    interface ResultType {
       text: string
     }
     const demoPromise = async (): Promise<ResultType> =>
@@ -217,11 +230,11 @@ describe('type tests', () => {
           // let it be handled as any other unknown error
           throw err
         }
-        return rejectWithValue(error.response && error.response.data)
+        return rejectWithValue(error.response?.data)
       }
     })
 
-    defaultDispatch(fetchLiveCallsError('asd')).then((result) => {
+    void defaultDispatch(fetchLiveCallsError('asd')).then((result) => {
       if (fetchLiveCallsError.fulfilled.match(result)) {
         //success
         expectTypeOf(result).toEqualTypeOf<
@@ -246,7 +259,7 @@ describe('type tests', () => {
           expectTypeOf(result.error).not.toBeAny()
         }
       }
-      defaultDispatch(fetchLiveCallsError('asd'))
+      void defaultDispatch(fetchLiveCallsError('asd'))
         .then((result) => {
           expectTypeOf(result.payload).toEqualTypeOf<
             Item[] | ErrorFromServer | undefined
@@ -486,7 +499,7 @@ describe('type tests', () => {
       return 'ret' as const
     })
 
-    expectTypeOf(thunk).toEqualTypeOf<AsyncThunk<'ret', void, {}>>()
+    expectTypeOf(thunk).toEqualTypeOf<AsyncThunk<'ret', void, EmptyObject>>()
   })
 
   test('createAsyncThunk without generics, accessing `api` does not break return type', () => {
@@ -494,7 +507,7 @@ describe('type tests', () => {
       return 'ret' as const
     })
 
-    expectTypeOf(thunk).toEqualTypeOf<AsyncThunk<'ret', void, {}>>()
+    expectTypeOf(thunk).toEqualTypeOf<AsyncThunk<'ret', void, EmptyObject>>()
   })
 
   test('createAsyncThunk rejectWithValue without generics: Expect correct return type', () => {
@@ -509,7 +522,7 @@ describe('type tests', () => {
       },
     )
 
-    defaultDispatch(asyncThunk())
+    void defaultDispatch(asyncThunk())
       .then((result) => {
         if (asyncThunk.fulfilled.match(result)) {
           expectTypeOf(result).toEqualTypeOf<
@@ -538,7 +551,9 @@ describe('type tests', () => {
   })
 
   test('createAsyncThunk with generics', () => {
-    type Funky = { somethingElse: 'Funky!' }
+    interface Funky {
+      somethingElse: 'Funky!'
+    }
     function funkySerializeError(err: any): Funky {
       return { somethingElse: 'Funky!' }
     }
@@ -546,13 +561,13 @@ describe('type tests', () => {
     // has to stay on one line or type tests fail in older TS versions
     // prettier-ignore
     // @ts-expect-error
-    const shouldFail = createAsyncThunk('without generics', () => {}, { serializeError: funkySerializeError })
+    const shouldFail = createAsyncThunk('without generics', noop, { serializeError: funkySerializeError })
 
     const shouldWork = createAsyncThunk<
       any,
       void,
       { serializedErrorType: Funky }
-    >('with generics', () => {}, {
+    >('with generics', noop, {
       serializeError: funkySerializeError,
     })
 
@@ -566,29 +581,31 @@ describe('type tests', () => {
     // has to stay on one line or type tests fail in older TS versions
     // prettier-ignore
     // @ts-expect-error
-    const shouldFailNumWithArgs = createAsyncThunk('foo', () => {}, { idGenerator: returnsNumWithArgs })
+    const shouldFailNumWithArgs = createAsyncThunk('foo', noop, { idGenerator: returnsNumWithArgs })
 
     const returnsNumWithoutArgs = () => 100
     // prettier-ignore
     // @ts-expect-error
-    const shouldFailNumWithoutArgs = createAsyncThunk('foo', () => {}, { idGenerator: returnsNumWithoutArgs })
+    const shouldFailNumWithoutArgs = createAsyncThunk('foo', noop, { idGenerator: returnsNumWithoutArgs })
 
     const returnsStrWithNumberArg = (foo: number) => 'foo'
     // prettier-ignore
     // @ts-expect-error
-    const shouldFailWrongArgs = createAsyncThunk('foo', (arg: string) => {}, { idGenerator: returnsStrWithNumberArg })
+    const shouldFailWrongArgs = createAsyncThunk('foo', (arg: string) => { /** No-Op */ }, { idGenerator: returnsStrWithNumberArg })
 
     const returnsStrWithStringArg = (foo: string) => 'foo'
     const shoulducceedCorrectArgs = createAsyncThunk(
       'foo',
-      (arg: string) => {},
+      (arg: string) => {
+        /** No-Op */
+      },
       {
         idGenerator: returnsStrWithStringArg,
       },
     )
 
     const returnsStrWithoutArgs = () => 'foo'
-    const shouldSucceed = createAsyncThunk('foo', () => {}, {
+    const shouldSucceed = createAsyncThunk('foo', noop, {
       idGenerator: returnsStrWithoutArgs,
     })
   })
@@ -603,7 +620,7 @@ describe('type tests', () => {
 
     const getObj = createAsyncThunk(
       'slice/getObj',
-      async (_: any, { fulfillWithValue, rejectWithValue }) => {
+      (_: any, { fulfillWithValue, rejectWithValue }) => {
         try {
           return fulfillWithValue({ magic: 'object' })
         } catch (rejected: any) {
@@ -626,14 +643,19 @@ describe('type tests', () => {
 
   test('meta return values', () => {
     // return values
-    createAsyncThunk<'ret', void, {}>('test', (_, api) => 'ret' as const)
-    createAsyncThunk<'ret', void, {}>('test', async (_, api) => 'ret' as const)
+    createAsyncThunk<'ret', void, EmptyObject>(
+      'test',
+      (_, api) => 'ret' as const,
+    )
+    createAsyncThunk<'ret', void, EmptyObject>(
+      'test',
+      (_, api) => 'ret' as const,
+    )
     createAsyncThunk<'ret', void, { fulfilledMeta: string }>('test', (_, api) =>
       api.fulfillWithValue('ret' as const, ''),
     )
-    createAsyncThunk<'ret', void, { fulfilledMeta: string }>(
-      'test',
-      async (_, api) => api.fulfillWithValue('ret' as const, ''),
+    createAsyncThunk<'ret', void, { fulfilledMeta: string }>('test', (_, api) =>
+      api.fulfillWithValue('ret' as const, ''),
     )
     createAsyncThunk<'ret', void, { fulfilledMeta: string }>(
       'test',
@@ -643,7 +665,7 @@ describe('type tests', () => {
     createAsyncThunk<'ret', void, { fulfilledMeta: string }>(
       'test',
       // @ts-expect-error has to be a fulfilledWithValue call
-      async (_, api) => 'ret' as const,
+      (_, api) => 'ret' as const,
     )
     createAsyncThunk<'ret', void, { fulfilledMeta: string }>(
       'test', // @ts-expect-error should only allow returning with 'test'
@@ -651,16 +673,15 @@ describe('type tests', () => {
     )
     createAsyncThunk<'ret', void, { fulfilledMeta: string }>(
       'test', // @ts-expect-error should only allow returning with 'test'
-      async (_, api) => api.fulfillWithValue(5, ''),
+      (_, api) => api.fulfillWithValue(5, ''),
     )
 
     // reject values
     createAsyncThunk<'ret', void, { rejectValue: string }>('test', (_, api) =>
       api.rejectWithValue('ret'),
     )
-    createAsyncThunk<'ret', void, { rejectValue: string }>(
-      'test',
-      async (_, api) => api.rejectWithValue('ret'),
+    createAsyncThunk<'ret', void, { rejectValue: string }>('test', (_, api) =>
+      api.rejectWithValue('ret'),
     )
     createAsyncThunk<
       'ret',
@@ -671,7 +692,7 @@ describe('type tests', () => {
       'ret',
       void,
       { rejectValue: string; rejectedMeta: number }
-    >('test', async (_, api) => api.rejectWithValue('ret', 5))
+    >('test', (_, api) => api.rejectWithValue('ret', 5))
     createAsyncThunk<
       'ret',
       void,
@@ -693,7 +714,7 @@ describe('type tests', () => {
     >(
       'test',
       // @ts-expect-error wrong rejectedMeta type
-      async (_, api) => api.rejectWithValue('ret', ''),
+      (_, api) => api.rejectWithValue('ret', ''),
     )
     createAsyncThunk<
       'ret',
@@ -711,7 +732,7 @@ describe('type tests', () => {
     >(
       'test',
       // @ts-expect-error wrong rejectValue type
-      async (_, api) => api.rejectWithValue(5, ''),
+      (_, api) => api.rejectWithValue(5, ''),
     )
   })
 
@@ -745,10 +766,11 @@ describe('type tests', () => {
 
       expectTypeOf(n).toBeNumber()
 
-      if (1 < 2)
-        // @ts-expect-error
-        return api.rejectWithValue(5)
-      if (1 < 2) return api.rejectWithValue('test')
+      expectTypeOf(api.rejectWithValue).parameter(0).not.toBeNumber()
+
+      expectTypeOf(api.rejectWithValue).toBeCallableWith('test')
+
+      if (api) return api.rejectWithValue('test')
       return test1 + test2
     })
 
@@ -775,7 +797,7 @@ describe('type tests', () => {
 
       expectTypeOf(n).toBeNumber()
 
-      if (1 < 2) expectTypeOf(api.rejectWithValue).toBeCallableWith('test')
+      expectTypeOf(api.rejectWithValue).toBeCallableWith('test')
 
       expectTypeOf(api.rejectWithValue).parameter(0).not.toBeNumber()
 
@@ -811,8 +833,7 @@ describe('type tests', () => {
 
         expectTypeOf(n).toBeNumber()
 
-        if (1 < 2) return api.rejectWithValue(5)
-        if (1 < 2) expectTypeOf(api.rejectWithValue).toBeCallableWith(5)
+        expectTypeOf(api.rejectWithValue).toBeCallableWith(5)
 
         expectTypeOf(api.rejectWithValue).parameter(0).not.toBeString()
 

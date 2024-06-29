@@ -1,11 +1,11 @@
-import { createApi, QueryStatus } from '@reduxjs/toolkit/query'
+import { actionsReducer, setupApiStore } from '@internal/tests/utils/helpers'
+import { QueryStatus, createApi } from '@reduxjs/toolkit/query'
 import { delay } from 'msw'
-import { actionsReducer, setupApiStore } from '../../tests/utils/helpers'
 
 // We need to be able to control when which query resolves to simulate race
 // conditions properly, that's the purpose of this factory.
 const createPromiseFactory = () => {
-  const resolveQueue: (() => void)[] = []
+  const resolveQueue: Array<() => void> = []
   const createPromise = () =>
     new Promise<void>((resolve) => {
       resolveQueue.push(resolve)

@@ -4,6 +4,10 @@ let { join } = require('path')
 const esmSuffixes = ['modern.mjs' /*, 'browser.mjs', 'legacy-esm.js'*/]
 const cjsSuffixes = [/*'development.cjs',*/ 'production.min.cjs']
 
+/**
+ * @param {string} suffix
+ * @param {boolean} cjs
+ */
 function withRtkPath(suffix, cjs = false) {
   /**
    * @param {string} name
@@ -15,7 +19,7 @@ function withRtkPath(suffix, cjs = false) {
    * @param {webpack.Configuration} config
    */
   return (config) => {
-    config.plugins.push(
+    config.plugins?.push(
       new webpack.NormalModuleReplacementPlugin(
         /@reduxjs\/toolkit\/query\/react/,
         join(__dirname, 'dist/query/react/rtk-query-react.modern.mjs'),
@@ -149,6 +153,7 @@ module.exports = entryPoints
     ),
   )
   .concat(
+    // @ts-ignore
     [
       {
         name: `3. createSlice`,

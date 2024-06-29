@@ -1,6 +1,7 @@
 import type { SerializedError } from '@internal/createAsyncThunk'
 import { createAsyncThunk } from '@internal/createAsyncThunk'
 import { executeReducerBuilderCallback } from '@internal/mapBuilders'
+import { noop } from '@internal/tests/utils/helpers'
 import type { UnknownAction } from '@reduxjs/toolkit'
 import { createAction } from '@reduxjs/toolkit'
 
@@ -76,6 +77,7 @@ describe('type tests', () => {
       })
 
       test('action type is inferred when type predicate lacks `type` property', () => {
+        // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
         type PredicateWithoutTypeProperty = {
           payload: number
         }
@@ -129,17 +131,17 @@ describe('type tests', () => {
         })
 
       test('addMatcher() should prevent further calls to addCase()', () => {
-        const b = builder.addMatcher(increment.match, () => {})
+        const b = builder.addMatcher(increment.match, noop)
 
         expectTypeOf(b).not.toHaveProperty('addCase')
 
-        expectTypeOf(b.addMatcher).toBeCallableWith(increment.match, () => {})
+        expectTypeOf(b.addMatcher).toBeCallableWith(increment.match, noop)
 
-        expectTypeOf(b.addDefaultCase).toBeCallableWith(() => {})
+        expectTypeOf(b.addDefaultCase).toBeCallableWith(noop)
       })
 
       test('addDefaultCase() should prevent further calls to addCase(), addMatcher() and addDefaultCase', () => {
-        const b = builder.addDefaultCase(() => {})
+        const b = builder.addDefaultCase(noop)
 
         expectTypeOf(b).not.toHaveProperty('addCase')
 

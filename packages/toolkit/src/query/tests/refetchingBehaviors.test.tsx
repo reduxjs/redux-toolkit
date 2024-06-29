@@ -1,7 +1,7 @@
+import { setupApiStore } from '@internal/tests/utils/helpers'
 import { createApi, setupListeners } from '@reduxjs/toolkit/query/react'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { delay } from 'msw'
-import { setupApiStore } from '../../tests/utils/helpers'
 
 // Just setup a temporary in-memory counter for tests that `getIncrementedAmount`.
 // This can be used to test how many renders happen due to data changes or
@@ -11,7 +11,7 @@ let amount = 0
 const defaultApi = createApi({
   baseQuery: async (arg: any) => {
     await delay(150)
-    if ('amount' in arg?.body) {
+    if ('body' in arg && 'amount' in arg.body) {
       amount += 1
     }
     return {
@@ -71,7 +71,7 @@ describe('refetchOnFocus tests', () => {
       expect(screen.getByTestId('amount').textContent).toBe('1'),
     )
 
-    await act(async () => {
+    act(() => {
       fireEvent.focus(window)
     })
 
@@ -213,7 +213,7 @@ describe('refetchOnFocus tests', () => {
 
     expect(getIncrementedAmountState()).not.toBeUndefined()
 
-    await act(async () => {
+    act(() => {
       fireEvent.focus(window)
     })
 
@@ -377,7 +377,9 @@ describe('customListenersHandler', () => {
     })
     const dispatchSpy = vi.spyOn(storeRef.store, 'dispatch')
 
-    let unsubscribe = () => {}
+    let unsubscribe = () => {
+      /** No-Op */
+    }
     unsubscribe = setupListeners(
       storeRef.store.dispatch,
       (dispatch, actions) => {

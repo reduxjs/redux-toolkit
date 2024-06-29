@@ -20,7 +20,8 @@
     "docs",
     "website",
     "examples/query/react/*",
-    "examples/action-listener/*"
+    "examples/action-listener/*",
+    "packages/configs/*"
   ],
   "devDependencies": {
     "@babel/code-frame": "^7.24.2",
@@ -29,10 +30,14 @@
     "@babel/helper-compilation-targets": "^7.23.6",
     "@babel/traverse": "^7.24.1",
     "@babel/types": "^7.24.0",
+    "@reduxjs/eslint-config": "workspace:^",
+    "@reduxjs/prettier-config": "workspace:^",
+    "@reduxjs/tsconfig": "workspace:^",
+    "@reduxjs/vitest-config": "workspace:^",
     "@types/react": "^18.2.77",
     "@types/react-dom": "^18.2.25",
-    "@typescript-eslint/eslint-plugin": "6.12.0",
-    "@typescript-eslint/parser": "6.12.0",
+    "@typescript-eslint/eslint-plugin": "^7.8.0",
+    "@typescript-eslint/parser": "^7.8.0",
     "eslint": "^7.25.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-config-react-app": "^7.0.1",
@@ -60,6 +65,8 @@
   "scripts": {
     "build": "yarn build:packages",
     "test": "yarn test:packages",
+    "install": "yarn build:configs",
+    "build:configs": "yarn workspaces foreach -A --include '@reduxjs/*config' -vtp run build",
     "build:examples": "yarn workspaces foreach -A --include '@reduxjs/*' --include '@examples-query-react/*' --include '@examples-action-listener/*' -vtp run build",
     "build:docs": "yarn workspace website run build",
     "build:packages": "yarn workspaces foreach -A --include '@reduxjs/*' --include '@rtk-query/*' --topological-dev run build",

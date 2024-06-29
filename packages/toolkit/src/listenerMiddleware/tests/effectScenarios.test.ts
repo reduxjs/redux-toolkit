@@ -1,16 +1,13 @@
+import { noop } from '@internal/tests/utils/helpers'
+import type { PayloadAction } from '@reduxjs/toolkit'
 import {
+  TaskAbortError,
   configureStore,
   createAction,
+  createListenerMiddleware,
   createSlice,
   isAnyOf,
 } from '@reduxjs/toolkit'
-import { vi } from 'vitest'
-
-import type { PayloadAction } from '@reduxjs/toolkit'
-
-import { createListenerMiddleware, TaskAbortError } from '../index'
-
-import type { TypedAddListener } from '../index'
 
 describe('Saga-style Effects Scenarios', () => {
   interface CounterState {
@@ -35,9 +32,9 @@ describe('Saga-style Effects Scenarios', () => {
   })
   const { increment, decrement, incrementByAmount } = counterSlice.actions
 
-  let { reducer } = counterSlice
+  const { reducer } = counterSlice
   let listenerMiddleware = createListenerMiddleware<CounterState>()
-  let { middleware, startListening, stopListening } = listenerMiddleware
+  let { middleware, startListening } = listenerMiddleware
 
   let store = configureStore({
     reducer,
@@ -58,7 +55,6 @@ describe('Saga-style Effects Scenarios', () => {
   }
 
   beforeAll(() => {
-    const noop = () => {}
     vi.spyOn(console, 'error').mockImplementation(noop)
   })
 
@@ -158,7 +154,7 @@ describe('Saga-style Effects Scenarios', () => {
     expect(workPerformed).toBe(1)
   })
 
-  test('takeEvery', async () => {
+  test('takeEvery', () => {
     // Runs the listener on every action match
     // Ref: https://redux-saga.js.org/docs/api#takeeverypattern-saga-args
 

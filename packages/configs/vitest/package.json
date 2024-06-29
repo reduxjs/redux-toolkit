@@ -1,0 +1,64 @@
+{
+  "name": "@reduxjs/vitest-config",
+  "version": "0.0.1",
+  "description": "Vitest configuration for Redux projects",
+  "main": "./dist/vitest.config.mjs",
+  "types": "./dist/vitest.config.d.mts",
+  "module": "./dist/vitest.config.mjs",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./dist/vitest.config.d.mts",
+      "import": "./dist/vitest.config.mjs",
+      "default": "./dist/vitest.config.mjs"
+    }
+  },
+  "files": [
+    "dist",
+    "*.mts"
+  ],
+  "scripts": {
+    "build": "yarn clean && tsc",
+    "clean": "rimraf dist",
+    "prepack": "yarn build"
+  },
+  "keywords": [
+    "config",
+    "reduxjs",
+    "redux-toolkit",
+    "vitest-config",
+    "vitest",
+    "vite",
+    "configuration"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/reduxjs/redux-toolkit.git",
+    "directory": "packages/configs/vitest"
+  },
+  "bugs": {
+    "url": "https://github.com/reduxjs/redux-toolkit/issues"
+  },
+  "peerDependencies": {
+    "typescript": "^4.7 || ^5",
+    "vitest": "^1"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@reduxjs/tsconfig": "workspace:^",
+    "rimraf": "^5.0.7",
+    "tslib": "^2.6.3",
+    "typescript": "^5.5.2",
+    "vitest": "^1.6.0"
+  },
+  "dependencies": {
+    "vite-tsconfig-paths": "^4.3.2"
+  }
+}

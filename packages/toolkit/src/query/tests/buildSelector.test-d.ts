@@ -1,6 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-
 import { configureStore, createSelector } from '@reduxjs/toolkit'
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 
 describe('type tests', () => {
   test('buildSelector type test', () => {
@@ -11,7 +10,7 @@ describe('type tests', () => {
       completed: boolean
     }
 
-    type Todos = Array<Todo>
+    type Todos = Todo[]
 
     const exampleApi = createApi({
       reducerPath: 'api',
@@ -62,7 +61,7 @@ describe('type tests', () => {
       completed: boolean
     }
 
-    type Todos = Array<Todo>
+    type Todos = Todo[]
 
     const exampleApi = createApi({
       reducerPath: 'api',

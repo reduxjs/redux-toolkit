@@ -1,12 +1,20 @@
-const fs = require('fs')
-const path = require('path')
-const helperModuleImports = require('@babel/helper-module-imports')
+import { addNamed } from '@babel/helper-module-imports'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+// No __dirname under Node ESM
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 /**
  * Converts an AST type into a javascript string so that it can be added to the error message lookup.
  *
  * Adapted from React (https://github.com/facebook/react/blob/master/scripts/shared/evalToString.js) with some
  * adjustments
+ *
+ * @param {{ type?: any; value?: any; operator?: string; left?: any; right?: any; quasis?: any[]; name?: any; }} ast
+ * @returns {string}
  */
 const evalToString = (ast) => {
   switch (ast.type) {
@@ -15,11 +23,11 @@ const evalToString = (ast) => {
       return ast.value
     case 'BinaryExpression': // `+`
       if (ast.operator !== '+') {
-        throw new Error('Unsupported binary operator ' + ast.operator)
+        throw new Error(`Unsupported binary operator ${ast.operator}`)
       }
       return evalToString(ast.left) + evalToString(ast.right)
     case 'TemplateLiteral':
-      return ast.quasis.reduce(
+      return ast.quasis?.reduce(
         (concatenatedValue, templateElement) =>
           concatenatedValue + templateElement.value.raw,
         '',
@@ -55,17 +63,17 @@ const evalToString = (ast) => {
  *    throw new Error(node.process.NODE_ENV === 'production' ? 0 : "This is my error message.");
  *    throw new Error(node.process.NODE_ENV === 'production' ? 1 : "This is a second error message.");
  */
-module.exports = (babel) => {
+export default (/** @type {{ types: any; }} */ babel) => {
   const t = babel.types
   // When the plugin starts up, we'll load in the existing file. This allows us to continually add to it so that the
   // indexes do not change between builds.
   let errorsFiles = ''
   // Save this to the root
   const errorsPath = path.join(__dirname, '../../../errors.json')
-  if (fs.existsSync(errorsPath)) {
-    errorsFiles = fs.readFileSync(errorsPath).toString()
+  if (existsSync(errorsPath)) {
+    errorsFiles = readFileSync(errorsPath).toString()
   }
-  let errors = Object.values(JSON.parse(errorsFiles || '{}'))
+  const errors = Object.values(JSON.parse(errorsFiles || '{}'))
   // This variable allows us to skip writing back to the file if the errors array hasn't changed
   let changeInArray = false
 
@@ -74,11 +82,21 @@ module.exports = (babel) => {
       changeInArray = false
     },
     visitor: {
+      /**
+       * @param {import("@babel/traverse").NodePath<import("@babel/types").Node>} path
+       * @param {{ opts: { minify: any; }; }} file
+       */
       ThrowStatement(path, file) {
-        const args = path.node.argument.arguments
-        const minify = file.opts.minify
+        if (
+          !('argument' in path.node && path.node.argument) ||
+          !('arguments' in path.node.argument)
+        ) {
+          return
+        }
+        const args = path.node.argument?.arguments
+        const { minify } = file.opts
 
-        if (args && args[0]) {
+        if (args?.[0]) {
           // Skip running this logic when certain types come up:
           //  Identifier comes up when a variable is thrown (E.g. throw new error(message))
           //  NumericLiteral, CallExpression, and ConditionalExpression is code we have already processed
@@ -89,7 +107,9 @@ module.exports = (babel) => {
             path.node.argument.arguments[0].type === 'CallExpression' ||
             path.node.argument.arguments[0].type === 'ObjectExpression' ||
             path.node.argument.arguments[0].type === 'MemberExpression' ||
-            path.node.argument.arguments[0]?.callee?.name === 'HandledError'
+            ('callee' in path.node.argument.arguments[0] &&
+              'name' in path.node.argument.arguments[0].callee &&
+              path.node.argument.arguments[0]?.callee?.name === 'HandledError')
           ) {
             return
           }
@@ -110,7 +130,7 @@ module.exports = (babel) => {
           }
 
           // Import the error message function
-          const formatProdErrorMessageIdentifier = helperModuleImports.addNamed(
+          const formatProdErrorMessageIdentifier = addNamed(
             path,
             'formatProdErrorMessage',
             '@reduxjs/toolkit',
@@ -152,7 +172,7 @@ module.exports = (babel) => {
     post: () => {
       // If there is a new error in the array, convert it to an indexed object and write it back to the file.
       if (changeInArray) {
-        fs.writeFileSync(errorsPath, JSON.stringify({ ...errors }, null, 2))
+        writeFileSync(errorsPath, JSON.stringify({ ...errors }, null, 2))
       }
     },
   }

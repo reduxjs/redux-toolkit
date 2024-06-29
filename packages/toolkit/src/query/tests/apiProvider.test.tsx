@@ -8,7 +8,7 @@ import {
 } from '@reduxjs/toolkit/query/react'
 import { fireEvent, render, waitFor } from '@testing-library/react'
 import { delay } from 'msw'
-import * as React from 'react'
+import React from 'react'
 import type { ReactReduxContextValue } from 'react-redux'
 import {
   Provider,

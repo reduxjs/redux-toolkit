@@ -1,21 +1,23 @@
-import {
-  mockConsole,
-  createConsole,
-  getLog,
-} from 'console-testing-library/pure'
+import { isNestedFrozen } from '@internal/serializableStateInvariantMiddleware'
 import type { Reducer } from '@reduxjs/toolkit'
 import {
-  createNextState,
+  Tuple,
   configureStore,
+  createNextState,
   createSerializableStateInvariantMiddleware,
   findNonSerializableValue,
   isPlain,
-  Tuple,
 } from '@reduxjs/toolkit'
-import { isNestedFrozen } from '@internal/serializableStateInvariantMiddleware'
+import {
+  createConsole,
+  getLog,
+  mockConsole,
+} from 'console-testing-library/pure'
 
 // Mocking console
-let restore = () => {}
+let restore = () => {
+  /* empty */
+}
 beforeEach(() => {
   restore = mockConsole(createConsole())
 })
@@ -37,7 +39,9 @@ describe('findNonSerializableValue', () => {
   })
 
   it('Should return a keypath and the value if it finds a non-serializable value', () => {
-    function testFunction() {}
+    function testFunction() {
+      /* empty */
+    }
 
     const obj = {
       a: 42,
@@ -165,7 +169,7 @@ describe('serializableStateInvariantMiddleware', () => {
 
     const nestedSerializableObjectWithBadValue = {
       isSerializable: true,
-      entries: (): [string, any][] => [
+      entries: (): Array<[string, any]> => [
         ['good-string', 'Good!'],
         ['good-number', 1337],
         ['bad-map-instance', nonSerializableValue],
@@ -174,7 +178,7 @@ describe('serializableStateInvariantMiddleware', () => {
 
     const serializableObject = {
       isSerializable: true,
-      entries: (): [string, any][] => [
+      entries: (): Array<[string, any]> => [
         ['first', 1],
         ['second', 'B!'],
         ['third', nestedSerializableObjectWithBadValue],
@@ -230,7 +234,7 @@ describe('serializableStateInvariantMiddleware', () => {
 
       const isSerializable = (val: any): boolean =>
         val.isSerializable || isPlain(val)
-      const getEntries = (val: any): [string, any][] =>
+      const getEntries = (val: any): Array<[string, any]> =>
         val.isSerializable ? val.entries() : Object.entries(val)
 
       const reducer: Reducer = (state = initialState, action) => {
@@ -587,7 +591,9 @@ describe('serializableStateInvariantMiddleware', () => {
   it('Should not print a warning if "reducer" takes too long', () => {
     const reducer: Reducer = (state = 42, action) => {
       const started = Date.now()
-      while (Date.now() - started < 8) {}
+      while (Date.now() - started < 8) {
+        /* empty */
+      }
       return state
     }
 
