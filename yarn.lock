@@ -7481,7 +7481,7 @@ __metadata:
     prettier: "npm:^3.2.5"
     query-string: "npm:^7.0.1"
     redux: "npm:^5.0.1"
-    redux-thunk: "npm:^3.1.0"
+    redux-thunk: "https://pkg.csb.dev/reduxjs/redux-thunk/commit/fdb2e154/redux-thunk/_pkg.tgz"
     reselect: "npm:^5.1.0"
     rimraf: "npm:^3.0.2"
     size-limit: "npm:^11.0.1"
@@ -24680,6 +24680,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"redux-thunk@https://pkg.csb.dev/reduxjs/redux-thunk/commit/fdb2e154/redux-thunk/_pkg.tgz":
+  version: 3.1.0
+  resolution: "redux-thunk@https://pkg.csb.dev/reduxjs/redux-thunk/commit/fdb2e154/redux-thunk/_pkg.tgz"
+  peerDependencies:
+    redux: ^5.0.0
+  checksum: 10/c47c69d216747dbb6294239a76ca4b9a3ce82b0bb0272213f7bec7e8b4abbfb334a1a2dfe2211fa2202742f5969795e065ba0f6cf6dd128e351851d5fababb2c
+  languageName: node
+  linkType: hard
+
 "redux-thunk@npm:^2.4.1":
   version: 2.4.1
   resolution: "redux-thunk@npm:2.4.1"
@@ -24695,15 +24704,6 @@ __metadata:
   peerDependencies:
     redux: ^4
   checksum: 10/9bcb1193835128ecebf1e1a1b1a37bc15e8dfbdf6b6ee1b5566dd4c8e4ca05a81175f0c6dda34ab47f87053cd13b74d9f881d59446691d7b192831852b5d7a72
-  languageName: node
-  linkType: hard
-
-"redux-thunk@npm:^3.1.0":
-  version: 3.1.0
-  resolution: "redux-thunk@npm:3.1.0"
-  peerDependencies:
-    redux: ^5.0.0
-  checksum: 10/38c563db5f0bbec90d2e65cc27f3c870c1b6102e0c071258734fac41cb0e51d31d894125815c2f4133b20aff231f51f028ad99bccc05a7e3249f1a5d5a959ed3
   languageName: node
   linkType: hard
 

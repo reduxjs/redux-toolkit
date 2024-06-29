@@ -637,7 +637,7 @@ type GenericPrefetchThunk = (
   endpointName: any,
   arg: any,
   options: PrefetchOptions,
-) => ThunkAction<void, any, any, UnknownAction>
+) => ThunkAction<ThunkDispatch<any, any, UnknownAction>, any, any, void>
 
 /**
  *

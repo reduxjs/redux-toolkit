@@ -73,7 +73,7 @@ export type CoreModule =
   | ReferenceCacheCollection
 
 export interface ThunkWithReturnValue<T>
-  extends ThunkAction<T, any, any, UnknownAction> {}
+  extends ThunkAction<ThunkDispatch<any, any, UnknownAction>, any, any, T> {}
 
 declare module '../apiTypes' {
   export interface ApiModules<
@@ -222,7 +222,7 @@ declare module '../apiTypes' {
           endpointName: EndpointName,
           arg: QueryArgFrom<Definitions[EndpointName]>,
           options: PrefetchOptions,
-        ): ThunkAction<void, any, any, UnknownAction>
+        ): ThunkAction<ThunkDispatch<any, any, UnknownAction>, any, any, void>
         /**
          * A Redux thunk action creator that, when dispatched, creates and applies a set of JSON diff/patch objects to the current state. This immediately updates the Redux state with those changes.
          *

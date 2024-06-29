@@ -49,10 +49,10 @@ type AppStore = typeof store
 type AppDispatch = typeof store.dispatch
 type RootState = ReturnType<typeof store.getState>
 type AppThunk<ThunkReturnType = void> = ThunkAction<
-  ThunkReturnType,
+  AppDispatch,
   RootState,
   unknown,
-  Action
+  ThunkReturnType
 >
 
 const listenerMiddleware = createListenerMiddleware()

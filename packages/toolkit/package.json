@@ -118,7 +118,7 @@
   "dependencies": {
     "immer": "^10.0.3",
     "redux": "^5.0.1",
-    "redux-thunk": "^3.1.0",
+    "redux-thunk": "https://pkg.csb.dev/reduxjs/redux-thunk/commit/fdb2e154/redux-thunk/_pkg.tgz",
     "reselect": "^5.1.0"
   },
   "peerDependencies": {

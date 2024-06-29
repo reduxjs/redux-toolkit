@@ -4,7 +4,7 @@ import type {
   ActionCreatorWithPreparedPayload,
 } from './createAction'
 import { createAction } from './createAction'
-import type { ThunkDispatch } from 'redux-thunk'
+import type { ThunkAction, ThunkDispatch } from 'redux-thunk'
 import type {
   ActionFromMatcher,
   FallbackIfUnknown,
@@ -239,19 +239,20 @@ export type AsyncThunkAction<
   Returned,
   ThunkArg,
   ThunkApiConfig extends AsyncThunkConfig,
-> = (
-  dispatch: NonNullable<GetDispatch<ThunkApiConfig>>,
-  getState: () => GetState<ThunkApiConfig>,
-  extra: GetExtra<ThunkApiConfig>,
-) => SafePromise<
-  | ReturnType<AsyncThunkFulfilledActionCreator<Returned, ThunkArg>>
-  | ReturnType<AsyncThunkRejectedActionCreator<ThunkArg, ThunkApiConfig>>
-> & {
-  abort: (reason?: string) => void
-  requestId: string
-  arg: ThunkArg
-  unwrap: () => Promise<Returned>
-}
+> = ThunkAction<
+  NonNullable<GetDispatch<ThunkApiConfig>>,
+  GetState<ThunkApiConfig>,
+  GetExtra<ThunkApiConfig>,
+  SafePromise<
+    | ReturnType<AsyncThunkFulfilledActionCreator<Returned, ThunkArg>>
+    | ReturnType<AsyncThunkRejectedActionCreator<ThunkArg, ThunkApiConfig>>
+  > & {
+    abort: (reason?: string) => void
+    requestId: string
+    arg: ThunkArg
+    unwrap: () => Promise<Returned>
+  }
+>
 
 type AsyncThunkActionCreator<
   Returned,
