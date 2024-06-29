@@ -1,20 +1,15 @@
+import { trackForMutations } from '@internal/immutableStateInvariantMiddleware'
+import { noop } from '@internal/listenerMiddleware/utils'
 import type {
-  Store,
-  MiddlewareAPI,
   ImmutableStateInvariantMiddlewareOptions,
   Middleware,
+  MiddlewareAPI,
+  Store,
 } from '@reduxjs/toolkit'
 import {
   createImmutableStateInvariantMiddleware,
   isImmutableDefault,
 } from '@reduxjs/toolkit'
-
-import { trackForMutations } from '@internal/immutableStateInvariantMiddleware'
-import {
-  mockConsole,
-  createConsole,
-  getLog,
-} from 'console-testing-library/pure'
 
 type MWNext = Parameters<ReturnType<Middleware>>[0]
 
@@ -147,14 +142,20 @@ describe('createImmutableStateInvariantMiddleware', () => {
 
     const dispatch = middleware({ warnAfter: 4 })(next)
 
-    const restore = mockConsole(createConsole())
+    const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(noop)
+
     try {
       dispatch({ type: 'SOME_ACTION' })
-      expect(getLog().log).toMatch(
-        /^ImmutableStateInvariantMiddleware took \d*ms, which is more than the warning threshold of 4ms./,
+
+      expect(consoleWarnSpy).toHaveBeenCalledOnce()
+
+      expect(consoleWarnSpy).toHaveBeenLastCalledWith(
+        expect.stringMatching(
+          /^ImmutableStateInvariantMiddleware took \d*ms, which is more than the warning threshold of 4ms./,
+        ),
       )
     } finally {
-      restore()
+      consoleWarnSpy.mockRestore()
     }
   })
 
@@ -167,12 +168,14 @@ describe('createImmutableStateInvariantMiddleware', () => {
 
     const dispatch = middleware({ warnAfter: 4 })(next)
 
-    const restore = mockConsole(createConsole())
+    const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(noop)
+
     try {
       dispatch({ type: 'SOME_ACTION' })
-      expect(getLog().log).toEqual('')
+
+      expect(consoleWarnSpy).not.toHaveBeenCalled()
     } finally {
-      restore()
+      consoleWarnSpy.mockRestore()
     }
   })
 })

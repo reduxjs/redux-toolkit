@@ -1,3 +1,4 @@
+import { noop } from '@internal/listenerMiddleware/utils'
 import type { SubscriptionOptions } from '@internal/query/core/apiState'
 import type { SubscriptionSelectors } from '@internal/query/core/buildMiddleware/types'
 import { server } from '@internal/query/tests/mocks/server'
@@ -29,10 +30,9 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { HttpResponse, http } from 'msw'
+import { userEvent } from '@testing-library/user-event'
+import { HttpResponse, delay, http } from 'msw'
 import { useEffect, useState } from 'react'
-import type { MockInstance } from 'vitest'
 
 // Just setup a temporary in-memory counter for tests that `getIncrementedAmount`.
 // This can be used to test how many renders happen due to data changes or
@@ -46,7 +46,7 @@ interface Item {
 
 const api = createApi({
   baseQuery: async (arg: any) => {
-    await waitMs(150)
+    await delay(50)
     if (arg?.body && 'amount' in arg.body) {
       amount += 1
     }
@@ -632,7 +632,7 @@ describe('hooks tests', () => {
       function ItemList() {
         const [pageNumber, setPageNumber] = useState(0)
         const { data = [] } = api.useListItemsQuery({
-          pageNumber: pageNumber,
+          pageNumber,
         })
 
         const renderedItems = data.map((item) => (
@@ -698,7 +698,9 @@ describe('hooks tests', () => {
 
         await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
-        act(() => void storeRef.store.dispatch(api.util.resetApiState()))
+        act(() => {
+          storeRef.store.dispatch(api.util.resetApiState())
+        })
 
         expect(result.current).toEqual(
           expect.objectContaining({
@@ -723,7 +725,9 @@ describe('hooks tests', () => {
 
         await waitFor(() => expect(result.current.isSuccess).toBe(true))
         selectFromResult.mockClear()
-        act(() => void storeRef.store.dispatch(api.util.resetApiState()))
+        act(() => {
+          storeRef.store.dispatch(api.util.resetApiState())
+        })
 
         expect(selectFromResult).toHaveBeenNthCalledWith(1, {
           isError: false,
@@ -754,8 +758,10 @@ describe('hooks tests', () => {
         resPromise = refetch()
       })
       expect(resPromise).toBeInstanceOf(Promise)
-      const res = await resPromise
-      expect(res.data!.amount).toBeGreaterThan(originalAmount)
+      await act(async () => {
+        const res = await resPromise
+        expect(res.data!.amount).toBeGreaterThan(originalAmount)
+      })
     })
 
     // See https://github.com/reduxjs/redux-toolkit/issues/4267 - Memory leak in useQuery rapid query arg changes
@@ -770,8 +776,8 @@ describe('hooks tests', () => {
         endpoints: (builder) => ({
           getTest: builder.query<string, number>({
             async queryFn() {
-              await new Promise((resolve) => setTimeout(resolve, 1000));
-              return { data: "data!" };
+              await new Promise((resolve) => setTimeout(resolve, 1000))
+              return { data: 'data!' }
             },
             keepUnusedDataFor: 0,
           }),
@@ -783,13 +789,13 @@ describe('hooks tests', () => {
       })
 
       const checkNumQueries = (count: number) => {
-        const cacheEntries = Object.keys((storeRef.store.getState()).api.queries)
+        const cacheEntries = Object.keys(storeRef.store.getState().api.queries)
         const queries = cacheEntries.length
 
         expect(queries).toBe(count)
       }
 
-      let i = 0;
+      let i = 0
 
       function User() {
         const [fetchTest, { isFetching, isUninitialized }] =
@@ -817,7 +823,7 @@ describe('hooks tests', () => {
       })
 
       // There should only be one stored query once they have had time to resolve
-      checkNumQueries( 1)
+      checkNumQueries(1)
     })
 
     // See https://github.com/reduxjs/redux-toolkit/issues/3182
@@ -931,19 +937,27 @@ describe('hooks tests', () => {
 
       render(<Parent />, { wrapper: storeRef.wrapper })
 
+      expect(states).toHaveLength(2)
+
       // Allow at least three state effects to hit.
       // Trying to see if any [true, false, true] occurs.
       await act(async () => {
-        await waitMs(1)
+        await delay(51)
       })
 
-      await act(async () => {
-        await waitMs(1)
-      })
+      expect(states).toHaveLength(4)
 
       await act(async () => {
-        await waitMs(1)
+        await delay(51)
       })
+
+      expect(states).toHaveLength(5)
+
+      await act(async () => {
+        await delay(51)
+      })
+
+      expect(states).toHaveLength(5)
 
       // Find if at any time the isLoading state has reverted
       // E.G.: `[..., true, false, ..., true]`
@@ -959,14 +973,16 @@ describe('hooks tests', () => {
     })
 
     describe('Hook middleware requirements', () => {
-      let mock: MockInstance
-
-      beforeEach(() => {
-        mock = vi.spyOn(console, 'error').mockImplementation(() => {})
-      })
+      const consoleErrorSpy = vi
+        .spyOn(console, 'error')
+        .mockImplementation(noop)
 
       afterEach(() => {
-        mock.mockReset()
+        consoleErrorSpy.mockClear()
+      })
+
+      afterAll(() => {
+        consoleErrorSpy.mockRestore()
       })
 
       test('Throws error if middleware is not added to the store', async () => {
@@ -977,12 +993,9 @@ describe('hooks tests', () => {
         })
 
         const doRender = () => {
-          const { result } = renderHook(
-            () => api.endpoints.getIncrementedAmount.useQuery(),
-            {
-              wrapper: withProvider(store),
-            },
-          )
+          renderHook(() => api.endpoints.getIncrementedAmount.useQuery(), {
+            wrapper: withProvider(store),
+          })
         }
 
         expect(doRender).toThrowError(
@@ -1263,9 +1276,12 @@ describe('hooks tests', () => {
       expect(screen.queryByText(/Successfully fetched user/i)).toBeNull()
       screen.getByText('Request was aborted')
 
-      fireEvent.click(
+      const user = userEvent.setup()
+
+      await user.click(
         screen.getByRole('button', { name: 'Fetch User successfully' }),
       )
+
       await screen.findByText('Successfully fetched user Timmy')
       expect(screen.queryByText(/An error has occurred/i)).toBeNull()
       expect(screen.queryByText('Request was aborted')).toBeNull()
@@ -1475,7 +1491,9 @@ describe('hooks tests', () => {
       expect(screen.queryByText(/Successfully updated user/i)).toBeNull()
       expect(screen.queryByText('Request was aborted')).toBeNull()
 
-      fireEvent.click(
+      const user = userEvent.setup()
+
+      await user.click(
         screen.getByRole('button', { name: 'Update User and abort' }),
       )
       await screen.findByText('An error has occurred updating user Banana')
@@ -1494,7 +1512,9 @@ describe('hooks tests', () => {
 
       const firstRenderResult = result.current
       expect(firstRenderResult[1].originalArgs).toBe(undefined)
-      act(() => void firstRenderResult[0](arg))
+      act(() => {
+        firstRenderResult[0](arg)
+      })
       const secondRenderResult = result.current
       expect(firstRenderResult[1].originalArgs).toBe(undefined)
       expect(secondRenderResult[1].originalArgs).toBe(arg)
@@ -1524,13 +1544,15 @@ describe('hooks tests', () => {
       expect(screen.queryByText('Yay')).toBeNull()
       expect(countObjectKeys(storeRef.store.getState().api.mutations)).toBe(0)
 
-      userEvent.click(screen.getByRole('button', { name: 'trigger' }))
+      const user = userEvent.setup()
+
+      await user.click(screen.getByRole('button', { name: 'trigger' }))
 
       await screen.findByText(/isSuccess/i)
       expect(screen.queryByText('Yay')).not.toBeNull()
       expect(countObjectKeys(storeRef.store.getState().api.mutations)).toBe(1)
 
-      userEvent.click(screen.getByRole('button', { name: 'reset' }))
+      await user.click(screen.getByRole('button', { name: 'reset' }))
 
       await screen.findByText(/isUninitialized/i)
       expect(screen.queryByText('Yay')).toBeNull()
@@ -1566,7 +1588,10 @@ describe('hooks tests', () => {
         expect(screen.getByTestId('isFetching').textContent).toBe('false'),
       )
 
-      userEvent.hover(screen.getByTestId('highPriority'))
+      const user = userEvent.setup()
+
+      await user.hover(screen.getByTestId('highPriority'))
+
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any),
       ).toEqual({
@@ -1633,8 +1658,11 @@ describe('hooks tests', () => {
       await waitFor(() =>
         expect(screen.getByTestId('isFetching').textContent).toBe('false'),
       )
+
+      const user = userEvent.setup()
+
       // Try to prefetch what we just loaded
-      userEvent.hover(screen.getByTestId('lowPriority'))
+      await user.hover(screen.getByTestId('lowPriority'))
 
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any),
@@ -1700,10 +1728,13 @@ describe('hooks tests', () => {
       )
 
       // Wait 400ms, making it respect ifOlderThan
-      await waitMs(400)
+      await delay(400)
+
+      const user = userEvent.setup()
 
       // This should run the query being that we're past the threshold
-      userEvent.hover(screen.getByTestId('lowPriority'))
+      await user.hover(screen.getByTestId('lowPriority'))
+
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any),
       ).toEqual({
@@ -1775,7 +1806,10 @@ describe('hooks tests', () => {
         storeRef.store.getState() as any,
       )
 
-      userEvent.hover(screen.getByTestId('lowPriority'))
+      const user = userEvent.setup()
+
+      await user.hover(screen.getByTestId('lowPriority'))
+
       //  Serve up the result from the cache being that the condition wasn't met
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any),
@@ -1803,11 +1837,13 @@ describe('hooks tests', () => {
 
       render(<User />, { wrapper: storeRef.wrapper })
 
-      userEvent.hover(screen.getByTestId('lowPriority'))
+      const user = userEvent.setup()
+
+      await user.hover(screen.getByTestId('lowPriority'))
 
       expect(
-        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any),
-      ).toEqual({
+        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState()),
+      ).toMatchObject({
         endpointName: 'getUser',
         isError: false,
         isLoading: true,
@@ -2695,6 +2731,11 @@ describe('skip behaviour', () => {
     await act(async () => {
       rerender([1])
     })
+
+    await act(async () => {
+      await delay(51)
+    })
+
     expect(result.current).toMatchObject({ status: QueryStatus.fulfilled })
     await waitMs(1)
     expect(getSubscriptionCount('getUser(1)')).toBe(1)
@@ -2731,6 +2772,11 @@ describe('skip behaviour', () => {
     await act(async () => {
       rerender([1])
     })
+
+    await act(async () => {
+      await delay(51)
+    })
+
     expect(result.current).toMatchObject({ status: QueryStatus.fulfilled })
     await waitMs(1)
     expect(getSubscriptionCount('getUser(1)')).toBe(1)
@@ -2759,7 +2805,7 @@ describe('skip behaviour', () => {
     )
 
     await act(async () => {
-      await waitMs(1)
+      await delay(51)
     })
 
     // Normal fulfilled result, with both `data` and `currentData`
