@@ -425,6 +425,7 @@ When using the function notation, both the `providesTags` and `invalidatesTags` 
 - result: `ResultType` | `undefined` - The result returned by a successful query. The type corresponds with `ResultType` as [supplied to the built endpoint](#typing-query-and-mutation-endpoints). In the error case for a query, this will be `undefined`.
 - error: `ErrorType` | `undefined` - The error returned by an errored query. The type corresponds with `Error` as [supplied to the `baseQuery` for the api](#typing-a-basequery). In the success case for a query, this will be `undefined`.
 - arg: `QueryArg` - The argument supplied to the `query` property when the query itself is called. The type corresponds with `QueryArg` as [supplied to the built endpoint](#typing-query-and-mutation-endpoints).
+- meta: `MetaType` | `undefined` - The optional `meta` value returned by `baseQuery`
 
 A recommended use-case with `providesTags` when a query returns a list of items is to provide a tag for each item in the list using the entity ID, as well as a 'LIST' ID tag (see [Advanced Invalidation with abstract tag IDs](./usage/automated-refetching.mdx#advanced-invalidation-with-abstract-tag-ids)).
 
