@@ -180,7 +180,7 @@ export default defineConfig((options) => {
 
         if (env) {
           Object.assign(defineValues, {
-            'process.env.NODE_ENV': JSON.stringify(env),
+            NODE_ENV: env,
           })
         }
 
@@ -207,7 +207,7 @@ export default defineConfig((options) => {
             options.conditions = ['browser']
           },
 
-          define: defineValues,
+          env: defineValues,
           async onSuccess() {
             if (format === 'cjs' && name === 'production.min') {
               writeCommonJSEntry(outputFolder, prefix)
@@ -243,7 +243,7 @@ export default defineConfig((options) => {
               // fs.copyFileSync(inputTypedefsPath, outputTypedefsPath)
             }
           },
-        }
+        } satisfies TsupOptions
       })
 
       return artifactOptions
