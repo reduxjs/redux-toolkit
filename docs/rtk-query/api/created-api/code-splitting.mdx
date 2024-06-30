@@ -13,7 +13,7 @@ Each API slice allows [additional endpoint definitions to be injected at runtime
 
 The individual API slice endpoint definitions can also be split across multiple files. This is primarily useful for working with API slices that were [code-generated from an API schema file](../../usage/code-generation.mdx), allowing you to add additional custom behavior and configuration to a set of automatically-generated endpoint definitions.
 
-Each API slice object has `injectEndpoints` and `enhanceEndpoints` functions to support these use cases.
+Each API slice object has `injectEndpoints`, `addTagTypes` and `enhanceEndpoint` functions to support these use cases.
 
 ## `injectEndpoints`
 
@@ -46,29 +46,44 @@ Endpoints will not be overridden unless `overrideExisting` is set to `true`. If 
 
 This method is primarily useful for code splitting and hot reloading.
 
-## `enhanceEndpoints`
+## `addTagTypes`
 
 #### Signature
 
 ```ts no-transpile
-const enhanceEndpoints = (endpointOptions: EnhanceEndpointsOptions) =>
-  EnhancedApiSlice
-
-interface EnhanceEndpointsOptions {
-  addTagTypes?: readonly string[]
-  endpoints?: Record<string, Partial<EndpointDefinition>>
-}
+const addTagTypes = (...newTags: readonly string[]) => EnhancedApiSlice
 ```
 
 #### Description
 
-Any provided tag types or endpoint definitions will be merged into the existing endpoint definitions for this API slice. Unlike `injectEndpoints`, the partial endpoint definitions will not _replace_ existing definitions, but are rather merged together on a per-definition basis (ie, `Object.assign(existingEndpoint, newPartialEndpoint)`).
+Accepts a number of new tags to add to the API slice.
+
+Returns an updated and enhanced version of the API slice object, with the new tags added.
+
+This is primarily useful for chaining before `injectEndpoints` or `enhanceEndpoint`, to add tags which can then be used by new/enhanced endpoints.
+
+## `enhanceEndpoint`
+
+#### Signature
+
+```ts no-transpile
+const enhanceEndpoint = (
+  endpointName: string,
+  partialDefinition:
+    | Partial<EndpointDefinition>
+    | ((definition: EndpointDefinition) => void)
+) => EnhancedApiSlice
+```
+
+#### Description
+
+Provided partial definition will be merged into the existing endpoint definition for this API slice. Unlike `injectEndpoints`, the partial endpoint definition will not _replace_ the existing definition, but is rather merged together (i.e. `Object.assign(existingEndpoint, newPartialEndpoint)`).
 
 Returns an updated and enhanced version of the API slice object, containing the combined endpoint definitions.
 
 This is primarily useful for taking an API slice object that was code-generated from an API schema file like OpenAPI, and adding additional specific hand-written configuration for cache invalidation management on top of the generated endpoint definitions.
 
-For example, `enhanceEndpoints` can be used to modify caching behavior by changing the values of `providesTags`, `invalidatesTags`, and `keepUnusedDataFor`:
+For example, `enhanceEndpoint` can be used to modify caching behavior by changing the values of `providesTags`, `invalidatesTags`, and `keepUnusedDataFor`:
 
 ```ts
 // file: api.ts noEmit
@@ -98,20 +113,17 @@ export const api = createApi({
 // file: enhanceEndpoints.ts
 import { api } from './api'
 
-const enhancedApi = api.enhanceEndpoints({
-  addTagTypes: ['User'],
-  endpoints: {
-    getUserByUserId: {
-      providesTags: ['User'],
-    },
-    patchUserByUserId: {
-      invalidatesTags: ['User'],
-    },
-    // alternatively, define a function which is called with the endpoint definition as an argument
-    getUsers(endpoint) {
-      endpoint.providesTags = ['User']
-      endpoint.keepUnusedDataFor = 120
-    },
-  },
-})
+const enhancedApi = api
+  .addTagTypes('User')
+  .enhanceEndpoint('getUserByUserId', {
+    providesTags: ['User'],
+  })
+  .enhanceEndpoint('patchUserByUserId', {
+    invalidatesTags: ['User'],
+  })
+  // alternatively, define a function which is called with the endpoint definition as an argument
+  .enhanceEndpoint('getUsers', (endpoint) => {
+    endpoint.providesTags = ['User']
+    endpoint.keepUnusedDataFor = 120
+  })
 ```

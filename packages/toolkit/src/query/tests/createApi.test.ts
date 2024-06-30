@@ -406,32 +406,19 @@ describe('endpoint definition typings', () => {
       })
       // only type-test this part
       if (2 > 1) {
-        api.enhanceEndpoints({
-          endpoints: {
-            query1: {
-              // @ts-expect-error
-              providesTags: ['new'],
-            },
-            query2: {
-              // @ts-expect-error
-              providesTags: ['missing'],
-            },
-          },
+        // @ts-expect-error
+        api.enhanceEndpoint('query1', {
+          providesTags: ['new'],
+        })
+        // @ts-expect-error
+        api.enhanceEndpoint('query2', {
+          providesTags: ['missing'],
         })
       }
 
-      const enhanced = api.enhanceEndpoints({
-        addTagTypes: ['new'],
-        endpoints: {
-          query1: {
-            providesTags: ['new'],
-          },
-          query2: {
-            // @ts-expect-error
-            providesTags: ['missing'],
-          },
-        },
-      })
+      // @ts-expect-error the location of the error varies depending on TS version, so this needs to be one line
+      // prettier-ignore
+      const enhanced = api.addTagTypes('new').enhanceEndpoint('query1', { providesTags: ['new'] }).enhanceEndpoint('query2', { providesTags: ['missing'] })
 
       storeRef.store.dispatch(api.endpoints.query1.initiate('in1'))
       await delay(1)
@@ -445,17 +432,12 @@ describe('endpoint definition typings', () => {
 
       // only type-test this part
       if (2 > 1) {
-        enhanced.enhanceEndpoints({
-          endpoints: {
-            query1: {
-              // returned `enhanced` api contains "new" enitityType
-              providesTags: ['new'],
-            },
-            query2: {
-              // @ts-expect-error
-              providesTags: ['missing'],
-            },
-          },
+        enhanced.enhanceEndpoint('query1', {
+          providesTags: ['new'], // tag was added
+        })
+        // @ts-expect-error
+        enhanced.enhanceEndpoint('query2', {
+          providesTags: ['missing'],
         })
       }
     })
@@ -464,37 +446,32 @@ describe('endpoint definition typings', () => {
       const storeRef = setupApiStore(api, undefined, {
         withoutTestLifecycles: true,
       })
-      api.enhanceEndpoints({
-        endpoints: {
-          query1: {
-            query: (x) => {
-              return 'modified1'
-            },
+      const enhanced = api
+        .enhanceEndpoint('query1', {
+          query: (x) => {
+            return 'modified1'
           },
-          query2(definition) {
-            definition.query = (x) => {
-              return 'modified2'
-            }
+        })
+        .enhanceEndpoint('query2', function query2(definition) {
+          definition.query = (x) => {
+            return 'modified2'
+          }
+        })
+        .enhanceEndpoint('mutation1', {
+          query: (x) => {
+            return 'modified1'
           },
-          mutation1: {
-            query: (x) => {
-              return 'modified1'
-            },
-          },
-          mutation2(definition) {
-            definition.query = (x) => {
-              return 'modified2'
-            }
-          },
-          // @ts-expect-error
-          nonExisting: {},
-        },
-      })
+        })
+        .enhanceEndpoint('mutation2', function mutation2(definition) {
+          definition.query = (x) => {
+            return 'modified2'
+          }
+        })
 
-      storeRef.store.dispatch(api.endpoints.query1.initiate('in1'))
-      storeRef.store.dispatch(api.endpoints.query2.initiate('in2'))
-      storeRef.store.dispatch(api.endpoints.mutation1.initiate('in1'))
-      storeRef.store.dispatch(api.endpoints.mutation2.initiate('in2'))
+      storeRef.store.dispatch(enhanced.endpoints.query1.initiate('in1'))
+      storeRef.store.dispatch(enhanced.endpoints.query2.initiate('in2'))
+      storeRef.store.dispatch(enhanced.endpoints.mutation1.initiate('in1'))
+      storeRef.store.dispatch(enhanced.endpoints.mutation2.initiate('in2'))
 
       expect(baseQuery.mock.calls).toEqual([
         ['modified1', commonBaseQueryApi, undefined],
@@ -514,36 +491,23 @@ describe('endpoint definition typings', () => {
         }),
       })
 
-      type Transformed = { value: string }
-
-      type Definitions = DefinitionsFromApi<typeof api>
-      type TagTypes = TagTypesFromApi<typeof api>
-
-      type Q1Definition = OverrideResultType<Definitions['query1'], Transformed>
-      type M1Definition = OverrideResultType<
-        Definitions['mutation1'],
-        Transformed
-      >
-
-      type UpdatedDefitions = Omit<Definitions, 'query1' | 'mutation1'> & {
-        query1: Q1Definition
-        mutation1: M1Definition
+      const transformed = {
+        value: 'transformed',
       }
 
-      const enhancedApi = baseApi.enhanceEndpoints<TagTypes, UpdatedDefitions>({
-        endpoints: {
-          query1: {
-            transformResponse: (a, b, c) => ({
-              value: 'transformed',
-            }),
+      type Transformed = typeof transformed
+
+      const enhancedApi = baseApi
+        .enhanceEndpoint('query1', {
+          transformResponse: () => transformed,
+        })
+        // technically a cast, but works:tm:
+        .enhanceEndpoint<'mutation1', Transformed>(
+          'mutation1',
+          (definition) => {
+            definition.transformResponse = () => transformed
           },
-          mutation1: {
-            transformResponse: (a, b, c) => ({
-              value: 'transformed',
-            }),
-          },
-        },
-      })
+        )
 
       const storeRef = setupApiStore(enhancedApi, undefined, {
         withoutTestLifecycles: true,
@@ -552,14 +516,14 @@ describe('endpoint definition typings', () => {
       const queryResponse = await storeRef.store.dispatch(
         enhancedApi.endpoints.query1.initiate(),
       )
-      expect(queryResponse.data).toEqual({ value: 'transformed' })
+      expect(queryResponse.data).toEqual(transformed)
 
       const mutationResponse = await storeRef.store.dispatch(
         enhancedApi.endpoints.mutation1.initiate(),
       )
-      expect('data' in mutationResponse && mutationResponse.data).toEqual({
-        value: 'transformed',
-      })
+      expect('data' in mutationResponse && mutationResponse.data).toEqual(
+        transformed,
+      )
     })
   })
 })

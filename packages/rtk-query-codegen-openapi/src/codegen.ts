@@ -53,10 +53,6 @@ export function generateCreateApiCall({
     true
   );
   if (tag) {
-    const enhanceEndpointsObjectLiteralExpression = factory.createObjectLiteralExpression(
-      [factory.createShorthandPropertyAssignment(factory.createIdentifier('addTagTypes'), undefined)],
-      true
-    );
     return factory.createVariableStatement(
       undefined,
       factory.createVariableDeclarationList(
@@ -70,10 +66,10 @@ export function generateCreateApiCall({
                 factory.createCallExpression(
                   factory.createPropertyAccessExpression(
                     factory.createIdentifier('api'),
-                    factory.createIdentifier('enhanceEndpoints')
+                    factory.createIdentifier('addTagTypes')
                   ),
                   undefined,
-                  [enhanceEndpointsObjectLiteralExpression]
+                  [factory.createSpreadElement(factory.createIdentifier('addTagTypes'))]
                 ),
                 factory.createIdentifier('injectEndpoints')
               ),

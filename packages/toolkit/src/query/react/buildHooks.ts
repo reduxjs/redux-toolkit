@@ -9,6 +9,7 @@ import type {
   ApiContext,
   ApiEndpointMutation,
   ApiEndpointQuery,
+  ApiModules,
   CoreModule,
   EndpointDefinitions,
   MutationActionCreatorResult,
@@ -658,7 +659,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
   serializeQueryArgs,
   context,
 }: {
-  api: Api<any, Definitions, any, any, CoreModule>
+  api: ApiModules<any, Definitions, any, any>[CoreModule]
   moduleOptions: Required<ReactHooksModuleOptions>
   serializeQueryArgs: SerializeQueryArgs<any>
   context: ApiContext<Definitions>

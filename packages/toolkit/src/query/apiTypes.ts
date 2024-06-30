@@ -3,17 +3,24 @@ import type {
   EndpointBuilder,
   EndpointDefinition,
   UpdateDefinitions,
+  QueryDefinition,
+  ResultTypeFrom,
+  QueryArgFrom,
+  MutationDefinition,
+  AddTagTypes,
+  EnhanceEndpoint,
 } from './endpointDefinitions'
 import type {
   UnionToIntersection,
   NoInfer,
   WithRequiredProp,
+  Id,
 } from './tsHelpers'
-import type { CoreModule } from './core/module'
 import type { CreateApiOptions } from './createApi'
 import type { BaseQueryFn } from './baseQueryTypes'
-import type { CombinedState } from './core/apiState'
+import type { CombinedState, MutationKeys, QueryKeys } from './core/apiState'
 import type { UnknownAction } from '@reduxjs/toolkit'
+import type { CoreModule } from './core/module'
 
 export interface ApiModules<
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -67,15 +74,13 @@ export interface ApiContext<Definitions extends EndpointDefinitions> {
   hasRehydrationInfo: (action: UnknownAction) => boolean
 }
 
-export type Api<
+export type BaseApiMethods<
   BaseQuery extends BaseQueryFn,
   Definitions extends EndpointDefinitions,
   ReducerPath extends string,
   TagTypes extends string,
   Enhancers extends ModuleName = CoreModule,
-> = UnionToIntersection<
-  ApiModules<BaseQuery, Definitions, ReducerPath, TagTypes>[Enhancers]
-> & {
+> = {
   /**
    * A function to inject the endpoints into the original API, but also give you that same API with correct types for these endpoints back. Useful with code-splitting.
    */
@@ -99,7 +104,105 @@ export type Api<
     Enhancers
   >
   /**
+   *A function to add tag types to a generated API. Useful with code-generation.
+   */
+  addTagTypes<NewTagTypes extends string = never>(
+    ...addTagTypes: readonly NewTagTypes[]
+  ): Api<
+    BaseQuery,
+    AddTagTypes<Definitions, TagTypes | NewTagTypes>,
+    ReducerPath,
+    TagTypes | NewTagTypes,
+    Enhancers
+  >
+
+  /**
+   *A function to enhance a generated API endpoint with additional information. Useful with code-generation.
+   */
+  enhanceEndpoint<
+    QueryName extends QueryKeys<Definitions>,
+    ResultType = ResultTypeFrom<Definitions[QueryName]>,
+    QueryArg = QueryArgFrom<Definitions[QueryName]>,
+  >(
+    queryName: QueryName,
+    partialDefinition:
+      | Partial<
+          QueryDefinition<
+            QueryArg,
+            BaseQuery,
+            TagTypes,
+            ResultType,
+            ReducerPath
+          >
+        >
+      | ((
+          definition: QueryDefinition<
+            QueryArg,
+            BaseQuery,
+            TagTypes,
+            ResultType,
+            ReducerPath
+          >,
+        ) => void),
+  ): Api<
+    BaseQuery,
+    Id<
+      Omit<Definitions, QueryName> &
+        Record<
+          QueryName,
+          EnhanceEndpoint<Definitions[QueryName], QueryArg, ResultType>
+        >
+    >,
+    ReducerPath,
+    TagTypes,
+    Enhancers
+  >
+
+  /**
    *A function to enhance a generated API with additional information. Useful with code-generation.
+   */
+  enhanceEndpoint<
+    MutationName extends MutationKeys<Definitions>,
+    ResultType = ResultTypeFrom<Definitions[MutationName]>,
+    QueryArg = QueryArgFrom<Definitions[MutationName]>,
+  >(
+    mutationName: MutationName,
+    partialDefinition:
+      | Partial<
+          MutationDefinition<
+            QueryArg,
+            BaseQuery,
+            TagTypes,
+            ResultType,
+            ReducerPath
+          >
+        >
+      | ((
+          definition: MutationDefinition<
+            QueryArg,
+            BaseQuery,
+            TagTypes,
+            ResultType,
+            ReducerPath
+          >,
+        ) => void),
+  ): Api<
+    BaseQuery,
+    Id<
+      Omit<Definitions, MutationName> &
+        Record<
+          MutationName,
+          EnhanceEndpoint<Definitions[MutationName], QueryArg, ResultType>
+        >
+    >,
+    ReducerPath,
+    TagTypes,
+    Enhancers
+  >
+
+  /**
+   *A function to enhance a generated API with additional information. Useful with code-generation.
+   * @deprecated Please use `enhanceEndpoint` and `addTagType` instead
    */
   enhanceEndpoints<
     NewTagTypes extends string = never,
@@ -125,3 +228,14 @@ export type Api<
     Enhancers
   >
 }
+
+export type Api<
+  BaseQuery extends BaseQueryFn,
+  Definitions extends EndpointDefinitions,
+  ReducerPath extends string,
+  TagTypes extends string,
+  Enhancers extends ModuleName = CoreModule,
+> = UnionToIntersection<
+  ApiModules<BaseQuery, Definitions, ReducerPath, TagTypes>[Enhancers]
+> &
+  BaseApiMethods<BaseQuery, Definitions, ReducerPath, TagTypes, Enhancers>

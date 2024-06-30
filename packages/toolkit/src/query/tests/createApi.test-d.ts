@@ -2,13 +2,10 @@ import { setupApiStore } from '@internal/tests/utils/helpers'
 import type { SerializedError } from '@reduxjs/toolkit'
 import { configureStore } from '@reduxjs/toolkit'
 import type {
-  DefinitionsFromApi,
   FetchBaseQueryError,
   MutationDefinition,
-  OverrideResultType,
   QueryDefinition,
   TagDescription,
-  TagTypesFromApi,
 } from '@reduxjs/toolkit/query'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 
@@ -212,48 +209,20 @@ describe('type tests', () => {
           withoutTestLifecycles: true,
         })
 
-        api1.enhanceEndpoints({
-          endpoints: {
-            query1: {
-              // @ts-expect-error
-              providesTags: ['new'],
-            },
-            query2: {
-              // @ts-expect-error
-              providesTags: ['missing'],
-            },
-          },
-        })
+        // @ts-expect-error the location of the error varies depending on TS version, so this needs to be one line
+        // prettier-ignore
+        api1.enhanceEndpoint('query1', { providesTags: ['new'] }).enhanceEndpoint('query2', { providesTags: ['missing'] })
 
-        const enhanced = api1.enhanceEndpoints({
-          addTagTypes: ['new'],
-          endpoints: {
-            query1: {
-              providesTags: ['new'],
-            },
-            query2: {
-              // @ts-expect-error
-              providesTags: ['missing'],
-            },
-          },
-        })
+        const enhanced = api1
+          .addTagTypes('new')
+          .enhanceEndpoint('query1', { providesTags: ['new'] })
+
+        // @ts-expect-error
+        enhanced.enhanceEndpoint('query2', { providesTags: ['missing'] })
 
         storeRef.store.dispatch(api1.endpoints.query1.initiate('in1'))
 
         storeRef.store.dispatch(api1.endpoints.query2.initiate('in2'))
-
-        enhanced.enhanceEndpoints({
-          endpoints: {
-            query1: {
-              // returned `enhanced` api contains "new" entityType
-              providesTags: ['new'],
-            },
-            query2: {
-              // @ts-expect-error
-              providesTags: ['missing'],
-            },
-          },
-        })
       })
 
       test('modify', () => {
@@ -261,40 +230,38 @@ describe('type tests', () => {
           withoutTestLifecycles: true,
         })
 
-        api1.enhanceEndpoints({
-          endpoints: {
-            query1: {
-              query: (x) => {
-                expectTypeOf(x).toEqualTypeOf<'in1'>()
+        api1
+          .enhanceEndpoint('query1', {
+            query: (x) => {
+              expectTypeOf(x).toEqualTypeOf<'in1'>()
 
-                return 'modified1'
-              },
+              return 'modified1'
             },
-            query2(definition) {
-              definition.query = (x) => {
-                expectTypeOf(x).toEqualTypeOf<'in2'>()
+          })
+          .enhanceEndpoint('query2', (definition) => {
+            definition.query = (x) => {
+              expectTypeOf(x).toEqualTypeOf<'in2'>()
 
-                return 'modified2'
-              }
-            },
-            mutation1: {
-              query: (x) => {
-                expectTypeOf(x).toEqualTypeOf<'in1'>()
+              return 'modified2'
+            }
+          })
+          .enhanceEndpoint('mutation1', {
+            query: (x) => {
+              expectTypeOf(x).toEqualTypeOf<'in1'>()
 
-                return 'modified1'
-              },
+              return 'modified1'
             },
-            mutation2(definition) {
-              definition.query = (x) => {
-                expectTypeOf(x).toEqualTypeOf<'in2'>()
+          })
+          .enhanceEndpoint('mutation2', (definition) => {
+            definition.query = (x) => {
+              expectTypeOf(x).toEqualTypeOf<'in2'>()
 
-                return 'modified2'
-              }
-            },
-            // @ts-expect-error
-            nonExisting: {},
-          },
-        })
+              return 'modified2'
+            }
+          })
+
+        // @ts-expect-error
+        api1.enhanceEndpoint('nonexisting', {})
 
         storeRef.store.dispatch(api1.endpoints.query1.initiate('in1'))
         storeRef.store.dispatch(api1.endpoints.query2.initiate('in2'))
@@ -314,42 +281,34 @@ describe('type tests', () => {
 
         type Transformed = { value: string }
 
-        type Definitions = DefinitionsFromApi<typeof api1>
+        const enhancedApi = baseApi
+          .enhanceEndpoint('query1', {
+            transformResponse: (a, b, c) => ({
+              value: 'transformed',
+            }),
+          })
+          .enhanceEndpoint('mutation1', {
+            transformResponse: (a, b, c) => ({
+              value: 'transformed',
+            }),
+          })
 
-        type TagTypes = TagTypesFromApi<typeof api1>
+        // generics need to be provided manually if using callback enhancer
 
-        type Q1Definition = OverrideResultType<
-          Definitions['query1'],
-          Transformed
-        >
-
-        type M1Definition = OverrideResultType<
-          Definitions['mutation1'],
-          Transformed
-        >
-
-        type UpdatedDefinitions = Omit<Definitions, 'query1' | 'mutation1'> & {
-          query1: Q1Definition
-          mutation1: M1Definition
-        }
-
-        const enhancedApi = baseApi.enhanceEndpoints<
-          TagTypes,
-          UpdatedDefinitions
-        >({
-          endpoints: {
-            query1: {
-              transformResponse: (a, b, c) => ({
+        const enhancedApi2 = baseApi
+          .enhanceEndpoint<'query1', Transformed>('query1', (definition) => {
+            definition.transformResponse = (a, b, c) => ({
+              value: 'transformed',
+            })
+          })
+          .enhanceEndpoint<'mutation1', Transformed>(
+            'mutation1',
+            (definition) => {
+              definition.transformResponse = (a, b, c) => ({
                 value: 'transformed',
-              }),
+              })
             },
-            mutation1: {
-              transformResponse: (a, b, c) => ({
-                value: 'transformed',
-              }),
-            },
-          },
-        })
+          )
 
         const storeRef = setupApiStore(enhancedApi, undefined, {
           withoutTestLifecycles: true,

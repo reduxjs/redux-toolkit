@@ -14,8 +14,8 @@ import type {
 } from '@reduxjs/toolkit'
 import type { SubscriptionOptions, RootState } from './apiState'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
-import type { Api, ApiContext } from '../apiTypes'
-import type { ApiEndpointQuery } from './module'
+import type { ApiContext, ApiModules } from '../apiTypes'
+import type { ApiEndpointQuery, CoreModule } from './module'
 import type { BaseQueryError, QueryReturnValue } from '../baseQueryTypes'
 import type { QueryResultSelectorResult } from './buildSelectors'
 import type { Dispatch } from 'redux'
@@ -204,7 +204,7 @@ export function buildInitiate({
   serializeQueryArgs: InternalSerializeQueryArgs
   queryThunk: QueryThunk
   mutationThunk: MutationThunk
-  api: Api<any, EndpointDefinitions, any, any>
+  api: ApiModules<any, EndpointDefinitions, any, any>[CoreModule]
   context: ApiContext<EndpointDefinitions>
 }) {
   const runningQueries: Map<
