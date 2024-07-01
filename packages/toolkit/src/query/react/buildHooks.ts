@@ -656,12 +656,12 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     createSelector,
   },
   serializeQueryArgs,
-  context,
+  endpointDefinitions,
 }: {
   api: Api<any, Definitions, any, any, CoreModule>
   moduleOptions: Required<ReactHooksModuleOptions>
   serializeQueryArgs: SerializeQueryArgs<any>
-  context: ApiContext<Definitions>
+  endpointDefinitions: Definitions
 }) {
   const usePossiblyImmediateEffect: (
     effect: () => void | undefined,
@@ -680,7 +680,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     // in this case, reset the hook
     if (lastResult?.endpointName && currentState.isUninitialized) {
       const { endpointName } = lastResult
-      const endpointDefinition = context.endpointDefinitions[endpointName]
+      const endpointDefinition = endpointDefinitions[endpointName]
       if (
         serializeQueryArgs({
           queryArgs: lastResult.originalArgs,
@@ -795,7 +795,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         // with a case where the query args did change but the serialization doesn't,
         // and then we never try to initiate a refetch.
         defaultSerializeQueryArgs,
-        context.endpointDefinitions[name],
+        endpointDefinitions[name],
         name,
       )
       const stableSubscriptionOptions = useShallowStableValue({
@@ -999,7 +999,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       const stableArg = useStableQueryArgs(
         skip ? skipToken : arg,
         serializeQueryArgs,
-        context.endpointDefinitions[name],
+        endpointDefinitions[name],
         name,
       )
 
