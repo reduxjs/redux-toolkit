@@ -118,6 +118,20 @@ declare module '../../endpointDefinitions' {
     ): Promise<void> | void
   }
 
+  // temporarily cloned QueryOptions again to just get the definition to build for now
+  interface InfiniteQueryExtraOptions<
+    TagTypes extends string,
+    ResultType,
+    QueryArg,
+    BaseQuery extends BaseQueryFn,
+    ReducerPath extends string = string
+  > {
+    onQueryStarted?(
+      arg: QueryArg,
+      api: QueryLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>
+    ): Promise<void> | void
+  }
+
   interface MutationExtraOptions<
     TagTypes extends string,
     ResultType,

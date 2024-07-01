@@ -22,8 +22,9 @@ import type {
   MutationDefinition,
   AssertTagTypes,
   TagDescription,
+  InfiniteQueryDefinition
 } from '../endpointDefinitions'
-import { isQueryDefinition, isMutationDefinition } from '../endpointDefinitions'
+import { isQueryDefinition, isMutationDefinition, isInfiniteQueryDefinition } from '../endpointDefinitions'
 import type {
   CombinedState,
   QueryKeys,
@@ -38,6 +39,7 @@ import { buildSelectors } from './buildSelectors'
 import type {
   MutationActionCreatorResult,
   QueryActionCreatorResult,
+  InfiniteQueryActionCreatorResult
 } from './buildInitiate'
 import { buildInitiate } from './buildInitiate'
 import { assertCast, safeAssign } from '../tsHelpers'
@@ -158,6 +160,7 @@ declare module '../apiTypes' {
           | QueryActionCreatorResult<
               Definitions[EndpointName] & { type: 'query' }
             >
+          | InfiniteQueryActionCreatorResult<Definitions[EndpointName] & {type: 'infinitequery'}>
           | undefined
         >
 
@@ -190,7 +193,7 @@ declare module '../apiTypes' {
          * See https://redux-toolkit.js.org/rtk-query/usage/server-side-rendering for details.
          */
         getRunningQueriesThunk(): ThunkWithReturnValue<
-          Array<QueryActionCreatorResult<any>>
+          Array<QueryActionCreatorResult<any> | InfiniteQueryActionCreatorResult<any>>
         >
 
         /**
@@ -382,7 +385,9 @@ declare module '../apiTypes' {
           ? ApiEndpointQuery<Definitions[K], Definitions>
           : Definitions[K] extends MutationDefinition<any, any, any, any, any>
             ? ApiEndpointMutation<Definitions[K], Definitions>
-            : never
+            : Definitions[K] extends InfiniteQueryDefinition<any, any, any, any, any>
+              ? ApiEndpointInfiniteQuery<Definitions[K], Definitions>
+              : never;
       }
     }
   }
@@ -391,6 +396,19 @@ declare module '../apiTypes' {
 export interface ApiEndpointQuery<
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Definition extends QueryDefinition<any, any, any, any, any>,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  Definitions extends EndpointDefinitions,
+> {
+  name: string
+  /**
+   * All of these are `undefined` at runtime, purely to be used in TypeScript declarations!
+   */
+  Types: NonNullable<Definition['Types']>
+}
+
+export interface ApiEndpointInfiniteQuery<
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  Definition extends InfiniteQueryDefinition<any, any, any, any, any>,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Definitions extends EndpointDefinitions,
 > {
@@ -498,6 +516,7 @@ export const coreModule = ({
 
     const {
       queryThunk,
+      infiniteQueryThunk,
       mutationThunk,
       patchQueryData,
       updateQueryData,
@@ -516,6 +535,7 @@ export const coreModule = ({
     const { reducer, actions: sliceActions } = buildSlice({
       context,
       queryThunk,
+      infiniteQueryThunk,
       mutationThunk,
       reducerPath,
       assertTagType,
@@ -543,6 +563,7 @@ export const coreModule = ({
       context,
       queryThunk,
       mutationThunk,
+      infiniteQueryThunk,
       api,
       assertTagType,
     })
@@ -552,6 +573,7 @@ export const coreModule = ({
 
     const {
       buildQuerySelector,
+      buildInfiniteQuerySelector,
       buildMutationSelector,
       selectInvalidatedBy,
       selectCachedArgsForQuery,
@@ -565,6 +587,7 @@ export const coreModule = ({
 
     const {
       buildInitiateQuery,
+      buildInitiateInfiniteQuery,
       buildInitiateMutation,
       getRunningMutationThunk,
       getRunningMutationsThunk,
@@ -573,6 +596,7 @@ export const coreModule = ({
     } = buildInitiate({
       queryThunk,
       mutationThunk,
+      infiniteQueryThunk,
       api,
       serializeQueryArgs: serializeQueryArgs as any,
       context,
@@ -606,7 +630,7 @@ export const coreModule = ({
             },
             buildMatchThunkActions(queryThunk, endpointName),
           )
-        } else if (isMutationDefinition(definition)) {
+        } if (isMutationDefinition(definition)) {
           safeAssign(
             anyApi.endpoints[endpointName],
             {
@@ -615,6 +639,16 @@ export const coreModule = ({
               initiate: buildInitiateMutation(endpointName),
             },
             buildMatchThunkActions(mutationThunk, endpointName),
+          )
+        } if (isInfiniteQueryDefinition(definition)) {
+          safeAssign(
+            anyApi.endpoints[endpointName],
+            {
+              name: endpointName,
+              select: buildInfiniteQuerySelector(endpointName, definition),
+              initiate: buildInitiateInfiniteQuery(endpointName, definition),
+            },
+            buildMatchThunkActions(queryThunk, endpointName)
           )
         }
       },

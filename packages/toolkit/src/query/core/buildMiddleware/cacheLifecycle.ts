@@ -152,6 +152,20 @@ declare module '../../endpointDefinitions' {
     ): Promise<void> | void
   }
 
+  // copying QueryDefinition to get past initial build
+  interface InfiniteQueryExtraOptions<
+    TagTypes extends string,
+    ResultType,
+    QueryArg,
+    BaseQuery extends BaseQueryFn,
+    ReducerPath extends string = string
+  > {
+    onCacheEntryAdded?(
+      arg: QueryArg,
+      api: QueryCacheLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>
+    ): Promise<void> | void
+  }
+
   interface MutationExtraOptions<
     TagTypes extends string,
     ResultType,
