@@ -11,12 +11,12 @@ import type {
   FullTagDescription,
 } from '../../endpointDefinitions'
 import type { QueryStatus, QuerySubState, RootState } from '../apiState'
-import type { QueryThunkArg } from '../buildThunks'
 import { buildCacheCollectionHandler } from './cacheCollection'
 import { buildInvalidationByTagsHandler } from './invalidationByTags'
 import { buildPollingHandler } from './polling'
 import type {
   BuildMiddlewareInput,
+  BuildSubMiddlewareInput,
   InternalHandlerBuilder,
   InternalMiddlewareState,
 } from './types'
@@ -63,7 +63,7 @@ export function buildMiddleware<
       currentSubscriptions: {},
     }
 
-    const builderArgs = {
+    const builderArgs: BuildSubMiddlewareInput = {
       ...(input as any as BuildMiddlewareInput<
         EndpointDefinitions,
         string,
@@ -135,17 +135,13 @@ export function buildMiddleware<
       QuerySubState<any>,
       { status: QueryStatus.uninitialized }
     >,
-    queryCacheKey: string,
-    override: Partial<QueryThunkArg> = {},
   ) {
-    return queryThunk({
-      type: 'query',
-      endpointName: querySubState.endpointName,
-      originalArgs: querySubState.originalArgs,
-      subscribe: false,
-      forceRefetch: true,
-      queryCacheKey: queryCacheKey as any,
-      ...override,
-    })
+    return api.endpoints[querySubState.endpointName].initiate(
+      querySubState.originalArgs as never,
+      {
+        forceRefetch: true,
+        subscribe: false,
+      },
+    )
   }
 }
