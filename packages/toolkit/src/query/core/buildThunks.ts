@@ -5,7 +5,12 @@ import type {
   BaseQueryError,
   QueryReturnValue,
 } from '../baseQueryTypes'
-import type { RootState, QueryKeys, QuerySubstateIdentifier } from './apiState'
+import type {
+  RootState,
+  QueryKeys,
+  QuerySubstateIdentifier,
+  QueryCacheKey,
+} from './apiState'
 import { QueryStatus } from './apiState'
 import type {
   StartQueryActionCreatorOptions,
@@ -46,6 +51,7 @@ import { HandledError } from '../HandledError'
 
 import type { ApiEndpointQuery, PrefetchOptions } from './module'
 import type { UnwrapPromise } from '../tsHelpers'
+import { emplace } from '../../utils'
 
 declare module './module' {
   export interface ApiEndpointQuery<
@@ -170,6 +176,20 @@ export type PatchQueryDataThunk<
   updateProvided?: boolean,
 ) => ThunkAction<void, PartialState, any, UnknownAction>
 
+export type PatchQueriesDataThunk<
+  Definitions extends EndpointDefinitions,
+  PartialState,
+> = (
+  patchesByEndpointName: {
+    [EndpointName in QueryKeys<Definitions>]?: Array<{
+      args: QueryArgFrom<Definitions[EndpointName]>
+      patches: readonly Patch[]
+      updateProvided?: boolean
+    }>
+  },
+  defaultUpdateProvided?: boolean,
+) => ThunkAction<void, PartialState, any, UnknownAction>
+
 export type UpdateQueryDataThunk<
   Definitions extends EndpointDefinitions,
   PartialState,
@@ -179,6 +199,35 @@ export type UpdateQueryDataThunk<
   updateRecipe: Recipe<ResultTypeFrom<Definitions[EndpointName]>>,
   updateProvided?: boolean,
 ) => ThunkAction<PatchCollection, PartialState, any, UnknownAction>
+
+type PatchCollectionArray<InputArray extends any[] = any[]> = {
+  [I in keyof InputArray]: PatchCollection
+}
+
+export type UpdateQueriesDataThunk<
+  Definitions extends EndpointDefinitions,
+  PartialState,
+> = <
+  EndpointMap extends {
+    [EndpointName in QueryKeys<Definitions>]?: Array<{
+      args: QueryArgFrom<Definitions[EndpointName]>
+      updateRecipe: Recipe<ResultTypeFrom<Definitions[EndpointName]>>
+      updateProvided?: boolean
+    }>
+  },
+>(
+  recipesByEndpointName: EndpointMap,
+  defaultUpdateProvided?: boolean,
+) => ThunkAction<
+  {
+    [EndpointName in keyof EndpointMap]: EndpointMap[EndpointName] extends any[]
+      ? PatchCollectionArray<EndpointMap[EndpointName]>
+      : never
+  },
+  PartialState,
+  any,
+  UnknownAction
+>
 
 export type UpsertQueryDataThunk<
   Definitions extends EndpointDefinitions,
@@ -237,86 +286,191 @@ export function buildThunks<
 }) {
   type State = RootState<any, string, ReducerPath>
 
-  const patchQueryData: PatchQueryDataThunk<EndpointDefinitions, State> =
-    (endpointName, args, patches, updateProvided) => (dispatch, getState) => {
-      const endpointDefinition = endpointDefinitions[endpointName]
+  const patchQueriesData: PatchQueriesDataThunk<Definitions, State> =
+    (patchesByEndpointName, defaultUpdateProvided) => (dispatch, getState) => {
+      const queryResultPatches: Parameters<
+        typeof api.internalActions.queryResultsPatched
+      >[0] = []
 
-      const queryCacheKey = serializeQueryArgs({
-        queryArgs: args,
-        endpointDefinition,
-        endpointName,
-      })
+      const arrayified = Object.entries<
+        | {
+            args: any
+            patches: readonly Patch[]
+            updateProvided?: boolean
+          }[]
+        | undefined
+      >(patchesByEndpointName)
+      for (const [endpointName, patches] of arrayified) {
+        if (!patches) continue
+        for (const { args, patches: endpointPatches } of patches) {
+          const endpointDefinition = endpointDefinitions[endpointName]
 
-      dispatch(
-        api.internalActions.queryResultPatched({ queryCacheKey, patches }),
-      )
+          const queryCacheKey = serializeQueryArgs({
+            queryArgs: args,
+            endpointDefinition,
+            endpointName,
+          })
 
-      if (!updateProvided) {
-        return
+          queryResultPatches.push({ queryCacheKey, patches: endpointPatches })
+        }
       }
 
-      const newValue = api.endpoints[endpointName].select(args)(
-        // Work around TS 4.1 mismatch
-        getState() as RootState<any, any, any>,
-      )
+      if (queryResultPatches.length) {
+        dispatch(api.internalActions.queryResultsPatched(queryResultPatches))
+      }
 
-      const providedTags = calculateProvidedBy(
-        endpointDefinition.providesTags,
-        newValue.data,
-        undefined,
-        args,
-        {},
-        assertTagType,
-      )
+      // now that the state is updated, we can update the tags
 
-      dispatch(
-        api.internalActions.updateProvidedBy({ queryCacheKey, providedTags }),
-      )
+      const providedPatches: Parameters<
+        typeof api.internalActions.updateProvidedBys
+      >[0] = []
+
+      for (const [endpointName, patches] of arrayified) {
+        if (!patches) continue
+        for (const {
+          args,
+          updateProvided = defaultUpdateProvided,
+        } of patches) {
+          if (!updateProvided) {
+            continue
+          }
+          const endpointDefinition = endpointDefinitions[endpointName]
+
+          const queryCacheKey = serializeQueryArgs({
+            queryArgs: args,
+            endpointDefinition,
+            endpointName,
+          })
+
+          const newValue = api.endpoints[endpointName].select(args)(
+            // Work around TS 4.1 mismatch
+            getState() as RootState<any, any, any>,
+          )
+
+          const providedTags = calculateProvidedBy(
+            endpointDefinition.providesTags,
+            newValue.data,
+            undefined,
+            args,
+            {},
+            assertTagType,
+          )
+
+          providedPatches.push({ queryCacheKey, providedTags })
+        }
+      }
+      if (providedPatches.length) {
+        dispatch(api.internalActions.updateProvidedBys(providedPatches))
+      }
     }
 
-  const updateQueryData: UpdateQueryDataThunk<EndpointDefinitions, State> =
-    (endpointName, args, updateRecipe, updateProvided = true) =>
+  const patchQueryData: PatchQueryDataThunk<EndpointDefinitions, State> = (
+    endpointName,
+    args,
+    patches,
+    updateProvided,
+  ) => patchQueriesData({ [endpointName]: [{ args, patches, updateProvided }] })
+
+  const updateQueriesData: UpdateQueriesDataThunk<Definitions, State> =
+    (recipesByEndpointName, defaultUpdateProvided = true) =>
     (dispatch, getState) => {
-      const endpointDefinition = api.endpoints[endpointName]
+      const ret: Record<string, Array<PatchCollection>> = {}
+      const patchesByEndpointName: Parameters<
+        PatchQueriesDataThunk<Definitions, State>
+      >[0] = {}
+      const stateCache = new Map<QueryCacheKey, any>()
+      const arrayified = Object.entries<
+        | {
+            args: any
+            updateRecipe: Recipe<any>
+            updateProvided?: boolean
+          }[]
+        | undefined
+      >(recipesByEndpointName)
+      for (const [endpointName, recipes] of arrayified) {
+        if (!recipes) continue
+        const endpointPatches: Array<{
+          args: any
+          patches: readonly Patch[]
+          updateProvided?: boolean
+        }> = (patchesByEndpointName[endpointName as QueryKeys<Definitions>] ??=
+          [])
+        const endpointCollections = (ret[endpointName] ??= [])
+        for (const [
+          idx,
+          { args, updateRecipe, updateProvided = defaultUpdateProvided },
+        ] of recipes.entries()) {
+          const endpointDefinition = endpointDefinitions[endpointName]
+          const endpoint = api.endpoints[endpointName]
 
-      const currentState = endpointDefinition.select(args)(
-        // Work around TS 4.1 mismatch
-        getState() as RootState<any, any, any>,
-      )
+          const queryCacheKey = serializeQueryArgs({
+            queryArgs: args,
+            endpointDefinition,
+            endpointName,
+          })
 
-      let ret: PatchCollection = {
-        patches: [],
-        inversePatches: [],
-        undo: () =>
-          dispatch(
-            api.util.patchQueryData(
-              endpointName,
-              args,
-              ret.inversePatches,
-              updateProvided,
-            ),
-          ),
-      }
-      if (currentState.status === QueryStatus.uninitialized) {
-        return ret
-      }
-      let newValue
-      if ('data' in currentState) {
-        if (isDraftable(currentState.data)) {
-          const [value, patches, inversePatches] = produceWithPatches(
-            currentState.data,
-            updateRecipe,
-          )
-          ret.patches.push(...patches)
-          ret.inversePatches.push(...inversePatches)
-          newValue = value
-        } else {
-          newValue = updateRecipe(currentState.data)
-          ret.patches.push({ op: 'replace', path: [], value: newValue })
-          ret.inversePatches.push({
-            op: 'replace',
-            path: [],
-            value: currentState.data,
+          const currentState: ReturnType<ReturnType<typeof endpoint.select>> =
+            emplace(stateCache, queryCacheKey, {
+              insert: () =>
+                endpoint.select(args)(
+                  // Work around TS 4.1 mismatch
+                  getState() as RootState<any, any, any>,
+                ),
+            })
+
+          let patchCollection: PatchCollection = {
+            patches: [],
+            inversePatches: [],
+            undo: () =>
+              dispatch(
+                api.util.patchQueryData(
+                  endpointName as QueryKeys<Definitions>,
+                  args,
+                  patchCollection.inversePatches,
+                  updateProvided,
+                ),
+              ),
+          }
+
+          if (currentState.status === QueryStatus.uninitialized) {
+            endpointCollections[idx] = patchCollection
+            continue
+          }
+
+          let newValue: any
+          if ('data' in currentState) {
+            if (isDraftable(currentState.data)) {
+              const [value, patches, inversePatches] = produceWithPatches(
+                currentState.data,
+                updateRecipe,
+              )
+              patchCollection.patches.push(...patches)
+              patchCollection.inversePatches.push(...inversePatches)
+              newValue = value
+            } else {
+              newValue = updateRecipe(currentState.data)
+              patchCollection.patches.push({
+                op: 'replace',
+                path: [],
+                value: newValue,
+              })
+              patchCollection.inversePatches.push({
+                op: 'replace',
+                path: [],
+                value: currentState.data,
+              })
+            }
+            // update the state cache with the new value, so that any following recipes will see the updated value
+            emplace(stateCache, queryCacheKey, {
+              update: (v) => ({ ...v, data: newValue }),
+            })
+          }
+
+          endpointCollections[idx] = patchCollection
+          endpointPatches.push({
+            args,
+            patches: patchCollection.patches,
+            updateProvided,
           })
         }
       }
@@ -326,16 +480,20 @@ export function buildThunks<
       }
 
       dispatch(
-        api.util.patchQueryData(
-          endpointName,
-          args,
-          ret.patches,
-          updateProvided,
-        ),
+        api.util.patchQueriesData(patchesByEndpointName, defaultUpdateProvided),
       )
 
-      return ret
+      return ret as any
     }
+
+  const updateQueryData: UpdateQueryDataThunk<EndpointDefinitions, State> =
+    (endpointName, args, updateRecipe, updateProvided = true) =>
+    (dispatch, getState) =>
+      dispatch(
+        updateQueriesData({
+          [endpointName]: [{ args, updateRecipe, updateProvided }],
+        }),
+      )[endpointName][0]
 
   const upsertQueryData: UpsertQueryDataThunk<Definitions, State> =
     (endpointName, args, value) => (dispatch) => {
@@ -668,8 +826,10 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
     mutationThunk,
     prefetch,
     updateQueryData,
+    updateQueriesData,
     upsertQueryData,
     patchQueryData,
+    patchQueriesData,
     buildMatchThunkActions,
   }
 }

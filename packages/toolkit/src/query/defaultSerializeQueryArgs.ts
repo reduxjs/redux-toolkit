@@ -45,8 +45,4 @@ export type SerializeQueryArgs<QueryArgs, ReturnType = string> = (_: {
   endpointName: string
 }) => ReturnType
 
-export type InternalSerializeQueryArgs = (_: {
-  queryArgs: any
-  endpointDefinition: EndpointDefinition<any, any, any, any>
-  endpointName: string
-}) => QueryCacheKey
+export type InternalSerializeQueryArgs = SerializeQueryArgs<any, QueryCacheKey>

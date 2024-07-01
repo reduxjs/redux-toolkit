@@ -3,8 +3,10 @@
  */
 import type {
   PatchQueryDataThunk,
+  PatchQueriesDataThunk,
   UpdateQueryDataThunk,
   UpsertQueryDataThunk,
+  UpdateQueriesDataThunk,
 } from './buildThunks'
 import { buildThunks } from './buildThunks'
 import type {
@@ -249,6 +251,11 @@ declare module '../apiTypes' {
           RootState<Definitions, string, ReducerPath>
         >
 
+        updateQueriesData: UpdateQueriesDataThunk<
+          Definitions,
+          RootState<Definitions, string, ReducerPath>
+        >
+
         /**
          * A Redux thunk action creator that, when dispatched, acts as an artificial API request to upsert a value into the cache.
          *
@@ -299,6 +306,11 @@ declare module '../apiTypes' {
          * ```
          */
         patchQueryData: PatchQueryDataThunk<
+          Definitions,
+          RootState<Definitions, string, ReducerPath>
+        >
+
+        patchQueriesData: PatchQueriesDataThunk<
           Definitions,
           RootState<Definitions, string, ReducerPath>
         >
@@ -500,7 +512,9 @@ export const coreModule = ({
       queryThunk,
       mutationThunk,
       patchQueryData,
+      patchQueriesData,
       updateQueryData,
+      updateQueriesData,
       upsertQueryData,
       prefetch,
       buildMatchThunkActions,
@@ -531,7 +545,9 @@ export const coreModule = ({
 
     safeAssign(api.util, {
       patchQueryData,
+      patchQueriesData,
       updateQueryData,
+      updateQueriesData,
       upsertQueryData,
       prefetch,
       resetApiState: sliceActions.resetApiState,

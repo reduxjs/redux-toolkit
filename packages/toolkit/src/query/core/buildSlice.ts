@@ -127,22 +127,28 @@ export function buildSlice({
         },
         prepare: prepareAutoBatched<QuerySubstateIdentifier>(),
       },
-      queryResultPatched: {
+      queryResultsPatched: {
         reducer(
           draft,
           {
-            payload: { queryCacheKey, patches },
+            payload,
           }: PayloadAction<
-            QuerySubstateIdentifier & { patches: readonly Patch[] }
+            Array<QuerySubstateIdentifier & { patches: readonly Patch[] }>
           >,
         ) {
-          updateQuerySubstateIfExists(draft, queryCacheKey, (substate) => {
-            substate.data = applyPatches(substate.data as any, patches.concat())
-          })
+          for (const { queryCacheKey, patches } of payload) {
+            updateQuerySubstateIfExists(draft, queryCacheKey, (substate) => {
+              substate.data = applyPatches(
+                substate.data as any,
+                patches.concat(),
+              )
+            })
+          }
         },
-        prepare: prepareAutoBatched<
-          QuerySubstateIdentifier & { patches: readonly Patch[] }
-        >(),
+        prepare:
+          prepareAutoBatched<
+            Array<QuerySubstateIdentifier & { patches: readonly Patch[] }>
+          >(),
       },
     },
     extraReducers(builder) {
@@ -330,39 +336,46 @@ export function buildSlice({
     name: `${reducerPath}/invalidation`,
     initialState: initialState as InvalidationState<string>,
     reducers: {
-      updateProvidedBy: {
+      updateProvidedBys: {
         reducer(
           draft,
-          action: PayloadAction<{
-            queryCacheKey: QueryCacheKey
-            providedTags: readonly FullTagDescription<string>[]
-          }>,
+          action: PayloadAction<
+            Array<{
+              queryCacheKey: QueryCacheKey
+              providedTags: readonly FullTagDescription<string>[]
+            }>
+          >,
         ) {
-          const { queryCacheKey, providedTags } = action.payload
+          for (const { queryCacheKey, providedTags } of action.payload) {
+            for (const tagTypeSubscriptions of Object.values(draft)) {
+              for (const idSubscriptions of Object.values(
+                tagTypeSubscriptions,
+              )) {
+                const foundAt = idSubscriptions.indexOf(queryCacheKey)
+                if (foundAt !== -1) {
+                  idSubscriptions.splice(foundAt, 1)
+                }
+              }
+            }
 
-          for (const tagTypeSubscriptions of Object.values(draft)) {
-            for (const idSubscriptions of Object.values(tagTypeSubscriptions)) {
-              const foundAt = idSubscriptions.indexOf(queryCacheKey)
-              if (foundAt !== -1) {
-                idSubscriptions.splice(foundAt, 1)
+            for (const { type, id } of providedTags) {
+              const subscribedQueries = ((draft[type] ??= {})[
+                id || '__internal_without_id'
+              ] ??= [])
+              const alreadySubscribed =
+                subscribedQueries.includes(queryCacheKey)
+              if (!alreadySubscribed) {
+                subscribedQueries.push(queryCacheKey)
               }
             }
           }
-
-          for (const { type, id } of providedTags) {
-            const subscribedQueries = ((draft[type] ??= {})[
-              id || '__internal_without_id'
-            ] ??= [])
-            const alreadySubscribed = subscribedQueries.includes(queryCacheKey)
-            if (!alreadySubscribed) {
-              subscribedQueries.push(queryCacheKey)
-            }
-          }
         },
-        prepare: prepareAutoBatched<{
-          queryCacheKey: QueryCacheKey
-          providedTags: readonly FullTagDescription<string>[]
-        }>(),
+        prepare: prepareAutoBatched<
+          Array<{
+            queryCacheKey: QueryCacheKey
+            providedTags: readonly FullTagDescription<string>[]
+          }>
+        >(),
       },
     },
     extraReducers(builder) {
@@ -410,12 +423,14 @@ export function buildSlice({
             )
             const { queryCacheKey } = action.meta.arg
 
-            invalidationSlice.caseReducers.updateProvidedBy(
+            invalidationSlice.caseReducers.updateProvidedBys(
               draft,
-              invalidationSlice.actions.updateProvidedBy({
-                queryCacheKey,
-                providedTags,
-              }),
+              invalidationSlice.actions.updateProvidedBys([
+                {
+                  queryCacheKey,
+                  providedTags,
+                },
+              ]),
             )
           },
         )
