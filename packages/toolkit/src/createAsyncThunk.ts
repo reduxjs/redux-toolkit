@@ -1,4 +1,4 @@
-import type { Dispatch, UnknownAction } from 'redux'
+import type { Action, Dispatch, UnknownAction } from 'redux'
 import type {
   PayloadAction,
   ActionCreatorWithPreparedPayload,
@@ -112,6 +112,10 @@ export const miniSerializeError = (value: any): SerializedError => {
   }
 
   return { message: String(value) }
+}
+
+export class DispatchError {
+  constructor(public readonly cause: unknown) {}
 }
 
 export type AsyncThunkConfig = {
@@ -617,16 +621,20 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
               }
               abortController.signal.addEventListener('abort', abortHandler)
             })
-            dispatch(
-              pending(
-                requestId,
-                arg,
-                options?.getPendingMeta?.(
-                  { requestId, arg },
-                  { getState, extra },
-                ),
-              ) as any,
-            )
+            try {
+              dispatch(
+                pending(
+                  requestId,
+                  arg,
+                  options?.getPendingMeta?.(
+                    { requestId, arg },
+                    { getState, extra },
+                  ),
+                ) as any,
+              )
+            } catch (err) {
+              throw new DispatchError(err)
+            }
             finalAction = await Promise.race([
               abortedPromise,
               Promise.resolve(
@@ -658,6 +666,9 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
               }),
             ])
           } catch (err) {
+            if (err instanceof DispatchError) {
+              throw err.cause
+            }
             finalAction =
               err instanceof RejectWithValue
                 ? rejected(null, requestId, arg, err.payload, err.meta)

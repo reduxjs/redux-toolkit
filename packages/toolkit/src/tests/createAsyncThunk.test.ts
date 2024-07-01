@@ -991,3 +991,42 @@ describe('meta', () => {
     expect(thunk.fulfilled.type).toBe('a/fulfilled')
   })
 })
+
+describe('reducer errors will be rethrown', () => {
+  const asyncThunk = createAsyncThunk('test', async (shouldThrow: boolean) => {
+    await delay(100)
+    if (shouldThrow) {
+      throw new Error('Error in reducer')
+    }
+    return 'Success'
+  })
+  const faultStoreForType = (type: 'pending' | 'fulfilled' | 'rejected') =>
+    configureStore({
+      reducer(state = null, action) {
+        // obviously reducers shouldn't ever throw - but legitimate errors do happen, with typos for example
+        if (asyncThunk[type].match(action)) {
+          throw new Error('Error in reducer')
+        }
+        return state
+      },
+    })
+  // TODO: this breaks our promise that not unwrapping will never throw - do we care?
+  it('rethrows errors found when dispatching pending action', async () => {
+    const store = faultStoreForType('pending')
+    await expect(store.dispatch(asyncThunk(false))).rejects.toThrowError(
+      'Error in reducer',
+    )
+  })
+  it('rethrows errors found when dispatching fulfilled action', async () => {
+    const store = faultStoreForType('fulfilled')
+    await expect(store.dispatch(asyncThunk(false))).rejects.toThrowError(
+      'Error in reducer',
+    )
+  })
+  it('rethrows errors found when dispatching rejected action', async () => {
+    const store = faultStoreForType('rejected')
+    await expect(store.dispatch(asyncThunk(true))).rejects.toThrowError(
+      'Error in reducer',
+    )
+  })
+})

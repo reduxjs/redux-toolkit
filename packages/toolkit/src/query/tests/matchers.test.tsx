@@ -3,6 +3,7 @@ import {
   hookWaitFor,
   setupApiStore,
 } from '@internal/tests/utils/helpers'
+import type { UnknownAction } from '@reduxjs/toolkit'
 import { createSlice } from '@reduxjs/toolkit'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import { act, renderHook } from '@testing-library/react'
@@ -237,5 +238,36 @@ test('inferred types', () => {
           (state, action) => {},
         )
     },
+  })
+})
+
+describe('errors in reducers are not swallowed', () => {
+  const faultyStoreFor = (matcher: (action: UnknownAction) => boolean) =>
+    setupApiStore(api, {
+      ...actionsReducer,
+      faultyReducer(state = null, action: UnknownAction) {
+        if (matcher(action)) {
+          throw new Error('reducer error')
+        }
+        return state
+      },
+    })
+  test('pending action reducer errors should be thrown', async () => {
+    const storeRef = faultyStoreFor(api.endpoints.querySuccess.matchPending)
+    await expect(
+      storeRef.store.dispatch(querySuccess2.initiate({} as any)),
+    ).rejects.toThrow('reducer error')
+  })
+  test('fulfilled action reducer errors should be thrown', async () => {
+    const storeRef = faultyStoreFor(api.endpoints.querySuccess.matchFulfilled)
+    await expect(
+      storeRef.store.dispatch(querySuccess2.initiate({} as any)),
+    ).rejects.toThrow('reducer error')
+  })
+  test('rejected action reducer errors should be thrown', async () => {
+    const storeRef = faultyStoreFor(api.endpoints.queryFail.matchRejected)
+    await expect(
+      storeRef.store.dispatch(queryFail.initiate({} as any)),
+    ).rejects.toThrow('reducer error')
   })
 })
