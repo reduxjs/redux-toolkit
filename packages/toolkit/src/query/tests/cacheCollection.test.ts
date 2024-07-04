@@ -156,6 +156,43 @@ describe(`query: await cleanup, keepUnusedDataFor set`, () => {
   })
 })
 
+describe('removeCacheData', () => {
+  const { store, api } = storeForApi(
+    createApi({
+      baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
+      endpoints: (build) => ({
+        query: build.query<unknown, string>({
+          query: () => '/success',
+        }),
+      }),
+    }),
+  )
+
+  test('removeQueryData no impact if queryCacheKey different', async () => {
+    const promise = store.dispatch(api.endpoints.query.initiate('arg'))
+    await promise
+    const initialResponse = api.endpoints.query.select('arg')(store.getState())
+    expect(initialResponse.data).toBeDefined()
+
+    store.dispatch(api.util?.removeQueryData('query', 'argThatIsDifferent'))
+
+    const removedResult = api.endpoints.query.select('arg')(store.getState())
+    expect(removedResult.data).toBeDefined()
+  })
+
+  test('removeQueryData removes data of matching queryCacheKey', async () => {
+    const promise = store.dispatch(api.endpoints.query.initiate('arg'))
+    await promise
+    const initialResponse = api.endpoints.query.select('arg')(store.getState())
+    expect(initialResponse.data).toBeDefined()
+
+    store.dispatch(api.util?.removeQueryData('query', 'arg'))
+
+    const removedResult = api.endpoints.query.select('arg')(store.getState())
+    expect(removedResult.data).toBeUndefined()
+  })
+})
+
 function storeForApi<
   A extends {
     reducerPath: 'api'

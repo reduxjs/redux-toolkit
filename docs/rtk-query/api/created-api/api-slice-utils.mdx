@@ -197,6 +197,42 @@ dispatch(
 patchCollection.undo()
 ```
 
+### `removeQueryData`
+
+#### Signature
+
+```ts no-transpile
+const removeQueryData = (
+  endpointName: string,
+  args: any
+) => ThunkAction<void, PartialState, any, UnknownAction>;
+```
+
+- **Parameters**
+  - `endpointName`: a string matching an existing endpoint name
+  - `args`: a cache key, used to determine which cached dataset needs to be updated
+
+#### Description
+
+A Redux thunk that removes a specific query result from the cache. This immediately updates the Redux state with those changes.
+
+The thunk accepts two arguments: the name of the endpoint we are updating (such as `'getPost'`) and the appropriate query arg values to construct the desired cache key.
+
+#### Example
+
+```ts no-transpile
+const patchCollection = dispatch(
+  api.endpoints.getPosts.initiate(undefined),
+
+// when cache data should be removed
+dispatch(
+  api.util.removeQueryData(
+    'getPosts',
+    undefined,
+  ),
+)
+```
+
 ### `prefetch`
 
 #### Signature

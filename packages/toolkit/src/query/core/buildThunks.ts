@@ -198,6 +198,14 @@ export type UpsertQueryDataThunk<
   UnknownAction
 >
 
+export type RemoveQueryDataThunk<
+  Definitions extends EndpointDefinitions,
+  PartialState,
+> = <EndpointName extends QueryKeys<Definitions>>(
+  endpointName: EndpointName,
+  args: QueryArgFrom<Definitions[EndpointName]>,
+) => ThunkAction<void, PartialState, any, UnknownAction>
+
 /**
  * An object returned from dispatching a `api.util.updateQueryData` call.
  */
@@ -353,6 +361,22 @@ export function buildThunks<
           }),
         }),
       )
+    }
+
+  const removeQueryData: RemoveQueryDataThunk<EndpointDefinitions, State> =
+    (endpointName, args) => (dispatch) => {
+      const endpointDefinition = endpointDefinitions[endpointName]
+
+      const queryCacheKey = serializeQueryArgs({
+        queryArgs: args,
+        endpointDefinition,
+        endpointName,
+      })
+
+
+      return dispatch(api.internalActions.removeQueryResult({
+        queryCacheKey
+      }))
     }
 
   const executeEndpoint: AsyncThunkPayloadCreator<
@@ -670,6 +694,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
     updateQueryData,
     upsertQueryData,
     patchQueryData,
+    removeQueryData,
     buildMatchThunkActions,
   }
 }

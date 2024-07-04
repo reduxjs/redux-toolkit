@@ -5,6 +5,7 @@ import type {
   PatchQueryDataThunk,
   UpdateQueryDataThunk,
   UpsertQueryDataThunk,
+  RemoveQueryDataThunk,
 } from './buildThunks'
 import { buildThunks } from './buildThunks'
 import type {
@@ -304,6 +305,22 @@ declare module '../apiTypes' {
         >
 
         /**
+         * A Redux thunk that removes a specific query result from the cache. This immediately updates the Redux state with those changes.
+         *
+         * The thunk accepts two arguments: the name of the endpoint we are updating (such as `'getPost'`) and the appropriate query arg values to construct the desired cache key.
+         *
+         * @example
+         *
+         * ```ts
+         * dispatch(api.util.removeQueryData('getPost', { id: 1 }))
+         * ```
+         */
+        removeQueryData: RemoveQueryDataThunk<
+          Definitions,
+          RootState<Definitions, string, ReducerPath>
+        >
+
+        /**
          * A Redux action creator that can be dispatched to manually reset the api state completely. This will immediately remove all existing cache entries, and all queries will be considered 'uninitialized'.
          *
          * @example
@@ -502,6 +519,7 @@ export const coreModule = ({
       patchQueryData,
       updateQueryData,
       upsertQueryData,
+      removeQueryData,
       prefetch,
       buildMatchThunkActions,
     } = buildThunks({
@@ -533,6 +551,7 @@ export const coreModule = ({
       patchQueryData,
       updateQueryData,
       upsertQueryData,
+      removeQueryData,
       prefetch,
       resetApiState: sliceActions.resetApiState,
     })
