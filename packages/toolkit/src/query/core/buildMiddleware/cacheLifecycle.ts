@@ -130,7 +130,7 @@ export type MutationCacheLifecycleApi<
 
 export type ReferenceCacheLifecycle = never
 
-export const neverResolvedError = new Error(
+const neverResolvedError = new Error(
   'Promise never resolved before cacheEntryRemoved.',
 ) as Error & {
   message: 'Promise never resolved before cacheEntryRemoved.'
