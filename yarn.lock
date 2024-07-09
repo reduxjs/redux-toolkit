@@ -5793,9 +5793,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@examples-type-portability/bundler@workspace:examples/type-portability":
+"@examples-type-portability/bundler@workspace:examples/type-portability/bundler":
   version: 0.0.0-use.local
-  resolution: "@examples-type-portability/bundler@workspace:examples/type-portability"
+  resolution: "@examples-type-portability/bundler@workspace:examples/type-portability/bundler"
   dependencies:
     "@reduxjs/toolkit": "workspace:^"
     "@testing-library/jest-dom": "npm:^6.4.6"
