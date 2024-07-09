@@ -108,6 +108,7 @@ jobs:
       fail-fast: false
       matrix:
         node: ['20.x']
+        ts: [5.0, 5.1, 5.2, 5.3, 5.4, 5.5]
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -128,6 +129,9 @@ jobs:
 
       - name: Install build artifact
         run: yarn workspace @examples-type-portability/bundler add $(pwd)/package.tgz
+
+      - name: Install TypeScript ${{ matrix.ts }}
+        run: yarn workspace @examples-type-portability/bundler add -D typescript@${{ matrix.ts }}
 
       - name: Test type portability with `moduleResolution Bundler`
         run: yarn workspace @examples-type-portability/bundler run test
