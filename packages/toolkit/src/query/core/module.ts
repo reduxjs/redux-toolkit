@@ -39,34 +39,6 @@ import { buildThunks } from './buildThunks'
 import { createSelector as _createSelector } from './rtkImports'
 import { onFocus, onFocusLost, onOffline, onOnline } from './setupListeners'
 
-export interface ApiEndpointMutation<
-  Definition extends MutationDefinition<any, any, any, any, any>,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  Definitions extends EndpointDefinitions,
-> extends Matchers<MutationThunk, Definition> {}
-
-export interface ApiEndpointMutation<
-  Definition extends MutationDefinition<any, any, any, any, any>,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  Definitions extends EndpointDefinitions,
-> {
-  initiate: StartMutationActionCreator<Definition>
-}
-
-export interface ApiEndpointMutation<
-  Definition extends MutationDefinition<any, any, any, any, any>,
-  Definitions extends EndpointDefinitions,
-> {
-  select: MutationResultSelectorFactory<
-    Definition,
-    RootState<
-      Definitions,
-      TagTypesFrom<Definition>,
-      ReducerPathFrom<Definition>
-    >
-  >
-}
-
 /**
  * `ifOlderThan` - (default: `false` | `number`) - _number is value in seconds_
  * - If specified, it will only run the query if the difference between `new Date()` and the last `fulfilledTimeStamp` is greater than the given value
@@ -120,7 +92,18 @@ export interface ApiEndpointMutation<
   Definition extends MutationDefinition<any, any, any, any, any>,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Definitions extends EndpointDefinitions,
-> {
+> extends Matchers<MutationThunk, Definition> {
+  initiate: StartMutationActionCreator<Definition>
+
+  select: MutationResultSelectorFactory<
+    Definition,
+    RootState<
+      Definitions,
+      TagTypesFrom<Definition>,
+      ReducerPathFrom<Definition>
+    >
+  >
+
   name: string
   /**
    * All of these are `undefined` at runtime, purely to be used in TypeScript declarations!
