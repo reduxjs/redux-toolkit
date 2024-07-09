@@ -20,7 +20,7 @@
     "@types/node": "^20.14.5",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
-    "typescript": "^5.4.5",
+    "typescript": "^5.5.3",
     "whatwg-fetch": "^3.6.20"
   },
   "eslintConfig": {
