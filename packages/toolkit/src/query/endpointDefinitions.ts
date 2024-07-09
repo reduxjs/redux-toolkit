@@ -189,11 +189,11 @@ export interface MutationExtraOptions<
 const resultType = /* @__PURE__ */ Symbol()
 const baseQuery = /* @__PURE__ */ Symbol()
 
-interface EndpointDefinitionWithQuery<
+type EndpointDefinitionWithQuery<
   QueryArg,
   BaseQuery extends BaseQueryFn,
   ResultType,
-> {
+> = {
   /**
    * `query` can be a function that returns either a `string` or an `object` which is passed to your `baseQuery`. If you are using [fetchBaseQuery](./fetchBaseQuery), this can return either a `string` or an `object` of properties in `FetchArgs`. If you use your own custom [`baseQuery`](../../rtk-query/usage/customizing-queries), you can customize this behavior to your liking.
    *
