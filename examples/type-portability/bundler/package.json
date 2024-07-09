@@ -2,7 +2,7 @@
   "name": "@examples-type-portability/bundler",
   "private": true,
   "version": "1.0.0",
-  "description": "testing type portability",
+  "description": "testing type portability for moduleResolution Bundler",
   "keywords": [],
   "main": "src/index.tsx",
   "dependencies": {
