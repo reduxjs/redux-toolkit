@@ -128,10 +128,14 @@ jobs:
           path: packages/toolkit
 
       - name: Install build artifact
-        run: yarn workspace @examples-type-portability/bundler add $(pwd)/package.tgz
+        run: |
+          yarn workspace @examples-type-portability/bundler add $(pwd)/package.tgz
+          yarn workspace @examples-type-portability/nodenext-cjs add $(pwd)/package.tgz
 
       - name: Install TypeScript ${{ matrix.ts }}
-        run: yarn workspace @examples-type-portability/bundler add -D typescript@${{ matrix.ts }}
+        run: |
+          yarn workspace @examples-type-portability/bundler add -D typescript@${{ matrix.ts }}
+          yarn workspace @examples-type-portability/nodenext-cjs add -D typescript@${{ matrix.ts }}
 
       - name: Test type portability with `moduleResolution Bundler`
         run: yarn workspace @examples-type-portability/bundler run test
@@ -143,6 +147,9 @@ jobs:
         run: |
           npm --workspace=@examples-type-portability/bundler pkg set type=module
           yarn workspace @examples-type-portability/bundler run test --module ESNext --moduleResolution Node10 --preserveSymLinks
+
+      - name: Test type portability with `moduleResolution NodeNext, CJS syntax and `type commonjs` in `package.json`
+        run: yarn workspace @examples-type-portability/nodenext-cjs run test --module NodeNext --moduleResolution NodeNext
 
   test-types:
     name: Test Types with TypeScript ${{ matrix.ts }}
