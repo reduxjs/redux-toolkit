@@ -46,17 +46,6 @@ import type {
 export interface ApiModules<
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   BaseQuery extends BaseQueryFn,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  Definitions extends EndpointDefinitions,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  ReducerPath extends string,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  TagTypes extends string,
-> {}
-
-export interface ApiModules<
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  BaseQuery extends BaseQueryFn,
   Definitions extends EndpointDefinitions,
   ReducerPath extends string,
   TagTypes extends string,
