@@ -28,85 +28,6 @@ import type {
   UnwrapPromise,
 } from './tsHelpers'
 
-export interface QueryExtraOptions<
-  TagTypes extends string,
-  ResultType,
-  QueryArg,
-  BaseQuery extends BaseQueryFn,
-  ReducerPath extends string = string,
-> {
-  onCacheEntryAdded?(
-    arg: QueryArg,
-    api: QueryCacheLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
-  ): Promise<void> | void
-}
-
-export interface QueryExtraOptions<
-  TagTypes extends string,
-  ResultType,
-  QueryArg,
-  BaseQuery extends BaseQueryFn,
-  ReducerPath extends string = string,
-> {
-  /**
-   * Overrides the api-wide definition of `keepUnusedDataFor` for this endpoint only. _(This value is in seconds.)_
-   *
-   * This is how long RTK Query will keep your data cached for **after** the last component unsubscribes. For example, if you query an endpoint, then unmount the component, then mount another component that makes the same request within the given time frame, the most recent value will be served from the cache.
-   */
-  keepUnusedDataFor?: number
-}
-
-export interface QueryExtraOptions<
-  TagTypes extends string,
-  ResultType,
-  QueryArg,
-  BaseQuery extends BaseQueryFn,
-  ReducerPath extends string = string,
-> {
-  /**
-   * A function that is called when the individual query is started. The function is called with a lifecycle api object containing properties such as `queryFulfilled`, allowing code to be run when a query is started, when it succeeds, and when it fails (i.e. throughout the lifecycle of an individual query/mutation call).
-   *
-   * Can be used to perform side-effects throughout the lifecycle of the query.
-   *
-   * @example
-   * ```ts
-   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
-   * import { messageCreated } from './notificationsSlice
-   * export interface Post {
-   *   id: number
-   *   name: string
-   * }
-   *
-   * const api = createApi({
-   *   baseQuery: fetchBaseQuery({
-   *     baseUrl: '/',
-   *   }),
-   *   endpoints: (build) => ({
-   *     getPost: build.query<Post, number>({
-   *       query: (id) => `post/${id}`,
-   *       async onQueryStarted(id, { dispatch, queryFulfilled }) {
-   *         // `onStart` side-effect
-   *         dispatch(messageCreated('Fetching posts...'))
-   *         try {
-   *           const { data } = await queryFulfilled
-   *           // `onSuccess` side-effect
-   *           dispatch(messageCreated('Posts received!'))
-   *         } catch (err) {
-   *           // `onError` side-effect
-   *           dispatch(messageCreated('Error fetching posts!'))
-   *         }
-   *       }
-   *     }),
-   *   }),
-   * })
-   * ```
-   */
-  onQueryStarted?(
-    arg: QueryArg,
-    api: QueryLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
-  ): Promise<void> | void
-}
-
 const resultType = /* @__PURE__ */ Symbol()
 const baseQuery = /* @__PURE__ */ Symbol()
 
@@ -351,6 +272,62 @@ export interface QueryExtraOptions<
   ReducerPath extends string = string,
 > {
   type: DefinitionType.query
+
+  onCacheEntryAdded?(
+    arg: QueryArg,
+    api: QueryCacheLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
+  ): Promise<void> | void
+
+  /**
+   * Overrides the api-wide definition of `keepUnusedDataFor` for this endpoint only. _(This value is in seconds.)_
+   *
+   * This is how long RTK Query will keep your data cached for **after** the last component unsubscribes. For example, if you query an endpoint, then unmount the component, then mount another component that makes the same request within the given time frame, the most recent value will be served from the cache.
+   */
+  keepUnusedDataFor?: number
+
+  /**
+   * A function that is called when the individual query is started. The function is called with a lifecycle api object containing properties such as `queryFulfilled`, allowing code to be run when a query is started, when it succeeds, and when it fails (i.e. throughout the lifecycle of an individual query/mutation call).
+   *
+   * Can be used to perform side-effects throughout the lifecycle of the query.
+   *
+   * @example
+   * ```ts
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+   * import { messageCreated } from './notificationsSlice
+   * export interface Post {
+   *   id: number
+   *   name: string
+   * }
+   *
+   * const api = createApi({
+   *   baseQuery: fetchBaseQuery({
+   *     baseUrl: '/',
+   *   }),
+   *   endpoints: (build) => ({
+   *     getPost: build.query<Post, number>({
+   *       query: (id) => `post/${id}`,
+   *       async onQueryStarted(id, { dispatch, queryFulfilled }) {
+   *         // `onStart` side-effect
+   *         dispatch(messageCreated('Fetching posts...'))
+   *         try {
+   *           const { data } = await queryFulfilled
+   *           // `onSuccess` side-effect
+   *           dispatch(messageCreated('Posts received!'))
+   *         } catch (err) {
+   *           // `onError` side-effect
+   *           dispatch(messageCreated('Error fetching posts!'))
+   *         }
+   *       }
+   *     }),
+   *   }),
+   * })
+   * ```
+   */
+  onQueryStarted?(
+    arg: QueryArg,
+    api: QueryLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
+  ): Promise<void> | void
+
   /**
    * Used by `query` endpoints. Determines which 'tag' is attached to the cached data returned by the query.
    * Expects an array of tag type strings, an array of objects of tag types with ids, or a function that returns such an array.
