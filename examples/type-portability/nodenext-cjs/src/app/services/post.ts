@@ -1,6 +1,6 @@
 import apiModule = require('./api.js')
 
-import type { Post } from './posts.js' with { 'resolution-mode': 'require' }
+import type { Post } from './posts.js'
 
 namespace postModule {
   import apiSlice = apiModule.apiSlice

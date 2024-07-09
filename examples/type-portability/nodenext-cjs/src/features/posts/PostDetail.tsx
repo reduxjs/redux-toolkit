@@ -4,10 +4,7 @@ import hooksModule = require('../../app/hooks.js')
 import postsModule = require('../../app/services/posts.js')
 import pollingSliceModule = require('../polling/pollingSlice.js')
 
-import type {
-  ChangeEvent,
-  FormEventHandler,
-} from 'react' with { 'resolution-mode': 'require' }
+import type { ChangeEvent, FormEventHandler } from 'react'
 
 import useState = React.useState
 import useNavigate = ReactRouterDom.useNavigate

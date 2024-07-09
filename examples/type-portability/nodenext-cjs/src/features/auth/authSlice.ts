@@ -1,7 +1,7 @@
 import ReduxToolkit = require('@reduxjs/toolkit')
 import postsModule = require('../../app/services/posts.js')
 
-import type { User } from '../../app/services/posts.js' with { 'resolution-mode': 'require' }
+import type { User } from '../../app/services/posts.js'
 
 namespace authSliceModule {
   import createSlice = ReduxToolkit.createSlice

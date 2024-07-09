@@ -1,10 +1,6 @@
 import ReactRedux = require('react-redux')
 
-import type {
-  AppDispatch,
-  AppStore,
-  RootState,
-} from './store.js' with { 'resolution-mode': 'require' }
+import type { AppDispatch, AppStore, RootState } from './store.js'
 
 namespace hooksModule {
   import useDispatch = ReactRedux.useDispatch

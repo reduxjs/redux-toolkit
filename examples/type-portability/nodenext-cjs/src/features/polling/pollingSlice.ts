@@ -1,7 +1,7 @@
 import ReduxToolkit = require('@reduxjs/toolkit')
 
-import type { PayloadAction } from '@reduxjs/toolkit' with { 'resolution-mode': 'require' }
-import type { RootState } from '../../app/store.js' with { 'resolution-mode': 'require' }
+import type { PayloadAction } from '@reduxjs/toolkit'
+import type { RootState } from '../../app/store.js'
 
 namespace pollingSliceModule {
   import createSlice = ReduxToolkit.createSlice

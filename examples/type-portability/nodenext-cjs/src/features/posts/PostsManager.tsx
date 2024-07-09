@@ -5,11 +5,8 @@ import postsModule = require('../../app/services/posts.js')
 import authSliceModule = require('../auth/authSlice.js')
 import PostDetail = require('./PostDetail.js')
 
-import type {
-  ChangeEvent,
-  FormEventHandler,
-} from 'react' with { 'resolution-mode': 'require' }
-import type { Post } from '../../app/services/posts.js' with { 'resolution-mode': 'require' }
+import type { ChangeEvent, FormEventHandler } from 'react'
+import type { Post } from '../../app/services/posts.js'
 
 import useState = React.useState
 import useDispatch = ReactRedux.useDispatch

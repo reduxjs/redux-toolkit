@@ -1,7 +1,7 @@
 import hooksModule = require('../../app/hooks.js')
 import pollingSliceModule = require('./pollingSlice.js')
 
-import type { ReactNode } from 'react' with { 'resolution-mode': 'require' }
+import type { ReactNode } from 'react'
 
 import useAppDispatch = hooksModule.useAppDispatch
 import useAppSelector = hooksModule.useAppSelector

@@ -1,6 +1,6 @@
 import RTKQueryReact = require('@reduxjs/toolkit/query/react')
 
-import type { RootState } from '../store.js' with { 'resolution-mode': 'require' }
+import type { RootState } from '../store.js'
 
 namespace apiModule {
   import createApi = RTKQueryReact.createApi
