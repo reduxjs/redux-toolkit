@@ -136,6 +136,9 @@ jobs:
       - name: Test type portability with `moduleResolution Bundler`
         run: yarn workspace @examples-type-portability/bundler run test
 
+      - name: Test type portability with `moduleResolution Node10`
+        run: yarn workspace @examples-type-portability/bundler run test --module ESNext --moduleResolution Node10
+
   test-types:
     name: Test Types with TypeScript ${{ matrix.ts }}
 
