@@ -19,6 +19,7 @@ export type {
   BaseQueryFn,
 } from './baseQueryTypes'
 export type {
+  BaseEndpointDefinition,
   EndpointDefinitions,
   EndpointDefinition,
   EndpointBuilder,
