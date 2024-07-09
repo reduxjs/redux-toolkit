@@ -109,7 +109,7 @@ jobs:
       matrix:
         node: ['20.x']
         ts: ['5.0', '5.1', '5.2', '5.3', '5.4', '5.5', 'next']
-        examples:
+        example:
           [
             { name: 'bundler', moduleResolution: 'Bundler' },
             { name: 'nodenext-cjs', moduleResolution: 'NodeNext' },
@@ -134,16 +134,16 @@ jobs:
           path: packages/toolkit
 
       - name: Install build artifact
-        run: yarn workspace @examples-type-portability/${{ matrix.examples.name }} add $(pwd)/package.tgz
+        run: yarn workspace @examples-type-portability/${{ matrix.example.name }} add $(pwd)/package.tgz
 
       - name: Install TypeScript ${{ matrix.ts }}
-        run: yarn workspace @examples-type-portability/${{ matrix.examples.name }} add -D typescript@${{ matrix.ts }}
+        run: yarn workspace @examples-type-portability/${{ matrix.example.name }} add -D typescript@${{ matrix.ts }}
 
-      - name: Test type portability with `moduleResolution ${{ matrix.examples.moduleResolution }}`
-        run: yarn workspace @examples-type-portability/${{ matrix.examples.name }} run test
+      - name: Test type portability with `moduleResolution ${{ matrix.example.moduleResolution }}`
+        run: yarn workspace @examples-type-portability/${{ matrix.example.name }} run test
 
       - name: Test type portability with `moduleResolution Node10`
-        run: yarn workspace @examples-type-portability/${{ matrix.examples.name }} run test --module ESNext --moduleResolution Node10
+        run: yarn workspace @examples-type-portability/${{ matrix.example.name }} run test --module ESNext --moduleResolution Node10
 
       - name: Test type portability with `moduleResolution Node10` and `type module` in `package.json`
         run: |
