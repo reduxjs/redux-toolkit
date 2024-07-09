@@ -265,11 +265,11 @@ interface EndpointDefinitionWithQuery<
   structuralSharing?: boolean
 }
 
-interface EndpointDefinitionWithQueryFn<
+type EndpointDefinitionWithQueryFn<
   QueryArg,
   BaseQuery extends BaseQueryFn,
   ResultType,
-> {
+> = {
   /**
    * Can be used in place of `query` as an inline function that bypasses `baseQuery` completely for the endpoint.
    *
