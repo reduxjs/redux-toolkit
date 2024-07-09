@@ -39,25 +39,11 @@ import { buildThunks } from './buildThunks'
 import { createSelector as _createSelector } from './rtkImports'
 import { onFocus, onFocusLost, onOffline, onOnline } from './setupListeners'
 
-export interface ApiEndpointQuery<
-  Definition extends QueryDefinition<any, any, any, any, any>,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  Definitions extends EndpointDefinitions,
-> extends Matchers<QueryThunk, Definition> {}
-
 export interface ApiEndpointMutation<
   Definition extends MutationDefinition<any, any, any, any, any>,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Definitions extends EndpointDefinitions,
 > extends Matchers<MutationThunk, Definition> {}
-
-export interface ApiEndpointQuery<
-  Definition extends QueryDefinition<any, any, any, any, any>,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  Definitions extends EndpointDefinitions,
-> {
-  initiate: StartQueryActionCreator<Definition>
-}
 
 export interface ApiEndpointMutation<
   Definition extends MutationDefinition<any, any, any, any, any>,
@@ -65,20 +51,6 @@ export interface ApiEndpointMutation<
   Definitions extends EndpointDefinitions,
 > {
   initiate: StartMutationActionCreator<Definition>
-}
-
-export interface ApiEndpointQuery<
-  Definition extends QueryDefinition<any, any, any, any, any>,
-  Definitions extends EndpointDefinitions,
-> {
-  select: QueryResultSelectorFactory<
-    Definition,
-    RootState<
-      Definitions,
-      TagTypesFrom<Definition>,
-      ReducerPathFrom<Definition>
-    >
-  >
 }
 
 export interface ApiEndpointMutation<
@@ -123,7 +95,18 @@ export interface ApiEndpointQuery<
   Definition extends QueryDefinition<any, any, any, any, any>,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Definitions extends EndpointDefinitions,
-> {
+> extends Matchers<QueryThunk, Definition> {
+  initiate: StartQueryActionCreator<Definition>
+
+  select: QueryResultSelectorFactory<
+    Definition,
+    RootState<
+      Definitions,
+      TagTypesFrom<Definition>,
+      ReducerPathFrom<Definition>
+    >
+  >
+
   name: string
   /**
    * All of these are `undefined` at runtime, purely to be used in TypeScript declarations!
