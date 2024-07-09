@@ -101,7 +101,7 @@ jobs:
         run: rm -rf dist && yarn tsc -p . --moduleResolution Bundler --module ESNext --noEmit false --declaration --emitDeclarationOnly --outDir dist --target ESNext && rm -rf dist
 
   test-type-portability:
-    name: Test Type Portability
+    name: Test Type Portability with TypeScript ${{ matrix.ts }} and Node.js ${{ matrix.node }}
     needs: [build]
     runs-on: ubuntu-latest
     strategy:
