@@ -139,6 +139,11 @@ jobs:
       - name: Test type portability with `moduleResolution Node10`
         run: yarn workspace @examples-type-portability/bundler run test --module ESNext --moduleResolution Node10
 
+      - name: Test type portability with `moduleResolution Node10` and `type module` in `package.json`
+        run: |
+          npm --workspace=@examples-type-portability/bundler pkg set type=module
+          yarn workspace @examples-type-portability/bundler run test --module ESNext --moduleResolution Node10
+
   test-types:
     name: Test Types with TypeScript ${{ matrix.ts }}
 
