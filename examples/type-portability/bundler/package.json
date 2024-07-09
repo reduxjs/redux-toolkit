@@ -35,7 +35,7 @@
     "clean": "rm -rf dist",
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "yarn clean && tsc -p tsconfig.json --skipLibCheck --declaration --outDir dist --noEmit false --module ESNext --moduleResolution Bundler --noEmitOnError --emitDeclarationOnly --jsx react-jsx"
+    "test": "yarn clean && tsc -p tsconfig.json"
   },
   "browserslist": [
     ">0.2%",
