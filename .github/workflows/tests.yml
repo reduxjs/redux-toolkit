@@ -146,9 +146,10 @@ jobs:
         run: yarn workspace @examples-type-portability/${{ matrix.example.name }} run test --module ESNext --moduleResolution Node10
 
       - name: Test type portability with `moduleResolution Node10` and `type module` in `package.json`
+        if: matrix.example.name == 'nodenext-esm' || matrix.example.name == 'bundler'
         run: |
-          npm --workspace=@examples-type-portability/${{ matrix.examples.name }} pkg set type=module
-          yarn workspace @examples-type-portability/${{ matrix.examples.name }} run test --module ESNext --moduleResolution Node10 --preserveSymLinks
+          npm --workspace=@examples-type-portability/${{ matrix.example.name }} pkg set type=module
+          yarn workspace @examples-type-portability/${{ matrix.example.name }} run test --module ESNext --moduleResolution Node10 --preserveSymLinks
 
   test-types:
     name: Test Types with TypeScript ${{ matrix.ts }}
