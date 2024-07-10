@@ -1,7 +1,7 @@
 import type { Options } from 'tsup';
 import { defineConfig } from 'tsup';
 
-const tsconfig = 'tsconfig.json' satisfies Options['tsconfig'];
+const tsconfig = 'tsconfig.build.json' satisfies Options['tsconfig'];
 
 export default defineConfig((options): Options[] => {
   const commonOptions: Options = {
