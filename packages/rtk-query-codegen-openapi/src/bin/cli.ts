@@ -5,7 +5,7 @@ import program from 'commander';
 import { createRequire } from 'node:module';
 import { dirname, resolve } from 'node:path';
 
-const require = createRequire(import.meta.url);
+const require = createRequire(__filename);
 
 let ts = false;
 try {

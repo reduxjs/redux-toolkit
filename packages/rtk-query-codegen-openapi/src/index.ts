@@ -5,7 +5,7 @@ import type { CommonOptions, ConfigFile, GenerationOptions, OutputFileOptions } 
 import { isValidUrl, prettify } from './utils';
 export type { ConfigFile } from './types';
 
-const require = createRequire(import.meta.url);
+const require = createRequire(__filename);
 
 export async function generateEndpoints(options: GenerationOptions): Promise<string | void> {
   const schemaLocation = options.schemaFile;
