@@ -17,6 +17,7 @@
     "noImplicitReturns": true,
     "noUnusedLocals": false,
     "outDir": "lib",
+    "rootDir": ".",
     "paths": {
       "@rtk-query/codegen-openapi": ["./src/index.ts"] // @remap-prod-remove-line
     },
