@@ -18,7 +18,7 @@
     "noUnusedLocals": false,
     "outDir": "lib",
     "paths": {
-      "@rtk-query/codegen-openapi": ["./src"] // @remap-prod-remove-line
+      "@rtk-query/codegen-openapi": ["./src/index.ts"] // @remap-prod-remove-line
     },
     "resolveJsonModule": true,
     "skipLibCheck": true,
