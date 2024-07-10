@@ -8,13 +8,14 @@ const __dirname = path.dirname(__filename);
 
 export default defineConfig({
   test: {
+    alias: process.env.TEST_DIST
+      ? {
+          '@rtk-query/codegen-openapi': path.join(__dirname, 'node_modules/@rtk-query/codegen-openapi'),
+        }
+      : undefined,
     testTimeout: 10_000,
     pool: 'forks',
     globals: true,
     setupFiles: ['./test/vitest.setup.ts'],
-    alias: {
-      '@': path.join(__dirname, 'test/fixtures'),
-      '@rtk-query/codegen-openapi': path.join(__dirname, 'src'),
-    },
   },
 });
