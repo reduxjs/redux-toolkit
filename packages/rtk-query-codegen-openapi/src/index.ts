@@ -1,4 +1,4 @@
-import fs from 'node:fs';
+import fs from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import type { CommonOptions, ConfigFile, GenerationOptions, OutputFileOptions } from './types';
@@ -20,7 +20,7 @@ export async function generateEndpoints(options: GenerationOptions): Promise<str
   });
   const { outputFile } = options;
   if (outputFile) {
-    fs.writeFileSync(path.resolve(process.cwd(), outputFile), await prettify(outputFile, sourceCode));
+    await fs.writeFile(path.resolve(process.cwd(), outputFile), await prettify(outputFile, sourceCode));
   } else {
     return await prettify(null, sourceCode);
   }
