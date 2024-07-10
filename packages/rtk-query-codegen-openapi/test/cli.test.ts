@@ -32,7 +32,6 @@ describe('CLI options testing', () => {
     if (!(await isDir(tmpDir))) {
       await fs.mkdir(tmpDir, { recursive: true });
     }
-    return removeTempDir;
   });
 
   afterEach(async () => {
