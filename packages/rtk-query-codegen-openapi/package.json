@@ -3,9 +3,23 @@
   "version": "1.2.0",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
+  "module": "lib/index.mjs",
   "author": "Lenz Weber",
   "license": "MIT",
   "sideEffects": false,
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "import": {
+        "types": "./lib/index.d.mts",
+        "default": "./lib/index.mjs"
+      },
+      "default": {
+        "types": "./lib/index.d.ts",
+        "default": "./lib/index.js"
+      }
+    }
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/reduxjs/redux-toolkit.git"
