@@ -24,7 +24,6 @@ export default defineConfig((options): Options[] => {
       format: ['esm', 'cjs'],
       name: 'BIN',
       entry: { 'bin/cli': 'src/bin/cli.ts' },
-      external: ['ts-node', '@rtk-query/codegen-openapi'],
     },
   ];
 });
