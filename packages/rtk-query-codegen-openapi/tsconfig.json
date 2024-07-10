@@ -4,26 +4,27 @@
     "allowSyntheticDefaultImports": true,
     "checkJs": true,
     "declaration": true,
+    "downlevelIteration": false,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
+    "importHelpers": true,
     "isolatedModules": true,
+    "jsx": "react",
     "module": "ESNext",
     "moduleResolution": "Bundler",
+    "noEmit": true,
+    "noErrorTruncation": true,
+    "noImplicitReturns": true,
     "noUnusedLocals": false,
     "outDir": "lib",
     "paths": {
-      "@rtk-query/codegen-openapi": ["./src/index.ts"] // @remap-prod-remove-line
+      "@rtk-query/codegen-openapi": ["./src"] // @remap-prod-remove-line
     },
     "resolveJsonModule": true,
-    "rootDir": ".",
     "skipLibCheck": true,
     "sourceMap": true,
     "strict": true,
     "target": "ESNext",
-    "types": ["vitest/globals", "vitest/importMeta"],
-    "useDefineForClassFields": true,
-    "useUnknownInCatchVariables": true
-  },
-  "exclude": ["test", "lib", "vitest.config.mts"],
-  "include": ["src"]
+    "types": ["vitest/globals", "vitest/importMeta"]
+  }
 }
