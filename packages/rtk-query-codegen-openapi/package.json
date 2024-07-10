@@ -68,6 +68,7 @@
     "rimraf": "^5.0.5",
     "ts-node": "^10.9.2",
     "tsup": "^8.1.0",
+    "vite-tsconfig-paths": "^4.3.2",
     "vitest": "^1.6.0",
     "yalc": "^1.0.0-pre.47"
   },
