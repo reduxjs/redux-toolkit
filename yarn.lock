@@ -7943,7 +7943,7 @@ __metadata:
     vitest: "npm:^1.6.0"
     yalc: "npm:^1.0.0-pre.47"
   bin:
-    rtk-query-codegen-openapi: lib/bin/cli.js
+    rtk-query-codegen-openapi: lib/bin/cli.mjs
   languageName: unknown
   linkType: soft
 

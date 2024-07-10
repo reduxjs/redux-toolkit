@@ -29,15 +29,15 @@
   },
   "homepage": "https://redux-toolkit.js.org",
   "bin": {
-    "rtk-query-codegen-openapi": "lib/bin/cli.js"
+    "rtk-query-codegen-openapi": "lib/bin/cli.mjs"
   },
   "scripts": {
-    "build": "yarn clean && tsup && chmod +x lib/bin/cli.js",
+    "build": "yarn clean && tsup && chmod +x lib/bin/cli.mjs",
     "clean": "rimraf lib",
-    "prepare": "yarn build && chmod +x lib/bin/cli.js",
+    "prepare": "yarn build && chmod +x lib/bin/cli.mjs",
     "format": "prettier --write \"src/**/*.ts\"",
     "test:update": "vitest --run --update",
-    "test:update:enum": "lib/bin/cli.js test/config.example.enum.ts",
+    "test:update:enum": "lib/bin/cli.mjs test/config.example.enum.ts",
     "test": "vitest --run --typecheck",
     "test:watch": "vitest --watch",
     "cli": "esr src/bin/cli.ts"
