@@ -12,7 +12,7 @@ export default defineConfig({
   test: {
     alias: process.env.TEST_DIST
       ? {
-          '@rtk-query/codegen-openapi': path.join(__dirname, 'node_modules/@rtk-query/codegen-openapi'),
+          '@rtk-query/codegen-openapi': path.join(__dirname, '../..', 'node_modules/@rtk-query/codegen-openapi'),
         }
       : undefined,
     testTimeout: 10_000,
