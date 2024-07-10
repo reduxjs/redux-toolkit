@@ -15,7 +15,7 @@ export async function generateEndpoints(options: GenerationOptions): Promise<str
     : path.resolve(process.cwd(), schemaLocation);
 
   const sourceCode = await enforceOazapftsTsVersion(async () => {
-    const { generateApi } = await import('./generate');
+    const { generateApi } = await import('./generate.js');
     return generateApi(schemaAbsPath, options);
   });
   const { outputFile } = options;
