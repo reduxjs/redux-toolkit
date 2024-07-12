@@ -21,8 +21,10 @@ export default defineConfig((options): Options[] => {
     { ...commonOptions, name: 'CJS', format: ['cjs'], entry: { index: 'src/index.ts' }, dts: true },
     {
       ...commonOptions,
-      format: ['esm', 'cjs'],
+      format: ['esm'],
       name: 'BIN',
+      external: ['@rtk-query/codegen-openapi'],
+      minify: true,
       entry: { 'bin/cli': 'src/bin/cli.ts' },
     },
   ];
