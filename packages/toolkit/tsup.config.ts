@@ -199,13 +199,6 @@ export default defineConfig((options) => {
           sourcemap: true,
           external: externals,
           esbuildPlugins: [mangleErrorsTransform],
-          esbuildOptions(options) {
-            // Needed to prevent auto-replacing of process.env.NODE_ENV in all builds
-            options.platform = 'neutral'
-            // Needed to return to normal lookup behavior when platform: 'neutral'
-            options.mainFields = ['browser', 'module', 'main']
-            options.conditions = ['browser']
-          },
 
           env: defineValues,
           async onSuccess() {
