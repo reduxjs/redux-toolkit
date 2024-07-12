@@ -50,6 +50,7 @@
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.13.5",
+    "@babel/helper-module-imports": "^7.24.7",
     "@microsoft/api-extractor": "^7.13.2",
     "@phryneas/ts-version": "^1.0.2",
     "@size-limit/file": "^11.0.1",
