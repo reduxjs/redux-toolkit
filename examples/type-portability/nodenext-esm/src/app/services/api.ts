@@ -1,4 +1,9 @@
-import { createApi, fetchBaseQuery, retry } from '@reduxjs/toolkit/query/react'
+import {
+  createApi,
+  fakeBaseQuery,
+  fetchBaseQuery,
+  retry,
+} from '@reduxjs/toolkit/query/react'
 import type { RootState } from '../store.js'
 
 export const baseQuery = fetchBaseQuery({
@@ -27,6 +32,11 @@ export const enhancedApi = apiSlice.enhanceEndpoints({
   endpoints: () => ({
     getPost: () => 'test',
   }),
+})
+
+export const emptyApi = createApi({
+  baseQuery: fakeBaseQuery(),
+  endpoints: () => ({}),
 })
 
 export const {

@@ -6,6 +6,7 @@ namespace apiModule {
   import createApi = RTKQueryReact.createApi
   import fetchBaseQuery = RTKQueryReact.fetchBaseQuery
   import retry = RTKQueryReact.retry
+  import fakeBaseQuery = RTKQueryReact.fakeBaseQuery
 
   export const baseQuery = fetchBaseQuery({
     baseUrl: '/',
@@ -33,6 +34,11 @@ namespace apiModule {
     endpoints: () => ({
       getPost: () => 'test',
     }),
+  })
+
+  export const emptyApi = createApi({
+    baseQuery: fakeBaseQuery(),
+    endpoints: () => ({}),
   })
 
   export const {
