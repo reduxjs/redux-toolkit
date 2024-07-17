@@ -44,7 +44,7 @@
   },
   "peerDependencies": {
     "typescript": "^4.7 || ^5",
-    "vitest": "^1"
+    "vitest": ">= 1"
   },
   "peerDependenciesMeta": {
     "typescript": {
@@ -56,7 +56,7 @@
     "rimraf": "^5.0.7",
     "tslib": "^2.6.3",
     "typescript": "^5.5.3",
-    "vitest": "^1.6.0"
+    "vitest": "^2.0.3"
   },
   "dependencies": {
     "vite-tsconfig-paths": "^4.3.2"
