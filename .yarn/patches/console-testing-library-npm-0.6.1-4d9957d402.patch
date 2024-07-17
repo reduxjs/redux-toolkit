@@ -18,6 +18,13 @@ index b924e066ecfdb30917b9c1056b360834da357698..15e155bd84f9d16537ffe36f9a87debc
        "require": "./dist/pure.js",
        "default": "./src/pure.js"
      }
+diff --git a/pure.d.ts b/pure.d.ts
+index b13bb4eb87d0b316bb51bd6094b2353c6fc8527d..ee01cc9bd3233f5e67b050d48e22202b495a4a0a 100644
+--- a/pure.d.ts
++++ b/pure.d.ts
+@@ -1 +1 @@
+-export * from './';
++export * from './index.js';
 diff --git a/src/index.js b/src/index.js
 index 90ff7fa3d7d4fa62dbbf638958ae4e28abd089a8..28434687b5163b7472e86bdb11bed69e0868e660 100644
 --- a/src/index.js
