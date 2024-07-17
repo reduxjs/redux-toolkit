@@ -19,6 +19,7 @@
     "noUnusedParameters": false,
     "resolveJsonModule": true,
     "skipLibCheck": true,
+    "sourceMap": true,
     "strict": true,
     "target": "ESnext",
     "types": ["vitest/globals", "vitest/importMeta"],
