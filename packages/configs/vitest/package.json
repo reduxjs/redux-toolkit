@@ -2,6 +2,7 @@
   "name": "@reduxjs/vitest-config",
   "version": "0.0.1",
   "description": "Vitest configuration for Redux projects",
+  "source": "./src/vitest.config.mts",
   "main": "./dist/vitest.config.mjs",
   "types": "./dist/vitest.config.d.mts",
   "module": "./dist/vitest.config.mjs",
@@ -15,7 +16,7 @@
   },
   "files": [
     "dist",
-    "*.mts"
+    "src"
   ],
   "scripts": {
     "build": "yarn clean && tsc",

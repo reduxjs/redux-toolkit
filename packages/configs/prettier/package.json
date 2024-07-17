@@ -2,6 +2,7 @@
   "name": "@reduxjs/prettier-config",
   "version": "0.0.1",
   "description": "Prettier configuration for Redux projects",
+  "source": "./src/prettier.config.mts",
   "types": "./dist/prettier.config.d.mts",
   "module": "./dist/prettier.config.mjs",
   "main": "./dist/prettier.config.mjs",
@@ -15,7 +16,7 @@
   },
   "files": [
     "dist",
-    "*.mts"
+    "src"
   ],
   "scripts": {
     "build": "yarn clean && tsc",

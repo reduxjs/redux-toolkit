@@ -2,6 +2,7 @@
   "name": "@reduxjs/eslint-config",
   "version": "0.0.1",
   "description": "ESLint configuration for Redux projects",
+  "source": "./src/eslint.config.mts",
   "types": "./dist/eslint.config.d.mts",
   "main": "./dist/eslint.config.mjs",
   "module": "./dist/eslint.config.mjs",
@@ -15,7 +16,7 @@
   },
   "files": [
     "dist",
-    "*.mts"
+    "src"
   ],
   "scripts": {
     "build": "yarn clean && tsc",
