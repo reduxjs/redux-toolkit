@@ -7625,7 +7625,7 @@ __metadata:
   resolution: "@reduxjs/vitest-config@workspace:packages/configs/vitest"
   dependencies:
     "@reduxjs/tsconfig": "workspace:^"
-    rimraf: "npm:^5.0.7"
+    rimraf: "npm:^6.0.1"
     tslib: "npm:^2.6.3"
     typescript: "npm:^5.5.3"
     vite-tsconfig-paths: "npm:^4.3.2"
@@ -26033,17 +26033,6 @@ __metadata:
   bin:
     rimraf: dist/esm/bin.mjs
   checksum: 10/a612c7184f96258b7d1328c486b12ca7b60aa30e04229a08bbfa7e964486deb1e9a1b52d917809311bdc39a808a4055c0f950c0280fba194ba0a09e6f0d404f6
-  languageName: node
-  linkType: hard
-
-"rimraf@npm:^5.0.7":
-  version: 5.0.7
-  resolution: "rimraf@npm:5.0.7"
-  dependencies:
-    glob: "npm:^10.3.7"
-  bin:
-    rimraf: dist/esm/bin.mjs
-  checksum: 10/1e3cecfe59ee2383dfd9ba5373caeed48ed941318a0360119419b7dffc63115661408b9427f67e1f66b5bbb8855a3953db09e55a7362b3df904a44453dfa22fb
   languageName: node
   linkType: hard
 
