@@ -1,6 +1,9 @@
 {
   "extends": "@reduxjs/tsconfig/base",
   "compilerOptions": {
-    "outDir": "dist"
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "outDir": "dist",
+    "sourceMap": true
   }
 }
