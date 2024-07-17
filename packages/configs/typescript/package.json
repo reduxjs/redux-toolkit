@@ -32,5 +32,6 @@
     "typescript": {
       "optional": true
     }
-  }
+  },
+  "sideEffects": false
 }

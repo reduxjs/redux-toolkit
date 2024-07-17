@@ -71,5 +71,6 @@
     "eslint-config-prettier": "^9.1.0",
     "globals": "^15.8.0",
     "typescript-eslint": "^7.16.1"
-  }
+  },
+  "sideEffects": false
 }

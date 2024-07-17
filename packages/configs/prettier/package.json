@@ -55,5 +55,6 @@
     "rimraf": "^6.0.1",
     "tslib": "^2.6.3",
     "typescript": "^5.5.3"
-  }
+  },
+  "sideEffects": false
 }
