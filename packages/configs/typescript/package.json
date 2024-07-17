@@ -6,6 +6,7 @@
   "exports": {
     "./package.json": "./package.json",
     ".": "./base/tsconfig.json",
+    "./node-next": "./node-next/tsconfig.json",
     "./base": "./base/tsconfig.json"
   },
   "keywords": [
