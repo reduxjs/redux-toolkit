@@ -1,6 +1,7 @@
 {
   "extends": "@reduxjs/tsconfig/base",
   "compilerOptions": {
-    "outDir": "dist"
+    "outDir": "dist",
+    "sourceMap": true
   }
 }
