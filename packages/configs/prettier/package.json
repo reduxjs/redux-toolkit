@@ -52,7 +52,7 @@
   "devDependencies": {
     "@reduxjs/tsconfig": "workspace:^",
     "prettier": "^3.3.3",
-    "rimraf": "^5.0.7",
+    "rimraf": "^6.0.1",
     "tslib": "^2.6.3",
     "typescript": "^5.5.3"
   }
