@@ -187,6 +187,7 @@ export {
 
 export type {
   AddMiddleware,
+  DynamicDispatch,
   DynamicMiddlewareInstance,
   GetDispatch,
   GetState,
