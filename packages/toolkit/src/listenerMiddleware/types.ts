@@ -21,10 +21,10 @@ export type AbortSignalWithReason<T> = AbortSignal & { reason?: T }
  */
 
 /** @internal */
-interface TypedActionCreatorWithMatchFunction<Type extends string>
-  extends TypedActionCreator<Type> {
-  match: MatchFunction<any>
-}
+type TypedActionCreatorWithMatchFunction<Type extends string> =
+  TypedActionCreator<Type> & {
+    match: MatchFunction<any>
+  }
 
 /** @internal */
 export type AnyListenerPredicate<State> = (
