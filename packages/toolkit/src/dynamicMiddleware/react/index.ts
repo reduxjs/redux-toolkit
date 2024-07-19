@@ -44,10 +44,10 @@ export type CreateDispatchWithMiddlewareHook<
 type ActionFromDispatch<DispatchType extends Dispatch<Action>> =
   DispatchType extends Dispatch<infer Action> ? Action : never
 
-interface ReactDynamicMiddlewareInstance<
+type ReactDynamicMiddlewareInstance<
   State = any,
   DispatchType extends Dispatch<UnknownAction> = Dispatch<UnknownAction>,
-> extends DynamicMiddlewareInstance<State, DispatchType> {
+> = DynamicMiddlewareInstance<State, DispatchType> & {
   createDispatchWithMiddlewareHookFactory: (
     context?: Context<ReactReduxContextValue<
       State,
