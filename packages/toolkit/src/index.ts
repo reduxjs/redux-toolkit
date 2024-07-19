@@ -186,6 +186,7 @@ export {
 } from './listenerMiddleware/index'
 
 export type {
+  AddMiddleware,
   DynamicMiddlewareInstance,
   GetDispatch,
   GetState,
