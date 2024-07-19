@@ -21,10 +21,10 @@ const filePathsToContentMap = new Map<string, string>(
   ),
 )
 
-const exportedUniqueSymbols = new Set<string>()
-
 const main = async () => {
   filePathsToContentMap.forEach(async (content, filePath) => {
+    const exportedUniqueSymbols = new Set<string>()
+
     console.log(`Fixing \`unique symbol\` exports in ${filePath}`)
 
     const lines = content.split('\n')
