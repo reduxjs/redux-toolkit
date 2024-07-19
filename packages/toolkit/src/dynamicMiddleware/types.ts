@@ -36,14 +36,14 @@ export type AddMiddleware<
   >
 }
 
-export interface WithMiddleware<
+export type WithMiddleware<
   State = any,
   DispatchType extends Dispatch<UnknownAction> = Dispatch<UnknownAction>,
-> extends BaseActionCreator<
+> = BaseActionCreator<
     Middleware<any, State, DispatchType>[],
     'dynamicMiddleware/add',
     { instanceId: string }
-  > {
+  > & {
   <Middlewares extends Middleware<any, State, DispatchType>[]>(
     ...middlewares: Middlewares
   ): PayloadAction<Middlewares, 'dynamicMiddleware/add', { instanceId: string }>
