@@ -405,7 +405,7 @@ export type UnsubscribeListener = (
  * @public
  * The possible overloads and options for defining a listener. The return type of each function is specified as a generic arg, so the overloads can be reused for multiple different functions
  */
-export interface AddListenerOverloads<
+export type AddListenerOverloads<
   Return,
   StateType = unknown,
   DispatchType extends Dispatch = ThunkDispatch<
@@ -415,7 +415,7 @@ export interface AddListenerOverloads<
   >,
   ExtraArgument = unknown,
   AdditionalOptions = unknown,
-> {
+> = {
   /** Accepts a "listener predicate" that is also a TS type predicate for the action*/
   <
     MiddlewareActionType extends UnknownAction,
