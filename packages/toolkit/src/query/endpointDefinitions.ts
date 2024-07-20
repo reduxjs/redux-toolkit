@@ -9,14 +9,15 @@ import type {
   BaseQueryResult,
   QueryReturnValue,
 } from './baseQueryTypes'
+import type { QuerySubState, RootState } from './core'
 import type {
-  MutationCacheLifecycleApi,
-  MutationLifecycleApi,
-  QuerySubState,
-  RootState,
-} from './core'
-import type { CacheLifecycleQueryExtraOptions } from './core/buildMiddleware/cacheLifecycle'
-import type { QueryLifecycleQueryExtraOptions } from './core/buildMiddleware/queryLifecycle'
+  CacheLifecycleMutationExtraOptions,
+  CacheLifecycleQueryExtraOptions,
+} from './core/buildMiddleware/cacheLifecycle'
+import type {
+  QueryLifecycleMutationExtraOptions,
+  QueryLifecycleQueryExtraOptions,
+} from './core/buildMiddleware/queryLifecycle'
 import type { SerializeQueryArgs } from './defaultSerializeQueryArgs'
 import type { NEVER } from './fakeBaseQuery'
 import type {
@@ -563,71 +564,19 @@ export interface MutationExtraOptions<
   QueryArg,
   BaseQuery extends BaseQueryFn,
   ReducerPath extends string = string,
-> {
-  type: DefinitionType.mutation
-
-  onCacheEntryAdded?(
-    arg: QueryArg,
-    api: MutationCacheLifecycleApi<
+> extends CacheLifecycleMutationExtraOptions<
+      ResultType,
       QueryArg,
       BaseQuery,
-      ResultType,
       ReducerPath
     >,
-  ): Promise<void> | void
-
-  /**
-   * A function that is called when the individual mutation is started. The function is called with a lifecycle api object containing properties such as `queryFulfilled`, allowing code to be run when a query is started, when it succeeds, and when it fails (i.e. throughout the lifecycle of an individual query/mutation call).
-   *
-   * Can be used for `optimistic updates`.
-   *
-   * @example
-   *
-   * ```ts
-   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
-   * export interface Post {
-   *   id: number
-   *   name: string
-   * }
-   *
-   * const api = createApi({
-   *   baseQuery: fetchBaseQuery({
-   *     baseUrl: '/',
-   *   }),
-   *   tagTypes: ['Post'],
-   *   endpoints: (build) => ({
-   *     getPost: build.query<Post, number>({
-   *       query: (id) => `post/${id}`,
-   *       providesTags: ['Post'],
-   *     }),
-   *     updatePost: build.mutation<void, Pick<Post, 'id'> & Partial<Post>>({
-   *       query: ({ id, ...patch }) => ({
-   *         url: `post/${id}`,
-   *         method: 'PATCH',
-   *         body: patch,
-   *       }),
-   *       invalidatesTags: ['Post'],
-   *       async onQueryStarted({ id, ...patch }, { dispatch, queryFulfilled }) {
-   *         const patchResult = dispatch(
-   *           api.util.updateQueryData('getPost', id, (draft) => {
-   *             Object.assign(draft, patch)
-   *           })
-   *         )
-   *         try {
-   *           await queryFulfilled
-   *         } catch {
-   *           patchResult.undo()
-   *         }
-   *       },
-   *     }),
-   *   }),
-   * })
-   * ```
-   */
-  onQueryStarted?(
-    arg: QueryArg,
-    api: MutationLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
-  ): Promise<void> | void
+    QueryLifecycleMutationExtraOptions<
+      ResultType,
+      QueryArg,
+      BaseQuery,
+      ReducerPath
+    > {
+  type: DefinitionType.mutation
 
   /**
    * Used by `mutation` endpoints. Determines which cached data should be either re-fetched or removed from the cache.
