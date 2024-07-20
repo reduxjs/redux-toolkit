@@ -130,6 +130,18 @@ export type MutationCacheLifecycleApi<
 > = MutationBaseLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath> &
   CacheLifecyclePromises<ResultType, BaseQueryMeta<BaseQuery>>
 
+export type CacheLifecycleQueryExtraOptions<
+  ResultType,
+  QueryArg,
+  BaseQuery extends BaseQueryFn,
+  ReducerPath extends string = string,
+> = {
+  onCacheEntryAdded?(
+    arg: QueryArg,
+    api: QueryCacheLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
+  ): Promise<void> | void
+}
+
 const neverResolvedError = new Error(
   'Promise never resolved before cacheEntryRemoved.',
 ) as Error & {
