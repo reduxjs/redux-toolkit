@@ -17,24 +17,7 @@ import type {
   SubMiddlewareApi,
 } from './types'
 
-type LifecycleApi<ReducerPath extends string = string> = {
-  /**
-   * The dispatch method for the store
-   */
-  dispatch: ThunkDispatch<any, any, UnknownAction>
-  /**
-   * A method to get the current state
-   */
-  getState(): RootState<any, any, ReducerPath>
-  /**
-   * `extra` as provided as `thunk.extraArgument` to the `configureStore` `getDefaultMiddleware` option.
-   */
-  extra: unknown
-  /**
-   * A unique ID generated for the mutation
-   */
-  requestId: string
-}
+export type ReferenceCacheLifecycle = never
 
 export interface QueryBaseLifecycleApi<
   QueryArg,
@@ -57,6 +40,43 @@ export interface QueryBaseLifecycleApi<
    * For documentation see `api.util.updateQueryData`.
    */
   updateCachedData(updateRecipe: Recipe<ResultType>): PatchCollection
+}
+
+export type MutationBaseLifecycleApi<
+  QueryArg,
+  BaseQuery extends BaseQueryFn,
+  ResultType,
+  ReducerPath extends string = string,
+> = LifecycleApi<ReducerPath> & {
+  /**
+   * Gets the current value of this cache entry.
+   */
+  getCacheEntry(): MutationResultSelectorResult<
+    { type: DefinitionType.mutation } & BaseEndpointDefinition<
+      QueryArg,
+      BaseQuery,
+      ResultType
+    >
+  >
+}
+
+type LifecycleApi<ReducerPath extends string = string> = {
+  /**
+   * The dispatch method for the store
+   */
+  dispatch: ThunkDispatch<any, any, UnknownAction>
+  /**
+   * A method to get the current state
+   */
+  getState(): RootState<any, any, ReducerPath>
+  /**
+   * `extra` as provided as `thunk.extraArgument` to the `configureStore` `getDefaultMiddleware` option.
+   */
+  extra: unknown
+  /**
+   * A unique ID generated for the mutation
+   */
+  requestId: string
 }
 
 type CacheLifecyclePromises<ResultType = unknown, MetaType = unknown> = {
@@ -102,24 +122,6 @@ export interface QueryCacheLifecycleApi<
 > extends QueryBaseLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
     CacheLifecyclePromises<ResultType, BaseQueryMeta<BaseQuery>> {}
 
-export type MutationBaseLifecycleApi<
-  QueryArg,
-  BaseQuery extends BaseQueryFn,
-  ResultType,
-  ReducerPath extends string = string,
-> = LifecycleApi<ReducerPath> & {
-  /**
-   * Gets the current value of this cache entry.
-   */
-  getCacheEntry(): MutationResultSelectorResult<
-    { type: DefinitionType.mutation } & BaseEndpointDefinition<
-      QueryArg,
-      BaseQuery,
-      ResultType
-    >
-  >
-}
-
 export type MutationCacheLifecycleApi<
   QueryArg,
   BaseQuery extends BaseQueryFn,
@@ -127,8 +129,6 @@ export type MutationCacheLifecycleApi<
   ReducerPath extends string = string,
 > = MutationBaseLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath> &
   CacheLifecyclePromises<ResultType, BaseQueryMeta<BaseQuery>>
-
-export type ReferenceCacheLifecycle = never
 
 const neverResolvedError = new Error(
   'Promise never resolved before cacheEntryRemoved.',
