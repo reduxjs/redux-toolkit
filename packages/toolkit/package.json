@@ -93,7 +93,7 @@
     "rimraf": "^3.0.2",
     "size-limit": "^11.0.1",
     "tslib": "^1.10.0",
-    "tsup": "^8.1.2",
+    "tsup": "^8.2.0",
     "tsx": "^3.12.2",
     "typescript": "^5.4.5",
     "vite-tsconfig-paths": "^4.3.1",
