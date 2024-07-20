@@ -190,7 +190,7 @@ export type {
   AddMiddleware,
   DynamicDispatch,
   DynamicMiddlewareInstance,
-  GetDispatch,
+  GetDispatchType as GetDispatch,
   MiddlewareApiConfig,
 } from './dynamicMiddleware/types'
 export { createDynamicMiddleware } from './dynamicMiddleware/index'

@@ -4,7 +4,7 @@ import type { GetState } from '../createAsyncThunk'
 import type { ExtractDispatchExtensions, FallbackIfUnknown } from '../tsHelpers'
 
 export type GetMiddlewareApi<MiddlewareApiConfig> = MiddlewareAPI<
-  GetDispatch<MiddlewareApiConfig>,
+  GetDispatchType<MiddlewareApiConfig>,
   GetState<MiddlewareApiConfig>
 >
 
@@ -14,7 +14,7 @@ export type MiddlewareApiConfig = {
 }
 
 // TODO: consolidate with cAT helpers?
-export type GetDispatch<MiddlewareApiConfig> = MiddlewareApiConfig extends {
+export type GetDispatchType<MiddlewareApiConfig> = MiddlewareApiConfig extends {
   dispatch: infer DispatchType
 }
   ? FallbackIfUnknown<DispatchType, Dispatch>
@@ -27,7 +27,7 @@ export type AddMiddleware<
   (...middlewares: Middleware<any, State, DispatchType>[]): void
   withTypes<MiddlewareConfig extends MiddlewareApiConfig>(): AddMiddleware<
     GetState<MiddlewareConfig>,
-    GetDispatch<MiddlewareConfig>
+    GetDispatchType<MiddlewareConfig>
   >
 }
 
@@ -44,7 +44,7 @@ export type WithMiddleware<
   ): PayloadAction<Middlewares, 'dynamicMiddleware/add', { instanceId: string }>
   withTypes<MiddlewareConfig extends MiddlewareApiConfig>(): WithMiddleware<
     GetState<MiddlewareConfig>,
-    GetDispatch<MiddlewareConfig>
+    GetDispatchType<MiddlewareConfig>
   >
 }
 

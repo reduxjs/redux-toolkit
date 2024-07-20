@@ -126,7 +126,7 @@ export type GetState<ThunkApiConfig> = ThunkApiConfig extends {
 type GetExtra<ThunkApiConfig> = ThunkApiConfig extends { extra: infer Extra }
   ? Extra
   : unknown
-type GetDispatchType<ThunkApiConfig> = ThunkApiConfig extends {
+type GetDispatch<ThunkApiConfig> = ThunkApiConfig extends {
   dispatch: infer Dispatch
 }
   ? FallbackIfUnknown<
@@ -146,7 +146,7 @@ type GetDispatchType<ThunkApiConfig> = ThunkApiConfig extends {
 export type GetThunkAPI<ThunkApiConfig> = BaseThunkAPI<
   GetState<ThunkApiConfig>,
   GetExtra<ThunkApiConfig>,
-  GetDispatchType<ThunkApiConfig>,
+  GetDispatch<ThunkApiConfig>,
   GetRejectValue<ThunkApiConfig>,
   GetRejectedMeta<ThunkApiConfig>,
   GetFulfilledMeta<ThunkApiConfig>
@@ -233,7 +233,7 @@ export type AsyncThunkAction<
   ThunkArg,
   ThunkApiConfig extends AsyncThunkConfig,
 > = (
-  dispatch: NonNullable<GetDispatchType<ThunkApiConfig>>,
+  dispatch: NonNullable<GetDispatch<ThunkApiConfig>>,
   getState: () => GetState<ThunkApiConfig>,
   extra: GetExtra<ThunkApiConfig>,
 ) => SafePromise<

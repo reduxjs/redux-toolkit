@@ -13,7 +13,7 @@ import type {
 } from './types'
 export type {
   DynamicMiddlewareInstance,
-  GetDispatch,
+  GetDispatchType as GetDispatch,
   MiddlewareApiConfig,
 } from './types'
 
