@@ -1,4 +1,5 @@
 import js from '@eslint/js'
+import type { TSESLint } from '@typescript-eslint/utils'
 import prettierConfig from 'eslint-config-prettier'
 import globals from 'globals'
 import type { ConfigWithExtends } from 'typescript-eslint'
@@ -70,7 +71,7 @@ export const vitestGlobals: VitestGlobals = {
  *   (await import('@reduxjs/eslint-config')).reduxESLintConfig)()
  * ```
  */
-export const reduxESLintConfig = config(
+export const reduxESLintConfig: TSESLint.FlatConfig.Config[] = config(
   // `ignores` must be first.
   // config with just `ignores` is the replacement for `.eslintignore`
   { ignores: ['**/dist/', '.*/'] },
@@ -182,6 +183,6 @@ export const reduxESLintConfig = config(
  */
 export const createESLintConfig = (
   additionalOverrides: ConfigWithExtends[] = [],
-) => reduxESLintConfig.concat(additionalOverrides)
+): TSESLint.FlatConfig.Config[] => reduxESLintConfig.concat(additionalOverrides)
 
 export default reduxESLintConfig
