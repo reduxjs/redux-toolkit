@@ -1,4 +1,4 @@
-import eslint from '@eslint/js'
+import js from '@eslint/js'
 import prettierConfig from 'eslint-config-prettier'
 import globals from 'globals'
 import type { ConfigWithExtends } from 'typescript-eslint'
@@ -51,7 +51,7 @@ export const reduxESLintConfig = config(
   // `ignores` must be first.
   // config with just `ignores` is the replacement for `.eslintignore`
   { ignores: ['**/dist/', '.*/'] },
-  eslint.configs.recommended,
+  js.configs.recommended,
   ...configs.recommended,
   ...configs.stylistic,
   prettierConfig,
