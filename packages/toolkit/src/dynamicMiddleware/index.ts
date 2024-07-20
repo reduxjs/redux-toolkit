@@ -14,7 +14,6 @@ import type {
 export type {
   DynamicMiddlewareInstance,
   GetDispatch,
-  GetState,
   MiddlewareApiConfig,
 } from './types'
 

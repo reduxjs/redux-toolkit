@@ -1,5 +1,6 @@
 import type { Dispatch, Middleware, MiddlewareAPI, UnknownAction } from 'redux'
 import type { BaseActionCreator, PayloadAction } from '../createAction'
+import type { GetState } from '../createAsyncThunk'
 import type { ExtractDispatchExtensions, FallbackIfUnknown } from '../tsHelpers'
 
 export type GetMiddlewareApi<MiddlewareApiConfig> = MiddlewareAPI<
@@ -13,12 +14,6 @@ export type MiddlewareApiConfig = {
 }
 
 // TODO: consolidate with cAT helpers?
-export type GetState<MiddlewareApiConfig> = MiddlewareApiConfig extends {
-  state: infer State
-}
-  ? State
-  : unknown
-
 export type GetDispatch<MiddlewareApiConfig> = MiddlewareApiConfig extends {
   dispatch: infer DispatchType
 }
@@ -40,10 +35,10 @@ export type WithMiddleware<
   State = any,
   DispatchType extends Dispatch<UnknownAction> = Dispatch<UnknownAction>,
 > = BaseActionCreator<
-    Middleware<any, State, DispatchType>[],
-    'dynamicMiddleware/add',
-    { instanceId: string }
-  > & {
+  Middleware<any, State, DispatchType>[],
+  'dynamicMiddleware/add',
+  { instanceId: string }
+> & {
   <Middlewares extends Middleware<any, State, DispatchType>[]>(
     ...middlewares: Middlewares
   ): PayloadAction<Middlewares, 'dynamicMiddleware/add', { instanceId: string }>

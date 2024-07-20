@@ -130,6 +130,7 @@ export type {
   AsyncThunkAction,
   AsyncThunkPayloadCreatorReturnValue,
   AsyncThunkPayloadCreator,
+  GetState,
   GetThunkAPI,
   SerializedError,
 } from './createAsyncThunk'
@@ -190,7 +191,6 @@ export type {
   DynamicDispatch,
   DynamicMiddlewareInstance,
   GetDispatch,
-  GetState,
   MiddlewareApiConfig,
 } from './dynamicMiddleware/types'
 export { createDynamicMiddleware } from './dynamicMiddleware/index'
