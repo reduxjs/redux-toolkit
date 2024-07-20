@@ -43,9 +43,9 @@
     "url": "https://github.com/reduxjs/redux-toolkit/issues"
   },
   "peerDependencies": {
-    "eslint": "^8.56.0 || ^9",
-    "prettier": "^3",
-    "typescript": "^5"
+    "eslint": ">= 8.56.0",
+    "prettier": ">= 3",
+    "typescript": ">= 4.7"
   },
   "peerDependenciesMeta": {
     "prettier": {

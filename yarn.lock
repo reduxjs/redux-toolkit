@@ -7451,9 +7451,9 @@ __metadata:
     typescript: "npm:^5.5.3"
     typescript-eslint: "npm:^7.16.1"
   peerDependencies:
-    eslint: ^8.56.0 || ^9
-    prettier: ^3
-    typescript: ^5
+    eslint: ">= 8.56.0"
+    prettier: ">= 3"
+    typescript: ">= 4.7"
   peerDependenciesMeta:
     prettier:
       optional: true
