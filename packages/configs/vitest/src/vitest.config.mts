@@ -23,7 +23,7 @@ import { defineConfig, mergeConfig } from 'vitest/config'
  *   (await import('@reduxjs/vitest-config')).reduxVitestConfig)()
  * ```
  */
-export const reduxVitestConfig = defineConfig({
+export const reduxVitestConfig: UserConfig = defineConfig({
   plugins: [tsconfigPaths({ projects: ['./tsconfig.json'] })],
   test: {
     watch: false,
@@ -66,7 +66,8 @@ export const reduxVitestConfig = defineConfig({
  *   }))()
  * ```
  */
-export const createVitestConfig = (additionalOverrides: UserConfig = {}) =>
-  mergeConfig(reduxVitestConfig, defineConfig(additionalOverrides))
+export const createVitestConfig = (
+  additionalOverrides: UserConfig = {},
+): UserConfig => mergeConfig(reduxVitestConfig, additionalOverrides)
 
 export default reduxVitestConfig
