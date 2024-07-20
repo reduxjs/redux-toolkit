@@ -3,12 +3,35 @@ import prettierConfig from 'eslint-config-prettier'
 import globals from 'globals'
 import type { ConfigWithExtends } from 'typescript-eslint'
 import { config, configs, parser, plugin } from 'typescript-eslint'
+
 const { browser, node, nodeBuiltin } = globals
+
+/**
+ * Represents the global variables provided by Vitest.
+ */
+interface VitestGlobals {
+  suite: false
+  test: false
+  describe: false
+  it: false
+  expectTypeOf: false
+  assertType: false
+  expect: false
+  assert: false
+  vitest: false
+  vi: false
+  beforeAll: false
+  afterAll: false
+  beforeEach: false
+  afterEach: false
+  onTestFailed: false
+  onTestFinished: false
+}
 
 /**
  * An object representing the globals provided by Vitest for use in testing.
  */
-export const vitestGlobals = {
+export const vitestGlobals: VitestGlobals = {
   suite: false,
   test: false,
   describe: false,
