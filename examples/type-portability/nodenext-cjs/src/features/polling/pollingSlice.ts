@@ -41,26 +41,28 @@ namespace pollingSliceModule {
   export const pollingSlice = createSlice({
     name: 'polling',
     initialState,
-    reducers: {
-      toggleGlobalPolling(state) {
-        state.enabled = !state.enabled
-      },
-      updatePolling(
-        state,
-        {
-          payload,
-        }: PayloadAction<{
-          app: PollingAppKey
-          enabled?: boolean
-          interval?: number
-        }>,
-      ) {
-        const { app, ...rest } = payload
-        state.apps[app] = {
-          ...state.apps[app],
-          ...rest,
-        }
-      },
+    reducers: (creators) => {
+      return {
+        toggleGlobalPolling: creators.reducer((state) => {
+          state.enabled = !state.enabled
+        }),
+        updatePolling(
+          state,
+          {
+            payload,
+          }: PayloadAction<{
+            app: PollingAppKey
+            enabled?: boolean
+            interval?: number
+          }>,
+        ) {
+          const { app, ...rest } = payload
+          state.apps[app] = {
+            ...state.apps[app],
+            ...rest,
+          }
+        },
+      }
     },
     selectors: {
       selectGlobalPollingEnabled: (pollingState) => pollingState.enabled,
