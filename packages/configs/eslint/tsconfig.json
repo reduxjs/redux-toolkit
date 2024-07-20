@@ -1,7 +1,7 @@
 {
   "extends": "@reduxjs/tsconfig/node-next",
   "compilerOptions": {
-    "outDir": "dist",
-    "isolatedDeclarations": true
+    "isolatedDeclarations": true,
+    "outDir": "dist"
   }
 }
