@@ -8205,7 +8205,7 @@ __metadata:
     chalk: "npm:^4.1.0"
     commander: "npm:^6.2.0"
     del: "npm:^6.0.0"
-    esbuild: "npm:^0.21.5"
+    esbuild: "npm:^0.23.0"
     esbuild-runner: "npm:^2.2.1"
     husky: "npm:^4.3.6"
     lodash.camelcase: "npm:^4.3.0"
@@ -15307,7 +15307,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"esbuild@npm:^0.21.3, esbuild@npm:^0.21.5":
+"esbuild@npm:^0.21.3":
   version: 0.21.5
   resolution: "esbuild@npm:0.21.5"
   dependencies:
