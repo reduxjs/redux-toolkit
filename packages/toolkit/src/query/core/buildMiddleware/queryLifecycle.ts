@@ -116,6 +116,66 @@ export type QueryLifecycleQueryExtraOptions<
   ): Promise<void> | void
 }
 
+export type QueryLifecycleMutationExtraOptions<
+  ResultType,
+  QueryArg,
+  BaseQuery extends BaseQueryFn,
+  ReducerPath extends string = string,
+> = {
+  /**
+   * A function that is called when the individual mutation is started. The function is called with a lifecycle api object containing properties such as `queryFulfilled`, allowing code to be run when a query is started, when it succeeds, and when it fails (i.e. throughout the lifecycle of an individual query/mutation call).
+   *
+   * Can be used for `optimistic updates`.
+   *
+   * @example
+   *
+   * ```ts
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+   * export interface Post {
+   *   id: number
+   *   name: string
+   * }
+   *
+   * const api = createApi({
+   *   baseQuery: fetchBaseQuery({
+   *     baseUrl: '/',
+   *   }),
+   *   tagTypes: ['Post'],
+   *   endpoints: (build) => ({
+   *     getPost: build.query<Post, number>({
+   *       query: (id) => `post/${id}`,
+   *       providesTags: ['Post'],
+   *     }),
+   *     updatePost: build.mutation<void, Pick<Post, 'id'> & Partial<Post>>({
+   *       query: ({ id, ...patch }) => ({
+   *         url: `post/${id}`,
+   *         method: 'PATCH',
+   *         body: patch,
+   *       }),
+   *       invalidatesTags: ['Post'],
+   *       async onQueryStarted({ id, ...patch }, { dispatch, queryFulfilled }) {
+   *         const patchResult = dispatch(
+   *           api.util.updateQueryData('getPost', id, (draft) => {
+   *             Object.assign(draft, patch)
+   *           })
+   *         )
+   *         try {
+   *           await queryFulfilled
+   *         } catch {
+   *           patchResult.undo()
+   *         }
+   *       },
+   *     }),
+   *   }),
+   * })
+   * ```
+   */
+  onQueryStarted?(
+    arg: QueryArg,
+    api: MutationLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
+  ): Promise<void> | void
+}
+
 export interface QueryLifecycleApi<
   QueryArg,
   BaseQuery extends BaseQueryFn,
