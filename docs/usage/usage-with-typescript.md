@@ -557,6 +557,21 @@ const fetchUserById = createAsyncThunk(
 const lastReturnedAction = await store.dispatch(fetchUserById(3))
 ```
 
+### Handling responses from async thunks
+
+The preferred approach to handling responses from thunks is via the `unwrap` method (see [Unwrapping Result Actions](../api/createAsyncThunk.mdx/#unwrapping-result-actions).
+
+```ts
+const handleClick = async (userData) => {
+  try {
+    const result = await dispatch(updateUser(userData)).unwrap();
+    showToast('success', `Updated ${result.name}`)
+  } catch (error) {
+    showToast('error', `Update failed: ${error.message}`)
+  }
+}
+```
+
 ### Typing the `thunkApi` Object
 
 The second argument to the `payloadCreator`, known as `thunkApi`, is an object containing references to the `dispatch`, `getState`, and `extra` arguments from the thunk middleware as well as a utility function called `rejectWithValue`. If you want to use these from within the `payloadCreator`, you will need to define some generic arguments, as the types for these arguments cannot be inferred. Also, as TS cannot mix explicit and inferred generic parameters, from this point on you'll have to define the `Returned` and `ThunkArg` generic parameter as well.
