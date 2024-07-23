@@ -275,7 +275,7 @@ export function buildThunks<
         getState() as RootState<any, any, any>,
       )
 
-      let ret: PatchCollection = {
+      const ret: PatchCollection = {
         patches: [],
         inversePatches: [],
         undo: () =>

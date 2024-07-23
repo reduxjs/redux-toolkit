@@ -204,7 +204,7 @@ export type { AutoBatchOptions } from './autoBatchEnhancer'
 
 export { combineSlices } from './combineSlices'
 
-export type { WithSlice } from './combineSlices'
+export type { CombinedSliceReducer, WithSlice } from './combineSlices'
 
 export type {
   ExtractDispatchExtensions as TSHelpersExtractDispatchExtensions,
