@@ -11,7 +11,7 @@ export type {
   SubscriptionOptions,
 } from './core/apiState'
 export { QueryStatus } from './core/apiState'
-export type { Api, ApiContext, ApiModules, Module } from './apiTypes'
+export type { Api, ApiContext, Module } from './apiTypes'
 
 export type {
   BaseQueryApi,
@@ -61,6 +61,7 @@ export { createApi, coreModule, coreModuleName } from './core'
 export type {
   ApiEndpointMutation,
   ApiEndpointQuery,
+  ApiModules,
   CoreModule,
   PrefetchOptions,
 } from './core/module'
