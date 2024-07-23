@@ -4,7 +4,7 @@ import { Provider } from 'react-redux'
 import App from './App.js'
 import { store } from './app/store.js'
 
-const container = document.getElementById('root')
+export const container = document.getElementById('root')
 
 if (container) {
   const root = createRoot(container)

@@ -6,4 +6,4 @@ const Container: FC<{ children: ReactNode }> = ({ children }) => (
   </div>
 )
 
-export = Container
+export = { Container }

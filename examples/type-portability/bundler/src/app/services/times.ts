@@ -1,6 +1,6 @@
 import { apiSlice } from './api'
 
-interface TimeResponse {
+export interface TimeResponse {
   time: string
 }
 

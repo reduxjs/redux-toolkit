@@ -1,15 +1,20 @@
 import ReactRouterDom = require('react-router-dom')
 import bundleSplitting = require('./features/bundleSplitting/index.js')
-import CounterList = require('./features/counter/CounterList.js')
-import PollingToggles = require('./features/polling/PollingToggles.js')
-import PostsManager = require('./features/posts/PostsManager.js')
-import TimeList = require('./features/time/TimeList.js')
+import CounterListModule = require('./features/counter/CounterList.js')
+import PollingTogglesModule = require('./features/polling/PollingToggles.js')
+import PostsManagerModule = require('./features/posts/PostsManager.js')
+import TimeListModule = require('./features/time/TimeList.js')
 
 import Link = ReactRouterDom.Link
 import Route = ReactRouterDom.Route
 import Routes = ReactRouterDom.Routes
 
 import Lazy = bundleSplitting.Lazy
+
+const { CounterList } = CounterListModule
+const { PollingToggles } = PollingTogglesModule
+const { PostsManager } = PostsManagerModule
+const { TimeList } = TimeListModule
 
 function App() {
   return (
@@ -26,7 +31,7 @@ function App() {
           <PollingToggles />
         </div>
       </div>
-      <div></div>
+      <div />
       <div>
         <Routes>
           <Route path="/" element={<TimeList />} />

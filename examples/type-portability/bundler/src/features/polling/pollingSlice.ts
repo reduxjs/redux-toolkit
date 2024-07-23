@@ -2,19 +2,19 @@ import type { PayloadAction } from '@reduxjs/toolkit'
 import { createSlice } from '@reduxjs/toolkit'
 import type { RootState } from '../../app/store'
 
-type PollingConfig = {
+export type PollingConfig = {
   enabled: boolean
   interval: number
 }
 
-type SliceState = {
+export type SliceState = {
   enabled: boolean
   apps: {
     [key: string]: PollingConfig
   }
 }
 
-const initialState: SliceState = {
+export const initialState: SliceState = {
   enabled: true,
   apps: {
     counters: {
@@ -32,7 +32,7 @@ const initialState: SliceState = {
   },
 }
 
-type PollingAppKey = keyof (typeof initialState)['apps']
+export type PollingAppKey = keyof (typeof initialState)['apps']
 
 export const pollingSlice = createSlice({
   name: 'polling',

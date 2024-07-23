@@ -9,7 +9,7 @@ import {
 } from '../../app/services/posts.js'
 import { selectGlobalPollingEnabled } from '../polling/pollingSlice.js'
 
-const EditablePostName = ({
+export const EditablePostName = ({
   name: initialName,
   onUpdate,
   onCancel,
@@ -51,7 +51,7 @@ const EditablePostName = ({
   )
 }
 
-const PostJsonDetail = ({ id }: { id: number }) => {
+export const PostJsonDetail = ({ id }: { id: number }) => {
   const { data: post } = useGetPostQuery(id)
 
   return (

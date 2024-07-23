@@ -5,7 +5,7 @@ import { PollingToggles } from './features/polling/PollingToggles'
 import { PostsManager } from './features/posts/PostsManager'
 import { TimeList } from './features/time/TimeList'
 
-function App() {
+export function App() {
   return (
     <div className="App">
       <div className="row">
@@ -20,7 +20,7 @@ function App() {
           <PollingToggles />
         </div>
       </div>
-      <div></div>
+      <div />
       <div>
         <Routes>
           <Route path="/" element={<TimeList />} />

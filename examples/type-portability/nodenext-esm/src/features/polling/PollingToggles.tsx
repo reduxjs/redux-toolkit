@@ -7,7 +7,7 @@ import {
   updatePolling,
 } from './pollingSlice.js'
 
-const PollingToggleButton = ({
+export const PollingToggleButton = ({
   enabled,
   onClick,
   children,

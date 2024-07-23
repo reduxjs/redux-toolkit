@@ -1,6 +1,6 @@
 import { apiSlice } from './api'
 
-interface CountResponse {
+export interface CountResponse {
   count: number
 }
 

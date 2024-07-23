@@ -7,7 +7,7 @@ export interface Post {
   fetched_at: string
 }
 
-type PostsResponse = Post[]
+export type PostsResponse = Post[]
 
 export interface User {
   first_name: string

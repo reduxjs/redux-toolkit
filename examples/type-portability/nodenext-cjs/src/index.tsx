@@ -10,6 +10,8 @@ import store = storeModule.store
 
 const container = document.getElementById('root')
 
+export = { container }
+
 if (container) {
   const root = createRoot(container)
 

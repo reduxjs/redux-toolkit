@@ -3,7 +3,7 @@ import ReactRedux = require('react-redux')
 import ReactRouterDom = require('react-router-dom')
 import postsModule = require('../../app/services/posts.js')
 import authSliceModule = require('../auth/authSlice.js')
-import PostDetail = require('./PostDetail.js')
+import PostDetailModule = require('./PostDetail.js')
 
 import type { ChangeEvent, FormEventHandler } from 'react'
 import type { Post } from '../../app/services/posts.js'
@@ -20,6 +20,8 @@ import useGetPostsQuery = postsModule.useGetPostsQuery
 import useLoginMutation = postsModule.useLoginMutation
 import logout = authSliceModule.logout
 import selectIsAuthenticated = authSliceModule.selectIsAuthenticated
+
+const { PostDetail } = PostDetailModule
 
 const AddPost = () => {
   const initialValue = { name: '' }
@@ -147,4 +149,4 @@ const PostsManager = () => {
   )
 }
 
-export = PostsManager
+export = { AddPost, PostListItem, PostList, PostsManager }

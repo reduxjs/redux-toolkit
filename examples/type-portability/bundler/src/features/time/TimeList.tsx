@@ -9,7 +9,7 @@ import {
   selectPollingConfigByApp,
 } from '../polling/pollingSlice'
 
-const timezones: Record<string, string> = {
+export const timezones: Record<string, string> = {
   '-12:00': '(GMT -12:00) Eniwetok, Kwajalein',
   '-11:00': '(GMT -11:00) Midway Island, Samoa',
   '-10:00': '(GMT -10:00) Hawaii',
@@ -52,7 +52,7 @@ const timezones: Record<string, string> = {
   '+14:00': '(GMT +14:00) Line Islands, Tokelau',
 }
 
-const TimeZoneSelector = ({
+export const TimeZoneSelector = ({
   onChange,
 }: {
   onChange: (event: React.ChangeEvent<HTMLSelectElement>) => void
@@ -69,16 +69,16 @@ const TimeZoneSelector = ({
   )
 }
 
-const intervalOptions = [
+export const intervalOptions = [
   { label: '0 - Off', value: 0 },
   { label: '1s', value: 1000 },
   { label: '3s', value: 3000 },
   { label: '5s', value: 5000 },
-  { label: '10s', value: 10000 },
-  { label: '1m', value: 60000 },
+  { label: '10s', value: 10_000 },
+  { label: '1m', value: 60_000 },
 ]
 
-const TimeDisplay = ({ offset, label }: { offset: string; label: string }) => {
+export const TimeDisplay = ({ offset, label }: { offset: string; label: string }) => {
   const globalPolling = useAppSelector(selectGlobalPollingEnabled)
   const { enabled: timesPolling } = useAppSelector((state) =>
     selectPollingConfigByApp(state, 'times'),

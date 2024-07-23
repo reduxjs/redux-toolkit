@@ -1,10 +1,13 @@
 import ReduxToolkit = require('@reduxjs/toolkit')
 import React = require('react')
-import Container = require('../common/Container.js')
-import Counter = require('./Counter.js')
+import ContainerModule = require('../common/Container.js')
+import CounterModule = require('./Counter.js')
 
 import nanoid = ReduxToolkit.nanoid
 import useState = React.useState
+
+const { Container } = ContainerModule
+const { Counter } = CounterModule
 
 const CounterList = () => {
   const [counters, setCounters] = useState<string[]>([])
@@ -40,4 +43,4 @@ const CounterList = () => {
   )
 }
 
-export = CounterList
+export = { CounterList }

@@ -12,7 +12,7 @@ import {
 import { logout, selectIsAuthenticated } from '../auth/authSlice'
 import { PostDetail } from './PostDetail'
 
-const AddPost = () => {
+export const AddPost = () => {
   const initialValue = { name: '' }
   const [post, setPost] = useState<Partial<Post>>(initialValue)
   const [addPost, { isLoading }] = useAddPostMutation()
@@ -52,7 +52,7 @@ const AddPost = () => {
   )
 }
 
-const PostListItem = ({
+export const PostListItem = ({
   data: { name, id },
   onSelect,
 }: {
@@ -68,7 +68,7 @@ const PostListItem = ({
   )
 }
 
-const PostList = () => {
+export const PostList = () => {
   const { data: posts, isLoading } = useGetPostsQuery()
   const navigate = useNavigate()
 

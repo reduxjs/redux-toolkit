@@ -36,4 +36,4 @@ function Counter({ id, onRemove }: { id?: string; onRemove?: () => void }) {
   )
 }
 
-export = Counter
+export = { Counter }

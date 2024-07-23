@@ -2,7 +2,7 @@ import ReduxToolkit = require('@reduxjs/toolkit')
 import React = require('react')
 import hooksModule = require('../../app/hooks.js')
 import timesModule = require('../../app/services/times.js')
-import Container = require('../common/Container.js')
+import ContainerModule = require('../common/Container.js')
 import pollingSliceModule = require('../polling/pollingSlice.js')
 
 import nanoid = ReduxToolkit.nanoid
@@ -11,6 +11,9 @@ import useEffect = React.useEffect
 import useAppSelector = hooksModule.useAppSelector
 import useGetTimeQuery = timesModule.useGetTimeQuery
 import usePrefetchTime = timesModule.usePrefetchTime
+
+const { Container } = ContainerModule
+
 import selectPollingConfigByApp = pollingSliceModule.selectPollingConfigByApp
 import selectGlobalPollingEnabled = pollingSliceModule.selectGlobalPollingEnabled
 
@@ -79,8 +82,8 @@ const intervalOptions = [
   { label: '1s', value: 1000 },
   { label: '3s', value: 3000 },
   { label: '5s', value: 5000 },
-  { label: '10s', value: 10000 },
-  { label: '1m', value: 60000 },
+  { label: '10s', value: 10_000 },
+  { label: '1m', value: 60_000 },
 ]
 
 const TimeDisplay = ({ offset, label }: { offset: string; label: string }) => {
@@ -174,4 +177,4 @@ const TimeList = () => {
   )
 }
 
-export = TimeList
+export = { timezones, TimeZoneSelector, intervalOptions, TimeDisplay, TimeList }

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Post } from '.'
 import { postsApi } from '../../app/services/posts'
 
-const PostsList = () => {
+export const PostsList = () => {
   const { data, error } = postsApi.endpoints.getPosts.useQuery()
   const [selected, select] = useState<number | undefined>()
 
@@ -23,4 +23,5 @@ const PostsList = () => {
     </>
   )
 }
+
 export default PostsList

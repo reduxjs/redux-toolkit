@@ -61,4 +61,4 @@ const PollingToggles = () => {
   )
 }
 
-export = PollingToggles
+export = { PollingToggleButton, PollingToggles }

@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { Post } from './index.js'
 import { postsApi } from '../../app/services/posts.js'
+import { Post } from './index.js'
 
-const PostsList = () => {
+export const PostsList = () => {
   const { data, error } = postsApi.endpoints.getPosts.useQuery()
   const [selected, select] = useState<number | undefined>()
 
@@ -23,4 +23,5 @@ const PostsList = () => {
     </>
   )
 }
+
 export default PostsList

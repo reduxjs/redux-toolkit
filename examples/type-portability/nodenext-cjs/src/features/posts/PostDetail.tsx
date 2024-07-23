@@ -134,4 +134,4 @@ const PostDetail = () => {
   )
 }
 
-export = PostDetail
+export = { EditablePostName, PostJsonDetail, PostDetail }
