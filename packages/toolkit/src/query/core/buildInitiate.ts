@@ -22,6 +22,13 @@ import type { QueryResultSelectorResult } from './buildSelectors'
 import type { MutationThunk, QueryThunk, QueryThunkArg } from './buildThunks'
 import type { ApiEndpointQuery } from './module'
 
+export type BuildInitiateApiEndpointQuery<
+  Definition extends QueryDefinition<any, any, any, any, any>,
+> = {
+  initiate: StartQueryActionCreator<Definition>
+}
+
+
 export const forceQueryFnSymbol = Symbol('forceQueryFn')
 export const isUpsertQuery = (arg: QueryThunkArg) =>
   typeof arg[forceQueryFnSymbol] === 'function'
