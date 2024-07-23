@@ -45,7 +45,7 @@ export type StartQueryActionCreatorOptions = {
   [forceQueryFnSymbol]?: () => QueryReturnValue
 }
 
-export type StartQueryActionCreator<
+type StartQueryActionCreator<
   D extends QueryDefinition<any, any, any, any, any>,
 > = (
   arg: QueryArgFrom<D>,
