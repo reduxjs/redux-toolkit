@@ -34,7 +34,11 @@ import type {
 import { buildSelectors } from './buildSelectors'
 import type { SliceActions } from './buildSlice'
 import { buildSlice } from './buildSlice'
-import type { Matchers, MutationThunk, QueryThunk } from './buildThunks'
+import type {
+  BuildThunksApiEndpointQuery,
+  Matchers,
+  MutationThunk,
+} from './buildThunks'
 import { buildThunks } from './buildThunks'
 import { createSelector as _createSelector } from './rtkImports'
 import { onFocus, onFocusLost, onOffline, onOnline } from './setupListeners'
@@ -67,7 +71,7 @@ export interface ApiEndpointQuery<
   Definition extends QueryDefinition<any, any, any, any, any>,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Definitions extends EndpointDefinitions,
-> extends Matchers<QueryThunk, Definition> {
+> extends BuildThunksApiEndpointQuery<Definition> {
   initiate: StartQueryActionCreator<Definition>
 
   select: QueryResultSelectorFactory<

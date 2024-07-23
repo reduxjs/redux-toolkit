@@ -44,6 +44,10 @@ import {
   SHOULD_AUTOBATCH,
 } from './rtkImports'
 
+export type BuildThunksApiEndpointQuery<
+  Definition extends QueryDefinition<any, any, any, any, any>,
+> = Matchers<QueryThunk, Definition>
+
 type EndpointThunk<
   Thunk extends QueryThunk | MutationThunk,
   Definition extends EndpointDefinition<any, any, any, any>,
