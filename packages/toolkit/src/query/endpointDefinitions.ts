@@ -10,6 +10,7 @@ import type {
   QueryReturnValue,
 } from './baseQueryTypes'
 import type { QuerySubState, RootState } from './core'
+import type { CacheCollectionQueryExtraOptions } from './core/buildMiddleware/cacheCollection'
 import type {
   CacheLifecycleMutationExtraOptions,
   CacheLifecycleQueryExtraOptions,
@@ -282,15 +283,9 @@ export interface QueryExtraOptions<
       QueryArg,
       BaseQuery,
       ReducerPath
-    > {
+    >,
+    CacheCollectionQueryExtraOptions {
   type: DefinitionType.query
-
-  /**
-   * Overrides the api-wide definition of `keepUnusedDataFor` for this endpoint only. _(This value is in seconds.)_
-   *
-   * This is how long RTK Query will keep your data cached for **after** the last component unsubscribes. For example, if you query an endpoint, then unmount the component, then mount another component that makes the same request within the given time frame, the most recent value will be served from the cache.
-   */
-  keepUnusedDataFor?: number
 
   /**
    * Used by `query` endpoints. Determines which 'tag' is attached to the cached data returned by the query.
