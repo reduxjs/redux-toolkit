@@ -88,7 +88,7 @@ export type QueryResultSelectorResult<
   Definition extends QueryDefinition<any, any, any, any>,
 > = QuerySubState<Definition> & RequestStatusFlags
 
-export type MutationResultSelectorFactory<
+type MutationResultSelectorFactory<
   Definition extends MutationDefinition<any, any, any, any>,
   RootState,
 > = (
