@@ -66,7 +66,7 @@ export type QueryActionCreatorResult<
   queryCacheKey: string
 }
 
-export type StartMutationActionCreator<
+type StartMutationActionCreator<
   D extends MutationDefinition<any, any, any, any>,
 > = (
   arg: QueryArgFrom<D>,
