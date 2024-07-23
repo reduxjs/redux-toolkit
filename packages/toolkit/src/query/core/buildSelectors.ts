@@ -54,6 +54,10 @@ export type QueryResultSelectorFactory<
   queryArg: QueryArgFrom<Definition> | SkipToken,
 ) => (state: RootState) => QueryResultSelectorResult<Definition>
 
+export type QueryResultSelectorResult<
+  Definition extends QueryDefinition<any, any, any, any>,
+> = QuerySubState<Definition> & RequestStatusFlags
+
 export type MutationResultSelectorFactory<
   Definition extends MutationDefinition<any, any, any, any>,
   RootState,
@@ -63,10 +67,6 @@ export type MutationResultSelectorFactory<
     | { requestId: string | undefined; fixedCacheKey: string | undefined }
     | SkipToken,
 ) => (state: RootState) => MutationResultSelectorResult<Definition>
-
-export type QueryResultSelectorResult<
-  Definition extends QueryDefinition<any, any, any, any>,
-> = QuerySubState<Definition> & RequestStatusFlags
 
 export type MutationResultSelectorResult<
   Definition extends MutationDefinition<any, any, any, any>,
