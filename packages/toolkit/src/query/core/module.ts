@@ -28,8 +28,8 @@ import type {
 } from './buildMiddleware'
 import { buildMiddleware } from './buildMiddleware'
 import type {
+  BuildSelectorsApiEndpointQuery,
   MutationResultSelectorFactory,
-  QueryResultSelectorFactory,
 } from './buildSelectors'
 import { buildSelectors } from './buildSelectors'
 import type { SliceActions } from './buildSlice'
@@ -72,16 +72,8 @@ export interface ApiEndpointQuery<
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Definitions extends EndpointDefinitions,
 > extends BuildThunksApiEndpointQuery<Definition>,
-    BuildInitiateApiEndpointQuery<Definition> {
-  select: QueryResultSelectorFactory<
-    Definition,
-    RootState<
-      Definitions,
-      TagTypesFrom<Definition>,
-      ReducerPathFrom<Definition>
-    >
-  >
-
+    BuildInitiateApiEndpointQuery<Definition>,
+    BuildSelectorsApiEndpointQuery<Definition, Definitions> {
   name: string
   /**
    * All of these are `undefined` at runtime, purely to be used in TypeScript declarations!

@@ -4,7 +4,9 @@ import type {
   MutationDefinition,
   QueryArgFrom,
   QueryDefinition,
+  ReducerPathFrom,
   TagDescription,
+  TagTypesFrom,
 } from '../endpointDefinitions'
 import { expandTagDescription } from '../endpointDefinitions'
 import { flatten } from '../utils'
@@ -46,6 +48,20 @@ export type SkipToken = typeof skipToken
  * return an uninitialized state.
  */
 export const skipToken = /* @__PURE__ */ Symbol.for('RTKQ/skipToken')
+
+export type BuildSelectorsApiEndpointQuery<
+  Definition extends QueryDefinition<any, any, any, any, any>,
+  Definitions extends EndpointDefinitions,
+> = {
+  select: QueryResultSelectorFactory<
+    Definition,
+    _RootState<
+      Definitions,
+      TagTypesFrom<Definition>,
+      ReducerPathFrom<Definition>
+    >
+  >
+}
 
 export type QueryResultSelectorFactory<
   Definition extends QueryDefinition<any, any, any, any>,
