@@ -808,6 +808,31 @@ describe('Sorted State Adapter', () => {
     )
   })
 
+  it('should not throw an Immer `current` error when the adapter is called twice', () => {
+    const book1: BookModel = { id: 'a', title: 'First' }
+    const book2: BookModel = { id: 'b', title: 'Second' }
+    const initialState = adapter.getInitialState()
+    const booksSlice = createSlice({
+      name: 'books',
+      initialState,
+      reducers: {
+        testCurrentBehavior(state, action: PayloadAction<BookModel>) {
+          // Will overwrite `state.ids` with a plain array
+          adapter.removeAll(state)
+
+          // will call `splitAddedUpdatedEntities` and call `current(state.ids)`
+          adapter.addOne(state, book1)
+          adapter.addOne(state, book2)
+        },
+      },
+    })
+
+    booksSlice.reducer(
+      initialState,
+      booksSlice.actions.testCurrentBehavior(book1),
+    )
+  })
+
   describe('can be used mutably when wrapped in createNextState', () => {
     test('removeAll', () => {
       const withTwo = adapter.addMany(state, [TheGreatGatsby, AnimalFarm])

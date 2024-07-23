@@ -92,9 +92,11 @@ jobs:
       - name: Install build artifact
         run: yarn workspace @reduxjs/toolkit add $(pwd)/package.tgz
 
-      - run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json ./vitest.config.mts ./src/tests/*.* ./src/query/tests/*.*
+      - run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json
 
       - name: Run tests, against dist
+        env:
+          TEST_DIST: true
         run: yarn test
 
       - name: Run type tests with `moduleResolution Bundler`
@@ -188,9 +190,11 @@ jobs:
       - name: Show installed RTK versions
         run: yarn info @reduxjs/toolkit
 
-      - run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json ./vitest.config.mts ./src/tests/*.* ./src/query/tests/*.*
+      - run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json
 
       - name: Test types
+        env:
+          TEST_DIST: true
         run: |
           yarn tsc --version
           yarn type-tests

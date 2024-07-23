@@ -1,4 +1,4 @@
-import { current, isDraft } from 'immer'
+import { Draft, current, isDraft } from 'immer'
 import type {
   IdSelector,
   Update,
@@ -36,8 +36,8 @@ export function ensureEntitiesArray<T, Id extends EntityId>(
   return entities
 }
 
-export function getCurrent<T>(value: T): T {
-  return isDraft(value) ? current(value) : value
+export function getCurrent<T>(value: T | Draft<T>): T {
+  return (isDraft(value) ? current(value) : value) as T
 }
 
 export function splitAddedUpdatedEntities<T, Id extends EntityId>(
@@ -47,7 +47,7 @@ export function splitAddedUpdatedEntities<T, Id extends EntityId>(
 ): [T[], Update<T, Id>[], Id[]] {
   newEntities = ensureEntitiesArray(newEntities)
 
-  const existingIdsArray = getCurrent(state.ids) as Id[]
+  const existingIdsArray = getCurrent(state.ids)
   const existingIds = new Set<Id>(existingIdsArray)
 
   const added: T[] = []
