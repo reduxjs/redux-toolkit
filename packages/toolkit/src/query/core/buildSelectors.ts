@@ -77,7 +77,7 @@ export type BuildSelectorsApiEndpointMutation<
   >
 }
 
-export type QueryResultSelectorFactory<
+type QueryResultSelectorFactory<
   Definition extends QueryDefinition<any, any, any, any>,
   RootState,
 > = (
