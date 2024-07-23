@@ -10,12 +10,9 @@ import type {
   EndpointDefinitions,
   MutationDefinition,
   QueryDefinition,
-  ReducerPathFrom,
-  TagTypesFrom,
 } from '../endpointDefinitions'
 import { isMutationDefinition, isQueryDefinition } from '../endpointDefinitions'
 import { assertCast, safeAssign } from '../tsHelpers'
-import type { RootState } from './apiState'
 import type {
   BuildInitiateApiEndpointMutation,
   BuildInitiateApiEndpointQuery,
@@ -28,8 +25,8 @@ import type {
 } from './buildMiddleware'
 import { buildMiddleware } from './buildMiddleware'
 import type {
+  BuildSelectorsApiEndpointMutation,
   BuildSelectorsApiEndpointQuery,
-  MutationResultSelectorFactory,
 } from './buildSelectors'
 import { buildSelectors } from './buildSelectors'
 import type { SliceActions } from './buildSlice'
@@ -87,16 +84,8 @@ export interface ApiEndpointMutation<
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Definitions extends EndpointDefinitions,
 > extends BuildThunksApiEndpointMutation<Definition>,
-    BuildInitiateApiEndpointMutation<Definition> {
-  select: MutationResultSelectorFactory<
-    Definition,
-    RootState<
-      Definitions,
-      TagTypesFrom<Definition>,
-      ReducerPathFrom<Definition>
-    >
-  >
-
+    BuildInitiateApiEndpointMutation<Definition>,
+    BuildSelectorsApiEndpointMutation<Definition, Definitions> {
   name: string
   /**
    * All of these are `undefined` at runtime, purely to be used in TypeScript declarations!

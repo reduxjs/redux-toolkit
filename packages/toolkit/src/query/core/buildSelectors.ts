@@ -63,6 +63,20 @@ export type BuildSelectorsApiEndpointQuery<
   >
 }
 
+export type BuildSelectorsApiEndpointMutation<
+  Definition extends MutationDefinition<any, any, any, any, any>,
+  Definitions extends EndpointDefinitions,
+> = {
+  select: MutationResultSelectorFactory<
+    Definition,
+    _RootState<
+      Definitions,
+      TagTypesFrom<Definition>,
+      ReducerPathFrom<Definition>
+    >
+  >
+}
+
 export type QueryResultSelectorFactory<
   Definition extends QueryDefinition<any, any, any, any>,
   RootState,
