@@ -17,8 +17,8 @@ import { isMutationDefinition, isQueryDefinition } from '../endpointDefinitions'
 import { assertCast, safeAssign } from '../tsHelpers'
 import type { RootState } from './apiState'
 import type {
+  BuildInitiateApiEndpointMutation,
   BuildInitiateApiEndpointQuery,
-  StartMutationActionCreator,
 } from './buildInitiate'
 import { buildInitiate } from './buildInitiate'
 import type {
@@ -86,9 +86,8 @@ export interface ApiEndpointMutation<
   Definition extends MutationDefinition<any, any, any, any, any>,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Definitions extends EndpointDefinitions,
-> extends BuildThunksApiEndpointMutation<Definition> {
-  initiate: StartMutationActionCreator<Definition>
-
+> extends BuildThunksApiEndpointMutation<Definition>,
+    BuildInitiateApiEndpointMutation<Definition> {
   select: MutationResultSelectorFactory<
     Definition,
     RootState<

@@ -28,6 +28,11 @@ export type BuildInitiateApiEndpointQuery<
   initiate: StartQueryActionCreator<Definition>
 }
 
+export type BuildInitiateApiEndpointMutation<
+  Definition extends MutationDefinition<any, any, any, any, any>,
+> = {
+  initiate: StartMutationActionCreator<Definition>
+}
 
 export const forceQueryFnSymbol = Symbol('forceQueryFn')
 export const isUpsertQuery = (arg: QueryThunkArg) =>
