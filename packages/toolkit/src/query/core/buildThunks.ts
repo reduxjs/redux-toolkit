@@ -19,6 +19,7 @@ import type {
   AssertTagTypes,
   EndpointDefinition,
   EndpointDefinitions,
+  MutationDefinition,
   QueryArgFrom,
   QueryDefinition,
   ResultTypeFrom,
@@ -47,6 +48,10 @@ import {
 export type BuildThunksApiEndpointQuery<
   Definition extends QueryDefinition<any, any, any, any, any>,
 > = Matchers<QueryThunk, Definition>
+
+export type BuildThunksApiEndpointMutation<
+  Definition extends MutationDefinition<any, any, any, any, any>,
+> = Matchers<MutationThunk, Definition>
 
 type EndpointThunk<
   Thunk extends QueryThunk | MutationThunk,
