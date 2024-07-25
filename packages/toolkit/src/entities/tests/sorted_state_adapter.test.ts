@@ -7,8 +7,6 @@ import {
   createSlice,
   nanoid,
 } from '@reduxjs/toolkit'
-import { createNextState } from '../..'
-import { createEntityAdapter } from '../create_adapter'
 import type { EntityAdapter, EntityState } from '../models'
 import type { BookModel } from './fixtures/book'
 import {

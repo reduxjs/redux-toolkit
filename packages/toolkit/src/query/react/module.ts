@@ -17,8 +17,6 @@ import {
 } from 'react-redux'
 import { createSelector as _createSelector } from 'reselect'
 import type { AnyObject } from '../../tsHelpers'
-import type { QueryKeys } from '../core/apiState'
-import type { PrefetchOptions } from '../core/module'
 import { isMutationDefinition, isQueryDefinition } from '../endpointDefinitions'
 import { safeAssign } from '../tsHelpers'
 import { capitalize } from '../utils'
