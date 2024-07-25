@@ -6,7 +6,6 @@ import type {
   ThunkDispatch,
   UnknownAction,
 } from '@reduxjs/toolkit'
-import type { AnyNonNullishValue, EmptyObject } from '../../../tsHelpers'
 import type { Api, ApiContext } from '../../apiTypes'
 import type {
   AssertTagTypes,
@@ -104,8 +103,10 @@ export type PromiseConstructorWithKnownReason =
     ) => void,
   ) => PromiseWithKnownReason<T, R>
 
-export interface PromiseWithKnownReason<T, R>
-  extends Omit<Promise<T>, 'then' | 'catch'> {
+export type PromiseWithKnownReason<T, R> = Omit<
+  Promise<T>,
+  'then' | 'catch'
+> & {
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.

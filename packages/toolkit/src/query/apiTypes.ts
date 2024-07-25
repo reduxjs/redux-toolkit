@@ -1,7 +1,7 @@
 import type { UnknownAction } from '@reduxjs/toolkit'
 import type { BaseQueryFn } from './baseQueryTypes'
-import type { CombinedState } from './core/apiState'
-import type { CoreModule } from './core/module'
+import type { CombinedState, CoreModule } from './core'
+import type { ApiModules } from './core/module'
 import type { CreateApiOptions } from './createApi'
 import type {
   EndpointBuilder,
@@ -14,14 +14,6 @@ import type {
   UnionToIntersection,
   WithRequiredProp,
 } from './tsHelpers'
-
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface ApiModules<
-  BaseQuery extends BaseQueryFn,
-  Definitions extends EndpointDefinitions,
-  ReducerPath extends string,
-  TagTypes extends string,
-> {}
 
 export type ModuleName = keyof ApiModules<any, any, any, any>
 

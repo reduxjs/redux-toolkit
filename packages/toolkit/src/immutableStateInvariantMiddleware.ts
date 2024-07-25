@@ -1,5 +1,6 @@
 import type { Middleware } from 'redux'
 import type { AnyObject } from './tsHelpers'
+import type { IgnorePaths } from './serializableStateInvariantMiddleware'
 import { getTimeMeasureUtils } from './utils'
 
 type EntryProcessor = (key: string, value: any) => any
@@ -60,8 +61,6 @@ function trackProperties(
   }
   return tracked as TrackedProperty
 }
-
-type IgnorePaths = ReadonlyArray<string | RegExp>
 
 function detectMutations(
   isImmutable: IsImmutableFunc,

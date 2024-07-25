@@ -4,8 +4,10 @@ import type {
   EndpointDefinitions,
   Module,
   MutationDefinition,
+  PrefetchOptions,
   QueryArgFrom,
   QueryDefinition,
+  QueryKeys,
 } from '@reduxjs/toolkit/query'
 import {
   batch as rrBatch,

@@ -25,6 +25,18 @@ import type {
   InternalMiddlewareState,
 } from './types'
 import { buildWindowEventHandler } from './windowEventHandling'
+export type { ReferenceCacheCollection } from './cacheCollection'
+export type {
+  MutationCacheLifecycleApi,
+  QueryCacheLifecycleApi,
+  ReferenceCacheLifecycle,
+} from './cacheLifecycle'
+export type {
+  MutationLifecycleApi,
+  QueryLifecycleApi,
+  ReferenceQueryLifecycle,
+} from './queryLifecycle'
+export type { SubscriptionSelectors } from './types'
 
 export function buildMiddleware<
   Definitions extends EndpointDefinitions,

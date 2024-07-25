@@ -16,34 +16,29 @@ import type {
   QueryDefinition,
   ResultTypeFrom,
 } from '../endpointDefinitions'
-import { countObjectKeys } from '../utils/countObjectKeys'
-import { isNotNullish } from '../utils/isNotNullish'
+import { countObjectKeys, isNotNullish } from '../utils'
 import type { SubscriptionOptions } from './apiState'
 import type { QueryResultSelectorResult } from './buildSelectors'
 import type { MutationThunk, QueryThunk, QueryThunkArg } from './buildThunks'
 import type { ApiEndpointQuery } from './module'
 
-declare module './module' {
-  export interface ApiEndpointQuery<
-    Definition extends QueryDefinition<any, any, any, any, any>,
-    Definitions extends EndpointDefinitions,
-  > {
-    initiate: StartQueryActionCreator<Definition>
-  }
+export type BuildInitiateApiEndpointQuery<
+  Definition extends QueryDefinition<any, any, any, any, any>,
+> = {
+  initiate: StartQueryActionCreator<Definition>
+}
 
-  export interface ApiEndpointMutation<
-    Definition extends MutationDefinition<any, any, any, any, any>,
-    Definitions extends EndpointDefinitions,
-  > {
-    initiate: StartMutationActionCreator<Definition>
-  }
+export type BuildInitiateApiEndpointMutation<
+  Definition extends MutationDefinition<any, any, any, any, any>,
+> = {
+  initiate: StartMutationActionCreator<Definition>
 }
 
 export const forceQueryFnSymbol = Symbol('forceQueryFn')
 export const isUpsertQuery = (arg: QueryThunkArg) =>
   typeof arg[forceQueryFnSymbol] === 'function'
 
-export interface StartQueryActionCreatorOptions {
+export type StartQueryActionCreatorOptions = {
   subscribe?: boolean
   forceRefetch?: boolean | number
   subscriptionOptions?: SubscriptionOptions

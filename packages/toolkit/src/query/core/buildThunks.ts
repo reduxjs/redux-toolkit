@@ -8,7 +8,6 @@ import type {
 } from '@reduxjs/toolkit'
 import type { Patch } from 'immer'
 import { isDraftable, produceWithPatches } from 'immer'
-import { HandledError } from '../HandledError'
 import type { Api, ApiContext } from '../apiTypes'
 import type {
   BaseQueryError,
@@ -26,6 +25,7 @@ import type {
   ResultTypeFrom,
 } from '../endpointDefinitions'
 import { calculateProvidedBy, isQueryDefinition } from '../endpointDefinitions'
+import { HandledError } from '../HandledError'
 import type { UnwrapPromise } from '../tsHelpers'
 import type { QueryKeys, QuerySubstateIdentifier, RootState } from './apiState'
 import { QueryStatus } from './apiState'
@@ -36,26 +36,22 @@ import type {
 import { forceQueryFnSymbol, isUpsertQuery } from './buildInitiate'
 import type { ApiEndpointQuery, PrefetchOptions } from './module'
 import {
-  SHOULD_AUTOBATCH,
   createAsyncThunk,
   isAllOf,
   isFulfilled,
   isPending,
   isRejected,
   isRejectedWithValue,
+  SHOULD_AUTOBATCH,
 } from './rtkImports'
 
-declare module './module' {
-  export interface ApiEndpointQuery<
-    Definition extends QueryDefinition<any, any, any, any, any>,
-    Definitions extends EndpointDefinitions,
-  > extends Matchers<QueryThunk, Definition> {}
+export type BuildThunksApiEndpointQuery<
+  Definition extends QueryDefinition<any, any, any, any, any>,
+> = Matchers<QueryThunk, Definition>
 
-  export interface ApiEndpointMutation<
-    Definition extends MutationDefinition<any, any, any, any, any>,
-    Definitions extends EndpointDefinitions,
-  > extends Matchers<MutationThunk, Definition> {}
-}
+export type BuildThunksApiEndpointMutation<
+  Definition extends MutationDefinition<any, any, any, any, any>,
+> = Matchers<MutationThunk, Definition>
 
 type EndpointThunk<
   Thunk extends QueryThunk | MutationThunk,
@@ -102,15 +98,14 @@ export interface Matchers<
   matchRejected: Matcher<RejectedAction<Thunk, Definition>>
 }
 
-export interface QueryThunkArg
-  extends QuerySubstateIdentifier,
-    StartQueryActionCreatorOptions {
-  type: 'query'
-  originalArgs: unknown
-  endpointName: string
-}
+export type QueryThunkArg = QuerySubstateIdentifier &
+  StartQueryActionCreatorOptions & {
+    type: 'query'
+    originalArgs: unknown
+    endpointName: string
+  }
 
-export interface MutationThunkArg {
+type MutationThunkArg = {
   type: 'mutation'
   originalArgs: unknown
   endpointName: string

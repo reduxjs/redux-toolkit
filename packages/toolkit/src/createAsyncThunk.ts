@@ -16,9 +16,6 @@ import type {
   SafePromise,
 } from './tsHelpers'
 
-// @ts-ignore we need the import of these types due to a bundling issue.
-type _Keep = PayloadAction | ActionCreatorWithPreparedPayload<any, unknown>
-
 export interface BaseThunkAPI<
   S,
   E,
@@ -124,11 +121,12 @@ export interface AsyncThunkConfig {
   rejectedMeta?: unknown
 }
 
-type GetState<ThunkApiConfig> = ThunkApiConfig extends {
+export type GetState<ThunkApiConfig> = ThunkApiConfig extends {
   state: infer State
 }
   ? State
   : unknown
+
 type GetExtra<ThunkApiConfig> = ThunkApiConfig extends { extra: infer Extra }
   ? Extra
   : unknown

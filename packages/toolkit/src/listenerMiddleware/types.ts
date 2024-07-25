@@ -1,12 +1,13 @@
 import type {
+  Action,
+  Dispatch,
   Middleware,
   MiddlewareAPI,
-  Action as ReduxAction,
-  Dispatch as ReduxDispatch,
   UnknownAction,
 } from 'redux'
 import type { ThunkDispatch } from 'redux-thunk'
 import type { BaseActionCreator, PayloadAction } from '../createAction'
+import type { TypedActionCreator } from '../mapBuilders'
 import type { TaskAbortError } from './exceptions'
 
 /**
@@ -20,11 +21,10 @@ export type AbortSignalWithReason<T> = AbortSignal & { reason?: T }
  */
 
 /** @internal */
-export interface TypedActionCreator<Type extends string> {
-  (...args: any[]): ReduxAction<Type>
-  type: Type
-  match: MatchFunction<any>
-}
+type TypedActionCreatorWithMatchFunction<Type extends string> =
+  TypedActionCreator<Type> & {
+    match: MatchFunction<any>
+  }
 
 /** @internal */
 export type AnyListenerPredicate<State> = (
@@ -34,11 +34,11 @@ export type AnyListenerPredicate<State> = (
 ) => boolean
 
 /** @public */
-export type ListenerPredicate<Action extends ReduxAction, State> = (
+export type ListenerPredicate<ActionType extends Action, State> = (
   action: UnknownAction,
   currentState: State,
   originalState: State,
-) => action is Action
+) => action is ActionType
 
 /** @public */
 export interface ConditionFunction<State> {
@@ -139,9 +139,9 @@ export interface ForkOptions {
 /** @public */
 export interface ListenerEffectAPI<
   State,
-  Dispatch extends ReduxDispatch,
+  DispatchType extends Dispatch,
   ExtraArgument = unknown,
-> extends MiddlewareAPI<Dispatch, State> {
+> extends MiddlewareAPI<DispatchType, State> {
   /**
    * Returns the store state as it existed when the action was originally dispatched, _before_ the reducers ran.
    *
@@ -265,13 +265,13 @@ export interface ListenerEffectAPI<
 
 /** @public */
 export type ListenerEffect<
-  Action extends ReduxAction,
+  ActionType extends Action,
   State,
-  Dispatch extends ReduxDispatch,
+  DispatchType extends Dispatch,
   ExtraArgument = unknown,
 > = (
-  action: Action,
-  api: ListenerEffectAPI<State, Dispatch, ExtraArgument>,
+  action: ActionType,
+  api: ListenerEffectAPI<State, DispatchType, ExtraArgument>,
 ) => void | Promise<void>
 
 /**
@@ -308,16 +308,18 @@ export interface CreateListenerMiddlewareOptions<ExtraArgument = unknown> {
 /** @public */
 export type ListenerMiddleware<
   State = unknown,
-  Dispatch extends ThunkDispatch<State, unknown, ReduxAction> = ThunkDispatch<
+  DispatchType extends ThunkDispatch<State, unknown, Action> = ThunkDispatch<
     State,
     unknown,
     UnknownAction
   >,
   ExtraArgument = unknown,
 > = Middleware<
-  (action: ReduxAction<'listenerMiddleware/add'>) => UnsubscribeListener,
+  {
+    (action: Action<'listenerMiddleware/add'>): UnsubscribeListener
+  },
   State,
-  Dispatch
+  DispatchType
 >
 
 /** @public */
@@ -326,7 +328,7 @@ export interface ListenerMiddlewareInstance<
   DispatchType extends ThunkDispatch<
     StateType,
     unknown,
-    ReduxAction
+    Action
   > = ThunkDispatch<StateType, unknown, UnknownAction>,
   ExtraArgument = unknown,
 > {
@@ -358,8 +360,8 @@ export type TakePatternOutputWithoutTimeout<
   State,
   Predicate extends AnyListenerPredicate<State>,
 > =
-  Predicate extends MatchFunction<infer Action>
-    ? Promise<[Action, State, State]>
+  Predicate extends MatchFunction<infer ActionType>
+    ? Promise<[ActionType, State, State]>
     : Promise<[UnknownAction, State, State]>
 
 /** @public */
@@ -367,8 +369,8 @@ export type TakePatternOutputWithTimeout<
   State,
   Predicate extends AnyListenerPredicate<State>,
 > =
-  Predicate extends MatchFunction<infer Action>
-    ? Promise<[Action, State, State] | null>
+  Predicate extends MatchFunction<infer ActionType>
+    ? Promise<[ActionType, State, State] | null>
     : Promise<[UnknownAction, State, State] | null>
 
 /** @public */
@@ -400,17 +402,17 @@ export type UnsubscribeListener = (
  * @public
  * The possible overloads and options for defining a listener. The return type of each function is specified as a generic arg, so the overloads can be reused for multiple different functions
  */
-export interface AddListenerOverloads<
+export type AddListenerOverloads<
   Return,
   StateType = unknown,
-  DispatchType extends ReduxDispatch = ThunkDispatch<
+  DispatchType extends Dispatch = ThunkDispatch<
     StateType,
     unknown,
     UnknownAction
   >,
   ExtraArgument = unknown,
   AdditionalOptions = unknown,
-> {
+> = {
   /** Accepts a "listener predicate" that is also a TS type predicate for the action*/
   <
     MiddlewareActionType extends UnknownAction,
@@ -434,7 +436,7 @@ export interface AddListenerOverloads<
   ): Return
 
   /** Accepts an RTK action creator, like `incrementByAmount` */
-  <ActionCreatorType extends TypedActionCreator<any>>(
+  <ActionCreatorType extends TypedActionCreatorWithMatchFunction<any>>(
     options: {
       actionCreator: ActionCreatorType
       type?: never
@@ -456,12 +458,7 @@ export interface AddListenerOverloads<
       type: T
       matcher?: never
       predicate?: never
-      effect: ListenerEffect<
-        ReduxAction<T>,
-        StateType,
-        DispatchType,
-        ExtraArgument
-      >
+      effect: ListenerEffect<Action<T>, StateType, DispatchType, ExtraArgument>
     } & AdditionalOptions,
   ): Return
 
@@ -501,29 +498,30 @@ export interface AddListenerOverloads<
 /** @public */
 export type RemoveListenerOverloads<
   StateType = unknown,
-  DispatchType extends ReduxDispatch = ThunkDispatch<
+  DispatchType extends Dispatch = ThunkDispatch<
     StateType,
     unknown,
     UnknownAction
   >,
+  ExtraArgument = unknown,
 > = AddListenerOverloads<
   boolean,
   StateType,
   DispatchType,
-  any,
+  ExtraArgument,
   UnsubscribeListenerOptions
 >
 
 /** @public */
 export interface RemoveListenerAction<
-  Action extends UnknownAction,
+  ActionType extends UnknownAction,
   State,
-  Dispatch extends ReduxDispatch,
+  DispatchType extends Dispatch,
 > {
   type: 'listenerMiddleware/remove'
   payload: {
     type: string
-    listener: ListenerEffect<Action, State, Dispatch>
+    listener: ListenerEffect<ActionType, State, DispatchType>
   }
 }
 
@@ -534,7 +532,7 @@ export interface RemoveListenerAction<
  */
 export type TypedAddListener<
   StateType,
-  DispatchType extends ReduxDispatch = ThunkDispatch<
+  DispatchType extends Dispatch = ThunkDispatch<
     StateType,
     unknown,
     UnknownAction
@@ -551,33 +549,35 @@ export type TypedAddListener<
   > & {
     /**
      * Creates a "pre-typed" version of `addListener`
-     * where the `state` and `dispatch` types are predefined.
+     * where the `state`, `dispatch` and `extra` types are predefined.
      *
-     * This allows you to set the `state` and `dispatch` types once,
+     * This allows you to set the `state`, `dispatch` and `extra` types once,
      * eliminating the need to specify them with every `addListener` call.
      *
-     * @returns A pre-typed `addListener` with the state and dispatch types already defined.
+     * @returns A pre-typed `addListener` with the state, dispatch and extra types already defined.
      *
      * @example
      * ```ts
      * import { addListener } from '@reduxjs/toolkit'
      *
-     * export const addAppListener = addListener.withTypes<RootState, AppDispatch>()
+     * export const addAppListener = addListener.withTypes<RootState, AppDispatch, ExtraArguments>()
      * ```
      *
      * @template OverrideStateType - The specific type of state the middleware listener operates on.
      * @template OverrideDispatchType - The specific type of the dispatch function.
+     * @template OverrideExtraArgument - The specific type of the extra object.
      *
      * @since 2.1.0
      */
     withTypes: <
       OverrideStateType extends StateType,
-      OverrideDispatchType extends ReduxDispatch = ThunkDispatch<
+      OverrideDispatchType extends Dispatch = ThunkDispatch<
         OverrideStateType,
         unknown,
         UnknownAction
-      >,
-    >() => TypedAddListener<OverrideStateType, OverrideDispatchType>
+        >,
+        OverrideExtraArgument = unknown,
+    >() => TypedAddListener<OverrideStateType, OverrideDispatchType, OverrideExtraArgument>
   }
 
 /**
@@ -587,11 +587,12 @@ export type TypedAddListener<
  */
 export type TypedRemoveListener<
   StateType,
-  DispatchType extends ReduxDispatch = ThunkDispatch<
+  DispatchType extends Dispatch = ThunkDispatch<
     StateType,
     unknown,
     UnknownAction
   >,
+  ExtraArgument = unknown,
   Payload = ListenerEntry<StateType, DispatchType>,
   T extends string = 'listenerMiddleware/remove',
 > = BaseActionCreator<Payload, T> &
@@ -599,38 +600,45 @@ export type TypedRemoveListener<
     PayloadAction<Payload, T>,
     StateType,
     DispatchType,
-    any,
+    ExtraArgument,
     UnsubscribeListenerOptions
   > & {
     /**
      * Creates a "pre-typed" version of `removeListener`
-     * where the `state` and `dispatch` types are predefined.
+     * where the `state`, `dispatch` and `extra` types are predefined.
      *
-     * This allows you to set the `state` and `dispatch` types once,
+     * This allows you to set the `state`, `dispatch` and `extra` types once,
      * eliminating the need to specify them with every `removeListener` call.
      *
-     * @returns A pre-typed `removeListener` with the state and dispatch types already defined.
+     * @returns A pre-typed `removeListener` with the state, dispatch and extra
+     * types already defined.
      *
      * @example
      * ```ts
      * import { removeListener } from '@reduxjs/toolkit'
      *
-     * export const removeAppListener = removeListener.withTypes<RootState, AppDispatch>()
+     * export const removeAppListener = removeListener.withTypes<
+     *   RootState,
+     *   AppDispatch,
+     *   ExtraArguments
+     * >()
      * ```
      *
      * @template OverrideStateType - The specific type of state the middleware listener operates on.
      * @template OverrideDispatchType - The specific type of the dispatch function.
+     * @template OverrideExtraArgument - The specific type of the extra object.
      *
      * @since 2.1.0
      */
     withTypes: <
       OverrideStateType extends StateType,
-      OverrideDispatchType extends ReduxDispatch = ThunkDispatch<
+      OverrideDispatchType extends Dispatch = ThunkDispatch<
         OverrideStateType,
         unknown,
         UnknownAction
       >,
-    >() => TypedRemoveListener<OverrideStateType, OverrideDispatchType>
+      OverrideExtraArgument = unknown,
+    >() => TypedRemoveListener<OverrideStateType, OverrideDispatchType, OverrideExtraArgument>
   }
 
 /**
@@ -640,7 +648,7 @@ export type TypedRemoveListener<
  */
 export type TypedStartListening<
   StateType,
-  DispatchType extends ReduxDispatch = ThunkDispatch<
+  DispatchType extends Dispatch = ThunkDispatch<
     StateType,
     unknown,
     UnknownAction
@@ -655,13 +663,13 @@ export type TypedStartListening<
   /**
    * Creates a "pre-typed" version of
    * {@linkcode ListenerMiddlewareInstance.startListening startListening}
-   * where the `state` and `dispatch` types are predefined.
+   * where the `state`, `dispatch` and `extra` types are predefined.
    *
-   * This allows you to set the `state` and `dispatch` types once,
+   * This allows you to set the `state`, `dispatch` and `extra` types once,
    * eliminating the need to specify them with every
    * {@linkcode ListenerMiddlewareInstance.startListening startListening} call.
    *
-   * @returns A pre-typed `startListening` with the state and dispatch types already defined.
+   * @returns A pre-typed `startListening` with the state, dispatch and extra types already defined.
    *
    * @example
    * ```ts
@@ -671,23 +679,26 @@ export type TypedStartListening<
    *
    * export const startAppListening = listenerMiddleware.startListening.withTypes<
    *   RootState,
-   *   AppDispatch
+   *   AppDispatch,
+   *   ExtraArguments
    * >()
    * ```
    *
    * @template OverrideStateType - The specific type of state the middleware listener operates on.
    * @template OverrideDispatchType - The specific type of the dispatch function.
+   * @template OverrideExtraArgument - The specific type of the extra object.
    *
    * @since 2.1.0
    */
   withTypes: <
     OverrideStateType extends StateType,
-    OverrideDispatchType extends ReduxDispatch = ThunkDispatch<
+    OverrideDispatchType extends Dispatch = ThunkDispatch<
       OverrideStateType,
       unknown,
       UnknownAction
     >,
-  >() => TypedStartListening<OverrideStateType, OverrideDispatchType>
+    OverrideExtraArgument = unknown,
+  >() => TypedStartListening<OverrideStateType, OverrideDispatchType, OverrideExtraArgument>
 }
 
 /**
@@ -697,22 +708,23 @@ export type TypedStartListening<
  */
 export type TypedStopListening<
   StateType,
-  DispatchType extends ReduxDispatch = ThunkDispatch<
+  DispatchType extends Dispatch = ThunkDispatch<
     StateType,
     unknown,
     UnknownAction
   >,
-> = RemoveListenerOverloads<StateType, DispatchType> & {
+  ExtraArgument = unknown,
+> = RemoveListenerOverloads<StateType, DispatchType, ExtraArgument> & {
   /**
    * Creates a "pre-typed" version of
    * {@linkcode ListenerMiddlewareInstance.stopListening stopListening}
-   * where the `state` and `dispatch` types are predefined.
+   * where the `state`, `dispatch` and `extra` types are predefined.
    *
-   * This allows you to set the `state` and `dispatch` types once,
+   * This allows you to set the `state`, `dispatch` and `extra` types once,
    * eliminating the need to specify them with every
    * {@linkcode ListenerMiddlewareInstance.stopListening stopListening} call.
    *
-   * @returns A pre-typed `stopListening` with the state and dispatch types already defined.
+   * @returns A pre-typed `stopListening` with the state, dispatch and extra types already defined.
    *
    * @example
    * ```ts
@@ -722,23 +734,26 @@ export type TypedStopListening<
    *
    * export const stopAppListening = listenerMiddleware.stopListening.withTypes<
    *   RootState,
-   *   AppDispatch
+   *   AppDispatch,
+   *   ExtraArguments
    * >()
    * ```
    *
    * @template OverrideStateType - The specific type of state the middleware listener operates on.
    * @template OverrideDispatchType - The specific type of the dispatch function.
+   * @template OverrideExtraArgument - The specific type of the extra object.
    *
    * @since 2.1.0
    */
   withTypes: <
     OverrideStateType extends StateType,
-    OverrideDispatchType extends ReduxDispatch = ThunkDispatch<
+    OverrideDispatchType extends Dispatch = ThunkDispatch<
       OverrideStateType,
       unknown,
       UnknownAction
     >,
-  >() => TypedStopListening<OverrideStateType, OverrideDispatchType>
+    OverrideExtraArgument = unknown,
+  >() => TypedStopListening<OverrideStateType, OverrideDispatchType, OverrideExtraArgument>
 }
 
 /**
@@ -748,24 +763,27 @@ export type TypedStopListening<
  */
 export type TypedCreateListenerEntry<
   StateType,
-  DispatchType extends ReduxDispatch = ThunkDispatch<
+  DispatchType extends Dispatch = ThunkDispatch<
     StateType,
     unknown,
     UnknownAction
   >,
+  ExtraArgument = unknown,
 > = AddListenerOverloads<
   ListenerEntry<StateType, DispatchType>,
   StateType,
-  DispatchType
+  DispatchType,
+  ExtraArgument
 > & {
   /**
    * Creates a "pre-typed" version of `createListenerEntry`
-   * where the `state` and `dispatch` types are predefined.
+   * where the `state`, `dispatch` and `extra` types are predefined.
    *
-   * This allows you to set the `state` and `dispatch` types once, eliminating
+   * This allows you to set the `state`, `dispatch` and `extra` types once, eliminating
    * the need to specify them with every `createListenerEntry` call.
    *
-   * @returns A pre-typed `createListenerEntry` with the state and dispatch types already defined.
+   * @returns A pre-typed `createListenerEntry` with the state, dispatch and extra
+   * types already defined.
    *
    * @example
    * ```ts
@@ -773,23 +791,26 @@ export type TypedCreateListenerEntry<
    *
    * export const createAppListenerEntry = createListenerEntry.withTypes<
    *   RootState,
-   *   AppDispatch
+   *   AppDispatch,
+   *   ExtraArguments
    * >()
    * ```
    *
    * @template OverrideStateType - The specific type of state the middleware listener operates on.
    * @template OverrideDispatchType - The specific type of the dispatch function.
+   * @template OverrideExtraArgument - The specific type of the extra object.
    *
    * @since 2.1.0
    */
   withTypes: <
     OverrideStateType extends StateType,
-    OverrideDispatchType extends ReduxDispatch = ThunkDispatch<
+    OverrideDispatchType extends Dispatch = ThunkDispatch<
       OverrideStateType,
       unknown,
       UnknownAction
     >,
-  >() => TypedStopListening<OverrideStateType, OverrideDispatchType>
+    OverrideExtraArgument = unknown,
+  >() => TypedStopListening<OverrideStateType, OverrideDispatchType, OverrideExtraArgument>
 }
 
 /**
@@ -799,10 +820,10 @@ export type TypedCreateListenerEntry<
 /** @internal An single listener entry */
 export interface ListenerEntry<
   State = unknown,
-  Dispatch extends ReduxDispatch = ReduxDispatch,
+  DispatchType extends Dispatch = Dispatch,
 > {
   id: string
-  effect: ListenerEffect<any, State, Dispatch>
+  effect: ListenerEffect<any, State, DispatchType>
   unsubscribe: () => void
   pending: Set<AbortController>
   type?: string
@@ -814,7 +835,7 @@ export interface ListenerEntry<
  * A shorthand form of the accepted args, solely so that `createListenerEntry` has validly-typed conditional logic when checking the options contents
  */
 export type FallbackAddListenerOptions = {
-  actionCreator?: TypedActionCreator<string>
+  actionCreator?: TypedActionCreatorWithMatchFunction<string>
   type?: string
   matcher?: MatchFunction<any>
   predicate?: ListenerPredicate<any, any>
@@ -831,4 +852,4 @@ export type GuardedType<T> = T extends (x: any, ...args: any[]) => x is infer T
 
 /** @public */
 export type ListenerPredicateGuardedActionType<T> =
-  T extends ListenerPredicate<infer Action, any> ? Action : never
+  T extends ListenerPredicate<infer ActionType, any> ? ActionType : never

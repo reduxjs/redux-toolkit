@@ -44,7 +44,7 @@ export const asyncThunkCreator: {
   [asyncThunkSymbol]: _createAsyncThunk,
 }
 
-interface InjectIntoConfig<NewReducerPath extends string> extends InjectConfig {
+type InjectIntoConfig<NewReducerPath extends string> = InjectConfig & {
   reducerPath?: NewReducerPath
 }
 
@@ -141,16 +141,16 @@ export interface Slice<
  *
  * Selectors can now be called with an `undefined` value, in which case they use the slice's initial state.
  */
-interface InjectedSlice<
+type InjectedSlice<
   State = any,
   CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
   Name extends string = string,
   ReducerPath extends string = Name,
   Selectors extends SliceSelectors<State> = SliceSelectors<State>,
-> extends Omit<
-    Slice<State, CaseReducers, Name, ReducerPath, Selectors>,
-    'getSelectors' | 'selectors'
-  > {
+> = Omit<
+  Slice<State, CaseReducers, Name, ReducerPath, Selectors>,
+  'getSelectors' | 'selectors'
+> & {
   /**
    * Get localised slice selectors (expects to be called with *just* the slice's state as the first parameter)
    */
@@ -276,15 +276,14 @@ export enum ReducerType {
   asyncThunk = 'asyncThunk',
 }
 
-interface ReducerDefinition<T extends ReducerType = ReducerType> {
+type ReducerDefinition<T extends ReducerType = ReducerType> = {
   _reducerDefinitionType: T
 }
 
-export interface CaseReducerDefinition<
+export type CaseReducerDefinition<
   S = any,
   A extends Action = UnknownAction,
-> extends CaseReducer<S, A>,
-    ReducerDefinition<ReducerType.reducer> {}
+> = CaseReducer<S, A> & ReducerDefinition<ReducerType.reducer>
 
 /**
  * A CaseReducer with a `prepare` method.
@@ -302,12 +301,12 @@ export interface CaseReducerWithPrepareDefinition<
 > extends CaseReducerWithPrepare<State, Action>,
     ReducerDefinition<ReducerType.reducerWithPrepare> {}
 
-export interface AsyncThunkSliceReducerConfig<
+type AsyncThunkSliceReducerConfig<
   State,
   ThunkArg,
   Returned = unknown,
   ThunkApiConfig extends AsyncThunkConfig = EmptyObject,
-> {
+> = {
   pending?: CaseReducer<
     State,
     ReturnType<AsyncThunk<Returned, ThunkArg, ThunkApiConfig>['pending']>
@@ -329,20 +328,15 @@ export interface AsyncThunkSliceReducerConfig<
   options?: AsyncThunkOptions<ThunkArg, ThunkApiConfig>
 }
 
-export interface AsyncThunkSliceReducerDefinition<
+type AsyncThunkSliceReducerDefinition<
   State,
   ThunkArg,
   Returned = unknown,
   ThunkApiConfig extends AsyncThunkConfig = EmptyObject,
-> extends AsyncThunkSliceReducerConfig<
-      State,
-      ThunkArg,
-      Returned,
-      ThunkApiConfig
-    >,
-    ReducerDefinition<ReducerType.asyncThunk> {
-  payloadCreator: AsyncThunkPayloadCreator<Returned, ThunkArg, ThunkApiConfig>
-}
+> = AsyncThunkSliceReducerConfig<State, ThunkArg, Returned, ThunkApiConfig> &
+  ReducerDefinition<ReducerType.asyncThunk> & {
+    payloadCreator: AsyncThunkPayloadCreator<Returned, ThunkArg, ThunkApiConfig>
+  }
 
 /**
  * Providing these as part of the config would cause circular types, so we disallow passing them
@@ -519,7 +513,7 @@ type ActionCreatorForCaseReducer<CR, Type extends string> = CR extends (
  */
 type SliceDefinedCaseReducers<CaseReducers extends SliceCaseReducers<any>> = {
   [Type in keyof CaseReducers]: CaseReducers[Type] extends infer Definition
-    ? Definition extends AsyncThunkSliceReducerDefinition<any, any, any, any>
+    ? Definition extends AsyncThunkSliceReducerDefinition<any, any, any>
       ? Id<
           Pick<
             Required<Definition>,
