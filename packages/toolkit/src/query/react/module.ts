@@ -29,6 +29,7 @@ export const reactHooksModuleName = /* @__PURE__ */ Symbol()
 export type ReactHooksModule = typeof reactHooksModuleName
 
 declare module '@reduxjs/toolkit/query' {
+  // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
   export interface ApiModules<
     BaseQuery extends BaseQueryFn,
     Definitions extends EndpointDefinitions,
