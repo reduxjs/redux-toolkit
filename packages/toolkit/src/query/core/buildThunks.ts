@@ -36,13 +36,13 @@ import type {
 import { forceQueryFnSymbol, isUpsertQuery } from './buildInitiate'
 import type { ApiEndpointQuery, PrefetchOptions } from './module'
 import {
+  SHOULD_AUTOBATCH,
   createAsyncThunk,
   isAllOf,
   isFulfilled,
   isPending,
   isRejected,
   isRejectedWithValue,
-  SHOULD_AUTOBATCH,
 } from './rtkImports'
 
 export type BuildThunksApiEndpointQuery<
