@@ -15,6 +15,7 @@ import {
 } from 'console-testing-library/pure'
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
   interface Window {
     AbortController: AbortController
   }
