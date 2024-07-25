@@ -10,7 +10,7 @@ import type {
 } from './tsHelpers'
 import { emplace } from './utils'
 
-interface SliceLike<ReducerPath extends string, State> {
+type SliceLike<ReducerPath extends string, State> = {
   reducerPath: ReducerPath
   reducer: Reducer<State>
 }
@@ -36,7 +36,7 @@ type ExistingSliceLike<DeclaredState> = {
   >
 }[keyof DeclaredState]
 
-export interface InjectConfig {
+export type InjectConfig = {
   /**
    * Allow replacing reducer with a different reference. Normally, an error will be thrown if a different reducer instance to the one already injected is used.
    */
@@ -46,10 +46,10 @@ export interface InjectConfig {
 /**
  * A reducer that allows for slices/reducers to be injected after initialisation.
  */
-export interface CombinedSliceReducer<
+export type CombinedSliceReducer<
   InitialState,
   DeclaredState = InitialState,
-> extends Reducer<DeclaredState, UnknownAction, Partial<DeclaredState>> {
+> = Reducer<DeclaredState, UnknownAction, Partial<DeclaredState>> & {
   /**
    * Provide a type for slices that will be injected lazily.
    *

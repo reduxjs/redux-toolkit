@@ -312,7 +312,7 @@ describe('type tests', () => {
           }),
         })
 
-        interface Transformed {
+        type Transformed = {
           value: string
         }
 

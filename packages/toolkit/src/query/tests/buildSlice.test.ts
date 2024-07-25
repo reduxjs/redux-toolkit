@@ -119,7 +119,7 @@ describe('buildSlice', () => {
 describe('`merge` callback', () => {
   const baseQuery = (args?: any) => ({ data: args })
 
-  interface Todo {
+  type Todo = {
     id: string
     text: string
   }

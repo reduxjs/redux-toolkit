@@ -69,7 +69,7 @@ declare module '@reduxjs/toolkit/query' {
 
 type RR = typeof import('react-redux')
 
-export interface ReactHooksModuleOptions {
+export type ReactHooksModuleOptions = {
   /**
    * The hooks from React Redux to be used
    */

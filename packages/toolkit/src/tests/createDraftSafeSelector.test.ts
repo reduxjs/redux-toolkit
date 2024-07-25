@@ -1,7 +1,7 @@
 import { createDraftSafeSelector, createSelector } from '@reduxjs/toolkit'
 import { produce } from 'immer'
 
-interface State {
+type State = {
   value: number
 }
 const selectSelf = (state: State) => state

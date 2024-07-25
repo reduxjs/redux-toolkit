@@ -10,7 +10,7 @@ import {
 } from '@reduxjs/toolkit'
 
 describe('Saga-style Effects Scenarios', () => {
-  interface CounterState {
+  type CounterState = {
     value: number
   }
 

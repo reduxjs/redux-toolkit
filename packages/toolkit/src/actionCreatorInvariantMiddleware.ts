@@ -2,7 +2,7 @@ import type { Middleware } from 'redux'
 import { isActionCreator as isRTKAction } from './createAction'
 import type { AnyFunction } from './tsHelpers'
 
-export interface ActionCreatorInvariantMiddlewareOptions {
+export type ActionCreatorInvariantMiddlewareOptions = {
   /**
    * The function to identify whether a value is an action creator.
    * The default checks for a function with a static type property and match method.

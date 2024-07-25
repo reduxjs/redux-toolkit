@@ -39,13 +39,13 @@ const IS_PRODUCTION = process.env.NODE_ENV === 'production'
  *
  * @public
  */
-export interface ConfigureStoreOptions<
+export type ConfigureStoreOptions<
   S = any,
   A extends Action = UnknownAction,
   M extends Tuple<Middlewares<S>> = Tuple<Middlewares<S>>,
   E extends Tuple<Enhancers> = Tuple<Enhancers>,
   P = S,
-> {
+> = {
   /**
    * A single reducer function that will be used as the root reducer, or an
    * object of slice reducers that will be passed to `combineReducers()`.

@@ -8,7 +8,7 @@ export type GetMiddlewareApi<MiddlewareApiConfig> = MiddlewareAPI<
   GetState<MiddlewareApiConfig>
 >
 
-export interface MiddlewareApiConfig {
+export type MiddlewareApiConfig = {
   state?: unknown
   dispatch?: Dispatch
 }
@@ -20,10 +20,10 @@ export type GetDispatchType<MiddlewareApiConfig> = MiddlewareApiConfig extends {
   ? FallbackIfUnknown<DispatchType, Dispatch>
   : Dispatch
 
-export interface AddMiddleware<
+export type AddMiddleware<
   State = any,
   DispatchType extends Dispatch<UnknownAction> = Dispatch<UnknownAction>,
-> {
+> = {
   (...middlewares: Array<Middleware<any, State, DispatchType>>): void
   withTypes<MiddlewareConfig extends MiddlewareApiConfig>(): AddMiddleware<
     GetState<MiddlewareConfig>,
@@ -48,6 +48,7 @@ export type WithMiddleware<
   >
 }
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export interface DynamicDispatch {
   // return a version of dispatch that knows about middleware
   <Middlewares extends Array<Middleware<any>>>(
@@ -56,10 +57,10 @@ export interface DynamicDispatch {
   ): ExtractDispatchExtensions<Middlewares> & this
 }
 
-export interface MiddlewareEntry<
+export type MiddlewareEntry<
   State = unknown,
   DispatchType extends Dispatch<UnknownAction> = Dispatch<UnknownAction>,
-> {
+> = {
   id: string
   middleware: Middleware<any, State, DispatchType>
   applied: Map<
@@ -73,10 +74,10 @@ export type DynamicMiddleware<
   DispatchType extends Dispatch<UnknownAction> = Dispatch<UnknownAction>,
 > = Middleware<DynamicDispatch, State, DispatchType>
 
-export interface DynamicMiddlewareInstance<
+export type DynamicMiddlewareInstance<
   State = unknown,
   DispatchType extends Dispatch<UnknownAction> = Dispatch<UnknownAction>,
-> {
+> = {
   middleware: DynamicMiddleware<State, DispatchType>
   addMiddleware: AddMiddleware<State, DispatchType>
   withMiddleware: WithMiddleware<State, DispatchType>

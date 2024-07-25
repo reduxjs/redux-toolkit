@@ -77,7 +77,6 @@ describe('type tests', () => {
       })
 
       test('action type is inferred when type predicate lacks `type` property', () => {
-        // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
         type PredicateWithoutTypeProperty = {
           payload: number
         }

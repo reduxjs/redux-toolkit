@@ -106,7 +106,7 @@ describe('isAllOf', () => {
   it('returns true only if all matchers match', () => {
     const actionA = createAction<string>('a')
 
-    interface SpecialAction {
+    type SpecialAction = {
       payload: 'SPECIAL'
     }
 

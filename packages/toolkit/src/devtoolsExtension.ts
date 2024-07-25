@@ -5,7 +5,7 @@ import type { AnyFunction, EmptyObject } from './tsHelpers'
 /**
  * @public
  */
-export interface DevToolsEnhancerOptions {
+export type DevToolsEnhancerOptions = {
   /**
    * the instance name to be showed on the monitor page. Default value is `document.title`.
    * If not specified and there's no document title, it will consist of `tabId` and `instanceId`.
@@ -209,7 +209,7 @@ export interface DevToolsEnhancerOptions {
 
 type Compose = typeof compose
 
-interface ComposeWithDevTools {
+type ComposeWithDevTools = {
   (options: DevToolsEnhancerOptions): Compose
   <StoreExt extends EmptyObject>(
     ...funcs: Array<StoreEnhancer<StoreExt>>

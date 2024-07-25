@@ -7,11 +7,11 @@ import { createSlice } from '@reduxjs/toolkit'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import { act, renderHook } from '@testing-library/react'
 
-interface ResultType {
+type ResultType = {
   result: 'complex'
 }
 
-interface ArgType {
+type ArgType = {
   foo: 'bar'
   count: 3
 }

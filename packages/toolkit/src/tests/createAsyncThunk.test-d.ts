@@ -93,7 +93,7 @@ describe('type tests', () => {
   })
 
   test('More complex usage of thunk args', () => {
-    interface BookModel {
+    type BookModel = {
       id: string
       title: string
     }
@@ -140,10 +140,10 @@ describe('type tests', () => {
   })
 
   test('returning a rejected action from the promise creator is possible', async () => {
-    interface ReturnValue {
+    type ReturnValue = {
       data: 'success'
     }
-    interface RejectValue {
+    type RejectValue = {
       data: 'error'
     }
 
@@ -179,7 +179,7 @@ describe('type tests', () => {
   })
 
   test('Should handle reject with value within a try catch block. Note: this is a sample code taken from #1605', () => {
-    interface ResultType {
+    type ResultType = {
       text: string
     }
     const demoPromise = async (): Promise<ResultType> =>
@@ -200,15 +200,15 @@ describe('type tests', () => {
   })
 
   test('reject with value', () => {
-    interface Item {
+    type Item = {
       name: string
     }
 
-    interface ErrorFromServer {
+    type ErrorFromServer = {
       error: string
     }
 
-    interface CallsResponse {
+    type CallsResponse = {
       data: Item[]
     }
 
@@ -551,7 +551,7 @@ describe('type tests', () => {
   })
 
   test('createAsyncThunk with generics', () => {
-    interface Funky {
+    type Funky = {
       somethingElse: 'Funky!'
     }
     function funkySerializeError(err: any): Funky {

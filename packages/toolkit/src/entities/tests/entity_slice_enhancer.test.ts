@@ -31,7 +31,7 @@ describe('Entity Slice Enhancer', () => {
   })
 })
 
-interface EntitySliceArgs<T, Id extends EntityId> {
+type EntitySliceArgs<T, Id extends EntityId> = {
   name: string
   selectId: IdSelector<T, Id>
   modelReducer?: SliceCaseReducers<T>

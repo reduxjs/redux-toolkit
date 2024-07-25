@@ -5,7 +5,7 @@ import { configureStore } from '../configureStore'
 import { createSlice } from '../createSlice'
 import { delay } from '../utils'
 
-interface CounterState {
+type CounterState = {
   value: number
 }
 

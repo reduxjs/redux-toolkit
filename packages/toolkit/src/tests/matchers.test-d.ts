@@ -80,7 +80,7 @@ describe('type tests', () => {
     })
 
     test('isAnyOf correctly narrows types when used with type guards', () => {
-      interface ActionA {
+      type ActionA = {
         type: 'a'
         payload: {
           prop1: 1
@@ -88,7 +88,7 @@ describe('type tests', () => {
         }
       }
 
-      interface ActionB {
+      type ActionB = {
         type: 'b'
         payload: {
           prop1: 1
@@ -117,7 +117,7 @@ describe('type tests', () => {
   })
 
   describe('isAllOf', () => {
-    interface SpecialAction {
+    type SpecialAction = {
       payload: {
         special: boolean
       }
@@ -172,7 +172,7 @@ describe('type tests', () => {
     })
 
     test('isAnyOf correctly narrows types when used with type guards', () => {
-      interface ActionA {
+      type ActionA = {
         type: 'a'
         payload: {
           prop1: 1

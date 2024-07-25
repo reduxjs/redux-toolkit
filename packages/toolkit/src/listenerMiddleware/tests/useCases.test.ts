@@ -4,7 +4,7 @@ import type { AnyObject } from '../../tsHelpers'
 import { TaskAbortError } from '../exceptions'
 import { createListenerMiddleware } from '../index'
 
-interface CounterState {
+type CounterState = {
   value: number
 }
 

@@ -16,7 +16,7 @@ export type TypedActionCreator<Type extends string> = {
  *
  * @public
  */
-export interface ActionReducerMapBuilder<State> {
+export type ActionReducerMapBuilder<State> = {
   /**
    * Adds a case reducer to handle a single exact action type.
    * @remarks

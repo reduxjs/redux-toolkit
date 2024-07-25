@@ -10,7 +10,7 @@ import { vi } from 'vitest'
 
 describe('Entity State Selectors', () => {
   describe('Composed Selectors', () => {
-    interface State {
+    type State = {
       books: EntityState<BookModel, string>
     }
 

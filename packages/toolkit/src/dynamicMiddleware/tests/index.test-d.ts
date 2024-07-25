@@ -6,6 +6,7 @@ import { createDynamicMiddleware } from '../index'
 
 const untypedInstance = createDynamicMiddleware()
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 interface AppDispatch extends ThunkDispatch<number, undefined, UnknownAction> {
   (n: 1): 1
 }

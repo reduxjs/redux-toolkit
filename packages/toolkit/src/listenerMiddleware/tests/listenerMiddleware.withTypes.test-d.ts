@@ -16,7 +16,7 @@ import {
 } from '@reduxjs/toolkit'
 import { describe, expectTypeOf, test } from 'vitest'
 
-export interface CounterState {
+export type CounterState = {
   counter: number
 }
 

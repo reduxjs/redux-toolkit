@@ -5,7 +5,7 @@ import type { Middlewares } from './configureStore'
 import type { ExtractDispatchExtensions } from './tsHelpers'
 import { Tuple } from './utils'
 
-interface GetDefaultEnhancersOptions {
+type GetDefaultEnhancersOptions = {
   autoBatch?: boolean | AutoBatchOptions
 }
 

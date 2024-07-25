@@ -19,12 +19,12 @@ import type {
 
 export type ReferenceCacheLifecycle = never
 
-export interface QueryBaseLifecycleApi<
+export type QueryBaseLifecycleApi<
   QueryArg,
   BaseQuery extends BaseQueryFn,
   ResultType,
   ReducerPath extends string = string,
-> extends LifecycleApi<ReducerPath> {
+> = LifecycleApi<ReducerPath> & {
   /**
    * Gets the current value of this cache entry.
    */
@@ -114,13 +114,13 @@ type CacheLifecyclePromises<ResultType = unknown, MetaType = unknown> = {
   cacheEntryRemoved: Promise<void>
 }
 
-export interface QueryCacheLifecycleApi<
+export type QueryCacheLifecycleApi<
   QueryArg,
   BaseQuery extends BaseQueryFn,
   ResultType,
   ReducerPath extends string = string,
-> extends QueryBaseLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
-    CacheLifecyclePromises<ResultType, BaseQueryMeta<BaseQuery>> {}
+> = QueryBaseLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath> &
+  CacheLifecyclePromises<ResultType, BaseQueryMeta<BaseQuery>>
 
 export type MutationCacheLifecycleApi<
   QueryArg,
@@ -177,7 +177,7 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
   const isMutationThunk = isAsyncThunkAction(mutationThunk)
   const isFulfilledThunk = isFulfilled(queryThunk, mutationThunk)
 
-  interface CacheLifecycle {
+  type CacheLifecycle = {
     valueResolved?(value: { data: unknown; meta: unknown }): unknown
     cacheEntryRemoved(): void
   }

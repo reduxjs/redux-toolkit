@@ -349,7 +349,7 @@ describe('Sorted State Adapter', () => {
   })
 
   it('should maintain a stable sorting order when updating items', () => {
-    interface OrderedEntity {
+    type OrderedEntity = {
       id: string
       order: number
       ts: number
@@ -603,7 +603,7 @@ describe('Sorted State Adapter', () => {
     const INITIAL_ITEMS = 10_000
     const ADDED_ITEMS = 1_000
 
-    interface Entity {
+    type Entity = {
       id: string
       name: string
       position: number

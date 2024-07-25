@@ -17,7 +17,7 @@ import type {
 
 export type ModuleName = keyof ApiModules<any, any, any, any>
 
-export interface Module<Name extends ModuleName> {
+export type Module<Name extends ModuleName> = {
   name: Name
   init<
     BaseQuery extends BaseQueryFn,
@@ -46,7 +46,7 @@ export interface Module<Name extends ModuleName> {
   }
 }
 
-export interface ApiContext<Definitions extends EndpointDefinitions> {
+export type ApiContext<Definitions extends EndpointDefinitions> = {
   apiUid: string
   endpointDefinitions: Definitions
   batch(cb: () => void): void

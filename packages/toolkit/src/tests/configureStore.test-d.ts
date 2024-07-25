@@ -388,7 +388,7 @@ describe('type tests', () => {
     })
 
     test('non-nested combineReducers does not allow partial', () => {
-      interface GroupState {
+      type GroupState = {
         counter1: number
         counter2: number
       }
@@ -743,7 +743,7 @@ describe('type tests', () => {
       expectTypeOf(store.dispatch).toBeFunction()
     })
 
-    interface CounterState {
+    type CounterState = {
       value: number
     }
 

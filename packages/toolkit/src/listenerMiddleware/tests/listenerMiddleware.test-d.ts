@@ -22,7 +22,7 @@ const { startListening } = listenerMiddleware
 
 const addTypedListenerAction = addListener as TypedAddListener<CounterState>
 
-interface CounterState {
+type CounterState = {
   value: number
 }
 

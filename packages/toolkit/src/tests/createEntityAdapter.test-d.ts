@@ -19,7 +19,7 @@ function extractReducers<T, Id extends EntityId>(
 describe('type tests', () => {
   test('should be usable in a slice, with all the "reducer-like" functions', () => {
     type Id = string & { readonly __tag: unique symbol }
-    interface Entity {
+    type Entity = {
       id: Id
     }
     const adapter = createEntityAdapter<Entity>()
@@ -101,11 +101,11 @@ describe('type tests', () => {
   })
 
   test('should not be able to mix with a different EntityAdapter', () => {
-    interface Entity {
+    type Entity = {
       id: EntityId
       value: string
     }
-    interface Entity2 {
+    type Entity2 = {
       id: EntityId
       value2: string
     }
@@ -123,7 +123,7 @@ describe('type tests', () => {
   })
 
   test('should be usable in a slice with extra properties', () => {
-    interface Entity {
+    type Entity = {
       id: EntityId
       value: string
     }
@@ -138,7 +138,7 @@ describe('type tests', () => {
   })
 
   test('should not be usable in a slice with an unfitting state', () => {
-    interface Entity {
+    type Entity = {
       id: EntityId
       value: string
     }
@@ -154,7 +154,7 @@ describe('type tests', () => {
   })
 
   test('should not be able to create an adapter unless the type has an Id or an idSelector is provided', () => {
-    interface Entity {
+    type Entity = {
       value: string
     }
     // @ts-expect-error

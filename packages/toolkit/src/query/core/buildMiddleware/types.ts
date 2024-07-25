@@ -28,21 +28,21 @@ import type {
 export type QueryStateMeta<T> = Record<string, undefined | T>
 export type TimeoutId = ReturnType<typeof setTimeout>
 
-export interface InternalMiddlewareState {
+export type InternalMiddlewareState = {
   currentSubscriptions: SubscriptionState
 }
 
-export interface SubscriptionSelectors {
+export type SubscriptionSelectors = {
   getSubscriptions: () => SubscriptionState
   getSubscriptionCount: (queryCacheKey: string) => number
   isRequestSubscribed: (queryCacheKey: string, requestId: string) => boolean
 }
 
-export interface BuildMiddlewareInput<
+export type BuildMiddlewareInput<
   Definitions extends EndpointDefinitions,
   ReducerPath extends string,
   TagTypes extends string,
-> {
+> = {
   reducerPath: ReducerPath
   context: ApiContext<Definitions>
   queryThunk: QueryThunk
@@ -56,8 +56,11 @@ export type SubMiddlewareApi = MiddlewareAPI<
   RootState<EndpointDefinitions, string, string>
 >
 
-export interface BuildSubMiddlewareInput
-  extends BuildMiddlewareInput<EndpointDefinitions, string, string> {
+export type BuildSubMiddlewareInput = BuildMiddlewareInput<
+  EndpointDefinitions,
+  string,
+  string
+> & {
   internalState: InternalMiddlewareState
   refetchQuery(
     querySubState: Exclude<

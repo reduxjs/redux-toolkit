@@ -395,33 +395,33 @@ export interface ApiModules<
   }
 }
 
-export interface ApiEndpointQuery<
+export type ApiEndpointQuery<
   Definition extends QueryDefinition<any, any, any, any, any>,
   Definitions extends EndpointDefinitions,
-> extends BuildThunksApiEndpointQuery<Definition>,
-    BuildInitiateApiEndpointQuery<Definition>,
-    BuildSelectorsApiEndpointQuery<Definition, Definitions> {
-  name: string
-  /**
-   * All of these are `undefined` at runtime, purely to be used in TypeScript declarations!
-   */
-  Types: NonNullable<Definition['Types']>
-}
+> = BuildThunksApiEndpointQuery<Definition> &
+  BuildInitiateApiEndpointQuery<Definition> &
+  BuildSelectorsApiEndpointQuery<Definition, Definitions> & {
+    name: string
+    /**
+     * All of these are `undefined` at runtime, purely to be used in TypeScript declarations!
+     */
+    Types: NonNullable<Definition['Types']>
+  }
 
-export interface ApiEndpointMutation<
+export type ApiEndpointMutation<
   Definition extends MutationDefinition<any, any, any, any, any>,
   Definitions extends EndpointDefinitions,
-> extends BuildThunksApiEndpointMutation<Definition>,
-    BuildInitiateApiEndpointMutation<Definition>,
-    BuildSelectorsApiEndpointMutation<Definition, Definitions> {
-  name: string
-  /**
-   * All of these are `undefined` at runtime, purely to be used in TypeScript declarations!
-   */
-  Types: NonNullable<Definition['Types']>
-}
+> = BuildThunksApiEndpointMutation<Definition> &
+  BuildInitiateApiEndpointMutation<Definition> &
+  BuildSelectorsApiEndpointMutation<Definition, Definitions> & {
+    name: string
+    /**
+     * All of these are `undefined` at runtime, purely to be used in TypeScript declarations!
+     */
+    Types: NonNullable<Definition['Types']>
+  }
 
-export interface ListenerActions {
+export type ListenerActions = {
   /**
    * Will cause the RTK Query middleware to trigger any refetchOnReconnect-related behavior
    * @link https://rtk-query-docs.netlify.app/api/setupListeners
@@ -438,7 +438,7 @@ export interface ListenerActions {
 
 export type InternalActions = SliceActions & ListenerActions
 
-export interface CoreModuleOptions {
+export type CoreModuleOptions = {
   /**
    * A selector creator (usually from `reselect`, or matching the same signature)
    */

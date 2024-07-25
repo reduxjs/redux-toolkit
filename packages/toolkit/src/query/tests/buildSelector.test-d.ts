@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 
 describe('type tests', () => {
   test('buildSelector type test', () => {
-    interface Todo {
+    type Todo = {
       userId: number
       id: number
       title: string
@@ -54,7 +54,7 @@ describe('type tests', () => {
   })
 
   test('selectCachedArgsForQuery type test', () => {
-    interface Todo {
+    type Todo = {
       userId: number
       id: number
       title: string

@@ -1,3 +1,4 @@
+import type { AnyFunction, AnyNonNullishValue } from '@internal/tsHelpers'
 import type { Api } from '@reduxjs/toolkit/query'
 import type {
   BaseQueryApi,
@@ -29,7 +30,6 @@ import type {
   OmitFromUnion,
   UnwrapPromise,
 } from './tsHelpers'
-import type { AnyFunction, AnyNonNullishValue } from '@internal/tsHelpers'
 
 const resultType = /* @__PURE__ */ Symbol()
 const baseQuery = /* @__PURE__ */ Symbol()
@@ -227,7 +227,7 @@ export type GetResultDescriptionFn<
   meta: MetaType,
 ) => ReadonlyArray<TagDescription<TagTypes>>
 
-export interface FullTagDescription<TagType> {
+export type FullTagDescription<TagType> = {
   type: TagType
   id?: number | string
 }
@@ -267,6 +267,7 @@ type QueryTypes<
   ReducerPath: ReducerPath
 }
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export interface QueryExtraOptions<
   TagTypes extends string,
   ResultType,
@@ -554,6 +555,7 @@ type MutationTypes<
   ReducerPath: ReducerPath
 }
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export interface MutationExtraOptions<
   TagTypes extends string,
   ResultType,
@@ -673,11 +675,11 @@ export function isMutationDefinition(
   return e.type === DefinitionType.mutation
 }
 
-export interface EndpointBuilder<
+export type EndpointBuilder<
   BaseQuery extends BaseQueryFn,
   TagTypes extends string,
   ReducerPath extends string,
-> {
+> = {
   /**
    * An endpoint definition that retrieves data, and may provide tags to the cache.
    *

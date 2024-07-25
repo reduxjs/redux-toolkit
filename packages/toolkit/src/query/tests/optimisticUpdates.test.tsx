@@ -8,7 +8,7 @@ import { act, renderHook } from '@testing-library/react'
 import { delay } from 'msw'
 import type { InvalidationState } from '../core/apiState'
 
-interface Post {
+type Post = {
   id: string
   title: string
   contents: string

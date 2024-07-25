@@ -14,12 +14,12 @@ import type {
 import { DefinitionType } from './endpointDefinitions'
 import type { NoInfer } from './tsHelpers'
 
-export interface CreateApiOptions<
+export type CreateApiOptions<
   BaseQuery extends BaseQueryFn,
   Definitions extends EndpointDefinitions,
   ReducerPath extends string = 'api',
   TagTypes extends string = never,
-> {
+> = {
   /**
    * The base query used by each endpoint if no `queryFn` option is specified. RTK Query exports a utility called [fetchBaseQuery](./fetchBaseQuery) as a lightweight wrapper around `fetch` for common use-cases. See [Customizing Queries](../../rtk-query/usage/customizing-queries) if `fetchBaseQuery` does not handle your requirements.
    *

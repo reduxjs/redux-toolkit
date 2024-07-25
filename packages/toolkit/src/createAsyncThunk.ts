@@ -16,14 +16,14 @@ import type {
   SafePromise,
 } from './tsHelpers'
 
-export interface BaseThunkAPI<
+export type BaseThunkAPI<
   S,
   E,
   D extends Dispatch = Dispatch,
   RejectedValue = unknown,
   RejectedMeta = unknown,
   FulfilledMeta = unknown,
-> {
+> = {
   dispatch: D
   getState: () => S
   extra: E
@@ -51,7 +51,7 @@ export interface BaseThunkAPI<
 /**
  * @public
  */
-export interface SerializedError {
+export type SerializedError = {
   name?: string
   message?: string
   stack?: string
@@ -110,7 +110,7 @@ export const miniSerializeError = (value: any): SerializedError => {
   return { message: String(value) }
 }
 
-export interface AsyncThunkConfig {
+export type AsyncThunkConfig = {
   state?: unknown
   dispatch?: ThunkDispatch<unknown, unknown, UnknownAction>
   extra?: unknown
@@ -441,7 +441,7 @@ export type OverrideThunkApiConfigs<OldConfig, NewConfig> = Id<
   NewConfig & Omit<OldConfig, keyof NewConfig>
 >
 
-interface CreateAsyncThunk<CurriedThunkApiConfig extends AsyncThunkConfig> {
+type CreateAsyncThunk<CurriedThunkApiConfig extends AsyncThunkConfig> = {
   /**
    *
    * @param typePrefix
@@ -710,7 +710,7 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
   return createAsyncThunk as CreateAsyncThunk<AsyncThunkConfig>
 })()
 
-interface UnwrappableAction {
+type UnwrappableAction = {
   payload: any
   meta?: any
   error?: any

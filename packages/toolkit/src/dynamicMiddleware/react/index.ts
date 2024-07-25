@@ -21,10 +21,10 @@ export type UseDispatchWithMiddlewareHook<
   DispatchType extends Dispatch<UnknownAction> = Dispatch<UnknownAction>,
 > = () => TSHelpersExtractDispatchExtensions<Middlewares> & DispatchType
 
-export interface CreateDispatchWithMiddlewareHook<
+export type CreateDispatchWithMiddlewareHook<
   State = any,
   DispatchType extends Dispatch<UnknownAction> = Dispatch<UnknownAction>,
-> {
+> = {
   <
     Middlewares extends [
       Middleware<any, State, DispatchType>,

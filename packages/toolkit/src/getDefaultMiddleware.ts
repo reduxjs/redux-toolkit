@@ -17,11 +17,11 @@ function isBoolean(x: any): x is boolean {
   return typeof x === 'boolean'
 }
 
-interface ThunkOptions<E = any> {
+type ThunkOptions<E = any> = {
   extraArgument: E
 }
 
-interface GetDefaultMiddlewareOptions {
+type GetDefaultMiddlewareOptions = {
   thunk?: boolean | ThunkOptions
   immutableCheck?: boolean | ImmutableStateInvariantMiddlewareOptions
   serializableCheck?: boolean | SerializableStateInvariantMiddlewareOptions

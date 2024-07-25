@@ -91,7 +91,7 @@ export function freezeDraftable<T>(val: T) {
     : val
 }
 
-interface WeakMapEmplaceHandler<K extends object, V> {
+type WeakMapEmplaceHandler<K extends object, V> = {
   /**
    * Will be called to get value, if no value is currently in map.
    */
@@ -102,7 +102,7 @@ interface WeakMapEmplaceHandler<K extends object, V> {
   update?(previous: V, key: K, map: WeakMap<K, V>): V
 }
 
-interface MapEmplaceHandler<K, V> {
+type MapEmplaceHandler<K, V> = {
   /**
    * Will be called to get value, if no value is currently in map.
    */

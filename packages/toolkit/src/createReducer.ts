@@ -16,7 +16,7 @@ import { freezeDraftable } from './utils'
  */
 export type Actions<T extends keyof any = string> = Record<T, Action>
 
-export interface ActionMatcherDescription<S, A extends Action> {
+export type ActionMatcherDescription<S, A extends Action> = {
   matcher: TypeGuard<A>
   reducer: CaseReducer<S, NoInfer<A>>
 }

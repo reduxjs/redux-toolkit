@@ -7,10 +7,8 @@ import { createDynamicMiddleware } from '../index'
 
 const probeType = 'probeableMW/probe'
 
-export interface ProbeMiddleware
-  extends BaseActionCreator<number, typeof probeType> {
-  <Id extends number>(id: Id): PayloadAction<Id, typeof probeType>
-}
+export type ProbeMiddleware = BaseActionCreator<number, typeof probeType> &
+  (<Id extends number>(id: Id) => PayloadAction<Id, typeof probeType>)
 
 export const probeMiddleware = createAction(probeType) as ProbeMiddleware
 

@@ -48,7 +48,7 @@ const middlewareApi = {
 }
 
 // Copyright 2018-2021 the Deno authors. All rights reserved. MIT license.
-export interface Deferred<T> extends Promise<T> {
+export type Deferred<T> = Promise<T> & {
   resolve(value?: T | PromiseLike<T>): void
   // deno-lint-ignore no-explicit-any
   reject(reason?: any): void
@@ -75,7 +75,7 @@ describe('createListenerMiddleware', () => {
     middleware: (gDM) => gDM().prepend(createListenerMiddleware().middleware),
   })
 
-  interface CounterState {
+  type CounterState = {
     value: number
   }
 

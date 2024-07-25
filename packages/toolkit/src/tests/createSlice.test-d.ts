@@ -444,7 +444,7 @@ describe('type tests', () => {
   })
 
   test('wrapping createSlice should be possible', () => {
-    interface GenericState<T> {
+    type GenericState<T> = {
       data?: T
       status: 'loading' | 'finished' | 'error'
     }
@@ -502,7 +502,7 @@ describe('type tests', () => {
   })
 
   test('extraReducers', () => {
-    interface GenericState<T> {
+    type GenericState<T> = {
       data: T | null
     }
 
@@ -595,19 +595,19 @@ describe('type tests', () => {
   })
 
   test('reducer callback', () => {
-    interface TestState {
+    type TestState = {
       foo: string
     }
 
-    interface TestArg {
+    type TestArg = {
       test: string
     }
 
-    interface TestReturned {
+    type TestReturned = {
       payload: string
     }
 
-    interface TestReject {
+    type TestReject = {
       cause: string
     }
 
@@ -937,7 +937,7 @@ describe('type tests', () => {
   })
 
   test('wrapping createSlice should be possible, with callback', () => {
-    interface GenericState<T> {
+    type GenericState<T> = {
       data?: T
       status: 'loading' | 'finished' | 'error'
     }

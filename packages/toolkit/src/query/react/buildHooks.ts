@@ -50,7 +50,7 @@ import { UNINITIALIZED_VALUE } from './constants'
 import type { ReactHooksModuleOptions } from './module'
 import { useStableQueryArgs } from './useSerializedStableValue'
 import { useShallowStableValue } from './useShallowStableValue'
-import type { AnyObject } from "@internal/tsHelpers"
+import type { AnyObject } from '@internal/tsHelpers'
 
 // Copy-pasted from React-Redux
 const canUseDOM = () =>
@@ -227,9 +227,9 @@ export type TypedUseQuerySubscriptionResult<
   QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
 >
 
-export interface UseLazyQueryLastPromiseInfo<
+export type UseLazyQueryLastPromiseInfo<
   D extends QueryDefinition<any, any, any, any>,
-> {
+> = {
   lastArg: QueryArgFrom<D>
 }
 
@@ -357,10 +357,10 @@ export type TypedUseQueryState<
   QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
 >
 
-export interface UseQueryStateOptions<
+export type UseQueryStateOptions<
   D extends QueryDefinition<any, any, any, any>,
   R extends AnyObject,
-> {
+> = {
   /**
    * Prevents a query from automatically running.
    *
@@ -522,10 +522,10 @@ export type MutationStateSelector<
   D extends MutationDefinition<any, any, any, any>,
 > = (state: MutationResultSelectorResult<D>) => R
 
-export interface UseMutationStateOptions<
+export type UseMutationStateOptions<
   D extends MutationDefinition<any, any, any, any>,
   R extends AnyObject,
-> {
+> = {
   selectFromResult?: MutationStateSelector<R, D>
   fixedCacheKey?: string
 }

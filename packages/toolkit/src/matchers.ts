@@ -309,7 +309,7 @@ export type UnknownAsyncThunkAction =
   | UnknownAsyncThunkRejectedAction
   | UnknownAsyncThunkFulfilledAction
 
-export interface AnyAsyncThunk {
+export type AnyAsyncThunk = {
   pending: { match: (action: any) => action is any }
   fulfilled: { match: (action: any) => action is any }
   rejected: { match: (action: any) => action is any }

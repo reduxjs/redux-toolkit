@@ -7,7 +7,7 @@ import { createApi } from '@reduxjs/toolkit/query/react'
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { delay } from 'msw'
 
-interface Post {
+type Post = {
   id: string
   title: string
   contents: string

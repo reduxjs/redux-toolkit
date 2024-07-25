@@ -89,10 +89,10 @@ export type RejectedAction<
 
 export type Matcher<M> = (value: any) => value is M
 
-export interface Matchers<
+export type Matchers<
   Thunk extends QueryThunk | MutationThunk,
   Definition extends EndpointDefinition<any, any, any, any>,
-> {
+> = {
   matchPending: Matcher<PendingAction<Thunk, Definition>>
   matchFulfilled: Matcher<FulfilledAction<Thunk, Definition>>
   matchRejected: Matcher<RejectedAction<Thunk, Definition>>
@@ -115,7 +115,7 @@ type MutationThunkArg = {
 
 export type ThunkResult = unknown
 
-export interface ThunkApiMetaConfig {
+export type ThunkApiMetaConfig = {
   pendingMeta: {
     startedTimeStamp: number
     [SHOULD_AUTOBATCH]: true
@@ -192,7 +192,7 @@ export type UpsertQueryDataThunk<
 /**
  * An object returned from dispatching a `api.util.updateQueryData` call.
  */
-export interface PatchCollection {
+export type PatchCollection = {
   /**
    * An `immer` Patch describing the cache update.
    */

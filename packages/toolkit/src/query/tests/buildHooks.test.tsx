@@ -41,7 +41,7 @@ import type { MockInstance } from 'vitest'
 let amount = 0
 let nextItemId = 0
 
-interface Item {
+type Item = {
   id: number
 }
 
@@ -2169,7 +2169,7 @@ describe('hooks with createApi defaults set', () => {
       server.use(...handlers)
     })
 
-    interface Post {
+    type Post = {
       id: number
       name: string
       fetched_at: string

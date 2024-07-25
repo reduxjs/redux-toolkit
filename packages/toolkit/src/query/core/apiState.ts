@@ -11,7 +11,7 @@ import type {
 import type { Id, WithRequiredProp } from '../tsHelpers'
 
 export type QueryCacheKey = string & { _type: 'queryCacheKey' }
-export interface QuerySubstateIdentifier {
+export type QuerySubstateIdentifier = {
   queryCacheKey: QueryCacheKey
 }
 export type MutationSubstateIdentifier =
@@ -24,7 +24,7 @@ export type MutationSubstateIdentifier =
       fixedCacheKey: string
     }
 
-export interface RefetchConfigOptions {
+export type RefetchConfigOptions = {
   refetchOnMountOrArgChange: boolean | number
   refetchOnReconnect: boolean
   refetchOnFocus: boolean
@@ -80,7 +80,7 @@ export function getRequestStatusFlags(status: QueryStatus): RequestStatusFlags {
   } as any
 }
 
-export interface SubscriptionOptions {
+export type SubscriptionOptions = {
   /**
    * How frequently to automatically re-fetch data (in milliseconds). Defaults to `0` (off).
    */
@@ -132,7 +132,7 @@ export type MutationKeys<Definitions extends EndpointDefinitions> = {
     : never
 }[keyof Definitions]
 
-interface BaseQuerySubState<D extends BaseEndpointDefinition<any, any, any>> {
+type BaseQuerySubState<D extends BaseEndpointDefinition<any, any, any>> = {
   /**
    * The argument originally passed into the hook or `initiate` action call
    */
@@ -192,9 +192,7 @@ export type QuerySubState<D extends BaseEndpointDefinition<any, any, any>> = Id<
     }
 >
 
-interface BaseMutationSubState<
-  D extends BaseEndpointDefinition<any, any, any>,
-> {
+type BaseMutationSubState<D extends BaseEndpointDefinition<any, any, any>> = {
   requestId: string
   data?: ResultTypeFrom<D>
   error?:
@@ -230,11 +228,11 @@ export type MutationSubState<D extends BaseEndpointDefinition<any, any, any>> =
       fulfilledTimeStamp?: undefined
     }
 
-export interface CombinedState<
+export type CombinedState<
   D extends EndpointDefinitions,
   E extends string,
   ReducerPath extends string,
-> {
+> = {
   queries: QueryState<D>
   mutations: MutationState<D>
   provided: InvalidationState<E>

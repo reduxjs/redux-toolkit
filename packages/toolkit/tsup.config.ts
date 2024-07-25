@@ -13,7 +13,7 @@ const __dirname = path.dirname(__filename)
 
 const outputDir = path.join(__dirname, 'dist')
 
-export interface BuildOptions {
+export type BuildOptions = {
   format: 'cjs' | 'esm'
   name:
     | 'development'
@@ -35,7 +35,7 @@ export interface BuildOptions {
     | 'esnext'
 }
 
-export interface EntryPointOptions {
+export type EntryPointOptions = {
   prefix: string
   folder: string
   entryPoint: string

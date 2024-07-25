@@ -6,7 +6,7 @@ import { createAsyncThunk } from '../../createAsyncThunk'
 import { createSlice } from '../../createSlice'
 import { addListener, createListenerMiddleware, removeListener } from '../index'
 
-export interface CounterState {
+export type CounterState = {
   counter: number
 }
 

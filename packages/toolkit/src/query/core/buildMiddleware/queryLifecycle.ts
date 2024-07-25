@@ -176,13 +176,13 @@ export type QueryLifecycleMutationExtraOptions<
   ): Promise<void> | void
 }
 
-export interface QueryLifecycleApi<
+export type QueryLifecycleApi<
   QueryArg,
   BaseQuery extends BaseQueryFn,
   ResultType,
   ReducerPath extends string = string,
-> extends QueryBaseLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
-    QueryLifecyclePromises<ResultType, BaseQuery> {}
+> = QueryBaseLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath> &
+  QueryLifecyclePromises<ResultType, BaseQuery>
 
 export type MutationLifecycleApi<
   QueryArg,
@@ -202,7 +202,7 @@ export const buildQueryLifecycleHandler: InternalHandlerBuilder = ({
   const isRejectedThunk = isRejected(queryThunk, mutationThunk)
   const isFullfilledThunk = isFulfilled(queryThunk, mutationThunk)
 
-  interface CacheLifecycle {
+  type CacheLifecycle = {
     resolve(value: { data: unknown; meta: unknown }): unknown
     reject(value: QueryFulfilledRejectionReason<any>): unknown
   }

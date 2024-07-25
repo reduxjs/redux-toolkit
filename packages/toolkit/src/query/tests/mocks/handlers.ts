@@ -1,7 +1,7 @@
 import { headersToObject } from 'headers-polyfill'
 import { HttpResponse, http } from 'msw'
 
-export interface Post {
+export type Post = {
   id: number
   title: string
   body: string

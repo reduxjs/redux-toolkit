@@ -1,16 +1,16 @@
 import { createDraftSafeSelector } from '@reduxjs/toolkit'
 
-interface Todo {
+type Todo = {
   id: number
   completed: boolean
 }
 
-interface Alert {
+type Alert = {
   id: number
   read: boolean
 }
 
-interface RootState {
+type RootState = {
   todos: Todo[]
   alerts: Alert[]
 }

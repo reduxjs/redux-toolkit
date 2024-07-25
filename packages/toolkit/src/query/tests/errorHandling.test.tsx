@@ -418,7 +418,7 @@ describe('custom axios baseQuery', () => {
       }
     }
 
-  interface SuccessResponse {
+  type SuccessResponse = {
     value: 'success'
   }
   const api = createApi({

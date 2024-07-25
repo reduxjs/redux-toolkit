@@ -23,7 +23,7 @@ export function isPlain(val: any) {
   )
 }
 
-interface NonSerializableValue {
+type NonSerializableValue = {
   keyPath: string
   value: unknown
 }
@@ -120,7 +120,7 @@ export function isNestedFrozen(value: object) {
  *
  * @public
  */
-export interface SerializableStateInvariantMiddlewareOptions {
+export type SerializableStateInvariantMiddlewareOptions = {
   /**
    * The function to check if a value is considered serializable. This
    * function is applied recursively to every value contained in the

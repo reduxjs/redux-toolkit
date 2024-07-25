@@ -27,7 +27,7 @@ export function trackForMutations(
   }
 }
 
-interface TrackedProperty {
+type TrackedProperty = {
   value: any
   children: AnyObject
 }
@@ -131,7 +131,7 @@ type IsImmutableFunc = (value: any) => boolean
  *
  * @public
  */
-export interface ImmutableStateInvariantMiddlewareOptions {
+export type ImmutableStateInvariantMiddlewareOptions = {
   /**
     Callback function to check if a value is considered to be immutable.
     This function is applied recursively to every value contained in the state.

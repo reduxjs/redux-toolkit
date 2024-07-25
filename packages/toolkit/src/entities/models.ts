@@ -22,7 +22,7 @@ export type IdSelector<T, Id extends EntityId> = (model: T) => Id
 /**
  * @public
  */
-export interface Update<T, Id extends EntityId> {
+export type Update<T, Id extends EntityId> = {
   id: Id
   changes: Partial<T>
 }
@@ -30,7 +30,7 @@ export interface Update<T, Id extends EntityId> {
 /**
  * @public
  */
-export interface EntityState<T, Id extends EntityId> {
+export type EntityState<T, Id extends EntityId> = {
   ids: Id[]
   entities: Record<Id, T>
 }
@@ -38,7 +38,7 @@ export interface EntityState<T, Id extends EntityId> {
 /**
  * @public
  */
-export interface EntityAdapterOptions<T, Id extends EntityId> {
+export type EntityAdapterOptions<T, Id extends EntityId> = {
   selectId?: IdSelector<T, Id>
   sortComparer?: false | Comparer<T>
 }
@@ -55,7 +55,7 @@ export type DraftableEntityState<T, Id extends EntityId> =
 /**
  * @public
  */
-export interface EntityStateAdapter<T, Id extends EntityId> {
+export type EntityStateAdapter<T, Id extends EntityId> = {
   addOne<S extends DraftableEntityState<T, Id>>(
     state: PreventAny<S, T, Id>,
     entity: T,
@@ -161,7 +161,7 @@ export interface EntityStateAdapter<T, Id extends EntityId> {
 /**
  * @public
  */
-export interface EntitySelectors<T, V, IdType extends EntityId> {
+export type EntitySelectors<T, V, IdType extends EntityId> = {
   selectIds: (state: V) => IdType[]
   selectEntities: (state: V) => Record<IdType, T>
   selectAll: (state: V) => T[]
@@ -172,7 +172,7 @@ export interface EntitySelectors<T, V, IdType extends EntityId> {
 /**
  * @public
  */
-export interface EntityStateFactory<T, Id extends EntityId> {
+export type EntityStateFactory<T, Id extends EntityId> = {
   getInitialState(
     state?: undefined,
     entities?: Record<Id, T> | readonly T[],
@@ -186,16 +186,15 @@ export interface EntityStateFactory<T, Id extends EntityId> {
 /**
  * @public
  */
-export interface EntityAdapter<T, Id extends EntityId>
-  extends EntityStateAdapter<T, Id>,
-    EntityStateFactory<T, Id>,
-    Required<EntityAdapterOptions<T, Id>> {
-  getSelectors(
-    selectState?: undefined,
-    options?: GetSelectorsOptions,
-  ): EntitySelectors<T, EntityState<T, Id>, Id>
-  getSelectors<V>(
-    selectState: (state: V) => EntityState<T, Id>,
-    options?: GetSelectorsOptions,
-  ): EntitySelectors<T, V, Id>
-}
+export type EntityAdapter<T, Id extends EntityId> = EntityStateAdapter<T, Id> &
+  EntityStateFactory<T, Id> &
+  Required<EntityAdapterOptions<T, Id>> & {
+    getSelectors(
+      selectState?: undefined,
+      options?: GetSelectorsOptions,
+    ): EntitySelectors<T, EntityState<T, Id>, Id>
+    getSelectors<V>(
+      selectState: (state: V) => EntityState<T, Id>,
+      options?: GetSelectorsOptions,
+    ): EntitySelectors<T, V, Id>
+  }

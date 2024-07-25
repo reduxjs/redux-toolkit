@@ -18,7 +18,7 @@ function delay(ms: number) {
 }
 
 // @see https://deno.land/std@0.95.0/async/deferred.ts (MIT)
-export interface Deferred<T> extends Promise<T> {
+export type Deferred<T> = Promise<T> & {
   resolve(value?: T | PromiseLike<T>): void
   reject(reason?: any): void
 }
@@ -38,7 +38,7 @@ export function deferred<T>(): Deferred<T> {
   return Object.assign(promise, methods) as Deferred<T>
 }
 
-interface CounterSlice {
+type CounterSlice = {
   value: number
 }
 

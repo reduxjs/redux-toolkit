@@ -5,9 +5,8 @@ import type { ThunkDispatch } from 'redux-thunk'
 import type { AnyNonNullishValue } from '../../tsHelpers'
 import { createDynamicMiddleware } from '../react'
 
-interface AppDispatch extends ThunkDispatch<number, undefined, UnknownAction> {
-  (n: 1): 1
-}
+type AppDispatch = ThunkDispatch<number, undefined, UnknownAction> &
+  ((n: 1) => 1)
 
 const untypedInstance = createDynamicMiddleware()
 

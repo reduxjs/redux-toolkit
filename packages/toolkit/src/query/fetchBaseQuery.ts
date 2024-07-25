@@ -21,6 +21,7 @@ type CustomRequestInit = Override<
   }
 >
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export interface FetchArgs extends CustomRequestInit {
   url: string
   params?: AnyObject
@@ -141,7 +142,7 @@ export type FetchBaseQueryArgs = {
 } & RequestInit &
   Pick<FetchArgs, 'responseHandler' | 'validateStatus' | 'timeout'>
 
-export interface FetchBaseQueryMeta {
+export type FetchBaseQueryMeta = {
   request: Request
   response?: Response
 }

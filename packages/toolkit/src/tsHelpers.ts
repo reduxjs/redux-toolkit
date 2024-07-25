@@ -183,7 +183,7 @@ export type WithOptionalProp<T, K extends keyof T> = Omit<T, K> &
 
 export type TypeGuard<T> = (value: any) => value is T
 
-export interface HasMatchFunction<T> {
+export type HasMatchFunction<T> = {
   match: TypeGuard<T>
 }
 

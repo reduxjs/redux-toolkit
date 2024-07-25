@@ -14,16 +14,16 @@ import {
 } from '@reduxjs/toolkit'
 import { createConsole, mockConsole } from 'console-testing-library/pure'
 
-interface Todo {
+type Todo = {
   text: string
   completed?: boolean
 }
 
-interface AddTodoPayload {
+type AddTodoPayload = {
   newTodo: Todo
 }
 
-interface ToggleTodoPayload {
+type ToggleTodoPayload = {
   index: number
 }
 
