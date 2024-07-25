@@ -315,9 +315,7 @@ export type ListenerMiddleware<
   >,
   ExtraArgument = unknown,
 > = Middleware<
-  {
-    (action: Action<'listenerMiddleware/add'>): UnsubscribeListener
-  },
+  (action: Action<'listenerMiddleware/add'>) => UnsubscribeListener,
   State,
   DispatchType
 >
