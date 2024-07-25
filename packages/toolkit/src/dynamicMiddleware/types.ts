@@ -76,7 +76,7 @@ export type DynamicMiddleware<
 export interface DynamicMiddlewareInstance<
   State = unknown,
   DispatchType extends Dispatch<UnknownAction> = Dispatch<UnknownAction>,
-> = {
+> {
   middleware: DynamicMiddleware<State, DispatchType>
   addMiddleware: AddMiddleware<State, DispatchType>
   withMiddleware: WithMiddleware<State, DispatchType>
