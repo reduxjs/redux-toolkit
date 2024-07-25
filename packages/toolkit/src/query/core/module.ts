@@ -1,6 +1,7 @@
 /**
  * Note: this file should import all other files for type discovery and declaration merging
  */
+import type { AnyNonNullishValue, AnyObject } from '@internal/tsHelpers'
 import type {
   ActionCreatorWithPayload,
   Middleware,
@@ -139,7 +140,7 @@ export interface ApiModules<
      * ```
      */
     middleware: Middleware<
-      {},
+      AnyNonNullishValue,
       RootState<Definitions, string, ReducerPath>,
       ThunkDispatch<any, any, UnknownAction>
     >
