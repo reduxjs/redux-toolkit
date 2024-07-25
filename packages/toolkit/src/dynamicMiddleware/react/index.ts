@@ -28,7 +28,7 @@ export interface CreateDispatchWithMiddlewareHook<
   <
     Middlewares extends [
       Middleware<any, State, DispatchType>,
-      ...Middleware<any, State, DispatchType>[],
+      ...Array<Middleware<any, State, DispatchType>>,
     ],
   >(
     ...middlewares: Middlewares

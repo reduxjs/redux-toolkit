@@ -28,7 +28,7 @@ interface NonSerializableValue {
   value: unknown
 }
 
-export type IgnorePaths = readonly (string | RegExp)[]
+export type IgnorePaths = ReadonlyArray<string | RegExp>
 
 /**
  * @public

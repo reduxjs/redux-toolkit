@@ -44,7 +44,7 @@ export const createDynamicMiddleware = <
   const withMiddleware = Object.assign(
     createAction(
       'dynamicMiddleware/add',
-      (...middlewares: Array<Middleware<any, State, Dispatch>>) => ({
+      (...middlewares: Array<Middleware<any, State, DispatchType>>) => ({
         payload: middlewares,
         meta: {
           instanceId,
@@ -56,7 +56,7 @@ export const createDynamicMiddleware = <
 
   const addMiddleware = Object.assign(
     function addMiddleware(
-      ...middlewares: Middleware<any, State, DispatchType>[]
+      ...middlewares: Array<Middleware<any, State, DispatchType>>
     ) {
       middlewares.forEach((middleware) => {
         let entry = find(
