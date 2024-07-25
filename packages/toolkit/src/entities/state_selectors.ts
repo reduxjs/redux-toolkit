@@ -1,4 +1,9 @@
-import type { CreateSelectorFunction, Selector } from 'reselect'
+import type { AnyFunction } from '@internal/tsHelpers'
+import type {
+  CreateSelectorFunction,
+  Selector,
+  UnknownMemoizer,
+} from 'reselect'
 import { createDraftSafeSelector } from '../createDraftSafeSelector'
 import type { EntityId, EntitySelectors, EntityState } from './models'
 
