@@ -50,6 +50,7 @@ import { UNINITIALIZED_VALUE } from './constants'
 import type { ReactHooksModuleOptions } from './module'
 import { useStableQueryArgs } from './useSerializedStableValue'
 import { useShallowStableValue } from './useShallowStableValue'
+import type { AnyObject } from "@internal/tsHelpers"
 
 // Copy-pasted from React-Redux
 const canUseDOM = () =>
