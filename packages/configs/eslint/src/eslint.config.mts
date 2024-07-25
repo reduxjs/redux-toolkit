@@ -114,6 +114,7 @@ export const reduxESLintConfig: TSESLint.FlatConfig.Config[] = config(
         { allowDeclarations: true, allowDefinitionFiles: true },
       ],
       '@typescript-eslint/ban-ts-comment': [0],
+      '@typescript-eslint/consistent-type-definitions': [2, 'type'],
       'sort-imports': [
         2,
         {
