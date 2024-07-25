@@ -7765,7 +7765,7 @@ __metadata:
     rimraf: "npm:^3.0.2"
     size-limit: "npm:^11.0.1"
     tslib: "npm:^1.10.0"
-    tsup: "npm:^8.2.2"
+    tsup: "npm:^8.2.3"
     tsx: "npm:^4.16.2"
     typescript: "npm:^5.4.5"
     vite-tsconfig-paths: "npm:^4.3.1"
@@ -28506,9 +28506,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tsup@npm:^8.2.2":
-  version: 8.2.2
-  resolution: "tsup@npm:8.2.2"
+"tsup@npm:^8.2.3":
+  version: 8.2.3
+  resolution: "tsup@npm:8.2.3"
   dependencies:
     bundle-require: "npm:^5.0.0"
     cac: "npm:^6.7.14"
@@ -28543,7 +28543,7 @@ __metadata:
   bin:
     tsup: dist/cli-default.js
     tsup-node: dist/cli-node.js
-  checksum: 10/f0d25756d4760d76f0d75118cd222791ad630ae2e89dfc3341d1e2d96b20614d37d1e8a0a541f3a342348cdfb0b24d3df2e2e3ba7590e462630be969803ee6c3
+  checksum: 10/2523611f5879fe408e8cb6d1fbae18d9e7617d2ef47258f6be8c11323c6d5d6aad296f6004d3fa6dc94e5f5b4c70b3eae677ac3d5ce0e9e1e4925715ee8b69b9
   languageName: node
   linkType: hard
 
