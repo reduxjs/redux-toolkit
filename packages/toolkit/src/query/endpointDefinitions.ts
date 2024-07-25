@@ -29,7 +29,7 @@ import type {
   OmitFromUnion,
   UnwrapPromise,
 } from './tsHelpers'
-import type { AnyFunction, AnyNonNullishValue } from "@internal/tsHelpers"
+import type { AnyFunction, AnyNonNullishValue } from '@internal/tsHelpers'
 
 const resultType = /* @__PURE__ */ Symbol()
 const baseQuery = /* @__PURE__ */ Symbol()

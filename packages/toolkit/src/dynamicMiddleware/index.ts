@@ -72,9 +72,11 @@ export const createDynamicMiddleware = <
     { withTypes: () => addMiddleware },
   ) as AddMiddleware<State, DispatchType>
 
-  const getFinalMiddleware: Middleware<AnyNonNullishValue, State, DispatchType> = (
-    api,
-  ) => {
+  const getFinalMiddleware: Middleware<
+    AnyNonNullishValue,
+    State,
+    DispatchType
+  > = (api) => {
     const appliedMiddleware = Array.from(middlewareMap.values()).map((entry) =>
       emplace(entry.applied, api, { insert: () => entry.middleware(api) }),
     )
