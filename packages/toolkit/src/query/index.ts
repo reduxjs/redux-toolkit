@@ -32,6 +32,7 @@ export type {
   DefinitionsFromApi,
   OverrideResultType,
   TagTypesFromApi,
+  UpdateDefinitions,
 } from './endpointDefinitions'
 export { fetchBaseQuery } from './fetchBaseQuery'
 export type {
