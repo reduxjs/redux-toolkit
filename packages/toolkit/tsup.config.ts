@@ -180,7 +180,7 @@ export default defineConfig((options) => {
 
         if (env) {
           Object.assign(defineValues, {
-            'process.env.NODE_ENV': JSON.stringify(env),
+            NODE_ENV: env,
           })
         }
 
@@ -200,15 +200,8 @@ export default defineConfig((options) => {
           sourcemap: true,
           external: externals,
           esbuildPlugins: [mangleErrorsTransform],
-          esbuildOptions(options) {
-            // Needed to prevent auto-replacing of process.env.NODE_ENV in all builds
-            options.platform = 'neutral'
-            // Needed to return to normal lookup behavior when platform: 'neutral'
-            options.mainFields = ['browser', 'module', 'main']
-            options.conditions = ['browser']
-          },
 
-          define: defineValues,
+          env: defineValues,
           async onSuccess() {
             if (format === 'cjs' && name === 'production.min') {
               writeCommonJSEntry(outputFolder, prefix)
@@ -244,7 +237,7 @@ export default defineConfig((options) => {
               // fs.copyFileSync(inputTypedefsPath, outputTypedefsPath)
             }
           },
-        }
+        } satisfies TsupOptions
       })
 
       return artifactOptions satisfies TsupOptions[]
