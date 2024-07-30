@@ -26,4 +26,5 @@ export const createDraftSafeSelectorCreator: typeof createSelectorCreator = (
  * @public
  */
 export const createDraftSafeSelector =
+  /* @__PURE__ */
   createDraftSafeSelectorCreator(weakMapMemoize)

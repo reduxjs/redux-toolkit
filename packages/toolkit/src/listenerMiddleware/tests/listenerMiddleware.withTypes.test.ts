@@ -55,21 +55,25 @@ type AppThunk<ThunkReturnType = void> = ThunkAction<
   Action
 >
 
+type ExtraArgument = { foo: string }
+
 const listenerMiddleware = createListenerMiddleware()
 
 const startAppListening = listenerMiddleware.startListening.withTypes<
   RootState,
-  AppDispatch
+  AppDispatch,
+  ExtraArgument
 >()
 
 const stopAppListening = listenerMiddleware.stopListening.withTypes<
   RootState,
-  AppDispatch
+  AppDispatch,
+  ExtraArgument
 >()
 
-const addAppListener = addListener.withTypes<RootState, AppDispatch>()
+const addAppListener = addListener.withTypes<RootState, AppDispatch, ExtraArgument>()
 
-const removeAppListener = removeListener.withTypes<RootState, AppDispatch>()
+const removeAppListener = removeListener.withTypes<RootState, AppDispatch, ExtraArgument>()
 
 describe('startAppListening.withTypes', () => {
   test('should return startListening', () => {

@@ -1,52 +1,44 @@
 import type {
-  EndpointDefinitions,
-  QueryDefinition,
-  MutationDefinition,
-  QueryArgFrom,
-  ResultTypeFrom,
-} from '../endpointDefinitions'
-import { DefinitionType, isQueryDefinition } from '../endpointDefinitions'
-import type { QueryThunk, MutationThunk, QueryThunkArg } from './buildThunks'
-import type {
-  UnknownAction,
-  ThunkAction,
   SerializedError,
+  ThunkAction,
+  UnknownAction,
 } from '@reduxjs/toolkit'
-import type { SubscriptionOptions, RootState } from './apiState'
-import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
-import type { Api, ApiContext } from '../apiTypes'
-import type { ApiEndpointQuery } from './module'
-import type { BaseQueryError, QueryReturnValue } from '../baseQueryTypes'
-import type { QueryResultSelectorResult } from './buildSelectors'
 import type { Dispatch } from 'redux'
-import { isNotNullish } from '../utils/isNotNullish'
-import { countObjectKeys } from '../utils/countObjectKeys'
 import type { SafePromise } from '../../tsHelpers'
 import { asSafePromise } from '../../tsHelpers'
+import type { Api, ApiContext } from '../apiTypes'
+import type { BaseQueryError, QueryReturnValue } from '../baseQueryTypes'
+import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
+import type {
+  EndpointDefinitions,
+  MutationDefinition,
+  QueryArgFrom,
+  QueryDefinition,
+  ResultTypeFrom,
+} from '../endpointDefinitions'
+import { countObjectKeys, isNotNullish } from '../utils'
+import type { SubscriptionOptions } from './apiState'
+import type { QueryResultSelectorResult } from './buildSelectors'
+import type { MutationThunk, QueryThunk, QueryThunkArg } from './buildThunks'
+import type { ApiEndpointQuery } from './module'
 
-declare module './module' {
-  export interface ApiEndpointQuery<
-    Definition extends QueryDefinition<any, any, any, any, any>,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    Definitions extends EndpointDefinitions,
-  > {
-    initiate: StartQueryActionCreator<Definition>
-  }
+export type BuildInitiateApiEndpointQuery<
+  Definition extends QueryDefinition<any, any, any, any, any>,
+> = {
+  initiate: StartQueryActionCreator<Definition>
+}
 
-  export interface ApiEndpointMutation<
-    Definition extends MutationDefinition<any, any, any, any, any>,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    Definitions extends EndpointDefinitions,
-  > {
-    initiate: StartMutationActionCreator<Definition>
-  }
+export type BuildInitiateApiEndpointMutation<
+  Definition extends MutationDefinition<any, any, any, any, any>,
+> = {
+  initiate: StartMutationActionCreator<Definition>
 }
 
 export const forceQueryFnSymbol = Symbol('forceQueryFn')
 export const isUpsertQuery = (arg: QueryThunkArg) =>
   typeof arg[forceQueryFnSymbol] === 'function'
 
-export interface StartQueryActionCreatorOptions {
+export type StartQueryActionCreatorOptions = {
   subscribe?: boolean
   forceRefetch?: boolean | number
   subscriptionOptions?: SubscriptionOptions

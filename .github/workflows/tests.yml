@@ -99,6 +99,60 @@ jobs:
           TEST_DIST: true
         run: yarn test
 
+      - name: Run type tests with `moduleResolution Bundler`
+        run: rm -rf dist && yarn tsc -p . --moduleResolution Bundler --module ESNext --noEmit false --declaration --emitDeclarationOnly --outDir dist --target ESNext && rm -rf dist
+
+  test-type-portability:
+    name: Test Type Portability with TypeScript ${{ matrix.ts }} and Node.js ${{ matrix.node }}
+    needs: [build]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['20.x']
+        ts: ['5.0', '5.1', '5.2', '5.3', '5.4', '5.5', 'next']
+        example:
+          [
+            { name: 'bundler', moduleResolution: 'Bundler' },
+            { name: 'nodenext-cjs', moduleResolution: 'NodeNext' },
+            { name: 'nodenext-esm', moduleResolution: 'NodeNext' },
+          ]
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Use node ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: 'yarn'
+
+      - name: Install deps
+        run: yarn install
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: package
+          path: packages/toolkit
+
+      - name: Install build artifact
+        run: yarn workspace @examples-type-portability/${{ matrix.example.name }} add $(pwd)/package.tgz
+
+      - name: Install TypeScript ${{ matrix.ts }}
+        run: yarn workspace @examples-type-portability/${{ matrix.example.name }} add -D typescript@${{ matrix.ts }}
+
+      - name: Test type portability with `moduleResolution ${{ matrix.example.moduleResolution }}`
+        run: yarn workspace @examples-type-portability/${{ matrix.example.name }} run test
+
+      - name: Test type portability with `moduleResolution Node10`
+        run: yarn workspace @examples-type-portability/${{ matrix.example.name }} run test --module CommonJS --moduleResolution Node10 --preserveSymLinks --verbatimModuleSyntax false
+
+      - name: Test type portability with `moduleResolution Node10` and `type module` in `package.json`
+        if: matrix.example.name == 'nodenext-esm' || matrix.example.name == 'bundler'
+        run: |
+          npm --workspace=@examples-type-portability/${{ matrix.example.name }} pkg set type=module
+          yarn workspace @examples-type-portability/${{ matrix.example.name }} run test --module ESNext --moduleResolution Node10 --preserveSymLinks --verbatimModuleSyntax false
+
   test-types:
     name: Test Types with TypeScript ${{ matrix.ts }}
 
