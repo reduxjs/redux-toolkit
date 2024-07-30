@@ -42,6 +42,7 @@ export type {
   FetchArgs,
 } from './fetchBaseQuery'
 export { retry } from './retry'
+export type { RetryOptions } from './retry'
 export { setupListeners } from './core/setupListeners'
 export { skipToken } from './core/buildSelectors'
 export type {

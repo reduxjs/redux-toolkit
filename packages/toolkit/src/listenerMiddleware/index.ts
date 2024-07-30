@@ -221,7 +221,7 @@ const getListenerEntryPropsFrom = (options: FallbackAddListenerOptions) => {
 
 /** Accepts the possible options for creating a listener, and returns a formatted listener entry */
 export const createListenerEntry: TypedCreateListenerEntry<unknown> =
-  Object.assign(
+  /* @__PURE__ */ assign(
     (options: FallbackAddListenerOptions) => {
       const { type, predicate, effect } = getListenerEntryPropsFrom(options)
 
@@ -286,21 +286,29 @@ const safelyNotifyError = (
 /**
  * @public
  */
-export const addListener = Object.assign(createAction(`${alm}/add`), {
-  withTypes: () => addListener,
-}) as unknown as TypedAddListener<unknown>
+export const addListener = /* @__PURE__ */ assign(
+  /* @__PURE__ */ createAction(`${alm}/add`),
+  {
+    withTypes: () => addListener,
+  },
+) as unknown as TypedAddListener<unknown>
 
 /**
  * @public
  */
-export const clearAllListeners = createAction(`${alm}/removeAll`)
+export const clearAllListeners = /* @__PURE__ */ createAction(
+  `${alm}/removeAll`,
+)
 
 /**
  * @public
  */
-export const removeListener = Object.assign(createAction(`${alm}/remove`), {
-  withTypes: () => removeListener,
-}) as unknown as TypedRemoveListener<unknown>
+export const removeListener = /* @__PURE__ */ assign(
+  /* @__PURE__ */ createAction(`${alm}/remove`),
+  {
+    withTypes: () => removeListener,
+  },
+) as unknown as TypedRemoveListener<unknown>
 
 const defaultErrorHandler: ListenerErrorHandler = (...args: unknown[]) => {
   console.error(`${alm}/error`, ...args)
@@ -350,7 +358,7 @@ export const createListenerMiddleware = <
     return insertEntry(entry)
   }) as AddListenerOverloads<any>
 
-  Object.assign(startListening, {
+  assign(startListening, {
     withTypes: () => startListening,
   })
 
@@ -378,7 +386,7 @@ export const createListenerMiddleware = <
     return !!entry
   }
 
-  Object.assign(stopListening, {
+  assign(stopListening, {
     withTypes: () => stopListening,
   })
 
