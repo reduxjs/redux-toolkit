@@ -9,6 +9,7 @@ import type {
   ApiContext,
   ApiEndpointMutation,
   ApiEndpointQuery,
+  BaseQueryFn,
   CoreModule,
   EndpointDefinitions,
   MutationActionCreatorResult,
@@ -41,10 +42,8 @@ import {
   useRef,
   useState,
 } from 'react'
-
 import { shallowEqual } from 'react-redux'
-import type { BaseQueryFn } from '../baseQueryTypes'
-import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
+import type { SubscriptionSelectors } from '../core'
 import { defaultSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import type { UninitializedValue } from './constants'
 import { UNINITIALIZED_VALUE } from './constants'
@@ -75,9 +74,9 @@ const getUseIsomorphicLayoutEffect = () =>
 export const useIsomorphicLayoutEffect =
   /* @__PURE__ */ getUseIsomorphicLayoutEffect()
 
-export interface QueryHooks<
+export type QueryHooks<
   Definition extends QueryDefinition<any, any, any, any, any>,
-> {
+> = {
   useQuery: UseQuery<Definition>
   useLazyQuery: UseLazyQuery<Definition>
   useQuerySubscription: UseQuerySubscription<Definition>
@@ -85,9 +84,9 @@ export interface QueryHooks<
   useQueryState: UseQueryState<Definition>
 }
 
-export interface MutationHooks<
+export type MutationHooks<
   Definition extends MutationDefinition<any, any, any, any, any>,
-> {
+> = {
   useMutation: UseMutation<Definition>
 }
 
@@ -138,7 +137,7 @@ export type TypedUseQueryHookResult<
 > = TypedUseQueryStateResult<ResultType, QueryArg, BaseQuery, R> &
   TypedUseQuerySubscriptionResult<ResultType, QueryArg, BaseQuery>
 
-interface UseQuerySubscriptionOptions extends SubscriptionOptions {
+type UseQuerySubscriptionOptions = SubscriptionOptions & {
   /**
    * Prevents a query from automatically running.
    *
