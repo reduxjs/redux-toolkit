@@ -6,7 +6,7 @@ import type {
 } from './createReducer'
 import type { TypeGuard } from './tsHelpers'
 
-export interface TypedActionCreator<Type extends string> {
+export type TypedActionCreator<Type extends string> = {
   (...args: any[]): Action<Type>
   type: Type
 }

@@ -20,7 +20,8 @@
     "docs",
     "website",
     "examples/query/react/*",
-    "examples/action-listener/*"
+    "examples/action-listener/*",
+    "examples/type-portability/*"
   ],
   "devDependencies": {
     "@babel/code-frame": "^7.24.2",
@@ -53,9 +54,7 @@
     "typescript": "^5.4.3"
   },
   "resolutions": {
-    "esbuild": "0.19.7",
-    "jest-snapshot": "29.3.1",
-    "console-testing-library@0.6.1": "patch:console-testing-library@npm%3A0.6.1#./.yarn/patches/console-testing-library-npm-0.6.1-4d9957d402.patch"
+    "jest-snapshot": "29.3.1"
   },
   "scripts": {
     "build": "yarn build:packages",

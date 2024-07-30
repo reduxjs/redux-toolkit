@@ -4,17 +4,11 @@ import type {
   EndpointDefinitions,
   Module,
   MutationDefinition,
+  PrefetchOptions,
   QueryArgFrom,
   QueryDefinition,
+  QueryKeys,
 } from '@reduxjs/toolkit/query'
-import { isMutationDefinition, isQueryDefinition } from '../endpointDefinitions'
-import { safeAssign } from '../tsHelpers'
-import { capitalize } from '../utils'
-import type { MutationHooks, QueryHooks } from './buildHooks'
-import { buildHooks } from './buildHooks'
-
-import type { HooksWithUniqueNames } from './namedHooks'
-
 import {
   batch as rrBatch,
   useDispatch as rrUseDispatch,
@@ -22,9 +16,12 @@ import {
   useStore as rrUseStore,
 } from 'react-redux'
 import { createSelector as _createSelector } from 'reselect'
-import type { QueryKeys } from '../core/apiState'
-import type { PrefetchOptions } from '../core/module'
-import { countObjectKeys } from '../utils/countObjectKeys'
+import { isMutationDefinition, isQueryDefinition } from '../endpointDefinitions'
+import { safeAssign } from '../tsHelpers'
+import { capitalize, countObjectKeys } from '../utils'
+import type { MutationHooks, QueryHooks } from './buildHooks'
+import { buildHooks } from './buildHooks'
+import type { HooksWithUniqueNames } from './namedHooks'
 
 export const reactHooksModuleName = /* @__PURE__ */ Symbol()
 export type ReactHooksModule = typeof reactHooksModuleName

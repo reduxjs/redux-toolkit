@@ -1,27 +1,28 @@
-import type {
-  Middleware,
-  Dispatch as ReduxDispatch,
-  UnknownAction,
-} from 'redux'
+import type { Dispatch, Middleware, UnknownAction } from 'redux'
 import { compose } from 'redux'
 import { createAction } from '../createAction'
 import { isAllOf } from '../matchers'
 import { nanoid } from '../nanoid'
 import { emplace, find } from '../utils'
 import type {
-  WithMiddleware,
   AddMiddleware,
-  MiddlewareEntry,
   DynamicMiddleware,
   DynamicMiddlewareInstance,
+  MiddlewareEntry,
+  WithMiddleware,
+} from './types'
+export type {
+  DynamicMiddlewareInstance,
+  GetDispatchType as GetDispatch,
+  MiddlewareApiConfig,
 } from './types'
 
 const createMiddlewareEntry = <
   State = any,
-  Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>,
+  DispatchType extends Dispatch<UnknownAction> = Dispatch<UnknownAction>,
 >(
-  middleware: Middleware<any, State, Dispatch>,
-): MiddlewareEntry<State, Dispatch> => ({
+  middleware: Middleware<any, State, DispatchType>,
+): MiddlewareEntry<State, DispatchType> => ({
   id: nanoid(),
   middleware,
   applied: new Map(),
@@ -34,15 +35,15 @@ const matchInstance =
 
 export const createDynamicMiddleware = <
   State = any,
-  Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>,
->(): DynamicMiddlewareInstance<State, Dispatch> => {
+  DispatchType extends Dispatch<UnknownAction> = Dispatch<UnknownAction>,
+>(): DynamicMiddlewareInstance<State, DispatchType> => {
   const instanceId = nanoid()
-  const middlewareMap = new Map<string, MiddlewareEntry<State, Dispatch>>()
+  const middlewareMap = new Map<string, MiddlewareEntry<State, DispatchType>>()
 
   const withMiddleware = Object.assign(
     createAction(
       'dynamicMiddleware/add',
-      (...middlewares: Middleware<any, State, Dispatch>[]) => ({
+      (...middlewares: Middleware<any, State, DispatchType>[]) => ({
         payload: middlewares,
         meta: {
           instanceId,
@@ -50,10 +51,12 @@ export const createDynamicMiddleware = <
       }),
     ),
     { withTypes: () => withMiddleware },
-  ) as WithMiddleware<State, Dispatch>
+  ) as WithMiddleware<State, DispatchType>
 
   const addMiddleware = Object.assign(
-    function addMiddleware(...middlewares: Middleware<any, State, Dispatch>[]) {
+    function addMiddleware(
+      ...middlewares: Middleware<any, State, DispatchType>[]
+    ) {
       middlewares.forEach((middleware) => {
         let entry = find(
           Array.from(middlewareMap.values()),
@@ -66,9 +69,9 @@ export const createDynamicMiddleware = <
       })
     },
     { withTypes: () => addMiddleware },
-  ) as AddMiddleware<State, Dispatch>
+  ) as AddMiddleware<State, DispatchType>
 
-  const getFinalMiddleware: Middleware<{}, State, Dispatch> = (api) => {
+  const getFinalMiddleware: Middleware<{}, State, DispatchType> = (api) => {
     const appliedMiddleware = Array.from(middlewareMap.values()).map((entry) =>
       emplace(entry.applied, api, { insert: () => entry.middleware(api) }),
     )
@@ -77,7 +80,7 @@ export const createDynamicMiddleware = <
 
   const isWithMiddleware = isAllOf(withMiddleware, matchInstance(instanceId))
 
-  const middleware: DynamicMiddleware<State, Dispatch> =
+  const middleware: DynamicMiddleware<State, DispatchType> =
     (api) => (next) => (action) => {
       if (isWithMiddleware(action)) {
         addMiddleware(...action.payload)

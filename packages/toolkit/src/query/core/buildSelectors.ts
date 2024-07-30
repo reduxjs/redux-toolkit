@@ -1,28 +1,28 @@
-import type { createSelector as _createSelector } from './rtkImports'
-import { createNextState } from './rtkImports'
+import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
+import type {
+  EndpointDefinitions,
+  MutationDefinition,
+  QueryArgFrom,
+  QueryDefinition,
+  ReducerPathFrom,
+  TagDescription,
+  TagTypesFrom,
+} from '../endpointDefinitions'
+import { expandTagDescription } from '../endpointDefinitions'
+import { flatten } from '../utils'
 import type {
   MutationSubState,
-  QuerySubState,
-  RootState as _RootState,
-  RequestStatusFlags,
   QueryCacheKey,
   QueryKeys,
   QueryState,
+  QuerySubState,
+  RequestStatusFlags,
+  RootState as _RootState,
 } from './apiState'
 import { QueryStatus, getRequestStatusFlags } from './apiState'
-import type {
-  EndpointDefinitions,
-  QueryDefinition,
-  MutationDefinition,
-  QueryArgFrom,
-  TagTypesFrom,
-  ReducerPathFrom,
-  TagDescription,
-} from '../endpointDefinitions'
-import { expandTagDescription } from '../endpointDefinitions'
-import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import { getMutationCacheKey } from './buildSlice'
-import { flatten } from '../utils'
+import type { createSelector as _createSelector } from './rtkImports'
+import { createNextState } from './rtkImports'
 
 export type SkipToken = typeof skipToken
 /**
@@ -49,34 +49,32 @@ export type SkipToken = typeof skipToken
  */
 export const skipToken = /* @__PURE__ */ Symbol.for('RTKQ/skipToken')
 
-declare module './module' {
-  export interface ApiEndpointQuery<
-    Definition extends QueryDefinition<any, any, any, any, any>,
-    Definitions extends EndpointDefinitions,
-  > {
-    select: QueryResultSelectorFactory<
-      Definition,
-      _RootState<
-        Definitions,
-        TagTypesFrom<Definition>,
-        ReducerPathFrom<Definition>
-      >
+export type BuildSelectorsApiEndpointQuery<
+  Definition extends QueryDefinition<any, any, any, any, any>,
+  Definitions extends EndpointDefinitions,
+> = {
+  select: QueryResultSelectorFactory<
+    Definition,
+    _RootState<
+      Definitions,
+      TagTypesFrom<Definition>,
+      ReducerPathFrom<Definition>
     >
-  }
+  >
+}
 
-  export interface ApiEndpointMutation<
-    Definition extends MutationDefinition<any, any, any, any, any>,
-    Definitions extends EndpointDefinitions,
-  > {
-    select: MutationResultSelectorFactory<
-      Definition,
-      _RootState<
-        Definitions,
-        TagTypesFrom<Definition>,
-        ReducerPathFrom<Definition>
-      >
+export type BuildSelectorsApiEndpointMutation<
+  Definition extends MutationDefinition<any, any, any, any, any>,
+  Definitions extends EndpointDefinitions,
+> = {
+  select: MutationResultSelectorFactory<
+    Definition,
+    _RootState<
+      Definitions,
+      TagTypesFrom<Definition>,
+      ReducerPathFrom<Definition>
     >
-  }
+  >
 }
 
 type QueryResultSelectorFactory<
