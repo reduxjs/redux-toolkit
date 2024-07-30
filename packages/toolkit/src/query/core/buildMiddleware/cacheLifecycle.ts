@@ -2,6 +2,7 @@ import type { ThunkDispatch, UnknownAction } from '@reduxjs/toolkit'
 import type { BaseQueryFn, BaseQueryMeta } from '../../baseQueryTypes'
 import type { BaseEndpointDefinition } from '../../endpointDefinitions'
 import { DefinitionType } from '../../endpointDefinitions'
+import type { Id } from '../../tsHelpers'
 import type { RootState } from '../apiState'
 import type {
   MutationResultSelectorResult,
@@ -29,10 +30,12 @@ export type QueryBaseLifecycleApi<
    * Gets the current value of this cache entry.
    */
   getCacheEntry(): QueryResultSelectorResult<
-    { type: DefinitionType.query } & BaseEndpointDefinition<
-      QueryArg,
-      BaseQuery,
-      ResultType
+    Id<
+      { type: DefinitionType.query } & BaseEndpointDefinition<
+        QueryArg,
+        BaseQuery,
+        ResultType
+      >
     >
   >
   /**
@@ -52,10 +55,12 @@ export type MutationBaseLifecycleApi<
    * Gets the current value of this cache entry.
    */
   getCacheEntry(): MutationResultSelectorResult<
-    { type: DefinitionType.mutation } & BaseEndpointDefinition<
-      QueryArg,
-      BaseQuery,
-      ResultType
+    Id<
+      { type: DefinitionType.mutation } & BaseEndpointDefinition<
+        QueryArg,
+        BaseQuery,
+        ResultType
+      >
     >
   >
 }

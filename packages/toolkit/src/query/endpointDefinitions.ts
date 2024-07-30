@@ -267,259 +267,258 @@ type QueryTypes<
   ReducerPath: ReducerPath
 }
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export interface QueryExtraOptions<
+export type QueryExtraOptions<
   TagTypes extends string,
   ResultType,
   QueryArg,
   BaseQuery extends BaseQueryFn,
   ReducerPath extends string = string,
-> extends CacheLifecycleQueryExtraOptions<
-      ResultType,
-      QueryArg,
-      BaseQuery,
-      ReducerPath
-    >,
-    QueryLifecycleQueryExtraOptions<
-      ResultType,
-      QueryArg,
-      BaseQuery,
-      ReducerPath
-    >,
-    CacheCollectionQueryExtraOptions {
-  type: DefinitionType.query
-
-  /**
-   * Used by `query` endpoints. Determines which 'tag' is attached to the cached data returned by the query.
-   * Expects an array of tag type strings, an array of objects of tag types with ids, or a function that returns such an array.
-   * 1.  `['Post']` - equivalent to `2`
-   * 2.  `[{ type: 'Post' }]` - equivalent to `1`
-   * 3.  `[{ type: 'Post', id: 1 }]`
-   * 4.  `(result, error, arg) => ['Post']` - equivalent to `5`
-   * 5.  `(result, error, arg) => [{ type: 'Post' }]` - equivalent to `4`
-   * 6.  `(result, error, arg) => [{ type: 'Post', id: 1 }]`
-   *
-   * @example
-   *
-   * ```ts
-   * // codeblock-meta title="providesTags example"
-   *
-   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-   * interface Post {
-   *   id: number
-   *   name: string
-   * }
-   * type PostsResponse = Post[]
-   *
-   * const api = createApi({
-   *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
-   *   tagTypes: ['Posts'],
-   *   endpoints: (build) => ({
-   *     getPosts: build.query<PostsResponse, void>({
-   *       query: () => 'posts',
-   *       // highlight-start
-   *       providesTags: (result) =>
-   *         result
-   *           ? [
-   *               ...result.map(({ id }) => ({ type: 'Posts' as const, id })),
-   *               { type: 'Posts', id: 'LIST' },
-   *             ]
-   *           : [{ type: 'Posts', id: 'LIST' }],
-   *       // highlight-end
-   *     })
-   *   })
-   * })
-   * ```
-   */
-  providesTags?: ResultDescription<
-    TagTypes,
+> = CacheLifecycleQueryExtraOptions<
+  ResultType,
+  QueryArg,
+  BaseQuery,
+  ReducerPath
+> &
+  QueryLifecycleQueryExtraOptions<
     ResultType,
     QueryArg,
-    BaseQueryError<BaseQuery>,
-    BaseQueryMeta<BaseQuery>
-  >
-  /**
-   * Not to be used. A query should not invalidate tags in the cache.
-   */
-  invalidatesTags?: never
+    BaseQuery,
+    ReducerPath
+  > &
+  CacheCollectionQueryExtraOptions & {
+    type: DefinitionType.query
 
-  /**
-   * Can be provided to return a custom cache key value based on the query arguments.
-   *
-   * This is primarily intended for cases where a non-serializable value is passed as part of the query arg object and should be excluded from the cache key.  It may also be used for cases where an endpoint should only have a single cache entry, such as an infinite loading / pagination implementation.
-   *
-   * Unlike the `createApi` version which can _only_ return a string, this per-endpoint option can also return an an object, number, or boolean.  If it returns a string, that value will be used as the cache key directly.  If it returns an object / number / boolean, that value will be passed to the built-in `defaultSerializeQueryArgs`.  This simplifies the use case of stripping out args you don't want included in the cache key.
-   *
-   *
-   * @example
-   *
-   * ```ts
-   * // codeblock-meta title="serializeQueryArgs : exclude value"
-   *
-   * import { createApi, fetchBaseQuery, defaultSerializeQueryArgs } from '@reduxjs/toolkit/query/react'
-   * interface Post {
-   *   id: number
-   *   name: string
-   * }
-   *
-   * interface MyApiClient {
-   *   fetchPost: (id: string) => Promise<Post>
-   * }
-   *
-   * createApi({
-   *  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
-   *  endpoints: (build) => ({
-   *    // Example: an endpoint with an API client passed in as an argument,
-   *    // but only the item ID should be used as the cache key
-   *    getPost: build.query<Post, { id: string; client: MyApiClient }>({
-   *      queryFn: async ({ id, client }) => {
-   *        const post = await client.fetchPost(id)
-   *        return { data: post }
-   *      },
-   *      // highlight-start
-   *      serializeQueryArgs: ({ queryArgs, endpointDefinition, endpointName }) => {
-   *        const { id } = queryArgs
-   *        // This can return a string, an object, a number, or a boolean.
-   *        // If it returns an object, number or boolean, that value
-   *        // will be serialized automatically via `defaultSerializeQueryArgs`
-   *        return { id } // omit `client` from the cache key
-   *
-   *        // Alternately, you can use `defaultSerializeQueryArgs` yourself:
-   *        // return defaultSerializeQueryArgs({
-   *        //   endpointName,
-   *        //   queryArgs: { id },
-   *        //   endpointDefinition
-   *        // })
-   *        // Or  create and return a string yourself:
-   *        // return `getPost(${id})`
-   *      },
-   *      // highlight-end
-   *    }),
-   *  }),
-   *})
-   * ```
-   */
-  serializeQueryArgs?: SerializeQueryArgs<
-    QueryArg,
-    string | number | boolean | Record<any, any>
-  >
+    /**
+     * Used by `query` endpoints. Determines which 'tag' is attached to the cached data returned by the query.
+     * Expects an array of tag type strings, an array of objects of tag types with ids, or a function that returns such an array.
+     * 1.  `['Post']` - equivalent to `2`
+     * 2.  `[{ type: 'Post' }]` - equivalent to `1`
+     * 3.  `[{ type: 'Post', id: 1 }]`
+     * 4.  `(result, error, arg) => ['Post']` - equivalent to `5`
+     * 5.  `(result, error, arg) => [{ type: 'Post' }]` - equivalent to `4`
+     * 6.  `(result, error, arg) => [{ type: 'Post', id: 1 }]`
+     *
+     * @example
+     *
+     * ```ts
+     * // codeblock-meta title="providesTags example"
+     *
+     * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+     * interface Post {
+     *   id: number
+     *   name: string
+     * }
+     * type PostsResponse = Post[]
+     *
+     * const api = createApi({
+     *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+     *   tagTypes: ['Posts'],
+     *   endpoints: (build) => ({
+     *     getPosts: build.query<PostsResponse, void>({
+     *       query: () => 'posts',
+     *       // highlight-start
+     *       providesTags: (result) =>
+     *         result
+     *           ? [
+     *               ...result.map(({ id }) => ({ type: 'Posts' as const, id })),
+     *               { type: 'Posts', id: 'LIST' },
+     *             ]
+     *           : [{ type: 'Posts', id: 'LIST' }],
+     *       // highlight-end
+     *     })
+     *   })
+     * })
+     * ```
+     */
+    providesTags?: ResultDescription<
+      TagTypes,
+      ResultType,
+      QueryArg,
+      BaseQueryError<BaseQuery>,
+      BaseQueryMeta<BaseQuery>
+    >
+    /**
+     * Not to be used. A query should not invalidate tags in the cache.
+     */
+    invalidatesTags?: never
 
-  /**
-   * Can be provided to merge an incoming response value into the current cache data.
-   * If supplied, no automatic structural sharing will be applied - it's up to
-   * you to update the cache appropriately.
-   *
-   * Since RTKQ normally replaces cache entries with the new response, you will usually
-   * need to use this with the `serializeQueryArgs` or `forceRefetch` options to keep
-   * an existing cache entry so that it can be updated.
-   *
-   * Since this is wrapped with Immer, you may either mutate the `currentCacheValue` directly,
-   * or return a new value, but _not_ both at once.
-   *
-   * Will only be called if the existing `currentCacheData` is _not_ `undefined` - on first response,
-   * the cache entry will just save the response data directly.
-   *
-   * Useful if you don't want a new request to completely override the current cache value,
-   * maybe because you have manually updated it from another source and don't want those
-   * updates to get lost.
-   *
-   *
-   * @example
-   *
-   * ```ts
-   * // codeblock-meta title="merge: pagination"
-   *
-   * import { createApi, fetchBaseQuery, defaultSerializeQueryArgs } from '@reduxjs/toolkit/query/react'
-   * interface Post {
-   *   id: number
-   *   name: string
-   * }
-   *
-   * createApi({
-   *  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
-   *  endpoints: (build) => ({
-   *    listItems: build.query<string[], number>({
-   *      query: (pageNumber) => `/listItems?page=${pageNumber}`,
-   *     // Only have one cache entry because the arg always maps to one string
-   *     serializeQueryArgs: ({ endpointName }) => {
-   *       return endpointName
-   *      },
-   *      // Always merge incoming data to the cache entry
-   *      merge: (currentCache, newItems) => {
-   *        currentCache.push(...newItems)
-   *      },
-   *      // Refetch when the page arg changes
-   *      forceRefetch({ currentArg, previousArg }) {
-   *        return currentArg !== previousArg
-   *      },
-   *    }),
-   *  }),
-   *})
-   * ```
-   */
-  merge?(
-    currentCacheData: ResultType,
-    responseData: ResultType,
-    otherArgs: {
-      arg: QueryArg
-      baseQueryMeta: BaseQueryMeta<BaseQuery>
-      requestId: string
-      fulfilledTimeStamp: number
-    },
-  ): ResultType | void
+    /**
+     * Can be provided to return a custom cache key value based on the query arguments.
+     *
+     * This is primarily intended for cases where a non-serializable value is passed as part of the query arg object and should be excluded from the cache key.  It may also be used for cases where an endpoint should only have a single cache entry, such as an infinite loading / pagination implementation.
+     *
+     * Unlike the `createApi` version which can _only_ return a string, this per-endpoint option can also return an an object, number, or boolean.  If it returns a string, that value will be used as the cache key directly.  If it returns an object / number / boolean, that value will be passed to the built-in `defaultSerializeQueryArgs`.  This simplifies the use case of stripping out args you don't want included in the cache key.
+     *
+     *
+     * @example
+     *
+     * ```ts
+     * // codeblock-meta title="serializeQueryArgs : exclude value"
+     *
+     * import { createApi, fetchBaseQuery, defaultSerializeQueryArgs } from '@reduxjs/toolkit/query/react'
+     * interface Post {
+     *   id: number
+     *   name: string
+     * }
+     *
+     * interface MyApiClient {
+     *   fetchPost: (id: string) => Promise<Post>
+     * }
+     *
+     * createApi({
+     *  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+     *  endpoints: (build) => ({
+     *    // Example: an endpoint with an API client passed in as an argument,
+     *    // but only the item ID should be used as the cache key
+     *    getPost: build.query<Post, { id: string; client: MyApiClient }>({
+     *      queryFn: async ({ id, client }) => {
+     *        const post = await client.fetchPost(id)
+     *        return { data: post }
+     *      },
+     *      // highlight-start
+     *      serializeQueryArgs: ({ queryArgs, endpointDefinition, endpointName }) => {
+     *        const { id } = queryArgs
+     *        // This can return a string, an object, a number, or a boolean.
+     *        // If it returns an object, number or boolean, that value
+     *        // will be serialized automatically via `defaultSerializeQueryArgs`
+     *        return { id } // omit `client` from the cache key
+     *
+     *        // Alternately, you can use `defaultSerializeQueryArgs` yourself:
+     *        // return defaultSerializeQueryArgs({
+     *        //   endpointName,
+     *        //   queryArgs: { id },
+     *        //   endpointDefinition
+     *        // })
+     *        // Or  create and return a string yourself:
+     *        // return `getPost(${id})`
+     *      },
+     *      // highlight-end
+     *    }),
+     *  }),
+     *})
+     * ```
+     */
+    serializeQueryArgs?: SerializeQueryArgs<
+      QueryArg,
+      string | number | boolean | Record<any, any>
+    >
 
-  /**
-   * Check to see if the endpoint should force a refetch in cases where it normally wouldn't.
-   * This is primarily useful for "infinite scroll" / pagination use cases where
-   * RTKQ is keeping a single cache entry that is added to over time, in combination
-   * with `serializeQueryArgs` returning a fixed cache key and a `merge` callback
-   * set to add incoming data to the cache entry each time.
-   *
-   * @example
-   *
-   * ```ts
-   * // codeblock-meta title="forceRefresh: pagination"
-   *
-   * import { createApi, fetchBaseQuery, defaultSerializeQueryArgs } from '@reduxjs/toolkit/query/react'
-   * interface Post {
-   *   id: number
-   *   name: string
-   * }
-   *
-   * createApi({
-   *  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
-   *  endpoints: (build) => ({
-   *    listItems: build.query<string[], number>({
-   *      query: (pageNumber) => `/listItems?page=${pageNumber}`,
-   *     // Only have one cache entry because the arg always maps to one string
-   *     serializeQueryArgs: ({ endpointName }) => {
-   *       return endpointName
-   *      },
-   *      // Always merge incoming data to the cache entry
-   *      merge: (currentCache, newItems) => {
-   *        currentCache.push(...newItems)
-   *      },
-   *      // Refetch when the page arg changes
-   *      forceRefetch({ currentArg, previousArg }) {
-   *        return currentArg !== previousArg
-   *      },
-   *    }),
-   *  }),
-   *})
-   * ```
-   */
-  forceRefetch?(params: {
-    currentArg: QueryArg | undefined
-    previousArg: QueryArg | undefined
-    state: RootState<any, any, string>
-    endpointState?: QuerySubState<any>
-  }): boolean
+    /**
+     * Can be provided to merge an incoming response value into the current cache data.
+     * If supplied, no automatic structural sharing will be applied - it's up to
+     * you to update the cache appropriately.
+     *
+     * Since RTKQ normally replaces cache entries with the new response, you will usually
+     * need to use this with the `serializeQueryArgs` or `forceRefetch` options to keep
+     * an existing cache entry so that it can be updated.
+     *
+     * Since this is wrapped with Immer, you may either mutate the `currentCacheValue` directly,
+     * or return a new value, but _not_ both at once.
+     *
+     * Will only be called if the existing `currentCacheData` is _not_ `undefined` - on first response,
+     * the cache entry will just save the response data directly.
+     *
+     * Useful if you don't want a new request to completely override the current cache value,
+     * maybe because you have manually updated it from another source and don't want those
+     * updates to get lost.
+     *
+     *
+     * @example
+     *
+     * ```ts
+     * // codeblock-meta title="merge: pagination"
+     *
+     * import { createApi, fetchBaseQuery, defaultSerializeQueryArgs } from '@reduxjs/toolkit/query/react'
+     * interface Post {
+     *   id: number
+     *   name: string
+     * }
+     *
+     * createApi({
+     *  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+     *  endpoints: (build) => ({
+     *    listItems: build.query<string[], number>({
+     *      query: (pageNumber) => `/listItems?page=${pageNumber}`,
+     *     // Only have one cache entry because the arg always maps to one string
+     *     serializeQueryArgs: ({ endpointName }) => {
+     *       return endpointName
+     *      },
+     *      // Always merge incoming data to the cache entry
+     *      merge: (currentCache, newItems) => {
+     *        currentCache.push(...newItems)
+     *      },
+     *      // Refetch when the page arg changes
+     *      forceRefetch({ currentArg, previousArg }) {
+     *        return currentArg !== previousArg
+     *      },
+     *    }),
+     *  }),
+     *})
+     * ```
+     */
+    merge?(
+      currentCacheData: ResultType,
+      responseData: ResultType,
+      otherArgs: {
+        arg: QueryArg
+        baseQueryMeta: BaseQueryMeta<BaseQuery>
+        requestId: string
+        fulfilledTimeStamp: number
+      },
+    ): ResultType | void
 
-  /**
-   * All of these are `undefined` at runtime, purely to be used in TypeScript declarations!
-   */
-  Types?: QueryTypes<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>
-}
+    /**
+     * Check to see if the endpoint should force a refetch in cases where it normally wouldn't.
+     * This is primarily useful for "infinite scroll" / pagination use cases where
+     * RTKQ is keeping a single cache entry that is added to over time, in combination
+     * with `serializeQueryArgs` returning a fixed cache key and a `merge` callback
+     * set to add incoming data to the cache entry each time.
+     *
+     * @example
+     *
+     * ```ts
+     * // codeblock-meta title="forceRefresh: pagination"
+     *
+     * import { createApi, fetchBaseQuery, defaultSerializeQueryArgs } from '@reduxjs/toolkit/query/react'
+     * interface Post {
+     *   id: number
+     *   name: string
+     * }
+     *
+     * createApi({
+     *  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+     *  endpoints: (build) => ({
+     *    listItems: build.query<string[], number>({
+     *      query: (pageNumber) => `/listItems?page=${pageNumber}`,
+     *     // Only have one cache entry because the arg always maps to one string
+     *     serializeQueryArgs: ({ endpointName }) => {
+     *       return endpointName
+     *      },
+     *      // Always merge incoming data to the cache entry
+     *      merge: (currentCache, newItems) => {
+     *        currentCache.push(...newItems)
+     *      },
+     *      // Refetch when the page arg changes
+     *      forceRefetch({ currentArg, previousArg }) {
+     *        return currentArg !== previousArg
+     *      },
+     *    }),
+     *  }),
+     *})
+     * ```
+     */
+    forceRefetch?(params: {
+      currentArg: QueryArg | undefined
+      previousArg: QueryArg | undefined
+      state: RootState<any, any, string>
+      endpointState?: QuerySubState<any>
+    }): boolean
+
+    /**
+     * All of these are `undefined` at runtime, purely to be used in TypeScript declarations!
+     */
+    Types?: QueryTypes<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>
+  }
 
 export type QueryDefinition<
   QueryArg,
@@ -555,89 +554,94 @@ type MutationTypes<
   ReducerPath: ReducerPath
 }
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export interface MutationExtraOptions<
+export type MutationExtraOptions<
   TagTypes extends string,
   ResultType,
   QueryArg,
   BaseQuery extends BaseQueryFn,
   ReducerPath extends string = string,
-> extends CacheLifecycleMutationExtraOptions<
-      ResultType,
-      QueryArg,
-      BaseQuery,
-      ReducerPath
-    >,
-    QueryLifecycleMutationExtraOptions<
-      ResultType,
-      QueryArg,
-      BaseQuery,
-      ReducerPath
-    > {
-  type: DefinitionType.mutation
-
-  /**
-   * Used by `mutation` endpoints. Determines which cached data should be either re-fetched or removed from the cache.
-   * Expects the same shapes as `providesTags`.
-   *
-   * @example
-   *
-   * ```ts
-   * // codeblock-meta title="invalidatesTags example"
-   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-   * interface Post {
-   *   id: number
-   *   name: string
-   * }
-   * type PostsResponse = Post[]
-   *
-   * const api = createApi({
-   *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
-   *   tagTypes: ['Posts'],
-   *   endpoints: (build) => ({
-   *     getPosts: build.query<PostsResponse, void>({
-   *       query: () => 'posts',
-   *       providesTags: (result) =>
-   *         result
-   *           ? [
-   *               ...result.map(({ id }) => ({ type: 'Posts' as const, id })),
-   *               { type: 'Posts', id: 'LIST' },
-   *             ]
-   *           : [{ type: 'Posts', id: 'LIST' }],
-   *     }),
-   *     addPost: build.mutation<Post, Partial<Post>>({
-   *       query(body) {
-   *         return {
-   *           url: `posts`,
-   *           method: 'POST',
-   *           body,
-   *         }
-   *       },
-   *       // highlight-start
-   *       invalidatesTags: [{ type: 'Posts', id: 'LIST' }],
-   *       // highlight-end
-   *     }),
-   *   })
-   * })
-   * ```
-   */
-  invalidatesTags?: ResultDescription<
-    TagTypes,
+> = CacheLifecycleMutationExtraOptions<
+  ResultType,
+  QueryArg,
+  BaseQuery,
+  ReducerPath
+> &
+  QueryLifecycleMutationExtraOptions<
     ResultType,
     QueryArg,
-    BaseQueryError<BaseQuery>,
-    BaseQueryMeta<BaseQuery>
-  >
-  /**
-   * Not to be used. A mutation should not provide tags to the cache.
-   */
-  providesTags?: never
+    BaseQuery,
+    ReducerPath
+  > & {
+    type: DefinitionType.mutation
 
-  /**
-   * All of these are `undefined` at runtime, purely to be used in TypeScript declarations!
-   */
-  Types?: MutationTypes<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>
-}
+    /**
+     * Used by `mutation` endpoints. Determines which cached data should be either re-fetched or removed from the cache.
+     * Expects the same shapes as `providesTags`.
+     *
+     * @example
+     *
+     * ```ts
+     * // codeblock-meta title="invalidatesTags example"
+     * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+     * interface Post {
+     *   id: number
+     *   name: string
+     * }
+     * type PostsResponse = Post[]
+     *
+     * const api = createApi({
+     *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+     *   tagTypes: ['Posts'],
+     *   endpoints: (build) => ({
+     *     getPosts: build.query<PostsResponse, void>({
+     *       query: () => 'posts',
+     *       providesTags: (result) =>
+     *         result
+     *           ? [
+     *               ...result.map(({ id }) => ({ type: 'Posts' as const, id })),
+     *               { type: 'Posts', id: 'LIST' },
+     *             ]
+     *           : [{ type: 'Posts', id: 'LIST' }],
+     *     }),
+     *     addPost: build.mutation<Post, Partial<Post>>({
+     *       query(body) {
+     *         return {
+     *           url: `posts`,
+     *           method: 'POST',
+     *           body,
+     *         }
+     *       },
+     *       // highlight-start
+     *       invalidatesTags: [{ type: 'Posts', id: 'LIST' }],
+     *       // highlight-end
+     *     }),
+     *   })
+     * })
+     * ```
+     */
+    invalidatesTags?: ResultDescription<
+      TagTypes,
+      ResultType,
+      QueryArg,
+      BaseQueryError<BaseQuery>,
+      BaseQueryMeta<BaseQuery>
+    >
+    /**
+     * Not to be used. A mutation should not provide tags to the cache.
+     */
+    providesTags?: never
+
+    /**
+     * All of these are `undefined` at runtime, purely to be used in TypeScript declarations!
+     */
+    Types?: MutationTypes<
+      QueryArg,
+      BaseQuery,
+      TagTypes,
+      ResultType,
+      ReducerPath
+    >
+  }
 
 export type MutationDefinition<
   QueryArg,
