@@ -64,6 +64,7 @@ type AppThunk<ThunkReturnType = void> = ThunkAction<
   unknown,
   Action
 >
+type ExtraArgument = { foo: string }
 
 describe('listenerMiddleware.withTypes<RootState, AppDispatch>()', () => {
   const listenerMiddleware = createListenerMiddleware()
@@ -77,11 +78,12 @@ describe('listenerMiddleware.withTypes<RootState, AppDispatch>()', () => {
   test('startListening.withTypes', () => {
     const startAppListening = listenerMiddleware.startListening.withTypes<
       RootState,
-      AppDispatch
+      AppDispatch,
+      ExtraArgument
     >()
 
     expectTypeOf(startAppListening).toEqualTypeOf<
-      TypedStartListening<RootState, AppDispatch>
+      TypedStartListening<RootState, AppDispatch, ExtraArgument>
     >()
 
     startAppListening({
@@ -102,6 +104,8 @@ describe('listenerMiddleware.withTypes<RootState, AppDispatch>()', () => {
 
         expectTypeOf(stateCurrent).toEqualTypeOf<RootState>()
 
+        expectTypeOf(listenerApi.extra).toEqualTypeOf<ExtraArgument>()
+
         timeout = 1
         takeResult = await listenerApi.take(increment.match, timeout)
 
@@ -111,10 +115,10 @@ describe('listenerMiddleware.withTypes<RootState, AppDispatch>()', () => {
   })
 
   test('addListener.withTypes', () => {
-    const addAppListener = addListener.withTypes<RootState, AppDispatch>()
+    const addAppListener = addListener.withTypes<RootState, AppDispatch, ExtraArgument>()
 
     expectTypeOf(addAppListener).toEqualTypeOf<
-      TypedAddListener<RootState, AppDispatch>
+      TypedAddListener<RootState, AppDispatch, ExtraArgument>
     >()
 
     store.dispatch(
@@ -126,27 +130,30 @@ describe('listenerMiddleware.withTypes<RootState, AppDispatch>()', () => {
           expectTypeOf(state).toEqualTypeOf<RootState>()
 
           expectTypeOf(listenerApi.dispatch).toEqualTypeOf<AppDispatch>()
+
+          expectTypeOf(listenerApi.extra).toEqualTypeOf<ExtraArgument>()
         },
       }),
     )
   })
 
   test('removeListener.withTypes', () => {
-    const removeAppListener = removeListener.withTypes<RootState, AppDispatch>()
+    const removeAppListener = removeListener.withTypes<RootState, AppDispatch, ExtraArgument>()
 
     expectTypeOf(removeAppListener).toEqualTypeOf<
-      TypedRemoveListener<RootState, AppDispatch>
+      TypedRemoveListener<RootState, AppDispatch, ExtraArgument>
     >()
   })
 
   test('stopListening.withTypes', () => {
     const stopAppListening = listenerMiddleware.stopListening.withTypes<
       RootState,
-      AppDispatch
+      AppDispatch,
+      ExtraArgument
     >()
 
     expectTypeOf(stopAppListening).toEqualTypeOf<
-      TypedStopListening<RootState, AppDispatch>
+      TypedStopListening<RootState, AppDispatch, ExtraArgument>
     >()
   })
 })

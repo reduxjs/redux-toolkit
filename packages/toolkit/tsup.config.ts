@@ -180,13 +180,14 @@ export default defineConfig((options) => {
 
         if (env) {
           Object.assign(defineValues, {
-            'process.env.NODE_ENV': JSON.stringify(env),
+            NODE_ENV: env,
           })
         }
 
         const generateTypedefs = name === 'modern' && format === 'esm'
 
         return {
+          name: `${prefix}-${name}`,
           entry: {
             [outputFilename]: entryPoint,
           },
@@ -199,15 +200,8 @@ export default defineConfig((options) => {
           sourcemap: true,
           external: externals,
           esbuildPlugins: [mangleErrorsTransform],
-          esbuildOptions(options) {
-            // Needed to prevent auto-replacing of process.env.NODE_ENV in all builds
-            options.platform = 'neutral'
-            // Needed to return to normal lookup behavior when platform: 'neutral'
-            options.mainFields = ['browser', 'module', 'main']
-            options.conditions = ['browser']
-          },
 
-          define: defineValues,
+          env: defineValues,
           async onSuccess() {
             if (format === 'cjs' && name === 'production.min') {
               writeCommonJSEntry(outputFolder, prefix)
@@ -243,12 +237,63 @@ export default defineConfig((options) => {
               // fs.copyFileSync(inputTypedefsPath, outputTypedefsPath)
             }
           },
-        }
+        } satisfies TsupOptions
       })
 
-      return artifactOptions
+      return artifactOptions satisfies TsupOptions[]
     })
     .flat()
+    .concat([
+      {
+        name: 'Redux-Toolkit-Type-Definitions',
+        format: ['cjs'],
+        tsconfig,
+        entry: { index: './src/index.ts' },
+        external: [/uncheckedindexed/],
+        dts: {
+          only: true,
+        },
+      },
+      {
+        name: 'RTK-React-Type-Definitions',
+        format: ['cjs'],
+        tsconfig,
+        entry: { 'react/index': './src/react/index.ts' },
+        external: ['@reduxjs/toolkit', /uncheckedindexed/],
+        dts: {
+          only: true,
+        },
+      },
+      {
+        name: 'RTK-Query-Type-Definitions',
+        format: ['cjs'],
+        tsconfig,
+        entry: { 'query/index': './src/query/index.ts' },
+        external: [
+          '@reduxjs/toolkit',
+          '@reduxjs/toolkit/react',
+          /uncheckedindexed/,
+        ],
+        dts: {
+          only: true,
+        },
+      },
+      {
+        name: 'RTK-Query-React-Type-Definitions',
+        format: ['cjs'],
+        tsconfig,
+        entry: { 'query/react/index': './src/query/react/index.ts' },
+        external: [
+          '@reduxjs/toolkit',
+          '@reduxjs/toolkit/react',
+          '@reduxjs/toolkit/query',
+          /uncheckedindexed/,
+        ],
+        dts: {
+          only: true,
+        },
+      },
+    ])
 
   return configs
 })

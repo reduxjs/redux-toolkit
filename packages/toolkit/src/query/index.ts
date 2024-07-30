@@ -11,7 +11,7 @@ export type {
   SubscriptionOptions,
 } from './core/apiState'
 export { QueryStatus } from './core/apiState'
-export type { Api, ApiContext, ApiModules, Module } from './apiTypes'
+export type { Api, ApiContext, Module } from './apiTypes'
 
 export type {
   BaseQueryApi,
@@ -19,6 +19,7 @@ export type {
   BaseQueryFn,
 } from './baseQueryTypes'
 export type {
+  BaseEndpointDefinition,
   EndpointDefinitions,
   EndpointDefinition,
   EndpointBuilder,
@@ -31,6 +32,7 @@ export type {
   DefinitionsFromApi,
   OverrideResultType,
   TagTypesFromApi,
+  UpdateDefinitions,
 } from './endpointDefinitions'
 export { fetchBaseQuery } from './fetchBaseQuery'
 export type {
@@ -40,6 +42,7 @@ export type {
   FetchArgs,
 } from './fetchBaseQuery'
 export { retry } from './retry'
+export type { RetryOptions } from './retry'
 export { setupListeners } from './core/setupListeners'
 export { skipToken } from './core/buildSelectors'
 export type {
@@ -50,15 +53,17 @@ export type {
 export type {
   QueryActionCreatorResult,
   MutationActionCreatorResult,
+  StartQueryActionCreatorOptions,
 } from './core/buildInitiate'
 export type { CreateApi, CreateApiOptions } from './createApi'
 export { buildCreateApi } from './createApi'
-export { fakeBaseQuery } from './fakeBaseQuery'
+export { _NEVER, fakeBaseQuery } from './fakeBaseQuery'
 export { copyWithStructuralSharing } from './utils/copyWithStructuralSharing'
 export { createApi, coreModule, coreModuleName } from './core'
 export type {
   ApiEndpointMutation,
   ApiEndpointQuery,
+  ApiModules,
   CoreModule,
   PrefetchOptions,
 } from './core/module'
