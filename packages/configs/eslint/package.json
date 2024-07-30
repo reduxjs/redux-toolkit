@@ -70,7 +70,7 @@
     "@eslint/js": "^9.7.0",
     "eslint-config-prettier": "^9.1.0",
     "globals": "^15.8.0",
-    "typescript-eslint": "^7.17.0"
+    "typescript-eslint": "^7.18.0"
   },
   "sideEffects": false
 }
