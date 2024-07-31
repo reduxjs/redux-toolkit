@@ -94,6 +94,7 @@ export const reduxESLintConfig: TSESLint.FlatConfig.Config[] = config(
       },
     },
     rules: {
+      'prefer-const': [2],
       'no-undef': [0],
       '@typescript-eslint/consistent-type-imports': [
         2,
