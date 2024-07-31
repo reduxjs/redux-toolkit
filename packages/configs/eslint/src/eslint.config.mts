@@ -74,12 +74,13 @@ export const vitestGlobals: VitestGlobals = {
 export const reduxESLintConfig: TSESLint.FlatConfig.Config[] = config(
   // `ignores` must be first.
   // config with just `ignores` is the replacement for `.eslintignore`
-  { ignores: ['**/dist/', '.*/'] },
-  js.configs.recommended,
+  { name: 'ignores', ignores: ['**/dist/'] },
+  { name: 'javascript', ...js.configs.recommended },
   ...configs.recommended,
   ...configs.stylistic,
-  prettierConfig,
+  { name: 'prettier-config', ...prettierConfig },
   {
+    name: 'main',
     languageOptions: {
       globals: {
         ...vitestGlobals,
@@ -131,7 +132,7 @@ export const reduxESLintConfig: TSESLint.FlatConfig.Config[] = config(
     linterOptions: { reportUnusedDisableDirectives: 2 },
   },
   {
-    files: ['**/*.cjs'],
+    name: 'commonjs',
     languageOptions: { sourceType: 'commonjs' },
     rules: {
       '@typescript-eslint/no-var-requires': [0],
