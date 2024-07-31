@@ -96,7 +96,7 @@
     "build-only": "yarn clean && yarn run-build",
     "format": "prettier --write . '!dist' --cache --cache-strategy content",
     "format:check": "run -T format:check",
-    "lint": "eslint . --config eslint.config.mjs --cache --cache-strategy content",
+    "lint": "run -T lint:check",
     "lint:fix": "eslint --fix . --config eslint.config.mjs",
     "test": "vitest --typecheck --run ",
     "test:watch": "vitest --watch",

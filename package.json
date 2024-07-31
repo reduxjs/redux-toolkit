@@ -54,7 +54,7 @@
   "scripts": {
     "format": "prettier --write . --config prettier.config.mjs --cache --cache-strategy content",
     "format:check": "cd $INIT_CWD && run prettier --check . --config prettier.config.mjs --ignore-path ${PROJECT_CWD}/.gitignore",
-    "lint": "eslint . --config eslint.config.mjs --cache --cache-strategy content",
+    "lint:check": "cd $INIT_CWD && run eslint . --config eslint.config.mjs --cache --cache-strategy content",
     "lint:fix": "eslint --fix . --config eslint.config.mjs",
     "build": "yarn build:packages",
     "test": "yarn test:packages",
