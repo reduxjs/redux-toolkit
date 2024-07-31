@@ -1,5 +1,6 @@
 import type { Middleware } from 'redux'
 import type { IgnorePaths } from './serializableStateInvariantMiddleware'
+import type { AnyObject } from './tsHelpers'
 import { getTimeMeasureUtils } from './utils'
 
 type EntryProcessor = (key: string, value: any) => any
@@ -190,8 +191,16 @@ export function createImmutableStateInvariantMiddleware(
       return function (this: any, key: string, value: any) {
         if (stack.length > 0) {
           const thisPos = stack.indexOf(this)
-          ~thisPos ? stack.splice(thisPos + 1) : stack.push(this)
-          ~thisPos ? keys.splice(thisPos, Infinity, key) : keys.push(key)
+          if (~thisPos) {
+            stack.splice(thisPos + 1)
+          } else {
+            stack.push(this)
+          }
+          if (~thisPos) {
+            keys.splice(thisPos, Infinity, key)
+          } else {
+            keys.push(key)
+          }
           if (~stack.indexOf(value)) value = decycler!.call(this, key, value)
         } else stack.push(value)
 
