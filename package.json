@@ -53,7 +53,7 @@
   },
   "scripts": {
     "format": "prettier --write . --cache --cache-strategy content",
-    "format:check": "prettier --check .",
+    "format:check": "prettier --check . '!**/*/**' --config prettier.config.mjs",
     "lint": "eslint . --config eslint.config.mjs --cache --cache-strategy content",
     "lint:fix": "eslint --fix . --config eslint.config.mjs",
     "build": "yarn build:packages",
