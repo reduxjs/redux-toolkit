@@ -11,6 +11,7 @@ yalc.sig
 .idea/
 .vscode/
 temp/
+tmp/
 .tmp-projections
 coverage/
 
