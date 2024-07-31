@@ -138,6 +138,11 @@ export const reduxESLintConfig: TSESLint.FlatConfig.Config[] = config(
       '@typescript-eslint/no-require-imports': [0],
     },
   },
+  {
+    name: 'typescript-declaration-files',
+    files: ['**/*.d.?(c|m)ts'],
+    rules: { '@typescript-eslint/no-empty-object-type': [0] },
+  },
 )
 
 /**
