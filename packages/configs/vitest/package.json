@@ -57,7 +57,7 @@
     "rimraf": "^6.0.1",
     "tslib": "^2.6.3",
     "typescript": "^5.5.4",
-    "vitest": "^2.0.4"
+    "vitest": "^2.0.5"
   },
   "dependencies": {
     "vite-tsconfig-paths": "^4.3.2"
