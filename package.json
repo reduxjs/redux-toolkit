@@ -52,6 +52,10 @@
     "jest-snapshot": "29.3.1"
   },
   "scripts": {
+    "format": "prettier --write . --cache --cache-strategy content",
+    "format:check": "prettier --check .",
+    "lint": "eslint . --config eslint.config.mjs --cache --cache-strategy content",
+    "lint:fix": "eslint --fix . --config eslint.config.mjs",
     "build": "yarn build:packages",
     "test": "yarn test:packages",
     "install": "yarn build:configs",
