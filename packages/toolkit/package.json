@@ -94,7 +94,7 @@
     "run-build": "tsup",
     "build": "yarn clean && yarn run-build && tsx scripts/fixUniqueSymbolExports.mts",
     "build-only": "yarn clean && yarn run-build",
-    "format": "prettier --write . '!dist' --cache --cache-strategy content",
+    "format": "run -T format:fix",
     "format:check": "run -T format:check",
     "lint": "run -T lint:check",
     "lint:fix": "eslint --fix . --config eslint.config.mjs",

@@ -52,7 +52,7 @@
     "jest-snapshot": "29.3.1"
   },
   "scripts": {
-    "format": "prettier --write . --config prettier.config.mjs --cache --cache-strategy content",
+    "format:fix": "cd $INIT_CWD && run prettier --write . --config prettier.config.mjs --ignore-path ${PROJECT_CWD}/.gitignore --cache --cache-strategy content",
     "format:check": "cd $INIT_CWD && run prettier --check . --config prettier.config.mjs --ignore-path ${PROJECT_CWD}/.gitignore",
     "lint:check": "cd $INIT_CWD && run eslint . --config eslint.config.mjs --cache --cache-strategy content",
     "lint:fix": "eslint --fix . --config eslint.config.mjs",
