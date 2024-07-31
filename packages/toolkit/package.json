@@ -97,7 +97,7 @@
     "format": "prettier --write . '!dist' --cache --cache-strategy content",
     "format:check": "prettier --check . '!dist'",
     "lint": "eslint . --config eslint.config.mjs --cache --cache-strategy content",
-    "lint:fix": "eslint --fix .",
+    "lint:fix": "eslint --fix . --config eslint.config.mjs",
     "test": "vitest --typecheck --run ",
     "test:watch": "vitest --watch",
     "type-tests": "yarn tsc -p tsconfig.test.json --noEmit",
