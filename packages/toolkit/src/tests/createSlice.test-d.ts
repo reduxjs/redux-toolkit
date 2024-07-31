@@ -902,13 +902,7 @@ describe('type tests', () => {
     >()
 
     expectTypeOf(slice.actions.testInferVoid).toEqualTypeOf<
-      AsyncThunk<
-        void,
-        void,
-        {
-          /* empty */
-        }
-      >
+      AsyncThunk<void, void, EmptyObject>
     >()
 
     expectTypeOf(slice.actions.testInferVoid).toBeCallableWith()
