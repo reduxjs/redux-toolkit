@@ -90,6 +90,10 @@ export const reduxESLintConfig: TSESLint.FlatConfig.Config[] = config(
       },
       parser,
       parserOptions: {
+        projectService: {
+          allowDefaultProject: ['./*.?(m|c)[tj]s?(x)'],
+          defaultProject: './tsconfig.json',
+        },
         project: ['./tsconfig.json'],
         ecmaVersion: 'latest',
       },
@@ -110,7 +114,10 @@ export const reduxESLintConfig: TSESLint.FlatConfig.Config[] = config(
         { allowSingleExtends: true },
       ],
       '@typescript-eslint/no-unsafe-argument': [0],
-      '@typescript-eslint/ban-types': [2],
+      '@typescript-eslint/no-restricted-types': [2],
+      '@typescript-eslint/no-empty-object-type': [2],
+      '@typescript-eslint/no-unsafe-function-type': [2],
+      '@typescript-eslint/no-wrapper-object-types': [2],
       '@typescript-eslint/no-namespace': [
         2,
         { allowDeclarations: true, allowDefinitionFiles: true },
