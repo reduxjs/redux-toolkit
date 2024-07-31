@@ -52,10 +52,10 @@
     "jest-snapshot": "29.3.1"
   },
   "scripts": {
-    "format:fix": "cd $INIT_CWD && run prettier --write . --config prettier.config.mjs --ignore-path ${PROJECT_CWD}/.gitignore --cache --cache-strategy content",
-    "format:check": "cd $INIT_CWD && run prettier --check . --config prettier.config.mjs --ignore-path ${PROJECT_CWD}/.gitignore",
-    "lint:check": "cd $INIT_CWD && run eslint . --config eslint.config.mjs --cache --cache-strategy content",
-    "lint:fix": "cd $INIT_CWD && run eslint --fix . --config eslint.config.mjs",
+    "global:format:fix": "cd $INIT_CWD && run -T prettier --write . --ignore-path ${PROJECT_CWD}/.gitignore --ignore-path .gitignore --ignore-path .prettierignore --cache --cache-strategy content",
+    "global:format:check": "cd $INIT_CWD && run -T prettier --check . --ignore-path ${PROJECT_CWD}/.gitignore --ignore-path .gitignore --ignore-path .prettierignore",
+    "global:lint:check": "cd $INIT_CWD && run -T eslint . --cache --cache-strategy content",
+    "global:lint:fix": "cd $INIT_CWD && run -T eslint --fix . --config eslint.config.mjs",
     "build": "yarn build:packages",
     "test": "yarn test:packages",
     "install": "yarn build:configs",
