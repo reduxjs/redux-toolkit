@@ -25,3 +25,5 @@ typesversions
 
 tsconfig.vitest-temp.json
 .eslintcache
+
+**/*/**
