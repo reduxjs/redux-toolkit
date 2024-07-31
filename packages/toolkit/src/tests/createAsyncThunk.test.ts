@@ -994,8 +994,7 @@ describe('meta', () => {
       /* empty */
     } else {
       // could be caused by a `throw`, `abort()` or `condition` - no `rejectedMeta` in that case
-      // @ts-expect-error
-      ret.meta.extraProp
+      expect(ret.meta).not.toHaveProperty('extraProp')
     }
   })
 
