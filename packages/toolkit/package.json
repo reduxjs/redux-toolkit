@@ -97,7 +97,7 @@
     "format": "run -T format:fix",
     "format:check": "run -T format:check",
     "lint": "run -T lint:check",
-    "lint:fix": "eslint --fix . --config eslint.config.mjs",
+    "lint:fix": "run -T lint:fix",
     "test": "vitest --typecheck --run ",
     "test:watch": "vitest --watch",
     "type-tests": "yarn tsc -p tsconfig.test.json --noEmit",
