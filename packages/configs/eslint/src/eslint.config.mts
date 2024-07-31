@@ -133,6 +133,7 @@ export const reduxESLintConfig: TSESLint.FlatConfig.Config[] = config(
   },
   {
     name: 'commonjs',
+    files: ['**/*.c[jt]s'],
     languageOptions: { sourceType: 'commonjs' },
     rules: {
       '@typescript-eslint/no-var-requires': [0],
