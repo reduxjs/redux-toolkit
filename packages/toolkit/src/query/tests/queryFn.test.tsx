@@ -190,9 +190,7 @@ describe('queryFn base implementation tests', () => {
 
     const thunk = endpoint.initiate(endpointName)
 
-    const result = (await store.dispatch(thunk)) satisfies
-      | undefined
-      | QuerySubState<any>
+    const result: undefined | QuerySubState<any> = await store.dispatch(thunk)
 
     if (endpointName.includes('Throw')) {
       expect(consoleErrorSpy).toHaveBeenCalledOnce()
@@ -246,10 +244,10 @@ describe('queryFn base implementation tests', () => {
 
     const thunk = endpoint.initiate(endpointName)
 
-    const result = (await store.dispatch(thunk)) satisfies
+    const result:
       | undefined
       | { data: string }
-      | { error: string | SerializedError }
+      | { error: string | SerializedError } = await store.dispatch(thunk)
 
     if (endpointName.includes('Throw')) {
       expect(consoleErrorSpy).toHaveBeenCalledOnce()
@@ -293,7 +291,7 @@ describe('queryFn base implementation tests', () => {
     {
       const thunk = withNeither.initiate('withNeither')
 
-      const result = (await store.dispatch(thunk)) satisfies QuerySubState<any>
+      const result: QuerySubState<any> = await store.dispatch(thunk)
 
       expect(consoleErrorSpy).toHaveBeenCalledOnce()
 
@@ -313,10 +311,10 @@ describe('queryFn base implementation tests', () => {
     {
       const thunk = mutationWithNeither.initiate('mutationWithNeither')
 
-      const result = (await store.dispatch(thunk)) satisfies
+      const result:
         | undefined
         | { data: string }
-        | { error: string | SerializedError }
+        | { error: string | SerializedError } = await store.dispatch(thunk)
 
       expect(consoleErrorSpy).toHaveBeenCalledOnce()
 
@@ -324,6 +322,10 @@ describe('queryFn base implementation tests', () => {
         `An unhandled error occurred processing a request for the endpoint "mutationWithNeither".\nIn the case of an unhandled error, no tags will be "provided" or "invalidated".`,
         TypeError('endpointDefinition.queryFn is not a function'),
       )
+
+      if (!('error' in result)) {
+        expect.fail()
+      }
 
       expect(result.error).toEqual(
         expect.objectContaining({
@@ -419,9 +421,9 @@ describe('usage scenario tests', () => {
   it('can wrap a service like Firebase and handle errors', async () => {
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(noop)
 
-    const result = (await storeRef.store.dispatch(
+    const result: QuerySubState<any> = await storeRef.store.dispatch(
       api.endpoints.getMissingFirebaseUser.initiate(1),
-    )) satisfies QuerySubState<any>
+    )
 
     expect(consoleErrorSpy).toHaveBeenCalledOnce()
 
