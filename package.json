@@ -53,9 +53,6 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.5.4"
   },
-  "resolutions": {
-    "jest-snapshot": "29.3.1"
-  },
   "scripts": {
     "build": "yarn build:packages",
     "test": "yarn test:packages",
