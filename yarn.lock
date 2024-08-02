@@ -4760,8 +4760,8 @@ __metadata:
   dependencies:
     "@reduxjs/toolkit": "workspace:^"
     "@types/node": "npm:^20.14.11"
-    "@types/react": "npm:^18.3.3"
-    "@types/react-dom": "npm:^18.3.0"
+    "@types/react": "npm:types-react@rc"
+    "@types/react-dom": "npm:types-react-dom@rc"
     react: "npm:19.0.0-rc.0"
     react-dom: "npm:19.0.0-rc.0"
     react-redux: "npm:^9.1.2"
@@ -4777,8 +4777,8 @@ __metadata:
   dependencies:
     "@reduxjs/toolkit": "workspace:^"
     "@types/node": "npm:^20.14.11"
-    "@types/react": "npm:^18.3.3"
-    "@types/react-dom": "npm:^18.3.0"
+    "@types/react": "npm:types-react@rc"
+    "@types/react-dom": "npm:types-react-dom@rc"
     react: "npm:19.0.0-rc.0"
     react-dom: "npm:19.0.0-rc.0"
     react-redux: "npm:^9.1.2"
@@ -4794,8 +4794,8 @@ __metadata:
   dependencies:
     "@reduxjs/toolkit": "workspace:^"
     "@types/node": "npm:^20.14.11"
-    "@types/react": "npm:^18.3.3"
-    "@types/react-dom": "npm:^18.3.0"
+    "@types/react": "npm:types-react@rc"
+    "@types/react-dom": "npm:types-react-dom@rc"
     react: "npm:19.0.0-rc.0"
     react-dom: "npm:19.0.0-rc.0"
     react-redux: "npm:^9.1.2"
@@ -7948,7 +7948,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:^18.0.0, @types/react-dom@npm:^18.3.0":
+"@types/react-dom@npm:^18.0.0":
   version: 18.3.0
   resolution: "@types/react-dom@npm:18.3.0"
   dependencies:
@@ -7958,11 +7958,11 @@ __metadata:
   linkType: hard
 
 "@types/react-dom@npm:types-react-dom@rc":
-  version: 19.0.0-rc.0
-  resolution: "types-react-dom@npm:19.0.0-rc.0"
+  version: 19.0.0-rc.1
+  resolution: "types-react-dom@npm:19.0.0-rc.1"
   dependencies:
     "@types/react": "npm:*"
-  checksum: 10/edcf0d1f1d9c1186f627a08cccf3f9c60cd3ad3f678a420572184ce09d99ee0dc7db31dc76e00069cfcd60aeb48f49bf4ccad9334eace4895ecc3c180d3e30a6
+  checksum: 10/fca4e7565308a109d4b126e5c7f5c387789a0187c9a46cb2a5af6120a7014beaa05736841be0ae658c7115871088500ddb0ef0bce60a21af4ec899cee8bb3c75
   languageName: node
   linkType: hard
 
@@ -7998,7 +7998,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:*, @types/react@npm:^18.3.3":
+"@types/react@npm:*":
   version: 18.3.3
   resolution: "@types/react@npm:18.3.3"
   dependencies:
@@ -8009,11 +8009,11 @@ __metadata:
   linkType: hard
 
 "@types/react@npm:types-react@rc":
-  version: 19.0.0-rc.0
-  resolution: "types-react@npm:19.0.0-rc.0"
+  version: 19.0.0-rc.1
+  resolution: "types-react@npm:19.0.0-rc.1"
   dependencies:
     csstype: "npm:^3.0.2"
-  checksum: 10/e7d9357f8e0b7b48fea99a5254976c97ded9aa21527ebb7649a1035d0ca47d2b520bee9b5ee90b1d0133f5e848e9f1d6e8a3e48b51a431476163dbd60f4e5929
+  checksum: 10/342da9ffeab93600a0cff4c8829e5350d935577e3f81bce7ead41d7cd074035e2c4a4bdd976fa8e3f5390fe6a32169370a805291a88a77c2f2ce2613bde54587
   languageName: node
   linkType: hard
 
