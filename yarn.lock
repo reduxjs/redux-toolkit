@@ -6690,7 +6690,6 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^6"
     "@typescript-eslint/parser": "npm:^6"
     axios: "npm:^0.19.2"
-    console-testing-library: "patch:console-testing-library@npm%3A0.6.1#~/.yarn/patches/console-testing-library-npm-0.6.1-4d9957d402.patch"
     esbuild: "npm:^0.23.0"
     esbuild-extra: "npm:^0.4.0"
     eslint: "npm:^7.25.0"
@@ -11843,28 +11842,6 @@ __metadata:
   version: 1.1.0
   resolution: "console-control-strings@npm:1.1.0"
   checksum: 10/27b5fa302bc8e9ae9e98c03c66d76ca289ad0c61ce2fe20ab288d288bee875d217512d2edb2363fc83165e88f1c405180cf3f5413a46e51b4fe1a004840c6cdb
-  languageName: node
-  linkType: hard
-
-"console-testing-library@npm:0.6.1":
-  version: 0.6.1
-  resolution: "console-testing-library@npm:0.6.1"
-  dependencies:
-    jest-snapshot: "npm:^26.0.0"
-    pretty-format: "npm:^26.0.0"
-    strip-ansi: "npm:^6.0.0"
-  checksum: 10/3af3dc42fbc00673cd05bcda6c0deffe60f2339d511abebc839447490567728de8c5cfeaaa3eb98125e96d30e1920442d21476eddaac38837cfde397086cf8cc
-  languageName: node
-  linkType: hard
-
-"console-testing-library@patch:console-testing-library@npm%3A0.6.1#~/.yarn/patches/console-testing-library-npm-0.6.1-4d9957d402.patch":
-  version: 0.6.1
-  resolution: "console-testing-library@patch:console-testing-library@npm%3A0.6.1#~/.yarn/patches/console-testing-library-npm-0.6.1-4d9957d402.patch::version=0.6.1&hash=95f56b"
-  dependencies:
-    jest-snapshot: "npm:^26.0.0"
-    pretty-format: "npm:^26.0.0"
-    strip-ansi: "npm:^6.0.0"
-  checksum: 10/2947f9733979954c144c687260e58cc58f31a5cd911ebadb00e06e9fc0a280d636171f9675f72cc60d7cf5f03323a1f79fadf9965617579e031b326d3565000f
   languageName: node
   linkType: hard
 
