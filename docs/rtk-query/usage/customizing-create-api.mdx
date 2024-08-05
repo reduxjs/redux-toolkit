@@ -76,9 +76,9 @@ If you want to create your own module, you should review [the react-hooks module
 Here is a very stripped down version:
 
 ```ts no-transpile
-import { CoreModule } from '@internal/core/module'
 import {
   BaseQueryFn,
+  CoreModule,
   EndpointDefinitions,
   Api,
   Module,
@@ -89,7 +89,7 @@ import {
 export const customModuleName = Symbol()
 export type CustomModule = typeof customModuleName
 
-declare module '../apiTypes' {
+declare module '@reduxjs/toolkit/query' {
   export interface ApiModules<
     BaseQuery extends BaseQueryFn,
     Definitions extends EndpointDefinitions,
