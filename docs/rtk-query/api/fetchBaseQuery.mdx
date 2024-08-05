@@ -297,6 +297,17 @@ export const customApi = createApi({
 If you make a `json` request to an API that only returns a `200` with an undefined body, `fetchBaseQuery` will pass that through as `undefined` and will not try to parse it as `json`. This can be common with some APIs, especially on `delete` requests.
 :::
 
+#### Default response handler
+
+The default response handler is `"json"`, which is equivalent to the following function:
+
+```ts title="Default responseHandler"
+const defaultResponseHandler = async (res) => {
+  const text = await res.text();
+  return text.length ? JSON.parse(text) : null;
+}
+```
+
 ### Handling non-standard Response status codes
 
 By default, `fetchBaseQuery` will `reject` any `Response` that does not have a status code of `2xx` and set it to `error`. This is the same behavior you've most likely experienced with `axios` and other popular libraries. In the event that you have a non-standard API you're dealing with, you can use the `validateStatus` option to customize this behavior.
