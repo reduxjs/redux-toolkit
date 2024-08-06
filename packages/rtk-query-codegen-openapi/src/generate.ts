@@ -1,4 +1,4 @@
-import { camelCase } from 'lodash';
+import camelCase from 'lodash.camelcase';
 import path from 'node:path';
 import ApiGenerator, {
   getOperationName as _getOperationName,
@@ -298,7 +298,10 @@ export async function generateApi(
       const schema = apiGen.getSchemaFromContent(body.content);
       const type = apiGen.getTypeFromSchema(schema);
       const schemaName = camelCase(
-        (type as any).name || getReferenceName(schema) || ('title' in schema && schema.title) || 'body'
+        (type as any).name ||
+          getReferenceName(schema) ||
+          (typeof schema === 'object' && 'title' in schema && schema.title) ||
+          'body'
       );
       const name = generateName(schemaName in queryArg ? 'body' : schemaName, 'body');
 
