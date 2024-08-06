@@ -45,11 +45,9 @@ afterEach(() => {
 
 describe('refetchOnFocus tests', () => {
   test('useQuery hook respects refetchOnFocus: true when set in createApi options', async () => {
-    let data, isLoading, isFetching
-
     function User() {
-      ;({ data, isFetching, isLoading } =
-        defaultApi.endpoints.getIncrementedAmount.useQuery())
+      const { data, isFetching, isLoading } =
+        defaultApi.endpoints.getIncrementedAmount.useQuery()
       return (
         <div>
           <div data-testid="isLoading">{String(isLoading)}</div>
@@ -71,11 +69,7 @@ describe('refetchOnFocus tests', () => {
       expect(screen.getByTestId('amount').textContent).toBe('1'),
     )
 
-    await act(async () => {
-      fireEvent.focus(window)
-    })
-
-    await delay(150)
+    fireEvent.focus(window)
 
     await waitFor(() =>
       expect(screen.getByTestId('amount').textContent).toBe('2'),
@@ -83,13 +77,11 @@ describe('refetchOnFocus tests', () => {
   })
 
   test('useQuery hook respects refetchOnFocus: false from a hook and overrides createApi defaults', async () => {
-    let data, isLoading, isFetching
-
     function User() {
-      ;({ data, isFetching, isLoading } =
+      const { data, isFetching, isLoading } =
         defaultApi.endpoints.getIncrementedAmount.useQuery(undefined, {
           refetchOnFocus: false,
-        }))
+        })
       return (
         <div>
           <div data-testid="isLoading">{String(isLoading)}</div>
@@ -111,11 +103,7 @@ describe('refetchOnFocus tests', () => {
       expect(screen.getByTestId('amount').textContent).toBe('1'),
     )
 
-    act(() => {
-      fireEvent.focus(window)
-    })
-
-    await delay(150)
+    fireEvent.focus(window)
 
     await waitFor(() =>
       expect(screen.getByTestId('amount').textContent).toBe('1'),
@@ -123,13 +111,11 @@ describe('refetchOnFocus tests', () => {
   })
 
   test('useQuery hook prefers refetchOnFocus: true when multiple components have different configurations', async () => {
-    let data, isLoading, isFetching
-
     function User() {
-      ;({ data, isFetching, isLoading } =
+      const { data, isFetching, isLoading } =
         defaultApi.endpoints.getIncrementedAmount.useQuery(undefined, {
           refetchOnFocus: false,
-        }))
+        })
       return (
         <div>
           <div data-testid="isLoading">{String(isLoading)}</div>
@@ -140,10 +126,9 @@ describe('refetchOnFocus tests', () => {
     }
 
     function UserWithRefetchTrue() {
-      ;({ data, isFetching, isLoading } =
-        defaultApi.endpoints.getIncrementedAmount.useQuery(undefined, {
-          refetchOnFocus: true,
-        }))
+      defaultApi.endpoints.getIncrementedAmount.useQuery(undefined, {
+        refetchOnFocus: true,
+      })
       return <div />
     }
 
@@ -165,9 +150,8 @@ describe('refetchOnFocus tests', () => {
       expect(screen.getByTestId('amount').textContent).toBe('1'),
     )
 
-    act(() => {
-      fireEvent.focus(window)
-    })
+    fireEvent.focus(window)
+
     expect(screen.getByTestId('isLoading').textContent).toBe('false')
     await waitFor(() =>
       expect(screen.getByTestId('isFetching').textContent).toBe('true'),
@@ -181,13 +165,11 @@ describe('refetchOnFocus tests', () => {
   })
 
   test('useQuery hook cleans data if refetch without active subscribers', async () => {
-    let data, isLoading, isFetching
-
     function User() {
-      ;({ data, isFetching, isLoading } =
+      const { data, isFetching, isLoading } =
         defaultApi.endpoints.getIncrementedAmount.useQuery(undefined, {
           refetchOnFocus: true,
-        }))
+        })
       return (
         <div>
           <div data-testid="isLoading">{String(isLoading)}</div>
@@ -213,9 +195,7 @@ describe('refetchOnFocus tests', () => {
 
     expect(getIncrementedAmountState()).not.toBeUndefined()
 
-    await act(async () => {
-      fireEvent.focus(window)
-    })
+    fireEvent.focus(window)
 
     await delay(1)
     expect(getIncrementedAmountState()).toBeUndefined()
