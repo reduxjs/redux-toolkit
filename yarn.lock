@@ -6638,7 +6638,7 @@ __metadata:
     tsup: "npm:^8.2.4"
     typescript: "npm:^5.4.5"
     vite-tsconfig-paths: "npm:^4.3.2"
-    vitest: "npm:^2.0.4"
+    vitest: "npm:^2.0.5"
     yalc: "npm:^1.0.0-pre.47"
   bin:
     rtk-query-codegen-openapi: lib/bin/cli.mjs
@@ -27145,7 +27145,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vitest@npm:^2.0.4":
+"vitest@npm:^2.0.5":
   version: 2.0.5
   resolution: "vitest@npm:2.0.5"
   dependencies:
