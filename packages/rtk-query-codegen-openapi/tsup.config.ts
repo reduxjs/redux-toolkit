@@ -12,6 +12,7 @@ export default defineConfig((options): Options[] => {
     target: ['esnext'],
     outDir: 'lib',
     splitting: false,
+    removeNodeProtocol: false,
     shims: true,
     ...options,
   };
