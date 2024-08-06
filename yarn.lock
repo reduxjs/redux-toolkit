@@ -8115,7 +8115,7 @@ __metadata:
     semver: "npm:^7.3.5"
     swagger2openapi: "npm:^7.0.4"
     ts-node: "npm:^10.9.2"
-    tsup: "npm:^8.2.3"
+    tsup: "npm:^8.2.4"
     typescript: "npm:^5.4.5"
     vite-tsconfig-paths: "npm:^4.3.2"
     vitest: "npm:^2.0.4"
@@ -29124,9 +29124,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tsup@npm:^8.2.3":
-  version: 8.2.3
-  resolution: "tsup@npm:8.2.3"
+"tsup@npm:^8.2.4":
+  version: 8.2.4
+  resolution: "tsup@npm:8.2.4"
   dependencies:
     bundle-require: "npm:^5.0.0"
     cac: "npm:^6.7.14"
@@ -29161,7 +29161,7 @@ __metadata:
   bin:
     tsup: dist/cli-default.js
     tsup-node: dist/cli-node.js
-  checksum: 10/2523611f5879fe408e8cb6d1fbae18d9e7617d2ef47258f6be8c11323c6d5d6aad296f6004d3fa6dc94e5f5b4c70b3eae677ac3d5ce0e9e1e4925715ee8b69b9
+  checksum: 10/89613c3490797f7e107c55f961e2681d455b45a3acfe567dd3825d7ccd14b91f3cf8462f389b6e5ed7e9dd96266adc60830256d52f1bd5d443a1db504c9a7912
   languageName: node
   linkType: hard
 
