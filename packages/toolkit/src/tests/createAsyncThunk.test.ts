@@ -5,6 +5,7 @@ import {
   createReducer,
   unwrapResult,
   miniSerializeError,
+  createAsyncThunkCreator,
 } from '@reduxjs/toolkit'
 import { vi } from 'vitest'
 
@@ -989,5 +990,87 @@ describe('meta', () => {
     expect(thunk.rejected).toEqual(expectFunction)
     expect(thunk.settled).toEqual(expectFunction)
     expect(thunk.fulfilled.type).toBe('a/fulfilled')
+  })
+})
+describe('createAsyncThunkCreator', () => {
+  test('custom default serializeError only', async () => {
+    function serializeError() {
+      return 'serialized!'
+    }
+    const errorObject = 'something else!'
+
+    const store = configureStore({
+      reducer: (state = [], action) => [...state, action],
+    })
+
+    const createAsyncThunk = createAsyncThunkCreator<{
+      serializedErrorType: string
+    }>({
+      serializeError,
+    })
+
+    const asyncThunk = createAsyncThunk<
+      unknown,
+      void,
+      { serializedErrorType: string }
+    >('test', () => Promise.reject(errorObject), { serializeError })
+    const rejected = await store.dispatch(asyncThunk())
+    if (!asyncThunk.rejected.match(rejected)) {
+      throw new Error()
+    }
+
+    const expectation = {
+      type: 'test/rejected',
+      payload: undefined,
+      error: 'serialized!',
+      meta: expect.any(Object),
+    }
+    expect(rejected).toEqual(expectation)
+    expect(store.getState()[2]).toEqual(expectation)
+    expect(rejected.error).not.toEqual(miniSerializeError(errorObject))
+  })
+
+  test('custom default serializeError with thunk-level override', async () => {
+    function defaultSerializeError() {
+      return 'serialized by default serializer!'
+    }
+    function thunkSerializeError() {
+      return 'serialized by thunk serializer!'
+    }
+    const errorObject = 'something else!'
+
+    const store = configureStore({
+      reducer: (state = [], action) => [...state, action],
+    })
+
+    const createAsyncThunk = createAsyncThunkCreator<{
+      serializedErrorType: string
+    }>({
+      serializeError: defaultSerializeError,
+    })
+
+    const thunk = createAsyncThunk<
+      unknown,
+      void,
+      { serializedErrorType: string }
+    >('test', () => Promise.reject(errorObject), {
+      serializeError: thunkSerializeError,
+    })
+    const rejected = await store.dispatch(thunk())
+    if (!thunk.rejected.match(rejected)) {
+      throw new Error()
+    }
+
+    const thunkLevelExpectation = {
+      type: 'test/rejected',
+      payload: undefined,
+      error: 'serialized by thunk serializer!',
+      meta: expect.any(Object),
+    }
+
+    expect(rejected).toEqual(thunkLevelExpectation)
+    expect(store.getState()[2]).toEqual(thunkLevelExpectation)
+    expect(rejected.error).not.toEqual(miniSerializeError(errorObject))
+    expect(rejected.error).not.toEqual('serialized by default serializer!')
   })
 })

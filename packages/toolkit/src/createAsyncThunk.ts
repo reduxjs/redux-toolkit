@@ -93,7 +93,7 @@ class FulfillWithMeta<Payload, FulfilledMeta> {
  */
 export const miniSerializeError = (value: any): SerializedError => {
   if (typeof value === 'object' && value !== null) {
-    const simpleError: SerializedError = {}
+    const simpleError = {} as Record<string, string>
     for (const property of commonProperties) {
       if (typeof value[property] === 'string') {
         simpleError[property] = value[property]
@@ -487,11 +487,21 @@ type CreateAsyncThunk<CurriedThunkApiConfig extends AsyncThunkConfig> = {
   >
 }
 
-export const createAsyncThunk = /* @__PURE__ */ (() => {
+type InternalCreateAsyncThunkCreatorOptions<
+  ThunkApiConfig extends AsyncThunkConfig,
+> = {
+  serializeError?: ErrorSerializer<ThunkApiConfig>
+}
+
+function internalCreateAsyncThunkCreator<
+  CreatorThunkApiConfig extends AsyncThunkConfig = {},
+>(
+  creatorOptions?: InternalCreateAsyncThunkCreatorOptions<CreatorThunkApiConfig>,
+): CreateAsyncThunk<CreatorThunkApiConfig> {
   function createAsyncThunk<
     Returned,
     ThunkArg,
-    ThunkApiConfig extends AsyncThunkConfig,
+    ThunkApiConfig extends CreatorThunkApiConfig,
   >(
     typePrefix: string,
     payloadCreator: AsyncThunkPayloadCreator<
@@ -542,6 +552,18 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
         }),
       )
 
+    function getError(x: unknown): GetSerializedErrorType<ThunkApiConfig> {
+      if (options && options.serializeError) {
+        return options.serializeError(x)
+      }
+
+      if (creatorOptions && creatorOptions.serializeError) {
+        return creatorOptions.serializeError(x, miniSerializeError)
+      }
+
+      return miniSerializeError(x) as GetSerializedErrorType<ThunkApiConfig>
+    }
+
     const rejected: AsyncThunkRejectedActionCreator<ThunkArg, ThunkApiConfig> =
       createAction(
         typePrefix + '/rejected',
@@ -553,9 +575,7 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
           meta?: RejectedMeta,
         ) => ({
           payload,
-          error: ((options && options.serializeError) || miniSerializeError)(
-            error || 'Rejected',
-          ) as GetSerializedErrorType<ThunkApiConfig>,
+          error: getError(error || 'Rejected'),
           meta: {
             ...((meta as any) || {}),
             arg,
@@ -588,7 +608,10 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
         const promise = (async function () {
           let finalAction: ReturnType<typeof fulfilled | typeof rejected>
           try {
-            let conditionResult = options?.condition?.(arg, { getState, extra })
+            let conditionResult = options?.condition?.(arg, {
+              getState,
+              extra,
+            })
             if (isThenable(conditionResult)) {
               conditionResult = await conditionResult
             }
@@ -702,9 +725,14 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
       },
     )
   }
+
   createAsyncThunk.withTypes = () => createAsyncThunk
 
   return createAsyncThunk as CreateAsyncThunk<AsyncThunkConfig>
+}
+
+export const createAsyncThunk = /* @__PURE__ */ (() => {
+  return internalCreateAsyncThunkCreator() as CreateAsyncThunk<AsyncThunkConfig>
 })()
 
 interface UnwrappableAction {
@@ -744,3 +772,31 @@ function isThenable(value: any): value is PromiseLike<any> {
     typeof value.then === 'function'
   )
 }
+
+/**
+ * An error serializer function that can be used to serialize errors into plain objects.
+ *
+ * @param error - The error to serialize
+ * @param defaultSerializer - The original default serializer `miniSerializeError` https://redux-toolkit.js.org/api/other-exports/#miniserializeerror
+ *
+ * @public
+ */
+type ErrorSerializer<ThunkApiConfig extends AsyncThunkConfig> = (
+  error: any,
+  defaultSerializer: (error: any) => SerializedError,
+) => GetSerializedErrorType<ThunkApiConfig>
+
+/**
+ * @public
+ */
+type CreateAsyncThunkCreatorOptions<ThunkApiConfig extends AsyncThunkConfig> = {
+  serializeError?: ErrorSerializer<ThunkApiConfig>
+}
+
+export const createAsyncThunkCreator = /* @__PURE__ */ (() => {
+  return <ThunkApiConfig extends AsyncThunkConfig = {}>(
+    options: CreateAsyncThunkCreatorOptions<ThunkApiConfig>,
+  ): CreateAsyncThunk<ThunkApiConfig> => {
+    return internalCreateAsyncThunkCreator(options)
+  }
+})()
