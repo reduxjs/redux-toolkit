@@ -41,7 +41,7 @@ export type ListenerPredicate<ActionType extends Action, State> = (
 ) => action is ActionType
 
 /** @public */
-export interface ConditionFunction<State> {
+export type ConditionFunction<State> = {
   (predicate: AnyListenerPredicate<State>, timeout?: number): Promise<boolean>
   (predicate: AnyListenerPredicate<State>, timeout?: number): Promise<boolean>
   (predicate: () => boolean, timeout?: number): Promise<boolean>
@@ -51,7 +51,7 @@ export interface ConditionFunction<State> {
 export type MatchFunction<T> = (v: any) => v is T
 
 /** @public */
-export interface ForkedTaskAPI {
+export type ForkedTaskAPI = {
   /**
    * Returns a promise that resolves when `waitFor` resolves or
    * rejects if the task or the parent listener has been cancelled or is completed.
@@ -72,14 +72,10 @@ export interface ForkedTaskAPI {
 }
 
 /** @public */
-export interface AsyncTaskExecutor<T> {
-  (forkApi: ForkedTaskAPI): Promise<T>
-}
+export type AsyncTaskExecutor<T> = (forkApi: ForkedTaskAPI) => Promise<T>
 
 /** @public */
-export interface SyncTaskExecutor<T> {
-  (forkApi: ForkedTaskAPI): T
-}
+export type SyncTaskExecutor<T> = (forkApi: ForkedTaskAPI) => T
 
 /** @public */
 export type ForkedTaskExecutor<T> = AsyncTaskExecutor<T> | SyncTaskExecutor<T>
@@ -109,7 +105,7 @@ export type TaskResult<Value> =
   | TaskCancelled
 
 /** @public */
-export interface ForkedTask<T> {
+export type ForkedTask<T> = {
   /**
    * A promise that resolves when the task is either completed or cancelled or rejects
    * if parent listener execution is cancelled or completed.
@@ -132,7 +128,7 @@ export interface ForkedTask<T> {
 }
 
 /** @public */
-export interface ForkOptions {
+export type ForkOptions = {
   /**
    * If true, causes the parent task to not be marked as complete until
    * all autoJoined forks have completed or failed.
@@ -141,11 +137,11 @@ export interface ForkOptions {
 }
 
 /** @public */
-export interface ListenerEffectAPI<
+export type ListenerEffectAPI<
   State,
   DispatchType extends Dispatch,
   ExtraArgument = unknown,
-> extends MiddlewareAPI<DispatchType, State> {
+> = MiddlewareAPI<DispatchType, State> & {
   /**
    * Returns the store state as it existed when the action was originally dispatched, _before_ the reducers ran.
    *
@@ -282,7 +278,7 @@ export type ListenerEffect<
  * @public
  * Additional infos regarding the error raised.
  */
-export interface ListenerErrorInfo {
+export type ListenerErrorInfo = {
   /**
    * Which function has generated the exception.
    */
@@ -295,12 +291,13 @@ export interface ListenerErrorInfo {
  * @param error The thrown error.
  * @param errorInfo Additional information regarding the thrown error.
  */
-export interface ListenerErrorHandler {
-  (error: unknown, errorInfo: ListenerErrorInfo): void
-}
+export type ListenerErrorHandler = (
+  error: unknown,
+  errorInfo: ListenerErrorInfo,
+) => void
 
 /** @public */
-export interface CreateListenerMiddlewareOptions<ExtraArgument = unknown> {
+export type CreateListenerMiddlewareOptions<ExtraArgument = unknown> = {
   extra?: ExtraArgument
   /**
    * Receives synchronous errors that are raised by `listener` and `listenerOption.predicate`.
@@ -318,15 +315,13 @@ export type ListenerMiddleware<
   >,
   ExtraArgument = unknown,
 > = Middleware<
-  {
-    (action: Action<'listenerMiddleware/add'>): UnsubscribeListener
-  },
+  (action: Action<'listenerMiddleware/add'>) => UnsubscribeListener,
   State,
   DispatchType
 >
 
 /** @public */
-export interface ListenerMiddlewareInstance<
+export type ListenerMiddlewareInstance<
   StateType = unknown,
   DispatchType extends ThunkDispatch<
     StateType,
@@ -334,7 +329,7 @@ export interface ListenerMiddlewareInstance<
     Action
   > = ThunkDispatch<StateType, unknown, UnknownAction>,
   ExtraArgument = unknown,
-> {
+> = {
   middleware: ListenerMiddleware<StateType, DispatchType, ExtraArgument>
 
   startListening: AddListenerOverloads<
@@ -377,7 +372,7 @@ export type TakePatternOutputWithTimeout<
     : Promise<[UnknownAction, State, State] | null>
 
 /** @public */
-export interface TakePattern<State> {
+export type TakePattern<State> = {
   <Predicate extends AnyListenerPredicate<State>>(
     predicate: Predicate,
   ): TakePatternOutputWithoutTimeout<State, Predicate>
@@ -392,7 +387,7 @@ export interface TakePattern<State> {
 }
 
 /** @public */
-export interface UnsubscribeListenerOptions {
+export type UnsubscribeListenerOptions = {
   cancelActive?: true
 }
 
@@ -516,11 +511,11 @@ export type RemoveListenerOverloads<
 >
 
 /** @public */
-export interface RemoveListenerAction<
+export type RemoveListenerAction<
   ActionType extends UnknownAction,
   State,
   DispatchType extends Dispatch,
-> {
+> = {
   type: 'listenerMiddleware/remove'
   payload: {
     type: string
@@ -578,9 +573,13 @@ export type TypedAddListener<
         OverrideStateType,
         unknown,
         UnknownAction
-        >,
-        OverrideExtraArgument = unknown,
-    >() => TypedAddListener<OverrideStateType, OverrideDispatchType, OverrideExtraArgument>
+      >,
+      OverrideExtraArgument = unknown,
+    >() => TypedAddListener<
+      OverrideStateType,
+      OverrideDispatchType,
+      OverrideExtraArgument
+    >
   }
 
 /**
@@ -641,7 +640,11 @@ export type TypedRemoveListener<
         UnknownAction
       >,
       OverrideExtraArgument = unknown,
-    >() => TypedRemoveListener<OverrideStateType, OverrideDispatchType, OverrideExtraArgument>
+    >() => TypedRemoveListener<
+      OverrideStateType,
+      OverrideDispatchType,
+      OverrideExtraArgument
+    >
   }
 
 /**
@@ -701,7 +704,11 @@ export type TypedStartListening<
       UnknownAction
     >,
     OverrideExtraArgument = unknown,
-  >() => TypedStartListening<OverrideStateType, OverrideDispatchType, OverrideExtraArgument>
+  >() => TypedStartListening<
+    OverrideStateType,
+    OverrideDispatchType,
+    OverrideExtraArgument
+  >
 }
 
 /**
@@ -756,7 +763,11 @@ export type TypedStopListening<
       UnknownAction
     >,
     OverrideExtraArgument = unknown,
-  >() => TypedStopListening<OverrideStateType, OverrideDispatchType, OverrideExtraArgument>
+  >() => TypedStopListening<
+    OverrideStateType,
+    OverrideDispatchType,
+    OverrideExtraArgument
+  >
 }
 
 /**
@@ -813,7 +824,11 @@ export type TypedCreateListenerEntry<
       UnknownAction
     >,
     OverrideExtraArgument = unknown,
-  >() => TypedStopListening<OverrideStateType, OverrideDispatchType, OverrideExtraArgument>
+  >() => TypedStopListening<
+    OverrideStateType,
+    OverrideDispatchType,
+    OverrideExtraArgument
+  >
 }
 
 /**

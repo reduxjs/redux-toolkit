@@ -8,7 +8,7 @@ import { useState } from 'react'
 let amount = 0
 let nextItemId = 0
 
-interface Item {
+type Item = {
   id: number
 }
 
@@ -194,7 +194,7 @@ describe('type tests', () => {
   })
 
   test('top level named hooks', () => {
-    interface Post {
+    type Post = {
       id: number
       name: string
       fetched_at: string

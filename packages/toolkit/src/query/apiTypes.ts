@@ -46,7 +46,7 @@ export type Module<Name extends ModuleName> = {
   }
 }
 
-export interface ApiContext<Definitions extends EndpointDefinitions> {
+export type ApiContext<Definitions extends EndpointDefinitions> = {
   apiUid: string
   endpointDefinitions: Definitions
   batch(cb: () => void): void

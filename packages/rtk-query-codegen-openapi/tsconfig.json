@@ -1,19 +1,20 @@
 {
+  "extends": "@reduxjs/tsconfig/base",
   "compilerOptions": {
-    "target": "ESNext",
-    "module": "ESNext",
     "declaration": true,
-    "sourceMap": true,
-    "outDir": "lib",
-    "rootDir": "src",
-    "strict": true,
-    "noUnusedLocals": false,
-    "resolveJsonModule": true,
-    "moduleResolution": "bundler",
-    "types": ["vitest/globals", "vitest/importMeta"],
     "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "noUnusedLocals": false,
+    "outDir": "lib",
+    "resolveJsonModule": true,
+    "rootDir": "src",
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "sourceMap": true,
+    "strict": true,
+    "target": "ESNext",
+    "types": ["vitest/globals", "vitest/importMeta"]
   },
   "exclude": ["test", "lib", "vitest.config.mts"]
 }

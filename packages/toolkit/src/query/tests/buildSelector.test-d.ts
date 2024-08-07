@@ -1,17 +1,16 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-
 import { configureStore, createSelector } from '@reduxjs/toolkit'
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 
 describe('type tests', () => {
   test('buildSelector type test', () => {
-    interface Todo {
+    type Todo = {
       userId: number
       id: number
       title: string
       completed: boolean
     }
 
-    type Todos = Array<Todo>
+    type Todos = Todo[]
 
     const exampleApi = createApi({
       reducerPath: 'api',
@@ -55,14 +54,14 @@ describe('type tests', () => {
   })
 
   test('selectCachedArgsForQuery type test', () => {
-    interface Todo {
+    type Todo = {
       userId: number
       id: number
       title: string
       completed: boolean
     }
 
-    type Todos = Array<Todo>
+    type Todos = Todo[]
 
     const exampleApi = createApi({
       reducerPath: 'api',

@@ -1,0 +1,76 @@
+{
+  "name": "@reduxjs/eslint-config",
+  "version": "0.0.1",
+  "description": "ESLint configuration for Redux projects",
+  "source": "./src/eslint.config.mts",
+  "types": "./dist/eslint.config.d.mts",
+  "main": "./dist/eslint.config.mjs",
+  "module": "./dist/eslint.config.mjs",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./dist/eslint.config.d.mts",
+      "import": "./dist/eslint.config.mjs",
+      "default": "./dist/eslint.config.mjs"
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "yarn clean && tsc",
+    "clean": "rimraf dist",
+    "prepack": "yarn build"
+  },
+  "keywords": [
+    "eslint",
+    "config",
+    "eslint-config",
+    "reduxjs",
+    "redux-toolkit",
+    "configuration"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/reduxjs/redux-toolkit.git",
+    "directory": "packages/configs/eslint"
+  },
+  "bugs": {
+    "url": "https://github.com/reduxjs/redux-toolkit/issues"
+  },
+  "peerDependencies": {
+    "eslint": ">= 8.56.0",
+    "prettier": ">= 3",
+    "typescript": ">= 4.7"
+  },
+  "peerDependenciesMeta": {
+    "prettier": {
+      "optional": true
+    },
+    "typescript": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@reduxjs/tsconfig": "workspace:^",
+    "@types/eslint": "^9.6.0",
+    "@types/eslint-config-prettier": "^6.11.3",
+    "@types/eslint__js": "^8.42.3",
+    "eslint": "^9.8.0",
+    "eslint-plugin-prettier": "^5.2.1",
+    "rimraf": "^6.0.1",
+    "tslib": "^2.6.3",
+    "typescript": "^5.5.4"
+  },
+  "dependencies": {
+    "@eslint/js": "^9.8.0",
+    "eslint-config-prettier": "^9.1.0",
+    "globals": "^15.9.0",
+    "typescript-eslint": "^8.0.1"
+  },
+  "sideEffects": false
+}

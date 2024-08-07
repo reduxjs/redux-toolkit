@@ -176,13 +176,13 @@ export type QueryLifecycleMutationExtraOptions<
   ): Promise<void> | void
 }
 
-export interface QueryLifecycleApi<
+export type QueryLifecycleApi<
   QueryArg,
   BaseQuery extends BaseQueryFn,
   ResultType,
   ReducerPath extends string = string,
-> extends QueryBaseLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
-    QueryLifecyclePromises<ResultType, BaseQuery> {}
+> = QueryBaseLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath> &
+  QueryLifecyclePromises<ResultType, BaseQuery>
 
 export type MutationLifecycleApi<
   QueryArg,
@@ -228,7 +228,9 @@ export const buildQueryLifecycleHandler: InternalHandlerBuilder = ({
           })
         // prevent uncaught promise rejections from happening.
         // if the original promise is used in any way, that will create a new promise that will throw again
-        queryFulfilled.catch(() => {})
+        queryFulfilled.catch(() => {
+          /** No-Op */
+        })
         lifecycleMap[requestId] = lifecycle
         const selector = (api.endpoints[endpointName] as any).select(
           endpointDefinition.type === DefinitionType.query

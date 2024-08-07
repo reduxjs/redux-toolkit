@@ -46,10 +46,10 @@ export type InjectConfig = {
 /**
  * A reducer that allows for slices/reducers to be injected after initialisation.
  */
-export interface CombinedSliceReducer<
+export type CombinedSliceReducer<
   InitialState,
   DeclaredState = InitialState,
-> extends Reducer<DeclaredState, UnknownAction, Partial<DeclaredState>> {
+> = Reducer<DeclaredState, UnknownAction, Partial<DeclaredState>> & {
   /**
    * Provide a type for slices that will be injected lazily.
    *
@@ -79,7 +79,7 @@ export interface CombinedSliceReducer<
    * const withCustom = rootReducer.inject({ reducerPath: "customName", reducer: customSlice.reducer })
    * ```
    */
-  withLazyLoadedSlices<Lazy = {}>(): CombinedSliceReducer<
+  withLazyLoadedSlices<Lazy>(): CombinedSliceReducer<
     InitialState,
     Id<DeclaredState & Partial<Lazy>>
   >

@@ -1,6 +1,7 @@
 import { server } from '@internal/query/tests/mocks/server'
 import {
   getSerializedHeaders,
+  noop,
   setupApiStore,
 } from '@internal/tests/utils/helpers'
 import { configureStore, createAction, createReducer } from '@reduxjs/toolkit'
@@ -25,7 +26,7 @@ beforeAll(() => {
 let spy: MockInstance
 
 beforeAll(() => {
-  spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+  spy = vi.spyOn(console, 'error').mockImplementation(noop)
 })
 afterEach(() => {
   spy.mockReset()
@@ -162,7 +163,7 @@ describe('wrong tagTypes log errors', () => {
     ['invalidateWrongTypeWithIdAndCallback', true],
   ])(`endpoint %s should log an error? %s`, async (endpoint, shouldError) => {
     // @ts-ignore
-    store.dispatch(api.endpoints[endpoint].initiate())
+    void store.dispatch(api.endpoints[endpoint].initiate())
     let result: { status: string }
     do {
       await delay(5)
@@ -335,14 +336,14 @@ describe('endpoint definition typings', () => {
       api = getNewApi()
     })
 
-    test('pre-modification behaviour', async () => {
+    test('pre-modification behaviour', () => {
       const storeRef = setupApiStore(api, undefined, {
         withoutTestLifecycles: true,
       })
-      storeRef.store.dispatch(api.endpoints.query1.initiate('in1'))
-      storeRef.store.dispatch(api.endpoints.query2.initiate('in2'))
-      storeRef.store.dispatch(api.endpoints.mutation1.initiate('in1'))
-      storeRef.store.dispatch(api.endpoints.mutation2.initiate('in2'))
+      void storeRef.store.dispatch(api.endpoints.query1.initiate('in1'))
+      void storeRef.store.dispatch(api.endpoints.query2.initiate('in2'))
+      void storeRef.store.dispatch(api.endpoints.mutation1.initiate('in1'))
+      void storeRef.store.dispatch(api.endpoints.mutation2.initiate('in2'))
 
       expect(baseQuery.mock.calls).toEqual([
         [
@@ -404,21 +405,6 @@ describe('endpoint definition typings', () => {
       const storeRef = setupApiStore(api, undefined, {
         withoutTestLifecycles: true,
       })
-      // only type-test this part
-      if (2 > 1) {
-        api.enhanceEndpoints({
-          endpoints: {
-            query1: {
-              // @ts-expect-error
-              providesTags: ['new'],
-            },
-            query2: {
-              // @ts-expect-error
-              providesTags: ['missing'],
-            },
-          },
-        })
-      }
 
       const enhanced = api.enhanceEndpoints({
         addTagTypes: ['new'],
@@ -433,31 +419,15 @@ describe('endpoint definition typings', () => {
         },
       })
 
-      storeRef.store.dispatch(api.endpoints.query1.initiate('in1'))
+      void storeRef.store.dispatch(api.endpoints.query1.initiate('in1'))
       await delay(1)
       expect(spy).not.toHaveBeenCalled()
 
-      storeRef.store.dispatch(api.endpoints.query2.initiate('in2'))
+      void storeRef.store.dispatch(api.endpoints.query2.initiate('in2'))
       await delay(1)
       expect(spy).toHaveBeenCalledWith(
         "Tag type 'missing' was used, but not specified in `tagTypes`!",
       )
-
-      // only type-test this part
-      if (2 > 1) {
-        enhanced.enhanceEndpoints({
-          endpoints: {
-            query1: {
-              // returned `enhanced` api contains "new" enitityType
-              providesTags: ['new'],
-            },
-            query2: {
-              // @ts-expect-error
-              providesTags: ['missing'],
-            },
-          },
-        })
-      }
     })
 
     test('modify', () => {
@@ -491,10 +461,10 @@ describe('endpoint definition typings', () => {
         },
       })
 
-      storeRef.store.dispatch(api.endpoints.query1.initiate('in1'))
-      storeRef.store.dispatch(api.endpoints.query2.initiate('in2'))
-      storeRef.store.dispatch(api.endpoints.mutation1.initiate('in1'))
-      storeRef.store.dispatch(api.endpoints.mutation2.initiate('in2'))
+      void storeRef.store.dispatch(api.endpoints.query1.initiate('in1'))
+      void storeRef.store.dispatch(api.endpoints.query2.initiate('in2'))
+      void storeRef.store.dispatch(api.endpoints.mutation1.initiate('in1'))
+      void storeRef.store.dispatch(api.endpoints.mutation2.initiate('in2'))
 
       expect(baseQuery.mock.calls).toEqual([
         ['modified1', commonBaseQueryApi, undefined],
@@ -514,7 +484,9 @@ describe('endpoint definition typings', () => {
         }),
       })
 
-      type Transformed = { value: string }
+      type Transformed = {
+        value: string
+      }
 
       type Definitions = DefinitionsFromApi<typeof api>
       type TagTypes = TagTypesFromApi<typeof api>
@@ -565,9 +537,15 @@ describe('endpoint definition typings', () => {
 })
 
 describe('additional transformResponse behaviors', () => {
-  type SuccessResponse = { value: 'success' }
-  type EchoResponseData = { banana: 'bread' }
-  type ErrorResponse = { value: 'error' }
+  type SuccessResponse = {
+    value: 'success'
+  }
+  type EchoResponseData = {
+    banana: 'bread'
+  }
+  type ErrorResponse = {
+    value: 'error'
+  }
   const api = createApi({
     baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
     endpoints: (build) => ({
@@ -628,7 +606,7 @@ describe('additional transformResponse behaviors', () => {
       }),
       queryWithMeta: build.query<SuccessResponse, void>({
         query: () => '/success',
-        transformResponse: async (response: SuccessResponse, meta) => {
+        transformResponse: (response: SuccessResponse, meta) => {
           return {
             ...response,
             meta: {
@@ -721,7 +699,9 @@ describe('query endpoint lifecycles - onStart, onSuccess, onError', () => {
     })
   })
 
-  type SuccessResponse = { value: 'success' }
+  type SuccessResponse = {
+    value: 'success'
+  }
   const api = createApi({
     baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
     endpoints: (build) => ({
@@ -813,7 +793,9 @@ describe('query endpoint lifecycles - onStart, onSuccess, onError', () => {
 test('providesTags and invalidatesTags can use baseQueryMeta', async () => {
   let _meta: FetchBaseQueryMeta | undefined
 
-  type SuccessResponse = { value: 'success' }
+  type SuccessResponse = {
+    value: 'success'
+  }
 
   const api = createApi({
     baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
@@ -841,17 +823,19 @@ test('providesTags and invalidatesTags can use baseQueryMeta', async () => {
   })
 
   await storeRef.store.dispatch(api.endpoints.query.initiate())
-  expect('request' in _meta! && 'response' in _meta!).toBe(true)
+  expect(_meta && 'request' in _meta && 'response' in _meta).toBe(true)
 
   _meta = undefined
 
   await storeRef.store.dispatch(api.endpoints.mutation.initiate())
 
-  expect('request' in _meta! && 'response' in _meta!).toBe(true)
+  expect(_meta && 'request' in _meta && 'response' in _meta).toBe(true)
 })
 
 describe('structuralSharing flag behaviors', () => {
-  type SuccessResponse = { value: 'success' }
+  type SuccessResponse = {
+    value: 'success'
+  }
 
   const api = createApi({
     baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
@@ -904,11 +888,13 @@ describe('custom serializeQueryArgs per endpoint', () => {
     queryArgs,
   }) => `${endpointName}-${queryArgs}`
 
-  type SuccessResponse = { value: 'success' }
+  type SuccessResponse = {
+    value: 'success'
+  }
 
   const serializer1 = vi.fn(customArgsSerializer)
 
-  interface MyApiClient {
+  type MyApiClient = {
     fetchPost: (id: string) => Promise<SuccessResponse>
   }
 

@@ -1,7 +1,7 @@
+import { setupApiStore } from '@internal/tests/utils/helpers'
 import { createSlice } from '@reduxjs/toolkit'
 import { createApi } from '@reduxjs/toolkit/query'
 import { delay } from 'msw'
-import { setupApiStore } from '../../tests/utils/helpers'
 
 let shouldApiResponseSuccess = true
 
@@ -119,7 +119,7 @@ describe('buildSlice', () => {
 describe('`merge` callback', () => {
   const baseQuery = (args?: any) => ({ data: args })
 
-  interface Todo {
+  type Todo = {
     id: string
     text: string
   }

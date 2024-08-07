@@ -1,3 +1,4 @@
+import { buildGetDefaultMiddleware } from '@internal/getDefaultMiddleware'
 import { Tuple } from '@internal/utils'
 import type {
   Action,
@@ -7,9 +8,7 @@ import type {
 } from '@reduxjs/toolkit'
 import { configureStore } from '@reduxjs/toolkit'
 import { thunk } from 'redux-thunk'
-import { vi } from 'vitest'
-
-import { buildGetDefaultMiddleware } from '@internal/getDefaultMiddleware'
+import type { AnyFunction, AnyNonNullishValue } from '../tsHelpers'
 
 const getDefaultMiddleware = buildGetDefaultMiddleware()
 
@@ -76,16 +75,18 @@ describe('getDefaultMiddleware', () => {
     })
 
     const dummyMiddleware: Middleware<
-      {
-        (action: Action<'actionListenerMiddleware/add'>): () => void
-      },
+      (action: Action<'actionListenerMiddleware/add'>) => () => void,
       { counter: number }
     > = (storeApi) => (next) => (action) => {
       return next(action)
     }
 
-    const dummyMiddleware2: Middleware<{}, { counter: number }> =
-      (storeApi) => (next) => (action) => {}
+    const dummyMiddleware2: Middleware<
+      AnyNonNullishValue,
+      { counter: number }
+    > = (storeApi) => (next) => (action) => {
+      /** No-Op */
+    }
 
     const testThunk: ThunkAction<
       void,
@@ -181,7 +182,7 @@ it('allows passing options to actionCreatorCheck', () => {
       immutableCheck: false,
       serializableCheck: false,
       actionCreatorCheck: {
-        isActionCreator: (action: unknown): action is Function => {
+        isActionCreator: (action: unknown): action is AnyFunction => {
           actionCreatorCheckWasCalled = true
           return false
         },

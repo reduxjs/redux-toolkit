@@ -1,3 +1,4 @@
+import { setupApiStore, useRenderCounter } from '@internal/tests/utils/helpers'
 import { createSelectorCreator, lruMemoize } from '@reduxjs/toolkit'
 import {
   buildCreateApi,
@@ -6,7 +7,7 @@ import {
 } from '@reduxjs/toolkit/query/react'
 import { render, screen, waitFor } from '@testing-library/react'
 import { delay } from 'msw'
-import * as React from 'react'
+import React from 'react'
 import type { ReactReduxContextValue } from 'react-redux'
 import {
   Provider,
@@ -14,7 +15,6 @@ import {
   createSelectorHook,
   createStoreHook,
 } from 'react-redux'
-import { setupApiStore, useRenderCounter } from '../../tests/utils/helpers'
 
 const MyContext = React.createContext<ReactReduxContextValue | null>(null)
 

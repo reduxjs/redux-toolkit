@@ -1,21 +1,21 @@
+import { noop } from '@internal/tests/utils/helpers'
+import { delay } from '@internal/utils'
 import type { UnknownAction } from '@reduxjs/toolkit'
 import {
   configureStore,
   createAsyncThunk,
   createReducer,
-  unwrapResult,
   miniSerializeError,
+  unwrapResult,
 } from '@reduxjs/toolkit'
-import { vi } from 'vitest'
-
 import {
   createConsole,
   getLog,
   mockConsole,
 } from 'console-testing-library/pure'
-import { delay } from '@internal/utils'
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
   interface Window {
     AbortController: AbortController
   }
@@ -23,7 +23,7 @@ declare global {
 
 describe('createAsyncThunk', () => {
   it('creates the action types', () => {
-    const thunkActionCreator = createAsyncThunk('testType', async () => 42)
+    const thunkActionCreator = createAsyncThunk('testType', () => 42)
 
     expect(thunkActionCreator.fulfilled.type).toBe('testType/fulfilled')
     expect(thunkActionCreator.pending.type).toBe('testType/pending')
@@ -31,13 +31,13 @@ describe('createAsyncThunk', () => {
   })
 
   it('exposes the typePrefix it was created with', () => {
-    const thunkActionCreator = createAsyncThunk('testType', async () => 42)
+    const thunkActionCreator = createAsyncThunk('testType', () => 42)
 
     expect(thunkActionCreator.typePrefix).toBe('testType')
   })
 
   it('includes a settled matcher', () => {
-    const thunkActionCreator = createAsyncThunk('testType', async () => 42)
+    const thunkActionCreator = createAsyncThunk('testType', () => 42)
     expect(thunkActionCreator.settled).toEqual(expect.any(Function))
     expect(thunkActionCreator.settled(thunkActionCreator.pending(''))).toBe(
       false,
@@ -51,7 +51,7 @@ describe('createAsyncThunk', () => {
   })
 
   it('works without passing arguments to the payload creator', async () => {
-    const thunkActionCreator = createAsyncThunk('testType', async () => 42)
+    const thunkActionCreator = createAsyncThunk('testType', () => 42)
 
     let timesReducerCalled = 0
 
@@ -82,7 +82,7 @@ describe('createAsyncThunk', () => {
 
     const thunkActionCreator = createAsyncThunk(
       'testType',
-      async (arg: number, { requestId }) => {
+      (arg: number, { requestId }) => {
         passedArg = arg
         generatedRequestId = requestId
         return result
@@ -91,7 +91,7 @@ describe('createAsyncThunk', () => {
 
     const thunkFunction = thunkActionCreator(args)
 
-    const thunkPromise = thunkFunction(dispatch, () => {}, undefined)
+    const thunkPromise = thunkFunction(dispatch, noop, undefined)
 
     expect(thunkPromise.requestId).toBe(generatedRequestId)
     expect(thunkPromise.arg).toBe(args)
@@ -121,7 +121,7 @@ describe('createAsyncThunk', () => {
 
     const thunkActionCreator = createAsyncThunk(
       'testType',
-      async (args: number, { requestId }) => {
+      (args: number, { requestId }) => {
         generatedRequestId = requestId
         throw error
       },
@@ -130,8 +130,10 @@ describe('createAsyncThunk', () => {
     const thunkFunction = thunkActionCreator(args)
 
     try {
-      await thunkFunction(dispatch, () => {}, undefined)
-    } catch (e) {}
+      await thunkFunction(dispatch, noop, undefined)
+    } catch (e) {
+      /* empty */
+    }
 
     expect(dispatch).toHaveBeenNthCalledWith(
       1,
@@ -157,7 +159,7 @@ describe('createAsyncThunk', () => {
 
     const thunkActionCreator = createAsyncThunk(
       'testType',
-      async (args: number, { requestId }) => {
+      (args: number, { requestId }) => {
         generatedRequestId = requestId
         throw errorObject
       },
@@ -166,8 +168,10 @@ describe('createAsyncThunk', () => {
     const thunkFunction = thunkActionCreator(args)
 
     try {
-      await thunkFunction(dispatch, () => {}, undefined)
-    } catch (e) {}
+      await thunkFunction(dispatch, noop, undefined)
+    } catch (e) {
+      /* empty */
+    }
 
     expect(dispatch).toHaveBeenNthCalledWith(
       1,
@@ -196,7 +200,7 @@ describe('createAsyncThunk', () => {
 
     const thunkActionCreator = createAsyncThunk(
       'testType',
-      async (args: number, { requestId }) => {
+      (args: number, { requestId }) => {
         generatedRequestId = requestId
         throw errorObject
       },
@@ -205,8 +209,10 @@ describe('createAsyncThunk', () => {
     const thunkFunction = thunkActionCreator(args)
 
     try {
-      await thunkFunction(dispatch, () => {}, undefined)
-    } catch (e) {}
+      await thunkFunction(dispatch, noop, undefined)
+    } catch (e) {
+      /* empty */
+    }
 
     expect(dispatch).toHaveBeenNthCalledWith(
       1,
@@ -240,7 +246,7 @@ describe('createAsyncThunk', () => {
 
     const thunkActionCreator = createAsyncThunk(
       'testType',
-      async (args: number, { requestId, rejectWithValue }) => {
+      (args: number, { requestId, rejectWithValue }) => {
         generatedRequestId = requestId
 
         return rejectWithValue(errorPayload)
@@ -250,8 +256,10 @@ describe('createAsyncThunk', () => {
     const thunkFunction = thunkActionCreator(args)
 
     try {
-      await thunkFunction(dispatch, () => {}, undefined)
-    } catch (e) {}
+      await thunkFunction(dispatch, noop, undefined)
+    } catch (e) {
+      /* empty */
+    }
 
     expect(dispatch).toHaveBeenNthCalledWith(
       1,
@@ -285,7 +293,7 @@ describe('createAsyncThunk', () => {
 
     const thunkActionCreator = createAsyncThunk(
       'testType',
-      async (args: number, { requestId, rejectWithValue }) => {
+      (args: number, { requestId, rejectWithValue }) => {
         generatedRequestId = requestId
 
         throw rejectWithValue(errorPayload)
@@ -295,8 +303,10 @@ describe('createAsyncThunk', () => {
     const thunkFunction = thunkActionCreator(args)
 
     try {
-      await thunkFunction(dispatch, () => {}, undefined)
-    } catch (e) {}
+      await thunkFunction(dispatch, noop, undefined)
+    } catch (e) {
+      /* empty */
+    }
 
     expect(dispatch).toHaveBeenNthCalledWith(
       1,
@@ -332,7 +342,7 @@ describe('createAsyncThunk', () => {
 
     const thunkActionCreator = createAsyncThunk(
       'testType',
-      async (args: number, { requestId, rejectWithValue }) => {
+      (args: number, { requestId, rejectWithValue }) => {
         generatedRequestId = requestId
 
         try {
@@ -349,8 +359,10 @@ describe('createAsyncThunk', () => {
     const thunkFunction = thunkActionCreator(args)
 
     try {
-      await thunkFunction(dispatch, () => {}, undefined)
-    } catch (e) {}
+      await thunkFunction(dispatch, noop, undefined)
+    } catch (e) {
+      /* empty */
+    }
 
     expect(dispatch).toHaveBeenNthCalledWith(
       1,
@@ -498,7 +510,7 @@ describe('createAsyncThunk with abortController', () => {
   describe('behaviour with missing AbortController', () => {
     let keepAbortController: (typeof window)['AbortController']
     let freshlyLoadedModule: typeof import('../createAsyncThunk')
-    let restore: () => void = () => {}
+    let restore: () => void = noop
     let nodeEnv: string
 
     beforeEach(async () => {
@@ -518,7 +530,7 @@ describe('createAsyncThunk with abortController', () => {
       vi.resetModules()
     })
 
-    test('calling a thunk made with createAsyncThunk should fail if no global abortController is not available', async () => {
+    test('calling a thunk made with createAsyncThunk should fail if no global abortController is not available', () => {
       const longRunningAsyncThunk = freshlyLoadedModule.createAsyncThunk(
         'longRunning',
         async () => {
@@ -531,12 +543,14 @@ describe('createAsyncThunk with abortController', () => {
   })
 })
 
-test('non-serializable arguments are ignored by serializableStateInvariantMiddleware', async () => {
+test('non-serializable arguments are ignored by serializableStateInvariantMiddleware', () => {
   const restore = mockConsole(createConsole())
   const nonSerializableValue = new Map()
-  const asyncThunk = createAsyncThunk('test', (arg: Map<any, any>) => {})
+  const asyncThunk = createAsyncThunk('test', (arg: Map<any, any>) => {
+    /** No-Op */
+  })
 
-  configureStore({
+  void configureStore({
     reducer: () => 0,
   }).dispatch(asyncThunk(nonSerializableValue))
 
@@ -640,7 +654,9 @@ describe('conditional skipping of asyncThunks', () => {
       const thunkPromise = asyncThunk(arg)(dispatch, getState, extra)
       thunkPromise.abort()
       await thunkPromise
-    } catch (err) {}
+    } catch (err) {
+      /* empty */
+    }
     expect(dispatch).toHaveBeenCalledTimes(0)
   })
 
@@ -651,7 +667,7 @@ describe('conditional skipping of asyncThunks', () => {
     expect(dispatch).toHaveBeenCalledTimes(0)
   })
 
-  test('does not fail when attempting to abort a canceled promise', async () => {
+  test('does not fail when attempting to abort a canceled promise', () => {
     const asyncPayloadCreator = vi.fn(async (x: typeof arg) => {
       await delay(200)
       return 10
@@ -797,7 +813,7 @@ describe('idGenerator option', () => {
     const idGenerator = makeFakeIdGenerator()
     const asyncThunk = createAsyncThunk(
       'test',
-      async (args: void, { requestId }) => {
+      (args: void, { requestId }) => {
         generatedRequestId = requestId
       },
       { idGenerator },
@@ -822,7 +838,7 @@ describe('idGenerator option', () => {
     generatedRequestId = ''
     const defaultAsyncThunk = createAsyncThunk(
       'test',
-      async (args: void, { requestId }) => {
+      (args: void, { requestId }) => {
         generatedRequestId = requestId
       },
     )
@@ -844,7 +860,7 @@ describe('idGenerator option', () => {
     let generatedRequestId = ''
     const asyncThunk = createAsyncThunk(
       'test',
-      async (args: any, { requestId }) => {
+      (args: any, { requestId }) => {
         generatedRequestId = requestId
       },
       { idGenerator: customIdGenerator },
@@ -880,11 +896,11 @@ test('`condition` will see state changes from a synchronously invoked asyncThunk
     }),
   })
 
-  store.dispatch(asyncThunk({ force: false }))
+  void store.dispatch(asyncThunk({ force: false }))
   expect(onStart).toHaveBeenCalledTimes(1)
-  store.dispatch(asyncThunk({ force: false }))
+  void store.dispatch(asyncThunk({ force: false }))
   expect(onStart).toHaveBeenCalledTimes(1)
-  store.dispatch(asyncThunk({ force: true }))
+  void store.dispatch(asyncThunk({ force: true }))
   expect(onStart).toHaveBeenCalledTimes(2)
 })
 
@@ -902,13 +918,19 @@ describe('meta', () => {
   })
 
   test('pendingMeta', () => {
-    const pendingThunk = createAsyncThunk('test', (arg: string) => {}, {
-      getPendingMeta({ arg, requestId }) {
-        expect(arg).toBe('testArg')
-        expect(requestId).toEqual(expect.any(String))
-        return { extraProp: 'foo' }
+    const pendingThunk = createAsyncThunk(
+      'test',
+      (arg: string) => {
+        /** No-Op */
       },
-    })
+      {
+        getPendingMeta({ arg, requestId }) {
+          expect(arg).toBe('testArg')
+          expect(requestId).toEqual(expect.any(String))
+          return { extraProp: 'foo' }
+        },
+      },
+    )
     const ret = store.dispatch(pendingThunk('testArg'))
     expect(store.getState()[1]).toEqual({
       meta: {
@@ -969,10 +991,10 @@ describe('meta', () => {
     })
 
     if (ret.meta.requestStatus === 'rejected' && ret.meta.rejectedWithValue) {
+      /* empty */
     } else {
       // could be caused by a `throw`, `abort()` or `condition` - no `rejectedMeta` in that case
-      // @ts-expect-error
-      ret.meta.extraProp
+      expect(ret.meta).not.toHaveProperty('extraProp')
     }
   })
 

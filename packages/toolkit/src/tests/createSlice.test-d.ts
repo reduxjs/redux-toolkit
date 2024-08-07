@@ -1,3 +1,5 @@
+import { noop } from '@internal/tests/utils/helpers'
+import type { AnyNonNullishValue, EmptyObject } from '@internal/tsHelpers'
 import type {
   Action,
   ActionCreatorWithNonInferrablePayload,
@@ -15,7 +17,6 @@ import type {
   SerializedError,
   SliceCaseReducers,
   ThunkDispatch,
-  UnknownAction,
   ValidateSliceCaseReducers,
 } from '@reduxjs/toolkit'
 import {
@@ -251,51 +252,58 @@ describe('type tests', () => {
       reducers: {
         // case: meta and error not used in reducer
         testDefaultMetaAndError: {
-          reducer(_, action: PayloadAction<number, string>) {},
+          reducer(_, action: PayloadAction<number, string>) {
+            /** No-Op */
+          },
           prepare: (payload: number) => ({
             payload,
-            meta: 'meta' as 'meta',
-            error: 'error' as 'error',
+            meta: 'meta' as const,
+            error: 'error' as const,
           }),
         },
         // case: meta and error marked as "unknown" in reducer
         testUnknownMetaAndError: {
-          reducer(
-            _,
-            action: PayloadAction<number, string, unknown, unknown>,
-          ) {},
+          reducer(_, action: PayloadAction<number, string, unknown, unknown>) {
+            /** No-Op */
+          },
           prepare: (payload: number) => ({
             payload,
-            meta: 'meta' as 'meta',
-            error: 'error' as 'error',
+            meta: 'meta' as const,
+            error: 'error' as const,
           }),
         },
         // case: meta and error are typed in the reducer as returned by prepare
         testMetaAndError: {
-          reducer(_, action: PayloadAction<number, string, 'meta', 'error'>) {},
+          reducer(_, action: PayloadAction<number, string, 'meta', 'error'>) {
+            /** No-Op */
+          },
           prepare: (payload: number) => ({
             payload,
-            meta: 'meta' as 'meta',
-            error: 'error' as 'error',
+            meta: 'meta' as const,
+            error: 'error' as const,
           }),
         },
         // case: meta is typed differently in the reducer than returned from prepare
         testErroneousMeta: {
-          reducer(_, action: PayloadAction<number, string, 'meta', 'error'>) {},
+          reducer(_, action: PayloadAction<number, string, 'meta', 'error'>) {
+            /** No-Op */
+          },
           // @ts-expect-error
           prepare: (payload: number) => ({
             payload,
             meta: 1,
-            error: 'error' as 'error',
+            error: 'error' as const,
           }),
         },
         // case: error is typed differently in the reducer than returned from prepare
         testErroneousError: {
-          reducer(_, action: PayloadAction<number, string, 'meta', 'error'>) {},
+          reducer(_, action: PayloadAction<number, string, 'meta', 'error'>) {
+            /** No-Op */
+          },
           // @ts-expect-error
           prepare: (payload: number) => ({
             payload,
-            meta: 'meta' as 'meta',
+            meta: 'meta' as const,
             error: 1,
           }),
         },
@@ -436,7 +444,7 @@ describe('type tests', () => {
   })
 
   test('wrapping createSlice should be possible', () => {
-    interface GenericState<T> {
+    type GenericState<T> = {
       data?: T
       status: 'loading' | 'finished' | 'error'
     }
@@ -494,7 +502,7 @@ describe('type tests', () => {
   })
 
   test('extraReducers', () => {
-    interface GenericState<T> {
+    type GenericState<T> = {
       data: T | null
     }
 
@@ -587,19 +595,19 @@ describe('type tests', () => {
   })
 
   test('reducer callback', () => {
-    interface TestState {
+    type TestState = {
       foo: string
     }
 
-    interface TestArg {
+    type TestArg = {
       test: string
     }
 
-    interface TestReturned {
+    type TestReturned = {
       payload: string
     }
 
-    interface TestReject {
+    type TestReject = {
       cause: string
     }
 
@@ -612,7 +620,7 @@ describe('type tests', () => {
         }>()
 
         // @ts-expect-error
-        create.asyncThunk<any, any, { state: StoreState }>(() => {})
+        create.asyncThunk<any, any, { state: StoreState }>(noop)
 
         // @ts-expect-error
         create.asyncThunk.withTypes<{
@@ -652,38 +660,43 @@ describe('type tests', () => {
               expectTypeOf(action.error).toEqualTypeOf<'error'>()
             },
           ),
-          testInferVoid: create.asyncThunk(() => {}, {
-            pending(state, action) {
-              expectTypeOf(state).toEqualTypeOf<TestState>()
-
-              expectTypeOf(action.meta.arg).toBeVoid()
+          testInferVoid: create.asyncThunk(
+            () => {
+              /* empty */
             },
-            fulfilled(state, action) {
-              expectTypeOf(state).toEqualTypeOf<TestState>()
+            {
+              pending(state, action) {
+                expectTypeOf(state).toEqualTypeOf<TestState>()
 
-              expectTypeOf(action.meta.arg).toBeVoid()
+                expectTypeOf(action.meta.arg).toBeVoid()
+              },
+              fulfilled(state, action) {
+                expectTypeOf(state).toEqualTypeOf<TestState>()
 
-              expectTypeOf(action.payload).toBeVoid()
-            },
-            rejected(state, action) {
-              expectTypeOf(state).toEqualTypeOf<TestState>()
+                expectTypeOf(action.meta.arg).toBeVoid()
 
-              expectTypeOf(action.meta.arg).toBeVoid()
-
-              expectTypeOf(action.error).toEqualTypeOf<SerializedError>()
-            },
-            settled(state, action) {
-              expectTypeOf(state).toEqualTypeOf<TestState>()
-
-              expectTypeOf(action.meta.arg).toBeVoid()
-
-              if (isRejected(action)) {
-                expectTypeOf(action.error).toEqualTypeOf<SerializedError>()
-              } else {
                 expectTypeOf(action.payload).toBeVoid()
-              }
+              },
+              rejected(state, action) {
+                expectTypeOf(state).toEqualTypeOf<TestState>()
+
+                expectTypeOf(action.meta.arg).toBeVoid()
+
+                expectTypeOf(action.error).toEqualTypeOf<SerializedError>()
+              },
+              settled(state, action) {
+                expectTypeOf(state).toEqualTypeOf<TestState>()
+
+                expectTypeOf(action.meta.arg).toBeVoid()
+
+                if (isRejected(action)) {
+                  expectTypeOf(action.error).toEqualTypeOf<SerializedError>()
+                } else {
+                  expectTypeOf(action.payload).toBeVoid()
+                }
+              },
             },
-          }),
+          ),
           testInfer: create.asyncThunk(
             function payloadCreator(arg: TestArg, api) {
               return Promise.resolve<TestReturned>({ payload: 'foo' })
@@ -889,20 +902,20 @@ describe('type tests', () => {
     >()
 
     expectTypeOf(slice.actions.testInferVoid).toEqualTypeOf<
-      AsyncThunk<void, void, {}>
+      AsyncThunk<void, void, EmptyObject>
     >()
 
     expectTypeOf(slice.actions.testInferVoid).toBeCallableWith()
 
     expectTypeOf(slice.actions.testInfer).toEqualTypeOf<
-      AsyncThunk<TestReturned, TestArg, {}>
+      AsyncThunk<TestReturned, TestArg, EmptyObject>
     >()
 
     expectTypeOf(slice.actions.testExplicitType).toEqualTypeOf<
       AsyncThunk<TestReturned, TestArg, { rejectValue: TestReject }>
     >()
 
-    type TestInferThunk = AsyncThunk<TestReturned, TestArg, {}>
+    type TestInferThunk = AsyncThunk<TestReturned, TestArg, EmptyObject>
 
     expectTypeOf(slice.caseReducers.testInfer.pending).toEqualTypeOf<
       CaseReducer<TestState, ReturnType<TestInferThunk['pending']>>
@@ -918,7 +931,7 @@ describe('type tests', () => {
   })
 
   test('wrapping createSlice should be possible, with callback', () => {
-    interface GenericState<T> {
+    type GenericState<T> = {
       data?: T
       status: 'loading' | 'finished' | 'error'
     }
@@ -980,7 +993,9 @@ describe('type tests', () => {
 
     // We use `not.toEqualTypeOf` instead of `not.toMatchTypeOf`
     // because `toMatchTypeOf` allows missing properties
-    expectTypeOf(counterSlice.selectSlice).parameter(0).not.toEqualTypeOf<{}>()
+    expectTypeOf(counterSlice.selectSlice)
+      .parameter(0)
+      .not.toEqualTypeOf<AnyNonNullishValue>()
   })
 
   test('buildCreateSlice', () => {

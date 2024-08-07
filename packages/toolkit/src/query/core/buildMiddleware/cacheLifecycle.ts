@@ -2,6 +2,7 @@ import type { ThunkDispatch, UnknownAction } from '@reduxjs/toolkit'
 import type { BaseQueryFn, BaseQueryMeta } from '../../baseQueryTypes'
 import type { BaseEndpointDefinition } from '../../endpointDefinitions'
 import { DefinitionType } from '../../endpointDefinitions'
+import type { Id } from '../../tsHelpers'
 import type { RootState } from '../apiState'
 import type {
   MutationResultSelectorResult,
@@ -19,20 +20,22 @@ import type {
 
 export type ReferenceCacheLifecycle = never
 
-export interface QueryBaseLifecycleApi<
+export type QueryBaseLifecycleApi<
   QueryArg,
   BaseQuery extends BaseQueryFn,
   ResultType,
   ReducerPath extends string = string,
-> extends LifecycleApi<ReducerPath> {
+> = LifecycleApi<ReducerPath> & {
   /**
    * Gets the current value of this cache entry.
    */
   getCacheEntry(): QueryResultSelectorResult<
-    { type: DefinitionType.query } & BaseEndpointDefinition<
-      QueryArg,
-      BaseQuery,
-      ResultType
+    Id<
+      { type: DefinitionType.query } & BaseEndpointDefinition<
+        QueryArg,
+        BaseQuery,
+        ResultType
+      >
     >
   >
   /**
@@ -52,10 +55,12 @@ export type MutationBaseLifecycleApi<
    * Gets the current value of this cache entry.
    */
   getCacheEntry(): MutationResultSelectorResult<
-    { type: DefinitionType.mutation } & BaseEndpointDefinition<
-      QueryArg,
-      BaseQuery,
-      ResultType
+    Id<
+      { type: DefinitionType.mutation } & BaseEndpointDefinition<
+        QueryArg,
+        BaseQuery,
+        ResultType
+      >
     >
   >
 }
@@ -114,13 +119,13 @@ type CacheLifecyclePromises<ResultType = unknown, MetaType = unknown> = {
   cacheEntryRemoved: Promise<void>
 }
 
-export interface QueryCacheLifecycleApi<
+export type QueryCacheLifecycleApi<
   QueryArg,
   BaseQuery extends BaseQueryFn,
   ResultType,
   ReducerPath extends string = string,
-> extends QueryBaseLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
-    CacheLifecyclePromises<ResultType, BaseQueryMeta<BaseQuery>> {}
+> = QueryBaseLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath> &
+  CacheLifecyclePromises<ResultType, BaseQueryMeta<BaseQuery>>
 
 export type MutationCacheLifecycleApi<
   QueryArg,
@@ -280,7 +285,9 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
     ])
     // prevent uncaught promise rejections from happening.
     // if the original promise is used in any way, that will create a new promise that will throw again
-    cacheDataLoaded.catch(() => {})
+    cacheDataLoaded.catch(() => {
+      /** No-Op */
+    })
     lifecycleMap[queryCacheKey] = lifecycle
     const selector = (api.endpoints[endpointName] as any).select(
       endpointDefinition.type === DefinitionType.query

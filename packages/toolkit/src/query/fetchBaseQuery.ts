@@ -1,7 +1,8 @@
-import { joinUrls } from './utils'
-import { isPlainObject } from './core/rtkImports'
+import type { AnyNonNullishValue, AnyObject } from '../tsHelpers'
 import type { BaseQueryApi, BaseQueryFn } from './baseQueryTypes'
+import { isPlainObject } from './core/rtkImports'
 import type { MaybePromise, Override } from './tsHelpers'
+import { joinUrls } from './utils'
 
 export type ResponseHandler =
   | 'content-type'
@@ -20,9 +21,10 @@ type CustomRequestInit = Override<
   }
 >
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export interface FetchArgs extends CustomRequestInit {
   url: string
-  params?: Record<string, any>
+  params?: AnyObject
   body?: any
   responseHandler?: ResponseHandler
   validateStatus?: (response: Response, body: any) => boolean
@@ -98,7 +100,7 @@ function stripUndefined(obj: any) {
   if (!isPlainObject(obj)) {
     return obj
   }
-  const copy: Record<string, any> = { ...obj }
+  const copy: AnyObject = { ...obj }
   for (const [k, v] of Object.entries(copy)) {
     if (v === undefined) delete copy[k]
   }
@@ -118,7 +120,7 @@ export type FetchBaseQueryArgs = {
     input: RequestInfo,
     init?: RequestInit | undefined,
   ) => Promise<Response>
-  paramsSerializer?: (params: Record<string, any>) => string
+  paramsSerializer?: (params: AnyObject) => string
   /**
    * By default, we only check for 'application/json' and 'application/vnd.api+json' as the content-types for json. If you need to support another format, you can pass
    * in a predicate function for your given api to get the same automatic stringifying behavior
@@ -140,7 +142,10 @@ export type FetchBaseQueryArgs = {
 } & RequestInit &
   Pick<FetchArgs, 'responseHandler' | 'validateStatus' | 'timeout'>
 
-export type FetchBaseQueryMeta = { request: Request; response?: Response }
+export type FetchBaseQueryMeta = {
+  request: Request
+  response?: Response
+}
 
 /**
  * This is a very small wrapper around fetch that aims to simplify requests.
@@ -204,7 +209,7 @@ export function fetchBaseQuery({
   string | FetchArgs,
   unknown,
   FetchBaseQueryError,
-  {},
+  AnyNonNullishValue,
   FetchBaseQueryMeta
 > {
   if (typeof fetch === 'undefined' && fetchFn === defaultFetchFn) {
@@ -214,17 +219,20 @@ export function fetchBaseQuery({
   }
   return async (arg, api) => {
     const { signal, getState, extra, endpoint, forced, type } = api
-    let meta: FetchBaseQueryMeta | undefined
-    let {
-      url,
-      headers = new Headers(baseFetchOptions.headers),
+
+    const fetchArgs = typeof arg == 'string' ? { url: arg } : arg
+    let { url, headers = new Headers(baseFetchOptions.headers) } = fetchArgs
+
+    const {
+      url: _url,
+      headers: _headers,
       params = undefined,
       responseHandler = globalResponseHandler ?? ('json' as const),
       validateStatus = globalValidateStatus ?? defaultValidateStatus,
       timeout = defaultTimeout,
       ...rest
-    } = typeof arg == 'string' ? { url: arg } : arg
-    let config: RequestInit = {
+    } = fetchArgs
+    const config: RequestInit = {
       ...baseFetchOptions,
       signal,
       ...rest,
@@ -267,16 +275,16 @@ export function fetchBaseQuery({
 
     const request = new Request(url, config)
     const requestClone = new Request(url, config)
-    meta = { request: requestClone }
+    const meta: FetchBaseQueryMeta = { request: requestClone }
 
-    let response,
-      timedOut = false,
-      timeoutId =
-        timeout &&
-        setTimeout(() => {
-          timedOut = true
-          api.abort()
-        }, timeout)
+    let response
+    let timedOut = false
+    const timeoutId =
+      timeout &&
+      setTimeout(() => {
+        timedOut = true
+        api.abort()
+      }, timeout)
     try {
       response = await fetchFn(request)
     } catch (e) {
@@ -295,7 +303,7 @@ export function fetchBaseQuery({
     meta.response = responseClone
 
     let resultData: any
-    let responseText: string = ''
+    let responseText = ''
     try {
       let handleResponseError
       await Promise.all([
@@ -307,7 +315,9 @@ export function fetchBaseQuery({
         // we *have* to "use up" both streams at the same time or they will stop running in node-fetch scenarios
         responseClone.text().then(
           (r) => (responseText = r),
-          () => {},
+          () => {
+            /** No-Op */
+          },
         ),
       ])
       if (handleResponseError) throw handleResponseError

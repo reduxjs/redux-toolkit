@@ -36,13 +36,13 @@ import type {
 import { forceQueryFnSymbol, isUpsertQuery } from './buildInitiate'
 import type { ApiEndpointQuery, PrefetchOptions } from './module'
 import {
+  SHOULD_AUTOBATCH,
   createAsyncThunk,
   isAllOf,
   isFulfilled,
   isPending,
   isRejected,
   isRejectedWithValue,
-  SHOULD_AUTOBATCH,
 } from './rtkImports'
 
 export type BuildThunksApiEndpointQuery<
@@ -89,10 +89,10 @@ export type RejectedAction<
 
 export type Matcher<M> = (value: any) => value is M
 
-export interface Matchers<
+export type Matchers<
   Thunk extends QueryThunk | MutationThunk,
   Definition extends EndpointDefinition<any, any, any, any>,
-> {
+> = {
   matchPending: Matcher<PendingAction<Thunk, Definition>>
   matchFulfilled: Matcher<FulfilledAction<Thunk, Definition>>
   matchRejected: Matcher<RejectedAction<Thunk, Definition>>
@@ -604,7 +604,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
       const force = hasTheForce(options) && options.force
       const maxAge = hasMaxAge(options) && options.ifOlderThan
 
-      const queryAction = (force: boolean = true) => {
+      const queryAction = (force = true) => {
         const options = { forceRefetch: force, isPrefetch: true }
         return (
           api.endpoints[endpointName] as ApiEndpointQuery<any, any>

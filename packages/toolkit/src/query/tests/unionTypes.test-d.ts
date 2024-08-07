@@ -1,18 +1,18 @@
 import type { SerializedError } from '@reduxjs/toolkit'
 import type {
   FetchBaseQueryError,
-  TypedUseMutationResult,
-  TypedUseQueryHookResult,
-  TypedUseQueryState,
-  TypedUseQueryStateResult,
-  TypedUseQuerySubscriptionResult,
   TypedLazyQueryTrigger,
+  TypedMutationTrigger,
   TypedUseLazyQuery,
   TypedUseLazyQuerySubscription,
   TypedUseMutation,
-  TypedMutationTrigger,
-  TypedUseQuerySubscription,
+  TypedUseMutationResult,
   TypedUseQuery,
+  TypedUseQueryHookResult,
+  TypedUseQueryState,
+  TypedUseQueryStateResult,
+  TypedUseQuerySubscription,
+  TypedUseQuerySubscriptionResult,
 } from '@reduxjs/toolkit/query/react'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 
@@ -472,7 +472,7 @@ describe('union types', () => {
     }
   })
 
-  test('queryHookResult (without selector) union', async () => {
+  test('queryHookResult (without selector) union', () => {
     const useQueryStateResult = api.endpoints.getTest.useQueryState()
 
     const useQueryResult = api.endpoints.getTest.useQuery()
@@ -530,7 +530,7 @@ describe('union types', () => {
     }).toEqualTypeOf(result)
   })
 
-  test('useQuery (with selectFromResult)', async () => {
+  test('useQuery (with selectFromResult)', () => {
     const { refetch, ...result } = api.endpoints.getTest.useQuery(undefined, {
       selectFromResult({
         data,
@@ -658,7 +658,9 @@ describe('union types', () => {
       isLoading: true,
       isSuccess: false,
       isError: false,
-      reset: () => {},
+      reset: () => {
+        /** No-Op */
+      },
     }).toMatchTypeOf(result)
   })
 

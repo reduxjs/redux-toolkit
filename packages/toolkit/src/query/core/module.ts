@@ -10,6 +10,7 @@ import type {
   UnknownAction,
 } from '@reduxjs/toolkit'
 import { enablePatches } from 'immer'
+import type { AnyNonNullishValue, AnyObject } from '../../tsHelpers'
 import type { Api, Module } from '../apiTypes'
 import type { BaseQueryFn } from '../baseQueryTypes'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
@@ -83,8 +84,8 @@ export type CoreModule =
 
 export type ThunkWithReturnValue<T> = ThunkAction<T, any, any, UnknownAction>
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export interface ApiModules<
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   BaseQuery extends BaseQueryFn,
   Definitions extends EndpointDefinitions,
   ReducerPath extends string,
@@ -140,7 +141,7 @@ export interface ApiModules<
      * ```
      */
     middleware: Middleware<
-      {},
+      AnyNonNullishValue,
       RootState<Definitions, string, ReducerPath>,
       ThunkDispatch<any, any, UnknownAction>
     >
@@ -394,36 +395,31 @@ export interface ApiModules<
   }
 }
 
-export interface ApiEndpointQuery<
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+export type ApiEndpointQuery<
   Definition extends QueryDefinition<any, any, any, any, any>,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Definitions extends EndpointDefinitions,
-> extends BuildThunksApiEndpointQuery<Definition>,
-    BuildInitiateApiEndpointQuery<Definition>,
-    BuildSelectorsApiEndpointQuery<Definition, Definitions> {
-  name: string
-  /**
-   * All of these are `undefined` at runtime, purely to be used in TypeScript declarations!
-   */
-  Types: NonNullable<Definition['Types']>
-}
+> = BuildThunksApiEndpointQuery<Definition> &
+  BuildInitiateApiEndpointQuery<Definition> &
+  BuildSelectorsApiEndpointQuery<Definition, Definitions> & {
+    name: string
+    /**
+     * All of these are `undefined` at runtime, purely to be used in TypeScript declarations!
+     */
+    Types: NonNullable<Definition['Types']>
+  }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export interface ApiEndpointMutation<
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+export type ApiEndpointMutation<
   Definition extends MutationDefinition<any, any, any, any, any>,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Definitions extends EndpointDefinitions,
-> extends BuildThunksApiEndpointMutation<Definition>,
-    BuildInitiateApiEndpointMutation<Definition>,
-    BuildSelectorsApiEndpointMutation<Definition, Definitions> {
-  name: string
-  /**
-   * All of these are `undefined` at runtime, purely to be used in TypeScript declarations!
-   */
-  Types: NonNullable<Definition['Types']>
-}
+> = BuildThunksApiEndpointMutation<Definition> &
+  BuildInitiateApiEndpointMutation<Definition> &
+  BuildSelectorsApiEndpointMutation<Definition, Definitions> & {
+    name: string
+    /**
+     * All of these are `undefined` at runtime, purely to be used in TypeScript declarations!
+     */
+    Types: NonNullable<Definition['Types']>
+  }
 
 export type ListenerActions = {
   /**
@@ -442,7 +438,7 @@ export type ListenerActions = {
 
 export type InternalActions = SliceActions & ListenerActions
 
-export interface CoreModuleOptions {
+export type CoreModuleOptions = {
   /**
    * A selector creator (usually from `reselect`, or matching the same signature)
    */
@@ -600,7 +596,7 @@ export const coreModule = ({
       injectEndpoint(endpointName, definition) {
         const anyApi = api as any as Api<
           any,
-          Record<string, any>,
+          AnyObject,
           string,
           string,
           CoreModule

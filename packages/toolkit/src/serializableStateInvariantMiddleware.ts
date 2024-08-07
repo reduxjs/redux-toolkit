@@ -23,21 +23,21 @@ export function isPlain(val: any) {
   )
 }
 
-interface NonSerializableValue {
+type NonSerializableValue = {
   keyPath: string
   value: unknown
 }
 
-export type IgnorePaths = readonly (string | RegExp)[]
+export type IgnorePaths = ReadonlyArray<string | RegExp>
 
 /**
  * @public
  */
 export function findNonSerializableValue(
   value: unknown,
-  path: string = '',
+  path = '',
   isSerializable: (value: unknown) => boolean = isPlain,
-  getEntries?: (value: unknown) => [string, any][],
+  getEntries?: (value: unknown) => Array<[string, any]>,
   ignoredPaths: IgnorePaths = [],
   cache?: WeakSet<object>,
 ): NonSerializableValue | false {
@@ -120,7 +120,7 @@ export function isNestedFrozen(value: object) {
  *
  * @public
  */
-export interface SerializableStateInvariantMiddlewareOptions {
+export type SerializableStateInvariantMiddlewareOptions = {
   /**
    * The function to check if a value is considered serializable. This
    * function is applied recursively to every value contained in the
@@ -132,7 +132,7 @@ export interface SerializableStateInvariantMiddlewareOptions {
    * value.  If unspecified, `Object.entries` will be used. Defaults
    * to `undefined`.
    */
-  getEntries?: (value: any) => [string, any][]
+  getEntries?: (value: any) => Array<[string, any]>
 
   /**
    * An array of action types to ignore when checking for serializability.
@@ -145,13 +145,13 @@ export interface SerializableStateInvariantMiddlewareOptions {
    * when checking for serializability, Defaults to
    * ['meta.arg', 'meta.baseQueryMeta']
    */
-  ignoredActionPaths?: (string | RegExp)[]
+  ignoredActionPaths?: Array<string | RegExp>
 
   /**
    * An array of dot-separated path strings or regular expressions to ignore
    * when checking for serializability, Defaults to []
    */
-  ignoredPaths?: (string | RegExp)[]
+  ignoredPaths?: Array<string | RegExp>
   /**
    * Execution time warning threshold. If the middleware takes longer
    * than `warnAfter` ms, a warning will be displayed in the console.

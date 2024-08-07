@@ -1,10 +1,14 @@
 import type { Dispatch, UnknownAction } from 'redux'
 import type { ThunkDispatch } from 'redux-thunk'
-import type { ActionCreatorWithPreparedPayload } from './createAction'
+import type {
+  ActionCreatorWithPreparedPayload,
+  PayloadAction,
+} from './createAction'
 import { createAction } from './createAction'
 import { isAnyOf } from './matchers'
 import { nanoid } from './nanoid'
 import type {
+  EmptyObject,
   FallbackIfUnknown,
   Id,
   IsAny,
@@ -47,7 +51,7 @@ export type BaseThunkAPI<
 /**
  * @public
  */
-export interface SerializedError {
+export type SerializedError = {
   name?: string
   message?: string
   stack?: string
@@ -213,7 +217,7 @@ export type AsyncThunkPayloadCreatorReturnValue<
 export type AsyncThunkPayloadCreator<
   Returned,
   ThunkArg = void,
-  ThunkApiConfig extends AsyncThunkConfig = {},
+  ThunkApiConfig extends AsyncThunkConfig = EmptyObject,
 > = (
   arg: ThunkArg,
   thunkAPI: GetThunkAPI<ThunkApiConfig>,
@@ -286,7 +290,7 @@ type AsyncThunkActionCreator<
  */
 export type AsyncThunkOptions<
   ThunkArg = void,
-  ThunkApiConfig extends AsyncThunkConfig = {},
+  ThunkApiConfig extends AsyncThunkConfig = EmptyObject,
 > = {
   /**
    * A method to control whether the asyncThunk should be executed. Has access to the
@@ -348,7 +352,7 @@ export type AsyncThunkOptions<
 
 export type AsyncThunkPendingActionCreator<
   ThunkArg,
-  ThunkApiConfig = {},
+  ThunkApiConfig extends AsyncThunkConfig = EmptyObject,
 > = ActionCreatorWithPreparedPayload<
   [string, ThunkArg, GetPendingMeta<ThunkApiConfig>?],
   undefined,
@@ -363,7 +367,7 @@ export type AsyncThunkPendingActionCreator<
 
 export type AsyncThunkRejectedActionCreator<
   ThunkArg,
-  ThunkApiConfig = {},
+  ThunkApiConfig extends AsyncThunkConfig = EmptyObject,
 > = ActionCreatorWithPreparedPayload<
   [
     Error | null,
@@ -392,7 +396,7 @@ export type AsyncThunkRejectedActionCreator<
 export type AsyncThunkFulfilledActionCreator<
   Returned,
   ThunkArg,
-  ThunkApiConfig = {},
+  ThunkApiConfig extends AsyncThunkConfig = EmptyObject,
 > = ActionCreatorWithPreparedPayload<
   [Returned, string, ThunkArg, GetFulfilledMeta<ThunkApiConfig>?],
   Returned,
@@ -511,7 +515,7 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
       ThunkArg,
       ThunkApiConfig
     > = createAction(
-      typePrefix + '/fulfilled',
+      `${typePrefix}/fulfilled`,
       (
         payload: Returned,
         requestId: string,
@@ -530,7 +534,7 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
 
     const pending: AsyncThunkPendingActionCreator<ThunkArg, ThunkApiConfig> =
       createAction(
-        typePrefix + '/pending',
+        `${typePrefix}/pending`,
         (requestId: string, arg: ThunkArg, meta?: PendingMeta) => ({
           payload: undefined,
           meta: {
@@ -544,7 +548,7 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
 
     const rejected: AsyncThunkRejectedActionCreator<ThunkArg, ThunkApiConfig> =
       createAction(
-        typePrefix + '/rejected',
+        `${typePrefix}/rejected`,
         (
           error: Error | null,
           requestId: string,
@@ -553,7 +557,7 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
           meta?: RejectedMeta,
         ) => ({
           payload,
-          error: ((options && options.serializeError) || miniSerializeError)(
+          error: (options?.serializeError || miniSerializeError)(
             error || 'Rejected',
           ) as GetSerializedErrorType<ThunkApiConfig>,
           meta: {
@@ -594,7 +598,6 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
             }
 
             if (conditionResult === false || abortController.signal.aborted) {
-              // eslint-disable-next-line no-throw-literal
               throw {
                 name: 'ConditionError',
                 message: 'Aborted due to condition callback returning false.',
@@ -707,7 +710,7 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
   return createAsyncThunk as CreateAsyncThunk<AsyncThunkConfig>
 })()
 
-interface UnwrappableAction {
+type UnwrappableAction = {
   payload: any
   meta?: any
   error?: any

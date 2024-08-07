@@ -1,3 +1,4 @@
+import { setupApiStore } from '@internal/tests/utils/helpers'
 import { createApi } from '@reduxjs/toolkit/query/react'
 import {
   act,
@@ -7,8 +8,6 @@ import {
   waitFor,
 } from '@testing-library/react'
 import { delay } from 'msw'
-import { vi } from 'vitest'
-import { setupApiStore } from '../../tests/utils/helpers'
 
 describe('fixedCacheKey', () => {
   const onNewCacheEntry = vi.fn()
@@ -41,7 +40,12 @@ describe('fixedCacheKey', () => {
         <div data-testid="status">{result.status}</div>
         <div data-testid="data">{result.data}</div>
         <div data-testid="originalArgs">{String(result.originalArgs)}</div>
-        <button data-testid="trigger" onClick={() => trigger(value)}>
+        <button
+          data-testid="trigger"
+          onClick={() => {
+            void trigger(value)
+          }}
+        >
           trigger
         </button>
         <button data-testid="reset" onClick={result.reset}>
@@ -275,7 +279,7 @@ describe('fixedCacheKey', () => {
     render(<Component name="C1" />, {
       wrapper: storeRef.wrapper,
     })
-    let c1 = screen.getByTestId('C1')
+    const c1 = screen.getByTestId('C1')
     expect(getByTestId(c1, 'status').textContent).toBe('uninitialized')
     expect(getByTestId(c1, 'originalArgs').textContent).toBe('undefined')
 
@@ -287,15 +291,15 @@ describe('fixedCacheKey', () => {
     expect(getByTestId(c1, 'originalArgs').textContent).toBe('C1')
   })
 
-  test('a component with `fixedCacheKey` does never have `originalArgs`', async () => {
+  test('a component with `fixedCacheKey` does never have `originalArgs`', () => {
     render(<Component name="C1" fixedCacheKey="test" />, {
       wrapper: storeRef.wrapper,
     })
-    let c1 = screen.getByTestId('C1')
+    const c1 = screen.getByTestId('C1')
     expect(getByTestId(c1, 'status').textContent).toBe('uninitialized')
     expect(getByTestId(c1, 'originalArgs').textContent).toBe('undefined')
 
-    await act(async () => {
+    act(() => {
       getByTestId(c1, 'trigger').click()
     })
 
@@ -303,7 +307,8 @@ describe('fixedCacheKey', () => {
   })
 
   test('using `fixedCacheKey` will always use the latest dispatched thunk, prevent races', async () => {
-    let resolve1: (str: string) => void, resolve2: (str: string) => void
+    let resolve1: (str: string) => void
+    let resolve2: (str: string) => void
     const p1 = new Promise<string>((resolve) => {
       resolve1 = resolve
     })
@@ -371,7 +376,7 @@ describe('fixedCacheKey', () => {
       wrapper: storeRef.wrapper,
     })
 
-    let c1 = screen.getByTestId('C1')
+    const c1 = screen.getByTestId('C1')
 
     expect(getByTestId(c1, 'status').textContent).toBe('uninitialized')
     expect(getByTestId(c1, 'originalArgs').textContent).toBe('undefined')

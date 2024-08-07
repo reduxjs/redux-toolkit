@@ -1,9 +1,11 @@
 import { isAction } from 'redux'
 import type {
-  IsUnknownOrNonInferrable,
+  AnyFunction,
+  AnyNonNullishValue,
   IfMaybeUndefined,
   IfVoid,
   IsAny,
+  IsUnknownOrNonInferrable,
 } from './tsHelpers'
 import { hasMatchFunction } from './tsHelpers'
 
@@ -27,12 +29,12 @@ export type PayloadAction<
   payload: P
   type: T
 } & ([M] extends [never]
-  ? {}
+  ? AnyNonNullishValue
   : {
       meta: M
     }) &
   ([E] extends [never]
-    ? {}
+    ? AnyNonNullishValue
     : {
         error: E
       })
@@ -100,20 +102,19 @@ export type BaseActionCreator<P, T extends string, M = never, E = never> = {
  *
  * @public
  */
-export interface ActionCreatorWithPreparedPayload<
+export type ActionCreatorWithPreparedPayload<
   Args extends unknown[],
   P,
   T extends string = string,
   E = never,
   M = never,
-> extends BaseActionCreator<P, T, M, E> {
+> = BaseActionCreator<P, T, M, E> &
   /**
    * Calling this {@link redux#ActionCreator} with `Args` will return
    * an Action with a payload of type `P` and (depending on the `PrepareAction`
    * method used) a `meta`- and `error` property of types `M` and `E` respectively.
    */
-  (...args: Args): PayloadAction<P, T, M, E>
-}
+  ((...args: Args) => PayloadAction<P, T, M, E>)
 
 /**
  * An action creator of type `T` that takes an optional payload of type `P`.
@@ -122,15 +123,16 @@ export interface ActionCreatorWithPreparedPayload<
  *
  * @public
  */
-export interface ActionCreatorWithOptionalPayload<P, T extends string = string>
-  extends BaseActionCreator<P, T> {
+export type ActionCreatorWithOptionalPayload<
+  P,
+  T extends string = string,
+> = BaseActionCreator<P, T> &
   /**
    * Calling this {@link redux#ActionCreator} with an argument will
    * return a {@link PayloadAction} of type `T` with a payload of `P`.
    * Calling it without an argument will return a PayloadAction with a payload of `undefined`.
    */
-  (payload?: P): PayloadAction<P, T>
-}
+  ((payload?: P) => PayloadAction<P, T>)
 
 /**
  * An action creator of type `T` that takes no payload.
@@ -139,14 +141,13 @@ export interface ActionCreatorWithOptionalPayload<P, T extends string = string>
  *
  * @public
  */
-export interface ActionCreatorWithoutPayload<T extends string = string>
-  extends BaseActionCreator<undefined, T> {
-  /**
-   * Calling this {@link redux#ActionCreator} will
-   * return a {@link PayloadAction} of type `T` with a payload of `undefined`
-   */
-  (noArgument: void): PayloadAction<undefined, T>
-}
+export type ActionCreatorWithoutPayload<T extends string = string> =
+  BaseActionCreator<undefined, T> &
+    /**
+     * Calling this {@link redux#ActionCreator} will
+     * return a {@link PayloadAction} of type `T` with a payload of `undefined`
+     */
+    ((noArgument: void) => PayloadAction<undefined, T>)
 
 /**
  * An action creator of type `T` that requires a payload of type P.
@@ -155,14 +156,15 @@ export interface ActionCreatorWithoutPayload<T extends string = string>
  *
  * @public
  */
-export interface ActionCreatorWithPayload<P, T extends string = string>
-  extends BaseActionCreator<P, T> {
+export type ActionCreatorWithPayload<
+  P,
+  T extends string = string,
+> = BaseActionCreator<P, T> &
   /**
    * Calling this {@link redux#ActionCreator} with an argument will
    * return a {@link PayloadAction} of type `T` with a payload of `P`
    */
-  (payload: P): PayloadAction<P, T>
-}
+  ((payload: P) => PayloadAction<P, T>)
 
 /**
  * An action creator of type `T` whose `payload` type could not be inferred. Accepts everything as `payload`.
@@ -171,16 +173,14 @@ export interface ActionCreatorWithPayload<P, T extends string = string>
  *
  * @public
  */
-export interface ActionCreatorWithNonInferrablePayload<
-  T extends string = string,
-> extends BaseActionCreator<unknown, T> {
-  /**
-   * Calling this {@link redux#ActionCreator} with an argument will
-   * return a {@link PayloadAction} of type `T` with a payload
-   * of exactly the type of the argument.
-   */
-  <PT extends unknown>(payload: PT): PayloadAction<PT, T>
-}
+export type ActionCreatorWithNonInferrablePayload<T extends string = string> =
+  BaseActionCreator<unknown, T> &
+    /**
+     * Calling this {@link redux#ActionCreator} with an argument will
+     * return a {@link PayloadAction} of type `T` with a payload
+     * of exactly the type of the argument.
+     */
+    (<PT>(payload: PT) => PayloadAction<PT, T>)
 
 /**
  * An action creator that produces actions with a `payload` attribute.
@@ -257,10 +257,10 @@ export function createAction<
   prepareAction: PA,
 ): PayloadActionCreator<ReturnType<PA>['payload'], T, PA>
 
-export function createAction(type: string, prepareAction?: Function): any {
+export function createAction(type: string, prepareAction?: AnyFunction): any {
   function actionCreator(...args: any[]) {
     if (prepareAction) {
-      let prepared = prepareAction(...args)
+      const prepared = prepareAction(...args)
       if (!prepared) {
         throw new Error('prepareAction did not return an object')
       }
@@ -290,7 +290,7 @@ export function createAction(type: string, prepareAction?: Function): any {
  */
 export function isActionCreator(
   action: unknown,
-): action is BaseActionCreator<unknown, string> & Function {
+): action is BaseActionCreator<unknown, string> & AnyFunction {
   return (
     typeof action === 'function' &&
     'type' in action &&

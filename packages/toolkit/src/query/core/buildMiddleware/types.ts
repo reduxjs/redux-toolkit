@@ -6,6 +6,7 @@ import type {
   ThunkDispatch,
   UnknownAction,
 } from '@reduxjs/toolkit'
+import type { AnyNonNullishValue, EmptyObject } from '../../../tsHelpers'
 import type { Api, ApiContext } from '../../apiTypes'
 import type {
   AssertTagTypes,
@@ -27,21 +28,21 @@ import type {
 export type QueryStateMeta<T> = Record<string, undefined | T>
 export type TimeoutId = ReturnType<typeof setTimeout>
 
-export interface InternalMiddlewareState {
+export type InternalMiddlewareState = {
   currentSubscriptions: SubscriptionState
 }
 
-export interface SubscriptionSelectors {
+export type SubscriptionSelectors = {
   getSubscriptions: () => SubscriptionState
   getSubscriptionCount: (queryCacheKey: string) => number
   isRequestSubscribed: (queryCacheKey: string, requestId: string) => boolean
 }
 
-export interface BuildMiddlewareInput<
+export type BuildMiddlewareInput<
   Definitions extends EndpointDefinitions,
   ReducerPath extends string,
   TagTypes extends string,
-> {
+> = {
   reducerPath: ReducerPath
   context: ApiContext<Definitions>
   queryThunk: QueryThunk
@@ -55,8 +56,11 @@ export type SubMiddlewareApi = MiddlewareAPI<
   RootState<EndpointDefinitions, string, string>
 >
 
-export interface BuildSubMiddlewareInput
-  extends BuildMiddlewareInput<EndpointDefinitions, string, string> {
+export type BuildSubMiddlewareInput = BuildMiddlewareInput<
+  EndpointDefinitions,
+  string,
+  string
+> & {
   internalState: InternalMiddlewareState
   refetchQuery(
     querySubState: Exclude<
@@ -65,14 +69,14 @@ export interface BuildSubMiddlewareInput
     >,
     queryCacheKey: string,
     override?: Partial<QueryThunkArg>,
-  ): AsyncThunkAction<ThunkResult, QueryThunkArg, {}>
+  ): AsyncThunkAction<ThunkResult, QueryThunkArg, EmptyObject>
   isThisApiSliceAction: (action: Action) => boolean
 }
 
 export type SubMiddlewareBuilder = (
   input: BuildSubMiddlewareInput,
 ) => Middleware<
-  {},
+  AnyNonNullishValue,
   RootState<EndpointDefinitions, string, string>,
   ThunkDispatch<any, any, UnknownAction>
 >
@@ -89,7 +93,7 @@ export type InternalHandlerBuilder<ReturnType = void> = (
   input: BuildSubMiddlewareInput,
 ) => ApiMiddlewareInternalHandler<ReturnType>
 
-export interface PromiseConstructorWithKnownReason {
+export type PromiseConstructorWithKnownReason =
   /**
    * Creates a new Promise with a known rejection reason.
    * @param executor A callback used to initialize the promise. This callback is passed two arguments:
@@ -101,8 +105,7 @@ export interface PromiseConstructorWithKnownReason {
       resolve: (value: T | PromiseLike<T>) => void,
       reject: (reason?: R) => void,
     ) => void,
-  ): PromiseWithKnownReason<T, R>
-}
+  ) => PromiseWithKnownReason<T, R>
 
 export type PromiseWithKnownReason<T, R> = Omit<
   Promise<T>,

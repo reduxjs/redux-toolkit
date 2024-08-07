@@ -4,6 +4,7 @@ import type {
   ThunkDispatch,
   UnknownAction,
 } from '@reduxjs/toolkit'
+import type { AnyNonNullishValue } from '../../../tsHelpers'
 import type {
   EndpointDefinitions,
   FullTagDescription,
@@ -64,7 +65,7 @@ export function buildMiddleware<
   ]
 
   const middleware: Middleware<
-    {},
+    AnyNonNullishValue,
     RootState<Definitions, string, ReducerPath>,
     ThunkDispatch<any, any, UnknownAction>
   > = (mwApi) => {
@@ -116,7 +117,7 @@ export function buildMiddleware<
           res = internalProbeResult
         }
 
-        if (!!mwApi.getState()[reducerPath]) {
+        if (mwApi.getState()[reducerPath]) {
           // Only run these checks if the middleware is registered okay
 
           // This looks for actions that aren't specific to the API slice

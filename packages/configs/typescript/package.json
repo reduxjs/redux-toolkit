@@ -1,0 +1,38 @@
+{
+  "name": "@reduxjs/tsconfig",
+  "version": "0.0.1",
+  "description": "TypeScript configuration for Redux projects",
+  "main": "base/tsconfig.json",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": "./base/tsconfig.json",
+    "./node-next": "./node-next/tsconfig.json",
+    "./base": "./base/tsconfig.json"
+  },
+  "keywords": [
+    "config",
+    "reduxjs",
+    "redux-toolkit",
+    "tsconfig",
+    "typescript",
+    "ts",
+    "configuration"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/reduxjs/redux-toolkit.git",
+    "directory": "packages/configs/typescript"
+  },
+  "bugs": {
+    "url": "https://github.com/reduxjs/redux-toolkit/issues"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
+  },
+  "sideEffects": false
+}

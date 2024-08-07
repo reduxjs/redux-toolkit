@@ -1,14 +1,14 @@
-import { createApi } from '@reduxjs/toolkit/query/react'
-import { act, renderHook } from '@testing-library/react'
-import { delay } from 'msw'
 import {
   actionsReducer,
   hookWaitFor,
   setupApiStore,
-} from '../../tests/utils/helpers'
+} from '@internal/tests/utils/helpers'
+import { createApi } from '@reduxjs/toolkit/query/react'
+import { act, renderHook } from '@testing-library/react'
+import { delay } from 'msw'
 import type { InvalidationState } from '../core/apiState'
 
-interface Post {
+type Post = {
   id: string
   title: string
   contents: string
@@ -65,7 +65,7 @@ const storeRef = setupApiStore(api, {
 })
 
 describe('basic lifecycle', () => {
-  let onStart = vi.fn(),
+  const onStart = vi.fn(),
     onError = vi.fn(),
     onSuccess = vi.fn()
 

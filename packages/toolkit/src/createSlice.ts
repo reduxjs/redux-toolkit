@@ -25,7 +25,13 @@ import type {
 import { createReducer } from './createReducer'
 import type { ActionReducerMapBuilder, TypedActionCreator } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
-import type { Id, TypeGuard } from './tsHelpers'
+import type {
+  AnyFunction,
+  AnyNonNullishValue,
+  EmptyObject,
+  Id,
+  TypeGuard,
+} from './tsHelpers'
 import { emplace } from './utils'
 
 const asyncThunkSymbol = /* @__PURE__ */ Symbol.for(
@@ -47,6 +53,7 @@ type InjectIntoConfig<NewReducerPath extends string> = InjectConfig & {
  *
  * @public
  */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export interface Slice<
   State = any,
   CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
@@ -183,13 +190,13 @@ type InjectedSlice<
  *
  * @public
  */
-export interface CreateSliceOptions<
+export type CreateSliceOptions<
   State = any,
   CR extends SliceCaseReducers<State> = SliceCaseReducers<State>,
   Name extends string = string,
   ReducerPath extends string = Name,
   Selectors extends SliceSelectors<State> = SliceSelectors<State>,
-> {
+> = {
   /**
    * The slice's name. Used to namespace the generated action types.
    */
@@ -289,17 +296,17 @@ export type CaseReducerWithPrepare<State, Action extends PayloadAction> = {
   prepare: PrepareAction<Action['payload']>
 }
 
-export interface CaseReducerWithPrepareDefinition<
+export type CaseReducerWithPrepareDefinition<
   State,
   Action extends PayloadAction,
-> extends CaseReducerWithPrepare<State, Action>,
-    ReducerDefinition<ReducerType.reducerWithPrepare> {}
+> = CaseReducerWithPrepare<State, Action> &
+  ReducerDefinition<ReducerType.reducerWithPrepare>
 
 type AsyncThunkSliceReducerConfig<
   State,
-  ThunkArg extends any,
+  ThunkArg,
   Returned = unknown,
-  ThunkApiConfig extends AsyncThunkConfig = {},
+  ThunkApiConfig extends AsyncThunkConfig = EmptyObject,
 > = {
   pending?: CaseReducer<
     State,
@@ -324,9 +331,9 @@ type AsyncThunkSliceReducerConfig<
 
 type AsyncThunkSliceReducerDefinition<
   State,
-  ThunkArg extends any,
+  ThunkArg,
   Returned = unknown,
-  ThunkApiConfig extends AsyncThunkConfig = {},
+  ThunkApiConfig extends AsyncThunkConfig = EmptyObject,
 > = AsyncThunkSliceReducerConfig<State, ThunkArg, Returned, ThunkApiConfig> &
   ReducerDefinition<ReducerType.asyncThunk> & {
     payloadCreator: AsyncThunkPayloadCreator<Returned, ThunkArg, ThunkApiConfig>
@@ -341,11 +348,11 @@ type PreventCircular<ThunkApiConfig> = {
     : ThunkApiConfig[K]
 }
 
-interface AsyncThunkCreator<
+type AsyncThunkCreator<
   State,
   CurriedThunkApiConfig extends
     PreventCircular<AsyncThunkConfig> = PreventCircular<AsyncThunkConfig>,
-> {
+> = {
   <Returned, ThunkArg = void>(
     payloadCreator: AsyncThunkPayloadCreator<
       Returned,
@@ -367,7 +374,7 @@ interface AsyncThunkCreator<
   <
     Returned,
     ThunkArg,
-    ThunkApiConfig extends PreventCircular<AsyncThunkConfig> = {},
+    ThunkApiConfig extends PreventCircular<AsyncThunkConfig> = EmptyObject,
   >(
     payloadCreator: AsyncThunkPayloadCreator<
       Returned,
@@ -389,7 +396,7 @@ interface AsyncThunkCreator<
   >
 }
 
-export interface ReducerCreators<State> {
+export type ReducerCreators<State> = {
   reducer(
     caseReducer: CaseReducer<State, PayloadAction>,
   ): CaseReducerDefinition<State, PayloadAction>
@@ -431,9 +438,10 @@ export type SliceCaseReducers<State> =
 /**
  * The type describing a slice's `selectors` option.
  */
-export type SliceSelectors<State> = {
-  [K: string]: (sliceState: State, ...args: any[]) => any
-}
+export type SliceSelectors<State> = Record<
+  string,
+  (sliceState: State, ...args: any[]) => any
+>
 
 type SliceActionType<
   SliceName extends string,
@@ -564,14 +572,14 @@ export type ValidateSliceCaseReducers<
     ? {
         prepare(...a: never[]): Omit<A, 'type'>
       }
-    : {}
+    : AnyNonNullishValue
 }
 
 function getType(slice: string, actionKey: string): string {
   return `${slice}/${actionKey}`
 }
 
-interface BuildCreateSliceConfig {
+type BuildCreateSliceConfig = {
   creators?: {
     asyncThunk?: typeof asyncThunkCreator
   }
@@ -707,13 +715,13 @@ export function buildCreateSlice({ creators }: BuildCreateSliceConfig = {}) {
       }
 
       return createReducer(options.initialState, (builder) => {
-        for (let key in finalCaseReducers) {
+        for (const key in finalCaseReducers) {
           builder.addCase(key, finalCaseReducers[key] as CaseReducer<any>)
         }
-        for (let sM of context.sliceMatchers) {
+        for (const sM of context.sliceMatchers) {
           builder.addMatcher(sM.matcher, sM.reducer)
         }
-        for (let m of actionMatchers) {
+        for (const m of actionMatchers) {
           builder.addMatcher(m.matcher, m.reducer)
         }
         if (defaultCaseReducer) {
@@ -853,7 +861,7 @@ function wrapSelector<State, NewState, S extends Selector<State>>(
  */
 export const createSlice = /* @__PURE__ */ buildCreateSlice()
 
-interface ReducerHandlingContext<State> {
+type ReducerHandlingContext<State> = {
   sliceCaseReducersByName: Record<
     string,
     | CaseReducer<State, any>
@@ -864,10 +872,10 @@ interface ReducerHandlingContext<State> {
   >
   sliceCaseReducersByType: Record<string, CaseReducer<State, any>>
   sliceMatchers: ActionMatcherDescriptionCollection<State>
-  actionCreators: Record<string, Function>
+  actionCreators: Record<string, AnyFunction>
 }
 
-interface ReducerHandlingContextMethods<State> {
+type ReducerHandlingContextMethods<State> = {
   /**
    * Adds a case reducer to handle a single action type.
    * @param actionCreator - Either a plain action type string, or an action creator generated by [`createAction`](./createAction) that can be used to determine the action type.
@@ -915,7 +923,7 @@ interface ReducerHandlingContextMethods<State> {
    */
   exposeAction(
     name: string,
-    actionCreator: Function,
+    actionCreator: AnyFunction,
   ): ReducerHandlingContextMethods<State>
   /**
    * Add a case reducer to be exposed under the final `slice.caseReducers` key.
@@ -939,7 +947,7 @@ interface ReducerHandlingContextMethods<State> {
   ): ReducerHandlingContextMethods<State>
 }
 
-interface ReducerDetails {
+type ReducerDetails = {
   /** The key the reducer was defined under */
   reducerName: string
   /** The predefined action type, i.e. `${slice.name}/${reducerName}` */
@@ -1072,4 +1080,6 @@ function handleThunkCaseReducerDefinition<State>(
   })
 }
 
-function noop() {}
+function noop() {
+  /** No-Op */
+}

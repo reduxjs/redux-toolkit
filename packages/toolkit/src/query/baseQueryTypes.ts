@@ -1,7 +1,8 @@
 import type { ThunkDispatch } from '@reduxjs/toolkit'
+import type { AnyObject } from '../tsHelpers'
 import type { MaybePromise, UnwrapPromise } from './tsHelpers'
 
-export interface BaseQueryApi {
+export type BaseQueryApi = {
   signal: AbortSignal
   abort: (reason?: string) => void
   dispatch: ThunkDispatch<any, any, any>
@@ -36,8 +37,8 @@ export type BaseQueryFn<
   Args = any,
   Result = unknown,
   Error = unknown,
-  DefinitionExtraOptions = {},
-  Meta = {},
+  DefinitionExtraOptions = AnyObject,
+  Meta = AnyObject,
 > = (
   args: Args,
   api: BaseQueryApi,

@@ -1,4 +1,5 @@
 import { createListenerEntry } from '@internal/listenerMiddleware'
+import { noop } from '@internal/tests/utils/helpers'
 import type {
   Action,
   PayloadAction,
@@ -21,7 +22,7 @@ const { startListening } = listenerMiddleware
 
 const addTypedListenerAction = addListener as TypedAddListener<CounterState>
 
-interface CounterState {
+type CounterState = {
   value: number
 }
 
@@ -89,7 +90,7 @@ describe('type tests', () => {
     const unsubscribe = store.dispatch(
       addListener({
         actionCreator: testAction1,
-        effect: () => {},
+        effect: noop,
       }),
     )
 
@@ -168,7 +169,9 @@ describe('type tests', () => {
 
         return true
       },
-      effect: (action, listenerApi) => {},
+      effect: (action, listenerApi) => {
+        /** No-Op */
+      },
     })
 
     startListening({

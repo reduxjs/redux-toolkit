@@ -2,18 +2,26 @@ import type { Context } from 'react'
 import type { ReactReduxContextValue } from 'react-redux'
 import type { Action, Middleware, UnknownAction } from 'redux'
 import type { ThunkDispatch } from 'redux-thunk'
+import type { AnyNonNullishValue } from '../../tsHelpers'
 import { createDynamicMiddleware } from '../react'
 
-interface AppDispatch extends ThunkDispatch<number, undefined, UnknownAction> {
-  (n: 1): 1
-}
+type AppDispatch = ThunkDispatch<number, undefined, UnknownAction> &
+  ((n: 1) => 1)
 
 const untypedInstance = createDynamicMiddleware()
 
 const typedInstance = createDynamicMiddleware<number, AppDispatch>()
 
-declare const compatibleMiddleware: Middleware<{}, number, AppDispatch>
-declare const incompatibleMiddleware: Middleware<{}, string, AppDispatch>
+declare const compatibleMiddleware: Middleware<
+  AnyNonNullishValue,
+  number,
+  AppDispatch
+>
+declare const incompatibleMiddleware: Middleware<
+  AnyNonNullishValue,
+  string,
+  AppDispatch
+>
 
 declare const customContext: Context<ReactReduxContextValue | null>
 

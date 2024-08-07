@@ -109,11 +109,15 @@ const initialSubState: QuerySubState<any> = {
 // abuse immer to freeze default states
 const defaultQuerySubState = /* @__PURE__ */ createNextState(
   initialSubState,
-  () => {},
+  () => {
+    /** No-Op */
+  },
 )
 const defaultMutationSubState = /* @__PURE__ */ createNextState(
   initialSubState as MutationSubState<any>,
-  () => {},
+  () => {
+    /** No-Op */
+  },
 )
 
 export function buildSelectors<
@@ -219,7 +223,7 @@ export function buildSelectors<
         continue
       }
 
-      let invalidateSubscriptions =
+      const invalidateSubscriptions =
         (tag.id !== undefined
           ? // id given: invalidate all queries that provide this type & id
             provided[tag.id]

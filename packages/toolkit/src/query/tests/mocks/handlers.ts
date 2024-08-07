@@ -14,7 +14,7 @@ export const posts: Record<string, Post> = {
 export const handlers = [
   http.get(
     'https://example.com/echo',
-    async ({ request, params, cookies, requestId }) => {
+    ({ request, params, cookies, requestId }) => {
       return HttpResponse.json({
         ...request,
         params,

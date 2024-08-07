@@ -24,7 +24,7 @@ export type AddMiddleware<
   State = any,
   DispatchType extends Dispatch<UnknownAction> = Dispatch<UnknownAction>,
 > = {
-  (...middlewares: Middleware<any, State, DispatchType>[]): void
+  (...middlewares: Array<Middleware<any, State, DispatchType>>): void
   withTypes<MiddlewareConfig extends MiddlewareApiConfig>(): AddMiddleware<
     GetState<MiddlewareConfig>,
     GetDispatchType<MiddlewareConfig>
@@ -35,11 +35,11 @@ export type WithMiddleware<
   State = any,
   DispatchType extends Dispatch<UnknownAction> = Dispatch<UnknownAction>,
 > = BaseActionCreator<
-  Middleware<any, State, DispatchType>[],
+  Array<Middleware<any, State, DispatchType>>,
   'dynamicMiddleware/add',
   { instanceId: string }
 > & {
-  <Middlewares extends Middleware<any, State, DispatchType>[]>(
+  <Middlewares extends Array<Middleware<any, State, DispatchType>>>(
     ...middlewares: Middlewares
   ): PayloadAction<Middlewares, 'dynamicMiddleware/add', { instanceId: string }>
   withTypes<MiddlewareConfig extends MiddlewareApiConfig>(): WithMiddleware<
@@ -48,10 +48,12 @@ export type WithMiddleware<
   >
 }
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export interface DynamicDispatch {
   // return a version of dispatch that knows about middleware
-  <Middlewares extends Middleware<any>[]>(
+  <Middlewares extends Array<Middleware<any>>>(
     action: PayloadAction<Middlewares, 'dynamicMiddleware/add'>,
+    // eslint-disable-next-line @typescript-eslint/prefer-function-type
   ): ExtractDispatchExtensions<Middlewares> & this
 }
 

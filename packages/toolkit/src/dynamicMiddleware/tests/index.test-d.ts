@@ -1,10 +1,12 @@
 import type { Action, Middleware, UnknownAction } from 'redux'
 import type { ThunkDispatch } from 'redux-thunk'
 import { configureStore } from '../../configureStore'
+import type { AnyNonNullishValue } from '../../tsHelpers'
 import { createDynamicMiddleware } from '../index'
 
 const untypedInstance = createDynamicMiddleware()
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 interface AppDispatch extends ThunkDispatch<number, undefined, UnknownAction> {
   (n: 1): 1
 }
@@ -19,8 +21,16 @@ const store = configureStore({
     gDM().prepend(typedInstance.middleware).concat(staticMiddleware),
 })
 
-declare const compatibleMiddleware: Middleware<{}, number, AppDispatch>
-declare const incompatibleMiddleware: Middleware<{}, string, AppDispatch>
+declare const compatibleMiddleware: Middleware<
+  AnyNonNullishValue,
+  number,
+  AppDispatch
+>
+declare const incompatibleMiddleware: Middleware<
+  AnyNonNullishValue,
+  string,
+  AppDispatch
+>
 
 declare const addedMiddleware: Middleware<(n: 2) => 2>
 
