@@ -1,7 +1,6 @@
 /**
  * Note: this file should import all other files for type discovery and declaration merging
  */
-import type { AnyNonNullishValue, AnyObject } from '@internal/tsHelpers'
 import type {
   ActionCreatorWithPayload,
   Middleware,
@@ -11,6 +10,7 @@ import type {
   UnknownAction,
 } from '@reduxjs/toolkit'
 import { enablePatches } from 'immer'
+import type { AnyNonNullishValue, AnyObject } from '../../tsHelpers'
 import type { Api, Module } from '../apiTypes'
 import type { BaseQueryFn } from '../baseQueryTypes'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
