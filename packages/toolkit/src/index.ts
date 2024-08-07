@@ -121,6 +121,7 @@ export type {
 
 export {
   createAsyncThunk,
+  createAsyncThunkCreator,
   unwrapResult,
   miniSerializeError,
 } from './createAsyncThunk'

@@ -769,3 +769,54 @@ const UsersComponent = (props: { id: string }) => {
   // render UI here
 }
 ```
+
+## `createAsyncThunkCreator`
+
+### Options
+
+An object with the following optional fields:
+
+- `serializeError(error: any, defaultSerializer: (error: any) => GetSerializedErrorType<ThunkApiConfig>) => GetSerializedErrorType<ThunkApiConfig>` to replace or extend the default internal serializer method with your own serialization logic.
+
+### Return Value
+
+`createAsyncThunkCreator` returns a Redux thunk action creator with customized options. Currently, the only option is `serializeError`.
+
+### Example
+
+```ts no-transpile
+import { createAsyncThunkCreator } from '@reduxjs/toolkit'
+
+export interface AppSerializedError extends SerializedError {
+  isAxiosError?: boolean
+}
+
+type ThunkApiConfig = {
+  state: RootState
+  serializedErrorType: AppSerializedError
+}
+
+const createAppAsyncThunkCreator = createAsyncThunkCreator<ThunkApiConfig>({
+  serializeError(error, defaultSerializer) {
+    const serializedError = defaultSerializer(error)
+    serializedError.isAxiosError = error.isAxiosError
+    return serializedError
+  },
+})
+
+function createAppAsyncThunk<
+  Returned,
+  ThunkArg = void,
+  T extends ThunkApiConfig = ThunkApiConfig,
+>(
+  typePrefix: string,
+  payloadCreator: AsyncThunkPayloadCreator<Returned, ThunkArg, T>,
+  options?: AsyncThunkOptions<ThunkArg, T>,
+): AsyncThunk<Returned, ThunkArg, T> {
+  return createAppAsyncThunkCreator<Returned, ThunkArg, T>(
+    typePrefix,
+    payloadCreator,
+    options,
+  )
+}
+```
