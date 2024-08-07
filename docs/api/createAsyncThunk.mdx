@@ -776,7 +776,7 @@ const UsersComponent = (props: { id: string }) => {
 
 An object with the following optional fields:
 
-- `serializeError(error: any, defaultSerializer: (error: any) => GetSerializedErrorType<ThunkApiConfig>) => GetSerializedErrorType<ThunkApiConfig>` to replace or extend the default internal serializer method with your own serialization logic.
+- `serializeError(error: any, defaultSerializer: (error: any) => SerializedError) => GetSerializedErrorType<ThunkApiConfig>` to replace or extend the default internal serializer method with your own serialization logic.
 
 ### Return Value
 
@@ -798,7 +798,7 @@ type ThunkApiConfig = {
 
 const createAppAsyncThunkCreator = createAsyncThunkCreator<ThunkApiConfig>({
   serializeError(error, defaultSerializer) {
-    const serializedError = defaultSerializer(error)
+    const serializedError = defaultSerializer(error) as AppSerializedError
     serializedError.isAxiosError = error.isAxiosError
     return serializedError
   },

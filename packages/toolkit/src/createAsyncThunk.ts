@@ -91,9 +91,7 @@ class FulfillWithMeta<Payload, FulfilledMeta> {
  *
  * @public
  */
-export const miniSerializeError = <ThunkApiConfig extends AsyncThunkConfig>(
-  value: any,
-): GetSerializedErrorType<ThunkApiConfig> => {
+export const miniSerializeError = (value: any): SerializedError => {
   if (typeof value === 'object' && value !== null) {
     const simpleError = {} as Record<string, string>
     for (const property of commonProperties) {
@@ -102,10 +100,10 @@ export const miniSerializeError = <ThunkApiConfig extends AsyncThunkConfig>(
       }
     }
 
-    return simpleError as GetSerializedErrorType<ThunkApiConfig>
+    return simpleError
   }
 
-  return { message: String(value) } as GetSerializedErrorType<ThunkApiConfig>
+  return { message: String(value) }
 }
 
 export type AsyncThunkConfig = {
@@ -178,14 +176,11 @@ type GetRejectedMeta<ThunkApiConfig> = ThunkApiConfig extends {
   ? RejectedMeta
   : unknown
 
-type GetSerializedErrorType<
-  ThunkApiConfig,
-  T extends SerializedError = SerializedError,
-> = ThunkApiConfig extends {
+type GetSerializedErrorType<ThunkApiConfig> = ThunkApiConfig extends {
   serializedErrorType: infer GetSerializedErrorType
 }
   ? GetSerializedErrorType
-  : T
+  : SerializedError
 
 type MaybePromise<T> = T | Promise<T> | (T extends any ? Promise<T> : never)
 
@@ -566,7 +561,7 @@ function internalCreateAsyncThunkCreator<
         return creatorOptions.serializeError(x, miniSerializeError)
       }
 
-      return miniSerializeError(x)
+      return miniSerializeError(x) as GetSerializedErrorType<ThunkApiConfig>
     }
 
     const rejected: AsyncThunkRejectedActionCreator<ThunkArg, ThunkApiConfig> =
@@ -788,7 +783,7 @@ function isThenable(value: any): value is PromiseLike<any> {
  */
 type ErrorSerializer<ThunkApiConfig extends AsyncThunkConfig> = (
   error: any,
-  defaultSerializer: (error: any) => GetSerializedErrorType<ThunkApiConfig>,
+  defaultSerializer: (error: any) => SerializedError,
 ) => GetSerializedErrorType<ThunkApiConfig>
 
 /**
