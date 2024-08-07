@@ -785,7 +785,7 @@ An object with the following optional fields:
 ### Example
 
 ```ts no-transpile
-import { createAsyncThunkCreator } from '@reduxjs/toolkit'
+import { createAsyncThunkCreator, SerializedError } from '@reduxjs/toolkit'
 
 export interface AppSerializedError extends SerializedError {
   isAxiosError?: boolean
