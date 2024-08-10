@@ -1,4 +1,4 @@
-// tests for "cleanup-after-unsubscribe" behaviour
+// tests for "cleanup-after-unsubscribe" behavior
 import React from 'react'
 
 import { createListenerMiddleware } from '@reduxjs/toolkit'

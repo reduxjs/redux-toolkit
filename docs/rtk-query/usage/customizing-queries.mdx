@@ -18,7 +18,7 @@ The default method to handle queries is via the [`baseQuery`](../api/createApi#b
 
 To process queries, endpoints are defined with a [`query`](../api/createApi.mdx#query) option, which passes its return value to a common [`baseQuery`](../api/createApi#basequery) function used for the API.
 
-By default, RTK Query ships with [`fetchBaseQuery`](../api/fetchBaseQuery), which is a lightweight [`fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) wrapper that automatically handles request headers and response parsing in a manner similar to common libraries like `axios`. If `fetchBaseQuery` alone does not meet your needs, you can customize its behaviour with a wrapper function, or create your own [`baseQuery`](../api/createApi.mdx#basequery) function from scratch for [`createApi`](../api/createApi) to use.
+By default, RTK Query ships with [`fetchBaseQuery`](../api/fetchBaseQuery), which is a lightweight [`fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) wrapper that automatically handles request headers and response parsing in a manner similar to common libraries like `axios`. If `fetchBaseQuery` alone does not meet your needs, you can customize its behavior with a wrapper function, or create your own [`baseQuery`](../api/createApi.mdx#basequery) function from scratch for [`createApi`](../api/createApi) to use.
 
 See also [`baseQuery API Reference`](../api/createApi.mdx#basequery).
 
@@ -263,15 +263,15 @@ RTK Query comes with `fetchBaseQuery` out of the box, which makes it straightfor
 
 RTK Query supports defining endpoints that run arbitrary async logic and return a result. Individual endpoints on [`createApi`](../api/createApi.mdx) accept a [`queryFn`](../api/createApi.mdx#queryfn) property, which let you write your own async function with whatever logic you want inside.
 
-This can be useful for scenarios where you want to have particularly different behaviour for a single endpoint, or where the query itself is not relevant, including:
+This can be useful for scenarios where you want to have particularly different behavior for a single endpoint, or where the query itself is not relevant, including:
 
 - One-off queries that use a different base URL
 - One-off queries that use different request handling, such as automatic re-tries
-- One-off queries that use different error handling behaviour
+- One-off queries that use different error handling behavior
 - Queries that make requests using a third-party library SDK, such as Firebase or Supabase
 - Queries that perform async tasks that are not a typical request/response
 - Performing multiple requests with a single query ([example](#performing-multiple-requests-with-a-single-query))
-- Leveraging invalidation behaviour with no relevant query ([example](#using-a-no-op-queryfn))
+- Leveraging invalidation behavior with no relevant query ([example](#using-a-no-op-queryfn))
 - Using [Streaming Updates](./streaming-updates) with no relevant initial request ([example](#streaming-data-with-no-initial-request))
 
 See also [`queryFn API Reference`](../api/createApi.mdx#queryfn) for the type signature and available options.
@@ -1015,7 +1015,7 @@ const api = createApi({
     refetchPostsAndUsers: build.mutation<null, void>({
       // The query is not relevant here, so a `null` returning `queryFn` is used
       queryFn: () => ({ data: null }),
-      // This mutation takes advantage of tag invalidation behaviour to trigger
+      // This mutation takes advantage of tag invalidation behavior to trigger
       // any queries that provide the 'Post' or 'User' tags to re-fetch if the queries
       // are currently subscribed to the cached data
       invalidatesTags: ['Post', 'User'],

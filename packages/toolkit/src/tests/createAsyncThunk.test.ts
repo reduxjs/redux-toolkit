@@ -495,7 +495,7 @@ describe('createAsyncThunk with abortController', () => {
     })
   })
 
-  describe('behaviour with missing AbortController', () => {
+  describe('behavior with missing AbortController', () => {
     let keepAbortController: (typeof window)['AbortController']
     let freshlyLoadedModule: typeof import('../createAsyncThunk')
     let restore: () => void = () => {}
