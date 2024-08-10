@@ -64,7 +64,7 @@ const handler: ApiMiddlewareInternalHandler = (action, mwApi) => {
    1. invalidateTags function is called with a list of tags generated from the action metadata
    2. in the case of a [queryThunk] resolution an empty set of tags is always provided
 2. The tags calculated are added to the list of pending tags to invalidate (see [delayed](#Delayed))
-3. (optional: 'Delayed') the invalidateTags function is ended if the `apiSlice.invalidationBehaviour` is set to "delayed" and there are any pending thunks/queries running in that `apiSlice`
+3. (optional: 'Delayed') the invalidateTags function is ended if the `apiSlice.invalidationBehavior` is set to "delayed" and there are any pending thunks/queries running in that `apiSlice`
 4. Pending tags are reset to an empty list, if there are no tags the function ends here
 5. Selects all `{ endpointName, originalArgs, queryCacheKey }` combinations that would be invalidated by a specific set of tags.
 6. Iterates through queryCacheKeys selected and performs one of two actions if the query exists\*
@@ -102,7 +102,7 @@ Step 6 is performed within a `context.batch()` call.
 
 RTKQ now has internal logic to delay tag invalidation briefly, to allow multiple invalidations to get handled together. This is controlled by a new `invalidationBehavior: 'immediate' | 'delayed'` flag on `createApi`. The new default behavior is `'delayed'`. Set it to `'immediate'` to revert to the behavior in RTK 1.9.
 
-The `'delayed'` behaviour enables a check inside `invalidationByTags` that will cause any invalidation that is triggered while a query/mutation is still pending to batch the invalidation until no query/mutation is running.
+The `'delayed'` behavior enables a check inside `invalidationByTags` that will cause any invalidation that is triggered while a query/mutation is still pending to batch the invalidation until no query/mutation is running.
 
 ```ts no-transpile
 function invalidateTags(
