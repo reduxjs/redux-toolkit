@@ -152,7 +152,7 @@ export interface CreateApiOptions<
    */
   refetchOnReconnect?: boolean
   /**
-   * Defaults to `'immediately'`. This setting allows you to control when tags are invalidated after a mutation.
+   * Defaults to `'delayed'`. This setting allows you to control when tags are invalidated after a mutation.
    *
    * - `'immediately'`: Queries are invalidated instantly after the mutation finished, even if they are running.
    *   If the query provides tags that were invalidated while it ran, it won't be re-fetched.
