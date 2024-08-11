@@ -266,6 +266,9 @@ type QueryTypes<
   ReducerPath: ReducerPath
 }
 
+/**
+ * @public
+ */
 export interface QueryExtraOptions<
   TagTypes extends string,
   ResultType,
@@ -553,6 +556,9 @@ type MutationTypes<
   ReducerPath: ReducerPath
 }
 
+/**
+ * @public
+ */
 export interface MutationExtraOptions<
   TagTypes extends string,
   ResultType,
