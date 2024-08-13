@@ -8226,6 +8226,7 @@ __metadata:
     esbuild: "npm:~0.17"
     esbuild-runner: "npm:^2.2.1"
     husky: "npm:^4.3.6"
+    lodash: "npm:^4.17.21"
     msw: "npm:^2.1.5"
     node-fetch: "npm:^3.3.2"
     oazapfts: "npm:^6.0.2"
