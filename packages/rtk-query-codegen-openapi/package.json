@@ -59,6 +59,7 @@
   "dependencies": {
     "@apidevtools/swagger-parser": "^10.0.2",
     "commander": "^6.2.0",
+    "lodash": "^4.17.21",
     "oazapfts": "^6.0.2",
     "prettier": "^3.2.5",
     "semver": "^7.3.5",
