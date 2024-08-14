@@ -27,6 +27,9 @@ const api = createApi({
   },
   tagTypes: ['Post'],
   endpoints: (build) => ({
+    getPosts: build.query<Post[], void>({
+      query: () => '/posts',
+    }),
     post: build.query<Post, string>({
       query: (id) => `post/${id}`,
       providesTags: ['Post'],
@@ -324,6 +327,51 @@ describe('upsertQueryData', () => {
     state = selector(storeRef.store.getState())
     expect(state.data).toEqual(upsertedData)
     expect(state.isError).toBeTruthy()
+  })
+})
+
+describe('upsertEntries', () => {
+  test('Upserts many entries at once', async () => {
+    const posts: Post[] = [
+      {
+        id: '1',
+        contents: 'A',
+        title: 'A',
+      },
+      {
+        id: '2',
+        contents: 'B',
+        title: 'B',
+      },
+      {
+        id: '3',
+        contents: 'C',
+        title: 'C',
+      },
+    ]
+
+    storeRef.store.dispatch(
+      api.util.upsertEntries([
+        {
+          endpointName: 'getPosts',
+          args: undefined,
+          value: posts,
+        },
+        ...posts.map((post) => ({
+          endpointName: 'post' as const,
+          args: post.id,
+          value: post,
+        })),
+      ]),
+    )
+
+    const state = storeRef.store.getState()
+
+    expect(api.endpoints.getPosts.select()(state).data).toBe(posts)
+
+    expect(api.endpoints.post.select('1')(state).data).toBe(posts[0])
+    expect(api.endpoints.post.select('2')(state).data).toBe(posts[1])
+    expect(api.endpoints.post.select('3')(state).data).toBe(posts[2])
   })
 })
 

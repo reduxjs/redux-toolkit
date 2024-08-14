@@ -8,6 +8,8 @@ import {
   isRejectedWithValue,
   createNextState,
   prepareAutoBatched,
+  SHOULD_AUTOBATCH,
+  nanoid,
 } from './rtkImports'
 import type {
   QuerySubstateIdentifier,
@@ -21,15 +23,24 @@ import type {
   QueryCacheKey,
   SubscriptionState,
   ConfigState,
+  QueryKeys,
 } from './apiState'
 import { QueryStatus } from './apiState'
-import type { MutationThunk, QueryThunk, RejectedAction } from './buildThunks'
+import type {
+  MutationThunk,
+  QueryThunk,
+  QueryThunkArg,
+  RejectedAction,
+} from './buildThunks'
 import { calculateProvidedByThunk } from './buildThunks'
 import type {
   AssertTagTypes,
+  DefinitionType,
   EndpointDefinitions,
   FullTagDescription,
+  QueryArgFrom,
   QueryDefinition,
+  ResultTypeFrom,
 } from '../endpointDefinitions'
 import type { Patch } from 'immer'
 import { isDraft } from 'immer'
@@ -42,6 +53,44 @@ import {
 } from '../utils'
 import type { ApiContext } from '../apiTypes'
 import { isUpsertQuery } from './buildInitiate'
+import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
+
+/**
+ * A typesafe single entry to be upserted into the cache
+ */
+export type NormalizedQueryUpsertEntry<
+  Definitions extends EndpointDefinitions,
+  EndpointName extends QueryKeys<Definitions>,
+> = {
+  endpointName: EndpointName
+  args: QueryArgFrom<Definitions[EndpointName]>
+  value: ResultTypeFrom<Definitions[EndpointName]>
+}
+
+/**
+ * The internal version that is not typesafe since we can't carry the generics through `createSlice`
+ */
+type NormalizedQueryUpsertEntryPayload = {
+  endpointName: string
+  args: any
+  value: any
+}
+
+/**
+ * A typesafe representation of a util action creator that accepts cache entry descriptions to upsert
+ */
+export type UpsertEntries<Definitions extends EndpointDefinitions> = <
+  EndpointNames extends Array<QueryKeys<Definitions>>,
+>(
+  entries: [
+    ...{
+      [I in keyof EndpointNames]: NormalizedQueryUpsertEntry<
+        Definitions,
+        EndpointNames[I]
+      >
+    },
+  ],
+) => PayloadAction<NormalizedQueryUpsertEntryPayload>
 
 function updateQuerySubstateIfExists(
   state: QueryState<any>,
@@ -92,6 +141,7 @@ export function buildSlice({
   reducerPath,
   queryThunk,
   mutationThunk,
+  serializeQueryArgs,
   context: {
     endpointDefinitions: definitions,
     apiUid,
@@ -104,6 +154,7 @@ export function buildSlice({
   reducerPath: string
   queryThunk: QueryThunk
   mutationThunk: MutationThunk
+  serializeQueryArgs: InternalSerializeQueryArgs
   context: ApiContext<EndpointDefinitions>
   assertTagType: AssertTagTypes
   config: Omit<
@@ -220,6 +271,63 @@ export function buildSlice({
           delete draft[queryCacheKey]
         },
         prepare: prepareAutoBatched<QuerySubstateIdentifier>(),
+      },
+      cacheEntriesUpserted: {
+        reducer(
+          draft,
+          action: PayloadAction<
+            NormalizedQueryUpsertEntryPayload[],
+            string,
+            {
+              RTK_autoBatch: boolean
+              requestId: string
+              timestamp: number
+            }
+          >,
+        ) {
+          for (const entry of action.payload) {
+            const { endpointName, args, value } = entry
+            const endpointDefinition = definitions[endpointName]
+
+            const arg: QueryThunkArg = {
+              type: 'query',
+              endpointName: endpointName,
+              originalArgs: entry.args,
+              queryCacheKey: serializeQueryArgs({
+                queryArgs: args,
+                endpointDefinition,
+                endpointName,
+              }),
+            }
+            writePendingCacheEntry(draft, arg, true, {
+              arg,
+              requestId: action.meta.requestId,
+              startedTimeStamp: action.meta.timestamp,
+            })
+
+            writeFulfilledCacheEntry(
+              draft,
+              {
+                arg,
+                requestId: action.meta.requestId,
+                fulfilledTimeStamp: action.meta.timestamp,
+                baseQueryMeta: {},
+              },
+              entry.value,
+            )
+          }
+        },
+        prepare: (payload: NormalizedQueryUpsertEntryPayload[]) => {
+          const result = {
+            payload,
+            meta: {
+              [SHOULD_AUTOBATCH]: true,
+              requestId: nanoid(),
+              timestamp: Date.now(),
+            },
+          }
+          return result
+        },
       },
       queryResultPatched: {
         reducer(
