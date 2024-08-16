@@ -76,6 +76,61 @@ test('endpoint overrides', async () => {
   expect(api).toMatchSnapshot('loginUser should be a mutation');
 });
 
+describe('option encodeParams', () => {
+  const config = {
+    apiFile: './fixtures/emptyApi.ts',
+    schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+    encodeParams: true,
+  };
+
+  it('should encode query parameters', async () => {
+    const api = await generateEndpoints({
+      ...config,
+      filterEndpoints: ['findPetsByStatus'],
+    });
+    expect(api).toContain('status: encodeURIComponent(queryArg.status)');
+  });
+
+  it('should encode path parameters', async () => {
+    const api = await generateEndpoints({
+      ...config,
+      filterEndpoints: ['getOrderById'],
+    });
+    // eslint-disable-next-line no-template-curly-in-string
+    expect(api).toContain('`/store/order/${encodeURIComponent(queryArg.orderId)}`');
+  });
+
+  it('should not encode body parameters', async () => {
+    const api = await generateEndpoints({
+      ...config,
+      filterEndpoints: ['addPet'],
+    });
+    expect(api).toContain('body: queryArg.pet');
+    expect(api).not.toContain('body: encodeURIComponent(queryArg.pet)');
+  });
+
+  it('should work correctly with flattenArg option', async () => {
+    const api = await generateEndpoints({
+      ...config,
+      flattenArg: true,
+      filterEndpoints: ['getOrderById'],
+    });
+    // eslint-disable-next-line no-template-curly-in-string
+    expect(api).toContain('`/store/order/${encodeURIComponent(queryArg)}`');
+  });
+
+  it('should not encode parameters when encodeParams is false', async () => {
+    const api = await generateEndpoints({
+      ...config,
+      encodeParams: false,
+      filterEndpoints: ['findPetsByStatus', 'getOrderById'],
+    });
+    expect(api).toContain('status: queryArg.status');
+    // eslint-disable-next-line no-template-curly-in-string
+    expect(api).toContain('`/store/order/${queryArg.orderId}`');
+  });
+});
+
 describe('option flattenArg', () => {
   const config = {
     apiFile: './fixtures/emptyApi.ts',

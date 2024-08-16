@@ -472,7 +472,9 @@ const injectedRtkApi = api.injectEndpoints({
     >({
       query: (queryArg) => ({
         url: \`/pet/findByStatus\`,
-        params: { status: queryArg.status },
+        params: {
+          status: queryArg.status,
+        },
       }),
     }),
     findPetsByTags: build.query<
@@ -481,7 +483,9 @@ const injectedRtkApi = api.injectEndpoints({
     >({
       query: (queryArg) => ({
         url: \`/pet/findByTags\`,
-        params: { tags: queryArg.tags },
+        params: {
+          tags: queryArg.tags,
+        },
       }),
     }),
     getPetById: build.query<GetPetByIdApiResponse, GetPetByIdApiArg>({
@@ -494,14 +498,19 @@ const injectedRtkApi = api.injectEndpoints({
       query: (queryArg) => ({
         url: \`/pet/\${queryArg.petId}\`,
         method: "POST",
-        params: { name: queryArg.name, status: queryArg.status },
+        params: {
+          name: queryArg.name,
+          status: queryArg.status,
+        },
       }),
     }),
     deletePet: build.mutation<DeletePetApiResponse, DeletePetApiArg>({
       query: (queryArg) => ({
         url: \`/pet/\${queryArg.petId}\`,
         method: "DELETE",
-        headers: { api_key: queryArg.apiKey },
+        headers: {
+          api_key: queryArg.apiKey,
+        },
       }),
     }),
     uploadFile: build.mutation<UploadFileApiResponse, UploadFileApiArg>({
@@ -509,7 +518,9 @@ const injectedRtkApi = api.injectEndpoints({
         url: \`/pet/\${queryArg.petId}/uploadImage\`,
         method: "POST",
         body: queryArg.body,
-        params: { additionalMetadata: queryArg.additionalMetadata },
+        params: {
+          additionalMetadata: queryArg.additionalMetadata,
+        },
       }),
     }),
     getInventory: build.query<GetInventoryApiResponse, GetInventoryApiArg>({
@@ -551,7 +562,10 @@ const injectedRtkApi = api.injectEndpoints({
     loginUser: build.query<LoginUserApiResponse, LoginUserApiArg>({
       query: (queryArg) => ({
         url: \`/user/login\`,
-        params: { username: queryArg.username, password: queryArg.password },
+        params: {
+          username: queryArg.username,
+          password: queryArg.password,
+        },
       }),
     }),
     logoutUser: build.query<LogoutUserApiResponse, LogoutUserApiArg>({
@@ -755,7 +769,9 @@ const injectedRtkApi = api.injectEndpoints({
       query: (queryArg) => ({
         url: \`/api/v2/\${queryArg.pathSomeName}\`,
         method: "PATCH",
-        params: { some_name: queryArg.querySomeName },
+        params: {
+          some_name: queryArg.querySomeName,
+        },
       }),
     }),
   }),
@@ -799,7 +815,10 @@ const injectedRtkApi = api.injectEndpoints({
     loginUser: build.query<LoginUserApiResponse, LoginUserApiArg>({
       query: (queryArg) => ({
         url: \`/user/login\`,
-        params: { username: queryArg.username, password: queryArg.password },
+        params: {
+          username: queryArg.username,
+          password: queryArg.password,
+        },
       }),
     }),
   }),
@@ -850,7 +869,10 @@ const injectedRtkApi = api.injectEndpoints({
       query: (queryArg) => ({
         url: \`/user/login\`,
         method: "GET",
-        params: { username: queryArg.username, password: queryArg.password },
+        params: {
+          username: queryArg.username,
+          password: queryArg.password,
+        },
       }),
     }),
   }),
@@ -959,7 +981,10 @@ const injectedRtkApi = api.injectEndpoints({
       query: (queryArg) => ({
         url: \`/user/login\`,
         method: "GET",
-        params: { username: queryArg.username, password: queryArg.password },
+        params: {
+          username: queryArg.username,
+          password: queryArg.password,
+        },
       }),
     }),
   }),
@@ -1068,7 +1093,9 @@ const injectedRtkApi = api.injectEndpoints({
       query: (queryArg) => ({
         url: \`/api/v2/\${queryArg.pathSomeName}\`,
         method: "PATCH",
-        params: { some_name: queryArg.querySomeName },
+        params: {
+          some_name: queryArg.querySomeName,
+        },
       }),
     }),
   }),
@@ -1296,7 +1323,9 @@ const injectedRtkApi = api.injectEndpoints({
     >({
       query: (queryArg) => ({
         url: \`/api/v1/animals\`,
-        params: { type: queryArg["type"] },
+        params: {
+          type: queryArg["type"],
+        },
       }),
     }),
   }),
@@ -1361,7 +1390,9 @@ const injectedRtkApi = api
       >({
         query: (queryArg) => ({
           url: \`/pet/findByStatus\`,
-          params: { status: queryArg.status },
+          params: {
+            status: queryArg.status,
+          },
         }),
         providesTags: ["pet"],
       }),
@@ -1371,7 +1402,9 @@ const injectedRtkApi = api
       >({
         query: (queryArg) => ({
           url: \`/pet/findByTags\`,
-          params: { tags: queryArg.tags },
+          params: {
+            tags: queryArg.tags,
+          },
         }),
         providesTags: ["pet"],
       }),
@@ -1386,7 +1419,10 @@ const injectedRtkApi = api
         query: (queryArg) => ({
           url: \`/pet/\${queryArg.petId}\`,
           method: "POST",
-          params: { name: queryArg.name, status: queryArg.status },
+          params: {
+            name: queryArg.name,
+            status: queryArg.status,
+          },
         }),
         invalidatesTags: ["pet"],
       }),
@@ -1394,7 +1430,9 @@ const injectedRtkApi = api
         query: (queryArg) => ({
           url: \`/pet/\${queryArg.petId}\`,
           method: "DELETE",
-          headers: { api_key: queryArg.apiKey },
+          headers: {
+            api_key: queryArg.apiKey,
+          },
         }),
         invalidatesTags: ["pet"],
       }),
@@ -1403,7 +1441,9 @@ const injectedRtkApi = api
           url: \`/pet/\${queryArg.petId}/uploadImage\`,
           method: "POST",
           body: queryArg.body,
-          params: { additionalMetadata: queryArg.additionalMetadata },
+          params: {
+            additionalMetadata: queryArg.additionalMetadata,
+          },
         }),
         invalidatesTags: ["pet"],
       }),
@@ -1452,7 +1492,10 @@ const injectedRtkApi = api
       loginUser: build.query<LoginUserApiResponse, LoginUserApiArg>({
         query: (queryArg) => ({
           url: \`/user/login\`,
-          params: { username: queryArg.username, password: queryArg.password },
+          params: {
+            username: queryArg.username,
+            password: queryArg.password,
+          },
         }),
         providesTags: ["user"],
       }),
@@ -1748,7 +1791,9 @@ const injectedRtkApi = api
       >({
         query: (queryArg) => ({
           url: \`/pet/findByStatus\`,
-          params: { status: queryArg.status },
+          params: {
+            status: queryArg.status,
+          },
         }),
         providesTags: ["pet"],
       }),
@@ -1758,7 +1803,9 @@ const injectedRtkApi = api
       >({
         query: (queryArg) => ({
           url: \`/pet/findByTags\`,
-          params: { tags: queryArg.tags },
+          params: {
+            tags: queryArg.tags,
+          },
         }),
         providesTags: ["pet"],
       }),
@@ -1773,7 +1820,10 @@ const injectedRtkApi = api
         query: (queryArg) => ({
           url: \`/pet/\${queryArg.petId}\`,
           method: "POST",
-          params: { name: queryArg.name, status: queryArg.status },
+          params: {
+            name: queryArg.name,
+            status: queryArg.status,
+          },
         }),
         invalidatesTags: ["pet"],
       }),
@@ -1781,7 +1831,9 @@ const injectedRtkApi = api
         query: (queryArg) => ({
           url: \`/pet/\${queryArg.petId}\`,
           method: "DELETE",
-          headers: { api_key: queryArg.apiKey },
+          headers: {
+            api_key: queryArg.apiKey,
+          },
         }),
         invalidatesTags: ["pet"],
       }),
@@ -1790,7 +1842,9 @@ const injectedRtkApi = api
           url: \`/pet/\${queryArg.petId}/uploadImage\`,
           method: "POST",
           body: queryArg.body,
-          params: { additionalMetadata: queryArg.additionalMetadata },
+          params: {
+            additionalMetadata: queryArg.additionalMetadata,
+          },
         }),
         invalidatesTags: ["pet"],
       }),
@@ -1839,7 +1893,10 @@ const injectedRtkApi = api
       loginUser: build.query<LoginUserApiResponse, LoginUserApiArg>({
         query: (queryArg) => ({
           url: \`/user/login\`,
-          params: { username: queryArg.username, password: queryArg.password },
+          params: {
+            username: queryArg.username,
+            password: queryArg.password,
+          },
         }),
         providesTags: ["user"],
       }),
