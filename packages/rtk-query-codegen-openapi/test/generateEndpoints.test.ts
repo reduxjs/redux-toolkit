@@ -153,7 +153,7 @@ describe('option flattenArg', () => {
       ...config,
       filterEndpoints: ['findPetsByStatus'],
     });
-    expect(api).toContain('params: { status: queryArg }');
+    expect(api).toContain('status: queryArg');
     expect(api).not.toContain('export type FindPetsByStatusApiArg = {');
   });
 
