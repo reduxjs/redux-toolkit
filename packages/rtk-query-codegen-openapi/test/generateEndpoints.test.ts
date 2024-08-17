@@ -88,7 +88,7 @@ describe('option encodeParams', () => {
       ...config,
       filterEndpoints: ['findPetsByStatus'],
     });
-    expect(api).toContain('status: encodeURIComponent(queryArg.status)');
+    expect(api).toContain('status: encodeURIComponent(String(queryArg.status))');
   });
 
   it('should encode path parameters', async () => {
@@ -97,7 +97,7 @@ describe('option encodeParams', () => {
       filterEndpoints: ['getOrderById'],
     });
     // eslint-disable-next-line no-template-curly-in-string
-    expect(api).toContain('`/store/order/${encodeURIComponent(queryArg.orderId)}`');
+    expect(api).toContain('`/store/order/${encodeURIComponent(String(queryArg.orderId))}`');
   });
 
   it('should not encode body parameters', async () => {
@@ -106,7 +106,7 @@ describe('option encodeParams', () => {
       filterEndpoints: ['addPet'],
     });
     expect(api).toContain('body: queryArg.pet');
-    expect(api).not.toContain('body: encodeURIComponent(queryArg.pet)');
+    expect(api).not.toContain('body: encodeURIComponent(String(queryArg.pet))');
   });
 
   it('should work correctly with flattenArg option', async () => {
@@ -116,7 +116,7 @@ describe('option encodeParams', () => {
       filterEndpoints: ['getOrderById'],
     });
     // eslint-disable-next-line no-template-curly-in-string
-    expect(api).toContain('`/store/order/${encodeURIComponent(queryArg)}`');
+    expect(api).toContain('`/store/order/${encodeURIComponent(String(queryArg))}`');
   });
 
   it('should not encode parameters when encodeParams is false', async () => {

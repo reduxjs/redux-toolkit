@@ -396,7 +396,9 @@ export async function generateApi(
         return createPropertyAssignment(
           param.originalName,
           encodeParams && param.param?.in === 'query'
-            ? factory.createCallExpression(factory.createIdentifier('encodeURIComponent'), undefined, [value])
+            ? factory.createCallExpression(factory.createIdentifier('encodeURIComponent'), undefined, [
+                factory.createCallExpression(factory.createIdentifier('String'), undefined, [value]),
+              ])
             : value
         );
       });
@@ -487,7 +489,9 @@ function generatePathExpression(
         expressions.map(([prop, literal], index) => {
           const value = isFlatArg ? rootObject : accessProperty(rootObject, prop);
           const encodedValue = encodeParams
-            ? factory.createCallExpression(factory.createIdentifier('encodeURIComponent'), undefined, [value])
+            ? factory.createCallExpression(factory.createIdentifier('encodeURIComponent'), undefined, [
+                factory.createCallExpression(factory.createIdentifier('String'), undefined, [value]),
+              ])
             : value;
           return factory.createTemplateSpan(
             encodedValue,
