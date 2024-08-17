@@ -64,7 +64,7 @@ export interface CommonOptions {
   tag?: boolean;
   /**
    * defaults to false
-   * `true` will generate add `encodeURIComponent` to the generated query params
+   * `true` will add `encodeURIComponent` to the generated query params
    */
   encodeParams?: boolean;
   /**
