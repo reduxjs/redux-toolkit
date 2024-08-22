@@ -8116,7 +8116,7 @@ __metadata:
     swagger2openapi: "npm:^7.0.4"
     ts-node: "npm:^10.9.2"
     tsup: "npm:^8.2.4"
-    typescript: "npm:^5.4.5"
+    typescript: "npm:^5.5.4"
     vite-tsconfig-paths: "npm:^4.3.2"
     vitest: "npm:^2.0.5"
     yalc: "npm:^1.0.0-pre.47"

@@ -81,7 +81,7 @@
     "prettier": "^3.2.5",
     "semver": "^7.3.5",
     "swagger2openapi": "^7.0.4",
-    "typescript": "^5.4.5"
+    "typescript": "^5.5.4"
   },
   "husky": {
     "hooks": {
