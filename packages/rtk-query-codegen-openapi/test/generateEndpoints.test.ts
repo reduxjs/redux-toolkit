@@ -291,7 +291,7 @@ describe('import paths', () => {
   });
 
   test('should create paths relative to `outFile` when `apiFile` is relative (same folder)', async () => {
-    await fs.writeFile('./test/tmp/emptyApi.ts', await fs.readFile('./test/fixtures/emptyApi.ts'));
+    await fs.writeFile('./test/tmp/emptyApi.ts', await fs.readFile('./test/fixtures/emptyApi.ts', 'utf8'));
 
     await generateEndpoints({
       unionUndefined: true,
