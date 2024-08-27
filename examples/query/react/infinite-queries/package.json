@@ -9,7 +9,8 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "format": "prettier --write .",
+    "format-check": "yarn run -T format-check",
+    "format": "yarn run -T format",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
     "type-check": "tsc --noEmit"
@@ -24,6 +25,7 @@
     "react-router": "^7.0.1"
   },
   "devDependencies": {
+    "@reduxjs/prettier-config": "workspace:^",
     "@testing-library/dom": "^9.3.4",
     "@testing-library/jest-dom": "^6.2.0",
     "@testing-library/react": "^14.1.2",
@@ -34,7 +36,7 @@
     "@vitejs/plugin-react": "^4.2.1",
     "jsdom": "^23.2.0",
     "msw": "^2.6.6",
-    "prettier": "^3.2.1",
+    "prettier": "^3.6.2",
     "typescript": "^5.8.2",
     "vite": "^5.0.0",
     "vitest": "^1.2.0"

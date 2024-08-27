@@ -2,6 +2,8 @@
   "name": "@reduxjs/rtk-codemods",
   "version": "0.1.2",
   "scripts": {
+    "format-check": "yarn run -T format-check",
+    "format": "yarn run -T format",
     "lint": "eslint .",
     "test": "vitest --run",
     "test:watch": "vitest --watch",
@@ -29,13 +31,14 @@
     "typescript": "^5.8.2"
   },
   "devDependencies": {
+    "@reduxjs/prettier-config": "workspace:^",
     "@types/jscodeshift": "^0.11.11",
     "@typescript-eslint/parser": "^6.19.1",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^5.1.3",
-    "prettier": "^3.2.5",
+    "prettier": "^3.6.2",
     "vitest": "^1.6.0"
   },
   "engines": {

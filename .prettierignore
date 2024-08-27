@@ -1,4 +1,5 @@
-**/dist/**
-**/etc/**
-**/temp/**
-**/__testfixtures__/**
+__testfixtures__/
+.docusaurus/
+.next/
+examples/publish-ci/
+.yarn/

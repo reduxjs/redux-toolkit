@@ -8249,7 +8249,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@reduxjs/prettier-config@workspace:packages/configs/prettier":
+"@reduxjs/prettier-config@workspace:^, @reduxjs/prettier-config@workspace:packages/configs/prettier":
   version: 0.0.0-use.local
   resolution: "@reduxjs/prettier-config@workspace:packages/configs/prettier"
   dependencies:
@@ -8273,6 +8273,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@reduxjs/rtk-codemods@workspace:packages/rtk-codemods"
   dependencies:
+    "@reduxjs/prettier-config": "workspace:^"
     "@types/jscodeshift": "npm:^0.11.11"
     "@typescript-eslint/parser": "npm:^6.19.1"
     eslint: "npm:^8.56.0"
@@ -8282,7 +8283,7 @@ __metadata:
     execa: "npm:^8.0.1"
     globby: "npm:^14.0.0"
     jscodeshift: "npm:^0.15.1"
-    prettier: "npm:^3.2.5"
+    prettier: "npm:^3.6.2"
     ts-node: "npm:^10.9.2"
     typescript: "npm:^5.8.2"
     vitest: "npm:^1.6.0"
@@ -8382,6 +8383,7 @@ __metadata:
     "@babel/helper-module-imports": "npm:^7.24.7"
     "@microsoft/api-extractor": "npm:^7.13.2"
     "@phryneas/ts-version": "npm:^1.0.2"
+    "@reduxjs/prettier-config": "workspace:^"
     "@size-limit/file": "npm:^11.0.1"
     "@size-limit/webpack": "npm:^11.0.1"
     "@standard-schema/spec": "npm:^1.0.0"
@@ -8420,7 +8422,7 @@ __metadata:
     json-stringify-safe: "npm:^5.0.1"
     msw: "npm:^2.1.4"
     node-fetch: "npm:^3.3.2"
-    prettier: "npm:^3.2.5"
+    prettier: "npm:^3.6.2"
     query-string: "npm:^7.0.1"
     react: "npm:^19.0.0"
     react-dom: "npm:^19.0.0"
@@ -8904,6 +8906,7 @@ __metadata:
     "@babel/preset-env": "npm:^7.12.11"
     "@babel/preset-typescript": "npm:^7.12.7"
     "@oazapfts/runtime": "npm:^1.0.3"
+    "@reduxjs/prettier-config": "workspace:^"
     "@reduxjs/toolkit": "npm:^1.6.0"
     "@types/commander": "npm:^2.12.2"
     "@types/glob-to-regexp": "npm:^0.4.0"
@@ -8921,7 +8924,7 @@ __metadata:
     node-fetch: "npm:^3.3.2"
     oazapfts: "npm:^6.3.0"
     openapi-types: "npm:^9.1.0"
-    prettier: "npm:^3.2.5"
+    prettier: "npm:^3.6.2"
     pretty-quick: "npm:^4.0.0"
     rimraf: "npm:^5.0.5"
     semver: "npm:^7.3.5"
@@ -8953,11 +8956,13 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@rtk-query/graphql-request-base-query@workspace:packages/rtk-query-graphql-request-base-query"
   dependencies:
+    "@reduxjs/prettier-config": "workspace:^"
     "@reduxjs/toolkit": "npm:^1.6.0 || ^2.0.0"
     "@types/node": "npm:^20.11.0"
     graphql: "npm:^16.5.0"
     graphql-request: "npm:^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0"
     microbundle: "npm:^0.13.3"
+    prettier: "npm:^3.6.2"
     rimraf: "npm:^3.0.2"
     typescript: "npm:^5.8.2"
     vitest: "npm:^1.6.0"
@@ -28202,7 +28207,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier@npm:^3.2.1, prettier@npm:^3.2.5, prettier@npm:^3.3.3, prettier@npm:^3.6.2":
+"prettier@npm:^3.3.3, prettier@npm:^3.6.2":
   version: 3.6.2
   resolution: "prettier@npm:3.6.2"
   bin:
@@ -30502,6 +30507,7 @@ __metadata:
     "@babel/helper-compilation-targets": "npm:^7.23.6"
     "@babel/traverse": "npm:^7.24.1"
     "@babel/types": "npm:^7.24.0"
+    "@reduxjs/prettier-config": "workspace:^"
     "@types/react": "npm:^19.0.1"
     "@types/react-dom": "npm:^19.0.1"
     "@typescript-eslint/eslint-plugin": "npm:6.12.0"
@@ -30516,7 +30522,7 @@ __metadata:
     eslint-plugin-react: "npm:^7.23.2"
     eslint-plugin-react-hooks: "npm:^4.2.0"
     netlify-plugin-cache: "npm:^1.0.3"
-    prettier: "npm:^3.2.5"
+    prettier: "npm:^3.6.2"
     react: "npm:^19.0.0"
     react-dom: "npm:^19.0.0"
     react-redux: "npm:^9.1.2"
@@ -34068,6 +34074,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "vite-template-redux@workspace:examples/query/react/infinite-queries"
   dependencies:
+    "@reduxjs/prettier-config": "workspace:^"
     "@reduxjs/toolkit": "https://pkg.csb.dev/reduxjs/redux-toolkit/commit/2aca4f24/@reduxjs/toolkit/_pkg.tgz"
     "@testing-library/dom": "npm:^9.3.4"
     "@testing-library/jest-dom": "npm:^6.2.0"
@@ -34079,7 +34086,7 @@ __metadata:
     "@vitejs/plugin-react": "npm:^4.2.1"
     jsdom: "npm:^23.2.0"
     msw: "npm:^2.6.6"
-    prettier: "npm:^3.2.1"
+    prettier: "npm:^3.6.2"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
     react-intersection-observer: "npm:^9.13.1"
@@ -34745,7 +34752,7 @@ __metadata:
     "@getcanary/web": "npm:^1.0.12"
     classnames: "npm:^2.2.6"
     netlify-plugin-cache: "npm:^1.0.3"
-    prettier: "npm:^3.2.5"
+    prettier: "npm:^3.6.2"
     react: "npm:^19.0.0"
     react-dom: "npm:^19.0.0"
     react-lite-youtube-embed: "npm:^2.0.3"
