@@ -1,9 +1,8 @@
+.DS_Store
+*.log
+node_modules
 dist/
-temp/
-tmp/
-__testfixtures__/
-build/
-lib/
+lib
 
 .yalc
 yalc.lock
@@ -11,20 +10,23 @@ yalc.sig
 
 .idea/
 .vscode/
+temp/
 .tmp-projections
+build/
+.rts2*
 coverage/
 
 typesversions
 .cache
 .yarnrc
 .yarn/*
-.yarn/releases
-**/.yarn/cache
+!.yarn/patches
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
 .pnp.*
 *.tgz
 
 tsconfig.vitest-temp.json
 .eslintcache
-
-.docusaurus/
-.next/
