@@ -43,7 +43,7 @@
     "@types/semver": "^7.3.9",
     "chalk": "^4.1.0",
     "del": "^6.0.0",
-    "esbuild": "~0.17",
+    "esbuild": "^0.23.1",
     "esbuild-runner": "^2.2.1",
     "husky": "^4.3.6",
     "msw": "^2.1.5",
