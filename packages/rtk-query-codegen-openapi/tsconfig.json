@@ -15,6 +15,7 @@
     "noImplicitReturns": true,
     "noUnusedLocals": false,
     "outDir": "lib",
+    "rootDir": ".",
     "paths": {
       "@/*": ["./test/fixtures/*"],
       "@rtk-query/codegen-openapi": ["./src"] // @remap-prod-remove-line
