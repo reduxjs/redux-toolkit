@@ -23,6 +23,7 @@ jobs:
             codegen:
               - 'packages/rtk-query-codegen-openapi/**'
               - 'yarn.lock'
+              - '.github/workflows/test-codegen.yml'
 
   build:
     needs: changes
