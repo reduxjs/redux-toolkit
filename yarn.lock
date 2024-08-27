@@ -7563,6 +7563,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@oazapfts/runtime@npm:^1.0.3":
+  version: 1.0.3
+  resolution: "@oazapfts/runtime@npm:1.0.3"
+  checksum: 10/97e1bb8491b609bddae5b19191d961ca28a87c4878bdc4342b79cf0f169d8987f55b62316ac092fcf4a8bc9dd3d961c6bc814d96a6f4c3072ad0062d046fb5f3
+  languageName: node
+  linkType: hard
+
 "@octokit/auth-token@npm:^2.4.4":
   version: 2.5.0
   resolution: "@octokit/auth-token@npm:2.5.0"
@@ -8208,6 +8215,7 @@ __metadata:
     "@babel/core": "npm:^7.12.10"
     "@babel/preset-env": "npm:^7.12.11"
     "@babel/preset-typescript": "npm:^7.12.7"
+    "@oazapfts/runtime": "npm:^1.0.3"
     "@reduxjs/toolkit": "npm:^1.6.0"
     "@types/commander": "npm:^2.12.2"
     "@types/glob-to-regexp": "npm:^0.4.0"
