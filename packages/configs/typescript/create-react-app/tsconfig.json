@@ -1,0 +1,13 @@
+{
+  "extends": "@reduxjs/tsconfig/base",
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "allowJs": true,
+    "jsx": "react-jsx",
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "noEmit": true,
+    "target": "ES5",
+    "types": null
+  },
+  "display": "TypeScript Config for Create React App"
+}
