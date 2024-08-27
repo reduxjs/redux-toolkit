@@ -11,8 +11,8 @@
     "test": "vitest run",
     "format-check": "yarn run -T format-check",
     "format": "yarn run -T format",
-    "lint": "eslint .",
-    "lint:fix": "eslint --fix .",
+    "lint-fix": "yarn run -T lint-fix",
+    "lint": "yarn run -T lint",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
@@ -25,6 +25,7 @@
     "react-router": "^7.0.1"
   },
   "devDependencies": {
+    "@reduxjs/eslint-config": "workspace:^",
     "@reduxjs/prettier-config": "workspace:^",
     "@testing-library/dom": "^9.3.4",
     "@testing-library/jest-dom": "^6.2.0",
@@ -34,10 +35,12 @@
     "@types/react-dom": "18.3.1",
     "@types/react-native-web": "^0.19",
     "@vitejs/plugin-react": "^4.2.1",
+    "eslint": "^9.38.0",
+    "jiti": "^2.6.1",
     "jsdom": "^23.2.0",
     "msw": "^2.6.6",
     "prettier": "^3.6.2",
-    "typescript": "^5.8.2",
+    "typescript": "^5.9.3",
     "vite": "^5.0.0",
     "vitest": "^1.2.0"
   },

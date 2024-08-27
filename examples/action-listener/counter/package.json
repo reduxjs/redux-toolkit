@@ -12,7 +12,7 @@
     "react-dom": "^19.0.0",
     "react-redux": "^9.1.2",
     "react-scripts": "5.0.1",
-    "typescript": "^5.8.2"
+    "typescript": "^5.9.3"
   },
   "scripts": {
     "start": "react-scripts start",
