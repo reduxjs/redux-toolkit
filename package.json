@@ -21,6 +21,7 @@
     "website",
     "examples/query/react/*",
     "examples/action-listener/*",
+    "packages/configs/*",
     "examples/type-portability/*"
   ],
   "devDependencies": {
