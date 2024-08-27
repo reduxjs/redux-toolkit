@@ -6,5 +6,5 @@
     "noEmit": false,
     "rootDir": "src"
   },
-  "exclude": ["test", "lib", "vitest.config.mts"]
+  "include": ["src"]
 }
