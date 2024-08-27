@@ -32,3 +32,4 @@ typesversions
 *.tgz
 
 tsconfig.vitest-temp.json
+.eslintcache

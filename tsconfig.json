@@ -1,0 +1,19 @@
+{
+  "extends": "@reduxjs/tsconfig/node-next",
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "jsx": "react-jsx",
+    "noEmit": true,
+    "outDir": "./dist",
+    "rootDir": "./"
+  },
+  "exclude": [
+    "dist",
+    "examples/publish-ci",
+    "**/dist",
+    "**/build",
+    "**/lib",
+    "**/__testfixtures__"
+  ]
+}

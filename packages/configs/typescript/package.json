@@ -43,7 +43,9 @@
   "main": "./base/tsconfig.json",
   "scripts": {
     "check-exports": "attw --pack $INIT_CWD",
-    "check-package-json": "publint --strict $INIT_CWD"
+    "check-package-json": "publint --strict $INIT_CWD",
+    "lint-fix": "yarn run -T lint-fix",
+    "lint": "yarn run -T lint"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.17.4",
