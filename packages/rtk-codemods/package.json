@@ -4,7 +4,8 @@
   "scripts": {
     "format-check": "yarn run -T format-check",
     "format": "yarn run -T format",
-    "lint": "eslint .",
+    "lint-fix": "yarn run -T lint-fix",
+    "lint": "yarn run -T lint",
     "test": "vitest --run",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage"
@@ -31,13 +32,11 @@
     "typescript": "^5.3.3"
   },
   "devDependencies": {
+    "@reduxjs/eslint-config": "workspace:^",
     "@reduxjs/prettier-config": "workspace:^",
     "@types/jscodeshift": "^0.11.11",
-    "@typescript-eslint/parser": "^6.19.1",
-    "eslint": "^8.56.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-prettier": "^5.1.3",
+    "eslint": "^9.22.0",
+    "jiti": "^2.4.2",
     "prettier": "^3.5.3",
     "vitest": "^1.6.0"
   },
