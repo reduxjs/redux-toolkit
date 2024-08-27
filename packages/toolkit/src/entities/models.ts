@@ -1,8 +1,8 @@
-import type { UncheckedIndexedAccess } from '../uncheckedindexed'
 import type { Draft } from 'immer'
 import type { PayloadAction } from '../createAction'
+import type { CastAny, Id } from '../tsHelpers'
+import type { UncheckedIndexedAccess } from '../uncheckedindexed.js'
 import type { GetSelectorsOptions } from './state_selectors'
-import type { CastAny, Id as Compute } from '../tsHelpers'
 
 /**
  * @public
@@ -158,12 +158,12 @@ export interface EntityStateAdapter<T, Id extends EntityId> {
 /**
  * @public
  */
-export interface EntitySelectors<T, V, Id extends EntityId> {
-  selectIds: (state: V) => Id[]
-  selectEntities: (state: V) => Record<Id, T>
+export interface EntitySelectors<T, V, IdType extends EntityId> {
+  selectIds: (state: V) => IdType[]
+  selectEntities: (state: V) => Record<IdType, T>
   selectAll: (state: V) => T[]
   selectTotal: (state: V) => number
-  selectById: (state: V, id: Id) => Compute<UncheckedIndexedAccess<T>>
+  selectById: (state: V, id: IdType) => Id<UncheckedIndexedAccess<T>>
 }
 
 /**

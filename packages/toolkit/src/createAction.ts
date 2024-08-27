@@ -82,7 +82,7 @@ export type _ActionCreatorWithPreparedPayload<
  *
  * @inheritdoc {redux#ActionCreator}
  */
-export interface BaseActionCreator<P, T extends string, M = never, E = never> {
+export type BaseActionCreator<P, T extends string, M = never, E = never> = {
   type: T
   match: (action: unknown) => action is PayloadAction<P, T, M, E>
 }

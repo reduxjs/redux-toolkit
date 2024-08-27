@@ -1,9 +1,10 @@
-import { Draft, current, isDraft } from 'immer'
+import type { Draft } from 'immer'
+import { current, isDraft } from 'immer'
 import type {
+  DraftableEntityState,
+  EntityId,
   IdSelector,
   Update,
-  EntityId,
-  DraftableEntityState,
 } from './models'
 
 export function selectIdValue<T, Id extends EntityId>(
