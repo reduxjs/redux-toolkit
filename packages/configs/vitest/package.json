@@ -60,6 +60,8 @@
     "check-exports": "attw --pack $INIT_CWD",
     "check-package-json": "publint --strict $INIT_CWD",
     "clean": "rimraf $INIT_CWD/dist/",
+    "lint-fix": "yarn run -T lint-fix",
+    "lint": "yarn run -T lint",
     "prepack": "yarn clean && yarn build",
     "test-types": "tsc -p $INIT_CWD/tsconfig.json"
   },
