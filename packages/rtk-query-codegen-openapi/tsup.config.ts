@@ -18,12 +18,12 @@ export default defineConfig((options): Options[] => {
   };
 
   return [
-    { ...commonOptions, name: 'ESM', format: ['esm'], entry: { index: 'src/index.ts' }, dts: true },
-    { ...commonOptions, name: 'CJS', format: ['cjs'], entry: { index: 'src/index.ts' }, dts: true },
+    { ...commonOptions, name: 'Modern ESM', format: ['esm'], entry: { index: 'src/index.ts' }, dts: true },
+    { ...commonOptions, name: 'CJS Development', format: ['cjs'], entry: { index: 'src/index.ts' }, dts: true },
     {
       ...commonOptions,
       format: ['esm'],
-      name: 'BIN',
+      name: 'CLI Development',
       external: ['@rtk-query/codegen-openapi'],
       minify: true,
       entry: { 'bin/cli': 'src/bin/cli.ts' },
