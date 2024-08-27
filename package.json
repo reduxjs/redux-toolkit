@@ -31,6 +31,7 @@
     "@babel/helper-compilation-targets": "^7.23.6",
     "@babel/traverse": "^7.24.1",
     "@babel/types": "^7.24.0",
+    "@reduxjs/prettier-config": "workspace:^",
     "@types/react": "^18.2.77",
     "@types/react-dom": "^18.2.25",
     "@typescript-eslint/eslint-plugin": "6.12.0",
@@ -60,6 +61,8 @@
   "scripts": {
     "build": "yarn build:packages",
     "test": "yarn test:packages",
+    "format": "prettier --write .",
+    "format-check": "prettier --check .",
     "install": "yarn build-configs",
     "build-configs": "yarn workspaces foreach -Atip --include '@reduxjs/*config' run build",
     "build:examples": "yarn workspaces foreach -A --include '@reduxjs/*' --include '@examples-query-react/*' --include '@examples-action-listener/*' -vtp run build",
