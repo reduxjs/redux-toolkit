@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
+import { generateApi } from './generate';
 import type { CommonOptions, ConfigFile, GenerationOptions, OutputFileOptions } from './types';
 import { isValidUrl, prettify } from './utils';
 export type { ConfigFile } from './types';
@@ -15,7 +16,6 @@ export async function generateEndpoints(options: GenerationOptions): Promise<str
     : path.resolve(process.cwd(), schemaLocation);
 
   const sourceCode = await enforceOazapftsTsVersion(async () => {
-    const { generateApi } = await import('./generate.js');
     return generateApi(schemaAbsPath, options);
   });
   const { outputFile } = options;
