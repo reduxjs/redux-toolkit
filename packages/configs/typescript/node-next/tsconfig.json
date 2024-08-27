@@ -1,0 +1,9 @@
+{
+  "extends": "@reduxjs/tsconfig/base",
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext"
+  },
+  "display": "Redux TSConfig with NodeNext Module and Resolution"
+}

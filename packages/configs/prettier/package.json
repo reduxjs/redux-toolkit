@@ -1,0 +1,91 @@
+{
+  "name": "@reduxjs/prettier-config",
+  "version": "0.0.1",
+  "description": "Prettier configuration for Redux projects",
+  "keywords": [
+    "prettier",
+    "config",
+    "prettier-config",
+    "reduxjs",
+    "redux-toolkit",
+    "configuration"
+  ],
+  "homepage": "https://github.com/reduxjs/redux-toolkit/tree/master/packages/configs/prettier#readme",
+  "bugs": {
+    "url": "https://github.com/reduxjs/redux-toolkit/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/reduxjs/redux-toolkit.git",
+    "directory": "packages/configs/prettier"
+  },
+  "sideEffects": false,
+  "type": "module",
+  "exports": {
+    ".": {
+      "bun": {
+        "types": "./dist/index.d.ts",
+        "default": "./src/index.ts"
+      },
+      "module-sync": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "module": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "default": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "source": "./src/index.ts",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsup --config=$INIT_CWD/tsup.config.mts",
+    "check-exports": "attw --pack $INIT_CWD",
+    "check-package-json": "publint --strict $INIT_CWD",
+    "clean": "rimraf -v $INIT_CWD/dist/",
+    "format-check": "yarn run -T format-check",
+    "format": "yarn run -T format",
+    "lint-fix": "yarn run -T lint-fix",
+    "lint": "yarn run -T lint",
+    "prepack": "yarn clean && yarn build",
+    "test-types": "tsc -p $INIT_CWD/tsconfig.json"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.2",
+    "@reduxjs/tsconfig": "workspace:^",
+    "@types/node": "^24.9.1",
+    "prettier": "^3.6.2",
+    "publint": "^0.3.15",
+    "rimraf": "^6.0.1",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3"
+  },
+  "peerDependencies": {
+    "prettier": ">=3"
+  },
+  "peerDependenciesMeta": {
+    "prettier": {
+      "optional": true
+    }
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}
