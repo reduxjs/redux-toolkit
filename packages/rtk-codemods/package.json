@@ -2,6 +2,8 @@
   "name": "@reduxjs/rtk-codemods",
   "version": "0.1.2",
   "scripts": {
+    "format": "prettier --config prettier.config.mjs --write .",
+    "format-check": "prettier --config prettier.config.mjs --check .",
     "lint": "eslint .",
     "test": "vitest --run",
     "test:watch": "vitest --watch",
@@ -29,6 +31,7 @@
     "typescript": "^5.3.3"
   },
   "devDependencies": {
+    "@reduxjs/prettier-config": "workspace:^",
     "@types/jscodeshift": "^0.11.11",
     "@typescript-eslint/parser": "^6.19.1",
     "eslint": "^8.56.0",

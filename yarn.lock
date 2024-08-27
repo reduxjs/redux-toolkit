@@ -6589,7 +6589,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@reduxjs/prettier-config@workspace:packages/configs/prettier":
+"@reduxjs/prettier-config@workspace:^, @reduxjs/prettier-config@workspace:packages/configs/prettier":
   version: 0.0.0-use.local
   resolution: "@reduxjs/prettier-config@workspace:packages/configs/prettier"
   dependencies:
@@ -6610,6 +6610,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@reduxjs/rtk-codemods@workspace:packages/rtk-codemods"
   dependencies:
+    "@reduxjs/prettier-config": "workspace:^"
     "@types/jscodeshift": "npm:^0.11.11"
     "@typescript-eslint/parser": "npm:^6.19.1"
     eslint: "npm:^8.56.0"
@@ -6697,6 +6698,7 @@ __metadata:
     "@babel/helper-module-imports": "npm:^7.24.7"
     "@microsoft/api-extractor": "npm:^7.13.2"
     "@phryneas/ts-version": "npm:^1.0.2"
+    "@reduxjs/prettier-config": "workspace:^"
     "@size-limit/file": "npm:^11.0.1"
     "@size-limit/webpack": "npm:^11.0.1"
     "@testing-library/react": "npm:^13.3.0"
@@ -7011,6 +7013,7 @@ __metadata:
     "@babel/preset-env": "npm:^7.12.11"
     "@babel/preset-typescript": "npm:^7.12.7"
     "@oazapfts/runtime": "npm:^1.0.3"
+    "@reduxjs/prettier-config": "workspace:^"
     "@reduxjs/toolkit": "npm:^1.6.0"
     "@types/commander": "npm:^2.12.2"
     "@types/glob-to-regexp": "npm:^0.4.0"
@@ -24838,6 +24841,7 @@ __metadata:
     "@babel/helper-compilation-targets": "npm:^7.23.6"
     "@babel/traverse": "npm:^7.24.1"
     "@babel/types": "npm:^7.24.0"
+    "@reduxjs/prettier-config": "workspace:^"
     "@types/react": "npm:^18.2.77"
     "@types/react-dom": "npm:^18.2.25"
     "@typescript-eslint/eslint-plugin": "npm:6.12.0"
