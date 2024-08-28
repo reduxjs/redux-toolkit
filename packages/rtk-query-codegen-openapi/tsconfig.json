@@ -1,29 +1,13 @@
 {
+  "extends": "@reduxjs/tsconfig/bundler/esnext",
   "compilerOptions": {
     "allowJs": true,
-    "allowSyntheticDefaultImports": true,
     "checkJs": true,
-    "declaration": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "isolatedModules": true,
-    "jsx": "react",
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
     "noEmit": true,
-    "noErrorTruncation": true,
-    "noImplicitReturns": true,
-    "noUnusedLocals": false,
-    "outDir": "lib",
-    "rootDir": ".",
+    "outDir": "./lib",
     "paths": {
       "@rtk-query/codegen-openapi": ["./src/index.ts"] // @remap-prod-remove-line
     },
-    "resolveJsonModule": true,
-    "skipLibCheck": true,
-    "sourceMap": true,
-    "strict": true,
-    "target": "ESNext",
-    "types": ["vitest/globals", "vitest/importMeta"]
+    "rootDir": "./"
   }
 }

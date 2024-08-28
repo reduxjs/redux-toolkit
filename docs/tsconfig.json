@@ -1,14 +1,9 @@
 {
+  "extends": "@reduxjs/tsconfig/base",
   "compilerOptions": {
-    "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "moduleResolution": "node",
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
     "allowUnusedLabels": true,
-    "skipLibCheck": true,
     "noEmitOnError": false,
-    "strict": true,
     "removeComments": false,
     "module": "ES2020",
     "target": "ES2020",
