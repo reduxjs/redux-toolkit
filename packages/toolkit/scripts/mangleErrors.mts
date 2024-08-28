@@ -1,6 +1,23 @@
-const fs = require('fs')
+import type { Node, PluginObj, PluginPass } from '@babel/core'
 import * as helperModuleImports from '@babel/helper-module-imports'
 import * as fs from 'node:fs'
+import * as path from 'node:path'
+
+type Babel = typeof import('@babel/core')
+
+/**
+ * Represents the options for the {@linkcode mangleErrorsPlugin}.
+ *
+ * @internal
+ */
+export interface MangleErrorsPluginOptions {
+  /**
+   * Whether to minify the error messages or not.
+   * If `true`, the error messages will be replaced with an index
+   * that maps object lookup.
+   */
+  minify: boolean
+}
 
 /**
  * Converts an AST type into a JavaScript string so that it can be added to the error message lookup.
@@ -8,7 +25,9 @@ import * as fs from 'node:fs'
  * Adapted from React (https://github.com/facebook/react/blob/master/scripts/shared/evalToString.js) with some
  * adjustments.
  */
-const evalToString = (ast) => {
+const evalToString = (
+  ast: Node | { type: 'Literal'; value: string },
+): string => {
   switch (ast.type) {
     case 'StringLiteral':
     case 'Literal': // ESLint
@@ -55,7 +74,10 @@ const evalToString = (ast) => {
  *    throw new Error(process.env.NODE_ENV === 'production' ? 0 : "This is my error message.");
  *    throw new Error(process.env.NODE_ENV === 'production' ? 1 : "This is a second error message.");
  */
-export const mangleErrorsPlugin = (babel) => {
+export const mangleErrorsPlugin = (
+  babel: Babel,
+  options: MangleErrorsPluginOptions,
+): PluginObj<PluginPass & MangleErrorsPluginOptions> => {
   const t = babel.types
   // When the plugin starts up, we'll load in the existing file. This allows us to continually add to it so that the
   // indexes do not change between builds.
@@ -65,7 +87,7 @@ export const mangleErrorsPlugin = (babel) => {
   if (fs.existsSync(errorsPath)) {
     errorsFiles = fs.readFileSync(errorsPath).toString()
   }
-  let errors = Object.values(JSON.parse(errorsFiles || '{}'))
+  const errors = Object.values(JSON.parse(errorsFiles || '{}'))
   // This variable allows us to skip writing back to the file if the errors array hasn't changed
   let changeInArray = false
 
