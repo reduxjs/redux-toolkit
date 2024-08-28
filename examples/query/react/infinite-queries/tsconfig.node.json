@@ -1,9 +1,7 @@
 {
+  "extends": "@reduxjs/tsconfig/bundler/esnext",
   "compilerOptions": {
-    "composite": true,
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "allowSyntheticDefaultImports": true
+    "composite": true
   },
   "include": ["vite.config.ts"]
 }

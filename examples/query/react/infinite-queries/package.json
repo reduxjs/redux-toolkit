@@ -27,12 +27,13 @@
   "devDependencies": {
     "@reduxjs/eslint-config": "workspace:^",
     "@reduxjs/prettier-config": "workspace:^",
+    "@reduxjs/tsconfig": "workspace:^",
     "@testing-library/dom": "^9.3.4",
     "@testing-library/jest-dom": "^6.2.0",
     "@testing-library/react": "^14.1.2",
     "@testing-library/user-event": "^14.5.2",
-    "@types/react": "18.3.12",
-    "@types/react-dom": "18.3.1",
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
     "@types/react-native-web": "^0.19",
     "@vitejs/plugin-react": "^4.2.1",
     "eslint": "^9.22.0",
@@ -43,10 +44,6 @@
     "typescript": "^5.3.3",
     "vite": "^5.0.0",
     "vitest": "^1.2.0"
-  },
-  "resolutions": {
-    "@types/react": "18.3.12",
-    "@types/react-dom": "18.3.1"
   },
   "msw": {
     "workerDirectory": [
