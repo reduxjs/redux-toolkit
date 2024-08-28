@@ -6,6 +6,8 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { Options as TsupOptions } from 'tsup'
 import { defineConfig } from 'tsup'
+import type { MangleErrorsPluginOptions } from './scripts/mangleErrors.mjs'
+import { mangleErrorsPlugin } from './scripts/mangleErrors.mjs'
 
 // No __dirname under Node ESM
 const __filename = fileURLToPath(import.meta.url)
@@ -129,18 +131,28 @@ if (process.env.NODE_ENV === 'production') {
 
 // Extract error strings, replace them with error codes, and write messages to a file
 const mangleErrorsTransform: Plugin = {
-  name: 'mangle-errors-plugin',
+  name: mangleErrorsPlugin.name,
   setup(build) {
-    const { onTransform } = getBuildExtensions(build, 'mangle-errors-plugin')
+    const { onTransform } = getBuildExtensions(build, mangleErrorsPlugin.name)
 
     onTransform({ loaders: ['ts', 'tsx'] }, async (args) => {
       try {
-        const res = babel.transformSync(args.code, {
+        const res = await babel.transformAsync(args.code, {
           parserOpts: {
             plugins: ['typescript', 'jsx'],
           },
-          plugins: [['./scripts/mangleErrors.cjs', { minify: false }]],
-        })!
+          plugins: [
+            [
+              mangleErrorsPlugin,
+              { minify: false } satisfies MangleErrorsPluginOptions,
+            ],
+          ],
+        })
+
+        if (res == null) {
+          throw new Error('Babel transformAsync returned null')
+        }
+
         return {
           code: res.code!,
           map: res.map!,

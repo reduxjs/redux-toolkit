@@ -97,9 +97,15 @@ export const mangleErrorsPlugin = (
       changeInArray = false
     },
     visitor: {
-      ThrowStatement(path, file) {
+      ThrowStatement(path) {
+        if (
+          !('arguments' in path.node.argument) ||
+          !t.isNewExpression(path.node.argument)
+        ) {
+          return
+        }
         const args = path.node.argument.arguments
-        const minify = file.opts.minify
+        const { minify } = options
 
         if (args && args[0]) {
           // Skip running this logic when certain types come up:
@@ -112,10 +118,13 @@ export const mangleErrorsPlugin = (
             path.node.argument.arguments[0].type === 'CallExpression' ||
             path.node.argument.arguments[0].type === 'ObjectExpression' ||
             path.node.argument.arguments[0].type === 'MemberExpression' ||
-            path.node.argument.arguments[0]?.callee?.name === 'HandledError'
+            !t.isExpression(path.node.argument.arguments[0]) ||
+            !t.isIdentifier(path.node.argument.callee)
           ) {
             return
           }
+
+          const errorName = path.node.argument.callee.name
 
           const errorMsgLiteral = evalToString(path.node.argument.arguments[0])
 
@@ -149,13 +158,13 @@ export const mangleErrorsPlugin = (
           if (minify) {
             path.replaceWith(
               t.throwStatement(
-                t.newExpression(t.identifier('Error'), [prodMessage]),
+                t.newExpression(t.identifier(errorName), [prodMessage]),
               ),
             )
           } else {
             path.replaceWith(
               t.throwStatement(
-                t.newExpression(t.identifier('Error'), [
+                t.newExpression(t.identifier(errorName), [
                   t.conditionalExpression(
                     t.binaryExpression(
                       '===',
