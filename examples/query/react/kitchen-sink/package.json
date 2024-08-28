@@ -17,8 +17,8 @@
   "devDependencies": {
     "@reduxjs/tsconfig": "workspace:^",
     "@testing-library/dom": "^10.4.0",
-    "@testing-library/jest-dom": "^5.11.5",
-    "@testing-library/react": "^16.1.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
     "@types/jest": "^26.0.23",
     "@types/node": "^14.14.6",
     "@types/react": "^19.0.1",

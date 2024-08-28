@@ -1,29 +1,30 @@
+import type { UserWorkspaceConfig } from '@reduxjs/vitest-config'
 import { createVitestProject } from '@reduxjs/vitest-config'
+import react from '@vitejs/plugin-react'
 import * as path from 'node:path'
 import packageJson from './package.json' with { type: 'json' }
 
+// https://vitejs.dev/config/
 const vitestConfig = createVitestProject({
+  plugins: [react()] as UserWorkspaceConfig['plugins'],
+  server: {
+    open: true,
+  },
+
   root: import.meta.dirname,
 
   test: {
-    dir: path.join(import.meta.dirname, 'src'),
+    dir: import.meta.dirname,
     name: packageJson.name,
     root: import.meta.dirname,
 
     typecheck: {
-      tsconfig: path.join(import.meta.dirname, 'tsconfig.json'),
+      tsconfig: path.join(import.meta.dirname, 'tsconfig.app.json'),
     },
 
     environment: 'jsdom',
-    setupFiles: ['./vitest.setup.ts'],
-    server: {
-      deps: {
-        inline: ['redux', packageJson.name],
-      },
-    },
-
-    // TODO: Enable this later.
-    unstubGlobals: false,
+    setupFiles: ['./src/setupTests.ts'],
+    clearMocks: true,
   },
 })
 
