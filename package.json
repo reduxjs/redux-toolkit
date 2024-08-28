@@ -34,6 +34,7 @@
     "@reduxjs/eslint-config": "workspace:^",
     "@reduxjs/prettier-config": "workspace:^",
     "@reduxjs/tsconfig": "workspace:^",
+    "@reduxjs/vitest-config": "workspace:^",
     "@types/react": "^19.0.1",
     "@types/react-dom": "^19.0.1",
     "eslint": "^9.38.0",
@@ -47,11 +48,12 @@
     "serve": "^14.2.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.46.2"
+    "typescript-eslint": "^8.46.2",
+    "vitest": "^3.2.4"
   },
   "scripts": {
     "build": "yarn build:packages",
-    "test": "yarn test:packages",
+    "test": "vitest --config=$INIT_CWD/vitest.config.mts --root=$INIT_CWD",
     "format-check": "prettier --ignore-path=$PROJECT_CWD/.prettierignore --ignore-path=$PROJECT_CWD/.gitignore --config=$PROJECT_CWD/prettier.config.mjs --check $INIT_CWD",
     "format": "prettier --ignore-path=$PROJECT_CWD/.prettierignore --ignore-path=$PROJECT_CWD/.gitignore --config=$PROJECT_CWD/prettier.config.mjs --write $INIT_CWD",
     "lint-fix": "eslint --config=$PROJECT_CWD/eslint.config.mts --no-error-on-unmatched-pattern --fix $INIT_CWD",

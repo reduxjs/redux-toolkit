@@ -1,20 +1,24 @@
-import nodeFetch from 'node-fetch';
-import { format } from 'prettier';
-import { server } from './mocks/server';
+import nodeFetch from 'node-fetch'
+import * as path from 'node:path'
+import { server } from './mocks/server'
 
-vi.stubGlobal('fetch', nodeFetch);
+vi.stubGlobal('fetch', nodeFetch)
+
+const originalCwd = process.cwd()
 
 beforeAll(() => {
-  server.listen({ onUnhandledRequest: 'error' });
-});
+  process.chdir(path.join(__dirname, '..'))
+  server.listen({ onUnhandledRequest: 'error' })
+})
 
 afterEach(() => {
-  server.resetHandlers();
-});
+  server.resetHandlers()
+})
 
 afterAll(() => {
-  server.close();
-});
+  server.close()
+  process.chdir(originalCwd)
+})
 
 // expect.addSnapshotSerializer({
 //   test: (val) => typeof val === 'string',

@@ -6,9 +6,9 @@
     "format": "yarn run -T format",
     "lint-fix": "yarn run -T lint-fix",
     "lint": "yarn run -T lint",
-    "test": "vitest --run",
-    "test:watch": "vitest --watch",
-    "test:coverage": "vitest --coverage"
+    "test": "yarn run -T test",
+    "test:watch": "yarn run -T test --watch",
+    "test:coverage": "yarn run -T test --coverage"
   },
   "bin": "./bin/cli.mjs",
   "files": [
@@ -36,11 +36,12 @@
     "@reduxjs/prettier-config": "workspace:^",
     "@reduxjs/toolkit": "workspace:^",
     "@reduxjs/tsconfig": "workspace:^",
+    "@reduxjs/vitest-config": "workspace:^",
     "@types/jscodeshift": "^0.11.11",
     "eslint": "^9.38.0",
     "jiti": "^2.6.1",
     "prettier": "^3.6.2",
-    "vitest": "^1.6.0"
+    "vitest": "^3.2.4"
   },
   "engines": {
     "node": ">= 16"

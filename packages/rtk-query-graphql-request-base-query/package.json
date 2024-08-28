@@ -23,8 +23,8 @@
     "format": "yarn run -T format",
     "prepack": "rimraf dist/*; yarn build",
     "dev": "microbundle watch",
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "test": "yarn run -T test",
+    "test:watch": "yarn run -T test --watch"
   },
   "dependencies": {
     "graphql-request": "^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0"
@@ -37,13 +37,14 @@
     "@reduxjs/prettier-config": "workspace:^",
     "@reduxjs/toolkit": "^1.6.0 || ^2.0.0",
     "@reduxjs/tsconfig": "workspace:^",
+    "@reduxjs/vitest-config": "workspace:^",
     "@types/node": "^24.9.1",
     "graphql": "^16.5.0",
     "microbundle": "^0.13.3",
     "prettier": "^3.6.2",
     "rimraf": "^3.0.2",
     "typescript": "^5.9.3",
-    "vitest": "^1.6.0"
+    "vitest": "^3.2.4"
   },
   "publishConfig": {
     "access": "public"
