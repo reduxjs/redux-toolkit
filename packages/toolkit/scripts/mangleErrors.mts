@@ -1,6 +1,6 @@
 const fs = require('fs')
-const path = require('path')
-const helperModuleImports = require('@babel/helper-module-imports')
+import * as helperModuleImports from '@babel/helper-module-imports'
+import * as fs from 'node:fs'
 
 /**
  * Converts an AST type into a javascript string so that it can be added to the error message lookup.
@@ -55,7 +55,7 @@ const evalToString = (ast) => {
  *    throw new Error(node.process.NODE_ENV === 'production' ? 0 : "This is my error message.");
  *    throw new Error(node.process.NODE_ENV === 'production' ? 1 : "This is a second error message.");
  */
-module.exports = (babel) => {
+export const mangleErrorsPlugin = (babel) => {
   const t = babel.types
   // When the plugin starts up, we'll load in the existing file. This allows us to continually add to it so that the
   // indexes do not change between builds.
@@ -157,3 +157,5 @@ module.exports = (babel) => {
     },
   }
 }
+
+export default mangleErrorsPlugin
