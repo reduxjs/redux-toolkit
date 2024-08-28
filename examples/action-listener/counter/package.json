@@ -41,6 +41,7 @@
     ]
   },
   "devDependencies": {
+    "@reduxjs/tsconfig": "workspace:^",
     "jest-watch-typeahead": "^1.1.0"
   }
 }
