@@ -17,5 +17,5 @@
     "noUnusedParameters": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["vite.config.ts", "eslint.config.js"]
+  "include": ["vitest.config.mts", "eslint.config.js"]
 }

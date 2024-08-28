@@ -8,7 +8,7 @@
     "start": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "test": "vitest run",
+    "test": "yarn run -T test",
     "format-check": "yarn run -T format-check",
     "format": "yarn run -T format",
     "lint-fix": "yarn run -T lint-fix",
@@ -16,7 +16,7 @@
     "type-check": "tsc -b --noEmit"
   },
   "dependencies": {
-    "@reduxjs/toolkit": "https://pkg.csb.dev/reduxjs/redux-toolkit/commit/2aca4f24/@reduxjs/toolkit/_pkg.tgz",
+    "@reduxjs/toolkit": "workspace:^",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-intersection-observer": "^9.13.1",
@@ -28,12 +28,14 @@
     "@reduxjs/eslint-config": "workspace:^",
     "@reduxjs/prettier-config": "workspace:^",
     "@reduxjs/tsconfig": "workspace:^",
+    "@reduxjs/vitest-config": "workspace:^",
     "@testing-library/dom": "^9.3.4",
     "@testing-library/jest-dom": "^6.2.0",
     "@testing-library/react": "^14.1.2",
     "@testing-library/user-event": "^14.5.2",
-    "@types/react": "^19.0.10",
-    "@types/react-dom": "^19.0.4",
+    "@types/node": "^22.14.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.1",
     "@types/react-native-web": "^0.19",
     "@vitejs/plugin-react": "^4.2.1",
     "eslint": "^9.24.0",
@@ -42,8 +44,8 @@
     "msw": "^2.6.6",
     "prettier": "^3.5.3",
     "typescript": "^5.8.2",
-    "vite": "^5.0.0",
-    "vitest": "^1.2.0"
+    "vite": "^6.2.5",
+    "vitest": "^3.1.1"
   },
   "msw": {
     "workerDirectory": [
