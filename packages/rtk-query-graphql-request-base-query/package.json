@@ -32,6 +32,7 @@
   },
   "devDependencies": {
     "@reduxjs/toolkit": "^1.6.0 || ^2.0.0",
+    "@reduxjs/tsconfig": "workspace:^",
     "graphql": "^16.5.0",
     "microbundle": "^0.13.3",
     "rimraf": "^3.0.2",
