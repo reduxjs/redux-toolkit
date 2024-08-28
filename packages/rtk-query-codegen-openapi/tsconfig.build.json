@@ -4,7 +4,7 @@
     "allowJs": false,
     "checkJs": false,
     "noEmit": false,
-    "rootDir": "src"
+    "rootDir": "./src"
   },
   "include": ["src"]
 }
