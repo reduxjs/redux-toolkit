@@ -25,6 +25,7 @@
     "react-scripts": "5.0.1"
   },
   "devDependencies": {
+    "@reduxjs/tsconfig": "workspace:^",
     "@types/faker": "^5.5.5",
     "@types/react": "^19.0.1",
     "@types/react-dom": "^19.0.1",
