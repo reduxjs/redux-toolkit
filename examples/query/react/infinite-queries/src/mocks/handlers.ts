@@ -149,6 +149,8 @@ export const handlers = [
           return HttpResponse.json({ message: error.message }, { status: 400 })
         }
       }
+
+      return undefined
     },
   ),
   http.get(

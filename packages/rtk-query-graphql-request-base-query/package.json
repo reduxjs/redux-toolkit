@@ -36,7 +36,8 @@
   "devDependencies": {
     "@reduxjs/prettier-config": "workspace:^",
     "@reduxjs/toolkit": "^1.6.0 || ^2.0.0",
-    "@types/node": "^20.11.0",
+    "@reduxjs/tsconfig": "workspace:^",
+    "@types/node": "^24.9.1",
     "graphql": "^16.5.0",
     "microbundle": "^0.13.3",
     "prettier": "^3.6.2",

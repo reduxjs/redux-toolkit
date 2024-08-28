@@ -33,6 +33,7 @@
     "@graphql-codegen/typescript-operations": "^1.18.0",
     "@graphql-codegen/typescript-rtk-query": "^1.1.0",
     "@graphql-typed-document-node/core": "^3.1.0",
+    "@reduxjs/tsconfig": "workspace:^",
     "@types/faker": "^5.5.5",
     "@types/react": "^19.0.1",
     "@types/react-dom": "^19.0.1",

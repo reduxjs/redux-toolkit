@@ -13,6 +13,7 @@
     "react-scripts": "5.0.1"
   },
   "devDependencies": {
+    "@reduxjs/tsconfig": "workspace:^",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "^16.1.0",
     "@types/jest": "^26.0.23",

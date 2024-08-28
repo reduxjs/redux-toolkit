@@ -2,14 +2,15 @@
   // For building the library.
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "dist"
+    "emitDeclarationOnly": true,
+    "jsx": "react"
   },
-  "include": ["src"],
   "exclude": [
-    "src/**/*.test.ts*",
     "src/**/*.test-d.ts*",
+    "src/**/*.spec-d.ts*",
+    "src/**/*.test.ts*",
     "src/**/*.spec.ts*",
-    "src/**/tests/*",
-    "src/**/*.typetest.ts*"
-  ]
+    "src/**/tests/*"
+  ],
+  "include": ["src"]
 }

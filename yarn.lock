@@ -5208,7 +5208,8 @@ __metadata:
   resolution: "@examples-action-listener/counter@workspace:examples/action-listener/counter"
   dependencies:
     "@reduxjs/toolkit": "npm:^1.8.0"
-    "@types/node": "npm:^12.0.0"
+    "@reduxjs/tsconfig": "workspace:^"
+    "@types/node": "npm:^24.9.1"
     "@types/react": "npm:^19.0.1"
     "@types/react-dom": "npm:^19.0.1"
     clsx: "npm:1.1.1"
@@ -5226,6 +5227,7 @@ __metadata:
   resolution: "@examples-query-react/advanced@workspace:examples/query/react/advanced"
   dependencies:
     "@reduxjs/toolkit": "npm:^1.6.0-rc.1"
+    "@reduxjs/tsconfig": "workspace:^"
     "@types/react": "npm:^19.0.1"
     "@types/react-dom": "npm:^19.0.1"
     react: "npm:^19.0.0"
@@ -5244,6 +5246,7 @@ __metadata:
     "@emotion/react": "npm:^11.4.0"
     "@emotion/styled": "npm:^11.3.0"
     "@reduxjs/toolkit": "npm:^1.6.0-rc.1"
+    "@reduxjs/tsconfig": "workspace:^"
     "@types/react": "npm:^19.0.1"
     "@types/react-dom": "npm:^19.0.1"
     framer-motion: "npm:^2.9.5"
@@ -5266,6 +5269,7 @@ __metadata:
     "@emotion/react": "npm:^11.4.0"
     "@emotion/styled": "npm:^11.3.0"
     "@reduxjs/toolkit": "npm:^1.6.0-rc.1"
+    "@reduxjs/tsconfig": "workspace:^"
     "@types/react": "npm:^19.0.1"
     "@types/react-dom": "npm:^19.0.1"
     framer-motion: "npm:^2.9.5"
@@ -5285,6 +5289,7 @@ __metadata:
   resolution: "@examples-query-react/basic@workspace:examples/query/react/basic"
   dependencies:
     "@reduxjs/toolkit": "npm:^1.6.0-rc.1"
+    "@reduxjs/tsconfig": "workspace:^"
     "@testing-library/dom": "npm:^10.4.0"
     "@testing-library/react": "npm:^16.1.0"
     "@types/jest": "npm:^26.0.23"
@@ -5304,6 +5309,7 @@ __metadata:
   resolution: "@examples-query-react/conditional-fetching@workspace:examples/query/react/conditional-fetching"
   dependencies:
     "@reduxjs/toolkit": "npm:^1.6.0-rc.1"
+    "@reduxjs/tsconfig": "workspace:^"
     "@types/react": "npm:^19.0.1"
     "@types/react-dom": "npm:^19.0.1"
     react: "npm:^19.0.0"
@@ -5319,6 +5325,7 @@ __metadata:
   resolution: "@examples-query-react/deduping-queries@workspace:examples/query/react/deduping-queries"
   dependencies:
     "@reduxjs/toolkit": "npm:^1.6.0-rc.1"
+    "@reduxjs/tsconfig": "workspace:^"
     "@types/react": "npm:^19.0.1"
     "@types/react-dom": "npm:^19.0.1"
     react: "npm:^19.0.0"
@@ -5347,6 +5354,7 @@ __metadata:
     "@graphql-typed-document-node/core": "npm:^3.1.0"
     "@mswjs/data": "npm:^0.4.0"
     "@reduxjs/toolkit": "npm:^1.6.0"
+    "@reduxjs/tsconfig": "workspace:^"
     "@rtk-query/graphql-request-base-query": "npm:^2.0.0"
     "@types/faker": "npm:^5.5.5"
     "@types/react": "npm:^19.0.1"
@@ -5379,6 +5387,7 @@ __metadata:
     "@emotion/styled": "npm:^11.3.0"
     "@mswjs/data": "npm:^0.3.0"
     "@reduxjs/toolkit": "npm:^1.6.0-rc.1"
+    "@reduxjs/tsconfig": "workspace:^"
     "@rtk-query/graphql-request-base-query": "npm:^2.0.0"
     "@types/faker": "npm:^5.5.5"
     "@types/react": "npm:^19.0.1"
@@ -5403,11 +5412,12 @@ __metadata:
   resolution: "@examples-query-react/kitchen-sink@workspace:examples/query/react/kitchen-sink"
   dependencies:
     "@reduxjs/toolkit": "npm:1.8.1"
+    "@reduxjs/tsconfig": "workspace:^"
     "@testing-library/dom": "npm:^10.4.0"
     "@testing-library/jest-dom": "npm:^5.11.5"
     "@testing-library/react": "npm:^16.1.0"
     "@types/jest": "npm:^26.0.23"
-    "@types/node": "npm:^14.14.6"
+    "@types/node": "npm:^24.9.1"
     "@types/react": "npm:^19.0.1"
     "@types/react-dom": "npm:^19.0.1"
     msw: "npm:^0.40.2"
@@ -5430,6 +5440,7 @@ __metadata:
     "@emotion/styled": "npm:^11.3.0"
     "@mswjs/data": "npm:^0.3.0"
     "@reduxjs/toolkit": "npm:^1.6.0-rc.1"
+    "@reduxjs/tsconfig": "workspace:^"
     "@types/react": "npm:^19.0.1"
     "@types/react-dom": "npm:^19.0.1"
     framer-motion: "npm:^2.9.5"
@@ -5453,6 +5464,7 @@ __metadata:
     "@emotion/styled": "npm:^11.3.0"
     "@mswjs/data": "npm:^0.3.0"
     "@reduxjs/toolkit": "npm:^1.6.0-rc.1"
+    "@reduxjs/tsconfig": "workspace:^"
     "@types/react": "npm:^19.0.1"
     "@types/react-dom": "npm:^19.0.1"
     framer-motion: "npm:^2.9.5"
@@ -5478,6 +5490,7 @@ __metadata:
     "@emotion/styled": "npm:^11.3.0"
     "@mswjs/data": "npm:^0.3.0"
     "@reduxjs/toolkit": "npm:^1.6.0-rc.1"
+    "@reduxjs/tsconfig": "workspace:^"
     "@types/faker": "npm:^5.5.5"
     "@types/react": "npm:^19.0.1"
     "@types/react-dom": "npm:^19.0.1"
@@ -5498,6 +5511,7 @@ __metadata:
   resolution: "@examples-query-react/polling@workspace:examples/query/react/polling"
   dependencies:
     "@reduxjs/toolkit": "npm:^1.6.0-rc.1"
+    "@reduxjs/tsconfig": "workspace:^"
     "@types/react": "npm:^19.0.1"
     "@types/react-dom": "npm:^19.0.1"
     react: "npm:^19.0.0"
@@ -5517,6 +5531,7 @@ __metadata:
     "@emotion/styled": "npm:^11.3.0"
     "@mswjs/data": "npm:^0.3.0"
     "@reduxjs/toolkit": "npm:^1.6.0-rc.1"
+    "@reduxjs/tsconfig": "workspace:^"
     "@types/faker": "npm:^5.5.5"
     "@types/react": "npm:^19.0.1"
     "@types/react-dom": "npm:^19.0.1"
@@ -5542,6 +5557,7 @@ __metadata:
     "@emotion/styled": "npm:^11.3.0"
     "@mswjs/data": "npm:^0.3.0"
     "@reduxjs/toolkit": "npm:^1.6.0-rc.1"
+    "@reduxjs/tsconfig": "workspace:^"
     "@types/faker": "npm:^5.5.5"
     "@types/react": "npm:^19.0.1"
     "@types/react-dom": "npm:^19.0.1"
@@ -5567,6 +5583,7 @@ __metadata:
     "@emotion/styled": "npm:^11.3.0"
     "@mswjs/data": "npm:^0.3.0"
     "@reduxjs/toolkit": "npm:^1.6.0-rc.1"
+    "@reduxjs/tsconfig": "workspace:^"
     "@types/faker": "npm:^5.5.5"
     "@types/react": "npm:^19.0.1"
     "@types/react-dom": "npm:^19.0.1"
@@ -5588,6 +5605,7 @@ __metadata:
   resolution: "@examples-query-react/with-apiprovider@workspace:examples/query/react/with-apiprovider"
   dependencies:
     "@reduxjs/toolkit": "npm:^1.6.0-rc.1"
+    "@reduxjs/tsconfig": "workspace:^"
     "@types/react": "npm:^19.0.1"
     "@types/react-dom": "npm:^19.0.1"
     react: "npm:^19.0.0"
@@ -5603,7 +5621,8 @@ __metadata:
   resolution: "@examples-type-portability/bundler@workspace:examples/type-portability/bundler"
   dependencies:
     "@reduxjs/toolkit": "workspace:^"
-    "@types/node": "npm:^20.14.11"
+    "@reduxjs/tsconfig": "workspace:^"
+    "@types/node": "npm:^24.9.1"
     "@types/react": "npm:^19.0.1"
     "@types/react-dom": "npm:^19.0.1"
     react: "npm:^19.0.0"
@@ -5620,7 +5639,8 @@ __metadata:
   resolution: "@examples-type-portability/nodenext-cjs@workspace:examples/type-portability/nodenext-cjs"
   dependencies:
     "@reduxjs/toolkit": "workspace:^"
-    "@types/node": "npm:^20.14.11"
+    "@reduxjs/tsconfig": "workspace:^"
+    "@types/node": "npm:^24.9.1"
     "@types/react": "npm:^19.0.1"
     "@types/react-dom": "npm:^19.0.1"
     react: "npm:^19.0.0"
@@ -5637,7 +5657,8 @@ __metadata:
   resolution: "@examples-type-portability/nodenext-esm@workspace:examples/type-portability/nodenext-esm"
   dependencies:
     "@reduxjs/toolkit": "workspace:^"
-    "@types/node": "npm:^20.14.11"
+    "@reduxjs/tsconfig": "workspace:^"
+    "@types/node": "npm:^24.9.1"
     "@types/react": "npm:^19.0.1"
     "@types/react-dom": "npm:^19.0.1"
     react: "npm:^19.0.0"
@@ -8219,6 +8240,8 @@ __metadata:
   dependencies:
     "@reduxjs/eslint-config": "workspace:^"
     "@reduxjs/prettier-config": "workspace:^"
+    "@reduxjs/toolkit": "workspace:^"
+    "@reduxjs/tsconfig": "workspace:^"
     "@types/jscodeshift": "npm:^0.11.11"
     eslint: "npm:^9.38.0"
     execa: "npm:^8.0.1"
@@ -8327,6 +8350,7 @@ __metadata:
     "@phryneas/ts-version": "npm:^1.0.2"
     "@reduxjs/eslint-config": "workspace:^"
     "@reduxjs/prettier-config": "workspace:^"
+    "@reduxjs/tsconfig": "workspace:^"
     "@size-limit/file": "npm:^11.0.1"
     "@size-limit/webpack": "npm:^11.0.1"
     "@standard-schema/spec": "npm:^1.0.0"
@@ -8339,7 +8363,7 @@ __metadata:
     "@types/babel__helper-module-imports": "npm:^7.18.3"
     "@types/json-stringify-safe": "npm:^5.0.0"
     "@types/nanoid": "npm:^2.1.0"
-    "@types/node": "npm:^20.11.0"
+    "@types/node": "npm:^24.9.1"
     "@types/query-string": "npm:^6.3.0"
     "@types/react": "npm:^19.0.1"
     "@types/react-dom": "npm:^19.0.1"
@@ -8842,10 +8866,11 @@ __metadata:
     "@oazapfts/runtime": "npm:^1.0.3"
     "@reduxjs/prettier-config": "workspace:^"
     "@reduxjs/toolkit": "npm:^1.6.0"
+    "@reduxjs/tsconfig": "workspace:^"
     "@types/commander": "npm:^2.12.2"
     "@types/glob-to-regexp": "npm:^0.4.0"
     "@types/lodash.camelcase": "npm:^4.3.9"
-    "@types/node": "npm:^20.11.10"
+    "@types/node": "npm:^24.9.1"
     "@types/semver": "npm:^7.3.9"
     chalk: "npm:^4.1.0"
     commander: "npm:^6.2.0"
@@ -8892,7 +8917,8 @@ __metadata:
   dependencies:
     "@reduxjs/prettier-config": "workspace:^"
     "@reduxjs/toolkit": "npm:^1.6.0 || ^2.0.0"
-    "@types/node": "npm:^20.11.0"
+    "@reduxjs/tsconfig": "workspace:^"
+    "@types/node": "npm:^24.9.1"
     graphql: "npm:^16.5.0"
     graphql-request: "npm:^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0"
     microbundle: "npm:^0.13.3"
@@ -10454,33 +10480,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^12.0.0":
-  version: 12.20.55
-  resolution: "@types/node@npm:12.20.55"
-  checksum: 10/1f916a06fff02faadb09a16ed6e31820ce170798b202ef0b14fc244bfbd721938c54a3a99836e185e4414ca461fe96c5bb5c67c3d248f153555b7e6347f061dd
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:^14.14.6":
-  version: 14.18.63
-  resolution: "@types/node@npm:14.18.63"
-  checksum: 10/82a7775898c2ea6db0b610a463512206fb2c7adc1af482c7eb44b99d94375fff51c74f67ae75a63c5532971159f30c866a4d308000624ef02fd9a7175e277019
-  languageName: node
-  linkType: hard
-
 "@types/node@npm:^17.0.5":
   version: 17.0.45
   resolution: "@types/node@npm:17.0.45"
   checksum: 10/b45fff7270b5e81be19ef91a66b764a8b21473a97a8d211218a52e3426b79ad48f371819ab9153370756b33ba284e5c875463de4d2cf48a472e9098d7f09e8a2
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:^20.11.0, @types/node@npm:^20.11.10, @types/node@npm:^20.14.11":
-  version: 20.19.23
-  resolution: "@types/node@npm:20.19.23"
-  dependencies:
-    undici-types: "npm:~6.21.0"
-  checksum: 10/35ca928381fab74abe2938a5ef00e3e9721ed0475e370a2c5c49877ed88858690d8d5464b6cb6bbe717497482e9087d1f58b6140dbcdd2742750fbe39e271489
   languageName: node
   linkType: hard
 
@@ -10519,13 +10522,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/prop-types@npm:*":
-  version: 15.7.15
-  resolution: "@types/prop-types@npm:15.7.15"
-  checksum: 10/31aa2f59b28f24da6fb4f1d70807dae2aedfce090ec63eaf9ea01727a9533ef6eaf017de5bff99fbccad7d1c9e644f52c6c2ba30869465dd22b1a7221c29f356
-  languageName: node
-  linkType: hard
-
 "@types/q@npm:^1.5.1":
   version: 1.5.8
   resolution: "@types/q@npm:1.5.8"
@@ -10556,15 +10552,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:18.3.1":
-  version: 18.3.1
-  resolution: "@types/react-dom@npm:18.3.1"
-  dependencies:
-    "@types/react": "npm:*"
-  checksum: 10/33f9ba79b26641ddf00a8699c30066b7e3573ab254e97475bf08f82fab83a6d3ce8d4ebad86afeb49bb8df3374390a9ba93125cece33badc4b3e8f7eac3c84d8
-  languageName: node
-  linkType: hard
-
 "@types/react-dom@npm:^18.0.0":
   version: 18.3.7
   resolution: "@types/react-dom@npm:18.3.7"
@@ -10574,7 +10561,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:^19.0.1":
+"@types/react-dom@npm:^19.0.1, @types/react-dom@npm:^19.2.2":
   version: 19.2.2
   resolution: "@types/react-dom@npm:19.2.2"
   peerDependencies:
@@ -10625,22 +10612,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:*, @types/react@npm:^19.0.1":
+"@types/react@npm:*, @types/react@npm:^19.0.1, @types/react@npm:^19.2.2":
   version: 19.2.2
   resolution: "@types/react@npm:19.2.2"
   dependencies:
     csstype: "npm:^3.0.2"
   checksum: 10/d6adf8fd4bb23a7e04da5700d96b15dc0f59653727a9c6e940c151d7232fa1dbbab98417d5ac830dcfb6cba3f206efbd4cd83647e6f9a688d7363a90e607f6bf
-  languageName: node
-  linkType: hard
-
-"@types/react@npm:18.3.12":
-  version: 18.3.12
-  resolution: "@types/react@npm:18.3.12"
-  dependencies:
-    "@types/prop-types": "npm:*"
-    csstype: "npm:^3.0.2"
-  checksum: 10/c9bbdfeacd5347d2240e0d2cb5336bc57dbc1b9ff557b6c4024b49df83419e4955553518169d3736039f1b62608e15b35762a6c03d49bd86e33add4b43b19033
   languageName: node
   linkType: hard
 
@@ -15721,6 +15698,7 @@ __metadata:
   resolution: "docs@workspace:docs"
   dependencies:
     "@manaflair/redux-batch": "npm:^1.0.0"
+    "@reduxjs/tsconfig": "workspace:^"
     "@types/nanoid": "npm:^2.1.0"
     "@types/react": "npm:^19.0.1"
     async-mutex: "npm:^0.3.2"
@@ -15732,6 +15710,7 @@ __metadata:
     next-redux-wrapper: "npm:^7.0.5"
     redux-persist: "npm:^6.0.0"
     rxjs: "npm:^6.6.2"
+    typescript: "npm:^5.9.3"
   languageName: unknown
   linkType: soft
 
@@ -32852,13 +32831,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"undici-types@npm:~6.21.0":
-  version: 6.21.0
-  resolution: "undici-types@npm:6.21.0"
-  checksum: 10/ec8f41aa4359d50f9b59fa61fe3efce3477cc681908c8f84354d8567bb3701fafdddf36ef6bff307024d3feb42c837cf6f670314ba37fc8145e219560e473d14
-  languageName: node
-  linkType: hard
-
 "undici-types@npm:~7.16.0":
   version: 7.16.0
   resolution: "undici-types@npm:7.16.0"
@@ -33479,12 +33451,13 @@ __metadata:
     "@reduxjs/eslint-config": "workspace:^"
     "@reduxjs/prettier-config": "workspace:^"
     "@reduxjs/toolkit": "https://pkg.csb.dev/reduxjs/redux-toolkit/commit/2aca4f24/@reduxjs/toolkit/_pkg.tgz"
+    "@reduxjs/tsconfig": "workspace:^"
     "@testing-library/dom": "npm:^9.3.4"
     "@testing-library/jest-dom": "npm:^6.2.0"
     "@testing-library/react": "npm:^14.1.2"
     "@testing-library/user-event": "npm:^14.5.2"
-    "@types/react": "npm:18.3.12"
-    "@types/react-dom": "npm:18.3.1"
+    "@types/react": "npm:^19.2.2"
+    "@types/react-dom": "npm:^19.2.2"
     "@types/react-native-web": "npm:^0.19"
     "@vitejs/plugin-react": "npm:^4.2.1"
     eslint: "npm:^9.38.0"

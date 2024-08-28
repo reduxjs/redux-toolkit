@@ -34,6 +34,8 @@
   "devDependencies": {
     "@reduxjs/eslint-config": "workspace:^",
     "@reduxjs/prettier-config": "workspace:^",
+    "@reduxjs/toolkit": "workspace:^",
+    "@reduxjs/tsconfig": "workspace:^",
     "@types/jscodeshift": "^0.11.11",
     "eslint": "^9.38.0",
     "jiti": "^2.6.1",
