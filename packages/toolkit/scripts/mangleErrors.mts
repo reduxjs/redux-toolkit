@@ -20,10 +20,12 @@ export interface MangleErrorsPluginOptions {
 }
 
 /**
- * Converts an AST type into a JavaScript string so that it can be added to the error message lookup.
+ * Converts an AST type into a JavaScript string so that it can be added to
+ * the error message lookup.
  *
- * Adapted from React (https://github.com/facebook/react/blob/master/scripts/shared/evalToString.js) with some
- * adjustments.
+ * Adapted from React
+ * {@linkcode https://github.com/facebook/react/blob/master/scripts/shared/evalToString.js | evalToString}
+ * with some adjustments.
  */
 const evalToString = (
   ast: Node | { type: 'Literal'; value: string },
@@ -52,27 +54,49 @@ const evalToString = (
 }
 
 /**
- * Transforms a `throw new Error` statement based on the `minify` argument, resulting in a smaller bundle size
- * for consumers in production.
+ * Transforms a `throw new Error` statement based on the
+ * {@linkcode MangleErrorsPluginOptions.minify | minify} argument,
+ * resulting in a smaller bundle size for consumers in production.
  *
- * If `minify` is enabled, the error message will be replaced with an index that maps to an object lookup.
+ * If {@linkcode MangleErrorsPluginOptions.minify | minify} is enabled,
+ * the error message will be replaced with an index that maps to
+ * an object lookup.
  *
- * If `minify` is disabled, a conditional statement will be added to check `process.env.NODE_ENV`, which will output
- * an error number index in production or the actual error message in development. This allows consumers using Webpack
- * or another build tool to have these messages in development but only the error index in production.
+ * If {@linkcode MangleErrorsPluginOptions.minify | minify} is disabled,
+ * a conditional statement will be added to check `process.env.NODE_ENV`,
+ * which will output an error number index in production or the actual
+ * error message in development. This allows consumers using Webpack or
+ * another build tool to have these messages in development but only the
+ * error index in production.
  *
- * E.g.
- *  Before:
- *    throw new Error("This is my error message.");
- *    throw new Error("This is a second error message.");
+ * @example
+ * <caption>__Before:__</caption>
  *
- *  After (with minify):
- *    throw new Error(0);
- *    throw new Error(1);
+ * ```ts
+ * throw new Error('each middleware provided to configureStore must be a function');
+ * throw new Error(
+ *   '`reducer` is a required argument, and must be a function or an object of functions that can be passed to combineReducers',
+ * )
+ * ```
  *
- *  After (without minify):
- *    throw new Error(process.env.NODE_ENV === 'production' ? 0 : "This is my error message.");
- *    throw new Error(process.env.NODE_ENV === 'production' ? 1 : "This is a second error message.");
+ * @example
+ * <caption>__After (with minify):__</caption>
+ *
+ * ```ts
+ * throw new Error(formatProdErrorMessage(0));
+ * throw new Error(formatProdErrorMessage(1));
+ * ```
+ *
+ * @example
+ * <caption>__After (without minify):__</caption>
+ *
+ * ```ts
+ * throw new Error(
+ *   process.env.NODE_ENV === 'production'
+ *     ? formatProdErrorMessage(4)
+ *     : 'each middleware provided to configureStore must be a function',
+ * )
+ * ```
  */
 export const mangleErrorsPlugin = (
   babel: Babel,
