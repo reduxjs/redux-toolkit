@@ -3,10 +3,10 @@ import * as helperModuleImports from '@babel/helper-module-imports'
 import * as fs from 'node:fs'
 
 /**
- * Converts an AST type into a javascript string so that it can be added to the error message lookup.
+ * Converts an AST type into a JavaScript string so that it can be added to the error message lookup.
  *
  * Adapted from React (https://github.com/facebook/react/blob/master/scripts/shared/evalToString.js) with some
- * adjustments
+ * adjustments.
  */
 const evalToString = (ast) => {
   switch (ast.type) {
