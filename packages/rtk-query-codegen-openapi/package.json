@@ -55,6 +55,7 @@
     "@reduxjs/prettier-config": "workspace:^",
     "@reduxjs/toolkit": "^1.6.0",
     "@reduxjs/tsconfig": "workspace:^",
+    "@reduxjs/vitest-config": "workspace:^",
     "@types/commander": "^2.12.2",
     "@types/glob-to-regexp": "^0.4.0",
     "@types/lodash.camelcase": "^4.3.9",
@@ -72,7 +73,6 @@
     "rimraf": "^5.0.5",
     "ts-node": "^10.9.2",
     "tsup": "^8.2.4",
-    "vite-tsconfig-paths": "^5.0.1",
     "vitest": "^2.0.5",
     "yalc": "^1.0.0-pre.47"
   },
