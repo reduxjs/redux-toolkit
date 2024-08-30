@@ -295,7 +295,7 @@ The standalone version of `getDefaultMiddleware` has been deprecated since v1.6.
 
 We have also removed the `getType` export, which was used to extract a type string from action creators made with `createAction`. Instead, use the static property `actionCreator.type`.
 
-#### RTK Query behaviour changes
+#### RTK Query behavior changes
 
 We've had a number of reports where RTK Query had issues around usage of `dispatch(endpoint.initiate(arg, {subscription: false}))`. There were also reports that multiple triggered lazy queries were resolving the promises at the wrong time. Both of these had the same underlying issue, which was that RTKQ wasn't tracking cache entries in these cases (intentionally). We've reworked the logic to always track cache entries (and remove them as needed), which should resolve those behavior issues.
 
@@ -462,7 +462,7 @@ export const useDispatch = createDispatchHook(context).withTypes<AppDispatch>()
 export const useSelector = createSelectorHook(context).withTypes<RootState>()
 ```
 
-In v9, the types now match the runtime behaviour. The context is typed to hold `ReactReduxContextValue | null`, and the hooks know that if they receive `null` they'll throw an error so it doesn't affect the return type.
+In v9, the types now match the runtime behavior. The context is typed to hold `ReactReduxContextValue | null`, and the hooks know that if they receive `null` they'll throw an error so it doesn't affect the return type.
 
 The above example now becomes:
 
@@ -899,7 +899,7 @@ yield takeEvery(todoAdded.type, saga)
 
 With the addition of the [callback syntax for createSlice](#callback-syntax-for-createslicereducers), the [suggestion](https://github.com/reduxjs/redux-toolkit/issues/3837) was made to enable custom slice reducer creators. These creators would be able to:
 
-- Modify reducer behaviour by adding case or matcher reducers
+- Modify reducer behavior by adding case or matcher reducers
 - Attach actions (or any other useful functions) to `slice.actions`
 - Attach provided case reducers to `slice.caseReducers`
 

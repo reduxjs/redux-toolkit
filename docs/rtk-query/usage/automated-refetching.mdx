@@ -108,7 +108,7 @@ By declaring these tags as what can possibly be provided to the cache, it enable
 
 ### Providing cache data
 
-Each individual `query` endpoint can have its cached data _provide_ particular tags. Doing so enables a relationship between cached data from one or more query endpoints and the behaviour of one or more mutation endpoints.
+Each individual `query` endpoint can have its cached data _provide_ particular tags. Doing so enables a relationship between cached data from one or more query endpoints and the behavior of one or more mutation endpoints.
 
 The `providesTags` property on a `query` endpoint is used for this purpose.
 
@@ -237,7 +237,7 @@ In order to provide stronger control over invalidating the appropriate data, you
 
 ### Invalidating cache data
 
-Each individual mutation endpoint can `invalidate` particular tags for existing cached data. Doing so enables a relationship between cached data from one or more query endpoints and the behaviour of one or more mutation endpoints.
+Each individual mutation endpoint can `invalidate` particular tags for existing cached data. Doing so enables a relationship between cached data from one or more query endpoints and the behavior of one or more mutation endpoints.
 
 The `invalidatesTags` property on a mutation endpoint is used for this purpose.
 
@@ -621,7 +621,7 @@ A powerful use-case is to use an ID like `'LIST'` as a label for data provided b
 
 :::
 
-We can compare the scenarios below to see how using a `'LIST'` id can be leveraged to optimize behaviour.
+We can compare the scenarios below to see how using a `'LIST'` id can be leveraged to optimize behavior.
 
 #### Invalidating everything of a type
 
@@ -774,7 +774,7 @@ If you intend for the `addPost` mutation to refresh all posts including individu
 
 The information provided to the cache is not limited to successful data fetches. The concept can be used to inform RTK Query that when a particular failure has been encountered, to `provide` a specific `tag` for that failed cache data. A separate endpoint can then `invalidate` the data for that `tag`, telling RTK Query to re-attempt the previously failed endpoints if a component is still subscribed to the failed data.
 
-The example below demonstrates an example with the following behaviour:
+The example below demonstrates an example with the following behavior:
 
 - Provides an `UNAUTHORIZED` cache tag if a query fails with an error code of `401 UNAUTHORIZED`
 - Provides an `UNKNOWN_ERROR` cache tag if a query fails with a different error
