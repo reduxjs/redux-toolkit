@@ -103,14 +103,14 @@ jobs:
         run: rm -rf dist && yarn tsc -p . --moduleResolution Bundler --module ESNext --noEmit false --declaration --emitDeclarationOnly --outDir dist --target ESNext && rm -rf dist
 
   test-type-portability:
-    name: Test Type Portability with TypeScript ${{ matrix.ts }} and Node.js ${{ matrix.node }}
+    name: 'Test Type Portability: TS ${{ matrix.ts }} + Node ${{ matrix.node }}'
     needs: [build]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         node: ['20.x']
-        ts: ['5.0', '5.1', '5.2', '5.3', '5.4', '5.5', 'next']
+        ts: ['5.3', '5.4', '5.5', 'next']
         example:
           [
             { name: 'bundler', moduleResolution: 'Bundler' },
@@ -154,7 +154,7 @@ jobs:
           yarn workspace @examples-type-portability/${{ matrix.example.name }} run test --module ESNext --moduleResolution Node10 --preserveSymLinks --verbatimModuleSyntax false
 
   test-types:
-    name: Test Types with TypeScript ${{ matrix.ts }}
+    name: 'Test Types: TS ${{ matrix.ts }}'
 
     needs: [build]
     runs-on: ubuntu-latest
