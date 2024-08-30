@@ -35,7 +35,7 @@ jobs:
 
     runs-on: ${{ matrix.os }}
 
-    name: Build artifact for ${{ matrix.os }} with Node ${{ matrix.node-version }}
+    name: 'Build artifact: ${{ matrix.os }} + Node ${{ matrix.node-version }}'
 
     strategy:
       matrix:
@@ -74,7 +74,7 @@ jobs:
     defaults:
       run:
         working-directory: ./packages/rtk-query-codegen-openapi
-    name: Test final build artifact with Node.js ${{ matrix.node-version }} on ${{ matrix.os }}
+    name: 'Test build artifact: ${{ matrix.os }} + Node ${{ matrix.node-version }}'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -116,7 +116,7 @@ jobs:
         run: ls -R
 
   are-the-types-wrong:
-    name: Check validity of type definitions with are-the-types-wrong
+    name: Check package definition with are-the-types-wrong
 
     needs: [build]
     runs-on: ubuntu-latest
