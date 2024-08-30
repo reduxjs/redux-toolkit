@@ -965,7 +965,9 @@ const injectedRtkApi = api.injectEndpoints({
     >({
       query: (queryArg) => ({
         url: \`/pet/findByStatus\`,
-        params: { status: queryArg.status },
+        params: {
+          status: queryArg.status,
+        },
       }),
     }),
     findPetsByTags: build.query<
@@ -1123,7 +1125,8 @@ export type DeleteOrderApiArg = {
   /** ID of the order that needs to be deleted */
   orderId: number;
 };
-export type CreateUserApiResponse = unknown;
+export type CreateUserApiResponse =
+  /** status default successful operation */ User;
 export type CreateUserApiArg = {
   /** Created user object */
   user: User;
@@ -1170,6 +1173,7 @@ export type Pet = {
   category?: Category | undefined;
   photoUrls: string[];
   tags?: Tag[] | undefined;
+  /** pet status in the store */
   status?: ("available" | "pending" | "sold") | undefined;
 };
 export type ApiResponse = {
@@ -1182,6 +1186,7 @@ export type Order = {
   petId?: number | undefined;
   quantity?: number | undefined;
   shipDate?: string | undefined;
+  /** Order Status */
   status?: ("placed" | "approved" | "delivered") | undefined;
   complete?: boolean | undefined;
 };
@@ -1193,6 +1198,7 @@ export type User = {
   email?: string | undefined;
   password?: string | undefined;
   phone?: string | undefined;
+  /** User Status */
   userStatus?: number | undefined;
 };
 "
@@ -1240,14 +1246,18 @@ const injectedRtkApi = api.injectEndpoints({
       query: (queryArg) => ({
         url: \`/pet/\${queryArg.petId}\`,
         method: "POST",
-        params: { name: queryArg.name },
+        params: {
+          name: queryArg.name,
+        },
       }),
     }),
     deletePet: build.mutation<DeletePetApiResponse, DeletePetApiArg>({
       query: (queryArg) => ({
         url: \`/pet/\${queryArg.petId}\`,
         method: "DELETE",
-        headers: { api_key: queryArg.apiKey },
+        headers: {
+          api_key: queryArg.apiKey,
+        },
       }),
     }),
     uploadFile: build.mutation<UploadFileApiResponse, UploadFileApiArg>({
@@ -1255,7 +1265,9 @@ const injectedRtkApi = api.injectEndpoints({
         url: \`/pet/\${queryArg.petId}/uploadImage\`,
         method: "POST",
         body: queryArg.body,
-        params: { additionalMetadata: queryArg.additionalMetadata },
+        params: {
+          additionalMetadata: queryArg.additionalMetadata,
+        },
       }),
     }),
     getInventory: build.query<GetInventoryApiResponse, GetInventoryApiArg>({
@@ -1297,7 +1309,9 @@ const injectedRtkApi = api.injectEndpoints({
     loginUser: build.query<LoginUserApiResponse, LoginUserApiArg>({
       query: (queryArg) => ({
         url: \`/user/login\`,
-        params: { username: queryArg.username },
+        params: {
+          username: queryArg.username,
+        },
       }),
     }),
     logoutUser: build.query<LogoutUserApiResponse, LogoutUserApiArg>({
@@ -1390,7 +1404,8 @@ export type DeleteOrderApiArg = {
   /** ID of the order that needs to be deleted */
   orderId: number;
 };
-export type CreateUserApiResponse = unknown;
+export type CreateUserApiResponse =
+  /** status default successful operation */ User;
 export type CreateUserApiArg = {
   /** Created user object */
   user: User;
@@ -1440,6 +1455,7 @@ export type Pet = {
   category?: Category | undefined;
   photoUrls: string[];
   tags?: Tag[] | undefined;
+  /** pet status in the store */
   status?: ("available" | "pending" | "sold") | undefined;
 };
 export type ApiResponse = {
@@ -1452,6 +1468,7 @@ export type Order = {
   petId?: number | undefined;
   quantity?: number | undefined;
   shipDate?: string | undefined;
+  /** Order Status */
   status?: ("placed" | "approved" | "delivered") | undefined;
   complete?: boolean | undefined;
 };
@@ -1463,6 +1480,7 @@ export type User = {
   email?: string | undefined;
   password?: string | undefined;
   phone?: string | undefined;
+  /** User Status */
   userStatus?: number | undefined;
 };
 "
@@ -1494,7 +1512,9 @@ const injectedRtkApi = api.injectEndpoints({
     >({
       query: (queryArg) => ({
         url: \`/pet/findByStatus\`,
-        params: { status: queryArg.status },
+        params: {
+          status: queryArg.status,
+        },
       }),
     }),
     findPetsByTags: build.query<
@@ -1503,7 +1523,9 @@ const injectedRtkApi = api.injectEndpoints({
     >({
       query: (queryArg) => ({
         url: \`/pet/findByTags\`,
-        params: { tags: queryArg.tags },
+        params: {
+          tags: queryArg.tags,
+        },
       }),
     }),
     getPetById: build.query<GetPetByIdApiResponse, GetPetByIdApiArg>({
@@ -1516,7 +1538,10 @@ const injectedRtkApi = api.injectEndpoints({
       query: (queryArg) => ({
         url: \`/pet/\${queryArg.petId}\`,
         method: "POST",
-        params: { name: queryArg.name, status: queryArg.status },
+        params: {
+          name: queryArg.name,
+          status: queryArg.status,
+        },
       }),
     }),
     deletePet: build.mutation<DeletePetApiResponse, DeletePetApiArg>({
@@ -1530,7 +1555,9 @@ const injectedRtkApi = api.injectEndpoints({
         url: \`/pet/\${queryArg.petId}/uploadImage\`,
         method: "POST",
         body: queryArg.body,
-        params: { additionalMetadata: queryArg.additionalMetadata },
+        params: {
+          additionalMetadata: queryArg.additionalMetadata,
+        },
       }),
     }),
     getInventory: build.query<GetInventoryApiResponse, GetInventoryApiArg>({
@@ -1572,7 +1599,10 @@ const injectedRtkApi = api.injectEndpoints({
     loginUser: build.query<LoginUserApiResponse, LoginUserApiArg>({
       query: (queryArg) => ({
         url: \`/user/login\`,
-        params: { username: queryArg.username, password: queryArg.password },
+        params: {
+          username: queryArg.username,
+          password: queryArg.password,
+        },
       }),
     }),
     logoutUser: build.query<LogoutUserApiResponse, LogoutUserApiArg>({
@@ -1672,7 +1702,8 @@ export type DeleteOrderApiArg = {
   /** ID of the order that needs to be deleted */
   orderId: number;
 };
-export type CreateUserApiResponse = unknown;
+export type CreateUserApiResponse =
+  /** status default successful operation */ User;
 export type CreateUserApiArg = {
   /** Created user object */
   user: User;
@@ -1724,6 +1755,7 @@ export type Pet = {
   category?: Category | undefined;
   photoUrls: string[];
   tags?: Tag[] | undefined;
+  /** pet status in the store */
   status?: ("available" | "pending" | "sold") | undefined;
 };
 export type ApiResponse = {
@@ -1736,6 +1768,7 @@ export type Order = {
   petId?: number | undefined;
   quantity?: number | undefined;
   shipDate?: string | undefined;
+  /** Order Status */
   status?: ("placed" | "approved" | "delivered") | undefined;
   complete?: boolean | undefined;
 };
@@ -1747,6 +1780,7 @@ export type User = {
   email?: string | undefined;
   password?: string | undefined;
   phone?: string | undefined;
+  /** User Status */
   userStatus?: number | undefined;
 };
 "
@@ -1794,14 +1828,18 @@ const injectedRtkApi = api.injectEndpoints({
       query: (queryArg) => ({
         url: \`/pet/\${queryArg.petId}\`,
         method: "POST",
-        params: { name: queryArg.name },
+        params: {
+          name: queryArg.name,
+        },
       }),
     }),
     deletePet: build.mutation<DeletePetApiResponse, DeletePetApiArg>({
       query: (queryArg) => ({
         url: \`/pet/\${queryArg.petId}\`,
         method: "DELETE",
-        headers: { api_key: queryArg.apiKey },
+        headers: {
+          api_key: queryArg.apiKey,
+        },
       }),
     }),
     uploadFile: build.mutation<UploadFileApiResponse, UploadFileApiArg>({
@@ -1809,7 +1847,9 @@ const injectedRtkApi = api.injectEndpoints({
         url: \`/pet/\${queryArg.petId}/uploadImage\`,
         method: "POST",
         body: queryArg.body,
-        params: { additionalMetadata: queryArg.additionalMetadata },
+        params: {
+          additionalMetadata: queryArg.additionalMetadata,
+        },
       }),
     }),
     getInventory: build.query<GetInventoryApiResponse, GetInventoryApiArg>({
@@ -1851,7 +1891,9 @@ const injectedRtkApi = api.injectEndpoints({
     loginUser: build.query<LoginUserApiResponse, LoginUserApiArg>({
       query: (queryArg) => ({
         url: \`/user/login\`,
-        params: { username: queryArg.username },
+        params: {
+          username: queryArg.username,
+        },
       }),
     }),
     logoutUser: build.query<LogoutUserApiResponse, LogoutUserApiArg>({
@@ -1944,7 +1986,8 @@ export type DeleteOrderApiArg = {
   /** ID of the order that needs to be deleted */
   orderId: number;
 };
-export type CreateUserApiResponse = unknown;
+export type CreateUserApiResponse =
+  /** status default successful operation */ User;
 export type CreateUserApiArg = {
   /** Created user object */
   user: User;
@@ -1994,6 +2037,7 @@ export type Pet = {
   category?: Category | undefined;
   photoUrls: string[];
   tags?: Tag[] | undefined;
+  /** pet status in the store */
   status?: ("available" | "pending" | "sold") | undefined;
 };
 export type ApiResponse = {
@@ -2006,6 +2050,7 @@ export type Order = {
   petId?: number | undefined;
   quantity?: number | undefined;
   shipDate?: string | undefined;
+  /** Order Status */
   status?: ("placed" | "approved" | "delivered") | undefined;
   complete?: boolean | undefined;
 };
@@ -2017,6 +2062,7 @@ export type User = {
   email?: string | undefined;
   password?: string | undefined;
   phone?: string | undefined;
+  /** User Status */
   userStatus?: number | undefined;
 };
 "
@@ -2048,7 +2094,9 @@ const injectedRtkApi = api.injectEndpoints({
     >({
       query: (queryArg) => ({
         url: \`/pet/findByStatus\`,
-        params: { status: queryArg.status },
+        params: {
+          status: queryArg.status,
+        },
       }),
     }),
     findPetsByTags: build.query<
@@ -2067,7 +2115,9 @@ const injectedRtkApi = api.injectEndpoints({
       query: (queryArg) => ({
         url: \`/pet/\${queryArg.petId}\`,
         method: "POST",
-        params: { status: queryArg.status },
+        params: {
+          status: queryArg.status,
+        },
       }),
     }),
     deletePet: build.mutation<DeletePetApiResponse, DeletePetApiArg>({
@@ -2212,7 +2262,8 @@ export type DeleteOrderApiArg = {
   /** ID of the order that needs to be deleted */
   orderId: number;
 };
-export type CreateUserApiResponse = unknown;
+export type CreateUserApiResponse =
+  /** status default successful operation */ User;
 export type CreateUserApiArg = {
   /** Created user object */
   user: User;
@@ -2259,6 +2310,7 @@ export type Pet = {
   category?: Category | undefined;
   photoUrls: string[];
   tags?: Tag[] | undefined;
+  /** pet status in the store */
   status?: ("available" | "pending" | "sold") | undefined;
 };
 export type ApiResponse = {
@@ -2271,6 +2323,7 @@ export type Order = {
   petId?: number | undefined;
   quantity?: number | undefined;
   shipDate?: string | undefined;
+  /** Order Status */
   status?: ("placed" | "approved" | "delivered") | undefined;
   complete?: boolean | undefined;
 };
@@ -2282,6 +2335,7 @@ export type User = {
   email?: string | undefined;
   password?: string | undefined;
   phone?: string | undefined;
+  /** User Status */
   userStatus?: number | undefined;
 };
 "

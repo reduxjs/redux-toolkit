@@ -98,7 +98,7 @@ describe('endpoint overrides', () => {
         },
       ],
     });
-    expect(api).not.toMatch(/params: {.*queryArg\.\w+\b(?<!\bstatus)/);
+    expect(api).not.toMatch(/params: {\n.*queryArg\.\w+\b(?<!\bstatus)/);
     expect(api).toMatchSnapshot('should only have the "status" parameter from the endpoints');
   });
 
@@ -114,8 +114,8 @@ describe('endpoint overrides', () => {
         },
       ],
     });
-    expect(api).not.toMatch(/params: {.*queryArg\.[^\We]*\W/);
-    expect(api).toMatch(/params: {.*queryArg\.[\we]*\W/);
+    expect(api).not.toMatch(/params: {\n.*queryArg\.[^\We]*\W/);
+    expect(api).toMatch(/params: {\n.*queryArg\.[\we]*\W/);
     expect(api).toMatchSnapshot('should only have the parameters with an "e"');
   });
 
@@ -131,8 +131,8 @@ describe('endpoint overrides', () => {
         },
       ],
     });
-    expect(api).not.toMatch(/params: {.*queryArg\.[^\Wef]*\W/);
-    expect(api).toMatch(/params: {.*queryArg\.[\wef]*\W/);
+    expect(api).not.toMatch(/params: {\n.*queryArg\.[^\Wef]*\W/);
+    expect(api).toMatch(/params: {\n.*queryArg\.[\wef]*\W/);
     expect(api).toMatchSnapshot('should only have the parameters with an "e" or "f"');
   });
 
