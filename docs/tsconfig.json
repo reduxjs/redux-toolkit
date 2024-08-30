@@ -23,15 +23,13 @@
       "@reduxjs/toolkit": ["packages/toolkit/src/index.ts"],
       "@reduxjs/toolkit/query": ["packages/toolkit/src/query/index.ts"],
       "@reduxjs/toolkit/query/react": [
-        "packages/toolkit/src/query/react/index.ts",
+        "packages/toolkit/src/query/react/index.ts"
       ],
       "@reduxjs/toolkit/dist/query/*": ["packages/toolkit/src/query/*"],
       "@virtual/*": ["docs/virtual/*"],
       "your-cool-library": ["docs/virtual/your-cool-library/index.ts"],
       "redux-logger": ["docs/virtual/redux-logger/index.ts"],
-      "petstore-api.generated": [
-        "docs/virtual/petstore-api.generated/index.ts",
-      ],
-    },
-  },
+      "petstore-api.generated": ["docs/virtual/petstore-api.generated/index.ts"]
+    }
+  }
 }

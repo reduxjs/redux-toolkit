@@ -1,4 +1,5 @@
-import type { BaseQueryFn } from '@reduxjs/toolkit/query'
+import { vi } from 'vitest'
+import type { BaseQueryFn, FetchBaseQueryError } from '@reduxjs/toolkit/query'
 import { createApi, retry } from '@reduxjs/toolkit/query'
 import { setupApiStore } from '../../tests/utils/helpers'
 
@@ -422,7 +423,8 @@ describe('configuration', () => {
         m1: build.mutation({
           query: () => ({ method: 'PUT' }),
           extraOptions: {
-            retryCondition: (e) => e.data === 'hello retryCondition',
+            retryCondition: (e) =>
+              (e as FetchBaseQueryError).data === 'hello retryCondition',
           },
         }),
       }),

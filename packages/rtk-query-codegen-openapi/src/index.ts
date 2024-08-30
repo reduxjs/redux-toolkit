@@ -15,11 +15,14 @@ export async function generateEndpoints(options: GenerationOptions): Promise<str
     const { generateApi } = await import('./generate');
     return generateApi(schemaAbsPath, options);
   });
-  const { outputFile } = options;
+  const { outputFile, prettierConfigFile } = options;
   if (outputFile) {
-    fs.writeFileSync(path.resolve(process.cwd(), outputFile), await prettify(outputFile, sourceCode));
+    fs.writeFileSync(
+      path.resolve(process.cwd(), outputFile),
+      await prettify(outputFile, sourceCode, prettierConfigFile)
+    );
   } else {
-    return await prettify(null, sourceCode);
+    return await prettify(null, sourceCode, prettierConfigFile);
   }
 }
 

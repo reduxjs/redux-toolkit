@@ -1,13 +1,12 @@
-import type { BaseQueryFn } from '../../baseQueryTypes'
 import type { QueryDefinition } from '../../endpointDefinitions'
 import type { ConfigState, QueryCacheKey } from '../apiState'
+import { isAnyOf } from '../rtkImports'
 import type {
+  ApiMiddlewareInternalHandler,
+  InternalHandlerBuilder,
   QueryStateMeta,
   SubMiddlewareApi,
   TimeoutId,
-  InternalHandlerBuilder,
-  ApiMiddlewareInternalHandler,
-  InternalMiddlewareState,
 } from './types'
 
 export type ReferenceCacheCollection = never
@@ -15,28 +14,20 @@ export type ReferenceCacheCollection = never
 function isObjectEmpty(obj: Record<any, any>) {
   // Apparently a for..in loop is faster than `Object.keys()` here:
   // https://stackoverflow.com/a/59787784/62937
-  for (let k in obj) {
+  for (const k in obj) {
     // If there is at least one key, it's not empty
     return false
   }
   return true
 }
 
-declare module '../../endpointDefinitions' {
-  interface QueryExtraOptions<
-    TagTypes extends string,
-    ResultType,
-    QueryArg,
-    BaseQuery extends BaseQueryFn,
-    ReducerPath extends string = string,
-  > {
-    /**
-     * Overrides the api-wide definition of `keepUnusedDataFor` for this endpoint only. _(This value is in seconds.)_
-     *
-     * This is how long RTK Query will keep your data cached for **after** the last component unsubscribes. For example, if you query an endpoint, then unmount the component, then mount another component that makes the same request within the given time frame, the most recent value will be served from the cache.
-     */
-    keepUnusedDataFor?: number
-  }
+export type CacheCollectionQueryExtraOptions = {
+  /**
+   * Overrides the api-wide definition of `keepUnusedDataFor` for this endpoint only. _(This value is in seconds.)_
+   *
+   * This is how long RTK Query will keep your data cached for **after** the last component unsubscribes. For example, if you query an endpoint, then unmount the component, then mount another component that makes the same request within the given time frame, the most recent value will be served from the cache.
+   */
+  keepUnusedDataFor?: number
 }
 
 // Per https://developer.mozilla.org/en-US/docs/Web/API/setTimeout#maximum_delay_value , browsers store
@@ -49,10 +40,17 @@ export const THIRTY_TWO_BIT_MAX_TIMER_SECONDS = 2_147_483_647 / 1_000 - 1
 export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
   reducerPath,
   api,
+  queryThunk,
   context,
   internalState,
 }) => {
   const { removeQueryResult, unsubscribeQueryResult } = api.internalActions
+
+  const canTriggerUnsubscribe = isAnyOf(
+    unsubscribeQueryResult.match,
+    queryThunk.fulfilled,
+    queryThunk.rejected,
+  )
 
   function anySubscriptionsRemainingForKey(queryCacheKey: string) {
     const subscriptions = internalState.currentSubscriptions[queryCacheKey]
@@ -66,9 +64,11 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
     mwApi,
     internalState,
   ) => {
-    if (unsubscribeQueryResult.match(action)) {
+    if (canTriggerUnsubscribe(action)) {
       const state = mwApi.getState()[reducerPath]
-      const { queryCacheKey } = action.payload
+      const { queryCacheKey } = unsubscribeQueryResult.match(action)
+        ? action.payload
+        : action.meta.arg
 
       handleUnsubscribe(
         queryCacheKey,

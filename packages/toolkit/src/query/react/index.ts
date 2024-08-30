@@ -21,10 +21,11 @@ export type {
   TypedLazyQueryTrigger,
   TypedUseLazyQuery,
   TypedUseMutation,
-  TypedUseMutationTrigger,
+  TypedMutationTrigger,
   TypedUseQueryState,
   TypedUseQuery,
   TypedUseQuerySubscription,
   TypedUseLazyQuerySubscription,
 } from './buildHooks'
+export { UNINITIALIZED_VALUE } from './constants'
 export { createApi, reactHooksModule, reactHooksModuleName }

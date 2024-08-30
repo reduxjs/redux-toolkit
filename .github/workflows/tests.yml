@@ -11,8 +11,8 @@ jobs:
     outputs:
       toolkit: ${{ steps.filter.outputs.toolkit }}
     steps:
-      - uses: actions/checkout@v2
-      - uses: dorny/paths-filter@v2
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
         id: filter
         with:
           filters: |
@@ -20,6 +20,7 @@ jobs:
               - 'packages/toolkit/**'
               - 'examples/publish-ci/**'
               - '.github/workflows/tests.yml'
+              - 'yarn.lock'
 
   build:
     needs: changes
@@ -30,14 +31,14 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: ['18.x']
+        node: ['20.x']
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Use node ${{ matrix.node }}
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
           cache: 'yarn'
@@ -55,7 +56,7 @@ jobs:
       - name: Pack
         run: yarn pack
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: package
           path: packages/toolkit/package.tgz
@@ -67,13 +68,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: ['18.x']
+        node: ['20.x']
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Use node ${{ matrix.node }}
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
           cache: 'yarn'
@@ -81,7 +82,7 @@ jobs:
       - name: Install deps
         run: yarn install
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
           name: package
           path: packages/toolkit
@@ -91,27 +92,32 @@ jobs:
       - name: Install build artifact
         run: yarn workspace @reduxjs/toolkit add $(pwd)/package.tgz
 
-      - run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json ./vitest.config.mts ./src/tests/*.* ./src/query/tests/*.*
+      - run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json
 
       - name: Run tests, against dist
+        env:
+          TEST_DIST: true
         run: yarn test
 
+      - name: Run type tests with `moduleResolution Bundler`
+        run: rm -rf dist && yarn tsc -p . --moduleResolution Bundler --module ESNext --noEmit false --declaration --emitDeclarationOnly --outDir dist --target ESNext && rm -rf dist
+
   test-types:
-    name: Test Types with TypeScript ${{ matrix.ts }}
+    name: 'Test Types: TS ${{ matrix.ts }}'
 
     needs: [build]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        node: ['18.x']
-        ts: ['4.7', '4.8', '4.9', '5.0', '5.1', '5.2', '5.3']
+        node: ['20.x']
+        ts: ['4.7', '4.8', '4.9', '5.0', '5.1', '5.2', '5.3', '5.4', '5.5']
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Use node ${{ matrix.node }}
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
           cache: 'yarn'
@@ -122,7 +128,7 @@ jobs:
       - name: Install TypeScript ${{ matrix.ts }}
         run: yarn add typescript@${{ matrix.ts }}
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
           name: package
           path: packages/toolkit
@@ -133,9 +139,11 @@ jobs:
       - name: Show installed RTK versions
         run: yarn info @reduxjs/toolkit
 
-      - run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json ./vitest.config.mts ./src/tests/*.* ./src/query/tests/*.*
+      - run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json
 
       - name: Test types
+        env:
+          TEST_DIST: true
         run: |
           yarn tsc --version
           yarn type-tests
@@ -148,7 +156,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: ['18.x']
+        node: ['20.x']
         example:
           [
             'cra4',
@@ -163,12 +171,14 @@ jobs:
     defaults:
       run:
         working-directory: ./examples/publish-ci/${{ matrix.example }}
+    env:
+      YARN_ENABLE_IMMUTABLE_INSTALLS: false
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Use node ${{ matrix.node }}
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
           cache: 'yarn'
@@ -179,7 +189,7 @@ jobs:
       - name: Remove existing RTK
         run: yarn remove @reduxjs/toolkit
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
           name: package
           path: ./examples/publish-ci/${{ matrix.example }}
@@ -195,13 +205,15 @@ jobs:
 
       - name: Set up JDK 17 for React Native build
         if: matrix.example == 'react-native' || matrix.example == 'expo'
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v4
         with:
           java-version: '17.x'
           distribution: 'temurin'
 
       - name: Build example
-        run: NODE_OPTIONS=--openssl-legacy-provider yarn build
+        env:
+          NODE_OPTIONS: --openssl-legacy-provider
+        run: yarn build
 
       - name: Run test step
         run: yarn test
@@ -214,13 +226,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: ['18.x']
+        node: ['20.x']
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Use node ${{ matrix.node }}
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
           cache: 'yarn'
@@ -228,7 +240,7 @@ jobs:
       - name: Install deps
         run: yarn install
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
           name: package
           path: packages/toolkit
@@ -238,3 +250,54 @@ jobs:
 
       - name: Run are-the-types-wrong
         run: yarn attw ./package.tgz --format table --ignore-rules false-cjs
+
+  test-type-portability:
+    name: 'Test Type Portability: TS ${{ matrix.ts }} + Node ${{ matrix.node }}'
+    needs: [build]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['20.x']
+        ts: ['5.3', '5.4', '5.5', 'next']
+        example:
+          [
+            { name: 'bundler', moduleResolution: 'Bundler' },
+            { name: 'nodenext-cjs', moduleResolution: 'NodeNext' },
+            { name: 'nodenext-esm', moduleResolution: 'NodeNext' },
+          ]
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Use node ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: 'yarn'
+
+      - name: Install deps
+        run: yarn install
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: package
+          path: packages/toolkit
+
+      - name: Install build artifact
+        run: yarn workspace @examples-type-portability/${{ matrix.example.name }} add $(pwd)/package.tgz
+
+      - name: Install TypeScript ${{ matrix.ts }}
+        run: yarn workspace @examples-type-portability/${{ matrix.example.name }} add -D typescript@${{ matrix.ts }}
+
+      - name: Test type portability with `moduleResolution ${{ matrix.example.moduleResolution }}`
+        run: yarn workspace @examples-type-portability/${{ matrix.example.name }} run test
+
+      - name: Test type portability with `moduleResolution Node10`
+        run: yarn workspace @examples-type-portability/${{ matrix.example.name }} run test --module CommonJS --moduleResolution Node10 --preserveSymLinks --verbatimModuleSyntax false
+
+      - name: Test type portability with `moduleResolution Node10` and `type module` in `package.json`
+        if: matrix.example.name == 'nodenext-esm' || matrix.example.name == 'bundler'
+        run: |
+          npm --workspace=@examples-type-portability/${{ matrix.example.name }} pkg set type=module
+          yarn workspace @examples-type-portability/${{ matrix.example.name }} run test --module ESNext --moduleResolution Node10 --preserveSymLinks --verbatimModuleSyntax false

@@ -22,7 +22,7 @@ The most common use case for side effects in Redux apps is fetching data. Redux 
 
 RTK Query is purpose-built to solve the use case of data fetching. While it can't replace all of the situations where you'd use thunks or other side effects approaches, **using RTK Query should eliminate the need for most of that hand-written side effects logic**.
 
-RTK Query is expected to cover a lot of overlapping behaviour that users may have previously used `createAsyncThunk` for, including caching purposes, and request lifecycle management (e.g. `isUninitialized`, `isLoading`, `isError` states).
+RTK Query is expected to cover a lot of overlapping behavior that users may have previously used `createAsyncThunk` for, including caching purposes, and request lifecycle management (e.g. `isUninitialized`, `isLoading`, `isError` states).
 
 In order to migrate data-fetching features from existing Redux tools to RTK Query, the appropriate endpoints should be added to an RTK Query API slice, and the previous feature code deleted. This generally will not include much common code kept between the two, as the tools work differently and one will replace the other.
 
@@ -271,7 +271,7 @@ export function useGetPokemonByNameQuery(name: string) {
 
 Our code above meets all of the design specifications, so let's use it! Below we can see how the hook can be called in a component, and return the relevant data & status booleans.
 
-Our implementation below provides the following behaviour in the component:
+Our implementation below provides the following behavior in the component:
 
 - When our component is mounted, if a request for the provided pokemon name has not already been sent for the session, send the request off
 - The hook always provides the latest received `data` when available, as well as the request status booleans `isUninitialized`, `isPending`, `isFulfilled` & `isRejected` in order to determine the current UI at any given moment as a function of our state.

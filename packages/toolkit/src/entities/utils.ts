@@ -1,8 +1,10 @@
+import type { Draft } from 'immer'
+import { current, isDraft } from 'immer'
 import type {
+  DraftableEntityState,
+  EntityId,
   IdSelector,
   Update,
-  EntityId,
-  DraftableEntityState,
 } from './models'
 
 export function selectIdValue<T, Id extends EntityId>(
@@ -35,23 +37,30 @@ export function ensureEntitiesArray<T, Id extends EntityId>(
   return entities
 }
 
+export function getCurrent<T>(value: T | Draft<T>): T {
+  return (isDraft(value) ? current(value) : value) as T
+}
+
 export function splitAddedUpdatedEntities<T, Id extends EntityId>(
   newEntities: readonly T[] | Record<Id, T>,
   selectId: IdSelector<T, Id>,
   state: DraftableEntityState<T, Id>,
-): [T[], Update<T, Id>[]] {
+): [T[], Update<T, Id>[], Id[]] {
   newEntities = ensureEntitiesArray(newEntities)
+
+  const existingIdsArray = getCurrent(state.ids)
+  const existingIds = new Set<Id>(existingIdsArray)
 
   const added: T[] = []
   const updated: Update<T, Id>[] = []
 
   for (const entity of newEntities) {
     const id = selectIdValue(entity, selectId)
-    if (id in state.entities) {
+    if (existingIds.has(id)) {
       updated.push({ id, changes: entity })
     } else {
       added.push(entity)
     }
   }
-  return [added, updated]
+  return [added, updated, existingIdsArray]
 }

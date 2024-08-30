@@ -213,7 +213,7 @@ const reducerWithUser = rootReducer.inject(userSlice, {
 ```
 
 This may be useful for hot reload, or "removing" a reducer by replacing it with a function that always returns `null`.
-Note that for predictable behaviour, your types should account for all of the possible reducers you intend to occupy a path.
+Note that for predictable behavior, your types should account for all of the possible reducers you intend to occupy a path.
 
 ```ts no-transpile title="'Removing' a reducer, by replacing it with a no-op function"
 declare module '.' {

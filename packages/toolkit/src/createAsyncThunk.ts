@@ -1,24 +1,16 @@
 import type { Dispatch, UnknownAction } from 'redux'
-import type {
-  PayloadAction,
-  ActionCreatorWithPreparedPayload,
-} from './createAction'
-import { createAction } from './createAction'
 import type { ThunkDispatch } from 'redux-thunk'
+import type { ActionCreatorWithPreparedPayload } from './createAction'
+import { createAction } from './createAction'
+import { isAnyOf } from './matchers'
+import { nanoid } from './nanoid'
 import type {
-  ActionFromMatcher,
   FallbackIfUnknown,
   Id,
   IsAny,
   IsUnknown,
   SafePromise,
-  TypeGuard,
 } from './tsHelpers'
-import { nanoid } from './nanoid'
-import { isAnyOf } from './matchers'
-
-// @ts-ignore we need the import of these types due to a bundling issue.
-type _Keep = PayloadAction | ActionCreatorWithPreparedPayload<any, unknown>
 
 export type BaseThunkAPI<
   S,
@@ -116,7 +108,7 @@ export const miniSerializeError = (value: any): SerializedError => {
 
 export type AsyncThunkConfig = {
   state?: unknown
-  dispatch?: Dispatch
+  dispatch?: ThunkDispatch<unknown, unknown, UnknownAction>
   extra?: unknown
   rejectValue?: unknown
   serializedErrorType?: unknown
@@ -125,11 +117,12 @@ export type AsyncThunkConfig = {
   rejectedMeta?: unknown
 }
 
-type GetState<ThunkApiConfig> = ThunkApiConfig extends {
+export type GetState<ThunkApiConfig> = ThunkApiConfig extends {
   state: infer State
 }
   ? State
   : unknown
+
 type GetExtra<ThunkApiConfig> = ThunkApiConfig extends { extra: infer Extra }
   ? Extra
   : unknown
@@ -240,7 +233,7 @@ export type AsyncThunkAction<
   ThunkArg,
   ThunkApiConfig extends AsyncThunkConfig,
 > = (
-  dispatch: GetDispatch<ThunkApiConfig>,
+  dispatch: NonNullable<GetDispatch<ThunkApiConfig>>,
   getState: () => GetState<ThunkApiConfig>,
   extra: GetExtra<ThunkApiConfig>,
 ) => SafePromise<
@@ -577,7 +570,7 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
 
     function actionCreator(
       arg: ThunkArg,
-    ): AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> {
+    ): AsyncThunkAction<Returned, ThunkArg, Required<ThunkApiConfig>> {
       return (dispatch, getState, extra) => {
         const requestId = options?.idGenerator
           ? options.idGenerator(arg)

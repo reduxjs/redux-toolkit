@@ -277,7 +277,7 @@ type UseQueryResult<T> = {
   isSuccess: boolean // Query has data from a successful load.
   isError: boolean // Query is currently in an "error" state.
 
-  refetch: () => void // A function to force refetch the query
+  refetch: () => QueryActionCreatorResult // A function to force refetch the query - returns a Promise with additional methods
 }
 ```
 
@@ -370,7 +370,7 @@ selectFromResult: () => ({})
   - `trigger`: A function that triggers an update to the data based on the provided argument. The trigger function returns a promise with the properties shown above that may be used to handle the behavior of the promise
   - `mutationState`: A query status object containing the current loading state and metadata about the request, or the values returned by the `selectFromResult` option where applicable.
     Additionally, this object will contain
-    - a `reset` method to reset the hook back to it's original state and remove the current result from the cache
+    - a `reset` method to reset the hook back to its original state and remove the current result from the cache
     - an `originalArgs` property that contains the argument passed to the last call of the `trigger` function.
 
 #### Description
@@ -460,7 +460,7 @@ type UseQuerySubscriptionResult = {
 
   - `arg`: The argument passed to the query defined in the endpoint.
     You can also pass in `skipToken` here as an alternative way of skipping the query, see [skipToken](#skiptoken)
-  - `options`: A set of options that control the fetching behaviour of the hook
+  - `options`: A set of options that control the fetching behavior of the hook
 
 - **Returns**
   - An object containing a function to `refetch` the data

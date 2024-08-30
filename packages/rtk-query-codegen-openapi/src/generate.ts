@@ -5,25 +5,35 @@ import ApiGenerator, {
   getReferenceName,
   isReference,
   supportDeepObjects,
-} from 'oazapfts/lib/codegen/generate';
-import {
   createPropertyAssignment,
   createQuestionToken,
   isValidIdentifier,
   keywordType,
-} from 'oazapfts/lib/codegen/tscodegen';
+} from 'oazapfts/generate';
 import type { OpenAPIV3 } from 'openapi-types';
 import ts from 'typescript';
 import type { ObjectPropertyDefinitions } from './codegen';
 import { generateCreateApiCall, generateEndpointDefinition, generateImportNode, generateTagTypes } from './codegen';
 import { generateReactHooks } from './generators/react-hooks';
-import type { EndpointMatcher, EndpointOverrides, GenerationOptions, OperationDefinition, TextMatcher } from './types';
+import type {
+  EndpointMatcher,
+  EndpointOverrides,
+  GenerationOptions,
+  OperationDefinition,
+  ParameterDefinition,
+  ParameterMatcher,
+  TextMatcher,
+} from './types';
 import { capitalize, getOperationDefinitions, getV3Doc, removeUndefined, isQuery as testIsQuery } from './utils';
 import { factory } from './utils/factory';
 
 const generatedApiName = 'injectedRtkApi';
+const v3DocCache: Record<string, OpenAPIV3.Document> = {};
 
 function defaultIsDataResponse(code: string) {
+  if (code === 'default') {
+    return true;
+  }
   const parsedCode = Number(code);
   return !Number.isNaN(parsedCode) && parsedCode >= 200 && parsedCode < 300;
 }
@@ -52,6 +62,15 @@ function operationMatches(pattern?: EndpointMatcher) {
     if (!pattern) return true;
     const operationName = getOperationName(operationDefinition);
     return checkMatch(operationName, operationDefinition);
+  };
+}
+
+function argumentMatches(pattern?: ParameterMatcher) {
+  const checkMatch = typeof pattern === 'function' ? pattern : patternMatches(pattern);
+  return function matcher(argumentDefinition: ParameterDefinition) {
+    if (!pattern || argumentDefinition.in === 'path') return true;
+    const argumentName = argumentDefinition.name;
+    return checkMatch(argumentName, argumentDefinition);
   };
 }
 
@@ -90,12 +109,14 @@ export async function generateApi(
     filterEndpoints,
     endpointOverrides,
     unionUndefined,
+    encodeParams = false,
     flattenArg = false,
     useEnumType = false,
     mergeReadWriteOnly = false,
+    httpResolverOptions,
   }: GenerationOptions
 ) {
-  const v3Doc = await getV3Doc(spec);
+  const v3Doc = (v3DocCache[spec] ??= await getV3Doc(spec, httpResolverOptions));
 
   const apiGen = new ApiGenerator(v3Doc, {
     unionUndefined,
@@ -232,6 +253,7 @@ export async function generateApi(
             ] as const
         )
         .filter(([status, response]) => isDataResponse(status, apiGen.resolve(response), responses || {}))
+        .filter(([_1, _2, type]) => type !== keywordType.void)
         .map(([code, response, type]) =>
           ts.addSyntheticLeadingComment(
             { ...type },
@@ -239,8 +261,7 @@ export async function generateApi(
             `* status ${code} ${response.description} `,
             false
           )
-        )
-        .filter((type) => type !== keywordType.void);
+        );
       if (returnTypes.length > 0) {
         ResponseType = factory.createUnionTypeNode(returnTypes);
       }
@@ -262,7 +283,9 @@ export async function generateApi(
       .resolveArray(pathItem.parameters)
       .filter((pp) => !operationParameters.some((op) => op.name === pp.name && op.in === pp.in));
 
-    const parameters = supportDeepObjects([...pathItemParameters, ...operationParameters]);
+    const parameters = supportDeepObjects([...pathItemParameters, ...operationParameters]).filter(
+      argumentMatches(overrides?.parameterFilter)
+    );
 
     const allNames = parameters.map((p) => p.name);
     const queryArg: QueryArgDefinitions = {};
@@ -302,7 +325,10 @@ export async function generateApi(
       const schema = apiGen.getSchemaFromContent(body.content);
       const type = apiGen.getTypeFromSchema(schema);
       const schemaName = camelCase(
-        (type as any).name || getReferenceName(schema) || ('title' in schema && schema.title) || 'body'
+        (type as any).name ||
+          getReferenceName(schema) ||
+          (typeof schema === 'object' && 'title' in schema && schema.title) ||
+          'body'
       );
       const name = generateName(schemaName in queryArg ? 'body' : schemaName, 'body');
 
@@ -326,7 +352,6 @@ export async function generateApi(
     const queryArgValues = Object.values(queryArg);
 
     const isFlatArg = flattenArg && queryArgValues.length === 1;
-
     const QueryArg = factory.createTypeReferenceNode(
       registerInterface(
         factory.createTypeAliasDeclaration(
@@ -335,7 +360,16 @@ export async function generateApi(
           undefined,
           queryArgValues.length > 0
             ? isFlatArg
-              ? withQueryComment({ ...queryArgValues[0].type }, queryArgValues[0], false)
+              ? withQueryComment(
+                  factory.createUnionTypeNode([
+                    queryArgValues[0].type,
+                    ...(!queryArgValues[0].required
+                      ? [factory.createKeywordTypeNode(ts.SyntaxKind.UndefinedKeyword)]
+                      : []),
+                  ]),
+                  queryArgValues[0],
+                  false
+                )
               : factory.createTypeLiteralNode(
                   queryArgValues.map((def) =>
                     withQueryComment(
@@ -360,7 +394,7 @@ export async function generateApi(
       type: isQuery ? 'query' : 'mutation',
       Response: ResponseTypeName,
       QueryArg,
-      queryFn: generateQueryFn({ operationDefinition, queryArg, isQuery, isFlatArg }),
+      queryFn: generateQueryFn({ operationDefinition, queryArg, isQuery, isFlatArg, encodeParams }),
       extraEndpointsProps: isQuery
         ? generateQueryEndpointProps({ operationDefinition })
         : generateMutationEndpointProps({ operationDefinition }),
@@ -373,11 +407,13 @@ export async function generateApi(
     queryArg,
     isFlatArg,
     isQuery,
+    encodeParams,
   }: {
     operationDefinition: OperationDefinition;
     queryArg: QueryArgDefinitions;
     isFlatArg: boolean;
     isQuery: boolean;
+    encodeParams: boolean;
   }) {
     const { path, verb } = operationDefinition;
 
@@ -390,21 +426,24 @@ export async function generateApi(
     }
 
     function createObjectLiteralProperty(parameters: QueryArgDefinition[], propertyName: string) {
-      return parameters.length === 0
-        ? undefined
-        : factory.createPropertyAssignment(
-            factory.createIdentifier(propertyName),
-            factory.createObjectLiteralExpression(
-              parameters.map(
-                (param) =>
-                  createPropertyAssignment(
-                    param.originalName,
-                    isFlatArg ? rootObject : accessProperty(rootObject, param.name)
-                  ),
-                true
-              )
-            )
-          );
+      if (parameters.length === 0) return undefined;
+
+      const properties = parameters.map((param) => {
+        const value = isFlatArg ? rootObject : accessProperty(rootObject, param.name);
+        return createPropertyAssignment(
+          param.originalName,
+          encodeParams && param.param?.in === 'query'
+            ? factory.createCallExpression(factory.createIdentifier('encodeURIComponent'), undefined, [
+                factory.createCallExpression(factory.createIdentifier('String'), undefined, [value]),
+              ])
+            : value
+        );
+      });
+
+      return factory.createPropertyAssignment(
+        factory.createIdentifier(propertyName),
+        factory.createObjectLiteralExpression(properties, true)
+      );
     }
 
     return factory.createArrowFunction(
@@ -420,7 +459,7 @@ export async function generateApi(
           [
             factory.createPropertyAssignment(
               factory.createIdentifier('url'),
-              generatePathExpression(path, pickParams('path'), rootObject, isFlatArg)
+              generatePathExpression(path, pickParams('path'), rootObject, isFlatArg, encodeParams)
             ),
             isQuery && verb.toUpperCase() === 'GET'
               ? undefined
@@ -467,7 +506,8 @@ function generatePathExpression(
   path: string,
   pathParameters: QueryArgDefinition[],
   rootObject: ts.Identifier,
-  isFlatArg: boolean
+  isFlatArg: boolean,
+  encodeParams: boolean
 ) {
   const expressions: Array<[string, string]> = [];
 
@@ -483,14 +523,20 @@ function generatePathExpression(
   return expressions.length
     ? factory.createTemplateExpression(
         factory.createTemplateHead(head),
-        expressions.map(([prop, literal], index) =>
-          factory.createTemplateSpan(
-            isFlatArg ? rootObject : accessProperty(rootObject, prop),
+        expressions.map(([prop, literal], index) => {
+          const value = isFlatArg ? rootObject : accessProperty(rootObject, prop);
+          const encodedValue = encodeParams
+            ? factory.createCallExpression(factory.createIdentifier('encodeURIComponent'), undefined, [
+                factory.createCallExpression(factory.createIdentifier('String'), undefined, [value]),
+              ])
+            : value;
+          return factory.createTemplateSpan(
+            encodedValue,
             index === expressions.length - 1
               ? factory.createTemplateTail(literal)
               : factory.createTemplateMiddle(literal)
-          )
-        )
+          );
+        })
       )
     : factory.createNoSubstitutionTemplateLiteral(head);
 }

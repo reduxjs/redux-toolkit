@@ -35,7 +35,7 @@ The basics of using `configureStore` are shown in [TypeScript Quick Start tutori
 
 ### Getting the `State` type
 
-The easiest way of getting the `State` type is to define the root reducer in advance and extract its `ReturnType`.  
+The easiest way of getting the `State` type is to define the root reducer in advance and extract its `ReturnType`.
 It is recommended to give the type a different name like `RootState` to prevent confusion, as the type name `State` is usually overused.
 
 ```typescript
@@ -89,7 +89,7 @@ const store = configureStore({
 
 // highlight-start
 export type AppDispatch = typeof store.dispatch
-export const useAppDispatch: () => AppDispatch = useDispatch // Export a hook that can be reused to resolve types
+export const useAppDispatch = useDispatch.withTypes<AppDispatch>() // Export a hook that can be reused to resolve types
 // highlight-end
 
 export default store
@@ -273,7 +273,7 @@ createSlice({
 
 You might have noticed that it is not a good idea to pass your `SliceState` type as a generic to `createSlice`. This is due to the fact that in almost all cases, follow-up generic parameters to `createSlice` need to be inferred, and TypeScript cannot mix explicit declaration and inference of generic types within the same "generic block".
 
-The standard approach is to declare an interface or type for your state, create an initial state value that uses that type, and pass the initial state value to `createSlice`. You can also use the construct `initialState: myInitialState as SliceState`.
+The standard approach is to declare an interface or type for your state, create an initial state value that uses that type, and pass the initial state value to `createSlice`. You can also use the construct `initialState: myInitialState satisfies SliceState as SliceState`.
 
 ```ts {1,4,8,15}
 type SliceState = { state: 'loading' } | { state: 'finished'; data: string }
@@ -290,7 +290,7 @@ createSlice({
 // Or, cast the initial state as necessary
 createSlice({
   name: 'test2',
-  initialState: { state: 'loading' } as SliceState,
+  initialState: { state: 'loading' } satisfies SliceState as SliceState,
   reducers: {},
 })
 ```
@@ -368,14 +368,14 @@ const fetchUserById = createAsyncThunk(
 )
 
 interface UsersState {
-  entities: []
+  entities: User[]
   loading: 'idle' | 'pending' | 'succeeded' | 'failed'
 }
 
 const initialState = {
   entities: [],
   loading: 'idle',
-} as UsersState
+} satisfies UsersState as UsersState
 
 const usersSlice = createSlice({
   name: 'users',
@@ -724,9 +724,35 @@ Import and use that pre-typed `createAppAsyncThunk` instead of the original, and
 
 ## `createEntityAdapter`
 
-Typing `createEntityAdapter` only requires you to specify the entity type as the single generic argument.
+Usage of `createEntityAdapter` with Typescript varies based on whether your entities are normalized by an `id` property, or whether a custom `selectId` is needed.
 
-The example from the `createEntityAdapter` documentation would look like this in TypeScript:
+If your entities are normalized by an `id` property, `createEntityAdapter` only requires you to specify the entity type as the single generic argument. For example:
+
+```ts
+interface Book {
+  id: number
+  title: string
+}
+
+// no selectId needed here, as the entity has an `id` property we can default to
+// highlight-next-line
+const booksAdapter = createEntityAdapter<Book>({
+  sortComparer: (a, b) => a.title.localeCompare(b.title),
+})
+
+const booksSlice = createSlice({
+  name: 'books',
+  initialState: booksAdapter.getInitialState(),
+  reducers: {
+    bookAdded: booksAdapter.addOne,
+    booksReceived(state, action: PayloadAction<{ books: Book[] }>) {
+      booksAdapter.setAll(state, action.payload.books)
+    },
+  },
+})
+```
+
+On the other hand, if the entity needs to be normalized by a different property, we instead recommend passing a custom `selectId` function and annotating there. This allows proper inference of the ID's type, instead of having to provide it manually.
 
 ```ts
 interface Book {
@@ -735,9 +761,9 @@ interface Book {
   // ...
 }
 
-// highlight-next-line
-const booksAdapter = createEntityAdapter<Book>({
-  selectId: (book) => book.bookId,
+const booksAdapter = createEntityAdapter({
+  // highlight-next-line
+  selectId: (book: Book) => book.bookId,
   sortComparer: (a, b) => a.title.localeCompare(b.title),
 })
 

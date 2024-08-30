@@ -2,13 +2,12 @@
   "sandboxes": [
     "vanilla",
     "vanilla-ts",
-    "github/reduxjs/rtk-github-issues-example",
     "/examples/query/react/basic",
     "/examples/query/react/advanced",
     "/examples/action-listener/counter",
     "/examples/publish-ci/cra5"
   ],
-  "node": "16",
+  "node": "18",
   "buildCommand": "build:packages",
   "packages": [
     "packages/toolkit",

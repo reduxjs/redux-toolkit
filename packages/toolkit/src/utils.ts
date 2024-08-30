@@ -1,5 +1,4 @@
 import { produce as createNextState, isDraftable } from 'immer'
-import type { Middleware, StoreEnhancer } from 'redux'
 
 export function getTimeMeasureUtils(maxDelay: number, fnName: string) {
   let elapsed = 0
@@ -50,20 +49,20 @@ export class Tuple<Items extends ReadonlyArray<unknown> = []> extends Array<
     Object.setPrototypeOf(this, Tuple.prototype)
   }
 
-  static get [Symbol.species]() {
+  static override get [Symbol.species]() {
     return Tuple as any
   }
 
-  concat<AdditionalItems extends ReadonlyArray<unknown>>(
+  override concat<AdditionalItems extends ReadonlyArray<unknown>>(
     items: Tuple<AdditionalItems>,
   ): Tuple<[...Items, ...AdditionalItems]>
-  concat<AdditionalItems extends ReadonlyArray<unknown>>(
+  override concat<AdditionalItems extends ReadonlyArray<unknown>>(
     items: AdditionalItems,
   ): Tuple<[...Items, ...AdditionalItems]>
-  concat<AdditionalItems extends ReadonlyArray<unknown>>(
+  override concat<AdditionalItems extends ReadonlyArray<unknown>>(
     ...items: AdditionalItems
   ): Tuple<[...Items, ...AdditionalItems]>
-  concat(...arr: any[]) {
+  override concat(...arr: any[]) {
     return super.concat.apply(this, arr)
   }
 
