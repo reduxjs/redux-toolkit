@@ -1,19 +1,20 @@
 import path from 'node:path';
 import prettier from 'prettier';
+import type { BuiltInParserName } from 'prettier';
 
-const EXTENSION_TO_PARSER: Record<string, string> = {
+const EXTENSION_TO_PARSER: Record<string, BuiltInParserName> = {
   ts: 'typescript',
   tsx: 'typescript',
-  js: 'babylon',
-  jsx: 'babylon',
+  js: 'babel',
+  jsx: 'babel',
   'js.flow': 'flow',
   flow: 'flow',
   gql: 'graphql',
   graphql: 'graphql',
-  css: 'postcss',
-  scss: 'postcss',
-  less: 'postcss',
-  stylus: 'postcss',
+  css: 'scss',
+  scss: 'scss',
+  less: 'scss',
+  stylus: 'scss',
   markdown: 'markdown',
   md: 'markdown',
   json: 'json',
