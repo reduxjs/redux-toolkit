@@ -88,6 +88,7 @@ export async function generateApi(
     filterEndpoints,
     endpointOverrides,
     unionUndefined,
+    encodeParams = false,
     flattenArg = false,
     useEnumType = false,
     mergeReadWriteOnly = false,
@@ -356,7 +357,7 @@ export async function generateApi(
       type: isQuery ? 'query' : 'mutation',
       Response: ResponseTypeName,
       QueryArg,
-      queryFn: generateQueryFn({ operationDefinition, queryArg, isQuery, isFlatArg }),
+      queryFn: generateQueryFn({ operationDefinition, queryArg, isQuery, isFlatArg, encodeParams }),
       extraEndpointsProps: isQuery
         ? generateQueryEndpointProps({ operationDefinition })
         : generateMutationEndpointProps({ operationDefinition }),
@@ -369,11 +370,13 @@ export async function generateApi(
     queryArg,
     isFlatArg,
     isQuery,
+    encodeParams,
   }: {
     operationDefinition: OperationDefinition;
     queryArg: QueryArgDefinitions;
     isFlatArg: boolean;
     isQuery: boolean;
+    encodeParams: boolean;
   }) {
     const { path, verb } = operationDefinition;
 
@@ -386,21 +389,24 @@ export async function generateApi(
     }
 
     function createObjectLiteralProperty(parameters: QueryArgDefinition[], propertyName: string) {
-      return parameters.length === 0
-        ? undefined
-        : factory.createPropertyAssignment(
-            factory.createIdentifier(propertyName),
-            factory.createObjectLiteralExpression(
-              parameters.map(
-                (param) =>
-                  createPropertyAssignment(
-                    param.originalName,
-                    isFlatArg ? rootObject : accessProperty(rootObject, param.name)
-                  ),
-                true
-              )
-            )
-          );
+      if (parameters.length === 0) return undefined;
+
+      const properties = parameters.map((param) => {
+        const value = isFlatArg ? rootObject : accessProperty(rootObject, param.name);
+        return createPropertyAssignment(
+          param.originalName,
+          encodeParams && param.param?.in === 'query'
+            ? factory.createCallExpression(factory.createIdentifier('encodeURIComponent'), undefined, [
+                factory.createCallExpression(factory.createIdentifier('String'), undefined, [value]),
+              ])
+            : value
+        );
+      });
+
+      return factory.createPropertyAssignment(
+        factory.createIdentifier(propertyName),
+        factory.createObjectLiteralExpression(properties, true)
+      );
     }
 
     return factory.createArrowFunction(
@@ -416,7 +422,7 @@ export async function generateApi(
           [
             factory.createPropertyAssignment(
               factory.createIdentifier('url'),
-              generatePathExpression(path, pickParams('path'), rootObject, isFlatArg)
+              generatePathExpression(path, pickParams('path'), rootObject, isFlatArg, encodeParams)
             ),
             isQuery && verb.toUpperCase() === 'GET'
               ? undefined
@@ -463,7 +469,8 @@ function generatePathExpression(
   path: string,
   pathParameters: QueryArgDefinition[],
   rootObject: ts.Identifier,
-  isFlatArg: boolean
+  isFlatArg: boolean,
+  encodeParams: boolean
 ) {
   const expressions: Array<[string, string]> = [];
 
@@ -479,14 +486,20 @@ function generatePathExpression(
   return expressions.length
     ? factory.createTemplateExpression(
         factory.createTemplateHead(head),
-        expressions.map(([prop, literal], index) =>
-          factory.createTemplateSpan(
-            isFlatArg ? rootObject : accessProperty(rootObject, prop),
+        expressions.map(([prop, literal], index) => {
+          const value = isFlatArg ? rootObject : accessProperty(rootObject, prop);
+          const encodedValue = encodeParams
+            ? factory.createCallExpression(factory.createIdentifier('encodeURIComponent'), undefined, [
+                factory.createCallExpression(factory.createIdentifier('String'), undefined, [value]),
+              ])
+            : value;
+          return factory.createTemplateSpan(
+            encodedValue,
             index === expressions.length - 1
               ? factory.createTemplateTail(literal)
               : factory.createTemplateMiddle(literal)
-          )
-        )
+          );
+        })
       )
     : factory.createNoSubstitutionTemplateLiteral(head);
 }
