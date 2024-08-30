@@ -110,6 +110,8 @@ jobs:
 
       - name: Run tests
         run: yarn test
+        env:
+          TEST_DIST: true
 
       - name: Did we fail?
         if: failure()
