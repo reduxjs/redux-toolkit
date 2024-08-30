@@ -423,6 +423,18 @@ test('duplicate parameter names must be prefixed with a path or query prefix', a
   expect(api).toMatchSnapshot();
 });
 
+test('operation suffixes are applied', async () => {
+  const api = await generateEndpoints({
+    unionUndefined: true,
+    apiFile: './fixtures/emptyApi.ts',
+    schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+    operationNameSuffix: 'V2',
+  });
+
+  expect(api).toContain('AddPetV2');
+  expect(api).toMatchSnapshot();
+});
+
 test('apiImport builds correct `import` statement', async () => {
   const api = await generateEndpoints({
     unionUndefined: true,
