@@ -1,7 +1,7 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`CLI options testing generation with \`config.example.js\` 1`] = `
-import { api } from '../fixtures/emptyApi';
+exports[`CLI options testing > generation with \`config.example.js\` 1`] = `
+"import { api } from '../fixtures/emptyApi';
 const injectedRtkApi = api.injectEndpoints({
   endpoints: (build) => ({
     updatePet: build.mutation<UpdatePetApiResponse, UpdatePetApiArg>({
@@ -11,10 +11,20 @@ const injectedRtkApi = api.injectEndpoints({
       query: (queryArg) => ({ url: \`/pet\`, method: 'POST', body: queryArg.pet }),
     }),
     findPetsByStatus: build.query<FindPetsByStatusApiResponse, FindPetsByStatusApiArg>({
-      query: (queryArg) => ({ url: \`/pet/findByStatus\`, params: { status: queryArg.status } }),
+      query: (queryArg) => ({
+        url: \`/pet/findByStatus\`,
+        params: {
+          status: queryArg.status,
+        },
+      }),
     }),
     findPetsByTags: build.query<FindPetsByTagsApiResponse, FindPetsByTagsApiArg>({
-      query: (queryArg) => ({ url: \`/pet/findByTags\`, params: { tags: queryArg.tags } }),
+      query: (queryArg) => ({
+        url: \`/pet/findByTags\`,
+        params: {
+          tags: queryArg.tags,
+        },
+      }),
     }),
     getPetById: build.query<GetPetByIdApiResponse, GetPetByIdApiArg>({
       query: (queryArg) => ({ url: \`/pet/\${queryArg.petId}\` }),
@@ -23,18 +33,29 @@ const injectedRtkApi = api.injectEndpoints({
       query: (queryArg) => ({
         url: \`/pet/\${queryArg.petId}\`,
         method: 'POST',
-        params: { name: queryArg.name, status: queryArg.status },
+        params: {
+          name: queryArg.name,
+          status: queryArg.status,
+        },
       }),
     }),
     deletePet: build.mutation<DeletePetApiResponse, DeletePetApiArg>({
-      query: (queryArg) => ({ url: \`/pet/\${queryArg.petId}\`, method: 'DELETE', headers: { api_key: queryArg.apiKey } }),
+      query: (queryArg) => ({
+        url: \`/pet/\${queryArg.petId}\`,
+        method: 'DELETE',
+        headers: {
+          api_key: queryArg.apiKey,
+        },
+      }),
     }),
     uploadFile: build.mutation<UploadFileApiResponse, UploadFileApiArg>({
       query: (queryArg) => ({
         url: \`/pet/\${queryArg.petId}/uploadImage\`,
         method: 'POST',
         body: queryArg.body,
-        params: { additionalMetadata: queryArg.additionalMetadata },
+        params: {
+          additionalMetadata: queryArg.additionalMetadata,
+        },
       }),
     }),
     getInventory: build.query<GetInventoryApiResponse, GetInventoryApiArg>({
@@ -58,7 +79,10 @@ const injectedRtkApi = api.injectEndpoints({
     loginUser: build.query<LoginUserApiResponse, LoginUserApiArg>({
       query: (queryArg) => ({
         url: \`/user/login\`,
-        params: { username: queryArg.username, password: queryArg.password },
+        params: {
+          username: queryArg.username,
+          password: queryArg.password,
+        },
       }),
     }),
     logoutUser: build.query<LogoutUserApiResponse, LogoutUserApiArg>({
@@ -143,7 +167,7 @@ export type DeleteOrderApiArg = {
   /** ID of the order that needs to be deleted */
   orderId: number;
 };
-export type CreateUserApiResponse = unknown;
+export type CreateUserApiResponse = /** status default successful operation */ User;
 export type CreateUserApiArg = {
   /** Created user object */
   user: User;
@@ -192,6 +216,7 @@ export type Pet = {
   category?: Category;
   photoUrls: string[];
   tags?: Tag[];
+  /** pet status in the store */
   status?: 'available' | 'pending' | 'sold';
 };
 export type ApiResponse = {
@@ -204,6 +229,7 @@ export type Order = {
   petId?: number;
   quantity?: number;
   shipDate?: string;
+  /** Order Status */
   status?: 'placed' | 'approved' | 'delivered';
   complete?: boolean;
 };
@@ -215,13 +241,14 @@ export type User = {
   email?: string;
   password?: string;
   phone?: string;
+  /** User Status */
   userStatus?: number;
 };
-
+"
 `;
 
-exports[`CLI options testing paths are relative to configfile, not to cwd 1`] = `
-import { api } from '../fixtures/emptyApi';
+exports[`CLI options testing > paths are relative to config file, not to cwd 1`] = `
+"import { api } from '../fixtures/emptyApi';
 const injectedRtkApi = api.injectEndpoints({
   endpoints: (build) => ({
     updatePet: build.mutation<UpdatePetApiResponse, UpdatePetApiArg>({
@@ -231,10 +258,20 @@ const injectedRtkApi = api.injectEndpoints({
       query: (queryArg) => ({ url: \`/pet\`, method: 'POST', body: queryArg.pet }),
     }),
     findPetsByStatus: build.query<FindPetsByStatusApiResponse, FindPetsByStatusApiArg>({
-      query: (queryArg) => ({ url: \`/pet/findByStatus\`, params: { status: queryArg.status } }),
+      query: (queryArg) => ({
+        url: \`/pet/findByStatus\`,
+        params: {
+          status: queryArg.status,
+        },
+      }),
     }),
     findPetsByTags: build.query<FindPetsByTagsApiResponse, FindPetsByTagsApiArg>({
-      query: (queryArg) => ({ url: \`/pet/findByTags\`, params: { tags: queryArg.tags } }),
+      query: (queryArg) => ({
+        url: \`/pet/findByTags\`,
+        params: {
+          tags: queryArg.tags,
+        },
+      }),
     }),
     getPetById: build.query<GetPetByIdApiResponse, GetPetByIdApiArg>({
       query: (queryArg) => ({ url: \`/pet/\${queryArg.petId}\` }),
@@ -243,18 +280,29 @@ const injectedRtkApi = api.injectEndpoints({
       query: (queryArg) => ({
         url: \`/pet/\${queryArg.petId}\`,
         method: 'POST',
-        params: { name: queryArg.name, status: queryArg.status },
+        params: {
+          name: queryArg.name,
+          status: queryArg.status,
+        },
       }),
     }),
     deletePet: build.mutation<DeletePetApiResponse, DeletePetApiArg>({
-      query: (queryArg) => ({ url: \`/pet/\${queryArg.petId}\`, method: 'DELETE', headers: { api_key: queryArg.apiKey } }),
+      query: (queryArg) => ({
+        url: \`/pet/\${queryArg.petId}\`,
+        method: 'DELETE',
+        headers: {
+          api_key: queryArg.apiKey,
+        },
+      }),
     }),
     uploadFile: build.mutation<UploadFileApiResponse, UploadFileApiArg>({
       query: (queryArg) => ({
         url: \`/pet/\${queryArg.petId}/uploadImage\`,
         method: 'POST',
         body: queryArg.body,
-        params: { additionalMetadata: queryArg.additionalMetadata },
+        params: {
+          additionalMetadata: queryArg.additionalMetadata,
+        },
       }),
     }),
     getInventory: build.query<GetInventoryApiResponse, GetInventoryApiArg>({
@@ -278,7 +326,10 @@ const injectedRtkApi = api.injectEndpoints({
     loginUser: build.query<LoginUserApiResponse, LoginUserApiArg>({
       query: (queryArg) => ({
         url: \`/user/login\`,
-        params: { username: queryArg.username, password: queryArg.password },
+        params: {
+          username: queryArg.username,
+          password: queryArg.password,
+        },
       }),
     }),
     logoutUser: build.query<LogoutUserApiResponse, LogoutUserApiArg>({
@@ -363,7 +414,7 @@ export type DeleteOrderApiArg = {
   /** ID of the order that needs to be deleted */
   orderId: number;
 };
-export type CreateUserApiResponse = unknown;
+export type CreateUserApiResponse = /** status default successful operation */ User;
 export type CreateUserApiArg = {
   /** Created user object */
   user: User;
@@ -412,6 +463,7 @@ export type Pet = {
   category?: Category;
   photoUrls: string[];
   tags?: Tag[];
+  /** pet status in the store */
   status?: 'available' | 'pending' | 'sold';
 };
 export type ApiResponse = {
@@ -424,6 +476,7 @@ export type Order = {
   petId?: number;
   quantity?: number;
   shipDate?: string;
+  /** Order Status */
   status?: 'placed' | 'approved' | 'delivered';
   complete?: boolean;
 };
@@ -435,7 +488,8 @@ export type User = {
   email?: string;
   password?: string;
   phone?: string;
+  /** User Status */
   userStatus?: number;
 };
-
+"
 `;

@@ -78,7 +78,7 @@ export const api = createApi({
       // highlight-start
       async onCacheEntryAdded(
         arg,
-        { updateCachedData, cacheDataLoaded, cacheEntryRemoved }
+        { updateCachedData, cacheDataLoaded, cacheEntryRemoved },
       ) {
         // create a websocket connection when the cache subscription starts
         const ws = new WebSocket('ws://localhost:8080')
@@ -158,20 +158,20 @@ export const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
   endpoints: (build) => ({
     // highlight-start
-    getMessages: build.query<EntityState<Message>, Channel>({
+    getMessages: build.query<EntityState<Message, number>, Channel>({
       // highlight-end
       query: (channel) => `messages/${channel}`,
       // highlight-start
       transformResponse(response: Message[]) {
         return messagesAdapter.addMany(
           messagesAdapter.getInitialState(),
-          response
+          response,
         )
       },
       // highlight-end
       async onCacheEntryAdded(
         arg,
-        { updateCachedData, cacheDataLoaded, cacheEntryRemoved }
+        { updateCachedData, cacheDataLoaded, cacheEntryRemoved },
       ) {
         const ws = new WebSocket('ws://localhost:8080')
         try {

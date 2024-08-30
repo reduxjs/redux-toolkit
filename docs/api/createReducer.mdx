@@ -37,9 +37,7 @@ function counterReducer(state = initialState, action) {
 This approach works well, but is a bit boilerplate-y and error-prone. For instance, it is easy to forget the `default` case or
 setting the initial state.
 
-The `createReducer` helper streamlines the implementation of such reducers. It supports two different forms of defining case
-reducers to handle actions: a "builder callback" notation and a "map object" notation. Both are equivalent, but the "builder callback"
-notation is preferred.
+The `createReducer` helper streamlines the implementation of such reducers. It uses a "builder callback" notation to define handlers for specific action types, matching against a range of actions, or handling a default case. This is conceptually similar to a switch statement, but with better TS support.
 
 With `createReducer`, your reducers instead look like:
 
@@ -54,7 +52,7 @@ const increment = createAction('counter/increment')
 const decrement = createAction('counter/decrement')
 const incrementByAmount = createAction<number>('counter/incrementByAmount')
 
-const initialState = { value: 0 } as CounterState
+const initialState = { value: 0 } satisfies CounterState as CounterState
 
 const counterReducer = createReducer(initialState, (builder) => {
   builder
@@ -72,17 +70,15 @@ const counterReducer = createReducer(initialState, (builder) => {
 
 ## Usage with the "Builder Callback" Notation
 
-[overloadSummary](docblock://createReducer.ts?token=createReducer&overload=0)
-
-The recommended way of using `createReducer` is the builder callback notation, as it works best with TypeScript and most IDEs.
+[overloadSummary](docblock://createReducer.ts?token=createReducer)
 
 ### Parameters
 
-[params](docblock://createReducer.ts?token=createReducer&overload=0)
+[params](docblock://createReducer.ts?token=createReducer)
 
 ### Example Usage
 
-[examples](docblock://createReducer.ts?token=createReducer&overload=0)
+[examples](docblock://createReducer.ts?token=createReducer)
 
 ### Builder Methods
 
@@ -110,17 +106,6 @@ The recommended way of using `createReducer` is the builder callback notation, a
 
 [params,examples](docblock://mapBuilders.ts?token=ActionReducerMapBuilder.addDefaultCase)
 
-## Usage with the "Map Object" Notation
-
-[overloadSummary](docblock://createReducer.ts?token=createReducer&overload=1)
-
-While this notation is a bit shorter, it works only in JavaScript, not TypeScript and has less integration with IDEs,
-so we recommend the "builder callback" notation in most cases.
-
-### Parameters
-
-[params](docblock://createReducer.ts?token=createReducer&overload=1)
-
 ### Returns
 
 The generated reducer function.
@@ -128,9 +113,10 @@ The generated reducer function.
 The reducer will have a `getInitialState` function attached that will return the initial state when called. This may be useful for tests or usage with React's `useReducer` hook:
 
 ```js
-const counterReducer = createReducer(0, {
-  increment: (state, action) => state + action.payload,
-  decrement: (state, action) => state - action.payload,
+const counterReducer = createReducer(0, (builder) => {
+  builder
+    .addCase('increment', (state, action) => state + action.payload)
+    .addCase('decrement', (state, action) => state - action.payload)
 })
 
 console.log(counterReducer.getInitialState()) // 0
@@ -138,37 +124,7 @@ console.log(counterReducer.getInitialState()) // 0
 
 ### Example Usage
 
-[examples](docblock://createReducer.ts?token=createReducer&overload=1)
-
-### Matchers and Default Cases as Arguments
-
-The most readable approach to define matcher cases and default cases is by using the `builder.addMatcher` and `builder.addDefaultCase` methods described above, but it is also possible to use these with the object notation by passing an array of `{matcher, reducer}` objects as the third argument, and a default case reducer as the fourth argument:
-
-```js
-const isStringPayloadAction = (action) => typeof action.payload === 'string'
-
-const lengthOfAllStringsReducer = createReducer(
-  // initial state
-  { strLen: 0, nonStringActions: 0 },
-  // normal reducers
-  {
-    /*...*/
-  },
-  //  array of matcher reducers
-  [
-    {
-      matcher: isStringPayloadAction,
-      reducer(state, action) {
-        state.strLen += action.payload.length
-      },
-    },
-  ],
-  // default reducer
-  (state) => {
-    state.nonStringActions++
-  }
-)
-```
+[examples](docblock://createReducer.ts?token=createReducer)
 
 ## Direct State Mutation
 
@@ -287,11 +243,11 @@ const reducer = createReducer(0, (builder) => {
     .addCase('increment', (state) => state + 1)
     .addMatcher(
       (action) => action.type.startsWith('i'),
-      (state) => state * 5
+      (state) => state * 5,
     )
     .addMatcher(
       (action) => action.type.endsWith('t'),
-      (state) => state + 2
+      (state) => state + 2,
     )
 })
 

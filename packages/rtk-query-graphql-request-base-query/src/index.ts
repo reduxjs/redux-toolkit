@@ -1,7 +1,7 @@
 import { isPlainObject } from '@reduxjs/toolkit'
 import type { BaseQueryFn } from '@reduxjs/toolkit/query'
 import type { DocumentNode } from 'graphql'
-import { GraphQLClient, ClientError } from 'graphql-request'
+import { GraphQLClient, ClientError, RequestOptions } from 'graphql-request'
 import type {
   ErrorResponse,
   GraphqlRequestBaseQueryArgs,
@@ -10,7 +10,7 @@ import type {
 } from './GraphqlBaseQueryTypes'
 
 export const graphqlRequestBaseQuery = <E = ErrorResponse>(
-  options: GraphqlRequestBaseQueryArgs<E>
+  options: GraphqlRequestBaseQueryArgs<E>,
 ): BaseQueryFn<
   { document: string | DocumentNode; variables?: any },
   unknown,
@@ -24,7 +24,7 @@ export const graphqlRequestBaseQuery = <E = ErrorResponse>(
 
   return async (
     { document, variables },
-    { getState, endpoint, forced, type, signal, extra }
+    { getState, endpoint, forced, type, signal, extra },
   ) => {
     try {
       const prepareHeaders: PrepareHeaders =
@@ -43,7 +43,7 @@ export const graphqlRequestBaseQuery = <E = ErrorResponse>(
         data: await client.request({
           document,
           variables,
-          signal,
+          signal: signal as unknown as RequestOptions['signal'],
           requestHeaders: preparedHeaders,
         }),
         meta: {},
@@ -52,10 +52,10 @@ export const graphqlRequestBaseQuery = <E = ErrorResponse>(
       if (error instanceof ClientError) {
         const { name, message, stack, request, response } = error
 
-      const customErrors =
-        options.customErrors ?? (() => ({ name, message, stack }));
+        const customErrors =
+          options.customErrors ?? (() => ({ name, message, stack }))
 
-      const customizedErrors = customErrors(error) as E;
+        const customizedErrors = customErrors(error) as E
 
         return { error: customizedErrors, meta: { request, response } }
       }

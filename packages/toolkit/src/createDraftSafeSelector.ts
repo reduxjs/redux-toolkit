@@ -1,5 +1,22 @@
 import { current, isDraft } from 'immer'
-import { createSelector } from 'reselect'
+import { createSelectorCreator, weakMapMemoize } from 'reselect'
+
+export const createDraftSafeSelectorCreator: typeof createSelectorCreator = (
+  ...args: unknown[]
+) => {
+  const createSelector = (createSelectorCreator as any)(...args)
+  const createDraftSafeSelector = Object.assign(
+    (...args: unknown[]) => {
+      const selector = createSelector(...args)
+      const wrappedSelector = (value: unknown, ...rest: unknown[]) =>
+        selector(isDraft(value) ? current(value) : value, ...rest)
+      Object.assign(wrappedSelector, selector)
+      return wrappedSelector as any
+    },
+    { withTypes: () => createDraftSafeSelector },
+  )
+  return createDraftSafeSelector
+}
 
 /**
  * "Draft-Safe" version of `reselect`'s `createSelector`:
@@ -8,11 +25,6 @@ import { createSelector } from 'reselect'
  * that might be possibly outdated if the draft has been modified since.
  * @public
  */
-export const createDraftSafeSelector: typeof createSelector = (
-  ...args: unknown[]
-) => {
-  const selector = (createSelector as any)(...args)
-  const wrappedSelector = (value: unknown, ...rest: unknown[]) =>
-    selector(isDraft(value) ? current(value) : value, ...rest)
-  return wrappedSelector as any
-}
+export const createDraftSafeSelector =
+  /* @__PURE__ */
+  createDraftSafeSelectorCreator(weakMapMemoize)

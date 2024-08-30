@@ -9,23 +9,19 @@
  * for this file to be re-created
  */
 
-import * as Types from '../../app/services/types.generated';
+import * as Types from '../../app/services/types.generated'
 
-import { api } from 'app/services/baseApi';
-module.hot?.accept();
+import { api } from 'app/services/baseApi'
+module.hot?.accept()
 export type GetPostQueryVariables = Types.Exact<{
-  id: Types.Scalars['ID'];
-}>;
+  id: Types.Scalars['ID']
+}>
 
-
-export type GetPostQuery = (
-  { __typename?: 'Query' }
-  & { post?: Types.Maybe<(
-    { __typename?: 'Post' }
-    & Pick<Types.Post, 'id' | 'title' | 'content'>
-  )> }
-);
-
+export type GetPostQuery = { __typename?: 'Query' } & {
+  post?: Types.Maybe<
+    { __typename?: 'Post' } & Pick<Types.Post, 'id' | 'title' | 'content'>
+  >
+}
 
 export const GetPostDocument = `
     query GetPost($id: ID!) {
@@ -35,17 +31,16 @@ export const GetPostDocument = `
     content
   }
 }
-    `;
+    `
 
 const injectedRtkApi = api.injectEndpoints({
-  overrideExisting: module.hot?.status() === "apply",
+  overrideExisting: module.hot?.status() === 'apply',
   endpoints: (build) => ({
     GetPost: build.query<GetPostQuery, GetPostQueryVariables>({
-      query: (variables) => ({ document: GetPostDocument, variables })
+      query: (variables) => ({ document: GetPostDocument, variables }),
     }),
   }),
-});
+})
 
-export { injectedRtkApi as api };
-export const { useGetPostQuery, useLazyGetPostQuery } = injectedRtkApi;
-
+export { injectedRtkApi as api }
+export const { useGetPostQuery, useLazyGetPostQuery } = injectedRtkApi

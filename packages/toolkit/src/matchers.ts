@@ -12,11 +12,11 @@ import type {
 } from './createAsyncThunk'
 
 /** @public */
-export type ActionMatchingAnyOf<Matchers extends [...Matcher<any>[]]> =
+export type ActionMatchingAnyOf<Matchers extends Matcher<any>[]> =
   ActionFromMatcher<Matchers[number]>
 
 /** @public */
-export type ActionMatchingAllOf<Matchers extends [...Matcher<any>[]]> =
+export type ActionMatchingAllOf<Matchers extends Matcher<any>[]> =
   UnionToIntersection<ActionMatchingAnyOf<Matchers>>
 
 const matches = (matcher: Matcher<any>, action: any) => {
@@ -36,7 +36,7 @@ const matches = (matcher: Matcher<any>, action: any) => {
  *
  * @public
  */
-export function isAnyOf<Matchers extends [...Matcher<any>[]]>(
+export function isAnyOf<Matchers extends Matcher<any>[]>(
   ...matchers: Matchers
 ) {
   return (action: any): action is ActionMatchingAnyOf<Matchers> => {
@@ -53,7 +53,7 @@ export function isAnyOf<Matchers extends [...Matcher<any>[]]>(
  *
  * @public
  */
-export function isAllOf<Matchers extends [...Matcher<any>[]]>(
+export function isAllOf<Matchers extends Matcher<any>[]>(
   ...matchers: Matchers
 ) {
   return (action: any): action is ActionMatchingAllOf<Matchers> => {
@@ -69,7 +69,7 @@ export function isAllOf<Matchers extends [...Matcher<any>[]]>(
  */
 export function hasExpectedRequestMetadata(
   action: any,
-  validStatus: readonly string[]
+  validStatus: readonly string[],
 ) {
   if (!action || !action.meta) return false
 
@@ -104,7 +104,7 @@ export type PendingActionFromAsyncThunk<T extends AnyAsyncThunk> =
  * @public
  */
 export function isPending(): (
-  action: any
+  action: any,
 ) => action is UnknownAsyncThunkPendingAction
 /**
  * A higher-order function that returns a function that may be used to check
@@ -116,7 +116,7 @@ export function isPending(): (
  * @public
  */
 export function isPending<
-  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
+  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]],
 >(
   ...asyncThunks: AsyncThunks
 ): (action: any) => action is PendingActionFromAsyncThunk<AsyncThunks[number]>
@@ -126,7 +126,7 @@ export function isPending<
  */
 export function isPending(action: any): action is UnknownAsyncThunkPendingAction
 export function isPending<
-  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
+  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]],
 >(...asyncThunks: AsyncThunks | [any]) {
   if (asyncThunks.length === 0) {
     return (action: any) => hasExpectedRequestMetadata(action, ['pending'])
@@ -136,18 +136,7 @@ export function isPending<
     return isPending()(asyncThunks[0])
   }
 
-  return (
-    action: any
-  ): action is PendingActionFromAsyncThunk<AsyncThunks[number]> => {
-    // note: this type will be correct because we have at least 1 asyncThunk
-    const matchers: [Matcher<any>, ...Matcher<any>[]] = asyncThunks.map(
-      (asyncThunk) => asyncThunk.pending
-    ) as any
-
-    const combinedMatcher = isAnyOf(...matchers)
-
-    return combinedMatcher(action)
-  }
+  return isAnyOf(...asyncThunks.map((asyncThunk) => asyncThunk.pending))
 }
 
 export type UnknownAsyncThunkRejectedAction = ReturnType<
@@ -165,7 +154,7 @@ export type RejectedActionFromAsyncThunk<T extends AnyAsyncThunk> =
  * @public
  */
 export function isRejected(): (
-  action: any
+  action: any,
 ) => action is UnknownAsyncThunkRejectedAction
 /**
  * A higher-order function that returns a function that may be used to check
@@ -177,7 +166,7 @@ export function isRejected(): (
  * @public
  */
 export function isRejected<
-  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
+  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]],
 >(
   ...asyncThunks: AsyncThunks
 ): (action: any) => action is RejectedActionFromAsyncThunk<AsyncThunks[number]>
@@ -186,10 +175,10 @@ export function isRejected<
  * @public
  */
 export function isRejected(
-  action: any
+  action: any,
 ): action is UnknownAsyncThunkRejectedAction
 export function isRejected<
-  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
+  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]],
 >(...asyncThunks: AsyncThunks | [any]) {
   if (asyncThunks.length === 0) {
     return (action: any) => hasExpectedRequestMetadata(action, ['rejected'])
@@ -199,18 +188,7 @@ export function isRejected<
     return isRejected()(asyncThunks[0])
   }
 
-  return (
-    action: any
-  ): action is RejectedActionFromAsyncThunk<AsyncThunks[number]> => {
-    // note: this type will be correct because we have at least 1 asyncThunk
-    const matchers: [Matcher<any>, ...Matcher<any>[]] = asyncThunks.map(
-      (asyncThunk) => asyncThunk.rejected
-    ) as any
-
-    const combinedMatcher = isAnyOf(...matchers)
-
-    return combinedMatcher(action)
-  }
+  return isAnyOf(...asyncThunks.map((asyncThunk) => asyncThunk.rejected))
 }
 
 export type UnknownAsyncThunkRejectedWithValueAction = ReturnType<
@@ -231,7 +209,7 @@ export type RejectedWithValueActionFromAsyncThunk<T extends AnyAsyncThunk> =
  * @public
  */
 export function isRejectedWithValue(): (
-  action: any
+  action: any,
 ) => action is UnknownAsyncThunkRejectedAction
 /**
  * A higher-order function that returns a function that may be used to check
@@ -243,45 +221,35 @@ export function isRejectedWithValue(): (
  * @public
  */
 export function isRejectedWithValue<
-  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
+  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]],
 >(
   ...asyncThunks: AsyncThunks
 ): (
-  action: any
+  action: any,
 ) => action is RejectedWithValueActionFromAsyncThunk<AsyncThunks[number]>
 /**
  * Tests if `action` is a rejected thunk action with value
  * @public
  */
 export function isRejectedWithValue(
-  action: any
+  action: any,
 ): action is UnknownAsyncThunkRejectedAction
 export function isRejectedWithValue<
-  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
+  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]],
 >(...asyncThunks: AsyncThunks | [any]) {
   const hasFlag = (action: any): action is any => {
     return action && action.meta && action.meta.rejectedWithValue
   }
 
   if (asyncThunks.length === 0) {
-    return (action: any) => {
-      const combinedMatcher = isAllOf(isRejected(...asyncThunks), hasFlag)
-
-      return combinedMatcher(action)
-    }
+    return isAllOf(isRejected(...asyncThunks), hasFlag)
   }
 
   if (!isAsyncThunkArray(asyncThunks)) {
     return isRejectedWithValue()(asyncThunks[0])
   }
 
-  return (
-    action: any
-  ): action is RejectedActionFromAsyncThunk<AsyncThunks[number]> => {
-    const combinedMatcher = isAllOf(isRejected(...asyncThunks), hasFlag)
-
-    return combinedMatcher(action)
-  }
+  return isAllOf(isRejected(...asyncThunks), hasFlag)
 }
 
 export type UnknownAsyncThunkFulfilledAction = ReturnType<
@@ -299,7 +267,7 @@ export type FulfilledActionFromAsyncThunk<T extends AnyAsyncThunk> =
  * @public
  */
 export function isFulfilled(): (
-  action: any
+  action: any,
 ) => action is UnknownAsyncThunkFulfilledAction
 /**
  * A higher-order function that returns a function that may be used to check
@@ -311,7 +279,7 @@ export function isFulfilled(): (
  * @public
  */
 export function isFulfilled<
-  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
+  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]],
 >(
   ...asyncThunks: AsyncThunks
 ): (action: any) => action is FulfilledActionFromAsyncThunk<AsyncThunks[number]>
@@ -320,10 +288,10 @@ export function isFulfilled<
  * @public
  */
 export function isFulfilled(
-  action: any
+  action: any,
 ): action is UnknownAsyncThunkFulfilledAction
 export function isFulfilled<
-  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
+  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]],
 >(...asyncThunks: AsyncThunks | [any]) {
   if (asyncThunks.length === 0) {
     return (action: any) => hasExpectedRequestMetadata(action, ['fulfilled'])
@@ -333,18 +301,7 @@ export function isFulfilled<
     return isFulfilled()(asyncThunks[0])
   }
 
-  return (
-    action: any
-  ): action is FulfilledActionFromAsyncThunk<AsyncThunks[number]> => {
-    // note: this type will be correct because we have at least 1 asyncThunk
-    const matchers: [Matcher<any>, ...Matcher<any>[]] = asyncThunks.map(
-      (asyncThunk) => asyncThunk.fulfilled
-    ) as any
-
-    const combinedMatcher = isAnyOf(...matchers)
-
-    return combinedMatcher(action)
-  }
+  return isAnyOf(...asyncThunks.map((asyncThunk) => asyncThunk.fulfilled))
 }
 
 export type UnknownAsyncThunkAction =
@@ -370,7 +327,7 @@ export type ActionsFromAsyncThunk<T extends AnyAsyncThunk> =
  * @public
  */
 export function isAsyncThunkAction(): (
-  action: any
+  action: any,
 ) => action is UnknownAsyncThunkAction
 /**
  * A higher-order function that returns a function that may be used to check
@@ -381,7 +338,7 @@ export function isAsyncThunkAction(): (
  * @public
  */
 export function isAsyncThunkAction<
-  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
+  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]],
 >(
   ...asyncThunks: AsyncThunks
 ): (action: any) => action is ActionsFromAsyncThunk<AsyncThunks[number]>
@@ -390,10 +347,10 @@ export function isAsyncThunkAction<
  * @public
  */
 export function isAsyncThunkAction(
-  action: any
+  action: any,
 ): action is UnknownAsyncThunkAction
 export function isAsyncThunkAction<
-  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]]
+  AsyncThunks extends [AnyAsyncThunk, ...AnyAsyncThunk[]],
 >(...asyncThunks: AsyncThunks | [any]) {
   if (asyncThunks.length === 0) {
     return (action: any) =>
@@ -404,22 +361,5 @@ export function isAsyncThunkAction<
     return isAsyncThunkAction()(asyncThunks[0])
   }
 
-  return (
-    action: any
-  ): action is ActionsFromAsyncThunk<AsyncThunks[number]> => {
-    // note: this type will be correct because we have at least 1 asyncThunk
-    const matchers: [Matcher<any>, ...Matcher<any>[]] = [] as any
-
-    for (const asyncThunk of asyncThunks) {
-      matchers.push(
-        asyncThunk.pending,
-        asyncThunk.rejected,
-        asyncThunk.fulfilled
-      )
-    }
-
-    const combinedMatcher = isAnyOf(...matchers)
-
-    return combinedMatcher(action)
-  }
+  return isAnyOf(...asyncThunks.flatMap(asyncThunk => [asyncThunk.pending, asyncThunk.rejected, asyncThunk.fulfilled]))
 }

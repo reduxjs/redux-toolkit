@@ -1,7 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit'
 import { createApi } from '@reduxjs/toolkit/query'
-import { setupApiStore } from './helpers'
-import { delay } from '../../utils'
+import { delay } from 'msw'
+import { setupApiStore } from '../../tests/utils/helpers'
 
 let shouldApiResponseSuccess = true
 
@@ -44,13 +44,14 @@ describe('buildSlice', () => {
     const initialState = storeRef.store.getState()
 
     await storeRef.store.dispatch(
-      getUser.initiate(1, { subscriptionOptions: { pollingInterval: 10 } })
+      getUser.initiate(1, { subscriptionOptions: { pollingInterval: 10 } }),
     )
 
     const initialQueryState = {
       api: {
         config: {
           focused: true,
+          invalidationBehavior: 'delayed',
           keepUnusedDataFor: 60,
           middlewareRegistered: true,
           online: true,
@@ -75,8 +76,8 @@ describe('buildSlice', () => {
             status: 'fulfilled',
           },
         },
-        // Filled in a tick later
-        subscriptions: expect.any(Object),
+        // Filled some time later
+        subscriptions: {},
       },
       auth: {
         token: '1234',
@@ -84,18 +85,6 @@ describe('buildSlice', () => {
     }
 
     expect(storeRef.store.getState()).toEqual(initialQueryState)
-
-    await delay(1)
-
-    expect(storeRef.store.getState()).toEqual({
-      ...initialQueryState,
-      api: {
-        ...initialQueryState.api,
-        subscriptions: {
-          'getUser(1)': expect.any(Object),
-        },
-      },
-    })
 
     storeRef.store.dispatch(api.util.resetApiState())
 
@@ -106,10 +95,10 @@ describe('buildSlice', () => {
     await storeRef.store.dispatch(getUser.initiate(1))
 
     expect(
-      api.util.selectInvalidatedBy(storeRef.store.getState(), ['SUCCEED'])
+      api.util.selectInvalidatedBy(storeRef.store.getState(), ['SUCCEED']),
     ).toHaveLength(1)
     expect(
-      api.util.selectInvalidatedBy(storeRef.store.getState(), ['FAILED'])
+      api.util.selectInvalidatedBy(storeRef.store.getState(), ['FAILED']),
     ).toHaveLength(0)
 
     shouldApiResponseSuccess = false
@@ -119,10 +108,10 @@ describe('buildSlice', () => {
     await delay(10)
 
     expect(
-      api.util.selectInvalidatedBy(storeRef.store.getState(), ['SUCCEED'])
+      api.util.selectInvalidatedBy(storeRef.store.getState(), ['SUCCEED']),
     ).toHaveLength(0)
     expect(
-      api.util.selectInvalidatedBy(storeRef.store.getState(), ['FAILED'])
+      api.util.selectInvalidatedBy(storeRef.store.getState(), ['FAILED']),
     ).toHaveLength(1)
   })
 })

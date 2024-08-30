@@ -1,5 +1,5 @@
-import path from 'path';
-import fs from 'fs';
+import fs from 'node:fs';
+import path from 'node:path';
 import type { CommonOptions, ConfigFile, GenerationOptions, OutputFileOptions } from './types';
 import { isValidUrl, prettify } from './utils';
 export type { ConfigFile } from './types';
@@ -11,15 +11,18 @@ export async function generateEndpoints(options: GenerationOptions): Promise<str
     ? options.schemaFile
     : path.resolve(process.cwd(), schemaLocation);
 
-  const sourceCode = await enforceOazapftsTsVersion(() => {
-    const { generateApi } = require('./generate');
+  const sourceCode = await enforceOazapftsTsVersion(async () => {
+    const { generateApi } = await import('./generate');
     return generateApi(schemaAbsPath, options);
   });
-  const outputFile = options.outputFile;
+  const { outputFile, prettierConfigFile } = options;
   if (outputFile) {
-    fs.writeFileSync(path.resolve(process.cwd(), outputFile), await prettify(outputFile, sourceCode));
+    fs.writeFileSync(
+      path.resolve(process.cwd(), outputFile),
+      await prettify(outputFile, sourceCode, prettierConfigFile)
+    );
   } else {
-    return await prettify(null, sourceCode);
+    return await prettify(null, sourceCode, prettierConfigFile);
   }
 }
 

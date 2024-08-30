@@ -13,7 +13,7 @@ async function render() {
   }
 
   const rootNode = ReactDOM.createRoot(
-    document.getElementById('root') as HTMLElement
+    document.getElementById('root') as HTMLElement,
   )
 
   rootNode.render(
@@ -23,7 +23,7 @@ async function render() {
           <App />
         </BrowserRouter>
       </Provider>
-    </React.StrictMode>
+    </React.StrictMode>,
   )
 }
 

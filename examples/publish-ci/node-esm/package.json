@@ -5,13 +5,13 @@
   "type": "module",
   "scripts": {
     "build": "echo Done",
-    "test": "node test-cjs.cjs"
+    "test": "node test-cjs.cjs && node test-esm.mjs"
   },
   "dependencies": {
-    "@reduxjs/toolkit": "^1.9.3",
+    "@reduxjs/toolkit": "^2.0.0-rc.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-redux": "^8.0.5"
+    "react-redux": "^9.0.0-rc.0"
   },
   "devDependencies": {
     "resolve-esm": "^1.4.0"

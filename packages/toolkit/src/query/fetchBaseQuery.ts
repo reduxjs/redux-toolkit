@@ -1,5 +1,5 @@
 import { joinUrls } from './utils'
-import { isPlainObject } from '@reduxjs/toolkit'
+import { isPlainObject } from './core/rtkImports'
 import type { BaseQueryApi, BaseQueryFn } from './baseQueryTypes'
 import type { MaybePromise, Override } from './tsHelpers'
 
@@ -112,11 +112,11 @@ export type FetchBaseQueryArgs = {
     api: Pick<
       BaseQueryApi,
       'getState' | 'extra' | 'endpoint' | 'type' | 'forced'
-    >
+    >,
   ) => MaybePromise<Headers | void>
   fetchFn?: (
     input: RequestInfo,
-    init?: RequestInit | undefined
+    init?: RequestInit | undefined,
   ) => Promise<Response>
   paramsSerializer?: (params: Record<string, any>) => string
   /**
@@ -209,7 +209,7 @@ export function fetchBaseQuery({
 > {
   if (typeof fetch === 'undefined' && fetchFn === defaultFetchFn) {
     console.warn(
-      'Warning: `fetch` is not available. Please supply a custom `fetchFn` property to use `fetchBaseQuery` on SSR environments.'
+      'Warning: `fetch` is not available. Please supply a custom `fetchFn` property to use `fetchBaseQuery` on SSR environments.',
     )
   }
   return async (arg, api) => {
@@ -301,13 +301,13 @@ export function fetchBaseQuery({
       await Promise.all([
         handleResponse(response, responseHandler).then(
           (r) => (resultData = r),
-          (e) => (handleResponseError = e)
+          (e) => (handleResponseError = e),
         ),
         // see https://github.com/node-fetch/node-fetch/issues/665#issuecomment-538995182
         // we *have* to "use up" both streams at the same time or they will stop running in node-fetch scenarios
         responseClone.text().then(
           (r) => (responseText = r),
-          () => {}
+          () => {},
         ),
       ])
       if (handleResponseError) throw handleResponseError
@@ -339,7 +339,7 @@ export function fetchBaseQuery({
 
   async function handleResponse(
     response: Response,
-    responseHandler: ResponseHandler
+    responseHandler: ResponseHandler,
   ) {
     if (typeof responseHandler === 'function') {
       return responseHandler(response)

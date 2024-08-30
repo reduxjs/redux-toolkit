@@ -58,14 +58,14 @@ const api = createApi({
       transformErrorResponse: (
         response: { status: string | number },
         meta,
-        arg
+        arg,
       ) => response.status,
       invalidatesTags: ['Post'],
       // onQueryStarted is useful for optimistic updates
       // The 2nd parameter is the destructured `MutationLifecycleApi`
       async onQueryStarted(
         arg,
-        { dispatch, getState, queryFulfilled, requestId, extra, getCacheEntry }
+        { dispatch, getState, queryFulfilled, requestId, extra, getCacheEntry },
       ) {},
       // The 2nd parameter is the destructured `MutationCacheLifecycleApi`
       async onCacheEntryAdded(
@@ -78,7 +78,7 @@ const api = createApi({
           cacheEntryRemoved,
           cacheDataLoaded,
           getCacheEntry,
-        }
+        },
       ) {},
       // highlight-end
     }),
@@ -118,7 +118,7 @@ Below are some of the most frequently used properties on the "mutation result" o
 - `isLoading` - When true, indicates that the mutation has been fired and is awaiting a response.
 - `isSuccess` - When true, indicates that the last mutation fired has data from a successful request.
 - `isError` - When true, indicates that the last mutation fired resulted in an error state.
-- `reset` - A method to reset the hook back to it's original state and remove the current result from the cache
+- `reset` - A method to reset the hook back to its original state and remove the current result from the cache
 
 :::note
 
@@ -256,7 +256,7 @@ export const postApi = createApi({
         result
           ? // successful query
             [
-              ...result.map(({ id }) => ({ type: 'Posts', id } as const)),
+              ...result.map(({ id }) => ({ type: 'Posts', id }) as const),
               { type: 'Posts', id: 'LIST' },
             ]
           : // an error occurred, but we still want to refetch this query when `{ type: 'Posts', id: 'LIST' }` is invalidated

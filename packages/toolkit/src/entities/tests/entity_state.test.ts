@@ -6,7 +6,7 @@ import { createSlice } from '../../createSlice'
 import type { BookModel } from './fixtures/book'
 
 describe('Entity State', () => {
-  let adapter: EntityAdapter<BookModel>
+  let adapter: EntityAdapter<BookModel, string>
 
   beforeEach(() => {
     adapter = createEntityAdapter({
@@ -32,6 +32,27 @@ describe('Entity State', () => {
       ...additionalProperties,
       ids: [],
       entities: {},
+    })
+  })
+
+  it('should let you provide initial entities', () => {
+    const book1: BookModel = { id: 'a', title: 'First' }
+
+    const initialState = adapter.getInitialState(undefined, [book1])
+
+    expect(initialState).toEqual({
+      ids: [book1.id],
+      entities: { [book1.id]: book1 },
+    })
+
+    const additionalProperties = { isHydrated: true }
+
+    const initialState2 = adapter.getInitialState(additionalProperties, [book1])
+
+    expect(initialState2).toEqual({
+      ...additionalProperties,
+      ids: [book1.id],
+      entities: { [book1.id]: book1 },
     })
   })
 

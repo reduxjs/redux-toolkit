@@ -1,30 +1,19 @@
+import type { UnknownAction } from '@reduxjs/toolkit'
+import type { BaseQueryFn } from './baseQueryTypes'
+import type { CombinedState, CoreModule } from './core'
+import type { ApiModules } from './core/module'
+import type { CreateApiOptions } from './createApi'
 import type {
-  EndpointDefinitions,
   EndpointBuilder,
   EndpointDefinition,
+  EndpointDefinitions,
   UpdateDefinitions,
 } from './endpointDefinitions'
 import type {
-  UnionToIntersection,
   NoInfer,
+  UnionToIntersection,
   WithRequiredProp,
 } from './tsHelpers'
-import type { CoreModule } from './core/module'
-import type { CreateApiOptions } from './createApi'
-import type { BaseQueryFn } from './baseQueryTypes'
-import type { CombinedState } from './core/apiState'
-import type { AnyAction } from '@reduxjs/toolkit'
-
-export interface ApiModules<
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  BaseQuery extends BaseQueryFn,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  Definitions extends EndpointDefinitions,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  ReducerPath extends string,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  TagTypes extends string
-> {}
 
 export type ModuleName = keyof ApiModules<any, any, any, any>
 
@@ -34,7 +23,7 @@ export type Module<Name extends ModuleName> = {
     BaseQuery extends BaseQueryFn,
     Definitions extends EndpointDefinitions,
     ReducerPath extends string,
-    TagTypes extends string
+    TagTypes extends string,
   >(
     api: Api<BaseQuery, EndpointDefinitions, ReducerPath, TagTypes, ModuleName>,
     options: WithRequiredProp<
@@ -45,13 +34,14 @@ export type Module<Name extends ModuleName> = {
       | 'refetchOnMountOrArgChange'
       | 'refetchOnFocus'
       | 'refetchOnReconnect'
+      | 'invalidationBehavior'
       | 'tagTypes'
     >,
-    context: ApiContext<Definitions>
+    context: ApiContext<Definitions>,
   ): {
     injectEndpoint(
       endpointName: string,
-      definition: EndpointDefinition<any, any, any, any>
+      definition: EndpointDefinition<any, any, any, any>,
     ): void
   }
 }
@@ -61,9 +51,9 @@ export interface ApiContext<Definitions extends EndpointDefinitions> {
   endpointDefinitions: Definitions
   batch(cb: () => void): void
   extractRehydrationInfo: (
-    action: AnyAction
+    action: UnknownAction,
   ) => CombinedState<any, any, any> | undefined
-  hasRehydrationInfo: (action: AnyAction) => boolean
+  hasRehydrationInfo: (action: UnknownAction) => boolean
 }
 
 export type Api<
@@ -71,7 +61,7 @@ export type Api<
   Definitions extends EndpointDefinitions,
   ReducerPath extends string,
   TagTypes extends string,
-  Enhancers extends ModuleName = CoreModule
+  Enhancers extends ModuleName = CoreModule,
 > = UnionToIntersection<
   ApiModules<BaseQuery, Definitions, ReducerPath, TagTypes>[Enhancers]
 > & {
@@ -80,9 +70,16 @@ export type Api<
    */
   injectEndpoints<NewDefinitions extends EndpointDefinitions>(_: {
     endpoints: (
-      build: EndpointBuilder<BaseQuery, TagTypes, ReducerPath>
+      build: EndpointBuilder<BaseQuery, TagTypes, ReducerPath>,
     ) => NewDefinitions
-    overrideExisting?: boolean
+    /**
+     * Optionally allows endpoints to be overridden if defined by multiple `injectEndpoints` calls.
+     *
+     * If set to `true`, will override existing endpoints with the new definition.
+     * If set to `'throw'`, will throw an error if an endpoint is redefined with a different definition.
+     * If set to `false` (or unset), will not override existing endpoints with the new definition, and log a warning in development.
+     */
+    overrideExisting?: boolean | 'throw'
   }): Api<
     BaseQuery,
     Definitions & NewDefinitions,
@@ -95,7 +92,7 @@ export type Api<
    */
   enhanceEndpoints<
     NewTagTypes extends string = never,
-    NewDefinitions extends EndpointDefinitions = never
+    NewDefinitions extends EndpointDefinitions = never,
   >(_: {
     addTagTypes?: readonly NewTagTypes[]
     endpoints?: UpdateDefinitions<

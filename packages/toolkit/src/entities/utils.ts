@@ -1,6 +1,16 @@
-import type { EntityState, IdSelector, Update, EntityId } from './models'
+import type { Draft } from 'immer'
+import { current, isDraft } from 'immer'
+import type {
+  DraftableEntityState,
+  EntityId,
+  IdSelector,
+  Update,
+} from './models'
 
-export function selectIdValue<T>(entity: T, selectId: IdSelector<T>) {
+export function selectIdValue<T, Id extends EntityId>(
+  entity: T,
+  selectId: IdSelector<T, Id>,
+) {
   const key = selectId(entity)
 
   if (process.env.NODE_ENV !== 'production' && key === undefined) {
@@ -10,15 +20,15 @@ export function selectIdValue<T>(entity: T, selectId: IdSelector<T>) {
       'The entity that was passed:',
       entity,
       'The `selectId` implementation:',
-      selectId.toString()
+      selectId.toString(),
     )
   }
 
   return key
 }
 
-export function ensureEntitiesArray<T>(
-  entities: readonly T[] | Record<EntityId, T>
+export function ensureEntitiesArray<T, Id extends EntityId>(
+  entities: readonly T[] | Record<Id, T>,
 ): readonly T[] {
   if (!Array.isArray(entities)) {
     entities = Object.values(entities)
@@ -27,23 +37,30 @@ export function ensureEntitiesArray<T>(
   return entities
 }
 
-export function splitAddedUpdatedEntities<T>(
-  newEntities: readonly T[] | Record<EntityId, T>,
-  selectId: IdSelector<T>,
-  state: EntityState<T>
-): [T[], Update<T>[]] {
+export function getCurrent<T>(value: T | Draft<T>): T {
+  return (isDraft(value) ? current(value) : value) as T
+}
+
+export function splitAddedUpdatedEntities<T, Id extends EntityId>(
+  newEntities: readonly T[] | Record<Id, T>,
+  selectId: IdSelector<T, Id>,
+  state: DraftableEntityState<T, Id>,
+): [T[], Update<T, Id>[], Id[]] {
   newEntities = ensureEntitiesArray(newEntities)
 
+  const existingIdsArray = getCurrent(state.ids)
+  const existingIds = new Set<Id>(existingIdsArray)
+
   const added: T[] = []
-  const updated: Update<T>[] = []
+  const updated: Update<T, Id>[] = []
 
   for (const entity of newEntities) {
     const id = selectIdValue(entity, selectId)
-    if (id in state.entities) {
+    if (existingIds.has(id)) {
       updated.push({ id, changes: entity })
     } else {
       added.push(entity)
     }
   }
-  return [added, updated]
+  return [added, updated, existingIdsArray]
 }

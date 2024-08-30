@@ -29,12 +29,13 @@ export const handlers = [
     const target = localDate + localOffset + 3600000 * formattedOffset
     return res(
       ctx.json({ time: new Date(target).toUTCString() }),
-      ctx.delay(400)
+      ctx.delay(400),
     )
   }),
 
   rest.get('/posts/:id', (req, res, ctx) => {
-    const { id } = req.params as { id: string }
+    const { id: idParam } = req.params as { id: string }
+    const id = parseInt(idParam, 10)
     state = adapter.updateOne(state, {
       id,
       changes: { fetched_at: new Date().toUTCString() },

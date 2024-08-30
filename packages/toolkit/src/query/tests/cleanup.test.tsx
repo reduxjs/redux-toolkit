@@ -1,16 +1,15 @@
 // tests for "cleanup-after-unsubscribe" behaviour
-
-import React, { Profiler, ProfilerOnRenderCallback } from 'react'
+import React from 'react'
 
 import { createListenerMiddleware } from '@reduxjs/toolkit'
 import { createApi, QueryStatus } from '@reduxjs/toolkit/query/react'
-import { render, waitFor, act, screen } from '@testing-library/react'
-import { setupApiStore } from './helpers'
-import { delay } from '../../utils'
+import { act, render, screen, waitFor } from '@testing-library/react'
+import { setupApiStore } from '../../tests/utils/helpers'
+import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
 
 const tick = () => new Promise((res) => setImmediate(res))
 
-export const runAllTimers = async () => jest.runAllTimers() && (await tick())
+export const runAllTimers = async () => vi.runAllTimers() && (await tick())
 
 const api = createApi({
   baseQuery: () => ({ data: 42 }),
@@ -21,8 +20,8 @@ const api = createApi({
 })
 const storeRef = setupApiStore(api)
 
-let getSubStateA = () => storeRef.store.getState().api.queries['a(undefined)']
-let getSubStateB = () => storeRef.store.getState().api.queries['b(undefined)']
+const getSubStateA = () => storeRef.store.getState().api.queries['a(undefined)']
+const getSubStateB = () => storeRef.store.getState().api.queries['b(undefined)']
 
 function UsingA() {
   const { data } = api.endpoints.a.useQuery()
@@ -44,7 +43,7 @@ function UsingAB() {
 }
 
 beforeAll(() => {
-  jest.useFakeTimers('legacy')
+  vi.useFakeTimers()
 })
 
 test('data stays in store when component stays rendered', async () => {
@@ -52,14 +51,12 @@ test('data stays in store when component stays rendered', async () => {
 
   render(<UsingA />, { wrapper: storeRef.wrapper })
   await waitFor(() =>
-    expect(getSubStateA()?.status).toBe(QueryStatus.fulfilled)
+    expect(getSubStateA()?.status).toBe(QueryStatus.fulfilled),
   )
 
-  jest.advanceTimersByTime(120000)
+  vi.advanceTimersByTime(120_000)
 
-  await waitFor(() =>
-    expect(getSubStateA()?.status).toBe(QueryStatus.fulfilled)
-  )
+  expect(getSubStateA()?.status).toBe(QueryStatus.fulfilled)
 })
 
 test('data is removed from store after 60 seconds', async () => {
@@ -67,16 +64,16 @@ test('data is removed from store after 60 seconds', async () => {
 
   const { unmount } = render(<UsingA />, { wrapper: storeRef.wrapper })
   await waitFor(() =>
-    expect(getSubStateA()?.status).toBe(QueryStatus.fulfilled)
+    expect(getSubStateA()?.status).toBe(QueryStatus.fulfilled),
   )
 
   unmount()
 
-  jest.advanceTimersByTime(59000)
+  vi.advanceTimersByTime(59_000)
 
   expect(getSubStateA()?.status).toBe(QueryStatus.fulfilled)
 
-  jest.advanceTimersByTime(2000)
+  vi.advanceTimersByTime(2000)
 
   expect(getSubStateA()).toBeUndefined()
 })
@@ -90,7 +87,7 @@ test('data stays in store when component stays rendered while data for another c
       <UsingA />
       <UsingB />
     </>,
-    { wrapper: storeRef.wrapper }
+    { wrapper: storeRef.wrapper },
   )
   await waitFor(() => {
     expect(getSubStateA()?.status).toBe(QueryStatus.fulfilled)
@@ -100,16 +97,12 @@ test('data stays in store when component stays rendered while data for another c
   const statusA = getSubStateA()
 
   await act(async () => {
-    rerender(
-      <>
-        <UsingA />
-      </>
-    )
+    rerender(<UsingA />)
 
-    jest.advanceTimersByTime(10)
+    vi.advanceTimersByTime(10)
   })
 
-  jest.advanceTimersByTime(120000)
+  vi.advanceTimersByTime(120_000)
 
   expect(getSubStateA()).toEqual(statusA)
   expect(getSubStateB()).toBeUndefined()
@@ -124,7 +117,7 @@ test('data stays in store when one component requiring the data stays in the sto
       <UsingA key="a" />
       <UsingAB key="ab" />
     </>,
-    { wrapper: storeRef.wrapper }
+    { wrapper: storeRef.wrapper },
   )
   await waitFor(() => {
     expect(getSubStateA()?.status).toBe(QueryStatus.fulfilled)
@@ -135,18 +128,14 @@ test('data stays in store when one component requiring the data stays in the sto
   const statusB = getSubStateB()
 
   await act(async () => {
-    rerender(
-      <>
-        <UsingAB key="ab" />
-      </>
-    )
-    jest.advanceTimersByTime(10)
-    jest.runAllTimers()
+    rerender(<UsingAB key="ab" />)
+    vi.advanceTimersByTime(10)
+    vi.runAllTimers()
   })
 
   await act(async () => {
-    jest.advanceTimersByTime(120000)
-    jest.runAllTimers()
+    vi.advanceTimersByTime(120000)
+    vi.runAllTimers()
   })
 
   expect(getSubStateA()).toEqual(statusA)
@@ -162,17 +151,25 @@ test('Minimizes the number of subscription dispatches when multiple components a
     withoutTestLifecycles: true,
   })
 
-  let getSubscriptionsA = () =>
-    storeRef.store.getState().api.subscriptions['a(undefined)']
-
-  let actionTypes: string[] = []
+  const actionTypes: unknown[] = []
 
   listenerMiddleware.startListening({
     predicate: () => true,
     effect: (action) => {
+      if (
+        action.type.includes('subscriptionsUpdated') ||
+        action.type.includes('internal_')
+      ) {
+        return
+      }
+
       actionTypes.push(action.type)
     },
   })
+
+  const { getSubscriptionCount } = storeRef.store.dispatch(
+    api.internalActions.internal_getRTKQSubscriptions(),
+  ) as unknown as SubscriptionSelectors
 
   const NUM_LIST_ITEMS = 1000
 
@@ -188,22 +185,20 @@ test('Minimizes the number of subscription dispatches when multiple components a
     wrapper: storeRef.wrapper,
   })
 
-  jest.advanceTimersByTime(10)
+  await act(async () => {
+    vi.advanceTimersByTime(10)
+    vi.runAllTimers()
+  })
 
   await waitFor(() => {
     return screen.getAllByText(/42/).length > 0
   })
 
-  await runAllTimers()
-
-  const subscriptions = getSubscriptionsA()
-
-  expect(Object.keys(subscriptions!).length).toBe(NUM_LIST_ITEMS)
+  expect(getSubscriptionCount('a(undefined)')).toBe(NUM_LIST_ITEMS)
 
   expect(actionTypes).toEqual([
     'api/config/middlewareRegistered',
     'api/executeQuery/pending',
-    'api/internalSubscriptions/subscriptionsUpdated',
     'api/executeQuery/fulfilled',
   ])
-}, 25000)
+}, 25_000)

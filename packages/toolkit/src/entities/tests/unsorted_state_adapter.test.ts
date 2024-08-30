@@ -10,8 +10,8 @@ import {
 import { createNextState } from '../..'
 
 describe('Unsorted State Adapter', () => {
-  let adapter: EntityAdapter<BookModel>
-  let state: EntityState<BookModel>
+  let adapter: EntityAdapter<BookModel, string>
+  let state: EntityState<BookModel, string>
 
   beforeAll(() => {
     //eslint-disable-next-line
@@ -435,12 +435,10 @@ describe('Unsorted State Adapter', () => {
       const result = createNextState(withTwo, (draft) => {
         adapter.removeAll(draft)
       })
-      expect(result).toMatchInlineSnapshot(`
-        Object {
-          "entities": Object {},
-          "ids": Array [],
-        }
-      `)
+      expect(result).toEqual({
+        entities: {},
+        ids: [],
+      })
     })
 
     test('addOne', () => {
@@ -448,19 +446,15 @@ describe('Unsorted State Adapter', () => {
         adapter.addOne(draft, TheGreatGatsby)
       })
 
-      expect(result).toMatchInlineSnapshot(`
-        Object {
-          "entities": Object {
-            "tgg": Object {
-              "id": "tgg",
-              "title": "The Great Gatsby",
-            },
+      expect(result).toEqual({
+        entities: {
+          tgg: {
+            id: 'tgg',
+            title: 'The Great Gatsby',
           },
-          "ids": Array [
-            "tgg",
-          ],
-        }
-      `)
+        },
+        ids: ['tgg'],
+      })
     })
 
     test('addMany', () => {
@@ -468,24 +462,19 @@ describe('Unsorted State Adapter', () => {
         adapter.addMany(draft, [TheGreatGatsby, AnimalFarm])
       })
 
-      expect(result).toMatchInlineSnapshot(`
-        Object {
-          "entities": Object {
-            "af": Object {
-              "id": "af",
-              "title": "Animal Farm",
-            },
-            "tgg": Object {
-              "id": "tgg",
-              "title": "The Great Gatsby",
-            },
+      expect(result).toEqual({
+        entities: {
+          af: {
+            id: 'af',
+            title: 'Animal Farm',
           },
-          "ids": Array [
-            "tgg",
-            "af",
-          ],
-        }
-      `)
+          tgg: {
+            id: 'tgg',
+            title: 'The Great Gatsby',
+          },
+        },
+        ids: ['tgg', 'af'],
+      })
     })
 
     test('setAll', () => {
@@ -493,24 +482,19 @@ describe('Unsorted State Adapter', () => {
         adapter.setAll(draft, [TheGreatGatsby, AnimalFarm])
       })
 
-      expect(result).toMatchInlineSnapshot(`
-        Object {
-          "entities": Object {
-            "af": Object {
-              "id": "af",
-              "title": "Animal Farm",
-            },
-            "tgg": Object {
-              "id": "tgg",
-              "title": "The Great Gatsby",
-            },
+      expect(result).toEqual({
+        entities: {
+          af: {
+            id: 'af',
+            title: 'Animal Farm',
           },
-          "ids": Array [
-            "tgg",
-            "af",
-          ],
-        }
-      `)
+          tgg: {
+            id: 'tgg',
+            title: 'The Great Gatsby',
+          },
+        },
+        ids: ['tgg', 'af'],
+      })
     })
 
     test('updateOne', () => {
@@ -523,19 +507,15 @@ describe('Unsorted State Adapter', () => {
         })
       })
 
-      expect(result).toMatchInlineSnapshot(`
-        Object {
-          "entities": Object {
-            "tgg": Object {
-              "id": "tgg",
-              "title": "A New Hope",
-            },
+      expect(result).toEqual({
+        entities: {
+          tgg: {
+            id: 'tgg',
+            title: 'A New Hope',
           },
-          "ids": Array [
-            "tgg",
-          ],
-        }
-      `)
+        },
+        ids: ['tgg'],
+      })
     })
 
     test('updateMany', () => {
@@ -558,49 +538,39 @@ describe('Unsorted State Adapter', () => {
         ])
       })
 
-      expect(result).toMatchInlineSnapshot(`
-        Object {
-          "entities": Object {
-            "aco": Object {
-              "id": "aco",
-              "title": "Third Change",
-            },
-            "tgg": Object {
-              "id": "tgg",
-              "title": "Second Change",
-            },
-            "th": Object {
-              "author": "Fourth Change",
-              "id": "th",
-              "title": "First Change",
-            },
+      expect(result).toEqual({
+        entities: {
+          aco: {
+            id: 'aco',
+            title: 'Third Change',
           },
-          "ids": Array [
-            "tgg",
-            "aco",
-            "th",
-          ],
-        }
-      `)
+          tgg: {
+            id: 'tgg',
+            title: 'Second Change',
+          },
+          th: {
+            author: 'Fourth Change',
+            id: 'th',
+            title: 'First Change',
+          },
+        },
+        ids: ['tgg', 'aco', 'th'],
+      })
     })
 
     test('upsertOne (insert)', () => {
       const result = createNextState(state, (draft) => {
         adapter.upsertOne(draft, TheGreatGatsby)
       })
-      expect(result).toMatchInlineSnapshot(`
-        Object {
-          "entities": Object {
-            "tgg": Object {
-              "id": "tgg",
-              "title": "The Great Gatsby",
-            },
+      expect(result).toEqual({
+        entities: {
+          tgg: {
+            id: 'tgg',
+            title: 'The Great Gatsby',
           },
-          "ids": Array [
-            "tgg",
-          ],
-        }
-      `)
+        },
+        ids: ['tgg'],
+      })
     })
 
     test('upsertOne (update)', () => {
@@ -611,19 +581,15 @@ describe('Unsorted State Adapter', () => {
           title: 'A New Hope',
         })
       })
-      expect(result).toMatchInlineSnapshot(`
-        Object {
-          "entities": Object {
-            "tgg": Object {
-              "id": "tgg",
-              "title": "A New Hope",
-            },
+      expect(result).toEqual({
+        entities: {
+          tgg: {
+            id: 'tgg',
+            title: 'A New Hope',
           },
-          "ids": Array [
-            "tgg",
-          ],
-        }
-      `)
+        },
+        ids: ['tgg'],
+      })
     })
 
     test('upsertMany', () => {
@@ -637,43 +603,34 @@ describe('Unsorted State Adapter', () => {
           AnimalFarm,
         ])
       })
-      expect(result).toMatchInlineSnapshot(`
-        Object {
-          "entities": Object {
-            "af": Object {
-              "id": "af",
-              "title": "Animal Farm",
-            },
-            "tgg": Object {
-              "id": "tgg",
-              "title": "A New Hope",
-            },
+      expect(result).toEqual({
+        entities: {
+          af: {
+            id: 'af',
+            title: 'Animal Farm',
           },
-          "ids": Array [
-            "tgg",
-            "af",
-          ],
-        }
-      `)
+          tgg: {
+            id: 'tgg',
+            title: 'A New Hope',
+          },
+        },
+        ids: ['tgg', 'af'],
+      })
     })
 
     test('setOne (insert)', () => {
       const result = createNextState(state, (draft) => {
         adapter.setOne(draft, TheGreatGatsby)
       })
-      expect(result).toMatchInlineSnapshot(`
-        Object {
-          "entities": Object {
-            "tgg": Object {
-              "id": "tgg",
-              "title": "The Great Gatsby",
-            },
+      expect(result).toEqual({
+        entities: {
+          tgg: {
+            id: 'tgg',
+            title: 'The Great Gatsby',
           },
-          "ids": Array [
-            "tgg",
-          ],
-        }
-      `)
+        },
+        ids: ['tgg'],
+      })
     })
 
     test('setOne (update)', () => {
@@ -684,19 +641,15 @@ describe('Unsorted State Adapter', () => {
           title: 'Silmarillion',
         })
       })
-      expect(result).toMatchInlineSnapshot(`
-        Object {
-          "entities": Object {
-            "th": Object {
-              "id": "th",
-              "title": "Silmarillion",
-            },
+      expect(result).toEqual({
+        entities: {
+          th: {
+            id: 'th',
+            title: 'Silmarillion',
           },
-          "ids": Array [
-            "th",
-          ],
-        }
-      `)
+        },
+        ids: ['th'],
+      })
     })
 
     test('setMany', () => {
@@ -710,24 +663,19 @@ describe('Unsorted State Adapter', () => {
           AnimalFarm,
         ])
       })
-      expect(result).toMatchInlineSnapshot(`
-        Object {
-          "entities": Object {
-            "af": Object {
-              "id": "af",
-              "title": "Animal Farm",
-            },
-            "th": Object {
-              "id": "th",
-              "title": "Silmarillion",
-            },
+      expect(result).toEqual({
+        entities: {
+          af: {
+            id: 'af',
+            title: 'Animal Farm',
           },
-          "ids": Array [
-            "th",
-            "af",
-          ],
-        }
-      `)
+          th: {
+            id: 'th',
+            title: 'Silmarillion',
+          },
+        },
+        ids: ['th', 'af'],
+      })
     })
 
     test('removeOne', () => {
@@ -735,19 +683,15 @@ describe('Unsorted State Adapter', () => {
       const result = createNextState(withTwo, (draft) => {
         adapter.removeOne(draft, TheGreatGatsby.id)
       })
-      expect(result).toMatchInlineSnapshot(`
-        Object {
-          "entities": Object {
-            "af": Object {
-              "id": "af",
-              "title": "Animal Farm",
-            },
+      expect(result).toEqual({
+        entities: {
+          af: {
+            id: 'af',
+            title: 'Animal Farm',
           },
-          "ids": Array [
-            "af",
-          ],
-        }
-      `)
+        },
+        ids: ['af'],
+      })
     })
 
     test('removeMany', () => {
@@ -759,19 +703,15 @@ describe('Unsorted State Adapter', () => {
       const result = createNextState(withThree, (draft) => {
         adapter.removeMany(draft, [TheGreatGatsby.id, AnimalFarm.id])
       })
-      expect(result).toMatchInlineSnapshot(`
-        Object {
-          "entities": Object {
-            "aco": Object {
-              "id": "aco",
-              "title": "A Clockwork Orange",
-            },
+      expect(result).toEqual({
+        entities: {
+          aco: {
+            id: 'aco',
+            title: 'A Clockwork Orange',
           },
-          "ids": Array [
-            "aco",
-          ],
-        }
-      `)
+        },
+        ids: ['aco'],
+      })
     })
   })
 })

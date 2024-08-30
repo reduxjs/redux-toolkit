@@ -35,18 +35,18 @@ const fetchUserById = createAsyncThunk(
   async (userId: number, thunkAPI) => {
     const response = await userAPI.fetchById(userId)
     return response.data
-  }
+  },
 )
 
 interface UsersState {
-  entities: []
+  entities: User[]
   loading: 'idle' | 'pending' | 'succeeded' | 'failed'
 }
 
 const initialState = {
   entities: [],
   loading: 'idle',
-} as UsersState
+} satisfies UserState as UsersState
 
 // Then, handle actions in your reducers:
 const usersSlice = createSlice({
@@ -190,52 +190,58 @@ interface RejectedWithValueAction<ThunkArg, RejectedValue> {
 
 type Pending = <ThunkArg>(
   requestId: string,
-  arg: ThunkArg
+  arg: ThunkArg,
 ) => PendingAction<ThunkArg>
 
 type Fulfilled = <ThunkArg, PromiseResult>(
   payload: PromiseResult,
   requestId: string,
-  arg: ThunkArg
+  arg: ThunkArg,
 ) => FulfilledAction<ThunkArg, PromiseResult>
 
 type Rejected = <ThunkArg>(
   requestId: string,
-  arg: ThunkArg
+  arg: ThunkArg,
 ) => RejectedAction<ThunkArg>
 
 type RejectedWithValue = <ThunkArg, RejectedValue>(
   requestId: string,
-  arg: ThunkArg
+  arg: ThunkArg,
 ) => RejectedWithValueAction<ThunkArg, RejectedValue>
 ```
 
-To handle these actions in your reducers, reference the action creators in `createReducer` or `createSlice` using either the object key notation or the "builder callback" notation. (Note that if you use TypeScript, you [should use the "builder callback" notation to ensure the types are inferred correctly](../usage/usage-with-typescript.md#type-safety-with-extrareducers)):
+To handle these actions in your reducers, reference the action creators in `createReducer` or `createSlice` using the "builder callback" notation.
 
-```ts no-transpile {2,6,14,23}
-const reducer1 = createReducer(initialState, {
-  [fetchUserById.fulfilled]: (state, action) => {},
-})
-
-const reducer2 = createReducer(initialState, (builder) => {
+```ts no-transpile {2,10}
+const reducer1 = createReducer(initialState, (builder) => {
   builder.addCase(fetchUserById.fulfilled, (state, action) => {})
 })
 
-const reducer3 = createSlice({
-  name: 'users',
-  initialState,
-  reducers: {},
-  extraReducers: {
-    [fetchUserById.fulfilled]: (state, action) => {},
-  },
-})
-
-const reducer4 = createSlice({
+const reducer2 = createSlice({
   name: 'users',
   initialState,
   reducers: {},
   extraReducers: (builder) => {
     builder.addCase(fetchUserById.fulfilled, (state, action) => {})
+  },
+})
+```
+
+Additionally, a `settled` matcher is attached, for matching against both fulfilled and rejected actions. Conceptually this is similar to a `finally` block.
+
+Make sure you use `addMatcher` instead of `addCase`, since `settled` is a matcher rather than an action creator.
+
+```ts no-transpile {2,10}
+const reducer1 = createReducer(initialState, (builder) => {
+  builder.addMatcher(fetchUserById.settled, (state, action) => {})
+})
+
+const reducer2 = createSlice({
+  name: 'users',
+  initialState,
+  reducers: {},
+  extraReducers: (builder) => {
+    builder.addMatcher(fetchUserById.settled, (state, action) => {})
   },
 })
 ```
@@ -359,7 +365,7 @@ const updateUser = createAsyncThunk(
       // by explicitly returning it using the `rejectWithValue()` utility
       return rejectWithValue(err.response.data)
     }
-  }
+  },
 )
 ```
 
@@ -385,7 +391,7 @@ const fetchUserById = createAsyncThunk(
         return false
       }
     },
-  }
+  },
 )
 ```
 
@@ -413,7 +419,7 @@ export const fetchUserById = createAsyncThunk(
   'fetchUserById',
   (userId: string) => {
     /* ... */
-  }
+  },
 )
 
 // file: MyComponent.ts
@@ -450,7 +456,7 @@ const fetchUserById = createAsyncThunk(
       signal: thunkAPI.signal,
     })
     return await response.json()
-  }
+  },
 )
 ```
 
@@ -480,7 +486,7 @@ const readStream = createAsyncThunk(
       done = read.done
     }
     return result
-  }
+  },
 )
 ```
 
@@ -504,7 +510,7 @@ const fetchUserById = createAsyncThunk(
       cancelToken: source.token,
     })
     return response.data
-  }
+  },
 )
 ```
 
@@ -521,7 +527,7 @@ If a thunk was cancelled, the result of the promise will be a `rejected` action 
 So if you wanted to test that a thunk was cancelled before executing, you can do the following:
 
 ```ts no-transpile
-import { createAsyncThunk, isRejected } from '@reduxjs/toolkit'
+import { createAsyncThunk } from '@reduxjs/toolkit'
 
 test('this thunk should always be skipped', async () => {
   const thunk = createAsyncThunk(
@@ -546,19 +552,20 @@ test('this thunk should always be skipped', async () => {
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import { userAPI, User } from './userAPI'
 
-const fetchUserById = createAsyncThunk<User, string, {
-    state: { users: { loading: string, currentRequestId: string } }
-}> (  
-  'users/fetchByIdStatus',
-  async (userId: string, { getState, requestId }) => {
-    const { currentRequestId, loading } = getState().users
-    if (loading !== 'pending' || requestId !== currentRequestId) {
-      return
-    }
-    const response = await userAPI.fetchById(userId)
-    return response.data
+const fetchUserById = createAsyncThunk<
+  User,
+  string,
+  {
+    state: { users: { loading: string; currentRequestId: string } }
   }
-)
+>('users/fetchByIdStatus', async (userId: string, { getState, requestId }) => {
+  const { currentRequestId, loading } = getState().users
+  if (loading !== 'pending' || requestId !== currentRequestId) {
+    return
+  }
+  const response = await userAPI.fetchById(userId)
+  return response.data
+})
 
 const usersSlice = createSlice({
   name: 'users',
@@ -692,7 +699,7 @@ interface UsersState {
 const initialState = {
   entities: {},
   error: null,
-} as UsersState
+} satisfies UsersState as UsersState
 
 const usersSlice = createSlice({
   name: 'users',
@@ -742,7 +749,7 @@ const UsersComponent = (props: { id: string }) => {
   // This is an example of an onSubmit handler using Formik meant to demonstrate accessing the payload of the rejected action
   const handleUpdateUser = async (
     values: FormValues,
-    formikHelpers: FormikHelpers<FormValues>
+    formikHelpers: FormikHelpers<FormValues>,
   ) => {
     const resultAction = await dispatch(updateUser({ id: props.id, ...values }))
     if (updateUser.fulfilled.match(resultAction)) {

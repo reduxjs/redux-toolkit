@@ -10,7 +10,8 @@ import { addAbortSignalListener, catchRejection, noop } from './utils'
  */
 export const validateActive = (signal: AbortSignal): void => {
   if (signal.aborted) {
-    throw new TaskAbortError((signal as AbortSignalWithReason<string>).reason)
+    const { reason } = signal as AbortSignalWithReason<string>
+    throw new TaskAbortError(reason)
   }
 }
 
@@ -21,7 +22,7 @@ export const validateActive = (signal: AbortSignal): void => {
  */
 export function raceWithSignal<T>(
   signal: AbortSignalWithReason<string>,
-  promise: Promise<T>
+  promise: Promise<T>,
 ): Promise<T> {
   let cleanup = noop
   return new Promise<T>((resolve, reject) => {
@@ -49,7 +50,7 @@ export function raceWithSignal<T>(
  */
 export const runTask = async <T>(
   task: () => Promise<T>,
-  cleanUp?: () => void
+  cleanUp?: () => void,
 ): Promise<TaskResult<T>> => {
   try {
     await Promise.resolve()
@@ -81,7 +82,7 @@ export const createPause = <T>(signal: AbortSignal) => {
       raceWithSignal(signal, promise).then((output) => {
         validateActive(signal)
         return output
-      })
+      }),
     )
   }
 }

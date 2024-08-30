@@ -14,7 +14,7 @@ function checkFunctionName(fn, name, category) {
   console.log(`Checking ${category} '${name}' === '${fn.name}'`)
   assert(
     fn.name === name,
-    `${category} \`${name}\` did not import correctly (name: '${fn.name}')`
+    `${category} \`${name}\` did not import correctly (name: '${fn.name}')`,
   )
 }
 
@@ -33,9 +33,12 @@ for (let [fn, name, category] of entries) {
 }
 
 const moduleNames = [
-  ['@reduxjs/toolkit', 'dist/index.js'],
-  ['@reduxjs/toolkit/query', 'dist/query/index.js'],
-  ['@reduxjs/toolkit/query/react', 'dist/query/react/index.js'],
+  ['@reduxjs/toolkit', 'dist/redux-toolkit.modern.mjs'],
+  ['@reduxjs/toolkit/query', 'dist/query/rtk-query.modern.mjs'],
+  [
+    '@reduxjs/toolkit/query/react',
+    'dist/query/react/rtk-query-react.modern.mjs',
+  ],
 ]
 
 ;(async () => {

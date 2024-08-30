@@ -1,10 +1,13 @@
-import { createApi } from '@reduxjs/toolkit/query'
-import type { FetchBaseQueryMeta } from '@reduxjs/toolkit/query'
-import { fetchBaseQuery } from '@reduxjs/toolkit/query'
-import { expectType, fakeTimerWaitFor, setupApiStore, waitMs } from './helpers'
+import {
+  DEFAULT_DELAY_MS,
+  fakeTimerWaitFor,
+  setupApiStore,
+} from '@internal/tests/utils/helpers'
+import type { QueryActionCreatorResult } from '@reduxjs/toolkit/query'
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 
 beforeAll(() => {
-  jest.useFakeTimers('legacy')
+  vi.useFakeTimers()
 })
 
 const api = createApi({
@@ -13,10 +16,10 @@ const api = createApi({
 })
 const storeRef = setupApiStore(api)
 
-const onNewCacheEntry = jest.fn()
-const gotFirstValue = jest.fn()
-const onCleanup = jest.fn()
-const onCatch = jest.fn()
+const onNewCacheEntry = vi.fn()
+const gotFirstValue = vi.fn()
+const onCleanup = vi.fn()
+const onCatch = vi.fn()
 
 beforeEach(() => {
   onNewCacheEntry.mockClear()
@@ -48,11 +51,12 @@ describe.each([['query'], ['mutation']] as const)(
       const extended = api.injectEndpoints({
         overrideExisting: true,
         endpoints: (build) => ({
+          // Lying to TS here
           injected: build[type as 'mutation']<unknown, string>({
             query: () => '/success',
             async onCacheEntryAdded(
               arg,
-              { dispatch, getState, cacheEntryRemoved }
+              { dispatch, getState, cacheEntryRemoved },
             ) {
               onNewCacheEntry(arg)
               await cacheEntryRemoved
@@ -62,17 +66,23 @@ describe.each([['query'], ['mutation']] as const)(
         }),
       })
       const promise = storeRef.store.dispatch(
-        extended.endpoints.injected.initiate('arg')
+        extended.endpoints.injected.initiate('arg'),
       )
 
       expect(onNewCacheEntry).toHaveBeenCalledWith('arg')
       expect(onCleanup).not.toHaveBeenCalled()
 
-      promise.unsubscribe(), await waitMs()
+      await promise
+      if (type === 'mutation') {
+        promise.reset()
+      } else {
+        ;(promise as unknown as QueryActionCreatorResult<any>).unsubscribe()
+      }
+      await vi.advanceTimersByTimeAsync(DEFAULT_DELAY_MS)
       if (type === 'query') {
-        jest.advanceTimersByTime(59000), await waitMs()
+        await vi.advanceTimersByTimeAsync(59000)
         expect(onCleanup).not.toHaveBeenCalled()
-        jest.advanceTimersByTime(2000), await waitMs()
+        await vi.advanceTimersByTimeAsync(2000)
       }
 
       expect(onCleanup).toHaveBeenCalled()
@@ -86,13 +96,10 @@ describe.each([['query'], ['mutation']] as const)(
             query: () => '/success',
             async onCacheEntryAdded(
               arg,
-              { dispatch, getState, cacheEntryRemoved, cacheDataLoaded }
+              { dispatch, getState, cacheEntryRemoved, cacheDataLoaded },
             ) {
               onNewCacheEntry(arg)
               const firstValue = await cacheDataLoaded
-              expectType<{ data: number; meta?: FetchBaseQueryMeta }>(
-                firstValue
-              )
               gotFirstValue(firstValue)
               await cacheEntryRemoved
               onCleanup()
@@ -101,7 +108,7 @@ describe.each([['query'], ['mutation']] as const)(
         }),
       })
       const promise = storeRef.store.dispatch(
-        extended.endpoints.injected.initiate('arg')
+        extended.endpoints.injected.initiate('arg'),
       )
 
       expect(onNewCacheEntry).toHaveBeenCalledWith('arg')
@@ -121,11 +128,16 @@ describe.each([['query'], ['mutation']] as const)(
       })
       expect(onCleanup).not.toHaveBeenCalled()
 
-      promise.unsubscribe(), await waitMs()
+      if (type === 'mutation') {
+        promise.reset()
+      } else {
+        ;(promise as unknown as QueryActionCreatorResult<any>).unsubscribe()
+      }
+      await vi.advanceTimersByTimeAsync(DEFAULT_DELAY_MS)
       if (type === 'query') {
-        jest.advanceTimersByTime(59000), await waitMs()
+        await vi.advanceTimersByTimeAsync(59000)
         expect(onCleanup).not.toHaveBeenCalled()
-        jest.advanceTimersByTime(2000), await waitMs()
+        await vi.advanceTimersByTimeAsync(2000)
       }
 
       expect(onCleanup).toHaveBeenCalled()
@@ -139,7 +151,7 @@ describe.each([['query'], ['mutation']] as const)(
             query: () => '/error', // we will initiate only once and that one time will be an error -> cacheDataLoaded will never resolve
             async onCacheEntryAdded(
               arg,
-              { dispatch, getState, cacheEntryRemoved, cacheDataLoaded }
+              { dispatch, getState, cacheEntryRemoved, cacheDataLoaded },
             ) {
               onNewCacheEntry(arg)
               // this will wait until cacheEntryRemoved, then reject => nothing past that line will execute
@@ -154,13 +166,18 @@ describe.each([['query'], ['mutation']] as const)(
         }),
       })
       const promise = storeRef.store.dispatch(
-        extended.endpoints.injected.initiate('arg')
+        extended.endpoints.injected.initiate('arg'),
       )
       expect(onNewCacheEntry).toHaveBeenCalledWith('arg')
 
-      promise.unsubscribe(), await waitMs()
+      if (type === 'mutation') {
+        promise.reset()
+      } else {
+        ;(promise as unknown as QueryActionCreatorResult<any>).unsubscribe()
+      }
+      await vi.advanceTimersByTimeAsync(DEFAULT_DELAY_MS)
       if (type === 'query') {
-        jest.advanceTimersByTime(120000), await waitMs()
+        await vi.advanceTimersByTimeAsync(120000)
       }
       expect(gotFirstValue).not.toHaveBeenCalled()
       expect(onCleanup).not.toHaveBeenCalled()
@@ -174,7 +191,7 @@ describe.each([['query'], ['mutation']] as const)(
             query: () => '/error', // we will initiate only once and that one time will be an error -> cacheDataLoaded will never resolve
             async onCacheEntryAdded(
               arg,
-              { dispatch, getState, cacheEntryRemoved, cacheDataLoaded }
+              { dispatch, getState, cacheEntryRemoved, cacheDataLoaded },
             ) {
               onNewCacheEntry(arg)
 
@@ -192,15 +209,22 @@ describe.each([['query'], ['mutation']] as const)(
         }),
       })
       const promise = storeRef.store.dispatch(
-        extended.endpoints.injected.initiate('arg')
+        extended.endpoints.injected.initiate('arg'),
       )
 
       expect(onNewCacheEntry).toHaveBeenCalledWith('arg')
-      promise.unsubscribe(), await waitMs()
+      await promise
+      if (type === 'mutation') {
+        promise.reset()
+      } else {
+        ;(promise as unknown as QueryActionCreatorResult<any>).unsubscribe()
+      }
+      await vi.advanceTimersByTimeAsync(DEFAULT_DELAY_MS)
+
       if (type === 'query') {
-        jest.advanceTimersByTime(59000), await waitMs()
+        await vi.advanceTimersByTimeAsync(59000)
         expect(onCleanup).not.toHaveBeenCalled()
-        jest.advanceTimersByTime(2000), await waitMs()
+        await vi.advanceTimersByTimeAsync(2000)
       }
 
       expect(onCleanup).toHaveBeenCalled()
@@ -218,7 +242,7 @@ describe.each([['query'], ['mutation']] as const)(
             query: () => '/error', // we will initiate only once and that one time will be an error -> cacheDataLoaded will never resolve
             async onCacheEntryAdded(
               arg,
-              { dispatch, getState, cacheEntryRemoved, cacheDataLoaded }
+              { dispatch, getState, cacheEntryRemoved, cacheDataLoaded },
             ) {
               onNewCacheEntry(arg)
 
@@ -237,16 +261,22 @@ describe.each([['query'], ['mutation']] as const)(
         }),
       })
       const promise = storeRef.store.dispatch(
-        extended.endpoints.injected.initiate('arg')
+        extended.endpoints.injected.initiate('arg'),
       )
 
       expect(onNewCacheEntry).toHaveBeenCalledWith('arg')
+      await promise
 
-      promise.unsubscribe(), await waitMs()
+      if (type === 'mutation') {
+        promise.reset()
+      } else {
+        ;(promise as unknown as QueryActionCreatorResult<any>).unsubscribe()
+      }
+      await vi.advanceTimersByTimeAsync(DEFAULT_DELAY_MS)
       if (type === 'query') {
-        jest.advanceTimersByTime(59000), await waitMs()
+        await vi.advanceTimersByTimeAsync(59000)
         expect(onCleanup).not.toHaveBeenCalled()
-        jest.advanceTimersByTime(2000), await waitMs()
+        await vi.advanceTimersByTimeAsync(2000)
       }
       expect(onCleanup).not.toHaveBeenCalled()
       expect(gotFirstValue).not.toHaveBeenCalled()
@@ -263,7 +293,7 @@ describe.each([['query'], ['mutation']] as const)(
             query: () => '/error', // we will initiate only once and that one time will be an error -> cacheDataLoaded will never resolve
             async onCacheEntryAdded(
               arg,
-              { dispatch, getState, cacheEntryRemoved, cacheDataLoaded }
+              { dispatch, getState, cacheEntryRemoved, cacheDataLoaded },
             ) {
               onNewCacheEntry(arg)
 
@@ -282,16 +312,22 @@ describe.each([['query'], ['mutation']] as const)(
         }),
       })
       const promise = storeRef.store.dispatch(
-        extended.endpoints.injected.initiate('arg')
+        extended.endpoints.injected.initiate('arg'),
       )
 
       expect(onNewCacheEntry).toHaveBeenCalledWith('arg')
 
-      promise.unsubscribe(), await waitMs()
+      await promise
+      if (type === 'mutation') {
+        promise.reset()
+      } else {
+        ;(promise as unknown as QueryActionCreatorResult<any>).unsubscribe()
+      }
+      await vi.advanceTimersByTimeAsync(DEFAULT_DELAY_MS)
       if (type === 'query') {
-        jest.advanceTimersByTime(59000), await waitMs()
+        await vi.advanceTimersByTimeAsync(59000)
         expect(onCleanup).not.toHaveBeenCalled()
-        jest.advanceTimersByTime(2000), await waitMs()
+        await vi.advanceTimersByTimeAsync(2000)
       }
       expect(onCleanup).toHaveBeenCalled()
       expect(gotFirstValue).not.toHaveBeenCalled()
@@ -299,11 +335,11 @@ describe.each([['query'], ['mutation']] as const)(
         message: 'Promise never resolved before cacheEntryRemoved.',
       })
     })
-  }
+  },
 )
 
 test(`query: getCacheEntry`, async () => {
-  const snapshot = jest.fn()
+  const snapshot = vi.fn()
   const extended = api.injectEndpoints({
     overrideExisting: true,
     endpoints: (build) => ({
@@ -317,7 +353,7 @@ test(`query: getCacheEntry`, async () => {
             getCacheEntry,
             cacheEntryRemoved,
             cacheDataLoaded,
-          }
+          },
         ) {
           snapshot(getCacheEntry())
           gotFirstValue(await cacheDataLoaded)
@@ -329,15 +365,16 @@ test(`query: getCacheEntry`, async () => {
     }),
   })
   const promise = storeRef.store.dispatch(
-    extended.endpoints.injected.initiate('arg')
+    extended.endpoints.injected.initiate('arg'),
   )
+  await promise
   promise.unsubscribe()
 
   await fakeTimerWaitFor(() => {
     expect(gotFirstValue).toHaveBeenCalled()
   })
 
-  jest.advanceTimersByTime(120000), await waitMs()
+  await vi.advanceTimersByTimeAsync(120000)
 
   expect(snapshot).toHaveBeenCalledTimes(3)
   expect(snapshot.mock.calls[0][0]).toMatchObject({
@@ -376,7 +413,7 @@ test(`query: getCacheEntry`, async () => {
 })
 
 test(`mutation: getCacheEntry`, async () => {
-  const snapshot = jest.fn()
+  const snapshot = vi.fn()
   const extended = api.injectEndpoints({
     overrideExisting: true,
     endpoints: (build) => ({
@@ -390,7 +427,7 @@ test(`mutation: getCacheEntry`, async () => {
             getCacheEntry,
             cacheEntryRemoved,
             cacheDataLoaded,
-          }
+          },
         ) {
           snapshot(getCacheEntry())
           gotFirstValue(await cacheDataLoaded)
@@ -402,13 +439,14 @@ test(`mutation: getCacheEntry`, async () => {
     }),
   })
   const promise = storeRef.store.dispatch(
-    extended.endpoints.injected.initiate('arg')
+    extended.endpoints.injected.initiate('arg'),
   )
   await fakeTimerWaitFor(() => {
     expect(gotFirstValue).toHaveBeenCalled()
   })
 
-  promise.unsubscribe(), await waitMs()
+  promise.reset()
+  await vi.advanceTimersByTimeAsync(DEFAULT_DELAY_MS)
 
   expect(snapshot).toHaveBeenCalledTimes(3)
   expect(snapshot.mock.calls[0][0]).toMatchObject({
@@ -443,7 +481,7 @@ test(`mutation: getCacheEntry`, async () => {
 })
 
 test('updateCachedData', async () => {
-  const trackCalls = jest.fn()
+  const trackCalls = vi.fn()
 
   const extended = api.injectEndpoints({
     overrideExisting: true,
@@ -459,7 +497,7 @@ test('updateCachedData', async () => {
             updateCachedData,
             cacheEntryRemoved,
             cacheDataLoaded,
-          }
+          },
         ) {
           expect(getCacheEntry().data).toEqual(undefined)
           // calling `updateCachedData` when there is no data yet should not do anything
@@ -497,15 +535,16 @@ test('updateCachedData', async () => {
     }),
   })
   const promise = storeRef.store.dispatch(
-    extended.endpoints.injected.initiate('arg')
+    extended.endpoints.injected.initiate('arg'),
   )
+  await promise
   promise.unsubscribe()
 
   await fakeTimerWaitFor(() => {
     expect(gotFirstValue).toHaveBeenCalled()
   })
 
-  jest.advanceTimersByTime(61000)
+  await vi.advanceTimersByTimeAsync(61000)
 
   await fakeTimerWaitFor(() => {
     expect(onCleanup).toHaveBeenCalled()
@@ -531,12 +570,12 @@ test('dispatching further actions does not trigger another lifecycle', async () 
   expect(onNewCacheEntry).toHaveBeenCalledTimes(1)
 
   await storeRef.store.dispatch(
-    extended.endpoints.injected.initiate(undefined, { forceRefetch: true })
+    extended.endpoints.injected.initiate(undefined, { forceRefetch: true }),
   )
   expect(onNewCacheEntry).toHaveBeenCalledTimes(1)
 })
 
-test('dispatching a query initializer with `subscribe: false` does not start a lifecycle', async () => {
+test('dispatching a query initializer with `subscribe: false` does also start a lifecycle', async () => {
   const extended = api.injectEndpoints({
     overrideExisting: true,
     endpoints: (build) => ({
@@ -549,10 +588,11 @@ test('dispatching a query initializer with `subscribe: false` does not start a l
     }),
   })
   await storeRef.store.dispatch(
-    extended.endpoints.injected.initiate(undefined, { subscribe: false })
+    extended.endpoints.injected.initiate(undefined, { subscribe: false }),
   )
-  expect(onNewCacheEntry).toHaveBeenCalledTimes(0)
+  expect(onNewCacheEntry).toHaveBeenCalledTimes(1)
 
+  // will not be called a second time though
   await storeRef.store.dispatch(extended.endpoints.injected.initiate(undefined))
   expect(onNewCacheEntry).toHaveBeenCalledTimes(1)
 })
@@ -570,7 +610,7 @@ test('dispatching a mutation initializer with `track: false` does not start a li
     }),
   })
   await storeRef.store.dispatch(
-    extended.endpoints.injected.initiate(undefined, { track: false })
+    extended.endpoints.injected.initiate(undefined, { track: false }),
   )
   expect(onNewCacheEntry).toHaveBeenCalledTimes(0)
 

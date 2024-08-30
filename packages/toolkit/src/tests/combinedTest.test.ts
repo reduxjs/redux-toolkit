@@ -10,7 +10,7 @@ import type { EntityAdapter } from '@internal/entities/models'
 import type { BookModel } from '@internal/entities/tests/fixtures/book'
 
 describe('Combined entity slice', () => {
-  let adapter: EntityAdapter<BookModel>
+  let adapter: EntityAdapter<BookModel, string>
 
   beforeEach(() => {
     adapter = createEntityAdapter({
@@ -48,7 +48,7 @@ describe('Combined entity slice', () => {
       async (arg, { getState, dispatch, extra, requestId, signal }) => {
         const state = getState()
         return fakeBooks
-      }
+      },
     )
 
     const booksSlice = createSlice({

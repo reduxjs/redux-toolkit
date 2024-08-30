@@ -1,0 +1,41 @@
+{
+  "extends": [
+    "eslint:recommended",
+    "@react-native",
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/strict-type-checked",
+    "plugin:@typescript-eslint/stylistic-type-checked",
+    "plugin:react/jsx-runtime"
+  ],
+  "ignorePatterns": [
+    "node_modules",
+    ".vscode",
+    "dist",
+    "metro.config.js",
+    "assets",
+    ".expo",
+    ".expo-shared",
+    "webpack.config.ts"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "project": true,
+    "tsconfigRootDir": "./"
+  },
+  "plugins": ["@typescript-eslint"],
+  "root": true,
+  "rules": {
+    "@typescript-eslint/consistent-type-imports": [
+      2,
+      {
+        "fixStyle": "separate-type-imports"
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": ["./__tests__/**/*.ts", "./__tests__/**/*.tsx"],
+      "env": { "jest": true }
+    }
+  ]
+}

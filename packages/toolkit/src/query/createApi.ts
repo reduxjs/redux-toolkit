@@ -8,16 +8,16 @@ import type {
   EndpointDefinitions,
 } from './endpointDefinitions'
 import { DefinitionType, isQueryDefinition } from './endpointDefinitions'
-import { nanoid } from '@reduxjs/toolkit'
-import type { AnyAction } from '@reduxjs/toolkit'
+import { nanoid } from './core/rtkImports'
+import type { UnknownAction } from '@reduxjs/toolkit'
 import type { NoInfer } from './tsHelpers'
-import { defaultMemoize } from 'reselect'
+import { weakMapMemoize } from 'reselect'
 
 export interface CreateApiOptions<
   BaseQuery extends BaseQueryFn,
   Definitions extends EndpointDefinitions,
   ReducerPath extends string = 'api',
-  TagTypes extends string = never
+  TagTypes extends string = never,
 > {
   /**
    * The base query used by each endpoint if no `queryFn` option is specified. RTK Query exports a utility called [fetchBaseQuery](./fetchBaseQuery) as a lightweight wrapper around `fetch` for common use-cases. See [Customizing Queries](../../rtk-query/usage/customizing-queries) if `fetchBaseQuery` does not handle your requirements.
@@ -97,7 +97,7 @@ export interface CreateApiOptions<
    * Endpoints are just a set of operations that you want to perform against your server. You define them as an object using the builder syntax. There are two basic endpoint types: [`query`](../../rtk-query/usage/queries) and [`mutation`](../../rtk-query/usage/mutations).
    */
   endpoints(
-    build: EndpointBuilder<BaseQuery, TagTypes, ReducerPath>
+    build: EndpointBuilder<BaseQuery, TagTypes, ReducerPath>,
   ): Definitions
   /**
    * Defaults to `60` _(this value is in seconds)_. This is how long RTK Query will keep your data cached for **after** the last component unsubscribes. For example, if you query an endpoint, then unmount the component, then mount another component that makes the same request within the given time frame, the most recent value will be served from the cache.
@@ -152,6 +152,16 @@ export interface CreateApiOptions<
    */
   refetchOnReconnect?: boolean
   /**
+   * Defaults to `'delayed'`. This setting allows you to control when tags are invalidated after a mutation.
+   *
+   * - `'immediately'`: Queries are invalidated instantly after the mutation finished, even if they are running.
+   *   If the query provides tags that were invalidated while it ran, it won't be re-fetched.
+   * - `'delayed'`: Invalidation only happens after all queries and mutations are settled.
+   *   This ensures that queries are always invalidated correctly and automatically "batches" invalidations of concurrent mutations.
+   *   Note that if you constantly have some queries (or mutations) running, this can delay tag invalidations indefinitely.
+   */
+  invalidationBehavior?: 'delayed' | 'immediately'
+  /**
    * A function that is passed every dispatched action. If this returns something other than `undefined`,
    * that return value will be used to rehydrate fulfilled & errored queries.
    *
@@ -159,14 +169,21 @@ export interface CreateApiOptions<
    *
    * ```ts
    * // codeblock-meta title="next-redux-wrapper rehydration example"
+   * import type { Action, PayloadAction } from '@reduxjs/toolkit'
    * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
    * import { HYDRATE } from 'next-redux-wrapper'
+   *
+   * type RootState = any; // normally inferred from state
+   *
+   * function isHydrateAction(action: Action): action is PayloadAction<RootState> {
+   *   return action.type === HYDRATE
+   * }
    *
    * export const api = createApi({
    *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
    *   // highlight-start
-   *   extractRehydrationInfo(action, { reducerPath }) {
-   *     if (action.type === HYDRATE) {
+   *   extractRehydrationInfo(action, { reducerPath }): any {
+   *     if (isHydrateAction(action)) {
    *       return action.payload[reducerPath]
    *     }
    *   },
@@ -178,12 +195,12 @@ export interface CreateApiOptions<
    * ```
    */
   extractRehydrationInfo?: (
-    action: AnyAction,
+    action: UnknownAction,
     {
       reducerPath,
     }: {
       reducerPath: ReducerPath
-    }
+    },
   ) =>
     | undefined
     | CombinedState<
@@ -203,9 +220,9 @@ export type CreateApi<Modules extends ModuleName> = {
     BaseQuery extends BaseQueryFn,
     Definitions extends EndpointDefinitions,
     ReducerPath extends string = 'api',
-    TagTypes extends string = never
+    TagTypes extends string = never,
   >(
-    options: CreateApiOptions<BaseQuery, Definitions, ReducerPath, TagTypes>
+    options: CreateApiOptions<BaseQuery, Definitions, ReducerPath, TagTypes>,
   ): Api<BaseQuery, Definitions, ReducerPath, TagTypes, Modules>
 }
 
@@ -216,10 +233,16 @@ export type CreateApi<Modules extends ModuleName> = {
  *
  * @example
  * ```ts
- * const MyContext = React.createContext<ReactReduxContextValue>(null as any);
+ * const MyContext = React.createContext<ReactReduxContextValue | null>(null);
  * const customCreateApi = buildCreateApi(
  *   coreModule(),
- *   reactHooksModule({ useDispatch: createDispatchHook(MyContext) })
+ *   reactHooksModule({
+ *     hooks: {
+ *       useDispatch: createDispatchHook(MyContext),
+ *       useSelector: createSelectorHook(MyContext),
+ *       useStore: createStoreHook(MyContext)
+ *     }
+ *   })
  * );
  * ```
  *
@@ -230,10 +253,10 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
   ...modules: Modules
 ): CreateApi<Modules[number]['name']> {
   return function baseCreateApi(options) {
-    const extractRehydrationInfo = defaultMemoize((action: AnyAction) =>
+    const extractRehydrationInfo = weakMapMemoize((action: UnknownAction) =>
       options.extractRehydrationInfo?.(action, {
         reducerPath: (options.reducerPath ?? 'api') as any,
-      })
+      }),
     )
 
     const optionsWithDefaults: CreateApiOptions<any, any, any, any> = {
@@ -242,6 +265,7 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
       refetchOnMountOrArgChange: false,
       refetchOnFocus: false,
       refetchOnReconnect: false,
+      invalidationBehavior: 'delayed',
       ...options,
       extractRehydrationInfo,
       serializeQueryArgs(queryArgsApi) {
@@ -280,8 +304,8 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
       },
       apiUid: nanoid(),
       extractRehydrationInfo,
-      hasRehydrationInfo: defaultMemoize(
-        (action) => extractRehydrationInfo(action) != null
+      hasRehydrationInfo: weakMapMemoize(
+        (action) => extractRehydrationInfo(action) != null,
       ),
     }
 
@@ -297,14 +321,14 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
         }
         if (endpoints) {
           for (const [endpointName, partialDefinition] of Object.entries(
-            endpoints
+            endpoints,
           )) {
             if (typeof partialDefinition === 'function') {
               partialDefinition(context.endpointDefinitions[endpointName])
             } else {
               Object.assign(
                 context.endpointDefinitions[endpointName] || {},
-                partialDefinition
+                partialDefinition,
               )
             }
           }
@@ -314,30 +338,34 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
     } as Api<BaseQueryFn, {}, string, string, Modules[number]['name']>
 
     const initializedModules = modules.map((m) =>
-      m.init(api as any, optionsWithDefaults as any, context)
+      m.init(api as any, optionsWithDefaults as any, context),
     )
 
     function injectEndpoints(
-      inject: Parameters<typeof api.injectEndpoints>[0]
+      inject: Parameters<typeof api.injectEndpoints>[0],
     ) {
       const evaluatedEndpoints = inject.endpoints({
-        query: (x) => ({ ...x, type: DefinitionType.query } as any),
-        mutation: (x) => ({ ...x, type: DefinitionType.mutation } as any),
+        query: (x) => ({ ...x, type: DefinitionType.query }) as any,
+        mutation: (x) => ({ ...x, type: DefinitionType.mutation }) as any,
       })
 
       for (const [endpointName, definition] of Object.entries(
-        evaluatedEndpoints
+        evaluatedEndpoints,
       )) {
         if (
-          !inject.overrideExisting &&
+          inject.overrideExisting !== true &&
           endpointName in context.endpointDefinitions
         ) {
-          if (
+          if (inject.overrideExisting === 'throw') {
+            throw new Error(
+              `called \`injectEndpoints\` to override already-existing endpointName ${endpointName} without specifying \`overrideExisting: true\``,
+            )
+          } else if (
             typeof process !== 'undefined' &&
             process.env.NODE_ENV === 'development'
           ) {
             console.error(
-              `called \`injectEndpoints\` to override already-existing endpointName ${endpointName} without specifying \`overrideExisting: true\``
+              `called \`injectEndpoints\` to override already-existing endpointName ${endpointName} without specifying \`overrideExisting: true\``,
             )
           }
 

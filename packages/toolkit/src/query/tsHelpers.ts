@@ -7,8 +7,8 @@ export function assertCast<T>(v: any): asserts v is T {}
 export function safeAssign<T extends object>(
   target: T,
   ...args: Array<Partial<NoInfer<T>>>
-) {
-  Object.assign(target, ...args)
+): T {
+  return Object.assign(target, ...args)
 }
 
 /**
@@ -24,9 +24,8 @@ export type NonOptionalKeys<T> = {
   [K in keyof T]-?: undefined extends T[K] ? never : K
 }[keyof T]
 
-export type HasRequiredProps<T, True, False> = NonOptionalKeys<T> extends never
-  ? False
-  : True
+export type HasRequiredProps<T, True, False> =
+  NonOptionalKeys<T> extends never ? False : True
 
 export type OptionalIfAllPropsOptional<T> = HasRequiredProps<T, T, T | never>
 

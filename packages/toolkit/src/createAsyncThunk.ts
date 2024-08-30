@@ -1,15 +1,16 @@
-import type { Dispatch, AnyAction } from 'redux'
-import type {
-  PayloadAction,
-  ActionCreatorWithPreparedPayload,
-} from './createAction'
-import { createAction } from './createAction'
+import type { Dispatch, UnknownAction } from 'redux'
 import type { ThunkDispatch } from 'redux-thunk'
-import type { FallbackIfUnknown, Id, IsAny, IsUnknown } from './tsHelpers'
+import type { ActionCreatorWithPreparedPayload } from './createAction'
+import { createAction } from './createAction'
+import { isAnyOf } from './matchers'
 import { nanoid } from './nanoid'
-
-// @ts-ignore we need the import of these types due to a bundling issue.
-type _Keep = PayloadAction | ActionCreatorWithPreparedPayload<any, unknown>
+import type {
+  FallbackIfUnknown,
+  Id,
+  IsAny,
+  IsUnknown,
+  SafePromise,
+} from './tsHelpers'
 
 export type BaseThunkAPI<
   S,
@@ -17,7 +18,7 @@ export type BaseThunkAPI<
   D extends Dispatch = Dispatch,
   RejectedValue = unknown,
   RejectedMeta = unknown,
-  FulfilledMeta = unknown
+  FulfilledMeta = unknown,
 > = {
   dispatch: D
   getState: () => S
@@ -30,7 +31,7 @@ export type BaseThunkAPI<
     (value: RejectedValue) => RejectWithValue<RejectedValue, RejectedMeta>,
     (
       value: RejectedValue,
-      meta: RejectedMeta
+      meta: RejectedMeta,
     ) => RejectWithValue<RejectedValue, RejectedMeta>
   >
   fulfillWithValue: IsUnknown<
@@ -38,7 +39,7 @@ export type BaseThunkAPI<
     <FulfilledValue>(value: FulfilledValue) => FulfilledValue,
     <FulfilledValue>(
       value: FulfilledValue,
-      meta: FulfilledMeta
+      meta: FulfilledMeta,
     ) => FulfillWithMeta<FulfilledValue, FulfilledMeta>
   >
 }
@@ -68,7 +69,7 @@ class RejectWithValue<Payload, RejectedMeta> {
   private readonly _type!: 'RejectWithValue'
   constructor(
     public readonly payload: Payload,
-    public readonly meta: RejectedMeta
+    public readonly meta: RejectedMeta,
   ) {}
 }
 
@@ -80,7 +81,7 @@ class FulfillWithMeta<Payload, FulfilledMeta> {
   private readonly _type!: 'FulfillWithMeta'
   constructor(
     public readonly payload: Payload,
-    public readonly meta: FulfilledMeta
+    public readonly meta: FulfilledMeta,
   ) {}
 }
 
@@ -105,9 +106,9 @@ export const miniSerializeError = (value: any): SerializedError => {
   return { message: String(value) }
 }
 
-type AsyncThunkConfig = {
+export type AsyncThunkConfig = {
   state?: unknown
-  dispatch?: Dispatch
+  dispatch?: ThunkDispatch<unknown, unknown, UnknownAction>
   extra?: unknown
   rejectValue?: unknown
   serializedErrorType?: unknown
@@ -116,11 +117,12 @@ type AsyncThunkConfig = {
   rejectedMeta?: unknown
 }
 
-type GetState<ThunkApiConfig> = ThunkApiConfig extends {
+export type GetState<ThunkApiConfig> = ThunkApiConfig extends {
   state: infer State
 }
   ? State
   : unknown
+
 type GetExtra<ThunkApiConfig> = ThunkApiConfig extends { extra: infer Extra }
   ? Extra
   : unknown
@@ -132,10 +134,14 @@ type GetDispatch<ThunkApiConfig> = ThunkApiConfig extends {
       ThunkDispatch<
         GetState<ThunkApiConfig>,
         GetExtra<ThunkApiConfig>,
-        AnyAction
+        UnknownAction
       >
     >
-  : ThunkDispatch<GetState<ThunkApiConfig>, GetExtra<ThunkApiConfig>, AnyAction>
+  : ThunkDispatch<
+      GetState<ThunkApiConfig>,
+      GetExtra<ThunkApiConfig>,
+      UnknownAction
+    >
 
 export type GetThunkAPI<ThunkApiConfig> = BaseThunkAPI<
   GetState<ThunkApiConfig>,
@@ -186,7 +192,7 @@ type MaybePromise<T> = T | Promise<T> | (T extends any ? Promise<T> : never)
  */
 export type AsyncThunkPayloadCreatorReturnValue<
   Returned,
-  ThunkApiConfig extends AsyncThunkConfig
+  ThunkApiConfig extends AsyncThunkConfig,
 > = MaybePromise<
   | IsUnknown<
       GetFulfilledMeta<ThunkApiConfig>,
@@ -207,10 +213,10 @@ export type AsyncThunkPayloadCreatorReturnValue<
 export type AsyncThunkPayloadCreator<
   Returned,
   ThunkArg = void,
-  ThunkApiConfig extends AsyncThunkConfig = {}
+  ThunkApiConfig extends AsyncThunkConfig = {},
 > = (
   arg: ThunkArg,
-  thunkAPI: GetThunkAPI<ThunkApiConfig>
+  thunkAPI: GetThunkAPI<ThunkApiConfig>,
 ) => AsyncThunkPayloadCreatorReturnValue<Returned, ThunkApiConfig>
 
 /**
@@ -225,12 +231,12 @@ export type AsyncThunkPayloadCreator<
 export type AsyncThunkAction<
   Returned,
   ThunkArg,
-  ThunkApiConfig extends AsyncThunkConfig
+  ThunkApiConfig extends AsyncThunkConfig,
 > = (
-  dispatch: GetDispatch<ThunkApiConfig>,
+  dispatch: NonNullable<GetDispatch<ThunkApiConfig>>,
   getState: () => GetState<ThunkApiConfig>,
-  extra: GetExtra<ThunkApiConfig>
-) => Promise<
+  extra: GetExtra<ThunkApiConfig>,
+) => SafePromise<
   | ReturnType<AsyncThunkFulfilledActionCreator<Returned, ThunkArg>>
   | ReturnType<AsyncThunkRejectedActionCreator<ThunkArg, ThunkApiConfig>>
 > & {
@@ -243,7 +249,7 @@ export type AsyncThunkAction<
 type AsyncThunkActionCreator<
   Returned,
   ThunkArg,
-  ThunkApiConfig extends AsyncThunkConfig
+  ThunkApiConfig extends AsyncThunkConfig,
 > = IsAny<
   ThunkArg,
   // any handling
@@ -252,19 +258,25 @@ type AsyncThunkActionCreator<
   unknown extends ThunkArg
     ? (arg: ThunkArg) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> // argument not specified or specified as void or undefined
     : [ThunkArg] extends [void] | [undefined]
-    ? () => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> // argument contains void
-    : [void] extends [ThunkArg] // make optional
-    ? (arg?: ThunkArg) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> // argument contains undefined
-    : [undefined] extends [ThunkArg]
-    ? WithStrictNullChecks<
-        // with strict nullChecks: make optional
-        (
-          arg?: ThunkArg
-        ) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig>,
-        // without strict null checks this will match everything, so don't make it optional
-        (arg: ThunkArg) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig>
-      > // default case: normal argument
-    : (arg: ThunkArg) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig>
+      ? () => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> // argument contains void
+      : [void] extends [ThunkArg] // make optional
+        ? (
+            arg?: ThunkArg,
+          ) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> // argument contains undefined
+        : [undefined] extends [ThunkArg]
+          ? WithStrictNullChecks<
+              // with strict nullChecks: make optional
+              (
+                arg?: ThunkArg,
+              ) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig>,
+              // without strict null checks this will match everything, so don't make it optional
+              (
+                arg: ThunkArg,
+              ) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig>
+            > // default case: normal argument
+          : (
+              arg: ThunkArg,
+            ) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig>
 >
 
 /**
@@ -274,7 +286,7 @@ type AsyncThunkActionCreator<
  */
 export type AsyncThunkOptions<
   ThunkArg = void,
-  ThunkApiConfig extends AsyncThunkConfig = {}
+  ThunkApiConfig extends AsyncThunkConfig = {},
 > = {
   /**
    * A method to control whether the asyncThunk should be executed. Has access to the
@@ -284,7 +296,7 @@ export type AsyncThunkOptions<
    */
   condition?(
     arg: ThunkArg,
-    api: Pick<GetThunkAPI<ThunkApiConfig>, 'getState' | 'extra'>
+    api: Pick<GetThunkAPI<ThunkApiConfig>, 'getState' | 'extra'>,
   ): MaybePromise<boolean | undefined>
   /**
    * If `condition` returns `false`, the asyncThunk will be skipped.
@@ -317,7 +329,7 @@ export type AsyncThunkOptions<
         arg: ThunkArg
         requestId: string
       },
-      api: Pick<GetThunkAPI<ThunkApiConfig>, 'getState' | 'extra'>
+      api: Pick<GetThunkAPI<ThunkApiConfig>, 'getState' | 'extra'>,
     ): GetPendingMeta<ThunkApiConfig>
   },
   {
@@ -329,14 +341,14 @@ export type AsyncThunkOptions<
         arg: ThunkArg
         requestId: string
       },
-      api: Pick<GetThunkAPI<ThunkApiConfig>, 'getState' | 'extra'>
+      api: Pick<GetThunkAPI<ThunkApiConfig>, 'getState' | 'extra'>,
     ): GetPendingMeta<ThunkApiConfig>
   }
 >
 
 export type AsyncThunkPendingActionCreator<
   ThunkArg,
-  ThunkApiConfig = {}
+  ThunkApiConfig = {},
 > = ActionCreatorWithPreparedPayload<
   [string, ThunkArg, GetPendingMeta<ThunkApiConfig>?],
   undefined,
@@ -351,14 +363,14 @@ export type AsyncThunkPendingActionCreator<
 
 export type AsyncThunkRejectedActionCreator<
   ThunkArg,
-  ThunkApiConfig = {}
+  ThunkApiConfig = {},
 > = ActionCreatorWithPreparedPayload<
   [
     Error | null,
     string,
     ThunkArg,
     GetRejectValue<ThunkApiConfig>?,
-    GetRejectedMeta<ThunkApiConfig>?
+    GetRejectedMeta<ThunkApiConfig>?,
   ],
   GetRejectValue<ThunkApiConfig> | undefined,
   string,
@@ -380,7 +392,7 @@ export type AsyncThunkRejectedActionCreator<
 export type AsyncThunkFulfilledActionCreator<
   Returned,
   ThunkArg,
-  ThunkApiConfig = {}
+  ThunkApiConfig = {},
 > = ActionCreatorWithPreparedPayload<
   [Returned, string, ThunkArg, GetFulfilledMeta<ThunkApiConfig>?],
   Returned,
@@ -402,7 +414,7 @@ export type AsyncThunkFulfilledActionCreator<
 export type AsyncThunk<
   Returned,
   ThunkArg,
-  ThunkApiConfig extends AsyncThunkConfig
+  ThunkApiConfig extends AsyncThunkConfig,
 > = AsyncThunkActionCreator<Returned, ThunkArg, ThunkApiConfig> & {
   pending: AsyncThunkPendingActionCreator<ThunkArg, ThunkApiConfig>
   rejected: AsyncThunkRejectedActionCreator<ThunkArg, ThunkApiConfig>
@@ -411,10 +423,17 @@ export type AsyncThunk<
     ThunkArg,
     ThunkApiConfig
   >
+  // matchSettled?
+  settled: (
+    action: any,
+  ) => action is ReturnType<
+    | AsyncThunkRejectedActionCreator<ThunkArg, ThunkApiConfig>
+    | AsyncThunkFulfilledActionCreator<Returned, ThunkArg, ThunkApiConfig>
+  >
   typePrefix: string
 }
 
-type OverrideThunkApiConfigs<OldConfig, NewConfig> = Id<
+export type OverrideThunkApiConfigs<OldConfig, NewConfig> = Id<
   NewConfig & Omit<OldConfig, keyof NewConfig>
 >
 
@@ -435,7 +454,7 @@ type CreateAsyncThunk<CurriedThunkApiConfig extends AsyncThunkConfig> = {
       ThunkArg,
       CurriedThunkApiConfig
     >,
-    options?: AsyncThunkOptions<ThunkArg, CurriedThunkApiConfig>
+    options?: AsyncThunkOptions<ThunkArg, CurriedThunkApiConfig>,
   ): AsyncThunk<Returned, ThunkArg, CurriedThunkApiConfig>
 
   /**
@@ -456,7 +475,7 @@ type CreateAsyncThunk<CurriedThunkApiConfig extends AsyncThunkConfig> = {
     options?: AsyncThunkOptions<
       ThunkArg,
       OverrideThunkApiConfigs<CurriedThunkApiConfig, ThunkApiConfig>
-    >
+    >,
   ): AsyncThunk<
     Returned,
     ThunkArg,
@@ -468,11 +487,11 @@ type CreateAsyncThunk<CurriedThunkApiConfig extends AsyncThunkConfig> = {
   >
 }
 
-export const createAsyncThunk = (() => {
+export const createAsyncThunk = /* @__PURE__ */ (() => {
   function createAsyncThunk<
     Returned,
     ThunkArg,
-    ThunkApiConfig extends AsyncThunkConfig
+    ThunkApiConfig extends AsyncThunkConfig,
   >(
     typePrefix: string,
     payloadCreator: AsyncThunkPayloadCreator<
@@ -480,7 +499,7 @@ export const createAsyncThunk = (() => {
       ThunkArg,
       ThunkApiConfig
     >,
-    options?: AsyncThunkOptions<ThunkArg, ThunkApiConfig>
+    options?: AsyncThunkOptions<ThunkArg, ThunkApiConfig>,
   ): AsyncThunk<Returned, ThunkArg, ThunkApiConfig> {
     type RejectedValue = GetRejectValue<ThunkApiConfig>
     type PendingMeta = GetPendingMeta<ThunkApiConfig>
@@ -497,7 +516,7 @@ export const createAsyncThunk = (() => {
         payload: Returned,
         requestId: string,
         arg: ThunkArg,
-        meta?: FulfilledMeta
+        meta?: FulfilledMeta,
       ) => ({
         payload,
         meta: {
@@ -506,7 +525,7 @@ export const createAsyncThunk = (() => {
           requestId,
           requestStatus: 'fulfilled' as const,
         },
-      })
+      }),
     )
 
     const pending: AsyncThunkPendingActionCreator<ThunkArg, ThunkApiConfig> =
@@ -520,7 +539,7 @@ export const createAsyncThunk = (() => {
             requestId,
             requestStatus: 'pending' as const,
           },
-        })
+        }),
       )
 
     const rejected: AsyncThunkRejectedActionCreator<ThunkArg, ThunkApiConfig> =
@@ -531,11 +550,11 @@ export const createAsyncThunk = (() => {
           requestId: string,
           arg: ThunkArg,
           payload?: RejectedValue,
-          meta?: RejectedMeta
+          meta?: RejectedMeta,
         ) => ({
           payload,
           error: ((options && options.serializeError) || miniSerializeError)(
-            error || 'Rejected'
+            error || 'Rejected',
           ) as GetSerializedErrorType<ThunkApiConfig>,
           meta: {
             ...((meta as any) || {}),
@@ -546,51 +565,21 @@ export const createAsyncThunk = (() => {
             aborted: error?.name === 'AbortError',
             condition: error?.name === 'ConditionError',
           },
-        })
+        }),
       )
 
-    let displayedWarning = false
-
-    const AC =
-      typeof AbortController !== 'undefined'
-        ? AbortController
-        : class implements AbortController {
-            signal = {
-              aborted: false,
-              addEventListener() {},
-              dispatchEvent() {
-                return false
-              },
-              onabort() {},
-              removeEventListener() {},
-              reason: undefined,
-              throwIfAborted() {},
-            }
-            abort() {
-              if (process.env.NODE_ENV !== 'production') {
-                if (!displayedWarning) {
-                  displayedWarning = true
-                  console.info(
-                    `This platform does not implement AbortController. 
-If you want to use the AbortController to react to \`abort\` events, please consider importing a polyfill like 'abortcontroller-polyfill/dist/abortcontroller-polyfill-only'.`
-                  )
-                }
-              }
-            }
-          }
-
     function actionCreator(
-      arg: ThunkArg
-    ): AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> {
+      arg: ThunkArg,
+    ): AsyncThunkAction<Returned, ThunkArg, Required<ThunkApiConfig>> {
       return (dispatch, getState, extra) => {
         const requestId = options?.idGenerator
           ? options.idGenerator(arg)
           : nanoid()
 
-        const abortController = new AC()
+        const abortController = new AbortController()
+        let abortHandler: (() => void) | undefined
         let abortReason: string | undefined
 
-        let started = false
         function abort(reason?: string) {
           abortReason = reason
           abortController.abort()
@@ -611,25 +600,25 @@ If you want to use the AbortController to react to \`abort\` events, please cons
                 message: 'Aborted due to condition callback returning false.',
               }
             }
-            started = true
 
-            const abortedPromise = new Promise<never>((_, reject) =>
-              abortController.signal.addEventListener('abort', () =>
+            const abortedPromise = new Promise<never>((_, reject) => {
+              abortHandler = () => {
                 reject({
                   name: 'AbortError',
                   message: abortReason || 'Aborted',
                 })
-              )
-            )
+              }
+              abortController.signal.addEventListener('abort', abortHandler)
+            })
             dispatch(
               pending(
                 requestId,
                 arg,
                 options?.getPendingMeta?.(
                   { requestId, arg },
-                  { getState, extra }
-                )
-              )
+                  { getState, extra },
+                ),
+              ) as any,
             )
             finalAction = await Promise.race([
               abortedPromise,
@@ -643,14 +632,14 @@ If you want to use the AbortController to react to \`abort\` events, please cons
                   abort,
                   rejectWithValue: ((
                     value: RejectedValue,
-                    meta?: RejectedMeta
+                    meta?: RejectedMeta,
                   ) => {
                     return new RejectWithValue(value, meta)
                   }) as any,
                   fulfillWithValue: ((value: unknown, meta?: FulfilledMeta) => {
                     return new FulfillWithMeta(value, meta)
                   }) as any,
-                })
+                }),
               ).then((result) => {
                 if (result instanceof RejectWithValue) {
                   throw result
@@ -666,6 +655,10 @@ If you want to use the AbortController to react to \`abort\` events, please cons
               err instanceof RejectWithValue
                 ? rejected(null, requestId, arg, err.payload, err.meta)
                 : rejected(err as any, requestId, arg)
+          } finally {
+            if (abortHandler) {
+              abortController.signal.removeEventListener('abort', abortHandler)
+            }
           }
           // We dispatch the result action _after_ the catch, to avoid having any errors
           // here get swallowed by the try/catch block,
@@ -679,11 +672,11 @@ If you want to use the AbortController to react to \`abort\` events, please cons
             (finalAction as any).meta.condition
 
           if (!skipDispatch) {
-            dispatch(finalAction)
+            dispatch(finalAction as any)
           }
           return finalAction
         })()
-        return Object.assign(promise as Promise<any>, {
+        return Object.assign(promise as SafePromise<any>, {
           abort,
           requestId,
           arg,
@@ -704,8 +697,9 @@ If you want to use the AbortController to react to \`abort\` events, please cons
         pending,
         rejected,
         fulfilled,
+        settled: isAnyOf(rejected, fulfilled),
         typePrefix,
-      }
+      },
     )
   }
   createAsyncThunk.withTypes = () => createAsyncThunk
@@ -728,7 +722,7 @@ type UnwrappedActionPayload<T extends UnwrappableAction> = Exclude<
  * @public
  */
 export function unwrapResult<R extends UnwrappableAction>(
-  action: R
+  action: R,
 ): UnwrappedActionPayload<R> {
   if (action.meta && action.meta.rejectedWithValue) {
     throw action.payload

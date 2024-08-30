@@ -1,6 +1,11 @@
 import { createApi } from '@reduxjs/toolkit/query/react'
-import { actionsReducer, hookWaitFor, setupApiStore, waitMs } from './helpers'
-import { renderHook, act } from '@testing-library/react'
+import { act, renderHook } from '@testing-library/react'
+import { delay } from 'msw'
+import {
+  actionsReducer,
+  hookWaitFor,
+  setupApiStore,
+} from '../../tests/utils/helpers'
 import type { InvalidationState } from '../core/apiState'
 
 interface Post {
@@ -9,8 +14,10 @@ interface Post {
   contents: string
 }
 
-const baseQuery = jest.fn()
-beforeEach(() => baseQuery.mockReset())
+const baseQuery = vi.fn()
+beforeEach(() => {
+  baseQuery.mockReset()
+})
 
 const api = createApi({
   baseQuery: (...args: any[]) => {
@@ -44,7 +51,7 @@ const api = createApi({
         const { undo } = dispatch(
           api.util.updateQueryData('post', id, (draft) => {
             Object.assign(draft, patch)
-          })
+          }),
         )
         queryFulfilled.catch(undo)
       },
@@ -58,9 +65,9 @@ const storeRef = setupApiStore(api, {
 })
 
 describe('basic lifecycle', () => {
-  let onStart = jest.fn(),
-    onError = jest.fn(),
-    onSuccess = jest.fn()
+  let onStart = vi.fn(),
+    onError = vi.fn(),
+    onSuccess = vi.fn()
 
   const extendedApi = api.injectEndpoints({
     endpoints: (build) => ({
@@ -91,7 +98,7 @@ describe('basic lifecycle', () => {
       () => extendedApi.endpoints.test.useMutation(),
       {
         wrapper: storeRef.wrapper,
-      }
+      },
     )
 
     baseQuery.mockResolvedValue('success')
@@ -104,7 +111,7 @@ describe('basic lifecycle', () => {
 
     expect(onError).not.toHaveBeenCalled()
     expect(onSuccess).not.toHaveBeenCalled()
-    await act(() => waitMs(5))
+    await act(() => delay(5))
     expect(onError).not.toHaveBeenCalled()
     expect(onSuccess).toHaveBeenCalledWith({ data: 'success', meta: 'meta' })
   })
@@ -114,20 +121,19 @@ describe('basic lifecycle', () => {
       () => extendedApi.endpoints.test.useMutation(),
       {
         wrapper: storeRef.wrapper,
-      }
+      },
     )
 
-    baseQuery.mockRejectedValue('error')
-
+    baseQuery.mockRejectedValueOnce('error')
     expect(onStart).not.toHaveBeenCalled()
     expect(baseQuery).not.toHaveBeenCalled()
+
     act(() => void result.current[0]('arg'))
     expect(onStart).toHaveBeenCalledWith('arg')
     expect(baseQuery).toHaveBeenCalledWith('arg', expect.any(Object), undefined)
-
     expect(onError).not.toHaveBeenCalled()
     expect(onSuccess).not.toHaveBeenCalled()
-    await act(() => waitMs(5))
+    await act(() => delay(5))
     expect(onError).toHaveBeenCalledWith({
       error: 'error',
       isUnhandledError: false,
@@ -166,7 +172,7 @@ describe('updateQueryData', () => {
       returnValue = storeRef.store.dispatch(
         api.util.updateQueryData('post', '3', (draft) => {
           draft.contents = 'I love cheese!'
-        })
+        }),
       )
     })
 
@@ -185,7 +191,7 @@ describe('updateQueryData', () => {
 
     act(() => {
       storeRef.store.dispatch(
-        api.util.patchQueryData('post', '3', returnValue.inversePatches)
+        api.util.patchQueryData('post', '3', returnValue.inversePatches),
       )
     })
 
@@ -212,7 +218,7 @@ describe('updateQueryData', () => {
       provided = storeRef.store.getState().api.provided
     })
 
-    const provided3 = provided['Post']['3']
+    const provided3 = provided.Post['3']
 
     let returnValue!: ReturnType<ReturnType<typeof api.util.updateQueryData>>
     act(() => {
@@ -227,8 +233,8 @@ describe('updateQueryData', () => {
               contents: 'TODO',
             })
           },
-          true
-        )
+          true,
+        ),
       )
     })
 
@@ -236,7 +242,7 @@ describe('updateQueryData', () => {
       provided = storeRef.store.getState().api.provided
     })
 
-    const provided4 = provided['Post']['4']
+    const provided4 = provided.Post['4']
 
     expect(provided4).toEqual(provided3)
 
@@ -248,12 +254,12 @@ describe('updateQueryData', () => {
       provided = storeRef.store.getState().api.provided
     })
 
-    const provided4Next = provided['Post']['4']
+    const provided4Next = provided.Post['4']
 
     expect(provided4Next).toEqual([])
   })
 
-  test('updates (list) cache values excluding provided tags, undos that', async () => {
+  test('updates (list) cache values excluding provided tags, undoes that', async () => {
     baseQuery
       .mockResolvedValueOnce([
         {
@@ -286,8 +292,8 @@ describe('updateQueryData', () => {
               contents: 'TODO',
             })
           },
-          false
-        )
+          false,
+        ),
       )
     })
 
@@ -295,7 +301,7 @@ describe('updateQueryData', () => {
       provided = storeRef.store.getState().api.provided
     })
 
-    const provided4 = provided['Post']['4']
+    const provided4 = provided.Post['4']
 
     expect(provided4).toEqual(undefined)
 
@@ -307,7 +313,7 @@ describe('updateQueryData', () => {
       provided = storeRef.store.getState().api.provided
     })
 
-    const provided4Next = provided['Post']['4']
+    const provided4Next = provided.Post['4']
 
     expect(provided4Next).toEqual(undefined)
   })
@@ -338,7 +344,7 @@ describe('updateQueryData', () => {
       returnValue = storeRef.store.dispatch(
         api.util.updateQueryData('post', '4', (draft) => {
           draft.contents = 'I love cheese!'
-        })
+        }),
       )
     })
 
@@ -378,7 +384,7 @@ describe('full integration', () => {
       }),
       {
         wrapper: storeRef.wrapper,
-      }
+      },
     )
     await hookWaitFor(() => expect(result.current.query.isSuccess).toBeTruthy())
 
@@ -403,7 +409,7 @@ describe('full integration', () => {
         id: '3',
         title: 'Meanwhile, this changed server-side.',
         contents: 'Delicious cheese!',
-      })
+      }),
     )
   })
 
@@ -429,7 +435,7 @@ describe('full integration', () => {
       }),
       {
         wrapper: storeRef.wrapper,
-      }
+      },
     )
     await hookWaitFor(() => expect(result.current.query.isSuccess).toBeTruthy())
 
@@ -456,7 +462,7 @@ describe('full integration', () => {
         id: '3',
         title: 'All about cheese.',
         contents: 'TODO',
-      })
+      }),
     )
 
     // mutation failed - will not invalidate query and not refetch data from the server
@@ -468,8 +474,8 @@ describe('full integration', () => {
             title: 'Meanwhile, this changed server-side.',
             contents: 'TODO',
           }),
-        50
-      )
+        50,
+      ),
     ).rejects.toBeTruthy()
 
     act(() => void result.current.query.refetch())
@@ -482,7 +488,7 @@ describe('full integration', () => {
           title: 'Meanwhile, this changed server-side.',
           contents: 'TODO',
         }),
-      50
+      50,
     )
   })
 })

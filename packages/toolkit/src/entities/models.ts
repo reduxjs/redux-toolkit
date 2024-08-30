@@ -1,5 +1,8 @@
+import type { Draft } from 'immer'
 import type { PayloadAction } from '../createAction'
-import type { IsAny } from '../tsHelpers'
+import type { CastAny, Id } from '../tsHelpers'
+import type { UncheckedIndexedAccess } from '../uncheckedindexed.js'
+import type { GetSelectorsOptions } from './state_selectors'
 
 /**
  * @public
@@ -14,158 +17,182 @@ export type Comparer<T> = (a: T, b: T) => number
 /**
  * @public
  */
-export type IdSelector<T> = (model: T) => EntityId
+export type IdSelector<T, Id extends EntityId> = (model: T) => Id
 
 /**
  * @public
  */
-export interface DictionaryNum<T> {
-  [id: number]: T | undefined
+export type Update<T, Id extends EntityId> = { id: Id; changes: Partial<T> }
+
+/**
+ * @public
+ */
+export interface EntityState<T, Id extends EntityId> {
+  ids: Id[]
+  entities: Record<Id, T>
 }
 
 /**
  * @public
  */
-export interface Dictionary<T> extends DictionaryNum<T> {
-  [id: string]: T | undefined
+export interface EntityAdapterOptions<T, Id extends EntityId> {
+  selectId?: IdSelector<T, Id>
+  sortComparer?: false | Comparer<T>
+}
+
+export type PreventAny<S, T, Id extends EntityId> = CastAny<
+  S,
+  EntityState<T, Id>
+>
+
+export type DraftableEntityState<T, Id extends EntityId> =
+  | EntityState<T, Id>
+  | Draft<EntityState<T, Id>>
+
+/**
+ * @public
+ */
+export interface EntityStateAdapter<T, Id extends EntityId> {
+  addOne<S extends DraftableEntityState<T, Id>>(
+    state: PreventAny<S, T, Id>,
+    entity: T,
+  ): S
+  addOne<S extends DraftableEntityState<T, Id>>(
+    state: PreventAny<S, T, Id>,
+    action: PayloadAction<T>,
+  ): S
+
+  addMany<S extends DraftableEntityState<T, Id>>(
+    state: PreventAny<S, T, Id>,
+    entities: readonly T[] | Record<Id, T>,
+  ): S
+  addMany<S extends DraftableEntityState<T, Id>>(
+    state: PreventAny<S, T, Id>,
+    entities: PayloadAction<readonly T[] | Record<Id, T>>,
+  ): S
+
+  setOne<S extends DraftableEntityState<T, Id>>(
+    state: PreventAny<S, T, Id>,
+    entity: T,
+  ): S
+  setOne<S extends DraftableEntityState<T, Id>>(
+    state: PreventAny<S, T, Id>,
+    action: PayloadAction<T>,
+  ): S
+  setMany<S extends DraftableEntityState<T, Id>>(
+    state: PreventAny<S, T, Id>,
+    entities: readonly T[] | Record<Id, T>,
+  ): S
+  setMany<S extends DraftableEntityState<T, Id>>(
+    state: PreventAny<S, T, Id>,
+    entities: PayloadAction<readonly T[] | Record<Id, T>>,
+  ): S
+  setAll<S extends DraftableEntityState<T, Id>>(
+    state: PreventAny<S, T, Id>,
+    entities: readonly T[] | Record<Id, T>,
+  ): S
+  setAll<S extends DraftableEntityState<T, Id>>(
+    state: PreventAny<S, T, Id>,
+    entities: PayloadAction<readonly T[] | Record<Id, T>>,
+  ): S
+
+  removeOne<S extends DraftableEntityState<T, Id>>(
+    state: PreventAny<S, T, Id>,
+    key: Id,
+  ): S
+  removeOne<S extends DraftableEntityState<T, Id>>(
+    state: PreventAny<S, T, Id>,
+    key: PayloadAction<Id>,
+  ): S
+
+  removeMany<S extends DraftableEntityState<T, Id>>(
+    state: PreventAny<S, T, Id>,
+    keys: readonly Id[],
+  ): S
+  removeMany<S extends DraftableEntityState<T, Id>>(
+    state: PreventAny<S, T, Id>,
+    keys: PayloadAction<readonly Id[]>,
+  ): S
+
+  removeAll<S extends DraftableEntityState<T, Id>>(
+    state: PreventAny<S, T, Id>,
+  ): S
+
+  updateOne<S extends DraftableEntityState<T, Id>>(
+    state: PreventAny<S, T, Id>,
+    update: Update<T, Id>,
+  ): S
+  updateOne<S extends DraftableEntityState<T, Id>>(
+    state: PreventAny<S, T, Id>,
+    update: PayloadAction<Update<T, Id>>,
+  ): S
+
+  updateMany<S extends DraftableEntityState<T, Id>>(
+    state: PreventAny<S, T, Id>,
+    updates: ReadonlyArray<Update<T, Id>>,
+  ): S
+  updateMany<S extends DraftableEntityState<T, Id>>(
+    state: PreventAny<S, T, Id>,
+    updates: PayloadAction<ReadonlyArray<Update<T, Id>>>,
+  ): S
+
+  upsertOne<S extends DraftableEntityState<T, Id>>(
+    state: PreventAny<S, T, Id>,
+    entity: T,
+  ): S
+  upsertOne<S extends DraftableEntityState<T, Id>>(
+    state: PreventAny<S, T, Id>,
+    entity: PayloadAction<T>,
+  ): S
+
+  upsertMany<S extends DraftableEntityState<T, Id>>(
+    state: PreventAny<S, T, Id>,
+    entities: readonly T[] | Record<Id, T>,
+  ): S
+  upsertMany<S extends DraftableEntityState<T, Id>>(
+    state: PreventAny<S, T, Id>,
+    entities: PayloadAction<readonly T[] | Record<Id, T>>,
+  ): S
 }
 
 /**
  * @public
  */
-export type Update<T> = { id: EntityId; changes: Partial<T> }
-
-/**
- * @public
- */
-export interface EntityState<T> {
-  ids: EntityId[]
-  entities: Dictionary<T>
-}
-
-/**
- * @public
- */
-export interface EntityDefinition<T> {
-  selectId: IdSelector<T>
-  sortComparer: false | Comparer<T>
-}
-
-export type PreventAny<S, T> = IsAny<S, EntityState<T>, S>
-
-/**
- * @public
- */
-export interface EntityStateAdapter<T> {
-  addOne<S extends EntityState<T>>(state: PreventAny<S, T>, entity: T): S
-  addOne<S extends EntityState<T>>(
-    state: PreventAny<S, T>,
-    action: PayloadAction<T>
-  ): S
-
-  addMany<S extends EntityState<T>>(
-    state: PreventAny<S, T>,
-    entities: readonly T[] | Record<EntityId, T>
-  ): S
-  addMany<S extends EntityState<T>>(
-    state: PreventAny<S, T>,
-    entities: PayloadAction<readonly T[] | Record<EntityId, T>>
-  ): S
-
-  setOne<S extends EntityState<T>>(state: PreventAny<S, T>, entity: T): S
-  setOne<S extends EntityState<T>>(
-    state: PreventAny<S, T>,
-    action: PayloadAction<T>
-  ): S
-  setMany<S extends EntityState<T>>(
-    state: PreventAny<S, T>,
-    entities: readonly T[] | Record<EntityId, T>
-  ): S
-  setMany<S extends EntityState<T>>(
-    state: PreventAny<S, T>,
-    entities: PayloadAction<readonly T[] | Record<EntityId, T>>
-  ): S
-  setAll<S extends EntityState<T>>(
-    state: PreventAny<S, T>,
-    entities: readonly T[] | Record<EntityId, T>
-  ): S
-  setAll<S extends EntityState<T>>(
-    state: PreventAny<S, T>,
-    entities: PayloadAction<readonly T[] | Record<EntityId, T>>
-  ): S
-
-  removeOne<S extends EntityState<T>>(state: PreventAny<S, T>, key: EntityId): S
-  removeOne<S extends EntityState<T>>(
-    state: PreventAny<S, T>,
-    key: PayloadAction<EntityId>
-  ): S
-
-  removeMany<S extends EntityState<T>>(
-    state: PreventAny<S, T>,
-    keys: readonly EntityId[]
-  ): S
-  removeMany<S extends EntityState<T>>(
-    state: PreventAny<S, T>,
-    keys: PayloadAction<readonly EntityId[]>
-  ): S
-
-  removeAll<S extends EntityState<T>>(state: PreventAny<S, T>): S
-
-  updateOne<S extends EntityState<T>>(
-    state: PreventAny<S, T>,
-    update: Update<T>
-  ): S
-  updateOne<S extends EntityState<T>>(
-    state: PreventAny<S, T>,
-    update: PayloadAction<Update<T>>
-  ): S
-
-  updateMany<S extends EntityState<T>>(
-    state: PreventAny<S, T>,
-    updates: ReadonlyArray<Update<T>>
-  ): S
-  updateMany<S extends EntityState<T>>(
-    state: PreventAny<S, T>,
-    updates: PayloadAction<ReadonlyArray<Update<T>>>
-  ): S
-
-  upsertOne<S extends EntityState<T>>(state: PreventAny<S, T>, entity: T): S
-  upsertOne<S extends EntityState<T>>(
-    state: PreventAny<S, T>,
-    entity: PayloadAction<T>
-  ): S
-
-  upsertMany<S extends EntityState<T>>(
-    state: PreventAny<S, T>,
-    entities: readonly T[] | Record<EntityId, T>
-  ): S
-  upsertMany<S extends EntityState<T>>(
-    state: PreventAny<S, T>,
-    entities: PayloadAction<readonly T[] | Record<EntityId, T>>
-  ): S
-}
-
-/**
- * @public
- */
-export interface EntitySelectors<T, V> {
-  selectIds: (state: V) => EntityId[]
-  selectEntities: (state: V) => Dictionary<T>
+export interface EntitySelectors<T, V, IdType extends EntityId> {
+  selectIds: (state: V) => IdType[]
+  selectEntities: (state: V) => Record<IdType, T>
   selectAll: (state: V) => T[]
   selectTotal: (state: V) => number
-  selectById: (state: V, id: EntityId) => T | undefined
+  selectById: (state: V, id: IdType) => Id<UncheckedIndexedAccess<T>>
 }
 
 /**
  * @public
  */
-export interface EntityAdapter<T> extends EntityStateAdapter<T> {
-  selectId: IdSelector<T>
-  sortComparer: false | Comparer<T>
-  getInitialState(): EntityState<T>
-  getInitialState<S extends object>(state: S): EntityState<T> & S
-  getSelectors(): EntitySelectors<T, EntityState<T>>
+export interface EntityStateFactory<T, Id extends EntityId> {
+  getInitialState(
+    state?: undefined,
+    entities?: Record<Id, T> | readonly T[],
+  ): EntityState<T, Id>
+  getInitialState<S extends object>(
+    state: S,
+    entities?: Record<Id, T> | readonly T[],
+  ): EntityState<T, Id> & S
+}
+
+/**
+ * @public
+ */
+export interface EntityAdapter<T, Id extends EntityId>
+  extends EntityStateAdapter<T, Id>,
+    EntityStateFactory<T, Id>,
+    Required<EntityAdapterOptions<T, Id>> {
+  getSelectors(
+    selectState?: undefined,
+    options?: GetSelectorsOptions,
+  ): EntitySelectors<T, EntityState<T, Id>, Id>
   getSelectors<V>(
-    selectState: (state: V) => EntityState<T>
-  ): EntitySelectors<T, V>
+    selectState: (state: V) => EntityState<T, Id>,
+    options?: GetSelectorsOptions,
+  ): EntitySelectors<T, V, Id>
 }

@@ -4,7 +4,6 @@ import App from './App'
 import { api } from './app/services/posts'
 import { ChakraProvider } from '@chakra-ui/react'
 
-import { BrowserRouter } from 'react-router-dom'
 import { worker } from './mocks/browser'
 import { ApiProvider } from '@reduxjs/toolkit/query/react'
 
@@ -14,11 +13,9 @@ worker.start({ quiet: true }).then(() =>
     <React.StrictMode>
       <ApiProvider api={api}>
         <ChakraProvider>
-          <BrowserRouter>
             <App />
-          </BrowserRouter>
         </ChakraProvider>
       </ApiProvider>
-    </React.StrictMode>
-  )
+    </React.StrictMode>,
+  ),
 )

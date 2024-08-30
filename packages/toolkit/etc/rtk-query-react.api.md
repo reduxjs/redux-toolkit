@@ -18,7 +18,7 @@ export type Api<
   Definitions extends EndpointDefinitions,
   ReducerPath extends string,
   TagTypes extends string,
-  Enhancers extends ModuleName = CoreModule
+  Enhancers extends ModuleName = CoreModule,
 > = Id<
   Id<
     UnionToIntersection<
@@ -27,7 +27,7 @@ export type Api<
   > & {
     injectEndpoints<NewDefinitions extends EndpointDefinitions>(_: {
       endpoints: (
-        build: EndpointBuilder<BaseQuery, TagTypes, ReducerPath>
+        build: EndpointBuilder<BaseQuery, TagTypes, ReducerPath>,
       ) => NewDefinitions
       overrideExisting?: boolean
     }): Api<
@@ -64,7 +64,7 @@ export interface ApiModules<
   BaseQuery extends BaseQueryFn,
   Definitions extends EndpointDefinitions,
   ReducerPath extends string,
-  TagTypes extends string
+  TagTypes extends string,
 > {}
 
 // @public
@@ -72,7 +72,7 @@ export function ApiProvider<A extends Api<any, {}, any, any>>(props: {
   children: any
   api: A
   setupListeners?: Parameters<typeof setupListeners>[1]
-  context?: Context<ReactReduxContextValue>
+  context?: Context<ReactReduxContextValue | null>
 }): JSX.Element
 
 // @public (undocumented)
@@ -80,7 +80,7 @@ export type ApiWithInjectedEndpoints<
   ApiDefinition extends Api<any, any, any, any>,
   Injections extends ApiDefinition extends Api<infer B, any, infer R, infer E>
     ? [Api<B, any, R, E>, ...Api<B, any, R, E>[]]
-    : never
+    : never,
 > = Omit<ApiDefinition, 'endpoints'> &
   Omit<Injections, 'endpoints'> & {
     endpoints: ApiDefinition['endpoints'] &
@@ -91,10 +91,10 @@ export type ApiWithInjectedEndpoints<
 export type BaseQueryEnhancer<
   AdditionalArgs = unknown,
   AdditionalDefinitionExtraOptions = unknown,
-  Config = void
+  Config = void,
 > = <BaseQuery extends BaseQueryFn>(
   baseQuery: BaseQuery,
-  config: Config
+  config: Config,
 ) => BaseQueryFn<
   BaseQueryArg<BaseQuery> & AdditionalArgs,
   BaseQueryResult<BaseQuery>,
@@ -108,11 +108,11 @@ export type BaseQueryFn<
   Result = unknown,
   Error = unknown,
   DefinitionExtraOptions = {},
-  Meta = {}
+  Meta = {},
 > = (
   args: Args,
   api: BaseQueryApi,
-  extraOptions: DefinitionExtraOptions
+  extraOptions: DefinitionExtraOptions,
 ) => MaybePromise<QueryReturnValue<Result, Error, Meta>>
 
 // @public
@@ -132,9 +132,9 @@ export type CreateApi<Modules extends ModuleName> = {
     BaseQuery extends BaseQueryFn,
     Definitions extends EndpointDefinitions,
     ReducerPath extends string = 'api',
-    TagTypes extends string = never
+    TagTypes extends string = never,
   >(
-    options: CreateApiOptions<BaseQuery, Definitions, ReducerPath, TagTypes>
+    options: CreateApiOptions<BaseQuery, Definitions, ReducerPath, TagTypes>,
   ): Api<BaseQuery, Definitions, ReducerPath, TagTypes, Modules>
 }
 
@@ -148,11 +148,11 @@ export interface CreateApiOptions<
   BaseQuery extends BaseQueryFn,
   Definitions extends EndpointDefinitions,
   ReducerPath extends string = 'api',
-  TagTypes extends string = never
+  TagTypes extends string = never,
 > {
   baseQuery: BaseQuery
   endpoints(
-    build: EndpointBuilder<BaseQuery, TagTypes, ReducerPath>
+    build: EndpointBuilder<BaseQuery, TagTypes, ReducerPath>,
   ): Definitions
   keepUnusedDataFor?: number
   reducerPath?: ReducerPath
@@ -169,7 +169,7 @@ export type EndpointDefinition<
   BaseQuery extends BaseQueryFn,
   TagTypes extends string,
   ResultType,
-  ReducerPath extends string = string
+  ReducerPath extends string = string,
 > =
   | QueryDefinition<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>
   | MutationDefinition<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>
@@ -231,17 +231,17 @@ export type Module<Name extends ModuleName> = {
     BaseQuery extends BaseQueryFn,
     Definitions extends EndpointDefinitions,
     ReducerPath extends string,
-    TagTypes extends string
+    TagTypes extends string,
   >(
     api: Api<BaseQuery, EndpointDefinitions, ReducerPath, TagTypes, ModuleName>,
     options: Required<
       CreateApiOptions<BaseQuery, Definitions, ReducerPath, TagTypes>
     >,
-    context: ApiContext<Definitions>
+    context: ApiContext<Definitions>,
   ): {
     injectEndpoint(
       endpointName: string,
-      definition: EndpointDefinition<any, any, any, any>
+      definition: EndpointDefinition<any, any, any, any>,
     ): void
   }
 }
@@ -252,7 +252,7 @@ export type MutationDefinition<
   BaseQuery extends BaseQueryFn,
   TagTypes extends string,
   ResultType,
-  ReducerPath extends string = string
+  ReducerPath extends string = string,
 > = BaseEndpointDefinition<QueryArg, BaseQuery, ResultType> &
   MutationExtraOptions<TagTypes, ResultType, QueryArg, BaseQuery, ReducerPath>
 
@@ -262,7 +262,7 @@ export type QueryDefinition<
   BaseQuery extends BaseQueryFn,
   TagTypes extends string,
   ResultType,
-  ReducerPath extends string = string
+  ReducerPath extends string = string,
 > = BaseEndpointDefinition<QueryArg, BaseQuery, ResultType> &
   QueryExtraOptions<TagTypes, ResultType, QueryArg, BaseQuery, ReducerPath>
 
@@ -305,8 +305,8 @@ export function setupListeners(
       onFocusLost: typeof onFocusLost
       onOnline: typeof onOnline
       onOffline: typeof onOffline
-    }
-  ) => () => void
+    },
+  ) => () => void,
 ): () => void
 
 // @public (undocumented)

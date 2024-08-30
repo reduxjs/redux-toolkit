@@ -1,21 +1,17 @@
+import { Tuple } from '@internal/utils'
 import type {
-  AnyAction,
+  Action,
   Middleware,
   ThunkAction,
-  Action,
-  ThunkDispatch,
-  Dispatch,
+  UnknownAction,
 } from '@reduxjs/toolkit'
-import {
-  getDefaultMiddleware,
-  MiddlewareArray,
-  configureStore,
-} from '@reduxjs/toolkit'
-import thunk from 'redux-thunk'
-import type { ThunkMiddleware } from 'redux-thunk'
+import { configureStore } from '@reduxjs/toolkit'
+import { thunk } from 'redux-thunk'
+import { vi } from 'vitest'
 
-import { expectType } from './helpers'
-import { BaseActionCreator } from '@internal/createAction'
+import { buildGetDefaultMiddleware } from '@internal/getDefaultMiddleware'
+
+const getDefaultMiddleware = buildGetDefaultMiddleware()
 
 describe('getDefaultMiddleware', () => {
   const ORIGINAL_NODE_ENV = process.env.NODE_ENV
@@ -24,10 +20,22 @@ describe('getDefaultMiddleware', () => {
     process.env.NODE_ENV = ORIGINAL_NODE_ENV
   })
 
-  it('returns an array with only redux-thunk in production', () => {
-    process.env.NODE_ENV = 'production'
+  describe('Production behavior', () => {
+    beforeEach(() => {
+      vi.resetModules()
+    })
 
-    expect(getDefaultMiddleware()).toEqual([thunk]) // @remap-prod-remove-line
+    it('returns an array with only redux-thunk in production', async () => {
+      process.env.NODE_ENV = 'production'
+      const { thunk } = await import('redux-thunk')
+      const { buildGetDefaultMiddleware } = await import(
+        '@internal/getDefaultMiddleware'
+      )
+
+      const middleware = buildGetDefaultMiddleware()()
+      expect(middleware).toContain(thunk)
+      expect(middleware.length).toBe(1)
+    })
   })
 
   it('returns an array with additional middleware in development', () => {
@@ -62,64 +70,49 @@ describe('getDefaultMiddleware', () => {
 
   it('allows passing options to thunk', () => {
     const extraArgument = 42 as const
-    const middleware = getDefaultMiddleware({
-      thunk: { extraArgument },
-      immutableCheck: false,
-      serializableCheck: false,
-      actionCreatorCheck: false,
-    })
 
     const m2 = getDefaultMiddleware({
       thunk: false,
     })
-
-    expectType<MiddlewareArray<[]>>(m2)
 
     const dummyMiddleware: Middleware<
       {
         (action: Action<'actionListenerMiddleware/add'>): () => void
       },
       { counter: number }
-    > = (storeApi) => (next) => (action) => {}
+    > = (storeApi) => (next) => (action) => {
+      return next(action)
+    }
 
-    const dummyMiddleware2: Middleware = (storeApi) => (next) => (action) => {}
+    const dummyMiddleware2: Middleware<{}, { counter: number }> =
+      (storeApi) => (next) => (action) => {}
 
-    const m3 = middleware.concat(dummyMiddleware, dummyMiddleware2)
-
-    expectType<
-      MiddlewareArray<
-        [
-          ThunkMiddleware<any, AnyAction, 42>,
-          Middleware<
-            (action: Action<'actionListenerMiddleware/add'>) => () => void,
-            {
-              counter: number
-            },
-            Dispatch<AnyAction>
-          >,
-          Middleware<{}, any, Dispatch<AnyAction>>
-        ]
-      >
-    >(m3)
-
-    const testThunk: ThunkAction<void, {}, number, AnyAction> = (
-      dispatch,
-      getState,
-      extraArg
-    ) => {
+    const testThunk: ThunkAction<
+      void,
+      { counter: number },
+      number,
+      UnknownAction
+    > = (dispatch, getState, extraArg) => {
       expect(extraArg).toBe(extraArgument)
     }
 
-    const reducer = () => ({})
+    const reducer = () => ({ counter: 123 })
 
     const store = configureStore({
       reducer,
-      middleware,
-    })
+      middleware: (gDM) => {
+        const middleware = gDM({
+          thunk: { extraArgument },
+          immutableCheck: false,
+          serializableCheck: false,
+          actionCreatorCheck: false,
+        })
 
-    expectType<ThunkDispatch<any, 42, AnyAction> & Dispatch<AnyAction>>(
-      store.dispatch
-    )
+        const m3 = middleware.concat(dummyMiddleware, dummyMiddleware2)
+
+        return m3
+      },
+    })
 
     store.dispatch(testThunk)
   })
@@ -127,17 +120,18 @@ describe('getDefaultMiddleware', () => {
   it('allows passing options to immutableCheck', () => {
     let immutableCheckWasCalled = false
 
-    const middleware = getDefaultMiddleware({
-      thunk: false,
-      immutableCheck: {
-        isImmutable: () => {
-          immutableCheckWasCalled = true
-          return true
+    const middleware = () =>
+      getDefaultMiddleware({
+        thunk: false,
+        immutableCheck: {
+          isImmutable: () => {
+            immutableCheckWasCalled = true
+            return true
+          },
         },
-      },
-      serializableCheck: false,
-      actionCreatorCheck: false,
-    })
+        serializableCheck: false,
+        actionCreatorCheck: false,
+      })
 
     const reducer = () => ({})
 
@@ -152,17 +146,18 @@ describe('getDefaultMiddleware', () => {
   it('allows passing options to serializableCheck', () => {
     let serializableCheckWasCalled = false
 
-    const middleware = getDefaultMiddleware({
-      thunk: false,
-      immutableCheck: false,
-      serializableCheck: {
-        isSerializable: () => {
-          serializableCheckWasCalled = true
-          return true
+    const middleware = () =>
+      getDefaultMiddleware({
+        thunk: false,
+        immutableCheck: false,
+        serializableCheck: {
+          isSerializable: () => {
+            serializableCheckWasCalled = true
+            return true
+          },
         },
-      },
-      actionCreatorCheck: false,
-    })
+        actionCreatorCheck: false,
+      })
 
     const reducer = () => ({})
 
@@ -180,17 +175,18 @@ describe('getDefaultMiddleware', () => {
 it('allows passing options to actionCreatorCheck', () => {
   let actionCreatorCheckWasCalled = false
 
-  const middleware = getDefaultMiddleware({
-    thunk: false,
-    immutableCheck: false,
-    serializableCheck: false,
-    actionCreatorCheck: {
-      isActionCreator: (action: unknown): action is Function => {
-        actionCreatorCheckWasCalled = true
-        return false
+  const middleware = () =>
+    getDefaultMiddleware({
+      thunk: false,
+      immutableCheck: false,
+      serializableCheck: false,
+      actionCreatorCheck: {
+        isActionCreator: (action: unknown): action is Function => {
+          actionCreatorCheckWasCalled = true
+          return false
+        },
       },
-    },
-  })
+    })
 
   const reducer = () => ({})
 
@@ -204,7 +200,7 @@ it('allows passing options to actionCreatorCheck', () => {
   expect(actionCreatorCheckWasCalled).toBe(true)
 })
 
-describe('MiddlewareArray functionality', () => {
+describe('Tuple functionality', () => {
   const middleware1: Middleware = () => (next) => (action) => next(action)
   const middleware2: Middleware = () => (next) => (action) => next(action)
   const defaultMiddleware = getDefaultMiddleware()
@@ -216,7 +212,7 @@ describe('MiddlewareArray functionality', () => {
     // value is prepended
     expect(prepended).toEqual([middleware1, ...defaultMiddleware])
     // returned value is of correct type
-    expect(prepended).toBeInstanceOf(MiddlewareArray)
+    expect(prepended).toBeInstanceOf(Tuple)
     // prepended is a new array
     expect(prepended).not.toEqual(defaultMiddleware)
     // defaultMiddleware is not modified
@@ -229,7 +225,7 @@ describe('MiddlewareArray functionality', () => {
     // value is prepended
     expect(prepended).toEqual([middleware1, middleware2, ...defaultMiddleware])
     // returned value is of correct type
-    expect(prepended).toBeInstanceOf(MiddlewareArray)
+    expect(prepended).toBeInstanceOf(Tuple)
     // prepended is a new array
     expect(prepended).not.toEqual(defaultMiddleware)
     // defaultMiddleware is not modified
@@ -242,7 +238,7 @@ describe('MiddlewareArray functionality', () => {
     // value is prepended
     expect(prepended).toEqual([middleware1, middleware2, ...defaultMiddleware])
     // returned value is of correct type
-    expect(prepended).toBeInstanceOf(MiddlewareArray)
+    expect(prepended).toBeInstanceOf(Tuple)
     // prepended is a new array
     expect(prepended).not.toEqual(defaultMiddleware)
     // defaultMiddleware is not modified
@@ -255,7 +251,7 @@ describe('MiddlewareArray functionality', () => {
     // value is concatenated
     expect(concatenated).toEqual([...defaultMiddleware, middleware1])
     // returned value is of correct type
-    expect(concatenated).toBeInstanceOf(MiddlewareArray)
+    expect(concatenated).toBeInstanceOf(Tuple)
     // concatenated is a new array
     expect(concatenated).not.toEqual(defaultMiddleware)
     // defaultMiddleware is not modified
@@ -272,7 +268,7 @@ describe('MiddlewareArray functionality', () => {
       middleware2,
     ])
     // returned value is of correct type
-    expect(concatenated).toBeInstanceOf(MiddlewareArray)
+    expect(concatenated).toBeInstanceOf(Tuple)
     // concatenated is a new array
     expect(concatenated).not.toEqual(defaultMiddleware)
     // defaultMiddleware is not modified
@@ -289,7 +285,7 @@ describe('MiddlewareArray functionality', () => {
       middleware2,
     ])
     // returned value is of correct type
-    expect(concatenated).toBeInstanceOf(MiddlewareArray)
+    expect(concatenated).toBeInstanceOf(Tuple)
     // concatenated is a new array
     expect(concatenated).not.toEqual(defaultMiddleware)
     // defaultMiddleware is not modified

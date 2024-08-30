@@ -1,5 +1,5 @@
-import * as prettier from 'prettier';
-import * as path from 'path';
+import path from 'node:path';
+import prettier from 'prettier';
 
 const EXTENSION_TO_PARSER: Record<string, string> = {
   ts: 'typescript',
@@ -19,7 +19,7 @@ const EXTENSION_TO_PARSER: Record<string, string> = {
   json: 'json',
 };
 
-export async function prettify(filePath: string | null, content: string): Promise<string> {
+export async function prettify(filePath: string | null, content: string, prettierConfigFile?: string): Promise<string> {
   let config = null;
   let parser = 'typescript';
 
@@ -28,7 +28,13 @@ export async function prettify(filePath: string | null, content: string): Promis
     parser = EXTENSION_TO_PARSER[fileExtension];
     config = await prettier.resolveConfig(process.cwd(), {
       useCache: true,
-      editorconfig: true,
+      editorconfig: !prettierConfigFile,
+      config: prettierConfigFile,
+    });
+  } else if (prettierConfigFile) {
+    config = await prettier.resolveConfig(process.cwd(), {
+      useCache: true,
+      config: prettierConfigFile,
     });
   }
 

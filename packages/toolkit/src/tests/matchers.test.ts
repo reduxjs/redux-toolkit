@@ -1,4 +1,5 @@
-import type { ThunkAction, AnyAction } from '@reduxjs/toolkit'
+import { vi } from 'vitest'
+import type { ThunkAction, UnknownAction } from '@reduxjs/toolkit'
 import {
   isAllOf,
   isAnyOf,
@@ -12,7 +13,7 @@ import {
   createReducer,
 } from '@reduxjs/toolkit'
 
-const thunk: ThunkAction<any, any, any, AnyAction> = () => {}
+const thunk: ThunkAction<any, any, any, UnknownAction> = () => {}
 
 describe('isAnyOf', () => {
   it('returns true only if any matchers match (match function)', () => {
@@ -69,7 +70,7 @@ describe('isAnyOf', () => {
     expect(isAnyOf(thunkA.fulfilled, thunkB.fulfilled)(action)).toEqual(true)
 
     expect(
-      isAnyOf(thunkA.pending, thunkA.rejected, thunkB.fulfilled)(action)
+      isAnyOf(thunkA.pending, thunkA.rejected, thunkB.fulfilled)(action),
     ).toEqual(false)
   })
 
@@ -132,13 +133,13 @@ describe('isAllOf', () => {
     const specialThunkAction = thunkA.fulfilled('SPECIAL', 'fakeRequestId')
 
     expect(isAllOf(thunkA.fulfilled, isActionSpecial)(specialThunkAction)).toBe(
-      true
+      true,
     )
 
     const ordinaryThunkAction = thunkA.fulfilled('ORDINARY', 'fakeRequestId')
 
     expect(
-      isAllOf(thunkA.fulfilled, isActionSpecial)(ordinaryThunkAction)
+      isAllOf(thunkA.fulfilled, isActionSpecial)(ordinaryThunkAction),
     ).toBe(false)
   })
 })
@@ -161,7 +162,7 @@ describe('isPending', () => {
 
     const rejectedAction = thunk.rejected(
       new Error('rejected'),
-      'fakeRequestId'
+      'fakeRequestId',
     )
     expect(isPending()(rejectedAction)).toBe(false)
 
@@ -179,7 +180,7 @@ describe('isPending', () => {
 
     function testPendingAction(
       thunk: typeof thunkA | typeof thunkB | typeof thunkC,
-      expected: boolean
+      expected: boolean,
     ) {
       const pendingAction = thunk.pending('fakeRequestId')
       expect(matchAC(pendingAction)).toBe(expected)
@@ -187,7 +188,7 @@ describe('isPending', () => {
 
       const rejectedAction = thunk.rejected(
         new Error('rejected'),
-        'fakeRequestId'
+        'fakeRequestId',
       )
       expect(matchAC(rejectedAction)).toBe(false)
 
@@ -218,7 +219,7 @@ describe('isRejected', () => {
 
     const rejectedAction = thunk.rejected(
       new Error('rejected'),
-      'fakeRequestId'
+      'fakeRequestId',
     )
     expect(isRejected()(rejectedAction)).toBe(true)
     expect(isRejected(rejectedAction)).toBe(true)
@@ -237,14 +238,14 @@ describe('isRejected', () => {
 
     function testRejectedAction(
       thunk: typeof thunkA | typeof thunkB | typeof thunkC,
-      expected: boolean
+      expected: boolean,
     ) {
       const pendingAction = thunk.pending('fakeRequestId')
       expect(matchAC(pendingAction)).toBe(false)
 
       const rejectedAction = thunk.rejected(
         new Error('rejected'),
-        'fakeRequestId'
+        'fakeRequestId',
       )
       expect(matchAC(rejectedAction)).toBe(expected)
       expect(matchB(rejectedAction)).toBe(!expected)
@@ -278,12 +279,12 @@ describe('isRejectedWithValue', () => {
 
     const rejectedAction = thunk.rejected(
       new Error('rejected'),
-      'fakeRequestId'
+      'fakeRequestId',
     )
     expect(isRejectedWithValue()(rejectedAction)).toBe(false)
 
-    const getState = jest.fn(() => ({}))
-    const dispatch = jest.fn((x: any) => x)
+    const getState = vi.fn(() => ({}))
+    const dispatch = vi.fn((x: any) => x)
     const extra = {}
 
     // note: doesn't throw because we don't unwrap it
@@ -309,20 +310,20 @@ describe('isRejectedWithValue', () => {
 
     async function testRejectedAction(
       thunk: typeof thunkA | typeof thunkB | typeof thunkC,
-      expected: boolean
+      expected: boolean,
     ) {
       const pendingAction = thunk.pending('fakeRequestId')
       expect(matchAC(pendingAction)).toBe(false)
 
       const rejectedAction = thunk.rejected(
         new Error('rejected'),
-        'fakeRequestId'
+        'fakeRequestId',
       )
       // rejected-with-value is a narrower requirement than rejected
       expect(matchAC(rejectedAction)).toBe(false)
 
-      const getState = jest.fn(() => ({}))
-      const dispatch = jest.fn((x: any) => x)
+      const getState = vi.fn(() => ({}))
+      const dispatch = vi.fn((x: any) => x)
       const extra = {}
 
       // note: doesn't throw because we don't unwrap it
@@ -358,7 +359,7 @@ describe('isFulfilled', () => {
 
     const rejectedAction = thunk.rejected(
       new Error('rejected'),
-      'fakeRequestId'
+      'fakeRequestId',
     )
     expect(isFulfilled()(rejectedAction)).toBe(false)
 
@@ -377,14 +378,14 @@ describe('isFulfilled', () => {
 
     function testFulfilledAction(
       thunk: typeof thunkA | typeof thunkB | typeof thunkC,
-      expected: boolean
+      expected: boolean,
     ) {
       const pendingAction = thunk.pending('fakeRequestId')
       expect(matchAC(pendingAction)).toBe(false)
 
       const rejectedAction = thunk.rejected(
         new Error('rejected'),
-        'fakeRequestId'
+        'fakeRequestId',
       )
       expect(matchAC(rejectedAction)).toBe(false)
 
@@ -417,7 +418,7 @@ describe('isAsyncThunkAction', () => {
 
     const rejectedAction = thunk.rejected(
       new Error('rejected'),
-      'fakeRequestId'
+      'fakeRequestId',
     )
     expect(matcher(rejectedAction)).toBe(true)
 
@@ -435,7 +436,7 @@ describe('isAsyncThunkAction', () => {
 
     function testAllActions(
       thunk: typeof thunkA | typeof thunkB | typeof thunkC,
-      expected: boolean
+      expected: boolean,
     ) {
       const pendingAction = thunk.pending('fakeRequestId')
       expect(matchAC(pendingAction)).toBe(expected)
@@ -443,7 +444,7 @@ describe('isAsyncThunkAction', () => {
 
       const rejectedAction = thunk.rejected(
         new Error('rejected'),
-        'fakeRequestId'
+        'fakeRequestId',
       )
       expect(matchAC(rejectedAction)).toBe(expected)
       expect(matchB(rejectedAction)).toBe(!expected)

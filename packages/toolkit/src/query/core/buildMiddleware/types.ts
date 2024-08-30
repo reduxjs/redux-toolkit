@@ -1,12 +1,11 @@
 import type {
-  AnyAction,
+  Action,
   AsyncThunkAction,
-  Dispatch,
   Middleware,
   MiddlewareAPI,
   ThunkDispatch,
+  UnknownAction,
 } from '@reduxjs/toolkit'
-
 import type { Api, ApiContext } from '../../apiTypes'
 import type {
   AssertTagTypes,
@@ -32,10 +31,16 @@ export interface InternalMiddlewareState {
   currentSubscriptions: SubscriptionState
 }
 
+export interface SubscriptionSelectors {
+  getSubscriptions: () => SubscriptionState
+  getSubscriptionCount: (queryCacheKey: string) => number
+  isRequestSubscribed: (queryCacheKey: string, requestId: string) => boolean
+}
+
 export interface BuildMiddlewareInput<
   Definitions extends EndpointDefinitions,
   ReducerPath extends string,
-  TagTypes extends string
+  TagTypes extends string,
 > {
   reducerPath: ReducerPath
   context: ApiContext<Definitions>
@@ -46,7 +51,7 @@ export interface BuildMiddlewareInput<
 }
 
 export type SubMiddlewareApi = MiddlewareAPI<
-  ThunkDispatch<any, any, AnyAction>,
+  ThunkDispatch<any, any, UnknownAction>,
   RootState<EndpointDefinitions, string, string>
 >
 
@@ -59,26 +64,29 @@ export interface BuildSubMiddlewareInput
       { status: QueryStatus.uninitialized }
     >,
     queryCacheKey: string,
-    override?: Partial<QueryThunkArg>
+    override?: Partial<QueryThunkArg>,
   ): AsyncThunkAction<ThunkResult, QueryThunkArg, {}>
+  isThisApiSliceAction: (action: Action) => boolean
 }
 
 export type SubMiddlewareBuilder = (
-  input: BuildSubMiddlewareInput
+  input: BuildSubMiddlewareInput,
 ) => Middleware<
   {},
   RootState<EndpointDefinitions, string, string>,
-  ThunkDispatch<any, any, AnyAction>
+  ThunkDispatch<any, any, UnknownAction>
 >
 
-export type ApiMiddlewareInternalHandler<ReturnType = void> = (
-  action: AnyAction,
-  mwApi: SubMiddlewareApi & { next: Dispatch<AnyAction> },
-  prevState: RootState<EndpointDefinitions, string, string>
-) => ReturnType
+type MwNext = Parameters<ReturnType<Middleware>>[0]
+
+export type ApiMiddlewareInternalHandler<Return = void> = (
+  action: Action,
+  mwApi: SubMiddlewareApi & { next: MwNext },
+  prevState: RootState<EndpointDefinitions, string, string>,
+) => Return
 
 export type InternalHandlerBuilder<ReturnType = void> = (
-  input: BuildSubMiddlewareInput
+  input: BuildSubMiddlewareInput,
 ) => ApiMiddlewareInternalHandler<ReturnType>
 
 export interface PromiseConstructorWithKnownReason {
@@ -91,13 +99,15 @@ export interface PromiseConstructorWithKnownReason {
   new <T, R>(
     executor: (
       resolve: (value: T | PromiseLike<T>) => void,
-      reject: (reason?: R) => void
-    ) => void
+      reject: (reason?: R) => void,
+    ) => void,
   ): PromiseWithKnownReason<T, R>
 }
 
-export interface PromiseWithKnownReason<T, R>
-  extends Omit<Promise<T>, 'then' | 'catch'> {
+export type PromiseWithKnownReason<T, R> = Omit<
+  Promise<T>,
+  'then' | 'catch'
+> & {
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -112,7 +122,7 @@ export interface PromiseWithKnownReason<T, R>
     onrejected?:
       | ((reason: R) => TResult2 | PromiseLike<TResult2>)
       | undefined
-      | null
+      | null,
   ): Promise<TResult1 | TResult2>
 
   /**
@@ -124,6 +134,6 @@ export interface PromiseWithKnownReason<T, R>
     onrejected?:
       | ((reason: R) => TResult | PromiseLike<TResult>)
       | undefined
-      | null
+      | null,
   ): Promise<T | TResult>
 }

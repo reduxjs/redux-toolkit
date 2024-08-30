@@ -1,18 +1,24 @@
-import type { EntityAdapter, EntityState } from '../models'
+import type { PayloadAction } from '@reduxjs/toolkit'
+import {
+  configureStore,
+  createAction,
+  createSlice,
+  nanoid,
+} from '@reduxjs/toolkit'
+import { createNextState } from '../..'
 import { createEntityAdapter } from '../create_adapter'
-import { createAction, createSlice, configureStore } from '@reduxjs/toolkit'
+import type { EntityAdapter, EntityState } from '../models'
 import type { BookModel } from './fixtures/book'
 import {
-  TheGreatGatsby,
   AClockworkOrange,
   AnimalFarm,
+  TheGreatGatsby,
   TheHobbit,
 } from './fixtures/book'
-import { createNextState } from '../..'
 
 describe('Sorted State Adapter', () => {
-  let adapter: EntityAdapter<BookModel>
-  let state: EntityState<BookModel>
+  let adapter: EntityAdapter<BookModel, string>
+  let state: EntityState<BookModel, string>
 
   beforeAll(() => {
     //eslint-disable-next-line
@@ -232,11 +238,11 @@ describe('Sorted State Adapter', () => {
   })
 
   it('Replaces an existing entity if you change the ID while updating', () => {
-    const withAdded = adapter.setAll(state, [
-      { id: 'a', title: 'First' },
-      { id: 'b', title: 'Second' },
-      { id: 'c', title: 'Third' },
-    ])
+    const a = { id: 'a', title: 'First' }
+    const b = { id: 'b', title: 'Second' }
+    const c = { id: 'c', title: 'Third' }
+    const d = { id: 'd', title: 'Fourth' }
+    const withAdded = adapter.setAll(state, [a, b, c])
 
     const withUpdated = adapter.updateOne(withAdded, {
       id: 'b',
@@ -247,7 +253,7 @@ describe('Sorted State Adapter', () => {
 
     const { ids, entities } = withUpdated
 
-    expect(ids.length).toBe(2)
+    expect(ids).toEqual(['a', 'c'])
     expect(entities.a).toBeTruthy()
     expect(entities.b).not.toBeTruthy()
     expect(entities.c).toBeTruthy()
@@ -355,20 +361,30 @@ describe('Sorted State Adapter', () => {
     const withInitialItems = sortedItemsAdapter.setAll(
       sortedItemsAdapter.getInitialState(),
       [
-        { id: 'A', order: 1, ts: 0 },
-        { id: 'B', order: 2, ts: 0 },
         { id: 'C', order: 3, ts: 0 },
+        { id: 'A', order: 1, ts: 0 },
+        { id: 'F', order: 4, ts: 0 },
+        { id: 'B', order: 2, ts: 0 },
         { id: 'D', order: 3, ts: 0 },
         { id: 'E', order: 3, ts: 0 },
-      ]
+      ],
     )
+
+    expect(withInitialItems.ids).toEqual(['A', 'B', 'C', 'D', 'E', 'F'])
 
     const updated = sortedItemsAdapter.updateOne(withInitialItems, {
       id: 'C',
       changes: { ts: 5 },
     })
 
-    expect(updated.ids).toEqual(['A', 'B', 'C', 'D', 'E'])
+    expect(updated.ids).toEqual(['A', 'B', 'C', 'D', 'E', 'F'])
+
+    const updated2 = sortedItemsAdapter.updateOne(withInitialItems, {
+      id: 'D',
+      changes: { ts: 6 },
+    })
+
+    expect(updated2.ids).toEqual(['A', 'B', 'C', 'D', 'E', 'F'])
   })
 
   it('should let you update many entities by id in the state', () => {
@@ -584,18 +600,249 @@ describe('Sorted State Adapter', () => {
     expect(withUpdate.entities['b']!.title).toBe(book1.title)
   })
 
+  it('should minimize the amount of sorting work needed', () => {
+    const INITIAL_ITEMS = 10_000
+    const ADDED_ITEMS = 1_000
+
+    type Entity = { id: string; name: string; position: number }
+
+    let numSorts = 0
+
+    const adaptor = createEntityAdapter({
+      selectId: (entity: Entity) => entity.id,
+      sortComparer: (a, b) => {
+        numSorts++
+        if (a.position < b.position) return -1
+        else if (a.position > b.position) return 1
+        return 0
+      },
+    })
+
+    function generateItems(count: number) {
+      const items: readonly Entity[] = new Array(count)
+        .fill(undefined)
+        .map((x, i) => ({
+          name: `${i}`,
+          position: Math.random(),
+          id: nanoid(),
+        }))
+      return items
+    }
+
+    const entitySlice = createSlice({
+      name: 'entity',
+      initialState: adaptor.getInitialState(),
+      reducers: {
+        updateOne: adaptor.updateOne,
+        upsertOne: adaptor.upsertOne,
+        upsertMany: adaptor.upsertMany,
+        addMany: adaptor.addMany,
+      },
+    })
+
+    const store = configureStore({
+      reducer: {
+        entity: entitySlice.reducer,
+      },
+      middleware: (getDefaultMiddleware) => {
+        return getDefaultMiddleware({
+          serializableCheck: false,
+          immutableCheck: false,
+        })
+      },
+    })
+
+    numSorts = 0
+
+    const logComparisons = false
+
+    function measureComparisons(name: string, cb: () => void) {
+      numSorts = 0
+      const start = new Date().getTime()
+      cb()
+      const end = new Date().getTime()
+      const duration = end - start
+
+      if (logComparisons) {
+        console.log(
+          `${name}: sortComparer called ${numSorts.toLocaleString()} times in ${duration.toLocaleString()}ms`,
+        )
+      }
+    }
+
+    const initialItems = generateItems(INITIAL_ITEMS)
+
+    measureComparisons('Original Setup', () => {
+      store.dispatch(entitySlice.actions.upsertMany(initialItems))
+    })
+
+    expect(numSorts).toBeLessThan(INITIAL_ITEMS * 20)
+
+    measureComparisons('Insert One (random)', () => {
+      store.dispatch(
+        entitySlice.actions.upsertOne({
+          id: nanoid(),
+          position: Math.random(),
+          name: 'test',
+        }),
+      )
+    })
+
+    expect(numSorts).toBeLessThan(50)
+
+    measureComparisons('Insert One (middle)', () => {
+      store.dispatch(
+        entitySlice.actions.upsertOne({
+          id: nanoid(),
+          position: 0.5,
+          name: 'test',
+        }),
+      )
+    })
+
+    expect(numSorts).toBeLessThan(50)
+
+    measureComparisons('Insert One (end)', () => {
+      store.dispatch(
+        entitySlice.actions.upsertOne({
+          id: nanoid(),
+          position: 0.9998,
+          name: 'test',
+        }),
+      )
+    })
+
+    expect(numSorts).toBeLessThan(50)
+
+    const addedItems = generateItems(ADDED_ITEMS)
+    measureComparisons('Add Many', () => {
+      store.dispatch(entitySlice.actions.addMany(addedItems))
+    })
+
+    expect(numSorts).toBeLessThan(ADDED_ITEMS * 20)
+
+    // These numbers will vary because of the randomness, but generally
+    // with 10K items the old code had 200K+ sort calls, while the new code
+    // is around 13K sort calls.
+    expect(numSorts).toBeLessThan(20_000)
+
+    const { ids } = store.getState().entity
+    const middleItemId = ids[(ids.length / 2) | 0]
+
+    measureComparisons('Update One (end)', () => {
+      store.dispatch(
+        // Move this middle item near the end
+        entitySlice.actions.updateOne({
+          id: middleItemId,
+          changes: {
+            position: 0.99999,
+          },
+        }),
+      )
+    })
+
+    const SORTING_COUNT_BUFFER = 100
+
+    expect(numSorts).toBeLessThan(
+      INITIAL_ITEMS + ADDED_ITEMS + SORTING_COUNT_BUFFER,
+    )
+
+    measureComparisons('Update One (middle)', () => {
+      store.dispatch(
+        // Move this middle item near the end
+        entitySlice.actions.updateOne({
+          id: middleItemId,
+          changes: {
+            position: 0.42,
+          },
+        }),
+      )
+    })
+
+    expect(numSorts).toBeLessThan(
+      INITIAL_ITEMS + ADDED_ITEMS + SORTING_COUNT_BUFFER,
+    )
+
+    measureComparisons('Update One (replace)', () => {
+      store.dispatch(
+        // Move this middle item near the end
+        entitySlice.actions.updateOne({
+          id: middleItemId,
+          changes: {
+            id: nanoid(),
+            position: 0.98,
+          },
+        }),
+      )
+    })
+
+    expect(numSorts).toBeLessThan(
+      INITIAL_ITEMS + ADDED_ITEMS + SORTING_COUNT_BUFFER,
+    )
+
+    // The old code was around 120K, the new code is around 10K.
+    //expect(numSorts).toBeLessThan(25_000)
+  })
+
+  it('should not throw an Immer `current` error when `state.ids` is a plain array', () => {
+    const book1: BookModel = { id: 'a', title: 'First' }
+    const initialState = adapter.getInitialState()
+    const withItems = adapter.addMany(initialState, [book1])
+    const booksSlice = createSlice({
+      name: 'books',
+      initialState,
+      reducers: {
+        testCurrentBehavior(state, action: PayloadAction<BookModel>) {
+          // Will overwrite `state.ids` with a plain array
+          adapter.removeAll(state)
+
+          // will call `splitAddedUpdatedEntities` and call `current(state.ids)`
+          adapter.upsertMany(state, [book1])
+        },
+      },
+    })
+
+    booksSlice.reducer(
+      initialState,
+      booksSlice.actions.testCurrentBehavior(book1),
+    )
+  })
+
+  it('should not throw an Immer `current` error when the adapter is called twice', () => {
+    const book1: BookModel = { id: 'a', title: 'First' }
+    const book2: BookModel = { id: 'b', title: 'Second' }
+    const initialState = adapter.getInitialState()
+    const booksSlice = createSlice({
+      name: 'books',
+      initialState,
+      reducers: {
+        testCurrentBehavior(state, action: PayloadAction<BookModel>) {
+          // Will overwrite `state.ids` with a plain array
+          adapter.removeAll(state)
+
+          // will call `splitAddedUpdatedEntities` and call `current(state.ids)`
+          adapter.addOne(state, book1)
+          adapter.addOne(state, book2)
+        },
+      },
+    })
+
+    booksSlice.reducer(
+      initialState,
+      booksSlice.actions.testCurrentBehavior(book1),
+    )
+  })
+
   describe('can be used mutably when wrapped in createNextState', () => {
     test('removeAll', () => {
       const withTwo = adapter.addMany(state, [TheGreatGatsby, AnimalFarm])
       const result = createNextState(withTwo, (draft) => {
         adapter.removeAll(draft)
       })
-      expect(result).toMatchInlineSnapshot(`
-        Object {
-          "entities": Object {},
-          "ids": Array [],
-        }
-      `)
+      expect(result).toEqual({
+        entities: {},
+        ids: [],
+      })
     })
 
     test('addOne', () => {
@@ -603,19 +850,15 @@ describe('Sorted State Adapter', () => {
         adapter.addOne(draft, TheGreatGatsby)
       })
 
-      expect(result).toMatchInlineSnapshot(`
-        Object {
-          "entities": Object {
-            "tgg": Object {
-              "id": "tgg",
-              "title": "The Great Gatsby",
-            },
+      expect(result).toEqual({
+        entities: {
+          tgg: {
+            id: 'tgg',
+            title: 'The Great Gatsby',
           },
-          "ids": Array [
-            "tgg",
-          ],
-        }
-      `)
+        },
+        ids: ['tgg'],
+      })
     })
 
     test('addMany', () => {
@@ -623,24 +866,19 @@ describe('Sorted State Adapter', () => {
         adapter.addMany(draft, [TheGreatGatsby, AnimalFarm])
       })
 
-      expect(result).toMatchInlineSnapshot(`
-        Object {
-          "entities": Object {
-            "af": Object {
-              "id": "af",
-              "title": "Animal Farm",
-            },
-            "tgg": Object {
-              "id": "tgg",
-              "title": "The Great Gatsby",
-            },
+      expect(result).toEqual({
+        entities: {
+          af: {
+            id: 'af',
+            title: 'Animal Farm',
           },
-          "ids": Array [
-            "af",
-            "tgg",
-          ],
-        }
-      `)
+          tgg: {
+            id: 'tgg',
+            title: 'The Great Gatsby',
+          },
+        },
+        ids: ['af', 'tgg'],
+      })
     })
 
     test('setAll', () => {
@@ -648,24 +886,19 @@ describe('Sorted State Adapter', () => {
         adapter.setAll(draft, [TheGreatGatsby, AnimalFarm])
       })
 
-      expect(result).toMatchInlineSnapshot(`
-        Object {
-          "entities": Object {
-            "af": Object {
-              "id": "af",
-              "title": "Animal Farm",
-            },
-            "tgg": Object {
-              "id": "tgg",
-              "title": "The Great Gatsby",
-            },
+      expect(result).toEqual({
+        entities: {
+          af: {
+            id: 'af',
+            title: 'Animal Farm',
           },
-          "ids": Array [
-            "af",
-            "tgg",
-          ],
-        }
-      `)
+          tgg: {
+            id: 'tgg',
+            title: 'The Great Gatsby',
+          },
+        },
+        ids: ['af', 'tgg'],
+      })
     })
 
     test('updateOne', () => {
@@ -678,19 +911,15 @@ describe('Sorted State Adapter', () => {
         })
       })
 
-      expect(result).toMatchInlineSnapshot(`
-        Object {
-          "entities": Object {
-            "tgg": Object {
-              "id": "tgg",
-              "title": "A New Hope",
-            },
+      expect(result).toEqual({
+        entities: {
+          tgg: {
+            id: 'tgg',
+            title: 'A New Hope',
           },
-          "ids": Array [
-            "tgg",
-          ],
-        }
-      `)
+        },
+        ids: ['tgg'],
+      })
     })
 
     test('updateMany', () => {
@@ -713,49 +942,39 @@ describe('Sorted State Adapter', () => {
         ])
       })
 
-      expect(result).toMatchInlineSnapshot(`
-        Object {
-          "entities": Object {
-            "aco": Object {
-              "id": "aco",
-              "title": "Third Change",
-            },
-            "tgg": Object {
-              "id": "tgg",
-              "title": "Second Change",
-            },
-            "th": Object {
-              "author": "Fourth Change",
-              "id": "th",
-              "title": "First Change",
-            },
+      expect(result).toEqual({
+        entities: {
+          aco: {
+            id: 'aco',
+            title: 'Third Change',
           },
-          "ids": Array [
-            "th",
-            "tgg",
-            "aco",
-          ],
-        }
-      `)
+          tgg: {
+            id: 'tgg',
+            title: 'Second Change',
+          },
+          th: {
+            author: 'Fourth Change',
+            id: 'th',
+            title: 'First Change',
+          },
+        },
+        ids: ['th', 'tgg', 'aco'],
+      })
     })
 
     test('upsertOne (insert)', () => {
       const result = createNextState(state, (draft) => {
         adapter.upsertOne(draft, TheGreatGatsby)
       })
-      expect(result).toMatchInlineSnapshot(`
-        Object {
-          "entities": Object {
-            "tgg": Object {
-              "id": "tgg",
-              "title": "The Great Gatsby",
-            },
+      expect(result).toEqual({
+        entities: {
+          tgg: {
+            id: 'tgg',
+            title: 'The Great Gatsby',
           },
-          "ids": Array [
-            "tgg",
-          ],
-        }
-      `)
+        },
+        ids: ['tgg'],
+      })
     })
 
     test('upsertOne (update)', () => {
@@ -766,19 +985,15 @@ describe('Sorted State Adapter', () => {
           title: 'A New Hope',
         })
       })
-      expect(result).toMatchInlineSnapshot(`
-        Object {
-          "entities": Object {
-            "tgg": Object {
-              "id": "tgg",
-              "title": "A New Hope",
-            },
+      expect(result).toEqual({
+        entities: {
+          tgg: {
+            id: 'tgg',
+            title: 'A New Hope',
           },
-          "ids": Array [
-            "tgg",
-          ],
-        }
-      `)
+        },
+        ids: ['tgg'],
+      })
     })
 
     test('upsertMany', () => {
@@ -792,43 +1007,34 @@ describe('Sorted State Adapter', () => {
           AnimalFarm,
         ])
       })
-      expect(result).toMatchInlineSnapshot(`
-        Object {
-          "entities": Object {
-            "af": Object {
-              "id": "af",
-              "title": "Animal Farm",
-            },
-            "tgg": Object {
-              "id": "tgg",
-              "title": "A New Hope",
-            },
+      expect(result).toEqual({
+        entities: {
+          af: {
+            id: 'af',
+            title: 'Animal Farm',
           },
-          "ids": Array [
-            "tgg",
-            "af",
-          ],
-        }
-      `)
+          tgg: {
+            id: 'tgg',
+            title: 'A New Hope',
+          },
+        },
+        ids: ['tgg', 'af'],
+      })
     })
 
     test('setOne (insert)', () => {
       const result = createNextState(state, (draft) => {
         adapter.setOne(draft, TheGreatGatsby)
       })
-      expect(result).toMatchInlineSnapshot(`
-        Object {
-          "entities": Object {
-            "tgg": Object {
-              "id": "tgg",
-              "title": "The Great Gatsby",
-            },
+      expect(result).toEqual({
+        entities: {
+          tgg: {
+            id: 'tgg',
+            title: 'The Great Gatsby',
           },
-          "ids": Array [
-            "tgg",
-          ],
-        }
-      `)
+        },
+        ids: ['tgg'],
+      })
     })
 
     test('setOne (update)', () => {
@@ -839,19 +1045,15 @@ describe('Sorted State Adapter', () => {
           title: 'Silmarillion',
         })
       })
-      expect(result).toMatchInlineSnapshot(`
-        Object {
-          "entities": Object {
-            "th": Object {
-              "id": "th",
-              "title": "Silmarillion",
-            },
+      expect(result).toEqual({
+        entities: {
+          th: {
+            id: 'th',
+            title: 'Silmarillion',
           },
-          "ids": Array [
-            "th",
-          ],
-        }
-      `)
+        },
+        ids: ['th'],
+      })
     })
 
     test('setMany', () => {
@@ -865,24 +1067,19 @@ describe('Sorted State Adapter', () => {
           AnimalFarm,
         ])
       })
-      expect(result).toMatchInlineSnapshot(`
-        Object {
-          "entities": Object {
-            "af": Object {
-              "id": "af",
-              "title": "Animal Farm",
-            },
-            "th": Object {
-              "id": "th",
-              "title": "Silmarillion",
-            },
+      expect(result).toEqual({
+        entities: {
+          af: {
+            id: 'af',
+            title: 'Animal Farm',
           },
-          "ids": Array [
-            "af",
-            "th",
-          ],
-        }
-      `)
+          th: {
+            id: 'th',
+            title: 'Silmarillion',
+          },
+        },
+        ids: ['af', 'th'],
+      })
     })
 
     test('removeOne', () => {
@@ -890,19 +1087,15 @@ describe('Sorted State Adapter', () => {
       const result = createNextState(withTwo, (draft) => {
         adapter.removeOne(draft, TheGreatGatsby.id)
       })
-      expect(result).toMatchInlineSnapshot(`
-        Object {
-          "entities": Object {
-            "af": Object {
-              "id": "af",
-              "title": "Animal Farm",
-            },
+      expect(result).toEqual({
+        entities: {
+          af: {
+            id: 'af',
+            title: 'Animal Farm',
           },
-          "ids": Array [
-            "af",
-          ],
-        }
-      `)
+        },
+        ids: ['af'],
+      })
     })
 
     test('removeMany', () => {
@@ -914,19 +1107,15 @@ describe('Sorted State Adapter', () => {
       const result = createNextState(withThree, (draft) => {
         adapter.removeMany(draft, [TheGreatGatsby.id, AnimalFarm.id])
       })
-      expect(result).toMatchInlineSnapshot(`
-        Object {
-          "entities": Object {
-            "aco": Object {
-              "id": "aco",
-              "title": "A Clockwork Orange",
-            },
+      expect(result).toEqual({
+        entities: {
+          aco: {
+            id: 'aco',
+            title: 'A Clockwork Orange',
           },
-          "ids": Array [
-            "aco",
-          ],
-        }
-      `)
+        },
+        ids: ['aco'],
+      })
     })
   })
 })

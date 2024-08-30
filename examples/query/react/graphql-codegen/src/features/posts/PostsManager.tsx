@@ -23,8 +23,8 @@ const getColorForStatus = (status: string | undefined) => {
   return status === 'draft'
     ? 'gray'
     : status === 'pending_review'
-    ? 'orange'
-    : 'green'
+      ? 'orange'
+      : 'green'
 }
 
 const PostList = () => {

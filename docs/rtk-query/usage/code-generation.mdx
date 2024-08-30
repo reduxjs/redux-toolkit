@@ -109,17 +109,20 @@ interface SimpleUsage {
   endpointOverrides?: EndpointOverrides[]
   flattenArg?: boolean
   useEnumType?: boolean
+  httpResolverOptions?: SwaggerParser.HTTPResolverOptions
 }
 
 export type EndpointMatcherFunction = (
   operationName: string,
-  operationDefinition: OperationDefinition
+  operationDefinition: OperationDefinition,
 ) => boolean
 ```
 
 #### Filtering endpoints
 
 If you only want to include a few endpoints, you can use the `filterEndpoints` config option to filter your endpoints.
+Note that endpoints are transformed to camel case. For example, `login_user` will become `loginUser`. 
+`filterEndpoints` will be checked against this camel case version of the endpoint.
 
 ```ts no-transpile title="openapi-config.ts"
 const filteredConfig: ConfigFile = {
@@ -164,6 +167,27 @@ const config: ConfigFile = {
     },
     './src/store/pet.ts': {
       filterEndpoints: [/pet/i],
+    },
+  },
+}
+```
+
+#### Custom HTTP resolver options
+
+If you need to customize the HTTP request issued to your server, you user the `httpResolverOptions` option. This object is passed directly to the `SwaggerParser` instance that fetches the OpenAPI schema.
+
+For example, you can pass custom headers or set a custom request timeout.
+
+```ts no-transpile title="openapi-config.ts"
+const config: ConfigFile = {
+  schemaFile: 'https://petstore3.swagger.io/api/v3/openapi.json',
+  apiFile: './src/store/emptyApi.ts',
+  outputFile: './src/store/petApi.ts',
+  httpResolverOptions: {
+    timeout: 30_000,
+    headers: {
+      Accept: 'application/json',
+      Authorization: 'Basic cmVkdXgtdG9vbGtpdDppcy1ncmVhdA==',
     },
   },
 }

@@ -1,30 +1,46 @@
-import type { AnyAction, Middleware, ThunkDispatch } from '@reduxjs/toolkit'
-import { createAction } from '@reduxjs/toolkit'
-
+import type {
+  Action,
+  Middleware,
+  ThunkDispatch,
+  UnknownAction,
+} from '@reduxjs/toolkit'
 import type {
   EndpointDefinitions,
   FullTagDescription,
 } from '../../endpointDefinitions'
 import type { QueryStatus, QuerySubState, RootState } from '../apiState'
 import type { QueryThunkArg } from '../buildThunks'
+import { createAction, isAction } from '../rtkImports'
+import { buildBatchedActionsHandler } from './batchActions'
 import { buildCacheCollectionHandler } from './cacheCollection'
+import { buildCacheLifecycleHandler } from './cacheLifecycle'
+import { buildDevCheckHandler } from './devMiddleware'
 import { buildInvalidationByTagsHandler } from './invalidationByTags'
 import { buildPollingHandler } from './polling'
+import { buildQueryLifecycleHandler } from './queryLifecycle'
 import type {
   BuildMiddlewareInput,
   InternalHandlerBuilder,
   InternalMiddlewareState,
 } from './types'
 import { buildWindowEventHandler } from './windowEventHandling'
-import { buildCacheLifecycleHandler } from './cacheLifecycle'
-import { buildQueryLifecycleHandler } from './queryLifecycle'
-import { buildDevCheckHandler } from './devMiddleware'
-import { buildBatchedActionsHandler } from './batchActions'
+export type { ReferenceCacheCollection } from './cacheCollection'
+export type {
+  MutationCacheLifecycleApi,
+  QueryCacheLifecycleApi,
+  ReferenceCacheLifecycle,
+} from './cacheLifecycle'
+export type {
+  MutationLifecycleApi,
+  QueryLifecycleApi,
+  ReferenceQueryLifecycle,
+} from './queryLifecycle'
+export type { SubscriptionSelectors } from './types'
 
 export function buildMiddleware<
   Definitions extends EndpointDefinitions,
   ReducerPath extends string,
-  TagTypes extends string
+  TagTypes extends string,
 >(input: BuildMiddlewareInput<Definitions, ReducerPath, TagTypes>) {
   const { reducerPath, queryThunk, api, context } = input
   const { apiUid } = context
@@ -35,13 +51,8 @@ export function buildMiddleware<
     >(`${reducerPath}/invalidateTags`),
   }
 
-  const isThisApiSliceAction = (action: AnyAction) => {
-    return (
-      !!action &&
-      typeof action.type === 'string' &&
-      action.type.startsWith(`${reducerPath}/`)
-    )
-  }
+  const isThisApiSliceAction = (action: Action) =>
+    action.type.startsWith(`${reducerPath}/`)
 
   const handlerBuilders: InternalHandlerBuilder[] = [
     buildDevCheckHandler,
@@ -55,11 +66,11 @@ export function buildMiddleware<
   const middleware: Middleware<
     {},
     RootState<Definitions, string, ReducerPath>,
-    ThunkDispatch<any, any, AnyAction>
+    ThunkDispatch<any, any, UnknownAction>
   > = (mwApi) => {
     let initialized = false
 
-    let internalState: InternalMiddlewareState = {
+    const internalState: InternalMiddlewareState = {
       currentSubscriptions: {},
     }
 
@@ -71,6 +82,7 @@ export function buildMiddleware<
       >),
       internalState,
       refetchQuery,
+      isThisApiSliceAction,
     }
 
     const handlers = handlerBuilders.map((build) => build(builderArgs))
@@ -80,6 +92,9 @@ export function buildMiddleware<
 
     return (next) => {
       return (action) => {
+        if (!isAction(action)) {
+          return next(action)
+        }
         if (!initialized) {
           initialized = true
           // dispatch before any other action
@@ -90,18 +105,15 @@ export function buildMiddleware<
 
         const stateBefore = mwApi.getState()
 
-        const [actionShouldContinue, hasSubscription] = batchedActionsHandler(
-          action,
-          mwApiWithNext,
-          stateBefore
-        )
+        const [actionShouldContinue, internalProbeResult] =
+          batchedActionsHandler(action, mwApiWithNext, stateBefore)
 
         let res: any
 
         if (actionShouldContinue) {
           res = next(action)
         } else {
-          res = hasSubscription
+          res = internalProbeResult
         }
 
         if (!!mwApi.getState()[reducerPath]) {
@@ -116,7 +128,7 @@ export function buildMiddleware<
           ) {
             // Only run these additional checks if the actions are part of the API slice,
             // or the action has hydration-related data
-            for (let handler of handlers) {
+            for (const handler of handlers) {
               handler(action, mwApiWithNext, stateBefore)
             }
           }
@@ -135,7 +147,7 @@ export function buildMiddleware<
       { status: QueryStatus.uninitialized }
     >,
     queryCacheKey: string,
-    override: Partial<QueryThunkArg> = {}
+    override: Partial<QueryThunkArg> = {},
   ) {
     return queryThunk({
       type: 'query',

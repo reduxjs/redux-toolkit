@@ -35,7 +35,7 @@ The basics of using `configureStore` are shown in [TypeScript Quick Start tutori
 
 ### Getting the `State` type
 
-The easiest way of getting the `State` type is to define the root reducer in advance and extract its `ReturnType`.  
+The easiest way of getting the `State` type is to define the root reducer in advance and extract its `ReturnType`.
 It is recommended to give the type a different name like `RootState` to prevent confusion, as the type name `State` is usually overused.
 
 ```typescript
@@ -89,7 +89,7 @@ const store = configureStore({
 
 // highlight-start
 export type AppDispatch = typeof store.dispatch
-export const useAppDispatch: () => AppDispatch = useDispatch // Export a hook that can be reused to resolve types
+export const useAppDispatch = useDispatch.withTypes<AppDispatch>() // Export a hook that can be reused to resolve types
 // highlight-end
 
 export default store
@@ -99,7 +99,7 @@ export default store
 
 The type of the `dispatch` function type will be directly inferred from the `middleware` option. So if you add _correctly typed_ middlewares, `dispatch` should already be correctly typed.
 
-As TypeScript often widens array types when combining arrays using the spread operator, we suggest using the `.concat(...)` and `.prepend(...)` methods of the `MiddlewareArray` returned by `getDefaultMiddleware()`.
+As TypeScript often widens array types when combining arrays using the spread operator, we suggest using the `.concat(...)` and `.prepend(...)` methods of the `Tuple` returned by `getDefaultMiddleware()`.
 
 ```ts
 import { configureStore } from '@reduxjs/toolkit'
@@ -122,7 +122,7 @@ const store = configureStore({
         untypedMiddleware as Middleware<
           (action: Action<'specialAction'>) => number,
           RootState
-        >
+        >,
       )
       // prepend and concat calls can be chained
       .concat(logger),
@@ -134,25 +134,18 @@ export type AppDispatch = typeof store.dispatch
 export default store
 ```
 
-#### Using `MiddlewareArray` without `getDefaultMiddleware`
+#### Using `Tuple` without `getDefaultMiddleware`
 
-If you want to skip the usage of `getDefaultMiddleware` altogether, you can still use `MiddlewareArray` for type-safe concatenation of your `middleware` array. This class extends the default JavaScript `Array` type, only with modified typings for `.concat(...)` and the additional `.prepend(...)` method.
+If you want to skip the usage of `getDefaultMiddleware` altogether, you are required to use `Tuple` for type-safe creation of your `middleware` array. This class extends the default JavaScript `Array` type, only with modified typings for `.concat(...)` and the additional `.prepend(...)` method.
 
-This is generally not required though, as you will probably not run into any array-type-widening issues as long as you are using `as const` and do not use the spread operator.
-
-So the following two calls would be equivalent:
+For example:
 
 ```ts
-import { configureStore, MiddlewareArray } from '@reduxjs/toolkit'
+import { configureStore, Tuple } from '@reduxjs/toolkit'
 
 configureStore({
   reducer: rootReducer,
-  middleware: new MiddlewareArray().concat(additionalMiddleware, logger),
-})
-
-configureStore({
-  reducer: rootReducer,
-  middleware: [additionalMiddleware, logger] as const,
+  middleware: () => new Tuple(additionalMiddleware, logger),
 })
 ```
 
@@ -206,36 +199,9 @@ This `match` method is also very useful in combination with `redux-observable` a
 
 ## `createReducer`
 
-The default way of calling `createReducer` would be with a "lookup table" / "map object", like this:
-
-```typescript
-createReducer(0, {
-  increment: (state, action: PayloadAction<number>) => state + action.payload,
-})
-```
-
-Unfortunately, as the keys are only strings, using that API TypeScript can neither infer nor validate the action types for you:
-
-```typescript
-{
-  const increment = createAction<number, 'increment'>('increment')
-  const decrement = createAction<number, 'decrement'>('decrement')
-  createReducer(0, {
-    [increment.type]: (state, action) => {
-      // action is any here
-    },
-    [decrement.type]: (state, action: PayloadAction<string>) => {
-      // even though action should actually be PayloadAction<number>, TypeScript can't detect that and won't give a warning here.
-    },
-  })
-}
-```
-
-As an alternative, RTK includes a type-safe reducer builder API.
-
 ### Building Type-Safe Reducer Argument Objects
 
-Instead of using a simple object as an argument to `createReducer`, you can also use a callback that receives a `ActionReducerMapBuilder` instance:
+The second parameter for `createReducer` is a callback that receives a `ActionReducerMapBuilder` instance:
 
 ```typescript {3-10}
 const increment = createAction<number, 'increment'>('increment')
@@ -247,11 +213,9 @@ createReducer(0, (builder) =>
     })
     .addCase(decrement, (state, action: PayloadAction<string>) => {
       // this would error out
-    })
+    }),
 )
 ```
-
-We recommend using this API if stricter type safety is necessary when defining reducer argument objects.
 
 #### Typing `builder.addMatcher`
 
@@ -259,7 +223,7 @@ As the first `matcher` argument to `builder.addMatcher`, a [type predicate](http
 As a result, the `action` argument for the second `reducer` argument can be inferred by TypeScript:
 
 ```ts
-function isNumberValueAction(action: AnyAction): action is PayloadAction<{ value: number }> {
+function isNumberValueAction(action: UnknownAction): action is PayloadAction<{ value: number }> {
   return typeof action.payload.value === 'number'
 }
 
@@ -309,7 +273,7 @@ createSlice({
 
 You might have noticed that it is not a good idea to pass your `SliceState` type as a generic to `createSlice`. This is due to the fact that in almost all cases, follow-up generic parameters to `createSlice` need to be inferred, and TypeScript cannot mix explicit declaration and inference of generic types within the same "generic block".
 
-The standard approach is to declare an interface or type for your state, create an initial state value that uses that type, and pass the initial state value to `createSlice`. You can also use the construct `initialState: myInitialState as SliceState`.
+The standard approach is to declare an interface or type for your state, create an initial state value that uses that type, and pass the initial state value to `createSlice`. You can also use the construct `initialState: myInitialState satisfies SliceState as SliceState`.
 
 ```ts {1,4,8,15}
 type SliceState = { state: 'loading' } | { state: 'finished'; data: string }
@@ -326,7 +290,7 @@ createSlice({
 // Or, cast the initial state as necessary
 createSlice({
   name: 'test2',
-  initialState: { state: 'loading' } as SliceState,
+  initialState: { state: 'loading' } satisfies SliceState as SliceState,
   reducers: {},
 })
 ```
@@ -347,7 +311,7 @@ const blogSlice = createSlice({
     receivedAll: {
       reducer(
         state,
-        action: PayloadAction<Page[], string, { currentPage: number }>
+        action: PayloadAction<Page[], string, { currentPage: number }>,
       ) {
         state.all = action.payload
         state.meta = action.meta
@@ -362,9 +326,9 @@ const blogSlice = createSlice({
 
 ### Generated Action Types for Slices
 
-As TS cannot combine two string literals (`slice.name` and the key of `actionMap`) into a new literal, all actionCreators created by `createSlice` are of type 'string'. This is usually not a problem, as these types are only rarely used as literals.
+`createSlice` generates action type strings by combining the `name` field from the slice with the field name of the reducer function, like `'test/increment'`. This is strongly typed as the exact value, thanks to TS's string literal analysis.
 
-In most cases that `type` would be required as a literal, the `slice.action.myAction.match` [type predicate](https://www.typescriptlang.org/docs/handbook/advanced-types.html#using-type-predicates) should be a viable alternative:
+You can also use the `slice.action.myAction.match` [type predicate](https://www.typescriptlang.org/docs/handbook/advanced-types.html#using-type-predicates), which will narrow down an action object to the exact type:
 
 ```ts {10}
 const slice = createSlice({
@@ -374,6 +338,9 @@ const slice = createSlice({
     increment: (state, action: PayloadAction<number>) => state + action.payload,
   },
 })
+
+type incrementType = typeof slice.actions.increment.type
+// type incrementType = 'test/increment'
 
 function myCustomMiddleware(action: Action) {
   if (slice.actions.increment.match(action)) {
@@ -386,7 +353,7 @@ If you actually _need_ that type, unfortunately there is no other way than manua
 
 ### Type safety with `extraReducers`
 
-Reducer lookup tables that map an action `type` string to a reducer function are not easy to fully type correctly. This affects both `createReducer` and the `extraReducers` argument for `createSlice`. So, like with `createReducer`, [you may also use the "builder callback" approach](#building-type-safe-reducer-argument-objects) for defining the reducer object argument.
+Reducer lookup tables that map an action `type` string to a reducer function are not easy to fully type correctly. This affects both `createReducer` and the `extraReducers` argument for `createSlice`. So, like with `createReducer`, [you should use the "builder callback" approach](#building-type-safe-reducer-argument-objects) for defining the reducer object argument.
 
 This is particularly useful when a slice reducer needs to handle action types generated by other slices, or generated by specific calls to `createAction` (such as the actions generated by [`createAsyncThunk`](../api/createAsyncThunk.mdx)).
 
@@ -397,18 +364,18 @@ const fetchUserById = createAsyncThunk(
   async (userId: number) => {
     const response = await fetch(`https://reqres.in/api/users/${userId}`)
     return (await response.json()) as Returned
-  }
+  },
 )
 
 interface UsersState {
-  entities: []
+  entities: User[]
   loading: 'idle' | 'pending' | 'succeeded' | 'failed'
 }
 
 const initialState = {
   entities: [],
   loading: 'idle',
-} as UsersState
+} satisfies UsersState as UsersState
 
 const usersSlice = createSlice({
   name: 'users',
@@ -444,6 +411,60 @@ type AtLeastOne<T extends Record<string, any>> = keyof T extends infer K
 type AtLeastOneUserField = AtLeastOne<User>
 ```
 
+### Typing Async Thunks Inside `createSlice`
+
+As of 2.0, `createSlice` allows [defining thunks inside of `reducers` using a callback syntax](../api/createSlice.mdx/#the-reducers-creator-callback-notation).
+
+Typing for the `create.asyncThunk` method works in the same way as [`createAsyncThunk`](#createasyncthunk), with one key difference.
+
+A type for `state` and/or `dispatch` _cannot_ be provided as part of the `ThunkApiConfig`, as this would cause circular types.
+
+Instead, it is necessary to assert the type when needed - `getState() as RootState`. You may also include an explicit return type for the payload function as well, in order to break the circular type inference cycle.
+
+```ts no-transpile
+create.asyncThunk<Todo, string, { rejectValue: { error: string } }>(
+  // highlight-start
+  // may need to include an explicit return type
+  async (id: string, thunkApi): Promise<Todo> => {
+    // Cast types for `getState` and `dispatch` manually
+    const state = thunkApi.getState() as RootState
+    const dispatch = thunkApi.dispatch as AppDispatch
+    // highlight-end
+    try {
+      const todo = await fetchTodo()
+      return todo
+    } catch (e) {
+      throw thunkApi.rejectWithValue({
+        error: 'Oh no!',
+      })
+    }
+  },
+)
+```
+
+For common thunk API configuration options, a [`withTypes` helper](../usage/usage-with-typescript#defining-a-pre-typed-createasyncthunk) is provided:
+
+```ts no-transpile
+reducers: (create) => {
+  const createAThunk = create.asyncThunk.withTypes<{
+    rejectValue: { error: string }
+  }>()
+
+  return {
+    fetchTodo: createAThunk<Todo, string>(async (id, thunkApi) => {
+      throw thunkApi.rejectWithValue({
+        error: 'Oh no!',
+      })
+    }),
+    fetchTodos: createAThunk<Todo[], string>(async (id, thunkApi) => {
+      throw thunkApi.rejectWithValue({
+        error: 'Oh no, not again!',
+      })
+    }),
+  }
+}
+```
+
 ### Wrapping `createSlice`
 
 If you need to reuse reducer logic, it is common to write ["higher-order reducers"](https://redux.js.org/recipes/structuring-reducers/reusing-reducer-logic#customizing-behavior-with-higher-order-reducers) that wrap a reducer function with additional common behavior. This can be done with `createSlice` as well, but due to the complexity of the types for `createSlice`, you have to use the `SliceCaseReducers` and `ValidateSliceCaseReducers` types in a very specific way.
@@ -458,7 +479,7 @@ interface GenericState<T> {
 
 const createGenericSlice = <
   T,
-  Reducers extends SliceCaseReducers<GenericState<T>>
+  Reducers extends SliceCaseReducers<GenericState<T>>,
 >({
   name = '',
   initialState,
@@ -527,7 +548,7 @@ const fetchUserById = createAsyncThunk(
     // Inferred return type: Promise<MyData>
     // highlight-next-line
     return (await response.json()) as MyData
-  }
+  },
 )
 
 // the parameter of `fetchUserById` is automatically inferred to `number` here
@@ -703,9 +724,35 @@ Import and use that pre-typed `createAppAsyncThunk` instead of the original, and
 
 ## `createEntityAdapter`
 
-Typing `createEntityAdapter` only requires you to specify the entity type as the single generic argument.
+Usage of `createEntityAdapter` with Typescript varies based on whether your entities are normalized by an `id` property, or whether a custom `selectId` is needed.
 
-The example from the `createEntityAdapter` documentation would look like this in TypeScript:
+If your entities are normalized by an `id` property, `createEntityAdapter` only requires you to specify the entity type as the single generic argument. For example:
+
+```ts
+interface Book {
+  id: number
+  title: string
+}
+
+// no selectId needed here, as the entity has an `id` property we can default to
+// highlight-next-line
+const booksAdapter = createEntityAdapter<Book>({
+  sortComparer: (a, b) => a.title.localeCompare(b.title),
+})
+
+const booksSlice = createSlice({
+  name: 'books',
+  initialState: booksAdapter.getInitialState(),
+  reducers: {
+    bookAdded: booksAdapter.addOne,
+    booksReceived(state, action: PayloadAction<{ books: Book[] }>) {
+      booksAdapter.setAll(state, action.payload.books)
+    },
+  },
+})
+```
+
+On the other hand, if the entity needs to be normalized by a different property, we instead recommend passing a custom `selectId` function and annotating there. This allows proper inference of the ID's type, instead of having to provide it manually.
 
 ```ts
 interface Book {
@@ -714,9 +761,9 @@ interface Book {
   // ...
 }
 
-// highlight-next-line
-const booksAdapter = createEntityAdapter<Book>({
-  selectId: (book) => book.bookId,
+const booksAdapter = createEntityAdapter({
+  // highlight-next-line
+  selectId: (book: Book) => book.bookId,
   sortComparer: (a, b) => a.title.localeCompare(b.title),
 })
 
@@ -771,7 +818,7 @@ export const fetchArticle = createAsyncThunk(
       }
     >(data, articleEntity)
     return normalized.entities
-  }
+  },
 )
 
 export const slice = createSlice({

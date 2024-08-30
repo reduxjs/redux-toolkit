@@ -25,7 +25,14 @@ const injectEndpoints = (endpointOptions: InjectedEndpointOptions) =>
 
 interface InjectedEndpointOptions {
   endpoints: (build: EndpointBuilder) => NewEndpointDefinitions
-  overrideExisting?: boolean
+  /**
+   * Optionally allows endpoints to be overridden if defined by multiple `injectEndpoints` calls.
+   *
+   * If set to `true`, will override existing endpoints with the new definition.
+   * If set to `'throw'`, will throw an error if an endpoint is redefined with a different definition.
+   * If set to `false` (or unset), will not override existing endpoints with the new definition, and log a warning in development.
+   */
+  overrideExisting?: boolean | 'throw'
 }
 ```
 
@@ -35,7 +42,7 @@ Accepts an options object containing the same `endpoints` builder callback you w
 
 Returns an updated and enhanced version of the API slice object, containing the combined endpoint definitions.
 
-In development, endpoints will not be overridden unless `overrideExisting` is set to `true`. If not, a warning will be shown to notify you if there is a name clash between endpoint definitions.
+Endpoints will not be overridden unless `overrideExisting` is set to `true`. If not, a development mode warning will be shown to notify you if there is a name clash between endpoint definitions.
 
 This method is primarily useful for code splitting and hot reloading.
 

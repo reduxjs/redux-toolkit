@@ -2,6 +2,7 @@ import type {
   BaseQueryApi,
   BaseQueryArg,
   BaseQueryEnhancer,
+  BaseQueryError,
   BaseQueryExtraOptions,
   BaseQueryFn,
 } from './baseQueryTypes'
@@ -26,18 +27,18 @@ async function defaultBackoff(attempt: number = 0, maxRetries: number = 5) {
 
   const timeout = ~~((Math.random() + 0.4) * (300 << attempts)) // Force a positive int in the case we make this an option
   await new Promise((resolve) =>
-    setTimeout((res: any) => resolve(res), timeout)
+    setTimeout((res: any) => resolve(res), timeout),
   )
 }
 
 type RetryConditionFunction = (
-  error: FetchBaseQueryError,
+  error: BaseQueryError<BaseQueryFn>,
   args: BaseQueryArg<BaseQueryFn>,
   extraArgs: {
     attempt: number
     baseQueryApi: BaseQueryApi
     extraOptions: BaseQueryExtraOptions<BaseQueryFn> & RetryOptions
-  }
+  },
 ) => boolean
 
 export type RetryOptions = {
@@ -83,7 +84,7 @@ const retryWithBackoff: BaseQueryEnhancer<
     5,
     ((defaultOptions as any) || EMPTY_OPTIONS).maxRetries,
     ((extraOptions as any) || EMPTY_OPTIONS).maxRetries,
-  ].filter(x => x !== undefined)
+  ].filter((x) => x !== undefined)
   const [maxRetries] = possibleMaxRetries.slice(-1)
 
   const defaultRetryCondition: RetryConditionFunction = (_, __, { attempt }) =>

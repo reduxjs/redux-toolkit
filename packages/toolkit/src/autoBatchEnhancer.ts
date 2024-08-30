@@ -9,26 +9,6 @@ export const prepareAutoBatched =
     meta: { [SHOULD_AUTOBATCH]: true },
   })
 
-// TODO Remove this in 2.0
-// Copied from https://github.com/feross/queue-microtask
-let promise: Promise<any>
-const queueMicrotaskShim =
-  typeof queueMicrotask === 'function'
-    ? queueMicrotask.bind(
-        typeof window !== 'undefined'
-          ? window
-          : typeof global !== 'undefined'
-          ? global
-          : globalThis
-      )
-    : // reuse resolved promise, and allocate it lazily
-      (cb: () => void) =>
-        (promise || (promise = Promise.resolve())).then(cb).catch((err: any) =>
-          setTimeout(() => {
-            throw err
-          }, 0)
-        )
-
 const createQueueWithTimer = (timeout: number) => {
   return (notify: () => void) => {
     setTimeout(notify, timeout)
@@ -63,10 +43,10 @@ export type AutoBatchOptions =
  *
  * By default, it will queue a notification for the end of the event loop tick.
  * However, you can pass several other options to configure the behavior:
- * - `{type: 'tick'}: queues using `queueMicrotask` (default)
- * - `{type: 'timer, timeout: number}`: queues using `setTimeout`
- * - `{type: 'raf'}`: queues using `requestAnimationFrame`
- * - `{type: 'callback', queueNotification: (notify: () => void) => void}: lets you provide your own callback
+ * - `{type: 'tick'}`: queues using `queueMicrotask`
+ * - `{type: 'timer', timeout: number}`: queues using `setTimeout`
+ * - `{type: 'raf'}`: queues using `requestAnimationFrame` (default)
+ * - `{type: 'callback', queueNotification: (notify: () => void) => void}`: lets you provide your own callback
  *
  *
  */
@@ -84,12 +64,12 @@ export const autoBatchEnhancer =
 
     const queueCallback =
       options.type === 'tick'
-        ? queueMicrotaskShim
+        ? queueMicrotask
         : options.type === 'raf'
-        ? rAF
-        : options.type === 'callback'
-        ? options.queueNotification
-        : createQueueWithTimer(options.timeout)
+          ? rAF
+          : options.type === 'callback'
+            ? options.queueNotification
+            : createQueueWithTimer(options.timeout)
 
     const notifyListeners = () => {
       // We're running at the end of the event loop tick.

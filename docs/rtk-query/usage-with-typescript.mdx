@@ -103,11 +103,11 @@ export type BaseQueryFn<
   Result = unknown,
   Error = unknown,
   DefinitionExtraOptions = {},
-  Meta = {}
+  Meta = {},
 > = (
   args: Args,
   api: BaseQueryApi,
-  extraOptions: DefinitionExtraOptions
+  extraOptions: DefinitionExtraOptions,
 ) => MaybePromise<QueryReturnValue<Result, Error, Meta>>
 
 export interface BaseQueryApi {
@@ -390,6 +390,32 @@ const api = createApi({
 })
 ```
 
+### Typing `dispatch` and `getState`
+
+`createApi` exposes the standard Redux `dispatch` and `getState` methods in several places, such as the `lifecycleApi` argument in lifecycle methods, or the `baseQueryApi` argument passed to `queryFn` methods and base query functions.
+
+Normally, [your application infers `RootState` and `AppDispatch` types from the store setup](../tutorials/typescript.md#define-root-state-and-dispatch-types). Since `createApi` has to be called prior to creating the Redux store and is used as part of the store setup sequence, it can't directly know or use those types - it would cause a circular type inference error.
+
+By default, `dispatch` usages inside of `createApi` will be typed as `ThunkDispatch`, and `getState` usages are typed as `() => unknown`. You will need to assert the type when needed - `getState() as RootState`. You may also include an explicit return type for the function as well, in order to break the circular type inference cycle:
+
+```ts no-transpile
+const api = createApi({
+  baseQuery,
+  endpoints: (build) => ({
+    getTodos: build.query<Todo[], void>({
+      async queryFn() {
+        // highlight-start
+        // Cast state as `RootState`
+        const state = getState() as RootState
+        // highlight-end
+        const text = state.todoTexts[queryFnCalls]
+        return { data: [{ id: `${queryFnCalls++}`, text }] }
+      },
+    }),
+  }),
+})
+```
+
 ### Typing `providesTags`/`invalidatesTags`
 
 RTK Query utilizes a cache tag invalidation system in order to provide [automated re-fetching](./usage/automated-refetching.mdx) of stale data.
@@ -567,7 +593,7 @@ When using `fetchBaseQuery`, the `error` property returned from a hook will have
 If an error is present, you can access error properties after narrowing the type to either `FetchBaseQueryError` or `SerializedError`.
 
 ```tsx no-transpile
-import { api } from './services/api'
+import { usePostsQuery } from './services/api'
 
 function PostDetail() {
   const { data, error, isLoading } = usePostsQuery()
@@ -587,10 +613,9 @@ function PostDetail() {
           <div>{errMsg}</div>
         </div>
       )
-    } else {
-      // you can access all properties of `SerializedError` here
-      return <div>{error.message}</div>
-    }
+    } 
+    // you can access all properties of `SerializedError` here
+    return <div>{error.message}</div>
   }
 
   if (data) {
@@ -623,7 +648,7 @@ import { FetchBaseQueryError } from '@reduxjs/toolkit/query'
  * Type predicate to narrow an unknown error to `FetchBaseQueryError`
  */
 export function isFetchBaseQueryError(
-  error: unknown
+  error: unknown,
 ): error is FetchBaseQueryError {
   return typeof error === 'object' && error != null && 'status' in error
 }
@@ -632,7 +657,7 @@ export function isFetchBaseQueryError(
  * Type predicate to narrow an unknown error to an object with a string 'message' property
  */
 export function isErrorWithMessage(
-  error: unknown
+  error: unknown,
 ): error is { message: string } {
   return (
     typeof error === 'object' &&

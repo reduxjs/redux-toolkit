@@ -1,19 +1,21 @@
+import { createDraftSafeSelectorCreator } from '../../createDraftSafeSelector'
 import type { EntityAdapter, EntityState } from '../index'
 import { createEntityAdapter } from '../index'
 import type { EntitySelectors } from '../models'
 import type { BookModel } from './fixtures/book'
 import { AClockworkOrange, AnimalFarm, TheGreatGatsby } from './fixtures/book'
 import type { Selector } from 'reselect'
-import { createSelector } from 'reselect'
+import { createSelector, weakMapMemoize } from 'reselect'
+import { vi } from 'vitest'
 
 describe('Entity State Selectors', () => {
   describe('Composed Selectors', () => {
     interface State {
-      books: EntityState<BookModel>
+      books: EntityState<BookModel, string>
     }
 
-    let adapter: EntityAdapter<BookModel>
-    let selectors: EntitySelectors<BookModel, State>
+    let adapter: EntityAdapter<BookModel, string>
+    let selectors: EntitySelectors<BookModel, State, string>
     let state: State
 
     beforeEach(() => {
@@ -65,10 +67,14 @@ describe('Entity State Selectors', () => {
   })
 
   describe('Uncomposed Selectors', () => {
-    type State = EntityState<BookModel>
+    type State = EntityState<BookModel, string>
 
-    let adapter: EntityAdapter<BookModel>
-    let selectors: EntitySelectors<BookModel, EntityState<BookModel>>
+    let adapter: EntityAdapter<BookModel, string>
+    let selectors: EntitySelectors<
+      BookModel,
+      EntityState<BookModel, string>,
+      string
+    >
     let state: State
 
     beforeEach(() => {
@@ -98,9 +104,9 @@ describe('Entity State Selectors', () => {
     })
 
     it('should type single entity from Dictionary as entity type or undefined', () => {
-      expectType<Selector<EntityState<BookModel>, BookModel | undefined>>(
-        createSelector(selectors.selectEntities, (entities) => entities[0])
-      )
+      expectType<
+        Selector<EntityState<BookModel, string>, BookModel | undefined>
+      >(createSelector(selectors.selectEntities, (entities) => entities[0]))
     })
 
     it('should create a selector for selecting the list of models', () => {
@@ -120,6 +126,25 @@ describe('Entity State Selectors', () => {
       expect(first).toBe(AClockworkOrange)
       const second = selectors.selectById(state, AnimalFarm.id)
       expect(second).toBe(AnimalFarm)
+    })
+  })
+  describe('custom createSelector instance', () => {
+    it('should use the custom createSelector function if provided', () => {
+      const memoizeSpy = vi.fn(
+        // test that we're allowed to pass memoizers with different options, as long as they're optional
+        <F extends (...args: any[]) => any>(fn: F, param?: boolean) => fn,
+      )
+      const createCustomSelector = createDraftSafeSelectorCreator(memoizeSpy)
+
+      const adapter = createEntityAdapter({
+        selectId: (book: BookModel) => book.id,
+      })
+
+      adapter.getSelectors(undefined, { createSelector: createCustomSelector })
+
+      expect(memoizeSpy).toHaveBeenCalled()
+
+      memoizeSpy.mockClear()
     })
   })
 })

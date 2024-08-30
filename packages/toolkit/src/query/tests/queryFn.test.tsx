@@ -1,17 +1,19 @@
+import type { QuerySubState } from '@internal/query/core/apiState'
+import type { Post } from '@internal/query/tests/mocks/handlers'
+import { posts } from '@internal/query/tests/mocks/handlers'
+import { actionsReducer, setupApiStore } from '@internal/tests/utils/helpers'
 import type { SerializedError } from '@reduxjs/toolkit'
 import { configureStore } from '@reduxjs/toolkit'
 import type { BaseQueryFn, FetchBaseQueryError } from '@reduxjs/toolkit/query'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
-import type { Post } from './mocks/server'
-import { posts } from './mocks/server'
-import { actionsReducer, setupApiStore } from './helpers'
-import type { QuerySubState } from '@reduxjs/toolkit/dist/query/core/apiState'
 
 describe('queryFn base implementation tests', () => {
   const baseQuery: BaseQueryFn<string, { wrappedByBaseQuery: string }, string> =
-    jest.fn((arg: string) => arg.includes('withErrorQuery')
-      ? ({ error: `cut${arg}` })
-      : ({ data: { wrappedByBaseQuery: arg } }))
+    vi.fn((arg: string) =>
+      arg.includes('withErrorQuery')
+        ? { error: `cut${arg}` }
+        : { data: { wrappedByBaseQuery: arg } },
+    )
 
   const api = createApi({
     baseQuery,
@@ -191,19 +193,19 @@ describe('queryFn base implementation tests', () => {
       endpointName.includes('Throw')
         ? `An unhandled error occurred processing a request for the endpoint "${endpointName}".
         In the case of an unhandled error, no tags will be "provided" or "invalidated". [Error: resultFrom(${endpointName})]`
-        : ''
+        : '',
     )
     if (expectedResult === 'data') {
       expect(result).toEqual(
         expect.objectContaining({
           data: `resultFrom(${endpointName})`,
-        })
+        }),
       )
     } else if (expectedResult === 'error') {
       expect(result).toEqual(
         expect.objectContaining({
           error: `resultFrom(${endpointName})`,
-        })
+        }),
       )
     } else {
       expect(result).toEqual(
@@ -211,7 +213,7 @@ describe('queryFn base implementation tests', () => {
           error: expect.objectContaining({
             message: `resultFrom(${endpointName})`,
           }),
-        })
+        }),
       )
     }
   })
@@ -239,20 +241,20 @@ describe('queryFn base implementation tests', () => {
       endpointName.includes('Throw')
         ? `An unhandled error occurred processing a request for the endpoint "${endpointName}".
         In the case of an unhandled error, no tags will be "provided" or "invalidated". [Error: resultFrom(${endpointName})]`
-        : ''
+        : '',
     )
 
     if (expectedResult === 'data') {
       expect(result).toEqual(
         expect.objectContaining({
           data: `resultFrom(${endpointName})`,
-        })
+        }),
       )
     } else if (expectedResult === 'error') {
       expect(result).toEqual(
         expect.objectContaining({
           error: `resultFrom(${endpointName})`,
-        })
+        }),
       )
     } else {
       expect(result).toEqual(
@@ -260,7 +262,7 @@ describe('queryFn base implementation tests', () => {
           error: expect.objectContaining({
             message: `resultFrom(${endpointName})`,
           }),
-        })
+        }),
       )
     }
   })
@@ -273,12 +275,12 @@ describe('queryFn base implementation tests', () => {
         result = await store.dispatch(thunk)
       }).toHaveConsoleOutput(
         `An unhandled error occurred processing a request for the endpoint "withNeither".
-        In the case of an unhandled error, no tags will be "provided" or "invalidated". [TypeError: endpointDefinition.queryFn is not a function]`
+        In the case of an unhandled error, no tags will be "provided" or "invalidated". [TypeError: endpointDefinition.queryFn is not a function]`,
       )
       expect(result!.error).toEqual(
         expect.objectContaining({
           message: 'endpointDefinition.queryFn is not a function',
-        })
+        }),
       )
     }
     {
@@ -291,12 +293,12 @@ describe('queryFn base implementation tests', () => {
         result = await store.dispatch(thunk)
       }).toHaveConsoleOutput(
         `An unhandled error occurred processing a request for the endpoint "mutationWithNeither".
-        In the case of an unhandled error, no tags will be "provided" or "invalidated". [TypeError: endpointDefinition.queryFn is not a function]`
+        In the case of an unhandled error, no tags will be "provided" or "invalidated". [TypeError: endpointDefinition.queryFn is not a function]`,
       )
       expect((result as any).error).toEqual(
         expect.objectContaining({
           message: 'endpointDefinition.queryFn is not a function',
-        })
+        }),
       )
     }
   })
@@ -308,11 +310,11 @@ describe('usage scenario tests', () => {
     exists: () => true,
     data: () => mockData,
   }
-  const get = jest.fn(() => Promise.resolve(mockDocResult))
-  const doc = jest.fn((name) => ({
+  const get = vi.fn(() => Promise.resolve(mockDocResult))
+  const doc = vi.fn((name) => ({
     get,
   }))
-  const collection = jest.fn((name) => ({ get, doc }))
+  const collection = vi.fn((name) => ({ get, doc }))
   const firestore = () => {
     return { collection, doc }
   }
@@ -370,14 +372,14 @@ describe('usage scenario tests', () => {
 
   it('can chain multiple queries together', async () => {
     const result = await storeRef.store.dispatch(
-      api.endpoints.getRandomUser.initiate()
+      api.endpoints.getRandomUser.initiate(),
     )
     expect(result.data).toEqual(posts[1])
   })
 
   it('can wrap a service like Firebase', async () => {
     const result = await storeRef.store.dispatch(
-      api.endpoints.getFirebaseUser.initiate(1)
+      api.endpoints.getFirebaseUser.initiate(1),
     )
     expect(result.data).toEqual(mockData)
   })
@@ -386,7 +388,7 @@ describe('usage scenario tests', () => {
     let result: QuerySubState<any>
     await expect(async () => {
       result = await storeRef.store.dispatch(
-        api.endpoints.getMissingFirebaseUser.initiate(1)
+        api.endpoints.getMissingFirebaseUser.initiate(1),
       )
     })
       .toHaveConsoleOutput(`An unhandled error occurred processing a request for the endpoint "getMissingFirebaseUser".
@@ -397,7 +399,7 @@ describe('usage scenario tests', () => {
       expect.objectContaining({
         message: 'Missing user',
         name: 'Error',
-      })
+      }),
     )
   })
 })

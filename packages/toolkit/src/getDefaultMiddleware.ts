@@ -1,6 +1,6 @@
-import type { Middleware, AnyAction } from 'redux'
+import type { Middleware, UnknownAction } from 'redux'
 import type { ThunkMiddleware } from 'redux-thunk'
-import thunkMiddleware from 'redux-thunk'
+import { thunk as thunkMiddleware, withExtraArgument } from 'redux-thunk'
 import type { ActionCreatorInvariantMiddlewareOptions } from './actionCreatorInvariantMiddleware'
 import { createActionCreatorInvariantMiddleware } from './actionCreatorInvariantMiddleware'
 import type { ImmutableStateInvariantMiddlewareOptions } from './immutableStateInvariantMiddleware'
@@ -11,7 +11,7 @@ import { createImmutableStateInvariantMiddleware } from './immutableStateInvaria
 import type { SerializableStateInvariantMiddlewareOptions } from './serializableStateInvariantMiddleware'
 import { createSerializableStateInvariantMiddleware } from './serializableStateInvariantMiddleware'
 import type { ExcludeFromTuple } from './tsHelpers'
-import { MiddlewareArray } from './utils'
+import { Tuple } from './utils'
 
 function isBoolean(x: any): x is boolean {
   return typeof x === 'boolean'
@@ -30,114 +30,84 @@ interface GetDefaultMiddlewareOptions {
 
 export type ThunkMiddlewareFor<
   S,
-  O extends GetDefaultMiddlewareOptions = {}
+  O extends GetDefaultMiddlewareOptions = {},
 > = O extends {
   thunk: false
 }
   ? never
   : O extends { thunk: { extraArgument: infer E } }
-  ? ThunkMiddleware<S, AnyAction, E>
-  : ThunkMiddleware<S, AnyAction>
+    ? ThunkMiddleware<S, UnknownAction, E>
+    : ThunkMiddleware<S, UnknownAction>
 
-export type CurriedGetDefaultMiddleware<S = any> = <
-  O extends Partial<GetDefaultMiddlewareOptions> = {
+export type GetDefaultMiddleware<S = any> = <
+  O extends GetDefaultMiddlewareOptions = {
     thunk: true
     immutableCheck: true
     serializableCheck: true
     actionCreatorCheck: true
-  }
+  },
 >(
-  options?: O
-) => MiddlewareArray<ExcludeFromTuple<[ThunkMiddlewareFor<S, O>], never>>
+  options?: O,
+) => Tuple<ExcludeFromTuple<[ThunkMiddlewareFor<S, O>], never>>
 
-export function curryGetDefaultMiddleware<
-  S = any
->(): CurriedGetDefaultMiddleware<S> {
-  return function curriedGetDefaultMiddleware(options) {
-    return getDefaultMiddleware(options)
-  }
-}
+export const buildGetDefaultMiddleware = <S = any>(): GetDefaultMiddleware<S> =>
+  function getDefaultMiddleware(options) {
+    const {
+      thunk = true,
+      immutableCheck = true,
+      serializableCheck = true,
+      actionCreatorCheck = true,
+    } = options ?? {}
 
-/**
- * Returns any array containing the default middleware installed by
- * `configureStore()`. Useful if you want to configure your store with a custom
- * `middleware` array but still keep the default set.
- *
- * @return The default middleware used by `configureStore()`.
- *
- * @public
- *
- * @deprecated Prefer to use the callback notation for the `middleware` option in `configureStore`
- * to access a pre-typed `getDefaultMiddleware` instead.
- */
-export function getDefaultMiddleware<
-  S = any,
-  O extends Partial<GetDefaultMiddlewareOptions> = {
-    thunk: true
-    immutableCheck: true
-    serializableCheck: true
-    actionCreatorCheck: true
-  }
->(
-  options: O = {} as O
-): MiddlewareArray<ExcludeFromTuple<[ThunkMiddlewareFor<S, O>], never>> {
-  const {
-    thunk = true,
-    immutableCheck = true,
-    serializableCheck = true,
-    actionCreatorCheck = true,
-  } = options
+    let middlewareArray = new Tuple<Middleware[]>()
 
-  let middlewareArray = new MiddlewareArray<Middleware[]>()
-
-  if (thunk) {
-    if (isBoolean(thunk)) {
-      middlewareArray.push(thunkMiddleware)
-    } else {
-      middlewareArray.push(
-        thunkMiddleware.withExtraArgument(thunk.extraArgument)
-      )
+    if (thunk) {
+      if (isBoolean(thunk)) {
+        middlewareArray.push(thunkMiddleware)
+      } else {
+        middlewareArray.push(withExtraArgument(thunk.extraArgument))
+      }
     }
-  }
 
-  if (process.env.NODE_ENV !== 'production') {
-    if (immutableCheck) {
-      /* PROD_START_REMOVE_UMD */
-      let immutableOptions: ImmutableStateInvariantMiddlewareOptions = {}
+    if (process.env.NODE_ENV !== 'production') {
+      if (immutableCheck) {
+        /* PROD_START_REMOVE_UMD */
+        let immutableOptions: ImmutableStateInvariantMiddlewareOptions = {}
 
-      if (!isBoolean(immutableCheck)) {
-        immutableOptions = immutableCheck
+        if (!isBoolean(immutableCheck)) {
+          immutableOptions = immutableCheck
+        }
+
+        middlewareArray.unshift(
+          createImmutableStateInvariantMiddleware(immutableOptions),
+        )
+        /* PROD_STOP_REMOVE_UMD */
       }
 
-      middlewareArray.unshift(
-        createImmutableStateInvariantMiddleware(immutableOptions)
-      )
-      /* PROD_STOP_REMOVE_UMD */
-    }
+      if (serializableCheck) {
+        let serializableOptions: SerializableStateInvariantMiddlewareOptions =
+          {}
 
-    if (serializableCheck) {
-      let serializableOptions: SerializableStateInvariantMiddlewareOptions = {}
+        if (!isBoolean(serializableCheck)) {
+          serializableOptions = serializableCheck
+        }
 
-      if (!isBoolean(serializableCheck)) {
-        serializableOptions = serializableCheck
+        middlewareArray.push(
+          createSerializableStateInvariantMiddleware(serializableOptions),
+        )
       }
+      if (actionCreatorCheck) {
+        let actionCreatorOptions: ActionCreatorInvariantMiddlewareOptions = {}
 
-      middlewareArray.push(
-        createSerializableStateInvariantMiddleware(serializableOptions)
-      )
-    }
-    if (actionCreatorCheck) {
-      let actionCreatorOptions: ActionCreatorInvariantMiddlewareOptions = {}
+        if (!isBoolean(actionCreatorCheck)) {
+          actionCreatorOptions = actionCreatorCheck
+        }
 
-      if (!isBoolean(actionCreatorCheck)) {
-        actionCreatorOptions = actionCreatorCheck
+        middlewareArray.unshift(
+          createActionCreatorInvariantMiddleware(actionCreatorOptions),
+        )
       }
-
-      middlewareArray.unshift(
-        createActionCreatorInvariantMiddleware(actionCreatorOptions)
-      )
     }
+
+    return middlewareArray as any
   }
-
-  return middlewareArray as any
-}

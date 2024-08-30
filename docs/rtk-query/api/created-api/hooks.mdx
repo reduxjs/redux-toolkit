@@ -246,11 +246,12 @@ const useQueryResult = api.useGetPostsQuery(arg, options)
 ```ts no-transpile
 type UseQuery = (
   arg: any | SkipToken,
-  options?: UseQueryOptions
+  options?: UseQueryOptions,
 ) => UseQueryResult
 
 type UseQueryOptions = {
   pollingInterval?: number
+  skipPollingIfUnfocused?: boolean
   refetchOnReconnect?: boolean
   refetchOnFocus?: boolean
   skip?: boolean
@@ -276,7 +277,7 @@ type UseQueryResult<T> = {
   isSuccess: boolean // Query has data from a successful load.
   isError: boolean // Query is currently in an "error" state.
 
-  refetch: () => void // A function to force refetch the query
+  refetch: () => QueryActionCreatorResult // A function to force refetch the query - returns a Promise with additional methods
 }
 ```
 
@@ -309,7 +310,7 @@ const useMutationResult = api.useUpdatePostMutation(options)
 
 ```ts no-transpile
 type UseMutation = (
-  options?: UseMutationStateOptions
+  options?: UseMutationStateOptions,
 ) => [UseMutationTrigger, UseMutationResult | SelectedUseMutationResult]
 
 type UseMutationStateOptions = {
@@ -369,7 +370,7 @@ selectFromResult: () => ({})
   - `trigger`: A function that triggers an update to the data based on the provided argument. The trigger function returns a promise with the properties shown above that may be used to handle the behavior of the promise
   - `mutationState`: A query status object containing the current loading state and metadata about the request, or the values returned by the `selectFromResult` option where applicable.
     Additionally, this object will contain
-    - a `reset` method to reset the hook back to it's original state and remove the current result from the cache
+    - a `reset` method to reset the hook back to its original state and remove the current result from the cache
     - an `originalArgs` property that contains the argument passed to the last call of the `trigger` function.
 
 #### Description
@@ -387,7 +388,7 @@ const useQueryStateResult = api.endpoints.getPosts.useQueryState(arg, options)
 ```ts no-transpile
 type UseQueryState = (
   arg: any | SkipToken,
-  options?: UseQueryStateOptions
+  options?: UseQueryStateOptions,
 ) => UseQueryStateResult | SelectedQueryStateResult
 
 type UseQueryStateOptions = {
@@ -438,13 +439,14 @@ const { refetch } = api.endpoints.getPosts.useQuerySubscription(arg, options)
 ```ts no-transpile
 type UseQuerySubscription = (
   arg: any | SkipToken,
-  options?: UseQuerySubscriptionOptions
+  options?: UseQuerySubscriptionOptions,
 ) => UseQuerySubscriptionResult
 
 type UseQuerySubscriptionOptions = {
   skip?: boolean
   refetchOnMountOrArgChange?: boolean | number
   pollingInterval?: number
+  skipPollingIfUnfocused?: boolean
   refetchOnReconnect?: boolean
   refetchOnFocus?: boolean
 }
@@ -485,6 +487,7 @@ type UseLazyQuery = (
 
 type UseLazyQueryOptions = {
   pollingInterval?: number
+  skipPollingIfUnfocused?: boolean
   refetchOnReconnect?: boolean
   refetchOnFocus?: boolean
   selectFromResult?: (result: UseQueryStateDefaultResult) => any
@@ -550,18 +553,19 @@ const [trigger, lastArg] =
 
 ```ts no-transpile
 type UseLazyQuerySubscription = (
-  options?: UseLazyQuerySubscriptionOptions
+  options?: UseLazyQuerySubscriptionOptions,
 ) => [UseLazyQuerySubscriptionTrigger, LastArg]
 
 type UseLazyQuerySubscriptionOptions = {
   pollingInterval?: number
+  skipPollingIfUnfocused?: boolean
   refetchOnReconnect?: boolean
   refetchOnFocus?: boolean
 }
 
 type UseLazyQuerySubscriptionTrigger = (
   arg: any,
-  preferCacheValue?: boolean
+  preferCacheValue?: boolean,
 ) => void
 ```
 
@@ -588,7 +592,7 @@ const prefetchCallback = api.usePrefetch(endpointName, options)
 ```ts no-transpile
 type UsePrefetch = (
   endpointName: string,
-  options?: UsePrefetchOptions
+  options?: UsePrefetchOptions,
 ) => PrefetchCallback
 
 type UsePrefetchOptions =

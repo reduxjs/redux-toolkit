@@ -1,9 +1,10 @@
 import { configureStore } from '@reduxjs/toolkit'
 import type { Context } from 'react'
+import { useContext } from 'react'
 import { useEffect } from 'react'
-import React from 'react'
+import * as React from 'react'
 import type { ReactReduxContextValue } from 'react-redux'
-import { Provider } from 'react-redux'
+import { Provider, ReactReduxContext } from 'react-redux'
 import { setupListeners } from '@reduxjs/toolkit/query'
 import type { Api } from '@reduxjs/toolkit/query'
 
@@ -31,19 +32,26 @@ import type { Api } from '@reduxjs/toolkit/query'
  * conflict with each other - please use the traditional redux setup
  * in that case.
  */
-export function ApiProvider<A extends Api<any, {}, any, any>>(props: {
+export function ApiProvider(props: {
   children: any
-  api: A
+  api: Api<any, {}, any, any>
   setupListeners?: Parameters<typeof setupListeners>[1] | false
-  context?: Context<ReactReduxContextValue>
+  context?: Context<ReactReduxContextValue | null>
 }) {
+  const context = props.context || ReactReduxContext
+  const existingContext = useContext(context)
+  if (existingContext) {
+    throw new Error(
+      'Existing Redux context detected. If you already have a store set up, please use the traditional Redux setup.',
+    )
+  }
   const [store] = React.useState(() =>
     configureStore({
       reducer: {
         [props.api.reducerPath]: props.api.reducer,
       },
       middleware: (gDM) => gDM().concat(props.api.middleware),
-    })
+    }),
   )
   // Adds the event listeners for online/offline/focus/etc
   useEffect(
@@ -51,11 +59,11 @@ export function ApiProvider<A extends Api<any, {}, any, any>>(props: {
       props.setupListeners === false
         ? undefined
         : setupListeners(store.dispatch, props.setupListeners),
-    [props.setupListeners, store.dispatch]
+    [props.setupListeners, store.dispatch],
   )
 
   return (
-    <Provider store={store} context={props.context}>
+    <Provider store={store} context={context}>
       {props.children}
     </Provider>
   )

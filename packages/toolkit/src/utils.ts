@@ -1,5 +1,4 @@
-import createNextState, { isDraftable } from 'immer'
-import type { Middleware, StoreEnhancer } from 'redux'
+import { produce as createNextState, isDraftable } from 'immer'
 
 export function getTimeMeasureUtils(maxDelay: number, fnName: string) {
   let elapsed = 0
@@ -27,92 +26,142 @@ export function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-/**
- * @public
- */
-export class MiddlewareArray<
-  Middlewares extends Middleware<any, any>[]
-> extends Array<Middlewares[number]> {
-  constructor(...items: Middlewares)
-  constructor(...args: any[]) {
-    super(...args)
-    Object.setPrototypeOf(this, MiddlewareArray.prototype)
-  }
-
-  static get [Symbol.species]() {
-    return MiddlewareArray as any
-  }
-
-  concat<AdditionalMiddlewares extends ReadonlyArray<Middleware<any, any>>>(
-    items: AdditionalMiddlewares
-  ): MiddlewareArray<[...Middlewares, ...AdditionalMiddlewares]>
-
-  concat<AdditionalMiddlewares extends ReadonlyArray<Middleware<any, any>>>(
-    ...items: AdditionalMiddlewares
-  ): MiddlewareArray<[...Middlewares, ...AdditionalMiddlewares]>
-  concat(...arr: any[]) {
-    return super.concat.apply(this, arr)
-  }
-
-  prepend<AdditionalMiddlewares extends ReadonlyArray<Middleware<any, any>>>(
-    items: AdditionalMiddlewares
-  ): MiddlewareArray<[...AdditionalMiddlewares, ...Middlewares]>
-
-  prepend<AdditionalMiddlewares extends ReadonlyArray<Middleware<any, any>>>(
-    ...items: AdditionalMiddlewares
-  ): MiddlewareArray<[...AdditionalMiddlewares, ...Middlewares]>
-
-  prepend(...arr: any[]) {
-    if (arr.length === 1 && Array.isArray(arr[0])) {
-      return new MiddlewareArray(...arr[0].concat(this))
+export function find<T>(
+  iterable: Iterable<T>,
+  comparator: (item: T) => boolean,
+): T | undefined {
+  for (const entry of iterable) {
+    if (comparator(entry)) {
+      return entry
     }
-    return new MiddlewareArray(...arr.concat(this))
   }
+
+  return undefined
 }
 
-/**
- * @public
- */
-export class EnhancerArray<
-  Enhancers extends StoreEnhancer<any, any>[]
-> extends Array<Enhancers[number]> {
-  constructor(...items: Enhancers)
-  constructor(...args: any[]) {
-    super(...args)
-    Object.setPrototypeOf(this, EnhancerArray.prototype)
+export class Tuple<Items extends ReadonlyArray<unknown> = []> extends Array<
+  Items[number]
+> {
+  constructor(length: number)
+  constructor(...items: Items)
+  constructor(...items: any[]) {
+    super(...items)
+    Object.setPrototypeOf(this, Tuple.prototype)
   }
 
-  static get [Symbol.species]() {
-    return EnhancerArray as any
+  static override get [Symbol.species]() {
+    return Tuple as any
   }
 
-  concat<AdditionalEnhancers extends ReadonlyArray<StoreEnhancer<any, any>>>(
-    items: AdditionalEnhancers
-  ): EnhancerArray<[...Enhancers, ...AdditionalEnhancers]>
-
-  concat<AdditionalEnhancers extends ReadonlyArray<StoreEnhancer<any, any>>>(
-    ...items: AdditionalEnhancers
-  ): EnhancerArray<[...Enhancers, ...AdditionalEnhancers]>
-  concat(...arr: any[]) {
+  override concat<AdditionalItems extends ReadonlyArray<unknown>>(
+    items: Tuple<AdditionalItems>,
+  ): Tuple<[...Items, ...AdditionalItems]>
+  override concat<AdditionalItems extends ReadonlyArray<unknown>>(
+    items: AdditionalItems,
+  ): Tuple<[...Items, ...AdditionalItems]>
+  override concat<AdditionalItems extends ReadonlyArray<unknown>>(
+    ...items: AdditionalItems
+  ): Tuple<[...Items, ...AdditionalItems]>
+  override concat(...arr: any[]) {
     return super.concat.apply(this, arr)
   }
 
-  prepend<AdditionalEnhancers extends ReadonlyArray<StoreEnhancer<any, any>>>(
-    items: AdditionalEnhancers
-  ): EnhancerArray<[...AdditionalEnhancers, ...Enhancers]>
-
-  prepend<AdditionalEnhancers extends ReadonlyArray<StoreEnhancer<any, any>>>(
-    ...items: AdditionalEnhancers
-  ): EnhancerArray<[...AdditionalEnhancers, ...Enhancers]>
-
+  prepend<AdditionalItems extends ReadonlyArray<unknown>>(
+    items: Tuple<AdditionalItems>,
+  ): Tuple<[...AdditionalItems, ...Items]>
+  prepend<AdditionalItems extends ReadonlyArray<unknown>>(
+    items: AdditionalItems,
+  ): Tuple<[...AdditionalItems, ...Items]>
+  prepend<AdditionalItems extends ReadonlyArray<unknown>>(
+    ...items: AdditionalItems
+  ): Tuple<[...AdditionalItems, ...Items]>
   prepend(...arr: any[]) {
     if (arr.length === 1 && Array.isArray(arr[0])) {
-      return new EnhancerArray(...arr[0].concat(this))
+      return new Tuple(...arr[0].concat(this))
     }
-    return new EnhancerArray(...arr.concat(this))
+    return new Tuple(...arr.concat(this))
   }
 }
 
 export function freezeDraftable<T>(val: T) {
   return isDraftable(val) ? createNextState(val, () => {}) : val
+}
+
+interface WeakMapEmplaceHandler<K extends object, V> {
+  /**
+   * Will be called to get value, if no value is currently in map.
+   */
+  insert?(key: K, map: WeakMap<K, V>): V
+  /**
+   * Will be called to update a value, if one exists already.
+   */
+  update?(previous: V, key: K, map: WeakMap<K, V>): V
+}
+
+interface MapEmplaceHandler<K, V> {
+  /**
+   * Will be called to get value, if no value is currently in map.
+   */
+  insert?(key: K, map: Map<K, V>): V
+  /**
+   * Will be called to update a value, if one exists already.
+   */
+  update?(previous: V, key: K, map: Map<K, V>): V
+}
+
+export function emplace<K, V>(
+  map: Map<K, V>,
+  key: K,
+  handler: MapEmplaceHandler<K, V>,
+): V
+export function emplace<K extends object, V>(
+  map: WeakMap<K, V>,
+  key: K,
+  handler: WeakMapEmplaceHandler<K, V>,
+): V
+/**
+ * Allow inserting a new value, or updating an existing one
+ * @throws if called for a key with no current value and no `insert` handler is provided
+ * @returns current value in map (after insertion/updating)
+ * ```ts
+ * // return current value if already in map, otherwise initialise to 0 and return that
+ * const num = emplace(map, key, {
+ *   insert: () => 0
+ * })
+ *
+ * // increase current value by one if already in map, otherwise initialise to 0
+ * const num = emplace(map, key, {
+ *   update: (n) => n + 1,
+ *   insert: () => 0,
+ * })
+ *
+ * // only update if value's already in the map - and increase it by one
+ * if (map.has(key)) {
+ *   const num = emplace(map, key, {
+ *     update: (n) => n + 1,
+ *   })
+ * }
+ * ```
+ *
+ * @remarks
+ * Based on https://github.com/tc39/proposal-upsert currently in Stage 2 - maybe in a few years we'll be able to replace this with direct method calls
+ */
+export function emplace<K extends object, V>(
+  map: WeakMap<K, V>,
+  key: K,
+  handler: WeakMapEmplaceHandler<K, V>,
+): V {
+  if (map.has(key)) {
+    let value = map.get(key) as V
+    if (handler.update) {
+      value = handler.update(value, key, map)
+      map.set(key, value)
+    }
+    return value
+  }
+  if (!handler.insert)
+    throw new Error('No insert provided for key not already in map')
+  const inserted = handler.insert(key, map)
+  map.set(key, inserted)
+  return inserted
 }

@@ -2,7 +2,7 @@ import type {
   ThunkDispatch,
   ActionCreatorWithoutPayload, // Workaround for API-Extractor
 } from '@reduxjs/toolkit'
-import { createAction } from '@reduxjs/toolkit'
+import { createAction } from './rtkImports'
 
 export const onFocus = /* @__PURE__ */ createAction('__rtkq/focused')
 export const onFocusLost = /* @__PURE__ */ createAction('__rtkq/unfocused')
@@ -36,8 +36,8 @@ export function setupListeners(
       onFocusLost: typeof onFocusLost
       onOnline: typeof onOnline
       onOffline: typeof onOffline
-    }
-  ) => () => void
+    },
+  ) => () => void,
 ) {
   function defaultHandler() {
     const handleFocus = () => dispatch(onFocus())
@@ -58,7 +58,7 @@ export function setupListeners(
         window.addEventListener(
           'visibilitychange',
           handleVisibilityChange,
-          false
+          false,
         )
         window.addEventListener('focus', handleFocus, false)
 

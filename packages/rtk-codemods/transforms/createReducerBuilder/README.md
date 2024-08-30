@@ -18,7 +18,7 @@ rtk-codemods createReducerBuilder path/of/files/ or/some**/*glob.js
 ## Local Usage
 
 ```
-node ./bin/cli.js createReducerBuilder path/of/files/ or/some**/*glob.js
+node ./bin/cli.mjs createReducerBuilder path/of/files/ or/some**/*glob.js
 ```
 
 ## Input / Output
@@ -39,30 +39,36 @@ node ./bin/cli.js createReducerBuilder path/of/files/ or/some**/*glob.js
 createReducer(initialState, {
   [todoAdded]: (state: SliceState, action: PayloadAction<string>) => {
     // stuff
-  },
-});
+  }
+})
 
 createReducer(initialState, {
   [todoAdded](state: SliceState, action: PayloadAction<string>) {
     // stuff
-  },
-});
+  }
+})
 ```
 
 **Output** (<small>[basic-ts.output.ts](transforms\createReducerBuilder__testfixtures__\basic-ts.output.ts)</small>):
 
 ```ts
 createReducer(initialState, (builder) => {
-  builder.addCase(todoAdded, (state: SliceState, action: PayloadAction<string>) => {
-    // stuff
-  });
-});
+  builder.addCase(
+    todoAdded,
+    (state: SliceState, action: PayloadAction<string>) => {
+      // stuff
+    }
+  )
+})
 
 createReducer(initialState, (builder) => {
-  builder.addCase(todoAdded, (state: SliceState, action: PayloadAction<string>) => {
-    // stuff
-  });
-});
+  builder.addCase(
+    todoAdded,
+    (state: SliceState, action: PayloadAction<string>) => {
+      // stuff
+    }
+  )
+})
 ```
 
 ---
@@ -88,8 +94,8 @@ createReducer(initialState, {
   },
   todoAdded1f: (state, action) => {
     //stuff
-  },
-});
+  }
+})
 
 createReducer(initialState, {
   [todoAdded2a]: (state, action) => {
@@ -100,8 +106,8 @@ createReducer(initialState, {
   },
   [todoAdded2c]: function (state, action) {
     // stuff
-  },
-});
+  }
+})
 ```
 
 **Output** (<small>[basic.output.js](transforms\createReducerBuilder__testfixtures__\basic.output.js)</small>):
@@ -110,40 +116,40 @@ createReducer(initialState, {
 createReducer(initialState, (builder) => {
   builder.addCase(todoAdded1a, (state, action) => {
     // stuff
-  });
+  })
 
-  builder.addCase(todoAdded1b, (state, action) => action.payload);
+  builder.addCase(todoAdded1b, (state, action) => action.payload)
 
   builder.addCase(todoAdded1c + 'test', (state, action) => {
     // stuff
-  });
+  })
 
   builder.addCase(todoAdded1d, (state, action) => {
     // stuff
-  });
+  })
 
   builder.addCase(todoAdded1e, (state, action) => {
     // stuff
-  });
+  })
 
   builder.addCase(todoAdded1f, (state, action) => {
     //stuff
-  });
-});
+  })
+})
 
 createReducer(initialState, (builder) => {
   builder.addCase(todoAdded2a, (state, action) => {
     // stuff
-  });
+  })
 
   builder.addCase(todoAdded2b, (state, action) => {
     // stuff
-  });
+  })
 
   builder.addCase(todoAdded2c, (state, action) => {
     // stuff
-  });
-});
+  })
+})
 ```
 
 <!--FIXTURES_CONTENT_END-->
