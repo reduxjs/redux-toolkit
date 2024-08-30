@@ -10,6 +10,11 @@ const __dirname = path.dirname(__filename);
 export default defineConfig({
   plugins: [tsconfigPaths({ projects: ['./tsconfig.json'] })],
   test: {
+    alias: process.env.TEST_DIST
+      ? {
+          '@rtk-query/codegen-openapi': path.join(__dirname, '../..', 'node_modules/@rtk-query/codegen-openapi'),
+        }
+      : undefined,
     testTimeout: 10_000,
     pool: 'forks',
     globals: true,

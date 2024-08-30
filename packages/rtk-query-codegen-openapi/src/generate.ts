@@ -1,4 +1,4 @@
-import { camelCase } from 'lodash';
+import camelCase from 'lodash.camelcase';
 import path from 'node:path';
 import ApiGenerator, {
   getOperationName as _getOperationName,

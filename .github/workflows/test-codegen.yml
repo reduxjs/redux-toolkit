@@ -26,7 +26,7 @@ jobs:
               - '.github/workflows/test-codegen.yml'
 
   build:
-    needs: changes
+    needs: [changes]
     if: ${{ needs.changes.outputs.codegen == 'true' }}
 
     defaults:
@@ -35,7 +35,7 @@ jobs:
 
     runs-on: ${{ matrix.os }}
 
-    name: Build artifact for ${{ matrix.os }} with Node ${{ matrix.node-version }}
+    name: 'Build artifact: ${{ matrix.os }} + Node ${{ matrix.node-version }}'
 
     strategy:
       matrix:
@@ -74,7 +74,7 @@ jobs:
     defaults:
       run:
         working-directory: ./packages/rtk-query-codegen-openapi
-    name: Test final build artifact with Node.js ${{ matrix.node-version }} on ${{ matrix.os }}
+    name: 'Test build artifact: ${{ matrix.os }} + Node ${{ matrix.node-version }}'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -110,7 +110,41 @@ jobs:
 
       - name: Run tests
         run: yarn test
+        env:
+          TEST_DIST: true
 
       - name: Did we fail?
         if: failure()
         run: ls -R
+
+  are-the-types-wrong:
+    name: Check package definition with are-the-types-wrong
+
+    needs: [build]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [20.x]
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Use node ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'yarn'
+
+      - name: Install deps
+        run: yarn install
+
+      - name: Download artifact
+        id: download-artifact
+        uses: actions/download-artifact@v4
+        with:
+          path: ./packages/rtk-query-codegen-openapi
+          name: package
+
+      - name: Run are-the-types-wrong
+        run: yarn dlx @arethetypeswrong/cli@latest ./package.tgz --format table
