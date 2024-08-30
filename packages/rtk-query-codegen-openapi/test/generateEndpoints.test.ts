@@ -563,3 +563,13 @@ describe('openapi spec', () => {
     expect(api).toMatchSnapshot();
   });
 });
+
+describe('query parameters', () => {
+  it('parameters overridden in swagger should also be overridden in the code', async () => {
+    const api = await generateEndpoints({
+      schemaFile: './test/fixtures/parameterOverride.yaml',
+      apiFile: './fixtures/emptyApi.ts',
+    });
+    expect(api).toMatchSnapshot();
+  });
+});

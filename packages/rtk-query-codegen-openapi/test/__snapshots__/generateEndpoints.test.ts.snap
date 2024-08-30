@@ -2524,6 +2524,24 @@ export type ExampleSchemaWrite = {
 "
 `;
 
+exports[`query parameters > parameters overridden in swagger should also be overridden in the code 1`] = `
+"import { api } from "./fixtures/emptyApi";
+const injectedRtkApi = api.injectEndpoints({
+  endpoints: (build) => ({
+    getUsersById: build.query<GetUsersByIdApiResponse, GetUsersByIdApiArg>({
+      query: (queryArg) => ({ url: \`/users/\${queryArg.id}\` }),
+    }),
+  }),
+  overrideExisting: false,
+});
+export { injectedRtkApi as enhancedApi };
+export type GetUsersByIdApiResponse = unknown;
+export type GetUsersByIdApiArg = {
+  id: number;
+};
+"
+`;
+
 exports[`should use brackets in a querystring urls arg, when the arg contains full stops 1`] = `
 "import { api } from "./fixtures/emptyApi";
 const injectedRtkApi = api.injectEndpoints({
