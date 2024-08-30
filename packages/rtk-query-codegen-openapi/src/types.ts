@@ -1,3 +1,4 @@
+import type SwaggerParser from '@apidevtools/swagger-parser';
 import type { OpenAPIV3 } from 'openapi-types';
 
 export type OperationDefinition = {
@@ -77,6 +78,10 @@ export interface CommonOptions {
    * `true` will not generate separate types for read-only and write-only properties.
    */
   mergeReadWriteOnly?: boolean;
+  /**
+   * HTTPResolverOptions object that is passed to the SwaggerParser bundle function.
+   */
+  httpResolverOptions?: SwaggerParser.HTTPResolverOptions;
 }
 
 export type TextMatcher = string | RegExp | (string | RegExp)[];

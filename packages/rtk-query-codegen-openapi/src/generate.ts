@@ -92,9 +92,10 @@ export async function generateApi(
     flattenArg = false,
     useEnumType = false,
     mergeReadWriteOnly = false,
+    httpResolverOptions,
   }: GenerationOptions
 ) {
-  const v3Doc = await getV3Doc(spec);
+  const v3Doc = await getV3Doc(spec, httpResolverOptions);
 
   const apiGen = new ApiGenerator(v3Doc, {
     unionUndefined,
