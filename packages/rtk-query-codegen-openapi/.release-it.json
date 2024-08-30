@@ -5,5 +5,8 @@
   "git": {
     "commitMessage": "Release @rtk-query/codegen-openapi ${version}",
     "tagName": "@rtk-query/codegen-openapi@${version}"
+  },
+  "npm": {
+    "versionArgs": ["--workspaces-update=false"]
   }
 }
