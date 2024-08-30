@@ -26,6 +26,15 @@ test('calling without `outputFile` returns the generated api', async () => {
   expect(api).toMatchSnapshot();
 });
 
+test('should set response type for request with default response type', async () => {
+  const api = await generateEndpoints({
+    apiFile: './fixtures/emptyApi.ts',
+    schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+  });
+  // eslint-disable-next-line no-template-curly-in-string
+  expect(api).toMatch(/export type CreateUserApiResponse =[\s\S/*]+status default successful operation[\s/*]+User;/);
+});
+
 test('endpoint filtering', async () => {
   const api = await generateEndpoints({
     unionUndefined: true,
