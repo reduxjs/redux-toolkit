@@ -8,9 +8,14 @@ export type OperationDefinition = {
   operation: OpenAPIV3.OperationObject;
 };
 
+export type ParameterDefinition = OpenAPIV3.ParameterObject;
+
 type Require<T, K extends keyof T> = { [k in K]-?: NonNullable<T[k]> } & Omit<T, K>;
 type Optional<T, K extends keyof T> = { [k in K]?: NonNullable<T[k]> } & Omit<T, K>;
 type Id<T> = { [K in keyof T]: T[K] } & {};
+type AtLeastOneKey<T> = {
+  [K in keyof T]-?: Pick<T, K> & Partial<T>;
+}[keyof T];
 
 export const operationKeys = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'] as const;
 
@@ -98,6 +103,10 @@ export type EndpointMatcherFunction = (operationName: string, operationDefinitio
 
 export type EndpointMatcher = TextMatcher | EndpointMatcherFunction;
 
+export type ParameterMatcherFunction = (parameterName: string, parameterDefinition: ParameterDefinition) => boolean;
+
+export type ParameterMatcher = TextMatcher | ParameterMatcherFunction;
+
 export interface OutputFileOptions extends Partial<CommonOptions> {
   outputFile: string;
   filterEndpoints?: EndpointMatcher;
@@ -109,10 +118,12 @@ export interface OutputFileOptions extends Partial<CommonOptions> {
   useEnumType?: boolean;
 }
 
-export interface EndpointOverrides {
+export type EndpointOverrides = {
   pattern: EndpointMatcher;
+} & AtLeastOneKey<{
   type: 'mutation' | 'query';
-}
+  parameterFilter: ParameterMatcher;
+}>;
 
 export type ConfigFile =
   | Id<Require<CommonOptions & OutputFileOptions, 'outputFile'>>

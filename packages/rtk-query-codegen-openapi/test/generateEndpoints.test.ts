@@ -67,22 +67,110 @@ test('negated endpoint filtering', async () => {
   expect(api).not.toMatch(/loginUser:/);
 });
 
-test('endpoint overrides', async () => {
-  const api = await generateEndpoints({
-    unionUndefined: true,
-    apiFile: './fixtures/emptyApi.ts',
-    schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
-    filterEndpoints: 'loginUser',
-    endpointOverrides: [
-      {
-        pattern: 'loginUser',
-        type: 'mutation',
-      },
-    ],
+describe('endpoint overrides', () => {
+  it('overrides endpoint type', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      filterEndpoints: 'loginUser',
+      endpointOverrides: [
+        {
+          pattern: 'loginUser',
+          type: 'mutation',
+        },
+      ],
+    });
+    expect(api).not.toMatch(/loginUser: build.query/);
+    expect(api).toMatch(/loginUser: build.mutation/);
+    expect(api).toMatchSnapshot('loginUser should be a mutation');
   });
-  expect(api).not.toMatch(/loginUser: build.query/);
-  expect(api).toMatch(/loginUser: build.mutation/);
-  expect(api).toMatchSnapshot('loginUser should be a mutation');
+
+  it('should override parameters by string', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      endpointOverrides: [
+        {
+          pattern: /.*/,
+          parameterFilter: 'status',
+        },
+      ],
+    });
+    expect(api).not.toMatch(/params: {\n.*queryArg\.\w+\b(?<!\bstatus)/);
+    expect(api).toMatchSnapshot('should only have the "status" parameter from the endpoints');
+  });
+
+  it('should override parameters by regex', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      endpointOverrides: [
+        {
+          pattern: /.*/,
+          parameterFilter: /e/,
+        },
+      ],
+    });
+    expect(api).not.toMatch(/params: {\n.*queryArg\.[^\We]*\W/);
+    expect(api).toMatch(/params: {\n.*queryArg\.[\we]*\W/);
+    expect(api).toMatchSnapshot('should only have the parameters with an "e"');
+  });
+
+  it('should filter by array of parameter strings / regex', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      endpointOverrides: [
+        {
+          pattern: /.*/,
+          parameterFilter: [/e/, /f/],
+        },
+      ],
+    });
+    expect(api).not.toMatch(/params: {\n.*queryArg\.[^\Wef]*\W/);
+    expect(api).toMatch(/params: {\n.*queryArg\.[\wef]*\W/);
+    expect(api).toMatchSnapshot('should only have the parameters with an "e" or "f"');
+  });
+
+  it('should filter by function', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      endpointOverrides: [
+        {
+          pattern: /.*/,
+          parameterFilter: (_, param) => !(param.in === 'header'),
+        },
+      ],
+    });
+    expect(api).not.toMatch(/headers: {/);
+    expect(api).toMatchSnapshot('should remove any parameters from the header');
+  });
+
+  it('should apply first matching filter only', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      endpointOverrides: [
+        { pattern: 'findPetsByStatus', parameterFilter: () => true },
+        {
+          pattern: /.*/,
+          parameterFilter: () => false,
+        },
+      ],
+    });
+
+    const paramsMatches = (api?.match(/params:/) || []).length;
+    expect(paramsMatches).toBe(1);
+    expect(api).not.toMatch(/headers: {/);
+    expect(api).toMatchSnapshot('should remove all parameters except for findPetsByStatus');
+  });
 });
 
 describe('option encodeParams', () => {
