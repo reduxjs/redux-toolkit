@@ -12,7 +12,7 @@ hide_title: true
 A custom middleware that detects if an action creator has been mistakenly dispatched, instead of being called before dispatching.
 
 A common mistake is to call `dispatch(actionCreator)` instead of `dispatch(actionCreator())`.
-This tends to "work" as the action creator has the static `type` property, but can lead to unexpected behaviour.
+This tends to "work" as the action creator has the static `type` property, but can lead to unexpected behavior.
 
 ## Options
 

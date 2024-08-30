@@ -51,7 +51,7 @@
     "release-it": "^14.12.5",
     "serve": "^14.2.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.4.3"
+    "typescript": "^5.5.4"
   },
   "resolutions": {
     "jest-snapshot": "29.3.1"

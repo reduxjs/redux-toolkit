@@ -26,6 +26,15 @@ test('calling without `outputFile` returns the generated api', async () => {
   expect(api).toMatchSnapshot();
 });
 
+test('should set response type for request with default response type', async () => {
+  const api = await generateEndpoints({
+    apiFile: './fixtures/emptyApi.ts',
+    schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+  });
+  // eslint-disable-next-line no-template-curly-in-string
+  expect(api).toMatch(/export type CreateUserApiResponse =[\s\S/*]+status default successful operation[\s/*]+User;/);
+});
+
 test('endpoint filtering', async () => {
   const api = await generateEndpoints({
     unionUndefined: true,
@@ -58,22 +67,165 @@ test('negated endpoint filtering', async () => {
   expect(api).not.toMatch(/loginUser:/);
 });
 
-test('endpoint overrides', async () => {
-  const api = await generateEndpoints({
-    unionUndefined: true,
+describe('endpoint overrides', () => {
+  it('overrides endpoint type', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      filterEndpoints: 'loginUser',
+      endpointOverrides: [
+        {
+          pattern: 'loginUser',
+          type: 'mutation',
+        },
+      ],
+    });
+    expect(api).not.toMatch(/loginUser: build.query/);
+    expect(api).toMatch(/loginUser: build.mutation/);
+    expect(api).toMatchSnapshot('loginUser should be a mutation');
+  });
+
+  it('should override parameters by string', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      endpointOverrides: [
+        {
+          pattern: /.*/,
+          parameterFilter: 'status',
+        },
+      ],
+    });
+    expect(api).not.toMatch(/params: {\n.*queryArg\.\w+\b(?<!\bstatus)/);
+    expect(api).toMatchSnapshot('should only have the "status" parameter from the endpoints');
+  });
+
+  it('should override parameters by regex', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      endpointOverrides: [
+        {
+          pattern: /.*/,
+          parameterFilter: /e/,
+        },
+      ],
+    });
+    expect(api).not.toMatch(/params: {\n.*queryArg\.[^\We]*\W/);
+    expect(api).toMatch(/params: {\n.*queryArg\.[\we]*\W/);
+    expect(api).toMatchSnapshot('should only have the parameters with an "e"');
+  });
+
+  it('should filter by array of parameter strings / regex', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      endpointOverrides: [
+        {
+          pattern: /.*/,
+          parameterFilter: [/e/, /f/],
+        },
+      ],
+    });
+    expect(api).not.toMatch(/params: {\n.*queryArg\.[^\Wef]*\W/);
+    expect(api).toMatch(/params: {\n.*queryArg\.[\wef]*\W/);
+    expect(api).toMatchSnapshot('should only have the parameters with an "e" or "f"');
+  });
+
+  it('should filter by function', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      endpointOverrides: [
+        {
+          pattern: /.*/,
+          parameterFilter: (_, param) => !(param.in === 'header'),
+        },
+      ],
+    });
+    expect(api).not.toMatch(/headers: {/);
+    expect(api).toMatchSnapshot('should remove any parameters from the header');
+  });
+
+  it('should apply first matching filter only', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      endpointOverrides: [
+        { pattern: 'findPetsByStatus', parameterFilter: () => true },
+        {
+          pattern: /.*/,
+          parameterFilter: () => false,
+        },
+      ],
+    });
+
+    const paramsMatches = (api?.match(/params:/) || []).length;
+    expect(paramsMatches).toBe(1);
+    expect(api).not.toMatch(/headers: {/);
+    expect(api).toMatchSnapshot('should remove all parameters except for findPetsByStatus');
+  });
+});
+
+describe('option encodeParams', () => {
+  const config = {
     apiFile: './fixtures/emptyApi.ts',
     schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
-    filterEndpoints: 'loginUser',
-    endpointOverrides: [
-      {
-        pattern: 'loginUser',
-        type: 'mutation',
-      },
-    ],
+    encodeParams: true,
+  };
+
+  it('should encode query parameters', async () => {
+    const api = await generateEndpoints({
+      ...config,
+      filterEndpoints: ['findPetsByStatus'],
+    });
+    expect(api).toContain('status: encodeURIComponent(String(queryArg.status))');
   });
-  expect(api).not.toMatch(/loginUser: build.query/);
-  expect(api).toMatch(/loginUser: build.mutation/);
-  expect(api).toMatchSnapshot('loginUser should be a mutation');
+
+  it('should encode path parameters', async () => {
+    const api = await generateEndpoints({
+      ...config,
+      filterEndpoints: ['getOrderById'],
+    });
+    // eslint-disable-next-line no-template-curly-in-string
+    expect(api).toContain('`/store/order/${encodeURIComponent(String(queryArg.orderId))}`');
+  });
+
+  it('should not encode body parameters', async () => {
+    const api = await generateEndpoints({
+      ...config,
+      filterEndpoints: ['addPet'],
+    });
+    expect(api).toContain('body: queryArg.pet');
+    expect(api).not.toContain('body: encodeURIComponent(String(queryArg.pet))');
+  });
+
+  it('should work correctly with flattenArg option', async () => {
+    const api = await generateEndpoints({
+      ...config,
+      flattenArg: true,
+      filterEndpoints: ['getOrderById'],
+    });
+    // eslint-disable-next-line no-template-curly-in-string
+    expect(api).toContain('`/store/order/${encodeURIComponent(String(queryArg))}`');
+  });
+
+  it('should not encode parameters when encodeParams is false', async () => {
+    const api = await generateEndpoints({
+      ...config,
+      encodeParams: false,
+      filterEndpoints: ['findPetsByStatus', 'getOrderById'],
+    });
+    expect(api).toContain('status: queryArg.status');
+    // eslint-disable-next-line no-template-curly-in-string
+    expect(api).toContain('`/store/order/${queryArg.orderId}`');
+  });
 });
 
 describe('option flattenArg', () => {
@@ -98,7 +250,7 @@ describe('option flattenArg', () => {
       ...config,
       filterEndpoints: ['findPetsByStatus'],
     });
-    expect(api).toContain('params: { status: queryArg }');
+    expect(api).toContain('status: queryArg');
     expect(api).not.toContain('export type FindPetsByStatusApiArg = {');
   });
 
@@ -116,6 +268,22 @@ describe('option flattenArg', () => {
       filterEndpoints: ['uploadFile'],
     });
     expect(api).toContain('queryArg.body');
+  });
+
+  it('should flatten an optional arg as an optional type', async () => {
+    const api = await generateEndpoints({
+      ...config,
+      filterEndpoints: 'findPetsByTags',
+    });
+    expect(api).toMatch(/\| undefined/);
+  });
+
+  it('should not flatten a non-optional arg with a superfluous union', async () => {
+    const api = await generateEndpoints({
+      ...config,
+      filterEndpoints: 'getPetById',
+    });
+    expect(api).not.toMatch(/^\s*\|/);
   });
 });
 
@@ -391,6 +559,16 @@ describe('openapi spec', () => {
       schemaFile: './test/fixtures/readOnlyWriteOnly.yaml',
       apiFile: './fixtures/emptyApi.ts',
       mergeReadWriteOnly: true,
+    });
+    expect(api).toMatchSnapshot();
+  });
+});
+
+describe('query parameters', () => {
+  it('parameters overridden in swagger should also be overridden in the code', async () => {
+    const api = await generateEndpoints({
+      schemaFile: './test/fixtures/parameterOverride.yaml',
+      apiFile: './fixtures/emptyApi.ts',
     });
     expect(api).toMatchSnapshot();
   });

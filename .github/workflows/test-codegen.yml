@@ -67,7 +67,7 @@ jobs:
 
       - name: Did we fail?
         if: failure()
-        run: ls -R
+        run: ls -lR
 
   test:
     needs: build

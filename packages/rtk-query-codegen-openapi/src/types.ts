@@ -1,3 +1,4 @@
+import type SwaggerParser from '@apidevtools/swagger-parser';
 import type { OpenAPIV3 } from 'openapi-types';
 
 export type OperationDefinition = {
@@ -7,9 +8,14 @@ export type OperationDefinition = {
   operation: OpenAPIV3.OperationObject;
 };
 
+export type ParameterDefinition = OpenAPIV3.ParameterObject;
+
 type Require<T, K extends keyof T> = { [k in K]-?: NonNullable<T[k]> } & Omit<T, K>;
 type Optional<T, K extends keyof T> = { [k in K]?: NonNullable<T[k]> } & Omit<T, K>;
 type Id<T> = { [K in keyof T]: T[K] } & {};
+type AtLeastOneKey<T> = {
+  [K in keyof T]-?: Pick<T, K> & Partial<T>;
+}[keyof T];
 
 export const operationKeys = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'] as const;
 
@@ -64,6 +70,11 @@ export interface CommonOptions {
   tag?: boolean;
   /**
    * defaults to false
+   * `true` will add `encodeURIComponent` to the generated query params
+   */
+  encodeParams?: boolean;
+  /**
+   * defaults to false
    * `true` will "flatten" the arg so that you can do things like `useGetEntityById(1)` instead of `useGetEntityById({ entityId: 1 })`
    */
   flattenArg?: boolean;
@@ -72,6 +83,18 @@ export interface CommonOptions {
    * `true` will not generate separate types for read-only and write-only properties.
    */
   mergeReadWriteOnly?: boolean;
+  /**
+   *
+   * HTTPResolverOptions object that is passed to the SwaggerParser bundle function.
+   */
+  httpResolverOptions?: SwaggerParser.HTTPResolverOptions;
+
+  /**
+   * defaults to undefined
+   * If present the given file will be used as prettier config when formatting the generated code. If undefined the default prettier config
+   * resolution mechanism will be used.
+   */
+  prettierConfigFile?: string;
 }
 
 export type TextMatcher = string | RegExp | (string | RegExp)[];
@@ -79,6 +102,10 @@ export type TextMatcher = string | RegExp | (string | RegExp)[];
 export type EndpointMatcherFunction = (operationName: string, operationDefinition: OperationDefinition) => boolean;
 
 export type EndpointMatcher = TextMatcher | EndpointMatcherFunction;
+
+export type ParameterMatcherFunction = (parameterName: string, parameterDefinition: ParameterDefinition) => boolean;
+
+export type ParameterMatcher = TextMatcher | ParameterMatcherFunction;
 
 export interface OutputFileOptions extends Partial<CommonOptions> {
   outputFile: string;
@@ -91,10 +118,12 @@ export interface OutputFileOptions extends Partial<CommonOptions> {
   useEnumType?: boolean;
 }
 
-export interface EndpointOverrides {
+export type EndpointOverrides = {
   pattern: EndpointMatcher;
+} & AtLeastOneKey<{
   type: 'mutation' | 'query';
-}
+  parameterFilter: ParameterMatcher;
+}>;
 
 export type ConfigFile =
   | Id<Require<CommonOptions & OutputFileOptions, 'outputFile'>>

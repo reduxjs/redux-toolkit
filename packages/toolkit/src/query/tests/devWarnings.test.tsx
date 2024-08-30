@@ -130,7 +130,7 @@ describe('missing reducer', () => {
       await store.dispatch(api1.endpoints.q1.initiate(undefined))
     })
 
-    test(`warning behaviour`, () => {
+    test(`warning behavior`, () => {
       const store = configureStore({
         reducer: { x: () => 0 },
         // @ts-expect-error
