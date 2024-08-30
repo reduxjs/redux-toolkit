@@ -1,16 +1,20 @@
-import del from 'del';
-import fs from 'node:fs';
+import { generateEndpoints } from '@rtk-query/codegen-openapi';
+import fs from 'node:fs/promises';
 import path, { resolve } from 'node:path';
-import { generateEndpoints } from '../src';
+import { rimraf } from 'rimraf';
+import { isDir, removeTempDir } from './cli.test';
 
 const tmpDir = path.resolve(__dirname, 'tmp');
 
 beforeAll(async () => {
-  if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
+  if (!(await isDir(tmpDir))) {
+    await fs.mkdir(tmpDir, { recursive: true });
+  }
+  return removeTempDir;
 });
 
-afterEach(() => {
-  del.sync(`${tmpDir}/*.ts`);
+afterEach(async () => {
+  await rimraf(`${tmpDir}/*.ts`, { glob: true });
 });
 
 test('calling without `outputFile` returns the generated api', async () => {
@@ -263,6 +267,16 @@ test('apiImport builds correct `import` statement', async () => {
 });
 
 describe('import paths', () => {
+  beforeAll(async () => {
+    if (!(await isDir(tmpDir))) {
+      await fs.mkdir(tmpDir, { recursive: true });
+    }
+  });
+
+  afterEach(async () => {
+    await rimraf(`${tmpDir}/*.ts`, { glob: true });
+  });
+
   test('should create paths relative to `outFile` when `apiFile` is relative (different folder)', async () => {
     await generateEndpoints({
       unionUndefined: true,
@@ -273,13 +287,11 @@ describe('import paths', () => {
       hooks: true,
       tag: true,
     });
-    expect(await fs.promises.readFile('./test/tmp/out.ts', 'utf8')).toContain(
-      "import { api } from '../../fixtures/emptyApi'"
-    );
+    expect(await fs.readFile('./test/tmp/out.ts', 'utf8')).toContain("import { api } from '../../fixtures/emptyApi'");
   });
 
   test('should create paths relative to `outFile` when `apiFile` is relative (same folder)', async () => {
-    await fs.promises.writeFile('./test/tmp/emptyApi.ts', await fs.promises.readFile('./test/fixtures/emptyApi.ts'));
+    await fs.writeFile('./test/tmp/emptyApi.ts', await fs.readFile('./test/fixtures/emptyApi.ts', 'utf8'));
 
     await generateEndpoints({
       unionUndefined: true,
@@ -290,7 +302,7 @@ describe('import paths', () => {
       hooks: true,
       tag: true,
     });
-    expect(await fs.promises.readFile('./test/tmp/out.ts', 'utf8')).toContain("import { api } from './emptyApi'");
+    expect(await fs.readFile('./test/tmp/out.ts', 'utf8')).toContain("import { api } from './emptyApi'");
   });
 });
 
