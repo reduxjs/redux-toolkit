@@ -181,6 +181,22 @@ describe('option flattenArg', () => {
     });
     expect(api).toContain('queryArg.body');
   });
+
+  it('should flatten an optional arg as an optional type', async () => {
+    const api = await generateEndpoints({
+      ...config,
+      filterEndpoints: 'findPetsByTags',
+    });
+    expect(api).toMatch(/\| undefined/);
+  });
+
+  it('should not flatten a non-optional arg with a superfluous union', async () => {
+    const api = await generateEndpoints({
+      ...config,
+      filterEndpoints: 'getPetById',
+    });
+    expect(api).not.toMatch(/^\s*\|/);
+  });
 });
 
 test('hooks generation', async () => {

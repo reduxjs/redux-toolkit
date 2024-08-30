@@ -331,7 +331,6 @@ export async function generateApi(
     const queryArgValues = Object.values(queryArg);
 
     const isFlatArg = flattenArg && queryArgValues.length === 1;
-
     const QueryArg = factory.createTypeReferenceNode(
       registerInterface(
         factory.createTypeAliasDeclaration(
@@ -340,7 +339,16 @@ export async function generateApi(
           undefined,
           queryArgValues.length > 0
             ? isFlatArg
-              ? withQueryComment({ ...queryArgValues[0].type }, queryArgValues[0], false)
+              ? withQueryComment(
+                  factory.createUnionTypeNode([
+                    queryArgValues[0].type,
+                    ...(!queryArgValues[0].required
+                      ? [factory.createKeywordTypeNode(ts.SyntaxKind.UndefinedKeyword)]
+                      : []),
+                  ]),
+                  queryArgValues[0],
+                  false
+                )
               : factory.createTypeLiteralNode(
                   queryArgValues.map((def) =>
                     withQueryComment(
