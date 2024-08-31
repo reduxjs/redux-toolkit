@@ -24,6 +24,7 @@ export type GenerationOptions = Id<
     Optional<OutputFileOptions, 'outputFile'> & {
       isDataResponse?(
         code: string,
+        includeDefault: boolean,
         response: OpenAPIV3.ResponseObject,
         allResponses: OpenAPIV3.ResponsesObject
       ): boolean;
@@ -82,6 +83,12 @@ export interface CommonOptions {
    * `true` will "flatten" the arg so that you can do things like `useGetEntityById(1)` instead of `useGetEntityById({ entityId: 1 })`
    */
   flattenArg?: boolean;
+  /**
+   * default to false
+   * If set to `true`, the default response type will be included in the generated code for all endpoints.
+   * @see https://swagger.io/docs/specification/describing-responses/#default
+   */
+  includeDefault?: boolean;
   /**
    * default to false
    * `true` will not generate separate types for read-only and write-only properties.

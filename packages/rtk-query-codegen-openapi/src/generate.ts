@@ -30,8 +30,8 @@ import { factory } from './utils/factory';
 const generatedApiName = 'injectedRtkApi';
 const v3DocCache: Record<string, OpenAPIV3.Document> = {};
 
-function defaultIsDataResponse(code: string) {
-  if (code === 'default') {
+function defaultIsDataResponse(code: string, includeDefault: boolean) {
+  if (includeDefault && code === 'default') {
     return true;
   }
   const parsedCode = Number(code);
@@ -112,6 +112,7 @@ export async function generateApi(
     unionUndefined,
     encodeParams = false,
     flattenArg = false,
+    includeDefault = false,
     useEnumType = false,
     mergeReadWriteOnly = false,
     httpResolverOptions,
@@ -253,7 +254,9 @@ export async function generateApi(
                 factory.createKeywordTypeNode(ts.SyntaxKind.UndefinedKeyword),
             ] as const
         )
-        .filter(([status, response]) => isDataResponse(status, apiGen.resolve(response), responses || {}))
+        .filter(([status, response]) =>
+          isDataResponse(status, includeDefault, apiGen.resolve(response), responses || {})
+        )
         .filter(([_1, _2, type]) => type !== keywordType.void)
         .map(([code, response, type]) =>
           ts.addSyntheticLeadingComment(
