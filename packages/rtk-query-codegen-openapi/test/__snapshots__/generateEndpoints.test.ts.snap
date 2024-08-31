@@ -167,7 +167,7 @@ export type DeleteOrderApiArg = {
   /** ID of the order that needs to be deleted */
   orderId: number;
 };
-export type CreateUserApiResponse = /** status default successful operation */ User;
+export type CreateUserApiResponse = unknown;
 export type CreateUserApiArg = {
   /** Created user object */
   user: User;
@@ -414,7 +414,7 @@ export type DeleteOrderApiArg = {
   /** ID of the order that needs to be deleted */
   orderId: number;
 };
-export type CreateUserApiResponse = /** status default successful operation */ User;
+export type CreateUserApiResponse = unknown;
 export type CreateUserApiArg = {
   /** Created user object */
   user: User;
@@ -714,8 +714,7 @@ export type DeleteOrderApiArg = {
   /** ID of the order that needs to be deleted */
   orderId: number;
 };
-export type CreateUserApiResponse =
-  /** status default successful operation */ User;
+export type CreateUserApiResponse = unknown;
 export type CreateUserApiArg = {
   /** Created user object */
   user: User;
@@ -1125,8 +1124,7 @@ export type DeleteOrderApiArg = {
   /** ID of the order that needs to be deleted */
   orderId: number;
 };
-export type CreateUserApiResponse =
-  /** status default successful operation */ User;
+export type CreateUserApiResponse = unknown;
 export type CreateUserApiArg = {
   /** Created user object */
   user: User;
@@ -1404,8 +1402,7 @@ export type DeleteOrderApiArg = {
   /** ID of the order that needs to be deleted */
   orderId: number;
 };
-export type CreateUserApiResponse =
-  /** status default successful operation */ User;
+export type CreateUserApiResponse = unknown;
 export type CreateUserApiArg = {
   /** Created user object */
   user: User;
@@ -1702,8 +1699,7 @@ export type DeleteOrderApiArg = {
   /** ID of the order that needs to be deleted */
   orderId: number;
 };
-export type CreateUserApiResponse =
-  /** status default successful operation */ User;
+export type CreateUserApiResponse = unknown;
 export type CreateUserApiArg = {
   /** Created user object */
   user: User;
@@ -1986,8 +1982,7 @@ export type DeleteOrderApiArg = {
   /** ID of the order that needs to be deleted */
   orderId: number;
 };
-export type CreateUserApiResponse =
-  /** status default successful operation */ User;
+export type CreateUserApiResponse = unknown;
 export type CreateUserApiArg = {
   /** Created user object */
   user: User;
@@ -2262,8 +2257,7 @@ export type DeleteOrderApiArg = {
   /** ID of the order that needs to be deleted */
   orderId: number;
 };
-export type CreateUserApiResponse =
-  /** status default successful operation */ User;
+export type CreateUserApiResponse = unknown;
 export type CreateUserApiArg = {
   /** Created user object */
   user: User;
@@ -2757,8 +2751,7 @@ export type DeleteOrderV2ApiArg = {
   /** ID of the order that needs to be deleted */
   orderId: number;
 };
-export type CreateUserV2ApiResponse =
-  /** status default successful operation */ User;
+export type CreateUserV2ApiResponse = unknown;
 export type CreateUserV2ApiArg = {
   /** Created user object */
   user: User;
@@ -3385,8 +3378,7 @@ export type DeleteOrderApiArg = {
   /** ID of the order that needs to be deleted */
   orderId: number;
 };
-export type CreateUserApiResponse =
-  /** status default successful operation */ User;
+export type CreateUserApiResponse = unknown;
 export type CreateUserApiArg = {
   /** Created user object */
   user: User;
@@ -3787,8 +3779,7 @@ export type DeleteOrderApiArg = {
   /** ID of the order that needs to be deleted */
   orderId: number;
 };
-export type CreateUserApiResponse =
-  /** status default successful operation */ User;
+export type CreateUserApiResponse = unknown;
 export type CreateUserApiArg = {
   /** Created user object */
   user: User;
