@@ -83,15 +83,20 @@ export type AsyncThunkSliceReducerConfig<
   options?: AsyncThunkOptions<ThunkArg, ThunkApiConfig>
 }
 
-export type AsyncThunkSliceReducerDefinition<
+export interface AsyncThunkSliceReducerDefinition<
   State,
   ThunkArg extends any,
   Returned = unknown,
   ThunkApiConfig extends AsyncThunkConfig = {},
-> = AsyncThunkSliceReducerConfig<State, ThunkArg, Returned, ThunkApiConfig> &
-  ReducerDefinition<ReducerType.asyncThunk> & {
-    payloadCreator: AsyncThunkPayloadCreator<Returned, ThunkArg, ThunkApiConfig>
-  }
+> extends AsyncThunkSliceReducerConfig<
+      State,
+      ThunkArg,
+      Returned,
+      ThunkApiConfig
+    >,
+    ReducerDefinition<ReducerType.asyncThunk> {
+  payloadCreator: AsyncThunkPayloadCreator<Returned, ThunkArg, ThunkApiConfig>
+}
 
 /**
  * Providing these as part of the config would cause circular types, so we disallow passing them
