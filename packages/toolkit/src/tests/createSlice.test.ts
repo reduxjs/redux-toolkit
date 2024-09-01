@@ -324,7 +324,7 @@ describe('createSlice', () => {
     })
   })
 
-  describe('behaviour with enhanced case reducers', () => {
+  describe('behavior with enhanced case reducers', () => {
     it('should pass all arguments to the prepare function', () => {
       const prepare = vi.fn((payload, somethingElse) => ({ payload }))
 
@@ -1023,9 +1023,7 @@ describe('createSlice', () => {
       test('context.selectSlice throws if unable to find slice state', () => {
         const patchCreator: ReducerCreator<typeof patchCreatorType> = {
           type: patchCreatorType,
-          create() {
-            return { _reducerDefinitionType: patchCreatorType }
-          },
+          create: { _reducerDefinitionType: patchCreatorType },
           handle({ type }, _def, context) {
             const patchedAction = createAction<Patch[]>(type)
             function patchThunk(
@@ -1063,7 +1061,7 @@ describe('createSlice', () => {
           name: 'person',
           initialState: { name: 'Alice' },
           reducers: (create) => ({
-            patchPerson: create.patcher(),
+            patchPerson: create.patcher,
           }),
         })
 
@@ -1282,7 +1280,7 @@ declare module '@reduxjs/toolkit' {
     >
     [patchCreatorType]: ReducerCreatorEntry<
       State extends Objectish
-        ? () => ReducerDefinition<typeof patchCreatorType>
+        ? ReducerDefinition<typeof patchCreatorType>
         : never,
       {
         actions: {

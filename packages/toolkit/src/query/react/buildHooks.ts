@@ -9,6 +9,7 @@ import type {
   ApiContext,
   ApiEndpointMutation,
   ApiEndpointQuery,
+  BaseQueryFn,
   CoreModule,
   EndpointDefinitions,
   MutationActionCreatorResult,
@@ -41,10 +42,8 @@ import {
   useRef,
   useState,
 } from 'react'
-
 import { shallowEqual } from 'react-redux'
-import type { BaseQueryFn } from '../baseQueryTypes'
-import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
+import type { SubscriptionSelectors } from '../core'
 import { defaultSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import type { UninitializedValue } from './constants'
 import { UNINITIALIZED_VALUE } from './constants'
@@ -53,16 +52,31 @@ import { useStableQueryArgs } from './useSerializedStableValue'
 import { useShallowStableValue } from './useShallowStableValue'
 
 // Copy-pasted from React-Redux
-export const useIsomorphicLayoutEffect =
-  typeof window !== 'undefined' &&
-  !!window.document &&
-  !!window.document.createElement
-    ? useLayoutEffect
-    : useEffect
+const canUseDOM = () =>
+  !!(
+    typeof window !== 'undefined' &&
+    typeof window.document !== 'undefined' &&
+    typeof window.document.createElement !== 'undefined'
+  )
 
-export interface QueryHooks<
+const isDOM = /* @__PURE__ */ canUseDOM()
+
+// Under React Native, we know that we always want to use useLayoutEffect
+
+const isRunningInReactNative = () =>
+  typeof navigator !== 'undefined' && navigator.product === 'ReactNative'
+
+const isReactNative = /* @__PURE__ */ isRunningInReactNative()
+
+const getUseIsomorphicLayoutEffect = () =>
+  isDOM || isReactNative ? useLayoutEffect : useEffect
+
+export const useIsomorphicLayoutEffect =
+  /* @__PURE__ */ getUseIsomorphicLayoutEffect()
+
+export type QueryHooks<
   Definition extends QueryDefinition<any, any, any, any, any>,
-> {
+> = {
   useQuery: UseQuery<Definition>
   useLazyQuery: UseLazyQuery<Definition>
   useQuerySubscription: UseQuerySubscription<Definition>
@@ -70,9 +84,9 @@ export interface QueryHooks<
   useQueryState: UseQueryState<Definition>
 }
 
-export interface MutationHooks<
+export type MutationHooks<
   Definition extends MutationDefinition<any, any, any, any, any>,
-> {
+> = {
   useMutation: UseMutation<Definition>
 }
 
@@ -123,7 +137,7 @@ export type TypedUseQueryHookResult<
 > = TypedUseQueryStateResult<ResultType, QueryArg, BaseQuery, R> &
   TypedUseQuerySubscriptionResult<ResultType, QueryArg, BaseQuery>
 
-interface UseQuerySubscriptionOptions extends SubscriptionOptions {
+type UseQuerySubscriptionOptions = SubscriptionOptions & {
   /**
    * Prevents a query from automatically running.
    *
@@ -522,7 +536,7 @@ export type UseMutationStateResult<
 > = TSHelpersNoInfer<R> & {
   originalArgs?: QueryArgFrom<D>
   /**
-   * Resets the hook state to it's initial `uninitialized` state.
+   * Resets the hook state to its initial `uninitialized` state.
    * This will also remove the last result from the cache.
    */
   reset: () => void
@@ -690,7 +704,10 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     // isFetching = true any time a request is in flight
     const isFetching = currentState.isLoading
     // isLoading = true only when loading while no data is present yet (initial load with no data in the cache)
-    const isLoading = (!lastResult || lastResult.isLoading || lastResult.isUninitialized) && !hasData && isFetching
+    const isLoading =
+      (!lastResult || lastResult.isLoading || lastResult.isUninitialized) &&
+      !hasData &&
+      isFetching
     // isSuccess = true when data is present
     const isSuccess = currentState.isSuccess || (isFetching && hasData)
 

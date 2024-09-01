@@ -1,43 +1,38 @@
 import type {
-  Action as ReduxAction,
-  UnknownAction,
-  Dispatch as ReduxDispatch,
-  Middleware,
-} from 'redux'
-import type { TSHelpersExtractDispatchExtensions } from '@reduxjs/toolkit'
-import { createDynamicMiddleware as cDM } from '@reduxjs/toolkit'
-import type { ReactReduxContextValue } from 'react-redux'
-import {
-  ReactReduxContext,
-  useDispatch as useDefaultDispatch,
-  createDispatchHook,
-} from 'react-redux'
-import type { Context } from 'react'
-import type {
   DynamicMiddlewareInstance,
   GetDispatch,
   GetState,
   MiddlewareApiConfig,
+  TSHelpersExtractDispatchExtensions,
 } from '@reduxjs/toolkit'
+import { createDynamicMiddleware as cDM } from '@reduxjs/toolkit'
+import type { Context } from 'react'
+import type { ReactReduxContextValue } from 'react-redux'
+import {
+  createDispatchHook,
+  ReactReduxContext,
+  useDispatch as useDefaultDispatch,
+} from 'react-redux'
+import type { Action, Dispatch, Middleware, UnknownAction } from 'redux'
 
 export type UseDispatchWithMiddlewareHook<
-  Middlewares extends Middleware<any, State, Dispatch>[] = [],
+  Middlewares extends Middleware<any, State, DispatchType>[] = [],
   State = any,
-  Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>,
-> = () => TSHelpersExtractDispatchExtensions<Middlewares> & Dispatch
+  DispatchType extends Dispatch<UnknownAction> = Dispatch<UnknownAction>,
+> = () => TSHelpersExtractDispatchExtensions<Middlewares> & DispatchType
 
 export type CreateDispatchWithMiddlewareHook<
   State = any,
-  Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>,
+  DispatchType extends Dispatch<UnknownAction> = Dispatch<UnknownAction>,
 > = {
   <
     Middlewares extends [
-      Middleware<any, State, Dispatch>,
-      ...Middleware<any, State, Dispatch>[],
+      Middleware<any, State, DispatchType>,
+      ...Middleware<any, State, DispatchType>[],
     ],
   >(
     ...middlewares: Middlewares
-  ): UseDispatchWithMiddlewareHook<Middlewares, State, Dispatch>
+  ): UseDispatchWithMiddlewareHook<Middlewares, State, DispatchType>
   withTypes<
     MiddlewareConfig extends MiddlewareApiConfig,
   >(): CreateDispatchWithMiddlewareHook<
@@ -46,35 +41,35 @@ export type CreateDispatchWithMiddlewareHook<
   >
 }
 
-type ActionFromDispatch<Dispatch extends ReduxDispatch<ReduxAction>> =
-  Dispatch extends ReduxDispatch<infer Action> ? Action : never
+type ActionFromDispatch<DispatchType extends Dispatch<Action>> =
+  DispatchType extends Dispatch<infer Action> ? Action : never
 
-interface ReactDynamicMiddlewareInstance<
+type ReactDynamicMiddlewareInstance<
   State = any,
-  Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>,
-> extends DynamicMiddlewareInstance<State, Dispatch> {
+  DispatchType extends Dispatch<UnknownAction> = Dispatch<UnknownAction>,
+> = DynamicMiddlewareInstance<State, DispatchType> & {
   createDispatchWithMiddlewareHookFactory: (
     context?: Context<ReactReduxContextValue<
       State,
-      ActionFromDispatch<Dispatch>
+      ActionFromDispatch<DispatchType>
     > | null>,
-  ) => CreateDispatchWithMiddlewareHook<State, Dispatch>
+  ) => CreateDispatchWithMiddlewareHook<State, DispatchType>
   createDispatchWithMiddlewareHook: CreateDispatchWithMiddlewareHook<
     State,
-    Dispatch
+    DispatchType
   >
 }
 
 export const createDynamicMiddleware = <
   State = any,
-  Dispatch extends ReduxDispatch<UnknownAction> = ReduxDispatch<UnknownAction>,
->(): ReactDynamicMiddlewareInstance<State, Dispatch> => {
-  const instance = cDM<State, Dispatch>()
+  DispatchType extends Dispatch<UnknownAction> = Dispatch<UnknownAction>,
+>(): ReactDynamicMiddlewareInstance<State, DispatchType> => {
+  const instance = cDM<State, DispatchType>()
   const createDispatchWithMiddlewareHookFactory = (
     // @ts-ignore
     context: Context<ReactReduxContextValue<
       State,
-      ActionFromDispatch<Dispatch>
+      ActionFromDispatch<DispatchType>
     > | null> = ReactReduxContext,
   ) => {
     const useDispatch =
@@ -82,7 +77,7 @@ export const createDynamicMiddleware = <
         ? useDefaultDispatch
         : createDispatchHook(context)
     function createDispatchWithMiddlewareHook<
-      Middlewares extends Middleware<any, State, Dispatch>[],
+      Middlewares extends Middleware<any, State, DispatchType>[],
     >(...middlewares: Middlewares) {
       instance.addMiddleware(...middlewares)
       return useDispatch
@@ -91,7 +86,7 @@ export const createDynamicMiddleware = <
       createDispatchWithMiddlewareHook
     return createDispatchWithMiddlewareHook as CreateDispatchWithMiddlewareHook<
       State,
-      Dispatch
+      DispatchType
     >
   }
 

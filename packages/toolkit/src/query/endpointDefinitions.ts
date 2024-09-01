@@ -1,34 +1,43 @@
-import type { SerializeQueryArgs } from './defaultSerializeQueryArgs'
-import type { QuerySubState, RootState } from './core/apiState'
+import type { Api } from '@reduxjs/toolkit/query'
 import type {
+  BaseQueryApi,
+  BaseQueryArg,
+  BaseQueryError,
   BaseQueryExtraOptions,
   BaseQueryFn,
-  BaseQueryResult,
-  BaseQueryArg,
-  BaseQueryApi,
-  QueryReturnValue,
-  BaseQueryError,
   BaseQueryMeta,
+  BaseQueryResult,
+  QueryReturnValue,
 } from './baseQueryTypes'
+import type { QuerySubState, RootState } from './core'
+import type { CacheCollectionQueryExtraOptions } from './core/buildMiddleware/cacheCollection'
 import type {
+  CacheLifecycleMutationExtraOptions,
+  CacheLifecycleQueryExtraOptions,
+} from './core/buildMiddleware/cacheLifecycle'
+import type {
+  QueryLifecycleMutationExtraOptions,
+  QueryLifecycleQueryExtraOptions,
+} from './core/buildMiddleware/queryLifecycle'
+import type { SerializeQueryArgs } from './defaultSerializeQueryArgs'
+import type { NEVER } from './fakeBaseQuery'
+import type {
+  CastAny,
   HasRequiredProps,
   MaybePromise,
-  OmitFromUnion,
-  CastAny,
   NonUndefined,
+  OmitFromUnion,
   UnwrapPromise,
 } from './tsHelpers'
-import type { NEVER } from './fakeBaseQuery'
-import type { Api } from '@reduxjs/toolkit/query'
 
 const resultType = /* @__PURE__ */ Symbol()
 const baseQuery = /* @__PURE__ */ Symbol()
 
-interface EndpointDefinitionWithQuery<
+type EndpointDefinitionWithQuery<
   QueryArg,
   BaseQuery extends BaseQueryFn,
   ResultType,
-> {
+> = {
   /**
    * `query` can be a function that returns either a `string` or an `object` which is passed to your `baseQuery`. If you are using [fetchBaseQuery](./fetchBaseQuery), this can return either a `string` or an `object` of properties in `FetchArgs`. If you use your own custom [`baseQuery`](../../rtk-query/usage/customizing-queries), you can customize this behavior to your liking.
    *
@@ -100,11 +109,11 @@ interface EndpointDefinitionWithQuery<
   structuralSharing?: boolean
 }
 
-interface EndpointDefinitionWithQueryFn<
+type EndpointDefinitionWithQueryFn<
   QueryArg,
   BaseQuery extends BaseQueryFn,
   ResultType,
-> {
+> = {
   /**
    * Can be used in place of `query` as an inline function that bypasses `baseQuery` completely for the endpoint.
    *
@@ -135,7 +144,7 @@ interface EndpointDefinitionWithQueryFn<
    *         if (randomVal < 0.9) {
    *           return { data: 'tails' }
    *         }
-   *         return { error: { status: 500, statusText: 'Internal Server Error', data: "Coin landed on it's edge!" } }
+   *         return { error: { status: 500, statusText: 'Internal Server Error', data: "Coin landed on its edge!" } }
    *       }
    *       // highlight-end
    *     })
@@ -173,11 +182,7 @@ interface EndpointDefinitionWithQueryFn<
   structuralSharing?: boolean
 }
 
-export interface BaseEndpointTypes<
-  QueryArg,
-  BaseQuery extends BaseQueryFn,
-  ResultType,
-> {
+type BaseEndpointTypes<QueryArg, BaseQuery extends BaseQueryFn, ResultType> = {
   QueryArg: QueryArg
   BaseQuery: BaseQuery
   ResultType: ResultType
@@ -236,13 +241,13 @@ export type ResultDescription<
   | ReadonlyArray<TagDescription<TagTypes>>
   | GetResultDescriptionFn<TagTypes, ResultType, QueryArg, ErrorType, MetaType>
 
-export interface QueryTypes<
+type QueryTypes<
   QueryArg,
   BaseQuery extends BaseQueryFn,
   TagTypes extends string,
   ResultType,
   ReducerPath extends string = string,
-> extends BaseEndpointTypes<QueryArg, BaseQuery, ResultType> {
+> = BaseEndpointTypes<QueryArg, BaseQuery, ResultType> & {
   /**
    * The endpoint definition type. To be used with some internal generic types.
    * @example
@@ -261,14 +266,30 @@ export interface QueryTypes<
   ReducerPath: ReducerPath
 }
 
+/**
+ * @public
+ */
 export interface QueryExtraOptions<
   TagTypes extends string,
   ResultType,
   QueryArg,
   BaseQuery extends BaseQueryFn,
   ReducerPath extends string = string,
-> {
+> extends CacheLifecycleQueryExtraOptions<
+      ResultType,
+      QueryArg,
+      BaseQuery,
+      ReducerPath
+    >,
+    QueryLifecycleQueryExtraOptions<
+      ResultType,
+      QueryArg,
+      BaseQuery,
+      ReducerPath
+    >,
+    CacheCollectionQueryExtraOptions {
   type: DefinitionType.query
+
   /**
    * Used by `query` endpoints. Determines which 'tag' is attached to the cached data returned by the query.
    * Expects an array of tag type strings, an array of objects of tag types with ids, or a function that returns such an array.
@@ -510,13 +531,13 @@ export type QueryDefinition<
 > = BaseEndpointDefinition<QueryArg, BaseQuery, ResultType> &
   QueryExtraOptions<TagTypes, ResultType, QueryArg, BaseQuery, ReducerPath>
 
-export interface MutationTypes<
+type MutationTypes<
   QueryArg,
   BaseQuery extends BaseQueryFn,
   TagTypes extends string,
   ResultType,
   ReducerPath extends string = string,
-> extends BaseEndpointTypes<QueryArg, BaseQuery, ResultType> {
+> = BaseEndpointTypes<QueryArg, BaseQuery, ResultType> & {
   /**
    * The endpoint definition type. To be used with some internal generic types.
    * @example
@@ -535,14 +556,29 @@ export interface MutationTypes<
   ReducerPath: ReducerPath
 }
 
+/**
+ * @public
+ */
 export interface MutationExtraOptions<
   TagTypes extends string,
   ResultType,
   QueryArg,
   BaseQuery extends BaseQueryFn,
   ReducerPath extends string = string,
-> {
+> extends CacheLifecycleMutationExtraOptions<
+      ResultType,
+      QueryArg,
+      BaseQuery,
+      ReducerPath
+    >,
+    QueryLifecycleMutationExtraOptions<
+      ResultType,
+      QueryArg,
+      BaseQuery,
+      ReducerPath
+    > {
   type: DefinitionType.mutation
+
   /**
    * Used by `mutation` endpoints. Determines which cached data should be either re-fetched or removed from the cache.
    * Expects the same shapes as `providesTags`.

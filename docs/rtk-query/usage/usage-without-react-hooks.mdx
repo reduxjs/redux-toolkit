@@ -55,7 +55,7 @@ The `endpoint.select(arg)` function creates a _new_ selector instance - it isn't
 
 :::
 
-With React hooks, this behaviour is instead handled within [`useQuery`](../api/created-api/hooks.mdx#usequery), [`useQueryState`](../api/created-api/hooks.mdx#usequerystate), and [`useLazyQuery`](../api/created-api/hooks.mdx#uselazyquery).
+With React hooks, this behavior is instead handled within [`useQuery`](../api/created-api/hooks.mdx#usequery), [`useQueryState`](../api/created-api/hooks.mdx#usequerystate), and [`useLazyQuery`](../api/created-api/hooks.mdx#uselazyquery).
 
 ```ts title="Accessing cached data & request status" no-transpile
 const result = api.endpoints.getPosts.select()(state)

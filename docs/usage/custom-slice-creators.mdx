@@ -468,7 +468,7 @@ Typically a creator will return a [single reducer definition](#single-definition
 
 ### Creator definitions
 
-A creator definition contains the actual runtime logic for that creator. It's an object with a `type` property, a `create` method, and an optional `handle` method.
+A creator definition contains the actual runtime logic for that creator. It's an object with a `type` property, a `create` value (typically a function or set of functions), and an optional `handle` method.
 
 It's passed to [`buildCreateSlice`](../api/createSlice#buildcreateslice) (or [`createSlice`](/api/createSlice#creators)) as part of the `creators` object, and the name used when calling `buildCreateSlice` will be the key the creator is nested under in the `create` object.
 
@@ -518,9 +518,9 @@ const reducerCreator: ReducerCreator<typeof reducerCreatorType> = {
 
 #### `create`
 
-The `create` method is the function that will be attached to the `create` object, before it's passed to the `reducers` callback.
+The `create` value will be attached to the `create` object, before it's passed to the `reducers` callback.
 
-Because it's a function, the `this` value will be the final `create` object when called (assuming a `create.creator()` call). It also could have additional methods attached.
+If it's a function, the `this` value will be the final `create` object when called (assuming a `create.creator()` call). It also could have additional methods attached, or be an object with methods.
 
 See the [Further examples](#further-examples) section for some examples of these.
 
@@ -554,6 +554,8 @@ context.addCase(action, reducer)
 context.addCase(type, reducer)
 ```
 
+Returns the context object to allow chaining.
+
 #### `addMatcher`
 
 The same as [`addMatcher`](../api/createReducer#builderaddmatcher) for `createReducer` and `extraReducers`. Adds a case reducer which will be called when a given matcher returns true.
@@ -562,6 +564,16 @@ The same as [`addMatcher`](../api/createReducer#builderaddmatcher) for `createRe
 const matcher = isAnyOf(action, action2)
 context.addMatcher(matcher, reducer)
 ```
+
+Returns the context object to allow chaining.
+
+:::tip
+
+Unlike in `createReducer` and `extraReducers`, there is no requirement to call `addMatcher` _after_ `addCase` - the correct order will be applied when the reducer is built.
+
+You should still be aware that case reducers will be called before matcher reducers, if both match a given action.
+
+:::
 
 #### `exposeAction`
 
@@ -572,9 +584,18 @@ const action = createAction(type)
 context.exposeAction(action)
 ```
 
+Returns the context object to allow chaining.
+
 :::caution
 
-`exposeAction` should only be called once (at maximum) within a `handle` callback - the same applies to `exposeCaseReducer`.
+`exposeAction` should only be called once (at maximum) within a `handle` callback.
+
+If you want to expose multiple values for a given case reducer's actions, you can pass an object to `exposeAction`.
+
+```ts no-transpile
+context.exposeAction({ hidden: hiddenAction, shown: shownAction })
+// available as slice.actions[reducerName].hidden and slice.actions[reducerName].shown
+```
 
 :::
 
@@ -585,6 +606,49 @@ Attaches a value to `slice.caseReducers[reducerName]`.
 ```ts no-transpile
 context.exposeCaseReducer(reducer)
 ```
+
+Returns the context object to allow chaining.
+
+:::caution
+
+Just like `exposeAction`, `exposeCaseReducer` should only be called once (at maximum) within a `handle` callback.
+
+If you want to expose multiple values for a given case reducer definition, you can pass an object to `exposeCaseReducer`.
+
+```ts no-transpile
+context.exposeCaseReducer({
+  hidden: config.hidden || noop,
+  shown: config.shown || noop,
+})
+// available as slice.caseReducers[reducerName].hidden and slice.caseReducers[reducerName].shown
+```
+
+You can see an example of this with the `asyncThunk` creator in the [RTK creators](#rtk-creators) section, which exposes case reducers for each of the lifecycle actions.
+
+```ts no-transpile
+const asyncThunkCreator: ReducerCreator<typeof asyncThunkCreatorType> = {
+  type: asyncThunkCreatorType,
+  create(payloadCreator, config) {
+    return {
+      _reducerDefinitionType: asyncThunkCreatorType,
+      payloadCreator,
+      config,
+    }
+  },
+  handle({ type }, definition, context) {
+    const { payloadCreator, config } = definition
+    const thunk = createAsyncThunk(type, payloadCreator, config)
+    context.exposeAction(thunk).exposeCaseReducer({
+      pending: config.pending || noop,
+      rejected: config.rejected || noop,
+      fulfilled: config.fulfilled || noop,
+      settled: config.settled || noop,
+    })
+  },
+}
+```
+
+:::
 
 #### `getInitialState`
 
@@ -646,7 +710,7 @@ The `ReducerCreatorEntry<Create, Exposes>` utility has two type parameters:
 
 #### `Create`
 
-The signature of the `create` method of the creator definition.
+The type of the `create` value of the creator definition (typically a function signature).
 
 :::caution `CaseReducers`
 
@@ -696,7 +760,10 @@ The second argument to the `ReducerCreators` type is a map from creator names to
 Alternatively, you can import the other creator's definition and use it directly.
 
 ```ts no-transpile
-import { preparedReducerCreator } from '@reduxjs/toolkit'
+import {
+  preparedReducerCreator,
+  PreparedCaseReducerDefinition,
+} from '@reduxjs/toolkit'
 
 const batchedCreatorType = Symbol('batchedCreatorType')
 
@@ -860,25 +927,23 @@ declare module '@reduxjs/toolkit' {
       ) => PreparedCaseReducerDefinition<State, Prepare>,
       {
         actions: {
-          [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends ReducerDefinition<
-            typeof preparedReducerType
+          [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends PreparedCaseReducerDefinition<
+            any,
+            any
           >
-            ? CaseReducers[ReducerName] extends { prepare: any }
-              ? ActionCreatorForCaseReducerWithPrepare<
-                  CaseReducers[ReducerName],
-                  SliceActionType<Name, ReducerName>
-                >
-              : never
+            ? ActionCreatorForCaseReducerWithPrepare<
+                CaseReducers[ReducerName],
+                SliceActionType<Name, ReducerName>
+              >
             : never
         }
         // highlight-start
         caseReducers: {
-          [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends ReducerDefinition<
-            typeof preparedReducerType
+          [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends PreparedCaseReducerDefinition<
+            any,
+            any
           >
-            ? CaseReducers[ReducerName] extends { reducer: infer Reducer }
-              ? Reducer
-              : never
+            ? CaseReducers[ReducerName]['reducer']
             : never
         }
         // highlight-end

@@ -56,12 +56,12 @@ declare module './createSlice' {
   }
 }
 
-export interface AsyncThunkSliceReducerConfig<
+export type AsyncThunkSliceReducerConfig<
   State,
   ThunkArg extends any,
   Returned = unknown,
   ThunkApiConfig extends AsyncThunkConfig = {},
-> {
+> = {
   pending?: CaseReducer<
     State,
     ReturnType<AsyncThunk<Returned, ThunkArg, ThunkApiConfig>['pending']>

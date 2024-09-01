@@ -290,7 +290,7 @@ describe('type tests', () => {
 
     test('one argument, specified as optional number: asyncThunk has optional number argument', () => {
       // this test will fail with strictNullChecks: false, that is to be expected
-      // in that case, we have to forbid this behaviour or it will make arguments optional everywhere
+      // in that case, we have to forbid this behavior or it will make arguments optional everywhere
       const asyncThunk = createAsyncThunk('test', (arg?: number) => 0)
 
       // Per https://github.com/reduxjs/redux-toolkit/issues/3758#issuecomment-1742152774 , this is a bug in
@@ -317,7 +317,7 @@ describe('type tests', () => {
 
     test('one argument, specified as number|undefined: asyncThunk has optional number argument', () => {
       // this test will fail with strictNullChecks: false, that is to be expected
-      // in that case, we have to forbid this behaviour or it will make arguments optional everywhere
+      // in that case, we have to forbid this behavior or it will make arguments optional everywhere
       const asyncThunk = createAsyncThunk(
         'test',
         (arg: number | undefined) => 0,
@@ -414,7 +414,7 @@ describe('type tests', () => {
 
     test('two arguments, first specified as number|undefined: asyncThunk has optional number argument', () => {
       // this test will fail with strictNullChecks: false, that is to be expected
-      // in that case, we have to forbid this behaviour or it will make arguments optional everywhere
+      // in that case, we have to forbid this behavior or it will make arguments optional everywhere
       const asyncThunk = createAsyncThunk(
         'test',
         (arg: number | undefined, thunkApi) => 0,
