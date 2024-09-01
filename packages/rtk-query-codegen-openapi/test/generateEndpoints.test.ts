@@ -1,16 +1,20 @@
-import del from 'del';
-import fs from 'node:fs';
+import { generateEndpoints } from '@rtk-query/codegen-openapi';
+import fs from 'node:fs/promises';
 import path, { resolve } from 'node:path';
-import { generateEndpoints } from '../src';
+import { rimraf } from 'rimraf';
+import { isDir, removeTempDir } from './cli.test';
 
 const tmpDir = path.resolve(__dirname, 'tmp');
 
 beforeAll(async () => {
-  if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
+  if (!(await isDir(tmpDir))) {
+    await fs.mkdir(tmpDir, { recursive: true });
+  }
+  return removeTempDir;
 });
 
-afterEach(() => {
-  del.sync(`${tmpDir}/*.ts`);
+afterEach(async () => {
+  await rimraf(`${tmpDir}/*.ts`, { glob: true });
 });
 
 test('calling without `outputFile` returns the generated api', async () => {
@@ -20,6 +24,16 @@ test('calling without `outputFile` returns the generated api', async () => {
     schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
   });
   expect(api).toMatchSnapshot();
+});
+
+test('should include default response type in request when includeDefault is set to true', async () => {
+  const api = await generateEndpoints({
+    apiFile: './fixtures/emptyApi.ts',
+    schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+    includeDefault: true,
+  });
+  // eslint-disable-next-line no-template-curly-in-string
+  expect(api).toMatch(/export type CreateUserApiResponse =[\s\S/*]+status default successful operation[\s/*]+User;/);
 });
 
 test('endpoint filtering', async () => {
@@ -54,22 +68,165 @@ test('negated endpoint filtering', async () => {
   expect(api).not.toMatch(/loginUser:/);
 });
 
-test('endpoint overrides', async () => {
-  const api = await generateEndpoints({
-    unionUndefined: true,
+describe('endpoint overrides', () => {
+  it('overrides endpoint type', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      filterEndpoints: 'loginUser',
+      endpointOverrides: [
+        {
+          pattern: 'loginUser',
+          type: 'mutation',
+        },
+      ],
+    });
+    expect(api).not.toMatch(/loginUser: build.query/);
+    expect(api).toMatch(/loginUser: build.mutation/);
+    expect(api).toMatchSnapshot('loginUser should be a mutation');
+  });
+
+  it('should override parameters by string', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      endpointOverrides: [
+        {
+          pattern: /.*/,
+          parameterFilter: 'status',
+        },
+      ],
+    });
+    expect(api).not.toMatch(/params: {\n.*queryArg\.\w+\b(?<!\bstatus)/);
+    expect(api).toMatchSnapshot('should only have the "status" parameter from the endpoints');
+  });
+
+  it('should override parameters by regex', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      endpointOverrides: [
+        {
+          pattern: /.*/,
+          parameterFilter: /e/,
+        },
+      ],
+    });
+    expect(api).not.toMatch(/params: {\n.*queryArg\.[^\We]*\W/);
+    expect(api).toMatch(/params: {\n.*queryArg\.[\we]*\W/);
+    expect(api).toMatchSnapshot('should only have the parameters with an "e"');
+  });
+
+  it('should filter by array of parameter strings / regex', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      endpointOverrides: [
+        {
+          pattern: /.*/,
+          parameterFilter: [/e/, /f/],
+        },
+      ],
+    });
+    expect(api).not.toMatch(/params: {\n.*queryArg\.[^\Wef]*\W/);
+    expect(api).toMatch(/params: {\n.*queryArg\.[\wef]*\W/);
+    expect(api).toMatchSnapshot('should only have the parameters with an "e" or "f"');
+  });
+
+  it('should filter by function', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      endpointOverrides: [
+        {
+          pattern: /.*/,
+          parameterFilter: (_, param) => !(param.in === 'header'),
+        },
+      ],
+    });
+    expect(api).not.toMatch(/headers: {/);
+    expect(api).toMatchSnapshot('should remove any parameters from the header');
+  });
+
+  it('should apply first matching filter only', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      endpointOverrides: [
+        { pattern: 'findPetsByStatus', parameterFilter: () => true },
+        {
+          pattern: /.*/,
+          parameterFilter: () => false,
+        },
+      ],
+    });
+
+    const paramsMatches = (api?.match(/params:/) || []).length;
+    expect(paramsMatches).toBe(1);
+    expect(api).not.toMatch(/headers: {/);
+    expect(api).toMatchSnapshot('should remove all parameters except for findPetsByStatus');
+  });
+});
+
+describe('option encodeParams', () => {
+  const config = {
     apiFile: './fixtures/emptyApi.ts',
     schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
-    filterEndpoints: 'loginUser',
-    endpointOverrides: [
-      {
-        pattern: 'loginUser',
-        type: 'mutation',
-      },
-    ],
+    encodeParams: true,
+  };
+
+  it('should encode query parameters', async () => {
+    const api = await generateEndpoints({
+      ...config,
+      filterEndpoints: ['findPetsByStatus'],
+    });
+    expect(api).toContain('status: encodeURIComponent(String(queryArg.status))');
   });
-  expect(api).not.toMatch(/loginUser: build.query/);
-  expect(api).toMatch(/loginUser: build.mutation/);
-  expect(api).toMatchSnapshot('loginUser should be a mutation');
+
+  it('should encode path parameters', async () => {
+    const api = await generateEndpoints({
+      ...config,
+      filterEndpoints: ['getOrderById'],
+    });
+    // eslint-disable-next-line no-template-curly-in-string
+    expect(api).toContain('`/store/order/${encodeURIComponent(String(queryArg.orderId))}`');
+  });
+
+  it('should not encode body parameters', async () => {
+    const api = await generateEndpoints({
+      ...config,
+      filterEndpoints: ['addPet'],
+    });
+    expect(api).toContain('body: queryArg.pet');
+    expect(api).not.toContain('body: encodeURIComponent(String(queryArg.pet))');
+  });
+
+  it('should work correctly with flattenArg option', async () => {
+    const api = await generateEndpoints({
+      ...config,
+      flattenArg: true,
+      filterEndpoints: ['getOrderById'],
+    });
+    // eslint-disable-next-line no-template-curly-in-string
+    expect(api).toContain('`/store/order/${encodeURIComponent(String(queryArg))}`');
+  });
+
+  it('should not encode parameters when encodeParams is false', async () => {
+    const api = await generateEndpoints({
+      ...config,
+      encodeParams: false,
+      filterEndpoints: ['findPetsByStatus', 'getOrderById'],
+    });
+    expect(api).toContain('status: queryArg.status');
+    // eslint-disable-next-line no-template-curly-in-string
+    expect(api).toContain('`/store/order/${queryArg.orderId}`');
+  });
 });
 
 describe('option flattenArg', () => {
@@ -94,7 +251,7 @@ describe('option flattenArg', () => {
       ...config,
       filterEndpoints: ['findPetsByStatus'],
     });
-    expect(api).toContain('params: { status: queryArg }');
+    expect(api).toContain('status: queryArg');
     expect(api).not.toContain('export type FindPetsByStatusApiArg = {');
   });
 
@@ -112,6 +269,22 @@ describe('option flattenArg', () => {
       filterEndpoints: ['uploadFile'],
     });
     expect(api).toContain('queryArg.body');
+  });
+
+  it('should flatten an optional arg as an optional type', async () => {
+    const api = await generateEndpoints({
+      ...config,
+      filterEndpoints: 'findPetsByTags',
+    });
+    expect(api).toMatch(/\| undefined/);
+  });
+
+  it('should not flatten a non-optional arg with a superfluous union', async () => {
+    const api = await generateEndpoints({
+      ...config,
+      filterEndpoints: 'getPetById',
+    });
+    expect(api).not.toMatch(/^\s*\|/);
   });
 });
 
@@ -251,6 +424,18 @@ test('duplicate parameter names must be prefixed with a path or query prefix', a
   expect(api).toMatchSnapshot();
 });
 
+test('operation suffixes are applied', async () => {
+  const api = await generateEndpoints({
+    unionUndefined: true,
+    apiFile: './fixtures/emptyApi.ts',
+    schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+    operationNameSuffix: 'V2',
+  });
+
+  expect(api).toContain('AddPetV2');
+  expect(api).toMatchSnapshot();
+});
+
 test('apiImport builds correct `import` statement', async () => {
   const api = await generateEndpoints({
     unionUndefined: true,
@@ -263,6 +448,16 @@ test('apiImport builds correct `import` statement', async () => {
 });
 
 describe('import paths', () => {
+  beforeAll(async () => {
+    if (!(await isDir(tmpDir))) {
+      await fs.mkdir(tmpDir, { recursive: true });
+    }
+  });
+
+  afterEach(async () => {
+    await rimraf(`${tmpDir}/*.ts`, { glob: true });
+  });
+
   test('should create paths relative to `outFile` when `apiFile` is relative (different folder)', async () => {
     await generateEndpoints({
       unionUndefined: true,
@@ -273,13 +468,11 @@ describe('import paths', () => {
       hooks: true,
       tag: true,
     });
-    expect(await fs.promises.readFile('./test/tmp/out.ts', 'utf8')).toContain(
-      "import { api } from '../../fixtures/emptyApi'"
-    );
+    expect(await fs.readFile('./test/tmp/out.ts', 'utf8')).toContain("import { api } from '../../fixtures/emptyApi'");
   });
 
   test('should create paths relative to `outFile` when `apiFile` is relative (same folder)', async () => {
-    await fs.promises.writeFile('./test/tmp/emptyApi.ts', await fs.promises.readFile('./test/fixtures/emptyApi.ts'));
+    await fs.writeFile('./test/tmp/emptyApi.ts', await fs.readFile('./test/fixtures/emptyApi.ts', 'utf8'));
 
     await generateEndpoints({
       unionUndefined: true,
@@ -290,7 +483,7 @@ describe('import paths', () => {
       hooks: true,
       tag: true,
     });
-    expect(await fs.promises.readFile('./test/tmp/out.ts', 'utf8')).toContain("import { api } from './emptyApi'");
+    expect(await fs.readFile('./test/tmp/out.ts', 'utf8')).toContain("import { api } from './emptyApi'");
   });
 });
 
@@ -379,6 +572,16 @@ describe('openapi spec', () => {
       schemaFile: './test/fixtures/readOnlyWriteOnly.yaml',
       apiFile: './fixtures/emptyApi.ts',
       mergeReadWriteOnly: true,
+    });
+    expect(api).toMatchSnapshot();
+  });
+});
+
+describe('query parameters', () => {
+  it('parameters overridden in swagger should also be overridden in the code', async () => {
+    const api = await generateEndpoints({
+      schemaFile: './test/fixtures/parameterOverride.yaml',
+      apiFile: './fixtures/emptyApi.ts',
     });
     expect(api).toMatchSnapshot();
   });

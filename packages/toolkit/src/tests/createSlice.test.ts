@@ -294,7 +294,7 @@ describe('createSlice', () => {
     })
   })
 
-  describe('behaviour with enhanced case reducers', () => {
+  describe('behavior with enhanced case reducers', () => {
     it('should pass all arguments to the prepare function', () => {
       const prepare = vi.fn((payload, somethingElse) => ({ payload }))
 

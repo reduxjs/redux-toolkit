@@ -1,20 +1,20 @@
-import type { EntityAdapter, EntityState } from '../models'
-import { createEntityAdapter } from '../create_adapter'
+import type { PayloadAction } from '@reduxjs/toolkit'
 import {
+  configureStore,
   createAction,
   createSlice,
-  configureStore,
   nanoid,
-  PayloadAction,
 } from '@reduxjs/toolkit'
+import { createNextState } from '../..'
+import { createEntityAdapter } from '../create_adapter'
+import type { EntityAdapter, EntityState } from '../models'
 import type { BookModel } from './fixtures/book'
 import {
-  TheGreatGatsby,
   AClockworkOrange,
   AnimalFarm,
+  TheGreatGatsby,
   TheHobbit,
 } from './fixtures/book'
-import { createNextState } from '../..'
 
 describe('Sorted State Adapter', () => {
   let adapter: EntityAdapter<BookModel, string>
@@ -798,6 +798,31 @@ describe('Sorted State Adapter', () => {
 
           // will call `splitAddedUpdatedEntities` and call `current(state.ids)`
           adapter.upsertMany(state, [book1])
+        },
+      },
+    })
+
+    booksSlice.reducer(
+      initialState,
+      booksSlice.actions.testCurrentBehavior(book1),
+    )
+  })
+
+  it('should not throw an Immer `current` error when the adapter is called twice', () => {
+    const book1: BookModel = { id: 'a', title: 'First' }
+    const book2: BookModel = { id: 'b', title: 'Second' }
+    const initialState = adapter.getInitialState()
+    const booksSlice = createSlice({
+      name: 'books',
+      initialState,
+      reducers: {
+        testCurrentBehavior(state, action: PayloadAction<BookModel>) {
+          // Will overwrite `state.ids` with a plain array
+          adapter.removeAll(state)
+
+          // will call `splitAddedUpdatedEntities` and call `current(state.ids)`
+          adapter.addOne(state, book1)
+          adapter.addOne(state, book2)
         },
       },
     })

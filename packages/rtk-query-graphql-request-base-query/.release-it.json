@@ -5,5 +5,8 @@
   "git": {
     "commitMessage": "Release @rtk-query/graphql-request-base-query ${version}",
     "tagName": "@rtk-query/graphql-request-base-query@${version}"
+  },
+  "npm": {
+    "versionArgs": ["--workspaces-update=false"]
   }
 }

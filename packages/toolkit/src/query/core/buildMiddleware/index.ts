@@ -4,27 +4,38 @@ import type {
   ThunkDispatch,
   UnknownAction,
 } from '@reduxjs/toolkit'
-import { isAction, createAction } from '../rtkImports'
-
 import type {
   EndpointDefinitions,
   FullTagDescription,
 } from '../../endpointDefinitions'
 import type { QueryStatus, QuerySubState, RootState } from '../apiState'
 import type { QueryThunkArg } from '../buildThunks'
+import { createAction, isAction } from '../rtkImports'
+import { buildBatchedActionsHandler } from './batchActions'
 import { buildCacheCollectionHandler } from './cacheCollection'
+import { buildCacheLifecycleHandler } from './cacheLifecycle'
+import { buildDevCheckHandler } from './devMiddleware'
 import { buildInvalidationByTagsHandler } from './invalidationByTags'
 import { buildPollingHandler } from './polling'
+import { buildQueryLifecycleHandler } from './queryLifecycle'
 import type {
   BuildMiddlewareInput,
   InternalHandlerBuilder,
   InternalMiddlewareState,
 } from './types'
 import { buildWindowEventHandler } from './windowEventHandling'
-import { buildCacheLifecycleHandler } from './cacheLifecycle'
-import { buildQueryLifecycleHandler } from './queryLifecycle'
-import { buildDevCheckHandler } from './devMiddleware'
-import { buildBatchedActionsHandler } from './batchActions'
+export type { ReferenceCacheCollection } from './cacheCollection'
+export type {
+  MutationCacheLifecycleApi,
+  QueryCacheLifecycleApi,
+  ReferenceCacheLifecycle,
+} from './cacheLifecycle'
+export type {
+  MutationLifecycleApi,
+  QueryLifecycleApi,
+  ReferenceQueryLifecycle,
+} from './queryLifecycle'
+export type { SubscriptionSelectors } from './types'
 
 export function buildMiddleware<
   Definitions extends EndpointDefinitions,
@@ -59,7 +70,7 @@ export function buildMiddleware<
   > = (mwApi) => {
     let initialized = false
 
-    let internalState: InternalMiddlewareState = {
+    const internalState: InternalMiddlewareState = {
       currentSubscriptions: {},
     }
 
@@ -117,7 +128,7 @@ export function buildMiddleware<
           ) {
             // Only run these additional checks if the actions are part of the API slice,
             // or the action has hydration-related data
-            for (let handler of handlers) {
+            for (const handler of handlers) {
               handler(action, mwApiWithNext, stateBefore)
             }
           }
