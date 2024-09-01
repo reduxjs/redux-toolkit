@@ -65,5 +65,5 @@
     "test:packages": "yarn workspaces foreach -A --include '@reduxjs/*' --include '@rtk-query/*'  --include '@rtk-incubator/*' run test",
     "dev:docs": "yarn workspace website run start"
   },
-  "packageManager": "yarn@4.1.0"
+  "packageManager": "yarn@4.4.1"
 }
