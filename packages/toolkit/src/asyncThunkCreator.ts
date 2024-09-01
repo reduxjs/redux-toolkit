@@ -56,12 +56,12 @@ declare module './createSlice' {
   }
 }
 
-export interface AsyncThunkSliceReducerConfig<
+export type AsyncThunkSliceReducerConfig<
   State,
   ThunkArg extends any,
   Returned = unknown,
   ThunkApiConfig extends AsyncThunkConfig = {},
-> {
+> = {
   pending?: CaseReducer<
     State,
     ReturnType<AsyncThunk<Returned, ThunkArg, ThunkApiConfig>['pending']>
@@ -83,20 +83,15 @@ export interface AsyncThunkSliceReducerConfig<
   options?: AsyncThunkOptions<ThunkArg, ThunkApiConfig>
 }
 
-export interface AsyncThunkSliceReducerDefinition<
+export type AsyncThunkSliceReducerDefinition<
   State,
   ThunkArg extends any,
   Returned = unknown,
   ThunkApiConfig extends AsyncThunkConfig = {},
-> extends AsyncThunkSliceReducerConfig<
-      State,
-      ThunkArg,
-      Returned,
-      ThunkApiConfig
-    >,
-    ReducerDefinition<ReducerType.asyncThunk> {
-  payloadCreator: AsyncThunkPayloadCreator<Returned, ThunkArg, ThunkApiConfig>
-}
+> = AsyncThunkSliceReducerConfig<State, ThunkArg, Returned, ThunkApiConfig> &
+  ReducerDefinition<ReducerType.asyncThunk> & {
+    payloadCreator: AsyncThunkPayloadCreator<Returned, ThunkArg, ThunkApiConfig>
+  }
 
 /**
  * Providing these as part of the config would cause circular types, so we disallow passing them

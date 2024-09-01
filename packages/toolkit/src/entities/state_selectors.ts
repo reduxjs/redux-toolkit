@@ -1,6 +1,6 @@
-import type { CreateSelectorFunction, Selector, createSelector } from 'reselect'
+import type { CreateSelectorFunction, Selector } from 'reselect'
 import { createDraftSafeSelector } from '../createDraftSafeSelector'
-import type { EntityState, EntitySelectors, EntityId } from './models'
+import type { EntityId, EntitySelectors, EntityState } from './models'
 
 type AnyFunction = (...args: any) => any
 type AnyCreateSelectorFunction = CreateSelectorFunction<
@@ -8,7 +8,7 @@ type AnyCreateSelectorFunction = CreateSelectorFunction<
   <F extends AnyFunction>(f: F) => F
 >
 
-export interface GetSelectorsOptions {
+export type GetSelectorsOptions = {
   createSelector?: AnyCreateSelectorFunction
 }
 

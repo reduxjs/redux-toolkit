@@ -19,7 +19,7 @@ type Tags = TagDescription<TagTypes>[]
 /** providesTags, invalidatesTags, shouldInvalidate */
 const caseMatrix: [Tags, Tags, boolean][] = [
   // *****************************
-  // basic invalidation behaviour
+  // basic invalidation behavior
   // *****************************
 
   // string

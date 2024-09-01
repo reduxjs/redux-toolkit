@@ -36,13 +36,11 @@ describe('type tests', () => {
       })
 
       if (isAnyOf(actionA, actionB)(action)) {
-        return {
-          prop1: action.payload.prop1,
-          // @ts-expect-error
-          prop2: action.payload.prop2,
-          // @ts-expect-error
-          prop3: action.payload.prop3,
-        }
+        expectTypeOf(action.payload).toHaveProperty('prop1')
+
+        expectTypeOf(action.payload).not.toHaveProperty('prop2')
+
+        expectTypeOf(action.payload).not.toHaveProperty('prop3')
       }
     })
 
@@ -70,13 +68,11 @@ describe('type tests', () => {
       )
 
       if (isAnyOf(asyncThunk1.fulfilled, asyncThunk2.fulfilled)(action)) {
-        return {
-          prop1: action.payload.prop1,
-          // @ts-expect-error
-          prop2: action.payload.prop2,
-          // @ts-expect-error
-          prop3: action.payload.prop3,
-        }
+        expectTypeOf(action.payload).toHaveProperty('prop1')
+
+        expectTypeOf(action.payload).not.toHaveProperty('prop2')
+
+        expectTypeOf(action.payload).not.toHaveProperty('prop3')
       }
     })
 
@@ -106,13 +102,11 @@ describe('type tests', () => {
       }
 
       if (isAnyOf(guardA, guardB)(action)) {
-        return {
-          prop1: action.payload.prop1,
-          // @ts-expect-error
-          prop2: action.payload.prop2,
-          // @ts-expect-error
-          prop3: action.payload.prop3,
-        }
+        expectTypeOf(action.payload).toHaveProperty('prop1')
+
+        expectTypeOf(action.payload).not.toHaveProperty('prop2')
+
+        expectTypeOf(action.payload).not.toHaveProperty('prop3')
       }
     })
   })
@@ -139,13 +133,13 @@ describe('type tests', () => {
       })
 
       if (isAllOf(actionA, isSpecialAction)(action)) {
-        return {
-          prop1: action.payload.prop1,
-          // @ts-expect-error
-          prop2: action.payload.prop2,
-          prop3: action.payload.prop3,
-          special: action.payload.special,
-        }
+        expectTypeOf(action.payload).toHaveProperty('prop1')
+
+        expectTypeOf(action.payload).not.toHaveProperty('prop2')
+
+        expectTypeOf(action.payload).toHaveProperty('prop3')
+
+        expectTypeOf(action.payload).toHaveProperty('special')
       }
     })
 
@@ -162,13 +156,13 @@ describe('type tests', () => {
       )
 
       if (isAllOf(asyncThunk1.fulfilled, isSpecialAction)(action)) {
-        return {
-          prop1: action.payload.prop1,
-          // @ts-expect-error
-          prop2: action.payload.prop2,
-          prop3: action.payload.prop3,
-          special: action.payload.special,
-        }
+        expectTypeOf(action.payload).toHaveProperty('prop1')
+
+        expectTypeOf(action.payload).not.toHaveProperty('prop2')
+
+        expectTypeOf(action.payload).toHaveProperty('prop3')
+
+        expectTypeOf(action.payload).toHaveProperty('special')
       }
     })
 
@@ -186,13 +180,13 @@ describe('type tests', () => {
       }
 
       if (isAllOf(guardA, isSpecialAction)(action)) {
-        return {
-          prop1: action.payload.prop1,
-          // @ts-expect-error
-          prop2: action.payload.prop2,
-          prop3: action.payload.prop3,
-          special: action.payload.special,
-        }
+        expectTypeOf(action.payload).toHaveProperty('prop1')
+
+        expectTypeOf(action.payload).not.toHaveProperty('prop2')
+
+        expectTypeOf(action.payload).toHaveProperty('prop3')
+
+        expectTypeOf(action.payload).toHaveProperty('special')
       }
     })
 

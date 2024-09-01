@@ -1,5 +1,6 @@
-import type { Action, UnknownAction, Reducer } from 'redux'
+import type { Action, Reducer, UnknownAction } from 'redux'
 import type { Selector } from 'reselect'
+import type { InjectConfig } from './combineSlices'
 import type {
   ActionCreatorWithoutPayload,
   PayloadAction,
@@ -8,6 +9,14 @@ import type {
   _ActionCreatorWithPreparedPayload,
 } from './createAction'
 import { createAction } from './createAction'
+import type {
+  AsyncThunk,
+  AsyncThunkConfig,
+  AsyncThunkOptions,
+  AsyncThunkPayloadCreator,
+  OverrideThunkApiConfigs,
+} from './createAsyncThunk'
+import { createAsyncThunk as _createAsyncThunk } from './createAsyncThunk'
 import type {
   ActionMatcherDescriptionCollection,
   CaseReducer,
@@ -24,7 +33,6 @@ import type {
   TypeGuard,
   UnionToIntersection,
 } from './tsHelpers'
-import type { InjectConfig } from './combineSlices'
 import { emplace } from './utils'
 
 export enum ReducerType {
@@ -40,9 +48,9 @@ export type RegisteredReducerType = keyof SliceReducerCreators<
   any
 >
 
-export interface ReducerDefinition<
+export type ReducerDefinition<
   T extends RegisteredReducerType = RegisteredReducerType,
-> {
+> = {
   _reducerDefinitionType: T
 }
 
@@ -321,7 +329,7 @@ export type ReducerCreator<Type extends RegisteredReducerType> = {
       ): void
     })
 
-interface InjectIntoConfig<NewReducerPath extends string> extends InjectConfig {
+type InjectIntoConfig<NewReducerPath extends string> = InjectConfig & {
   reducerPath?: NewReducerPath
 }
 
@@ -418,16 +426,16 @@ export interface Slice<
  *
  * Selectors can now be called with an `undefined` value, in which case they use the slice's initial state.
  */
-interface InjectedSlice<
+type InjectedSlice<
   State = any,
   CaseReducers extends CreatorCaseReducers<State> = SliceCaseReducers<State>,
   Name extends string = string,
   ReducerPath extends string = Name,
   Selectors extends SliceSelectors<State> = SliceSelectors<State>,
-> extends Omit<
-    Slice<State, CaseReducers, Name, ReducerPath, Selectors>,
-    'getSelectors' | 'selectors'
-  > {
+> = Omit<
+  Slice<State, CaseReducers, Name, ReducerPath, Selectors>,
+  'getSelectors' | 'selectors'
+> & {
   /**
    * Get localised slice selectors (expects to be called with *just* the slice's state as the first parameter)
    */
@@ -573,11 +581,10 @@ createSlice({
   selectors?: Selectors
 }
 
-export interface CaseReducerDefinition<
+export type CaseReducerDefinition<
   S = any,
   A extends Action = UnknownAction,
-> extends CaseReducer<S, A>,
-    ReducerDefinition<ReducerType.reducer> {}
+> = CaseReducer<S, A> & ReducerDefinition<ReducerType.reducer>
 
 /**
  * A CaseReducer with a `prepare` method.
@@ -589,16 +596,16 @@ export type CaseReducerWithPrepare<State, Action extends PayloadAction> = {
   prepare: PrepareAction<Action['payload']>
 }
 
-export interface CaseReducerWithPrepareDefinition<
+export type CaseReducerWithPrepareDefinition<
   State,
   Action extends PayloadAction,
-> extends CaseReducerWithPrepare<State, Action>,
-    ReducerDefinition<ReducerType.reducerWithPrepare> {}
+> = CaseReducerWithPrepare<State, Action> &
+  ReducerDefinition<ReducerType.reducerWithPrepare>
 
-export interface PreparedCaseReducerDefinition<
+export type PreparedCaseReducerDefinition<
   State,
   Prepare extends PrepareAction<any>,
-> extends ReducerDefinition<ReducerType.reducerWithPrepare> {
+> = ReducerDefinition<ReducerType.reducerWithPrepare> & {
   prepare: Prepare
   reducer: CaseReducer<
     State,
