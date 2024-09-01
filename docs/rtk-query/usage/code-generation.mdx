@@ -64,7 +64,7 @@ npx @rtk-query/codegen-openapi openapi-config.ts
 
 #### Generating tags
 
-If your OpenAPI specification uses [tags](https://swagger.io/docs/specification/grouping-operations-with-tags/), you can specify the `tag` option to the codegen.  
+If your OpenAPI specification uses [tags](https://swagger.io/docs/specification/grouping-operations-with-tags/), you can specify the `tag` option to the codegen.
 That will result in all generated endpoints having `providesTags`/`invalidatesTags` declarations for the `tags` of their respective operation definition.
 
 Note that this will only result in string tags with no ids, so it might lead to scenarios where too much is invalidated and unneccessary requests are made on mutation.
@@ -95,6 +95,7 @@ interface SimpleUsage {
   apiImport?: string
   exportName?: string
   argSuffix?: string
+  operationNameSuffix?: string
   responseSuffix?: string
   hooks?:
     | boolean
@@ -108,6 +109,8 @@ interface SimpleUsage {
     | Array<string | RegExp | EndpointMatcherFunction>
   endpointOverrides?: EndpointOverrides[]
   flattenArg?: boolean
+  useEnumType?: boolean
+  httpResolverOptions?: SwaggerParser.HTTPResolverOptions
 }
 
 export type EndpointMatcherFunction = (
@@ -119,7 +122,7 @@ export type EndpointMatcherFunction = (
 #### Filtering endpoints
 
 If you only want to include a few endpoints, you can use the `filterEndpoints` config option to filter your endpoints.
-Note that endpoints are transformed to camel case. For example, `login_user` will become `loginUser`. 
+Note that endpoints are transformed to camel case. For example, `login_user` will become `loginUser`.
 `filterEndpoints` will be checked against this camel case version of the endpoint.
 
 ```ts no-transpile title="openapi-config.ts"
@@ -146,6 +149,34 @@ const withOverride: ConfigFile = {
 }
 ```
 
+You can also filter the parameters that are included for an endpoint, as long as they aren't a path parameter. This filter is of type `ParameterMatcher`. For example, to only include parameters that begin with "x-" for the 'loginUser' endpoint, see the below example.
+
+```ts no-transpile title="openapi-config.ts"
+const withOverride: ConfigFile = {
+  // ...
+  endpointOverrides: [
+    {
+      pattern: 'loginUser',
+      parameterFilter: /^x-/,
+    },
+  ],
+}
+```
+
+For more complex requirements, consider the other possible matchers, such as a `ParameterMatcherFunction`. The below example filters out any parameters that are in the header of the request.
+
+```ts no-transpile title="openapi-config.ts"
+const withOverride: ConfigFile = {
+  // ...
+  endpointOverrides: [
+    {
+      pattern: /.*/,
+      parameterFilter: (_name, parameter) => parameter.in !== 'header',
+    },
+  ],
+}
+```
+
 #### Generating hooks
 
 Setting `hooks: true` will generate `useQuery` and `useMutation` hook exports. If you also want `useLazyQuery` hooks generated or more granular control, you can also pass an object in the shape of: `{ queries: boolean; lazyQueries: boolean; mutations: boolean }`.
@@ -165,6 +196,27 @@ const config: ConfigFile = {
     },
     './src/store/pet.ts': {
       filterEndpoints: [/pet/i],
+    },
+  },
+}
+```
+
+#### Custom HTTP resolver options
+
+If you need to customize the HTTP request issued to your server, you user the `httpResolverOptions` option. This object is passed directly to the `SwaggerParser` instance that fetches the OpenAPI schema.
+
+For example, you can pass custom headers or set a custom request timeout.
+
+```ts no-transpile title="openapi-config.ts"
+const config: ConfigFile = {
+  schemaFile: 'https://petstore3.swagger.io/api/v3/openapi.json',
+  apiFile: './src/store/emptyApi.ts',
+  outputFile: './src/store/petApi.ts',
+  httpResolverOptions: {
+    timeout: 30_000,
+    headers: {
+      Accept: 'application/json',
+      Authorization: 'Basic cmVkdXgtdG9vbGtpdDppcy1ncmVhdA==',
     },
   },
 }

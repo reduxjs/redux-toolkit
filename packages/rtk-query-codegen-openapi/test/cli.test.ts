@@ -1,76 +1,84 @@
-import del from 'del';
-import type { ExecException } from 'node:child_process';
-import { exec } from 'node:child_process';
-import fs from 'node:fs';
+import { exec as _exec } from 'node:child_process';
+import fs from 'node:fs/promises';
 import path from 'node:path';
+import { promisify } from 'node:util';
+import { rimraf } from 'rimraf';
 
-function cli(args: string[], cwd: string): Promise<{ error: ExecException | null; stdout: string; stderr: string }> {
-  const pwd = process.env?.PWD || '.';
-  const cmd = `yarn cli ${args.join(' ')}`;
-  return new Promise((resolve) => {
-    exec(cmd, { cwd }, (error, stdout, stderr) => {
-      resolve({
-        error,
-        stdout,
-        stderr,
-      });
-    });
-  });
-}
+const exec = promisify(_exec);
+
+const cliPath = process.env.TEST_DIST ? 'rtk-query-codegen-openapi' : `yarn cli`;
+
+const cli = async (args: string[]) => {
+  return await exec(`${cliPath} ${args.join(' ')}`);
+};
 
 const tmpDir = path.resolve(__dirname, 'tmp');
 
+export const removeTempDir = async () => {
+  await rimraf(tmpDir);
+};
+
+export const isDir = async (filePath: string) => {
+  try {
+    const stat = await fs.lstat(filePath);
+    return stat.isDirectory();
+  } catch {
+    return false;
+  }
+};
+
 describe('CLI options testing', () => {
-  beforeAll(() => {
-    if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
+  beforeAll(async () => {
+    if (!(await isDir(tmpDir))) {
+      await fs.mkdir(tmpDir, { recursive: true });
+    }
   });
 
-  afterEach(() => {
-    del.sync(`${tmpDir}/*.ts`);
+  afterEach(async () => {
+    await rimraf(`${tmpDir}/*.ts`, { glob: true });
   });
 
-  test('generation with `config.example.js`', async () => {
-    const out = await cli(['./test/config.example.js'], __dirname);
+  test('generation with `config.example.js`', { timeout: 25_000 }, async () => {
+    const out = await cli(['./test/config.example.js']);
 
     expect(out).toEqual({
       stdout: `Generating ./tmp/example.ts
 Done
 `,
       stderr: '',
-      error: null,
     });
 
-    expect(fs.readFileSync(path.resolve(tmpDir, 'example.ts'), 'utf-8')).toMatchSnapshot();
-  }, 25_000);
+    expect(await fs.readFile(path.resolve(tmpDir, 'example.ts'), 'utf-8')).toMatchSnapshot();
+  });
 
-  test('paths are relative to config file, not to cwd', async () => {
-    const out = await cli([`./test/config.example.js`], __dirname);
+  test('paths are relative to config file, not to cwd', { timeout: 25_000 }, async () => {
+    const out = await cli([`./test/config.example.js`]);
 
     expect(out).toEqual({
       stdout: `Generating ./tmp/example.ts
 Done
 `,
       stderr: '',
-      error: null,
     });
 
-    expect(fs.readFileSync(path.resolve(tmpDir, 'example.ts'), 'utf-8')).toMatchSnapshot();
-  }, 25_000);
+    expect(await fs.readFile(path.resolve(tmpDir, 'example.ts'), 'utf-8')).toMatchSnapshot();
+  });
 
-  test('ts, js and json all work the same', async () => {
-    await cli([`./test/config.example.js`], __dirname);
-    const fromJs = fs.readFileSync(path.resolve(tmpDir, 'example.ts'), 'utf-8');
-    await cli([`./test/config.example.ts`], __dirname);
-    const fromTs = fs.readFileSync(path.resolve(tmpDir, 'example.ts'), 'utf-8');
-    await cli([`./test/config.example.json`], __dirname);
-    const fromJson = fs.readFileSync(path.resolve(tmpDir, 'example.ts'), 'utf-8');
+  test('ts, js and json all work the same', { timeout: 120_000 }, async () => {
+    await cli([`./test/config.example.js`]);
+    const fromJs = await fs.readFile(path.resolve(tmpDir, 'example.ts'), 'utf-8');
+    await cli([`./test/config.example.ts`]);
+    const fromTs = await fs.readFile(path.resolve(tmpDir, 'example.ts'), 'utf-8');
+    await cli([`./test/config.example.json`]);
+    const fromJson = await fs.readFile(path.resolve(tmpDir, 'example.ts'), 'utf-8');
 
     expect(fromTs).toEqual(fromJs);
     expect(fromJson).toEqual(fromJs);
-  }, 120_000);
+  });
 
-  test("missing parameters doesn't fail", async () => {
-    const out = await cli([`./test/config.invalid-example.json`], __dirname);
-    expect(out.stderr).toContain("Error: path parameter petId does not seem to be defined in '/pet/{petId}'!");
-  }, 25_000);
+  test("missing parameters doesn't fail", { timeout: 25_000 }, async () => {
+    await expect(() => cli([`./test/config.invalid-example.json`])).rejects.toThrowError(
+      "Error: path parameter petId does not seem to be defined in '/pet/{petId}'!"
+    );
+  });
 });

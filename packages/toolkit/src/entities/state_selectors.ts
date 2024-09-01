@@ -1,4 +1,4 @@
-import type { CreateSelectorFunction, Selector, createSelector } from 'reselect'
+import type { CreateSelectorFunction, Selector } from 'reselect'
 import { createDraftSafeSelector } from '../createDraftSafeSelector'
 import type {
   EntityState,
@@ -14,10 +14,10 @@ type AnyCreateSelectorFunction = CreateSelectorFunction<
   <F extends AnyFunction>(f: F) => F
 >
 
-export interface GetSelectorsOptions<
+export type GetSelectorsOptions<
   Single extends string = '',
   Plural extends string = DefaultPlural<''>,
-> {
+> = {
   createSelector?: AnyCreateSelectorFunction
   name?: Single
   pluralName?: Plural

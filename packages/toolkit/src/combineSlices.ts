@@ -1,4 +1,4 @@
-import type { UnknownAction, Reducer, StateFromReducersMapObject } from 'redux'
+import type { Reducer, StateFromReducersMapObject, UnknownAction } from 'redux'
 import { combineReducers } from 'redux'
 import { nanoid } from './nanoid'
 import type {

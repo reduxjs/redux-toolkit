@@ -235,7 +235,7 @@ describe('upsertQueryData', () => {
       .mockResolvedValueOnce(42)
 
     // a subscriber is needed to have the data stay in the cache
-    // Not sure if this is the wanted behaviour, I would have liked
+    // Not sure if this is the wanted behavior, I would have liked
     // it to stay in the cache for the x amount of time the cache
     // is preserved normally after the last subscriber was unmounted
     const { result, rerender } = renderHook(

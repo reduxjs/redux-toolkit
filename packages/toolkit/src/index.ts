@@ -148,6 +148,7 @@ export type {
   AsyncThunkAction,
   AsyncThunkPayloadCreatorReturnValue,
   AsyncThunkPayloadCreator,
+  GetState,
   GetThunkAPI,
   SerializedError,
 } from './createAsyncThunk'
@@ -204,9 +205,10 @@ export {
 } from './listenerMiddleware/index'
 
 export type {
+  AddMiddleware,
+  DynamicDispatch,
   DynamicMiddlewareInstance,
-  GetDispatch,
-  GetState,
+  GetDispatchType as GetDispatch,
   MiddlewareApiConfig,
 } from './dynamicMiddleware/types'
 export { createDynamicMiddleware } from './dynamicMiddleware/index'
@@ -220,7 +222,7 @@ export type { AutoBatchOptions } from './autoBatchEnhancer'
 
 export { combineSlices } from './combineSlices'
 
-export type { WithSlice } from './combineSlices'
+export type { CombinedSliceReducer, WithSlice } from './combineSlices'
 
 export type {
   ExtractDispatchExtensions as TSHelpersExtractDispatchExtensions,
