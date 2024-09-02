@@ -444,14 +444,21 @@ export async function generateApi(
 
       const properties = parameters.map((param) => {
         const value = isFlatArg ? rootObject : accessProperty(rootObject, param.name);
-        return createPropertyAssignment(
-          param.originalName,
+
+        const encodedValue =
           encodeQueryParams && param.param?.in === 'query'
-            ? factory.createCallExpression(factory.createIdentifier('encodeURIComponent'), undefined, [
-                factory.createCallExpression(factory.createIdentifier('String'), undefined, [value]),
-              ])
-            : value
-        );
+            ? factory.createConditionalExpression(
+                value,
+                undefined,
+                factory.createCallExpression(factory.createIdentifier('encodeURIComponent'), undefined, [
+                  factory.createCallExpression(factory.createIdentifier('String'), undefined, [value]),
+                ]),
+                undefined,
+                factory.createIdentifier('undefined')
+              )
+            : value;
+
+        return createPropertyAssignment(param.originalName, encodedValue);
       });
 
       return factory.createPropertyAssignment(

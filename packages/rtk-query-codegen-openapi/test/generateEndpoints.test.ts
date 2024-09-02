@@ -235,12 +235,15 @@ describe('option encodeQueryParams', () => {
     encodeQueryParams: true,
   };
 
-  it('should encode query parameters', async () => {
+  it('should conditionally encode query parameters', async () => {
     const api = await generateEndpoints({
       ...config,
       filterEndpoints: ['findPetsByStatus'],
     });
-    expect(api).toContain('status: encodeURIComponent(String(queryArg.status))');
+
+    expect(api).toMatch(
+      /params:\s*{\s*\n\s*status:\s*queryArg\.status\s*\?\s*encodeURIComponent\(\s*String\(queryArg\.status\)\s*\)\s*:\s*undefined\s*,?\s*\n\s*}/s
+    );
   });
 
   it('should not encode path parameters', async () => {
