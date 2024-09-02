@@ -110,7 +110,8 @@ export async function generateApi(
     filterEndpoints,
     endpointOverrides,
     unionUndefined,
-    encodeParams = false,
+    encodePathParams = false,
+    encodeQueryParams = false,
     flattenArg = false,
     includeDefault = false,
     useEnumType = false,
@@ -398,7 +399,14 @@ export async function generateApi(
       type: isQuery ? 'query' : 'mutation',
       Response: ResponseTypeName,
       QueryArg,
-      queryFn: generateQueryFn({ operationDefinition, queryArg, isQuery, isFlatArg, encodeParams }),
+      queryFn: generateQueryFn({
+        operationDefinition,
+        queryArg,
+        isQuery,
+        isFlatArg,
+        encodePathParams,
+        encodeQueryParams,
+      }),
       extraEndpointsProps: isQuery
         ? generateQueryEndpointProps({ operationDefinition })
         : generateMutationEndpointProps({ operationDefinition }),
@@ -411,13 +419,15 @@ export async function generateApi(
     queryArg,
     isFlatArg,
     isQuery,
-    encodeParams,
+    encodePathParams,
+    encodeQueryParams,
   }: {
     operationDefinition: OperationDefinition;
     queryArg: QueryArgDefinitions;
     isFlatArg: boolean;
     isQuery: boolean;
-    encodeParams: boolean;
+    encodePathParams: boolean;
+    encodeQueryParams: boolean;
   }) {
     const { path, verb } = operationDefinition;
 
@@ -436,7 +446,7 @@ export async function generateApi(
         const value = isFlatArg ? rootObject : accessProperty(rootObject, param.name);
         return createPropertyAssignment(
           param.originalName,
-          encodeParams && param.param?.in === 'query'
+          encodeQueryParams && param.param?.in === 'query'
             ? factory.createCallExpression(factory.createIdentifier('encodeURIComponent'), undefined, [
                 factory.createCallExpression(factory.createIdentifier('String'), undefined, [value]),
               ])
@@ -463,7 +473,7 @@ export async function generateApi(
           [
             factory.createPropertyAssignment(
               factory.createIdentifier('url'),
-              generatePathExpression(path, pickParams('path'), rootObject, isFlatArg, encodeParams)
+              generatePathExpression(path, pickParams('path'), rootObject, isFlatArg, encodePathParams)
             ),
             isQuery && verb.toUpperCase() === 'GET'
               ? undefined
@@ -511,7 +521,7 @@ function generatePathExpression(
   pathParameters: QueryArgDefinition[],
   rootObject: ts.Identifier,
   isFlatArg: boolean,
-  encodeParams: boolean
+  encodePathParams: boolean
 ) {
   const expressions: Array<[string, string]> = [];
 
@@ -529,7 +539,7 @@ function generatePathExpression(
         factory.createTemplateHead(head),
         expressions.map(([prop, literal], index) => {
           const value = isFlatArg ? rootObject : accessProperty(rootObject, prop);
-          const encodedValue = encodeParams
+          const encodedValue = encodePathParams
             ? factory.createCallExpression(factory.createIdentifier('encodeURIComponent'), undefined, [
                 factory.createCallExpression(factory.createIdentifier('String'), undefined, [value]),
               ])
