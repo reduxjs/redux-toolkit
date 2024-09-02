@@ -76,6 +76,11 @@ type NormalizedQueryUpsertEntryPayload = {
   value: any
 }
 
+export type ProcessedQueryUpsertEntry = {
+  queryDescription: QueryThunkArg
+  value: unknown
+}
+
 /**
  * A typesafe representation of a util action creator that accepts cache entry descriptions to upsert
  */
@@ -90,7 +95,7 @@ export type UpsertEntries<Definitions extends EndpointDefinitions> = <
       >
     },
   ],
-) => PayloadAction<NormalizedQueryUpsertEntryPayload>
+) => PayloadAction<NormalizedQueryUpsertEntryPayload[]>
 
 function updateQuerySubstateIfExists(
   state: QueryState<any>,
@@ -276,7 +281,7 @@ export function buildSlice({
         reducer(
           draft,
           action: PayloadAction<
-            NormalizedQueryUpsertEntryPayload[],
+            ProcessedQueryUpsertEntry[],
             string,
             {
               RTK_autoBatch: boolean
@@ -286,19 +291,7 @@ export function buildSlice({
           >,
         ) {
           for (const entry of action.payload) {
-            const { endpointName, args, value } = entry
-            const endpointDefinition = definitions[endpointName]
-
-            const arg: QueryThunkArg = {
-              type: 'query',
-              endpointName: endpointName,
-              originalArgs: entry.args,
-              queryCacheKey: serializeQueryArgs({
-                queryArgs: args,
-                endpointDefinition,
-                endpointName,
-              }),
-            }
+            const { queryDescription: arg, value } = entry
             writePendingCacheEntry(draft, arg, true, {
               arg,
               requestId: action.meta.requestId,
@@ -313,13 +306,31 @@ export function buildSlice({
                 fulfilledTimeStamp: action.meta.timestamp,
                 baseQueryMeta: {},
               },
-              entry.value,
+              value,
             )
           }
         },
         prepare: (payload: NormalizedQueryUpsertEntryPayload[]) => {
+          const queryDescriptions: ProcessedQueryUpsertEntry[] = payload.map(
+            (entry) => {
+              const { endpointName, args, value } = entry
+              const endpointDefinition = definitions[endpointName]
+              const queryDescription: QueryThunkArg = {
+                type: 'query',
+                endpointName: endpointName,
+                originalArgs: entry.args,
+                queryCacheKey: serializeQueryArgs({
+                  queryArgs: args,
+                  endpointDefinition,
+                  endpointName,
+                }),
+              }
+              return { queryDescription, value }
+            },
+          )
+
           const result = {
-            payload,
+            payload: queryDescriptions,
             meta: {
               [SHOULD_AUTOBATCH]: true,
               requestId: nanoid(),
