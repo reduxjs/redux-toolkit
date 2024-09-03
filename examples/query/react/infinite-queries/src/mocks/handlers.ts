@@ -1,7 +1,7 @@
-import { http, HttpResponse } from "msw"
+import { http, HttpResponse } from 'msw'
 
 function delay(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms))
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 const projects = Array.from({ length: 50 }, (_, i) => {
@@ -12,9 +12,9 @@ const projects = Array.from({ length: 50 }, (_, i) => {
 })
 
 export const handlers = [
-  http.get("https://example.com/api/projects", async ({ request, params }) => {
+  http.get('https://example.com/api/projects', async ({ request, params }) => {
     const url = new URL(request.url)
-    const pageParam = url.searchParams.get("page") || "0"
+    const pageParam = url.searchParams.get('page') || '0'
     const page = parseInt(pageParam, 10)
 
     const pageSize = 10
@@ -27,7 +27,7 @@ export const handlers = [
       .map((_, i) => {
         const id = page * pageSize + (i + 1)
         return {
-          name: "Project " + id,
+          name: 'Project ' + id,
           id,
         }
       })
@@ -39,10 +39,10 @@ export const handlers = [
     })
   }),
   http.get(
-    "https://example.com/api/projectsCursor",
+    'https://example.com/api/projectsCursor',
     async ({ request, params }) => {
       const url = new URL(request.url)
-      const cursorParam = url.searchParams.get("cursor") || "0"
+      const cursorParam = url.searchParams.get('cursor') || '0'
       const cursor = parseInt(cursorParam, 10)
 
       const pageSize = 10
@@ -55,7 +55,7 @@ export const handlers = [
         .map((_, i) => {
           const id = cursor + i
           return {
-            name: "Project " + id + ` (server time: ${Date.now()})`,
+            name: 'Project ' + id + ` (server time: ${Date.now()})`,
             id,
           }
         })
@@ -77,16 +77,18 @@ export const handlers = [
     },
   ),
   http.get(
-    "https://example.com/api/projectsBidirectionalCursor",
+    'https://example.com/api/projectsBidirectionalCursor',
     async ({ request }) => {
       const url = new URL(request.url)
-      const limit = parseInt(url.searchParams.get("limit") ?? "5", 10)
-      const aroundCursor = parseInt(url.searchParams.get("around") ?? "", 10)
-      const afterCursor = parseInt(url.searchParams.get("after") ?? "", 10)
-      const beforeCursor = parseInt(url.searchParams.get("before") ?? "", 10)
+      const limit = parseInt(url.searchParams.get('limit') ?? '5', 10)
+      const aroundCursor = parseInt(url.searchParams.get('around') ?? '', 10)
+      const afterCursor = parseInt(url.searchParams.get('after') ?? '', 10)
+      const beforeCursor = parseInt(url.searchParams.get('before') ?? '', 10)
 
       const validateCursor = (cursor: number, cursorType: string): number => {
-        const cursorIndex = projects.findIndex(project => project.id === cursor)
+        const cursorIndex = projects.findIndex(
+          (project) => project.id === cursor,
+        )
         if (cursorIndex === -1) {
           throw new Error(`Invalid \`${cursorType}\` cursor.`)
         }
@@ -96,15 +98,15 @@ export const handlers = [
       let resultProjects = []
       try {
         if (!isNaN(afterCursor)) {
-          const afterCursorIndex = validateCursor(afterCursor, "after")
+          const afterCursorIndex = validateCursor(afterCursor, 'after')
           const afterIndex = afterCursorIndex + 1
           resultProjects = projects.slice(afterIndex, afterIndex + limit)
         } else if (!isNaN(beforeCursor)) {
-          const beforeCursorIndex = validateCursor(beforeCursor, "before")
+          const beforeCursorIndex = validateCursor(beforeCursor, 'before')
           const startIndex = Math.max(0, beforeCursorIndex - limit)
           resultProjects = projects.slice(startIndex, beforeCursorIndex)
         } else if (!isNaN(aroundCursor)) {
-          const aroundCursorIndex = validateCursor(aroundCursor, "around")
+          const aroundCursorIndex = validateCursor(aroundCursor, 'around')
           const ceiledLimit = Math.ceil(limit / 2)
 
           const beforeIndex = Math.max(0, aroundCursorIndex - ceiledLimit)
@@ -154,11 +156,11 @@ export const handlers = [
     },
   ),
   http.get(
-    "https://example.com/api/projectsLimitOffset",
+    'https://example.com/api/projectsLimitOffset',
     async ({ request }) => {
       const url = new URL(request.url)
-      const limit = parseInt(url.searchParams.get("limit") ?? "5", 10)
-      let offset = parseInt(url.searchParams.get("offset") ?? "0", 10)
+      const limit = parseInt(url.searchParams.get('limit') ?? '5', 10)
+      let offset = parseInt(url.searchParams.get('offset') ?? '0', 10)
 
       if (isNaN(offset) || offset < 0) {
         offset = 0
@@ -183,10 +185,10 @@ export const handlers = [
       })
     },
   ),
-  http.get("https://example.com/api/projectsPaginated", async ({ request }) => {
+  http.get('https://example.com/api/projectsPaginated', async ({ request }) => {
     const url = new URL(request.url)
-    const size = parseInt(url.searchParams.get("size") ?? "5", 10)
-    let page = parseInt(url.searchParams.get("page") ?? "0", 10)
+    const size = parseInt(url.searchParams.get('size') ?? '5', 10)
+    let page = parseInt(url.searchParams.get('page') ?? '0', 10)
 
     if (isNaN(page) || page < 0) {
       page = 0

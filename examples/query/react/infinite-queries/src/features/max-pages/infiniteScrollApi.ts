@@ -1,4 +1,4 @@
-import { baseApi } from "../baseApi"
+import { baseApi } from '../baseApi'
 
 type Project = {
   id: number
@@ -12,7 +12,7 @@ type ProjectsPageCursor = {
 }
 
 export const apiWithInfiniteScrollMax = baseApi.injectEndpoints({
-  endpoints: build => ({
+  endpoints: (build) => ({
     getProjectsCursorMax: build.infiniteQuery<
       ProjectsPageCursor,
       string,
@@ -23,8 +23,8 @@ export const apiWithInfiniteScrollMax = baseApi.injectEndpoints({
       infiniteQueryOptions: {
         initialPageParam: 0,
         maxPages: 3,
-        getPreviousPageParam: firstPage => firstPage.previousId ?? undefined,
-        getNextPageParam: lastPage => lastPage.nextId ?? undefined,
+        getPreviousPageParam: (firstPage) => firstPage.previousId ?? undefined,
+        getNextPageParam: (lastPage) => lastPage.nextId ?? undefined,
       },
     }),
   }),

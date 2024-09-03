@@ -87,8 +87,8 @@ test(`query: handles large keepUnuseDataFor values over 32-bit ms`, async () => 
   expect(onCleanup).not.toHaveBeenCalled()
 
   // _Should_ be called _wayyyy_ in the future (like 24.8 days from now)
-  vi.advanceTimersByTime(THIRTY_TWO_BIT_MAX_TIMER_SECONDS * 1000),
-    expect(onCleanup).toHaveBeenCalled()
+  ;(vi.advanceTimersByTime(THIRTY_TWO_BIT_MAX_TIMER_SECONDS * 1000),
+    expect(onCleanup).toHaveBeenCalled())
 })
 
 describe(`query: await cleanup, keepUnusedDataFor set`, () => {

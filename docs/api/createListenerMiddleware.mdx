@@ -488,7 +488,7 @@ To fix this, the middleware provides types for defining "pre-typed" versions of 
 import { createListenerMiddleware, addListener } from '@reduxjs/toolkit'
 import type { RootState, AppDispatch } from './store'
 
-declare type ExtraArgument = {foo: string};
+declare type ExtraArgument = { foo: string }
 
 export const listenerMiddleware = createListenerMiddleware()
 

@@ -3,7 +3,7 @@ import type {
   JSCodeshift,
   ObjectExpression,
   ObjectProperty,
-  Transform
+  Transform,
 } from 'jscodeshift'
 import type { TestOptions } from 'jscodeshift/src/testUtils'
 
@@ -16,13 +16,13 @@ function creatorCall(j: JSCodeshift, ...rest: CreatorCallRestArguments) {
 
   return j.callExpression(
     j.memberExpression(j.identifier('create'), j.identifier(type)),
-    restArgs
+    restArgs,
   )
 }
 
 export function reducerPropsToBuilderExpression(
   j: JSCodeshift,
-  defNode: ObjectExpression
+  defNode: ObjectExpression,
 ) {
   const returnedObject = j.objectExpression([])
   for (const property of defNode.properties) {
@@ -32,7 +32,7 @@ export function reducerPropsToBuilderExpression(
         const { key, params, body } = property
         finalProp = j.objectProperty(
           key,
-          creatorCall(j, 'reducer', j.arrowFunctionExpression(params, body))
+          creatorCall(j, 'reducer', j.arrowFunctionExpression(params, body)),
         )
         break
       }
@@ -56,7 +56,7 @@ export function reducerPropsToBuilderExpression(
                   ) {
                     preparedReducerParams[key.name] = j.arrowFunctionExpression(
                       params,
-                      body
+                      body,
                     )
                   }
                   break
@@ -98,13 +98,13 @@ export function reducerPropsToBuilderExpression(
                   j,
                   'preparedReducer',
                   preparedReducerParams.prepare,
-                  preparedReducerParams.reducer
-                )
+                  preparedReducerParams.reducer,
+                ),
               )
             } else if (preparedReducerParams.reducer) {
               finalProp = j.objectProperty(
                 key,
-                creatorCall(j, 'reducer', preparedReducerParams.reducer)
+                creatorCall(j, 'reducer', preparedReducerParams.reducer),
               )
             }
             break
@@ -131,7 +131,7 @@ export function reducerPropsToBuilderExpression(
   return j.arrowFunctionExpression(
     [j.identifier('create')],
     returnedObject,
-    true
+    true,
   )
 }
 
@@ -141,7 +141,7 @@ const transform: Transform = (file, api) => {
   return j(file.source)
     .find(j.CallExpression, {
       callee: { name: 'createSlice' },
-      arguments: [{ type: 'ObjectExpression' }]
+      arguments: [{ type: 'ObjectExpression' }],
     })
 
     .filter((path) => {
@@ -151,7 +151,7 @@ const transform: Transform = (file, api) => {
           p.type === 'ObjectProperty' &&
           p.key.type === 'Identifier' &&
           p.key.name === 'reducers' &&
-          p.value.type === 'ObjectExpression'
+          p.value.type === 'ObjectExpression',
       )
     })
     .forEach((path) => {
@@ -168,19 +168,19 @@ const transform: Transform = (file, api) => {
               ) {
                 const expressionStatement = reducerPropsToBuilderExpression(
                   j,
-                  p.value
+                  p.value,
                 )
                 return j.objectProperty(p.key, expressionStatement)
               }
               return p
-            })
-          )
-        ])
+            }),
+          ),
+        ]),
       )
     })
     .toSource({
       arrowParensAlways: true,
-      lineTerminator: '\n'
+      lineTerminator: '\n',
     })
 }
 

@@ -419,7 +419,6 @@ selectFromResult: () => ({})
 :::
 
 - **Parameters**
-
   - `options`: A set of options that control the subscription behavior of the hook:
     - `selectFromResult`: A callback that can be used to customize the mutation result returned as the second item in the tuple
     - `fixedCacheKey`: An optional string used to enable shared results across hook instances
@@ -622,7 +621,6 @@ type UseLazyQueryLastPromiseInfo = {
 ```
 
 - **Parameters**
-
   - `options`: A set of options that control the fetching behavior and returned result value of the hook. Options affecting fetching behavior will only have an effect after the lazy query has been triggered at least once.
 
 - **Returns**: A tuple containing:
@@ -666,7 +664,6 @@ type PrefetchCallback = (arg: any, options?: UsePrefetchOptions) => void
 ```
 
 - **Parameters**
-
   - `endpointName`: The name of the endpoint to prefetch data for
   - `options`: A set of options that control whether the prefetch request should occur
 
@@ -734,7 +731,6 @@ type UseQueryStateResult<T> = {
 ```
 
 - **Parameters**
-
   - `arg`: The argument passed to the query defined in the endpoint.
     You can also pass in `skipToken` here as an alternative way of skipping the selection, see [skipToken](#skiptoken)
   - `options`: A set of options that control the return value for the hook
@@ -773,7 +769,6 @@ type UseQuerySubscriptionResult = {
 ```
 
 - **Parameters**
-
   - `arg`: The argument passed to the query defined in the endpoint.
     You can also pass in `skipToken` here as an alternative way of skipping the query, see [skipToken](#skiptoken)
   - `options`: A set of options that control the fetching behavior of the hook
@@ -829,7 +824,6 @@ type UseLazyQuerySubscriptionTrigger = (
 ```
 
 - **Parameters**
-
   - `options`: A set of options that control the fetching behavior of the hook. The options will only have an effect after the lazy query has been triggered at least once.
 
 - **Returns**: A tuple containing:

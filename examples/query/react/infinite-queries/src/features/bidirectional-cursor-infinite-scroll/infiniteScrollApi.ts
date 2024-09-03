@@ -1,4 +1,4 @@
-import { baseApi } from "../baseApi"
+import { baseApi } from '../baseApi'
 
 type Project = {
   id: number
@@ -25,7 +25,7 @@ type ProjectsInitialPageParam = {
 type QueryParamLimit = number
 
 export const apiWithInfiniteScroll = baseApi.injectEndpoints({
-  endpoints: build => ({
+  endpoints: (build) => ({
     getProjectsBidirectionalCursor: build.infiniteQuery<
       ProjectsCursorPaginated,
       QueryParamLimit,
@@ -33,13 +33,13 @@ export const apiWithInfiniteScroll = baseApi.injectEndpoints({
     >({
       query: ({ pageParam: { before, after, around, limit } }) => {
         const params = new URLSearchParams()
-        params.append("limit", String(limit))
+        params.append('limit', String(limit))
         if (after != null) {
-          params.append("after", String(after))
+          params.append('after', String(after))
         } else if (before != null) {
-          params.append("before", String(before))
+          params.append('before', String(before))
         } else if (around != null) {
-          params.append("around", String(around))
+          params.append('around', String(around))
         }
 
         return {

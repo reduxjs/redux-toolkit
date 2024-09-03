@@ -266,7 +266,7 @@ const createClearListenerMiddleware = (
 ) => {
   return () => {
     for (const listener of executingListeners.keys()) {
-      cancelActiveListeners(listener);
+      cancelActiveListeners(listener)
     }
     listenerMap.clear()
   }

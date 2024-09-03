@@ -3559,7 +3559,9 @@ describe('hooks with createApi defaults set', () => {
 
         return (
           <div>
-            {posts?.map((post) => <div key={post.id}>{post.name}</div>)}
+            {posts?.map((post) => (
+              <div key={post.id}>{post.name}</div>
+            ))}
           </div>
         )
       }
