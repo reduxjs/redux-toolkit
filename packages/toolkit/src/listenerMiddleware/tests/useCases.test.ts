@@ -36,7 +36,7 @@ const { increment, decrement, incrementByAmount } = counterSlice.actions
 
 describe('Saga-style Effects Scenarios', () => {
   let listenerMiddleware = createListenerMiddleware<CounterState>()
-  let { middleware, startListening, stopListening } = listenerMiddleware
+  let { middleware, startListening } = listenerMiddleware
 
   let store = configureStore({
     reducer: counterSlice.reducer,
@@ -78,7 +78,7 @@ describe('Saga-style Effects Scenarios', () => {
     // function by wrapping an event emitter so that every call returns a
     // promise that is resolved the next time an event is emitted.
     // This is the tiniest event emitter I could find to copy-paste in here.
-    let createNanoEvents = () => ({
+    const createNanoEvents = () => ({
       events: {} as Record<string, any>,
       emit(event: string, ...args: any[]) {
         ;(this.events[event] || []).forEach((i: any) => i(...args))

@@ -693,13 +693,13 @@ export function buildCreateSlice({ creators }: BuildCreateSliceConfig = {}) {
       }
 
       return createReducer(options.initialState, (builder) => {
-        for (let key in finalCaseReducers) {
+        for (const key in finalCaseReducers) {
           builder.addCase(key, finalCaseReducers[key] as CaseReducer<any>)
         }
-        for (let sM of context.sliceMatchers) {
+        for (const sM of context.sliceMatchers) {
           builder.addMatcher(sM.matcher, sM.reducer)
         }
-        for (let m of actionMatchers) {
+        for (const m of actionMatchers) {
           builder.addMatcher(m.matcher, m.reducer)
         }
         if (defaultCaseReducer) {

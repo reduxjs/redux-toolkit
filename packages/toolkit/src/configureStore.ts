@@ -216,7 +216,7 @@ export function configureStore<
     throw new Error('`enhancers` field must be a callback')
   }
 
-  let storeEnhancers =
+  const storeEnhancers =
     typeof enhancers === 'function'
       ? enhancers(getDefaultEnhancers)
       : getDefaultEnhancers()

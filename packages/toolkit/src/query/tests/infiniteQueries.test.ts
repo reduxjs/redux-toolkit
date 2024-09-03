@@ -507,7 +507,7 @@ describe('Infinite queries', () => {
 
     await storeRef.store.dispatch(countersApi.endpoints.mutation.initiate())
 
-    let entry = countersApi.endpoints.counters.select('item')(
+    const entry = countersApi.endpoints.counters.select('item')(
       storeRef.store.getState(),
     )
     const promise = storeRef.store.dispatch(

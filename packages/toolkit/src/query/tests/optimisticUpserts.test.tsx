@@ -118,9 +118,9 @@ const api = createApi({
 const storeRef = setupApiStore(api, { ...actionsReducer })
 
 describe('basic lifecycle', () => {
-  let onStart = vi.fn(),
-    onError = vi.fn(),
-    onSuccess = vi.fn()
+  const onStart = vi.fn()
+  const onError = vi.fn()
+  const onSuccess = vi.fn()
 
   const extendedApi = api.injectEndpoints({
     endpoints: (build) => ({

@@ -241,15 +241,18 @@ export function buildSlice({
           // We're already inside an Immer-powered reducer, and the user could just mutate `substate.data`
           // themselves inside of `merge()`. But, they might also want to return a new value.
           // Try to let Immer figure that part out, save the result, and assign it to `substate.data`.
-          let newData = createNextState(substate.data, (draftSubstateData) => {
-            // As usual with Immer, you can mutate _or_ return inside here, but not both
-            return merge(draftSubstateData, payload, {
-              arg: arg.originalArgs,
-              baseQueryMeta,
-              fulfilledTimeStamp,
-              requestId,
-            })
-          })
+          const newData = createNextState(
+            substate.data,
+            (draftSubstateData) => {
+              // As usual with Immer, you can mutate _or_ return inside here, but not both
+              return merge(draftSubstateData, payload, {
+                arg: arg.originalArgs,
+                baseQueryMeta,
+                fulfilledTimeStamp,
+                requestId,
+              })
+            },
+          )
           substate.data = newData
         } else {
           // Presumably a fresh request. Just cache the response data.

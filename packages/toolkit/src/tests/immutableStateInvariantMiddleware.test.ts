@@ -92,8 +92,8 @@ describe('createImmutableStateInvariantMiddleware', () => {
 
     const dispatch = middleware()(next)
 
-    let x: any = {}
-    let y: any = {}
+    const x: any = {}
+    const y: any = {}
     x.y = y
     y.x = x
 

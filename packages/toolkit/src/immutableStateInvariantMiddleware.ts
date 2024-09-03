@@ -83,16 +83,16 @@ function detectMutations(
 
   // Gather all keys from prev (tracked) and after objs
   const keysToDetect: Record<string, boolean> = {}
-  for (let key in trackedProperty.children) {
+  for (const key in trackedProperty.children) {
     keysToDetect[key] = true
   }
-  for (let key in obj) {
+  for (const key in obj) {
     keysToDetect[key] = true
   }
 
   const hasIgnoredPaths = ignoredPaths.length > 0
 
-  for (let key in keysToDetect) {
+  for (const key in keysToDetect) {
     const nestedPath = path ? path + '.' + key : key
 
     if (hasIgnoredPaths) {
@@ -176,7 +176,7 @@ export function createImmutableStateInvariantMiddleware(
       serializer?: EntryProcessor,
       decycler?: EntryProcessor,
     ): EntryProcessor {
-      let stack: any[] = [],
+      const stack: any[] = [],
         keys: any[] = []
 
       if (!decycler)
@@ -189,7 +189,7 @@ export function createImmutableStateInvariantMiddleware(
 
       return function (this: any, key: string, value: any) {
         if (stack.length > 0) {
-          var thisPos = stack.indexOf(this)
+          const thisPos = stack.indexOf(this)
           ~thisPos ? stack.splice(thisPos + 1) : stack.push(this)
           ~thisPos ? keys.splice(thisPos, Infinity, key) : keys.push(key)
           if (~stack.indexOf(value)) value = decycler!.call(this, key, value)
@@ -199,7 +199,7 @@ export function createImmutableStateInvariantMiddleware(
       }
     }
 
-    let {
+    const {
       isImmutable = isImmutableDefault,
       ignoredPaths,
       warnAfter = 32,

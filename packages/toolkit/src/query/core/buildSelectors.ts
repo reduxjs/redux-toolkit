@@ -348,7 +348,7 @@ export function buildSelectors<
         continue
       }
 
-      let invalidateSubscriptions =
+      const invalidateSubscriptions =
         (tag.id !== undefined
           ? // id given: invalidate all queries that provide this type & id
             provided[tag.id]

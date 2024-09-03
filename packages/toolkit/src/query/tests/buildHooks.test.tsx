@@ -386,7 +386,9 @@ describe('hooks tests', () => {
         )
       }
 
-      let { rerender } = render(<User id={1} />, { wrapper: storeRef.wrapper })
+      const { rerender } = render(<User id={1} />, {
+        wrapper: storeRef.wrapper,
+      })
 
       await waitFor(() =>
         expect(screen.getByTestId('status').textContent).toBe('1'),
@@ -423,7 +425,9 @@ describe('hooks tests', () => {
         )
       }
 
-      let { rerender } = render(<User id={1} />, { wrapper: storeRef.wrapper })
+      const { rerender } = render(<User id={1} />, {
+        wrapper: storeRef.wrapper,
+      })
 
       await waitFor(() =>
         expect(screen.getByTestId('status').textContent).toBe('1'),
@@ -3140,7 +3144,7 @@ describe('hooks with createApi defaults set', () => {
       )
     }
 
-    let { unmount } = render(<User />, { wrapper: storeRef.wrapper })
+    const { unmount } = render(<User />, { wrapper: storeRef.wrapper })
 
     await waitFor(() =>
       expect(screen.getByTestId('isLoading').textContent).toBe('true'),
