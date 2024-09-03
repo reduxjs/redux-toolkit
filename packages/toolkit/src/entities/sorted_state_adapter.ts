@@ -1,18 +1,18 @@
 import type {
-  IdSelector,
   Comparer,
-  EntityStateAdapter,
-  Update,
-  EntityId,
   DraftableEntityState,
+  EntityId,
+  EntityStateAdapter,
+  IdSelector,
+  Update,
 } from './models'
 import { createStateOperator } from './state_adapter'
 import { createUnsortedStateAdapter } from './unsorted_state_adapter'
 import {
-  selectIdValue,
   ensureEntitiesArray,
-  splitAddedUpdatedEntities,
   getCurrent,
+  selectIdValue,
+  splitAddedUpdatedEntities,
 } from './utils'
 
 // Borrowed from Replay
