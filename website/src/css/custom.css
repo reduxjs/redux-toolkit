@@ -141,7 +141,7 @@ a.contents__link > code {
 
 .table-of-contents__link:hover > code,
 .table-of-contents__link:hover {
-    color: var(--ifm-color-primary-lightest);
+  color: var(--ifm-color-primary-lightest);
 }
 
 a:visited {
@@ -281,6 +281,6 @@ table.checkbox-table tbody td {
 
 div[class*='announcementBar_'] {
   /* Intentionally override the theme behavior,
-  so that the course banner image is effectively cropped*/ 
+  so that the course banner image is effectively cropped*/
   z-index: calc(var(--ifm-z-index-fixed) -1) !important;
 }
