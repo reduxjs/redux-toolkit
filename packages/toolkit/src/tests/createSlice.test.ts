@@ -89,7 +89,7 @@ describe('createSlice', () => {
     })
 
     it('should create increment action', () => {
-      expect(actions.hasOwnProperty('increment')).toBe(true)
+      expect(actions).toHaveProperty('increment')
     })
 
     it('should have the correct action for increment', () => {
