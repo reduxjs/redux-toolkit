@@ -361,7 +361,9 @@ describe('Unsorted State Adapter', () => {
     const withMany = adapter.setAll(state, [TheGreatGatsby])
 
     const withUpserts = adapter.upsertMany(withMany, [
-      {...AClockworkOrange}, { ...AClockworkOrange, ...firstChange }, {...AClockworkOrange, ...secondChange}
+      { ...AClockworkOrange },
+      { ...AClockworkOrange, ...firstChange },
+      { ...AClockworkOrange, ...secondChange },
     ])
 
     expect(withUpserts).toEqual({
