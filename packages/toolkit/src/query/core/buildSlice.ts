@@ -519,13 +519,12 @@ export function buildSlice({
               providedTags as FullTagDescription<string>[]
           }
         },
-        prepare:
-          prepareAutoBatched<
-            Array<{
-              queryCacheKey: QueryCacheKey
-              providedTags: readonly FullTagDescription<string>[]
-            }>
-          >(),
+        prepare: prepareAutoBatched<
+          Array<{
+            queryCacheKey: QueryCacheKey
+            providedTags: readonly FullTagDescription<string>[]
+          }>
+        >(),
       },
     },
     extraReducers(builder) {

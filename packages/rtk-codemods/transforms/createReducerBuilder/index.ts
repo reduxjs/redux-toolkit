@@ -3,26 +3,26 @@ import type {
   ExpressionStatement,
   JSCodeshift,
   ObjectExpression,
-  Transform
+  Transform,
 } from 'jscodeshift'
 import type { TestOptions } from 'jscodeshift/src/testUtils'
 
 function wrapInAddCaseExpression(
   j: JSCodeshift,
-  addCaseArgs: (ExpressionKind | SpreadElementKind)[]
+  addCaseArgs: (ExpressionKind | SpreadElementKind)[],
 ) {
   const identifier = j.identifier('builder')
   return j.expressionStatement(
     j.callExpression(
       j.memberExpression(identifier, j.identifier('addCase'), false),
-      addCaseArgs
-    )
+      addCaseArgs,
+    ),
   )
 }
 
 export function reducerPropsToBuilderExpression(
   j: JSCodeshift,
-  defNode: ObjectExpression
+  defNode: ObjectExpression,
 ) {
   const caseExpressions: ExpressionStatement[] = []
   for (const property of defNode.properties) {
@@ -64,7 +64,7 @@ export function reducerPropsToBuilderExpression(
 
   return j.arrowFunctionExpression(
     [j.identifier('builder')],
-    j.blockStatement(caseExpressions)
+    j.blockStatement(caseExpressions),
   )
 }
 
@@ -74,20 +74,20 @@ const transform: Transform = (file, api) => {
   return j(file.source)
     .find(j.CallExpression, {
       callee: { name: 'createReducer' },
-      arguments: [{}, { type: 'ObjectExpression' }]
+      arguments: [{}, { type: 'ObjectExpression' }],
     })
     .forEach((path) => {
       const reducerObjectExpression = path.node.arguments[1] as ObjectExpression
       j(path).replaceWith(
         j.callExpression(j.identifier('createReducer'), [
           path.node.arguments[0],
-          reducerPropsToBuilderExpression(j, reducerObjectExpression)
-        ])
+          reducerPropsToBuilderExpression(j, reducerObjectExpression),
+        ]),
       )
     })
     .toSource({
       arrowParensAlways: true,
-      lineTerminator: '\n'
+      lineTerminator: '\n',
     })
 }
 
