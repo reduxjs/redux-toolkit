@@ -393,7 +393,7 @@ describe('createSlice', () => {
   })
 
   describe('Deprecation warnings', () => {
-    let originalNodeEnv = process.env.NODE_ENV
+    const originalNodeEnv = process.env.NODE_ENV
 
     beforeEach(() => {
       vi.resetModules()

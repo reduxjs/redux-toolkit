@@ -71,7 +71,7 @@ describe('createReducer', () => {
   })
 
   describe('Deprecation warnings', () => {
-    let originalNodeEnv = process.env.NODE_ENV
+    const originalNodeEnv = process.env.NODE_ENV
 
     beforeEach(() => {
       vi.resetModules()
@@ -85,7 +85,10 @@ describe('createReducer', () => {
       const { createReducer } = await import('../createReducer')
       const wrapper = () => {
         // @ts-ignore
-        let dummyReducer = (createReducer as CreateReducer)([] as TodoState, {})
+        const dummyReducer = (createReducer as CreateReducer)(
+          [] as TodoState,
+          {},
+        )
       }
 
       expect(wrapper).toThrowError(
@@ -102,7 +105,10 @@ describe('createReducer', () => {
       const { createReducer } = await import('../createReducer')
       const wrapper = () => {
         // @ts-ignore
-        let dummyReducer = (createReducer as CreateReducer)([] as TodoState, {})
+        const dummyReducer = (createReducer as CreateReducer)(
+          [] as TodoState,
+          {},
+        )
       }
 
       expect(wrapper).toThrowError()
@@ -110,7 +116,7 @@ describe('createReducer', () => {
   })
 
   describe('Immer in a production environment', () => {
-    let originalNodeEnv = process.env.NODE_ENV
+    const originalNodeEnv = process.env.NODE_ENV
 
     beforeEach(() => {
       vi.resetModules()

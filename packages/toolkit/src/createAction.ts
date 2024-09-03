@@ -260,7 +260,7 @@ export function createAction<
 export function createAction(type: string, prepareAction?: Function): any {
   function actionCreator(...args: any[]) {
     if (prepareAction) {
-      let prepared = prepareAction(...args)
+      const prepared = prepareAction(...args)
       if (!prepared) {
         throw new Error('prepareAction did not return an object')
       }
