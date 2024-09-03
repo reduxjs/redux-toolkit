@@ -1,4 +1,4 @@
-import type { UseMutation, UseLazyQuery, UseQuery } from './buildHooks'
+import type { UseLazyQuery, UseMutation, UseQuery } from './buildHooks'
 import type {
   DefinitionType,
   EndpointDefinitions,
