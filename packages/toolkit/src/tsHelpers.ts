@@ -238,3 +238,10 @@ export type AnyNonNullishValue = NonNullable<unknown>
  * @internal
  */
 export type AnyFunction = (...args: any[]) => any
+
+/**
+ * Represents a strictly empty plain object, the `{}` value.
+ *
+ * @internal
+ */
+export type EmptyObject = Record<string, never>
