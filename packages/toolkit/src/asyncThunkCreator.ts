@@ -10,7 +10,6 @@ import type { CaseReducer } from './createReducer'
 import type {
   CreatorCaseReducers,
   ReducerCreator,
-  ReducerCreatorEntry,
   ReducerDefinition,
 } from './createSlice'
 import { ReducerType } from './createSlice'

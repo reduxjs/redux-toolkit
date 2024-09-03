@@ -2,7 +2,6 @@ import type {
   CaseReducerDefinition,
   PayloadAction,
   ReducerCreator,
-  ReducerCreatorEntry,
 } from '@reduxjs/toolkit'
 import { reducerCreator } from '../createSlice'
 import type { WithRequiredProp } from '../tsHelpers'
