@@ -1,5 +1,4 @@
 import { noop } from '@internal/tests/utils/helpers'
-import type { AnyNonNullishValue, EmptyObject } from '@internal/tsHelpers'
 import type {
   Action,
   ActionCreatorWithNonInferrablePayload,
@@ -17,7 +16,6 @@ import type {
   SerializedError,
   SliceCaseReducers,
   ThunkDispatch,
-  UnknownAction,
   ValidateSliceCaseReducers,
 } from '@reduxjs/toolkit'
 import {
@@ -661,7 +659,7 @@ describe('type tests', () => {
               expectTypeOf(action.error).toEqualTypeOf<'error'>()
             },
           ),
-          testInferVoid: create.asyncThunk(() => {}, {
+          testInferVoid: create.asyncThunk(noop, {
             pending(state, action) {
               expectTypeOf(state).toEqualTypeOf<TestState>()
 

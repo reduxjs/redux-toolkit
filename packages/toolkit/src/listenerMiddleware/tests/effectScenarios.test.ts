@@ -10,7 +10,7 @@ import { vi } from 'vitest'
 
 import type { PayloadAction } from '@reduxjs/toolkit'
 
-import { createListenerMiddleware, TaskAbortError } from '../index'
+import { TaskAbortError, createListenerMiddleware } from '../index'
 
 import type { TypedAddListener } from '../index'
 

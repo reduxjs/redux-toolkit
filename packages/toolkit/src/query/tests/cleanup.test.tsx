@@ -2,7 +2,7 @@
 import React from 'react'
 
 import { createListenerMiddleware } from '@reduxjs/toolkit'
-import { createApi, QueryStatus } from '@reduxjs/toolkit/query/react'
+import { QueryStatus, createApi } from '@reduxjs/toolkit/query/react'
 import { act, render, screen, waitFor } from '@testing-library/react'
 import { setupApiStore } from '../../tests/utils/helpers'
 import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
