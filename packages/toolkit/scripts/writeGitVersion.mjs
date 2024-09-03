@@ -1,5 +1,7 @@
-import * as path from 'node:path'
+#!/usr/bin/env node --import=tsx
+
 import * as fs from 'node:fs'
+import * as path from 'node:path'
 
 const gitRev = process.argv[2]
 
