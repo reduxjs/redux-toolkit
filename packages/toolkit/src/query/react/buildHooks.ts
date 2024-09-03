@@ -7,7 +7,6 @@ import type {
 import type {
   Api,
   ApiContext,
-  ApiEndpointInfiniteQuery,
   ApiEndpointMutation,
   ApiEndpointQuery,
   BaseQueryFn,
@@ -40,8 +39,8 @@ import type {
   TSHelpersOverride,
 } from '@reduxjs/toolkit/query'
 import {
-  defaultSerializeQueryArgs,
   QueryStatus,
+  defaultSerializeQueryArgs,
   skipToken,
 } from '@reduxjs/toolkit/query'
 import type { DependencyList } from 'react'
@@ -56,16 +55,16 @@ import {
 } from 'react'
 import { shallowEqual } from 'react-redux'
 
+import type { InfiniteQueryDirection } from '../core/apiState'
+import type { StartInfiniteQueryActionCreator } from '../core/buildInitiate'
 import type { SubscriptionSelectors } from '../core/buildMiddleware/index'
-import type { InfiniteData, InfiniteQueryConfigOptions } from '../core/index'
+import type { InfiniteData } from '../core/index'
+import { isInfiniteQueryDefinition } from '../endpointDefinitions'
 import type { UninitializedValue } from './constants'
 import { UNINITIALIZED_VALUE } from './constants'
 import type { ReactHooksModuleOptions } from './module'
 import { useStableQueryArgs } from './useSerializedStableValue'
 import { useShallowStableValue } from './useShallowStableValue'
-import type { InfiniteQueryDirection } from '../core/apiState'
-import { isInfiniteQueryDefinition } from '../endpointDefinitions'
-import type { StartInfiniteQueryActionCreator } from '../core/buildInitiate'
 
 // Copy-pasted from React-Redux
 const canUseDOM = () =>
