@@ -68,10 +68,6 @@ export type EntityMethodsCreator<State> =
         >,
       ) => EntityReducers<T, Id, State, Single, Plural>
 
-export type EntityCreators<State> = {
-  [entityMethodsCreatorType]: ReducerCreatorEntry<EntityMethodsCreator<State>>
-}
-
 const makeWrappedReducerCreator =
   <T, Id extends EntityId, State>(
     selectEntityState: (state: State) => EntityState<T, Id>,

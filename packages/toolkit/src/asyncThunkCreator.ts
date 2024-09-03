@@ -115,40 +115,35 @@ export interface AsyncThunkCreator<
   >
 }
 
-export type AsyncThunkCreators<
+export type AsyncThunkCreatorExposes<
   State,
   CaseReducers extends CreatorCaseReducers<State>,
 > = {
-  [ReducerType.asyncThunk]: ReducerCreatorEntry<
-    AsyncThunkCreator<State>,
-    {
-      actions: {
-        [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends AsyncThunkSliceReducerDefinition<
-          State,
-          infer ThunkArg,
-          infer Returned,
-          infer ThunkApiConfig
+  actions: {
+    [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends AsyncThunkSliceReducerDefinition<
+      State,
+      infer ThunkArg,
+      infer Returned,
+      infer ThunkApiConfig
+    >
+      ? AsyncThunk<Returned, ThunkArg, ThunkApiConfig>
+      : never
+  }
+  caseReducers: {
+    [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends AsyncThunkSliceReducerDefinition<
+      State,
+      any,
+      any,
+      any
+    >
+      ? Id<
+          Pick<
+            Required<CaseReducers[ReducerName]>,
+            'fulfilled' | 'rejected' | 'pending' | 'settled'
+          >
         >
-          ? AsyncThunk<Returned, ThunkArg, ThunkApiConfig>
-          : never
-      }
-      caseReducers: {
-        [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends AsyncThunkSliceReducerDefinition<
-          State,
-          any,
-          any,
-          any
-        >
-          ? Id<
-              Pick<
-                Required<CaseReducers[ReducerName]>,
-                'fulfilled' | 'rejected' | 'pending' | 'settled'
-              >
-            >
-          : never
-      }
-    }
-  >
+      : never
+  }
 }
 
 export const asyncThunkCreator: ReducerCreator<ReducerType.asyncThunk> = {
