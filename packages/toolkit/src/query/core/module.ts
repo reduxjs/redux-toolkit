@@ -36,12 +36,12 @@ import type {
   RootState,
 } from './apiState'
 import type {
+  BuildInitiateApiEndpointInfiniteQuery,
   BuildInitiateApiEndpointMutation,
   BuildInitiateApiEndpointQuery,
+  InfiniteQueryActionCreatorResult,
   MutationActionCreatorResult,
   QueryActionCreatorResult,
-  InfiniteQueryActionCreatorResult,
-  BuildInitiateApiEndpointInfiniteQuery,
 } from './buildInitiate'
 import { buildInitiate } from './buildInitiate'
 import type {

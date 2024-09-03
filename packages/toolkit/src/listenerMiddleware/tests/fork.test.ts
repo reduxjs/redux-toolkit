@@ -1,5 +1,5 @@
 import type { EnhancedStore } from '@reduxjs/toolkit'
-import { configureStore, createSlice, createAction } from '@reduxjs/toolkit'
+import { configureStore, createAction, createSlice } from '@reduxjs/toolkit'
 
 import type { PayloadAction } from '@reduxjs/toolkit'
 import type {
@@ -7,7 +7,7 @@ import type {
   ForkedTaskExecutor,
   TaskResult,
 } from '../types'
-import { createListenerMiddleware, TaskAbortError } from '../index'
+import { TaskAbortError, createListenerMiddleware } from '../index'
 import {
   listenerCancelled,
   listenerCompleted,
