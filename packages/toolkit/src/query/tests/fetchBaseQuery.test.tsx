@@ -5,7 +5,7 @@ import { HttpResponse, delay, http } from 'msw'
 import nodeFetch from 'node-fetch'
 import queryString from 'query-string'
 import { vi } from 'vitest'
-import { setupApiStore } from '../../tests/utils/helpers'
+import { hasBodyAndHeaders, setupApiStore } from '../../tests/utils/helpers'
 import type { BaseQueryApi } from '../baseQueryTypes'
 import { server } from './mocks/server'
 
@@ -355,6 +355,10 @@ describe('fetchBaseQuery', () => {
         {},
       )
 
+      if (!hasBodyAndHeaders(request)) {
+        expect.fail('Expected request to have body and headers')
+      }
+
       expect(request.headers['content-type']).toBe('application/json')
       expect(request.body).toEqual(data)
     })
@@ -367,6 +371,10 @@ describe('fetchBaseQuery', () => {
         commonBaseQueryApi,
         {},
       )
+
+      if (!hasBodyAndHeaders(request)) {
+        expect.fail('Expected request to have body and headers')
+      }
 
       expect(request.headers['content-type']).toBe('application/json')
       expect(request.body).toEqual(data)
@@ -388,6 +396,10 @@ describe('fetchBaseQuery', () => {
         {},
       )
 
+      if (!hasBodyAndHeaders(request)) {
+        expect.fail('Expected request to have body and headers')
+      }
+
       expect(request.headers['content-type']).toBe('text/html')
       expect(request.body).toEqual('[object Object]')
     })
@@ -405,6 +417,10 @@ describe('fetchBaseQuery', () => {
         commonBaseQueryApi,
         {},
       )
+
+      if (!hasBodyAndHeaders(request)) {
+        expect.fail('Expected request to have body and headers')
+      }
 
       expect(request.headers['content-type']).toBe('text/html')
       expect(request.body).toEqual(data.join(','))
@@ -427,6 +443,10 @@ describe('fetchBaseQuery', () => {
         {},
       )
 
+      if (!hasBodyAndHeaders(request)) {
+        expect.fail('Expected request to have body and headers')
+      }
+
       expect(request.headers['content-type']).toBe('application/vnd.api+json')
     })
 
@@ -435,7 +455,8 @@ describe('fetchBaseQuery', () => {
         items: new Set(['A', 'B', 'C']),
       }
 
-      const { data: request } = await baseQuery(
+      let request: any
+      ;({ data: request } = await baseQuery(
         {
           url: '/echo',
           body,
@@ -443,7 +464,11 @@ describe('fetchBaseQuery', () => {
         },
         commonBaseQueryApi,
         {},
-      )
+      ))
+
+      if (!hasBodyAndHeaders(request)) {
+        expect.fail('Expected request to have body and headers')
+      }
 
       expect(request.headers['content-type']).toBe('application/json')
       expect(request.body).toEqual({ items: {} }) // Set is not properly marshalled by default
@@ -456,7 +481,7 @@ describe('fetchBaseQuery', () => {
           value instanceof Set ? [...value] : value,
       })
 
-      const { data: request } = await baseQueryWithReplacer(
+      ;({ data: request } = await baseQueryWithReplacer(
         {
           url: '/echo',
           body,
@@ -464,7 +489,11 @@ describe('fetchBaseQuery', () => {
         },
         commonBaseQueryApi,
         {},
-      )
+      ))
+
+      if (!hasBodyAndHeaders(request)) {
+        expect.fail('Expected request to have body and headers')
+      }
 
       expect(request.headers['content-type']).toBe('application/json')
       expect(request.body).toEqual({ items: ['A', 'B', 'C'] }) // Set is marshalled correctly by jsonReplacer
@@ -479,6 +508,14 @@ describe('fetchBaseQuery', () => {
         {},
       )
 
+      if (!hasBodyAndHeaders(request)) {
+        expect.fail('Expected request to have body and headers')
+      }
+
+      if (!('url' in request)) {
+        expect.fail('Expected request to have url')
+      }
+
       expect(request.url).toEqual(`${baseUrl}/echo`)
     })
 
@@ -490,6 +527,14 @@ describe('fetchBaseQuery', () => {
         commonBaseQueryApi,
         {},
       )
+
+      if (!hasBodyAndHeaders(request)) {
+        expect.fail('Expected request to have body and headers')
+      }
+
+      if (!('url' in request)) {
+        expect.fail('Expected request to have url')
+      }
 
       expect(request.url).toEqual(`${baseUrl}/echo?a=1&b=true`)
     })
@@ -503,6 +548,14 @@ describe('fetchBaseQuery', () => {
         {},
       )
 
+      if (!hasBodyAndHeaders(request)) {
+        expect.fail('Expected request to have body and headers')
+      }
+
+      if (!('url' in request)) {
+        expect.fail('Expected request to have url')
+      }
+
       expect(request.url).toEqual(`${baseUrl}/echo?banana=pudding&a=1&b=true`)
     })
 
@@ -515,6 +568,14 @@ describe('fetchBaseQuery', () => {
         {},
       )
 
+      if (!hasBodyAndHeaders(request)) {
+        expect.fail('Expected request to have body and headers')
+      }
+
+      if (!('url' in request)) {
+        expect.fail('Expected request to have url')
+      }
+
       expect(request.url).toEqual(`${baseUrl}/echo?apple=fruit`)
     })
 
@@ -526,6 +587,14 @@ describe('fetchBaseQuery', () => {
         commonBaseQueryApi,
         {},
       )
+
+      if (!hasBodyAndHeaders(request)) {
+        expect.fail('Expected request to have body and headers')
+      }
+
+      if (!('url' in request)) {
+        expect.fail('Expected request to have url')
+      }
 
       expect(request.url).toEqual(`${baseUrl}/echo?apple=fruit&randy=null`)
     })
@@ -566,6 +635,14 @@ describe('fetchBaseQuery', () => {
         {},
       )
 
+      if (!hasBodyAndHeaders(request)) {
+        expect.fail('Expected request to have body and headers')
+      }
+
+      if (!('url' in request)) {
+        expect.fail('Expected request to have url')
+      }
+
       expect(request.url).toEqual(
         `${baseUrl}/echo?someArray[]=a&someArray[]=b&someArray[]=c`,
       )
@@ -596,6 +673,14 @@ describe('fetchBaseQuery', () => {
         commonBaseQueryApi,
         {},
       )
+
+      if (!hasBodyAndHeaders(request)) {
+        expect.fail('Expected request to have body and headers')
+      }
+
+      if (!('url' in request)) {
+        expect.fail('Expected request to have url')
+      }
 
       expect(request.body).toMatchObject(testBody)
     })
@@ -632,6 +717,14 @@ describe('fetchBaseQuery', () => {
         {},
       )
 
+      if (!hasBodyAndHeaders(request)) {
+        expect.fail('Expected request to have body and headers')
+      }
+
+      if (!('url' in request)) {
+        expect.fail('Expected request to have url')
+      }
+
       expect(request.headers['fake']).toBe(defaultHeaders['fake'])
       expect(request.headers['delete']).toBe(defaultHeaders['delete'])
       expect(request.headers['delete2']).toBe(defaultHeaders['delete2'])
@@ -643,6 +736,14 @@ describe('fetchBaseQuery', () => {
         commonBaseQueryApi,
         {},
       )
+
+      if (!hasBodyAndHeaders(request)) {
+        expect.fail('Expected request to have body and headers')
+      }
+
+      if (!('url' in request)) {
+        expect.fail('Expected request to have url')
+      }
 
       expect(request.headers['authorization']).toBe('Bearer banana')
       expect(request.headers['fake']).toBe(defaultHeaders['fake'])
@@ -663,6 +764,14 @@ describe('fetchBaseQuery', () => {
         {},
       )
 
+      if (!hasBodyAndHeaders(request)) {
+        expect.fail('Expected request to have body and headers')
+      }
+
+      if (!('url' in request)) {
+        expect.fail('Expected request to have url')
+      }
+
       expect(request.headers['authorization']).toBe('Bearer banana')
       expect(request.headers['content-type']).toBe('custom-content-type')
       expect(request.headers['fake']).toBe(defaultHeaders['fake'])
@@ -678,6 +787,14 @@ describe('fetchBaseQuery', () => {
         commonBaseQueryApi,
         {},
       )
+
+      if (!hasBodyAndHeaders(request)) {
+        expect.fail('Expected request to have body and headers')
+      }
+
+      if (!('url' in request)) {
+        expect.fail('Expected request to have url')
+      }
 
       expect(request.headers['fake']).toBe(fake)
       expect(request.headers['delete']).toBeUndefined()
@@ -699,6 +816,14 @@ describe('fetchBaseQuery', () => {
 
       const { data: request } = await doRequest()
 
+      if (!hasBodyAndHeaders(request)) {
+        expect.fail('Expected request to have body and headers')
+      }
+
+      if (!('url' in request)) {
+        expect.fail('Expected request to have url')
+      }
+
       expect(request.headers['authorization']).toBe(`Bearer ${token}`)
     })
 
@@ -719,6 +844,14 @@ describe('fetchBaseQuery', () => {
 
       const { data: request } = await doRequest()
 
+      if (!hasBodyAndHeaders(request)) {
+        expect.fail('Expected request to have body and headers')
+      }
+
+      if (!('url' in request)) {
+        expect.fail('Expected request to have url')
+      }
+
       expect(request.headers['authorization']).toBe(`Bearer ${token}`)
     })
 
@@ -737,6 +870,14 @@ describe('fetchBaseQuery', () => {
         _baseQuery({ url: '/echo' }, commonBaseQueryApi, {})
 
       const { data: request } = await doRequest()
+
+      if (!hasBodyAndHeaders(request)) {
+        expect.fail('Expected request to have body and headers')
+      }
+
+      if (!('url' in request)) {
+        expect.fail('Expected request to have url')
+      }
 
       expect(request.headers['authorization']).toBe(`Bearer ${token}`)
     })
@@ -776,7 +917,11 @@ describe('fetchBaseQuery', () => {
     })
 
     test('prepareHeaders provides extra api information for getState, extra, endpoint, type and forced', async () => {
-      let _getState, _extra, _endpoint, _type, _forced
+      let _getState
+      let _extra
+      let _endpoint
+      let _type
+      let _forced
 
       const baseQuery = fetchBaseQuery({
         baseUrl,
@@ -842,6 +987,14 @@ describe('fetchBaseQuery', () => {
 
     const { data: request } = await doRequest()
 
+    if (!hasBodyAndHeaders(request)) {
+      expect.fail('Expected request to have body and headers')
+    }
+
+    if (!('url' in request)) {
+      expect.fail('Expected request to have url')
+    }
+
     expect(request.headers['authorization']).toBe(`Bearer ${token}`)
   })
 
@@ -851,6 +1004,14 @@ describe('fetchBaseQuery', () => {
       commonBaseQueryApi,
       {},
     )
+
+    if (!hasBodyAndHeaders(request)) {
+      expect.fail('Expected request to have body and headers')
+    }
+
+    if (!('url' in request)) {
+      expect.fail('Expected request to have url')
+    }
 
     expect(request.headers['fake']).toBe(defaultHeaders['fake'])
     expect(request.headers['delete']).toBe(defaultHeaders['delete'])
@@ -866,6 +1027,14 @@ describe('fetchBaseQuery', () => {
       {},
     )
 
+    if (!hasBodyAndHeaders(request)) {
+      expect.fail('Expected request to have body and headers')
+    }
+
+    if (!('url' in request)) {
+      expect.fail('Expected request to have url')
+    }
+
     expect(request.headers['banana']).toBe('1')
     expect(request.headers['fake']).toBe(defaultHeaders['fake'])
     expect(request.headers['delete']).toBe(defaultHeaders['delete'])
@@ -880,6 +1049,10 @@ describe('fetchBaseQuery', () => {
       commonBaseQueryApi,
       {},
     )
+
+    if (!hasBodyAndHeaders(request)) {
+      expect.fail('Expected request to have body and headers')
+    }
 
     expect(request.headers['banana']).toBeUndefined()
     expect(request.headers['fake']).toBe(defaultHeaders['fake'])
@@ -998,6 +1171,14 @@ describe('fetchFn', () => {
       commonBaseQueryApi,
       {},
     )
+
+    if (!hasBodyAndHeaders(request)) {
+      expect.fail('Expected request to have body and headers')
+    }
+
+    if (!('url' in request)) {
+      expect.fail('Expected request to have url')
+    }
 
     expect(request.url).toEqual(`${baseUrl}/echo?apple=fruit`)
   })
