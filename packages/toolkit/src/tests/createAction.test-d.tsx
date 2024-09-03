@@ -300,9 +300,9 @@ describe('type tests', () => {
 
     expectTypeOf(
       createAction('', (_: 0) => ({
-        payload: 1 as 1,
-        error: 2 as 2,
-        meta: 3 as 3,
+        payload: 1 as const,
+        error: 2 as const,
+        meta: 3 as const,
       })),
     ).toEqualTypeOf<ActionCreatorWithPreparedPayload<[0], 1, '', 2, 3>>()
 
