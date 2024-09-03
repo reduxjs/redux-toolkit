@@ -1,5 +1,5 @@
-export const namedBaseQuery = () => {};
+export const namedBaseQuery = () => {}
 
 export function anotherNamedBaseQuery() {}
 
-export default namedBaseQuery;
+export default namedBaseQuery

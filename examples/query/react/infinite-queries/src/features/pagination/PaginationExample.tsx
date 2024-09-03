@@ -1,5 +1,5 @@
-import React from "react"
-import { apiWithPagination } from "./paginationApi"
+import React from 'react'
+import { apiWithPagination } from './paginationApi'
 
 // The React Query example actually just uses a normal query
 // rather than an infinite query, and Dominik confirmed that
@@ -19,7 +19,7 @@ export const PaginationExample = () => {
     isFetchingNextPage,
     isFetching,
     isError,
-  } = apiWithPagination.endpoints.getProjects.useInfiniteQuery("projects")
+  } = apiWithPagination.endpoints.getProjects.useInfiniteQuery('projects')
 
   const currentPage = data?.pages[page]
 
@@ -29,15 +29,15 @@ export const PaginationExample = () => {
       <div>Current Page: {page + 1}</div>
       <button
         onClick={() => {
-          setPage(old => Math.max(old - 1, 0))
+          setPage((old) => Math.max(old - 1, 0))
         }}
         disabled={page === 0}
       >
         Previous Page
-      </button>{" "}
+      </button>{' '}
       <button
         onClick={() => {
-          setPage(old => (currentPage?.hasMore ? old + 1 : old))
+          setPage((old) => (currentPage?.hasMore ? old + 1 : old))
           fetchNextPage()
         }}
         disabled={!currentPage?.hasMore}
@@ -51,7 +51,7 @@ export const PaginationExample = () => {
         <div>Error: {error.message}</div>
       ) : (
         <div>
-          {currentPage?.projects.map(project => (
+          {currentPage?.projects.map((project) => (
             <p key={project.id}>{project.name}</p>
           ))}
         </div>
