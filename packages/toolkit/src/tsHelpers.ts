@@ -245,3 +245,10 @@ export type AnyFunction = (...args: any[]) => any
  * @internal
  */
 export type EmptyObject = Record<string, never>
+
+/**
+ * Represents a generic object with `string` keys and values of `any` type.
+ *
+ * @internal
+ */
+export type AnyObject = Record<string, any>
