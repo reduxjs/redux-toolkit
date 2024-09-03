@@ -180,7 +180,7 @@ export interface ActionCreatorWithNonInferrablePayload<
    * return a {@link PayloadAction} of type `T` with a payload
    * of exactly the type of the argument.
    */
-  <PT extends unknown>(payload: PT): PayloadAction<PT, T>
+  <PT>(payload: PT): PayloadAction<PT, T>
 }
 
 /**
