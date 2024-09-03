@@ -225,6 +225,7 @@ export const hasBodyAndHeaders = (
   body: any
   headers: {
     'content-type': string
+    [key: string]: string
   }
 } => {
   return (
