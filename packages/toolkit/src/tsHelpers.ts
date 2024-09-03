@@ -231,3 +231,10 @@ export function asSafePromise<Resolved, Rejected>(
  * @internal
  */
 export type AnyNonNullishValue = NonNullable<unknown>
+
+/**
+ * Any function with any arguments.
+ *
+ * @internal
+ */
+export type AnyFunction = (...args: any[]) => any
