@@ -221,3 +221,13 @@ export function asSafePromise<Resolved, Rejected>(
 ) {
   return promise.catch(fallback) as SafePromise<Resolved | Rejected>
 }
+
+/**
+ * An alias for type `{}`. Represents any value that is not
+ * `null` or `undefined`. It is mostly used for semantic purposes
+ * to help distinguish between an empty object type and `{}` as
+ * they are not the same.
+ *
+ * @internal
+ */
+export type AnyNonNullishValue = NonNullable<unknown>
