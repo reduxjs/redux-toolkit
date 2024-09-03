@@ -10,18 +10,18 @@ import { asSafePromise } from '../../tsHelpers'
 import type { Api, ApiContext } from '../apiTypes'
 import type { BaseQueryError, QueryReturnValue } from '../baseQueryTypes'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
-import {
-  isQueryDefinition,
-  type EndpointDefinition,
-  type EndpointDefinitions,
-  type InfiniteQueryArgFrom,
-  type InfiniteQueryDefinition,
-  type MutationDefinition,
-  type PageParamFrom,
-  type QueryArgFrom,
-  type QueryDefinition,
-  type ResultTypeFrom,
+import type {
+  EndpointDefinition,
+  EndpointDefinitions,
+  InfiniteQueryArgFrom,
+  InfiniteQueryDefinition,
+  MutationDefinition,
+  PageParamFrom,
+  QueryArgFrom,
+  QueryDefinition,
+  ResultTypeFrom,
 } from '../endpointDefinitions'
+import { isQueryDefinition } from '../endpointDefinitions'
 import { countObjectKeys, getOrInsert, isNotNullish } from '../utils'
 import type {
   InfiniteData,
