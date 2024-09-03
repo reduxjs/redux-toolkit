@@ -1158,11 +1158,11 @@ describe('timeout behavior', () => {
         }),
       }),
     })
-  
+
     const storeRef = setupApiStore(api, undefined, {
       withoutTestLifecycles: true,
     })
-    
+
     server.use(
       http.get(
         'https://example.com/success',

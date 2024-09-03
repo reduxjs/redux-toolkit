@@ -225,7 +225,8 @@ export function fetchBaseQuery({
       ...rest
     } = typeof arg == 'string' ? { url: arg } : arg
 
-    let abortController: AbortController | undefined, signal = api.signal
+    let abortController: AbortController | undefined,
+      signal = api.signal
     if (timeout) {
       abortController = new AbortController()
       api.signal.addEventListener('abort', abortController.abort)
@@ -297,7 +298,10 @@ export function fetchBaseQuery({
       }
     } finally {
       if (timeoutId) clearTimeout(timeoutId)
-      abortController?.signal.removeEventListener('abort', abortController.abort)
+      abortController?.signal.removeEventListener(
+        'abort',
+        abortController.abort,
+      )
     }
     const responseClone = response.clone()
 

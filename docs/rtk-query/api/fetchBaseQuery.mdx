@@ -303,8 +303,8 @@ The default response handler is `"json"`, which is equivalent to the following f
 
 ```ts title="Default responseHandler"
 const defaultResponseHandler = async (res: Response) => {
-  const text = await res.text();
-  return text.length ? JSON.parse(text) : null;
+  const text = await res.text()
+  return text.length ? JSON.parse(text) : null
 }
 ```
 
