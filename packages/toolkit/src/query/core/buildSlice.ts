@@ -248,7 +248,7 @@ export function buildSlice({
       } else {
         // Assign or safely update the cache data.
         substate.data =
-          definitions[meta.arg.endpointName].structuralSharing ?? true
+          (definitions[meta.arg.endpointName].structuralSharing ?? true)
             ? copyWithStructuralSharing(
                 isDraft(substate.data)
                   ? original(substate.data)
