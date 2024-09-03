@@ -1,41 +1,10 @@
-import type { Action, PayloadAction, UnknownAction } from '@reduxjs/toolkit'
-import {
-  combineReducers,
-  createAction,
-  createSlice,
-  isAnyOf,
-  isFulfilled,
-  isRejectedWithValue,
-  createNextState,
-  prepareAutoBatched,
-  SHOULD_AUTOBATCH,
-  nanoid,
-} from './rtkImports'
-import type {
-  QuerySubstateIdentifier,
-  QuerySubState,
-  MutationSubstateIdentifier,
-  MutationSubState,
-  MutationState,
-  QueryState,
-  InvalidationState,
-  Subscribers,
-  QueryCacheKey,
-  SubscriptionState,
-  ConfigState,
-  QueryKeys,
-} from './apiState'
-import { QueryStatus } from './apiState'
-import type {
-  MutationThunk,
-  QueryThunk,
-  QueryThunkArg,
-  RejectedAction,
-} from './buildThunks'
-import { calculateProvidedByThunk } from './buildThunks'
+import type { PayloadAction } from '@reduxjs/toolkit'
+import type { Patch } from 'immer'
+import { applyPatches, isDraft, original } from 'immer'
+import type { ApiContext } from '../apiTypes'
+import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import type {
   AssertTagTypes,
-  DefinitionType,
   EndpointDefinitions,
   FullTagDescription,
   QueryArgFrom,
@@ -54,6 +23,7 @@ import type {
   MutationSubState,
   MutationSubstateIdentifier,
   QueryCacheKey,
+  QueryKeys,
   QueryState,
   QuerySubState,
   QuerySubstateIdentifier,
@@ -62,7 +32,21 @@ import type {
 } from './apiState'
 import { QueryStatus } from './apiState'
 import { isUpsertQuery } from './buildInitiate'
-import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
+import type { MutationThunk, QueryThunk, QueryThunkArg } from './buildThunks'
+import { calculateProvidedByThunk } from './buildThunks'
+import {
+  SHOULD_AUTOBATCH,
+  combineReducers,
+  createAction,
+  createNextState,
+  createSlice,
+  isAnyOf,
+  isFulfilled,
+  isRejectedWithValue,
+  nanoid,
+  prepareAutoBatched,
+} from './rtkImports'
+import { onFocus, onFocusLost, onOffline, onOnline } from './setupListeners'
 
 /**
  * A typesafe single entry to be upserted into the cache
@@ -105,19 +89,6 @@ export type UpsertEntries<Definitions extends EndpointDefinitions> = <
     },
   ],
 ) => PayloadAction<NormalizedQueryUpsertEntryPayload[]>
-import type { MutationThunk, QueryThunk } from './buildThunks'
-import { calculateProvidedByThunk } from './buildThunks'
-import {
-  combineReducers,
-  createAction,
-  createNextState,
-  createSlice,
-  isAnyOf,
-  isFulfilled,
-  isRejectedWithValue,
-  prepareAutoBatched,
-} from './rtkImports'
-import { onFocus, onFocusLost, onOffline, onOnline } from './setupListeners'
 
 function updateQuerySubstateIfExists(
   state: QueryState<any>,

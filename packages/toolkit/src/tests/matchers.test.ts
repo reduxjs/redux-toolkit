@@ -1,6 +1,9 @@
 import { noop } from '@internal/tests/utils/helpers'
 import type { ThunkAction, UnknownAction } from '@reduxjs/toolkit'
 import {
+  createAction,
+  createAsyncThunk,
+  createReducer,
   isAllOf,
   isAnyOf,
   isAsyncThunkAction,
@@ -8,9 +11,6 @@ import {
   isPending,
   isRejected,
   isRejectedWithValue,
-  createAction,
-  createAsyncThunk,
-  createReducer,
 } from '@reduxjs/toolkit'
 
 const thunk: ThunkAction<any, any, any, UnknownAction> = noop

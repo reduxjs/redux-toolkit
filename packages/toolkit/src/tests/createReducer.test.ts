@@ -1,17 +1,17 @@
 import { noop } from '@internal/tests/utils/helpers'
 import type {
   CaseReducer,
-  PayloadAction,
   Draft,
+  PayloadAction,
   Reducer,
   UnknownAction,
 } from '@reduxjs/toolkit'
 import { isPlainObject } from '@reduxjs/toolkit'
-import { createReducer, createAction, createNextState } from '@reduxjs/toolkit'
+import { createAction, createNextState, createReducer } from '@reduxjs/toolkit'
 import {
-  mockConsole,
   createConsole,
   getLog,
+  mockConsole,
 } from 'console-testing-library/pure'
 
 interface Todo {

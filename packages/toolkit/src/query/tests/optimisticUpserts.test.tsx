@@ -5,7 +5,7 @@ import {
   hookWaitFor,
   setupApiStore,
 } from '../../tests/utils/helpers'
-import { renderHook, act, waitFor } from '@testing-library/react'
+import { act, renderHook, waitFor } from '@testing-library/react'
 import { delay } from 'msw'
 
 interface Post {
