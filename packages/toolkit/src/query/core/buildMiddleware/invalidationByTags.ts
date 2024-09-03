@@ -14,10 +14,10 @@ import type { CombinedState, QueryCacheKey } from '../apiState'
 import { QueryStatus } from '../apiState'
 import { calculateProvidedByThunk } from '../buildThunks'
 import type {
-  SubMiddlewareApi,
-  InternalHandlerBuilder,
   ApiMiddlewareInternalHandler,
+  InternalHandlerBuilder,
   InternalMiddlewareState,
+  SubMiddlewareApi,
 } from './types'
 import { countObjectKeys } from '../../utils/countObjectKeys'
 
