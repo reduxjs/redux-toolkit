@@ -26,11 +26,13 @@ const api = createApi({
       providesTags: ['Bread'],
     }),
     invalidateFruit: build.mutation({
-      query: (fruit?: 'Banana' | 'Bread' | null) => ({ url: `invalidate/fruit/${fruit || ''}` }),
+      query: (fruit?: 'Banana' | 'Bread' | null) => ({
+        url: `invalidate/fruit/${fruit || ''}`,
+      }),
       invalidatesTags(result, error, arg) {
         return [arg]
-      }
-    })
+      },
+    }),
   }),
 })
 const { getBanana, getBread, invalidateFruit } = api.endpoints
@@ -77,9 +79,11 @@ it('invalidates the specified tags', async () => {
   )
 })
 
-it('invalidates tags correctly when null or undefined are provided as tags', async() =>{
+it('invalidates tags correctly when null or undefined are provided as tags', async () => {
   await storeRef.store.dispatch(getBanana.initiate(1))
-  await storeRef.store.dispatch(api.util.invalidateTags([undefined, null, 'Banana']))
+  await storeRef.store.dispatch(
+    api.util.invalidateTags([undefined, null, 'Banana']),
+  )
 
   // Slight pause to let the middleware run and such
   await delay(20)
@@ -95,42 +99,56 @@ it('invalidates tags correctly when null or undefined are provided as tags', asy
 
   expect(storeRef.store.getState().actions).toMatchSequence(...apiActions)
 })
-
 
 it.each([
-  { tags: [undefined, null, 'Bread'] as Parameters<typeof api.util.invalidateTags>['0'] },
-  { tags: [undefined, null], }, { tags: [] }]
-)('does not invalidate with tags=$tags if no query matches', async ({ tags }) => {
-  await storeRef.store.dispatch(getBanana.initiate(1))
-  await storeRef.store.dispatch(api.util.invalidateTags(tags))
+  {
+    tags: [undefined, null, 'Bread'] as Parameters<
+      typeof api.util.invalidateTags
+    >['0'],
+  },
+  { tags: [undefined, null] },
+  { tags: [] },
+])(
+  'does not invalidate with tags=$tags if no query matches',
+  async ({ tags }) => {
+    await storeRef.store.dispatch(getBanana.initiate(1))
+    await storeRef.store.dispatch(api.util.invalidateTags(tags))
 
-  // Slight pause to let the middleware run and such
-  await delay(20)
+    // Slight pause to let the middleware run and such
+    await delay(20)
 
-  const apiActions = [
-    api.internalActions.middlewareRegistered.match,
-    getBanana.matchPending,
-    getBanana.matchFulfilled,
-    api.util.invalidateTags.match,
-  ]
+    const apiActions = [
+      api.internalActions.middlewareRegistered.match,
+      getBanana.matchPending,
+      getBanana.matchFulfilled,
+      api.util.invalidateTags.match,
+    ]
 
-  expect(storeRef.store.getState().actions).toMatchSequence(...apiActions)
-})
- 
-it.each([{ mutationArg: 'Bread' as "Bread" | null | undefined  }, { mutationArg: undefined }, { mutationArg: null }])('does not invalidate queries when a mutation with tags=[$mutationArg] runs and does not match anything', async ({ mutationArg }) => {
-  await storeRef.store.dispatch(getBanana.initiate(1))
-  await storeRef.store.dispatch(invalidateFruit.initiate(mutationArg))
+    expect(storeRef.store.getState().actions).toMatchSequence(...apiActions)
+  },
+)
 
-  // Slight pause to let the middleware run and such
-  await delay(20)
+it.each([
+  { mutationArg: 'Bread' as 'Bread' | null | undefined },
+  { mutationArg: undefined },
+  { mutationArg: null },
+])(
+  'does not invalidate queries when a mutation with tags=[$mutationArg] runs and does not match anything',
+  async ({ mutationArg }) => {
+    await storeRef.store.dispatch(getBanana.initiate(1))
+    await storeRef.store.dispatch(invalidateFruit.initiate(mutationArg))
 
-  const apiActions = [
-    api.internalActions.middlewareRegistered.match,
-    getBanana.matchPending,
-    getBanana.matchFulfilled,
-    invalidateFruit.matchPending,
-    invalidateFruit.matchFulfilled,
-  ]
+    // Slight pause to let the middleware run and such
+    await delay(20)
 
-  expect(storeRef.store.getState().actions).toMatchSequence(...apiActions)
-})
+    const apiActions = [
+      api.internalActions.middlewareRegistered.match,
+      getBanana.matchPending,
+      getBanana.matchFulfilled,
+      invalidateFruit.matchPending,
+      invalidateFruit.matchFulfilled,
+    ]
+
+    expect(storeRef.store.getState().actions).toMatchSequence(...apiActions)
+  },
+)
