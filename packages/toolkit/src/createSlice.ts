@@ -20,6 +20,10 @@ import type {
   ReducerWithInitialState,
 } from './createReducer'
 import { createReducer, makeGetInitialState } from './createReducer'
+import type {
+  EntityMethodsCreator,
+  entityMethodsCreatorType,
+} from './entities/slice_creator'
 import type { ActionReducerMapBuilder, TypedActionCreator } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
 import type {
@@ -146,6 +150,7 @@ export interface SliceReducerCreators<
     AsyncThunkCreator<State>,
     AsyncThunkCreatorExposes<State, CaseReducers>
   >
+  [entityMethodsCreatorType]: ReducerCreatorEntry<EntityMethodsCreator<State>>
 }
 
 export type ReducerCreators<
