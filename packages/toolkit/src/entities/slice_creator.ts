@@ -1,6 +1,5 @@
 import type {
   CaseReducerDefinition,
-  CreatorCaseReducers,
   PayloadAction,
   ReducerCreator,
   ReducerCreatorEntry,
@@ -30,7 +29,7 @@ export interface EntityMethodsCreatorConfig<
   pluralName?: Plural
 }
 
-type EntityMethodsCreator<State> =
+export type EntityMethodsCreator<State> =
   State extends EntityState<infer T, infer Id>
     ? {
         <
@@ -69,15 +68,8 @@ type EntityMethodsCreator<State> =
         >,
       ) => EntityReducers<T, Id, State, Single, Plural>
 
-declare module '@reduxjs/toolkit' {
-  export interface SliceReducerCreators<
-    State,
-    CaseReducers extends CreatorCaseReducers<State>,
-    Name extends string,
-    ReducerPath extends string,
-  > {
-    [entityMethodsCreatorType]: ReducerCreatorEntry<EntityMethodsCreator<State>>
-  }
+export type EntityCreators<State> = {
+  [entityMethodsCreatorType]: ReducerCreatorEntry<EntityMethodsCreator<State>>
 }
 
 const makeWrappedReducerCreator =

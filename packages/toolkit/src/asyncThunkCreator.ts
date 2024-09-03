@@ -10,41 +10,11 @@ import type { CaseReducer } from './createReducer'
 import type {
   CreatorCaseReducers,
   ReducerCreator,
+  ReducerCreatorEntry,
   ReducerDefinition,
 } from './createSlice'
 import { ReducerType } from './createSlice'
 import type { Id } from './tsHelpers'
-
-export type AsyncThunkCreatorExposes<
-  State,
-  CaseReducers extends CreatorCaseReducers<State>,
-> = {
-  actions: {
-    [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends AsyncThunkSliceReducerDefinition<
-      State,
-      infer ThunkArg,
-      infer Returned,
-      infer ThunkApiConfig
-    >
-      ? AsyncThunk<Returned, ThunkArg, ThunkApiConfig>
-      : never
-  }
-  caseReducers: {
-    [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends AsyncThunkSliceReducerDefinition<
-      State,
-      any,
-      any,
-      any
-    >
-      ? Id<
-          Pick<
-            Required<CaseReducers[ReducerName]>,
-            'fulfilled' | 'rejected' | 'pending' | 'settled'
-          >
-        >
-      : never
-  }
-}
 
 export type AsyncThunkSliceReducerConfig<
   State,
@@ -142,6 +112,42 @@ export interface AsyncThunkCreator<
   >(): AsyncThunkCreator<
     State,
     OverrideThunkApiConfigs<CurriedThunkApiConfig, ThunkApiConfig>
+  >
+}
+
+export type AsyncThunkCreators<
+  State,
+  CaseReducers extends CreatorCaseReducers<State>,
+> = {
+  [ReducerType.asyncThunk]: ReducerCreatorEntry<
+    AsyncThunkCreator<State>,
+    {
+      actions: {
+        [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends AsyncThunkSliceReducerDefinition<
+          State,
+          infer ThunkArg,
+          infer Returned,
+          infer ThunkApiConfig
+        >
+          ? AsyncThunk<Returned, ThunkArg, ThunkApiConfig>
+          : never
+      }
+      caseReducers: {
+        [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends AsyncThunkSliceReducerDefinition<
+          State,
+          any,
+          any,
+          any
+        >
+          ? Id<
+              Pick<
+                Required<CaseReducers[ReducerName]>,
+                'fulfilled' | 'rejected' | 'pending' | 'settled'
+              >
+            >
+          : never
+      }
+    }
   >
 }
 

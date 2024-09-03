@@ -1,9 +1,6 @@
 import type { Action, Reducer, UnknownAction } from 'redux'
 import type { Selector } from 'reselect'
-import type {
-  AsyncThunkCreator,
-  AsyncThunkCreatorExposes,
-} from './asyncThunkCreator'
+import type { AsyncThunkCreators } from './asyncThunkCreator'
 import type { InjectConfig } from './combineSlices'
 import type {
   ActionCreatorWithoutPayload,
@@ -20,6 +17,7 @@ import type {
   ReducerWithInitialState,
 } from './createReducer'
 import { createReducer, makeGetInitialState } from './createReducer'
+import type { EntityCreators } from './entities/slice_creator'
 import type { ActionReducerMapBuilder, TypedActionCreator } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
 import type {
@@ -76,7 +74,8 @@ export interface SliceReducerCreators<
   CaseReducers extends CreatorCaseReducers<State>,
   Name extends string,
   ReducerPath extends string,
-> {
+> extends AsyncThunkCreators<State, CaseReducers>,
+    EntityCreators<State> {
   [ReducerType.reducer]: ReducerCreatorEntry<
     {
       (
@@ -141,10 +140,6 @@ export interface SliceReducerCreators<
           : never
       }
     }
-  >
-  [ReducerType.asyncThunk]: ReducerCreatorEntry<
-    AsyncThunkCreator<State>,
-    AsyncThunkCreatorExposes<State, CaseReducers>
   >
 }
 
