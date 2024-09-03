@@ -2,7 +2,6 @@ import type {
   CaseReducerDefinition,
   PayloadAction,
   ReducerCreator,
-  ReducerCreatorEntry,
 } from '@reduxjs/toolkit'
 import { reducerCreator } from '../createSlice'
 import type { WithRequiredProp } from '../tsHelpers'
@@ -67,10 +66,6 @@ export type EntityMethodsCreator<State> =
           'selectEntityState'
         >,
       ) => EntityReducers<T, Id, State, Single, Plural>
-
-export type EntityCreators<State> = {
-  [entityMethodsCreatorType]: ReducerCreatorEntry<EntityMethodsCreator<State>>
-}
 
 const makeWrappedReducerCreator =
   <T, Id extends EntityId, State>(
