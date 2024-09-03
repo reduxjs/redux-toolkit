@@ -31,10 +31,9 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react'
-import { userEvent } from '@testing-library/user-event'
 import type { SyncScreen } from '@testing-library/react-render-stream/pure'
 import { createRenderStream } from '@testing-library/react-render-stream/pure'
-import { HttpResponse, http, delay } from 'msw'
+import { HttpResponse, delay, http } from 'msw'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { InfiniteQueryResultFlags } from '../core/buildSelectors'
 

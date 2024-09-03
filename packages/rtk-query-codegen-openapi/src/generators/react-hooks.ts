@@ -1,12 +1,12 @@
-import ts from 'typescript'
 import { getOperationName } from 'oazapfts/generate'
-import { capitalize, isQuery } from '../utils'
-import type {
-  OperationDefinition,
-  EndpointOverrides,
-  ConfigFile,
-} from '../types'
+import ts from 'typescript'
 import { getOverrides } from '../generate'
+import type {
+  ConfigFile,
+  EndpointOverrides,
+  OperationDefinition,
+} from '../types'
+import { capitalize, isQuery } from '../utils'
 import { factory } from '../utils/factory'
 
 type HooksConfigOptions = NonNullable<ConfigFile['hooks']>

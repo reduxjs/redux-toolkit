@@ -1,3 +1,4 @@
+import { noop } from '@internal/listenerMiddleware/utils'
 import type {
   Action,
   ActionCreatorWithNonInferrablePayload,
@@ -658,7 +659,7 @@ describe('type tests', () => {
               expectTypeOf(action.error).toEqualTypeOf<'error'>()
             },
           ),
-          testInferVoid: create.asyncThunk(() => {}, {
+          testInferVoid: create.asyncThunk(noop, {
             pending(state, action) {
               expectTypeOf(state).toEqualTypeOf<TestState>()
 

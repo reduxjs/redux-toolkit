@@ -2,12 +2,12 @@ import { noop } from '@internal/listenerMiddleware/utils'
 import { isNestedFrozen } from '@internal/serializableStateInvariantMiddleware'
 import type { Reducer } from '@reduxjs/toolkit'
 import {
+  Tuple,
   configureStore,
   createNextState,
   createSerializableStateInvariantMiddleware,
   findNonSerializableValue,
   isPlain,
-  Tuple,
 } from '@reduxjs/toolkit'
 
 // Mocking console

@@ -2,13 +2,13 @@ import camelCase from 'lodash.camelcase'
 import path from 'node:path'
 import ApiGenerator, {
   getOperationName as _getOperationName,
-  getReferenceName,
-  isReference,
-  supportDeepObjects,
   createPropertyAssignment,
   createQuestionToken,
+  getReferenceName,
+  isReference,
   isValidIdentifier,
   keywordType,
+  supportDeepObjects,
 } from 'oazapfts/generate'
 import type { OpenAPIV3 } from 'openapi-types'
 import ts from 'typescript'

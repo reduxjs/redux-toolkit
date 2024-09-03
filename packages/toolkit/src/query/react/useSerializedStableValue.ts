@@ -1,5 +1,5 @@
-import { useEffect, useRef, useMemo } from 'react'
 import { copyWithStructuralSharing } from '@reduxjs/toolkit/query'
+import { useEffect, useMemo, useRef } from 'react'
 
 export function useStableQueryArgs<T>(queryArgs: T) {
   const cache = useRef(queryArgs)

@@ -10,18 +10,18 @@ import { asSafePromise } from '../../tsHelpers'
 import type { Api, ApiContext } from '../apiTypes'
 import type { BaseQueryError, QueryReturnValue } from '../baseQueryTypes'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
-import {
-  isQueryDefinition,
-  type EndpointDefinition,
-  type EndpointDefinitions,
-  type InfiniteQueryArgFrom,
-  type InfiniteQueryDefinition,
-  type MutationDefinition,
-  type PageParamFrom,
-  type QueryArgFrom,
-  type QueryDefinition,
-  type ResultTypeFrom,
+import type {
+  EndpointDefinition,
+  EndpointDefinitions,
+  InfiniteQueryArgFrom,
+  InfiniteQueryDefinition,
+  MutationDefinition,
+  PageParamFrom,
+  QueryArgFrom,
+  QueryDefinition,
+  ResultTypeFrom,
 } from '../endpointDefinitions'
+import { isQueryDefinition } from '../endpointDefinitions'
 import { filterNullishValues } from '../utils'
 import type {
   InfiniteData,
@@ -29,6 +29,7 @@ import type {
   InfiniteQueryDirection,
   SubscriptionOptions,
 } from './apiState'
+import type { InternalMiddlewareState } from './buildMiddleware/types'
 import type {
   InfiniteQueryResultSelectorResult,
   QueryResultSelectorResult,
@@ -42,7 +43,6 @@ import type {
   ThunkApiMetaConfig,
 } from './buildThunks'
 import type { ApiEndpointQuery } from './module'
-import type { InternalMiddlewareState } from './buildMiddleware/types'
 
 export type BuildInitiateApiEndpointQuery<
   Definition extends QueryDefinition<any, any, any, any, any>,

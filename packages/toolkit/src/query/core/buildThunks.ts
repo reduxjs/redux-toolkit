@@ -41,14 +41,13 @@ import {
 import { HandledError } from '../HandledError'
 import type { UnwrapPromise } from '../tsHelpers'
 import type {
-  RootState,
-  QueryKeys,
-  QuerySubstateIdentifier,
   InfiniteData,
   InfiniteQueryConfigOptions,
-  QueryCacheKey,
   InfiniteQueryDirection,
   InfiniteQueryKeys,
+  QueryKeys,
+  QuerySubstateIdentifier,
+  RootState,
 } from './apiState'
 import { QueryStatus } from './apiState'
 import type {
@@ -61,13 +60,13 @@ import { forceQueryFnSymbol, isUpsertQuery } from './buildInitiate'
 import type { AllSelectors } from './buildSelectors'
 import type { ApiEndpointQuery, PrefetchOptions } from './module'
 import {
+  SHOULD_AUTOBATCH,
   createAsyncThunk,
   isAllOf,
   isFulfilled,
   isPending,
   isRejected,
   isRejectedWithValue,
-  SHOULD_AUTOBATCH,
 } from './rtkImports'
 import {
   parseWithSchema,

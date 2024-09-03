@@ -1,6 +1,6 @@
 import type {
-  ThunkDispatch,
-  ActionCreatorWithoutPayload, // Workaround for API-Extractor
+  ActionCreatorWithoutPayload,
+  ThunkDispatch, // Workaround for API-Extractor
 } from '@reduxjs/toolkit'
 import { createAction } from './rtkImports'
 

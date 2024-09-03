@@ -1,24 +1,23 @@
+import type {
+  EndpointDefinitions,
+  FullTagDescription,
+} from '../../endpointDefinitions'
+import { calculateProvidedBy } from '../../endpointDefinitions'
+import { createNewMap, getOrInsertComputed } from '../../utils/getOrInsert'
+import type { CombinedState, QueryCacheKey } from '../apiState'
+import { QueryStatus } from '../apiState'
+import { calculateProvidedByThunk } from '../buildThunks'
 import {
   isAnyOf,
   isFulfilled,
   isRejected,
   isRejectedWithValue,
 } from '../rtkImports'
-
 import type {
-  EndpointDefinitions,
-  FullTagDescription,
-} from '../../endpointDefinitions'
-import { calculateProvidedBy } from '../../endpointDefinitions'
-import type { CombinedState, QueryCacheKey } from '../apiState'
-import { QueryStatus } from '../apiState'
-import { calculateProvidedByThunk } from '../buildThunks'
-import type {
-  SubMiddlewareApi,
-  InternalHandlerBuilder,
   ApiMiddlewareInternalHandler,
+  InternalHandlerBuilder,
+  SubMiddlewareApi,
 } from './types'
-import { getOrInsertComputed, createNewMap } from '../../utils/getOrInsert'
 
 export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
   reducerPath,

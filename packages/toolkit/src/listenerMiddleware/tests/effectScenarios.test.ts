@@ -1,12 +1,12 @@
 import { noop } from '@internal/listenerMiddleware/utils'
 import type { PayloadAction } from '@reduxjs/toolkit'
 import {
+  TaskAbortError,
   configureStore,
   createAction,
   createListenerMiddleware,
   createSlice,
   isAnyOf,
-  TaskAbortError,
 } from '@reduxjs/toolkit'
 
 describe('Saga-style Effects Scenarios', () => {

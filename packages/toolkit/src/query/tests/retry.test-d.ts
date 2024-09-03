@@ -1,9 +1,10 @@
-import { retry, type RetryOptions } from '@internal/query/retry'
-import {
-  fetchBaseQuery,
-  type FetchBaseQueryError,
-  type FetchBaseQueryMeta,
+import type {
+  FetchBaseQueryError,
+  FetchBaseQueryMeta,
 } from '@internal/query/fetchBaseQuery'
+import { fetchBaseQuery } from '@internal/query/fetchBaseQuery'
+import type { RetryOptions } from '@internal/query/retry'
+import { retry } from '@internal/query/retry'
 
 describe('type tests', () => {
   test('RetryOptions only accepts one of maxRetries or retryCondition', () => {

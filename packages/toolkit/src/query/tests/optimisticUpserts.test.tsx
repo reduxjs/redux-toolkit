@@ -1,18 +1,18 @@
-import { createApi } from '@reduxjs/toolkit/query/react'
 import { createAction } from '@reduxjs/toolkit'
+import { createApi } from '@reduxjs/toolkit/query/react'
+import {
+  act,
+  render,
+  renderHook,
+  screen,
+  waitFor,
+} from '@testing-library/react'
+import { delay } from 'msw'
 import {
   actionsReducer,
   hookWaitFor,
   setupApiStore,
 } from '../../tests/utils/helpers'
-import {
-  render,
-  renderHook,
-  act,
-  waitFor,
-  screen,
-} from '@testing-library/react'
-import { delay } from 'msw'
 
 interface Post {
   id: string
@@ -342,7 +342,7 @@ describe('upsertQueryData', () => {
   test('upsert while a normal query is running (rejected)', async () => {
     baseQuery.mockImplementationOnce(async () => {
       await delay(20)
-      // eslint-disable-next-line no-throw-literal
+
       throw 'Error!'
     })
     const upsertedData = {

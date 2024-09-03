@@ -1,18 +1,18 @@
 import type { Draft } from 'immer'
 import type {
+  DraftableEntityState,
+  EntityId,
   EntityStateAdapter,
   IdSelector,
   Update,
-  EntityId,
-  DraftableEntityState,
 } from './models'
 import {
-  createStateOperator,
   createSingleArgumentStateOperator,
+  createStateOperator,
 } from './state_adapter'
 import {
-  selectIdValue,
   ensureEntitiesArray,
+  selectIdValue,
   splitAddedUpdatedEntities,
 } from './utils'
 
