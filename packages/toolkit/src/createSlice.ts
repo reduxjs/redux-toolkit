@@ -302,7 +302,7 @@ export interface CaseReducerWithPrepareDefinition<
 
 type AsyncThunkSliceReducerConfig<
   State,
-  ThunkArg extends any,
+  ThunkArg,
   Returned = unknown,
   ThunkApiConfig extends AsyncThunkConfig = {},
 > = {
@@ -329,7 +329,7 @@ type AsyncThunkSliceReducerConfig<
 
 type AsyncThunkSliceReducerDefinition<
   State,
-  ThunkArg extends any,
+  ThunkArg,
   Returned = unknown,
   ThunkApiConfig extends AsyncThunkConfig = {},
 > = AsyncThunkSliceReducerConfig<State, ThunkArg, Returned, ThunkApiConfig> &
