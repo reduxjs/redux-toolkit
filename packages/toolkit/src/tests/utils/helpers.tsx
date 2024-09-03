@@ -7,11 +7,10 @@ import type {
 } from '@reduxjs/toolkit'
 import { configureStore } from '@reduxjs/toolkit'
 import { setupListeners } from '@reduxjs/toolkit/query'
-import { useCallback, useEffect, useRef } from 'react'
-
-import { Provider } from 'react-redux'
-
 import { act, cleanup } from '@testing-library/react'
+import { useCallback, useEffect, useRef } from 'react'
+import { Provider } from 'react-redux'
+import type { AnyObject } from '../../tsHelpers'
 
 export const ANY = 0 as any
 
@@ -214,4 +213,25 @@ export function setupApiStore<
   }
 
   return refObj
+}
+
+export const isObject = (value: unknown): value is AnyObject => {
+  return typeof value === 'object' && value != null
+}
+
+export const hasBodyAndHeaders = (
+  request: unknown,
+): request is {
+  body: any
+  headers: {
+    'content-type': string
+  }
+} => {
+  return (
+    isObject(request) &&
+    'headers' in request &&
+    isObject(request.headers) &&
+    'content-type' in request.headers &&
+    'body' in request
+  )
 }
