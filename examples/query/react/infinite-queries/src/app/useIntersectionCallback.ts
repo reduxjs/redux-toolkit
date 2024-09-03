@@ -1,4 +1,4 @@
-import { useCallback, useRef } from "react"
+import { useCallback, useRef } from 'react'
 
 export function useIntersectionCallback(onIntersectCallback: () => void) {
   const intersectionObserverRef = useRef<IntersectionObserver | null>(null)
@@ -9,7 +9,7 @@ export function useIntersectionCallback(onIntersectCallback: () => void) {
         intersectionObserverRef.current.disconnect()
       }
 
-      intersectionObserverRef.current = new IntersectionObserver(entries => {
+      intersectionObserverRef.current = new IntersectionObserver((entries) => {
         if (entries[0].isIntersecting) {
           onIntersectCallback()
         }

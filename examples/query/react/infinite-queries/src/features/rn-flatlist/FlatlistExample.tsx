@@ -1,8 +1,8 @@
-import { ActivityIndicator, FlatList, View, Text } from "react-native-web"
-import { useMemo } from "react"
+import { ActivityIndicator, FlatList, View, Text } from 'react-native-web'
+import { useMemo } from 'react'
 
-import { apiWithInfiniteScroll } from "../infinite-scroll/infiniteScrollApi"
-import { ProjectRow } from "../infinite-scroll/InfiniteScrollExample"
+import { apiWithInfiniteScroll } from '../infinite-scroll/infiniteScrollApi'
+import { ProjectRow } from '../infinite-scroll/InfiniteScrollExample'
 
 export const FlatlistExample = () => {
   const {
@@ -18,17 +18,17 @@ export const FlatlistExample = () => {
     // refetch,
   } =
     apiWithInfiniteScroll.endpoints.getProjectsCursor.useInfiniteQuery(
-      "projects",
+      'projects',
     )
 
   const allProjects = useMemo(() => {
-    return data?.pages.flatMap(page => page.projects) ?? []
+    return data?.pages.flatMap((page) => page.projects) ?? []
   }, [data])
 
   return (
     <>
       <h2>React Native FlatList Example</h2>
-      <View style={{ width: "100%", maxHeight: "600px" }}>
+      <View style={{ width: '100%', maxHeight: '600px' }}>
         {isLoading ? (
           <ActivityIndicator />
         ) : isError ? (
@@ -36,7 +36,7 @@ export const FlatlistExample = () => {
         ) : (
           <FlatList
             data={allProjects}
-            keyExtractor={item => item.id.toString()}
+            keyExtractor={(item) => item.id.toString()}
             renderItem={({ item }) => <ProjectRow project={item} />}
             // onRefresh={refetch}
             refreshing={isLoading}
