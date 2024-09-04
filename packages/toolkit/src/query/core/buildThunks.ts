@@ -600,7 +600,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
       const force = hasTheForce(options) && options.force
       const maxAge = hasMaxAge(options) && options.ifOlderThan
 
-      const queryAction = (force: boolean = true) => {
+      const queryAction = (force = true) => {
         const options = { forceRefetch: force, isPrefetch: true }
         return (
           api.endpoints[endpointName] as ApiEndpointQuery<any, any>
