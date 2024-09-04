@@ -24,8 +24,8 @@ import { HandledError } from './HandledError'
  * @param maxRetries - Maximum number of retries
  */
 async function defaultBackoff(
-  attempt: number = 0,
-  maxRetries: number = 5,
+  attempt = 0,
+  maxRetries = 5,
   signal?: AbortSignal,
 ) {
   const attempts = Math.min(attempt, maxRetries)
@@ -142,7 +142,6 @@ const retryWithBackoff: BaseQueryEnhancer<
   }
   let retry = 0
 
-  // eslint-disable-next-line no-constant-condition
   while (true) {
     // Check if aborted before each attempt
     failIfAborted(api.signal)

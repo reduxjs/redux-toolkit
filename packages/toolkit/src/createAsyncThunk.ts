@@ -61,7 +61,7 @@ export interface SerializedError {
   code?: string
 }
 
-const commonProperties: Array<keyof SerializedError> = [
+const commonProperties: (keyof SerializedError)[] = [
   'name',
   'message',
   'stack',
@@ -644,7 +644,6 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
             }
 
             if (conditionResult === false || abortController.signal.aborted) {
-              // eslint-disable-next-line no-throw-literal
               throw {
                 name: 'ConditionError',
                 message: 'Aborted due to condition callback returning false.',
