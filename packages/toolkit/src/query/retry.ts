@@ -23,7 +23,7 @@ import { HandledError } from './HandledError'
  * @param attempt - Current attempt
  * @param maxRetries - Maximum number of retries
  */
-async function defaultBackoff(attempt: number = 0, maxRetries: number = 5) {
+async function defaultBackoff(attempt = 0, maxRetries = 5) {
   const attempts = Math.min(attempt, maxRetries)
 
   const timeout = ~~((Math.random() + 0.4) * (300 << attempts)) // Force a positive int in the case we make this an option
@@ -107,7 +107,6 @@ const retryWithBackoff: BaseQueryEnhancer<
   }
   let retry = 0
 
-  // eslint-disable-next-line no-constant-condition
   while (true) {
     try {
       const result = await baseQuery(args, api, extraOptions)
