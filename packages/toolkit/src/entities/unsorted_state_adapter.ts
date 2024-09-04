@@ -102,7 +102,7 @@ export function createUnsortedStateAdapter<T, Id extends EntityId>(
   }
 
   function takeNewKey(
-    keys: { [id: string]: Id },
+    keys: Record<string, Id>,
     update: Update<T, Id>,
     state: R,
   ): boolean {
@@ -132,9 +132,9 @@ export function createUnsortedStateAdapter<T, Id extends EntityId>(
     updates: ReadonlyArray<Update<T, Id>>,
     state: R,
   ): void {
-    const newKeys: { [id: string]: Id } = {}
+    const newKeys: Record<string, Id> = {}
 
-    const updatesPerEntity: { [id: string]: Update<T, Id> } = {}
+    const updatesPerEntity: Record<string, Update<T, Id>> = {}
 
     updates.forEach((update) => {
       // Only apply updates to entities that currently exist

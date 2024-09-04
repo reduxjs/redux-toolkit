@@ -165,7 +165,7 @@ describe('type tests', () => {
 
   test('regression #1156: union return values fall back to allowing only single member', () => {
     const fn = createAsyncThunk('session/isAdmin', async () => {
-      const response: boolean = false
+      const response = false
       return response
     })
   })

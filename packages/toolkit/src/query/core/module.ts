@@ -85,7 +85,6 @@ export type CoreModule =
 export type ThunkWithReturnValue<T> = ThunkAction<T, any, any, UnknownAction>
 
 export interface ApiModules<
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   BaseQuery extends BaseQueryFn,
   Definitions extends EndpointDefinitions,
   ReducerPath extends string,
@@ -399,9 +398,7 @@ export interface ApiModules<
 }
 
 export interface ApiEndpointQuery<
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Definition extends QueryDefinition<any, any, any, any, any>,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Definitions extends EndpointDefinitions,
 > extends BuildThunksApiEndpointQuery<Definition>,
     BuildInitiateApiEndpointQuery<Definition>,
@@ -413,11 +410,8 @@ export interface ApiEndpointQuery<
   Types: NonNullable<Definition['Types']>
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export interface ApiEndpointMutation<
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Definition extends MutationDefinition<any, any, any, any, any>,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Definitions extends EndpointDefinitions,
 > extends BuildThunksApiEndpointMutation<Definition>,
     BuildInitiateApiEndpointMutation<Definition>,
