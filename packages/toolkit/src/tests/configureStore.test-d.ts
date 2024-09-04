@@ -636,11 +636,11 @@ describe('type tests', () => {
           const concatenated = gDM().concat(otherMiddleware)
 
           expectTypeOf(concatenated).toMatchTypeOf<
-            ReadonlyArray<
+            readonly (
               | typeof otherMiddleware
               | ThunkMiddleware
               | Middleware<AnyNonNullishValue>
-            >
+            )[]
           >()
 
           return concatenated

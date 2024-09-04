@@ -113,7 +113,7 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
   }
 
   function updateManyMutably(
-    updates: ReadonlyArray<Update<T, Id>>,
+    updates: readonly Update<T, Id>[],
     state: R,
   ): void {
     let appliedUpdates = false
