@@ -197,7 +197,7 @@ export interface ApiModules<
        * See https://redux-toolkit.js.org/rtk-query/usage/server-side-rendering for details.
        */
       getRunningQueriesThunk(): ThunkWithReturnValue<
-        Array<QueryActionCreatorResult<any>>
+        QueryActionCreatorResult<any>[]
       >
 
       /**
@@ -209,7 +209,7 @@ export interface ApiModules<
        * See https://redux-toolkit.js.org/rtk-query/usage/server-side-rendering for details.
        */
       getRunningMutationsThunk(): ThunkWithReturnValue<
-        Array<MutationActionCreatorResult<any>>
+        MutationActionCreatorResult<any>[]
       >
 
       /**
@@ -350,7 +350,7 @@ export interface ApiModules<
        * ```
        */
       invalidateTags: ActionCreatorWithPayload<
-        Array<TagDescription<TagTypes>>,
+        TagDescription<TagTypes>[],
         string
       >
 
@@ -361,12 +361,12 @@ export interface ApiModules<
        */
       selectInvalidatedBy: (
         state: RootState<Definitions, string, ReducerPath>,
-        tags: ReadonlyArray<TagDescription<TagTypes>>,
-      ) => Array<{
+        tags: readonly TagDescription<TagTypes>[],
+      ) => {
         endpointName: string
         originalArgs: any
         queryCacheKey: string
-      }>
+      }[]
 
       /**
        * A function to select all arguments currently cached for a given endpoint.
@@ -376,7 +376,7 @@ export interface ApiModules<
       selectCachedArgsForQuery: <QueryName extends QueryKeys<Definitions>>(
         state: RootState<Definitions, string, ReducerPath>,
         queryName: QueryName,
-      ) => Array<QueryArgFrom<Definitions[QueryName]>>
+      ) => QueryArgFrom<Definitions[QueryName]>[]
     }
     /**
      * Endpoints based on the input endpoints provided to `createApi`, containing `select` and `action matchers`.

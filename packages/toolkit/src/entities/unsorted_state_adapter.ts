@@ -129,7 +129,7 @@ export function createUnsortedStateAdapter<T, Id extends EntityId>(
   }
 
   function updateManyMutably(
-    updates: ReadonlyArray<Update<T, Id>>,
+    updates: readonly Update<T, Id>[],
     state: R,
   ): void {
     const newKeys: Record<string, Id> = {}

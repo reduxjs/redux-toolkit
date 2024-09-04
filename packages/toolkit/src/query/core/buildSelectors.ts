@@ -209,12 +209,12 @@ export function buildSelectors<
 
   function selectInvalidatedBy(
     state: RootState,
-    tags: ReadonlyArray<TagDescription<string>>,
-  ): Array<{
+    tags: readonly TagDescription<string>[],
+  ): {
     endpointName: string
     originalArgs: any
     queryCacheKey: QueryCacheKey
-  }> {
+  }[] {
     const apiState = state[reducerPath]
     const toInvalidate = new Set<QueryCacheKey>()
     for (const tag of tags.map(expandTagDescription)) {
@@ -254,7 +254,7 @@ export function buildSelectors<
   function selectCachedArgsForQuery<QueryName extends QueryKeys<Definitions>>(
     state: RootState,
     queryName: QueryName,
-  ): Array<QueryArgFrom<Definitions[QueryName]>> {
+  ): QueryArgFrom<Definitions[QueryName]>[] {
     return Object.values(state[reducerPath].queries as QueryState<any>)
       .filter(
         (
