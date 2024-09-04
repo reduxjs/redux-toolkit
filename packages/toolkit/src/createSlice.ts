@@ -437,9 +437,10 @@ export type SliceCaseReducers<State> =
 /**
  * The type describing a slice's `selectors` option.
  */
-export type SliceSelectors<State> = {
-  [K: string]: (sliceState: State, ...args: any[]) => any
-}
+export type SliceSelectors<State> = Record<
+  string,
+  (sliceState: State, ...args: any[]) => any
+>
 
 type SliceActionType<
   SliceName extends string,
