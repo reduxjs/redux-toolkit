@@ -1,5 +1,6 @@
 import { isAction } from 'redux'
 import type {
+  AnyFunction,
   AnyNonNullishValue,
   IfMaybeUndefined,
   IfVoid,
