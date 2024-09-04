@@ -243,8 +243,8 @@ export type CombinedState<
 
 export type InvalidationState<TagTypes extends string> = {
   [_ in TagTypes]: {
-    [id: string]: Array<QueryCacheKey>
-    [id: number]: Array<QueryCacheKey>
+    [id: string]: QueryCacheKey[]
+    [id: number]: QueryCacheKey[]
   }
 }
 

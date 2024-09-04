@@ -61,7 +61,7 @@ export interface SerializedError {
   code?: string
 }
 
-const commonProperties: Array<keyof SerializedError> = [
+const commonProperties: (keyof SerializedError)[] = [
   'name',
   'message',
   'stack',
