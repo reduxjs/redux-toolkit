@@ -43,9 +43,9 @@ export type InfiniteQueryConfigOptions<DataType, PageParam, QueryArg> = {
    */
   getNextPageParam: (
     lastPage: DataType,
-    allPages: Array<DataType>,
+    allPages: DataType[],
     lastPageParam: PageParam,
-    allPageParams: Array<PageParam>,
+    allPageParams: PageParam[],
     queryArg: QueryArg,
   ) => PageParam | undefined | null
   /**
@@ -54,9 +54,9 @@ export type InfiniteQueryConfigOptions<DataType, PageParam, QueryArg> = {
    */
   getPreviousPageParam?: (
     firstPage: DataType,
-    allPages: Array<DataType>,
+    allPages: DataType[],
     firstPageParam: PageParam,
-    allPageParams: Array<PageParam>,
+    allPageParams: PageParam[],
     queryArg: QueryArg,
   ) => PageParam | undefined | null
   /**
