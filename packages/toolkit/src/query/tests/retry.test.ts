@@ -7,7 +7,7 @@ beforeEach(() => {
   vi.useFakeTimers()
 })
 
-const loopTimers = async (max: number = 12) => {
+const loopTimers = async (max = 12) => {
   let count = 0
   while (count < max) {
     await vi.advanceTimersByTimeAsync(1)
