@@ -6,13 +6,13 @@ import type {
   Reducer,
   UnknownAction,
 } from '@reduxjs/toolkit'
-import { isPlainObject } from '@reduxjs/toolkit'
-import { createAction, createNextState, createReducer } from '@reduxjs/toolkit'
 import {
-  createConsole,
-  getLog,
-  mockConsole,
-} from 'console-testing-library/pure'
+  createAction,
+  createNextState,
+  createReducer,
+  isPlainObject,
+} from '@reduxjs/toolkit'
+import { createConsole, mockConsole } from 'console-testing-library/pure'
 
 interface Todo {
   text: string
@@ -84,9 +84,9 @@ describe('createReducer', () => {
     it('Throws an error if the legacy object notation is used', async () => {
       const { createReducer } = await import('../createReducer')
       const wrapper = () => {
-        // @ts-ignore
         const dummyReducer = (createReducer as CreateReducer)(
           [] as TodoState,
+          // @ts-ignore
           {},
         )
       }
@@ -104,9 +104,9 @@ describe('createReducer', () => {
       process.env.NODE_ENV = 'production'
       const { createReducer } = await import('../createReducer')
       const wrapper = () => {
-        // @ts-ignore
         const dummyReducer = (createReducer as CreateReducer)(
           [] as TodoState,
+          // @ts-ignore
           {},
         )
       }

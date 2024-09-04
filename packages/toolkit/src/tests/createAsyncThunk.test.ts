@@ -1,5 +1,4 @@
 import { noop } from '@internal/tests/utils/helpers'
-import { delay } from '@internal/utils'
 import type { UnknownAction } from '@reduxjs/toolkit'
 import {
   configureStore,
@@ -8,14 +7,13 @@ import {
   miniSerializeError,
   unwrapResult,
 } from '@reduxjs/toolkit'
-import { vi } from 'vitest'
-
-import { delay } from '@internal/utils'
 import {
   createConsole,
   getLog,
   mockConsole,
 } from 'console-testing-library/pure'
+import { delay } from 'msw'
+import { vi } from 'vitest'
 
 declare global {
   interface Window {

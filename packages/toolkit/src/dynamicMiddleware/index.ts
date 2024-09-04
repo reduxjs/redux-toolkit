@@ -13,6 +13,12 @@ import type {
   WithMiddleware,
 } from './types'
 
+export type {
+  DynamicMiddlewareInstance,
+  GetDispatchType as GetDispatch,
+  MiddlewareApiConfig,
+} from './types'
+
 const createMiddlewareEntry = <
   State = any,
   DispatchType extends Dispatch<UnknownAction> = Dispatch<UnknownAction>,
@@ -67,9 +73,11 @@ export const createDynamicMiddleware = <
     { withTypes: () => addMiddleware },
   ) as AddMiddleware<State, DispatchType>
 
-  const getFinalMiddleware: Middleware<AnyNonNullishValue, State, Dispatch> = (
-    api,
-  ) => {
+  const getFinalMiddleware: Middleware<
+    AnyNonNullishValue,
+    State,
+    DispatchType
+  > = (api) => {
     const appliedMiddleware = Array.from(middlewareMap.values()).map((entry) =>
       emplace(entry.applied, api, { insert: () => entry.middleware(api) }),
     )

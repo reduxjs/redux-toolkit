@@ -1,6 +1,6 @@
 import type { Action, ActionCreator, StoreEnhancer } from 'redux'
 import { compose } from 'redux'
-import type { AnyNonNullishValue } from './tsHelpers'
+import type { AnyFunction, AnyNonNullishValue } from './tsHelpers'
 
 /**
  * @public

@@ -1,5 +1,5 @@
 import type { Api } from '@reduxjs/toolkit/query'
-import type { AnyNonNullishValue } from '../tsHelpers'
+import type { AnyFunction, AnyNonNullishValue } from '../tsHelpers'
 import type {
   BaseQueryApi,
   BaseQueryArg,
@@ -11,6 +11,15 @@ import type {
   QueryReturnValue,
 } from './baseQueryTypes'
 import type { QuerySubState, RootState } from './core/apiState'
+import type { CacheCollectionQueryExtraOptions } from './core/buildMiddleware/cacheCollection'
+import type {
+  CacheLifecycleMutationExtraOptions,
+  CacheLifecycleQueryExtraOptions,
+} from './core/buildMiddleware/cacheLifecycle'
+import type {
+  QueryLifecycleMutationExtraOptions,
+  QueryLifecycleQueryExtraOptions,
+} from './core/buildMiddleware/queryLifecycle'
 import type { SerializeQueryArgs } from './defaultSerializeQueryArgs'
 import type { NEVER } from './fakeBaseQuery'
 import type {
