@@ -21,13 +21,13 @@ export type ActionMatcherDescription<S, A extends Action> = {
   reducer: CaseReducer<S, NoInfer<A>>
 }
 
-export type ReadonlyActionMatcherDescriptionCollection<S> = ReadonlyArray<
-  ActionMatcherDescription<S, any>
->
+export type ReadonlyActionMatcherDescriptionCollection<S> =
+  readonly ActionMatcherDescription<S, any>[]
 
-export type ActionMatcherDescriptionCollection<S> = Array<
-  ActionMatcherDescription<S, any>
->
+export type ActionMatcherDescriptionCollection<S> = ActionMatcherDescription<
+  S,
+  any
+>[]
 
 /**
  * A *case reducer* is a reducer function for a specific action type. Case
