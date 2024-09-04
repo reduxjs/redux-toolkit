@@ -129,11 +129,11 @@ export interface EntityStateAdapter<T, Id extends EntityId> {
 
   updateMany<S extends DraftableEntityState<T, Id>>(
     state: PreventAny<S, T, Id>,
-    updates: ReadonlyArray<Update<T, Id>>,
+    updates: readonly Update<T, Id>[],
   ): S
   updateMany<S extends DraftableEntityState<T, Id>>(
     state: PreventAny<S, T, Id>,
-    updates: PayloadAction<ReadonlyArray<Update<T, Id>>>,
+    updates: PayloadAction<readonly Update<T, Id>[]>,
   ): S
 
   upsertOne<S extends DraftableEntityState<T, Id>>(
