@@ -608,11 +608,9 @@ describe('type tests', () => {
           const concatenated = gDM().prepend(otherMiddleware)
 
           expectTypeOf(concatenated).toMatchTypeOf<
-            ReadonlyArray<
-              | typeof otherMiddleware
+            readonly (| typeof otherMiddleware
               | ThunkMiddleware
-              | Middleware<AnyNonNullishValue>
-            >
+              | Middleware<AnyNonNullishValue>)[]
           >()
 
           return concatenated
@@ -636,11 +634,9 @@ describe('type tests', () => {
           const concatenated = gDM().concat(otherMiddleware)
 
           expectTypeOf(concatenated).toMatchTypeOf<
-            ReadonlyArray<
-              | typeof otherMiddleware
+            readonly (| typeof otherMiddleware
               | ThunkMiddleware
-              | Middleware<AnyNonNullishValue>
-            >
+              | Middleware<AnyNonNullishValue>)[]
           >()
 
           return concatenated

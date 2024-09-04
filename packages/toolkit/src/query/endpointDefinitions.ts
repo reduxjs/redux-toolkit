@@ -216,7 +216,7 @@ export type GetResultDescriptionFn<
   error: ErrorType | undefined,
   arg: QueryArg,
   meta: MetaType,
-) => ReadonlyArray<TagDescription<TagTypes>>
+) => readonly TagDescription<TagTypes>[]
 
 export type FullTagDescription<TagType> = {
   type: TagType
@@ -230,7 +230,7 @@ export type ResultDescription<
   ErrorType,
   MetaType,
 > =
-  | ReadonlyArray<TagDescription<TagTypes>>
+  | readonly TagDescription<TagTypes>[]
   | GetResultDescriptionFn<TagTypes, ResultType, QueryArg, ErrorType, MetaType>
 
 type QueryTypes<
