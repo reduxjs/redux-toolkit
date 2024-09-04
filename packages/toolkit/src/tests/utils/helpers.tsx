@@ -57,7 +57,10 @@ export const hookWaitFor = async (cb: () => void, time = 2000) => {
       })
     }
   }
+
+  return false
 }
+
 export const fakeTimerWaitFor = async (cb: () => void, time = 2000) => {
   const startedAt = Date.now()
 
@@ -74,6 +77,8 @@ export const fakeTimerWaitFor = async (cb: () => void, time = 2000) => {
       })
     }
   }
+
+  return false
 }
 
 export const useRenderCounter = () => {
