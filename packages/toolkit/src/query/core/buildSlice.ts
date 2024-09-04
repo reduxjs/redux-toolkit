@@ -78,7 +78,7 @@ export type ProcessedQueryUpsertEntry = {
  * A typesafe representation of a util action creator that accepts cache entry descriptions to upsert
  */
 export type UpsertEntries<Definitions extends EndpointDefinitions> = (<
-  EndpointNames extends Array<QueryKeys<Definitions>>,
+  EndpointNames extends QueryKeys<Definitions>[],
 >(
   entries: [
     ...{

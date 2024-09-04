@@ -36,11 +36,11 @@ describe('type tests', () => {
     >()
 
     expectTypeOf(slice.actions.addMany).toMatchTypeOf<
-      ActionCreatorWithPayload<ReadonlyArray<Entity> | Record<string, Entity>>
+      ActionCreatorWithPayload<readonly Entity[] | Record<string, Entity>>
     >()
 
     expectTypeOf(slice.actions.setAll).toMatchTypeOf<
-      ActionCreatorWithPayload<ReadonlyArray<Entity> | Record<string, Entity>>
+      ActionCreatorWithPayload<readonly Entity[] | Record<string, Entity>>
     >()
 
     expectTypeOf(slice.actions.removeOne).toMatchTypeOf<
@@ -52,7 +52,7 @@ describe('type tests', () => {
     >()
 
     expectTypeOf(slice.actions.setAll).not.toMatchTypeOf<
-      ActionCreatorWithPayload<ReadonlyArray<Id>>
+      ActionCreatorWithPayload<readonly Id[]>
     >()
 
     expectTypeOf(slice.actions.removeOne).toMatchTypeOf<
@@ -60,7 +60,7 @@ describe('type tests', () => {
     >()
 
     expectTypeOf(slice.actions.removeMany).toMatchTypeOf<
-      ActionCreatorWithPayload<ReadonlyArray<Id>>
+      ActionCreatorWithPayload<readonly Id[]>
     >()
 
     expectTypeOf(slice.actions.removeMany).not.toMatchTypeOf<
@@ -84,7 +84,7 @@ describe('type tests', () => {
     >()
 
     expectTypeOf(slice.actions.updateMany).toMatchTypeOf<
-      ActionCreatorWithPayload<ReadonlyArray<Update<Entity, Id>>>
+      ActionCreatorWithPayload<readonly Update<Entity, Id>[]>
     >()
 
     expectTypeOf(slice.actions.upsertOne).toMatchTypeOf<
@@ -92,7 +92,7 @@ describe('type tests', () => {
     >()
 
     expectTypeOf(slice.actions.upsertMany).toMatchTypeOf<
-      ActionCreatorWithPayload<ReadonlyArray<Entity> | Record<string, Entity>>
+      ActionCreatorWithPayload<readonly Entity[] | Record<string, Entity>>
     >()
 
     expectTypeOf(slice.actions.upsertMany).not.toMatchTypeOf<
