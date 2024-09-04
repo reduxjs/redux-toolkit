@@ -350,7 +350,6 @@ describe('createSlice', () => {
           },
         },
         extraReducers(builder) {
-          // eslint-disable-next-line @typescript-eslint/no-use-before-define
           builder.addCase(second.actions.other, () => {
             return 'firstOther'
           })

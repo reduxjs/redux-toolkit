@@ -111,7 +111,7 @@ export type SubscriptionOptions = {
    */
   refetchOnFocus?: boolean
 }
-export type Subscribers = { [requestId: string]: SubscriptionOptions }
+export type Subscribers = Record<string, SubscriptionOptions>
 export type QueryKeys<Definitions extends EndpointDefinitions> = {
   [K in keyof Definitions]: Definitions[K] extends QueryDefinition<
     any,
@@ -248,13 +248,12 @@ export type InvalidationState<TagTypes extends string> = {
   }
 }
 
-export type QueryState<D extends EndpointDefinitions> = {
-  [queryCacheKey: string]: QuerySubState<D[string]> | undefined
-}
+export type QueryState<D extends EndpointDefinitions> = Record<
+  string,
+  QuerySubState<D[string]> | undefined
+>
 
-export type SubscriptionState = {
-  [queryCacheKey: string]: Subscribers | undefined
-}
+export type SubscriptionState = Record<string, Subscribers | undefined>
 
 export type ConfigState<ReducerPath> = RefetchConfigOptions & {
   reducerPath: ReducerPath
@@ -268,9 +267,10 @@ export type ModifiableConfigState = {
   invalidationBehavior: 'delayed' | 'immediately'
 } & RefetchConfigOptions
 
-export type MutationState<D extends EndpointDefinitions> = {
-  [requestId: string]: MutationSubState<D[string]> | undefined
-}
+export type MutationState<D extends EndpointDefinitions> = Record<
+  string,
+  MutationSubState<D[string]> | undefined
+>
 
 export type RootState<
   Definitions extends EndpointDefinitions,
