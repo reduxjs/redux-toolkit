@@ -26,7 +26,7 @@ export function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-export class Tuple<Items extends ReadonlyArray<unknown> = []> extends Array<
+export class Tuple<Items extends readonly unknown[] = []> extends Array<
   Items[number]
 > {
   constructor(length: number)
@@ -40,26 +40,26 @@ export class Tuple<Items extends ReadonlyArray<unknown> = []> extends Array<
     return Tuple as any
   }
 
-  override concat<AdditionalItems extends ReadonlyArray<unknown>>(
+  override concat<AdditionalItems extends readonly unknown[]>(
     items: Tuple<AdditionalItems>,
   ): Tuple<[...Items, ...AdditionalItems]>
-  override concat<AdditionalItems extends ReadonlyArray<unknown>>(
+  override concat<AdditionalItems extends readonly unknown[]>(
     items: AdditionalItems,
   ): Tuple<[...Items, ...AdditionalItems]>
-  override concat<AdditionalItems extends ReadonlyArray<unknown>>(
+  override concat<AdditionalItems extends readonly unknown[]>(
     ...items: AdditionalItems
   ): Tuple<[...Items, ...AdditionalItems]>
   override concat(...arr: any[]) {
     return super.concat.apply(this, arr)
   }
 
-  prepend<AdditionalItems extends ReadonlyArray<unknown>>(
+  prepend<AdditionalItems extends readonly unknown[]>(
     items: Tuple<AdditionalItems>,
   ): Tuple<[...AdditionalItems, ...Items]>
-  prepend<AdditionalItems extends ReadonlyArray<unknown>>(
+  prepend<AdditionalItems extends readonly unknown[]>(
     items: AdditionalItems,
   ): Tuple<[...AdditionalItems, ...Items]>
-  prepend<AdditionalItems extends ReadonlyArray<unknown>>(
+  prepend<AdditionalItems extends readonly unknown[]>(
     ...items: AdditionalItems
   ): Tuple<[...AdditionalItems, ...Items]>
   prepend(...arr: any[]) {

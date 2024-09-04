@@ -63,7 +63,7 @@ afterAll(() => {
 declare global {
   namespace jest {
     interface Matchers<R> {
-      toMatchSequence(...matchers: Array<(arg: any) => boolean>): R
+      toMatchSequence(...matchers: ((arg: any) => boolean)[]): R
     }
   }
 }
@@ -71,7 +71,7 @@ declare global {
 expect.extend({
   toMatchSequence(
     _actions: UnknownAction[],
-    ...matchers: Array<(arg: any) => boolean>
+    ...matchers: ((arg: any) => boolean)[]
   ) {
     const actions = _actions.concat()
     actions.shift() // remove INIT

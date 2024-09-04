@@ -20,7 +20,6 @@ import type {
   InfiniteQuerySubState,
   MutationSubState,
   QueryCacheKey,
-  QueryKeys,
   QueryState,
   QuerySubState,
   RequestStatusFlags,
@@ -28,13 +27,10 @@ import type {
 } from './apiState'
 import { QueryStatus, getRequestStatusFlags } from './apiState'
 import { getMutationCacheKey } from './buildSlice'
+import type { AllQueryKeys } from './buildThunks'
+import { getNextPageParam, getPreviousPageParam } from './buildThunks'
 import type { createSelector as _createSelector } from './rtkImports'
 import { createNextState } from './rtkImports'
-import {
-  type AllQueryKeys,
-  getNextPageParam,
-  getPreviousPageParam,
-} from './buildThunks'
 
 export type SkipToken = typeof skipToken
 /**
@@ -338,12 +334,12 @@ export function buildSelectors<
 
   function selectInvalidatedBy(
     state: RootState,
-    tags: ReadonlyArray<TagDescription<string> | null | undefined>,
-  ): Array<{
+    tags: readonly (TagDescription<string> | null | undefined)[],
+  ): {
     endpointName: string
     originalArgs: any
     queryCacheKey: QueryCacheKey
-  }> {
+  }[] {
     const apiState = state[reducerPath]
     const toInvalidate = new Set<QueryCacheKey>()
     for (const tag of tags.filter(isNotNullish).map(expandTagDescription)) {
@@ -385,7 +381,7 @@ export function buildSelectors<
   >(
     state: RootState,
     queryName: QueryName,
-  ): Array<QueryArgFromAnyQuery<Definitions[QueryName]>> {
+  ): QueryArgFromAnyQuery<Definitions[QueryName]>[] {
     return Object.values(selectQueries(state) as QueryState<any>)
       .filter(
         (

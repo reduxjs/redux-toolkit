@@ -494,9 +494,11 @@ export enum DefinitionType {
   infinitequery = 'infinitequery',
 }
 
-type TagDescriptionArray<TagTypes extends string> = ReadonlyArray<
-  TagDescription<TagTypes> | undefined | null
->
+type TagDescriptionArray<TagTypes extends string> = readonly (
+  | TagDescription<TagTypes>
+  | undefined
+  | null
+)[]
 
 export type GetResultDescriptionFn<
   TagTypes extends string,
