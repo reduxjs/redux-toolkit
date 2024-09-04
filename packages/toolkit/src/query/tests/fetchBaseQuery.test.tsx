@@ -7,7 +7,11 @@ import { HttpResponse, delay, http } from 'msw'
 import nodeFetch from 'node-fetch'
 import queryString from 'query-string'
 import { vi } from 'vitest'
-import { hasBodyAndHeaders, setupApiStore } from '../../tests/utils/helpers'
+import {
+  hasBodyAndHeaders,
+  isObject,
+  setupApiStore,
+} from '../../tests/utils/helpers'
 import type { BaseQueryApi } from '../baseQueryTypes'
 import { server } from './mocks/server'
 
@@ -510,8 +514,8 @@ describe('fetchBaseQuery', () => {
         {},
       )
 
-      if (!hasBodyAndHeaders(request)) {
-        expect.fail('Expected request to have body and headers')
+      if (!isObject(request)) {
+        expect.fail('Expected request to be an object')
       }
 
       if (!('url' in request)) {
@@ -530,8 +534,8 @@ describe('fetchBaseQuery', () => {
         {},
       )
 
-      if (!hasBodyAndHeaders(request)) {
-        expect.fail('Expected request to have body and headers')
+      if (!isObject(request)) {
+        expect.fail('Expected request to be an object')
       }
 
       if (!('url' in request)) {
@@ -550,8 +554,8 @@ describe('fetchBaseQuery', () => {
         {},
       )
 
-      if (!hasBodyAndHeaders(request)) {
-        expect.fail('Expected request to have body and headers')
+      if (!isObject(request)) {
+        expect.fail('Expected request to be an object')
       }
 
       if (!('url' in request)) {
@@ -570,8 +574,8 @@ describe('fetchBaseQuery', () => {
         {},
       )
 
-      if (!hasBodyAndHeaders(request)) {
-        expect.fail('Expected request to have body and headers')
+      if (!isObject(request)) {
+        expect.fail('Expected request to be an object')
       }
 
       if (!('url' in request)) {
@@ -590,8 +594,8 @@ describe('fetchBaseQuery', () => {
         {},
       )
 
-      if (!hasBodyAndHeaders(request)) {
-        expect.fail('Expected request to have body and headers')
+      if (!isObject(request)) {
+        expect.fail('Expected request to be an object')
       }
 
       if (!('url' in request)) {
@@ -637,8 +641,8 @@ describe('fetchBaseQuery', () => {
         {},
       )
 
-      if (!hasBodyAndHeaders(request)) {
-        expect.fail('Expected request to have body and headers')
+      if (!isObject(request)) {
+        expect.fail('Expected request to be an object')
       }
 
       if (!('url' in request)) {
@@ -719,8 +723,8 @@ describe('fetchBaseQuery', () => {
         {},
       )
 
-      if (!hasBodyAndHeaders(request)) {
-        expect.fail('Expected request to have body and headers')
+      if (!isObject(request)) {
+        expect.fail('Expected request to be an object')
       }
 
       if (!('url' in request)) {
@@ -739,8 +743,8 @@ describe('fetchBaseQuery', () => {
         {},
       )
 
-      if (!hasBodyAndHeaders(request)) {
-        expect.fail('Expected request to have body and headers')
+      if (!isObject(request)) {
+        expect.fail('Expected request to be an object')
       }
 
       if (!('url' in request)) {
@@ -766,8 +770,8 @@ describe('fetchBaseQuery', () => {
         {},
       )
 
-      if (!hasBodyAndHeaders(request)) {
-        expect.fail('Expected request to have body and headers')
+      if (!isObject(request)) {
+        expect.fail('Expected request to be an object')
       }
 
       if (!('url' in request)) {
@@ -790,8 +794,8 @@ describe('fetchBaseQuery', () => {
         {},
       )
 
-      if (!hasBodyAndHeaders(request)) {
-        expect.fail('Expected request to have body and headers')
+      if (!isObject(request)) {
+        expect.fail('Expected request to be an object')
       }
 
       if (!('url' in request)) {
@@ -818,8 +822,8 @@ describe('fetchBaseQuery', () => {
 
       const { data: request } = await doRequest()
 
-      if (!hasBodyAndHeaders(request)) {
-        expect.fail('Expected request to have body and headers')
+      if (!isObject(request)) {
+        expect.fail('Expected request to be an object')
       }
 
       if (!('url' in request)) {
@@ -846,8 +850,8 @@ describe('fetchBaseQuery', () => {
 
       const { data: request } = await doRequest()
 
-      if (!hasBodyAndHeaders(request)) {
-        expect.fail('Expected request to have body and headers')
+      if (!isObject(request)) {
+        expect.fail('Expected request to be an object')
       }
 
       if (!('url' in request)) {
@@ -873,8 +877,8 @@ describe('fetchBaseQuery', () => {
 
       const { data: request } = await doRequest()
 
-      if (!hasBodyAndHeaders(request)) {
-        expect.fail('Expected request to have body and headers')
+      if (!isObject(request)) {
+        expect.fail('Expected request to be an object')
       }
 
       if (!('url' in request)) {
@@ -1033,8 +1037,8 @@ describe('fetchBaseQuery', () => {
 
     const { data: request } = await doRequest()
 
-    if (!hasBodyAndHeaders(request)) {
-      expect.fail('Expected request to have body and headers')
+    if (!isObject(request)) {
+      expect.fail('Expected request to be an object')
     }
 
     if (!('url' in request)) {
@@ -1051,8 +1055,8 @@ describe('fetchBaseQuery', () => {
       {},
     )
 
-    if (!hasBodyAndHeaders(request)) {
-      expect.fail('Expected request to have body and headers')
+    if (!isObject(request)) {
+      expect.fail('Expected request to be an object')
     }
 
     if (!('url' in request)) {
@@ -1073,8 +1077,8 @@ describe('fetchBaseQuery', () => {
       {},
     )
 
-    if (!hasBodyAndHeaders(request)) {
-      expect.fail('Expected request to have body and headers')
+    if (!isObject(request)) {
+      expect.fail('Expected request to be an object')
     }
 
     if (!('url' in request)) {
@@ -1096,8 +1100,8 @@ describe('fetchBaseQuery', () => {
       {},
     )
 
-    if (!hasBodyAndHeaders(request)) {
-      expect.fail('Expected request to have body and headers')
+    if (!isObject(request)) {
+      expect.fail('Expected request to be an object')
     }
 
     expect(request.headers['banana']).toBeUndefined()
@@ -1358,8 +1362,8 @@ describe('fetchFn', () => {
       {},
     )
 
-    if (!hasBodyAndHeaders(request)) {
-      expect.fail('Expected request to have body and headers')
+    if (!isObject(request)) {
+      expect.fail('Expected request to be an object')
     }
 
     if (!('url' in request)) {
