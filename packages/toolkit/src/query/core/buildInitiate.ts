@@ -272,7 +272,7 @@ export function buildInitiate({
   api: Api<any, EndpointDefinitions, any, any>
   context: ApiContext<EndpointDefinitions>
 }) {
-  const runningQueries: Map<
+  const runningQueries = new Map<
     Dispatch,
     Record<
       string,
@@ -280,11 +280,11 @@ export function buildInitiate({
       | InfiniteQueryActionCreatorResult<any>
       | undefined
     >
-  > = new Map()
-  const runningMutations: Map<
+  >()
+  const runningMutations = new Map<
     Dispatch,
     Record<string, MutationActionCreatorResult<any> | undefined>
-  > = new Map()
+  >()
 
   const {
     unsubscribeQueryResult,
