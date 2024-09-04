@@ -385,12 +385,12 @@ export function buildThunks<
       )
     }
 
-  function addToStart<T>(items: Array<T>, item: T, max = 0): Array<T> {
+  function addToStart<T>(items: T[], item: T, max = 0): T[] {
     const newItems = [item, ...items]
     return max && newItems.length > max ? newItems.slice(0, -1) : newItems
   }
 
-  function addToEnd<T>(items: Array<T>, item: T, max = 0): Array<T> {
+  function addToEnd<T>(items: T[], item: T, max = 0): T[] {
     const newItems = [...items, item]
     return max && newItems.length > max ? newItems.slice(1) : newItems
   }
@@ -503,7 +503,7 @@ export function buildThunks<
     const endpointDefinition = endpointDefinitions[arg.endpointName]
 
     try {
-      let transformResponse: TransformCallback =
+      const transformResponse: TransformCallback =
         getTransformCallbackForEndpoint(endpointDefinition, 'transformResponse')
 
       const baseQueryApi = {
@@ -722,7 +722,7 @@ export function buildThunks<
     } catch (error) {
       let catchedError = error
       if (catchedError instanceof HandledError) {
-        let transformErrorResponse: TransformCallback =
+        const transformErrorResponse: TransformCallback =
           getTransformCallbackForEndpoint(
             endpointDefinition,
             'transformErrorResponse',
@@ -884,7 +884,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
       const force = hasTheForce(options) && options.force
       const maxAge = hasMaxAge(options) && options.ifOlderThan
 
-      const queryAction = (force: boolean = true) => {
+      const queryAction = (force = true) => {
         const options = { forceRefetch: force, isPrefetch: true }
         return (
           api.endpoints[endpointName] as ApiEndpointQuery<any, any>
