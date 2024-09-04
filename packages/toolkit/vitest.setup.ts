@@ -28,7 +28,7 @@ declare global {
   namespace jest {
     interface Matchers<R> {
       toHaveConsoleOutput(expectedOutput: string): Promise<R>
-      toMatchSequence(...matchers: Array<(arg: any) => boolean>): R
+      toMatchSequence(...matchers: ((arg: any) => boolean)[]): R
     }
   }
 }
@@ -67,7 +67,7 @@ ${expectedOutput}
 
   toMatchSequence(
     _actions: UnknownAction[],
-    ...matchers: Array<(arg: any) => boolean>
+    ...matchers: ((arg: any) => boolean)[]
   ) {
     const actions = _actions.concat()
     actions.shift() // remove INIT

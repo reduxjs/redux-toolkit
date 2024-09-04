@@ -3,7 +3,7 @@ import type { Tuple } from './utils'
 
 export function safeAssign<T extends object>(
   target: T,
-  ...args: Array<Partial<NoInfer<T>>>
+  ...args: Partial<NoInfer<T>>[]
 ) {
   Object.assign(target, ...args)
 }
@@ -108,7 +108,7 @@ type ExtractDispatchFromMiddlewareTuple<
 export type ExtractDispatchExtensions<M> =
   M extends Tuple<infer MiddlewareTuple>
     ? ExtractDispatchFromMiddlewareTuple<MiddlewareTuple, AnyNonNullishValue>
-    : M extends ReadonlyArray<Middleware>
+    : M extends readonly Middleware[]
       ? ExtractDispatchFromMiddlewareTuple<[...M], AnyNonNullishValue>
       : never
 
@@ -128,7 +128,7 @@ type ExtractStoreExtensionsFromEnhancerTuple<
 export type ExtractStoreExtensions<E> =
   E extends Tuple<infer EnhancerTuple>
     ? ExtractStoreExtensionsFromEnhancerTuple<EnhancerTuple, AnyNonNullishValue>
-    : E extends ReadonlyArray<StoreEnhancer>
+    : E extends readonly StoreEnhancer[]
       ? UnionToIntersection<
           E[number] extends StoreEnhancer<infer Ext>
             ? Ext extends AnyNonNullishValue
@@ -154,7 +154,7 @@ type ExtractStateExtensionsFromEnhancerTuple<
 export type ExtractStateExtensions<E> =
   E extends Tuple<infer EnhancerTuple>
     ? ExtractStateExtensionsFromEnhancerTuple<EnhancerTuple, AnyNonNullishValue>
-    : E extends ReadonlyArray<StoreEnhancer>
+    : E extends readonly StoreEnhancer[]
       ? UnionToIntersection<
           E[number] extends StoreEnhancer<any, infer StateExt>
             ? StateExt extends AnyNonNullishValue
