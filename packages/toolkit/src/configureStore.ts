@@ -93,9 +93,9 @@ export interface ConfigureStoreOptions<
   enhancers?: (getDefaultEnhancers: GetDefaultEnhancers<M>) => E
 }
 
-export type Middlewares<S> = ReadonlyArray<Middleware<AnyNonNullishValue, S>>
+export type Middlewares<S> = readonly Middleware<AnyNonNullishValue, S>[]
 
-type Enhancers = ReadonlyArray<StoreEnhancer>
+type Enhancers = readonly StoreEnhancer[]
 
 /**
  * A Redux store returned by `configureStore()`. Supports dispatching
