@@ -1,5 +1,5 @@
 import { noop, setupApiStore } from '@internal/tests/utils/helpers'
-import type { BaseQueryFn } from '@reduxjs/toolkit/query'
+import type { BaseQueryFn, FetchBaseQueryError } from '@reduxjs/toolkit/query'
 import { createApi, retry } from '@reduxjs/toolkit/query'
 
 beforeEach(() => {

@@ -6,13 +6,7 @@ import {
   createSlice,
   isAnyOf,
 } from '@reduxjs/toolkit'
-import { vi } from 'vitest'
-
-import type { PayloadAction } from '@reduxjs/toolkit'
-
 import { TaskAbortError, createListenerMiddleware } from '../index'
-
-import type { TypedAddListener } from '../index'
 
 describe('Saga-style Effects Scenarios', () => {
   interface CounterState {
