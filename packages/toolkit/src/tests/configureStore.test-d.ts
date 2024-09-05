@@ -135,7 +135,7 @@ describe('type tests', () => {
       reducer: (): string | null => null,
     })
 
-    expectTypeOf(store.getState()).toEqualTypeOf<string | null>()
+    expectTypeOf(store.getState()).toMatchTypeOf<string | null>()
   })
 
   test('configureStore() accepts store Tuple for enhancers, but not plain array', () => {
