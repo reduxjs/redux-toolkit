@@ -5,7 +5,6 @@ import type { Context } from 'react'
 import React, { useContext, useEffect } from 'react'
 import type { ReactReduxContextValue } from 'react-redux'
 import { Provider, ReactReduxContext } from 'react-redux'
-import type { EmptyObject } from '../../tsHelpers'
 
 /**
  * Can be used as a `Provider` if you **do not already have a Redux store**.
@@ -33,7 +32,7 @@ import type { EmptyObject } from '../../tsHelpers'
  */
 export function ApiProvider(props: {
   children: any
-  api: Api<any, EmptyObject, any, any>
+  api: Api<any, Record<never, never>, any, any>
   setupListeners?: Parameters<typeof setupListeners>[1] | false
   context?: Context<ReactReduxContextValue | null>
 }) {
