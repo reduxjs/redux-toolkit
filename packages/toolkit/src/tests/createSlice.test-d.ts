@@ -28,7 +28,7 @@ import {
   isRejected,
 } from '@reduxjs/toolkit'
 import { castDraft } from 'immer'
-import type { AnyNonNullishValue } from '../tsHelpers'
+import type { AnyNonNullishValue, EmptyObject } from '../tsHelpers'
 
 describe('type tests', () => {
   const counterSlice = createSlice({
@@ -897,20 +897,20 @@ describe('type tests', () => {
     >()
 
     expectTypeOf(slice.actions.testInferVoid).toEqualTypeOf<
-      AsyncThunk<void, void, AnyNonNullishValue>
+      AsyncThunk<void, void, EmptyObject>
     >()
 
     expectTypeOf(slice.actions.testInferVoid).toBeCallableWith()
 
     expectTypeOf(slice.actions.testInfer).toEqualTypeOf<
-      AsyncThunk<TestReturned, TestArg, AnyNonNullishValue>
+      AsyncThunk<TestReturned, TestArg, EmptyObject>
     >()
 
     expectTypeOf(slice.actions.testExplicitType).toEqualTypeOf<
       AsyncThunk<TestReturned, TestArg, { rejectValue: TestReject }>
     >()
 
-    type TestInferThunk = AsyncThunk<TestReturned, TestArg, AnyNonNullishValue>
+    type TestInferThunk = AsyncThunk<TestReturned, TestArg, EmptyObject>
 
     expectTypeOf(slice.caseReducers.testInfer.pending).toEqualTypeOf<
       CaseReducer<TestState, ReturnType<TestInferThunk['pending']>>

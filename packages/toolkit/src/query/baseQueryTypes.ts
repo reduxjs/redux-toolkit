@@ -1,5 +1,5 @@
 import type { ThunkDispatch } from '@reduxjs/toolkit'
-import type { AnyNonNullishValue } from '../tsHelpers'
+import type { AnyObject } from '../tsHelpers'
 import type { MaybePromise, UnwrapPromise } from './tsHelpers'
 
 export interface BaseQueryApi {
@@ -41,8 +41,8 @@ export type BaseQueryFn<
   Args = any,
   Result = unknown,
   Error = unknown,
-  DefinitionExtraOptions = AnyNonNullishValue,
-  Meta = AnyNonNullishValue,
+  DefinitionExtraOptions = AnyObject,
+  Meta = AnyObject,
 > = (
   args: Args,
   api: BaseQueryApi,
