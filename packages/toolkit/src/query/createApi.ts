@@ -1,6 +1,6 @@
 import type { UnknownAction } from '@reduxjs/toolkit'
 import { weakMapMemoize } from 'reselect'
-import type { AnyNonNullishValue } from '../tsHelpers'
+import type { AnyFunction, AnyObject } from '../tsHelpers'
 import type { Api, ApiContext, Module, ModuleName } from './apiTypes'
 import type { BaseQueryArg, BaseQueryFn } from './baseQueryTypes'
 import type { CombinedState } from './core/apiState'
@@ -324,7 +324,9 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
             endpoints,
           )) {
             if (typeof partialDefinition === 'function') {
-              partialDefinition(context.endpointDefinitions[endpointName])
+              ;(partialDefinition as AnyFunction)(
+                context.endpointDefinitions[endpointName],
+              )
             } else {
               Object.assign(
                 context.endpointDefinitions[endpointName] || {},
@@ -335,13 +337,7 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
         }
         return api
       },
-    } as Api<
-      BaseQueryFn,
-      AnyNonNullishValue,
-      string,
-      string,
-      Modules[number]['name']
-    >
+    } as Api<BaseQueryFn, AnyObject, string, string, Modules[number]['name']>
 
     const initializedModules = modules.map((m) =>
       m.init(api as any, optionsWithDefaults as any, context),
