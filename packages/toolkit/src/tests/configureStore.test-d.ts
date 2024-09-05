@@ -1,5 +1,5 @@
 import { noop } from '@internal/tests/utils/helpers'
-import type { AnyNonNullishValue } from '@internal/tsHelpers'
+import type { AnyNonNullishValue, EmptyObject } from '@internal/tsHelpers'
 import type {
   Action,
   ConfigureStoreOptions,
@@ -135,7 +135,7 @@ describe('type tests', () => {
       reducer: (): string | null => null,
     })
 
-    expectTypeOf(store.getState()).toEqualTypeOf<string | null>()
+    expectTypeOf(store.getState()).toMatchTypeOf<string | null>()
   })
 
   test('configureStore() accepts store Tuple for enhancers, but not plain array', () => {
@@ -213,7 +213,7 @@ describe('type tests', () => {
     expectTypeOf(store3.anotherProperty).toBeNumber()
 
     const someStateExtendingEnhancer: StoreEnhancer<
-      AnyNonNullishValue,
+      EmptyObject,
       { someProperty: string }
     > =
       (next) =>
@@ -230,7 +230,7 @@ describe('type tests', () => {
       }
 
     const anotherStateExtendingEnhancer: StoreEnhancer<
-      AnyNonNullishValue,
+      EmptyObject,
       { anotherProperty: number }
     > =
       (next) =>

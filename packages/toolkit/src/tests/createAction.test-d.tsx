@@ -11,7 +11,7 @@ import type {
   UnknownAction,
 } from '@reduxjs/toolkit'
 import { createAction } from '@reduxjs/toolkit'
-import type { AnyNonNullishValue } from '../tsHelpers'
+import type { EmptyObject } from '../tsHelpers'
 
 describe('type tests', () => {
   describe('PayloadAction', () => {
@@ -244,7 +244,7 @@ describe('type tests', () => {
       if (actionCreator.match(x)) {
         expectTypeOf(x.type).toEqualTypeOf<'test'>()
 
-        expectTypeOf(x.payload).not.toMatchTypeOf<AnyNonNullishValue>()
+        expectTypeOf(x.payload).not.toMatchTypeOf<EmptyObject>()
       }
     })
 

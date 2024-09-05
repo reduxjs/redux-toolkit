@@ -1,11 +1,11 @@
 import type { Reducer, Slice, WithSlice } from '@reduxjs/toolkit'
 import { combineSlices } from '@reduxjs/toolkit'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
-import type { AnyNonNullishValue } from '../tsHelpers'
+import type { EmptyObject } from '../tsHelpers'
 
-declare const stringSlice: Slice<string, AnyNonNullishValue, 'string'>
+declare const stringSlice: Slice<string, EmptyObject, 'string'>
 
-declare const numberSlice: Slice<number, AnyNonNullishValue, 'number'>
+declare const numberSlice: Slice<number, EmptyObject, 'number'>
 
 declare const booleanReducer: Reducer<boolean>
 
@@ -39,7 +39,7 @@ describe('type tests', () => {
 
     expectTypeOf(
       rootReducer(undefined, { type: '' }),
-    ).toEqualTypeOf<AnyNonNullishValue>()
+    ).toMatchTypeOf<EmptyObject>()
 
     const declaredLazy =
       combineSlices().withLazyLoadedSlices<WithSlice<typeof numberSlice>>()

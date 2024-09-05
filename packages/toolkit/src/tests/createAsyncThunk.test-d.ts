@@ -1,5 +1,9 @@
 import { noop } from '@internal/tests/utils/helpers'
-import type { AnyFunction, AnyNonNullishValue } from '@internal/tsHelpers'
+import type {
+  AnyFunction,
+  AnyNonNullishValue,
+  EmptyObject,
+} from '@internal/tsHelpers'
 import type { TSVersion } from '@phryneas/ts-version'
 import type {
   AsyncThunk,
@@ -491,9 +495,7 @@ describe('type tests', () => {
       return 'ret' as const
     })
 
-    expectTypeOf(thunk).toEqualTypeOf<
-      AsyncThunk<'ret', void, AnyNonNullishValue>
-    >()
+    expectTypeOf(thunk).toEqualTypeOf<AsyncThunk<'ret', void, EmptyObject>>()
   })
 
   test('createAsyncThunk without generics, accessing `api` does not break return type', () => {
@@ -501,9 +503,7 @@ describe('type tests', () => {
       return 'ret' as const
     })
 
-    expectTypeOf(thunk).toEqualTypeOf<
-      AsyncThunk<'ret', void, AnyNonNullishValue>
-    >()
+    expectTypeOf(thunk).toEqualTypeOf<AsyncThunk<'ret', void, EmptyObject>>()
   })
 
   test('createAsyncThunk rejectWithValue without generics: Expect correct return type', () => {
@@ -637,11 +637,11 @@ describe('type tests', () => {
 
   test('meta return values', () => {
     // return values
-    createAsyncThunk<'ret', void, AnyNonNullishValue>(
+    createAsyncThunk<'ret', void, EmptyObject>(
       'test',
       (_, api) => 'ret' as const,
     )
-    createAsyncThunk<'ret', void, AnyNonNullishValue>(
+    createAsyncThunk<'ret', void, EmptyObject>(
       'test',
       async (_, api) => 'ret' as const,
     )
