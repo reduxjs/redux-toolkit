@@ -9,6 +9,7 @@ import { isAnyOf } from './matchers'
 import { nanoid } from './nanoid'
 import type {
   AnyNonNullishValue,
+  EmptyObject,
   FallbackIfUnknown,
   Id,
   IsAny,
@@ -220,7 +221,7 @@ export type AsyncThunkPayloadCreatorReturnValue<
 export type AsyncThunkPayloadCreator<
   Returned,
   ThunkArg = void,
-  ThunkApiConfig extends AsyncThunkConfig = AnyNonNullishValue,
+  ThunkApiConfig extends AsyncThunkConfig = EmptyObject,
 > = (
   arg: ThunkArg,
   thunkAPI: GetThunkAPI<ThunkApiConfig>,
@@ -316,7 +317,7 @@ type AsyncThunkActionCreator<
  */
 export type AsyncThunkOptions<
   ThunkArg = void,
-  ThunkApiConfig extends AsyncThunkConfig = AnyNonNullishValue,
+  ThunkApiConfig extends AsyncThunkConfig = EmptyObject,
 > = {
   /**
    * A method to control whether the asyncThunk should be executed. Has access to the
