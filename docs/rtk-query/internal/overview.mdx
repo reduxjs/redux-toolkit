@@ -38,12 +38,12 @@ RTK-Query uses a very familiar redux-centric architecture. Where the `api` is a 
 The slices built inside this "build" are:
 _Some of which have their own actions_
 
-- querySlice
-- mutationSlice
-- invalidationSlice
-- subscriptionSlice (used as a dummy slice to generate actions internally)
-- internalSubscriptionsSlice
-- configSlice (internal tracking of focus state, online state, hydration etc)
+- `querySlice`
+- `mutationSlice`
+- `invalidationSlice`
+- `subscriptionSlice` (used as a dummy slice to generate actions internally)
+- `internalSubscriptionsSlice`
+- `configSlice` (internal tracking of focus state, online state, hydration etc)
 
 buildSlice also exposes the core action `resetApiState` which is subsequently added to the `api.util`
 
@@ -53,21 +53,21 @@ RTK-Query has a series of custom middlewares established within its store to han
 
 Each middleware built during this step is referred to internally as a "Handler" and are as follows:
 
-- `buildDevCheckHandler
-- `buildCacheCollectionHandler
-- `buildInvalidationByTagsHandler
-- `buildPollingHandler
-- `buildCacheLifecycleHandler
-- `buildQueryLifecycleHandler
+- `buildDevCheckHandler`
+- `buildCacheCollectionHandler`
+- `buildInvalidationByTagsHandler`
+- `buildPollingHandler`
+- `buildCacheLifecycleHandler`
+- `buildQueryLifecycleHandler`
 
 ### buildSelectors
 
 build selectors is a crucial step that exposes to the `api` and utils:
 
-- `buildQuerySelector
-- `buildMutationSelector
-- `selectInvalidatedBy
-- `selectCachedArgsForQuery
+- `buildQuerySelector`
+- `buildMutationSelector`
+- `selectInvalidatedBy`
+- `selectCachedArgsForQuery`
 
 ### return
 
