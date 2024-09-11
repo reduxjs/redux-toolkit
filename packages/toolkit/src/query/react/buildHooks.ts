@@ -436,6 +436,52 @@ export type UseQueryStateOptions<
  * This is particularly useful for setting default query behaviors such as
  * refetching strategies, which can be overridden as needed.
  *
+ * @example
+ * <caption>#### __Create a `useQuery` hook with default options__</caption>
+ *
+ * ```ts
+ * import type {
+ *   SubscriptionOptions,
+ *   TypedUseQueryStateOptions,
+ * } from '@reduxjs/toolkit/query/react'
+ * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+ *
+ * type Post = {
+ *   id: number
+ *   name: string
+ * }
+ *
+ * const api = createApi({
+ *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+ *   tagTypes: ['Post'],
+ *   endpoints: (build) => ({
+ *     getPosts: build.query<Post[], void>({
+ *       query: () => 'posts',
+ *     }),
+ *   }),
+ * })
+ *
+ * const { useGetPostsQuery } = api
+ *
+ * export const useGetPostsQueryWithDefaults = <
+ *   SelectedResult extends Record<string, any>,
+ * >(
+ *   overrideOptions: TypedUseQueryStateOptions<
+ *     Post[],
+ *     void,
+ *     ReturnType<typeof fetchBaseQuery>,
+ *     SelectedResult
+ *   > &
+ *     SubscriptionOptions,
+ * ) =>
+ *   useGetPostsQuery(undefined, {
+ *     // Insert default options here
+ *
+ *     refetchOnMountOrArgChange: true,
+ *     refetchOnFocus: true,
+ *     ...overrideOptions,
+ *   })
+ * ```
  *
  * @template ResultType - The type of the result `data` returned by the query.
  * @template QueryArg - The type of the argument passed into the query.
