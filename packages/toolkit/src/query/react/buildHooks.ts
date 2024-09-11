@@ -431,13 +431,16 @@ export type UseQueryStateOptions<
 }
 
 /**
- * Allows you to define a "pre-typed" version of
- * {@linkcode UseQueryStateOptions} for a specific query.
+ * Provides a way to define a "pre-typed" version of
+ * {@linkcode UseQueryStateOptions} with specific options for a given query.
+ * This is particularly useful for setting default query behaviors such as
+ * refetching strategies, which can be overridden as needed.
  *
- * @template ResultType - The type of the data returned by the query.
- * @template QueryArg - The type of the argument passed to the query.
- * @template BaseQuery - The type of the base query function used by the query.
- * @template SelectedResult - The type of the selected result returned by __`selectFromResult`__.
+ *
+ * @template ResultType - The type of the result `data` returned by the query.
+ * @template QueryArg - The type of the argument passed into the query.
+ * @template BaseQuery - The type of the base query function being used.
+ * @template SelectedResult - The type of the selected result returned by the __`selectFromResult`__ function.
  *
  * @since 2.7.8
  * @public
