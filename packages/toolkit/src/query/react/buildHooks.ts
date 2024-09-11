@@ -430,6 +430,30 @@ export type UseQueryStateOptions<
   selectFromResult?: QueryStateSelector<R, D>
 }
 
+/**
+ * Allows you to define a "pre-typed" version of
+ * {@linkcode UseQueryStateOptions} for a specific query.
+ *
+ * @template ResultType - The type of the data returned by the query.
+ * @template QueryArg - The type of the argument passed to the query.
+ * @template BaseQuery - The type of the base query function used by the query.
+ * @template SelectedResult - The type of the selected result returned by __`selectFromResult`__.
+ *
+ * @since 2.7.8
+ * @public
+ */
+export type TypedUseQueryStateOptions<
+  ResultType,
+  QueryArg,
+  BaseQuery extends BaseQueryFn,
+  SelectedResult extends Record<string, any> = UseQueryStateDefaultResult<
+    QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
+  >,
+> = UseQueryStateOptions<
+  QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>,
+  SelectedResult
+>
+
 export type UseQueryStateResult<
   _ extends QueryDefinition<any, any, any, any>,
   R,
