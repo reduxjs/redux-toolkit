@@ -357,6 +357,9 @@ export type TypedUseQueryState<
   QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
 >
 
+/**
+ * @internal
+ */
 export type UseQueryStateOptions<
   D extends QueryDefinition<any, any, any, any>,
   R extends Record<string, any>,
