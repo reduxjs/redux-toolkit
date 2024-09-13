@@ -1,4 +1,5 @@
 import type {
+  Action,
   AsyncThunk,
   SerializedError,
   ThunkDispatch,
@@ -7,6 +8,7 @@ import type {
 import {
   configureStore,
   createAsyncThunk,
+  createAsyncThunkCreator,
   createReducer,
   createSlice,
   unwrapResult,
@@ -887,5 +889,28 @@ describe('type tests', () => {
       // could be caused by a `throw`, `abort()` or `condition` - no `rejectedMeta` in that case
       expectTypeOf(ret.meta).not.toHaveProperty('extraProp')
     }
+  })
+  test('createAsyncThunkCreator', () => {
+    const store = configureStore({
+      reducer: (state: Action[] = [], action) => [...state, action],
+    })
+
+    type RootState = ReturnType<typeof store.getState>
+    type AppDispatch = typeof store.dispatch
+
+    const createAsyncThunk = createAsyncThunkCreator<{
+      state: RootState
+      dispatch: AppDispatch
+    }>()
+
+    const thunk = createAsyncThunk(
+      'test',
+      (arg: string, { dispatch, getState }) => {
+        expectTypeOf(dispatch).toEqualTypeOf<AppDispatch>()
+        expectTypeOf(getState).toEqualTypeOf<() => RootState>()
+      },
+    )
+
+    store.dispatch(thunk('test'))
   })
 })
