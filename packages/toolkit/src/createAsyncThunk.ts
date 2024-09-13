@@ -541,7 +541,7 @@ export function createAsyncThunkCreator<
     } = {
       ...creatorOptions,
       ...options,
-    }
+    } as AsyncThunkOptions<ThunkArg, ThunkApiConfig>
 
     const fulfilled: AsyncThunkFulfilledActionCreator<
       Returned,
