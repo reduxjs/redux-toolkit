@@ -302,7 +302,7 @@ If you make a `json` request to an API that only returns a `200` with an undefin
 The default response handler is `"json"`, which is equivalent to the following function:
 
 ```ts title="Default responseHandler"
-const defaultResponseHandler = async (res) => {
+const defaultResponseHandler = async (res: Response) => {
   const text = await res.text();
   return text.length ? JSON.parse(text) : null;
 }
