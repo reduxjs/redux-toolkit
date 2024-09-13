@@ -780,7 +780,7 @@ Options specified when calling `createAsyncThunk` will override options specifie
 
 An object with the following optional fields:
 
-- `serializeError(error: unknown) => GetSerializedErrorType<ThunkApiConfig>` to replace or extend the default serializer method with your own serialization logic.
+- `serializeError(error: unknown) => any` to replace the internal `miniSerializeError` method with your own serialization logic.
 - `idGenerator(arg: unknown) => string`: a function to use when generating the `requestId` for the request sequence. Defaults to use [nanoid](./otherExports.mdx/#nanoid), but you can implement your own ID generation logic.
 
 ### Return Value
