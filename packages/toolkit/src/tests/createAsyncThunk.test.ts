@@ -1035,7 +1035,7 @@ describe('createAsyncThunkCreator', () => {
       return 'serialized by default serializer!'
     }
     function thunkSerializeError() {
-      return 'serialized by thunk serializer!'
+      return { message: 'serialized by thunk serializer!' }
     }
     const errorObject = 'something else!'
 
@@ -1052,7 +1052,11 @@ describe('createAsyncThunkCreator', () => {
     const thunk = createAsyncThunk<
       unknown,
       void,
-      { serializedErrorType: string }
+      {
+        serializedErrorType: {
+          message: string
+        }
+      }
     >('test', () => Promise.reject(errorObject), {
       serializeError: thunkSerializeError,
     })
@@ -1064,7 +1068,7 @@ describe('createAsyncThunkCreator', () => {
     const thunkLevelExpectation = {
       type: 'test/rejected',
       payload: undefined,
-      error: 'serialized by thunk serializer!',
+      error: { message: 'serialized by thunk serializer!' },
       meta: expect.any(Object),
     }
 
@@ -1072,5 +1076,42 @@ describe('createAsyncThunkCreator', () => {
     expect(store.getState()[2]).toEqual(thunkLevelExpectation)
     expect(rejected.error).not.toEqual(miniSerializeError(errorObject))
     expect(rejected.error).not.toEqual('serialized by default serializer!')
+  })
+  test('custom default idGenerator only', async () => {
+    function idGenerator(arg: unknown) {
+      return `${arg}`
+    }
+    const createAsyncThunk = createAsyncThunkCreator({
+      idGenerator,
+    })
+    const asyncThunk = createAsyncThunk<number, string>('test', async () => 1)
+    const store = configureStore({
+      reducer: (state = [], action) => [...state, action],
+    })
+    const promise = store.dispatch(asyncThunk('testArg'))
+    expect(promise.requestId).toBe('testArg')
+    const result = await promise
+    expect(result.meta.requestId).toBe('testArg')
+  })
+  test('custom default idGenerator with thunk-level override', async () => {
+    function defaultIdGenerator(arg: unknown) {
+      return `default-${arg}`
+    }
+    function thunkIdGenerator(arg: unknown) {
+      return `thunk-${arg}`
+    }
+    const createAsyncThunk = createAsyncThunkCreator({
+      idGenerator: defaultIdGenerator,
+    })
+    const thunk = createAsyncThunk<number, string>('test', async () => 1, {
+      idGenerator: thunkIdGenerator,
+    })
+    const store = configureStore({
+      reducer: (state = [], action) => [...state, action],
+    })
+    const promise = store.dispatch(thunk('testArg'))
+    expect(promise.requestId).toBe('thunk-testArg')
+    const result = await promise
+    expect(result.meta.requestId).toBe('thunk-testArg')
   })
 })
