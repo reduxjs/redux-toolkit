@@ -93,7 +93,7 @@ class FulfillWithMeta<Payload, FulfilledMeta> {
  */
 export const miniSerializeError = (value: any): SerializedError => {
   if (typeof value === 'object' && value !== null) {
-    const simpleError = {} as Record<string, string>
+    const simpleError: SerializedError = {}
     for (const property of commonProperties) {
       if (typeof value[property] === 'string') {
         simpleError[property] = value[property]
