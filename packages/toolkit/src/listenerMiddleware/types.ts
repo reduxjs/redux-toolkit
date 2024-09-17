@@ -51,12 +51,66 @@ export interface ConditionFunction<State> {
 export type MatchFunction<T> = (v: any) => v is T
 
 /** @public */
-export interface ForkedTaskAPI {
+export interface ForkedTaskAPI<State, Dispatch extends ReduxDispatch> {
+  /**
+   * Returns a promise that resolves when the input predicate returns `true` or
+   * rejects if the listener has been cancelled or is completed.
+   *
+   * The return value is `true` if the predicate succeeds or `false` if a timeout is provided and expires first.
+   *
+   * ### Example
+   *
+   * ```ts
+   * const updateBy = createAction<number>('counter/updateBy');
+   *
+   * middleware.startListening({
+   *  actionCreator: updateBy,
+   *  async effect(_, { condition }) {
+   *    // wait at most 3s for `updateBy` actions.
+   *    if(await condition(updateBy.match, 3_000)) {
+   *      // `updateBy` has been dispatched twice in less than 3s.
+   *    }
+   *  }
+   * })
+   * ```
+   */
+  condition: ConditionFunction<State>
+  /**
+   * Returns a promise that resolves when the input predicate returns `true` or
+   * rejects if the listener has been cancelled or is completed.
+   *
+   * The return value is the `[action, currentState, previousState]` combination that the predicate saw as arguments.
+   *
+   * The promise resolves to null if a timeout is provided and expires first,
+   *
+   * ### Example
+   *
+   * ```ts
+   * const updateBy = createAction<number>('counter/updateBy');
+   *
+   * middleware.startListening({
+   *  actionCreator: updateBy,
+   *  async effect(_, { take }) {
+   *    const [{ payload }] =  await take(updateBy.match);
+   *    console.log(payload); // logs 5;
+   *  }
+   * })
+   *
+   * store.dispatch(updateBy(5));
+   * ```
+   */
+  take: TakePattern<State>
   /**
    * Returns a promise that resolves when `waitFor` resolves or
    * rejects if the task or the parent listener has been cancelled or is completed.
    */
   pause<W>(waitFor: Promise<W>): Promise<W>
+  /**
+   * An abort signal whose `aborted` property is set to `true`
+   * if the task execution is either aborted or completed.
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal
+   */
+  signal: AbortSignal
   /**
    * Returns a promise that resolves after `timeoutMs` or
    * rejects if the task or the parent listener has been cancelled or is completed.
@@ -64,25 +118,30 @@ export interface ForkedTaskAPI {
    */
   delay(timeoutMs: number): Promise<void>
   /**
-   * An abort signal whose `aborted` property is set to `true`
-   * if the task execution is either aborted or completed.
-   * @see https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal
+   * Queues in the next microtask the execution of a task.
+   * @param executor
+   * @param options
    */
-  signal: AbortSignal
+  fork<T>(
+    executor: ForkedTaskExecutor<T, State, Dispatch>,
+    options?: ForkOptions,
+  ): ForkedTask<T>
 }
 
 /** @public */
-export interface AsyncTaskExecutor<T> {
-  (forkApi: ForkedTaskAPI): Promise<T>
+export interface AsyncTaskExecutor<T, State, Dispatch extends ReduxDispatch> {
+  (forkApi: ForkedTaskAPI<State, Dispatch>): Promise<T>
 }
 
 /** @public */
-export interface SyncTaskExecutor<T> {
-  (forkApi: ForkedTaskAPI): T
+export interface SyncTaskExecutor<T, State, Dispatch extends ReduxDispatch> {
+  (forkApi: ForkedTaskAPI<State, Dispatch>): T
 }
 
 /** @public */
-export type ForkedTaskExecutor<T> = AsyncTaskExecutor<T> | SyncTaskExecutor<T>
+export type ForkedTaskExecutor<T, State, Dispatch extends ReduxDispatch> =
+  | AsyncTaskExecutor<T, State, Dispatch>
+  | SyncTaskExecutor<T, State, Dispatch>
 
 /** @public */
 export type TaskResolved<T> = {
@@ -257,7 +316,10 @@ export interface ListenerEffectAPI<
    * @param executor
    * @param options
    */
-  fork<T>(executor: ForkedTaskExecutor<T>, options?: ForkOptions): ForkedTask<T>
+  fork<T>(
+    executor: ForkedTaskExecutor<T, State, Dispatch>,
+    options?: ForkOptions,
+  ): ForkedTask<T>
   /**
    * Returns a promise that resolves when `waitFor` resolves or
    * rejects if the listener has been cancelled or is completed.
