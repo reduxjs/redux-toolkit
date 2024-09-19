@@ -6,14 +6,14 @@
   "keywords": [],
   "main": "./src/index.tsx",
   "dependencies": {
-    "@chakra-ui/react": "1.0.0",
-    "@emotion/react": "^11.4.0",
-    "@emotion/styled": "^11.3.0",
+    "@chakra-ui/react": "2.8.0",
+    "@emotion/react": "^11.13.3",
+    "@emotion/styled": "^11.13.0",
     "@mswjs/data": "^0.3.0",
     "@reduxjs/toolkit": "^1.6.0-rc.1",
     "@rtk-query/graphql-request-base-query": "^2.0.0",
     "faker": "^5.5.3",
-    "framer-motion": "^2.9.5",
+    "framer-motion": "^11.5.5",
     "graphql": "^15.5.0",
     "graphql-request": "^3.4.0",
     "msw": "0.40.2",
@@ -21,7 +21,7 @@
     "react-dom": "^18.1.0",
     "react-icons": "3.11.0",
     "react-redux": "^8.0.2",
-    "react-router-dom": "^6.8.0",
+    "react-router-dom": "6.26.2",
     "react-scripts": "5.0.1"
   },
   "devDependencies": {

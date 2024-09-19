@@ -8,7 +8,11 @@ import { worker } from './mocks/browser'
 // Initialize the msw worker, wait for the service worker registration to resolve, then mount
 async function render() {
   if (process.env.NODE_ENV === 'development') {
-    await worker.start()
+    try {
+      await worker.start()
+    } catch (error) {
+      console.log("error starting msw worker",error)
+    } 
   }
 
   const rootNode = ReactDOM.createRoot(

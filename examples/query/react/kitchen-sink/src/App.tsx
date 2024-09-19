@@ -43,7 +43,7 @@ const router = createBrowserRouter([
       { path: '/', element: <TimeList /> },
       { path: '/counters', element: <CounterList /> },
       {
-        path: '/posts/*',
+        path: 'posts/*',
         element: <PostsManager />,
       },
       { path: '/bundleSplitting', element: <Lazy /> },
