@@ -1128,3 +1128,38 @@ describe('custom serializeQueryArgs per endpoint', () => {
     })
   })
 })
+
+describe('timeout behavior', () => {
+  test('triggers TIMEOUT_ERROR', async () => {
+    const api = createApi({
+      baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com', timeout: 5 }),
+      endpoints: (build) => ({
+        query: build.query<unknown, void>({
+          query: () => '/success',
+        }),
+      }),
+    })
+  
+    const storeRef = setupApiStore(api, undefined, {
+      withoutTestLifecycles: true,
+    })
+    
+    server.use(
+      http.get(
+        'https://example.com/success',
+        async () => {
+          await delay(10)
+          return HttpResponse.json({ value: 'failed' }, { status: 500 })
+        },
+        { once: true },
+      ),
+    )
+
+    const result = await storeRef.store.dispatch(api.endpoints.query.initiate())
+
+    expect(result?.error).toEqual({
+      status: 'TIMEOUT_ERROR',
+      error: expect.stringMatching(/^AbortError:/),
+    })
+  })
+})

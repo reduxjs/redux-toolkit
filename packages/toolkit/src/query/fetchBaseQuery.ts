@@ -213,7 +213,7 @@ export function fetchBaseQuery({
     )
   }
   return async (arg, api) => {
-    const { signal, getState, extra, endpoint, forced, type } = api
+    const { getState, extra, endpoint, forced, type } = api
     let meta: FetchBaseQueryMeta | undefined
     let {
       url,
@@ -224,6 +224,14 @@ export function fetchBaseQuery({
       timeout = defaultTimeout,
       ...rest
     } = typeof arg == 'string' ? { url: arg } : arg
+
+    let abortController: AbortController | undefined, signal = api.signal
+    if (timeout) {
+      abortController = new AbortController()
+      api.signal.addEventListener('abort', abortController.abort)
+      signal = abortController.signal
+    }
+
     let config: RequestInit = {
       ...baseFetchOptions,
       signal,
@@ -272,10 +280,10 @@ export function fetchBaseQuery({
     let response,
       timedOut = false,
       timeoutId =
-        timeout &&
+        abortController &&
         setTimeout(() => {
           timedOut = true
-          api.abort()
+          abortController!.abort()
         }, timeout)
     try {
       response = await fetchFn(request)
@@ -289,6 +297,7 @@ export function fetchBaseQuery({
       }
     } finally {
       if (timeoutId) clearTimeout(timeoutId)
+      abortController?.signal.removeEventListener('abort', abortController.abort)
     }
     const responseClone = response.clone()
 
