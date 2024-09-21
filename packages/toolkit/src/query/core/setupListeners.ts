@@ -1,7 +1,4 @@
-import type {
-  ActionCreatorWithoutPayload,
-  ThunkDispatch, // Workaround for API-Extractor
-} from '@reduxjs/toolkit'
+import type { ThunkDispatch } from '@reduxjs/toolkit'
 import { createAction } from './rtkImports'
 
 export const onFocus = /* @__PURE__ */ createAction('__rtkq/focused')
