@@ -1,6 +1,5 @@
 import type { Middleware } from 'redux'
 import type { IgnorePaths } from './serializableStateInvariantMiddleware'
-import type { AnyObject } from './tsHelpers'
 import { getTimeMeasureUtils } from './utils'
 
 type EntryProcessor = (key: string, value: any) => any
