@@ -3,7 +3,6 @@ import { QueryStatus } from '../apiState'
 import type {
   ApiMiddlewareInternalHandler,
   InternalHandlerBuilder,
-  InternalMiddlewareState,
   QueryStateMeta,
   SubMiddlewareApi,
   TimeoutId,
