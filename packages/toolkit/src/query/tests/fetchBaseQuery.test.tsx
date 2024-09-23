@@ -852,7 +852,7 @@ describe('fetchBaseQuery', () => {
     })
 
     test('prepareHeaders provides args', async () => {
-      let _args
+      let _args: any
 
       const baseQuery = fetchBaseQuery({
         baseUrl,
