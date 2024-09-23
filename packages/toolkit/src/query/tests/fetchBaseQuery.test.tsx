@@ -850,6 +850,48 @@ describe('fetchBaseQuery', () => {
       expect(_forced).toBe(true)
       expect(_extra).toBe(fakeAuth0Client)
     })
+
+    test('prepareHeaders provides args', async () => {
+      let _args
+
+      const baseQuery = fetchBaseQuery({
+        baseUrl,
+        fetchFn: fetchFn as any,
+        prepareHeaders: (headers, _api, args) => {
+          _args = args
+
+          return headers
+        },
+      })
+
+      const fakeAuth0Client = {
+        getTokenSilently: async () => 'fakeToken',
+      }
+
+      const doRequest = async () => {
+        const abortController = new AbortController()
+        return baseQuery(
+          { url: '/echo' },
+          {
+            signal: abortController.signal,
+            abort: (reason) =>
+              // @ts-ignore
+              abortController.abort(reason),
+            dispatch: storeRef.store.dispatch,
+            getState: storeRef.store.getState,
+            extra: fakeAuth0Client,
+            type: 'query',
+            forced: true,
+            endpoint: 'someEndpointName',
+          },
+          {},
+        )
+      }
+
+      await doRequest()
+
+      expect(_args!.url).toBe('/echo')
+    })
   })
 
   test('can pass `headers` into `fetchBaseQuery`', async () => {

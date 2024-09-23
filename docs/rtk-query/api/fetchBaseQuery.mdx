@@ -65,6 +65,7 @@ type FetchBaseQueryArgs = {
       BaseQueryApi,
       'getState' | 'extra' | 'endpoint' | 'type' | 'forced'
     >,
+    args: string | FetchArgs
   ) => MaybePromise<Headers | void>
   fetchFn?: (
     input: RequestInfo,
@@ -105,7 +106,7 @@ Typically a string like `https://api.your-really-great-app.com/v1/`. If you don'
 
 _(optional)_
 
-Allows you to inject headers on every request. You can specify headers at the endpoint level, but you'll typically want to set common headers like `authorization` here. As a convenience mechanism, the second argument allows you to use `getState` to access your redux store in the event you store information you'll need there such as an auth token. Additionally, it provides access to `extra`, `endpoint`, `type`, and `forced` to unlock more granular conditional behaviors.
+Allows you to inject headers on every request. You can specify headers at the endpoint level, but you'll typically want to set common headers like `authorization` here. As a convenience mechanism, the second argument allows you to use `getState` to access your redux store in the event you store information you'll need there such as an auth token. Additionally, it provides access to `extra`, `endpoint`, `type`, and `forced` to unlock more granular conditional behaviors. Arguments passed to the query function is passed as the third argument in case you need those params in the context of the `prepareHeaders` function.
 
 You can mutate the `headers` argument directly, and returning it is optional.
 
@@ -119,6 +120,7 @@ type prepareHeaders = (
     type: 'query' | 'mutation'
     forced: boolean | undefined
   },
+  args: string | FetchArgs
 ) => Headers | void
 ```
 
