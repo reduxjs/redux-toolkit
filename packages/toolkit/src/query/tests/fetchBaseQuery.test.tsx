@@ -799,7 +799,7 @@ describe('fetchBaseQuery', () => {
     })
 
     test('prepareHeaders provides extra api information for getState, extra, endpoint, type and forced', async () => {
-      let _getState, _args, _extra, _endpoint, _type, _forced
+      let _getState, _args: any, _extra, _endpoint, _type, _forced
 
       const baseQuery = fetchBaseQuery({
         baseUrl,
