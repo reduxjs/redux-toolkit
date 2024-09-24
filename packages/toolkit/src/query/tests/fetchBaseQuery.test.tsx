@@ -799,16 +799,17 @@ describe('fetchBaseQuery', () => {
     })
 
     test('prepareHeaders provides extra api information for getState, extra, endpoint, type and forced', async () => {
-      let _getState, _extra, _endpoint, _type, _forced
+      let _getState, _args, _extra, _endpoint, _type, _forced
 
       const baseQuery = fetchBaseQuery({
         baseUrl,
         fetchFn: fetchFn as any,
         prepareHeaders: (
           headers,
-          { getState, extra, endpoint, type, forced },
+          { getState, args, extra, endpoint, type, forced },
         ) => {
           _getState = getState
+          _args = args
           _endpoint = endpoint
           _type = type
           _forced = forced
@@ -845,52 +846,11 @@ describe('fetchBaseQuery', () => {
       await doRequest()
 
       expect(_getState).toBeDefined()
+      expect(_args!.url).toBe('/echo')
       expect(_endpoint).toBe('someEndpointName')
       expect(_type).toBe('query')
       expect(_forced).toBe(true)
       expect(_extra).toBe(fakeAuth0Client)
-    })
-
-    test('prepareHeaders provides args', async () => {
-      let _args: any
-
-      const baseQuery = fetchBaseQuery({
-        baseUrl,
-        fetchFn: fetchFn as any,
-        prepareHeaders: (headers, _api, args) => {
-          _args = args
-
-          return headers
-        },
-      })
-
-      const fakeAuth0Client = {
-        getTokenSilently: async () => 'fakeToken',
-      }
-
-      const doRequest = async () => {
-        const abortController = new AbortController()
-        return baseQuery(
-          { url: '/echo' },
-          {
-            signal: abortController.signal,
-            abort: (reason) =>
-              // @ts-ignore
-              abortController.abort(reason),
-            dispatch: storeRef.store.dispatch,
-            getState: storeRef.store.getState,
-            extra: fakeAuth0Client,
-            type: 'query',
-            forced: true,
-            endpoint: 'someEndpointName',
-          },
-          {},
-        )
-      }
-
-      await doRequest()
-
-      expect(_args!.url).toBe('/echo')
     })
   })
 
