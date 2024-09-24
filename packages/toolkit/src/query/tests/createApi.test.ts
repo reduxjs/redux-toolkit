@@ -314,6 +314,7 @@ describe('endpoint definition typings', () => {
       getState: expect.any(Function),
       signal: expect.any(Object),
       type: expect.any(String),
+      queryCacheKey: expect.any(String),
     }
     beforeEach(() => {
       baseQuery.mockClear()
@@ -355,6 +356,7 @@ describe('endpoint definition typings', () => {
             abort: expect.any(Function),
             forced: expect.any(Boolean),
             type: expect.any(String),
+            queryCacheKey: expect.any(String),
           },
           undefined,
         ],
@@ -368,6 +370,7 @@ describe('endpoint definition typings', () => {
             abort: expect.any(Function),
             forced: expect.any(Boolean),
             type: expect.any(String),
+            queryCacheKey: expect.any(String),
           },
           undefined,
         ],
@@ -499,8 +502,24 @@ describe('endpoint definition typings', () => {
       expect(baseQuery.mock.calls).toEqual([
         ['modified1', commonBaseQueryApi, undefined],
         ['modified2', commonBaseQueryApi, undefined],
-        ['modified1', { ...commonBaseQueryApi, forced: undefined }, undefined],
-        ['modified2', { ...commonBaseQueryApi, forced: undefined }, undefined],
+        [
+          'modified1',
+          {
+            ...commonBaseQueryApi,
+            forced: undefined,
+            queryCacheKey: undefined,
+          },
+          undefined,
+        ],
+        [
+          'modified2',
+          {
+            ...commonBaseQueryApi,
+            forced: undefined,
+            queryCacheKey: undefined,
+          },
+          undefined,
+        ],
       ])
     })
 
