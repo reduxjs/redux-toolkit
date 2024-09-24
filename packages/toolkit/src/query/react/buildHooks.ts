@@ -357,6 +357,9 @@ export type TypedUseQueryState<
   QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
 >
 
+/**
+ * @internal
+ */
 export type UseQueryStateOptions<
   D extends QueryDefinition<any, any, any, any>,
   R extends Record<string, any>,
@@ -426,6 +429,79 @@ export type UseQueryStateOptions<
    */
   selectFromResult?: QueryStateSelector<R, D>
 }
+
+/**
+ * Provides a way to define a "pre-typed" version of
+ * {@linkcode UseQueryStateOptions} with specific options for a given query.
+ * This is particularly useful for setting default query behaviors such as
+ * refetching strategies, which can be overridden as needed.
+ *
+ * @example
+ * <caption>#### __Create a `useQuery` hook with default options__</caption>
+ *
+ * ```ts
+ * import type {
+ *   SubscriptionOptions,
+ *   TypedUseQueryStateOptions,
+ * } from '@reduxjs/toolkit/query/react'
+ * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+ *
+ * type Post = {
+ *   id: number
+ *   name: string
+ * }
+ *
+ * const api = createApi({
+ *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+ *   tagTypes: ['Post'],
+ *   endpoints: (build) => ({
+ *     getPosts: build.query<Post[], void>({
+ *       query: () => 'posts',
+ *     }),
+ *   }),
+ * })
+ *
+ * const { useGetPostsQuery } = api
+ *
+ * export const useGetPostsQueryWithDefaults = <
+ *   SelectedResult extends Record<string, any>,
+ * >(
+ *   overrideOptions: TypedUseQueryStateOptions<
+ *     Post[],
+ *     void,
+ *     ReturnType<typeof fetchBaseQuery>,
+ *     SelectedResult
+ *   > &
+ *     SubscriptionOptions,
+ * ) =>
+ *   useGetPostsQuery(undefined, {
+ *     // Insert default options here
+ *
+ *     refetchOnMountOrArgChange: true,
+ *     refetchOnFocus: true,
+ *     ...overrideOptions,
+ *   })
+ * ```
+ *
+ * @template ResultType - The type of the result `data` returned by the query.
+ * @template QueryArg - The type of the argument passed into the query.
+ * @template BaseQuery - The type of the base query function being used.
+ * @template SelectedResult - The type of the selected result returned by the __`selectFromResult`__ function.
+ *
+ * @since 2.7.8
+ * @public
+ */
+export type TypedUseQueryStateOptions<
+  ResultType,
+  QueryArg,
+  BaseQuery extends BaseQueryFn,
+  SelectedResult extends Record<string, any> = UseQueryStateDefaultResult<
+    QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
+  >,
+> = UseQueryStateOptions<
+  QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>,
+  SelectedResult
+>
 
 export type UseQueryStateResult<
   _ extends QueryDefinition<any, any, any, any>,

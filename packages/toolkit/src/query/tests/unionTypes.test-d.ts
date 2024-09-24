@@ -1,6 +1,8 @@
+import type { UseQueryStateOptions } from '@internal/query/react/buildHooks'
 import type { SerializedError } from '@reduxjs/toolkit'
 import type {
   FetchBaseQueryError,
+  QueryDefinition,
   TypedUseMutationResult,
   TypedUseQueryHookResult,
   TypedUseQueryState,
@@ -13,6 +15,7 @@ import type {
   TypedMutationTrigger,
   TypedUseQuerySubscription,
   TypedUseQuery,
+  TypedUseQueryStateOptions,
 } from '@reduxjs/toolkit/query/react'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 
@@ -774,6 +777,23 @@ describe('"Typed" helper types', () => {
     expectTypeOf<
       TypedUseQueryStateResult<string, void, typeof baseQuery, { x: boolean }>
     >().toEqualTypeOf(result)
+  })
+
+  test('useQueryState options', () => {
+    expectTypeOf<
+      TypedUseQueryStateOptions<string, void, typeof baseQuery>
+    >().toMatchTypeOf<
+      Parameters<typeof api.endpoints.getTest.useQueryState>[1]
+    >()
+
+    expectTypeOf<
+      UseQueryStateOptions<
+        QueryDefinition<void, typeof baseQuery, string, string>,
+        { x: boolean }
+      >
+    >().toEqualTypeOf<
+      TypedUseQueryStateOptions<string, void, typeof baseQuery, { x: boolean }>
+    >()
   })
 
   test('useQuerySubscription', () => {

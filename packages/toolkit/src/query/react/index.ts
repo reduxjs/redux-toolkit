@@ -26,6 +26,7 @@ export type {
   TypedUseQuery,
   TypedUseQuerySubscription,
   TypedUseLazyQuerySubscription,
+  TypedUseQueryStateOptions,
 } from './buildHooks'
 export { UNINITIALIZED_VALUE } from './constants'
 export { createApi, reactHooksModule, reactHooksModuleName }
