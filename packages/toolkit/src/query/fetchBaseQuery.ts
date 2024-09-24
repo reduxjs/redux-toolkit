@@ -113,7 +113,7 @@ export type FetchBaseQueryArgs = {
       BaseQueryApi,
       'getState' | 'extra' | 'endpoint' | 'type' | 'forced'
     >,
-    args: string | FetchArgs
+    args: string | FetchArgs,
   ) => MaybePromise<Headers | void>
   fetchFn?: (
     input: RequestInfo,
@@ -214,7 +214,7 @@ export function fetchBaseQuery({
     )
   }
   return async (args, api) => {
-    const { signal, getState, extra, endpoint, forced, type } = api
+    const { getState, extra, endpoint, forced, type } = api
     let meta: FetchBaseQueryMeta | undefined
     let {
       url,
@@ -225,6 +225,15 @@ export function fetchBaseQuery({
       timeout = defaultTimeout,
       ...rest
     } = typeof args == 'string' ? { url: args } : args
+
+    let abortController: AbortController | undefined,
+      signal = api.signal
+    if (timeout) {
+      abortController = new AbortController()
+      api.signal.addEventListener('abort', abortController.abort)
+      signal = abortController.signal
+    }
+
     let config: RequestInit = {
       ...baseFetchOptions,
       signal,
@@ -233,13 +242,17 @@ export function fetchBaseQuery({
 
     headers = new Headers(stripUndefined(headers))
     config.headers =
-      (await prepareHeaders(headers, {
-        getState,
-        extra,
-        endpoint,
-        forced,
-        type,
-      }, args)) || headers
+      (await prepareHeaders(
+        headers,
+        {
+          getState,
+          extra,
+          endpoint,
+          forced,
+          type,
+        },
+        args,
+      )) || headers
 
     // Only set the content-type to json if appropriate. Will not be true for FormData, ArrayBuffer, Blob, etc.
     const isJsonifiable = (body: any) =>
@@ -273,10 +286,10 @@ export function fetchBaseQuery({
     let response,
       timedOut = false,
       timeoutId =
-        timeout &&
+        abortController &&
         setTimeout(() => {
           timedOut = true
-          api.abort()
+          abortController!.abort()
         }, timeout)
     try {
       response = await fetchFn(request)
@@ -290,6 +303,10 @@ export function fetchBaseQuery({
       }
     } finally {
       if (timeoutId) clearTimeout(timeoutId)
+      abortController?.signal.removeEventListener(
+        'abort',
+        abortController.abort,
+      )
     }
     const responseClone = response.clone()
 

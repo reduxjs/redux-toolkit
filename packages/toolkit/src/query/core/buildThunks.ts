@@ -381,6 +381,7 @@ export function buildThunks<
         type: arg.type,
         forced:
           arg.type === 'query' ? isForcedQuery(arg, getState()) : undefined,
+        queryCacheKey: arg.type === 'query' ? arg.queryCacheKey : undefined,
       }
 
       const forceQueryFn =

@@ -18,6 +18,10 @@ export interface BaseQueryApi {
    * invalidated queries.
    */
   forced?: boolean
+  /**
+   * Only available for queries: the cache key that was used to store the query result
+   */
+  queryCacheKey?: string
 }
 
 export type QueryReturnValue<T = unknown, E = unknown, M = unknown> =
