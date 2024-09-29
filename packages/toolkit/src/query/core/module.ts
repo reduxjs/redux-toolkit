@@ -40,6 +40,7 @@ import type {
   MutationActionCreatorResult,
   QueryActionCreatorResult,
   InfiniteQueryActionCreatorResult,
+  BuildInitiateApiEndpointInfiniteQuery,
 } from './buildInitiate'
 import { buildInitiate } from './buildInitiate'
 import type {
@@ -49,6 +50,7 @@ import type {
 } from './buildMiddleware'
 import { buildMiddleware } from './buildMiddleware'
 import type {
+  BuildSelectorsApiEndpointInfiniteQuery,
   BuildSelectorsApiEndpointMutation,
   BuildSelectorsApiEndpointQuery,
 } from './buildSelectors'
@@ -56,6 +58,7 @@ import { buildSelectors } from './buildSelectors'
 import type { SliceActions, UpsertEntries } from './buildSlice'
 import { buildSlice } from './buildSlice'
 import type {
+  BuildThunksApiEndpointInfiniteQuery,
   BuildThunksApiEndpointMutation,
   BuildThunksApiEndpointQuery,
   PatchQueryDataThunk,
@@ -436,7 +439,9 @@ export interface ApiEndpointInfiniteQuery<
   Definition extends InfiniteQueryDefinition<any, any, any, any, any>,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Definitions extends EndpointDefinitions,
-> {
+> extends BuildThunksApiEndpointInfiniteQuery<Definition>,
+    BuildInitiateApiEndpointInfiniteQuery<Definition>,
+    BuildSelectorsApiEndpointInfiniteQuery<Definition, Definitions> {
   name: string
   /**
    * All of these are `undefined` at runtime, purely to be used in TypeScript declarations!

@@ -57,10 +57,8 @@ export type BuildThunksApiEndpointQuery<
   Definition extends QueryDefinition<any, any, any, any, any>,
 > = Matchers<QueryThunk, Definition>
 
-export type ApiEndpointInfiniteQuery<
+export type BuildThunksApiEndpointInfiniteQuery<
   Definition extends InfiniteQueryDefinition<any, any, any, any, any>,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  Definitions extends EndpointDefinitions,
 > = Matchers<QueryThunk, Definition>
 
 export type BuildThunksApiEndpointMutation<
@@ -481,7 +479,7 @@ export function buildThunks<
             for (let i = 1; i < remainingPages; i++) {
               // @ts-ignore
               const param = getNextPageParam(
-                arg.infiniteQueryOptions,
+                endpointDefinition.infiniteQueryOptions,
                 result.data as InfiniteData<unknown>,
               )
               result = await fetchPage(
