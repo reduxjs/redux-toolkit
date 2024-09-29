@@ -58,6 +58,7 @@ import type {
   InfiniteData,
   InfiniteQueryConfigOptions,
 } from '@internal/query/core/apiState'
+import type { InfiniteQueryResultSelectorResult } from '../core/buildSelectors'
 
 // Copy-pasted from React-Redux
 const canUseDOM = () =>
