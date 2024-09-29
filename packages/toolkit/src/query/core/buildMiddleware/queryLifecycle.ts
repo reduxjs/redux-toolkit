@@ -122,13 +122,12 @@ export type QueryLifecycleQueryExtraOptions<
 }
 
 // temporarily cloned QueryOptions again to just get the definition to build for now
-interface InfiniteQueryExtraOptions<
-  TagTypes extends string,
+export type QueryLifecycleInfiniteQueryExtraOptions<
   ResultType,
   QueryArg,
   BaseQuery extends BaseQueryFn,
   ReducerPath extends string = string,
-> {
+> = {
   onQueryStarted?(
     arg: QueryArg,
     api: QueryLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
