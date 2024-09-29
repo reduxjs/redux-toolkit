@@ -25,6 +25,8 @@ export type {
   EndpointDefinition,
   EndpointBuilder,
   QueryDefinition,
+  InfiniteQueryDefinition,
+  InfiniteQueryExtraOptions,
   MutationDefinition,
   MutationExtraOptions,
   TagDescription,
