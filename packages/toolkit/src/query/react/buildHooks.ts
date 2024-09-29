@@ -8,10 +8,12 @@ import type {
   Api,
   ApiContext,
   ApiEndpointMutation,
+  ApiEndpointInfiniteQuery,
   ApiEndpointQuery,
   BaseQueryFn,
   CoreModule,
   EndpointDefinitions,
+  InfiniteQueryDefinition,
   MutationActionCreatorResult,
   MutationDefinition,
   MutationResultSelectorResult,
@@ -50,8 +52,7 @@ import { UNINITIALIZED_VALUE } from './constants'
 import type { ReactHooksModuleOptions } from './module'
 import { useStableQueryArgs } from './useSerializedStableValue'
 import { useShallowStableValue } from './useShallowStableValue'
-import type { InfiniteQueryDefinition } from '@internal/query/endpointDefinitions'
-import type { ApiEndpointInfiniteQuery } from '@internal/query/core/module'
+
 import type { InfiniteQueryActionCreatorResult } from '@internal/query/core/buildInitiate'
 import type {
   InfiniteData,
