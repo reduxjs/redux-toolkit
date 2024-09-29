@@ -65,7 +65,7 @@ export type BuildSelectorsApiEndpointQuery<
   >
 }
 
-export type ApiEndpointInfiniteQuery<
+export type BuildSelectorsApiEndpointInfiniteQuery<
   Definition extends InfiniteQueryDefinition<any, any, any, any, any>,
   Definitions extends EndpointDefinitions,
 > = {

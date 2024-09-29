@@ -263,15 +263,13 @@ type QueryTypes<
    * const useMyWrappedHook: UseQuery<typeof api.endpoints.query.Types.QueryDefinition> = ...
    * ```
    */
-  QueryDefinition:
-    | QueryDefinition<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>
-    | InfiniteQueryDefinition<
-        QueryArg,
-        BaseQuery,
-        TagTypes,
-        ResultType,
-        ReducerPath
-      >
+  QueryDefinition: QueryDefinition<
+    QueryArg,
+    BaseQuery,
+    TagTypes,
+    ResultType,
+    ReducerPath
+  >
   TagTypes: TagTypes
   ReducerPath: ReducerPath
 }

@@ -43,10 +43,8 @@ export type BuildInitiateApiEndpointQuery<
   initiate: StartQueryActionCreator<Definition>
 }
 
-export type BuildApiEndpointInfiniteQuery<
+export type BuildInitiateApiEndpointInfiniteQuery<
   Definition extends InfiniteQueryDefinition<any, any, any, any, any>,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  Definitions extends EndpointDefinitions,
 > = {
   initiate: StartInfiniteQueryActionCreator<Definition>
 }
