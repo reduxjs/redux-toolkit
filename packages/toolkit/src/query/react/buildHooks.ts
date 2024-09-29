@@ -1730,7 +1730,9 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         skipPollingIfUnfocused = false,
       } = {},
     ) => {
-      const { initiate } = api.endpoints[name] as ApiEndpointInfiniteQuery<
+      const { initiate } = api.endpoints[
+        name
+      ] as unknown as ApiEndpointInfiniteQuery<
         InfiniteQueryDefinition<any, any, any, any, any>,
         Definitions
       >
@@ -1893,7 +1895,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     ) => {
       const { select, initiate } = api.endpoints[
         name
-      ] as ApiEndpointInfiniteQuery<
+      ] as unknown as ApiEndpointInfiniteQuery<
         InfiniteQueryDefinition<any, any, any, any, any>,
         Definitions
       >
