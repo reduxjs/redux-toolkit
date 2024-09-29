@@ -16,10 +16,12 @@ import type {
 } from './baseQueryTypes'
 import type { CacheCollectionQueryExtraOptions } from './core/buildMiddleware/cacheCollection'
 import type {
+  CacheLifecycleInfiniteQueryExtraOptions,
   CacheLifecycleMutationExtraOptions,
   CacheLifecycleQueryExtraOptions,
 } from './core/buildMiddleware/cacheLifecycle'
 import type {
+  QueryLifecycleInfiniteQueryExtraOptions,
   QueryLifecycleMutationExtraOptions,
   QueryLifecycleQueryExtraOptions,
 } from './core/buildMiddleware/queryLifecycle'
@@ -266,13 +268,15 @@ type QueryTypes<
    * const useMyWrappedHook: UseQuery<typeof api.endpoints.query.Types.QueryDefinition> = ...
    * ```
    */
-  QueryDefinition: QueryDefinition<
-    QueryArg,
-    BaseQuery,
-    TagTypes,
-    ResultType,
-    ReducerPath
-  > | InfiniteQueryDefinition<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>
+  QueryDefinition:
+    | QueryDefinition<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>
+    | InfiniteQueryDefinition<
+        QueryArg,
+        BaseQuery,
+        TagTypes,
+        ResultType,
+        ReducerPath
+      >
   TagTypes: TagTypes
   ReducerPath: ReducerPath
 }
@@ -574,7 +578,19 @@ export interface InfiniteQueryExtraOptions<
   QueryArg,
   BaseQuery extends BaseQueryFn,
   ReducerPath extends string = string,
-> {
+> extends CacheLifecycleInfiniteQueryExtraOptions<
+      ResultType,
+      QueryArg,
+      BaseQuery,
+      ReducerPath
+    >,
+    QueryLifecycleInfiniteQueryExtraOptions<
+      ResultType,
+      QueryArg,
+      BaseQuery,
+      ReducerPath
+    >,
+    CacheCollectionQueryExtraOptions {
   type: DefinitionType.infinitequery
 
   providesTags?: never
@@ -961,14 +977,20 @@ export type OverrideResultType<Definition, NewResultType> =
           ReducerPath
         >
       : Definition extends InfiniteQueryDefinition<
-        infer QueryArg,
-        infer BaseQuery,
-        infer TagTypes,
-        any,
-        infer ReducerPath
-      >
-      ? InfiniteQueryDefinition<QueryArg, BaseQuery, TagTypes, NewResultType, ReducerPath>
-      : never
+            infer QueryArg,
+            infer BaseQuery,
+            infer TagTypes,
+            any,
+            infer ReducerPath
+          >
+        ? InfiniteQueryDefinition<
+            QueryArg,
+            BaseQuery,
+            TagTypes,
+            NewResultType,
+            ReducerPath
+          >
+        : never
 
 export type UpdateDefinitions<
   Definitions extends EndpointDefinitions,
@@ -1004,18 +1026,18 @@ export type UpdateDefinitions<
           ReducerPath
         >
       : Definitions[K] extends InfiniteQueryDefinition<
-        infer QueryArg,
-        infer BaseQuery,
-        any,
-        infer ResultType,
-        infer ReducerPath
-      >
-      ? InfiniteQueryDefinition<
-          QueryArg,
-          BaseQuery,
-          NewTagTypes,
-          TransformedResponse<NewDefinitions, K, ResultType>,
-          ReducerPath
-        >
+            infer QueryArg,
+            infer BaseQuery,
+            any,
+            infer ResultType,
+            infer ReducerPath
+          >
+        ? InfiniteQueryDefinition<
+            QueryArg,
+            BaseQuery,
+            NewTagTypes,
+            TransformedResponse<NewDefinitions, K, ResultType>,
+            ReducerPath
+          >
         : never
 }
