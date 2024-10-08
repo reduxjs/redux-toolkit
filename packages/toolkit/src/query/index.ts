@@ -15,6 +15,7 @@ export type { Api, ApiContext, Module } from './apiTypes'
 
 export type {
   BaseQueryApi,
+  BaseQueryArg,
   BaseQueryEnhancer,
   BaseQueryError,
   BaseQueryFn,

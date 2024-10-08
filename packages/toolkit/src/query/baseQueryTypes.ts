@@ -88,6 +88,9 @@ export type BaseQueryError<BaseQuery extends BaseQueryFn> = Exclude<
   { error?: undefined }
 >['error']
 
+/**
+ * @public
+ */
 export type BaseQueryArg<T extends (arg: any, ...args: any[]) => any> =
   T extends (arg: infer A, ...args: any[]) => any ? A : any
 
