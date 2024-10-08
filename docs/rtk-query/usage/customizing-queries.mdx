@@ -838,6 +838,25 @@ export const { useGetPostsQuery } = api
 */
 ```
 
+### Limiting Request Concurrency
+
+One approach for limiting simultaneous outstanding requests is to write a small wrapper around your base query that uses a promise queue library like `p-limit`, such as this example:
+
+```ts
+import pLimit from 'p-limit'
+import { fetchBaseQuery } from '@reduxjs/toolkit/query'
+
+const baseQuery = fetchBaseQuery({ baseUrl: '/api' })
+
+const limit = pLimit(10)
+
+const baseQueryWithLimit: typeof baseQuery = (arg, api, extraOptions) => {
+  // if you wanted to run mutations immediately, for example
+  if (api.type === 'mutation') return baseQuery(arg, api, extraOptions)
+  return limit(baseQuery, arg, api, extraOptions)
+}
+```
+
 ## Examples - `transformResponse`
 
 ### Unpacking deeply nested GraphQL data
