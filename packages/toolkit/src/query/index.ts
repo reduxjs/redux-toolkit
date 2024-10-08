@@ -18,7 +18,8 @@ export type {
   BaseQueryEnhancer,
   BaseQueryError,
   BaseQueryFn,
-  QueryReturnValue
+  BaseQueryMeta,
+  QueryReturnValue,
 } from './baseQueryTypes'
 export type {
   BaseEndpointDefinition,

@@ -70,6 +70,9 @@ export type BaseQueryResult<BaseQuery extends BaseQueryFn> =
       : never
     : never
 
+/**
+ * @public
+ */
 export type BaseQueryMeta<BaseQuery extends BaseQueryFn> = UnwrapPromise<
   ReturnType<BaseQuery>
 >['meta']
