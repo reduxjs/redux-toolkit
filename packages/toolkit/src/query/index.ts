@@ -18,6 +18,7 @@ export type {
   BaseQueryArg,
   BaseQueryEnhancer,
   BaseQueryError,
+  BaseQueryExtraOptions,
   BaseQueryFn,
   BaseQueryMeta,
   BaseQueryResult,
