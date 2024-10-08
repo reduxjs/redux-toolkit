@@ -327,6 +327,9 @@ export type TypedUseLazyQuerySubscription<
   QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
 >
 
+/**
+ * @internal
+ */
 export type QueryStateSelector<
   R extends Record<string, any>,
   D extends QueryDefinition<any, any, any, any>,
