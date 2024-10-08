@@ -34,6 +34,7 @@ export type {
   DefinitionType,
   DefinitionsFromApi,
   OverrideResultType,
+  ResultDescription,
   TagTypesFromApi,
   UpdateDefinitions,
 } from './endpointDefinitions'
