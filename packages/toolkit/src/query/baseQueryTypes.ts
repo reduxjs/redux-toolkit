@@ -74,6 +74,9 @@ export type BaseQueryMeta<BaseQuery extends BaseQueryFn> = UnwrapPromise<
   ReturnType<BaseQuery>
 >['meta']
 
+/**
+ * @public
+ */
 export type BaseQueryError<BaseQuery extends BaseQueryFn> = Exclude<
   UnwrapPromise<ReturnType<BaseQuery>>,
   { error?: undefined }
