@@ -63,6 +63,9 @@ export type BaseQueryEnhancer<
   NonNullable<BaseQueryMeta<BaseQuery>>
 >
 
+/**
+ * @public
+ */
 export type BaseQueryResult<BaseQuery extends BaseQueryFn> =
   UnwrapPromise<ReturnType<BaseQuery>> extends infer Unwrapped
     ? Unwrapped extends { data: any }

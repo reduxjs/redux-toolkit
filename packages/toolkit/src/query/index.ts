@@ -19,6 +19,7 @@ export type {
   BaseQueryError,
   BaseQueryFn,
   BaseQueryMeta,
+  BaseQueryResult,
   QueryReturnValue,
 } from './baseQueryTypes'
 export type {
