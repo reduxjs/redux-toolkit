@@ -24,6 +24,7 @@ import type {
   InternalMiddlewareState,
 } from './types'
 import { buildWindowEventHandler } from './windowEventHandling'
+import type { ApiEndpointQuery } from '../module'
 export type { ReferenceCacheCollection } from './cacheCollection'
 export type {
   MutationCacheLifecycleApi,
@@ -146,17 +147,10 @@ export function buildMiddleware<
       QuerySubState<any>,
       { status: QueryStatus.uninitialized }
     >,
-    queryCacheKey: string,
-    override: Partial<QueryThunkArg> = {},
   ) {
-    return queryThunk({
-      type: 'query',
-      endpointName: querySubState.endpointName,
-      originalArgs: querySubState.originalArgs,
+    return (input.api.endpoints[querySubState.endpointName] as ApiEndpointQuery<any, any>).initiate(querySubState.originalArgs as any, {
       subscribe: false,
       forceRefetch: true,
-      queryCacheKey: queryCacheKey as any,
-      ...override,
     })
   }
 }

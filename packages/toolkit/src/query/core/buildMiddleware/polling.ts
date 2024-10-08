@@ -78,7 +78,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
       pollingInterval: lowestPollingInterval,
       timeout: setTimeout(() => {
         if (state.config.focused || !skipPollingIfUnfocused) {
-          api.dispatch(refetchQuery(querySubState, queryCacheKey))
+          api.dispatch(refetchQuery(querySubState))
         }
         startNextPoll({ queryCacheKey }, api)
       }, lowestPollingInterval),

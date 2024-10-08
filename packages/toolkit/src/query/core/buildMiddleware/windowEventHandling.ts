@@ -58,7 +58,7 @@ export const buildWindowEventHandler: InternalHandlerBuilder = ({
               }),
             )
           } else if (querySubState.status !== QueryStatus.uninitialized) {
-            api.dispatch(refetchQuery(querySubState, queryCacheKey))
+            api.dispatch(refetchQuery(querySubState))
           }
         }
       }
