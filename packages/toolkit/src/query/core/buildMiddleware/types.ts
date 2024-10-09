@@ -19,10 +19,11 @@ import type {
   SubscriptionState,
 } from '../apiState'
 import type {
+  InfiniteQueryThunk,
   MutationThunk,
   QueryThunk,
   QueryThunkArg,
-  ThunkResult,
+  ThunkResult
 } from '../buildThunks'
 import type { QueryActionCreatorResult } from '../buildInitiate'
 
@@ -48,6 +49,7 @@ export interface BuildMiddlewareInput<
   context: ApiContext<Definitions>
   queryThunk: QueryThunk
   mutationThunk: MutationThunk
+  infiniteQueryThunk: InfiniteQueryThunk
   api: Api<any, Definitions, ReducerPath, TagTypes>
   assertTagType: AssertTagTypes
 }

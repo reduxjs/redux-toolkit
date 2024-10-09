@@ -28,6 +28,34 @@ export type RefetchConfigOptions = {
   refetchOnFocus: boolean
 }
 
+export type GetNextPageParamFunction<TPageParam, TQueryFnData = unknown> = (
+  lastPage: TQueryFnData,
+  allPages: Array<TQueryFnData>,
+  lastPageParam: TPageParam,
+  allPageParams: Array<TPageParam>,
+) => TPageParam | undefined | null
+
+export type GetPreviousPageParamFunction<TPageParam, TQueryFnData = unknown> = (
+  firstPage: TQueryFnData,
+  allPages: Array<TQueryFnData>,
+  firstPageParam: TPageParam,
+  allPageParams: Array<TPageParam>,
+) => TPageParam | undefined | null
+
+export type InfiniteQueryConfigOptions<TQueryFnData = unknown, TPageParam = unknown> = {
+  /**
+   * This function can be set to automatically get the previous cursor for infinite queries.
+   * The result will also be used to determine the value of `hasPreviousPage`.
+   */
+  getPreviousPageParam?: GetPreviousPageParamFunction<TPageParam, TQueryFnData>
+  getNextPageParam: GetNextPageParamFunction<TPageParam, TQueryFnData>
+}
+
+export interface InfiniteData<TData, TPageParam = unknown> {
+  pages: Array<TData>
+  pageParams: Array<TPageParam>
+}
+
 /**
  * Strings describing the query state at any given time.
  */
@@ -166,6 +194,13 @@ type BaseQuerySubState<D extends BaseEndpointDefinition<any, any, any>> = {
    * Time that the latest query was fulfilled
    */
   fulfilledTimeStamp?: number
+  /**
+   * Infinite Query Specific substate properties
+   */
+  hasNextPage?: boolean
+  hasPreviousPage?: boolean
+  direction?: 'forward' | 'backwards'
+  param?: QueryArgFrom<D>
 }
 
 export type QuerySubState<D extends BaseEndpointDefinition<any, any, any>> = Id<
@@ -192,6 +227,16 @@ export type QuerySubState<D extends BaseEndpointDefinition<any, any, any>> = Id<
       fulfilledTimeStamp?: undefined
     }
 >
+
+export type InfiniteQuerySubState<D extends BaseEndpointDefinition<any, any, any>> = QuerySubState<D> & {
+  // TODO: These shouldn't be optional
+  hasNextPage?: boolean
+  hasPreviousPage?: boolean
+  isFetchingNextPage?: boolean
+  isFetchingPreviousPage?: boolean
+  param?: QueryArgFrom<D>
+  direction?: 'forward' | 'backwards'
+}
 
 type BaseMutationSubState<D extends BaseEndpointDefinition<any, any, any>> = {
   requestId: string
@@ -249,7 +294,7 @@ export type InvalidationState<TagTypes extends string> = {
 }
 
 export type QueryState<D extends EndpointDefinitions> = {
-  [queryCacheKey: string]: QuerySubState<D[string]> | undefined
+  [queryCacheKey: string]: QuerySubState<D[string]> | InfiniteQuerySubState<D[string]> | undefined
 }
 
 export type SubscriptionState = {

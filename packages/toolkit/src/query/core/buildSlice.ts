@@ -21,9 +21,10 @@ import type {
   QueryCacheKey,
   SubscriptionState,
   ConfigState,
+  InfiniteQuerySubState
 } from './apiState'
 import { QueryStatus } from './apiState'
-import type { MutationThunk, QueryThunk, RejectedAction } from './buildThunks'
+import type { InfiniteQueryThunk, MutationThunk, QueryThunk, RejectedAction } from './buildThunks'
 import { calculateProvidedByThunk } from './buildThunks'
 import type {
   AssertTagTypes,
@@ -46,7 +47,7 @@ import { isUpsertQuery } from './buildInitiate'
 function updateQuerySubstateIfExists(
   state: QueryState<any>,
   queryCacheKey: QueryCacheKey,
-  update: (substate: QuerySubState<any>) => void,
+  update: (substate: QuerySubState<any> | InfiniteQuerySubState<any>) => void,
 ) {
   const substate = state[queryCacheKey]
   if (substate) {
@@ -103,6 +104,7 @@ export function buildSlice({
 }: {
   reducerPath: string
   queryThunk: QueryThunk
+  infiniteQueryThunk: InfiniteQueryThunk
   mutationThunk: MutationThunk
   context: ApiContext<EndpointDefinitions>
   assertTagType: AssertTagTypes
@@ -167,6 +169,14 @@ export function buildSlice({
               substate.originalArgs = arg.originalArgs
             }
             substate.startedTimeStamp = meta.startedTimeStamp
+
+            // TODO: Awful - fix this most likely by just moving it to its own slice that only works on InfQuery's
+            if ('param' in substate && 'direction' in substate) {
+              if ('param' in arg && 'direction' in arg) {
+                substate.param = arg.param
+                substate.direction = arg.direction as 'forward' | 'backwards' | undefined
+              }
+            }
           })
         })
         .addCase(queryThunk.fulfilled, (draft, { meta, payload }) => {

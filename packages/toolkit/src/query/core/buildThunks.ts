@@ -27,10 +27,18 @@ import type {
 import { calculateProvidedBy, isQueryDefinition } from '../endpointDefinitions'
 import { HandledError } from '../HandledError'
 import type { UnwrapPromise } from '../tsHelpers'
-import type { QueryKeys, QuerySubstateIdentifier, RootState } from './apiState'
+import type { InfiniteQueryDefinition } from '@internal/query/endpointDefinitions'
+import type {
+  RootState,
+  QueryKeys,
+  QuerySubstateIdentifier,
+  InfiniteData,
+  InfiniteQueryConfigOptions,
+} from './apiState'
 import { QueryStatus } from './apiState'
 import type {
   QueryActionCreatorResult,
+  StartInfiniteQueryActionCreatorOptions,
   StartQueryActionCreatorOptions,
 } from './buildInitiate'
 import { forceQueryFnSymbol, isUpsertQuery } from './buildInitiate'
@@ -47,6 +55,10 @@ import {
 
 export type BuildThunksApiEndpointQuery<
   Definition extends QueryDefinition<any, any, any, any, any>,
+> = Matchers<QueryThunk, Definition>
+
+export type BuildThunksApiEndpointInfiniteQuery<
+  Definition extends InfiniteQueryDefinition<any, any, any, any, any>,
 > = Matchers<QueryThunk, Definition>
 
 export type BuildThunksApiEndpointMutation<
@@ -105,6 +117,17 @@ export type QueryThunkArg = QuerySubstateIdentifier &
     endpointName: string
   }
 
+export type InfiniteQueryThunkArg = QuerySubstateIdentifier &
+  StartInfiniteQueryActionCreatorOptions & {
+    type: `query`
+    originalArgs: unknown
+    endpointName: string
+    data: InfiniteData<unknown>
+    param: unknown
+    previous?: boolean
+    direction?: 'forward' | 'backwards'
+  }
+
 type MutationThunkArg = {
   type: 'mutation'
   originalArgs: unknown
@@ -133,6 +156,11 @@ export type ThunkApiMetaConfig = {
 export type QueryThunk = AsyncThunk<
   ThunkResult,
   QueryThunkArg,
+  ThunkApiMetaConfig
+>
+export type InfiniteQueryThunk = AsyncThunk<
+  ThunkResult,
+  InfiniteQueryThunkArg,
   ThunkApiMetaConfig
 >
 export type MutationThunk = AsyncThunk<
@@ -265,6 +293,16 @@ export function buildThunks<
       )
     }
 
+  function addToStart<T>(items: Array<T>, item: T, max = 0): Array<T> {
+    const newItems = [item, ...items]
+    return max && newItems.length > max ? newItems.slice(0, -1) : newItems
+  }
+
+  function addToEnd<T>(items: Array<T>, item: T, max = 0): Array<T> {
+    const newItems = [...items, item]
+    return max && newItems.length > max ? newItems.slice(1) : newItems
+  }
+
   const updateQueryData: UpdateQueryDataThunk<EndpointDefinitions, State> =
     (endpointName, args, updateRecipe, updateProvided = true) =>
     (dispatch, getState) => {
@@ -348,7 +386,7 @@ export function buildThunks<
 
   const executeEndpoint: AsyncThunkPayloadCreator<
     ThunkResult,
-    QueryThunkArg | MutationThunkArg,
+    QueryThunkArg | MutationThunkArg | InfiniteQueryThunkArg,
     ThunkApiMetaConfig & { state: RootState<any, string, ReducerPath> }
   > = async (
     arg,
@@ -389,14 +427,82 @@ export function buildThunks<
       if (forceQueryFn) {
         result = forceQueryFn()
       } else if (endpointDefinition.query) {
-        result = await baseQuery(
-          endpointDefinition.query(arg.originalArgs),
-          baseQueryApi,
-          endpointDefinition.extraOptions as any,
-        )
+        const oldPages: any[] = []
+        const oldPageParams: any[] = []
 
-        if (endpointDefinition.transformResponse) {
-          transformResponse = endpointDefinition.transformResponse
+        const fetchPage = async (
+          data: InfiniteData<unknown>,
+          param: unknown,
+          previous?: boolean,
+        ): Promise<QueryReturnValue> => {
+          if (param == null && data.pages.length) {
+            return Promise.resolve({ data })
+          }
+
+          const page = await baseQuery(
+            endpointDefinition.query(param),
+            baseQueryApi,
+            endpointDefinition.extraOptions as any,
+          )
+
+          const maxPages = 20
+          const addTo = previous ? addToStart : addToEnd
+
+          return {
+            data: {
+              pages: addTo(data.pages, page.data, maxPages),
+              pageParams: addTo(data.pageParams, param, maxPages),
+            },
+          }
+        }
+
+        if ('infiniteQueryOptions' in endpointDefinition) {
+          if ('direction' in arg && arg.direction && arg.data.pages.length) {
+            const previous = arg.direction === 'backwards'
+            const pageParamFn = previous
+              ? getPreviousPageParam
+              : getNextPageParam
+            const oldData = arg.data
+            const param = pageParamFn(
+              endpointDefinition.infiniteQueryOptions,
+              oldData,
+            )
+
+            result = await fetchPage(oldData, param, previous)
+          } else {
+            // Fetch first page
+            result = await fetchPage(
+              { pages: [], pageParams: [] },
+              oldPageParams[0] ?? arg.originalArgs,
+            )
+
+            //original
+            // const remainingPages = pages ?? oldPages.length
+            const remainingPages = oldPages.length
+
+            // Fetch remaining pages
+            for (let i = 1; i < remainingPages; i++) {
+              // @ts-ignore
+              const param = getNextPageParam(
+                endpointDefinition.infiniteQueryOptions,
+                result.data as InfiniteData<unknown>,
+              )
+              result = await fetchPage(
+                result.data as InfiniteData<unknown>,
+                param,
+              )
+            }
+          }
+        } else {
+          result = await baseQuery(
+            endpointDefinition.query(arg.originalArgs),
+            baseQueryApi,
+            endpointDefinition.extraOptions as any,
+          )
+
+          if (endpointDefinition.transformResponse) {
+            transformResponse = endpointDefinition.transformResponse
+          }
         }
       } else {
         result = await endpointDefinition.queryFn(
@@ -411,6 +517,7 @@ export function buildThunks<
             ),
         )
       }
+
       if (
         typeof process !== 'undefined' &&
         process.env.NODE_ENV === 'development'
@@ -498,6 +605,31 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
     }
   }
 
+  function getNextPageParam(
+    options: InfiniteQueryConfigOptions<any>,
+    { pages, pageParams }: InfiniteData<unknown>,
+  ): unknown | undefined {
+    const lastIndex = pages.length - 1
+    return options.getNextPageParam(
+      pages[lastIndex],
+      pages,
+      pageParams[lastIndex],
+      pageParams,
+    )
+  }
+
+  function getPreviousPageParam(
+    options: InfiniteQueryConfigOptions<any>,
+    { pages, pageParams }: InfiniteData<unknown>,
+  ): unknown | undefined {
+    return options.getPreviousPageParam?.(
+      pages[0],
+      pages,
+      pageParams[0],
+      pageParams,
+    )
+  }
+
   function isForcedQuery(
     arg: QueryThunkArg,
     state: RootState<any, string, ReducerPath>,
@@ -570,6 +702,71 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
 
       // Pull from the cache unless we explicitly force refetch or qualify based on time
       if (fulfilledVal) {
+        // Value is cached and we didn't specify to refresh, skip it.
+        return false
+      }
+
+      return true
+    },
+    dispatchConditionRejection: true,
+  })
+
+  const infiniteQueryThunk = createAsyncThunk<
+    ThunkResult,
+    InfiniteQueryThunkArg,
+    ThunkApiMetaConfig & { state: RootState<any, string, ReducerPath> }
+  >(`${reducerPath}/executeQuery`, executeEndpoint, {
+    getPendingMeta(queryThunkArgs) {
+      return {
+        startedTimeStamp: Date.now(),
+        [SHOULD_AUTOBATCH]: true,
+        direction: queryThunkArgs.arg.direction,
+        data: queryThunkArgs.arg.data,
+      }
+    },
+    condition(queryThunkArgs, { getState }) {
+      const state = getState()
+
+      const requestState =
+        state[reducerPath]?.queries?.[queryThunkArgs.queryCacheKey]
+      const fulfilledVal = requestState?.fulfilledTimeStamp
+      const currentArg = queryThunkArgs.originalArgs
+      const previousArg = requestState?.originalArgs
+      const endpointDefinition =
+        endpointDefinitions[queryThunkArgs.endpointName]
+      const direction = queryThunkArgs.direction
+
+      // Order of these checks matters.
+      // In order for `upsertQueryData` to successfully run while an existing request is in flight,
+      /// we have to check for that first, otherwise `queryThunk` will bail out and not run at all.
+      // if (isUpsertQuery(queryThunkArgs)) {
+      //   return true
+      // }
+
+      // Don't retry a request that's currently in-flight
+      if (requestState?.status === 'pending') {
+        return false
+      }
+
+      // if this is forced, continue
+      // if (isForcedQuery(queryThunkArgs, state)) {
+      //   return true
+      // }
+
+      if (
+        isQueryDefinition(endpointDefinition) &&
+        endpointDefinition?.forceRefetch?.({
+          currentArg,
+          previousArg,
+          endpointState: requestState,
+          state,
+        })
+      ) {
+        return true
+      }
+
+      // Pull from the cache unless we explicitly force refetch or qualify based on time
+      if (fulfilledVal && !direction) {
         // Value is cached and we didn't specify to refresh, skip it.
         return false
       }
@@ -658,6 +855,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
   return {
     queryThunk,
     mutationThunk,
+    infiniteQueryThunk,
     prefetch,
     updateQueryData,
     upsertQueryData,

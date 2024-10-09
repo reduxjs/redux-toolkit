@@ -1,6 +1,7 @@
 import type {
   SerializedError,
   ThunkAction,
+  ThunkDispatch,
   UnknownAction,
 } from '@reduxjs/toolkit'
 import type { Dispatch } from 'redux'
@@ -11,21 +12,41 @@ import type { BaseQueryError, QueryReturnValue } from '../baseQueryTypes'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import type {
   EndpointDefinitions,
+  InfiniteQueryDefinition,
   MutationDefinition,
   QueryArgFrom,
   QueryDefinition,
   ResultTypeFrom,
 } from '../endpointDefinitions'
 import { countObjectKeys, isNotNullish } from '../utils'
-import type { SubscriptionOptions } from './apiState'
-import type { QueryResultSelectorResult } from './buildSelectors'
-import type { MutationThunk, QueryThunk, QueryThunkArg } from './buildThunks'
-import type { ApiEndpointQuery } from './module'
+import type {
+  SubscriptionOptions,
+  RootState,
+  InfiniteQueryConfigOptions,
+  InfiniteData,
+} from './apiState'
+import type {
+  InfiniteQueryResultSelectorResult,
+  QueryResultSelectorResult,
+} from './buildSelectors'
+import type {
+  InfiniteQueryThunk,
+  MutationThunk,
+  QueryThunk,
+  QueryThunkArg,
+} from './buildThunks'
+import type { ApiEndpointInfiniteQuery, ApiEndpointQuery } from './module'
 
 export type BuildInitiateApiEndpointQuery<
   Definition extends QueryDefinition<any, any, any, any, any>,
 > = {
   initiate: StartQueryActionCreator<Definition>
+}
+
+export type BuildInitiateApiEndpointInfiniteQuery<
+  Definition extends InfiniteQueryDefinition<any, any, any, any, any>,
+> = {
+  initiate: StartInfiniteQueryActionCreator<Definition>
 }
 
 export type BuildInitiateApiEndpointMutation<
@@ -45,12 +66,36 @@ export type StartQueryActionCreatorOptions = {
   [forceQueryFnSymbol]?: () => QueryReturnValue
 }
 
+export type StartInfiniteQueryActionCreatorOptions = {
+  subscribe?: boolean
+  forceRefetch?: boolean | number
+  subscriptionOptions?: SubscriptionOptions
+  infiniteQueryOptions?: InfiniteQueryConfigOptions
+  direction?: 'forward' | 'backwards'
+  [forceQueryFnSymbol]?: () => QueryReturnValue
+  data?: InfiniteData<unknown>
+  param?: unknown
+  previous?: boolean
+}
+
 type StartQueryActionCreator<
   D extends QueryDefinition<any, any, any, any, any>,
 > = (
   arg: QueryArgFrom<D>,
   options?: StartQueryActionCreatorOptions,
 ) => ThunkAction<QueryActionCreatorResult<D>, any, any, UnknownAction>
+
+// placeholder type which
+// may attempt to derive the list of args to query in pagination
+type StartInfiniteQueryActionCreator<
+  D extends InfiniteQueryDefinition<any, any, any, any, any>,
+> = (
+  arg: QueryArgFrom<D>,
+  options?: StartInfiniteQueryActionCreatorOptions,
+) => (
+  dispatch: ThunkDispatch<any, any, UnknownAction>,
+  getState: () => any,
+) => InfiniteQueryActionCreatorResult<any>
 
 export type QueryActionCreatorResult<
   D extends QueryDefinition<any, any, any, any>,
@@ -62,6 +107,20 @@ export type QueryActionCreatorResult<
   unwrap(): Promise<ResultTypeFrom<D>>
   unsubscribe(): void
   refetch(): QueryActionCreatorResult<D>
+  updateSubscriptionOptions(options: SubscriptionOptions): void
+  queryCacheKey: string
+}
+
+export type InfiniteQueryActionCreatorResult<
+  D extends InfiniteQueryDefinition<any, any, any, any>,
+> = Promise<InfiniteQueryResultSelectorResult<D>> & {
+  arg: QueryArgFrom<D>
+  requestId: string
+  subscriptionOptions: SubscriptionOptions | undefined
+  abort(): void
+  unwrap(): Promise<ResultTypeFrom<D>>
+  unsubscribe(): void
+  refetch(): InfiniteQueryActionCreatorResult<D>
   updateSubscriptionOptions(options: SubscriptionOptions): void
   queryCacheKey: string
 }
@@ -189,19 +248,26 @@ export type MutationActionCreatorResult<
 export function buildInitiate({
   serializeQueryArgs,
   queryThunk,
+  infiniteQueryThunk,
   mutationThunk,
   api,
   context,
 }: {
   serializeQueryArgs: InternalSerializeQueryArgs
   queryThunk: QueryThunk
+  infiniteQueryThunk: InfiniteQueryThunk
   mutationThunk: MutationThunk
   api: Api<any, EndpointDefinitions, any, any>
   context: ApiContext<EndpointDefinitions>
 }) {
   const runningQueries: Map<
     Dispatch,
-    Record<string, QueryActionCreatorResult<any> | undefined>
+    Record<
+      string,
+      | QueryActionCreatorResult<any>
+      | InfiniteQueryActionCreatorResult<any>
+      | undefined
+    >
   > = new Map()
   const runningMutations: Map<
     Dispatch,
@@ -215,6 +281,7 @@ export function buildInitiate({
   } = api.internalActions
   return {
     buildInitiateQuery,
+    buildInitiateInfiniteQuery,
     buildInitiateMutation,
     getRunningQueryThunk,
     getRunningMutationThunk,
@@ -232,6 +299,7 @@ export function buildInitiate({
       })
       return runningQueries.get(dispatch)?.[queryCacheKey] as
         | QueryActionCreatorResult<never>
+        | InfiniteQueryActionCreatorResult<never>
         | undefined
     }
   }
@@ -406,6 +474,143 @@ You must add the middleware for RTK-Query to function correctly!`,
         return statePromise
       }
     return queryAction
+  }
+
+  // Concept for the pagination thunk which queries for each page
+
+  function buildInitiateInfiniteQuery(
+    endpointName: string,
+    endpointDefinition: InfiniteQueryDefinition<any, any, any, any>,
+    pages?: number,
+  ) {
+    const infiniteQueryAction: StartInfiniteQueryActionCreator<any> =
+      (
+        arg,
+        {
+          subscribe = true,
+          forceRefetch,
+          subscriptionOptions,
+          infiniteQueryOptions,
+          [forceQueryFnSymbol]: forceQueryFn,
+          direction,
+          data = { pages: [], pageParams: [] },
+          param = arg,
+          previous,
+        } = {},
+      ) =>
+      (dispatch, getState) => {
+        const queryCacheKey = serializeQueryArgs({
+          queryArgs: param,
+          endpointDefinition,
+          endpointName,
+        })
+
+        const thunk = infiniteQueryThunk({
+          type: 'query',
+          subscribe,
+          forceRefetch: forceRefetch,
+          subscriptionOptions,
+          endpointName,
+          originalArgs: arg,
+          queryCacheKey,
+          [forceQueryFnSymbol]: forceQueryFn,
+          data,
+          param,
+          previous,
+          direction,
+        })
+        const selector = (
+          api.endpoints[endpointName] as ApiEndpointInfiniteQuery<any, any>
+        ).select(arg)
+
+        const thunkResult = dispatch(thunk)
+        const stateAfter = selector(getState())
+
+        middlewareWarning(dispatch)
+
+        const { requestId, abort } = thunkResult
+
+        const skippedSynchronously = stateAfter.requestId !== requestId
+
+        const runningQuery = runningQueries.get(dispatch)?.[queryCacheKey]
+        const selectFromState = () => selector(getState())
+
+        const statePromise: InfiniteQueryActionCreatorResult<any> =
+          Object.assign(
+            (forceQueryFn
+              ? // a query has been forced (upsertQueryData)
+                // -> we want to resolve it once data has been written with the data that will be written
+                thunkResult.then(selectFromState)
+              : skippedSynchronously && !runningQuery
+                ? // a query has been skipped due to a condition and we do not have any currently running query
+                  // -> we want to resolve it immediately with the current data
+                  Promise.resolve(stateAfter)
+                : // query just started or one is already in flight
+                  // -> wait for the running query, then resolve with data from after that
+                  Promise.all([runningQuery, thunkResult]).then(
+                    selectFromState,
+                  )) as SafePromise<any>,
+            {
+              arg,
+              requestId,
+              subscriptionOptions,
+              infiniteQueryOptions,
+              queryCacheKey,
+              abort,
+              async unwrap() {
+                const result = await statePromise
+
+                if (result.isError) {
+                  throw result.error
+                }
+
+                return result.data
+              },
+              refetch: () =>
+                dispatch(
+                  infiniteQueryAction(arg, {
+                    subscribe: false,
+                    forceRefetch: true,
+                  }),
+                ),
+              unsubscribe() {
+                if (subscribe)
+                  dispatch(
+                    unsubscribeQueryResult({
+                      queryCacheKey,
+                      requestId,
+                    }),
+                  )
+              },
+              updateSubscriptionOptions(options: SubscriptionOptions) {
+                statePromise.subscriptionOptions = options
+                dispatch(
+                  updateSubscriptionOptions({
+                    endpointName,
+                    requestId,
+                    queryCacheKey,
+                    options,
+                  }),
+                )
+              },
+            },
+          )
+
+        if (!runningQuery && !skippedSynchronously && !forceQueryFn) {
+          const running = runningQueries.get(dispatch) || {}
+          running[queryCacheKey] = statePromise
+          runningQueries.set(dispatch, running)
+
+          statePromise.then(() => {
+            delete running[queryCacheKey]
+            if (!countObjectKeys(running)) {
+              runningQueries.delete(dispatch)
+            }
+          })
+        }
+        return statePromise
+      }
+    return infiniteQueryAction
   }
 
   function buildInitiateMutation(

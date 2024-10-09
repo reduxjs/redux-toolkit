@@ -17,7 +17,7 @@ export type {
   BaseQueryApi,
   BaseQueryEnhancer,
   BaseQueryFn,
-  QueryReturnValue
+  QueryReturnValue,
 } from './baseQueryTypes'
 export type {
   BaseEndpointDefinition,
@@ -25,6 +25,8 @@ export type {
   EndpointDefinition,
   EndpointBuilder,
   QueryDefinition,
+  InfiniteQueryDefinition,
+  InfiniteQueryExtraOptions,
   MutationDefinition,
   MutationExtraOptions,
   TagDescription,
@@ -66,6 +68,7 @@ export { createApi, coreModule, coreModuleName } from './core'
 export type {
   ApiEndpointMutation,
   ApiEndpointQuery,
+  ApiEndpointInfiniteQuery,
   ApiModules,
   CoreModule,
   PrefetchOptions,
