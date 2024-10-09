@@ -1,7 +1,15 @@
-import type { UseMutation, UseQuery } from '@internal/query/react/buildHooks'
+import type {
+  QueryStateSelector,
+  UseMutation,
+  UseQuery,
+} from '@internal/query/react/buildHooks'
 import { ANY } from '@internal/tests/utils/helpers'
 import type { SerializedError } from '@reduxjs/toolkit'
-import type { SubscriptionOptions } from '@reduxjs/toolkit/query/react'
+import type {
+  QueryDefinition,
+  SubscriptionOptions,
+  TypedQueryStateSelector,
+} from '@reduxjs/toolkit/query/react'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import { useState } from 'react'
 
@@ -259,5 +267,108 @@ describe('type tests', () => {
     expectTypeOf(fakeMutation).toEqualTypeOf(
       api.endpoints.updateUser.useMutation,
     )
+  })
+
+  test('TypedQueryStateSelector creates a pre-typed version of QueryStateSelector', () => {
+    type Post = {
+      id: number
+      title: string
+    }
+
+    type PostsApiResponse = {
+      posts: Post[]
+      total: number
+      skip: number
+      limit: number
+    }
+
+    type QueryArgument = number | undefined
+
+    type BaseQueryFunction = ReturnType<typeof fetchBaseQuery>
+
+    type SelectedResult = Pick<PostsApiResponse, 'posts'>
+
+    const postsApiSlice = createApi({
+      baseQuery: fetchBaseQuery({ baseUrl: 'https://dummyjson.com/posts' }),
+      reducerPath: 'postsApi',
+      tagTypes: ['Posts'],
+      endpoints: (build) => ({
+        getPosts: build.query<PostsApiResponse, QueryArgument>({
+          query: (limit = 5) => `?limit=${limit}&select=title`,
+        }),
+      }),
+    })
+
+    const { useGetPostsQuery } = postsApiSlice
+
+    function PostById({ id }: { id: number }) {
+      const { post } = useGetPostsQuery(undefined, {
+        selectFromResult: (state) => ({
+          post: state.data?.posts.find((post) => post.id === id),
+        }),
+      })
+
+      expectTypeOf(post).toEqualTypeOf<Post | undefined>()
+
+      return <li>{post?.title}</li>
+    }
+
+    const EMPTY_ARRAY: Post[] = []
+
+    const typedSelectFromResult: TypedQueryStateSelector<
+      PostsApiResponse,
+      QueryArgument,
+      BaseQueryFunction,
+      SelectedResult
+    > = (state) => ({ posts: state.data?.posts ?? EMPTY_ARRAY })
+
+    expectTypeOf<
+      TypedQueryStateSelector<
+        PostsApiResponse,
+        QueryArgument,
+        BaseQueryFunction,
+        SelectedResult
+      >
+    >().toEqualTypeOf<
+      QueryStateSelector<
+        SelectedResult,
+        QueryDefinition<
+          QueryArgument,
+          BaseQueryFunction,
+          string,
+          PostsApiResponse
+        >
+      >
+    >()
+
+    expectTypeOf(typedSelectFromResult).toEqualTypeOf<
+      QueryStateSelector<
+        SelectedResult,
+        QueryDefinition<
+          QueryArgument,
+          BaseQueryFunction,
+          string,
+          PostsApiResponse
+        >
+      >
+    >()
+
+    function PostsList() {
+      const { posts } = useGetPostsQuery(undefined, {
+        selectFromResult: typedSelectFromResult,
+      })
+
+      expectTypeOf(posts).toEqualTypeOf<Post[]>()
+
+      return (
+        <div>
+          <ul>
+            {posts.map((post) => (
+              <PostById key={post.id} id={post.id} />
+            ))}
+          </ul>
+        </div>
+      )
+    }
   })
 })

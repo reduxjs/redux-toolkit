@@ -15,9 +15,14 @@ export type { Api, ApiContext, Module } from './apiTypes'
 
 export type {
   BaseQueryApi,
+  BaseQueryArg,
   BaseQueryEnhancer,
+  BaseQueryError,
+  BaseQueryExtraOptions,
   BaseQueryFn,
-  QueryReturnValue
+  BaseQueryMeta,
+  BaseQueryResult,
+  QueryReturnValue,
 } from './baseQueryTypes'
 export type {
   BaseEndpointDefinition,
@@ -34,6 +39,7 @@ export type {
   DefinitionType,
   DefinitionsFromApi,
   OverrideResultType,
+  ResultDescription,
   TagTypesFromApi,
   UpdateDefinitions,
 } from './endpointDefinitions'
