@@ -5,7 +5,11 @@ import { HttpResponse, delay, http } from 'msw'
 import nodeFetch from 'node-fetch'
 import queryString from 'query-string'
 import { vi } from 'vitest'
-import { setupApiStore } from '../../tests/utils/helpers'
+import {
+  hasBodyAndHeaders,
+  isObject,
+  setupApiStore,
+} from '../../tests/utils/helpers'
 import type { BaseQueryApi } from '../baseQueryTypes'
 import { server } from './mocks/server'
 
@@ -76,7 +80,7 @@ type RootState = ReturnType<typeof storeRef.store.getState>
 
 let commonBaseQueryApi: BaseQueryApi = {} as any
 beforeEach(() => {
-  let abortController = new AbortController()
+  const abortController = new AbortController()
   commonBaseQueryApi = {
     signal: abortController.signal,
     abort: (reason) =>
@@ -349,12 +353,15 @@ describe('fetchBaseQuery', () => {
         test: 'value',
       }
 
-      let request: any
-      ;({ data: request } = await baseQuery(
+      const { data: request } = await baseQuery(
         { url: '/echo', body: data, method: 'POST' },
         { ...commonBaseQueryApi, type: 'mutation' },
         {},
-      ))
+      )
+
+      if (!hasBodyAndHeaders(request)) {
+        expect.fail('Expected request to have body and headers')
+      }
 
       expect(request.headers['content-type']).toBe('application/json')
       expect(request.body).toEqual(data)
@@ -363,12 +370,15 @@ describe('fetchBaseQuery', () => {
     test('an array provided to body will be serialized when content-type is json', async () => {
       const data = ['test', 'value']
 
-      let request: any
-      ;({ data: request } = await baseQuery(
+      const { data: request } = await baseQuery(
         { url: '/echo', body: data, method: 'POST' },
         commonBaseQueryApi,
         {},
-      ))
+      )
+
+      if (!hasBodyAndHeaders(request)) {
+        expect.fail('Expected request to have body and headers')
+      }
 
       expect(request.headers['content-type']).toBe('application/json')
       expect(request.body).toEqual(data)
@@ -379,8 +389,7 @@ describe('fetchBaseQuery', () => {
         test: 'value',
       }
 
-      let request: any
-      ;({ data: request } = await baseQuery(
+      const { data: request } = await baseQuery(
         {
           url: '/echo',
           body: data,
@@ -389,7 +398,11 @@ describe('fetchBaseQuery', () => {
         },
         commonBaseQueryApi,
         {},
-      ))
+      )
+
+      if (!hasBodyAndHeaders(request)) {
+        expect.fail('Expected request to have body and headers')
+      }
 
       expect(request.headers['content-type']).toBe('text/html')
       expect(request.body).toEqual('[object Object]')
@@ -398,8 +411,7 @@ describe('fetchBaseQuery', () => {
     test('an array provided to body will not be serialized when content-type is not json', async () => {
       const data = ['test', 'value']
 
-      let request: any
-      ;({ data: request } = await baseQuery(
+      const { data: request } = await baseQuery(
         {
           url: '/echo',
           body: data,
@@ -408,7 +420,11 @@ describe('fetchBaseQuery', () => {
         },
         commonBaseQueryApi,
         {},
-      ))
+      )
+
+      if (!hasBodyAndHeaders(request)) {
+        expect.fail('Expected request to have body and headers')
+      }
 
       expect(request.headers['content-type']).toBe('text/html')
       expect(request.body).toEqual(data.join(','))
@@ -421,8 +437,7 @@ describe('fetchBaseQuery', () => {
         jsonContentType: 'application/vnd.api+json',
       })
 
-      let request: any
-      ;({ data: request } = await baseQuery(
+      const { data: request } = await baseQuery(
         {
           url: '/echo',
           body: {},
@@ -430,7 +445,11 @@ describe('fetchBaseQuery', () => {
         },
         commonBaseQueryApi,
         {},
-      ))
+      )
+
+      if (!hasBodyAndHeaders(request)) {
+        expect.fail('Expected request to have body and headers')
+      }
 
       expect(request.headers['content-type']).toBe('application/vnd.api+json')
     })
@@ -450,6 +469,10 @@ describe('fetchBaseQuery', () => {
         commonBaseQueryApi,
         {},
       ))
+
+      if (!hasBodyAndHeaders(request)) {
+        expect.fail('Expected request to have body and headers')
+      }
 
       expect(request.headers['content-type']).toBe('application/json')
       expect(request.body).toEqual({ items: {} }) // Set is not properly marshalled by default
@@ -472,6 +495,10 @@ describe('fetchBaseQuery', () => {
         {},
       ))
 
+      if (!hasBodyAndHeaders(request)) {
+        expect.fail('Expected request to have body and headers')
+      }
+
       expect(request.headers['content-type']).toBe('application/json')
       expect(request.body).toEqual({ items: ['A', 'B', 'C'] }) // Set is marshalled correctly by jsonReplacer
     })
@@ -479,12 +506,19 @@ describe('fetchBaseQuery', () => {
 
   describe('arg.params', () => {
     it('should not serialize missing params', async () => {
-      let request: any
-      ;({ data: request } = await baseQuery(
+      const { data: request } = await baseQuery(
         { url: '/echo' },
         commonBaseQueryApi,
         {},
-      ))
+      )
+
+      if (!isObject(request)) {
+        expect.fail('Expected request to be an object')
+      }
+
+      if (!('url' in request)) {
+        expect.fail('Expected request to have url')
+      }
 
       expect(request.url).toEqual(`${baseUrl}/echo`)
     })
@@ -492,12 +526,19 @@ describe('fetchBaseQuery', () => {
     it('should serialize numeric and boolean params', async () => {
       const params = { a: 1, b: true }
 
-      let request: any
-      ;({ data: request } = await baseQuery(
+      const { data: request } = await baseQuery(
         { url: '/echo', params },
         commonBaseQueryApi,
         {},
-      ))
+      )
+
+      if (!isObject(request)) {
+        expect.fail('Expected request to be an object')
+      }
+
+      if (!('url' in request)) {
+        expect.fail('Expected request to have url')
+      }
 
       expect(request.url).toEqual(`${baseUrl}/echo?a=1&b=true`)
     })
@@ -505,12 +546,19 @@ describe('fetchBaseQuery', () => {
     it('should merge params into existing url querystring', async () => {
       const params = { a: 1, b: true }
 
-      let request: any
-      ;({ data: request } = await baseQuery(
+      const { data: request } = await baseQuery(
         { url: '/echo?banana=pudding', params },
         commonBaseQueryApi,
         {},
-      ))
+      )
+
+      if (!isObject(request)) {
+        expect.fail('Expected request to be an object')
+      }
+
+      if (!('url' in request)) {
+        expect.fail('Expected request to have url')
+      }
 
       expect(request.url).toEqual(`${baseUrl}/echo?banana=pudding&a=1&b=true`)
     })
@@ -518,12 +566,19 @@ describe('fetchBaseQuery', () => {
     it('should accept a URLSearchParams instance', async () => {
       const params = new URLSearchParams({ apple: 'fruit' })
 
-      let request: any
-      ;({ data: request } = await baseQuery(
+      const { data: request } = await baseQuery(
         { url: '/echo', params },
         commonBaseQueryApi,
         {},
-      ))
+      )
+
+      if (!isObject(request)) {
+        expect.fail('Expected request to be an object')
+      }
+
+      if (!('url' in request)) {
+        expect.fail('Expected request to have url')
+      }
 
       expect(request.url).toEqual(`${baseUrl}/echo?apple=fruit`)
     })
@@ -531,12 +586,19 @@ describe('fetchBaseQuery', () => {
     it('should strip undefined values from the end params', async () => {
       const params = { apple: 'fruit', banana: undefined, randy: null }
 
-      let request: any
-      ;({ data: request } = await baseQuery(
+      const { data: request } = await baseQuery(
         { url: '/echo', params },
         commonBaseQueryApi,
         {},
-      ))
+      )
+
+      if (!isObject(request)) {
+        expect.fail('Expected request to be an object')
+      }
+
+      if (!('url' in request)) {
+        expect.fail('Expected request to have url')
+      }
 
       expect(request.url).toEqual(`${baseUrl}/echo?apple=fruit&randy=null`)
     })
@@ -571,12 +633,19 @@ describe('fetchBaseQuery', () => {
         someArray: ['a', 'b', 'c'],
       }
 
-      let request: any
-      ;({ data: request } = await baseQuery(
+      const { data: request } = await baseQuery(
         { url: '/echo', params },
         commonBaseQueryApi,
         {},
-      ))
+      )
+
+      if (!isObject(request)) {
+        expect.fail('Expected request to be an object')
+      }
+
+      if (!('url' in request)) {
+        expect.fail('Expected request to have url')
+      }
 
       expect(request.url).toEqual(
         `${baseUrl}/echo?someArray[]=a&someArray[]=b&someArray[]=c`,
@@ -598,8 +667,7 @@ describe('fetchBaseQuery', () => {
           ].includes(headers.get('content-type') ?? ''),
       })
 
-      let request: any
-      ;({ data: request } = await baseQuery(
+      const { data: request } = await baseQuery(
         {
           url: '/echo',
           method: 'POST',
@@ -608,7 +676,15 @@ describe('fetchBaseQuery', () => {
         },
         commonBaseQueryApi,
         {},
-      ))
+      )
+
+      if (!hasBodyAndHeaders(request)) {
+        expect.fail('Expected request to have body and headers')
+      }
+
+      if (!('url' in request)) {
+        expect.fail('Expected request to have url')
+      }
 
       expect(request.body).toMatchObject(testBody)
     })
@@ -639,12 +715,19 @@ describe('fetchBaseQuery', () => {
 
   describe('arg.headers and prepareHeaders', () => {
     test('uses the default headers set in prepareHeaders', async () => {
-      let request: any
-      ;({ data: request } = await baseQuery(
+      const { data: request } = await baseQuery(
         { url: '/echo' },
         commonBaseQueryApi,
         {},
-      ))
+      )
+
+      if (!isObject(request)) {
+        expect.fail('Expected request to be an object')
+      }
+
+      if (!('url' in request)) {
+        expect.fail('Expected request to have url')
+      }
 
       expect(request.headers['fake']).toBe(defaultHeaders['fake'])
       expect(request.headers['delete']).toBe(defaultHeaders['delete'])
@@ -652,12 +735,19 @@ describe('fetchBaseQuery', () => {
     })
 
     test('adds endpoint-level headers to the defaults', async () => {
-      let request: any
-      ;({ data: request } = await baseQuery(
+      const { data: request } = await baseQuery(
         { url: '/echo', headers: { authorization: 'Bearer banana' } },
         commonBaseQueryApi,
         {},
-      ))
+      )
+
+      if (!isObject(request)) {
+        expect.fail('Expected request to be an object')
+      }
+
+      if (!('url' in request)) {
+        expect.fail('Expected request to have url')
+      }
 
       expect(request.headers['authorization']).toBe('Bearer banana')
       expect(request.headers['fake']).toBe(defaultHeaders['fake'])
@@ -666,8 +756,7 @@ describe('fetchBaseQuery', () => {
     })
 
     test('it does not set application/json when content-type is set', async () => {
-      let request: any
-      ;({ data: request } = await baseQuery(
+      const { data: request } = await baseQuery(
         {
           url: '/echo',
           headers: {
@@ -677,7 +766,15 @@ describe('fetchBaseQuery', () => {
         },
         commonBaseQueryApi,
         {},
-      ))
+      )
+
+      if (!isObject(request)) {
+        expect.fail('Expected request to be an object')
+      }
+
+      if (!('url' in request)) {
+        expect.fail('Expected request to have url')
+      }
 
       expect(request.headers['authorization']).toBe('Bearer banana')
       expect(request.headers['content-type']).toBe('custom-content-type')
@@ -689,12 +786,19 @@ describe('fetchBaseQuery', () => {
     test('respects the headers from an endpoint over the base headers', async () => {
       const fake = 'fake endpoint value'
 
-      let request: any
-      ;({ data: request } = await baseQuery(
+      const { data: request } = await baseQuery(
         { url: '/echo', headers: { fake, delete: '', delete2: '' } },
         commonBaseQueryApi,
         {},
-      ))
+      )
+
+      if (!isObject(request)) {
+        expect.fail('Expected request to be an object')
+      }
+
+      if (!('url' in request)) {
+        expect.fail('Expected request to have url')
+      }
 
       expect(request.headers['fake']).toBe(fake)
       expect(request.headers['delete']).toBeUndefined()
@@ -702,8 +806,6 @@ describe('fetchBaseQuery', () => {
     })
 
     test('prepareHeaders can return undefined', async () => {
-      let request: any
-
       const token = 'accessToken'
 
       const _baseQuery = fetchBaseQuery({
@@ -716,14 +818,20 @@ describe('fetchBaseQuery', () => {
       const doRequest = async () =>
         _baseQuery({ url: '/echo' }, commonBaseQueryApi, {})
 
-      ;({ data: request } = await doRequest())
+      const { data: request } = await doRequest()
+
+      if (!isObject(request)) {
+        expect.fail('Expected request to be an object')
+      }
+
+      if (!('url' in request)) {
+        expect.fail('Expected request to have url')
+      }
 
       expect(request.headers['authorization']).toBe(`Bearer ${token}`)
     })
 
     test('prepareHeaders is able to be an async function', async () => {
-      let request: any
-
       const token = 'accessToken'
       const getAccessTokenAsync = async () => token
 
@@ -738,14 +846,20 @@ describe('fetchBaseQuery', () => {
       const doRequest = async () =>
         _baseQuery({ url: '/echo' }, commonBaseQueryApi, {})
 
-      ;({ data: request } = await doRequest())
+      const { data: request } = await doRequest()
+
+      if (!isObject(request)) {
+        expect.fail('Expected request to be an object')
+      }
+
+      if (!('url' in request)) {
+        expect.fail('Expected request to have url')
+      }
 
       expect(request.headers['authorization']).toBe(`Bearer ${token}`)
     })
 
     test('prepareHeaders is able to be an async function returning undefined', async () => {
-      let request: any
-
       const token = 'accessToken'
       const getAccessTokenAsync = async () => token
 
@@ -759,7 +873,15 @@ describe('fetchBaseQuery', () => {
       const doRequest = async () =>
         _baseQuery({ url: '/echo' }, commonBaseQueryApi, {})
 
-      ;({ data: request } = await doRequest())
+      const { data: request } = await doRequest()
+
+      if (!isObject(request)) {
+        expect.fail('Expected request to be an object')
+      }
+
+      if (!('url' in request)) {
+        expect.fail('Expected request to have url')
+      }
 
       expect(request.headers['authorization']).toBe(`Bearer ${token}`)
     })
@@ -799,7 +921,11 @@ describe('fetchBaseQuery', () => {
     })
 
     test('prepareHeaders provides extra api information for getState, extra, endpoint, type and forced', async () => {
-      let _getState, _extra, _endpoint, _type, _forced
+      let _getState
+      let _extra
+      let _endpoint
+      let _type
+      let _forced
 
       const baseQuery = fetchBaseQuery({
         baseUrl,
@@ -853,8 +979,6 @@ describe('fetchBaseQuery', () => {
   })
 
   test('can pass `headers` into `fetchBaseQuery`', async () => {
-    let request: any
-
     const token = 'accessToken'
 
     const _baseQuery = fetchBaseQuery({
@@ -865,18 +989,33 @@ describe('fetchBaseQuery', () => {
     const doRequest = async () =>
       _baseQuery({ url: '/echo' }, commonBaseQueryApi, {})
 
-    ;({ data: request } = await doRequest())
+    const { data: request } = await doRequest()
+
+    if (!isObject(request)) {
+      expect.fail('Expected request to be an object')
+    }
+
+    if (!('url' in request)) {
+      expect.fail('Expected request to have url')
+    }
 
     expect(request.headers['authorization']).toBe(`Bearer ${token}`)
   })
 
   test('lets a header be undefined', async () => {
-    let request: any
-    ;({ data: request } = await baseQuery(
+    const { data: request } = await baseQuery(
       { url: '/echo', headers: undefined },
       commonBaseQueryApi,
       {},
-    ))
+    )
+
+    if (!isObject(request)) {
+      expect.fail('Expected request to be an object')
+    }
+
+    if (!('url' in request)) {
+      expect.fail('Expected request to have url')
+    }
 
     expect(request.headers['fake']).toBe(defaultHeaders['fake'])
     expect(request.headers['delete']).toBe(defaultHeaders['delete'])
@@ -885,12 +1024,20 @@ describe('fetchBaseQuery', () => {
 
   test('allows for possibly undefined header key/values', async () => {
     const banana = '1' as '1' | undefined
-    let request: any
-    ;({ data: request } = await baseQuery(
+
+    const { data: request } = await baseQuery(
       { url: '/echo', headers: { banana } },
       commonBaseQueryApi,
       {},
-    ))
+    )
+
+    if (!isObject(request)) {
+      expect.fail('Expected request to be an object')
+    }
+
+    if (!('url' in request)) {
+      expect.fail('Expected request to have url')
+    }
 
     expect(request.headers['banana']).toBe('1')
     expect(request.headers['fake']).toBe(defaultHeaders['fake'])
@@ -900,12 +1047,16 @@ describe('fetchBaseQuery', () => {
 
   test('strips undefined values from the headers', async () => {
     const banana = undefined as '1' | undefined
-    let request: any
-    ;({ data: request } = await baseQuery(
+
+    const { data: request } = await baseQuery(
       { url: '/echo', headers: { banana } },
       commonBaseQueryApi,
       {},
-    ))
+    )
+
+    if (!isObject(request)) {
+      expect.fail('Expected request to be an object')
+    }
 
     expect(request.headers['banana']).toBeUndefined()
     expect(request.headers['fake']).toBe(defaultHeaders['fake'])
@@ -1018,12 +1169,20 @@ describe('fetchFn', () => {
       baseUrl,
       fetchFn: nodeFetch as any,
     })
-    let request: any
-    ;({ data: request } = await baseQuery(
+
+    const { data: request } = await baseQuery(
       { url: '/echo', params },
       commonBaseQueryApi,
       {},
-    ))
+    )
+
+    if (!isObject(request)) {
+      expect.fail('Expected request to be an object')
+    }
+
+    if (!('url' in request)) {
+      expect.fail('Expected request to have url')
+    }
 
     expect(request.url).toEqual(`${baseUrl}/echo?apple=fruit`)
   })

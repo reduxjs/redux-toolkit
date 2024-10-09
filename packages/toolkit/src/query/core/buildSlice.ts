@@ -1,47 +1,46 @@
-import type { Action, PayloadAction, UnknownAction } from '@reduxjs/toolkit'
-import {
-  combineReducers,
-  createAction,
-  createSlice,
-  isAnyOf,
-  isFulfilled,
-  isRejectedWithValue,
-  createNextState,
-  prepareAutoBatched,
-} from './rtkImports'
-import type {
-  QuerySubstateIdentifier,
-  QuerySubState,
-  MutationSubstateIdentifier,
-  MutationSubState,
-  MutationState,
-  QueryState,
-  InvalidationState,
-  Subscribers,
-  QueryCacheKey,
-  SubscriptionState,
-  ConfigState,
-} from './apiState'
-import { QueryStatus } from './apiState'
-import type { MutationThunk, QueryThunk, RejectedAction } from './buildThunks'
-import { calculateProvidedByThunk } from './buildThunks'
+import type { PayloadAction } from '@reduxjs/toolkit'
+import type { Patch } from 'immer'
+import { applyPatches, isDraft, original } from 'immer'
+import type { ApiContext } from '../apiTypes'
 import type {
   AssertTagTypes,
   EndpointDefinitions,
   FullTagDescription,
   QueryDefinition,
 } from '../endpointDefinitions'
-import type { Patch } from 'immer'
-import { isDraft } from 'immer'
-import { applyPatches, original } from 'immer'
-import { onFocus, onFocusLost, onOffline, onOnline } from './setupListeners'
 import {
+  copyWithStructuralSharing,
   isDocumentVisible,
   isOnline,
-  copyWithStructuralSharing,
 } from '../utils'
-import type { ApiContext } from '../apiTypes'
+import type {
+  ConfigState,
+  InvalidationState,
+  MutationState,
+  MutationSubState,
+  MutationSubstateIdentifier,
+  QueryCacheKey,
+  QueryState,
+  QuerySubState,
+  QuerySubstateIdentifier,
+  Subscribers,
+  SubscriptionState,
+} from './apiState'
+import { QueryStatus } from './apiState'
 import { isUpsertQuery } from './buildInitiate'
+import type { MutationThunk, QueryThunk } from './buildThunks'
+import { calculateProvidedByThunk } from './buildThunks'
+import {
+  combineReducers,
+  createAction,
+  createNextState,
+  createSlice,
+  isAnyOf,
+  isFulfilled,
+  isRejectedWithValue,
+  prepareAutoBatched,
+} from './rtkImports'
+import { onFocus, onFocusLost, onOffline, onOnline } from './setupListeners'
 
 function updateQuerySubstateIfExists(
   state: QueryState<any>,
@@ -192,7 +191,7 @@ export function buildSlice({
                   // We're already inside an Immer-powered reducer, and the user could just mutate `substate.data`
                   // themselves inside of `merge()`. But, they might also want to return a new value.
                   // Try to let Immer figure that part out, save the result, and assign it to `substate.data`.
-                  let newData = createNextState(
+                  const newData = createNextState(
                     substate.data,
                     (draftSubstateData) => {
                       // As usual with Immer, you can mutate _or_ return inside here, but not both
@@ -212,7 +211,7 @@ export function buildSlice({
               } else {
                 // Assign or safely update the cache data.
                 substate.data =
-                  definitions[meta.arg.endpointName].structuralSharing ?? true
+                  (definitions[meta.arg.endpointName].structuralSharing ?? true)
                     ? copyWithStructuralSharing(
                         isDraft(substate.data)
                           ? original(substate.data)
@@ -445,7 +444,9 @@ export function buildSlice({
       ) {
         // Dummy
       },
-      internal_getRTKQSubscriptions() {},
+      internal_getRTKQSubscriptions() {
+        /** No-Op */
+      },
     },
   })
 

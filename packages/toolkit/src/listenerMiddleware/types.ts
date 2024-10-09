@@ -72,14 +72,10 @@ export interface ForkedTaskAPI {
 }
 
 /** @public */
-export interface AsyncTaskExecutor<T> {
-  (forkApi: ForkedTaskAPI): Promise<T>
-}
+export type AsyncTaskExecutor<T> = (forkApi: ForkedTaskAPI) => Promise<T>
 
 /** @public */
-export interface SyncTaskExecutor<T> {
-  (forkApi: ForkedTaskAPI): T
-}
+export type SyncTaskExecutor<T> = (forkApi: ForkedTaskAPI) => T
 
 /** @public */
 export type ForkedTaskExecutor<T> = AsyncTaskExecutor<T> | SyncTaskExecutor<T>
@@ -295,9 +291,10 @@ export interface ListenerErrorInfo {
  * @param error The thrown error.
  * @param errorInfo Additional information regarding the thrown error.
  */
-export interface ListenerErrorHandler {
-  (error: unknown, errorInfo: ListenerErrorInfo): void
-}
+export type ListenerErrorHandler = (
+  error: unknown,
+  errorInfo: ListenerErrorInfo,
+) => void
 
 /** @public */
 export interface CreateListenerMiddlewareOptions<ExtraArgument = unknown> {
@@ -318,9 +315,7 @@ export type ListenerMiddleware<
   >,
   ExtraArgument = unknown,
 > = Middleware<
-  {
-    (action: Action<'listenerMiddleware/add'>): UnsubscribeListener
-  },
+  (action: Action<'listenerMiddleware/add'>) => UnsubscribeListener,
   State,
   DispatchType
 >
@@ -578,9 +573,13 @@ export type TypedAddListener<
         OverrideStateType,
         unknown,
         UnknownAction
-        >,
-        OverrideExtraArgument = unknown,
-    >() => TypedAddListener<OverrideStateType, OverrideDispatchType, OverrideExtraArgument>
+      >,
+      OverrideExtraArgument = unknown,
+    >() => TypedAddListener<
+      OverrideStateType,
+      OverrideDispatchType,
+      OverrideExtraArgument
+    >
   }
 
 /**
@@ -641,7 +640,11 @@ export type TypedRemoveListener<
         UnknownAction
       >,
       OverrideExtraArgument = unknown,
-    >() => TypedRemoveListener<OverrideStateType, OverrideDispatchType, OverrideExtraArgument>
+    >() => TypedRemoveListener<
+      OverrideStateType,
+      OverrideDispatchType,
+      OverrideExtraArgument
+    >
   }
 
 /**
@@ -701,7 +704,11 @@ export type TypedStartListening<
       UnknownAction
     >,
     OverrideExtraArgument = unknown,
-  >() => TypedStartListening<OverrideStateType, OverrideDispatchType, OverrideExtraArgument>
+  >() => TypedStartListening<
+    OverrideStateType,
+    OverrideDispatchType,
+    OverrideExtraArgument
+  >
 }
 
 /**
@@ -756,7 +763,11 @@ export type TypedStopListening<
       UnknownAction
     >,
     OverrideExtraArgument = unknown,
-  >() => TypedStopListening<OverrideStateType, OverrideDispatchType, OverrideExtraArgument>
+  >() => TypedStopListening<
+    OverrideStateType,
+    OverrideDispatchType,
+    OverrideExtraArgument
+  >
 }
 
 /**
@@ -813,7 +824,11 @@ export type TypedCreateListenerEntry<
       UnknownAction
     >,
     OverrideExtraArgument = unknown,
-  >() => TypedStopListening<OverrideStateType, OverrideDispatchType, OverrideExtraArgument>
+  >() => TypedStopListening<
+    OverrideStateType,
+    OverrideDispatchType,
+    OverrideExtraArgument
+  >
 }
 
 /**

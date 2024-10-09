@@ -1,7 +1,8 @@
-import { joinUrls } from './utils'
-import { isPlainObject } from './core/rtkImports'
+import type { AnyNonNullishValue } from '../tsHelpers'
 import type { BaseQueryApi, BaseQueryFn } from './baseQueryTypes'
+import { isPlainObject } from './core/rtkImports'
 import type { MaybePromise, Override } from './tsHelpers'
+import { joinUrls } from './utils'
 
 export type ResponseHandler =
   | 'content-type'
@@ -204,7 +205,7 @@ export function fetchBaseQuery({
   string | FetchArgs,
   unknown,
   FetchBaseQueryError,
-  {},
+  AnyNonNullishValue,
   FetchBaseQueryMeta
 > {
   if (typeof fetch === 'undefined' && fetchFn === defaultFetchFn) {
@@ -214,25 +215,29 @@ export function fetchBaseQuery({
   }
   return async (arg, api) => {
     const { getState, extra, endpoint, forced, type } = api
-    let meta: FetchBaseQueryMeta | undefined
-    let {
-      url,
-      headers = new Headers(baseFetchOptions.headers),
+
+    const fetchArgs = typeof arg == 'string' ? { url: arg } : arg
+    let { url, headers = new Headers(baseFetchOptions.headers) } = fetchArgs
+
+    const {
+      url: _url,
+      headers: _headers,
       params = undefined,
       responseHandler = globalResponseHandler ?? ('json' as const),
       validateStatus = globalValidateStatus ?? defaultValidateStatus,
       timeout = defaultTimeout,
       ...rest
-    } = typeof arg == 'string' ? { url: arg } : arg
+    } = fetchArgs
 
-    let abortController: AbortController | undefined, signal = api.signal
+    let abortController: AbortController | undefined,
+      signal = api.signal
     if (timeout) {
       abortController = new AbortController()
       api.signal.addEventListener('abort', abortController.abort)
       signal = abortController.signal
     }
 
-    let config: RequestInit = {
+    const config: RequestInit = {
       ...baseFetchOptions,
       signal,
       ...rest,
@@ -275,16 +280,16 @@ export function fetchBaseQuery({
 
     const request = new Request(url, config)
     const requestClone = new Request(url, config)
-    meta = { request: requestClone }
+    const meta: FetchBaseQueryMeta = { request: requestClone }
 
-    let response,
-      timedOut = false,
-      timeoutId =
-        abortController &&
-        setTimeout(() => {
-          timedOut = true
-          abortController!.abort()
-        }, timeout)
+    let response
+    let timedOut = false
+    const timeoutId =
+      abortController &&
+      setTimeout(() => {
+        timedOut = true
+        abortController!.abort()
+      }, timeout)
     try {
       response = await fetchFn(request)
     } catch (e) {
@@ -297,14 +302,17 @@ export function fetchBaseQuery({
       }
     } finally {
       if (timeoutId) clearTimeout(timeoutId)
-      abortController?.signal.removeEventListener('abort', abortController.abort)
+      abortController?.signal.removeEventListener(
+        'abort',
+        abortController.abort,
+      )
     }
     const responseClone = response.clone()
 
     meta.response = responseClone
 
     let resultData: any
-    let responseText: string = ''
+    let responseText = ''
     try {
       let handleResponseError
       await Promise.all([
@@ -316,7 +324,9 @@ export function fetchBaseQuery({
         // we *have* to "use up" both streams at the same time or they will stop running in node-fetch scenarios
         responseClone.text().then(
           (r) => (responseText = r),
-          () => {},
+          () => {
+            /** No-Op */
+          },
         ),
       ])
       if (handleResponseError) throw handleResponseError

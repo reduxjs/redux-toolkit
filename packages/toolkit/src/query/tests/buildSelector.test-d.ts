@@ -11,7 +11,7 @@ describe('type tests', () => {
       completed: boolean
     }
 
-    type Todos = Array<Todo>
+    type Todos = Todo[]
 
     const exampleApi = createApi({
       reducerPath: 'api',
@@ -62,7 +62,7 @@ describe('type tests', () => {
       completed: boolean
     }
 
-    type Todos = Array<Todo>
+    type Todos = Todo[]
 
     const exampleApi = createApi({
       reducerPath: 'api',

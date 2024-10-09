@@ -10,6 +10,7 @@ import type {
   UnknownAction,
 } from '@reduxjs/toolkit'
 import { enablePatches } from 'immer'
+import type { AnyNonNullishValue } from '../../tsHelpers'
 import type { Api, Module } from '../apiTypes'
 import type { BaseQueryFn } from '../baseQueryTypes'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
@@ -84,7 +85,6 @@ export type CoreModule =
 export type ThunkWithReturnValue<T> = ThunkAction<T, any, any, UnknownAction>
 
 export interface ApiModules<
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   BaseQuery extends BaseQueryFn,
   Definitions extends EndpointDefinitions,
   ReducerPath extends string,
@@ -140,7 +140,7 @@ export interface ApiModules<
      * ```
      */
     middleware: Middleware<
-      {},
+      AnyNonNullishValue,
       RootState<Definitions, string, ReducerPath>,
       ThunkDispatch<any, any, UnknownAction>
     >
@@ -197,7 +197,7 @@ export interface ApiModules<
        * See https://redux-toolkit.js.org/rtk-query/usage/server-side-rendering for details.
        */
       getRunningQueriesThunk(): ThunkWithReturnValue<
-        Array<QueryActionCreatorResult<any>>
+        QueryActionCreatorResult<any>[]
       >
 
       /**
@@ -209,7 +209,7 @@ export interface ApiModules<
        * See https://redux-toolkit.js.org/rtk-query/usage/server-side-rendering for details.
        */
       getRunningMutationsThunk(): ThunkWithReturnValue<
-        Array<MutationActionCreatorResult<any>>
+        MutationActionCreatorResult<any>[]
       >
 
       /**
@@ -347,7 +347,7 @@ export interface ApiModules<
        * ```
        */
       invalidateTags: ActionCreatorWithPayload<
-        Array<TagDescription<TagTypes>>,
+        TagDescription<TagTypes>[],
         string
       >
 
@@ -358,12 +358,12 @@ export interface ApiModules<
        */
       selectInvalidatedBy: (
         state: RootState<Definitions, string, ReducerPath>,
-        tags: ReadonlyArray<TagDescription<TagTypes>>,
-      ) => Array<{
+        tags: readonly TagDescription<TagTypes>[],
+      ) => {
         endpointName: string
         originalArgs: any
         queryCacheKey: string
-      }>
+      }[]
 
       /**
        * A function to select all arguments currently cached for a given endpoint.
@@ -373,7 +373,7 @@ export interface ApiModules<
       selectCachedArgsForQuery: <QueryName extends QueryKeys<Definitions>>(
         state: RootState<Definitions, string, ReducerPath>,
         queryName: QueryName,
-      ) => Array<QueryArgFrom<Definitions[QueryName]>>
+      ) => QueryArgFrom<Definitions[QueryName]>[]
     }
     /**
      * Endpoints based on the input endpoints provided to `createApi`, containing `select` and `action matchers`.
@@ -395,9 +395,7 @@ export interface ApiModules<
 }
 
 export interface ApiEndpointQuery<
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Definition extends QueryDefinition<any, any, any, any, any>,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Definitions extends EndpointDefinitions,
 > extends BuildThunksApiEndpointQuery<Definition>,
     BuildInitiateApiEndpointQuery<Definition>,
@@ -409,11 +407,8 @@ export interface ApiEndpointQuery<
   Types: NonNullable<Definition['Types']>
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export interface ApiEndpointMutation<
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Definition extends MutationDefinition<any, any, any, any, any>,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Definitions extends EndpointDefinitions,
 > extends BuildThunksApiEndpointMutation<Definition>,
     BuildInitiateApiEndpointMutation<Definition>,

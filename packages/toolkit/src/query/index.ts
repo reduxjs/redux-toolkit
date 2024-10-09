@@ -17,7 +17,7 @@ export type {
   BaseQueryApi,
   BaseQueryEnhancer,
   BaseQueryFn,
-  QueryReturnValue
+  QueryReturnValue,
 } from './baseQueryTypes'
 export type {
   BaseEndpointDefinition,

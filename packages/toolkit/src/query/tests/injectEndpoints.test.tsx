@@ -1,3 +1,4 @@
+import { noop } from '@internal/tests/utils/helpers'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 import { vi } from 'vitest'
 
@@ -33,7 +34,7 @@ describe('injectEndpoints', () => {
   })
 
   test('query: overridding an endpoint with `overrideEndpoints`=false does nothing in production', async () => {
-    const consoleMock = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const consoleMock = vi.spyOn(console, 'error').mockImplementation(noop)
 
     process.env.NODE_ENV = 'development'
 
@@ -60,7 +61,7 @@ describe('injectEndpoints', () => {
   })
 
   test('query: overridding with `overrideEndpoints`=false logs an error in development', async () => {
-    const consoleMock = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const consoleMock = vi.spyOn(console, 'error').mockImplementation(noop)
 
     process.env.NODE_ENV = 'production'
 
