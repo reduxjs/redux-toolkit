@@ -47,7 +47,7 @@ import type {
   BuildSelectorsApiEndpointQuery,
 } from './buildSelectors'
 import { buildSelectors } from './buildSelectors'
-import type { SliceActions } from './buildSlice'
+import type { SliceActions, UpsertEntries } from './buildSlice'
 import { buildSlice } from './buildSlice'
 import type {
   BuildThunksApiEndpointMutation,
@@ -320,6 +320,9 @@ export interface ApiModules<
        * ```
        */
       resetApiState: SliceActions['resetApiState']
+
+      upsertEntries: UpsertEntries<Definitions>
+
       /**
        * A Redux action creator that can be used to manually invalidate cache tags for [automated re-fetching](../../usage/automated-refetching.mdx).
        *
@@ -527,6 +530,7 @@ export const coreModule = ({
       context,
       queryThunk,
       mutationThunk,
+      serializeQueryArgs,
       reducerPath,
       assertTagType,
       config: {
@@ -545,6 +549,7 @@ export const coreModule = ({
       upsertQueryData,
       prefetch,
       resetApiState: sliceActions.resetApiState,
+      upsertEntries: sliceActions.cacheEntriesUpserted as any,
     })
     safeAssign(api.internalActions, sliceActions)
 

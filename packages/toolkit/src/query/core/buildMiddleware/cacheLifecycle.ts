@@ -183,6 +183,30 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
   }
   const lifecycleMap: Record<string, CacheLifecycle> = {}
 
+  function resolveLifecycleEntry(
+    cacheKey: string,
+    data: unknown,
+    meta: unknown,
+  ) {
+    const lifecycle = lifecycleMap[cacheKey]
+
+    if (lifecycle?.valueResolved) {
+      lifecycle.valueResolved({
+        data,
+        meta,
+      })
+      delete lifecycle.valueResolved
+    }
+  }
+
+  function removeLifecycleEntry(cacheKey: string) {
+    const lifecycle = lifecycleMap[cacheKey]
+    if (lifecycle) {
+      delete lifecycleMap[cacheKey]
+      lifecycle.cacheEntryRemoved()
+    }
+  }
+
   const handler: ApiMiddlewareInternalHandler = (
     action,
     mwApi,
@@ -190,17 +214,37 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
   ) => {
     const cacheKey = getCacheKey(action)
 
-    if (queryThunk.pending.match(action)) {
+    function checkForNewCacheKey(
+      endpointName: string,
+      cacheKey: string,
+      requestId: string,
+      originalArgs: unknown,
+    ) {
       const oldState = stateBefore[reducerPath].queries[cacheKey]
       const state = mwApi.getState()[reducerPath].queries[cacheKey]
       if (!oldState && state) {
-        handleNewKey(
-          action.meta.arg.endpointName,
-          action.meta.arg.originalArgs,
-          cacheKey,
-          mwApi,
+        handleNewKey(endpointName, originalArgs, cacheKey, mwApi, requestId)
+      }
+    }
+
+    if (queryThunk.pending.match(action)) {
+      checkForNewCacheKey(
+        action.meta.arg.endpointName,
+        cacheKey,
+        action.meta.requestId,
+        action.meta.arg.originalArgs,
+      )
+    } else if (api.internalActions.cacheEntriesUpserted.match(action)) {
+      for (const { queryDescription, value } of action.payload) {
+        const { endpointName, originalArgs, queryCacheKey } = queryDescription
+        checkForNewCacheKey(
+          endpointName,
+          queryCacheKey,
           action.meta.requestId,
+          originalArgs,
         )
+
+        resolveLifecycleEntry(queryCacheKey, value, {})
       }
     } else if (mutationThunk.pending.match(action)) {
       const state = mwApi.getState()[reducerPath].mutations[cacheKey]
@@ -214,27 +258,15 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
         )
       }
     } else if (isFulfilledThunk(action)) {
-      const lifecycle = lifecycleMap[cacheKey]
-      if (lifecycle?.valueResolved) {
-        lifecycle.valueResolved({
-          data: action.payload,
-          meta: action.meta.baseQueryMeta,
-        })
-        delete lifecycle.valueResolved
-      }
+      resolveLifecycleEntry(cacheKey, action.payload, action.meta.baseQueryMeta)
     } else if (
       api.internalActions.removeQueryResult.match(action) ||
       api.internalActions.removeMutationResult.match(action)
     ) {
-      const lifecycle = lifecycleMap[cacheKey]
-      if (lifecycle) {
-        delete lifecycleMap[cacheKey]
-        lifecycle.cacheEntryRemoved()
-      }
+      removeLifecycleEntry(cacheKey)
     } else if (api.util.resetApiState.match(action)) {
-      for (const [cacheKey, lifecycle] of Object.entries(lifecycleMap)) {
-        delete lifecycleMap[cacheKey]
-        lifecycle.cacheEntryRemoved()
+      for (const cacheKey of Object.keys(lifecycleMap)) {
+        removeLifecycleEntry(cacheKey)
       }
     }
   }
