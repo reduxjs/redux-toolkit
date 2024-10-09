@@ -1,4 +1,22 @@
 import {
+  listenerCancelled,
+  listenerCompleted,
+} from '@internal/listenerMiddleware/exceptions'
+import type {
+  AbortSignalWithReason,
+  AddListenerOverloads,
+} from '@internal/listenerMiddleware/types'
+import { noop } from '@internal/listenerMiddleware/utils'
+import type {
+  Action,
+  ListenerEffect,
+  ListenerEffectAPI,
+  PayloadAction,
+  TypedRemoveListener,
+  TypedStartListening,
+  UnknownAction,
+} from '@reduxjs/toolkit'
+import {
   TaskAbortError,
   addListener,
   clearAllListeners,
@@ -10,28 +28,6 @@ import {
   removeListener,
 } from '@reduxjs/toolkit'
 import type { Mock } from 'vitest'
-import { vi } from 'vitest'
-
-import type {
-  Action,
-  ListenerEffect,
-  ListenerEffectAPI,
-  PayloadAction,
-  TypedAddListener,
-  TypedRemoveListener,
-  TypedStartListening,
-  UnknownAction,
-} from '@reduxjs/toolkit'
-
-import {
-  listenerCancelled,
-  listenerCompleted,
-} from '@internal/listenerMiddleware/exceptions'
-
-import type {
-  AbortSignalWithReason,
-  AddListenerOverloads,
-} from '@internal/listenerMiddleware/types'
 
 const middlewareApi = {
   getState: expect.any(Function),
@@ -50,8 +46,6 @@ const middlewareApi = {
   cancel: expect.any(Function),
   throwIfCancelled: expect.any(Function),
 }
-
-const noop = () => {}
 
 // Copyright 2018-2021 the Deno authors. All rights reserved. MIT license.
 export interface Deferred<T> extends Promise<T> {
@@ -119,9 +113,7 @@ describe('createListenerMiddleware', () => {
   const testAction2 = createAction<string>('testAction2')
   const testAction3 = createAction<string>('testAction3')
 
-  beforeAll(() => {
-    vi.spyOn(console, 'error').mockImplementation(noop)
-  })
+  const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(noop)
 
   beforeEach(() => {
     listenerMiddleware = createListenerMiddleware()
@@ -134,6 +126,14 @@ describe('createListenerMiddleware', () => {
       reducer,
       middleware: (gDM) => gDM().prepend(middleware),
     })
+  })
+
+  afterEach(() => {
+    consoleErrorSpy.mockClear()
+  })
+
+  afterAll(() => {
+    consoleErrorSpy.mockRestore()
   })
 
   describe('Middleware setup', () => {
