@@ -42,11 +42,12 @@ interface PatchCollection {
 }
 ```
 
-- **Parameters**
-  - `endpointName`: a string matching an existing endpoint name
-  - `arg`: an argument matching that used for a previous query call, used to determine which cached dataset needs to be updated
-  - `updateRecipe`: an Immer `produce` callback that can apply changes to the cached state
-  - `updateProvided`: a boolean indicating whether the endpoint's provided tags should be re-calculated based on the updated cache. Defaults to `false`.
+#### Parameters
+
+- `endpointName`: a string matching an existing endpoint name
+- `arg`: an argument matching that used for a previous query call, used to determine which cached dataset needs to be updated
+- `updateRecipe`: an Immer `produce` callback that can apply changes to the cached state
+- `updateProvided`: a boolean indicating whether the endpoint's provided tags should be re-calculated based on the updated cache. Defaults to `false`.
 
 #### Description
 
@@ -123,10 +124,11 @@ const upsertQueryData = <T>(endpointName: string, arg: any, newEntryData: T) =>
   ThunkAction<Promise<CacheEntry<T>>, PartialState, any, UnknownAction>
 ```
 
-- **Parameters**
-  - `endpointName`: a string matching an existing endpoint name
-  - `arg`: an argument matching that used for a previous query call, used to determine which cached dataset needs to be updated
-  - `newEntryValue`: the value to be written into the corresponding cache entry's `data` field
+#### Parameters
+
+- `endpointName`: a string matching an existing endpoint name
+- `arg`: an argument matching that used for a previous query call, used to determine which cached dataset needs to be updated
+- `newEntryValue`: the value to be written into the corresponding cache entry's `data` field
 
 #### Description
 
@@ -161,11 +163,12 @@ const patchQueryData = (
 ) => ThunkAction<void, PartialState, any, UnknownAction>;
 ```
 
-- **Parameters**
-  - `endpointName`: a string matching an existing endpoint name
-  - `arg`: a cache key, used to determine which cached dataset needs to be updated
-  - `patches`: an array of patches (or inverse patches) to apply to cached state. These would typically be obtained from the result of dispatching [`updateQueryData`](#updatequerydata)
-  - `updateProvided`: a boolean indicating whether the endpoint's provided tags should be re-calculated based on the updated cache. Defaults to `false`.
+#### Parameters
+
+- `endpointName`: a string matching an existing endpoint name
+- `arg`: a cache key, used to determine which cached dataset needs to be updated
+- `patches`: an array of patches (or inverse patches) to apply to cached state. These would typically be obtained from the result of dispatching [`updateQueryData`](#updatequerydata)
+- `updateProvided`: a boolean indicating whether the endpoint's provided tags should be re-calculated based on the updated cache. Defaults to `false`.
 
 #### Description
 
@@ -220,11 +223,12 @@ const upsertQueryEntries = (entries: NormalizedQueryUpsertEntry[]) =>
   PayloadAction<NormalizedQueryUpsertEntry[]>
 ```
 
-- **Parameters**
-  - `entries`: an array of objects that contain the data needed to upsert individual cache entries:
-    - `endpointName`: the name of the endpoint, such as `"getPokemon"`
-    - `arg`: the full query key argument needed to identify this cache entry, such as `"pikachu"` (same as you would pass to a `useQuery` hook or `api.endpoints.someEndpoint.select()`)
-    - `value`: the data to be upserted into this cache entry, exactly as formatted.
+#### Parameters
+
+- `entries`: an array of objects that contain the data needed to upsert individual cache entries:
+  - `endpointName`: the name of the endpoint, such as `"getPokemon"`
+  - `arg`: the full query key argument needed to identify this cache entry, such as `"pikachu"` (same as you would pass to a `useQuery` hook or `api.endpoints.someEndpoint.select()`)
+  - `value`: the data to be upserted into this cache entry, exactly as formatted.
 
 #### Description
 
@@ -259,7 +263,7 @@ const api = createApi({
 
         // Pre-fill the individual post entries with the results
         // from the list endpoint query
-        const entries = dispatch(
+        dispatch(
           api.util.upsertQueryEntries(
             posts.map((post) => ({
               endpointName: 'getPost',
@@ -290,13 +294,13 @@ const prefetch = (endpointName: string, arg: any, options: PrefetchOptions) =>
   ThunkAction<void, any, any, UnknownAction>
 ```
 
-- **Parameters**
+#### Parameters
 
-  - `endpointName`: a string matching an existing endpoint name
-  - `args`: a cache key, used to determine which cached dataset needs to be updated
-  - `options`: options to determine whether the request should be sent for a given situation:
-    - `ifOlderThan`: if specified, only runs the query if the difference between `new Date()` and the last`fulfilledTimeStamp` is greater than the given value (in seconds)
-    - `force`: if `true`, it will ignore the `ifOlderThan` value if it is set and the query will be run even if it exists in the cache.
+- `endpointName`: a string matching an existing endpoint name
+- `args`: a cache key, used to determine which cached dataset needs to be updated
+- `options`: options to determine whether the request should be sent for a given situation:
+  - `ifOlderThan`: if specified, only runs the query if the difference between `new Date()` and the last`fulfilledTimeStamp` is greater than the given value (in seconds)
+  - `force`: if `true`, it will ignore the `ifOlderThan` value if it is set and the query will be run even if it exists in the cache.
 
 #### Description
 
@@ -327,12 +331,13 @@ function selectInvalidatedBy(
 }>
 ```
 
-- **Parameters**
-  - `state`: the root state
-  - `tags`: a readonly array of invalidated tags, where the provided `TagDescription` is one of the strings provided to the [`tagTypes`](../createApi.mdx#tagtypes) property of the api. e.g.
-    - `[TagType]`
-    - `[{ type: TagType }]`
-    - `[{ type: TagType, id: number | string }]`
+#### Parameters
+
+- `state`: the root state
+- `tags`: a readonly array of invalidated tags, where the provided `TagDescription` is one of the strings provided to the [`tagTypes`](../createApi.mdx#tagtypes) property of the api. e.g.
+  - `[TagType]`
+  - `[{ type: TagType }]`
+  - `[{ type: TagType, id: number | string }]`
 
 #### Description
 
@@ -373,11 +378,12 @@ const invalidateTags = (
 })
 ```
 
-- **Parameters**
-  - `tags`: an array of tags to be invalidated, where the provided `TagType` is one of the strings provided to the [`tagTypes`](../createApi.mdx#tagtypes) property of the api. e.g.
-    - `[TagType]`
-    - `[{ type: TagType }]`
-    - `[{ type: TagType, id: number | string }]`
+#### Parameters
+
+- `tags`: an array of tags to be invalidated, where the provided `TagType` is one of the strings provided to the [`tagTypes`](../createApi.mdx#tagtypes) property of the api. e.g.
+  - `[TagType]`
+  - `[{ type: TagType }]`
+  - `[{ type: TagType, id: number | string }]`
 
 #### Description
 
@@ -411,9 +417,10 @@ function selectCachedArgsForQuery(
 ): Array<QueryArg>
 ```
 
-- **Parameters**
-  - `state`: the root state
-  - `queryName`: a string matching an existing query endpoint name
+#### Parameters
+
+- `state`: the root state
+- `queryName`: a string matching an existing query endpoint name
 
 #### Description
 
