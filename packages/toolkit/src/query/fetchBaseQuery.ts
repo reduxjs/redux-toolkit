@@ -112,7 +112,7 @@ export type FetchBaseQueryArgs = {
     api: Pick<
       BaseQueryApi,
       'getState' | 'extra' | 'endpoint' | 'type' | 'forced'
-    > & { args: string | FetchArgs },
+    > & { arg: string | FetchArgs },
   ) => MaybePromise<Headers | void>
   fetchFn?: (
     input: RequestInfo,
@@ -164,9 +164,9 @@ export type FetchBaseQueryMeta = { request: Request; response?: Response }
  * The base URL for an API service.
  * Typically in the format of https://example.com/
  *
- * @param {(headers: Headers, api: { getState: () => unknown; args: string | FetchArgs; extra: unknown; endpoint: string; type: 'query' | 'mutation'; forced: boolean; }) => Headers} prepareHeaders
+ * @param {(headers: Headers, api: { getState: () => unknown; arg: string | FetchArgs; extra: unknown; endpoint: string; type: 'query' | 'mutation'; forced: boolean; }) => Headers} prepareHeaders
  * An optional function that can be used to inject headers on requests.
- * Provides a Headers object, most of the `BaseQueryApi` (`dispatch` is not available), and the args passed into the query function.
+ * Provides a Headers object, most of the `BaseQueryApi` (`dispatch` is not available), and the arg passed into the query function.
  * Useful for setting authentication or headers that need to be set conditionally.
  *
  * @link https://developer.mozilla.org/en-US/docs/Web/API/Headers
@@ -212,7 +212,7 @@ export function fetchBaseQuery({
       'Warning: `fetch` is not available. Please supply a custom `fetchFn` property to use `fetchBaseQuery` on SSR environments.',
     )
   }
-  return async (args, api) => {
+  return async (arg, api) => {
     const { getState, extra, endpoint, forced, type } = api
     let meta: FetchBaseQueryMeta | undefined
     let {
@@ -223,7 +223,7 @@ export function fetchBaseQuery({
       validateStatus = globalValidateStatus ?? defaultValidateStatus,
       timeout = defaultTimeout,
       ...rest
-    } = typeof args == 'string' ? { url: args } : args
+    } = typeof arg == 'string' ? { url: arg } : arg
 
     let abortController: AbortController | undefined,
       signal = api.signal
@@ -243,7 +243,7 @@ export function fetchBaseQuery({
     config.headers =
       (await prepareHeaders(headers, {
         getState,
-        args,
+        arg,
         extra,
         endpoint,
         forced,

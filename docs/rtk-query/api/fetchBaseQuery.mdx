@@ -64,7 +64,7 @@ type FetchBaseQueryArgs = {
     api: Pick<
       BaseQueryApi,
       'getState' | 'extra' | 'endpoint' | 'type' | 'forced'
-    > & { args: string | FetchArgs },
+    > & { arg: string | FetchArgs },
   ) => MaybePromise<Headers | void>
   fetchFn?: (
     input: RequestInfo,
@@ -114,7 +114,7 @@ type prepareHeaders = (
   headers: Headers,
   api: {
     getState: () => unknown
-    args: string | FetchArgs
+    arg: string | FetchArgs
     extra: unknown
     endpoint: string
     type: 'query' | 'mutation'
