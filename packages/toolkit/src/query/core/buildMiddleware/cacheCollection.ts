@@ -44,12 +44,14 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
   context,
   internalState,
 }) => {
-  const { removeQueryResult, unsubscribeQueryResult } = api.internalActions
+  const { removeQueryResult, unsubscribeQueryResult, cacheEntriesUpserted } =
+    api.internalActions
 
   const canTriggerUnsubscribe = isAnyOf(
     unsubscribeQueryResult.match,
     queryThunk.fulfilled,
     queryThunk.rejected,
+    cacheEntriesUpserted.match,
   )
 
   function anySubscriptionsRemainingForKey(queryCacheKey: string) {
@@ -66,16 +68,27 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
   ) => {
     if (canTriggerUnsubscribe(action)) {
       const state = mwApi.getState()[reducerPath]
-      const { queryCacheKey } = unsubscribeQueryResult.match(action)
-        ? action.payload
-        : action.meta.arg
+      let queryCacheKeys: QueryCacheKey[]
 
-      handleUnsubscribe(
-        queryCacheKey,
-        state.queries[queryCacheKey]?.endpointName,
-        mwApi,
-        state.config,
-      )
+      if (cacheEntriesUpserted.match(action)) {
+        queryCacheKeys = action.payload.map(
+          (entry) => entry.queryDescription.queryCacheKey,
+        )
+      } else {
+        const { queryCacheKey } = unsubscribeQueryResult.match(action)
+          ? action.payload
+          : action.meta.arg
+        queryCacheKeys = [queryCacheKey]
+      }
+
+      for (const queryCacheKey of queryCacheKeys) {
+        handleUnsubscribe(
+          queryCacheKey,
+          state.queries[queryCacheKey]?.endpointName,
+          mwApi,
+          state.config,
+        )
+      }
     }
 
     if (api.util.resetApiState.match(action)) {
@@ -132,6 +145,7 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
       if (currentTimeout) {
         clearTimeout(currentTimeout)
       }
+
       currentRemovalTimeouts[queryCacheKey] = setTimeout(() => {
         if (!anySubscriptionsRemainingForKey(queryCacheKey)) {
           api.dispatch(removeQueryResult({ queryCacheKey }))

@@ -1,4 +1,5 @@
 import { createApi } from '@reduxjs/toolkit/query/react'
+import { createAction } from '@reduxjs/toolkit'
 import {
   actionsReducer,
   hookWaitFor,
@@ -16,6 +17,8 @@ interface Post {
 const baseQuery = vi.fn()
 beforeEach(() => baseQuery.mockReset())
 
+const postAddedAction = createAction<string>('postAdded')
+
 const api = createApi({
   baseQuery: (...args: any[]) => {
     const result = baseQuery(...args)
@@ -27,6 +30,9 @@ const api = createApi({
   },
   tagTypes: ['Post'],
   endpoints: (build) => ({
+    getPosts: build.query<Post[], void>({
+      query: () => '/posts',
+    }),
     post: build.query<Post, string>({
       query: (id) => `post/${id}`,
       providesTags: ['Post'],
@@ -61,6 +67,18 @@ const api = createApi({
           },
         }
       },
+    }),
+    postWithSideEffect: build.query<Post, string>({
+      query: (id) => `post/${id}`,
+      providesTags: ['Post'],
+      async onCacheEntryAdded(arg, api) {
+        // Verify that lifecycle promise resolution works
+        const res = await api.cacheDataLoaded
+
+        // and leave a side effect we can check in the test
+        api.dispatch(postAddedAction(res.data.id))
+      },
+      keepUnusedDataFor: 0.01,
     }),
   }),
 })
@@ -324,6 +342,90 @@ describe('upsertQueryData', () => {
     state = selector(storeRef.store.getState())
     expect(state.data).toEqual(upsertedData)
     expect(state.isError).toBeTruthy()
+  })
+})
+
+describe('upsertQueryEntries', () => {
+  const posts: Post[] = [
+    {
+      id: '1',
+      contents: 'A',
+      title: 'A',
+    },
+    {
+      id: '2',
+      contents: 'B',
+      title: 'B',
+    },
+    {
+      id: '3',
+      contents: 'C',
+      title: 'C',
+    },
+  ]
+
+  const entriesAction = api.util.upsertQueryEntries([
+    {
+      endpointName: 'getPosts',
+      arg: undefined,
+      value: posts,
+    },
+    ...posts.map((post) => ({
+      endpointName: 'postWithSideEffect' as const,
+      arg: post.id,
+      value: post,
+    })),
+  ])
+
+  test('Upserts many entries at once', async () => {
+    storeRef.store.dispatch(entriesAction)
+
+    const state = storeRef.store.getState()
+
+    expect(api.endpoints.getPosts.select()(state).data).toBe(posts)
+
+    expect(api.endpoints.postWithSideEffect.select('1')(state).data).toBe(
+      posts[0],
+    )
+    expect(api.endpoints.postWithSideEffect.select('2')(state).data).toBe(
+      posts[1],
+    )
+    expect(api.endpoints.postWithSideEffect.select('3')(state).data).toBe(
+      posts[2],
+    )
+  })
+
+  test('Triggers cache lifecycles and side effects', async () => {
+    storeRef.store.dispatch(entriesAction)
+
+    // Tricky timing. The cache data promises will be resolved
+    // in microtasks, so we just need any async delay here.
+    await delay(1)
+
+    const state = storeRef.store.getState()
+
+    // onCacheEntryAdded should have run for each post,
+    // including cache data being resolved
+    for (const post of posts) {
+      const matchingSideEffectAction = state.actions.find(
+        (action) => postAddedAction.match(action) && action.payload === post.id,
+      )
+      expect(matchingSideEffectAction).toBeTruthy()
+    }
+
+    expect(api.endpoints.postWithSideEffect.select('1')(state).data).toBe(
+      posts[0],
+    )
+
+    // The cache data should be removed after the keepUnusedDataFor time,
+    // so wait longer than that
+    await delay(20)
+
+    const stateAfter = storeRef.store.getState()
+
+    expect(api.endpoints.postWithSideEffect.select('1')(stateAfter).data).toBe(
+      undefined,
+    )
   })
 })
 
