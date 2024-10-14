@@ -321,7 +321,7 @@ export interface ApiModules<
        */
       resetApiState: SliceActions['resetApiState']
 
-      upsertEntries: UpsertEntries<Definitions>
+      upsertQueryEntries: UpsertEntries<Definitions>
 
       /**
        * A Redux action creator that can be used to manually invalidate cache tags for [automated re-fetching](../../usage/automated-refetching.mdx).
@@ -549,7 +549,7 @@ export const coreModule = ({
       upsertQueryData,
       prefetch,
       resetApiState: sliceActions.resetApiState,
-      upsertEntries: sliceActions.cacheEntriesUpserted as any,
+      upsertQueryEntries: sliceActions.cacheEntriesUpserted as any,
     })
     safeAssign(api.internalActions, sliceActions)
 

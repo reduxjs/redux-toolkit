@@ -63,7 +63,7 @@ export type NormalizedQueryUpsertEntry<
   EndpointName extends QueryKeys<Definitions>,
 > = {
   endpointName: EndpointName
-  args: QueryArgFrom<Definitions[EndpointName]>
+  arg: QueryArgFrom<Definitions[EndpointName]>
   value: ResultTypeFrom<Definitions[EndpointName]>
 }
 
@@ -72,8 +72,8 @@ export type NormalizedQueryUpsertEntry<
  */
 type NormalizedQueryUpsertEntryPayload = {
   endpointName: string
-  args: any
-  value: any
+  arg: unknown
+  value: unknown
 }
 
 export type ProcessedQueryUpsertEntry = {
@@ -313,14 +313,14 @@ export function buildSlice({
         prepare: (payload: NormalizedQueryUpsertEntryPayload[]) => {
           const queryDescriptions: ProcessedQueryUpsertEntry[] = payload.map(
             (entry) => {
-              const { endpointName, args, value } = entry
+              const { endpointName, arg, value } = entry
               const endpointDefinition = definitions[endpointName]
               const queryDescription: QueryThunkArg = {
                 type: 'query',
                 endpointName: endpointName,
-                originalArgs: entry.args,
+                originalArgs: entry.arg,
                 queryCacheKey: serializeQueryArgs({
-                  queryArgs: args,
+                  queryArgs: arg,
                   endpointDefinition,
                   endpointName,
                 }),

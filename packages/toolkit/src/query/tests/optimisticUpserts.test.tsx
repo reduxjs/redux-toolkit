@@ -345,7 +345,7 @@ describe('upsertQueryData', () => {
   })
 })
 
-describe('upsertEntries', () => {
+describe('upsertQueryEntries', () => {
   const posts: Post[] = [
     {
       id: '1',
@@ -364,15 +364,15 @@ describe('upsertEntries', () => {
     },
   ]
 
-  const entriesAction = api.util.upsertEntries([
+  const entriesAction = api.util.upsertQueryEntries([
     {
       endpointName: 'getPosts',
-      args: undefined,
+      arg: undefined,
       value: posts,
     },
     ...posts.map((post) => ({
       endpointName: 'postWithSideEffect' as const,
-      args: post.id,
+      arg: post.id,
       value: post,
     })),
   ])
