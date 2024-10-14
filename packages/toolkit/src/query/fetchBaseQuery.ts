@@ -105,14 +105,14 @@ function stripUndefined(obj: any) {
   return copy
 }
 
-export type FetchBaseQueryArgs<ExtraOptions = {}> = {
+export type FetchBaseQueryArgs = {
   baseUrl?: string
   prepareHeaders?: (
     headers: Headers,
     api: Pick<
       BaseQueryApi,
       'getState' | 'extra' | 'endpoint' | 'type' | 'forced'
-    > & { arg: string | FetchArgs; extraOptions: ExtraOptions },
+    > & { arg: string | FetchArgs; extraOptions: unknown },
   ) => MaybePromise<Headers | void>
   fetchFn?: (
     input: RequestInfo,
@@ -188,21 +188,8 @@ export type FetchBaseQueryMeta = { request: Request; response?: Response }
  * @param {number} timeout
  * A number in milliseconds that represents the maximum time a request can take before timing out.
  */
-export function fetchBaseQuery(options?: FetchBaseQueryArgs<{}>): BaseQueryFn<
-string | FetchArgs,
-unknown,
-FetchBaseQueryError,
-{},
-FetchBaseQueryMeta
->
-export function fetchBaseQuery<ExtraOptions>(options?: FetchBaseQueryArgs<ExtraOptions>): BaseQueryFn<
-string | FetchArgs,
-unknown,
-FetchBaseQueryError,
-ExtraOptions,
-FetchBaseQueryMeta
->
-export function fetchBaseQuery<ExtraOptions>({
+
+export function fetchBaseQuery({
   baseUrl,
   prepareHeaders = (x) => x,
   fetchFn = defaultFetchFn,
@@ -214,11 +201,11 @@ export function fetchBaseQuery<ExtraOptions>({
   responseHandler: globalResponseHandler,
   validateStatus: globalValidateStatus,
   ...baseFetchOptions
-}: FetchBaseQueryArgs<ExtraOptions> = {}): BaseQueryFn<
+}: FetchBaseQueryArgs = {}): BaseQueryFn<
   string | FetchArgs,
   unknown,
   FetchBaseQueryError,
-  ExtraOptions,
+  {},
   FetchBaseQueryMeta
 > {
   if (typeof fetch === 'undefined' && fetchFn === defaultFetchFn) {

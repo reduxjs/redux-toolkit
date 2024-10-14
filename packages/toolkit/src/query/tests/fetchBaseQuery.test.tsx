@@ -856,12 +856,9 @@ describe('fetchBaseQuery', () => {
 
     test('can be instantiated with a `ExtraOptions` generic and `extraOptions` will be available in `prepareHeaders', async () => {
       const prepare = vitest.fn()
-      const baseQuery = fetchBaseQuery<{ foo?: string; bar?: number }>({
+      const baseQuery = fetchBaseQuery({
         prepareHeaders(headers, api) {
-          expectTypeOf(api.extraOptions).toEqualTypeOf<{
-            foo?: string
-            bar?: number
-          }>()
+          expectTypeOf(api.extraOptions).toEqualTypeOf<unknown>()
           prepare.apply(undefined, arguments as unknown as any[])
         },
       })
@@ -884,8 +881,6 @@ describe('fetchBaseQuery', () => {
               extraOptions: {
                 foo: 'asd',
                 bar: 1,
-                // @ts-expect-error
-                baz: 5,
               },
             }),
             testMutation: build.mutation({
@@ -897,8 +892,6 @@ describe('fetchBaseQuery', () => {
               extraOptions: {
                 foo: 'qwe',
                 bar: 15,
-                // @ts-expect-error
-                baz: 5,
               },
             }),
           }
