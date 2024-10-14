@@ -799,16 +799,17 @@ describe('fetchBaseQuery', () => {
     })
 
     test('prepareHeaders provides extra api information for getState, extra, endpoint, type and forced', async () => {
-      let _getState, _extra, _endpoint, _type, _forced
+      let _getState, _arg: any, _extra, _endpoint, _type, _forced
 
       const baseQuery = fetchBaseQuery({
         baseUrl,
         fetchFn: fetchFn as any,
         prepareHeaders: (
           headers,
-          { getState, extra, endpoint, type, forced },
+          { getState, arg, extra, endpoint, type, forced },
         ) => {
           _getState = getState
+          _arg = arg
           _endpoint = endpoint
           _type = type
           _forced = forced
@@ -845,6 +846,7 @@ describe('fetchBaseQuery', () => {
       await doRequest()
 
       expect(_getState).toBeDefined()
+      expect(_arg!.url).toBe('/echo')
       expect(_endpoint).toBe('someEndpointName')
       expect(_type).toBe('query')
       expect(_forced).toBe(true)

@@ -112,7 +112,7 @@ export type FetchBaseQueryArgs = {
     api: Pick<
       BaseQueryApi,
       'getState' | 'extra' | 'endpoint' | 'type' | 'forced'
-    >,
+    > & { arg: string | FetchArgs },
   ) => MaybePromise<Headers | void>
   fetchFn?: (
     input: RequestInfo,
@@ -164,9 +164,9 @@ export type FetchBaseQueryMeta = { request: Request; response?: Response }
  * The base URL for an API service.
  * Typically in the format of https://example.com/
  *
- * @param {(headers: Headers, api: { getState: () => unknown; extra: unknown; endpoint: string; type: 'query' | 'mutation'; forced: boolean; }) => Headers} prepareHeaders
+ * @param {(headers: Headers, api: { getState: () => unknown; arg: string | FetchArgs; extra: unknown; endpoint: string; type: 'query' | 'mutation'; forced: boolean; }) => Headers} prepareHeaders
  * An optional function that can be used to inject headers on requests.
- * Provides a Headers object, as well as most of the `BaseQueryApi` (`dispatch` is not available).
+ * Provides a Headers object, most of the `BaseQueryApi` (`dispatch` is not available), and the arg passed into the query function.
  * Useful for setting authentication or headers that need to be set conditionally.
  *
  * @link https://developer.mozilla.org/en-US/docs/Web/API/Headers
@@ -225,7 +225,8 @@ export function fetchBaseQuery({
       ...rest
     } = typeof arg == 'string' ? { url: arg } : arg
 
-    let abortController: AbortController | undefined, signal = api.signal
+    let abortController: AbortController | undefined,
+      signal = api.signal
     if (timeout) {
       abortController = new AbortController()
       api.signal.addEventListener('abort', abortController.abort)
@@ -242,6 +243,7 @@ export function fetchBaseQuery({
     config.headers =
       (await prepareHeaders(headers, {
         getState,
+        arg,
         extra,
         endpoint,
         forced,
@@ -297,7 +299,10 @@ export function fetchBaseQuery({
       }
     } finally {
       if (timeoutId) clearTimeout(timeoutId)
-      abortController?.signal.removeEventListener('abort', abortController.abort)
+      abortController?.signal.removeEventListener(
+        'abort',
+        abortController.abort,
+      )
     }
     const responseClone = response.clone()
 
