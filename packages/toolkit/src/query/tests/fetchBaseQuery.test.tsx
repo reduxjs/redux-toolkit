@@ -858,14 +858,20 @@ describe('fetchBaseQuery', () => {
       const prepare = vitest.fn()
       const baseQuery = fetchBaseQuery<{ foo?: string; bar?: number }>({
         prepareHeaders(headers, api) {
-          expectTypeOf(api.extraOptions).toEqualTypeOf<{ foo?: string; bar?: number }>()
-          prepare.apply(undefined, arguments)
+          expectTypeOf(api.extraOptions).toEqualTypeOf<{
+            foo?: string
+            bar?: number
+          }>()
+          prepare.apply(undefined, arguments as unknown as any[])
         },
       })
-      baseQuery('http://example.com', commonBaseQueryApi, { foo: 'baz', bar: 5 })
+      baseQuery('http://example.com', commonBaseQueryApi, {
+        foo: 'baz',
+        bar: 5,
+      })
       expect(prepare).toHaveBeenCalledWith(
         expect.anything(),
-        expect.objectContaining({ extraOptions: { foo: 'baz', bar: 5 } })
+        expect.objectContaining({ extraOptions: { foo: 'baz', bar: 5 } }),
       )
 
       // ensure types
