@@ -150,7 +150,7 @@ export interface ApiModules<
     util: {
       /**
        * A thunk that (if dispatched) will return a specific running query, identified
-       * by `endpointName` and `args`.
+       * by `endpointName` and `arg`.
        * If that query is not running, dispatching the thunk will result in `undefined`.
        *
        * Can be used to await a specific query triggered in any way,
@@ -160,7 +160,7 @@ export interface ApiModules<
        */
       getRunningQueryThunk<EndpointName extends QueryKeys<Definitions>>(
         endpointName: EndpointName,
-        args: QueryArgFrom<Definitions[EndpointName]>,
+        arg: QueryArgFrom<Definitions[EndpointName]>,
       ): ThunkWithReturnValue<
         | QueryActionCreatorResult<
             Definitions[EndpointName] & { type: 'query' }
@@ -237,9 +237,9 @@ export interface ApiModules<
        *
        * The thunk executes _synchronously_, and returns an object containing `{patches: Patch[], inversePatches: Patch[], undo: () => void}`. The `patches` and `inversePatches` are generated using Immer's [`produceWithPatches` method](https://immerjs.github.io/immer/patches).
        *
-       * This is typically used as the first step in implementing optimistic updates. The generated `inversePatches` can be used to revert the updates by calling `dispatch(patchQueryData(endpointName, args, inversePatches))`. Alternatively, the `undo` method can be called directly to achieve the same effect.
+       * This is typically used as the first step in implementing optimistic updates. The generated `inversePatches` can be used to revert the updates by calling `dispatch(patchQueryData(endpointName, arg, inversePatches))`. Alternatively, the `undo` method can be called directly to achieve the same effect.
        *
-       * Note that the first two arguments (`endpointName` and `args`) are used to determine which existing cache entry to update. If no existing cache entry is found, the `updateRecipe` callback will not run.
+       * Note that the first two arguments (`endpointName` and `arg`) are used to determine which existing cache entry to update. If no existing cache entry is found, the `updateRecipe` callback will not run.
        *
        * @example
        *

@@ -156,7 +156,7 @@ export type PatchQueryDataThunk<
   PartialState,
 > = <EndpointName extends QueryKeys<Definitions>>(
   endpointName: EndpointName,
-  args: QueryArgFrom<Definitions[EndpointName]>,
+  arg: QueryArgFrom<Definitions[EndpointName]>,
   patches: readonly Patch[],
   updateProvided?: boolean,
 ) => ThunkAction<void, PartialState, any, UnknownAction>
@@ -166,7 +166,7 @@ export type UpdateQueryDataThunk<
   PartialState,
 > = <EndpointName extends QueryKeys<Definitions>>(
   endpointName: EndpointName,
-  args: QueryArgFrom<Definitions[EndpointName]>,
+  arg: QueryArgFrom<Definitions[EndpointName]>,
   updateRecipe: Recipe<ResultTypeFrom<Definitions[EndpointName]>>,
   updateProvided?: boolean,
 ) => ThunkAction<PatchCollection, PartialState, any, UnknownAction>
@@ -176,7 +176,7 @@ export type UpsertQueryDataThunk<
   PartialState,
 > = <EndpointName extends QueryKeys<Definitions>>(
   endpointName: EndpointName,
-  args: QueryArgFrom<Definitions[EndpointName]>,
+  arg: QueryArgFrom<Definitions[EndpointName]>,
   value: ResultTypeFrom<Definitions[EndpointName]>,
 ) => ThunkAction<
   QueryActionCreatorResult<
@@ -229,11 +229,11 @@ export function buildThunks<
   type State = RootState<any, string, ReducerPath>
 
   const patchQueryData: PatchQueryDataThunk<EndpointDefinitions, State> =
-    (endpointName, args, patches, updateProvided) => (dispatch, getState) => {
+    (endpointName, arg, patches, updateProvided) => (dispatch, getState) => {
       const endpointDefinition = endpointDefinitions[endpointName]
 
       const queryCacheKey = serializeQueryArgs({
-        queryArgs: args,
+        queryArgs: arg,
         endpointDefinition,
         endpointName,
       })
@@ -246,7 +246,7 @@ export function buildThunks<
         return
       }
 
-      const newValue = api.endpoints[endpointName].select(args)(
+      const newValue = api.endpoints[endpointName].select(arg)(
         // Work around TS 4.1 mismatch
         getState() as RootState<any, any, any>,
       )
@@ -255,7 +255,7 @@ export function buildThunks<
         endpointDefinition.providesTags,
         newValue.data,
         undefined,
-        args,
+        arg,
         {},
         assertTagType,
       )
@@ -266,11 +266,11 @@ export function buildThunks<
     }
 
   const updateQueryData: UpdateQueryDataThunk<EndpointDefinitions, State> =
-    (endpointName, args, updateRecipe, updateProvided = true) =>
+    (endpointName, arg, updateRecipe, updateProvided = true) =>
     (dispatch, getState) => {
       const endpointDefinition = api.endpoints[endpointName]
 
-      const currentState = endpointDefinition.select(args)(
+      const currentState = endpointDefinition.select(arg)(
         // Work around TS 4.1 mismatch
         getState() as RootState<any, any, any>,
       )
@@ -282,7 +282,7 @@ export function buildThunks<
           dispatch(
             api.util.patchQueryData(
               endpointName,
-              args,
+              arg,
               ret.inversePatches,
               updateProvided,
             ),
@@ -317,26 +317,21 @@ export function buildThunks<
       }
 
       dispatch(
-        api.util.patchQueryData(
-          endpointName,
-          args,
-          ret.patches,
-          updateProvided,
-        ),
+        api.util.patchQueryData(endpointName, arg, ret.patches, updateProvided),
       )
 
       return ret
     }
 
   const upsertQueryData: UpsertQueryDataThunk<Definitions, State> =
-    (endpointName, args, value) => (dispatch) => {
+    (endpointName, arg, value) => (dispatch) => {
       return dispatch(
         (
           api.endpoints[endpointName] as ApiEndpointQuery<
             QueryDefinition<any, any, any, any, any>,
             Definitions
           >
-        ).initiate(args, {
+        ).initiate(arg, {
           subscribe: false,
           forceRefetch: true,
           [forceQueryFnSymbol]: () => ({
