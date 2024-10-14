@@ -197,6 +197,86 @@ dispatch(
 patchCollection.undo()
 ```
 
+### `upsertQueryEntries`
+
+A standard Redux action creator that accepts an array of individual cache entry descriptions, and immediately upserts them into the store. This is designed to efficiently bulk-insert many entries at once.
+
+#### Signature
+
+```ts no-transpile
+/**
+ * A typesafe single entry to be upserted into the cache
+ */
+export type NormalizedQueryUpsertEntry<
+  Definitions extends EndpointDefinitions,
+  EndpointName extends QueryKeys<Definitions>,
+> = {
+  endpointName: EndpointName
+  arg: QueryArgFrom<Definitions[EndpointName]>
+  value: ResultTypeFrom<Definitions[EndpointName]>
+}
+
+const upsertQueryEntries = (entries: NormalizedQueryUpsertEntry[]) =>
+  PayloadAction<NormalizedQueryUpsertEntry[]>
+```
+
+- **Parameters**
+  - `entries`: an array of objects that contain the data needed to upsert individual cache entries:
+    - `endpointName`: the name of the endpoint, such as `"getPokemon"`
+    - `arg`: the full query key argument needed to identify this cache entry, such as `"pikachu"` (same as you would pass to a `useQuery` hook or `api.endpoints.someEndpoint.select()`)
+    - `value`: the data to be upserted into this cache entry, exactly as formatted.
+
+#### Description
+
+This method is designed as a more efficient approach to bulk-inserting many entries at once than many individual calls to `upsertQueryData`. As a comparison:
+
+- `upsertQueryData`:
+  - upserts one cache entry at a time
+  - Is async
+  - Dispatches 2 separate actions, `pending` and `fulfilled`
+  - Runs the `transformResponse` callback if defined for that endpoint, as well as the `merge` callback if defined
+- `upsertQueryEntries`:
+  - upserts many cache entries at once, and they may be for any combination of endpoints defined in the API
+  - Is a single synchronous action
+  - Does _not_ run `transformResponse`, so the provided `value` fields must already be in the final format expected for that endpoint. However, it will still run the `merge` callback if defined
+
+Currently, this method has two main use cases. The first is prefilling the cache with data retrieved from storage on app startup. The second is to act as a "pseudo-normalization" tool. [RTK Query is _not_ a "normalized" cache](../../usage/cache-behavior.mdx#no-normalized-or-de-duplicated-cache). However, there are times when you may want to prefill other cache entries with the contents of another endpoint, such as taking the results of a `getPosts` list endpoint response and prefilling the individual `getPost(id)` endpoint cache entries.
+
+If no cache entry for that cache key exists, a cache entry will be created and the data added. If a cache entry already exists, this will _overwrite_ the existing cache entry data.
+
+If dispatched while an actual request is in progress, both the upsert and request will be handled as soon as they resolve, resulting in a "last result wins" update behavior.
+
+#### Example
+
+```ts no-transpile
+const api = createApi({
+  endpoints: (build) => ({
+    getPosts: build.query<Post[], void>({
+      query: () => '/posts',
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        const res = await queryFulfilled
+        const posts = res.data
+
+        // Pre-fill the individual post entries with the results
+        // from the list endpoint query
+        const entries = dispatch(
+          api.util.upsertQueryEntries(
+            posts.map((post) => ({
+              endpointName: 'getPost',
+              arg: { id: post.id },
+              value: post,
+            })),
+          ),
+        )
+      },
+    }),
+    getPost: build.query<Post, Pick<Post, 'id'>>({
+      query: (post) => `post/${post.id}`,
+    }),
+  }),
+})
+```
+
 ### `prefetch`
 
 #### Signature
