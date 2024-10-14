@@ -112,7 +112,7 @@ export type FetchBaseQueryArgs = {
     api: Pick<
       BaseQueryApi,
       'getState' | 'extra' | 'endpoint' | 'type' | 'forced'
-    > & { arg: string | FetchArgs },
+    > & { arg: string | FetchArgs; extraOptions: unknown },
   ) => MaybePromise<Headers | void>
   fetchFn?: (
     input: RequestInfo,
@@ -188,6 +188,7 @@ export type FetchBaseQueryMeta = { request: Request; response?: Response }
  * @param {number} timeout
  * A number in milliseconds that represents the maximum time a request can take before timing out.
  */
+
 export function fetchBaseQuery({
   baseUrl,
   prepareHeaders = (x) => x,
@@ -212,7 +213,7 @@ export function fetchBaseQuery({
       'Warning: `fetch` is not available. Please supply a custom `fetchFn` property to use `fetchBaseQuery` on SSR environments.',
     )
   }
-  return async (arg, api) => {
+  return async (arg, api, extraOptions) => {
     const { getState, extra, endpoint, forced, type } = api
     let meta: FetchBaseQueryMeta | undefined
     let {
@@ -248,6 +249,7 @@ export function fetchBaseQuery({
         endpoint,
         forced,
         type,
+        extraOptions,
       })) || headers
 
     // Only set the content-type to json if appropriate. Will not be true for FormData, ArrayBuffer, Blob, etc.
