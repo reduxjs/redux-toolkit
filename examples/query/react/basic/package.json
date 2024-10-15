@@ -7,16 +7,16 @@
   "main": "src/index.tsx",
   "dependencies": {
     "@reduxjs/toolkit": "^1.6.0-rc.1",
-    "react": "^18.1.0",
-    "react-dom": "^18.1.0",
-    "react-redux": "^9.1.0",
+    "react": "19.0.0-rc-f65ac7bd-20240826",
+    "react-dom": "19.0.0-rc-f65ac7bd-20240826",
+    "react-redux": "^9.1.2",
     "react-scripts": "5.0.1"
   },
   "devDependencies": {
     "@testing-library/react": "^13.3.0",
     "@types/jest": "^26.0.23",
-    "@types/react": "^18.0.5",
-    "@types/react-dom": "^18.0.5",
+    "@types/react": "npm:types-react@rc",
+    "@types/react-dom": "npm:types-react-dom@rc",
     "msw": "^0.40.2",
     "typescript": "~4.9"
   },

@@ -1,6 +1,6 @@
+import { noop } from '@internal/listenerMiddleware/utils'
 import { configureStore } from '@reduxjs/toolkit'
 import { createApi, fakeBaseQuery } from '@reduxjs/toolkit/query'
-import '../../tests/utils/helpers'
 
 type CustomErrorType = { type: 'Custom' }
 
@@ -122,13 +122,19 @@ const store = configureStore({
 })
 
 test('fakeBaseQuery throws when invoking query', async () => {
+  const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(noop)
+
   const thunk = api.endpoints.withQuery.initiate('')
-  let result: { error?: any } | undefined
-  await expect(async () => {
-    result = await store.dispatch(thunk)
-  }).toHaveConsoleOutput(
-    `An unhandled error occurred processing a request for the endpoint "withQuery".
-    In the case of an unhandled error, no tags will be "provided" or "invalidated". [Error: When using \`fakeBaseQuery\`, all queries & mutations must use the \`queryFn\` definition syntax.]`,
+
+  const result = await store.dispatch(thunk)
+
+  expect(consoleErrorSpy).toHaveBeenCalledOnce()
+
+  expect(consoleErrorSpy).toHaveBeenLastCalledWith(
+    `An unhandled error occurred processing a request for the endpoint "withQuery".\nIn the case of an unhandled error, no tags will be "provided" or "invalidated".`,
+    Error(
+      'When using `fakeBaseQuery`, all queries & mutations must use the `queryFn` definition syntax.',
+    ),
   )
 
   expect(result!.error).toEqual({
@@ -137,4 +143,6 @@ test('fakeBaseQuery throws when invoking query', async () => {
     name: 'Error',
     stack: expect.any(String),
   })
+
+  consoleErrorSpy.mockRestore()
 })
