@@ -769,3 +769,51 @@ const UsersComponent = (props: { id: string }) => {
   // render UI here
 }
 ```
+
+## `createAsyncThunkCreator`
+
+Create a customised version of `createAsyncThunk` with defaulted options.
+
+Options specified when calling `createAsyncThunk` will override options specified in `createAsyncThunkCreator`.
+
+### Options
+
+An object with the following optional fields:
+
+- `serializeError(error: unknown) => any` to replace the internal `miniSerializeError` method with your own serialization logic.
+- `idGenerator(arg: unknown) => string`: a function to use when generating the `requestId` for the request sequence. Defaults to use [nanoid](./otherExports.mdx/#nanoid), but you can implement your own ID generation logic.
+
+### Return Value
+
+A version of `createAsyncThunk` that has options defaulted to the values provided.
+
+### Example
+
+```ts no-transpile
+import {
+  createAsyncThunkCreator,
+  miniSerializeError,
+  SerializedError,
+} from '@reduxjs/toolkit'
+import { isAxiosError } from 'axios'
+import { v4 as uuidv4 } from 'uuid'
+
+export interface AppSerializedError extends SerializedError {
+  isAxiosError?: boolean
+}
+
+type ThunkApiConfig = {
+  state: RootState
+  serializedErrorType: AppSerializedError
+}
+
+export const createAppAsyncThunk = createAsyncThunkCreator<ThunkApiConfig>({
+  serializeError(error) {
+    return {
+      ...miniSerializeError(error),
+      isAxiosError: isAxiosError(error),
+    }
+  },
+  idGenerator: () => uuidv4(),
+})
+```

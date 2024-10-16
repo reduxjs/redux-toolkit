@@ -487,24 +487,61 @@ type CreateAsyncThunk<CurriedThunkApiConfig extends AsyncThunkConfig> = {
   >
 }
 
-export const createAsyncThunk = /* @__PURE__ */ (() => {
+/**
+ * @public
+ */
+export type CreateAsyncThunkCreatorOptions<
+  ThunkApiConfig extends AsyncThunkConfig,
+> = Pick<
+  AsyncThunkOptions<unknown, ThunkApiConfig>,
+  'serializeError' | 'idGenerator'
+>
+
+export function createAsyncThunkCreator<
+  CreatorThunkApiConfig extends AsyncThunkConfig = {},
+>(
+  creatorOptions?: CreateAsyncThunkCreatorOptions<CreatorThunkApiConfig>,
+): CreateAsyncThunk<CreatorThunkApiConfig> {
   function createAsyncThunk<
     Returned,
     ThunkArg,
-    ThunkApiConfig extends AsyncThunkConfig,
+    CallThunkApiConfig extends AsyncThunkConfig,
   >(
     typePrefix: string,
     payloadCreator: AsyncThunkPayloadCreator<
       Returned,
       ThunkArg,
-      ThunkApiConfig
+      OverrideThunkApiConfigs<CreatorThunkApiConfig, CallThunkApiConfig>
     >,
-    options?: AsyncThunkOptions<ThunkArg, ThunkApiConfig>,
-  ): AsyncThunk<Returned, ThunkArg, ThunkApiConfig> {
+    options?: AsyncThunkOptions<
+      ThunkArg,
+      OverrideThunkApiConfigs<CreatorThunkApiConfig, CallThunkApiConfig>
+    >,
+  ): AsyncThunk<
+    Returned,
+    ThunkArg,
+    OverrideThunkApiConfigs<CreatorThunkApiConfig, CallThunkApiConfig>
+  > {
+    type ThunkApiConfig = OverrideThunkApiConfigs<
+      CreatorThunkApiConfig,
+      CallThunkApiConfig
+    >
     type RejectedValue = GetRejectValue<ThunkApiConfig>
     type PendingMeta = GetPendingMeta<ThunkApiConfig>
     type FulfilledMeta = GetFulfilledMeta<ThunkApiConfig>
     type RejectedMeta = GetRejectedMeta<ThunkApiConfig>
+
+    const {
+      serializeError = miniSerializeError,
+      // nanoid needs to be wrapped because it accepts a size argument
+      idGenerator = () => nanoid(),
+      getPendingMeta,
+      condition,
+      dispatchConditionRejection,
+    } = {
+      ...creatorOptions,
+      ...options,
+    } as AsyncThunkOptions<ThunkArg, ThunkApiConfig>
 
     const fulfilled: AsyncThunkFulfilledActionCreator<
       Returned,
@@ -553,7 +590,7 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
           meta?: RejectedMeta,
         ) => ({
           payload,
-          error: ((options && options.serializeError) || miniSerializeError)(
+          error: serializeError(
             error || 'Rejected',
           ) as GetSerializedErrorType<ThunkApiConfig>,
           meta: {
@@ -572,9 +609,7 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
       arg: ThunkArg,
     ): AsyncThunkAction<Returned, ThunkArg, Required<ThunkApiConfig>> {
       return (dispatch, getState, extra) => {
-        const requestId = options?.idGenerator
-          ? options.idGenerator(arg)
-          : nanoid()
+        const requestId = idGenerator(arg)
 
         const abortController = new AbortController()
         let abortHandler: (() => void) | undefined
@@ -588,7 +623,10 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
         const promise = (async function () {
           let finalAction: ReturnType<typeof fulfilled | typeof rejected>
           try {
-            let conditionResult = options?.condition?.(arg, { getState, extra })
+            let conditionResult = condition?.(arg, {
+              getState,
+              extra,
+            })
             if (isThenable(conditionResult)) {
               conditionResult = await conditionResult
             }
@@ -614,10 +652,7 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
               pending(
                 requestId,
                 arg,
-                options?.getPendingMeta?.(
-                  { requestId, arg },
-                  { getState, extra },
-                ),
+                getPendingMeta?.({ requestId, arg }, { getState, extra }),
               ) as any,
             )
             finalAction = await Promise.race([
@@ -666,8 +701,7 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
           // and https://github.com/reduxjs/redux-toolkit/blob/e85eb17b39a2118d859f7b7746e0f3fee523e089/docs/tutorials/advanced-tutorial.md#async-error-handling-logic-in-thunks
 
           const skipDispatch =
-            options &&
-            !options.dispatchConditionRejection &&
+            !dispatchConditionRejection &&
             rejected.match(finalAction) &&
             (finalAction as any).meta.condition
 
@@ -702,10 +736,14 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
       },
     )
   }
+
   createAsyncThunk.withTypes = () => createAsyncThunk
 
-  return createAsyncThunk as CreateAsyncThunk<AsyncThunkConfig>
-})()
+  return createAsyncThunk as CreateAsyncThunk<CreatorThunkApiConfig>
+}
+
+export const createAsyncThunk =
+  /* @__PURE__ */ createAsyncThunkCreator<AsyncThunkConfig>()
 
 interface UnwrappableAction {
   payload: any
