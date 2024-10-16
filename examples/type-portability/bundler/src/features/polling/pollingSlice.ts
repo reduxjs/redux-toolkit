@@ -1,4 +1,3 @@
-import type { PayloadAction } from '@reduxjs/toolkit'
 import { createSlice } from '@reduxjs/toolkit'
 import type { RootState } from '../../app/store'
 
@@ -37,27 +36,22 @@ export type PollingAppKey = keyof (typeof initialState)['apps']
 export const pollingSlice = createSlice({
   name: 'polling',
   initialState,
-  reducers: (creators) => {
+  reducers: (create) => {
     return {
-      toggleGlobalPolling: creators.reducer((state) => {
+      toggleGlobalPolling: create.reducer((state) => {
         state.enabled = !state.enabled
       }),
-      updatePolling(
-        state,
-        {
-          payload,
-        }: PayloadAction<{
-          app: PollingAppKey
-          enabled?: boolean
-          interval?: number
-        }>,
-      ) {
+      updatePolling: create.reducer<{
+        app: PollingAppKey
+        enabled?: boolean
+        interval?: number
+      }>((state, { payload }) => {
         const { app, ...rest } = payload
         state.apps[app] = {
           ...state.apps[app],
           ...rest,
         }
-      },
+      }),
     }
   },
   selectors: {
