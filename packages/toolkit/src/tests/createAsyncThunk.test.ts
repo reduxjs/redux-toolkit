@@ -1,4 +1,7 @@
-import type { UnknownAction } from '@reduxjs/toolkit'
+import type {
+  CreateAsyncThunkWithoutWithTypes,
+  UnknownAction,
+} from '@reduxjs/toolkit'
 import {
   configureStore,
   createAsyncThunk,
@@ -989,5 +992,26 @@ describe('meta', () => {
     expect(thunk.rejected).toEqual(expectFunction)
     expect(thunk.settled).toEqual(expectFunction)
     expect(thunk.fulfilled.type).toBe('a/fulfilled')
+  })
+  test('createAsyncThunkWrapper using CreateAsyncThunkWithoutWithTypes', async () => {
+    const customSerializeError = () => 'serialized!'
+    const createAppAsyncThunk: CreateAsyncThunkWithoutWithTypes<{
+      serializedErrorType: ReturnType<typeof customSerializeError>
+    }> = (prefix: string, payloadCreator: any, options: any) =>
+      createAsyncThunk(prefix, payloadCreator, {
+        ...options,
+        serializeError: customSerializeError,
+      }) as any
+
+    const asyncThunk = createAppAsyncThunk('test', async () => {
+      throw new Error('Panic!')
+    })
+
+    const promise = store.dispatch(asyncThunk())
+    const result = await promise
+    if (!asyncThunk.rejected.match(result)) {
+      throw new Error('should have thrown')
+    }
+    expect(result.error).toEqual('serialized!')
   })
 })
