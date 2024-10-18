@@ -109,11 +109,15 @@ const initialSubState: QuerySubState<any> = {
 // abuse immer to freeze default states
 const defaultQuerySubState = /* @__PURE__ */ createNextState(
   initialSubState,
-  () => {},
+  () => {
+    /** No-Op */
+  },
 )
 const defaultMutationSubState = /* @__PURE__ */ createNextState(
   initialSubState as MutationSubState<any>,
-  () => {},
+  () => {
+    /** No-Op */
+  },
 )
 
 export function buildSelectors<
@@ -205,12 +209,12 @@ export function buildSelectors<
 
   function selectInvalidatedBy(
     state: RootState,
-    tags: ReadonlyArray<TagDescription<string>>,
-  ): Array<{
+    tags: readonly TagDescription<string>[],
+  ): {
     endpointName: string
     originalArgs: any
     queryCacheKey: QueryCacheKey
-  }> {
+  }[] {
     const apiState = state[reducerPath]
     const toInvalidate = new Set<QueryCacheKey>()
     for (const tag of tags.map(expandTagDescription)) {
@@ -219,7 +223,7 @@ export function buildSelectors<
         continue
       }
 
-      let invalidateSubscriptions =
+      const invalidateSubscriptions =
         (tag.id !== undefined
           ? // id given: invalidate all queries that provide this type & id
             provided[tag.id]
@@ -250,7 +254,7 @@ export function buildSelectors<
   function selectCachedArgsForQuery<QueryName extends QueryKeys<Definitions>>(
     state: RootState,
     queryName: QueryName,
-  ): Array<QueryArgFrom<Definitions[QueryName]>> {
+  ): QueryArgFrom<Definitions[QueryName]>[] {
     return Object.values(state[reducerPath].queries as QueryState<any>)
       .filter(
         (

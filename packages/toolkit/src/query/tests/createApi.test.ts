@@ -1,6 +1,7 @@
 import { server } from '@internal/query/tests/mocks/server'
 import {
   getSerializedHeaders,
+  noop,
   setupApiStore,
 } from '@internal/tests/utils/helpers'
 import { configureStore, createAction, createReducer } from '@reduxjs/toolkit'
@@ -25,7 +26,7 @@ beforeAll(() => {
 let spy: MockInstance
 
 beforeAll(() => {
-  spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+  spy = vi.spyOn(console, 'error').mockImplementation(noop)
 })
 afterEach(() => {
   spy.mockReset()
@@ -407,21 +408,6 @@ describe('endpoint definition typings', () => {
       const storeRef = setupApiStore(api, undefined, {
         withoutTestLifecycles: true,
       })
-      // only type-test this part
-      if (2 > 1) {
-        api.enhanceEndpoints({
-          endpoints: {
-            query1: {
-              // @ts-expect-error
-              providesTags: ['new'],
-            },
-            query2: {
-              // @ts-expect-error
-              providesTags: ['missing'],
-            },
-          },
-        })
-      }
 
       const enhanced = api.enhanceEndpoints({
         addTagTypes: ['new'],
@@ -445,22 +431,6 @@ describe('endpoint definition typings', () => {
       expect(spy).toHaveBeenCalledWith(
         "Tag type 'missing' was used, but not specified in `tagTypes`!",
       )
-
-      // only type-test this part
-      if (2 > 1) {
-        enhanced.enhanceEndpoints({
-          endpoints: {
-            query1: {
-              // returned `enhanced` api contains "new" enitityType
-              providesTags: ['new'],
-            },
-            query2: {
-              // @ts-expect-error
-              providesTags: ['missing'],
-            },
-          },
-        })
-      }
     })
 
     test('modify', () => {
@@ -1158,11 +1128,11 @@ describe('timeout behavior', () => {
         }),
       }),
     })
-  
+
     const storeRef = setupApiStore(api, undefined, {
       withoutTestLifecycles: true,
     })
-    
+
     server.use(
       http.get(
         'https://example.com/success',

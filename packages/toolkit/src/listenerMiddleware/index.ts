@@ -146,11 +146,13 @@ const createTakePattern = <S>(
     validateActive(signal)
 
     // Placeholder unsubscribe function until the listener is added
-    let unsubscribe: UnsubscribeListener = () => {}
+    let unsubscribe: UnsubscribeListener = () => {
+      /** No-Op */
+    }
 
     const tuplePromise = new Promise<[Action, S, S]>((resolve, reject) => {
       // Inside the Promise, we synchronously add the listener.
-      let stopListening = startListening({
+      const stopListening = startListening({
         predicate: predicate as any,
         effect: (action, listenerApi): void => {
           // One-shot listener that cleans up as soon as the predicate passes
@@ -193,7 +195,8 @@ const createTakePattern = <S>(
 }
 
 const getListenerEntryPropsFrom = (options: FallbackAddListenerOptions) => {
-  let { type, actionCreator, matcher, predicate, effect } = options
+  let { type, predicate } = options
+  const { actionCreator, matcher, effect } = options
 
   if (type) {
     predicate = createAction(type).match

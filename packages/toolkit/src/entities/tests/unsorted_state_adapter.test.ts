@@ -2,9 +2,9 @@ import type { EntityAdapter, EntityState } from '../models'
 import { createEntityAdapter } from '../create_adapter'
 import type { BookModel } from './fixtures/book'
 import {
-  TheGreatGatsby,
   AClockworkOrange,
   AnimalFarm,
+  TheGreatGatsby,
   TheHobbit,
 } from './fixtures/book'
 import { createNextState } from '../..'
@@ -14,7 +14,6 @@ describe('Unsorted State Adapter', () => {
   let state: EntityState<BookModel, string>
 
   beforeAll(() => {
-    //eslint-disable-next-line
     Object.defineProperty(Array.prototype, 'unwantedField', {
       enumerable: true,
       configurable: true,

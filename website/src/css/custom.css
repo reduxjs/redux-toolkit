@@ -141,7 +141,7 @@ a.contents__link > code {
 
 .table-of-contents__link:hover > code,
 .table-of-contents__link:hover {
-    color: var(--ifm-color-primary-lightest);
+  color: var(--ifm-color-primary-lightest);
 }
 
 a:visited {

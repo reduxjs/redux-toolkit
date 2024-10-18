@@ -5,7 +5,7 @@ import {
   hookWaitFor,
   setupApiStore,
 } from '../../tests/utils/helpers'
-import { renderHook, act, waitFor } from '@testing-library/react'
+import { act, renderHook, waitFor } from '@testing-library/react'
 import { delay } from 'msw'
 
 interface Post {
@@ -88,9 +88,9 @@ const storeRef = setupApiStore(api, {
 })
 
 describe('basic lifecycle', () => {
-  let onStart = vi.fn(),
-    onError = vi.fn(),
-    onSuccess = vi.fn()
+  const onStart = vi.fn()
+  const onError = vi.fn()
+  const onSuccess = vi.fn()
 
   const extendedApi = api.injectEndpoints({
     endpoints: (build) => ({
@@ -318,7 +318,7 @@ describe('upsertQueryData', () => {
   test('upsert while a normal query is running (rejected)', async () => {
     baseQuery.mockImplementationOnce(async () => {
       await delay(20)
-      // eslint-disable-next-line no-throw-literal
+
       throw 'Error!'
     })
     const upsertedData = {

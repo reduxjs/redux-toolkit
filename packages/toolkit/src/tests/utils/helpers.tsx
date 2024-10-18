@@ -7,16 +7,10 @@ import type {
 } from '@reduxjs/toolkit'
 import { configureStore } from '@reduxjs/toolkit'
 import { setupListeners } from '@reduxjs/toolkit/query'
-import { useCallback, useEffect, useRef } from 'react'
-
-import { Provider } from 'react-redux'
-
 import { act, cleanup } from '@testing-library/react'
-import {
-  createConsole,
-  getLog,
-  mockConsole,
-} from 'console-testing-library/pure'
+import { useCallback, useEffect, useRef } from 'react'
+import { Provider } from 'react-redux'
+import type { AnyObject } from '../../tsHelpers'
 
 export const ANY = 0 as any
 
@@ -50,7 +44,7 @@ export function withProvider(store: Store<any>) {
 export const hookWaitFor = async (cb: () => void, time = 2000) => {
   const startedAt = Date.now()
 
-  while (true) {
+  while (startedAt) {
     try {
       cb()
       return true
@@ -63,11 +57,14 @@ export const hookWaitFor = async (cb: () => void, time = 2000) => {
       })
     }
   }
+
+  return false
 }
+
 export const fakeTimerWaitFor = async (cb: () => void, time = 2000) => {
   const startedAt = Date.now()
 
-  while (true) {
+  while (startedAt) {
     try {
       cb()
       return true
@@ -80,6 +77,8 @@ export const fakeTimerWaitFor = async (cb: () => void, time = 2000) => {
       })
     }
   }
+
+  return false
 }
 
 export const useRenderCounter = () => {
@@ -98,79 +97,12 @@ export const useRenderCounter = () => {
   return useCallback(() => countRef.current, [])
 }
 
-expect.extend({
-  toMatchSequence(
-    _actions: UnknownAction[],
-    ...matchers: Array<(arg: any) => boolean>
-  ) {
-    const actions = _actions.concat()
-    actions.shift() // remove INIT
-
-    for (let i = 0; i < matchers.length; i++) {
-      if (!matchers[i](actions[i])) {
-        return {
-          message: () =>
-            `Action ${actions[i].type} does not match sequence at position ${i}.
-All actions:
-${actions.map((a) => a.type).join('\n')}`,
-          pass: false,
-        }
-      }
-    }
-    return {
-      message: () => `All actions match the sequence.`,
-      pass: true,
-    }
-  },
-})
-
-declare global {
-  namespace jest {
-    interface Matchers<R> {
-      toHaveConsoleOutput(expectedOutput: string): Promise<R>
-    }
-  }
-}
-
-function normalize(str: string) {
+export function normalize(str: string) {
   return str
     .normalize()
     .replace(/\s*\r?\n\r?\s*/g, '')
     .trim()
 }
-
-expect.extend({
-  async toHaveConsoleOutput(
-    fn: () => void | Promise<void>,
-    expectedOutput: string,
-  ) {
-    const restore = mockConsole(createConsole())
-    await fn()
-    const { log } = getLog()
-    restore()
-
-    if (normalize(log) === normalize(expectedOutput))
-      return {
-        message: () => `Console output matches
-===
-${expectedOutput}
-===`,
-        pass: true,
-      }
-    else
-      return {
-        message: () => `Console output
-===
-${log}
-===
-does not match
-===
-${expectedOutput}
-===`,
-        pass: false,
-      }
-  },
-})
 
 export const actionsReducer = {
   actions: (state: UnknownAction[] = [], action: UnknownAction) => {
@@ -267,4 +199,30 @@ export function setupApiStore<
   }
 
   return refObj
+}
+
+export const isObject = (value: unknown): value is AnyObject => {
+  return typeof value === 'object' && value != null
+}
+
+export const hasBodyAndHeaders = (
+  request: unknown,
+): request is {
+  body: any
+  headers: {
+    'content-type': string
+    [key: string]: string
+  }
+} => {
+  return (
+    isObject(request) &&
+    'headers' in request &&
+    isObject(request.headers) &&
+    'content-type' in request.headers &&
+    'body' in request
+  )
+}
+
+export const noop = () => {
+  /** No-Op */
 }

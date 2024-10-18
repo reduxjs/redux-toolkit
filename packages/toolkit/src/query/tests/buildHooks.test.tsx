@@ -4,6 +4,7 @@ import { server } from '@internal/query/tests/mocks/server'
 import { countObjectKeys } from '@internal/query/utils/countObjectKeys'
 import {
   actionsReducer,
+  noop,
   setupApiStore,
   useRenderCounter,
   waitMs,
@@ -281,7 +282,7 @@ describe('hooks tests', () => {
     })
 
     test('useQuery hook sets isLoading and isFetching to the correct states', async () => {
-      let refetchMe: () => void = () => {}
+      let refetchMe: () => void = noop
       function User() {
         const [value, setValue] = useState(0)
         getRenderCount = useRenderCounter()
@@ -362,7 +363,9 @@ describe('hooks tests', () => {
         )
       }
 
-      let { rerender } = render(<User id={1} />, { wrapper: storeRef.wrapper })
+      const { rerender } = render(<User id={1} />, {
+        wrapper: storeRef.wrapper,
+      })
 
       await waitFor(() =>
         expect(screen.getByTestId('status').textContent).toBe('1'),
@@ -970,7 +973,7 @@ describe('hooks tests', () => {
       let mock: MockInstance
 
       beforeEach(() => {
-        mock = vi.spyOn(console, 'error').mockImplementation(() => {})
+        mock = vi.spyOn(console, 'error').mockImplementation(noop)
       })
 
       afterEach(() => {
@@ -2025,7 +2028,7 @@ describe('hooks with createApi defaults set', () => {
   const defaultApi = createApi({
     baseQuery: async (arg: any) => {
       await waitMs()
-      if ('amount' in arg?.body) {
+      if ('body' in arg && 'amount' in arg.body) {
         amount += 1
       }
       return {
@@ -2118,7 +2121,7 @@ describe('hooks with createApi defaults set', () => {
       )
     }
 
-    let { unmount } = render(<User />, { wrapper: storeRef.wrapper })
+    const { unmount } = render(<User />, { wrapper: storeRef.wrapper })
 
     await waitFor(() =>
       expect(screen.getByTestId('isLoading').textContent).toBe('true'),
@@ -2599,7 +2602,7 @@ describe('hooks with createApi defaults set', () => {
     const api = createApi({
       baseQuery: async (arg: any) => {
         await waitMs()
-        if ('amount' in arg?.body) {
+        if ('body' in arg && 'amount' in arg.body) {
           amount += 1
         }
         return {
