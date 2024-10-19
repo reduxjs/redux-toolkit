@@ -1,6 +1,6 @@
 import { createApi } from '@reduxjs/toolkit/query'
-import { actionsReducer, setupApiStore } from '../../tests/utils/helpers'
 import { delay } from 'msw'
+import { actionsReducer, setupApiStore } from '../../tests/utils/helpers'
 
 const baseQuery = (args?: any) => ({ data: args })
 const api = createApi({
@@ -70,3 +70,41 @@ it('invalidates the specified tags', async () => {
     getBread.matchFulfilled,
   )
 })
+
+it('invalidates tags correctly when null or undefined are provided as tags', async() =>{
+  await storeRef.store.dispatch(getBanana.initiate(1))
+  await storeRef.store.dispatch(api.util.invalidateTags([undefined, null, 'Banana']))
+
+  // Slight pause to let the middleware run and such
+  await delay(20)
+
+  const apiActions = [
+    api.internalActions.middlewareRegistered.match,
+    getBanana.matchPending,
+    getBanana.matchFulfilled,
+    api.util.invalidateTags.match,
+    getBanana.matchPending,
+    getBanana.matchFulfilled,
+  ]
+
+  expect(storeRef.store.getState().actions).toMatchSequence(...apiActions)
+})
+
+
+it.each([{ tags: [undefined, null, 'Bread'] as Parameters<typeof api.util.invalidateTags>['0'] }, { tags: [undefined, null], }, { tags: [] }])('does not invalidate with tags=$tags if no query matches', async ({ tags }) => {
+  await storeRef.store.dispatch(getBanana.initiate(1))
+  await storeRef.store.dispatch(api.util.invalidateTags(tags))
+
+  // Slight pause to let the middleware run and such
+  await delay(20)
+
+  const apiActions = [
+    api.internalActions.middlewareRegistered.match,
+    getBanana.matchPending,
+    getBanana.matchFulfilled,
+    api.util.invalidateTags.match,
+  ]
+
+  expect(storeRef.store.getState().actions).toMatchSequence(...apiActions)
+})
+ 
