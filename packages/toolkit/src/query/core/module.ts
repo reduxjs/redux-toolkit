@@ -350,7 +350,7 @@ export interface ApiModules<
        * ```
        */
       invalidateTags: ActionCreatorWithPayload<
-        Array<TagDescription<TagTypes>>,
+        Array<TagDescription<TagTypes> | null | undefined>,
         string
       >
 
@@ -361,7 +361,7 @@ export interface ApiModules<
        */
       selectInvalidatedBy: (
         state: RootState<Definitions, string, ReducerPath>,
-        tags: ReadonlyArray<TagDescription<TagTypes>>,
+        tags: ReadonlyArray<TagDescription<TagTypes> | null | undefined>,
       ) => Array<{
         endpointName: string
         originalArgs: any

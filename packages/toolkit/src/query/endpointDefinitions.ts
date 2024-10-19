@@ -242,7 +242,7 @@ export type ResultDescription<
   ErrorType,
   MetaType,
 > =
-  | ReadonlyArray<TagDescription<TagTypes>>
+  | ReadonlyArray<TagDescription<TagTypes> | undefined | null>
   | GetResultDescriptionFn<TagTypes, ResultType, QueryArg, ErrorType, MetaType>
 
 type QueryTypes<

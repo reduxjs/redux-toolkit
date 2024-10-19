@@ -48,7 +48,7 @@ export function buildMiddleware<
 
   const actions = {
     invalidateTags: createAction<
-      Array<TagTypes | FullTagDescription<TagTypes>>
+      Array<TagTypes | FullTagDescription<TagTypes> | null | undefined>
     >(`${reducerPath}/invalidateTags`),
   }
 
