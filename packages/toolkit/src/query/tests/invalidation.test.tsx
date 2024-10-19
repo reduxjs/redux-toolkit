@@ -14,10 +14,10 @@ const tagTypes = [
   'giraffe',
 ] as const
 type TagTypes = (typeof tagTypes)[number]
-type Tags = TagDescription<TagTypes>[]
-
+type ProvidedTags = TagDescription<TagTypes>[] 
+type InvalidatesTags = (ProvidedTags[number] | null | undefined)[]
 /** providesTags, invalidatesTags, shouldInvalidate */
-const caseMatrix: [Tags, Tags, boolean][] = [
+const caseMatrix: [ProvidedTags, InvalidatesTags, boolean][] = [
   // *****************************
   // basic invalidation behavior
   // *****************************
@@ -39,7 +39,11 @@ const caseMatrix: [Tags, Tags, boolean][] = [
   // type + id invalidates type + id
   [[{ type: 'apple', id: 1 }], [{ type: 'apple', id: 1 }], true],
   [[{ type: 'apple', id: 1 }], [{ type: 'apple', id: 2 }], false],
-
+  // null and undefined
+  [['apple'], [null], false],
+  [['apple'], [undefined], false],
+  [['apple'], [null, 'apple'], true],
+  [['apple'], [undefined, 'apple'], true],
   // *****************************
   // test multiple values in array
   // *****************************
