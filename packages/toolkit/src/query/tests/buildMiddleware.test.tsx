@@ -25,9 +25,15 @@ const api = createApi({
       },
       providesTags: ['Bread'],
     }),
+    invalidateFruit: build.mutation({
+      query: (fruit?: 'Banana' | 'Bread' | null) => ({ url: `invalidate/fruit/${fruit || ''}` }),
+      invalidatesTags(result, error, arg) {
+        return [arg]
+      }
+    })
   }),
 })
-const { getBanana, getBread } = api.endpoints
+const { getBanana, getBread, invalidateFruit } = api.endpoints
 
 const storeRef = setupApiStore(api, {
   ...actionsReducer,
@@ -91,7 +97,10 @@ it('invalidates tags correctly when null or undefined are provided as tags', asy
 })
 
 
-it.each([{ tags: [undefined, null, 'Bread'] as Parameters<typeof api.util.invalidateTags>['0'] }, { tags: [undefined, null], }, { tags: [] }])('does not invalidate with tags=$tags if no query matches', async ({ tags }) => {
+it.each([
+  { tags: [undefined, null, 'Bread'] as Parameters<typeof api.util.invalidateTags>['0'] },
+  { tags: [undefined, null], }, { tags: [] }]
+)('does not invalidate with tags=$tags if no query matches', async ({ tags }) => {
   await storeRef.store.dispatch(getBanana.initiate(1))
   await storeRef.store.dispatch(api.util.invalidateTags(tags))
 
@@ -108,3 +117,20 @@ it.each([{ tags: [undefined, null, 'Bread'] as Parameters<typeof api.util.invali
   expect(storeRef.store.getState().actions).toMatchSequence(...apiActions)
 })
  
+it.each([{ mutationArg: 'Bread' as "Bread" | null | undefined  }, { mutationArg: undefined }, { mutationArg: null }])('does not invalidate queries when a mutation with tags=[$mutationArg] runs and does not match anything', async ({ mutationArg }) => {
+  await storeRef.store.dispatch(getBanana.initiate(1))
+  await storeRef.store.dispatch(invalidateFruit.initiate(mutationArg))
+
+  // Slight pause to let the middleware run and such
+  await delay(20)
+
+  const apiActions = [
+    api.internalActions.middlewareRegistered.match,
+    getBanana.matchPending,
+    getBanana.matchFulfilled,
+    invalidateFruit.matchPending,
+    invalidateFruit.matchFulfilled,
+  ]
+
+  expect(storeRef.store.getState().actions).toMatchSequence(...apiActions)
+})

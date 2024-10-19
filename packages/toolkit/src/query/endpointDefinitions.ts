@@ -29,6 +29,7 @@ import type {
   OmitFromUnion,
   UnwrapPromise,
 } from './tsHelpers'
+import { isNotNullish } from './utils'
 
 const resultType = /* @__PURE__ */ Symbol()
 const baseQuery = /* @__PURE__ */ Symbol()
@@ -224,7 +225,7 @@ export type GetResultDescriptionFn<
   error: ErrorType | undefined,
   arg: QueryArg,
   meta: MetaType,
-) => ReadonlyArray<TagDescription<TagTypes>>
+) => ReadonlyArray<TagDescription<TagTypes> | undefined | null>
 
 export type FullTagDescription<TagType> = {
   type: TagType
@@ -778,6 +779,7 @@ export function calculateProvidedBy<ResultType, QueryArg, ErrorType, MetaType>(
       queryArg,
       meta as MetaType,
     )
+      .filter(isNotNullish)
       .map(expandTagDescription)
       .map(assertTagTypes)
   }
