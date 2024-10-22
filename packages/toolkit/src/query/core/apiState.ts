@@ -42,7 +42,10 @@ export type GetPreviousPageParamFunction<TPageParam, TQueryFnData = unknown> = (
   allPageParams: Array<TPageParam>,
 ) => TPageParam | undefined | null
 
-export type InfiniteQueryConfigOptions<TQueryFnData = unknown, TPageParam = unknown> = {
+export type InfiniteQueryConfigOptions<
+  TQueryFnData = unknown,
+  TPageParam = unknown,
+> = {
   /**
    * This function can be set to automatically get the previous cursor for infinite queries.
    * The result will also be used to determine the value of `hasPreviousPage`.
@@ -161,7 +164,10 @@ export type MutationKeys<Definitions extends EndpointDefinitions> = {
     : never
 }[keyof Definitions]
 
-type BaseQuerySubState<D extends BaseEndpointDefinition<any, any, any>> = {
+type BaseQuerySubState<
+  D extends BaseEndpointDefinition<any, any, any>,
+  DataType = ResultTypeFrom<D>,
+> = {
   /**
    * The argument originally passed into the hook or `initiate` action call
    */
@@ -173,7 +179,7 @@ type BaseQuerySubState<D extends BaseEndpointDefinition<any, any, any>> = {
   /**
    * The received data from the query
    */
-  data?: ResultTypeFrom<D>
+  data?: DataType
   /**
    * The received error if applicable
    */
@@ -203,19 +209,22 @@ type BaseQuerySubState<D extends BaseEndpointDefinition<any, any, any>> = {
   param?: QueryArgFrom<D>
 }
 
-export type QuerySubState<D extends BaseEndpointDefinition<any, any, any>> = Id<
+export type QuerySubState<
+  D extends BaseEndpointDefinition<any, any, any>,
+  DataType = ResultTypeFrom<D>,
+> = Id<
   | ({
       status: QueryStatus.fulfilled
     } & WithRequiredProp<
-      BaseQuerySubState<D>,
+      BaseQuerySubState<D, DataType>,
       'data' | 'fulfilledTimeStamp'
     > & { error: undefined })
   | ({
       status: QueryStatus.pending
-    } & BaseQuerySubState<D>)
+    } & BaseQuerySubState<D, DataType>)
   | ({
       status: QueryStatus.rejected
-    } & WithRequiredProp<BaseQuerySubState<D>, 'error'>)
+    } & WithRequiredProp<BaseQuerySubState<D, DataType>, 'error'>)
   | {
       status: QueryStatus.uninitialized
       originalArgs?: undefined
@@ -228,7 +237,9 @@ export type QuerySubState<D extends BaseEndpointDefinition<any, any, any>> = Id<
     }
 >
 
-export type InfiniteQuerySubState<D extends BaseEndpointDefinition<any, any, any>> = QuerySubState<D> & {
+export type InfiniteQuerySubState<
+  D extends BaseEndpointDefinition<any, any, any>,
+> = QuerySubState<D, InfiniteData<ResultTypeFrom<D>>> & {
   // TODO: These shouldn't be optional
   hasNextPage?: boolean
   hasPreviousPage?: boolean
@@ -294,7 +305,10 @@ export type InvalidationState<TagTypes extends string> = {
 }
 
 export type QueryState<D extends EndpointDefinitions> = {
-  [queryCacheKey: string]: QuerySubState<D[string]> | InfiniteQuerySubState<D[string]> | undefined
+  [queryCacheKey: string]:
+    | QuerySubState<D[string]>
+    | InfiniteQuerySubState<D[string]>
+    | undefined
 }
 
 export type SubscriptionState = {
