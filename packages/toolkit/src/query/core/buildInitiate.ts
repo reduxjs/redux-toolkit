@@ -95,7 +95,7 @@ type StartInfiniteQueryActionCreator<
 ) => (
   dispatch: ThunkDispatch<any, any, UnknownAction>,
   getState: () => any,
-) => InfiniteQueryActionCreatorResult<any>
+) => InfiniteQueryActionCreatorResult<D>
 
 export type QueryActionCreatorResult<
   D extends QueryDefinition<any, any, any, any>,
