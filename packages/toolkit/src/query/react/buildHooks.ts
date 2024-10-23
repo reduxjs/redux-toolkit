@@ -59,6 +59,7 @@ import type {
   InfiniteQueryConfigOptions,
 } from '@internal/query/core/apiState'
 import type { InfiniteQueryResultSelectorResult } from '../core/buildSelectors'
+import type { PageParamFrom } from '../endpointDefinitions'
 
 // Copy-pasted from React-Redux
 const canUseDOM = () =>
@@ -94,7 +95,7 @@ export type QueryHooks<
 }
 
 export type InfiniteQueryHooks<
-  Definition extends InfiniteQueryDefinition<any, any, any, any>,
+  Definition extends InfiniteQueryDefinition<any, any, any, any, any>,
 > = {
   useInfiniteQuery: UseInfiniteQuery<Definition>
   useInfiniteQuerySubscription: UseInfiniteQuerySubscription<Definition>
@@ -727,7 +728,7 @@ type UseQueryStateDefaultResult<D extends QueryDefinition<any, any, any, any>> =
   }
 
 export type LazyInfiniteQueryTrigger<
-  D extends InfiniteQueryDefinition<any, any, any, any>,
+  D extends InfiniteQueryDefinition<any, any, any, any, any>,
 > = {
   /**
    * Triggers a lazy query.
@@ -751,7 +752,7 @@ export type LazyInfiniteQueryTrigger<
    */
   (
     arg: QueryArgFrom<D>,
-    data: InfiniteData<any>,
+    data: InfiniteData<any, any>,
     direction: 'forward' | 'backwards',
   ): InfiniteQueryActionCreatorResult<D>
 }
@@ -804,13 +805,21 @@ interface UseInfiniteQuerySubscriptionOptions extends SubscriptionOptions {
 export type TypedUseInfiniteQuerySubscription<
   ResultType,
   QueryArg,
+  PageParam,
   BaseQuery extends BaseQueryFn,
 > = UseInfiniteQuerySubscription<
-  InfiniteQueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
+  InfiniteQueryDefinition<
+    QueryArg,
+    PageParam,
+    BaseQuery,
+    string,
+    ResultType,
+    string
+  >
 >
 
 export type UseInfiniteQuerySubscriptionResult<
-  D extends InfiniteQueryDefinition<any, any, any, any>,
+  D extends InfiniteQueryDefinition<any, any, any, any, any>,
 > = LazyInfiniteQueryTrigger<D>
 
 /**
@@ -820,43 +829,62 @@ export type UseInfiniteQuerySubscriptionResult<
 export type TypedUseInfiniteQuerySubscriptionResult<
   ResultType,
   QueryArg,
+  PageParam,
   BaseQuery extends BaseQueryFn,
 > = UseInfiniteQuerySubscriptionResult<
-  InfiniteQueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
+  InfiniteQueryDefinition<
+    QueryArg,
+    PageParam,
+    BaseQuery,
+    string,
+    ResultType,
+    string
+  >
 >
 
 export type InfiniteQueryStateSelector<
   R extends Record<string, any>,
-  D extends InfiniteQueryDefinition<any, any, any, any>,
+  D extends InfiniteQueryDefinition<any, any, any, any, any>,
 > = (state: UseInfiniteQueryStateDefaultResult<D>) => R
 
 export type UseInfiniteQuery<
-  D extends InfiniteQueryDefinition<any, any, any, any>,
+  D extends InfiniteQueryDefinition<any, any, any, any, any>,
 > = <R extends Record<string, any> = UseInfiniteQueryStateDefaultResult<D>>(
   arg: QueryArgFrom<D> | SkipToken,
   options?: UseInfiniteQuerySubscriptionOptions &
     UseInfiniteQueryStateOptions<D, R> &
-    InfiniteQueryConfigOptions<ResultTypeFrom<D>, QueryArgFrom<D>>,
+    InfiniteQueryConfigOptions<ResultTypeFrom<D>, PageParamFrom<D>>,
 ) => UseInfiniteQueryHookResult<D, R>
 
 export type UseInfiniteQueryState<
-  D extends InfiniteQueryDefinition<any, any, any, any>,
+  D extends InfiniteQueryDefinition<any, any, any, any, any>,
 > = <R extends Record<string, any> = UseInfiniteQueryStateDefaultResult<D>>(
   arg: QueryArgFrom<D> | SkipToken,
-  InfiniteQueryConfigOptions: InfiniteQueryConfigOptions,
+  InfiniteQueryConfigOptions: InfiniteQueryConfigOptions<
+    ResultTypeFrom<D>,
+    PageParamFrom<D>
+  >,
   options?: UseInfiniteQueryStateOptions<D, R>,
 ) => UseInfiniteQueryStateResult<D, R>
 
 export type TypedUseInfiniteQueryState<
   ResultType,
   QueryArg,
+  PageParam,
   BaseQuery extends BaseQueryFn,
 > = UseInfiniteQueryState<
-  InfiniteQueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
+  InfiniteQueryDefinition<
+    QueryArg,
+    PageParam,
+    BaseQuery,
+    string,
+    ResultType,
+    string
+  >
 >
 
 export type UseInfiniteQuerySubscription<
-  D extends InfiniteQueryDefinition<any, any, any, any>,
+  D extends InfiniteQueryDefinition<any, any, any, any, any>,
 > = (
   arg: QueryArgFrom<D> | SkipToken,
   options?: UseInfiniteQuerySubscriptionOptions,
@@ -866,12 +894,12 @@ export type UseInfiniteQuerySubscription<
 ]
 
 export type UseInfiniteQueryHookResult<
-  D extends InfiniteQueryDefinition<any, any, any, any>,
+  D extends InfiniteQueryDefinition<any, any, any, any, any>,
   R = UseInfiniteQueryStateDefaultResult<D>,
 > = UseInfiniteQueryStateResult<D, R>
 
 export type UseInfiniteQueryStateOptions<
-  D extends InfiniteQueryDefinition<any, any, any, any>,
+  D extends InfiniteQueryDefinition<any, any, any, any, any>,
   R extends Record<string, any>,
 > = {
   /**
@@ -943,12 +971,12 @@ export type UseInfiniteQueryStateOptions<
 }
 
 export type UseInfiniteQueryStateResult<
-  _ extends InfiniteQueryDefinition<any, any, any, any>,
+  _ extends InfiniteQueryDefinition<any, any, any, any, any>,
   R,
 > = TSHelpersNoInfer<R>
 
 type UseInfiniteQueryStateBaseResult<
-  D extends InfiniteQueryDefinition<any, any, any, any>,
+  D extends InfiniteQueryDefinition<any, any, any, any, any>,
 > = QuerySubState<D> & {
   /**
    * Where `data` tries to hold data as much as possible, also re-using
@@ -986,7 +1014,7 @@ type UseInfiniteQueryStateBaseResult<
 }
 
 type UseInfiniteQueryStateDefaultResult<
-  D extends InfiniteQueryDefinition<any, any, any, any>,
+  D extends InfiniteQueryDefinition<any, any, any, any, any>,
 > = TSHelpersId<
   | TSHelpersOverride<
       Extract<
@@ -1803,7 +1831,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       const trigger = useCallback(
         function (
           arg: any,
-          data: InfiniteData<any>,
+          data: InfiniteData<any, any>,
           direction: 'forward' | 'backwards',
         ) {
           let promise: InfiniteQueryActionCreatorResult<any>

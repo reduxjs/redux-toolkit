@@ -27,6 +27,11 @@ describe('Infinite queries', () => {
       name: string
     }
 
+    type PokemonQueryArg = {
+      type: string
+      page: number
+    }
+
     server.use(
       http.get('https://example.com/listItems', ({ request }) => {
         const url = new URL(request.url)
@@ -43,16 +48,21 @@ describe('Infinite queries', () => {
     const pokemonApi = createApi({
       baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
       endpoints: (builder) => ({
-        getInfinitePokemon: builder.infiniteQuery<Pokemon[], number>({
+        // GOAL: Specify both the query arg (for cache key serialization)
+        // and the page param type (for feeding into the query URL)
+        getInfinitePokemon: builder.infiniteQuery<Pokemon[], string, number>({
           infiniteQueryOptions: {
             getNextPageParam: (
               lastPage,
               allPages,
+              // ✅Currently: page param type is `number`
               lastPageParam,
               allPageParams,
             ) => lastPageParam + 1,
           },
-          query(pageParam = 0) {
+          // ❌ This seems to be controlled by `BaseEndpointDefinition`
+          // GOAL: should be `pageParam: number`
+          query(pageParam) {
             return `https://example.com/listItems?page=${pageParam}`
           },
         }),
@@ -64,7 +74,9 @@ describe('Infinite queries', () => {
     })
 
     const res = storeRef.store.dispatch(
-      pokemonApi.endpoints.getInfinitePokemon.initiate(0, {}),
+      // ❌ This seems to be controlled by `BaseEndpointDefinition`.
+      // GOAL: should be `arg: string`
+      pokemonApi.endpoints.getInfinitePokemon.initiate('fire', {}),
     )
 
     const firstResult = await res
@@ -79,7 +91,7 @@ describe('Infinite queries', () => {
     }
 
     const secondRes = storeRef.store.dispatch(
-      pokemonApi.endpoints.getInfinitePokemon.initiate(0, {
+      pokemonApi.endpoints.getInfinitePokemon.initiate('fire', {
         direction: 'forward',
         data: firstResult.data,
       }),
@@ -95,5 +107,10 @@ describe('Infinite queries', () => {
         [{ id: '1', name: 'Pokemon 1' }],
       ])
     }
+
+    console.log(
+      'API state: ',
+      util.inspect(storeRef.store.getState().api, { depth: Infinity }),
+    )
   })
 })

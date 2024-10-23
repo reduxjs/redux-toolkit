@@ -70,10 +70,10 @@ export type StartInfiniteQueryActionCreatorOptions = {
   subscribe?: boolean
   forceRefetch?: boolean | number
   subscriptionOptions?: SubscriptionOptions
-  infiniteQueryOptions?: InfiniteQueryConfigOptions
+  infiniteQueryOptions?: InfiniteQueryConfigOptions<unknown, unknown>
   direction?: 'forward' | 'backwards'
   [forceQueryFnSymbol]?: () => QueryReturnValue
-  data?: InfiniteData<unknown>
+  data?: InfiniteData<unknown, unknown>
   param?: unknown
   previous?: boolean
 }
@@ -112,7 +112,7 @@ export type QueryActionCreatorResult<
 }
 
 export type InfiniteQueryActionCreatorResult<
-  D extends InfiniteQueryDefinition<any, any, any, any>,
+  D extends InfiniteQueryDefinition<any, any, any, any, any>,
 > = Promise<InfiniteQueryResultSelectorResult<D>> & {
   arg: QueryArgFrom<D>
   requestId: string
@@ -480,7 +480,7 @@ You must add the middleware for RTK-Query to function correctly!`,
 
   function buildInitiateInfiniteQuery(
     endpointName: string,
-    endpointDefinition: InfiniteQueryDefinition<any, any, any, any>,
+    endpointDefinition: InfiniteQueryDefinition<any, any, any, any, any>,
     pages?: number,
   ) {
     const infiniteQueryAction: StartInfiniteQueryActionCreator<any> =

@@ -122,7 +122,7 @@ export type InfiniteQueryThunkArg = QuerySubstateIdentifier &
     type: `query`
     originalArgs: unknown
     endpointName: string
-    data: InfiniteData<unknown>
+    data: InfiniteData<unknown, unknown>
     param: unknown
     previous?: boolean
     direction?: 'forward' | 'backwards'
@@ -426,7 +426,7 @@ export function buildThunks<
         const oldPageParams: any[] = []
 
         const fetchPage = async (
-          data: InfiniteData<unknown>,
+          data: InfiniteData<unknown, unknown>,
           param: unknown,
           previous?: boolean,
         ): Promise<QueryReturnValue> => {
@@ -480,10 +480,10 @@ export function buildThunks<
               // @ts-ignore
               const param = getNextPageParam(
                 endpointDefinition.infiniteQueryOptions,
-                result.data as InfiniteData<unknown>,
+                result.data as InfiniteData<unknown, unknown>,
               )
               result = await fetchPage(
-                result.data as InfiniteData<unknown>,
+                result.data as InfiniteData<unknown, unknown>,
                 param,
               )
             }
@@ -601,8 +601,8 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
   }
 
   function getNextPageParam(
-    options: InfiniteQueryConfigOptions<any>,
-    { pages, pageParams }: InfiniteData<unknown>,
+    options: InfiniteQueryConfigOptions<unknown, unknown>,
+    { pages, pageParams }: InfiniteData<unknown, unknown>,
   ): unknown | undefined {
     const lastIndex = pages.length - 1
     return options.getNextPageParam(
@@ -614,8 +614,8 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
   }
 
   function getPreviousPageParam(
-    options: InfiniteQueryConfigOptions<any>,
-    { pages, pageParams }: InfiniteData<unknown>,
+    options: InfiniteQueryConfigOptions<unknown, unknown>,
+    { pages, pageParams }: InfiniteData<unknown, unknown>,
   ): unknown | undefined {
     return options.getPreviousPageParam?.(
       pages[0],

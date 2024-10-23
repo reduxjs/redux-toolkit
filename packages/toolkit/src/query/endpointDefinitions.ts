@@ -35,6 +35,7 @@ import type {
   OmitFromUnion,
   UnwrapPromise,
 } from './tsHelpers'
+import { AnyARecord } from 'dns'
 
 const resultType = /* @__PURE__ */ Symbol()
 const baseQuery = /* @__PURE__ */ Symbol()
@@ -194,13 +195,59 @@ type BaseEndpointTypes<QueryArg, BaseQuery extends BaseQueryFn, ResultType> = {
   ResultType: ResultType
 }
 
+// GOAL: if `PageParam` is supplied, then we should
+// pass it through so that it becomes the argument type
+// for `query` and `queryFn`.
+// Otherwise, we stick with `QueryArg`.
+// However, `initiate` should always receive`QueryArg`.
+
+// ❌ Failing change 1: use `FinalQueryArg`:
+// - ❌ `initiate(arg: number)
+// -  ✅`query(pageParam: number)
+/*
+      ? never
+    : EndpointDefinitionWithQuery<FinalQueryArg, BaseQuery, ResultType>)
+| EndpointDefinitionWithQueryFn<FinalQueryArg, BaseQuery, ResultType>
+*/
+
+// ❌ Failing change 2: one nested `PageParam` checks:
+// - ❌ `initiate(arg: string | number)
+// - ✅ `query(pageParam: number)`
+/*
+ ? never
+: [PageParam] extends [never]
+  ? EndpointDefinitionWithQuery<QueryArg, BaseQuery, ResultType>
+  : EndpointDefinitionWithQuery<PageParam, BaseQuery, ResultType>)
+  */
+
+// ❌ Failing change 3: both nested `PageParam` checks:
+// - ❌ `initiate(arg: unknown)
+// - ❌ `query(pageParam: any)`, field is `undefined`
+/*
+ ? never
+: [PageParam] extends [never]
+  ? EndpointDefinitionWithQuery<QueryArg, BaseQuery, ResultType>
+  : EndpointDefinitionWithQuery<PageParam, BaseQuery, ResultType>)
+| [PageParam] extends [never]
+? EndpointDefinitionWithQueryFn<QueryArg, BaseQuery, ResultType>
+: EndpointDefinitionWithQueryFn<PageParam, BaseQuery, ResultType>
+*/
+
 export type BaseEndpointDefinition<
   QueryArg,
   BaseQuery extends BaseQueryFn,
   ResultType,
+  PageParam = never,
+  // Tried using this instead of the extra nested check below,
+  // but that ends up with `initiate(arg: number)`
+  // instead of `initiate(arg: string)`
+  FinalQueryArg = [PageParam] extends [never] ? QueryArg : PageParam,
 > = (
   | ([CastAny<BaseQueryResult<BaseQuery>, {}>] extends [NEVER]
-      ? never
+      ? // ❌Existing logic:
+        // - ✅ `initiate(arg: string)
+        // - ❌ `query(pageParam: string)
+        never
       : EndpointDefinitionWithQuery<QueryArg, BaseQuery, ResultType>)
   | EndpointDefinitionWithQueryFn<QueryArg, BaseQuery, ResultType>
 ) & {
@@ -546,6 +593,7 @@ export type QueryDefinition<
 // cloning Query Endpoint Definition with an extra option to begin with
 export interface InfiniteQueryTypes<
   QueryArg,
+  PageParam,
   BaseQuery extends BaseQueryFn,
   TagTypes extends string,
   ResultType,
@@ -560,6 +608,7 @@ export interface InfiniteQueryTypes<
    */
   InfiniteQueryDefinition: InfiniteQueryDefinition<
     QueryArg,
+    PageParam,
     BaseQuery,
     TagTypes,
     ResultType,
@@ -573,6 +622,7 @@ export interface InfiniteQueryExtraOptions<
   TagTypes extends string,
   ResultType,
   QueryArg,
+  PageParam,
   BaseQuery extends BaseQueryFn,
   ReducerPath extends string = string,
 > extends CacheLifecycleInfiniteQueryExtraOptions<
@@ -596,74 +646,14 @@ export interface InfiniteQueryExtraOptions<
    */
   invalidatesTags?: never
 
-  infiniteQueryOptions: InfiniteQueryConfigOptions<ResultType, QueryArg>
-
-  /**
-   * Can be provided to return a custom cache key value based on the query arguments.
-   *
-   * This is primarily intended for cases where a non-serializable value is passed as part of the query arg object and should be excluded from the cache key.  It may also be used for cases where an endpoint should only have a single cache entry, such as an infinite loading / pagination implementation.
-   *
-   * Unlike the `createApi` version which can _only_ return a string, this per-endpoint option can also return an an object, number, or boolean.  If it returns a string, that value will be used as the cache key directly.  If it returns an object / number / boolean, that value will be passed to the built-in `defaultSerializeQueryArgs`.  This simplifies the use case of stripping out args you don't want included in the cache key.
-   *
-   *
-   * @example
-   *
-   * ```ts
-   * // codeblock-meta title="serializeQueryArgs : exclude value"
-   *
-   * import { createApi, fetchBaseQuery, defaultSerializeQueryArgs } from '@reduxjs/toolkit/query/react'
-   * interface Post {
-   *   id: number
-   *   name: string
-   * }
-   *
-   * interface MyApiClient {
-   *   fetchPost: (id: string) => Promise<Post>
-   * }
-   *
-   * createApi({
-   *  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
-   *  endpoints: (build) => ({
-   *    // Example: an endpoint with an API client passed in as an argument,
-   *    // but only the item ID should be used as the cache key
-   *    getPost: build.query<Post, { id: string; client: MyApiClient }>({
-   *      queryFn: async ({ id, client }) => {
-   *        const post = await client.fetchPost(id)
-   *        return { data: post }
-   *      },
-   *      // highlight-start
-   *      serializeQueryArgs: ({ queryArgs, endpointDefinition, endpointName }) => {
-   *        const { id } = queryArgs
-   *        // This can return a string, an object, a number, or a boolean.
-   *        // If it returns an object, number or boolean, that value
-   *        // will be serialized automatically via `defaultSerializeQueryArgs`
-   *        return { id } // omit `client` from the cache key
-   *
-   *        // Alternately, you can use `defaultSerializeQueryArgs` yourself:
-   *        // return defaultSerializeQueryArgs({
-   *        //   endpointName,
-   *        //   queryArgs: { id },
-   *        //   endpointDefinition
-   *        // })
-   *        // Or  create and return a string yourself:
-   *        // return `getPost(${id})`
-   *      },
-   *      // highlight-end
-   *    }),
-   *  }),
-   *})
-   * ```
-   */
-  serializeQueryArgs?: SerializeQueryArgs<
-    QueryArg,
-    string | number | boolean | Record<any, any>
-  >
+  infiniteQueryOptions: InfiniteQueryConfigOptions<ResultType, PageParam>
 
   /**
    * All of these are `undefined` at runtime, purely to be used in TypeScript declarations!
    */
   Types?: InfiniteQueryTypes<
     QueryArg,
+    PageParam,
     BaseQuery,
     TagTypes,
     ResultType,
@@ -673,15 +663,17 @@ export interface InfiniteQueryExtraOptions<
 
 export type InfiniteQueryDefinition<
   QueryArg,
+  PageParam,
   BaseQuery extends BaseQueryFn,
   TagTypes extends string,
   ResultType,
   ReducerPath extends string = string,
-> = BaseEndpointDefinition<QueryArg, BaseQuery, ResultType> &
+> = BaseEndpointDefinition<QueryArg, BaseQuery, ResultType, PageParam> &
   InfiniteQueryExtraOptions<
     TagTypes,
     ResultType,
     QueryArg,
+    PageParam,
     BaseQuery,
     ReducerPath
   >
@@ -812,11 +804,13 @@ export type EndpointDefinition<
   TagTypes extends string,
   ResultType,
   ReducerPath extends string = string,
+  PageParam = any,
 > =
   | QueryDefinition<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>
   | MutationDefinition<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>
   | InfiniteQueryDefinition<
       QueryArg,
+      PageParam,
       BaseQuery,
       TagTypes,
       ResultType,
@@ -842,7 +836,7 @@ export function isMutationDefinition(
 
 export function isInfiniteQueryDefinition(
   e: EndpointDefinition<any, any, any, any>,
-): e is InfiniteQueryDefinition<any, any, any, any> {
+): e is InfiniteQueryDefinition<any, any, any, any, any> {
   return e.type === DefinitionType.infinitequery
 }
 
@@ -922,10 +916,11 @@ export type EndpointBuilder<
     >,
   ): MutationDefinition<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>
 
-  infiniteQuery<ResultType, QueryArg>(
+  infiniteQuery<ResultType, QueryArg, PageParam>(
     definition: OmitFromUnion<
       InfiniteQueryDefinition<
         QueryArg,
+        PageParam,
         BaseQuery,
         TagTypes,
         ResultType,
@@ -935,6 +930,7 @@ export type EndpointBuilder<
     >,
   ): InfiniteQueryDefinition<
     QueryArg,
+    PageParam,
     BaseQuery,
     TagTypes,
     ResultType,
@@ -992,6 +988,11 @@ export type ReducerPathFrom<
 export type TagTypesFrom<D extends EndpointDefinition<any, any, any, any>> =
   D extends EndpointDefinition<any, any, infer RP, any> ? RP : unknown
 
+export type PageParamFrom<
+  D extends InfiniteQueryDefinition<any, any, any, any, any>,
+> =
+  D extends InfiniteQueryDefinition<any, infer PP, any, any, any> ? PP : unknown
+
 export type TagTypesFromApi<T> =
   T extends Api<any, any, any, infer TagTypes> ? TagTypes : never
 
@@ -1035,6 +1036,7 @@ export type OverrideResultType<Definition, NewResultType> =
         >
       : Definition extends InfiniteQueryDefinition<
             infer QueryArg,
+            infer PageParam,
             infer BaseQuery,
             infer TagTypes,
             any,
@@ -1042,6 +1044,7 @@ export type OverrideResultType<Definition, NewResultType> =
           >
         ? InfiniteQueryDefinition<
             QueryArg,
+            PageParam,
             BaseQuery,
             TagTypes,
             NewResultType,
@@ -1084,6 +1087,7 @@ export type UpdateDefinitions<
         >
       : Definitions[K] extends InfiniteQueryDefinition<
             infer QueryArg,
+            infer PageParam,
             infer BaseQuery,
             any,
             infer ResultType,
@@ -1091,6 +1095,7 @@ export type UpdateDefinitions<
           >
         ? InfiniteQueryDefinition<
             QueryArg,
+            PageParam,
             BaseQuery,
             NewTagTypes,
             TransformedResponse<NewDefinitions, K, ResultType>,
