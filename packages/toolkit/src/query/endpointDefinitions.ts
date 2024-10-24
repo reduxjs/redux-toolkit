@@ -601,7 +601,7 @@ export interface InfiniteQueryExtraOptions<
    */
   invalidatesTags?: never
 
-  infiniteQueryOptions: InfiniteQueryConfigOptions<ResultType, QueryArg>
+  infiniteQueryOptions: InfiniteQueryConfigOptions<ResultType, PageParam>
 
   /**
    * Can be provided to return a custom cache key value based on the query arguments.
