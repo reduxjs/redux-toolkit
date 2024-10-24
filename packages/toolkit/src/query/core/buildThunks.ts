@@ -561,7 +561,8 @@ export function buildThunks<
           // Fetch first page
           result = await fetchPage(
             existingData,
-            existingData.pageParams[0] ?? arg.originalArgs,
+            existingData.pageParams[0] ??
+              endpointDefinition.infiniteQueryOptions.initialPageParam, // arg.originalArgs,
           )
 
           //original
