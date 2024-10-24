@@ -105,14 +105,14 @@ export type QueryResultSelectorResult<
 > = QuerySubState<Definition> & RequestStatusFlags
 
 type InfiniteQueryResultSelectorFactory<
-  Definition extends InfiniteQueryDefinition<any, any, any, any>,
+  Definition extends InfiniteQueryDefinition<any, any, any, any, any>,
   RootState,
 > = (
   queryArg: QueryArgFrom<Definition> | SkipToken,
 ) => (state: RootState) => InfiniteQueryResultSelectorResult<Definition>
 
 export type InfiniteQueryResultSelectorResult<
-  Definition extends InfiniteQueryDefinition<any, any, any, any>,
+  Definition extends InfiniteQueryDefinition<any, any, any, any, any>,
 > = InfiniteQuerySubState<Definition> & RequestStatusFlags
 
 type MutationResultSelectorFactory<
@@ -216,7 +216,7 @@ export function buildSelectors<
   // selector currently is just a clone of Query though
   function buildInfiniteQuerySelector(
     endpointName: string,
-    endpointDefinition: InfiniteQueryDefinition<any, any, any, any>,
+    endpointDefinition: InfiniteQueryDefinition<any, any, any, any, any>,
   ) {
     return ((queryArgs: any) => {
       const serializedArgs = serializeQueryArgs({
