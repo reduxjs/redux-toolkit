@@ -81,7 +81,6 @@ describe('Infinite queries', () => {
     const secondRes = storeRef.store.dispatch(
       pokemonApi.endpoints.getInfinitePokemon.initiate(0, {
         direction: 'forward',
-        data: firstResult.data,
       }),
     )
 
