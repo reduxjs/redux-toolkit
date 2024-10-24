@@ -1866,7 +1866,6 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
             promiseRef.current = promise = dispatch(
               initiate(arg, {
-                data: data,
                 subscriptionOptions: subscriptionOptionsRef.current,
                 direction,
               }),

@@ -34,6 +34,7 @@ import type {
   QuerySubstateIdentifier,
   InfiniteData,
   InfiniteQueryConfigOptions,
+  QueryCacheKey,
 } from './apiState'
 import { QueryStatus } from './apiState'
 import type {
@@ -122,7 +123,6 @@ export type InfiniteQueryThunkArg = QuerySubstateIdentifier &
     type: `query`
     originalArgs: unknown
     endpointName: string
-    data: InfiniteData<unknown>
     param: unknown
     previous?: boolean
     direction?: 'forward' | 'backwards'
@@ -379,6 +379,7 @@ export function buildThunks<
       )
     }
 
+  // The generic async payload function for all of our thunks
   const executeEndpoint: AsyncThunkPayloadCreator<
     ThunkResult,
     QueryThunkArg | MutationThunkArg | InfiniteQueryThunkArg,
@@ -402,8 +403,11 @@ export function buildThunks<
         baseQueryReturnValue: any,
         meta: any,
         arg: any,
-      ) => any = defaultTransformResponse
-      let result: QueryReturnValue
+      ) => any =
+        endpointDefinition.query && endpointDefinition.transformResponse
+          ? endpointDefinition.transformResponse
+          : defaultTransformResponse
+
       const baseQueryApi = {
         signal,
         abort,
@@ -419,143 +423,179 @@ export function buildThunks<
 
       const forceQueryFn =
         arg.type === 'query' ? arg[forceQueryFnSymbol] : undefined
-      if (forceQueryFn) {
-        result = forceQueryFn()
-      } else if (endpointDefinition.query) {
-        const oldPages: any[] = []
-        const oldPageParams: any[] = []
 
-        const fetchPage = async (
-          data: InfiniteData<unknown>,
-          param: unknown,
-          previous?: boolean,
-        ): Promise<QueryReturnValue> => {
-          if (param == null && data.pages.length) {
-            return Promise.resolve({ data })
-          }
+      let finalQueryReturnValue: QueryReturnValue
 
-          const page = await baseQuery(
-            endpointDefinition.query(param),
+      // Infinite query wrapper, which executes the request and returns
+      // the InfiniteData `{pages, pageParams}` structure
+      const fetchPage = async (
+        data: InfiniteData<unknown>,
+        param: unknown,
+        previous?: boolean,
+      ): Promise<QueryReturnValue> => {
+        if (param == null && data.pages.length) {
+          return Promise.resolve({ data })
+        }
+
+        const pageResponse = await executeRequest(param)
+
+        // TODO Get maxPages from endpoint config
+        const maxPages = 20
+        const addTo = previous ? addToStart : addToEnd
+
+        return {
+          data: {
+            pages: addTo(data.pages, pageResponse.data, maxPages),
+            pageParams: addTo(data.pageParams, param, maxPages),
+          },
+        }
+      }
+
+      // Wrapper for executing either `query` or `queryFn`,
+      // and handling any errors
+      async function executeRequest(
+        finalQueryArg: unknown,
+      ): Promise<QueryReturnValue> {
+        let result: QueryReturnValue
+
+        if (forceQueryFn) {
+          // upsertQueryData relies on this to pass in the user-provided value
+          result = forceQueryFn()
+        } else if (endpointDefinition.query) {
+          result = await baseQuery(
+            endpointDefinition.query(finalQueryArg),
             baseQueryApi,
             endpointDefinition.extraOptions as any,
           )
-
-          const maxPages = 20
-          const addTo = previous ? addToStart : addToEnd
-
-          return {
-            data: {
-              pages: addTo(data.pages, page.data, maxPages),
-              pageParams: addTo(data.pageParams, param, maxPages),
-            },
-          }
+        } else {
+          result = await endpointDefinition.queryFn(
+            finalQueryArg,
+            baseQueryApi,
+            endpointDefinition.extraOptions as any,
+            (arg) =>
+              baseQuery(
+                arg,
+                baseQueryApi,
+                endpointDefinition.extraOptions as any,
+              ),
+          )
         }
 
-        if ('infiniteQueryOptions' in endpointDefinition) {
-          if ('direction' in arg && arg.direction && arg.data.pages.length) {
-            const previous = arg.direction === 'backwards'
-            const pageParamFn = previous
-              ? getPreviousPageParam
-              : getNextPageParam
-            const oldData = arg.data
-            const param = pageParamFn(
-              endpointDefinition.infiniteQueryOptions,
-              oldData,
-            )
-
-            result = await fetchPage(oldData, param, previous)
+        if (
+          typeof process !== 'undefined' &&
+          process.env.NODE_ENV === 'development'
+        ) {
+          const what = endpointDefinition.query ? '`baseQuery`' : '`queryFn`'
+          let err: undefined | string
+          if (!result) {
+            err = `${what} did not return anything.`
+          } else if (typeof result !== 'object') {
+            err = `${what} did not return an object.`
+          } else if (result.error && result.data) {
+            err = `${what} returned an object containing both \`error\` and \`result\`.`
+          } else if (result.error === undefined && result.data === undefined) {
+            err = `${what} returned an object containing neither a valid \`error\` and \`result\`. At least one of them should not be \`undefined\``
           } else {
-            // Fetch first page
-            result = await fetchPage(
-              { pages: [], pageParams: [] },
-              oldPageParams[0] ?? arg.originalArgs,
-            )
-
-            //original
-            // const remainingPages = pages ?? oldPages.length
-            const remainingPages = oldPages.length
-
-            // Fetch remaining pages
-            for (let i = 1; i < remainingPages; i++) {
-              // @ts-ignore
-              const param = getNextPageParam(
-                endpointDefinition.infiniteQueryOptions,
-                result.data as InfiniteData<unknown>,
-              )
-              result = await fetchPage(
-                result.data as InfiniteData<unknown>,
-                param,
-              )
+            for (const key of Object.keys(result)) {
+              if (key !== 'error' && key !== 'data' && key !== 'meta') {
+                err = `The object returned by ${what} has the unknown property ${key}.`
+                break
+              }
             }
           }
-        } else {
-          result = await baseQuery(
-            endpointDefinition.query(arg.originalArgs),
-            baseQueryApi,
-            endpointDefinition.extraOptions as any,
-          )
-
-          if (endpointDefinition.transformResponse) {
-            transformResponse = endpointDefinition.transformResponse
+          if (err) {
+            console.error(
+              `Error encountered handling the endpoint ${arg.endpointName}.
+                  ${err}
+                  It needs to return an object with either the shape \`{ data: <value> }\` or \`{ error: <value> }\` that may contain an optional \`meta\` property.
+                  Object returned was:`,
+              result,
+            )
           }
         }
-      } else {
-        result = await endpointDefinition.queryFn(
-          arg.originalArgs,
-          baseQueryApi,
-          endpointDefinition.extraOptions as any,
-          (arg) =>
-            baseQuery(
-              arg,
-              baseQueryApi,
-              endpointDefinition.extraOptions as any,
-            ),
+
+        if (result.error) throw new HandledError(result.error, result.meta)
+
+        const transformedResponse = await transformResponse(
+          result.data,
+          result.meta,
+          finalQueryArg,
         )
+
+        return {
+          ...result,
+          data: transformedResponse,
+        }
       }
 
       if (
-        typeof process !== 'undefined' &&
-        process.env.NODE_ENV === 'development'
+        arg.type === 'query' &&
+        'infiniteQueryOptions' in endpointDefinition
       ) {
-        const what = endpointDefinition.query ? '`baseQuery`' : '`queryFn`'
-        let err: undefined | string
-        if (!result) {
-          err = `${what} did not return anything.`
-        } else if (typeof result !== 'object') {
-          err = `${what} did not return an object.`
-        } else if (result.error && result.data) {
-          err = `${what} returned an object containing both \`error\` and \`result\`.`
-        } else if (result.error === undefined && result.data === undefined) {
-          err = `${what} returned an object containing neither a valid \`error\` and \`result\`. At least one of them should not be \`undefined\``
+        // This is an infinite query endpoint
+
+        let result: QueryReturnValue
+
+        // Start by looking up the existing InfiniteData value from state,
+        // falling back to an empty value if it doesn't exist yet
+        const existingData = (getState()[reducerPath].queries[arg.queryCacheKey]
+          ?.data ?? { pages: [], pageParams: [] }) as InfiniteData<
+          unknown,
+          unknown
+        >
+
+        // If the thunk specified a direction and we do have at least one page,
+        // fetch the next or previous page
+        if ('direction' in arg && arg.direction && existingData.pages.length) {
+          const previous = arg.direction === 'backwards'
+          const pageParamFn = previous ? getPreviousPageParam : getNextPageParam
+          const param = pageParamFn(
+            endpointDefinition.infiniteQueryOptions,
+            existingData,
+          )
+
+          result = await fetchPage(existingData, param, previous)
         } else {
-          for (const key of Object.keys(result)) {
-            if (key !== 'error' && key !== 'data' && key !== 'meta') {
-              err = `The object returned by ${what} has the unknown property ${key}.`
-              break
-            }
+          // Otherwise, fetch the first page and then any remaining pages
+
+          // Fetch first page
+          result = await fetchPage(
+            existingData,
+            existingData.pageParams[0] ?? arg.originalArgs,
+          )
+
+          //original
+          // const remainingPages = pages ?? oldPages.length
+          // const remainingPages = oldPages.length
+
+          // TODO This seems pretty wrong
+          const remainingPages = existingData.pages.length
+
+          // Fetch remaining pages
+          for (let i = 1; i < remainingPages; i++) {
+            const param = getNextPageParam(
+              endpointDefinition.infiniteQueryOptions,
+              result.data as InfiniteData<unknown>,
+            )
+            result = await fetchPage(
+              result.data as InfiniteData<unknown>,
+              param,
+            )
           }
         }
-        if (err) {
-          console.error(
-            `Error encountered handling the endpoint ${arg.endpointName}.
-              ${err}
-              It needs to return an object with either the shape \`{ data: <value> }\` or \`{ error: <value> }\` that may contain an optional \`meta\` property.
-              Object returned was:`,
-            result,
-          )
-        }
+
+        finalQueryReturnValue = result
+      } else {
+        // Non-infinite endpoint. Just run the one request.
+        finalQueryReturnValue = await executeRequest(arg.originalArgs)
       }
 
-      if (result.error) throw new HandledError(result.error, result.meta)
-
-      return fulfillWithValue(
-        await transformResponse(result.data, result.meta, arg.originalArgs),
-        {
-          fulfilledTimeStamp: Date.now(),
-          baseQueryMeta: result.meta,
-          [SHOULD_AUTOBATCH]: true,
-        },
-      )
+      // console.log('Final result: ', transformedData)
+      return fulfillWithValue(finalQueryReturnValue.data, {
+        fulfilledTimeStamp: Date.now(),
+        baseQueryMeta: finalQueryReturnValue.meta,
+        [SHOULD_AUTOBATCH]: true,
+      })
     } catch (error) {
       let catchedError = error
       if (catchedError instanceof HandledError) {
@@ -563,14 +603,11 @@ export function buildThunks<
           baseQueryReturnValue: any,
           meta: any,
           arg: any,
-        ) => any = defaultTransformResponse
+        ) => any =
+          endpointDefinition.query && endpointDefinition.transformErrorResponse
+            ? endpointDefinition.transformErrorResponse
+            : defaultTransformResponse
 
-        if (
-          endpointDefinition.query &&
-          endpointDefinition.transformErrorResponse
-        ) {
-          transformErrorResponse = endpointDefinition.transformErrorResponse
-        }
         try {
           return rejectWithValue(
             await transformErrorResponse(
@@ -716,7 +753,6 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
         startedTimeStamp: Date.now(),
         [SHOULD_AUTOBATCH]: true,
         direction: queryThunkArgs.arg.direction,
-        data: queryThunkArgs.arg.data,
       }
     },
     condition(queryThunkArgs, { getState }) {
