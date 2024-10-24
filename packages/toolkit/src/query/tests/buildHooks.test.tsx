@@ -921,7 +921,6 @@ describe('hooks tests', () => {
       expect(res.data!.amount).toBeGreaterThan(originalAmount)
     })
 
-
     test('Infinite Query Hook getNextPage Trigger', async () => {
       server.use(
         http.get('https://example.com/listItems', ({ request }) => {
@@ -931,31 +930,34 @@ describe('hooks tests', () => {
 
           const results = { title: `page ${pageNum}`, info: 'more name' }
           return HttpResponse.json(results)
-        })
+        }),
       )
-
 
       const pokemonApi = createApi({
         baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
         endpoints: (builder) => ({
-          getInfinitePokemon: builder.infiniteQuery<any, number>({
+          getInfinitePokemon: builder.infiniteQuery<any, string, number>({
             infiniteQueryOptions: {
-              getNextPageParam: (lastPage, allPages, lastPageParam, allPageParams) => lastPageParam + 1
+              getNextPageParam: (
+                lastPage,
+                allPages,
+                lastPageParam,
+                allPageParams,
+              ) => lastPageParam + 1,
             },
             query(pageParam = 0) {
               return `https://example.com/listItems?page=${pageParam}`
-            }
-          })
-        })
+            },
+          }),
+        }),
       })
 
-
       const storeRef = setupApiStore(pokemonApi, undefined, {
-        withoutTestLifecycles: true
+        withoutTestLifecycles: true,
       })
 
       const checkNumQueries = (count: number) => {
-        const cacheEntries = Object.keys((storeRef.store.getState()).api.queries)
+        const cacheEntries = Object.keys(storeRef.store.getState().api.queries)
         const queries = cacheEntries.length
         console.log('queries', queries)
         console.log(storeRef.store.getState().api.queries)
@@ -965,7 +967,9 @@ describe('hooks tests', () => {
 
       function User() {
         const { data, isFetching, isUninitialized, fetchNextPage } =
-          pokemonApi.endpoints.getInfinitePokemon.useInfiniteQuery(0, { getNextPageParam: (lastPageParam) => lastPageParam + 1 })
+          pokemonApi.endpoints.getInfinitePokemon.useInfiniteQuery('a', {
+            getNextPageParam: (lastPageParam) => lastPageParam + 1,
+          })
 
         return (
           <div>
@@ -974,7 +978,7 @@ describe('hooks tests', () => {
             <div data-testid="data">
               {data?.pages.map((page: any, i: number | null | undefined) => (
                 <div key={i}>{JSON.stringify(page)}</div>
-                ))}
+              ))}
             </div>
             <button data-testid="nextPage" onClick={() => fetchNextPage()}>
               nextPage
@@ -998,7 +1002,9 @@ describe('hooks tests', () => {
       await waitFor(() =>
         expect(screen.getByTestId('isFetching').textContent).toBe('false'),
       )
-      expect(screen.getByTestId('data').textContent).toBe('{"title":"page 0","info":"more name"}{"title":"page 1","info":"more name"}')
+      expect(screen.getByTestId('data').textContent).toBe(
+        '{"title":"page 0","info":"more name"}{"title":"page 1","info":"more name"}',
+      )
     })
 
     // See https://github.com/reduxjs/redux-toolkit/issues/4267 - Memory leak in useQuery rapid query arg changes

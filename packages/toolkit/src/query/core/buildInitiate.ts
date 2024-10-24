@@ -12,6 +12,7 @@ import type { BaseQueryError, QueryReturnValue } from '../baseQueryTypes'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import type {
   EndpointDefinitions,
+  InfiniteQueryArgFrom,
   InfiniteQueryDefinition,
   MutationDefinition,
   QueryArgFrom,
@@ -70,7 +71,7 @@ export type StartInfiniteQueryActionCreatorOptions = {
   subscribe?: boolean
   forceRefetch?: boolean | number
   subscriptionOptions?: SubscriptionOptions
-  infiniteQueryOptions?: InfiniteQueryConfigOptions
+  infiniteQueryOptions?: InfiniteQueryConfigOptions<unknown, unknown>
   direction?: 'forward' | 'backwards'
   [forceQueryFnSymbol]?: () => QueryReturnValue
   param?: unknown
@@ -89,7 +90,7 @@ type StartQueryActionCreator<
 type StartInfiniteQueryActionCreator<
   D extends InfiniteQueryDefinition<any, any, any, any, any>,
 > = (
-  arg: QueryArgFrom<D>,
+  arg: InfiniteQueryArgFrom<D>,
   options?: StartInfiniteQueryActionCreatorOptions,
 ) => (
   dispatch: ThunkDispatch<any, any, UnknownAction>,
@@ -111,7 +112,7 @@ export type QueryActionCreatorResult<
 }
 
 export type InfiniteQueryActionCreatorResult<
-  D extends InfiniteQueryDefinition<any, any, any, any>,
+  D extends InfiniteQueryDefinition<any, any, any, any, any>,
 > = Promise<InfiniteQueryResultSelectorResult<D>> & {
   arg: QueryArgFrom<D>
   requestId: string
@@ -478,7 +479,7 @@ You must add the middleware for RTK-Query to function correctly!`,
 
   function buildInitiateInfiniteQuery(
     endpointName: string,
-    endpointDefinition: InfiniteQueryDefinition<any, any, any, any>,
+    endpointDefinition: InfiniteQueryDefinition<any, any, any, any, any>,
     pages?: number,
   ) {
     const infiniteQueryAction: StartInfiniteQueryActionCreator<any> =

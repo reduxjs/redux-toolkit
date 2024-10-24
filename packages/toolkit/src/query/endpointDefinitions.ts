@@ -44,6 +44,7 @@ type EndpointDefinitionWithQuery<
   QueryArg,
   BaseQuery extends BaseQueryFn,
   ResultType,
+  PageParam = never,
 > = {
   /**
    * `query` can be a function that returns either a `string` or an `object` which is passed to your `baseQuery`. If you are using [fetchBaseQuery](./fetchBaseQuery), this can return either a `string` or an `object` of properties in `FetchArgs`. If you use your own custom [`baseQuery`](../../rtk-query/usage/customizing-queries), you can customize this behavior to your liking.
@@ -547,6 +548,7 @@ export type QueryDefinition<
 // cloning Query Endpoint Definition with an extra option to begin with
 export interface InfiniteQueryTypes<
   QueryArg,
+  PageParam,
   BaseQuery extends BaseQueryFn,
   TagTypes extends string,
   ResultType,
@@ -561,6 +563,7 @@ export interface InfiniteQueryTypes<
    */
   InfiniteQueryDefinition: InfiniteQueryDefinition<
     QueryArg,
+    PageParam,
     BaseQuery,
     TagTypes,
     ResultType,
@@ -574,6 +577,7 @@ export interface InfiniteQueryExtraOptions<
   TagTypes extends string,
   ResultType,
   QueryArg,
+  PageParam,
   BaseQuery extends BaseQueryFn,
   ReducerPath extends string = string,
 > extends CacheLifecycleInfiniteQueryExtraOptions<
@@ -665,6 +669,7 @@ export interface InfiniteQueryExtraOptions<
    */
   Types?: InfiniteQueryTypes<
     QueryArg,
+    PageParam,
     BaseQuery,
     TagTypes,
     ResultType,
@@ -674,18 +679,22 @@ export interface InfiniteQueryExtraOptions<
 
 export type InfiniteQueryDefinition<
   QueryArg,
+  PageParam,
   BaseQuery extends BaseQueryFn,
   TagTypes extends string,
   ResultType,
   ReducerPath extends string = string,
-> = BaseEndpointDefinition<QueryArg, BaseQuery, ResultType> &
-  InfiniteQueryExtraOptions<
-    TagTypes,
-    ResultType,
-    QueryArg,
-    BaseQuery,
-    ReducerPath
-  >
+> =
+  // Intentionally use `PageParam` as the QueryArg` type
+  BaseEndpointDefinition<PageParam, BaseQuery, ResultType> &
+    InfiniteQueryExtraOptions<
+      TagTypes,
+      ResultType,
+      QueryArg,
+      PageParam,
+      BaseQuery,
+      ReducerPath
+    >
 
 type MutationTypes<
   QueryArg,
@@ -813,11 +822,13 @@ export type EndpointDefinition<
   TagTypes extends string,
   ResultType,
   ReducerPath extends string = string,
+  PageParam = any,
 > =
   | QueryDefinition<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>
   | MutationDefinition<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>
   | InfiniteQueryDefinition<
       QueryArg,
+      PageParam,
       BaseQuery,
       TagTypes,
       ResultType,
@@ -843,7 +854,7 @@ export function isMutationDefinition(
 
 export function isInfiniteQueryDefinition(
   e: EndpointDefinition<any, any, any, any>,
-): e is InfiniteQueryDefinition<any, any, any, any> {
+): e is InfiniteQueryDefinition<any, any, any, any, any> {
   return e.type === DefinitionType.infinitequery
 }
 
@@ -923,10 +934,11 @@ export type EndpointBuilder<
     >,
   ): MutationDefinition<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>
 
-  infiniteQuery<ResultType, QueryArg>(
+  infiniteQuery<ResultType, QueryArg, PageParam>(
     definition: OmitFromUnion<
       InfiniteQueryDefinition<
         QueryArg,
+        PageParam,
         BaseQuery,
         TagTypes,
         ResultType,
@@ -936,6 +948,7 @@ export type EndpointBuilder<
     >,
   ): InfiniteQueryDefinition<
     QueryArg,
+    PageParam,
     BaseQuery,
     TagTypes,
     ResultType,
@@ -983,7 +996,15 @@ export function expandTagDescription(
 }
 
 export type QueryArgFrom<D extends BaseEndpointDefinition<any, any, any>> =
-  D extends BaseEndpointDefinition<infer QA, any, any> ? QA : unknown
+  D extends BaseEndpointDefinition<infer QA, any, any> ? QA : never
+
+// Just extracting `QueryArg` from `BaseEndpointDefinition`
+// doesn't sufficiently match here.
+// We need to explicitly match against `InfiniteQueryDefinition`
+export type InfiniteQueryArgFrom<
+  D extends BaseEndpointDefinition<any, any, any>,
+> = D extends InfiniteQueryDefinition<infer QA, any, any, any, any> ? QA : never
+
 export type ResultTypeFrom<D extends BaseEndpointDefinition<any, any, any>> =
   D extends BaseEndpointDefinition<any, any, infer RT> ? RT : unknown
 
@@ -993,6 +1014,11 @@ export type ReducerPathFrom<
 
 export type TagTypesFrom<D extends EndpointDefinition<any, any, any, any>> =
   D extends EndpointDefinition<any, any, infer RP, any> ? RP : unknown
+
+export type PageParamFrom<
+  D extends InfiniteQueryDefinition<any, any, any, any, any>,
+> =
+  D extends InfiniteQueryDefinition<any, infer PP, any, any, any> ? PP : unknown
 
 export type TagTypesFromApi<T> =
   T extends Api<any, any, any, infer TagTypes> ? TagTypes : never
@@ -1037,6 +1063,7 @@ export type OverrideResultType<Definition, NewResultType> =
         >
       : Definition extends InfiniteQueryDefinition<
             infer QueryArg,
+            infer PageParam,
             infer BaseQuery,
             infer TagTypes,
             any,
@@ -1044,6 +1071,7 @@ export type OverrideResultType<Definition, NewResultType> =
           >
         ? InfiniteQueryDefinition<
             QueryArg,
+            PageParam,
             BaseQuery,
             TagTypes,
             NewResultType,
@@ -1086,6 +1114,7 @@ export type UpdateDefinitions<
         >
       : Definitions[K] extends InfiniteQueryDefinition<
             infer QueryArg,
+            infer PageParam,
             infer BaseQuery,
             any,
             infer ResultType,
@@ -1093,6 +1122,7 @@ export type UpdateDefinitions<
           >
         ? InfiniteQueryDefinition<
             QueryArg,
+            PageParam,
             BaseQuery,
             NewTagTypes,
             TransformedResponse<NewDefinitions, K, ResultType>,
