@@ -112,7 +112,7 @@ export type FetchBaseQueryArgs = {
     api: Pick<
       BaseQueryApi,
       'getState' | 'extra' | 'endpoint' | 'type' | 'forced'
-    >,
+    > & { arg: string | FetchArgs; extraOptions: unknown },
   ) => MaybePromise<Headers | void>
   fetchFn?: (
     input: RequestInfo,
@@ -164,9 +164,9 @@ export type FetchBaseQueryMeta = { request: Request; response?: Response }
  * The base URL for an API service.
  * Typically in the format of https://example.com/
  *
- * @param {(headers: Headers, api: { getState: () => unknown; extra: unknown; endpoint: string; type: 'query' | 'mutation'; forced: boolean; }) => Headers} prepareHeaders
+ * @param {(headers: Headers, api: { getState: () => unknown; arg: string | FetchArgs; extra: unknown; endpoint: string; type: 'query' | 'mutation'; forced: boolean; }) => Headers} prepareHeaders
  * An optional function that can be used to inject headers on requests.
- * Provides a Headers object, as well as most of the `BaseQueryApi` (`dispatch` is not available).
+ * Provides a Headers object, most of the `BaseQueryApi` (`dispatch` is not available), and the arg passed into the query function.
  * Useful for setting authentication or headers that need to be set conditionally.
  *
  * @link https://developer.mozilla.org/en-US/docs/Web/API/Headers
@@ -188,6 +188,7 @@ export type FetchBaseQueryMeta = { request: Request; response?: Response }
  * @param {number} timeout
  * A number in milliseconds that represents the maximum time a request can take before timing out.
  */
+
 export function fetchBaseQuery({
   baseUrl,
   prepareHeaders = (x) => x,
@@ -212,8 +213,8 @@ export function fetchBaseQuery({
       'Warning: `fetch` is not available. Please supply a custom `fetchFn` property to use `fetchBaseQuery` on SSR environments.',
     )
   }
-  return async (arg, api) => {
-    const { signal, getState, extra, endpoint, forced, type } = api
+  return async (arg, api, extraOptions) => {
+    const { getState, extra, endpoint, forced, type } = api
     let meta: FetchBaseQueryMeta | undefined
     let {
       url,
@@ -224,6 +225,15 @@ export function fetchBaseQuery({
       timeout = defaultTimeout,
       ...rest
     } = typeof arg == 'string' ? { url: arg } : arg
+
+    let abortController: AbortController | undefined,
+      signal = api.signal
+    if (timeout) {
+      abortController = new AbortController()
+      api.signal.addEventListener('abort', abortController.abort)
+      signal = abortController.signal
+    }
+
     let config: RequestInit = {
       ...baseFetchOptions,
       signal,
@@ -234,10 +244,12 @@ export function fetchBaseQuery({
     config.headers =
       (await prepareHeaders(headers, {
         getState,
+        arg,
         extra,
         endpoint,
         forced,
         type,
+        extraOptions,
       })) || headers
 
     // Only set the content-type to json if appropriate. Will not be true for FormData, ArrayBuffer, Blob, etc.
@@ -272,10 +284,10 @@ export function fetchBaseQuery({
     let response,
       timedOut = false,
       timeoutId =
-        timeout &&
+        abortController &&
         setTimeout(() => {
           timedOut = true
-          api.abort()
+          abortController!.abort()
         }, timeout)
     try {
       response = await fetchFn(request)
@@ -289,6 +301,10 @@ export function fetchBaseQuery({
       }
     } finally {
       if (timeoutId) clearTimeout(timeoutId)
+      abortController?.signal.removeEventListener(
+        'abort',
+        abortController.abort,
+      )
     }
     const responseClone = response.clone()
 

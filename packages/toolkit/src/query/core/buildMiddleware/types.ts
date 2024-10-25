@@ -3,6 +3,7 @@ import type {
   AsyncThunkAction,
   Middleware,
   MiddlewareAPI,
+  ThunkAction,
   ThunkDispatch,
   UnknownAction,
 } from '@reduxjs/toolkit'
@@ -23,6 +24,7 @@ import type {
   QueryThunkArg,
   ThunkResult,
 } from '../buildThunks'
+import type { QueryActionCreatorResult } from '../buildInitiate'
 
 export type QueryStateMeta<T> = Record<string, undefined | T>
 export type TimeoutId = ReturnType<typeof setTimeout>
@@ -62,10 +64,8 @@ export interface BuildSubMiddlewareInput
     querySubState: Exclude<
       QuerySubState<any>,
       { status: QueryStatus.uninitialized }
-    >,
-    queryCacheKey: string,
-    override?: Partial<QueryThunkArg>,
-  ): AsyncThunkAction<ThunkResult, QueryThunkArg, {}>
+    >
+  ): ThunkAction<QueryActionCreatorResult<any>, any, any, UnknownAction>
   isThisApiSliceAction: (action: Action) => boolean
 }
 

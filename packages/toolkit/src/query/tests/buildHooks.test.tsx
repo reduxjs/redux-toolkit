@@ -73,6 +73,7 @@ const api = createApi({
       data: arg?.body ? { ...arg.body, ...(amount ? { amount } : {}) } : {},
     }
   },
+  tagTypes: ['IncrementedAmount'],
   endpoints: (build) => ({
     getUser: build.query<{ name: string }, number>({
       query: () => ({
@@ -93,6 +94,13 @@ const api = createApi({
           amount,
         },
       }),
+      providesTags: ['IncrementedAmount'],
+    }),
+    triggerUpdatedAmount: build.mutation<void, void>({
+      queryFn: async () => {
+        return { data: undefined }
+      },
+      invalidatesTags: ['IncrementedAmount'],
     }),
     updateUser: build.mutation<{ name: string }, { name: string }>({
       query: (update) => ({ body: update }),
@@ -1374,6 +1382,101 @@ describe('hooks tests', () => {
       })
 
       expect(screen.getByTestId('error').textContent).toBe('')
+    })
+
+    test('useLazyQuery trigger promise returns the correctly updated data', async () => {
+      const LazyUnwrapUseEffect = () => {
+        const [
+          triggerGetIncrementedAmount,
+          { isFetching, isSuccess, isError, error, data },
+        ] = api.endpoints.getIncrementedAmount.useLazyQuery()
+
+        type AmountData = { amount: number } | undefined
+
+        const [triggerUpdate] = api.endpoints.triggerUpdatedAmount.useMutation()
+
+        const [dataFromQuery, setDataFromQuery] =
+          useState<AmountData>(undefined)
+        const [dataFromTrigger, setDataFromTrigger] =
+          useState<AmountData>(undefined)
+
+        const handleLoad = async () => {
+          try {
+            const res = await triggerGetIncrementedAmount().unwrap()
+
+            setDataFromTrigger(res) // adding client side state here will cause stale data
+          } catch (error) {
+            console.error(error)
+          }
+        }
+
+        const handleMutate = async () => {
+          try {
+            await triggerUpdate()
+            // Force the lazy trigger to refetch
+            await handleLoad()
+          } catch (error) {
+            console.error(error)
+          }
+        }
+
+        useEffect(() => {
+          // Intentionally copy to local state for comparison purposes
+          setDataFromQuery(data)
+        }, [data])
+
+        let content: React.ReactNode | null = null
+
+        if (isFetching) {
+          content = <div className="loading">Loading</div>
+        } else if (isSuccess) {
+          content = (
+            <div className="wrapper">
+              <div>
+                useEffect data: {dataFromQuery?.amount ?? 'No query amount'}
+              </div>
+              <div>
+                Unwrap data: {dataFromTrigger?.amount ?? 'No trigger amount'}
+              </div>
+            </div>
+          )
+        }
+
+        return (
+          <div className="outer">
+            <button onClick={() => handleLoad()}>Load Data</button>
+            <button onClick={() => handleMutate()}>Update Data</button>
+            {content}
+          </div>
+        )
+      }
+
+      render(<LazyUnwrapUseEffect />, { wrapper: storeRef.wrapper })
+
+      // Kick off the initial fetch via lazy query trigger
+      act(() => {
+        userEvent.click(screen.getByText('Load Data'))
+      })
+
+      // We get back initial data, which should get copied into local state,
+      // and also should come back as valid via the lazy trigger promise
+      await waitFor(() => {
+        expect(screen.getByText('useEffect data: 1')).toBeTruthy()
+        expect(screen.getByText('Unwrap data: 1')).toBeTruthy()
+      })
+
+      // If we mutate and then re-run the lazy trigger afterwards...
+      act(() => {
+        userEvent.click(screen.getByText('Update Data'))
+      })
+
+      // We should see both sets of data agree (ie, the lazy trigger promise
+      // should not return stale data or be out of sync with the hook).
+      // Prior to PR #4651, this would fail because the trigger never updated properly.
+      await waitFor(() => {
+        expect(screen.getByText('useEffect data: 2')).toBeTruthy()
+        expect(screen.getByText('Unwrap data: 2')).toBeTruthy()
+      })
     })
   })
 

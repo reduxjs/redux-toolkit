@@ -1,4 +1,4 @@
-import { setupApiStore } from '../../tests/utils/helpers'
+import { setupApiStore } from '@internal/tests/utils/helpers'
 import { createApi } from '../core'
 import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
 import { fakeBaseQuery } from '../fakeBaseQuery'
@@ -117,5 +117,59 @@ describe('calling initiate without a cache entry, with subscribe: false still re
     expect(
       isRequestSubscribed('failing(undefined)', `${promise.requestId}_running`),
     ).toBe(false)
+  })
+})
+
+describe('calling initiate should have resulting queryCacheKey match baseQuery queryCacheKey', () => {
+  const baseQuery = vi.fn(() => ({ data: 'success' }))
+  function getNewApi() {
+    return createApi({
+      baseQuery,
+      endpoints: (build) => ({
+        query: build.query<void, { arg1: string; arg2: string }>({
+          query: (args) => `queryUrl/${args.arg1}/${args.arg2}`,
+        }),
+        mutation: build.mutation<void, { arg1: string; arg2: string }>({
+          query: () => 'mutationUrl',
+        }),
+      }),
+    })
+  }
+  let api = getNewApi()
+  beforeEach(() => {
+    baseQuery.mockClear()
+    api = getNewApi()
+  })
+
+  test('should be a string and matching on queries', () => {
+    const { store: storeApi } = setupApiStore(api, undefined, {
+      withoutTestLifecycles: true,
+    })
+    const promise = storeApi.dispatch(
+      api.endpoints.query.initiate({ arg2: 'secondArg', arg1: 'firstArg' }),
+    )
+    expect(baseQuery).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        queryCacheKey: promise.queryCacheKey,
+      }),
+      undefined,
+    )
+  })
+
+  test('should be undefined and matching on mutations', () => {
+    const { store: storeApi } = setupApiStore(api, undefined, {
+      withoutTestLifecycles: true,
+    })
+    storeApi.dispatch(
+      api.endpoints.mutation.initiate({ arg2: 'secondArg', arg1: 'firstArg' }),
+    )
+    expect(baseQuery).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        queryCacheKey: undefined,
+      }),
+      undefined,
+    )
   })
 })
