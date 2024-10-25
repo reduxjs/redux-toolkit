@@ -92,7 +92,7 @@ export interface CreateApiOptions<
   /**
    * Accepts a custom function if you have a need to change the creation of cache keys for any reason.
    */
-  serializeQueryArgs?: SerializeQueryArgs<BaseQueryArg<BaseQuery>>
+  serializeQueryArgs?: SerializeQueryArgs<unknown>
   /**
    * Endpoints are just a set of operations that you want to perform against your server. You define them as an object using the builder syntax. There are two basic endpoint types: [`query`](../../rtk-query/usage/queries) and [`mutation`](../../rtk-query/usage/mutations).
    */

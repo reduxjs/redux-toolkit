@@ -314,6 +314,7 @@ describe('endpoint definition typings', () => {
       getState: expect.any(Function),
       signal: expect.any(Object),
       type: expect.any(String),
+      queryCacheKey: expect.any(String),
     }
     beforeEach(() => {
       baseQuery.mockClear()
@@ -355,6 +356,7 @@ describe('endpoint definition typings', () => {
             abort: expect.any(Function),
             forced: expect.any(Boolean),
             type: expect.any(String),
+            queryCacheKey: expect.any(String),
           },
           undefined,
         ],
@@ -368,6 +370,7 @@ describe('endpoint definition typings', () => {
             abort: expect.any(Function),
             forced: expect.any(Boolean),
             type: expect.any(String),
+            queryCacheKey: expect.any(String),
           },
           undefined,
         ],
@@ -499,8 +502,24 @@ describe('endpoint definition typings', () => {
       expect(baseQuery.mock.calls).toEqual([
         ['modified1', commonBaseQueryApi, undefined],
         ['modified2', commonBaseQueryApi, undefined],
-        ['modified1', { ...commonBaseQueryApi, forced: undefined }, undefined],
-        ['modified2', { ...commonBaseQueryApi, forced: undefined }, undefined],
+        [
+          'modified1',
+          {
+            ...commonBaseQueryApi,
+            forced: undefined,
+            queryCacheKey: undefined,
+          },
+          undefined,
+        ],
+        [
+          'modified2',
+          {
+            ...commonBaseQueryApi,
+            forced: undefined,
+            queryCacheKey: undefined,
+          },
+          undefined,
+        ],
       ])
     })
 
@@ -1125,6 +1144,41 @@ describe('custom serializeQueryArgs per endpoint', () => {
       fulfilledTimeStamp: expect.any(Number),
       arg: 2,
       baseQueryMeta: expect.any(Object),
+    })
+  })
+})
+
+describe('timeout behavior', () => {
+  test('triggers TIMEOUT_ERROR', async () => {
+    const api = createApi({
+      baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com', timeout: 5 }),
+      endpoints: (build) => ({
+        query: build.query<unknown, void>({
+          query: () => '/success',
+        }),
+      }),
+    })
+  
+    const storeRef = setupApiStore(api, undefined, {
+      withoutTestLifecycles: true,
+    })
+    
+    server.use(
+      http.get(
+        'https://example.com/success',
+        async () => {
+          await delay(10)
+          return HttpResponse.json({ value: 'failed' }, { status: 500 })
+        },
+        { once: true },
+      ),
+    )
+
+    const result = await storeRef.store.dispatch(api.endpoints.query.initiate())
+
+    expect(result?.error).toEqual({
+      status: 'TIMEOUT_ERROR',
+      error: expect.stringMatching(/^AbortError:/),
     })
   })
 })

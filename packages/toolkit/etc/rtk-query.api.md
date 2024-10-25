@@ -145,7 +145,7 @@ export interface CreateApiOptions<
   refetchOnFocus?: boolean
   refetchOnMountOrArgChange?: boolean | number
   refetchOnReconnect?: boolean
-  serializeQueryArgs?: SerializeQueryArgs<BaseQueryArg<BaseQuery>>
+  serializeQueryArgs?: SerializeQueryArgs<unknown>
   structuralSharing?: boolean
   tagTypes?: readonly TagTypes[]
 }

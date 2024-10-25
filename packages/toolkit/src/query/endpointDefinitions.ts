@@ -231,6 +231,10 @@ export type FullTagDescription<TagType> = {
   id?: number | string
 }
 export type TagDescription<TagType> = TagType | FullTagDescription<TagType>
+
+/**
+ * @public
+ */
 export type ResultDescription<
   TagTypes extends string,
   ResultType,

@@ -327,10 +327,126 @@ export type TypedUseLazyQuerySubscription<
   QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
 >
 
+/**
+ * @internal
+ */
 export type QueryStateSelector<
   R extends Record<string, any>,
   D extends QueryDefinition<any, any, any, any>,
 > = (state: UseQueryStateDefaultResult<D>) => R
+
+/**
+ * Provides a way to define a strongly-typed version of
+ * {@linkcode QueryStateSelector} for use with a specific query.
+ * This is useful for scenarios where you want to create a "pre-typed"
+ * {@linkcode UseQueryStateOptions.selectFromResult | selectFromResult}
+ * function.
+ *
+ * @example
+ * <caption>#### __Create a strongly-typed `selectFromResult` selector function__</caption>
+ *
+ * ```tsx
+ * import type { TypedQueryStateSelector } from '@reduxjs/toolkit/query/react'
+ * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+ *
+ * type Post = {
+ *   id: number
+ *   title: string
+ * }
+ *
+ * type PostsApiResponse = {
+ *   posts: Post[]
+ *   total: number
+ *   skip: number
+ *   limit: number
+ * }
+ *
+ * type QueryArgument = number | undefined
+ *
+ * type BaseQueryFunction = ReturnType<typeof fetchBaseQuery>
+ *
+ * type SelectedResult = Pick<PostsApiResponse, 'posts'>
+ *
+ * const postsApiSlice = createApi({
+ *   baseQuery: fetchBaseQuery({ baseUrl: 'https://dummyjson.com/posts' }),
+ *   reducerPath: 'postsApi',
+ *   tagTypes: ['Posts'],
+ *   endpoints: (build) => ({
+ *     getPosts: build.query<PostsApiResponse, QueryArgument>({
+ *       query: (limit = 5) => `?limit=${limit}&select=title`,
+ *     }),
+ *   }),
+ * })
+ *
+ * const { useGetPostsQuery } = postsApiSlice
+ *
+ * function PostById({ id }: { id: number }) {
+ *   const { post } = useGetPostsQuery(undefined, {
+ *     selectFromResult: (state) => ({
+ *       post: state.data?.posts.find((post) => post.id === id),
+ *     }),
+ *   })
+ *
+ *   return <li>{post?.title}</li>
+ * }
+ *
+ * const EMPTY_ARRAY: Post[] = []
+ *
+ * const typedSelectFromResult: TypedQueryStateSelector<
+ *   PostsApiResponse,
+ *   QueryArgument,
+ *   BaseQueryFunction,
+ *   SelectedResult
+ * > = (state) => ({ posts: state.data?.posts ?? EMPTY_ARRAY })
+ *
+ * function PostsList() {
+ *   const { posts } = useGetPostsQuery(undefined, {
+ *     selectFromResult: typedSelectFromResult,
+ *   })
+ *
+ *   return (
+ *     <div>
+ *       <ul>
+ *         {posts.map((post) => (
+ *           <PostById key={post.id} id={post.id} />
+ *         ))}
+ *       </ul>
+ *     </div>
+ *   )
+ * }
+ * ```
+ *
+ * @template ResultType - The type of the result `data` returned by the query.
+ * @template QueryArgumentType - The type of the argument passed into the query.
+ * @template BaseQueryFunctionType - The type of the base query function being used.
+ * @template SelectedResultType - The type of the selected result returned by the __`selectFromResult`__ function.
+ *
+ * @since 2.7.9
+ * @public
+ */
+export type TypedQueryStateSelector<
+  ResultType,
+  QueryArgumentType,
+  BaseQueryFunctionType extends BaseQueryFn,
+  SelectedResultType extends Record<string, any> = UseQueryStateDefaultResult<
+    QueryDefinition<
+      QueryArgumentType,
+      BaseQueryFunctionType,
+      string,
+      ResultType,
+      string
+    >
+  >,
+> = QueryStateSelector<
+  SelectedResultType,
+  QueryDefinition<
+    QueryArgumentType,
+    BaseQueryFunctionType,
+    string,
+    ResultType,
+    string
+  >
+>
 
 /**
  * A React hook that reads the request status and cached data from the Redux store. The component will re-render as the loading status changes and the data becomes available.
@@ -357,6 +473,9 @@ export type TypedUseQueryState<
   QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
 >
 
+/**
+ * @internal
+ */
 export type UseQueryStateOptions<
   D extends QueryDefinition<any, any, any, any>,
   R extends Record<string, any>,
@@ -426,6 +545,79 @@ export type UseQueryStateOptions<
    */
   selectFromResult?: QueryStateSelector<R, D>
 }
+
+/**
+ * Provides a way to define a "pre-typed" version of
+ * {@linkcode UseQueryStateOptions} with specific options for a given query.
+ * This is particularly useful for setting default query behaviors such as
+ * refetching strategies, which can be overridden as needed.
+ *
+ * @example
+ * <caption>#### __Create a `useQuery` hook with default options__</caption>
+ *
+ * ```ts
+ * import type {
+ *   SubscriptionOptions,
+ *   TypedUseQueryStateOptions,
+ * } from '@reduxjs/toolkit/query/react'
+ * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+ *
+ * type Post = {
+ *   id: number
+ *   name: string
+ * }
+ *
+ * const api = createApi({
+ *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+ *   tagTypes: ['Post'],
+ *   endpoints: (build) => ({
+ *     getPosts: build.query<Post[], void>({
+ *       query: () => 'posts',
+ *     }),
+ *   }),
+ * })
+ *
+ * const { useGetPostsQuery } = api
+ *
+ * export const useGetPostsQueryWithDefaults = <
+ *   SelectedResult extends Record<string, any>,
+ * >(
+ *   overrideOptions: TypedUseQueryStateOptions<
+ *     Post[],
+ *     void,
+ *     ReturnType<typeof fetchBaseQuery>,
+ *     SelectedResult
+ *   > &
+ *     SubscriptionOptions,
+ * ) =>
+ *   useGetPostsQuery(undefined, {
+ *     // Insert default options here
+ *
+ *     refetchOnMountOrArgChange: true,
+ *     refetchOnFocus: true,
+ *     ...overrideOptions,
+ *   })
+ * ```
+ *
+ * @template ResultType - The type of the result `data` returned by the query.
+ * @template QueryArg - The type of the argument passed into the query.
+ * @template BaseQuery - The type of the base query function being used.
+ * @template SelectedResult - The type of the selected result returned by the __`selectFromResult`__ function.
+ *
+ * @since 2.7.8
+ * @public
+ */
+export type TypedUseQueryStateOptions<
+  ResultType,
+  QueryArg,
+  BaseQuery extends BaseQueryFn,
+  SelectedResult extends Record<string, any> = UseQueryStateDefaultResult<
+    QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
+  >,
+> = UseQueryStateOptions<
+  QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>,
+  SelectedResult
+>
 
 export type UseQueryStateResult<
   _ extends QueryDefinition<any, any, any, any>,

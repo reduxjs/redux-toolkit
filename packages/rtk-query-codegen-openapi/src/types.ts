@@ -75,9 +75,14 @@ export interface CommonOptions {
   tag?: boolean;
   /**
    * defaults to false
-   * `true` will add `encodeURIComponent` to the generated query params
+   * `true` will add `encodeURIComponent` to the generated path parameters
    */
-  encodeParams?: boolean;
+  encodePathParams?: boolean;
+  /**
+   * defaults to false
+   * `true` will add `encodeURIComponent` to the generated query parameters
+   */
+  encodeQueryParams?: boolean;
   /**
    * defaults to false
    * `true` will "flatten" the arg so that you can do things like `useGetEntityById(1)` instead of `useGetEntityById({ entityId: 1 })`

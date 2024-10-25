@@ -150,7 +150,7 @@ Writing immutable update logic by hand _is_ hard, and **accidentally mutating st
 Immer provides a function called `produce`, which accepts two arguments: your original `state`, and a callback function. The callback function is given a "draft" version of that state, and inside the callback, it is safe to write code that mutates the draft value. Immer tracks all attempts to mutate the draft value and then replays those mutations using their immutable equivalents to create a safe, immutably updated result:
 
 ```js
-import produce from 'immer'
+import { produce } from 'immer'
 
 const baseState = [
   {
