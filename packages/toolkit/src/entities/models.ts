@@ -166,7 +166,7 @@ export type EntitySelectors<
   IdType extends EntityId,
   Single extends string = '',
   Plural extends string = DefaultPlural<Single>,
-> = Compute<
+> = Id<
   {
     [K in `select${Capitalize<Single>}Ids`]: (state: V) => IdType[]
   } & {
@@ -181,7 +181,7 @@ export type EntitySelectors<
     [K in `select${Capitalize<Single>}ById`]: (
       state: V,
       id: IdType,
-    ) => Compute<UncheckedIndexedAccess<T>>
+    ) => Id<UncheckedIndexedAccess<T>>
   }
 >
 
