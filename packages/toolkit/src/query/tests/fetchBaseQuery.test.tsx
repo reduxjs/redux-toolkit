@@ -2,6 +2,7 @@ import { createSlice } from '@reduxjs/toolkit'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 import { headersToObject } from 'headers-polyfill'
 import { HttpResponse, delay, http } from 'msw'
+// @ts-ignore
 import nodeFetch from 'node-fetch'
 import queryString from 'query-string'
 import { vi } from 'vitest'
@@ -799,16 +800,17 @@ describe('fetchBaseQuery', () => {
     })
 
     test('prepareHeaders provides extra api information for getState, extra, endpoint, type and forced', async () => {
-      let _getState, _extra, _endpoint, _type, _forced
+      let _getState, _arg: any, _extra, _endpoint, _type, _forced
 
       const baseQuery = fetchBaseQuery({
         baseUrl,
         fetchFn: fetchFn as any,
         prepareHeaders: (
           headers,
-          { getState, extra, endpoint, type, forced },
+          { getState, arg, extra, endpoint, type, forced },
         ) => {
           _getState = getState
+          _arg = arg
           _endpoint = endpoint
           _type = type
           _forced = forced
@@ -845,10 +847,56 @@ describe('fetchBaseQuery', () => {
       await doRequest()
 
       expect(_getState).toBeDefined()
+      expect(_arg!.url).toBe('/echo')
       expect(_endpoint).toBe('someEndpointName')
       expect(_type).toBe('query')
       expect(_forced).toBe(true)
       expect(_extra).toBe(fakeAuth0Client)
+    })
+
+    test('can be instantiated with a `ExtraOptions` generic and `extraOptions` will be available in `prepareHeaders', async () => {
+      const prepare = vitest.fn()
+      const baseQuery = fetchBaseQuery({
+        prepareHeaders(headers, api) {
+          expectTypeOf(api.extraOptions).toEqualTypeOf<unknown>()
+          prepare.apply(undefined, arguments as unknown as any[])
+        },
+      })
+      baseQuery('http://example.com', commonBaseQueryApi, {
+        foo: 'baz',
+        bar: 5,
+      })
+      expect(prepare).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ extraOptions: { foo: 'baz', bar: 5 } }),
+      )
+
+      // ensure types
+      createApi({
+        baseQuery,
+        endpoints(build) {
+          return {
+            testQuery: build.query({
+              query: () => ({ url: '/echo', headers: {} }),
+              extraOptions: {
+                foo: 'asd',
+                bar: 1,
+              },
+            }),
+            testMutation: build.mutation({
+              query: () => ({
+                url: '/echo',
+                method: 'POST',
+                credentials: 'omit',
+              }),
+              extraOptions: {
+                foo: 'qwe',
+                bar: 15,
+              },
+            }),
+          }
+        },
+      })
     })
   })
 

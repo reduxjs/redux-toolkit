@@ -1,6 +1,6 @@
 {
   "name": "@reduxjs/toolkit",
-  "version": "2.2.7",
+  "version": "2.3.0",
   "description": "The official, opinionated, batteries-included toolset for efficient Redux development",
   "author": "Mark Erikson <mark@isquaredsoftware.com>",
   "license": "MIT",
@@ -94,7 +94,7 @@
     "size-limit": "^11.0.1",
     "tslib": "^1.10.0",
     "tsup": "^8.2.3",
-    "tsx": "^4.16.2",
+    "tsx": "^4.19.0",
     "typescript": "^5.5.4",
     "vite-tsconfig-paths": "^4.3.1",
     "vitest": "^1.6.0",

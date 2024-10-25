@@ -122,7 +122,7 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
               }),
             )
           } else if (querySubState.status !== QueryStatus.uninitialized) {
-            mwApi.dispatch(refetchQuery(querySubState, queryCacheKey))
+            mwApi.dispatch(refetchQuery(querySubState))
           }
         }
       }

@@ -19,6 +19,11 @@ This section documents the contents of that API structure, with the different fi
 
 Typically, you should only have one API slice per base URL that your application needs to communicate with. For example, if your site fetches data from both `/api/posts` and `/api/users`, you would have a single API slice with `/api/` as the base URL, and separate endpoint definitions for `posts` and `users`. This allows you to effectively take advantage of [automated re-fetching](../../usage/automated-refetching.mdx) by defining [tag](../../usage/automated-refetching.mdx#tags) relationships across endpoints.
 
+This is because:
+
+- Automatic tag invalidation only works within a single API slice. If you have multiple API slices, the automatic invalidation won't work across them.
+- Every `createApi` call generates its own middleware, and each middleware added to the store will run checks against every dispatched action. That has a perf cost that adds up. So, if you called `createApi` 10 times and added 10 separate API middleware to the store, that will be noticeably slower perf-wise.
+
 For maintainability purposes, you may wish to split up endpoint definitions across multiple files, while still maintaining a single API slice which includes all of these endpoints. See [code splitting](../../usage/code-splitting.mdx) for how you can use the `injectEndpoints` property to inject API endpoints from other files into a single API slice definition.
 
 :::
