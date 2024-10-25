@@ -14,7 +14,7 @@ import type {
 } from './models'
 import { capitalize } from './utils'
 
-export const entityMethodsCreatorType = /*@__PURE__*/ Symbol()
+export const entityMethodsCreatorType = '@@rtk/entityMethodsCreator'
 
 export interface EntityMethodsCreatorConfig<
   T,
