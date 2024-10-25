@@ -3,7 +3,7 @@ import type {
   PayloadAction,
   ReducerCreator,
 } from '@reduxjs/toolkit'
-import { reducerCreator } from '../createSlice'
+import { reducerCreator, ReducerType } from '../createSlice'
 import type { WithRequiredProp } from '../tsHelpers'
 import type {
   EntityAdapter,
@@ -13,8 +13,6 @@ import type {
   EntityReducers,
 } from './models'
 import { capitalize } from './utils'
-
-export const entityMethodsCreatorType = '@@rtk/entityMethodsCreator'
 
 export interface EntityMethodsCreatorConfig<
   T,
@@ -124,9 +122,7 @@ export function createEntityMethods<
   return reducers as any
 }
 
-export const entityMethodsCreator: ReducerCreator<
-  typeof entityMethodsCreatorType
-> = {
-  type: entityMethodsCreatorType,
+export const entityMethodsCreator: ReducerCreator<ReducerType.entityMethods> = {
+  type: ReducerType.entityMethods,
   create: createEntityMethods,
 }
