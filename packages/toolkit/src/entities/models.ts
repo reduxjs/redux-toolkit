@@ -2,7 +2,7 @@ import type { UncheckedIndexedAccess } from '../uncheckedindexed'
 import type { Draft } from 'immer'
 import type { PayloadAction } from '../createAction'
 import type { GetSelectorsOptions } from './state_selectors'
-import type { CastAny, Id as Compute } from '../tsHelpers'
+import type { CastAny, Id } from '../tsHelpers'
 import type { CaseReducerDefinition } from '../createSlice'
 import type { CaseReducer } from '../createReducer'
 
@@ -163,14 +163,16 @@ export interface EntityStateAdapter<T, Id extends EntityId> {
 export type EntitySelectors<
   T,
   V,
-  Id extends EntityId,
+  IdType extends EntityId,
   Single extends string = '',
   Plural extends string = DefaultPlural<Single>,
 > = Compute<
   {
-    [K in `select${Capitalize<Single>}Ids`]: (state: V) => Id[]
+    [K in `select${Capitalize<Single>}Ids`]: (state: V) => IdType[]
   } & {
-    [K in `select${Capitalize<Single>}Entities`]: (state: V) => Record<Id, T>
+    [K in `select${Capitalize<Single>}Entities`]: (
+      state: V,
+    ) => Record<IdType, T>
   } & {
     [K in `selectAll${Capitalize<Plural>}`]: (state: V) => T[]
   } & {
@@ -178,7 +180,7 @@ export type EntitySelectors<
   } & {
     [K in `select${Capitalize<Single>}ById`]: (
       state: V,
-      id: Id,
+      id: IdType,
     ) => Compute<UncheckedIndexedAccess<T>>
   }
 >
