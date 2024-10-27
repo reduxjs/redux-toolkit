@@ -209,10 +209,7 @@ export function buildSlice({
         'direction' in arg
       ) {
         substate.param = arg.param
-        substate.direction = arg.direction as
-          | 'forward'
-          | 'backwards'
-          | undefined
+        substate.direction = arg.direction as 'forward' | 'backward' | undefined
       }
     })
   }

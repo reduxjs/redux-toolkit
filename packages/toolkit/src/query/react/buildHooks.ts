@@ -786,7 +786,7 @@ export type LazyInfiniteQueryTrigger<
    */
   (
     arg: QueryArgFrom<D>,
-    direction: 'forward' | 'backwards',
+    direction: 'forward' | 'backward',
   ): InfiniteQueryActionCreatorResult<D>
 }
 
@@ -1351,7 +1351,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       isFetching && currentState.direction === 'forward'
 
     const isFetchingPreviousPage =
-      isFetching && currentState.direction === 'backwards'
+      isFetching && currentState.direction === 'backward'
 
     return {
       ...currentState,
@@ -1882,7 +1882,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       }, [stableSubscriptionOptions])
 
       const trigger: LazyInfiniteQueryTrigger<any> = useCallback(
-        function (arg: unknown, direction: 'forward' | 'backwards') {
+        function (arg: unknown, direction: 'forward' | 'backward') {
           let promise: InfiniteQueryActionCreatorResult<any>
 
           batch(() => {
@@ -2030,7 +2030,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
         const fetchPreviousPage = useCallback(() => {
           //if (!hasPreviousPage) return
-          return trigger(arg, 'backwards')
+          return trigger(arg, 'backward')
         }, [trigger, arg])
 
         return useMemo(
