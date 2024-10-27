@@ -49,7 +49,7 @@ export interface BuildMiddlewareInput<
   context: ApiContext<Definitions>
   queryThunk: QueryThunk
   mutationThunk: MutationThunk
-  infiniteQueryThunk: InfiniteQueryThunk
+  infiniteQueryThunk: InfiniteQueryThunk<any>
   api: Api<any, Definitions, ReducerPath, TagTypes>
   assertTagType: AssertTagTypes
 }

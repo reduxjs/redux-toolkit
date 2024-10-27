@@ -15,6 +15,7 @@ import type {
   InfiniteQueryArgFrom,
   InfiniteQueryDefinition,
   MutationDefinition,
+  PageParamFrom,
   QueryArgFrom,
   QueryDefinition,
   ResultTypeFrom,
@@ -66,16 +67,22 @@ export type StartQueryActionCreatorOptions = {
   [forceQueryFnSymbol]?: () => QueryReturnValue
 }
 
-export type StartInfiniteQueryActionCreatorOptions = {
+export type StartInfiniteQueryActionCreatorOptions<
+  D extends InfiniteQueryDefinition<any, any, any, any, any>,
+> = {
   subscribe?: boolean
   forceRefetch?: boolean | number
   subscriptionOptions?: SubscriptionOptions
-  infiniteQueryOptions?: InfiniteQueryConfigOptions<unknown, unknown>
   direction?: 'forward' | 'backwards'
   [forceQueryFnSymbol]?: () => QueryReturnValue
   param?: unknown
   previous?: boolean
-}
+} & Partial<
+  Pick<
+    Partial<InfiniteQueryConfigOptions<ResultTypeFrom<D>, PageParamFrom<D>>>,
+    'initialPageParam'
+  >
+>
 
 type StartQueryActionCreator<
   D extends QueryDefinition<any, any, any, any, any>,
@@ -90,7 +97,7 @@ type StartInfiniteQueryActionCreator<
   D extends InfiniteQueryDefinition<any, any, any, any, any>,
 > = (
   arg: InfiniteQueryArgFrom<D>,
-  options?: StartInfiniteQueryActionCreatorOptions,
+  options?: StartInfiniteQueryActionCreatorOptions<D>,
 ) => (
   dispatch: ThunkDispatch<any, any, UnknownAction>,
   getState: () => any,
@@ -254,7 +261,7 @@ export function buildInitiate({
 }: {
   serializeQueryArgs: InternalSerializeQueryArgs
   queryThunk: QueryThunk
-  infiniteQueryThunk: InfiniteQueryThunk
+  infiniteQueryThunk: InfiniteQueryThunk<any>
   mutationThunk: MutationThunk
   api: Api<any, EndpointDefinitions, any, any>
   context: ApiContext<EndpointDefinitions>
@@ -488,7 +495,7 @@ You must add the middleware for RTK-Query to function correctly!`,
           subscribe = true,
           forceRefetch,
           subscriptionOptions,
-          infiniteQueryOptions,
+          initialPageParam,
           [forceQueryFnSymbol]: forceQueryFn,
           direction,
           param = arg,
@@ -514,6 +521,7 @@ You must add the middleware for RTK-Query to function correctly!`,
           param,
           previous,
           direction,
+          initialPageParam,
         })
         const selector = (
           api.endpoints[endpointName] as ApiEndpointInfiniteQuery<any, any>
@@ -550,7 +558,6 @@ You must add the middleware for RTK-Query to function correctly!`,
               arg,
               requestId,
               subscriptionOptions,
-              infiniteQueryOptions,
               queryCacheKey,
               abort,
               async unwrap() {

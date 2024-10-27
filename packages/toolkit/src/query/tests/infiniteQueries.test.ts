@@ -78,42 +78,68 @@ describe('Infinite queries', () => {
   })
 
   test('Basic infinite query behavior', async () => {
-    const res = storeRef.store.dispatch(
+    const res1 = storeRef.store.dispatch(
       // Should be `arg: string`
       pokemonApi.endpoints.getInfinitePokemon.initiate('fire', {}),
     )
 
-    const firstResult = await res
-    expect(firstResult.status).toBe(QueryStatus.fulfilled)
-    console.log('Value: ', util.inspect(firstResult, { depth: Infinity }))
+    const entry1InitialLoad = await res1
+    expect(entry1InitialLoad.status).toBe(QueryStatus.fulfilled)
+    // console.log('Value: ', util.inspect(entry1InitialLoad, { depth: Infinity }))
 
-    if (firstResult.status === QueryStatus.fulfilled) {
-      expect(firstResult.data.pages).toEqual([
+    if (entry1InitialLoad.status === QueryStatus.fulfilled) {
+      expect(entry1InitialLoad.data.pages).toEqual([
         // one page, one entry
         [{ id: '0', name: 'Pokemon 0' }],
       ])
     }
 
-    const secondRes = storeRef.store.dispatch(
+    const entry1SecondPage = await storeRef.store.dispatch(
       pokemonApi.endpoints.getInfinitePokemon.initiate('fire', {
         direction: 'forward',
       }),
     )
 
-    const secondResult = await secondRes
-    expect(secondResult.status).toBe(QueryStatus.fulfilled)
-    console.log('Value: ', util.inspect(secondResult, { depth: Infinity }))
-    if (secondResult.status === QueryStatus.fulfilled) {
-      expect(secondResult.data.pages).toEqual([
+    expect(entry1SecondPage.status).toBe(QueryStatus.fulfilled)
+    // console.log('Value: ', util.inspect(entry1SecondPage, { depth: Infinity }))
+    if (entry1SecondPage.status === QueryStatus.fulfilled) {
+      expect(entry1SecondPage.data.pages).toEqual([
         // two pages, one entry each
         [{ id: '0', name: 'Pokemon 0' }],
         [{ id: '1', name: 'Pokemon 1' }],
       ])
     }
 
-    console.log(
-      'API state: ',
-      util.inspect(storeRef.store.getState().api, { depth: Infinity }),
+    // console.log(
+    //   'API state: ',
+    //   util.inspect(storeRef.store.getState().api, { depth: Infinity }),
+    // )
+
+    const entry2InitialLoad = await storeRef.store.dispatch(
+      pokemonApi.endpoints.getInfinitePokemon.initiate('water', {
+        initialPageParam: 3,
+      }),
     )
+
+    if (entry2InitialLoad.status === QueryStatus.fulfilled) {
+      expect(entry2InitialLoad.data.pages).toEqual([
+        // one page, one entry
+        [{ id: '3', name: 'Pokemon 3' }],
+      ])
+    }
+
+    const entry2NextPage = await storeRef.store.dispatch(
+      pokemonApi.endpoints.getInfinitePokemon.initiate('water', {
+        direction: 'forward',
+      }),
+    )
+
+    if (entry2NextPage.status === QueryStatus.fulfilled) {
+      expect(entry2NextPage.data.pages).toEqual([
+        // two pages, one entry each
+        [{ id: '3', name: 'Pokemon 3' }],
+        [{ id: '4', name: 'Pokemon 4' }],
+      ])
+    }
   })
 })
