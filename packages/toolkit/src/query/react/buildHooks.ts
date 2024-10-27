@@ -790,7 +790,9 @@ export type LazyInfiniteQueryTrigger<
   ): InfiniteQueryActionCreatorResult<D>
 }
 
-interface UseInfiniteQuerySubscriptionOptions extends SubscriptionOptions {
+interface UseInfiniteQuerySubscriptionOptions<
+  D extends InfiniteQueryDefinition<any, any, any, any, any>,
+> extends SubscriptionOptions {
   /**
    * Prevents a query from automatically running.
    *
@@ -833,6 +835,7 @@ interface UseInfiniteQuerySubscriptionOptions extends SubscriptionOptions {
    * If you specify this option alongside `skip: true`, this **will not be evaluated** until `skip` is false.
    */
   refetchOnMountOrArgChange?: boolean | number
+  initialPageParam?: PageParamFrom<D>
 }
 
 export type TypedUseInfiniteQuerySubscription<
@@ -884,19 +887,14 @@ export type UseInfiniteQuery<
   D extends InfiniteQueryDefinition<any, any, any, any, any>,
 > = <R extends Record<string, any> = UseInfiniteQueryStateDefaultResult<D>>(
   arg: InfiniteQueryArgFrom<D> | SkipToken,
-  options?: UseInfiniteQuerySubscriptionOptions &
-    UseInfiniteQueryStateOptions<D, R> &
-    InfiniteQueryConfigOptions<ResultTypeFrom<D>, PageParamFrom<D>>,
+  options?: UseInfiniteQuerySubscriptionOptions<D> &
+    UseInfiniteQueryStateOptions<D, R>,
 ) => UseInfiniteQueryHookResult<D, R>
 
 export type UseInfiniteQueryState<
   D extends InfiniteQueryDefinition<any, any, any, any, any>,
 > = <R extends Record<string, any> = UseInfiniteQueryStateDefaultResult<D>>(
   arg: QueryArgFrom<D> | SkipToken,
-  InfiniteQueryConfigOptions: InfiniteQueryConfigOptions<
-    ResultTypeFrom<D>,
-    PageParamFrom<D>
-  >,
   options?: UseInfiniteQueryStateOptions<D, R>,
 ) => UseInfiniteQueryStateResult<D, R>
 
@@ -920,7 +918,7 @@ export type UseInfiniteQuerySubscription<
   D extends InfiniteQueryDefinition<any, any, any, any, any>,
 > = (
   arg: QueryArgFrom<D> | SkipToken,
-  options?: UseInfiniteQuerySubscriptionOptions,
+  options?: UseInfiniteQuerySubscriptionOptions<D>,
 ) => readonly [
   LazyInfiniteQueryTrigger<D>,
   QueryArgFrom<D> | UninitializedValue,
@@ -1758,6 +1756,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         skip = false,
         pollingInterval = 0,
         skipPollingIfUnfocused = false,
+        initialPageParam,
       } = {},
     ) => {
       const { initiate } = api.endpoints[
@@ -1858,6 +1857,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           lastPromise?.unsubscribe()
           const promise = dispatch(
             initiate(stableArg, {
+              initialPageParam,
               subscriptionOptions: stableSubscriptionOptions,
               forceRefetch: refetchOnMountOrArgChange,
             }),
@@ -1874,6 +1874,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         stableArg,
         stableSubscriptionOptions,
         subscriptionRemoved,
+        initialPageParam,
       ])
 
       const subscriptionOptionsRef = useRef(stableSubscriptionOptions)
@@ -1913,7 +1914,6 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
     const useInfiniteQueryState: UseInfiniteQueryState<any> = (
       arg: any,
-      { getNextPageParam, getPreviousPageParam },
       { skip = false, selectFromResult, trigger } = {},
     ) => {
       const { select, initiate } = api.endpoints[
@@ -1984,22 +1984,14 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       useInfiniteQuerySubscription,
       useInfiniteQuery(arg, options) {
         const [trigger] = useInfiniteQuerySubscription(arg, options)
-        const queryStateResults = useInfiniteQueryState(
-          arg,
-          {
-            initialPageParam: options?.initialPageParam!,
-            getNextPageParam: options?.getNextPageParam!,
-            getPreviousPageParam: options?.getPreviousPageParam,
-          },
-          {
-            selectFromResult:
-              arg === skipToken || options?.skip
-                ? undefined
-                : noPendingQueryStateSelector,
-            trigger,
-            ...options,
-          },
-        )
+        const queryStateResults = useInfiniteQueryState(arg, {
+          selectFromResult:
+            arg === skipToken || options?.skip
+              ? undefined
+              : noPendingQueryStateSelector,
+          trigger,
+          ...options,
+        })
 
         const {
           data,

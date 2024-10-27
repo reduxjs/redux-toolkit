@@ -181,6 +181,8 @@ afterEach(() => {
   nextItemId = 0
   amount = 0
   listenerMiddleware.clearListeners()
+
+  server.resetHandlers()
 })
 
 let getRenderCount: () => number = () => 0
@@ -1693,6 +1695,14 @@ describe('hooks tests', () => {
               lastPageParam,
               allPageParams,
             ) => lastPageParam + 1,
+            getPreviousPageParam: (
+              firstPage,
+              allPages,
+              firstPageParam,
+              allPageParams,
+            ) => {
+              return firstPageParam > 0 ? firstPageParam - 1 : undefined
+            },
           },
           query(pageParam) {
             return `https://example.com/listItems?page=${pageParam}`
@@ -1702,57 +1712,66 @@ describe('hooks tests', () => {
     })
 
     function PokemonList({
+      arg = 'fire',
       initialPageParam = 0,
     }: {
+      arg?: string
       initialPageParam?: number
     }) {
-      const { data, isFetching, isUninitialized, fetchNextPage } =
-        pokemonApi.endpoints.getInfinitePokemon.useInfiniteQuery('a', {
-          initialPageParam,
-          getNextPageParam: (
-            lastPage,
-            allPages,
-            // Page param type should be `number`
-            lastPageParam,
-            allPageParams,
-          ) => lastPageParam + 1,
-        })
+      const {
+        data,
+        isFetching,
+        isUninitialized,
+        fetchNextPage,
+        fetchPreviousPage,
+      } = pokemonApi.endpoints.getInfinitePokemon.useInfiniteQuery(arg, {
+        initialPageParam,
+      })
 
-      const handleClick = async () => {
-        const promise = fetchNextPage()
-        const res = await promise
+      const handlePreviousPage = async () => {
+        const res = await fetchPreviousPage()
+      }
+
+      const handleNextPage = async () => {
+        const res = await fetchNextPage()
       }
 
       return (
         <div>
           <div data-testid="isUninitialized">{String(isUninitialized)}</div>
           <div data-testid="isFetching">{String(isFetching)}</div>
+          <div>Type: {arg}</div>
           <div data-testid="data">
-            {data?.pages.map((page: any, i: number | null | undefined) => (
-              <div key={i}>{JSON.stringify(page)}</div>
+            {data?.pages.map((page, i: number | null | undefined) => (
+              <div key={i}>{page.name}</div>
             ))}
           </div>
-          <button data-testid="nextPage" onClick={() => handleClick()}>
+          <button data-testid="prevPage" onClick={() => handlePreviousPage()}>
+            nextPage
+          </button>
+          <button data-testid="nextPage" onClick={() => handleNextPage()}>
             nextPage
           </button>
         </div>
       )
     }
 
-    server.use(
-      http.get('https://example.com/listItems', ({ request }) => {
-        const url = new URL(request.url)
-        const pageString = url.searchParams.get('page')
-        const pageNum = parseInt(pageString || '0')
+    beforeEach(() => {
+      server.use(
+        http.get('https://example.com/listItems', ({ request }) => {
+          const url = new URL(request.url)
+          const pageString = url.searchParams.get('page')
+          const pageNum = parseInt(pageString || '0')
 
-        const results: Pokemon = {
-          id: `${pageNum}`,
-          name: `Pokemon ${pageNum}`,
-        }
+          const results: Pokemon = {
+            id: `${pageNum}`,
+            name: `Pokemon ${pageNum}`,
+          }
 
-        return HttpResponse.json(results)
-      }),
-    )
+          return HttpResponse.json(results)
+        }),
+      )
+    })
 
     test('useInfiniteQuery fetchNextPage Trigger', async () => {
       const storeRef = setupApiStore(pokemonApi, undefined, {
@@ -1762,34 +1781,76 @@ describe('hooks tests', () => {
       const checkNumQueries = (count: number) => {
         const cacheEntries = Object.keys(storeRef.store.getState().api.queries)
         const queries = cacheEntries.length
-        console.log('queries', queries, storeRef.store.getState().api.queries)
+        //console.log('queries', queries, storeRef.store.getState().api.queries)
 
         expect(queries).toBe(count)
       }
 
-      render(<PokemonList />, { wrapper: storeRef.wrapper })
+      const checkPageRows = (type: string, ids: number[]) => {
+        expect(screen.getByText(`Type: ${type}`)).toBeTruthy()
+        for (const id of ids) {
+          expect(screen.getByText(`Pokemon ${id}`)).toBeTruthy()
+        }
+      }
+
+      async function waitForFetch() {
+        await waitFor(() =>
+          expect(screen.getByTestId('isFetching').textContent).toBe('true'),
+        )
+        await waitFor(() =>
+          expect(screen.getByTestId('isFetching').textContent).toBe('false'),
+        )
+      }
+
+      const utils = render(<PokemonList />, { wrapper: storeRef.wrapper })
       expect(screen.getByTestId('data').textContent).toBe('')
       checkNumQueries(1)
 
       await waitFor(() =>
         expect(screen.getByTestId('isUninitialized').textContent).toBe('false'),
       )
-      await waitFor(() =>
-        expect(screen.getByTestId('isFetching').textContent).toBe('false'),
-      )
+
+      // Initial load
+      await waitForFetch()
+      checkNumQueries(1)
+      checkPageRows('fire', [0])
+
       act(() => {
         fireEvent.click(screen.getByTestId('nextPage'))
       })
-      await waitFor(() =>
-        expect(screen.getByTestId('isFetching').textContent).toBe('false'),
-      )
-      checkNumQueries(1)
-      await waitFor(() =>
-        expect(screen.getByTestId('isFetching').textContent).toBe('false'),
-      )
-      expect(screen.getByTestId('data').textContent).toBe(
-        '{"id":"0","name":"Pokemon 0"}{"id":"1","name":"Pokemon 1"}',
-      )
+
+      await waitForFetch()
+
+      // Added one page
+      checkPageRows('fire', [0, 1])
+
+      act(() => {
+        fireEvent.click(screen.getByTestId('nextPage'))
+      })
+      await waitForFetch()
+
+      checkPageRows('fire', [0, 1, 2])
+
+      utils.rerender(<PokemonList arg="water" initialPageParam={3} />)
+
+      await waitForFetch()
+
+      checkNumQueries(2)
+      checkPageRows('water', [3])
+
+      act(() => {
+        fireEvent.click(screen.getByTestId('nextPage'))
+      })
+      await waitForFetch()
+
+      checkPageRows('water', [3, 4])
+
+      act(() => {
+        fireEvent.click(screen.getByTestId('prevPage'))
+      })
+      await waitForFetch()
+
+      checkPageRows('water', [2, 3, 4])
     })
   })
 
