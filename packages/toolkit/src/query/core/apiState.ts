@@ -205,7 +205,7 @@ type BaseQuerySubState<
    */
   hasNextPage?: boolean
   hasPreviousPage?: boolean
-  direction?: 'forward' | 'backwards'
+  direction?: 'forward' | 'backward'
   param?: QueryArgFrom<D>
 }
 
@@ -248,7 +248,7 @@ export type InfiniteQuerySubState<
         isFetchingNextPage?: boolean
         isFetchingPreviousPage?: boolean
         param?: PageParamFrom<D>
-        direction?: 'forward' | 'backwards'
+        direction?: 'forward' | 'backward'
       }
     : never
 
