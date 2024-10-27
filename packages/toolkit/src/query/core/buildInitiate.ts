@@ -73,7 +73,7 @@ export type StartInfiniteQueryActionCreatorOptions<
   subscribe?: boolean
   forceRefetch?: boolean | number
   subscriptionOptions?: SubscriptionOptions
-  direction?: 'forward' | 'backwards'
+  direction?: 'forward' | 'backward'
   [forceQueryFnSymbol]?: () => QueryReturnValue
   param?: unknown
   previous?: boolean
