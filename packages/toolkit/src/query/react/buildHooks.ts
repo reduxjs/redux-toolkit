@@ -13,13 +13,14 @@ import type {
   BaseQueryFn,
   CoreModule,
   EndpointDefinitions,
-  InfiniteData,
   InfiniteQueryActionCreatorResult,
-  InfiniteQueryConfigOptions,
+  InfiniteQueryArgFrom,
   InfiniteQueryDefinition,
+  InfiniteQueryResultSelectorResult,
   MutationActionCreatorResult,
   MutationDefinition,
   MutationResultSelectorResult,
+  PageParamFrom,
   PrefetchOptions,
   QueryActionCreatorResult,
   QueryArgFrom,
@@ -37,7 +38,11 @@ import type {
   TSHelpersNoInfer,
   TSHelpersOverride,
 } from '@reduxjs/toolkit/query'
-import { QueryStatus, skipToken } from '@reduxjs/toolkit/query'
+import {
+  defaultSerializeQueryArgs,
+  QueryStatus,
+  skipToken,
+} from '@reduxjs/toolkit/query'
 import type { DependencyList } from 'react'
 import {
   useCallback,
@@ -49,13 +54,9 @@ import {
   useState,
 } from 'react'
 import { shallowEqual } from 'react-redux'
-import type { InfiniteQueryResultSelectorResult } from '../core/buildSelectors'
-import type { SubscriptionSelectors } from '../core/index'
-import { defaultSerializeQueryArgs } from '../defaultSerializeQueryArgs'
-import type {
-  InfiniteQueryArgFrom,
-  PageParamFrom,
-} from '../endpointDefinitions'
+
+import type { SubscriptionSelectors } from '../core/buildMiddleware/index'
+import type { InfiniteData, InfiniteQueryConfigOptions } from '../core/index'
 import type { UninitializedValue } from './constants'
 import { UNINITIALIZED_VALUE } from './constants'
 import type { ReactHooksModuleOptions } from './module'
