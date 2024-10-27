@@ -1,14 +1,14 @@
 import type { SerializedError } from '@reduxjs/toolkit'
 import type { BaseQueryError } from '../baseQueryTypes'
 import type {
-  QueryDefinition,
-  MutationDefinition,
-  EndpointDefinitions,
   BaseEndpointDefinition,
-  ResultTypeFrom,
-  QueryArgFrom,
+  EndpointDefinitions,
   InfiniteQueryDefinition,
+  MutationDefinition,
   PageParamFrom,
+  QueryArgFrom,
+  QueryDefinition,
+  ResultTypeFrom,
 } from '../endpointDefinitions'
 import type { Id, WithRequiredProp } from '../tsHelpers'
 
