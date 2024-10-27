@@ -56,7 +56,7 @@ declare module '@reduxjs/toolkit/query' {
         options?: PrefetchOptions
       ): (
         arg: QueryArgFrom<Definitions[EndpointName]>,
-        options?: PrefetchOptions
+        options?: PrefetchOptions,
       ) => void
     } & HooksWithUniqueNames<Definitions>
   }
