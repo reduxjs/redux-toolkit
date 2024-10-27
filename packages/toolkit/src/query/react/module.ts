@@ -2,6 +2,7 @@ import type {
   Api,
   BaseQueryFn,
   EndpointDefinitions,
+  InfiniteQueryDefinition,
   Module,
   MutationDefinition,
   PrefetchOptions,
@@ -16,7 +17,6 @@ import {
   useStore as rrUseStore,
 } from 'react-redux'
 import { createSelector as _createSelector } from 'reselect'
-import type { InfiniteQueryDefinition } from '../endpointDefinitions'
 import {
   isInfiniteQueryDefinition,
   isMutationDefinition,

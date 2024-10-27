@@ -21,10 +21,9 @@ import type {
 } from '../endpointDefinitions'
 import { countObjectKeys, getOrInsert, isNotNullish } from '../utils'
 import type {
-  SubscriptionOptions,
-  RootState,
-  InfiniteQueryConfigOptions,
   InfiniteData,
+  InfiniteQueryConfigOptions,
+  SubscriptionOptions,
 } from './apiState'
 import type {
   InfiniteQueryResultSelectorResult,
