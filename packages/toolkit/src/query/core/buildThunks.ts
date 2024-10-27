@@ -19,6 +19,7 @@ import type {
   AssertTagTypes,
   EndpointDefinition,
   EndpointDefinitions,
+  InfiniteQueryDefinition,
   MutationDefinition,
   QueryArgFrom,
   QueryDefinition,
@@ -27,7 +28,6 @@ import type {
 import { calculateProvidedBy, isQueryDefinition } from '../endpointDefinitions'
 import { HandledError } from '../HandledError'
 import type { UnwrapPromise } from '../tsHelpers'
-import type { InfiniteQueryDefinition } from '../endpointDefinitions'
 import type {
   RootState,
   QueryKeys,

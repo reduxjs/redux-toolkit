@@ -7,12 +7,15 @@ import type {
 import type {
   Api,
   ApiContext,
-  ApiEndpointMutation,
   ApiEndpointInfiniteQuery,
+  ApiEndpointMutation,
   ApiEndpointQuery,
   BaseQueryFn,
   CoreModule,
   EndpointDefinitions,
+  InfiniteData,
+  InfiniteQueryActionCreatorResult,
+  InfiniteQueryConfigOptions,
   InfiniteQueryDefinition,
   MutationActionCreatorResult,
   MutationDefinition,
@@ -46,25 +49,19 @@ import {
   useState,
 } from 'react'
 import { shallowEqual } from 'react-redux'
-import type { SubscriptionSelectors } from '../core'
+import type { InfiniteQueryResultSelectorResult } from '../core/buildSelectors'
+import type { SubscriptionSelectors } from '../core/index'
 import { defaultSerializeQueryArgs } from '../defaultSerializeQueryArgs'
+import type {
+  InfiniteQueryArgFrom,
+  PageParamFrom,
+} from '../endpointDefinitions'
 import type { UninitializedValue } from './constants'
 import { UNINITIALIZED_VALUE } from './constants'
 import type { ReactHooksModuleOptions } from './module'
 import { useStableQueryArgs } from './useSerializedStableValue'
 import { useShallowStableValue } from './useShallowStableValue'
-
-import type { InfiniteQueryActionCreatorResult } from '@internal/query/core/buildInitiate'
-import type {
-  InfiniteData,
-  InfiniteQueryConfigOptions,
-  InfiniteQuerySubState,
-} from '@internal/query/core/apiState'
-import type { InfiniteQueryResultSelectorResult } from '../core/buildSelectors'
-import type {
-  InfiniteQueryArgFrom,
-  PageParamFrom,
-} from '../endpointDefinitions'
+import type { InfiniteQuerySubState } from '../core/apiState'
 
 // Copy-pasted from React-Redux
 const canUseDOM = () =>
