@@ -433,6 +433,8 @@ export function buildThunks<
         param: unknown,
         previous?: boolean,
       ): Promise<QueryReturnValue> => {
+        // This should handle cases where there is no `getPrevPageParam`,
+        // or `getPPP` returned nullish
         if (param == null && data.pages.length) {
           return Promise.resolve({ data })
         }
