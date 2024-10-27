@@ -788,7 +788,6 @@ export type LazyInfiniteQueryTrigger<
    */
   (
     arg: QueryArgFrom<D>,
-    data: InfiniteData<any, any>,
     direction: 'forward' | 'backwards',
   ): InfiniteQueryActionCreatorResult<D>
 }
@@ -1045,8 +1044,8 @@ type UseInfiniteQueryStateBaseResult<
   isFetchingNextPage: false
   isFetchingPreviousPage: false
 
-  fetchNextPage: () => Promise<UseInfiniteQueryStateResult<D, D>>
-  fetchPreviousPage: () => Promise<UseInfiniteQueryStateResult<D, D>>
+  fetchNextPage: () => Promise<InfiniteQueryActionCreatorResult<D>>
+  fetchPreviousPage: () => Promise<InfiniteQueryActionCreatorResult<D>>
 }
 
 type UseInfiniteQueryStateDefaultResult<
@@ -1884,12 +1883,8 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         subscriptionOptionsRef.current = stableSubscriptionOptions
       }, [stableSubscriptionOptions])
 
-      const trigger = useCallback(
-        function (
-          arg: any,
-          data: InfiniteData<any, any>,
-          direction: 'forward' | 'backwards',
-        ) {
+      const trigger: LazyInfiniteQueryTrigger<any> = useCallback(
+        function (arg: unknown, direction: 'forward' | 'backwards') {
           let promise: InfiniteQueryActionCreatorResult<any>
 
           batch(() => {
@@ -1901,8 +1896,6 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
                 direction,
               }),
             )
-
-            // setArg(arg)
           })
 
           return promise!
@@ -1957,7 +1950,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
               },
             },
           ),
-        [select, stableArg, trigger],
+        [select, stableArg],
       )
 
       const querySelector: Selector<ApiRootState, any, [any]> = useMemo(
@@ -2010,8 +2003,6 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           },
         )
 
-        const info = useMemo(() => ({ lastArg: arg }), [arg])
-
         const {
           data,
           status,
@@ -2034,14 +2025,15 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         })
 
         const fetchNextPage = useCallback(() => {
-          // if (!hasNextPage) return
-          return trigger(arg, queryStateResults.data, 'forward')
-        }, [trigger, hasNextPage, queryStateResults.data])
+          // TODO the hasNextPage bailout breaks things
+          //if (!hasNextPage) return
+          return trigger(arg, 'forward')
+        }, [trigger, arg])
 
         const fetchPreviousPage = useCallback(() => {
-          if (!hasPreviousPage) return
-          return trigger(arg, queryStateResults.data, 'backwards')
-        }, [trigger, hasPreviousPage, queryStateResults.data])
+          //if (!hasPreviousPage) return
+          return trigger(arg, 'backwards')
+        }, [trigger, arg])
 
         return useMemo(
           () => ({ ...queryStateResults, fetchNextPage, fetchPreviousPage }),
