@@ -206,14 +206,17 @@ export function buildSlice({
       substate.startedTimeStamp = meta.startedTimeStamp
 
       // TODO: Awful - fix this most likely by just moving it to its own slice that only works on InfQuery's
-      if ('param' in substate && 'direction' in substate) {
-        if ('param' in arg && 'direction' in arg) {
-          substate.param = arg.param
-          substate.direction = arg.direction as
-            | 'forward'
-            | 'backwards'
-            | undefined
-        }
+      if (
+        'param' in substate &&
+        'direction' in substate &&
+        'param' in arg &&
+        'direction' in arg
+      ) {
+        substate.param = arg.param
+        substate.direction = arg.direction as
+          | 'forward'
+          | 'backwards'
+          | undefined
       }
     })
   }
