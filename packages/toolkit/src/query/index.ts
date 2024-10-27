@@ -31,6 +31,7 @@ export type {
   InfiniteQueryActionCreatorResult,
   InfiniteQueryConfigOptions,
   InfiniteQueryResultSelectorResult,
+  InfiniteQuerySubState,
   MutationActionCreatorResult,
   MutationResultSelectorResult,
   PrefetchOptions,
