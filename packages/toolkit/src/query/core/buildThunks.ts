@@ -127,7 +127,7 @@ export type InfiniteQueryThunkArg<
     endpointName: string
     param: unknown
     previous?: boolean
-    direction?: 'forward' | 'backwards'
+    direction?: 'forward' | 'backward'
   }
 
 type MutationThunkArg = {
@@ -547,7 +547,7 @@ export function buildThunks<
         // If the thunk specified a direction and we do have at least one page,
         // fetch the next or previous page
         if ('direction' in arg && arg.direction && existingData.pages.length) {
-          const previous = arg.direction === 'backwards'
+          const previous = arg.direction === 'backward'
           const pageParamFn = previous ? getPreviousPageParam : getNextPageParam
           const param = pageParamFn(
             endpointDefinition.infiniteQueryOptions,
