@@ -127,12 +127,12 @@ export type QueryLifecycleInfiniteQueryExtraOptions<
   QueryArg,
   BaseQuery extends BaseQueryFn,
   ReducerPath extends string = string,
-> = {
-  onQueryStarted?(
-    arg: QueryArg,
-    api: QueryLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
-  ): Promise<void> | void
-}
+> = QueryLifecycleQueryExtraOptions<
+  ResultType,
+  QueryArg,
+  BaseQuery,
+  ReducerPath
+>
 
 export type QueryLifecycleMutationExtraOptions<
   ResultType,
