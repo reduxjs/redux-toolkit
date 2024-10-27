@@ -9,12 +9,7 @@ import type {
   QueryDefinition,
   QueryKeys,
 } from '@reduxjs/toolkit/query'
-import {
-  batch as rrBatch,
-  useDispatch as rrUseDispatch,
-  useSelector as rrUseSelector,
-  useStore as rrUseStore,
-} from 'react-redux'
+
 import { createSelector as _createSelector } from 'reselect'
 import { isMutationDefinition, isQueryDefinition } from '../endpointDefinitions'
 import { safeAssign } from '../tsHelpers'
@@ -34,7 +29,7 @@ declare module '@reduxjs/toolkit/query' {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     ReducerPath extends string,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    TagTypes extends string,
+    TagTypes extends string
   > {
     [reactHooksModuleName]: {
       /**
@@ -50,18 +45,18 @@ declare module '@reduxjs/toolkit/query' {
         >
           ? QueryHooks<Definitions[K]>
           : Definitions[K] extends MutationDefinition<any, any, any, any, any>
-            ? MutationHooks<Definitions[K]>
-            : never
+          ? MutationHooks<Definitions[K]>
+          : never
       }
       /**
        * A hook that accepts a string endpoint name, and provides a callback that when called, pre-fetches the data for that endpoint.
        */
       usePrefetch<EndpointName extends QueryKeys<Definitions>>(
         endpointName: EndpointName,
-        options?: PrefetchOptions,
+        options?: PrefetchOptions
       ): (
         arg: QueryArgFrom<Definitions[EndpointName]>,
-        options?: PrefetchOptions,
+        options?: PrefetchOptions
       ) => void
     } & HooksWithUniqueNames<Definitions>
   }
@@ -136,103 +131,104 @@ export interface ReactHooksModuleOptions {
  *
  * @returns A module for use with `buildCreateApi`
  */
-export const reactHooksModule = ({
-  batch = rrBatch,
-  hooks = {
-    useDispatch: rrUseDispatch,
-    useSelector: rrUseSelector,
-    useStore: rrUseStore,
-  },
-  createSelector = _createSelector,
-  unstable__sideEffectsInRender = false,
-  ...rest
-}: ReactHooksModuleOptions = {}): Module<ReactHooksModule> => {
-  if (process.env.NODE_ENV !== 'production') {
-    const hookNames = ['useDispatch', 'useSelector', 'useStore'] as const
-    let warned = false
-    for (const hookName of hookNames) {
-      // warn for old hook options
-      if (countObjectKeys(rest) > 0) {
-        if ((rest as Partial<typeof hooks>)[hookName]) {
-          if (!warned) {
-            console.warn(
-              'As of RTK 2.0, the hooks now need to be specified as one object, provided under a `hooks` key:' +
-                '\n`reactHooksModule({ hooks: { useDispatch, useSelector, useStore } })`',
-            )
-            warned = true
+export const unboundHooksModule =
+  ({
+    batch: defaultBatch,
+    hooks: defaultHooks,
+  }: Required<Pick<ReactHooksModuleOptions, 'batch' | 'hooks'>>) =>
+  ({
+    batch = defaultBatch,
+    hooks = defaultHooks,
+    createSelector = _createSelector,
+    unstable__sideEffectsInRender = false,
+    ...rest
+  }: ReactHooksModuleOptions = {}): Module<ReactHooksModule> => {
+    if (process.env.NODE_ENV !== 'production') {
+      const hookNames = ['useDispatch', 'useSelector', 'useStore'] as const
+      let warned = false
+      for (const hookName of hookNames) {
+        // warn for old hook options
+        if (countObjectKeys(rest) > 0) {
+          if ((rest as Partial<typeof hooks>)[hookName]) {
+            if (!warned) {
+              console.warn(
+                'As of RTK 2.0, the hooks now need to be specified as one object, provided under a `hooks` key:' +
+                  '\n`reactHooksModule({ hooks: { useDispatch, useSelector, useStore } })`'
+              )
+              warned = true
+            }
           }
+          // migrate
+          // @ts-ignore
+          hooks[hookName] = rest[hookName]
         }
-        // migrate
-        // @ts-ignore
-        hooks[hookName] = rest[hookName]
-      }
-      // then make sure we have them all
-      if (typeof hooks[hookName] !== 'function') {
-        throw new Error(
-          `When using custom hooks for context, all ${
-            hookNames.length
-          } hooks need to be provided: ${hookNames.join(
-            ', ',
-          )}.\nHook ${hookName} was either not provided or not a function.`,
-        )
+        // then make sure we have them all
+        if (typeof hooks[hookName] !== 'function') {
+          throw new Error(
+            `When using custom hooks for context, all ${
+              hookNames.length
+            } hooks need to be provided: ${hookNames.join(
+              ', '
+            )}.\nHook ${hookName} was either not provided or not a function.`
+          )
+        }
       }
     }
-  }
 
-  return {
-    name: reactHooksModuleName,
-    init(api, { serializeQueryArgs }, context) {
-      const anyApi = api as any as Api<
-        any,
-        Record<string, any>,
-        any,
-        any,
-        ReactHooksModule
-      >
-      const { buildQueryHooks, buildMutationHook, usePrefetch } = buildHooks({
-        api,
-        moduleOptions: {
-          batch,
-          hooks,
-          unstable__sideEffectsInRender,
-          createSelector,
-        },
-        serializeQueryArgs,
-        context,
-      })
-      safeAssign(anyApi, { usePrefetch })
-      safeAssign(context, { batch })
+    return {
+      name: reactHooksModuleName,
+      init(api, { serializeQueryArgs }, context) {
+        const anyApi = api as any as Api<
+          any,
+          Record<string, any>,
+          any,
+          any,
+          ReactHooksModule
+        >
+        const { buildQueryHooks, buildMutationHook, usePrefetch } = buildHooks({
+          api,
+          moduleOptions: {
+            batch,
+            hooks,
+            unstable__sideEffectsInRender,
+            createSelector,
+          },
+          serializeQueryArgs,
+          context,
+        })
+        safeAssign(anyApi, { usePrefetch })
+        safeAssign(context, { batch })
 
-      return {
-        injectEndpoint(endpointName, definition) {
-          if (isQueryDefinition(definition)) {
-            const {
-              useQuery,
-              useLazyQuery,
-              useLazyQuerySubscription,
-              useQueryState,
-              useQuerySubscription,
-            } = buildQueryHooks(endpointName)
-            safeAssign(anyApi.endpoints[endpointName], {
-              useQuery,
-              useLazyQuery,
-              useLazyQuerySubscription,
-              useQueryState,
-              useQuerySubscription,
-            })
-            ;(api as any)[`use${capitalize(endpointName)}Query`] = useQuery
-            ;(api as any)[`useLazy${capitalize(endpointName)}Query`] =
-              useLazyQuery
-          } else if (isMutationDefinition(definition)) {
-            const useMutation = buildMutationHook(endpointName)
-            safeAssign(anyApi.endpoints[endpointName], {
-              useMutation,
-            })
-            ;(api as any)[`use${capitalize(endpointName)}Mutation`] =
-              useMutation
-          }
-        },
-      }
-    },
+        return {
+          injectEndpoint(endpointName, definition) {
+            if (isQueryDefinition(definition)) {
+              const {
+                useQuery,
+                useLazyQuery,
+                useLazyQuerySubscription,
+                useQueryState,
+                useQuerySubscription,
+              } = buildQueryHooks(endpointName)
+              safeAssign(anyApi.endpoints[endpointName], {
+                useQuery,
+                useLazyQuery,
+                useLazyQuerySubscription,
+                useQueryState,
+                useQuerySubscription,
+              })
+              ;(api as any)[`use${capitalize(endpointName)}Query`] = useQuery
+              ;(api as any)[`useLazy${capitalize(endpointName)}Query`] =
+                useLazyQuery
+            } else if (isMutationDefinition(definition)) {
+              const useMutation = buildMutationHook(endpointName)
+              safeAssign(anyApi.endpoints[endpointName], {
+                useMutation,
+              })
+              ;(api as any)[`use${capitalize(endpointName)}Mutation`] =
+                useMutation
+            }
+          },
+        }
+      },
+    }
   }
-}

@@ -44,6 +44,10 @@
     },
     "./query/react": {
       "types": "./dist/query/react/index.d.ts",
+      "react-server": {
+        "import": "./dist/query/react.rsc/rtk-query-react.modern.mjs",
+        "default": "./dist/query/react.rsc/cjs/index.js"
+      },
       "import": "./dist/query/react/rtk-query-react.modern.mjs",
       "default": "./dist/query/react/cjs/index.js"
     }
