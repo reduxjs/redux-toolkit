@@ -100,6 +100,15 @@ describe('Infinite queries', () => {
         expectTypeOf(currentData.pages).toEqualTypeOf<Pokemon[][]>()
         expectTypeOf(currentData.pageParams).toEqualTypeOf<number[]>()
       }
+
+      const handleClick = async () => {
+        const res = await fetchNextPage()
+
+        if (res.status === QueryStatus.fulfilled) {
+          expectTypeOf(res.data.pages).toEqualTypeOf<Pokemon[][]>()
+          expectTypeOf(res.data.pageParams).toEqualTypeOf<number[]>()
+        }
+      }
     }
   })
 })
