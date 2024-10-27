@@ -23,7 +23,7 @@ import type {
   MutationThunk,
   QueryThunk,
   QueryThunkArg,
-  ThunkResult
+  ThunkResult,
 } from '../buildThunks'
 import type { QueryActionCreatorResult } from '../buildInitiate'
 
@@ -66,7 +66,7 @@ export interface BuildSubMiddlewareInput
     querySubState: Exclude<
       QuerySubState<any>,
       { status: QueryStatus.uninitialized }
-    >
+    >,
   ): ThunkAction<QueryActionCreatorResult<any>, any, any, UnknownAction>
   isThisApiSliceAction: (action: Action) => boolean
 }

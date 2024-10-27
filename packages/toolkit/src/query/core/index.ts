@@ -29,6 +29,7 @@ export type {
 } from './buildMiddleware/index'
 export { skipToken } from './buildSelectors'
 export type {
+  InfiniteQueryResultSelectorResult,
   MutationResultSelectorResult,
   QueryResultSelectorResult,
   SkipToken,
