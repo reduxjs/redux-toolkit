@@ -118,8 +118,10 @@ export type QueryThunkArg = QuerySubstateIdentifier &
     endpointName: string
   }
 
-export type InfiniteQueryThunkArg = QuerySubstateIdentifier &
-  StartInfiniteQueryActionCreatorOptions & {
+export type InfiniteQueryThunkArg<
+  D extends InfiniteQueryDefinition<any, any, any, any, any>,
+> = QuerySubstateIdentifier &
+  StartInfiniteQueryActionCreatorOptions<D> & {
     type: `query`
     originalArgs: unknown
     endpointName: string
@@ -158,11 +160,9 @@ export type QueryThunk = AsyncThunk<
   QueryThunkArg,
   ThunkApiMetaConfig
 >
-export type InfiniteQueryThunk = AsyncThunk<
-  ThunkResult,
-  InfiniteQueryThunkArg,
-  ThunkApiMetaConfig
->
+export type InfiniteQueryThunk<
+  D extends InfiniteQueryDefinition<any, any, any, any, any>,
+> = AsyncThunk<ThunkResult, InfiniteQueryThunkArg<D>, ThunkApiMetaConfig>
 export type MutationThunk = AsyncThunk<
   ThunkResult,
   MutationThunkArg,
@@ -382,7 +382,7 @@ export function buildThunks<
   // The generic async payload function for all of our thunks
   const executeEndpoint: AsyncThunkPayloadCreator<
     ThunkResult,
-    QueryThunkArg | MutationThunkArg | InfiniteQueryThunkArg,
+    QueryThunkArg | MutationThunkArg | InfiniteQueryThunkArg<any>,
     ThunkApiMetaConfig & { state: RootState<any, string, ReducerPath> }
   > = async (
     arg,
@@ -554,21 +554,19 @@ export function buildThunks<
             existingData,
           )
 
-          console.log('Next page param: ', {
-            previous,
-            param,
-            existingData,
-          })
-
           result = await fetchPage(existingData, param, previous)
         } else {
           // Otherwise, fetch the first page and then any remaining pages
 
+          const {
+            initialPageParam = endpointDefinition.infiniteQueryOptions
+              .initialPageParam,
+          } = arg as InfiniteQueryThunkArg<any>
+
           // Fetch first page
           result = await fetchPage(
             existingData,
-            existingData.pageParams[0] ??
-              endpointDefinition.infiniteQueryOptions.initialPageParam, // arg.originalArgs,
+            existingData.pageParams[0] ?? initialPageParam,
           )
 
           //original
@@ -752,7 +750,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
 
   const infiniteQueryThunk = createAsyncThunk<
     ThunkResult,
-    InfiniteQueryThunkArg,
+    InfiniteQueryThunkArg<any>,
     ThunkApiMetaConfig & { state: RootState<any, string, ReducerPath> }
   >(`${reducerPath}/executeQuery`, executeEndpoint, {
     getPendingMeta(queryThunkArgs) {
