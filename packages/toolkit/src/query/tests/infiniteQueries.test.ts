@@ -58,7 +58,16 @@ describe('Infinite queries', () => {
             lastPageParam,
             allPageParams,
           ) => lastPageParam + 1,
+          getPreviousPageParam: (
+            firstPage,
+            allPages,
+            firstPageParam,
+            allPageParams,
+          ) => {
+            return firstPageParam > 0 ? firstPageParam - 1 : undefined
+          },
         },
+
         // Actual query arg type should be `number`
         query(pageParam) {
           return `https://example.com/listItems?page=${pageParam}`
@@ -110,6 +119,21 @@ describe('Infinite queries', () => {
       ])
     }
 
+    const entry1PrevPageMissing = await storeRef.store.dispatch(
+      pokemonApi.endpoints.getInfinitePokemon.initiate('fire', {
+        direction: 'backward',
+      }),
+    )
+
+    if (entry1PrevPageMissing.status === QueryStatus.fulfilled) {
+      // There is no p
+      expect(entry1PrevPageMissing.data.pages).toEqual([
+        // two pages, one entry each
+        [{ id: '0', name: 'Pokemon 0' }],
+        [{ id: '1', name: 'Pokemon 1' }],
+      ])
+    }
+
     // console.log(
     //   'API state: ',
     //   util.inspect(storeRef.store.getState().api, { depth: Infinity }),
@@ -137,6 +161,21 @@ describe('Infinite queries', () => {
     if (entry2NextPage.status === QueryStatus.fulfilled) {
       expect(entry2NextPage.data.pages).toEqual([
         // two pages, one entry each
+        [{ id: '3', name: 'Pokemon 3' }],
+        [{ id: '4', name: 'Pokemon 4' }],
+      ])
+    }
+
+    const entry2PrevPage = await storeRef.store.dispatch(
+      pokemonApi.endpoints.getInfinitePokemon.initiate('water', {
+        direction: 'backward',
+      }),
+    )
+
+    if (entry2PrevPage.status === QueryStatus.fulfilled) {
+      expect(entry2PrevPage.data.pages).toEqual([
+        // three pages, one entry each
+        [{ id: '2', name: 'Pokemon 2' }],
         [{ id: '3', name: 'Pokemon 3' }],
         [{ id: '4', name: 'Pokemon 4' }],
       ])
