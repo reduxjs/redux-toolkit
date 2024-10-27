@@ -17,6 +17,7 @@ import type {
   InfiniteQueryArgFrom,
   InfiniteQueryDefinition,
   InfiniteQueryResultSelectorResult,
+  InfiniteQuerySubState,
   MutationActionCreatorResult,
   MutationDefinition,
   MutationResultSelectorResult,
@@ -62,7 +63,6 @@ import { UNINITIALIZED_VALUE } from './constants'
 import type { ReactHooksModuleOptions } from './module'
 import { useStableQueryArgs } from './useSerializedStableValue'
 import { useShallowStableValue } from './useShallowStableValue'
-import type { InfiniteQuerySubState } from '../core/apiState'
 
 // Copy-pasted from React-Redux
 const canUseDOM = () =>
