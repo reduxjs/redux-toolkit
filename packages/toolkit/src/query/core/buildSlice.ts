@@ -160,7 +160,7 @@ export function buildSlice({
 }: {
   reducerPath: string
   queryThunk: QueryThunk
-  infiniteQueryThunk: InfiniteQueryThunk
+  infiniteQueryThunk: InfiniteQueryThunk<any>
   mutationThunk: MutationThunk
   serializeQueryArgs: InternalSerializeQueryArgs
   context: ApiContext<EndpointDefinitions>
