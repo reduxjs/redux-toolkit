@@ -27,7 +27,7 @@ import type {
 import { calculateProvidedBy, isQueryDefinition } from '../endpointDefinitions'
 import { HandledError } from '../HandledError'
 import type { UnwrapPromise } from '../tsHelpers'
-import type { InfiniteQueryDefinition } from '@internal/query/endpointDefinitions'
+import type { InfiniteQueryDefinition } from '../endpointDefinitions'
 import type {
   RootState,
   QueryKeys,
@@ -553,6 +553,12 @@ export function buildThunks<
             endpointDefinition.infiniteQueryOptions,
             existingData,
           )
+
+          console.log('Next page param: ', {
+            previous,
+            param,
+            existingData,
+          })
 
           result = await fetchPage(existingData, param, previous)
         } else {
