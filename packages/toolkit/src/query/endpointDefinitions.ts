@@ -1,10 +1,5 @@
 import type { Api } from '@reduxjs/toolkit/query'
 import type {
-  InfiniteQueryConfigOptions,
-  QuerySubState,
-  RootState,
-} from './core/apiState'
-import type {
   BaseQueryApi,
   BaseQueryArg,
   BaseQueryError,
@@ -25,6 +20,11 @@ import type {
   QueryLifecycleMutationExtraOptions,
   QueryLifecycleQueryExtraOptions,
 } from './core/buildMiddleware/queryLifecycle'
+import type {
+  InfiniteQueryConfigOptions,
+  QuerySubState,
+  RootState,
+} from './core/index'
 import type { SerializeQueryArgs } from './defaultSerializeQueryArgs'
 import type { NEVER } from './fakeBaseQuery'
 import type {
@@ -44,7 +44,6 @@ type EndpointDefinitionWithQuery<
   QueryArg,
   BaseQuery extends BaseQueryFn,
   ResultType,
-  PageParam = never,
 > = {
   /**
    * `query` can be a function that returns either a `string` or an `object` which is passed to your `baseQuery`. If you are using [fetchBaseQuery](./fetchBaseQuery), this can return either a `string` or an `object` of properties in `FetchArgs`. If you use your own custom [`baseQuery`](../../rtk-query/usage/customizing-queries), you can customize this behavior to your liking.
