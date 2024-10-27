@@ -58,6 +58,7 @@ import type { InfiniteQueryActionCreatorResult } from '@internal/query/core/buil
 import type {
   InfiniteData,
   InfiniteQueryConfigOptions,
+  InfiniteQuerySubState,
 } from '@internal/query/core/apiState'
 import type { InfiniteQueryResultSelectorResult } from '../core/buildSelectors'
 import type {
@@ -1012,13 +1013,13 @@ export type UseInfiniteQueryStateResult<
 
 type UseInfiniteQueryStateBaseResult<
   D extends InfiniteQueryDefinition<any, any, any, any, any>,
-> = QuerySubState<D> & {
+> = InfiniteQuerySubState<D> & {
   /**
    * Where `data` tries to hold data as much as possible, also re-using
    * data from the last arguments passed into the hook, this property
    * will always contain the received data from the query, for the current query arguments.
    */
-  currentData?: ResultTypeFrom<D>
+  currentData?: InfiniteData<ResultTypeFrom<D>, PageParamFrom<D>>
   /**
    * Query has not started yet.
    */
