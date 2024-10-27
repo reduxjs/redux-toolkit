@@ -921,114 +921,6 @@ describe('hooks tests', () => {
       expect(res.data!.amount).toBeGreaterThan(originalAmount)
     })
 
-    test('Infinite Query Hook getNextPage Trigger', async () => {
-      server.use(
-        http.get('https://example.com/listItems', ({ request }) => {
-          const url = new URL(request.url)
-          const pageString = url.searchParams.get('page')
-          const pageNum = parseInt(pageString || '0')
-
-          const results = { title: `page ${pageNum}`, info: 'more name' }
-          return HttpResponse.json(results)
-        }),
-      )
-
-      type Pokemon = {
-        id: string
-        name: string
-      }
-
-      const pokemonApi = createApi({
-        baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
-        endpoints: (builder) => ({
-          getInfinitePokemon: builder.infiniteQuery<Pokemon[], string, number>({
-            infiniteQueryOptions: {
-              initialPageParam: 0,
-              getNextPageParam: (
-                lastPage,
-                allPages,
-                lastPageParam,
-                allPageParams,
-              ) => lastPageParam + 1,
-            },
-            query(pageParam) {
-              return `https://example.com/listItems?page=${pageParam}`
-            },
-          }),
-        }),
-      })
-
-      const storeRef = setupApiStore(pokemonApi, undefined, {
-        withoutTestLifecycles: true,
-      })
-
-      const checkNumQueries = (count: number) => {
-        const cacheEntries = Object.keys(storeRef.store.getState().api.queries)
-        const queries = cacheEntries.length
-        console.log('queries', queries, storeRef.store.getState().api.queries)
-
-        expect(queries).toBe(count)
-      }
-
-      function PokemonList() {
-        const { data, isFetching, isUninitialized, fetchNextPage } =
-          pokemonApi.endpoints.getInfinitePokemon.useInfiniteQuery('a', {
-            initialPageParam: 0,
-            getNextPageParam: (
-              lastPage,
-              allPages,
-              // Page param type should be `number`
-              lastPageParam,
-              allPageParams,
-            ) => lastPageParam + 1,
-          })
-
-        const handleClick = async () => {
-          const promise = fetchNextPage()
-          const res = await promise
-        }
-
-        return (
-          <div>
-            <div data-testid="isUninitialized">{String(isUninitialized)}</div>
-            <div data-testid="isFetching">{String(isFetching)}</div>
-            <div data-testid="data">
-              {data?.pages.map((page: any, i: number | null | undefined) => (
-                <div key={i}>{JSON.stringify(page)}</div>
-              ))}
-            </div>
-            <button data-testid="nextPage" onClick={() => handleClick()}>
-              nextPage
-            </button>
-          </div>
-        )
-      }
-
-      render(<PokemonList />, { wrapper: storeRef.wrapper })
-      expect(screen.getByTestId('data').textContent).toBe('')
-      checkNumQueries(1)
-
-      await waitFor(() =>
-        expect(screen.getByTestId('isUninitialized').textContent).toBe('false'),
-      )
-      await waitFor(() =>
-        expect(screen.getByTestId('isFetching').textContent).toBe('false'),
-      )
-      act(() => {
-        fireEvent.click(screen.getByTestId('nextPage'))
-      })
-      await waitFor(() =>
-        expect(screen.getByTestId('isFetching').textContent).toBe('false'),
-      )
-      checkNumQueries(1)
-      await waitFor(() =>
-        expect(screen.getByTestId('isFetching').textContent).toBe('false'),
-      )
-      expect(screen.getByTestId('data').textContent).toBe(
-        '{"title":"page 0","info":"more name"}{"title":"page 1","info":"more name"}',
-      )
-    })
-
     // See https://github.com/reduxjs/redux-toolkit/issues/4267 - Memory leak in useQuery rapid query arg changes
     test('Hook subscriptions are properly cleaned up when query is fulfilled/rejected', async () => {
       // This is imported already, but it seems to be causing issues with the test on certain matrixes
@@ -1786,6 +1678,124 @@ describe('hooks tests', () => {
 
       await screen.findByText(/isUninitialized/i)
       expect(countObjectKeys(storeRef.store.getState().api.queries)).toBe(0)
+    })
+  })
+
+  describe('useInfiniteQuery', () => {
+    type Pokemon = {
+      id: string
+      name: string
+    }
+
+    const pokemonApi = createApi({
+      baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
+      endpoints: (builder) => ({
+        getInfinitePokemon: builder.infiniteQuery<Pokemon, string, number>({
+          infiniteQueryOptions: {
+            initialPageParam: 0,
+            getNextPageParam: (
+              lastPage,
+              allPages,
+              lastPageParam,
+              allPageParams,
+            ) => lastPageParam + 1,
+          },
+          query(pageParam) {
+            return `https://example.com/listItems?page=${pageParam}`
+          },
+        }),
+      }),
+    })
+
+    function PokemonList({
+      initialPageParam = 0,
+    }: {
+      initialPageParam?: number
+    }) {
+      const { data, isFetching, isUninitialized, fetchNextPage } =
+        pokemonApi.endpoints.getInfinitePokemon.useInfiniteQuery('a', {
+          initialPageParam,
+          getNextPageParam: (
+            lastPage,
+            allPages,
+            // Page param type should be `number`
+            lastPageParam,
+            allPageParams,
+          ) => lastPageParam + 1,
+        })
+
+      const handleClick = async () => {
+        const promise = fetchNextPage()
+        const res = await promise
+      }
+
+      return (
+        <div>
+          <div data-testid="isUninitialized">{String(isUninitialized)}</div>
+          <div data-testid="isFetching">{String(isFetching)}</div>
+          <div data-testid="data">
+            {data?.pages.map((page: any, i: number | null | undefined) => (
+              <div key={i}>{JSON.stringify(page)}</div>
+            ))}
+          </div>
+          <button data-testid="nextPage" onClick={() => handleClick()}>
+            nextPage
+          </button>
+        </div>
+      )
+    }
+
+    server.use(
+      http.get('https://example.com/listItems', ({ request }) => {
+        const url = new URL(request.url)
+        const pageString = url.searchParams.get('page')
+        const pageNum = parseInt(pageString || '0')
+
+        const results: Pokemon = {
+          id: `${pageNum}`,
+          name: `Pokemon ${pageNum}`,
+        }
+
+        return HttpResponse.json(results)
+      }),
+    )
+
+    test('useInfiniteQuery fetchNextPage Trigger', async () => {
+      const storeRef = setupApiStore(pokemonApi, undefined, {
+        withoutTestLifecycles: true,
+      })
+
+      const checkNumQueries = (count: number) => {
+        const cacheEntries = Object.keys(storeRef.store.getState().api.queries)
+        const queries = cacheEntries.length
+        console.log('queries', queries, storeRef.store.getState().api.queries)
+
+        expect(queries).toBe(count)
+      }
+
+      render(<PokemonList />, { wrapper: storeRef.wrapper })
+      expect(screen.getByTestId('data').textContent).toBe('')
+      checkNumQueries(1)
+
+      await waitFor(() =>
+        expect(screen.getByTestId('isUninitialized').textContent).toBe('false'),
+      )
+      await waitFor(() =>
+        expect(screen.getByTestId('isFetching').textContent).toBe('false'),
+      )
+      act(() => {
+        fireEvent.click(screen.getByTestId('nextPage'))
+      })
+      await waitFor(() =>
+        expect(screen.getByTestId('isFetching').textContent).toBe('false'),
+      )
+      checkNumQueries(1)
+      await waitFor(() =>
+        expect(screen.getByTestId('isFetching').textContent).toBe('false'),
+      )
+      expect(screen.getByTestId('data').textContent).toBe(
+        '{"id":"0","name":"Pokemon 0"}{"id":"1","name":"Pokemon 1"}',
+      )
     })
   })
 
