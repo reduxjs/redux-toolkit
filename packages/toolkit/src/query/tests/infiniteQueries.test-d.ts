@@ -1,3 +1,4 @@
+import type { skipToken, InfiniteData } from '@reduxjs/toolkit/query/react'
 import {
   createApi,
   fetchBaseQuery,
@@ -68,5 +69,37 @@ describe('Infinite queries', () => {
         direction: 'forward',
       }),
     )
+
+    const useGetInfinitePokemonQuery =
+      pokemonApi.endpoints.getInfinitePokemon.useInfiniteQuery
+
+    expectTypeOf(useGetInfinitePokemonQuery)
+      .parameter(0)
+      .toEqualTypeOf<string | typeof skipToken>()
+
+    function PokemonList() {
+      const {
+        data,
+        currentData,
+        isFetching,
+        isUninitialized,
+        isSuccess,
+        fetchNextPage,
+      } = useGetInfinitePokemonQuery('a')
+
+      expectTypeOf(data).toEqualTypeOf<
+        InfiniteData<Pokemon[], number> | undefined
+      >()
+
+      if (isSuccess) {
+        expectTypeOf(data.pages).toEqualTypeOf<Pokemon[][]>()
+        expectTypeOf(data.pageParams).toEqualTypeOf<number[]>()
+      }
+
+      if (currentData) {
+        expectTypeOf(currentData.pages).toEqualTypeOf<Pokemon[][]>()
+        expectTypeOf(currentData.pageParams).toEqualTypeOf<number[]>()
+      }
+    }
   })
 })

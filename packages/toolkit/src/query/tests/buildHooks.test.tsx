@@ -931,10 +931,15 @@ describe('hooks tests', () => {
         }),
       )
 
+      type Pokemon = {
+        id: string
+        name: string
+      }
+
       const pokemonApi = createApi({
         baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
         endpoints: (builder) => ({
-          getInfinitePokemon: builder.infiniteQuery<any, string, number>({
+          getInfinitePokemon: builder.infiniteQuery<Pokemon[], string, number>({
             infiniteQueryOptions: {
               initialPageParam: 0,
               getNextPageParam: (
@@ -968,7 +973,13 @@ describe('hooks tests', () => {
         const { data, isFetching, isUninitialized, fetchNextPage } =
           pokemonApi.endpoints.getInfinitePokemon.useInfiniteQuery('a', {
             initialPageParam: 0,
-            getNextPageParam: (lastPageParam) => lastPageParam + 1,
+            getNextPageParam: (
+              lastPage,
+              allPages,
+              // Page param type should be `number`
+              lastPageParam,
+              allPageParams,
+            ) => lastPageParam + 1,
           })
 
         return (
