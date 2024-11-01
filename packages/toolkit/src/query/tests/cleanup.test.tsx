@@ -43,7 +43,7 @@ function UsingAB() {
 }
 
 beforeAll(() => {
-  vi.useFakeTimers()
+  vi.useFakeTimers({ shouldAdvanceTime: true })
 })
 
 test('data stays in store when component stays rendered', async () => {
