@@ -1386,10 +1386,8 @@ describe('hooks tests', () => {
 
     test('useLazyQuery trigger promise returns the correctly updated data', async () => {
       const LazyUnwrapUseEffect = () => {
-        const [
-          triggerGetIncrementedAmount,
-          { isFetching, isSuccess, isError, error, data },
-        ] = api.endpoints.getIncrementedAmount.useLazyQuery()
+        const [triggerGetIncrementedAmount, { isFetching, isSuccess, data }] =
+          api.endpoints.getIncrementedAmount.useLazyQuery()
 
         type AmountData = { amount: number } | undefined
 
@@ -1477,6 +1475,50 @@ describe('hooks tests', () => {
         expect(screen.getByText('useEffect data: 2')).toBeTruthy()
         expect(screen.getByText('Unwrap data: 2')).toBeTruthy()
       })
+    })
+
+    test('`reset` sets state back to original state', async () => {
+      function User() {
+        const [getUser, { isSuccess, isUninitialized, reset }, _lastInfo] =
+          api.endpoints.getUser.useLazyQuery()
+
+        const handleFetchClick = async () => {
+          await getUser(1).unwrap()
+        }
+
+        return (
+          <div>
+            <span>
+              {isUninitialized
+                ? 'isUninitialized'
+                : isSuccess
+                  ? 'isSuccess'
+                  : 'other'}
+            </span>
+            <button onClick={handleFetchClick}>Fetch User</button>
+            <button onClick={reset}>Reset</button>
+          </div>
+        )
+      }
+
+      render(<User />, { wrapper: storeRef.wrapper })
+
+      await screen.findByText(/isUninitialized/i)
+      expect(countObjectKeys(storeRef.store.getState().api.queries)).toBe(0)
+
+      userEvent.click(screen.getByRole('button', { name: 'Fetch User' }))
+
+      await screen.findByText(/isSuccess/i)
+      expect(countObjectKeys(storeRef.store.getState().api.queries)).toBe(1)
+
+      userEvent.click(
+        screen.getByRole('button', {
+          name: 'Reset',
+        }),
+      )
+
+      await screen.findByText(/isUninitialized/i)
+      expect(countObjectKeys(storeRef.store.getState().api.queries)).toBe(0)
     })
   })
 
