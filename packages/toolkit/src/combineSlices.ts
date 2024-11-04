@@ -23,9 +23,10 @@ type SliceLikeReducerPath<A extends AnySliceLike> =
 type SliceLikeState<A extends AnySliceLike> =
   A extends SliceLike<any, infer State> ? State : never
 
-export type WithSlice<A extends AnySliceLike> = {
-  [Path in SliceLikeReducerPath<A>]: SliceLikeState<A>
-}
+export type WithSlice<A extends AnySliceLike> = Record<
+  SliceLikeReducerPath<A>,
+  SliceLikeState<A>
+>
 
 type ReducerMap = Record<string, Reducer>
 
