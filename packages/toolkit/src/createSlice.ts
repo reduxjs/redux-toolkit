@@ -111,7 +111,7 @@ export interface Slice<
    * Equivalent to `slice.getSelectors((state: RootState) => state[slice.reducerPath])`.
    */
   get selectors(): Id<
-    SliceDefinedSelectors<State, Selectors, { [K in ReducerPath]: State }>
+    SliceDefinedSelectors<State, Selectors, Record<ReducerPath, State>>
   >
 
   /**
@@ -133,7 +133,7 @@ export interface Slice<
    *
    * Will throw an error if slice is not found.
    */
-  selectSlice(state: { [K in ReducerPath]: State }): State
+  selectSlice(state: Record<ReducerPath, State>): State
 }
 
 /**
@@ -172,7 +172,7 @@ type InjectedSlice<
     SliceDefinedSelectors<
       State,
       Selectors,
-      { [K in ReducerPath]?: State | undefined }
+      Partial<Record<ReducerPath, State | undefined>>
     >
   >
 
@@ -181,7 +181,7 @@ type InjectedSlice<
    *
    * Returns initial state if slice is not found.
    */
-  selectSlice(state: { [K in ReducerPath]?: State | undefined }): State
+  selectSlice(state: Partial<Record<ReducerPath, State | undefined>>): State
 }
 
 /**
@@ -760,7 +760,7 @@ export function buildCreateSlice({ creators }: BuildCreateSliceConfig = {}) {
       Slice<State, CaseReducers, Name, CurrentReducerPath, Selectors>,
       'getSelectors' | 'selectors' | 'selectSlice' | 'reducerPath'
     > {
-      function selectSlice(state: { [K in CurrentReducerPath]: State }) {
+      function selectSlice(state: Record<CurrentReducerPath, State>) {
         let sliceState = state[reducerPath]
         if (typeof sliceState === 'undefined') {
           if (injected) {
