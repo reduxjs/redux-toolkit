@@ -241,12 +241,13 @@ export type CombinedState<
   config: ConfigState<ReducerPath>
 }
 
-export type InvalidationState<TagTypes extends string> = {
-  [_ in TagTypes]: {
+export type InvalidationState<TagTypes extends string> = Record<
+  TagTypes,
+  {
     [id: string]: QueryCacheKey[]
     [id: number]: QueryCacheKey[]
   }
-}
+>
 
 export type QueryState<D extends EndpointDefinitions> = Record<
   string,
