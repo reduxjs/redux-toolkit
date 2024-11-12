@@ -125,6 +125,12 @@ const api = createApi({
         return true
       },
     }),
+    queryWithDeepArg: build.query<string, { param: { nested: string } }>({
+      query: ({ param: { nested }}) => nested,
+      serializeQueryArgs: ({ queryArgs }) => {
+        return queryArgs.param.nested
+      }
+    }),
   }),
 })
 
@@ -665,6 +671,12 @@ describe('hooks tests', () => {
       })
 
       await screen.findByText('ID: 3')
+    })
+
+    test(`useQuery shouldn't call args serialization if request skipped`, async () => {
+      expect(() => renderHook(() => api.endpoints.queryWithDeepArg.useQuery(skipToken), {
+        wrapper: storeRef.wrapper,
+      })).not.toThrow()
     })
 
     test(`useQuery gracefully handles bigint types`, async () => {
