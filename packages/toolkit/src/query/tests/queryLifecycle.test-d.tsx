@@ -236,7 +236,8 @@ describe('type tests', () => {
         dispatch(
           baseApiSlice.util.upsertQueryEntries(
             posts.map((post) => ({
-              endpointName: 'getPostById',
+              // Without `as const` this will result in a TS error in TS 4.7.
+              endpointName: 'getPostById' as const,
               arg: post.id,
               value: post,
             })),
