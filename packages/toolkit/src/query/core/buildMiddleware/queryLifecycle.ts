@@ -111,8 +111,8 @@ export type QueryLifecycleQueryExtraOptions<
    * ```
    */
   onQueryStarted?(
-    arg: QueryArg,
-    api: QueryLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
+    queryArgument: QueryArg,
+    queryLifeCycleApi: QueryLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
   ): Promise<void> | void
 }
 
@@ -171,8 +171,8 @@ export type QueryLifecycleMutationExtraOptions<
    * ```
    */
   onQueryStarted?(
-    arg: QueryArg,
-    api: MutationLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
+    queryArgument: QueryArg,
+    mutationLifeCycleApi: MutationLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
   ): Promise<void> | void
 }
 
