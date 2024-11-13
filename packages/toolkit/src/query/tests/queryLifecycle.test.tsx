@@ -360,7 +360,7 @@ test('query: updateCachedData', async () => {
           },
         ) {
           // calling `updateCachedData` when there is no data yet should not do anything
-          // but if there is a cache value it will be updated & overwritten by the next succesful result
+          // but if there is a cache value it will be updated & overwritten by the next successful result
           updateCachedData((draft) => {
             draft.value += '.'
           })

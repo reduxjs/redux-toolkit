@@ -116,6 +116,45 @@ export type QueryLifecycleQueryExtraOptions<
   ): Promise<void> | void
 }
 
+/**
+ * @since 2.4.0
+ * @public
+ */
+export type TypedOnQueryStarted<
+  ResultType,
+  QueryArg,
+  BaseQuery extends BaseQueryFn,
+  ReducerPath extends string = string,
+  DefinitionType extends 'query' | 'mutation' = 'query' | 'mutation',
+> = 'query' | 'mutation' extends DefinitionType
+  ? QueryLifecycleMutationExtraOptions<
+      ResultType,
+      QueryArg,
+      BaseQuery,
+      ReducerPath
+    >['onQueryStarted'] &
+      QueryLifecycleQueryExtraOptions<
+        ResultType,
+        QueryArg,
+        BaseQuery,
+        ReducerPath
+      >['onQueryStarted']
+  : 'query' extends DefinitionType
+    ? QueryLifecycleQueryExtraOptions<
+        ResultType,
+        QueryArg,
+        BaseQuery,
+        ReducerPath
+      >['onQueryStarted']
+    : 'mutation' extends DefinitionType
+      ? QueryLifecycleMutationExtraOptions<
+          ResultType,
+          QueryArg,
+          BaseQuery,
+          ReducerPath
+        >['onQueryStarted']
+      : never
+
 export type QueryLifecycleMutationExtraOptions<
   ResultType,
   QueryArg,

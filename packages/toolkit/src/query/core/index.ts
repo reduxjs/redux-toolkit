@@ -24,7 +24,8 @@ export type {
   QueryCacheLifecycleApi,
   QueryLifecycleApi,
   SubscriptionSelectors,
-} from './buildMiddleware'
+  TypedOnQueryStarted,
+} from './buildMiddleware/index'
 export { skipToken } from './buildSelectors'
 export type {
   MutationResultSelectorResult,

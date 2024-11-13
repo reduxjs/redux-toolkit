@@ -421,7 +421,7 @@ export type QueryStateSelector<
  * @template BaseQueryFunctionType - The type of the base query function being used.
  * @template SelectedResultType - The type of the selected result returned by the __`selectFromResult`__ function.
  *
- * @since 2.7.9
+ * @since 2.3.0
  * @public
  */
 export type TypedQueryStateSelector<
@@ -604,7 +604,7 @@ export type UseQueryStateOptions<
  * @template BaseQuery - The type of the base query function being used.
  * @template SelectedResult - The type of the selected result returned by the __`selectFromResult`__ function.
  *
- * @since 2.7.8
+ * @since 2.2.8
  * @public
  */
 export type TypedUseQueryStateOptions<
