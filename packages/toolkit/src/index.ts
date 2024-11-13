@@ -134,7 +134,6 @@ export type {
 export {
   createEntityMethods,
   entityMethodsCreator,
-  entityMethodsCreatorType,
 } from './entities/slice_creator'
 
 export {
