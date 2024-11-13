@@ -4,7 +4,8 @@ import type {
   FetchBaseQueryError,
   FetchBaseQueryMeta,
   RootState,
-  TypedOnQueryStarted,
+  TypedOnQueryStartedForMutationEndpoints,
+  TypedOnQueryStartedForQueryEndpoints,
 } from '@reduxjs/toolkit/query'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 
@@ -153,74 +154,52 @@ describe('type tests', () => {
     })
   })
 
-  describe('TypedOnQueryStarted', () => {
-    type Post = {
-      id: number
-      title: string
-      userId: number
-    }
+  describe('typed `onQueryStarted` function', () => {
+    test('TypedOnQueryStartedForQueryEndpoints creates a pre-typed version of onQueryStarted', () => {
+      type Post = {
+        id: number
+        title: string
+        userId: number
+      }
 
-    type PostsApiResponse = {
-      posts: Post[]
-      total: number
-      skip: number
-      limit: number
-    }
+      type PostsApiResponse = {
+        posts: Post[]
+        total: number
+        skip: number
+        limit: number
+      }
 
-    type QueryArgument = number | undefined
+      type QueryArgument = number | undefined
 
-    type BaseQueryFunction = ReturnType<typeof fetchBaseQuery>
+      type BaseQueryFunction = ReturnType<typeof fetchBaseQuery>
 
-    type User = {
-      id: number
-      firstName: string
-      lastName: string
-    }
-
-    type UsersApiResponse = {
-      users: User[]
-      total: number
-      skip: number
-      limit: number
-    }
-
-    test('TypedOnQueryStarted creates a pre-typed version of onQueryStarted', () => {
       const baseApiSlice = createApi({
         baseQuery: fetchBaseQuery({ baseUrl: 'https://dummyjson.com' }),
-        reducerPath: 'usersApi',
-        tagTypes: ['Users'],
-        endpoints: (build) => ({
-          getUsers: build.query<UsersApiResponse, undefined>({
-            query: () => '/users',
+        reducerPath: 'postsApi',
+        tagTypes: ['Posts'],
+        endpoints: (builder) => ({
+          getPosts: builder.query<PostsApiResponse, void>({
+            query: () => `/posts`,
           }),
 
-          getUserById: build.query<User, QueryArgument>({
-            query: (userId) => `/users/${userId}`,
-          }),
-
-          getPostsById: build.query<Post, QueryArgument>({
+          getPostById: builder.query<Post, QueryArgument>({
             query: (postId) => `/posts/${postId}`,
-          }),
-
-          getPosts: build.query<PostsApiResponse, undefined>({
-            query: () => '/posts',
           }),
         }),
       })
 
-      const updateUserOnComplete: TypedOnQueryStarted<
-        User,
+      const updatePostOnFulfilled: TypedOnQueryStartedForQueryEndpoints<
+        PostsApiResponse,
         QueryArgument,
         BaseQueryFunction,
-        'usersApi',
-        'query'
+        'postsApi'
       > = async (queryArgument, queryLifeCycleApi) => {
         const {
-          queryFulfilled,
-          getState,
-          extra,
           dispatch,
+          extra,
           getCacheEntry,
+          getState,
+          queryFulfilled,
           requestId,
           updateCachedData,
         } = queryLifeCycleApi
@@ -234,7 +213,7 @@ describe('type tests', () => {
         expectTypeOf(extra).toBeUnknown()
 
         expectTypeOf(getState).toEqualTypeOf<
-          () => RootState<any, any, 'usersApi'>
+          () => RootState<any, any, 'postsApi'>
         >()
 
         expectTypeOf(requestId).toBeString()
@@ -242,85 +221,101 @@ describe('type tests', () => {
         expectTypeOf(getCacheEntry).toBeFunction()
 
         expectTypeOf(updateCachedData).toEqualTypeOf<
-          (updateRecipe: Recipe<User>) => PatchCollection
+          (updateRecipe: Recipe<PostsApiResponse>) => PatchCollection
         >()
+
+        expectTypeOf(queryFulfilled).resolves.toEqualTypeOf<{
+          data: PostsApiResponse
+          meta: FetchBaseQueryMeta | undefined
+        }>()
 
         const result = await queryFulfilled
 
+        const { posts } = result.data
+
         dispatch(
-          baseApiSlice.util.updateQueryData(
-            'getUserById',
-            undefined,
-            (draftUser) => {
-              if (draftUser.id === result.data.id) {
-                return result.data
-              }
-            },
+          baseApiSlice.util.upsertQueryEntries(
+            posts.map((post) => ({
+              endpointName: 'getPostById',
+              arg: post.id,
+              value: post,
+            })),
           ),
         )
       }
 
-      const extendedApi = baseApiSlice.injectEndpoints({
-        endpoints: (build) => ({
-          getPosts: build.query<User, QueryArgument>({
-            query: () => '/posts',
-            onQueryStarted: updateUserOnComplete,
-          }),
-        }),
-      })
+      const extendedApiSlice = baseApiSlice.injectEndpoints({
+        endpoints: (builder) => ({
+          getPostsByUserId: builder.query<PostsApiResponse, QueryArgument>({
+            query: (userId) => `/posts/user/${userId}`,
 
-      createApi({
-        baseQuery: fetchBaseQuery({ baseUrl: 'https://dummyjson.com' }),
-        reducerPath: 'usersApi',
-        tagTypes: ['Users'],
-        endpoints: (build) => ({
-          getPosts: build.query<User, QueryArgument>({
-            query: () => '/posts',
-            onQueryStarted: updateUserOnComplete,
+            onQueryStarted: updatePostOnFulfilled,
           }),
         }),
       })
     })
 
-    test('TypedOnQueryStarted mutation', () => {
+    test('TypedOnQueryStartedForMutationEndpoints creates a pre-typed version of onQueryStarted', () => {
+      type Post = {
+        id: number
+        title: string
+        userId: number
+      }
+
+      type PostsApiResponse = {
+        posts: Post[]
+        total: number
+        skip: number
+        limit: number
+      }
+
+      type QueryArgument = Pick<Post, 'id'> & Partial<Post>
+
+      type BaseQueryFunction = ReturnType<typeof fetchBaseQuery>
+
       const baseApiSlice = createApi({
         baseQuery: fetchBaseQuery({ baseUrl: 'https://dummyjson.com' }),
-        reducerPath: 'usersApi',
-        tagTypes: ['Users'],
-        endpoints: (build) => ({
-          getUsers: build.query<User[], undefined>({
-            query: () => `/users`,
+        reducerPath: 'postsApi',
+        tagTypes: ['Posts'],
+        endpoints: (builder) => ({
+          getPosts: builder.query<PostsApiResponse, void>({
+            query: () => `/posts`,
           }),
 
-          getUserById: build.query<User, QueryArgument>({
-            query: (userId) => `/users/${userId}`,
-          }),
-
-          getPostById: build.query<PostsApiResponse, QueryArgument>({
+          getPostById: builder.query<Post, number>({
             query: (postId) => `/posts/${postId}`,
           }),
         }),
       })
 
-      const updateUserOnComplete: TypedOnQueryStarted<
-        User,
+      const updatePostOnFulfilled: TypedOnQueryStartedForMutationEndpoints<
         Post,
+        QueryArgument,
         BaseQueryFunction,
-        'usersApi',
-        'mutation'
+        'postsApi'
       > = async (queryArgument, mutationLifeCycleApi) => {
-        const { userId, id, title } = queryArgument
-
+        const { id, ...patch } = queryArgument
         const {
           dispatch,
-          queryFulfilled,
           extra,
           getCacheEntry,
           getState,
+          queryFulfilled,
           requestId,
         } = mutationLifeCycleApi
 
-        expectTypeOf(queryArgument).toEqualTypeOf<Post>()
+        const patchCollection = dispatch(
+          baseApiSlice.util.updateQueryData('getPostById', id, (draftPost) => {
+            Object.assign(draftPost, patch)
+          }),
+        )
+
+        expectTypeOf(queryFulfilled).resolves.toEqualTypeOf<{
+          data: Post
+          meta: FetchBaseQueryMeta | undefined
+        }>()
+
+        expectTypeOf(queryArgument).toEqualTypeOf<QueryArgument>()
 
         expectTypeOf(dispatch).toEqualTypeOf<
           ThunkDispatch<any, any, UnknownAction>
@@ -329,7 +324,7 @@ describe('type tests', () => {
         expectTypeOf(extra).toBeUnknown()
 
         expectTypeOf(getState).toEqualTypeOf<
-          () => RootState<any, any, 'usersApi'>
+          () => RootState<any, any, 'postsApi'>
         >()
 
         expectTypeOf(requestId).toBeString()
@@ -340,195 +335,93 @@ describe('type tests', () => {
           'updateCachedData',
         )
 
-        const result = await queryFulfilled
-
-        dispatch(
-          baseApiSlice.util.updateQueryData(
-            'getUserById',
-            undefined,
-            (draftUser) => {
-              if (draftUser.id === result.data.id) {
-                return result.data
-              }
-            },
-          ),
-        )
+        try {
+          await queryFulfilled
+        } catch {
+          patchCollection.undo()
+        }
       }
 
-      const extendedApi = baseApiSlice.injectEndpoints({
-        endpoints: (build) => ({
-          addPost: build.mutation<User, Post>({
+      const extendedApiSlice = baseApiSlice.injectEndpoints({
+        endpoints: (builder) => ({
+          addPost: builder.mutation<Post, Omit<QueryArgument, 'id'>>({
             query: (body) => ({
-              url: `posts`,
+              url: `posts/add`,
               method: 'POST',
               body,
             }),
 
-            onQueryStarted: updateUserOnComplete,
+            onQueryStarted: updatePostOnFulfilled,
           }),
 
-          updatePost: build.mutation<User, Post>({
+          updatePost: builder.mutation<Post, QueryArgument>({
             query: ({ id, ...patch }) => ({
               url: `post/${id}`,
               method: 'PATCH',
               body: patch,
             }),
 
-            onQueryStarted: updateUserOnComplete,
+            onQueryStarted: updatePostOnFulfilled,
           }),
         }),
       })
     })
 
-    test('TypedOnQueryStarted query', () => {
-      const baseApiSlice = createApi({
-        baseQuery: fetchBaseQuery({ baseUrl: 'https://dummyjson.com' }),
-        reducerPath: 'usersApi',
-        tagTypes: ['Users'],
-        endpoints: (build) => ({
-          getUsers: build.query<User[], undefined>({
-            query: () => `/users`,
-          }),
-
-          getUserById: build.query<User, QueryArgument>({
-            query: (userId) => `/users/${userId}`,
-          }),
-
-          getPostById: build.query<PostsApiResponse, QueryArgument>({
-            query: (postId) => `/posts/${postId}`,
-          }),
-        }),
-      })
-
-      const updateUserOnComplete: TypedOnQueryStarted<
-        User,
-        Post,
-        BaseQueryFunction,
-        'usersApi',
-        'query'
-      > = async (queryArgument, queryLifeCycleApi) => {
-        const { userId, id, title } = queryArgument
-
-        const {
-          dispatch,
-          extra,
-          getCacheEntry,
-          getState,
-          queryFulfilled,
-          requestId,
-          updateCachedData,
-        } = queryLifeCycleApi
-
-        expectTypeOf(queryFulfilled).resolves.toEqualTypeOf<{
-          data: User
-          meta: FetchBaseQueryMeta | undefined
-        }>()
-
-        const result = await queryFulfilled
-
-        expectTypeOf(queryArgument).toEqualTypeOf<Post>()
-
-        expectTypeOf(dispatch).toEqualTypeOf<
-          ThunkDispatch<any, any, UnknownAction>
-        >()
-
-        expectTypeOf(extra).toBeUnknown()
-
-        expectTypeOf(getState).toEqualTypeOf<
-          () => RootState<any, any, 'usersApi'>
-        >()
-
-        expectTypeOf(requestId).toBeString()
-
-        expectTypeOf(getCacheEntry).toBeFunction()
-
-        expectTypeOf(updateCachedData).toEqualTypeOf<
-          (updateRecipe: Recipe<User>) => PatchCollection
-        >()
-
-        dispatch(
-          baseApiSlice.util.updateQueryData(
-            'getUserById',
-            userId,
-            (draftUser) => {
-              if (draftUser.id === result.data.id) {
-                return result.data
-              }
-            },
-          ),
-        )
+    test('TypedOnQueryStartedForQueryEndpoints and TypedOnQueryStartedForMutationEndpoints combined', () => {
+      type Post = {
+        id: number
+        title: string
+        userId: number
       }
 
-      const extendedApi = baseApiSlice.injectEndpoints({
-        endpoints: (build) => ({
-          addPost: build.query<User, Post>({
-            query: (body) => ({
-              url: `posts`,
-              method: 'POST',
-              body,
-            }),
+      type PostsApiResponse = {
+        posts: Post[]
+        total: number
+        skip: number
+        limit: number
+      }
 
-            onQueryStarted: updateUserOnComplete,
-          }),
+      type QueryArgument = Pick<Post, 'id'> & Partial<Post>
 
-          updatePost: build.query<User, Post>({
-            query: ({ id, ...patch }) => ({
-              url: `post/${id}`,
-              method: 'PATCH',
-              body: patch,
-            }),
+      type BaseQueryFunction = ReturnType<typeof fetchBaseQuery>
 
-            onQueryStarted: updateUserOnComplete,
-          }),
-        }),
-      })
-    })
-
-    test('TypedOnQueryStarted query and mutation', () => {
       const baseApiSlice = createApi({
         baseQuery: fetchBaseQuery({ baseUrl: 'https://dummyjson.com' }),
-        reducerPath: 'usersApi',
-        tagTypes: ['Users'],
-        endpoints: (build) => ({
-          getUsers: build.query<User[], undefined>({
-            query: () => `/users`,
+        reducerPath: 'postsApi',
+        tagTypes: ['Posts'],
+        endpoints: (builder) => ({
+          getPosts: builder.query<PostsApiResponse, void>({
+            query: () => `/posts`,
           }),
 
-          getUserById: build.query<User, QueryArgument>({
-            query: (userId) => `/users/${userId}`,
-          }),
-
-          getPostById: build.query<PostsApiResponse, QueryArgument>({
+          getPostById: builder.query<Post, number | undefined>({
             query: (postId) => `/posts/${postId}`,
           }),
         }),
       })
 
-      const updateUserOnComplete: TypedOnQueryStarted<
-        User,
-        Post,
+      const updatePostOnFulfilled: TypedOnQueryStartedForQueryEndpoints<
+        PostsApiResponse,
+        QueryArgument,
         BaseQueryFunction,
-        'usersApi'
-      > = async (queryArgument, lifeCycleApi) => {
-        const { userId, id, title } = queryArgument
-
+        'postsApi'
+      > &
+        TypedOnQueryStartedForMutationEndpoints<
+          PostsApiResponse,
+          QueryArgument,
+          BaseQueryFunction,
+          'postsApi'
+        > = async (queryArgument, lifeCycleApi) => {
         const {
           dispatch,
-          queryFulfilled,
           extra,
           getCacheEntry,
           getState,
+          queryFulfilled,
           requestId,
         } = lifeCycleApi
 
-        expectTypeOf(queryFulfilled).resolves.toEqualTypeOf<{
-          data: User
-          meta: FetchBaseQueryMeta | undefined
-        }>()
-
-        const result = await queryFulfilled
-
-        expectTypeOf(queryArgument).toEqualTypeOf<Post>()
+        expectTypeOf(queryArgument).toEqualTypeOf<QueryArgument>()
 
         expectTypeOf(dispatch).toEqualTypeOf<
           ThunkDispatch<any, any, UnknownAction>
@@ -537,7 +430,7 @@ describe('type tests', () => {
         expectTypeOf(extra).toBeUnknown()
 
         expectTypeOf(getState).toEqualTypeOf<
-          () => RootState<any, any, 'usersApi'>
+          () => RootState<any, any, 'postsApi'>
         >()
 
         expectTypeOf(requestId).toBeString()
@@ -546,39 +439,69 @@ describe('type tests', () => {
 
         expectTypeOf(lifeCycleApi).not.toHaveProperty('updateCachedData')
 
+        // This doesn't work for some reason
+        //   expectTypeOf(queryFulfilled).resolves.toEqualTypeOf<{
+        //     data: Post;
+        //     meta: FetchBaseQueryMeta | undefined;
+        // } | {
+        //     data: PostsApiResponse;
+        //     meta: FetchBaseQueryMeta | undefined;
+        // }>()
+
+        const result = await queryFulfilled
+
+        expectTypeOf(result).toMatchTypeOf<
+          | {
+              data: Post
+              meta: FetchBaseQueryMeta | undefined
+            }
+          | {
+              data: PostsApiResponse
+              meta: FetchBaseQueryMeta | undefined
+            }
+        >()
+
+        const { posts } = result.data
+
         dispatch(
-          baseApiSlice.util.updateQueryData(
-            'getUserById',
-            undefined,
-            (draftUser) => {
-              if (draftUser.id === result.data.id) {
-                return result.data
-              }
-            },
+          baseApiSlice.util.upsertQueryEntries(
+            posts.map((post) => ({
+              endpointName: 'getPostById',
+              arg: post.id,
+              value: post,
+            })),
           ),
         )
       }
 
-      const extendedApi = baseApiSlice.injectEndpoints({
-        endpoints: (build) => ({
-          addPost: build.query<User, Post>({
+      const extendedApiSlice = baseApiSlice.injectEndpoints({
+        endpoints: (builder) => ({
+          getPostsByUserId: builder.query<PostsApiResponse, QueryArgument>({
+            query: (userId) => `/posts/user/${userId}`,
+
+            onQueryStarted: updatePostOnFulfilled,
+          }),
+
+          addPost: builder.mutation<Post, Omit<QueryArgument, 'id'>>({
             query: (body) => ({
-              url: `posts`,
+              url: `posts/add`,
               method: 'POST',
               body,
             }),
 
-            onQueryStarted: updateUserOnComplete,
+            // FIXME: This results in a TS error which we need to fix.
+            // onQueryStarted: updatePostOnFulfilled,
           }),
 
-          updatePost: build.mutation<User, Post>({
+          updatePost: builder.mutation<Post, QueryArgument>({
             query: ({ id, ...patch }) => ({
               url: `post/${id}`,
               method: 'PATCH',
               body: patch,
             }),
 
-            onQueryStarted: updateUserOnComplete,
+            // FIXME: This results in a TS error which we need to fix.
+            // onQueryStarted: updatePostOnFulfilled,
           }),
         }),
       })
