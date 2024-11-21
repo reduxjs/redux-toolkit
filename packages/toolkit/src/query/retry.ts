@@ -65,7 +65,7 @@ export type RetryOptions = {
 )
 
 function fail(e: any): never {
-  throw Object.assign(new HandledError({ error: e }), {
+  throw Object.assign(new HandledError(e), {
     throwImmediately: true,
   })
 }
