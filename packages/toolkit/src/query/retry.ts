@@ -66,10 +66,10 @@ export type RetryOptions = {
 )
 
 function fail<BaseQuery extends BaseQueryFn = BaseQueryFn>(
-  e: BaseQueryError<BaseQuery>,
+  error: BaseQueryError<BaseQuery>,
   meta?: BaseQueryMeta<BaseQuery>,
 ): never {
-  throw Object.assign(new HandledError({ error: e, meta }), {
+  throw Object.assign(new HandledError({ error, meta }), {
     throwImmediately: true,
   })
 }
