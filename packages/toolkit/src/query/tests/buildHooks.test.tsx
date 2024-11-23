@@ -126,10 +126,10 @@ const api = createApi({
       },
     }),
     queryWithDeepArg: build.query<string, { param: { nested: string } }>({
-      query: ({ param: { nested }}) => nested,
+      query: ({ param: { nested } }) => nested,
       serializeQueryArgs: ({ queryArgs }) => {
         return queryArgs.param.nested
-      }
+      },
     }),
   }),
 })
@@ -381,6 +381,54 @@ describe('hooks tests', () => {
 
       expect(loadingHist).toEqual([true, false])
       expect(fetchingHist).toEqual([true, false, true, false])
+    })
+
+    test('`isSuccess` does not jump back false on subsequent queries', async () => {
+      type LoadingState = {
+        id: number
+        isFetching: boolean
+        isSuccess: boolean
+      }
+      const loadingHistory: LoadingState[] = []
+
+      function User({ id }: { id: number }) {
+        const queryRes = api.endpoints.getUser.useQuery(id)
+
+        useEffect(() => {
+          const { isFetching, isSuccess } = queryRes
+          loadingHistory.push({ id, isFetching, isSuccess })
+        }, [id, queryRes])
+        return (
+          <div data-testid="status">
+            {queryRes.status === QueryStatus.fulfilled && id}
+          </div>
+        )
+      }
+
+      let { rerender } = render(<User id={1} />, { wrapper: storeRef.wrapper })
+
+      await waitFor(() =>
+        expect(screen.getByTestId('status').textContent).toBe('1'),
+      )
+      rerender(<User id={2} />)
+
+      await waitFor(() =>
+        expect(screen.getByTestId('status').textContent).toBe('2'),
+      )
+
+      expect(loadingHistory).toEqual([
+        // Initial render(s)
+        { id: 1, isFetching: true, isSuccess: false },
+        { id: 1, isFetching: true, isSuccess: false },
+        // Data returned
+        { id: 1, isFetching: false, isSuccess: true },
+        // ID changed, there's an uninitialized cache entry.
+        // IMPORTANT: `isSuccess` should not be false here.
+        // We have valid data already for the old item.
+        { id: 2, isFetching: true, isSuccess: true },
+        { id: 2, isFetching: true, isSuccess: true },
+        { id: 2, isFetching: false, isSuccess: true },
+      ])
     })
 
     test('useQuery hook respects refetchOnMountOrArgChange: true', async () => {
@@ -674,9 +722,11 @@ describe('hooks tests', () => {
     })
 
     test(`useQuery shouldn't call args serialization if request skipped`, async () => {
-      expect(() => renderHook(() => api.endpoints.queryWithDeepArg.useQuery(skipToken), {
-        wrapper: storeRef.wrapper,
-      })).not.toThrow()
+      expect(() =>
+        renderHook(() => api.endpoints.queryWithDeepArg.useQuery(skipToken), {
+          wrapper: storeRef.wrapper,
+        }),
+      ).not.toThrow()
     })
 
     test(`useQuery gracefully handles bigint types`, async () => {
@@ -2861,6 +2911,7 @@ describe('skip behavior', () => {
     })
     expect(result.current).toEqual({
       ...uninitialized,
+      isSuccess: true,
       currentData: undefined,
       data: { name: 'Timmy' },
     })
@@ -2898,6 +2949,7 @@ describe('skip behavior', () => {
     })
     expect(result.current).toEqual({
       ...uninitialized,
+      isSuccess: true,
       currentData: undefined,
       data: { name: 'Timmy' },
     })
@@ -2936,7 +2988,7 @@ describe('skip behavior', () => {
     // even though it's skipped. `currentData` is undefined, since that matches the current arg.
     expect(result.current).toMatchObject({
       status: QueryStatus.uninitialized,
-      isSuccess: false,
+      isSuccess: true,
       data: { name: 'Timmy' },
       currentData: undefined,
     })
