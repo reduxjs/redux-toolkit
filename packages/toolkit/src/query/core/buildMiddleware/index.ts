@@ -35,6 +35,8 @@ export type {
   MutationLifecycleApi,
   QueryLifecycleApi,
   ReferenceQueryLifecycle,
+  TypedMutationOnQueryStarted,
+  TypedQueryOnQueryStarted,
 } from './queryLifecycle'
 export type { SubscriptionSelectors } from './types'
 
@@ -148,7 +150,12 @@ export function buildMiddleware<
       { status: QueryStatus.uninitialized }
     >,
   ) {
-    return (input.api.endpoints[querySubState.endpointName] as ApiEndpointQuery<any, any>).initiate(querySubState.originalArgs as any, {
+    return (
+      input.api.endpoints[querySubState.endpointName] as ApiEndpointQuery<
+        any,
+        any
+      >
+    ).initiate(querySubState.originalArgs as any, {
       subscribe: false,
       forceRefetch: true,
     })

@@ -111,8 +111,13 @@ export type QueryLifecycleQueryExtraOptions<
    * ```
    */
   onQueryStarted?(
-    arg: QueryArg,
-    api: QueryLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
+    queryArgument: QueryArg,
+    queryLifeCycleApi: QueryLifecycleApi<
+      QueryArg,
+      BaseQuery,
+      ResultType,
+      ReducerPath
+    >,
   ): Promise<void> | void
 }
 
@@ -171,8 +176,13 @@ export type QueryLifecycleMutationExtraOptions<
    * ```
    */
   onQueryStarted?(
-    arg: QueryArg,
-    api: MutationLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
+    queryArgument: QueryArg,
+    mutationLifeCycleApi: MutationLifecycleApi<
+      QueryArg,
+      BaseQuery,
+      ResultType,
+      ReducerPath
+    >,
   ): Promise<void> | void
 }
 
@@ -191,6 +201,212 @@ export type MutationLifecycleApi<
   ReducerPath extends string = string,
 > = MutationBaseLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath> &
   QueryLifecyclePromises<ResultType, BaseQuery>
+
+/**
+ * Provides a way to define a strongly-typed version of
+ * {@linkcode QueryLifecycleQueryExtraOptions.onQueryStarted | onQueryStarted}
+ * for a specific query.
+ *
+ * @example
+ * <caption>#### __Create and reuse a strongly-typed `onQueryStarted` function__</caption>
+ *
+ * ```ts
+ * import type { TypedQueryOnQueryStarted } from '@reduxjs/toolkit/query'
+ * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+ *
+ * type Post = {
+ *   id: number
+ *   title: string
+ *   userId: number
+ * }
+ *
+ * type PostsApiResponse = {
+ *   posts: Post[]
+ *   total: number
+ *   skip: number
+ *   limit: number
+ * }
+ *
+ * type QueryArgument = number | undefined
+ *
+ * type BaseQueryFunction = ReturnType<typeof fetchBaseQuery>
+ *
+ * const baseApiSlice = createApi({
+ *   baseQuery: fetchBaseQuery({ baseUrl: 'https://dummyjson.com' }),
+ *   reducerPath: 'postsApi',
+ *   tagTypes: ['Posts'],
+ *   endpoints: (builder) => ({
+ *     getPosts: builder.query<PostsApiResponse, void>({
+ *       query: () => `/posts`,
+ *     }),
+ *
+ *     getPostById: builder.query<Post, QueryArgument>({
+ *       query: (postId) => `/posts/${postId}`,
+ *     }),
+ *   }),
+ * })
+ *
+ * const updatePostOnFulfilled: TypedQueryOnQueryStarted<
+ *   PostsApiResponse,
+ *   QueryArgument,
+ *   BaseQueryFunction,
+ *   'postsApi'
+ * > = async (queryArgument, { dispatch, queryFulfilled }) => {
+ *   const result = await queryFulfilled
+ *
+ *   const { posts } = result.data
+ *
+ *   // Pre-fill the individual post entries with the results
+ *   // from the list endpoint query
+ *   dispatch(
+ *     baseApiSlice.util.upsertQueryEntries(
+ *       posts.map((post) => ({
+ *         endpointName: 'getPostById',
+ *         arg: post.id,
+ *         value: post,
+ *       })),
+ *     ),
+ *   )
+ * }
+ *
+ * export const extendedApiSlice = baseApiSlice.injectEndpoints({
+ *   endpoints: (builder) => ({
+ *     getPostsByUserId: builder.query<PostsApiResponse, QueryArgument>({
+ *       query: (userId) => `/posts/user/${userId}`,
+ *
+ *       onQueryStarted: updatePostOnFulfilled,
+ *     }),
+ *   }),
+ * })
+ * ```
+ *
+ * @template ResultType - The type of the result `data` returned by the query.
+ * @template QueryArgumentType - The type of the argument passed into the query.
+ * @template BaseQueryFunctionType - The type of the base query function being used.
+ * @template ReducerPath - The type representing the `reducerPath` for the API slice.
+ *
+ * @since 2.4.0
+ * @public
+ */
+export type TypedQueryOnQueryStarted<
+  ResultType,
+  QueryArgumentType,
+  BaseQueryFunctionType extends BaseQueryFn,
+  ReducerPath extends string = string,
+> = QueryLifecycleQueryExtraOptions<
+  ResultType,
+  QueryArgumentType,
+  BaseQueryFunctionType,
+  ReducerPath
+>['onQueryStarted']
+
+/**
+ * Provides a way to define a strongly-typed version of
+ * {@linkcode QueryLifecycleMutationExtraOptions.onQueryStarted | onQueryStarted}
+ * for a specific mutation.
+ *
+ * @example
+ * <caption>#### __Create and reuse a strongly-typed `onQueryStarted` function__</caption>
+ *
+ * ```ts
+ * import type { TypedMutationOnQueryStarted } from '@reduxjs/toolkit/query'
+ * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+ *
+ * type Post = {
+ *   id: number
+ *   title: string
+ *   userId: number
+ * }
+ *
+ * type PostsApiResponse = {
+ *   posts: Post[]
+ *   total: number
+ *   skip: number
+ *   limit: number
+ * }
+ *
+ * type QueryArgument = Pick<Post, 'id'> & Partial<Post>
+ *
+ * type BaseQueryFunction = ReturnType<typeof fetchBaseQuery>
+ *
+ * const baseApiSlice = createApi({
+ *   baseQuery: fetchBaseQuery({ baseUrl: 'https://dummyjson.com' }),
+ *   reducerPath: 'postsApi',
+ *   tagTypes: ['Posts'],
+ *   endpoints: (builder) => ({
+ *     getPosts: builder.query<PostsApiResponse, void>({
+ *       query: () => `/posts`,
+ *     }),
+ *
+ *     getPostById: builder.query<Post, number>({
+ *       query: (postId) => `/posts/${postId}`,
+ *     }),
+ *   }),
+ * })
+ *
+ * const updatePostOnFulfilled: TypedMutationOnQueryStarted<
+ *   Post,
+ *   QueryArgument,
+ *   BaseQueryFunction,
+ *   'postsApi'
+ * > = async ({ id, ...patch }, { dispatch, queryFulfilled }) => {
+ *   const patchCollection = dispatch(
+ *     baseApiSlice.util.updateQueryData('getPostById', id, (draftPost) => {
+ *       Object.assign(draftPost, patch)
+ *     }),
+ *   )
+ *
+ *   try {
+ *     await queryFulfilled
+ *   } catch {
+ *     patchCollection.undo()
+ *   }
+ * }
+ *
+ * export const extendedApiSlice = baseApiSlice.injectEndpoints({
+ *   endpoints: (builder) => ({
+ *     addPost: builder.mutation<Post, Omit<QueryArgument, 'id'>>({
+ *       query: (body) => ({
+ *         url: `posts/add`,
+ *         method: 'POST',
+ *         body,
+ *       }),
+ *
+ *       onQueryStarted: updatePostOnFulfilled,
+ *     }),
+ *
+ *     updatePost: builder.mutation<Post, QueryArgument>({
+ *       query: ({ id, ...patch }) => ({
+ *         url: `post/${id}`,
+ *         method: 'PATCH',
+ *         body: patch,
+ *       }),
+ *
+ *       onQueryStarted: updatePostOnFulfilled,
+ *     }),
+ *   }),
+ * })
+ * ```
+ *
+ * @template ResultType - The type of the result `data` returned by the query.
+ * @template QueryArgumentType - The type of the argument passed into the query.
+ * @template BaseQueryFunctionType - The type of the base query function being used.
+ * @template ReducerPath - The type representing the `reducerPath` for the API slice.
+ *
+ * @since 2.4.0
+ * @public
+ */
+export type TypedMutationOnQueryStarted<
+  ResultType,
+  QueryArgumentType,
+  BaseQueryFunctionType extends BaseQueryFn,
+  ReducerPath extends string = string,
+> = QueryLifecycleMutationExtraOptions<
+  ResultType,
+  QueryArgumentType,
+  BaseQueryFunctionType,
+  ReducerPath
+>['onQueryStarted']
 
 export const buildQueryLifecycleHandler: InternalHandlerBuilder = ({
   api,
