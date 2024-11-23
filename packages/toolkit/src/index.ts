@@ -133,7 +133,7 @@ export type {
   GetState,
   GetThunkAPI,
   SerializedError,
-  CreateAsyncThunkWithoutWithTypes,
+  CreateAsyncThunkFunction,
 } from './createAsyncThunk'
 
 export {
