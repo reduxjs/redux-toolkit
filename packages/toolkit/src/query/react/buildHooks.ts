@@ -927,13 +927,19 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
     // isFetching = true any time a request is in flight
     const isFetching = currentState.isLoading
+
     // isLoading = true only when loading while no data is present yet (initial load with no data in the cache)
     const isLoading =
       (!lastResult || lastResult.isLoading || lastResult.isUninitialized) &&
       !hasData &&
       isFetching
-    // isSuccess = true when data is present
-    const isSuccess = currentState.isSuccess || (isFetching && hasData)
+
+    // isSuccess = true when data is present.
+    // That includes cases where the _current_ item is either actively
+    // fetching or about to fetch due to an uninitialized entry.
+    const isSuccess =
+      currentState.isSuccess ||
+      ((isFetching || currentState.isUninitialized) && hasData)
 
     return {
       ...currentState,
