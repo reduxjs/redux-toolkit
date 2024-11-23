@@ -9,7 +9,7 @@ import type {
   TagTypesFrom,
 } from '../endpointDefinitions'
 import { expandTagDescription } from '../endpointDefinitions'
-import { flatten } from '../utils'
+import { flatten, isNotNullish } from '../utils'
 import type {
   MutationSubState,
   QueryCacheKey,
@@ -206,7 +206,7 @@ export function buildSelectors<
 
   function selectInvalidatedBy(
     state: RootState,
-    tags: ReadonlyArray<TagDescription<string>>,
+    tags: ReadonlyArray<TagDescription<string> | null | undefined>,
   ): Array<{
     endpointName: string
     originalArgs: any
@@ -214,7 +214,7 @@ export function buildSelectors<
   }> {
     const apiState = state[reducerPath]
     const toInvalidate = new Set<QueryCacheKey>()
-    for (const tag of tags.map(expandTagDescription)) {
+    for (const tag of tags.filter(isNotNullish).map(expandTagDescription)) {
       const provided = apiState.provided[tag.type]
       if (!provided) {
         continue

@@ -39,7 +39,7 @@ describe('type tests', () => {
 
     expectTypeOf(api.util.invalidateTags)
       .parameter(0)
-      .toEqualTypeOf<TagDescription<never>[]>()
+      .toEqualTypeOf<(null | undefined | TagDescription<never>)[]>()
   })
 
   describe('endpoint definition typings', () => {
