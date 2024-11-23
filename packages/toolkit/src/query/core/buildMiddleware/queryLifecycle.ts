@@ -112,7 +112,12 @@ export type QueryLifecycleQueryExtraOptions<
    */
   onQueryStarted?(
     queryArgument: QueryArg,
-    queryLifeCycleApi: QueryLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
+    queryLifeCycleApi: QueryLifecycleApi<
+      QueryArg,
+      BaseQuery,
+      ResultType,
+      ReducerPath
+    >,
   ): Promise<void> | void
 }
 
@@ -172,7 +177,12 @@ export type QueryLifecycleMutationExtraOptions<
    */
   onQueryStarted?(
     queryArgument: QueryArg,
-    mutationLifeCycleApi: MutationLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
+    mutationLifeCycleApi: MutationLifecycleApi<
+      QueryArg,
+      BaseQuery,
+      ResultType,
+      ReducerPath
+    >,
   ): Promise<void> | void
 }
 
@@ -201,7 +211,7 @@ export type MutationLifecycleApi<
  * <caption>#### __Create and reuse a strongly-typed `onQueryStarted` function__</caption>
  *
  * ```ts
- * import type { TypedOnQueryStartedForQueryEndpoints } from '@reduxjs/toolkit/query'
+ * import type { TypedQueryOnQueryStarted } from '@reduxjs/toolkit/query'
  * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
  *
  * type Post = {
@@ -236,7 +246,7 @@ export type MutationLifecycleApi<
  *   }),
  * })
  *
- * const updatePostOnFulfilled: TypedOnQueryStartedForQueryEndpoints<
+ * const updatePostOnFulfilled: TypedQueryOnQueryStarted<
  *   PostsApiResponse,
  *   QueryArgument,
  *   BaseQueryFunction,
@@ -278,7 +288,7 @@ export type MutationLifecycleApi<
  * @since 2.4.0
  * @public
  */
-export type TypedOnQueryStartedForQueryEndpoints<
+export type TypedQueryOnQueryStarted<
   ResultType,
   QueryArgumentType,
   BaseQueryFunctionType extends BaseQueryFn,
@@ -299,7 +309,7 @@ export type TypedOnQueryStartedForQueryEndpoints<
  * <caption>#### __Create and reuse a strongly-typed `onQueryStarted` function__</caption>
  *
  * ```ts
- * import type { TypedOnQueryStartedForMutationEndpoints } from '@reduxjs/toolkit/query'
+ * import type { TypedMutationOnQueryStarted } from '@reduxjs/toolkit/query'
  * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
  *
  * type Post = {
@@ -334,7 +344,7 @@ export type TypedOnQueryStartedForQueryEndpoints<
  *   }),
  * })
  *
- * const updatePostOnFulfilled: TypedOnQueryStartedForMutationEndpoints<
+ * const updatePostOnFulfilled: TypedMutationOnQueryStarted<
  *   Post,
  *   QueryArgument,
  *   BaseQueryFunction,
@@ -386,7 +396,7 @@ export type TypedOnQueryStartedForQueryEndpoints<
  * @since 2.4.0
  * @public
  */
-export type TypedOnQueryStartedForMutationEndpoints<
+export type TypedMutationOnQueryStarted<
   ResultType,
   QueryArgumentType,
   BaseQueryFunctionType extends BaseQueryFn,

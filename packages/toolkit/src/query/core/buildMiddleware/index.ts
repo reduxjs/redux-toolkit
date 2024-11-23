@@ -35,8 +35,8 @@ export type {
   MutationLifecycleApi,
   QueryLifecycleApi,
   ReferenceQueryLifecycle,
-  TypedOnQueryStartedForMutationEndpoints,
-  TypedOnQueryStartedForQueryEndpoints,
+  TypedMutationOnQueryStarted,
+  TypedQueryOnQueryStarted,
 } from './queryLifecycle'
 export type { SubscriptionSelectors } from './types'
 

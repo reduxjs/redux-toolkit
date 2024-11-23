@@ -4,8 +4,8 @@ import type {
   FetchBaseQueryError,
   FetchBaseQueryMeta,
   RootState,
-  TypedOnQueryStartedForMutationEndpoints,
-  TypedOnQueryStartedForQueryEndpoints,
+  TypedMutationOnQueryStarted,
+  TypedQueryOnQueryStarted,
 } from '@reduxjs/toolkit/query'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 
@@ -155,7 +155,7 @@ describe('type tests', () => {
   })
 
   describe('typed `onQueryStarted` function', () => {
-    test('TypedOnQueryStartedForQueryEndpoints creates a pre-typed version of onQueryStarted', () => {
+    test('TypedQueryOnQueryStarted creates a pre-typed version of onQueryStarted', () => {
       type Post = {
         id: number
         title: string
@@ -188,7 +188,7 @@ describe('type tests', () => {
         }),
       })
 
-      const updatePostOnFulfilled: TypedOnQueryStartedForQueryEndpoints<
+      const updatePostOnFulfilled: TypedQueryOnQueryStarted<
         PostsApiResponse,
         QueryArgument,
         BaseQueryFunction,
@@ -256,7 +256,7 @@ describe('type tests', () => {
       })
     })
 
-    test('TypedOnQueryStartedForMutationEndpoints creates a pre-typed version of onQueryStarted', () => {
+    test('TypedMutationOnQueryStarted creates a pre-typed version of onQueryStarted', () => {
       type Post = {
         id: number
         title: string
@@ -289,7 +289,7 @@ describe('type tests', () => {
         }),
       })
 
-      const updatePostOnFulfilled: TypedOnQueryStartedForMutationEndpoints<
+      const updatePostOnFulfilled: TypedMutationOnQueryStarted<
         Post,
         QueryArgument,
         BaseQueryFunction,
