@@ -578,9 +578,13 @@ export type TypedAddListener<
         OverrideStateType,
         unknown,
         UnknownAction
-        >,
-        OverrideExtraArgument = unknown,
-    >() => TypedAddListener<OverrideStateType, OverrideDispatchType, OverrideExtraArgument>
+      >,
+      OverrideExtraArgument = unknown,
+    >() => TypedAddListener<
+      OverrideStateType,
+      OverrideDispatchType,
+      OverrideExtraArgument
+    >
   }
 
 /**
@@ -641,7 +645,11 @@ export type TypedRemoveListener<
         UnknownAction
       >,
       OverrideExtraArgument = unknown,
-    >() => TypedRemoveListener<OverrideStateType, OverrideDispatchType, OverrideExtraArgument>
+    >() => TypedRemoveListener<
+      OverrideStateType,
+      OverrideDispatchType,
+      OverrideExtraArgument
+    >
   }
 
 /**
@@ -701,7 +709,11 @@ export type TypedStartListening<
       UnknownAction
     >,
     OverrideExtraArgument = unknown,
-  >() => TypedStartListening<OverrideStateType, OverrideDispatchType, OverrideExtraArgument>
+  >() => TypedStartListening<
+    OverrideStateType,
+    OverrideDispatchType,
+    OverrideExtraArgument
+  >
 }
 
 /**
@@ -756,7 +768,11 @@ export type TypedStopListening<
       UnknownAction
     >,
     OverrideExtraArgument = unknown,
-  >() => TypedStopListening<OverrideStateType, OverrideDispatchType, OverrideExtraArgument>
+  >() => TypedStopListening<
+    OverrideStateType,
+    OverrideDispatchType,
+    OverrideExtraArgument
+  >
 }
 
 /**
@@ -813,7 +829,11 @@ export type TypedCreateListenerEntry<
       UnknownAction
     >,
     OverrideExtraArgument = unknown,
-  >() => TypedStopListening<OverrideStateType, OverrideDispatchType, OverrideExtraArgument>
+  >() => TypedStopListening<
+    OverrideStateType,
+    OverrideDispatchType,
+    OverrideExtraArgument
+  >
 }
 
 /**
@@ -825,7 +845,6 @@ export type ListenerEntry<
   State = unknown,
   DispatchType extends Dispatch = Dispatch,
 > = {
-  id: string
   effect: ListenerEffect<any, State, DispatchType>
   unsubscribe: () => void
   pending: Set<AbortController>
