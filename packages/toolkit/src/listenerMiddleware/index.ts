@@ -2,6 +2,7 @@ import type { Action, Dispatch, MiddlewareAPI, UnknownAction } from 'redux'
 import { isAction } from 'redux'
 import type { ThunkDispatch } from 'redux-thunk'
 import { createAction } from '../createAction'
+import { getOrInsertComputed } from '../utils'
 
 import {
   TaskAbortError,
@@ -46,7 +47,6 @@ import {
   catchRejection,
   noop,
 } from './utils'
-import { getOrInsertComputed } from '@internal/utils'
 export { TaskAbortError } from './exceptions'
 export type {
   AsyncTaskExecutor,
