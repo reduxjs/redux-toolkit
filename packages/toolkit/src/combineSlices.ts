@@ -8,7 +8,7 @@ import type {
   UnionToIntersection,
   WithOptionalProp,
 } from './tsHelpers'
-import { emplace } from './utils'
+import { getOrInsertComputed } from './utils'
 
 type SliceLike<ReducerPath extends string, State> = {
   reducerPath: ReducerPath
@@ -324,8 +324,10 @@ const createStateProxy = <State extends object>(
   state: State,
   reducerMap: Partial<Record<string, Reducer>>,
 ) =>
-  emplace(stateProxyMap, state, {
-    insert: () =>
+  getOrInsertComputed(
+    stateProxyMap,
+    state,
+    () =>
       new Proxy(state, {
         get: (target, prop, receiver) => {
           if (prop === ORIGINAL_STATE) return target
@@ -350,7 +352,7 @@ const createStateProxy = <State extends object>(
           return result
         },
       }),
-  }) as State
+  ) as State
 
 const original = (state: any) => {
   if (!isStateProxy(state)) {

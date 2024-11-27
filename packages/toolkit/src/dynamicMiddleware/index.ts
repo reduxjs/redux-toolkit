@@ -3,7 +3,7 @@ import { compose } from 'redux'
 import { createAction } from '../createAction'
 import { isAllOf } from '../matchers'
 import { nanoid } from '../nanoid'
-import { emplace, find } from '../utils'
+import { find, getOrInsertComputed } from '../utils'
 import type {
   AddMiddleware,
   DynamicMiddleware,
@@ -73,7 +73,7 @@ export const createDynamicMiddleware = <
 
   const getFinalMiddleware: Middleware<{}, State, DispatchType> = (api) => {
     const appliedMiddleware = Array.from(middlewareMap.values()).map((entry) =>
-      emplace(entry.applied, api, { insert: () => entry.middleware(api) }),
+      getOrInsertComputed(entry.applied, api, entry.middleware),
     )
     return compose(...appliedMiddleware)
   }
