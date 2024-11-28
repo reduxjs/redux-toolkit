@@ -862,7 +862,7 @@ describe('fetchBaseQuery', () => {
           prepare.apply(undefined, arguments as unknown as any[])
         },
       })
-      baseQuery('http://example.com', commonBaseQueryApi, {
+      baseQuery('https://example.com', commonBaseQueryApi, {
         foo: 'baz',
         bar: 5,
       })
