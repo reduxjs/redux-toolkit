@@ -400,7 +400,7 @@ describe('upsertQueryEntries', () => {
 
     // Tricky timing. The cache data promises will be resolved
     // in microtasks, so we just need any async delay here.
-    await delay(1)
+    await delay(10)
 
     const state = storeRef.store.getState()
 
