@@ -466,7 +466,6 @@ describe('hooks tests', () => {
           <div>
             <button
               onClick={() => {
-                console.log('Refetching')
                 refetch()
               }}
             >
