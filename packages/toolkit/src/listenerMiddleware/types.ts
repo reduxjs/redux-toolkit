@@ -845,6 +845,7 @@ export type ListenerEntry<
   State = unknown,
   DispatchType extends Dispatch = Dispatch,
 > = {
+  id: string
   effect: ListenerEffect<any, State, DispatchType>
   unsubscribe: () => void
   pending: Set<AbortController>

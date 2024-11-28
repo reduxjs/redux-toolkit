@@ -2,7 +2,7 @@ import type { Action, Dispatch, MiddlewareAPI, UnknownAction } from 'redux'
 import { isAction } from 'redux'
 import type { ThunkDispatch } from 'redux-thunk'
 import { createAction } from '../createAction'
-import { getOrInsertComputed } from '../utils'
+import { nanoid } from '../nanoid'
 
 import {
   TaskAbortError,
@@ -221,6 +221,7 @@ export const createListenerEntry: TypedCreateListenerEntry<unknown> =
       const { type, predicate, effect } = getListenerEntryPropsFrom(options)
 
       const entry: ListenerEntry<unknown> = {
+        id: nanoid(),
         effect,
         type,
         predicate,
@@ -235,6 +236,22 @@ export const createListenerEntry: TypedCreateListenerEntry<unknown> =
     { withTypes: () => createListenerEntry },
   ) as unknown as TypedCreateListenerEntry<unknown>
 
+const findListenerEntry = (
+  listenerMap: Map<string, ListenerEntry>,
+  options: FallbackAddListenerOptions,
+) => {
+  const { type, effect, predicate } = getListenerEntryPropsFrom(options)
+
+  return Array.from(listenerMap.values()).find((entry) => {
+    const matchPredicateOrType =
+      typeof type === 'string'
+        ? entry.type === type
+        : entry.predicate === predicate
+
+    return matchPredicateOrType && entry.effect === effect
+  })
+}
+
 const cancelActiveListeners = (
   entry: ListenerEntry<unknown, Dispatch<UnknownAction>>,
 ) => {
@@ -244,7 +261,7 @@ const cancelActiveListeners = (
 }
 
 const createClearListenerMiddleware = (
-  listenerMap: Map<ListenerEntry['effect'], ListenerEntry>,
+  listenerMap: Map<string, ListenerEntry>,
 ) => {
   return () => {
     listenerMap.forEach(cancelActiveListeners)
@@ -321,15 +338,15 @@ export const createListenerMiddleware = <
 >(
   middlewareOptions: CreateListenerMiddlewareOptions<ExtraArgument> = {},
 ) => {
-  const listenerMap = new Map<ListenerEntry['effect'], ListenerEntry>()
+  const listenerMap = new Map<string, ListenerEntry>()
   const { extra, onError = defaultErrorHandler } = middlewareOptions
 
   assertFunction(onError, 'onError')
 
   const insertEntry = (entry: ListenerEntry) => {
-    entry.unsubscribe = () => listenerMap.delete(entry.effect)
+    entry.unsubscribe = () => listenerMap.delete(entry.id)
 
-    listenerMap.set(entry.effect, entry)
+    listenerMap.set(entry.id, entry)
     return (cancelOptions?: UnsubscribeListenerOptions) => {
       entry.unsubscribe()
       if (cancelOptions?.cancelActive) {
@@ -339,9 +356,10 @@ export const createListenerMiddleware = <
   }
 
   const startListening = ((options: FallbackAddListenerOptions) => {
-    const entry = getOrInsertComputed(listenerMap, options.effect, () =>
-      createListenerEntry(options as any),
-    )
+    const entry =
+      findListenerEntry(listenerMap, options) ??
+      createListenerEntry(options as any)
+
     return insertEntry(entry)
   }) as AddListenerOverloads<any>
 
@@ -352,16 +370,7 @@ export const createListenerMiddleware = <
   const stopListening = (
     options: FallbackAddListenerOptions & UnsubscribeListenerOptions,
   ): boolean => {
-    const { type, effect, predicate } = getListenerEntryPropsFrom(options)
-
-    const entry = Array.from(listenerMap.values()).find((entry) => {
-      const matchPredicateOrType =
-        typeof type === 'string'
-          ? entry.type === type
-          : entry.predicate === predicate
-
-      return matchPredicateOrType && entry.effect === effect
-    })
+    const entry = findListenerEntry(listenerMap, options)
 
     if (entry) {
       entry.unsubscribe()
@@ -410,7 +419,7 @@ export const createListenerMiddleware = <
             fork: createFork(internalTaskController.signal, autoJoinPromises),
             unsubscribe: entry.unsubscribe,
             subscribe: () => {
-              listenerMap.set(entry.effect, entry)
+              listenerMap.set(entry.id, entry)
             },
             cancelActiveListeners: () => {
               entry.pending.forEach((controller, _, set) => {
