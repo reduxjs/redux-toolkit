@@ -812,6 +812,28 @@ describe('hooks tests', () => {
       await screen.findByText('ID: 3')
     })
 
+    test('refetch does not throw an error if run after unmount', async () => {
+      let refetchFunction: () => {}
+
+      function User() {
+        const { refetch } = api.endpoints.getUser.useQuery(1)
+
+        refetchFunction = refetch
+
+        return (
+          <div>
+            <button>Refetch</button>
+          </div>
+        )
+      }
+
+      const { unmount } = render(<User />, { wrapper: storeRef.wrapper })
+
+      unmount()
+
+      expect(() => refetchFunction()).not.toThrow()
+    })
+
     test(`useQuery shouldn't call args serialization if request skipped`, async () => {
       expect(() =>
         renderHook(() => api.endpoints.queryWithDeepArg.useQuery(skipToken), {

@@ -51,6 +51,7 @@ import { UNINITIALIZED_VALUE } from './constants'
 import type { ReactHooksModuleOptions } from './module'
 import { useStableQueryArgs } from './useSerializedStableValue'
 import { useShallowStableValue } from './useShallowStableValue'
+import { useIsMounted } from './useIsMounted'
 
 // Copy-pasted from React-Redux
 const canUseDOM = () =>
@@ -1118,12 +1119,19 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         }
       }, [])
 
+      const getIsMounted = useIsMounted()
+
       return useMemo(
         () => ({
           /**
            * A method to manually refetch data for the query
            */
           refetch: () => {
+            // If `refetch` gets called after the component is unmounted,
+            // this should be a no-op
+            if (!getIsMounted()) {
+              return
+            }
             if (!promiseRef.current)
               throw new Error(
                 'Cannot refetch a query that has not been started yet.',
@@ -1131,7 +1139,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
             return promiseRef.current?.refetch()
           },
         }),
-        [],
+        [getIsMounted],
       )
     }
 
