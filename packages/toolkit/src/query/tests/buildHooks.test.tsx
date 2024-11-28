@@ -39,6 +39,7 @@ import type { MockInstance } from 'vitest'
 // the refetching behavior of components.
 let amount = 0
 let nextItemId = 0
+let refetchCount = 0
 
 interface Item {
   id: number
@@ -86,6 +87,17 @@ const api = createApi({
           forceError: true,
         },
       }),
+    }),
+    getUserWithRefetchError: build.query<{ name: string }, number>({
+      queryFn: async (id) => {
+        refetchCount += 1
+
+        if (refetchCount > 1) {
+          return { error: true } as any
+        }
+
+        return { data: { name: 'Timmy' } }
+      },
     }),
     getIncrementedAmount: build.query<{ amount: number }, void>({
       query: () => ({
@@ -428,6 +440,85 @@ describe('hooks tests', () => {
         { id: 2, isFetching: true, isSuccess: true },
         { id: 2, isFetching: true, isSuccess: true },
         { id: 2, isFetching: false, isSuccess: true },
+      ])
+    })
+
+    test('isSuccess stays consistent if there is an error while refetching', async () => {
+      type LoadingState = {
+        id: number
+        isFetching: boolean
+        isSuccess: boolean
+        isError: boolean
+      }
+      const loadingHistory: LoadingState[] = []
+
+      function Component({ id = 1 }) {
+        const queryRes = api.endpoints.getUserWithRefetchError.useQuery(id)
+        const { refetch, data, status } = queryRes
+
+        useEffect(() => {
+          const { isFetching, isSuccess, isError } = queryRes
+          loadingHistory.push({ id, isFetching, isSuccess, isError })
+        }, [id, queryRes])
+
+        return (
+          <div>
+            <button
+              onClick={() => {
+                console.log('Refetching')
+                refetch()
+              }}
+            >
+              refetch
+            </button>
+            <div data-testid="name">{data?.name}</div>
+            <div data-testid="status">{status}</div>
+          </div>
+        )
+      }
+
+      render(<Component />, { wrapper: storeRef.wrapper })
+
+      await waitFor(() =>
+        expect(screen.getByTestId('name').textContent).toBe('Timmy'),
+      )
+
+      fireEvent.click(screen.getByText('refetch'))
+
+      await waitFor(() =>
+        expect(screen.getByTestId('status').textContent).toBe('pending'),
+      )
+
+      await waitFor(() =>
+        expect(screen.getByTestId('status').textContent).toBe('rejected'),
+      )
+
+      fireEvent.click(screen.getByText('refetch'))
+
+      await waitFor(() =>
+        expect(screen.getByTestId('status').textContent).toBe('pending'),
+      )
+
+      await waitFor(() =>
+        expect(screen.getByTestId('status').textContent).toBe('rejected'),
+      )
+
+      expect(loadingHistory).toEqual([
+        // Initial renders
+        { id: 1, isFetching: true, isSuccess: false, isError: false },
+        { id: 1, isFetching: true, isSuccess: false, isError: false },
+        // Data is returned
+        { id: 1, isFetching: false, isSuccess: true, isError: false },
+        // Started first refetch
+        { id: 1, isFetching: true, isSuccess: true, isError: false },
+        // First refetch errored
+        { id: 1, isFetching: false, isSuccess: false, isError: true },
+        // Started second refetch
+        // IMPORTANT We expect `isSuccess` to still be false,
+        // despite having started the refetch again.
+        { id: 1, isFetching: true, isSuccess: false, isError: false },
+        // Second refetch errored
+        { id: 1, isFetching: false, isSuccess: false, isError: true },
       ])
     })
 
