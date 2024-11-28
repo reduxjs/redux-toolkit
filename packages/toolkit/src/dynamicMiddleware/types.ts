@@ -59,7 +59,6 @@ export type MiddlewareEntry<
   State = unknown,
   DispatchType extends Dispatch<UnknownAction> = Dispatch<UnknownAction>,
 > = {
-  id: string
   middleware: Middleware<any, State, DispatchType>
   applied: Map<
     MiddlewareAPI<DispatchType, State>,
