@@ -399,27 +399,34 @@ describe('upsertQueryEntries', () => {
     storeRef.store.dispatch(entriesAction)
 
     // Tricky timing. The cache data promises will be resolved
-    // in microtasks, so we just need any async delay here.
-    await delay(1)
+    // in microtasks. We need to wait for them. Best to do this
+    // in a loop just to avoid a hardcoded delay, but also this
+    // needs to complete before `keepUnusedDataFor` expires them.
+    await waitFor(
+      () => {
+        const state = storeRef.store.getState()
 
-    const state = storeRef.store.getState()
+        // onCacheEntryAdded should have run for each post,
+        // including cache data being resolved
+        for (const post of posts) {
+          const matchingSideEffectAction = state.actions.find(
+            (action) =>
+              postAddedAction.match(action) && action.payload === post.id,
+          )
+          expect(matchingSideEffectAction).toBeTruthy()
+        }
 
-    // onCacheEntryAdded should have run for each post,
-    // including cache data being resolved
-    for (const post of posts) {
-      const matchingSideEffectAction = state.actions.find(
-        (action) => postAddedAction.match(action) && action.payload === post.id,
-      )
-      expect(matchingSideEffectAction).toBeTruthy()
-    }
+        const selectedData =
+          api.endpoints.postWithSideEffect.select('1')(state).data
 
-    expect(api.endpoints.postWithSideEffect.select('1')(state).data).toBe(
-      posts[0],
+        expect(selectedData).toBe(posts[0])
+      },
+      { timeout: 50, interval: 5 },
     )
 
     // The cache data should be removed after the keepUnusedDataFor time,
     // so wait longer than that
-    await delay(20)
+    await delay(100)
 
     const stateAfter = storeRef.store.getState()
 

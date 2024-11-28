@@ -6,6 +6,7 @@ import {
   actionsReducer,
   setupApiStore,
   useRenderCounter,
+  waitForFakeTimer,
   waitMs,
   withProvider,
 } from '@internal/tests/utils/helpers'
@@ -47,7 +48,7 @@ interface Item {
 
 const api = createApi({
   baseQuery: async (arg: any) => {
-    await waitMs(150)
+    await waitForFakeTimer(150)
     if (arg?.body && 'amount' in arg.body) {
       amount += 1
     }
@@ -465,7 +466,6 @@ describe('hooks tests', () => {
           <div>
             <button
               onClick={() => {
-                console.log('Refetching')
                 refetch()
               }}
             >
@@ -915,7 +915,7 @@ describe('hooks tests', () => {
         resPromise = refetch()
       })
       expect(resPromise).toBeInstanceOf(Promise)
-      const res = await resPromise
+      const res = await act(() => resPromise)
       expect(res.data!.amount).toBeGreaterThan(originalAmount)
     })
 
@@ -1095,15 +1095,15 @@ describe('hooks tests', () => {
       // Allow at least three state effects to hit.
       // Trying to see if any [true, false, true] occurs.
       await act(async () => {
-        await waitMs(1)
+        await waitForFakeTimer(150)
       })
 
       await act(async () => {
-        await waitMs(1)
+        await waitForFakeTimer(150)
       })
 
       await act(async () => {
-        await waitMs(1)
+        await waitForFakeTimer(150)
       })
 
       // Find if at any time the isLoading state has reverted
@@ -1864,7 +1864,8 @@ describe('hooks tests', () => {
         expect(screen.getByTestId('isFetching').textContent).toBe('false'),
       )
 
-      userEvent.hover(screen.getByTestId('highPriority'))
+      await userEvent.hover(screen.getByTestId('highPriority'))
+
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any),
       ).toEqual({
@@ -2001,7 +2002,7 @@ describe('hooks tests', () => {
       await waitMs(400)
 
       // This should run the query being that we're past the threshold
-      userEvent.hover(screen.getByTestId('lowPriority'))
+      await userEvent.hover(screen.getByTestId('lowPriority'))
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any),
       ).toEqual({
@@ -2101,7 +2102,7 @@ describe('hooks tests', () => {
 
       render(<User />, { wrapper: storeRef.wrapper })
 
-      userEvent.hover(screen.getByTestId('lowPriority'))
+      await userEvent.hover(screen.getByTestId('lowPriority'))
 
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any),
@@ -2993,6 +2994,11 @@ describe('skip behavior', () => {
     await act(async () => {
       rerender([1])
     })
+
+    await act(async () => {
+      await waitForFakeTimer(150)
+    })
+
     expect(result.current).toMatchObject({ status: QueryStatus.fulfilled })
     await waitMs(1)
     expect(getSubscriptionCount('getUser(1)')).toBe(1)
@@ -3030,6 +3036,11 @@ describe('skip behavior', () => {
     await act(async () => {
       rerender([1])
     })
+
+    await act(async () => {
+      await waitForFakeTimer(150)
+    })
+
     expect(result.current).toMatchObject({ status: QueryStatus.fulfilled })
     await waitMs(1)
     expect(getSubscriptionCount('getUser(1)')).toBe(1)
@@ -3059,7 +3070,7 @@ describe('skip behavior', () => {
     )
 
     await act(async () => {
-      await waitMs(1)
+      await waitForFakeTimer(150)
     })
 
     // Normal fulfilled result, with both `data` and `currentData`
