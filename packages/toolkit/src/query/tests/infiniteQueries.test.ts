@@ -31,18 +31,7 @@ describe('Infinite queries', () => {
     name: string
   }
 
-  server.use(
-    http.get('https://example.com/listItems', ({ request }) => {
-      const url = new URL(request.url)
-      const pageString = url.searchParams.get('page')
-      const pageNum = parseInt(pageString || '0')
-
-      const results: Pokemon[] = [
-        { id: `${pageNum}`, name: `Pokemon ${pageNum}` },
-      ]
-      return HttpResponse.json(results)
-    }),
-  )
+  let counters: Record<string, number> = {}
 
   const pokemonApi = createApi({
     baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
@@ -97,9 +86,14 @@ describe('Infinite queries', () => {
           return `https://example.com/listItems?page=${pageParam}`
         },
       }),
-      counter: builder.query<number, string>({
-        queryFn: async () => {
-          return { data: 0 }
+      counters: builder.query<{ id: string; counter: number }, string>({
+        queryFn: async (arg) => {
+          if (!(arg in counters)) {
+            counters[arg] = 0
+          }
+          counters[arg]++
+
+          return { data: { id: arg, counter: counters[arg] } }
         },
       }),
     }),
@@ -114,6 +108,19 @@ describe('Infinite queries', () => {
   )
 
   beforeEach(() => {
+    server.use(
+      http.get('https://example.com/listItems', ({ request }) => {
+        const url = new URL(request.url)
+        const pageString = url.searchParams.get('page')
+        const pageNum = parseInt(pageString || '0')
+
+        const results: Pokemon[] = [
+          { id: `${pageNum}`, name: `Pokemon ${pageNum}` },
+        ]
+        return HttpResponse.json(results)
+      }),
+    )
+
     storeRef = setupApiStore(
       pokemonApi,
       { ...actionsReducer },
@@ -121,6 +128,8 @@ describe('Infinite queries', () => {
         withoutTestLifecycles: true,
       },
     )
+
+    counters = {}
 
     process.env.NODE_ENV = 'development'
   })
@@ -218,6 +227,30 @@ describe('Infinite queries', () => {
     }
   })
 
+  test.skip('does not break refetching query endpoints', async () => {
+    const promise0 = storeRef.store.dispatch(
+      pokemonApi.endpoints.counters.initiate('a'),
+    )
+
+    console.log('State after dispatch: ', storeRef.store.getState().api.queries)
+
+    const res0 = await promise0
+
+    console.log('State after promise: ', storeRef.store.getState().api.queries)
+    console.log(storeRef.store.getState().actions)
+
+    const promise1 = storeRef.store.dispatch(
+      pokemonApi.util.upsertQueryData('counters', 'a', { id: 'a', counter: 1 }),
+    )
+
+    console.log('State after dispatch: ', storeRef.store.getState().api.queries)
+
+    const res = await promise1
+
+    console.log('State after promise: ', storeRef.store.getState().api.queries)
+    console.log(storeRef.store.getState().actions)
+  })
+
   test('does not have a page limit without maxPages', async () => {
     for (let i = 1; i <= 10; i++) {
       const res = await storeRef.store.dispatch(
@@ -293,5 +326,81 @@ describe('Infinite queries', () => {
     expect(() => createApiWithMaxPages(1, undefined)).toThrowError(
       `getPreviousPageParam for endpoint 'getInfinitePokemon' must be a function if maxPages is used`,
     )
+  })
+
+  test('refetches all existing pages', async () => {
+    let hitCounter = 0
+
+    const countersApi = createApi({
+      baseQuery: fakeBaseQuery(),
+      endpoints: (build) => ({
+        counters: build.infiniteQuery<
+          { page: number; hitCounter: number },
+          string,
+          number
+        >({
+          queryFn(page) {
+            hitCounter++
+
+            return { data: { page, hitCounter } }
+          },
+          infiniteQueryOptions: {
+            initialPageParam: 0,
+            getNextPageParam: (
+              lastPage,
+              allPages,
+              lastPageParam,
+              allPageParams,
+            ) => lastPageParam + 1,
+          },
+        }),
+      }),
+    })
+
+    const storeRef = setupApiStore(
+      countersApi,
+      { ...actionsReducer },
+      {
+        withoutTestLifecycles: true,
+      },
+    )
+
+    await storeRef.store.dispatch(
+      countersApi.endpoints.counters.initiate('item', {
+        initialPageParam: 3,
+      }),
+    )
+
+    await storeRef.store.dispatch(
+      countersApi.endpoints.counters.initiate('item', {
+        direction: 'forward',
+      }),
+    )
+
+    const thirdPromise = storeRef.store.dispatch(
+      countersApi.endpoints.counters.initiate('item', {
+        direction: 'forward',
+      }),
+    )
+
+    const thirdRes = await thirdPromise
+    if (thirdRes.status === QueryStatus.fulfilled) {
+      expect(thirdRes.data.pages).toEqual([
+        { page: 3, hitCounter: 1 },
+        { page: 4, hitCounter: 2 },
+        { page: 5, hitCounter: 3 },
+      ])
+    }
+
+    const fourthRes = await thirdPromise.refetch()
+
+    if (fourthRes.status === QueryStatus.fulfilled) {
+      // Refetching should call the query function again for each page
+      expect(fourthRes.data.pages).toEqual([
+        { page: 3, hitCounter: 4 },
+        { page: 4, hitCounter: 5 },
+        { page: 5, hitCounter: 6 },
+      ])
+    }
   })
 })
