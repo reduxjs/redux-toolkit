@@ -4870,7 +4870,8 @@ __metadata:
   resolution: "@examples-query-react/basic@workspace:examples/query/react/basic"
   dependencies:
     "@reduxjs/toolkit": "npm:^1.6.0-rc.1"
-    "@testing-library/react": "npm:^13.3.0"
+    "@testing-library/dom": "npm:^10.4.0"
+    "@testing-library/react": "npm:^16.0.1"
     "@types/jest": "npm:^26.0.23"
     "@types/react": "npm:^18.0.5"
     "@types/react-dom": "npm:^18.0.5"
@@ -4987,8 +4988,9 @@ __metadata:
   resolution: "@examples-query-react/kitchen-sink@workspace:examples/query/react/kitchen-sink"
   dependencies:
     "@reduxjs/toolkit": "npm:1.8.1"
+    "@testing-library/dom": "npm:^10.4.0"
     "@testing-library/jest-dom": "npm:^5.11.5"
-    "@testing-library/react": "npm:^13.3.0"
+    "@testing-library/react": "npm:^16.0.1"
     "@types/jest": "npm:^26.0.23"
     "@types/node": "npm:^14.14.6"
     "@types/react": "npm:^18.0.5"
@@ -6955,8 +6957,9 @@ __metadata:
     "@phryneas/ts-version": "npm:^1.0.2"
     "@size-limit/file": "npm:^11.0.1"
     "@size-limit/webpack": "npm:^11.0.1"
-    "@testing-library/react": "npm:^13.3.0"
-    "@testing-library/user-event": "npm:^13.1.5"
+    "@testing-library/dom": "npm:^10.4.0"
+    "@testing-library/react": "npm:^16.0.1"
+    "@testing-library/user-event": "npm:^14.5.2"
     "@types/babel__core": "npm:^7.20.5"
     "@types/babel__helper-module-imports": "npm:^7.18.3"
     "@types/json-stringify-safe": "npm:^5.0.0"
@@ -7882,19 +7885,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@testing-library/dom@npm:^8.5.0":
-  version: 8.13.0
-  resolution: "@testing-library/dom@npm:8.13.0"
+"@testing-library/dom@npm:^10.4.0":
+  version: 10.4.0
+  resolution: "@testing-library/dom@npm:10.4.0"
   dependencies:
     "@babel/code-frame": "npm:^7.10.4"
     "@babel/runtime": "npm:^7.12.5"
-    "@types/aria-query": "npm:^4.2.0"
-    aria-query: "npm:^5.0.0"
+    "@types/aria-query": "npm:^5.0.1"
+    aria-query: "npm:5.3.0"
     chalk: "npm:^4.1.0"
     dom-accessibility-api: "npm:^0.5.9"
-    lz-string: "npm:^1.4.4"
+    lz-string: "npm:^1.5.0"
     pretty-format: "npm:^27.0.2"
-  checksum: 10/e91bf4261b8f8c191f62fd44548d39fe8dab7d12f9ecbfdec8cc0060b4030e837f4626b0256a795cc91db9ba20fc9b97005247d951b21449751af26dbb8c7191
+  checksum: 10/05825ee9a15b88cbdae12c137db7111c34069ed3c7a1bd03b6696cb1b37b29f6f2d2de581ebf03033e7df1ab7ebf08399310293f440a4845d95c02c0a9ecc899
   languageName: node
   linkType: hard
 
@@ -7961,20 +7964,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@testing-library/react@npm:^13.3.0":
-  version: 13.3.0
-  resolution: "@testing-library/react@npm:13.3.0"
-  dependencies:
-    "@babel/runtime": "npm:^7.12.5"
-    "@testing-library/dom": "npm:^8.5.0"
-    "@types/react-dom": "npm:^18.0.0"
-  peerDependencies:
-    react: ^18.0.0
-    react-dom: ^18.0.0
-  checksum: 10/f72ff8e5f5268788ea2249bc0d8dceeca91f9fbad23fd718403e7c9518ea7b9f0053d96db7c3b2d20fc51b487b37ac6c5d55e7f732cadf786c8fa763ce1efec6
-  languageName: node
-  linkType: hard
-
 "@testing-library/react@npm:^14.1.2":
   version: 14.1.2
   resolution: "@testing-library/react@npm:14.1.2"
@@ -7989,14 +7978,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@testing-library/user-event@npm:^13.1.5":
-  version: 13.5.0
-  resolution: "@testing-library/user-event@npm:13.5.0"
+"@testing-library/react@npm:^16.0.1":
+  version: 16.0.1
+  resolution: "@testing-library/react@npm:16.0.1"
   dependencies:
     "@babel/runtime": "npm:^7.12.5"
   peerDependencies:
-    "@testing-library/dom": ">=7.21.4"
-  checksum: 10/e2bdf2b2375d1399a4fd45195705ab0be05f5e3e8220ecbfc26cba98985e45cb505e4e11ed4d909a7052ce90d1e83751cfe21bb1b70fa82d2a2c268370432d8b
+    "@testing-library/dom": ^10.0.0
+    "@types/react": ^18.0.0
+    "@types/react-dom": ^18.0.0
+    react: ^18.0.0
+    react-dom: ^18.0.0
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+    "@types/react-dom":
+      optional: true
+  checksum: 10/904b48881cf5bd208e25899e168f5c99c78ed6d77389544838d9d861a038d2c5c5385863ee9a367436770cbf7d21c5e05a991b9e24a33806e9ac985df2448185
   languageName: node
   linkType: hard
 
@@ -8062,13 +8060,6 @@ __metadata:
   version: 1.0.38
   resolution: "@types/argparse@npm:1.0.38"
   checksum: 10/26ed7e3f1e3595efdb883a852f5205f971b798e4c28b7e30a32c5298eee596e8b45834ce831f014d250b9730819ab05acff5b31229666d3af4ba465b4697d0eb
-  languageName: node
-  linkType: hard
-
-"@types/aria-query@npm:^4.2.0":
-  version: 4.2.1
-  resolution: "@types/aria-query@npm:4.2.1"
-  checksum: 10/04f60d7a3938ce1f33810f4cccde95e1fa45d2bb5ab1b7e93a5c331c072a59a9b3b559479b56c59af0170d40d97698e139310fef94904cff44db7151db8b9e15
   languageName: node
   linkType: hard
 
@@ -10464,6 +10455,15 @@ __metadata:
   dependencies:
     deep-equal: "npm:^2.0.5"
   checksum: 10/e5da608a7c4954bfece2d879342b6c218b6b207e2d9e5af270b5e38ef8418f02d122afdc948b68e32649b849a38377785252059090d66fa8081da95d1609c0d2
+  languageName: node
+  linkType: hard
+
+"aria-query@npm:5.3.0":
+  version: 5.3.0
+  resolution: "aria-query@npm:5.3.0"
+  dependencies:
+    dequal: "npm:^2.0.3"
+  checksum: 10/c3e1ed127cc6886fea4732e97dd6d3c3938e64180803acfb9df8955517c4943760746ffaf4020ce8f7ffaa7556a3b5f85c3769a1f5ca74a1288e02d042f9ae4e
   languageName: node
   linkType: hard
 
@@ -13633,6 +13633,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"dequal@npm:^2.0.3":
+  version: 2.0.3
+  resolution: "dequal@npm:2.0.3"
+  checksum: 10/6ff05a7561f33603df87c45e389c9ac0a95e3c056be3da1a0c4702149e3a7f6fe5ffbb294478687ba51a9e95f3a60e8b6b9005993acd79c292c7d15f71964b6b
+  languageName: node
+  linkType: hard
+
 "destroy@npm:1.2.0":
   version: 1.2.0
   resolution: "destroy@npm:1.2.0"
@@ -13820,10 +13827,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dom-accessibility-api@npm:^0.5.6, dom-accessibility-api@npm:^0.5.9":
+"dom-accessibility-api@npm:^0.5.6":
   version: 0.5.14
   resolution: "dom-accessibility-api@npm:0.5.14"
   checksum: 10/19d7a7de931fcc7d9d67c270341220c6bda97124c3b1444b2bea6e8c6c3964ee09c339e3e69be5b830e3fcb60258d43e6377039974b69c5cec2f75db0114ac59
+  languageName: node
+  linkType: hard
+
+"dom-accessibility-api@npm:^0.5.9":
+  version: 0.5.16
+  resolution: "dom-accessibility-api@npm:0.5.16"
+  checksum: 10/377b4a7f9eae0a5d72e1068c369c99e0e4ca17fdfd5219f3abd32a73a590749a267475a59d7b03a891f9b673c27429133a818c44b2e47e32fec024b34274e2ca
   languageName: node
   linkType: hard
 
@@ -20044,15 +20058,6 @@ __metadata:
   version: 10.2.0
   resolution: "lru-cache@npm:10.2.0"
   checksum: 10/502ec42c3309c0eae1ce41afca471f831c278566d45a5273a0c51102dee31e0e250a62fa9029c3370988df33a14188a38e682c16143b794de78668de3643e302
-  languageName: node
-  linkType: hard
-
-"lz-string@npm:^1.4.4":
-  version: 1.4.4
-  resolution: "lz-string@npm:1.4.4"
-  bin:
-    lz-string: bin/bin.js
-  checksum: 10/da3abc3c15b3f91ab0fba0fe8ea3bb53d3c758d5c50d88d97b759e52d9b5224f8b05edc0e6423bfd448e6bcbe30f79236b7f2e6e7f8a321be62ae77b88092581
   languageName: node
   linkType: hard
 

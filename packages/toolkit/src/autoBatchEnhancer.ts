@@ -15,13 +15,6 @@ const createQueueWithTimer = (timeout: number) => {
   }
 }
 
-// requestAnimationFrame won't exist in SSR environments.
-// Fall back to a vague approximation just to keep from erroring.
-const rAF =
-  typeof window !== 'undefined' && window.requestAnimationFrame
-    ? window.requestAnimationFrame
-    : createQueueWithTimer(10)
-
 export type AutoBatchOptions =
   | { type: 'tick' }
   | { type: 'timer'; timeout: number }
@@ -66,7 +59,10 @@ export const autoBatchEnhancer =
       options.type === 'tick'
         ? queueMicrotask
         : options.type === 'raf'
-          ? rAF
+          ? // requestAnimationFrame won't exist in SSR environments. Fall back to a vague approximation just to keep from erroring.
+            typeof window !== 'undefined' && window.requestAnimationFrame
+            ? window.requestAnimationFrame
+            : createQueueWithTimer(10)
           : options.type === 'callback'
             ? options.queueNotification
             : createQueueWithTimer(options.timeout)

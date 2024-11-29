@@ -18,6 +18,7 @@ import type {
   PrefetchOptions,
   QueryActionCreatorResult,
   QueryArgFrom,
+  QueryCacheKey,
   QueryDefinition,
   QueryKeys,
   QueryResultSelectorResult,
@@ -255,7 +256,7 @@ export type UseLazyQuery<D extends QueryDefinition<any, any, any, any>> = <
   options?: SubscriptionOptions & Omit<UseQueryStateOptions<D, R>, 'skip'>,
 ) => [
   LazyQueryTrigger<D>,
-  UseQueryStateResult<D, R>,
+  UseLazyQueryStateResult<D, R>,
   UseLazyQueryLastPromiseInfo<D>,
 ]
 
@@ -265,6 +266,33 @@ export type TypedUseLazyQuery<
   BaseQuery extends BaseQueryFn,
 > = UseLazyQuery<
   QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
+>
+
+export type UseLazyQueryStateResult<
+  D extends QueryDefinition<any, any, any, any>,
+  R = UseQueryStateDefaultResult<D>,
+> = UseQueryStateResult<D, R> & {
+  /**
+   * Resets the hook state to its initial `uninitialized` state.
+   * This will also remove the last result from the cache.
+   */
+  reset: () => void
+}
+
+/**
+ * Helper type to manually type the result
+ * of the `useLazyQuery` hook in userland code.
+ */
+export type TypedUseLazyQueryStateResult<
+  ResultType,
+  QueryArg,
+  BaseQuery extends BaseQueryFn,
+  R = UseQueryStateDefaultResult<
+    QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
+  >,
+> = UseLazyQueryStateResult<
+  QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>,
+  R
 >
 
 export type LazyQueryTrigger<D extends QueryDefinition<any, any, any, any>> = {
@@ -317,7 +345,11 @@ export type UseLazyQuerySubscription<
   D extends QueryDefinition<any, any, any, any>,
 > = (
   options?: SubscriptionOptions,
-) => readonly [LazyQueryTrigger<D>, QueryArgFrom<D> | UninitializedValue]
+) => readonly [
+  LazyQueryTrigger<D>,
+  QueryArgFrom<D> | UninitializedValue,
+  { reset: () => void },
+]
 
 export type TypedUseLazyQuerySubscription<
   ResultType,
@@ -421,7 +453,7 @@ export type QueryStateSelector<
  * @template BaseQueryFunctionType - The type of the base query function being used.
  * @template SelectedResultType - The type of the selected result returned by the __`selectFromResult`__ function.
  *
- * @since 2.7.9
+ * @since 2.3.0
  * @public
  */
 export type TypedQueryStateSelector<
@@ -604,7 +636,7 @@ export type UseQueryStateOptions<
  * @template BaseQuery - The type of the base query function being used.
  * @template SelectedResult - The type of the selected result returned by the __`selectFromResult`__ function.
  *
- * @since 2.7.8
+ * @since 2.2.8
  * @public
  */
 export type TypedUseQueryStateOptions<
@@ -895,13 +927,20 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
     // isFetching = true any time a request is in flight
     const isFetching = currentState.isLoading
+
     // isLoading = true only when loading while no data is present yet (initial load with no data in the cache)
     const isLoading =
       (!lastResult || lastResult.isLoading || lastResult.isUninitialized) &&
       !hasData &&
       isFetching
-    // isSuccess = true when data is present
-    const isSuccess = currentState.isSuccess || (isFetching && hasData)
+
+    // isSuccess = true when data is present and we're not refetching after an error.
+    // That includes cases where the _current_ item is either actively
+    // fetching or about to fetch due to an uninitialized entry.
+    const isSuccess =
+      currentState.isSuccess ||
+      (hasData &&
+        ((isFetching && !lastResult?.isError) || currentState.isUninitialized))
 
     return {
       ...currentState,
@@ -1162,6 +1201,16 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         [dispatch, initiate],
       )
 
+      const reset = useCallback(() => {
+        if (promiseRef.current?.queryCacheKey) {
+          dispatch(
+            api.internalActions.removeQueryResult({
+              queryCacheKey: promiseRef.current?.queryCacheKey as QueryCacheKey,
+            }),
+          )
+        }
+      }, [dispatch])
+
       /* cleanup on unmount */
       useEffect(() => {
         return () => {
@@ -1176,7 +1225,10 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         }
       }, [arg, trigger])
 
-      return useMemo(() => [trigger, arg] as const, [trigger, arg])
+      return useMemo(
+        () => [trigger, arg, { reset }] as const,
+        [trigger, arg, reset],
+      )
     }
 
     const useQueryState: UseQueryState<any> = (
@@ -1249,7 +1301,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       useQuerySubscription,
       useLazyQuerySubscription,
       useLazyQuery(options) {
-        const [trigger, arg] = useLazyQuerySubscription(options)
+        const [trigger, arg, { reset }] = useLazyQuerySubscription(options)
         const queryStateResults = useQueryState(arg, {
           ...options,
           skip: arg === UNINITIALIZED_VALUE,
@@ -1257,8 +1309,8 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
         const info = useMemo(() => ({ lastArg: arg }), [arg])
         return useMemo(
-          () => [trigger, queryStateResults, info],
-          [trigger, queryStateResults, info],
+          () => [trigger, { ...queryStateResults, reset }, info],
+          [trigger, queryStateResults, reset, info],
         )
       },
       useQuery(arg, options) {

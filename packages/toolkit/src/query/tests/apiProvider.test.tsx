@@ -32,6 +32,10 @@ const api = createApi({
   }),
 })
 
+afterEach(() => {
+  vi.resetAllMocks()
+})
+
 describe('ApiProvider', () => {
   test('ApiProvider allows a user to make queries without a traditional Redux setup', async () => {
     function User() {
@@ -72,6 +76,8 @@ describe('ApiProvider', () => {
     expect(getByTestId('isFetching').textContent).toBe('false')
   })
   test('ApiProvider throws if nested inside a Redux context', () => {
+    // Intentionally swallow the "unhandled error" message
+    vi.spyOn(console, 'error').mockImplementation(() => {})
     expect(() =>
       render(
         <Provider store={configureStore({ reducer: () => null })}>

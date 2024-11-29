@@ -71,11 +71,11 @@ describe('refetchOnFocus tests', () => {
       expect(screen.getByTestId('amount').textContent).toBe('1'),
     )
 
-    await act(async () => {
-      fireEvent.focus(window)
-    })
+    fireEvent.focus(window)
 
-    await delay(150)
+    await act(async () => {
+      await delay(150)
+    })
 
     await waitFor(() =>
       expect(screen.getByTestId('amount').textContent).toBe('2'),
@@ -111,9 +111,7 @@ describe('refetchOnFocus tests', () => {
       expect(screen.getByTestId('amount').textContent).toBe('1'),
     )
 
-    act(() => {
-      fireEvent.focus(window)
-    })
+    fireEvent.focus(window)
 
     await delay(150)
 
@@ -165,9 +163,7 @@ describe('refetchOnFocus tests', () => {
       expect(screen.getByTestId('amount').textContent).toBe('1'),
     )
 
-    act(() => {
-      fireEvent.focus(window)
-    })
+    fireEvent.focus(window)
     expect(screen.getByTestId('isLoading').textContent).toBe('false')
     await waitFor(() =>
       expect(screen.getByTestId('isFetching').textContent).toBe('true'),
@@ -213,9 +209,7 @@ describe('refetchOnFocus tests', () => {
 
     expect(getIncrementedAmountState()).not.toBeUndefined()
 
-    await act(async () => {
-      fireEvent.focus(window)
-    })
+    fireEvent.focus(window)
 
     await delay(1)
     expect(getIncrementedAmountState()).toBeUndefined()

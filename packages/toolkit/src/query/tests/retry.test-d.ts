@@ -1,4 +1,9 @@
-import type { RetryOptions } from '@internal/query/retry'
+import { retry, type RetryOptions } from '@internal/query/retry'
+import {
+  fetchBaseQuery,
+  type FetchBaseQueryError,
+  type FetchBaseQueryMeta,
+} from '@internal/query/fetchBaseQuery'
 
 describe('type tests', () => {
   test('RetryOptions only accepts one of maxRetries or retryCondition', () => {
@@ -14,6 +19,28 @@ describe('type tests', () => {
       retryCondition: () => false,
     }).not.toMatchTypeOf<RetryOptions>()
   })
-})
+  test('fail can be pretyped to only accept correct error and meta', () => {
+    expectTypeOf(retry.fail).parameter(0).toEqualTypeOf<unknown>()
+    expectTypeOf(retry.fail).parameter(1).toEqualTypeOf<{} | undefined>()
+    expectTypeOf(retry.fail).toBeCallableWith('Literally anything', {})
 
-export {}
+    const myBaseQuery = fetchBaseQuery()
+    const typedFail = retry.fail<typeof myBaseQuery>
+
+    expectTypeOf(typedFail).parameter(0).toMatchTypeOf<FetchBaseQueryError>()
+    expectTypeOf(typedFail)
+      .parameter(1)
+      .toMatchTypeOf<FetchBaseQueryMeta | undefined>()
+
+    expectTypeOf(typedFail).toBeCallableWith(
+      {
+        status: 401,
+        data: 'Unauthorized',
+      },
+      { request: new Request('http://localhost') },
+    )
+
+    expectTypeOf(typedFail).parameter(0).not.toMatchTypeOf<string>()
+    expectTypeOf(typedFail).parameter(1).not.toMatchTypeOf<{}>()
+  })
+})

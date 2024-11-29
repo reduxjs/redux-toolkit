@@ -6,6 +6,7 @@ import {
   actionsReducer,
   setupApiStore,
   useRenderCounter,
+  waitForFakeTimer,
   waitMs,
   withProvider,
 } from '@internal/tests/utils/helpers'
@@ -39,6 +40,7 @@ import type { MockInstance } from 'vitest'
 // the refetching behavior of components.
 let amount = 0
 let nextItemId = 0
+let refetchCount = 0
 
 interface Item {
   id: number
@@ -46,7 +48,7 @@ interface Item {
 
 const api = createApi({
   baseQuery: async (arg: any) => {
-    await waitMs(150)
+    await waitForFakeTimer(150)
     if (arg?.body && 'amount' in arg.body) {
       amount += 1
     }
@@ -87,6 +89,17 @@ const api = createApi({
         },
       }),
     }),
+    getUserWithRefetchError: build.query<{ name: string }, number>({
+      queryFn: async (id) => {
+        refetchCount += 1
+
+        if (refetchCount > 1) {
+          return { error: true } as any
+        }
+
+        return { data: { name: 'Timmy' } }
+      },
+    }),
     getIncrementedAmount: build.query<{ amount: number }, void>({
       query: () => ({
         url: '',
@@ -123,6 +136,12 @@ const api = createApi({
       },
       forceRefetch: () => {
         return true
+      },
+    }),
+    queryWithDeepArg: build.query<string, { param: { nested: string } }>({
+      query: ({ param: { nested } }) => nested,
+      serializeQueryArgs: ({ queryArgs }) => {
+        return queryArgs.param.nested
       },
     }),
   }),
@@ -375,6 +394,132 @@ describe('hooks tests', () => {
 
       expect(loadingHist).toEqual([true, false])
       expect(fetchingHist).toEqual([true, false, true, false])
+    })
+
+    test('`isSuccess` does not jump back false on subsequent queries', async () => {
+      type LoadingState = {
+        id: number
+        isFetching: boolean
+        isSuccess: boolean
+      }
+      const loadingHistory: LoadingState[] = []
+
+      function User({ id }: { id: number }) {
+        const queryRes = api.endpoints.getUser.useQuery(id)
+
+        useEffect(() => {
+          const { isFetching, isSuccess } = queryRes
+          loadingHistory.push({ id, isFetching, isSuccess })
+        }, [id, queryRes])
+        return (
+          <div data-testid="status">
+            {queryRes.status === QueryStatus.fulfilled && id}
+          </div>
+        )
+      }
+
+      let { rerender } = render(<User id={1} />, { wrapper: storeRef.wrapper })
+
+      await waitFor(() =>
+        expect(screen.getByTestId('status').textContent).toBe('1'),
+      )
+      rerender(<User id={2} />)
+
+      await waitFor(() =>
+        expect(screen.getByTestId('status').textContent).toBe('2'),
+      )
+
+      expect(loadingHistory).toEqual([
+        // Initial render(s)
+        { id: 1, isFetching: true, isSuccess: false },
+        { id: 1, isFetching: true, isSuccess: false },
+        // Data returned
+        { id: 1, isFetching: false, isSuccess: true },
+        // ID changed, there's an uninitialized cache entry.
+        // IMPORTANT: `isSuccess` should not be false here.
+        // We have valid data already for the old item.
+        { id: 2, isFetching: true, isSuccess: true },
+        { id: 2, isFetching: true, isSuccess: true },
+        { id: 2, isFetching: false, isSuccess: true },
+      ])
+    })
+
+    test('isSuccess stays consistent if there is an error while refetching', async () => {
+      type LoadingState = {
+        id: number
+        isFetching: boolean
+        isSuccess: boolean
+        isError: boolean
+      }
+      const loadingHistory: LoadingState[] = []
+
+      function Component({ id = 1 }) {
+        const queryRes = api.endpoints.getUserWithRefetchError.useQuery(id)
+        const { refetch, data, status } = queryRes
+
+        useEffect(() => {
+          const { isFetching, isSuccess, isError } = queryRes
+          loadingHistory.push({ id, isFetching, isSuccess, isError })
+        }, [id, queryRes])
+
+        return (
+          <div>
+            <button
+              onClick={() => {
+                refetch()
+              }}
+            >
+              refetch
+            </button>
+            <div data-testid="name">{data?.name}</div>
+            <div data-testid="status">{status}</div>
+          </div>
+        )
+      }
+
+      render(<Component />, { wrapper: storeRef.wrapper })
+
+      await waitFor(() =>
+        expect(screen.getByTestId('name').textContent).toBe('Timmy'),
+      )
+
+      fireEvent.click(screen.getByText('refetch'))
+
+      await waitFor(() =>
+        expect(screen.getByTestId('status').textContent).toBe('pending'),
+      )
+
+      await waitFor(() =>
+        expect(screen.getByTestId('status').textContent).toBe('rejected'),
+      )
+
+      fireEvent.click(screen.getByText('refetch'))
+
+      await waitFor(() =>
+        expect(screen.getByTestId('status').textContent).toBe('pending'),
+      )
+
+      await waitFor(() =>
+        expect(screen.getByTestId('status').textContent).toBe('rejected'),
+      )
+
+      expect(loadingHistory).toEqual([
+        // Initial renders
+        { id: 1, isFetching: true, isSuccess: false, isError: false },
+        { id: 1, isFetching: true, isSuccess: false, isError: false },
+        // Data is returned
+        { id: 1, isFetching: false, isSuccess: true, isError: false },
+        // Started first refetch
+        { id: 1, isFetching: true, isSuccess: true, isError: false },
+        // First refetch errored
+        { id: 1, isFetching: false, isSuccess: false, isError: true },
+        // Started second refetch
+        // IMPORTANT We expect `isSuccess` to still be false,
+        // despite having started the refetch again.
+        { id: 1, isFetching: true, isSuccess: false, isError: false },
+        // Second refetch errored
+        { id: 1, isFetching: false, isSuccess: false, isError: true },
+      ])
     })
 
     test('useQuery hook respects refetchOnMountOrArgChange: true', async () => {
@@ -667,6 +812,14 @@ describe('hooks tests', () => {
       await screen.findByText('ID: 3')
     })
 
+    test(`useQuery shouldn't call args serialization if request skipped`, async () => {
+      expect(() =>
+        renderHook(() => api.endpoints.queryWithDeepArg.useQuery(skipToken), {
+          wrapper: storeRef.wrapper,
+        }),
+      ).not.toThrow()
+    })
+
     test(`useQuery gracefully handles bigint types`, async () => {
       function ItemList() {
         const [pageNumber, setPageNumber] = useState(0)
@@ -762,7 +915,7 @@ describe('hooks tests', () => {
         resPromise = refetch()
       })
       expect(resPromise).toBeInstanceOf(Promise)
-      const res = await resPromise
+      const res = await act(() => resPromise)
       expect(res.data!.amount).toBeGreaterThan(originalAmount)
     })
 
@@ -942,15 +1095,15 @@ describe('hooks tests', () => {
       // Allow at least three state effects to hit.
       // Trying to see if any [true, false, true] occurs.
       await act(async () => {
-        await waitMs(1)
+        await waitForFakeTimer(150)
       })
 
       await act(async () => {
-        await waitMs(1)
+        await waitForFakeTimer(150)
       })
 
       await act(async () => {
-        await waitMs(1)
+        await waitForFakeTimer(150)
       })
 
       // Find if at any time the isLoading state has reverted
@@ -1386,10 +1539,8 @@ describe('hooks tests', () => {
 
     test('useLazyQuery trigger promise returns the correctly updated data', async () => {
       const LazyUnwrapUseEffect = () => {
-        const [
-          triggerGetIncrementedAmount,
-          { isFetching, isSuccess, isError, error, data },
-        ] = api.endpoints.getIncrementedAmount.useLazyQuery()
+        const [triggerGetIncrementedAmount, { isFetching, isSuccess, data }] =
+          api.endpoints.getIncrementedAmount.useLazyQuery()
 
         type AmountData = { amount: number } | undefined
 
@@ -1477,6 +1628,50 @@ describe('hooks tests', () => {
         expect(screen.getByText('useEffect data: 2')).toBeTruthy()
         expect(screen.getByText('Unwrap data: 2')).toBeTruthy()
       })
+    })
+
+    test('`reset` sets state back to original state', async () => {
+      function User() {
+        const [getUser, { isSuccess, isUninitialized, reset }, _lastInfo] =
+          api.endpoints.getUser.useLazyQuery()
+
+        const handleFetchClick = async () => {
+          await getUser(1).unwrap()
+        }
+
+        return (
+          <div>
+            <span>
+              {isUninitialized
+                ? 'isUninitialized'
+                : isSuccess
+                  ? 'isSuccess'
+                  : 'other'}
+            </span>
+            <button onClick={handleFetchClick}>Fetch User</button>
+            <button onClick={reset}>Reset</button>
+          </div>
+        )
+      }
+
+      render(<User />, { wrapper: storeRef.wrapper })
+
+      await screen.findByText(/isUninitialized/i)
+      expect(countObjectKeys(storeRef.store.getState().api.queries)).toBe(0)
+
+      userEvent.click(screen.getByRole('button', { name: 'Fetch User' }))
+
+      await screen.findByText(/isSuccess/i)
+      expect(countObjectKeys(storeRef.store.getState().api.queries)).toBe(1)
+
+      userEvent.click(
+        screen.getByRole('button', {
+          name: 'Reset',
+        }),
+      )
+
+      await screen.findByText(/isUninitialized/i)
+      expect(countObjectKeys(storeRef.store.getState().api.queries)).toBe(0)
     })
   })
 
@@ -1669,7 +1864,8 @@ describe('hooks tests', () => {
         expect(screen.getByTestId('isFetching').textContent).toBe('false'),
       )
 
-      userEvent.hover(screen.getByTestId('highPriority'))
+      await userEvent.hover(screen.getByTestId('highPriority'))
+
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any),
       ).toEqual({
@@ -1806,7 +2002,7 @@ describe('hooks tests', () => {
       await waitMs(400)
 
       // This should run the query being that we're past the threshold
-      userEvent.hover(screen.getByTestId('lowPriority'))
+      await userEvent.hover(screen.getByTestId('lowPriority'))
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any),
       ).toEqual({
@@ -1906,7 +2102,7 @@ describe('hooks tests', () => {
 
       render(<User />, { wrapper: storeRef.wrapper })
 
-      userEvent.hover(screen.getByTestId('lowPriority'))
+      await userEvent.hover(screen.getByTestId('lowPriority'))
 
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any),
@@ -2798,6 +2994,11 @@ describe('skip behavior', () => {
     await act(async () => {
       rerender([1])
     })
+
+    await act(async () => {
+      await waitForFakeTimer(150)
+    })
+
     expect(result.current).toMatchObject({ status: QueryStatus.fulfilled })
     await waitMs(1)
     expect(getSubscriptionCount('getUser(1)')).toBe(1)
@@ -2807,6 +3008,7 @@ describe('skip behavior', () => {
     })
     expect(result.current).toEqual({
       ...uninitialized,
+      isSuccess: true,
       currentData: undefined,
       data: { name: 'Timmy' },
     })
@@ -2834,6 +3036,11 @@ describe('skip behavior', () => {
     await act(async () => {
       rerender([1])
     })
+
+    await act(async () => {
+      await waitForFakeTimer(150)
+    })
+
     expect(result.current).toMatchObject({ status: QueryStatus.fulfilled })
     await waitMs(1)
     expect(getSubscriptionCount('getUser(1)')).toBe(1)
@@ -2844,6 +3051,7 @@ describe('skip behavior', () => {
     })
     expect(result.current).toEqual({
       ...uninitialized,
+      isSuccess: true,
       currentData: undefined,
       data: { name: 'Timmy' },
     })
@@ -2862,7 +3070,7 @@ describe('skip behavior', () => {
     )
 
     await act(async () => {
-      await waitMs(1)
+      await waitForFakeTimer(150)
     })
 
     // Normal fulfilled result, with both `data` and `currentData`
@@ -2882,7 +3090,7 @@ describe('skip behavior', () => {
     // even though it's skipped. `currentData` is undefined, since that matches the current arg.
     expect(result.current).toMatchObject({
       status: QueryStatus.uninitialized,
-      isSuccess: false,
+      isSuccess: true,
       data: { name: 'Timmy' },
       currentData: undefined,
     })

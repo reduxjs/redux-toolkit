@@ -9,6 +9,7 @@ import type {
   TypedUseQueryStateResult,
   TypedUseQuerySubscriptionResult,
   TypedLazyQueryTrigger,
+  TypedUseLazyQueryStateResult,
   TypedUseLazyQuery,
   TypedUseLazyQuerySubscription,
   TypedUseMutation,
@@ -820,7 +821,7 @@ describe('"Typed" helper types', () => {
     >().toMatchTypeOf(trigger)
 
     expectTypeOf<
-      TypedUseQueryHookResult<string, void, typeof baseQuery>
+      TypedUseLazyQueryStateResult<string, void, typeof baseQuery>
     >().toMatchTypeOf(result)
   })
 
@@ -834,7 +835,12 @@ describe('"Typed" helper types', () => {
     >().toMatchTypeOf(trigger)
 
     expectTypeOf<
-      TypedUseQueryHookResult<string, void, typeof baseQuery, { x: boolean }>
+      TypedUseLazyQueryStateResult<
+        string,
+        void,
+        typeof baseQuery,
+        { x: boolean }
+      >
     >().toMatchTypeOf(result)
   })
 
