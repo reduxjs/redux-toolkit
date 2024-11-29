@@ -3,7 +3,7 @@ import { compose } from 'redux'
 import { createAction } from '../createAction'
 import { isAllOf } from '../matchers'
 import { nanoid } from '../nanoid'
-import { emplace, find } from '../utils'
+import { getOrInsertComputed } from '../utils'
 import type {
   AddMiddleware,
   DynamicMiddleware,
@@ -23,7 +23,6 @@ const createMiddlewareEntry = <
 >(
   middleware: Middleware<any, State, DispatchType>,
 ): MiddlewareEntry<State, DispatchType> => ({
-  id: nanoid(),
   middleware,
   applied: new Map(),
 })
@@ -38,7 +37,10 @@ export const createDynamicMiddleware = <
   DispatchType extends Dispatch<UnknownAction> = Dispatch<UnknownAction>,
 >(): DynamicMiddlewareInstance<State, DispatchType> => {
   const instanceId = nanoid()
-  const middlewareMap = new Map<string, MiddlewareEntry<State, DispatchType>>()
+  const middlewareMap = new Map<
+    Middleware<any, State, DispatchType>,
+    MiddlewareEntry<State, DispatchType>
+  >()
 
   const withMiddleware = Object.assign(
     createAction(
@@ -58,14 +60,7 @@ export const createDynamicMiddleware = <
       ...middlewares: Middleware<any, State, DispatchType>[]
     ) {
       middlewares.forEach((middleware) => {
-        let entry = find(
-          Array.from(middlewareMap.values()),
-          (entry) => entry.middleware === middleware,
-        )
-        if (!entry) {
-          entry = createMiddlewareEntry(middleware)
-        }
-        middlewareMap.set(entry.id, entry)
+        getOrInsertComputed(middlewareMap, middleware, createMiddlewareEntry)
       })
     },
     { withTypes: () => addMiddleware },
@@ -73,7 +68,7 @@ export const createDynamicMiddleware = <
 
   const getFinalMiddleware: Middleware<{}, State, DispatchType> = (api) => {
     const appliedMiddleware = Array.from(middlewareMap.values()).map((entry) =>
-      emplace(entry.applied, api, { insert: () => entry.middleware(api) }),
+      getOrInsertComputed(entry.applied, api, entry.middleware),
     )
     return compose(...appliedMiddleware)
   }

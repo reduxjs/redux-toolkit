@@ -13,6 +13,12 @@ export const posts: Record<string, Post> = {
 
 export const handlers = [
   http.get(
+    'https://example.com',
+    async ({ request, params, cookies, requestId }) => {
+      HttpResponse.json({ value: 'success' })
+    },
+  ),
+  http.get(
     'https://example.com/echo',
     async ({ request, params, cookies, requestId }) => {
       return HttpResponse.json({
