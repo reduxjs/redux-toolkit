@@ -7,7 +7,11 @@ import type {
   EndpointBuilder,
   EndpointDefinitions,
 } from './endpointDefinitions'
-import { DefinitionType, isQueryDefinition } from './endpointDefinitions'
+import {
+  DefinitionType,
+  isInfiniteQueryDefinition,
+  isQueryDefinition,
+} from './endpointDefinitions'
 import { nanoid } from './core/rtkImports'
 import type { UnknownAction } from '@reduxjs/toolkit'
 import type { NoInfer } from './tsHelpers'
@@ -347,7 +351,8 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
       const evaluatedEndpoints = inject.endpoints({
         query: (x) => ({ ...x, type: DefinitionType.query }) as any,
         mutation: (x) => ({ ...x, type: DefinitionType.mutation }) as any,
-        infiniteQuery: (x) => ({ ...x, type: DefinitionType.infinitequery } as any),
+        infiniteQuery: (x) =>
+          ({ ...x, type: DefinitionType.infinitequery }) as any,
       })
 
       for (const [endpointName, definition] of Object.entries(
@@ -371,6 +376,30 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
           }
 
           continue
+        }
+
+        if (
+          typeof process !== 'undefined' &&
+          process.env.NODE_ENV === 'development'
+        ) {
+          if (isInfiniteQueryDefinition(definition)) {
+            const { infiniteQueryOptions } = definition
+            const { maxPages, getPreviousPageParam } = infiniteQueryOptions
+
+            if (typeof maxPages === 'number') {
+              if (maxPages < 1) {
+                throw new Error(
+                  `maxPages for endpoint '${endpointName}' must be a number greater than 0`,
+                )
+              }
+
+              if (typeof getPreviousPageParam !== 'function') {
+                throw new Error(
+                  `getPreviousPageParam for endpoint '${endpointName}' must be a function if maxPages is used`,
+                )
+              }
+            }
+          }
         }
 
         context.endpointDefinitions[endpointName] = definition
