@@ -14,6 +14,7 @@ import {
   QueryStatus,
   createApi,
   fetchBaseQuery,
+  fakeBaseQuery,
   skipToken,
 } from '@reduxjs/toolkit/query/react'
 import {
@@ -46,8 +47,6 @@ describe('Infinite queries', () => {
   const pokemonApi = createApi({
     baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
     endpoints: (builder) => ({
-      // GOAL: Specify both the query arg (for cache key serialization)
-      // and the page param type (for feeding into the query URL)
       getInfinitePokemon: builder.infiniteQuery<Pokemon[], string, number>({
         infiniteQueryOptions: {
           initialPageParam: 0,
@@ -67,23 +66,67 @@ describe('Infinite queries', () => {
             return firstPageParam > 0 ? firstPageParam - 1 : undefined
           },
         },
-
-        // Actual query arg type should be `number`
         query(pageParam) {
           return `https://example.com/listItems?page=${pageParam}`
+        },
+      }),
+      getInfinitePokemonWithMax: builder.infiniteQuery<
+        Pokemon[],
+        string,
+        number
+      >({
+        infiniteQueryOptions: {
+          initialPageParam: 0,
+          maxPages: 3,
+          getNextPageParam: (
+            lastPage,
+            allPages,
+            lastPageParam,
+            allPageParams,
+          ) => lastPageParam + 1,
+          getPreviousPageParam: (
+            firstPage,
+            allPages,
+            firstPageParam,
+            allPageParams,
+          ) => {
+            return firstPageParam > 0 ? firstPageParam - 1 : undefined
+          },
+        },
+        query(pageParam) {
+          return `https://example.com/listItems?page=${pageParam}`
+        },
+      }),
+      counter: builder.query<number, string>({
+        queryFn: async () => {
+          return { data: 0 }
         },
       }),
     }),
   })
 
-  let storeRef = setupApiStore(pokemonApi, undefined, {
-    withoutTestLifecycles: true,
-  })
+  let storeRef = setupApiStore(
+    pokemonApi,
+    { ...actionsReducer },
+    {
+      withoutTestLifecycles: true,
+    },
+  )
 
   beforeEach(() => {
-    storeRef = setupApiStore(pokemonApi, undefined, {
-      withoutTestLifecycles: true,
-    })
+    storeRef = setupApiStore(
+      pokemonApi,
+      { ...actionsReducer },
+      {
+        withoutTestLifecycles: true,
+      },
+    )
+
+    process.env.NODE_ENV = 'development'
+  })
+
+  afterEach(() => {
+    process.env.NODE_ENV = 'test'
   })
 
   test('Basic infinite query behavior', async () => {
@@ -110,7 +153,6 @@ describe('Infinite queries', () => {
     )
 
     expect(entry1SecondPage.status).toBe(QueryStatus.fulfilled)
-    // console.log('Value: ', util.inspect(entry1SecondPage, { depth: Infinity }))
     if (entry1SecondPage.status === QueryStatus.fulfilled) {
       expect(entry1SecondPage.data.pages).toEqual([
         // two pages, one entry each
@@ -126,18 +168,12 @@ describe('Infinite queries', () => {
     )
 
     if (entry1PrevPageMissing.status === QueryStatus.fulfilled) {
-      // There is no p
       expect(entry1PrevPageMissing.data.pages).toEqual([
         // two pages, one entry each
         [{ id: '0', name: 'Pokemon 0' }],
         [{ id: '1', name: 'Pokemon 1' }],
       ])
     }
-
-    // console.log(
-    //   'API state: ',
-    //   util.inspect(storeRef.store.getState().api, { depth: Infinity }),
-    // )
 
     const entry2InitialLoad = await storeRef.store.dispatch(
       pokemonApi.endpoints.getInfinitePokemon.initiate('water', {
@@ -180,5 +216,82 @@ describe('Infinite queries', () => {
         [{ id: '4', name: 'Pokemon 4' }],
       ])
     }
+  })
+
+  test('does not have a page limit without maxPages', async () => {
+    for (let i = 1; i <= 10; i++) {
+      const res = await storeRef.store.dispatch(
+        pokemonApi.endpoints.getInfinitePokemon.initiate('fire', {
+          direction: 'forward',
+        }),
+      )
+
+      if (res.status === QueryStatus.fulfilled) {
+        expect(res.data.pages).toHaveLength(i)
+      }
+    }
+  })
+
+  test('applies a page limit with maxPages', async () => {
+    for (let i = 1; i <= 10; i++) {
+      const res = await storeRef.store.dispatch(
+        pokemonApi.endpoints.getInfinitePokemonWithMax.initiate('fire', {
+          direction: 'forward',
+        }),
+      )
+      if (res.status === QueryStatus.fulfilled) {
+        // Should have 1, 2, 3 (repeating) pages
+        expect(res.data.pages).toHaveLength(Math.min(i, 3))
+      }
+    }
+
+    // Should now have entries 7, 8, 9 after the loop
+
+    const res = await storeRef.store.dispatch(
+      pokemonApi.endpoints.getInfinitePokemonWithMax.initiate('fire', {
+        direction: 'backward',
+      }),
+    )
+
+    if (res.status === QueryStatus.fulfilled) {
+      // When we go back 1, we now have 6, 7, 8
+      expect(res.data.pages).toEqual([
+        [{ id: '6', name: 'Pokemon 6' }],
+        [{ id: '7', name: 'Pokemon 7' }],
+        [{ id: '8', name: 'Pokemon 8' }],
+      ])
+    }
+  })
+
+  test('validates maxPages during createApi call', async () => {
+    const createApiWithMaxPages = (
+      maxPages: number,
+      getPreviousPageParam: (() => number) | undefined,
+    ) => {
+      createApi({
+        baseQuery: fakeBaseQuery(),
+        endpoints: (build) => ({
+          getInfinitePokemon: build.infiniteQuery<Pokemon[], string, number>({
+            query(pageParam) {
+              return `https://example.com/listItems?page=${pageParam}`
+            },
+            infiniteQueryOptions: {
+              initialPageParam: 0,
+              maxPages,
+              getNextPageParam: () => 1,
+              getPreviousPageParam,
+            },
+          }),
+        }),
+      })
+    }
+
+    expect(() => createApiWithMaxPages(0, () => 0)).toThrowError(
+      `maxPages for endpoint 'getInfinitePokemon' must be a number greater than 0`,
+    )
+
+    expect(() => createApiWithMaxPages(1, undefined)).toThrowError(
+      `getPreviousPageParam for endpoint 'getInfinitePokemon' must be a function if maxPages is used`,
+    )
   })
 })
