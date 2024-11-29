@@ -18,6 +18,10 @@ export interface BaseQueryApi {
    * invalidated queries.
    */
   forced?: boolean
+  /**
+   * Only available for queries: the cache key that was used to store the query result
+   */
+  queryCacheKey?: string
 }
 
 export type QueryReturnValue<T = unknown, E = unknown, M = unknown> =
@@ -59,6 +63,9 @@ export type BaseQueryEnhancer<
   NonNullable<BaseQueryMeta<BaseQuery>>
 >
 
+/**
+ * @public
+ */
 export type BaseQueryResult<BaseQuery extends BaseQueryFn> =
   UnwrapPromise<ReturnType<BaseQuery>> extends infer Unwrapped
     ? Unwrapped extends { data: any }
@@ -66,17 +73,29 @@ export type BaseQueryResult<BaseQuery extends BaseQueryFn> =
       : never
     : never
 
+/**
+ * @public
+ */
 export type BaseQueryMeta<BaseQuery extends BaseQueryFn> = UnwrapPromise<
   ReturnType<BaseQuery>
 >['meta']
 
+/**
+ * @public
+ */
 export type BaseQueryError<BaseQuery extends BaseQueryFn> = Exclude<
   UnwrapPromise<ReturnType<BaseQuery>>,
   { error?: undefined }
 >['error']
 
+/**
+ * @public
+ */
 export type BaseQueryArg<T extends (arg: any, ...args: any[]) => any> =
   T extends (arg: infer A, ...args: any[]) => any ? A : any
 
+/**
+ * @public
+ */
 export type BaseQueryExtraOptions<BaseQuery extends BaseQueryFn> =
   Parameters<BaseQuery>[2]

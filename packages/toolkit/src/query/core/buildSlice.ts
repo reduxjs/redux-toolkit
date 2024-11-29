@@ -8,6 +8,8 @@ import {
   isRejectedWithValue,
   createNextState,
   prepareAutoBatched,
+  SHOULD_AUTOBATCH,
+  nanoid,
 } from './rtkImports'
 import type {
   QuerySubstateIdentifier,
@@ -21,15 +23,24 @@ import type {
   QueryCacheKey,
   SubscriptionState,
   ConfigState,
+  QueryKeys,
 } from './apiState'
 import { QueryStatus } from './apiState'
-import type { MutationThunk, QueryThunk, RejectedAction } from './buildThunks'
+import type {
+  MutationThunk,
+  QueryThunk,
+  QueryThunkArg,
+  RejectedAction,
+} from './buildThunks'
 import { calculateProvidedByThunk } from './buildThunks'
 import type {
   AssertTagTypes,
+  DefinitionType,
   EndpointDefinitions,
   FullTagDescription,
+  QueryArgFrom,
   QueryDefinition,
+  ResultTypeFrom,
 } from '../endpointDefinitions'
 import type { Patch } from 'immer'
 import { isDraft } from 'immer'
@@ -42,6 +53,49 @@ import {
 } from '../utils'
 import type { ApiContext } from '../apiTypes'
 import { isUpsertQuery } from './buildInitiate'
+import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
+
+/**
+ * A typesafe single entry to be upserted into the cache
+ */
+export type NormalizedQueryUpsertEntry<
+  Definitions extends EndpointDefinitions,
+  EndpointName extends QueryKeys<Definitions>,
+> = {
+  endpointName: EndpointName
+  arg: QueryArgFrom<Definitions[EndpointName]>
+  value: ResultTypeFrom<Definitions[EndpointName]>
+}
+
+/**
+ * The internal version that is not typesafe since we can't carry the generics through `createSlice`
+ */
+type NormalizedQueryUpsertEntryPayload = {
+  endpointName: string
+  arg: unknown
+  value: unknown
+}
+
+export type ProcessedQueryUpsertEntry = {
+  queryDescription: QueryThunkArg
+  value: unknown
+}
+
+/**
+ * A typesafe representation of a util action creator that accepts cache entry descriptions to upsert
+ */
+export type UpsertEntries<Definitions extends EndpointDefinitions> = <
+  EndpointNames extends Array<QueryKeys<Definitions>>,
+>(
+  entries: [
+    ...{
+      [I in keyof EndpointNames]: NormalizedQueryUpsertEntry<
+        Definitions,
+        EndpointNames[I]
+      >
+    },
+  ],
+) => PayloadAction<NormalizedQueryUpsertEntryPayload[]>
 
 function updateQuerySubstateIfExists(
   state: QueryState<any>,
@@ -92,6 +146,7 @@ export function buildSlice({
   reducerPath,
   queryThunk,
   mutationThunk,
+  serializeQueryArgs,
   context: {
     endpointDefinitions: definitions,
     apiUid,
@@ -104,6 +159,7 @@ export function buildSlice({
   reducerPath: string
   queryThunk: QueryThunk
   mutationThunk: MutationThunk
+  serializeQueryArgs: InternalSerializeQueryArgs
   context: ApiContext<EndpointDefinitions>
   assertTagType: AssertTagTypes
   config: Omit<
@@ -112,6 +168,100 @@ export function buildSlice({
   >
 }) {
   const resetApiState = createAction(`${reducerPath}/resetApiState`)
+
+  function writePendingCacheEntry(
+    draft: QueryState<any>,
+    arg: QueryThunkArg,
+    upserting: boolean,
+    meta: {
+      arg: QueryThunkArg
+      requestId: string
+      // requestStatus: 'pending'
+    } & { startedTimeStamp: number },
+  ) {
+    draft[arg.queryCacheKey] ??= {
+      status: QueryStatus.uninitialized,
+      endpointName: arg.endpointName,
+    }
+
+    updateQuerySubstateIfExists(draft, arg.queryCacheKey, (substate) => {
+      substate.status = QueryStatus.pending
+
+      substate.requestId =
+        upserting && substate.requestId
+          ? // for `upsertQuery` **updates**, keep the current `requestId`
+            substate.requestId
+          : // for normal queries or `upsertQuery` **inserts** always update the `requestId`
+            meta.requestId
+      if (arg.originalArgs !== undefined) {
+        substate.originalArgs = arg.originalArgs
+      }
+      substate.startedTimeStamp = meta.startedTimeStamp
+    })
+  }
+
+  function writeFulfilledCacheEntry(
+    draft: QueryState<any>,
+    meta: {
+      arg: QueryThunkArg
+      requestId: string
+      // requestStatus: 'fulfilled'
+    } & {
+      fulfilledTimeStamp: number
+      baseQueryMeta: unknown
+      // RTK_autoBatch: true
+    },
+    payload: unknown,
+  ) {
+    updateQuerySubstateIfExists(draft, meta.arg.queryCacheKey, (substate) => {
+      if (substate.requestId !== meta.requestId && !isUpsertQuery(meta.arg))
+        return
+      const { merge } = definitions[meta.arg.endpointName] as QueryDefinition<
+        any,
+        any,
+        any,
+        any
+      >
+      substate.status = QueryStatus.fulfilled
+
+      if (merge) {
+        if (substate.data !== undefined) {
+          const { fulfilledTimeStamp, arg, baseQueryMeta, requestId } = meta
+          // There's existing cache data. Let the user merge it in themselves.
+          // We're already inside an Immer-powered reducer, and the user could just mutate `substate.data`
+          // themselves inside of `merge()`. But, they might also want to return a new value.
+          // Try to let Immer figure that part out, save the result, and assign it to `substate.data`.
+          let newData = createNextState(substate.data, (draftSubstateData) => {
+            // As usual with Immer, you can mutate _or_ return inside here, but not both
+            return merge(draftSubstateData, payload, {
+              arg: arg.originalArgs,
+              baseQueryMeta,
+              fulfilledTimeStamp,
+              requestId,
+            })
+          })
+          substate.data = newData
+        } else {
+          // Presumably a fresh request. Just cache the response data.
+          substate.data = payload
+        }
+      } else {
+        // Assign or safely update the cache data.
+        substate.data =
+          definitions[meta.arg.endpointName].structuralSharing ?? true
+            ? copyWithStructuralSharing(
+                isDraft(substate.data)
+                  ? original(substate.data)
+                  : substate.data,
+                payload,
+              )
+            : payload
+      }
+
+      delete substate.error
+      substate.fulfilledTimeStamp = meta.fulfilledTimeStamp
+    })
+  }
   const querySlice = createSlice({
     name: `${reducerPath}/queries`,
     initialState: initialState as QueryState<any>,
@@ -126,6 +276,69 @@ export function buildSlice({
           delete draft[queryCacheKey]
         },
         prepare: prepareAutoBatched<QuerySubstateIdentifier>(),
+      },
+      cacheEntriesUpserted: {
+        reducer(
+          draft,
+          action: PayloadAction<
+            ProcessedQueryUpsertEntry[],
+            string,
+            {
+              RTK_autoBatch: boolean
+              requestId: string
+              timestamp: number
+            }
+          >,
+        ) {
+          for (const entry of action.payload) {
+            const { queryDescription: arg, value } = entry
+            writePendingCacheEntry(draft, arg, true, {
+              arg,
+              requestId: action.meta.requestId,
+              startedTimeStamp: action.meta.timestamp,
+            })
+
+            writeFulfilledCacheEntry(
+              draft,
+              {
+                arg,
+                requestId: action.meta.requestId,
+                fulfilledTimeStamp: action.meta.timestamp,
+                baseQueryMeta: {},
+              },
+              value,
+            )
+          }
+        },
+        prepare: (payload: NormalizedQueryUpsertEntryPayload[]) => {
+          const queryDescriptions: ProcessedQueryUpsertEntry[] = payload.map(
+            (entry) => {
+              const { endpointName, arg, value } = entry
+              const endpointDefinition = definitions[endpointName]
+              const queryDescription: QueryThunkArg = {
+                type: 'query',
+                endpointName: endpointName,
+                originalArgs: entry.arg,
+                queryCacheKey: serializeQueryArgs({
+                  queryArgs: arg,
+                  endpointDefinition,
+                  endpointName,
+                }),
+              }
+              return { queryDescription, value }
+            },
+          )
+
+          const result = {
+            payload: queryDescriptions,
+            meta: {
+              [SHOULD_AUTOBATCH]: true,
+              requestId: nanoid(),
+              timestamp: Date.now(),
+            },
+          }
+          return result
+        },
       },
       queryResultPatched: {
         reducer(
@@ -149,83 +362,10 @@ export function buildSlice({
       builder
         .addCase(queryThunk.pending, (draft, { meta, meta: { arg } }) => {
           const upserting = isUpsertQuery(arg)
-          draft[arg.queryCacheKey] ??= {
-            status: QueryStatus.uninitialized,
-            endpointName: arg.endpointName,
-          }
-
-          updateQuerySubstateIfExists(draft, arg.queryCacheKey, (substate) => {
-            substate.status = QueryStatus.pending
-
-            substate.requestId =
-              upserting && substate.requestId
-                ? // for `upsertQuery` **updates**, keep the current `requestId`
-                  substate.requestId
-                : // for normal queries or `upsertQuery` **inserts** always update the `requestId`
-                  meta.requestId
-            if (arg.originalArgs !== undefined) {
-              substate.originalArgs = arg.originalArgs
-            }
-            substate.startedTimeStamp = meta.startedTimeStamp
-          })
+          writePendingCacheEntry(draft, arg, upserting, meta)
         })
         .addCase(queryThunk.fulfilled, (draft, { meta, payload }) => {
-          updateQuerySubstateIfExists(
-            draft,
-            meta.arg.queryCacheKey,
-            (substate) => {
-              if (
-                substate.requestId !== meta.requestId &&
-                !isUpsertQuery(meta.arg)
-              )
-                return
-              const { merge } = definitions[
-                meta.arg.endpointName
-              ] as QueryDefinition<any, any, any, any>
-              substate.status = QueryStatus.fulfilled
-
-              if (merge) {
-                if (substate.data !== undefined) {
-                  const { fulfilledTimeStamp, arg, baseQueryMeta, requestId } =
-                    meta
-                  // There's existing cache data. Let the user merge it in themselves.
-                  // We're already inside an Immer-powered reducer, and the user could just mutate `substate.data`
-                  // themselves inside of `merge()`. But, they might also want to return a new value.
-                  // Try to let Immer figure that part out, save the result, and assign it to `substate.data`.
-                  let newData = createNextState(
-                    substate.data,
-                    (draftSubstateData) => {
-                      // As usual with Immer, you can mutate _or_ return inside here, but not both
-                      return merge(draftSubstateData, payload, {
-                        arg: arg.originalArgs,
-                        baseQueryMeta,
-                        fulfilledTimeStamp,
-                        requestId,
-                      })
-                    },
-                  )
-                  substate.data = newData
-                } else {
-                  // Presumably a fresh request. Just cache the response data.
-                  substate.data = payload
-                }
-              } else {
-                // Assign or safely update the cache data.
-                substate.data =
-                  definitions[meta.arg.endpointName].structuralSharing ?? true
-                    ? copyWithStructuralSharing(
-                        isDraft(substate.data)
-                          ? original(substate.data)
-                          : substate.data,
-                        payload,
-                      )
-                    : payload
-              }
-
-              delete substate.error
-              substate.fulfilledTimeStamp = meta.fulfilledTimeStamp
-            },
-          )
+          writeFulfilledCacheEntry(draft, meta, payload)
         })
         .addCase(
           queryThunk.rejected,

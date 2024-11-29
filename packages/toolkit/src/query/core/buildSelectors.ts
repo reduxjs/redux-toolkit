@@ -9,7 +9,7 @@ import type {
   TagTypesFrom,
 } from '../endpointDefinitions'
 import { expandTagDescription } from '../endpointDefinitions'
-import { flatten } from '../utils'
+import { flatten, isNotNullish } from '../utils'
 import type {
   MutationSubState,
   QueryCacheKey,
@@ -168,6 +168,9 @@ export function buildSelectors<
     endpointDefinition: QueryDefinition<any, any, any, any>,
   ) {
     return ((queryArgs: any) => {
+      if (queryArgs === skipToken) {
+        return createSelector(selectSkippedQuery, withRequestFlags)
+      }
       const serializedArgs = serializeQueryArgs({
         queryArgs,
         endpointDefinition,
@@ -176,10 +179,8 @@ export function buildSelectors<
       const selectQuerySubstate = (state: RootState) =>
         selectInternalState(state)?.queries?.[serializedArgs] ??
         defaultQuerySubState
-      const finalSelectQuerySubState =
-        queryArgs === skipToken ? selectSkippedQuery : selectQuerySubstate
 
-      return createSelector(finalSelectQuerySubState, withRequestFlags)
+      return createSelector(selectQuerySubstate, withRequestFlags)
     }) as QueryResultSelectorFactory<any, RootState>
   }
 
@@ -205,7 +206,7 @@ export function buildSelectors<
 
   function selectInvalidatedBy(
     state: RootState,
-    tags: ReadonlyArray<TagDescription<string>>,
+    tags: ReadonlyArray<TagDescription<string> | null | undefined>,
   ): Array<{
     endpointName: string
     originalArgs: any
@@ -213,7 +214,7 @@ export function buildSelectors<
   }> {
     const apiState = state[reducerPath]
     const toInvalidate = new Set<QueryCacheKey>()
-    for (const tag of tags.map(expandTagDescription)) {
+    for (const tag of tags.filter(isNotNullish).map(expandTagDescription)) {
       const provided = apiState.provided[tag.type]
       if (!provided) {
         continue

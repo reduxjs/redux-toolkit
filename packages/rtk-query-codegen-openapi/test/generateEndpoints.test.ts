@@ -174,20 +174,12 @@ describe('endpoint overrides', () => {
   });
 });
 
-describe('option encodeParams', () => {
+describe('option encodePathParams', () => {
   const config = {
     apiFile: './fixtures/emptyApi.ts',
     schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
-    encodeParams: true,
+    encodePathParams: true,
   };
-
-  it('should encode query parameters', async () => {
-    const api = await generateEndpoints({
-      ...config,
-      filterEndpoints: ['findPetsByStatus'],
-    });
-    expect(api).toContain('status: encodeURIComponent(String(queryArg.status))');
-  });
 
   it('should encode path parameters', async () => {
     const api = await generateEndpoints({
@@ -196,6 +188,14 @@ describe('option encodeParams', () => {
     });
     // eslint-disable-next-line no-template-curly-in-string
     expect(api).toContain('`/store/order/${encodeURIComponent(String(queryArg.orderId))}`');
+  });
+
+  it('should not encode query parameters', async () => {
+    const api = await generateEndpoints({
+      ...config,
+      filterEndpoints: ['findPetsByStatus'],
+    });
+    expect(api).toContain('status: queryArg.status');
   });
 
   it('should not encode body parameters', async () => {
@@ -217,15 +217,60 @@ describe('option encodeParams', () => {
     expect(api).toContain('`/store/order/${encodeURIComponent(String(queryArg))}`');
   });
 
-  it('should not encode parameters when encodeParams is false', async () => {
+  it('should not encode path parameters when encodePathParams is false', async () => {
     const api = await generateEndpoints({
       ...config,
-      encodeParams: false,
+      encodePathParams: false,
+      filterEndpoints: ['findPetsByStatus', 'getOrderById'],
+    });
+    // eslint-disable-next-line no-template-curly-in-string
+    expect(api).toContain('`/store/order/${queryArg.orderId}`');
+  });
+});
+
+describe('option encodeQueryParams', () => {
+  const config = {
+    apiFile: './fixtures/emptyApi.ts',
+    schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+    encodeQueryParams: true,
+  };
+
+  it('should conditionally encode query parameters', async () => {
+    const api = await generateEndpoints({
+      ...config,
+      filterEndpoints: ['findPetsByStatus'],
+    });
+
+    expect(api).toMatch(
+      /params:\s*{\s*\n\s*status:\s*queryArg\.status\s*\?\s*encodeURIComponent\(\s*String\(queryArg\.status\)\s*\)\s*:\s*undefined\s*,?\s*\n\s*}/s
+    );
+  });
+
+  it('should not encode path parameters', async () => {
+    const api = await generateEndpoints({
+      ...config,
+      filterEndpoints: ['getOrderById'],
+    });
+    // eslint-disable-next-line no-template-curly-in-string
+    expect(api).toContain('`/store/order/${queryArg.orderId}`');
+  });
+
+  it('should not encode body parameters', async () => {
+    const api = await generateEndpoints({
+      ...config,
+      filterEndpoints: ['addPet'],
+    });
+    expect(api).toContain('body: queryArg.pet');
+    expect(api).not.toContain('body: encodeURIComponent(String(queryArg.pet))');
+  });
+
+  it('should not encode query parameters when encodeQueryParams is false', async () => {
+    const api = await generateEndpoints({
+      ...config,
+      encodeQueryParams: false,
       filterEndpoints: ['findPetsByStatus', 'getOrderById'],
     });
     expect(api).toContain('status: queryArg.status');
-    // eslint-disable-next-line no-template-curly-in-string
-    expect(api).toContain('`/store/order/${queryArg.orderId}`');
   });
 });
 

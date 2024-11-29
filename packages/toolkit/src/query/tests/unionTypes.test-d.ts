@@ -1,18 +1,22 @@
+import type { UseQueryStateOptions } from '@internal/query/react/buildHooks'
 import type { SerializedError } from '@reduxjs/toolkit'
 import type {
   FetchBaseQueryError,
+  QueryDefinition,
   TypedUseMutationResult,
   TypedUseQueryHookResult,
   TypedUseQueryState,
   TypedUseQueryStateResult,
   TypedUseQuerySubscriptionResult,
   TypedLazyQueryTrigger,
+  TypedUseLazyQueryStateResult,
   TypedUseLazyQuery,
   TypedUseLazyQuerySubscription,
   TypedUseMutation,
   TypedMutationTrigger,
   TypedUseQuerySubscription,
   TypedUseQuery,
+  TypedUseQueryStateOptions,
 } from '@reduxjs/toolkit/query/react'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 
@@ -776,6 +780,23 @@ describe('"Typed" helper types', () => {
     >().toEqualTypeOf(result)
   })
 
+  test('useQueryState options', () => {
+    expectTypeOf<
+      TypedUseQueryStateOptions<string, void, typeof baseQuery>
+    >().toMatchTypeOf<
+      Parameters<typeof api.endpoints.getTest.useQueryState>[1]
+    >()
+
+    expectTypeOf<
+      UseQueryStateOptions<
+        QueryDefinition<void, typeof baseQuery, string, string>,
+        { x: boolean }
+      >
+    >().toEqualTypeOf<
+      TypedUseQueryStateOptions<string, void, typeof baseQuery, { x: boolean }>
+    >()
+  })
+
   test('useQuerySubscription', () => {
     expectTypeOf<
       TypedUseQuerySubscription<string, void, typeof baseQuery>
@@ -800,7 +821,7 @@ describe('"Typed" helper types', () => {
     >().toMatchTypeOf(trigger)
 
     expectTypeOf<
-      TypedUseQueryHookResult<string, void, typeof baseQuery>
+      TypedUseLazyQueryStateResult<string, void, typeof baseQuery>
     >().toMatchTypeOf(result)
   })
 
@@ -814,7 +835,12 @@ describe('"Typed" helper types', () => {
     >().toMatchTypeOf(trigger)
 
     expectTypeOf<
-      TypedUseQueryHookResult<string, void, typeof baseQuery, { x: boolean }>
+      TypedUseLazyQueryStateResult<
+        string,
+        void,
+        typeof baseQuery,
+        { x: boolean }
+      >
     >().toMatchTypeOf(result)
   })
 

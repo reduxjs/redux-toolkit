@@ -18,6 +18,7 @@ import type {
   PrefetchOptions,
   QueryActionCreatorResult,
   QueryArgFrom,
+  QueryCacheKey,
   QueryDefinition,
   QueryKeys,
   QueryResultSelectorResult,
@@ -255,7 +256,7 @@ export type UseLazyQuery<D extends QueryDefinition<any, any, any, any>> = <
   options?: SubscriptionOptions & Omit<UseQueryStateOptions<D, R>, 'skip'>,
 ) => [
   LazyQueryTrigger<D>,
-  UseQueryStateResult<D, R>,
+  UseLazyQueryStateResult<D, R>,
   UseLazyQueryLastPromiseInfo<D>,
 ]
 
@@ -265,6 +266,33 @@ export type TypedUseLazyQuery<
   BaseQuery extends BaseQueryFn,
 > = UseLazyQuery<
   QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
+>
+
+export type UseLazyQueryStateResult<
+  D extends QueryDefinition<any, any, any, any>,
+  R = UseQueryStateDefaultResult<D>,
+> = UseQueryStateResult<D, R> & {
+  /**
+   * Resets the hook state to its initial `uninitialized` state.
+   * This will also remove the last result from the cache.
+   */
+  reset: () => void
+}
+
+/**
+ * Helper type to manually type the result
+ * of the `useLazyQuery` hook in userland code.
+ */
+export type TypedUseLazyQueryStateResult<
+  ResultType,
+  QueryArg,
+  BaseQuery extends BaseQueryFn,
+  R = UseQueryStateDefaultResult<
+    QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
+  >,
+> = UseLazyQueryStateResult<
+  QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>,
+  R
 >
 
 export type LazyQueryTrigger<D extends QueryDefinition<any, any, any, any>> = {
@@ -317,7 +345,11 @@ export type UseLazyQuerySubscription<
   D extends QueryDefinition<any, any, any, any>,
 > = (
   options?: SubscriptionOptions,
-) => readonly [LazyQueryTrigger<D>, QueryArgFrom<D> | UninitializedValue]
+) => readonly [
+  LazyQueryTrigger<D>,
+  QueryArgFrom<D> | UninitializedValue,
+  { reset: () => void },
+]
 
 export type TypedUseLazyQuerySubscription<
   ResultType,
@@ -327,10 +359,126 @@ export type TypedUseLazyQuerySubscription<
   QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
 >
 
+/**
+ * @internal
+ */
 export type QueryStateSelector<
   R extends Record<string, any>,
   D extends QueryDefinition<any, any, any, any>,
 > = (state: UseQueryStateDefaultResult<D>) => R
+
+/**
+ * Provides a way to define a strongly-typed version of
+ * {@linkcode QueryStateSelector} for use with a specific query.
+ * This is useful for scenarios where you want to create a "pre-typed"
+ * {@linkcode UseQueryStateOptions.selectFromResult | selectFromResult}
+ * function.
+ *
+ * @example
+ * <caption>#### __Create a strongly-typed `selectFromResult` selector function__</caption>
+ *
+ * ```tsx
+ * import type { TypedQueryStateSelector } from '@reduxjs/toolkit/query/react'
+ * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+ *
+ * type Post = {
+ *   id: number
+ *   title: string
+ * }
+ *
+ * type PostsApiResponse = {
+ *   posts: Post[]
+ *   total: number
+ *   skip: number
+ *   limit: number
+ * }
+ *
+ * type QueryArgument = number | undefined
+ *
+ * type BaseQueryFunction = ReturnType<typeof fetchBaseQuery>
+ *
+ * type SelectedResult = Pick<PostsApiResponse, 'posts'>
+ *
+ * const postsApiSlice = createApi({
+ *   baseQuery: fetchBaseQuery({ baseUrl: 'https://dummyjson.com/posts' }),
+ *   reducerPath: 'postsApi',
+ *   tagTypes: ['Posts'],
+ *   endpoints: (build) => ({
+ *     getPosts: build.query<PostsApiResponse, QueryArgument>({
+ *       query: (limit = 5) => `?limit=${limit}&select=title`,
+ *     }),
+ *   }),
+ * })
+ *
+ * const { useGetPostsQuery } = postsApiSlice
+ *
+ * function PostById({ id }: { id: number }) {
+ *   const { post } = useGetPostsQuery(undefined, {
+ *     selectFromResult: (state) => ({
+ *       post: state.data?.posts.find((post) => post.id === id),
+ *     }),
+ *   })
+ *
+ *   return <li>{post?.title}</li>
+ * }
+ *
+ * const EMPTY_ARRAY: Post[] = []
+ *
+ * const typedSelectFromResult: TypedQueryStateSelector<
+ *   PostsApiResponse,
+ *   QueryArgument,
+ *   BaseQueryFunction,
+ *   SelectedResult
+ * > = (state) => ({ posts: state.data?.posts ?? EMPTY_ARRAY })
+ *
+ * function PostsList() {
+ *   const { posts } = useGetPostsQuery(undefined, {
+ *     selectFromResult: typedSelectFromResult,
+ *   })
+ *
+ *   return (
+ *     <div>
+ *       <ul>
+ *         {posts.map((post) => (
+ *           <PostById key={post.id} id={post.id} />
+ *         ))}
+ *       </ul>
+ *     </div>
+ *   )
+ * }
+ * ```
+ *
+ * @template ResultType - The type of the result `data` returned by the query.
+ * @template QueryArgumentType - The type of the argument passed into the query.
+ * @template BaseQueryFunctionType - The type of the base query function being used.
+ * @template SelectedResultType - The type of the selected result returned by the __`selectFromResult`__ function.
+ *
+ * @since 2.3.0
+ * @public
+ */
+export type TypedQueryStateSelector<
+  ResultType,
+  QueryArgumentType,
+  BaseQueryFunctionType extends BaseQueryFn,
+  SelectedResultType extends Record<string, any> = UseQueryStateDefaultResult<
+    QueryDefinition<
+      QueryArgumentType,
+      BaseQueryFunctionType,
+      string,
+      ResultType,
+      string
+    >
+  >,
+> = QueryStateSelector<
+  SelectedResultType,
+  QueryDefinition<
+    QueryArgumentType,
+    BaseQueryFunctionType,
+    string,
+    ResultType,
+    string
+  >
+>
 
 /**
  * A React hook that reads the request status and cached data from the Redux store. The component will re-render as the loading status changes and the data becomes available.
@@ -357,6 +505,9 @@ export type TypedUseQueryState<
   QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
 >
 
+/**
+ * @internal
+ */
 export type UseQueryStateOptions<
   D extends QueryDefinition<any, any, any, any>,
   R extends Record<string, any>,
@@ -426,6 +577,79 @@ export type UseQueryStateOptions<
    */
   selectFromResult?: QueryStateSelector<R, D>
 }
+
+/**
+ * Provides a way to define a "pre-typed" version of
+ * {@linkcode UseQueryStateOptions} with specific options for a given query.
+ * This is particularly useful for setting default query behaviors such as
+ * refetching strategies, which can be overridden as needed.
+ *
+ * @example
+ * <caption>#### __Create a `useQuery` hook with default options__</caption>
+ *
+ * ```ts
+ * import type {
+ *   SubscriptionOptions,
+ *   TypedUseQueryStateOptions,
+ * } from '@reduxjs/toolkit/query/react'
+ * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+ *
+ * type Post = {
+ *   id: number
+ *   name: string
+ * }
+ *
+ * const api = createApi({
+ *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+ *   tagTypes: ['Post'],
+ *   endpoints: (build) => ({
+ *     getPosts: build.query<Post[], void>({
+ *       query: () => 'posts',
+ *     }),
+ *   }),
+ * })
+ *
+ * const { useGetPostsQuery } = api
+ *
+ * export const useGetPostsQueryWithDefaults = <
+ *   SelectedResult extends Record<string, any>,
+ * >(
+ *   overrideOptions: TypedUseQueryStateOptions<
+ *     Post[],
+ *     void,
+ *     ReturnType<typeof fetchBaseQuery>,
+ *     SelectedResult
+ *   > &
+ *     SubscriptionOptions,
+ * ) =>
+ *   useGetPostsQuery(undefined, {
+ *     // Insert default options here
+ *
+ *     refetchOnMountOrArgChange: true,
+ *     refetchOnFocus: true,
+ *     ...overrideOptions,
+ *   })
+ * ```
+ *
+ * @template ResultType - The type of the result `data` returned by the query.
+ * @template QueryArg - The type of the argument passed into the query.
+ * @template BaseQuery - The type of the base query function being used.
+ * @template SelectedResult - The type of the selected result returned by the __`selectFromResult`__ function.
+ *
+ * @since 2.2.8
+ * @public
+ */
+export type TypedUseQueryStateOptions<
+  ResultType,
+  QueryArg,
+  BaseQuery extends BaseQueryFn,
+  SelectedResult extends Record<string, any> = UseQueryStateDefaultResult<
+    QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
+  >,
+> = UseQueryStateOptions<
+  QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>,
+  SelectedResult
+>
 
 export type UseQueryStateResult<
   _ extends QueryDefinition<any, any, any, any>,
@@ -703,13 +927,20 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
     // isFetching = true any time a request is in flight
     const isFetching = currentState.isLoading
+
     // isLoading = true only when loading while no data is present yet (initial load with no data in the cache)
     const isLoading =
       (!lastResult || lastResult.isLoading || lastResult.isUninitialized) &&
       !hasData &&
       isFetching
-    // isSuccess = true when data is present
-    const isSuccess = currentState.isSuccess || (isFetching && hasData)
+
+    // isSuccess = true when data is present and we're not refetching after an error.
+    // That includes cases where the _current_ item is either actively
+    // fetching or about to fetch due to an uninitialized entry.
+    const isSuccess =
+      currentState.isSuccess ||
+      (hasData &&
+        ((isFetching && !lastResult?.isError) || currentState.isUninitialized))
 
     return {
       ...currentState,
@@ -970,6 +1201,16 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         [dispatch, initiate],
       )
 
+      const reset = useCallback(() => {
+        if (promiseRef.current?.queryCacheKey) {
+          dispatch(
+            api.internalActions.removeQueryResult({
+              queryCacheKey: promiseRef.current?.queryCacheKey as QueryCacheKey,
+            }),
+          )
+        }
+      }, [dispatch])
+
       /* cleanup on unmount */
       useEffect(() => {
         return () => {
@@ -984,7 +1225,10 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         }
       }, [arg, trigger])
 
-      return useMemo(() => [trigger, arg] as const, [trigger, arg])
+      return useMemo(
+        () => [trigger, arg, { reset }] as const,
+        [trigger, arg, reset],
+      )
     }
 
     const useQueryState: UseQueryState<any> = (
@@ -1057,7 +1301,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       useQuerySubscription,
       useLazyQuerySubscription,
       useLazyQuery(options) {
-        const [trigger, arg] = useLazyQuerySubscription(options)
+        const [trigger, arg, { reset }] = useLazyQuerySubscription(options)
         const queryStateResults = useQueryState(arg, {
           ...options,
           skip: arg === UNINITIALIZED_VALUE,
@@ -1065,8 +1309,8 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
         const info = useMemo(() => ({ lastArg: arg }), [arg])
         return useMemo(
-          () => [trigger, queryStateResults, info],
-          [trigger, queryStateResults, info],
+          () => [trigger, { ...queryStateResults, reset }, info],
+          [trigger, queryStateResults, reset, info],
         )
       },
       useQuery(arg, options) {

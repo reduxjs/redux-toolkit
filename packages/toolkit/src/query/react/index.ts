@@ -22,10 +22,13 @@ export type {
   TypedUseLazyQuery,
   TypedUseMutation,
   TypedMutationTrigger,
+  TypedQueryStateSelector,
   TypedUseQueryState,
   TypedUseQuery,
   TypedUseQuerySubscription,
   TypedUseLazyQuerySubscription,
+  TypedUseQueryStateOptions,
+  TypedUseLazyQueryStateResult,
 } from './buildHooks'
 export { UNINITIALIZED_VALUE } from './constants'
 export { createApi, reactHooksModule, reactHooksModuleName }

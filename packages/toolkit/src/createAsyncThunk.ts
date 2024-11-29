@@ -437,7 +437,9 @@ export type OverrideThunkApiConfigs<OldConfig, NewConfig> = Id<
   NewConfig & Omit<OldConfig, keyof NewConfig>
 >
 
-type CreateAsyncThunk<CurriedThunkApiConfig extends AsyncThunkConfig> = {
+export type CreateAsyncThunkFunction<
+  CurriedThunkApiConfig extends AsyncThunkConfig,
+> = {
   /**
    *
    * @param typePrefix
@@ -481,11 +483,14 @@ type CreateAsyncThunk<CurriedThunkApiConfig extends AsyncThunkConfig> = {
     ThunkArg,
     OverrideThunkApiConfigs<CurriedThunkApiConfig, ThunkApiConfig>
   >
-
-  withTypes<ThunkApiConfig extends AsyncThunkConfig>(): CreateAsyncThunk<
-    OverrideThunkApiConfigs<CurriedThunkApiConfig, ThunkApiConfig>
-  >
 }
+
+type CreateAsyncThunk<CurriedThunkApiConfig extends AsyncThunkConfig> =
+  CreateAsyncThunkFunction<CurriedThunkApiConfig> & {
+    withTypes<ThunkApiConfig extends AsyncThunkConfig>(): CreateAsyncThunk<
+      OverrideThunkApiConfigs<CurriedThunkApiConfig, ThunkApiConfig>
+    >
+  }
 
 export const createAsyncThunk = /* @__PURE__ */ (() => {
   function createAsyncThunk<

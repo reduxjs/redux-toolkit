@@ -15,8 +15,14 @@ export type { Api, ApiContext, Module } from './apiTypes'
 
 export type {
   BaseQueryApi,
+  BaseQueryArg,
   BaseQueryEnhancer,
+  BaseQueryError,
+  BaseQueryExtraOptions,
   BaseQueryFn,
+  BaseQueryMeta,
+  BaseQueryResult,
+  QueryReturnValue,
 } from './baseQueryTypes'
 export type {
   BaseEndpointDefinition,
@@ -33,6 +39,7 @@ export type {
   DefinitionType,
   DefinitionsFromApi,
   OverrideResultType,
+  ResultDescription,
   TagTypesFromApi,
   UpdateDefinitions,
 } from './endpointDefinitions'
@@ -61,7 +68,11 @@ export type { CreateApi, CreateApiOptions } from './createApi'
 export { buildCreateApi } from './createApi'
 export { _NEVER, fakeBaseQuery } from './fakeBaseQuery'
 export { copyWithStructuralSharing } from './utils/copyWithStructuralSharing'
-export { createApi, coreModule, coreModuleName } from './core'
+export { createApi, coreModule, coreModuleName } from './core/index'
+export type {
+  TypedMutationOnQueryStarted,
+  TypedQueryOnQueryStarted,
+} from './core/index'
 export type {
   ApiEndpointMutation,
   ApiEndpointQuery,

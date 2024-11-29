@@ -24,6 +24,7 @@ import type {
   InternalMiddlewareState,
 } from './types'
 import { buildWindowEventHandler } from './windowEventHandling'
+import type { ApiEndpointQuery } from '../module'
 export type { ReferenceCacheCollection } from './cacheCollection'
 export type {
   MutationCacheLifecycleApi,
@@ -34,6 +35,8 @@ export type {
   MutationLifecycleApi,
   QueryLifecycleApi,
   ReferenceQueryLifecycle,
+  TypedMutationOnQueryStarted,
+  TypedQueryOnQueryStarted,
 } from './queryLifecycle'
 export type { SubscriptionSelectors } from './types'
 
@@ -47,7 +50,7 @@ export function buildMiddleware<
 
   const actions = {
     invalidateTags: createAction<
-      Array<TagTypes | FullTagDescription<TagTypes>>
+      Array<TagTypes | FullTagDescription<TagTypes> | null | undefined>
     >(`${reducerPath}/invalidateTags`),
   }
 
@@ -146,17 +149,15 @@ export function buildMiddleware<
       QuerySubState<any>,
       { status: QueryStatus.uninitialized }
     >,
-    queryCacheKey: string,
-    override: Partial<QueryThunkArg> = {},
   ) {
-    return queryThunk({
-      type: 'query',
-      endpointName: querySubState.endpointName,
-      originalArgs: querySubState.originalArgs,
+    return (
+      input.api.endpoints[querySubState.endpointName] as ApiEndpointQuery<
+        any,
+        any
+      >
+    ).initiate(querySubState.originalArgs as any, {
       subscribe: false,
       forceRefetch: true,
-      queryCacheKey: queryCacheKey as any,
-      ...override,
     })
   }
 }

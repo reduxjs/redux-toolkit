@@ -64,7 +64,7 @@ type FetchBaseQueryArgs = {
     api: Pick<
       BaseQueryApi,
       'getState' | 'extra' | 'endpoint' | 'type' | 'forced'
-    >,
+    > & { arg: string | FetchArgs },
   ) => MaybePromise<Headers | void>
   fetchFn?: (
     input: RequestInfo,
@@ -83,14 +83,60 @@ type FetchBaseQueryResult = Promise<
       meta?: { request: Request; response: Response }
     }
   | {
-      error: {
-        status: number
-        data: any
-      }
+      error: FetchBaseQueryError
       data?: undefined
       meta?: { request: Request; response: Response }
     }
 >
+
+type FetchBaseQueryError =
+  | {
+      /**
+       * * `number`:
+       *   HTTP status code
+       */
+      status: number
+      data: unknown
+    }
+  | {
+      /**
+       * * `"FETCH_ERROR"`:
+       *   An error that occurred during execution of `fetch` or the `fetchFn` callback option
+       **/
+      status: 'FETCH_ERROR'
+      data?: undefined
+      error: string
+    }
+  | {
+      /**
+       * * `"PARSING_ERROR"`:
+       *   An error happened during parsing.
+       *   Most likely a non-JSON-response was returned with the default `responseHandler` "JSON",
+       *   or an error occurred while executing a custom `responseHandler`.
+       **/
+      status: 'PARSING_ERROR'
+      originalStatus: number
+      data: string
+      error: string
+    }
+  | {
+      /**
+       * * `"TIMEOUT_ERROR"`:
+       *   Request timed out
+       **/
+      status: 'TIMEOUT_ERROR'
+      data?: undefined
+      error: string
+    }
+  | {
+      /**
+       * * `"CUSTOM_ERROR"`:
+       *   A custom error type that you can return from your `queryFn` where another error might not make sense.
+       **/
+      status: 'CUSTOM_ERROR'
+      data?: unknown
+      error: string
+    }
 ```
 
 ## Parameters
@@ -105,7 +151,7 @@ Typically a string like `https://api.your-really-great-app.com/v1/`. If you don'
 
 _(optional)_
 
-Allows you to inject headers on every request. You can specify headers at the endpoint level, but you'll typically want to set common headers like `authorization` here. As a convenience mechanism, the second argument allows you to use `getState` to access your redux store in the event you store information you'll need there such as an auth token. Additionally, it provides access to `extra`, `endpoint`, `type`, and `forced` to unlock more granular conditional behaviors.
+Allows you to inject headers on every request. You can specify headers at the endpoint level, but you'll typically want to set common headers like `authorization` here. As a convenience mechanism, the second argument allows you to use `getState` to access your redux store in the event you store information you'll need there such as an auth token. Additionally, it provides access to `arg`, `extra`, `endpoint`, `type`, and `forced` to unlock more granular conditional behaviors.
 
 You can mutate the `headers` argument directly, and returning it is optional.
 
@@ -114,6 +160,7 @@ type prepareHeaders = (
   headers: Headers,
   api: {
     getState: () => unknown
+    arg: string | FetchArgs
     extra: unknown
     endpoint: string
     type: 'query' | 'mutation'
@@ -296,6 +343,17 @@ export const customApi = createApi({
 :::note Note about responses that return an undefined body
 If you make a `json` request to an API that only returns a `200` with an undefined body, `fetchBaseQuery` will pass that through as `undefined` and will not try to parse it as `json`. This can be common with some APIs, especially on `delete` requests.
 :::
+
+#### Default response handler
+
+The default response handler is `"json"`, which is equivalent to the following function:
+
+```ts title="Default responseHandler"
+const defaultResponseHandler = async (res: Response) => {
+  const text = await res.text()
+  return text.length ? JSON.parse(text) : null
+}
+```
 
 ### Handling non-standard Response status codes
 

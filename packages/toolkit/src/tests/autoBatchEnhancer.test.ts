@@ -125,3 +125,84 @@ describe.each(cases)('autoBatchEnhancer: %j', (autoBatchOptions) => {
     expect(subscriptionNotifications).toBe(3)
   })
 })
+
+describe.each(cases)(
+  'autoBatchEnhancer with fake timers: %j',
+  (autoBatchOptions) => {
+    beforeAll(() => {
+      vitest.useFakeTimers({
+        toFake: ['setTimeout', 'queueMicrotask', 'requestAnimationFrame'],
+      })
+    })
+    afterAll(() => {
+      vitest.useRealTimers()
+    })
+    beforeEach(() => {
+      subscriptionNotifications = 0
+      store = makeStore(autoBatchOptions)
+
+      store.subscribe(() => {
+        subscriptionNotifications++
+      })
+    })
+    test('Does not alter normal subscription notification behavior', () => {
+      store.dispatch(decrementUnbatched())
+      expect(subscriptionNotifications).toBe(1)
+      store.dispatch(decrementUnbatched())
+      expect(subscriptionNotifications).toBe(2)
+      store.dispatch(decrementUnbatched())
+      expect(subscriptionNotifications).toBe(3)
+      store.dispatch(decrementUnbatched())
+
+      vitest.runAllTimers()
+
+      expect(subscriptionNotifications).toBe(4)
+    })
+
+    test('Only notifies once if several batched actions are dispatched in a row', () => {
+      store.dispatch(incrementBatched())
+      expect(subscriptionNotifications).toBe(0)
+      store.dispatch(incrementBatched())
+      expect(subscriptionNotifications).toBe(0)
+      store.dispatch(incrementBatched())
+      expect(subscriptionNotifications).toBe(0)
+      store.dispatch(incrementBatched())
+
+      vitest.runAllTimers()
+
+      expect(subscriptionNotifications).toBe(1)
+    })
+
+    test('Notifies immediately if a non-batched action is dispatched', () => {
+      store.dispatch(incrementBatched())
+      expect(subscriptionNotifications).toBe(0)
+      store.dispatch(incrementBatched())
+      expect(subscriptionNotifications).toBe(0)
+      store.dispatch(decrementUnbatched())
+      expect(subscriptionNotifications).toBe(1)
+      store.dispatch(incrementBatched())
+
+      vitest.runAllTimers()
+
+      expect(subscriptionNotifications).toBe(2)
+    })
+
+    test('Does not notify at end of tick if last action was normal priority', () => {
+      store.dispatch(incrementBatched())
+      expect(subscriptionNotifications).toBe(0)
+      store.dispatch(incrementBatched())
+      expect(subscriptionNotifications).toBe(0)
+      store.dispatch(decrementUnbatched())
+      expect(subscriptionNotifications).toBe(1)
+      store.dispatch(incrementBatched())
+      store.dispatch(decrementUnbatched())
+      expect(subscriptionNotifications).toBe(2)
+      store.dispatch(decrementUnbatched())
+      expect(subscriptionNotifications).toBe(3)
+
+      vitest.runAllTimers()
+
+      expect(subscriptionNotifications).toBe(3)
+    })
+  },
+)

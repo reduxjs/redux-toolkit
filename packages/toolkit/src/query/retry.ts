@@ -5,6 +5,7 @@ import type {
   BaseQueryError,
   BaseQueryExtraOptions,
   BaseQueryFn,
+  BaseQueryMeta,
 } from './baseQueryTypes'
 import type { FetchBaseQueryError } from './fetchBaseQuery'
 import { HandledError } from './HandledError'
@@ -64,8 +65,11 @@ export type RetryOptions = {
     }
 )
 
-function fail(e: any): never {
-  throw Object.assign(new HandledError({ error: e }), {
+function fail<BaseQuery extends BaseQueryFn = BaseQueryFn>(
+  error: BaseQueryError<BaseQuery>,
+  meta?: BaseQueryMeta<BaseQuery>,
+): never {
+  throw Object.assign(new HandledError({ error, meta }), {
     throwImmediately: true,
   })
 }

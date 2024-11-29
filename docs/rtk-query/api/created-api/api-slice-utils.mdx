@@ -23,12 +23,14 @@ Some of the TS types on this page are pseudocode to illustrate intent, as the ac
 
 ### `updateQueryData`
 
+A Redux thunk action creator that, when dispatched, creates and applies a set of JSON diff/patch objects to the current state. This immediately updates the Redux state with those changes.
+
 #### Signature
 
 ```ts no-transpile
 const updateQueryData = (
   endpointName: string,
-  args: any,
+  arg: any,
   updateRecipe: (draft: Draft<CachedState>) => void,
   updateProvided?: boolean,
 ) => ThunkAction<PatchCollection, PartialState, any, AnyAction>
@@ -40,23 +42,22 @@ interface PatchCollection {
 }
 ```
 
-- **Parameters**
-  - `endpointName`: a string matching an existing endpoint name
-  - `args`: an argument matching that used for a previous query call, used to determine which cached dataset needs to be updated
-  - `updateRecipe`: an Immer `produce` callback that can apply changes to the cached state
-  - `updateProvided`: a boolean indicating whether the endpoint's provided tags should be re-calculated based on the updated cache. Defaults to `false`.
+#### Parameters
+
+- `endpointName`: a string matching an existing endpoint name
+- `arg`: an argument matching that used for a previous query call, used to determine which cached dataset needs to be updated
+- `updateRecipe`: an Immer `produce` callback that can apply changes to the cached state
+- `updateProvided`: a boolean indicating whether the endpoint's provided tags should be re-calculated based on the updated cache. Defaults to `false`.
 
 #### Description
-
-A Redux thunk action creator that, when dispatched, creates and applies a set of JSON diff/patch objects to the current state. This immediately updates the Redux state with those changes.
 
 The thunk action creator accepts three arguments: the name of the endpoint we are updating (such as `'getPost'`), any relevant query arguments, and a callback function. The callback receives an Immer-wrapped `draft` of the current state, and may modify the draft to match the expected results after the mutation completes successfully.
 
 The thunk returns an object containing `{patches: Patch[], inversePatches: Patch[], undo: () => void}`. The `patches` and `inversePatches` are generated using Immer's [`produceWithPatches` method](https://immerjs.github.io/immer/patches).
 
-This is typically used as the first step in implementing optimistic updates. The generated `inversePatches` can be used to revert the updates by calling `dispatch(patchQueryData(endpointName, args, inversePatches))`. Alternatively, the `undo` method can be called directly to achieve the same effect.
+This is typically used as the first step in implementing optimistic updates. The generated `inversePatches` can be used to revert the updates by calling `dispatch(patchQueryData(endpointName, arg, inversePatches))`. Alternatively, the `undo` method can be called directly to achieve the same effect.
 
-Note that the first two arguments (`endpointName` and `args`) are used to determine which existing cache entry to update. If no existing cache entry is found, the `updateRecipe` callback will not run.
+Note that the first two arguments (`endpointName` and `arg`) are used to determine which existing cache entry to update. If no existing cache entry is found, the `updateRecipe` callback will not run.
 
 #### Example 1
 
@@ -69,7 +70,7 @@ const patchCollection = dispatch(
 ```
 
 In the example above, `'getPosts'` is provided for the `endpointName`, and `undefined` is provided
-for `args`. This will match a query cache key of `'getPosts(undefined)'`.
+for `arg`. This will match a query cache key of `'getPosts(undefined)'`.
 
 i.e. it will match a cache entry that may have been created via any of the following calls:
 
@@ -96,7 +97,7 @@ const patchCollection = dispatch(
 ```
 
 In the example above, `'getPostById'` is provided for the `endpointName`, and `1` is provided
-for `args`. This will match a query cache key of `'getPostById(1)'`.
+for `arg`. This will match a query cache key of `'getPostById(1)'`.
 
 i.e. it will match a cache entry that may have been created via any of the following calls:
 
@@ -114,27 +115,28 @@ dispatch(api.endpoints.getPostById.initiate(1, { ...options }))
 
 ### `upsertQueryData`
 
+A Redux thunk action creator that, when dispatched, acts as an artificial API request to upsert a value into the cache.
+
 #### Signature
 
 ```ts no-transpile
-const upsertQueryData = <T>(endpointName: string, args: any, newEntryData: T) =>
+const upsertQueryData = <T>(endpointName: string, arg: any, newEntryData: T) =>
   ThunkAction<Promise<CacheEntry<T>>, PartialState, any, UnknownAction>
 ```
 
-- **Parameters**
-  - `endpointName`: a string matching an existing endpoint name
-  - `args`: an argument matching that used for a previous query call, used to determine which cached dataset needs to be updated
-  - `newEntryValue`: the value to be written into the corresponding cache entry's `data` field
+#### Parameters
+
+- `endpointName`: a string matching an existing endpoint name
+- `arg`: an argument matching that used for a previous query call, used to determine which cached dataset needs to be updated
+- `newEntryValue`: the value to be written into the corresponding cache entry's `data` field
 
 #### Description
-
-A Redux thunk action creator that, when dispatched, acts as an artificial API request to upsert a value into the cache.
 
 The thunk action creator accepts three arguments: the name of the endpoint we are updating (such as `'getPost'`), the appropriate query arg values to construct the desired cache key, and the data to upsert.
 
 If no cache entry for that cache key exists, a cache entry will be created and the data added. If a cache entry already exists, this will _overwrite_ the existing cache entry data.
 
-The thunk executes _asynchronously_, and returns a promise that resolves when the store has been updated.
+The thunk executes _asynchronously_, and returns a promise that resolves when the store has been updated. This includes executing the `transformResponse` callback if defined for that endpoint.
 
 If dispatched while an actual request is in progress, both the upsert and request will be handled as soon as they resolve, resulting in a "last result wins" update behavior.
 
@@ -148,26 +150,27 @@ await dispatch(
 
 ### `patchQueryData`
 
+A Redux thunk action creator that, when dispatched, applies a JSON diff/patch array to the cached data for a given query result. This immediately updates the Redux state with those changes.
+
 #### Signature
 
 ```ts no-transpile
 const patchQueryData = (
   endpointName: string,
-  args: any
+  arg: any
   patches: Patch[],
   updateProvided?: boolean
 ) => ThunkAction<void, PartialState, any, UnknownAction>;
 ```
 
-- **Parameters**
-  - `endpointName`: a string matching an existing endpoint name
-  - `args`: a cache key, used to determine which cached dataset needs to be updated
-  - `patches`: an array of patches (or inverse patches) to apply to cached state. These would typically be obtained from the result of dispatching [`updateQueryData`](#updatequerydata)
-  - `updateProvided`: a boolean indicating whether the endpoint's provided tags should be re-calculated based on the updated cache. Defaults to `false`.
+#### Parameters
+
+- `endpointName`: a string matching an existing endpoint name
+- `arg`: a cache key, used to determine which cached dataset needs to be updated
+- `patches`: an array of patches (or inverse patches) to apply to cached state. These would typically be obtained from the result of dispatching [`updateQueryData`](#updatequerydata)
+- `updateProvided`: a boolean indicating whether the endpoint's provided tags should be re-calculated based on the updated cache. Defaults to `false`.
 
 #### Description
-
-A Redux thunk action creator that, when dispatched, applies a JSON diff/patch array to the cached data for a given query result. This immediately updates the Redux state with those changes.
 
 The thunk action creator accepts three arguments: the name of the endpoint we are updating (such as `'getPost'`), the appropriate query arg values to construct the desired cache key, and a JSON diff/patch array as produced by Immer's `produceWithPatches`.
 
@@ -197,7 +200,90 @@ dispatch(
 patchCollection.undo()
 ```
 
+### `upsertQueryEntries`
+
+A standard Redux action creator that accepts an array of individual cache entry descriptions, and immediately upserts them into the store. This is designed to efficiently bulk-insert many entries at once.
+
+#### Signature
+
+```ts no-transpile
+/**
+ * A typesafe single entry to be upserted into the cache
+ */
+export type NormalizedQueryUpsertEntry<
+  Definitions extends EndpointDefinitions,
+  EndpointName extends QueryKeys<Definitions>,
+> = {
+  endpointName: EndpointName
+  arg: QueryArgFrom<Definitions[EndpointName]>
+  value: ResultTypeFrom<Definitions[EndpointName]>
+}
+
+const upsertQueryEntries = (entries: NormalizedQueryUpsertEntry[]) =>
+  PayloadAction<NormalizedQueryUpsertEntry[]>
+```
+
+#### Parameters
+
+- `entries`: an array of objects that contain the data needed to upsert individual cache entries:
+  - `endpointName`: the name of the endpoint, such as `"getPokemon"`
+  - `arg`: the full query key argument needed to identify this cache entry, such as `"pikachu"` (same as you would pass to a `useQuery` hook or `api.endpoints.someEndpoint.select()`)
+  - `value`: the data to be upserted into this cache entry, exactly as formatted.
+
+#### Description
+
+This method is designed as a more efficient approach to bulk-inserting many entries at once than many individual calls to `upsertQueryData`. As a comparison:
+
+- `upsertQueryData`:
+  - upserts one cache entry at a time
+  - Is async
+  - Dispatches 2 separate actions, `pending` and `fulfilled`
+  - Runs the `transformResponse` callback if defined for that endpoint, as well as the `merge` callback if defined
+- `upsertQueryEntries`:
+  - upserts many cache entries at once, and they may be for any combination of endpoints defined in the API
+  - Is a single synchronous action
+  - Does _not_ run `transformResponse`, so the provided `value` fields must already be in the final format expected for that endpoint. However, it will still run the `merge` callback if defined
+
+Currently, this method has two main use cases. The first is prefilling the cache with data retrieved from storage on app startup. The second is to act as a "pseudo-normalization" tool. [RTK Query is _not_ a "normalized" cache](../../usage/cache-behavior.mdx#no-normalized-or-de-duplicated-cache). However, there are times when you may want to prefill other cache entries with the contents of another endpoint, such as taking the results of a `getPosts` list endpoint response and prefilling the individual `getPost(id)` endpoint cache entries.
+
+If no cache entry for that cache key exists, a cache entry will be created and the data added. If a cache entry already exists, this will _overwrite_ the existing cache entry data.
+
+If dispatched while an actual request is in progress, both the upsert and request will be handled as soon as they resolve, resulting in a "last result wins" update behavior.
+
+#### Example
+
+```ts no-transpile
+const api = createApi({
+  endpoints: (build) => ({
+    getPosts: build.query<Post[], void>({
+      query: () => '/posts',
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        const res = await queryFulfilled
+        const posts = res.data
+
+        // Pre-fill the individual post entries with the results
+        // from the list endpoint query
+        dispatch(
+          api.util.upsertQueryEntries(
+            posts.map((post) => ({
+              endpointName: 'getPost',
+              arg: { id: post.id },
+              value: post,
+            })),
+          ),
+        )
+      },
+    }),
+    getPost: build.query<Post, Pick<Post, 'id'>>({
+      query: (post) => `post/${post.id}`,
+    }),
+  }),
+})
+```
+
 ### `prefetch`
+
+A Redux thunk action creator that can be used to manually trigger pre-fetching of data.
 
 #### Signature
 
@@ -208,17 +294,15 @@ const prefetch = (endpointName: string, arg: any, options: PrefetchOptions) =>
   ThunkAction<void, any, any, UnknownAction>
 ```
 
-- **Parameters**
+#### Parameters
 
-  - `endpointName`: a string matching an existing endpoint name
-  - `args`: a cache key, used to determine which cached dataset needs to be updated
-  - `options`: options to determine whether the request should be sent for a given situation:
-    - `ifOlderThan`: if specified, only runs the query if the difference between `new Date()` and the last`fulfilledTimeStamp` is greater than the given value (in seconds)
-    - `force`: if `true`, it will ignore the `ifOlderThan` value if it is set and the query will be run even if it exists in the cache.
+- `endpointName`: a string matching an existing endpoint name
+- `args`: a cache key, used to determine which cached dataset needs to be updated
+- `options`: options to determine whether the request should be sent for a given situation:
+  - `ifOlderThan`: if specified, only runs the query if the difference between `new Date()` and the last`fulfilledTimeStamp` is greater than the given value (in seconds)
+  - `force`: if `true`, it will ignore the `ifOlderThan` value if it is set and the query will be run even if it exists in the cache.
 
 #### Description
-
-A Redux thunk action creator that can be used to manually trigger pre-fetching of data.
 
 The thunk action creator accepts three arguments: the name of the endpoint we are updating (such as `'getPost'`), any relevant query arguments, and a set of options used to determine if the data actually should be re-fetched based on cache staleness.
 
@@ -231,6 +315,8 @@ dispatch(api.util.prefetch('getPosts', undefined, { force: true }))
 ```
 
 ### `selectInvalidatedBy`
+
+A selector function that can select query parameters to be invalidated.
 
 #### Signature
 
@@ -245,16 +331,15 @@ function selectInvalidatedBy(
 }>
 ```
 
-- **Parameters**
-  - `state`: the root state
-  - `tags`: a readonly array of invalidated tags, where the provided `TagDescription` is one of the strings provided to the [`tagTypes`](../createApi.mdx#tagtypes) property of the api. e.g.
-    - `[TagType]`
-    - `[{ type: TagType }]`
-    - `[{ type: TagType, id: number | string }]`
+#### Parameters
+
+- `state`: the root state
+- `tags`: a readonly array of invalidated tags, where the provided `TagDescription` is one of the strings provided to the [`tagTypes`](../createApi.mdx#tagtypes) property of the api. e.g.
+  - `[TagType]`
+  - `[{ type: TagType }]`
+  - `[{ type: TagType, id: number | string }]`
 
 #### Description
-
-A function that can select query parameters to be invalidated.
 
 The function accepts two arguments
 
@@ -280,6 +365,8 @@ const entries = api.util.selectInvalidatedBy(state, [
 
 ### `invalidateTags`
 
+A Redux action creator that can be used to manually invalidate cache tags for [automated re-fetching](../../usage/automated-refetching.mdx).
+
 #### Signature
 
 ```ts no-transpile
@@ -291,15 +378,14 @@ const invalidateTags = (
 })
 ```
 
-- **Parameters**
-  - `tags`: an array of tags to be invalidated, where the provided `TagType` is one of the strings provided to the [`tagTypes`](../createApi.mdx#tagtypes) property of the api. e.g.
-    - `[TagType]`
-    - `[{ type: TagType }]`
-    - `[{ type: TagType, id: number | string }]`
+#### Parameters
+
+- `tags`: an array of tags to be invalidated, where the provided `TagType` is one of the strings provided to the [`tagTypes`](../createApi.mdx#tagtypes) property of the api. e.g.
+  - `[TagType]`
+  - `[{ type: TagType }]`
+  - `[{ type: TagType, id: number | string }]`
 
 #### Description
-
-A Redux action creator that can be used to manually invalidate cache tags for [automated re-fetching](../../usage/automated-refetching.mdx).
 
 The action creator accepts one argument: the cache tags to be invalidated. It returns an action with those tags as a payload, and the corresponding `invalidateTags` action type for the api.
 
@@ -320,6 +406,8 @@ dispatch(
 
 ### `selectCachedArgsForQuery`
 
+A selector function that can select arguments for currently cached queries.
+
 #### Signature
 
 ```ts no-transpile
@@ -329,13 +417,12 @@ function selectCachedArgsForQuery(
 ): Array<QueryArg>
 ```
 
-- **Parameters**
-  - `state`: the root state
-  - `queryName`: a string matching an existing query endpoint name
+#### Parameters
+
+- `state`: the root state
+- `queryName`: a string matching an existing query endpoint name
 
 #### Description
-
-A function that can select arguments for currently cached queries.
 
 The function accepts two arguments
 

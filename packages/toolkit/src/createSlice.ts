@@ -30,7 +30,7 @@ import type {
   TypeGuard,
   UnionToIntersection,
 } from './tsHelpers'
-import { emplace } from './utils'
+import { getOrInsertComputed } from './utils'
 
 export enum ReducerType {
   reducer = 'reducer',
@@ -1112,25 +1112,25 @@ export function buildCreateSlice<
       function getSelectors(
         selectState: (rootState: any) => State = selectSelf,
       ) {
-        const selectorCache = emplace(injectedSelectorCache, injected, {
-          insert: () => new WeakMap(),
-        })
+        const selectorCache = getOrInsertComputed(
+          injectedSelectorCache,
+          injected,
+          () => new WeakMap(),
+        )
 
-        return emplace(selectorCache, selectState, {
-          insert: () => {
-            const map: Record<string, Selector<any, any>> = {}
-            for (const [name, selector] of Object.entries(
-              options.selectors ?? {},
-            )) {
-              map[name] = wrapSelector(
-                selector,
-                selectState,
-                getInitialState,
-                injected,
-              )
-            }
-            return map
-          },
+        return getOrInsertComputed(selectorCache, selectState, () => {
+          const map: Record<string, Selector<any, any>> = {}
+          for (const [name, selector] of Object.entries(
+            options.selectors ?? {},
+          )) {
+            map[name] = wrapSelector(
+              selector,
+              selectState,
+              getInitialState,
+              injected,
+            )
+          }
+          return map
         }) as any
       }
       return {

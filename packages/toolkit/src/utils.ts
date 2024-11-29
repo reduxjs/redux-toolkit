@@ -26,19 +26,6 @@ export function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-export function find<T>(
-  iterable: Iterable<T>,
-  comparator: (item: T) => boolean,
-): T | undefined {
-  for (const entry of iterable) {
-    if (comparator(entry)) {
-      return entry
-    }
-  }
-
-  return undefined
-}
-
 export class Tuple<Items extends ReadonlyArray<unknown> = []> extends Array<
   Items[number]
 > {
@@ -87,81 +74,38 @@ export function freezeDraftable<T>(val: T) {
   return isDraftable(val) ? createNextState(val, () => {}) : val
 }
 
-interface WeakMapEmplaceHandler<K extends object, V> {
-  /**
-   * Will be called to get value, if no value is currently in map.
-   */
-  insert?(key: K, map: WeakMap<K, V>): V
-  /**
-   * Will be called to update a value, if one exists already.
-   */
-  update?(previous: V, key: K, map: WeakMap<K, V>): V
+export function getOrInsert<K extends object, V>(
+  map: WeakMap<K, V>,
+  key: K,
+  value: V,
+): V
+export function getOrInsert<K, V>(map: Map<K, V>, key: K, value: V): V
+export function getOrInsert<K extends object, V>(
+  map: Map<K, V> | WeakMap<K, V>,
+  key: K,
+  value: V,
+): V {
+  if (map.has(key)) return map.get(key) as V
+
+  return map.set(key, value).get(key) as V
 }
 
-interface MapEmplaceHandler<K, V> {
-  /**
-   * Will be called to get value, if no value is currently in map.
-   */
-  insert?(key: K, map: Map<K, V>): V
-  /**
-   * Will be called to update a value, if one exists already.
-   */
-  update?(previous: V, key: K, map: Map<K, V>): V
-}
-
-export function emplace<K, V>(
+export function getOrInsertComputed<K extends object, V>(
+  map: WeakMap<K, V>,
+  key: K,
+  compute: (key: K) => V,
+): V
+export function getOrInsertComputed<K, V>(
   map: Map<K, V>,
   key: K,
-  handler: MapEmplaceHandler<K, V>,
+  compute: (key: K) => V,
 ): V
-export function emplace<K extends object, V>(
-  map: WeakMap<K, V>,
+export function getOrInsertComputed<K extends object, V>(
+  map: Map<K, V> | WeakMap<K, V>,
   key: K,
-  handler: WeakMapEmplaceHandler<K, V>,
-): V
-/**
- * Allow inserting a new value, or updating an existing one
- * @throws if called for a key with no current value and no `insert` handler is provided
- * @returns current value in map (after insertion/updating)
- * ```ts
- * // return current value if already in map, otherwise initialise to 0 and return that
- * const num = emplace(map, key, {
- *   insert: () => 0
- * })
- *
- * // increase current value by one if already in map, otherwise initialise to 0
- * const num = emplace(map, key, {
- *   update: (n) => n + 1,
- *   insert: () => 0,
- * })
- *
- * // only update if value's already in the map - and increase it by one
- * if (map.has(key)) {
- *   const num = emplace(map, key, {
- *     update: (n) => n + 1,
- *   })
- * }
- * ```
- *
- * @remarks
- * Based on https://github.com/tc39/proposal-upsert currently in Stage 2 - maybe in a few years we'll be able to replace this with direct method calls
- */
-export function emplace<K extends object, V>(
-  map: WeakMap<K, V>,
-  key: K,
-  handler: WeakMapEmplaceHandler<K, V>,
+  compute: (key: K) => V,
 ): V {
-  if (map.has(key)) {
-    let value = map.get(key) as V
-    if (handler.update) {
-      value = handler.update(value, key, map)
-      map.set(key, value)
-    }
-    return value
-  }
-  if (!handler.insert)
-    throw new Error('No insert provided for key not already in map')
-  const inserted = handler.insert(key, map)
-  map.set(key, inserted)
-  return inserted
+  if (map.has(key)) return map.get(key) as V
+
+  return map.set(key, compute(key)).get(key) as V
 }

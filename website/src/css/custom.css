@@ -134,8 +134,14 @@ a.contents__link > code {
   color: inherit;
 }
 
-a.contents__link.contents__link--active {
-  font-weight: 600;
+.table-of-contents__link--active {
+  font-weight: 500;
+  text-decoration: underline;
+}
+
+.table-of-contents__link:hover > code,
+.table-of-contents__link:hover {
+    color: var(--ifm-color-primary-lightest);
 }
 
 a:visited {
@@ -265,4 +271,16 @@ table.checkbox-table tbody td {
   content: ' TYPESCRIPT';
   color: var(--ifm-color-info);
   position: relative;
+}
+
+/* course callout on home page */
+.course-callout.home-mid {
+  max-width: 900px;
+  margin: 1rem auto 2rem;
+}
+
+div[class*='announcementBar_'] {
+  /* Intentionally override the theme behavior,
+  so that the course banner image is effectively cropped*/ 
+  z-index: calc(var(--ifm-z-index-fixed) -1) !important;
 }
