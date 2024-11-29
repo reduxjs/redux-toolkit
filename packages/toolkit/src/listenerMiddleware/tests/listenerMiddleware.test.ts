@@ -117,6 +117,7 @@ describe('createListenerMiddleware', () => {
   const testAction1 = createAction<string>('testAction1')
   type TestAction1 = ReturnType<typeof testAction1>
   const testAction2 = createAction<string>('testAction2')
+  type TestAction2 = ReturnType<typeof testAction2>
   const testAction3 = createAction<string>('testAction3')
 
   beforeAll(() => {
@@ -336,6 +337,27 @@ describe('createListenerMiddleware', () => {
       expect(effect.mock.calls).toEqual([
         [testAction1('a'), middlewareApi],
         [testAction1('c'), middlewareApi],
+      ])
+    })
+
+    test('subscribing with the same effect but different predicate is allowed', () => {
+      const effect = vi.fn((_: TestAction1 | TestAction2) => {})
+
+      startListening({
+        actionCreator: testAction1,
+        effect,
+      })
+      startListening({
+        actionCreator: testAction2,
+        effect,
+      })
+
+      store.dispatch(testAction1('a'))
+      store.dispatch(testAction2('b'))
+
+      expect(effect.mock.calls).toEqual([
+        [testAction1('a'), middlewareApi],
+        [testAction2('b'), middlewareApi],
       ])
     })
 

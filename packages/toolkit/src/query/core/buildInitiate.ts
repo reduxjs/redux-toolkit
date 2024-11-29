@@ -16,7 +16,7 @@ import type {
   QueryDefinition,
   ResultTypeFrom,
 } from '../endpointDefinitions'
-import { countObjectKeys, isNotNullish } from '../utils'
+import { countObjectKeys, getOrInsert, isNotNullish } from '../utils'
 import type { SubscriptionOptions } from './apiState'
 import type { QueryResultSelectorResult } from './buildSelectors'
 import type { MutationThunk, QueryThunk, QueryThunkArg } from './buildThunks'
@@ -391,9 +391,8 @@ You must add the middleware for RTK-Query to function correctly!`,
         )
 
         if (!runningQuery && !skippedSynchronously && !forceQueryFn) {
-          const running = runningQueries.get(dispatch) || {}
+          const running = getOrInsert(runningQueries, dispatch, {})
           running[queryCacheKey] = statePromise
-          runningQueries.set(dispatch, running)
 
           statePromise.then(() => {
             delete running[queryCacheKey]
