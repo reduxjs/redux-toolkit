@@ -19,6 +19,7 @@ import type {
   SubscriptionState,
 } from '../apiState'
 import type {
+  InfiniteQueryThunk,
   MutationThunk,
   QueryThunk,
   QueryThunkArg,
@@ -48,6 +49,7 @@ export interface BuildMiddlewareInput<
   context: ApiContext<Definitions>
   queryThunk: QueryThunk
   mutationThunk: MutationThunk
+  infiniteQueryThunk: InfiniteQueryThunk<any>
   api: Api<any, Definitions, ReducerPath, TagTypes>
   assertTagType: AssertTagTypes
 }
@@ -64,7 +66,7 @@ export interface BuildSubMiddlewareInput
     querySubState: Exclude<
       QuerySubState<any>,
       { status: QueryStatus.uninitialized }
-    >
+    >,
   ): ThunkAction<QueryActionCreatorResult<any>, any, any, UnknownAction>
   isThisApiSliceAction: (action: Action) => boolean
 }

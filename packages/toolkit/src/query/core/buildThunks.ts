@@ -19,6 +19,7 @@ import type {
   AssertTagTypes,
   EndpointDefinition,
   EndpointDefinitions,
+  InfiniteQueryDefinition,
   MutationDefinition,
   QueryArgFrom,
   QueryDefinition,
@@ -27,10 +28,18 @@ import type {
 import { calculateProvidedBy, isQueryDefinition } from '../endpointDefinitions'
 import { HandledError } from '../HandledError'
 import type { UnwrapPromise } from '../tsHelpers'
-import type { QueryKeys, QuerySubstateIdentifier, RootState } from './apiState'
+import type {
+  RootState,
+  QueryKeys,
+  QuerySubstateIdentifier,
+  InfiniteData,
+  InfiniteQueryConfigOptions,
+  QueryCacheKey,
+} from './apiState'
 import { QueryStatus } from './apiState'
 import type {
   QueryActionCreatorResult,
+  StartInfiniteQueryActionCreatorOptions,
   StartQueryActionCreatorOptions,
 } from './buildInitiate'
 import { forceQueryFnSymbol, isUpsertQuery } from './buildInitiate'
@@ -47,6 +56,10 @@ import {
 
 export type BuildThunksApiEndpointQuery<
   Definition extends QueryDefinition<any, any, any, any, any>,
+> = Matchers<QueryThunk, Definition>
+
+export type BuildThunksApiEndpointInfiniteQuery<
+  Definition extends InfiniteQueryDefinition<any, any, any, any, any>,
 > = Matchers<QueryThunk, Definition>
 
 export type BuildThunksApiEndpointMutation<
@@ -105,6 +118,18 @@ export type QueryThunkArg = QuerySubstateIdentifier &
     endpointName: string
   }
 
+export type InfiniteQueryThunkArg<
+  D extends InfiniteQueryDefinition<any, any, any, any, any>,
+> = QuerySubstateIdentifier &
+  StartInfiniteQueryActionCreatorOptions<D> & {
+    type: `query`
+    originalArgs: unknown
+    endpointName: string
+    param: unknown
+    previous?: boolean
+    direction?: 'forward' | 'backward'
+  }
+
 type MutationThunkArg = {
   type: 'mutation'
   originalArgs: unknown
@@ -135,6 +160,9 @@ export type QueryThunk = AsyncThunk<
   QueryThunkArg,
   ThunkApiMetaConfig
 >
+export type InfiniteQueryThunk<
+  D extends InfiniteQueryDefinition<any, any, any, any, any>,
+> = AsyncThunk<ThunkResult, InfiniteQueryThunkArg<D>, ThunkApiMetaConfig>
 export type MutationThunk = AsyncThunk<
   ThunkResult,
   MutationThunkArg,
@@ -265,6 +293,16 @@ export function buildThunks<
       )
     }
 
+  function addToStart<T>(items: Array<T>, item: T, max = 0): Array<T> {
+    const newItems = [item, ...items]
+    return max && newItems.length > max ? newItems.slice(0, -1) : newItems
+  }
+
+  function addToEnd<T>(items: Array<T>, item: T, max = 0): Array<T> {
+    const newItems = [...items, item]
+    return max && newItems.length > max ? newItems.slice(1) : newItems
+  }
+
   const updateQueryData: UpdateQueryDataThunk<EndpointDefinitions, State> =
     (endpointName, arg, updateRecipe, updateProvided = true) =>
     (dispatch, getState) => {
@@ -341,9 +379,10 @@ export function buildThunks<
       )
     }
 
+  // The generic async payload function for all of our thunks
   const executeEndpoint: AsyncThunkPayloadCreator<
     ThunkResult,
-    QueryThunkArg | MutationThunkArg,
+    QueryThunkArg | MutationThunkArg | InfiniteQueryThunkArg<any>,
     ThunkApiMetaConfig & { state: RootState<any, string, ReducerPath> }
   > = async (
     arg,
@@ -364,8 +403,11 @@ export function buildThunks<
         baseQueryReturnValue: any,
         meta: any,
         arg: any,
-      ) => any = defaultTransformResponse
-      let result: QueryReturnValue
+      ) => any =
+        endpointDefinition.query && endpointDefinition.transformResponse
+          ? endpointDefinition.transformResponse
+          : defaultTransformResponse
+
       const baseQueryApi = {
         signal,
         abort,
@@ -381,74 +423,186 @@ export function buildThunks<
 
       const forceQueryFn =
         arg.type === 'query' ? arg[forceQueryFnSymbol] : undefined
-      if (forceQueryFn) {
-        result = forceQueryFn()
-      } else if (endpointDefinition.query) {
-        result = await baseQuery(
-          endpointDefinition.query(arg.originalArgs),
-          baseQueryApi,
-          endpointDefinition.extraOptions as any,
-        )
 
-        if (endpointDefinition.transformResponse) {
-          transformResponse = endpointDefinition.transformResponse
+      let finalQueryReturnValue: QueryReturnValue
+
+      // Infinite query wrapper, which executes the request and returns
+      // the InfiniteData `{pages, pageParams}` structure
+      const fetchPage = async (
+        data: InfiniteData<unknown, unknown>,
+        param: unknown,
+        previous?: boolean,
+      ): Promise<QueryReturnValue> => {
+        // This should handle cases where there is no `getPrevPageParam`,
+        // or `getPPP` returned nullish
+        if (param == null && data.pages.length) {
+          return Promise.resolve({ data })
         }
-      } else {
-        result = await endpointDefinition.queryFn(
-          arg.originalArgs,
-          baseQueryApi,
-          endpointDefinition.extraOptions as any,
-          (arg) =>
-            baseQuery(
-              arg,
-              baseQueryApi,
-              endpointDefinition.extraOptions as any,
-            ),
-        )
+
+        const pageResponse = await executeRequest(param)
+
+        // TODO Get maxPages from endpoint config
+        const maxPages = 20
+        const addTo = previous ? addToStart : addToEnd
+
+        return {
+          data: {
+            pages: addTo(data.pages, pageResponse.data, maxPages),
+            pageParams: addTo(data.pageParams, param, maxPages),
+          },
+        }
       }
-      if (
-        typeof process !== 'undefined' &&
-        process.env.NODE_ENV === 'development'
-      ) {
-        const what = endpointDefinition.query ? '`baseQuery`' : '`queryFn`'
-        let err: undefined | string
-        if (!result) {
-          err = `${what} did not return anything.`
-        } else if (typeof result !== 'object') {
-          err = `${what} did not return an object.`
-        } else if (result.error && result.data) {
-          err = `${what} returned an object containing both \`error\` and \`result\`.`
-        } else if (result.error === undefined && result.data === undefined) {
-          err = `${what} returned an object containing neither a valid \`error\` and \`result\`. At least one of them should not be \`undefined\``
+
+      // Wrapper for executing either `query` or `queryFn`,
+      // and handling any errors
+      async function executeRequest(
+        finalQueryArg: unknown,
+      ): Promise<QueryReturnValue> {
+        let result: QueryReturnValue
+
+        if (forceQueryFn) {
+          // upsertQueryData relies on this to pass in the user-provided value
+          result = forceQueryFn()
+        } else if (endpointDefinition.query) {
+          result = await baseQuery(
+            endpointDefinition.query(finalQueryArg),
+            baseQueryApi,
+            endpointDefinition.extraOptions as any,
+          )
         } else {
-          for (const key of Object.keys(result)) {
-            if (key !== 'error' && key !== 'data' && key !== 'meta') {
-              err = `The object returned by ${what} has the unknown property ${key}.`
-              break
-            }
-          }
-        }
-        if (err) {
-          console.error(
-            `Error encountered handling the endpoint ${arg.endpointName}.
-              ${err}
-              It needs to return an object with either the shape \`{ data: <value> }\` or \`{ error: <value> }\` that may contain an optional \`meta\` property.
-              Object returned was:`,
-            result,
+          result = await endpointDefinition.queryFn(
+            finalQueryArg,
+            baseQueryApi,
+            endpointDefinition.extraOptions as any,
+            (arg) =>
+              baseQuery(
+                arg,
+                baseQueryApi,
+                endpointDefinition.extraOptions as any,
+              ),
           )
         }
+
+        if (
+          typeof process !== 'undefined' &&
+          process.env.NODE_ENV === 'development'
+        ) {
+          const what = endpointDefinition.query ? '`baseQuery`' : '`queryFn`'
+          let err: undefined | string
+          if (!result) {
+            err = `${what} did not return anything.`
+          } else if (typeof result !== 'object') {
+            err = `${what} did not return an object.`
+          } else if (result.error && result.data) {
+            err = `${what} returned an object containing both \`error\` and \`result\`.`
+          } else if (result.error === undefined && result.data === undefined) {
+            err = `${what} returned an object containing neither a valid \`error\` and \`result\`. At least one of them should not be \`undefined\``
+          } else {
+            for (const key of Object.keys(result)) {
+              if (key !== 'error' && key !== 'data' && key !== 'meta') {
+                err = `The object returned by ${what} has the unknown property ${key}.`
+                break
+              }
+            }
+          }
+          if (err) {
+            console.error(
+              `Error encountered handling the endpoint ${arg.endpointName}.
+                  ${err}
+                  It needs to return an object with either the shape \`{ data: <value> }\` or \`{ error: <value> }\` that may contain an optional \`meta\` property.
+                  Object returned was:`,
+              result,
+            )
+          }
+        }
+
+        if (result.error) throw new HandledError(result.error, result.meta)
+
+        const transformedResponse = await transformResponse(
+          result.data,
+          result.meta,
+          finalQueryArg,
+        )
+
+        return {
+          ...result,
+          data: transformedResponse,
+        }
       }
 
-      if (result.error) throw new HandledError(result.error, result.meta)
+      if (
+        arg.type === 'query' &&
+        'infiniteQueryOptions' in endpointDefinition
+      ) {
+        // This is an infinite query endpoint
 
-      return fulfillWithValue(
-        await transformResponse(result.data, result.meta, arg.originalArgs),
-        {
-          fulfilledTimeStamp: Date.now(),
-          baseQueryMeta: result.meta,
-          [SHOULD_AUTOBATCH]: true,
-        },
-      )
+        let result: QueryReturnValue
+
+        // Start by looking up the existing InfiniteData value from state,
+        // falling back to an empty value if it doesn't exist yet
+        const existingData = (getState()[reducerPath].queries[arg.queryCacheKey]
+          ?.data ?? { pages: [], pageParams: [] }) as InfiniteData<
+          unknown,
+          unknown
+        >
+
+        // If the thunk specified a direction and we do have at least one page,
+        // fetch the next or previous page
+        if ('direction' in arg && arg.direction && existingData.pages.length) {
+          const previous = arg.direction === 'backward'
+          const pageParamFn = previous ? getPreviousPageParam : getNextPageParam
+          const param = pageParamFn(
+            endpointDefinition.infiniteQueryOptions,
+            existingData,
+          )
+
+          result = await fetchPage(existingData, param, previous)
+        } else {
+          // Otherwise, fetch the first page and then any remaining pages
+
+          const {
+            initialPageParam = endpointDefinition.infiniteQueryOptions
+              .initialPageParam,
+          } = arg as InfiniteQueryThunkArg<any>
+
+          // Fetch first page
+          result = await fetchPage(
+            existingData,
+            existingData.pageParams[0] ?? initialPageParam,
+          )
+
+          //original
+          // const remainingPages = pages ?? oldPages.length
+          // const remainingPages = oldPages.length
+
+          // TODO This seems pretty wrong
+          const remainingPages = existingData.pages.length
+
+          // Fetch remaining pages
+          for (let i = 1; i < remainingPages; i++) {
+            const param = getNextPageParam(
+              endpointDefinition.infiniteQueryOptions,
+              result.data as InfiniteData<unknown, unknown>,
+            )
+            result = await fetchPage(
+              result.data as InfiniteData<unknown, unknown>,
+              param,
+            )
+          }
+        }
+
+        finalQueryReturnValue = result
+      } else {
+        // Non-infinite endpoint. Just run the one request.
+        finalQueryReturnValue = await executeRequest(arg.originalArgs)
+      }
+
+      // console.log('Final result: ', transformedData)
+      return fulfillWithValue(finalQueryReturnValue.data, {
+        fulfilledTimeStamp: Date.now(),
+        baseQueryMeta: finalQueryReturnValue.meta,
+        [SHOULD_AUTOBATCH]: true,
+      })
     } catch (error) {
       let catchedError = error
       if (catchedError instanceof HandledError) {
@@ -456,14 +610,11 @@ export function buildThunks<
           baseQueryReturnValue: any,
           meta: any,
           arg: any,
-        ) => any = defaultTransformResponse
+        ) => any =
+          endpointDefinition.query && endpointDefinition.transformErrorResponse
+            ? endpointDefinition.transformErrorResponse
+            : defaultTransformResponse
 
-        if (
-          endpointDefinition.query &&
-          endpointDefinition.transformErrorResponse
-        ) {
-          transformErrorResponse = endpointDefinition.transformErrorResponse
-        }
         try {
           return rejectWithValue(
             await transformErrorResponse(
@@ -491,6 +642,31 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
       }
       throw catchedError
     }
+  }
+
+  function getNextPageParam(
+    options: InfiniteQueryConfigOptions<unknown, unknown>,
+    { pages, pageParams }: InfiniteData<unknown, unknown>,
+  ): unknown | undefined {
+    const lastIndex = pages.length - 1
+    return options.getNextPageParam(
+      pages[lastIndex],
+      pages,
+      pageParams[lastIndex],
+      pageParams,
+    )
+  }
+
+  function getPreviousPageParam(
+    options: InfiniteQueryConfigOptions<unknown, unknown>,
+    { pages, pageParams }: InfiniteData<unknown, unknown>,
+  ): unknown | undefined {
+    return options.getPreviousPageParam?.(
+      pages[0],
+      pages,
+      pageParams[0],
+      pageParams,
+    )
   }
 
   function isForcedQuery(
@@ -565,6 +741,70 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
 
       // Pull from the cache unless we explicitly force refetch or qualify based on time
       if (fulfilledVal) {
+        // Value is cached and we didn't specify to refresh, skip it.
+        return false
+      }
+
+      return true
+    },
+    dispatchConditionRejection: true,
+  })
+
+  const infiniteQueryThunk = createAsyncThunk<
+    ThunkResult,
+    InfiniteQueryThunkArg<any>,
+    ThunkApiMetaConfig & { state: RootState<any, string, ReducerPath> }
+  >(`${reducerPath}/executeQuery`, executeEndpoint, {
+    getPendingMeta(queryThunkArgs) {
+      return {
+        startedTimeStamp: Date.now(),
+        [SHOULD_AUTOBATCH]: true,
+        direction: queryThunkArgs.arg.direction,
+      }
+    },
+    condition(queryThunkArgs, { getState }) {
+      const state = getState()
+
+      const requestState =
+        state[reducerPath]?.queries?.[queryThunkArgs.queryCacheKey]
+      const fulfilledVal = requestState?.fulfilledTimeStamp
+      const currentArg = queryThunkArgs.originalArgs
+      const previousArg = requestState?.originalArgs
+      const endpointDefinition =
+        endpointDefinitions[queryThunkArgs.endpointName]
+      const direction = queryThunkArgs.direction
+
+      // Order of these checks matters.
+      // In order for `upsertQueryData` to successfully run while an existing request is in flight,
+      /// we have to check for that first, otherwise `queryThunk` will bail out and not run at all.
+      // if (isUpsertQuery(queryThunkArgs)) {
+      //   return true
+      // }
+
+      // Don't retry a request that's currently in-flight
+      if (requestState?.status === 'pending') {
+        return false
+      }
+
+      // if this is forced, continue
+      // if (isForcedQuery(queryThunkArgs, state)) {
+      //   return true
+      // }
+
+      if (
+        isQueryDefinition(endpointDefinition) &&
+        endpointDefinition?.forceRefetch?.({
+          currentArg,
+          previousArg,
+          endpointState: requestState,
+          state,
+        })
+      ) {
+        return true
+      }
+
+      // Pull from the cache unless we explicitly force refetch or qualify based on time
+      if (fulfilledVal && !direction) {
         // Value is cached and we didn't specify to refresh, skip it.
         return false
       }
@@ -653,6 +893,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
   return {
     queryThunk,
     mutationThunk,
+    infiniteQueryThunk,
     prefetch,
     updateQueryData,
     upsertQueryData,
