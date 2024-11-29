@@ -58,6 +58,7 @@
     "@size-limit/webpack": "^11.0.1",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "^16.0.1",
+    "@testing-library/react-render-stream": "^1.0.3",
     "@testing-library/user-event": "^14.5.2",
     "@types/babel__core": "^7.20.5",
     "@types/babel__helper-module-imports": "^7.18.3",
