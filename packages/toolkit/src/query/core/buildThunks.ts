@@ -431,6 +431,7 @@ export function buildThunks<
       const fetchPage = async (
         data: InfiniteData<unknown, unknown>,
         param: unknown,
+        maxPages: number,
         previous?: boolean,
       ): Promise<QueryReturnValue> => {
         // This should handle cases where there is no `getPrevPageParam`,
@@ -442,7 +443,6 @@ export function buildThunks<
         const pageResponse = await executeRequest(param)
 
         // TODO Get maxPages from endpoint config
-        const maxPages = 20
         const addTo = previous ? addToStart : addToEnd
 
         return {
@@ -535,6 +535,10 @@ export function buildThunks<
         'infiniteQueryOptions' in endpointDefinition
       ) {
         // This is an infinite query endpoint
+        const { infiniteQueryOptions } = endpointDefinition
+
+        // Runtime checks should guarantee this is a positive number if provided
+        const { maxPages = Infinity } = infiniteQueryOptions
 
         let result: QueryReturnValue
 
@@ -551,24 +555,20 @@ export function buildThunks<
         if ('direction' in arg && arg.direction && existingData.pages.length) {
           const previous = arg.direction === 'backward'
           const pageParamFn = previous ? getPreviousPageParam : getNextPageParam
-          const param = pageParamFn(
-            endpointDefinition.infiniteQueryOptions,
-            existingData,
-          )
+          const param = pageParamFn(infiniteQueryOptions, existingData)
 
-          result = await fetchPage(existingData, param, previous)
+          result = await fetchPage(existingData, param, maxPages, previous)
         } else {
           // Otherwise, fetch the first page and then any remaining pages
 
-          const {
-            initialPageParam = endpointDefinition.infiniteQueryOptions
-              .initialPageParam,
-          } = arg as InfiniteQueryThunkArg<any>
+          const { initialPageParam = infiniteQueryOptions.initialPageParam } =
+            arg as InfiniteQueryThunkArg<any>
 
           // Fetch first page
           result = await fetchPage(
             existingData,
             existingData.pageParams[0] ?? initialPageParam,
+            maxPages,
           )
 
           //original
@@ -587,6 +587,7 @@ export function buildThunks<
             result = await fetchPage(
               result.data as InfiniteData<unknown, unknown>,
               param,
+              maxPages,
             )
           }
         }
