@@ -25,7 +25,11 @@ import type {
   QueryDefinition,
   ResultTypeFrom,
 } from '../endpointDefinitions'
-import { calculateProvidedBy, isQueryDefinition } from '../endpointDefinitions'
+import {
+  calculateProvidedBy,
+  isInfiniteQueryDefinition,
+  isQueryDefinition,
+} from '../endpointDefinitions'
 import { HandledError } from '../HandledError'
 import type { UnwrapPromise } from '../tsHelpers'
 import type {
@@ -544,11 +548,12 @@ export function buildThunks<
 
         // Start by looking up the existing InfiniteData value from state,
         // falling back to an empty value if it doesn't exist yet
-        const existingData = (getState()[reducerPath].queries[arg.queryCacheKey]
-          ?.data ?? { pages: [], pageParams: [] }) as InfiniteData<
-          unknown,
-          unknown
-        >
+        const blankData = { pages: [], pageParams: [] }
+        const cachedData = getState()[reducerPath].queries[arg.queryCacheKey]
+          ?.data as InfiniteData<unknown, unknown> | undefined
+        const existingData = (
+          isForcedQuery(arg, getState()) || !cachedData ? blankData : cachedData
+        ) as InfiniteData<unknown, unknown>
 
         // If the thunk specified a direction and we do have at least one page,
         // fetch the next or previous page
@@ -564,22 +569,18 @@ export function buildThunks<
           const { initialPageParam = infiniteQueryOptions.initialPageParam } =
             arg as InfiniteQueryThunkArg<any>
 
+          // If we're doing a refetch, we should start from
+          // the first page we have cached.
+          // Otherwise, we should start from the initialPageParam
+          const cachedPageParams = cachedData?.pageParams ?? []
+          const firstPageParam = cachedPageParams[0] ?? initialPageParam
+          const totalPages = cachedPageParams.length
+
           // Fetch first page
-          result = await fetchPage(
-            existingData,
-            existingData.pageParams[0] ?? initialPageParam,
-            maxPages,
-          )
-
-          //original
-          // const remainingPages = pages ?? oldPages.length
-          // const remainingPages = oldPages.length
-
-          // TODO This seems pretty wrong
-          const remainingPages = existingData.pages.length
+          result = await fetchPage(existingData, firstPageParam, maxPages)
 
           // Fetch remaining pages
-          for (let i = 1; i < remainingPages; i++) {
+          for (let i = 1; i < totalPages; i++) {
             const param = getNextPageParam(
               endpointDefinition.infiniteQueryOptions,
               result.data as InfiniteData<unknown, unknown>,
@@ -788,19 +789,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
       }
 
       // if this is forced, continue
-      // if (isForcedQuery(queryThunkArgs, state)) {
-      //   return true
-      // }
-
-      if (
-        isQueryDefinition(endpointDefinition) &&
-        endpointDefinition?.forceRefetch?.({
-          currentArg,
-          previousArg,
-          endpointState: requestState,
-          state,
-        })
-      ) {
+      if (isForcedQuery(queryThunkArgs, state)) {
         return true
       }
 
