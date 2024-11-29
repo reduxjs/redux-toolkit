@@ -46,6 +46,7 @@ export type GetPreviousPageParamFunction<TPageParam, TQueryFnData> = (
 
 export type InfiniteQueryConfigOptions<TQueryFnData, TPageParam> = {
   initialPageParam: TPageParam
+  maxPages?: number
   /**
    * This function can be set to automatically get the previous cursor for infinite queries.
    * The result will also be used to determine the value of `hasPreviousPage`.
