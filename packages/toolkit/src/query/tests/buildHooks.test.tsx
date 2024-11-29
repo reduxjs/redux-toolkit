@@ -32,6 +32,8 @@ import {
   waitFor,
 } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
+import type { SyncScreen } from '@testing-library/react-render-stream/pure'
+import { createRenderStream } from '@testing-library/react-render-stream/pure'
 import { HttpResponse, http } from 'msw'
 import { useEffect, useState } from 'react'
 
@@ -1784,6 +1786,10 @@ describe('hooks tests', () => {
         withoutTestLifecycles: true,
       })
 
+      const { takeRender, render, getCurrentRender } = createRenderStream({
+        snapshotDOM: true,
+      })
+
       const checkNumQueries = (count: number) => {
         const cacheEntries = Object.keys(storeRef.store.getState().api.queries)
         const queries = cacheEntries.length
@@ -1792,71 +1798,68 @@ describe('hooks tests', () => {
         expect(queries).toBe(count)
       }
 
-      const checkPageRows = (type: string, ids: number[]) => {
-        expect(screen.getByText(`Type: ${type}`)).toBeTruthy()
+      const checkPageRows = (
+        withinDOM: () => SyncScreen,
+        type: string,
+        ids: number[],
+      ) => {
+        expect(withinDOM().getByText(`Type: ${type}`)).toBeTruthy()
         for (const id of ids) {
-          expect(screen.getByText(`Pokemon ${id}`)).toBeTruthy()
+          expect(withinDOM().getByText(`Pokemon ${id}`)).toBeTruthy()
         }
       }
 
-      async function waitForFetch() {
-        await waitFor(() =>
-          expect(screen.getByTestId('isFetching').textContent).toBe('true'),
-        )
-        await waitFor(() =>
-          expect(screen.getByTestId('isFetching').textContent).toBe('false'),
-        )
+      async function waitForFetch(handleExtraMiddleRender = false) {
+        {
+          const { withinDOM } = await takeRender()
+          expect(withinDOM().getByTestId('isFetching').textContent).toBe('true')
+        }
+
+        // We seem to do an extra render when fetching an uninitialized entry
+        if (handleExtraMiddleRender) {
+          {
+            const { withinDOM } = await takeRender()
+            expect(withinDOM().getByTestId('isFetching').textContent).toBe(
+              'true',
+            )
+          }
+        }
+
+        {
+          // Second fetch complete
+          const { withinDOM } = await takeRender()
+          expect(withinDOM().getByTestId('isFetching').textContent).toBe(
+            'false',
+          )
+        }
       }
 
       const utils = render(<PokemonList />, { wrapper: storeRef.wrapper })
-      expect(screen.getByTestId('data').textContent).toBe('')
       checkNumQueries(1)
-
-      await waitFor(() =>
-        expect(screen.getByTestId('isUninitialized').textContent).toBe('false'),
-      )
-
-      // Initial load
-      await waitForFetch()
+      await waitForFetch(true)
       checkNumQueries(1)
-      checkPageRows('fire', [0])
+      checkPageRows(getCurrentRender().withinDOM, 'fire', [0])
 
-      act(() => {
-        fireEvent.click(screen.getByTestId('nextPage'))
-      })
-
+      fireEvent.click(screen.getByTestId('nextPage'), {})
       await waitForFetch()
+      checkPageRows(getCurrentRender().withinDOM, 'fire', [0, 1])
 
-      // Added one page
-      checkPageRows('fire', [0, 1])
-
-      act(() => {
-        fireEvent.click(screen.getByTestId('nextPage'))
-      })
+      fireEvent.click(screen.getByTestId('nextPage'))
       await waitForFetch()
-
-      checkPageRows('fire', [0, 1, 2])
+      checkPageRows(getCurrentRender().withinDOM, 'fire', [0, 1, 2])
 
       utils.rerender(<PokemonList arg="water" initialPageParam={3} />)
-
-      await waitForFetch()
-
+      await waitForFetch(true)
       checkNumQueries(2)
-      checkPageRows('water', [3])
+      checkPageRows(getCurrentRender().withinDOM, 'water', [3])
 
-      act(() => {
-        fireEvent.click(screen.getByTestId('nextPage'))
-      })
+      fireEvent.click(screen.getByTestId('nextPage'))
       await waitForFetch()
+      checkPageRows(getCurrentRender().withinDOM, 'water', [3, 4])
 
-      checkPageRows('water', [3, 4])
-
-      act(() => {
-        fireEvent.click(screen.getByTestId('prevPage'))
-      })
+      fireEvent.click(screen.getByTestId('prevPage'))
       await waitForFetch()
-
-      checkPageRows('water', [2, 3, 4])
+      checkPageRows(getCurrentRender().withinDOM, 'water', [2, 3, 4])
     })
   })
 
