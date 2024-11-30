@@ -268,3 +268,26 @@ export function setupApiStore<
 
   return refObj
 }
+
+export const makeImportWithEnv =
+  <T extends {}>(getModule: () => Promise<T>) =>
+  async (env: string) => {
+    const originalEnv = process.env.NODE_ENV
+    vi.stubEnv('NODE_ENV', env)
+    vi.resetModules()
+    const result = await getModule()
+    return Object.assign(result, {
+      [Symbol.dispose]() {
+        process.env.NODE_ENV = originalEnv
+      },
+    } satisfies Disposable)
+  }
+
+export const consoleSpy = <K extends keyof Console>(key: K) => {
+  const spy = vi.spyOn(console, key)
+  return Object.assign(spy, {
+    [Symbol.dispose]() {
+      spy.mockRestore()
+    },
+  } satisfies Disposable)
+}

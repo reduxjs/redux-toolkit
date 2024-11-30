@@ -109,3 +109,19 @@ export function getOrInsertComputed<K extends object, V>(
 
   return map.set(key, compute(key)).get(key) as V
 }
+
+export async function promiseFromEntries<T>(
+  entries: Iterable<readonly [PropertyKey, T]>,
+) {
+  return Object.fromEntries(
+    await Promise.all(
+      Array.from(entries, async ([key, value]) => [key, await value] as const),
+    ),
+  )
+}
+
+export async function promiseOwnProperties<T extends {}>(obj: T) {
+  return promiseFromEntries(Object.entries(obj)) as Promise<{
+    [K in keyof T]: Awaited<T[K]>
+  }>
+}

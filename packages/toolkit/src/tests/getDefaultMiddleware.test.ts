@@ -1,4 +1,4 @@
-import { Tuple } from '@internal/utils'
+import { promiseOwnProperties, Tuple } from '@internal/utils'
 import type {
   Action,
   Middleware,
@@ -7,30 +7,26 @@ import type {
 } from '@reduxjs/toolkit'
 import { configureStore } from '@reduxjs/toolkit'
 import { thunk } from 'redux-thunk'
-import { vi } from 'vitest'
+import { makeImportWithEnv } from './utils/helpers'
 
 import { buildGetDefaultMiddleware } from '@internal/getDefaultMiddleware'
 
 const getDefaultMiddleware = buildGetDefaultMiddleware()
 
+const importWithEnv = makeImportWithEnv(() =>
+  promiseOwnProperties({
+    buildGetDefaultMiddleware: import('../getDefaultMiddleware').then(
+      (m) => m.buildGetDefaultMiddleware,
+    ),
+    thunk: import('redux-thunk').then((m) => m.thunk),
+  }),
+)
+
 describe('getDefaultMiddleware', () => {
-  const ORIGINAL_NODE_ENV = process.env.NODE_ENV
-
-  afterEach(() => {
-    process.env.NODE_ENV = ORIGINAL_NODE_ENV
-  })
-
   describe('Production behavior', () => {
-    beforeEach(() => {
-      vi.resetModules()
-    })
-
     it('returns an array with only redux-thunk in production', async () => {
-      process.env.NODE_ENV = 'production'
-      const { thunk } = await import('redux-thunk')
-      const { buildGetDefaultMiddleware } = await import(
-        '@internal/getDefaultMiddleware'
-      )
+      using imports = await importWithEnv('production')
+      const { buildGetDefaultMiddleware, thunk } = imports
 
       const middleware = buildGetDefaultMiddleware()()
       expect(middleware).toContain(thunk)

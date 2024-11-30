@@ -1,31 +1,27 @@
-import { vi } from 'vitest'
 import { AClockworkOrange } from './fixtures/book'
+import { consoleSpy, makeImportWithEnv } from '@internal/tests/utils/helpers'
 
 describe('Entity utils', () => {
   describe(`selectIdValue()`, () => {
-    const OLD_ENV = process.env
+    const importWithEnv = makeImportWithEnv(() =>
+      import('../utils').then((m) => m.selectIdValue),
+    )
 
-    beforeEach(() => {
-      vi.resetModules() // this is important - it clears the cache
-      process.env = { ...OLD_ENV, NODE_ENV: 'development' }
-    })
+    using spy = consoleSpy('warn')
 
     afterEach(() => {
-      process.env = OLD_ENV
-      vi.resetAllMocks()
+      spy.mockReset()
     })
 
     it('should not warn when key does exist', async () => {
-      const { selectIdValue } = await import('../utils')
-      const spy = vi.spyOn(console, 'warn')
+      using selectIdValue = await importWithEnv('development')
 
       selectIdValue(AClockworkOrange, (book: any) => book.id)
       expect(spy).not.toHaveBeenCalled()
     })
 
     it('should warn when key does not exist in dev mode', async () => {
-      const { selectIdValue } = await import('../utils')
-      const spy = vi.spyOn(console, 'warn')
+      using selectIdValue = await importWithEnv('development')
 
       selectIdValue(AClockworkOrange, (book: any) => book.foo)
 
@@ -33,8 +29,7 @@ describe('Entity utils', () => {
     })
 
     it('should warn when key is undefined in dev mode', async () => {
-      const { selectIdValue } = await import('../utils')
-      const spy = vi.spyOn(console, 'warn')
+      using selectIdValue = await importWithEnv('development')
 
       const undefinedAClockworkOrange = { ...AClockworkOrange, id: undefined }
       selectIdValue(undefinedAClockworkOrange, (book: any) => book.id)
@@ -43,9 +38,7 @@ describe('Entity utils', () => {
     })
 
     it('should not warn when key does not exist in prod mode', async () => {
-      process.env.NODE_ENV = 'production'
-      const { selectIdValue } = await import('../utils')
-      const spy = vi.spyOn(console, 'warn')
+      using selectIdValue = await importWithEnv('production')
 
       selectIdValue(AClockworkOrange, (book: any) => book.foo)
 
@@ -53,9 +46,7 @@ describe('Entity utils', () => {
     })
 
     it('should not warn when key is undefined in prod mode', async () => {
-      process.env.NODE_ENV = 'production'
-      const { selectIdValue } = await import('../utils')
-      const spy = vi.spyOn(console, 'warn')
+      using selectIdValue = await importWithEnv('production')
 
       const undefinedAClockworkOrange = { ...AClockworkOrange, id: undefined }
       selectIdValue(undefinedAClockworkOrange, (book: any) => book.id)

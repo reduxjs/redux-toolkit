@@ -13,6 +13,7 @@ import {
   createConsole,
   getLog,
 } from 'console-testing-library/pure'
+import { makeImportWithEnv } from './utils/helpers'
 
 interface Todo {
   text: string
@@ -39,7 +40,9 @@ type ToggleTodoReducer = CaseReducer<
   PayloadAction<ToggleTodoPayload, 'TOGGLE_TODO'>
 >
 
-type CreateReducer = typeof createReducer
+const importWithEnv = makeImportWithEnv(() =>
+  import('../createReducer').then((m) => m.createReducer),
+)
 
 describe('createReducer', () => {
   let restore: () => void
@@ -71,21 +74,12 @@ describe('createReducer', () => {
   })
 
   describe('Deprecation warnings', () => {
-    let originalNodeEnv = process.env.NODE_ENV
-
-    beforeEach(() => {
-      vi.resetModules()
-    })
-
-    afterEach(() => {
-      process.env.NODE_ENV = originalNodeEnv
-    })
-
     it('Throws an error if the legacy object notation is used', async () => {
-      const { createReducer } = await import('../createReducer')
+      using createReducer = await importWithEnv('development')
+
       const wrapper = () => {
         // @ts-ignore
-        let dummyReducer = (createReducer as CreateReducer)([] as TodoState, {})
+        let dummyReducer = createReducer([], {})
       }
 
       expect(wrapper).toThrowError(
@@ -98,11 +92,11 @@ describe('createReducer', () => {
     })
 
     it('Crashes in production', async () => {
-      process.env.NODE_ENV = 'production'
-      const { createReducer } = await import('../createReducer')
+      using createReducer = await importWithEnv('production')
+
       const wrapper = () => {
         // @ts-ignore
-        let dummyReducer = (createReducer as CreateReducer)([] as TodoState, {})
+        let dummyReducer = createReducer([], {})
       }
 
       expect(wrapper).toThrowError()
@@ -110,19 +104,9 @@ describe('createReducer', () => {
   })
 
   describe('Immer in a production environment', () => {
-    let originalNodeEnv = process.env.NODE_ENV
-
-    beforeEach(() => {
-      vi.resetModules()
-      process.env.NODE_ENV = 'production'
-    })
-
-    afterEach(() => {
-      process.env.NODE_ENV = originalNodeEnv
-    })
-
     test('Freezes data in production', async () => {
-      const { createReducer } = await import('../createReducer')
+      using createReducer = await importWithEnv('production')
+
       const addTodo: AddTodoReducer = (state, action) => {
         const { newTodo } = action.payload
         state.push({ ...newTodo, completed: false })
