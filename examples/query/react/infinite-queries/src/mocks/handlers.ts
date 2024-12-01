@@ -1,13 +1,34 @@
 import { http, HttpResponse } from "msw"
 
+function delay(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
 export const handlers = [
-  // Intercept "GET https://example.com/user" requests...
-  http.get("https://example.com/user", () => {
-    // ...and respond to them using this JSON response.
+  http.get("https://example.com/api/projects", async ({ request, params }) => {
+    const url = new URL(request.url)
+    const pageParam = url.searchParams.get("page") || "0"
+    const page = parseInt(pageParam, 10)
+
+    const pageSize = 10
+    const maxPages = 5
+
+    await delay(1000)
+
+    const projects = Array(pageSize)
+      .fill(0)
+      .map((_, i) => {
+        const id = page * pageSize + (i + 1)
+        return {
+          name: "Project " + id,
+          id,
+        }
+      })
+
     return HttpResponse.json({
-      id: "c7b3d8e0-5e0b-4b0f-8b3a-3b9f4b3d3b3d",
-      firstName: "John",
-      lastName: "Maverick",
+      projects,
+      // 0-based pagination, so match total count
+      hasMore: page < maxPages - 1,
     })
   }),
 ]
