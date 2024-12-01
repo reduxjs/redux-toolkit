@@ -6,6 +6,7 @@ import {
   InfiniteScrollExample,
   InfiniteScrollAbout,
 } from "./features/infinite-scroll/InfiniteScrollExample"
+import { InfiniteScrollMaxPagesExample } from "./features/max-pages/InfiniteScrollMaxExample"
 
 const Menu = () => {
   return (
@@ -18,6 +19,9 @@ const Menu = () => {
         <li>
           <Link to="/infinite-scroll">Infinite Scroll</Link>
         </li>
+        <li>
+          <Link to="/infinite-scroll-max">Infinite Scroll + max pages</Link>
+        </li>
       </ul>
     </div>
   )
@@ -27,7 +31,7 @@ const App = () => {
   return (
     <BrowserRouter>
       <div className="App">
-        <h1>Infinite Query Examples</h1>
+        <h1>RTKQ Infinite Query Example Showcase</h1>
         <Routes>
           <Route path="/" element={<Menu />} />
           <Route path="/pagination" element={<PaginationExample />} />
@@ -35,6 +39,10 @@ const App = () => {
           <Route
             path="/infinite-scroll/about"
             element={<InfiniteScrollAbout />}
+          />
+          <Route
+            path="/infinite-scroll-max"
+            element={<InfiniteScrollMaxPagesExample />}
           />
         </Routes>
       </div>

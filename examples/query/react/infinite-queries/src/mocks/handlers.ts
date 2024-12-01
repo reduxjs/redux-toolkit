@@ -53,12 +53,14 @@ export const handlers = [
           }
         })
 
-      const nextId =
-        cursor < totalItems - pageSize
-          ? projects[projects.length - 1].id + 1
-          : null
+      const hasNext = cursor < totalItems - pageSize
+      const nextId = hasNext ? projects[projects.length - 1].id + 1 : null
+
+      // Prevent negative cursors
+      const hasPrevious = cursor > -(totalItems - pageSize)
+      const maybePrevCursor = projects[0].id - pageSize
       const previousId =
-        cursor > -(totalItems - pageSize) ? projects[0].id - pageSize : null
+        hasPrevious && maybePrevCursor >= 0 ? maybePrevCursor : null
 
       return HttpResponse.json({
         projects,
