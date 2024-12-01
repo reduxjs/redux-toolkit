@@ -3175,6 +3175,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-intersection-observer@npm:^9.13.1":
+  version: 9.13.1
+  resolution: "react-intersection-observer@npm:9.13.1"
+  peerDependencies:
+    react: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+    react-dom: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+  peerDependenciesMeta:
+    react-dom:
+      optional: true
+  checksum: 10/341e99fdd2fddeb031a7f3b513443a5bf894519236c2c39198bf04b212158c98157469dbed8ffdbff60812ae1ea8145af31b8b22edcbaec8185ce4a0d615df2b
+  languageName: node
+  linkType: hard
+
 "react-is@npm:^17.0.1":
   version: 17.0.2
   resolution: "react-is@npm:17.0.2"
@@ -3893,6 +3906,7 @@ __metadata:
     prettier: "npm:^3.2.1"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
+    react-intersection-observer: "npm:^9.13.1"
     react-redux: "npm:^9.1.0"
     react-router: "npm:^7.0.1"
     typescript: "npm:^5.3.3"
