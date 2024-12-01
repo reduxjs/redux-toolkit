@@ -13,7 +13,7 @@ type ProjectsPage = {
 export const apiWithPagination = baseApi.injectEndpoints({
   endpoints: build => ({
     getProjects: build.infiniteQuery<ProjectsPage, string, number>({
-      query: (page = 0) => `https://example.com/api/projects?page=${page}`,
+      query: page => `https://example.com/api/projects?page=${page}`,
       infiniteQueryOptions: {
         initialPageParam: 0,
         getNextPageParam: (lastPage, pages, lastPageParam, allPageParams) => {
