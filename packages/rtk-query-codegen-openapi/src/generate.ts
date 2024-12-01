@@ -118,6 +118,7 @@ export async function generateApi(
     mergeReadWriteOnly = false,
     httpResolverOptions,
     useUnknown = false,
+    esmExtensions = false,
   }: GenerationOptions
 ) {
   const v3Doc = (v3DocCache[spec] ??= await getV3Doc(spec, httpResolverOptions));
@@ -163,7 +164,17 @@ export async function generateApi(
       if (!apiFile.startsWith('.')) apiFile = `./${apiFile}`;
     }
   }
-  apiFile = apiFile.replace(/\.[jt]sx?$/, '');
+
+  if (esmExtensions === true) {
+    // Convert TS/JSX extensions to their JS equivalents
+    apiFile = apiFile
+      .replace(/\.mts$/, '.mjs')
+      .replace(/\.[jt]sx$/, '.jsx')
+      .replace(/\.ts$/, '.js');
+  } else {
+    // Remove all extensions
+    apiFile = apiFile.replace(/\.[jt]sx?$/, '');
+  }
 
   return printer.printNode(
     ts.EmitHint.Unspecified,
@@ -451,11 +462,7 @@ export async function generateApi(
         const encodedValue =
           encodeQueryParams && param.param?.in === 'query'
             ? factory.createConditionalExpression(
-                factory.createBinaryExpression(
-                  value,
-                  ts.SyntaxKind.ExclamationEqualsToken,
-                  factory.createNull()
-                ),
+                factory.createBinaryExpression(value, ts.SyntaxKind.ExclamationEqualsToken, factory.createNull()),
                 undefined,
                 factory.createCallExpression(factory.createIdentifier('encodeURIComponent'), undefined, [
                   factory.createCallExpression(factory.createIdentifier('String'), undefined, [value]),
