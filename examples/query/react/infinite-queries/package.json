@@ -18,7 +18,8 @@
     "@reduxjs/toolkit": "^2.0.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-redux": "^9.1.0"
+    "react-redux": "^9.1.0",
+    "react-router": "^7.0.1"
   },
   "devDependencies": {
     "@testing-library/dom": "^9.3.4",
