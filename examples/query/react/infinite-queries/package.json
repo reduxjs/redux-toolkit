@@ -15,7 +15,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@reduxjs/toolkit": "^2.0.1",
+    "@reduxjs/toolkit": "https://pkg.csb.dev/reduxjs/redux-toolkit/commit/aa419c22/@reduxjs/toolkit/_pkg.tgz",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-redux": "^9.1.0",

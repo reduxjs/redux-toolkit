@@ -773,9 +773,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@reduxjs/toolkit@npm:^2.0.1":
+"@reduxjs/toolkit@https://pkg.csb.dev/reduxjs/redux-toolkit/commit/aa419c22/@reduxjs/toolkit/_pkg.tgz":
   version: 2.4.0
-  resolution: "@reduxjs/toolkit@npm:2.4.0"
+  resolution: "@reduxjs/toolkit@https://pkg.csb.dev/reduxjs/redux-toolkit/commit/aa419c22/@reduxjs/toolkit/_pkg.tgz"
   dependencies:
     immer: "npm:^10.0.3"
     redux: "npm:^5.0.1"
@@ -789,7 +789,7 @@ __metadata:
       optional: true
     react-redux:
       optional: true
-  checksum: 10/1ae3a8c8f295326d913fd59ff34ccb9dd082612582313bcdfc3519e3ebcff63f2365a3fc9d647f48fd2852b72e603512f3f6c36d54916f9ddb85422098ec3fa9
+  checksum: 10/83dd571381b1e16bb75731c7dedc51e90934039d5b73ac6d4115d8e2408bbf8ca679d2030aaa59b0aa67cd85e5747a967b2005604ce670134189c0e74abb98df
   languageName: node
   linkType: hard
 
@@ -3880,7 +3880,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "vite-template-redux@workspace:."
   dependencies:
-    "@reduxjs/toolkit": "npm:^2.0.1"
+    "@reduxjs/toolkit": "https://pkg.csb.dev/reduxjs/redux-toolkit/commit/aa419c22/@reduxjs/toolkit/_pkg.tgz"
     "@testing-library/dom": "npm:^9.3.4"
     "@testing-library/jest-dom": "npm:^6.2.0"
     "@testing-library/react": "npm:^14.1.2"
