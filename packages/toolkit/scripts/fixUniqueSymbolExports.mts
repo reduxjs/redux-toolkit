@@ -30,8 +30,8 @@ const main = async () => {
     const lines = content.split('\n')
 
     const allUniqueSymbols = lines
-      .filter((line) => /declare const (\w+)\: unique symbol;/.test(line))
-      .map((line) => line.match(/declare const (\w+)\: unique symbol;/)?.[1])
+      .filter((line) => /declare const (\w+): unique symbol;/.test(line))
+      .map((line) => line.match(/declare const (\w+): unique symbol;/)?.[1])
 
     if (allUniqueSymbols.length === 0) {
       console.log(`${filePath} does not have any unique symbols.`)

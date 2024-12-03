@@ -1,19 +1,19 @@
+import { noop } from '@internal/tests/utils/helpers'
 import type { CreateAsyncThunkFunction, UnknownAction } from '@reduxjs/toolkit'
 import {
   configureStore,
   createAsyncThunk,
   createReducer,
-  unwrapResult,
   miniSerializeError,
+  unwrapResult,
 } from '@reduxjs/toolkit'
-import { vi } from 'vitest'
-
 import {
   createConsole,
   getLog,
   mockConsole,
 } from 'console-testing-library/pure'
-import { delay } from '@internal/utils'
+import { delay } from 'msw'
+import { vi } from 'vitest'
 
 declare global {
   interface Window {
@@ -91,7 +91,7 @@ describe('createAsyncThunk', () => {
 
     const thunkFunction = thunkActionCreator(args)
 
-    const thunkPromise = thunkFunction(dispatch, () => {}, undefined)
+    const thunkPromise = thunkFunction(dispatch, noop, undefined)
 
     expect(thunkPromise.requestId).toBe(generatedRequestId)
     expect(thunkPromise.arg).toBe(args)
@@ -130,8 +130,10 @@ describe('createAsyncThunk', () => {
     const thunkFunction = thunkActionCreator(args)
 
     try {
-      await thunkFunction(dispatch, () => {}, undefined)
-    } catch (e) {}
+      await thunkFunction(dispatch, noop, undefined)
+    } catch (e) {
+      /* empty */
+    }
 
     expect(dispatch).toHaveBeenNthCalledWith(
       1,
@@ -166,8 +168,10 @@ describe('createAsyncThunk', () => {
     const thunkFunction = thunkActionCreator(args)
 
     try {
-      await thunkFunction(dispatch, () => {}, undefined)
-    } catch (e) {}
+      await thunkFunction(dispatch, noop, undefined)
+    } catch (e) {
+      /* empty */
+    }
 
     expect(dispatch).toHaveBeenNthCalledWith(
       1,
@@ -205,8 +209,10 @@ describe('createAsyncThunk', () => {
     const thunkFunction = thunkActionCreator(args)
 
     try {
-      await thunkFunction(dispatch, () => {}, undefined)
-    } catch (e) {}
+      await thunkFunction(dispatch, noop, undefined)
+    } catch (e) {
+      /* empty */
+    }
 
     expect(dispatch).toHaveBeenNthCalledWith(
       1,
@@ -250,8 +256,10 @@ describe('createAsyncThunk', () => {
     const thunkFunction = thunkActionCreator(args)
 
     try {
-      await thunkFunction(dispatch, () => {}, undefined)
-    } catch (e) {}
+      await thunkFunction(dispatch, noop, undefined)
+    } catch (e) {
+      /* empty */
+    }
 
     expect(dispatch).toHaveBeenNthCalledWith(
       1,
@@ -295,8 +303,10 @@ describe('createAsyncThunk', () => {
     const thunkFunction = thunkActionCreator(args)
 
     try {
-      await thunkFunction(dispatch, () => {}, undefined)
-    } catch (e) {}
+      await thunkFunction(dispatch, noop, undefined)
+    } catch (e) {
+      /* empty */
+    }
 
     expect(dispatch).toHaveBeenNthCalledWith(
       1,
@@ -349,8 +359,10 @@ describe('createAsyncThunk', () => {
     const thunkFunction = thunkActionCreator(args)
 
     try {
-      await thunkFunction(dispatch, () => {}, undefined)
-    } catch (e) {}
+      await thunkFunction(dispatch, noop, undefined)
+    } catch (e) {
+      /* empty */
+    }
 
     expect(dispatch).toHaveBeenNthCalledWith(
       1,
@@ -498,7 +510,7 @@ describe('createAsyncThunk with abortController', () => {
   describe('behavior with missing AbortController', () => {
     let keepAbortController: (typeof window)['AbortController']
     let freshlyLoadedModule: typeof import('../createAsyncThunk')
-    let restore: () => void = () => {}
+    let restore: () => void = noop
     let nodeEnv: string
 
     beforeEach(async () => {
@@ -534,7 +546,9 @@ describe('createAsyncThunk with abortController', () => {
 test('non-serializable arguments are ignored by serializableStateInvariantMiddleware', async () => {
   const restore = mockConsole(createConsole())
   const nonSerializableValue = new Map()
-  const asyncThunk = createAsyncThunk('test', (arg: Map<any, any>) => {})
+  const asyncThunk = createAsyncThunk('test', (arg: Map<any, any>) => {
+    /** No-Op */
+  })
 
   configureStore({
     reducer: () => 0,
@@ -640,7 +654,9 @@ describe('conditional skipping of asyncThunks', () => {
       const thunkPromise = asyncThunk(arg)(dispatch, getState, extra)
       thunkPromise.abort()
       await thunkPromise
-    } catch (err) {}
+    } catch (err) {
+      /* empty */
+    }
     expect(dispatch).toHaveBeenCalledTimes(0)
   })
 
@@ -902,13 +918,19 @@ describe('meta', () => {
   })
 
   test('pendingMeta', () => {
-    const pendingThunk = createAsyncThunk('test', (arg: string) => {}, {
-      getPendingMeta({ arg, requestId }) {
-        expect(arg).toBe('testArg')
-        expect(requestId).toEqual(expect.any(String))
-        return { extraProp: 'foo' }
+    const pendingThunk = createAsyncThunk(
+      'test',
+      (arg: string) => {
+        /** No-Op */
       },
-    })
+      {
+        getPendingMeta({ arg, requestId }) {
+          expect(arg).toBe('testArg')
+          expect(requestId).toEqual(expect.any(String))
+          return { extraProp: 'foo' }
+        },
+      },
+    )
     const ret = store.dispatch(pendingThunk('testArg'))
     expect(store.getState()[1]).toEqual({
       meta: {
@@ -969,10 +991,10 @@ describe('meta', () => {
     })
 
     if (ret.meta.requestStatus === 'rejected' && ret.meta.rejectedWithValue) {
+      /* empty */
     } else {
       // could be caused by a `throw`, `abort()` or `condition` - no `rejectedMeta` in that case
-      // @ts-expect-error
-      ret.meta.extraProp
+      expect(ret.meta).not.toHaveProperty('extraProp')
     }
   })
 

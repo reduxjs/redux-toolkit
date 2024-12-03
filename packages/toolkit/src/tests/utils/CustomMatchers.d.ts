@@ -1,8 +1,8 @@
-import type { Assertion, AsymmetricMatchersContaining } from 'vitest'
+import 'vitest'
 
 interface CustomMatchers<R = unknown> {
   toHaveConsoleOutput(expectedOutput: string): Promise<R>
-  toMatchSequence(...matchers: Array<(arg: any) => boolean>): R
+  toMatchSequence(...matchers: ((arg: any) => boolean)[]): R
 }
 
 declare module 'vitest' {

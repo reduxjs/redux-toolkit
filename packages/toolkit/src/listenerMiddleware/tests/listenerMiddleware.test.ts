@@ -1,4 +1,22 @@
 import {
+  listenerCancelled,
+  listenerCompleted,
+} from '@internal/listenerMiddleware/exceptions'
+import type {
+  AbortSignalWithReason,
+  AddListenerOverloads,
+} from '@internal/listenerMiddleware/types'
+import { noop } from '@internal/tests/utils/helpers'
+import type {
+  Action,
+  ListenerEffect,
+  ListenerEffectAPI,
+  PayloadAction,
+  TypedRemoveListener,
+  TypedStartListening,
+  UnknownAction,
+} from '@reduxjs/toolkit'
+import {
   TaskAbortError,
   addListener,
   clearAllListeners,
@@ -10,28 +28,6 @@ import {
   removeListener,
 } from '@reduxjs/toolkit'
 import type { Mock } from 'vitest'
-import { vi } from 'vitest'
-
-import type {
-  Action,
-  ListenerEffect,
-  ListenerEffectAPI,
-  PayloadAction,
-  TypedAddListener,
-  TypedRemoveListener,
-  TypedStartListening,
-  UnknownAction,
-} from '@reduxjs/toolkit'
-
-import {
-  listenerCancelled,
-  listenerCompleted,
-} from '@internal/listenerMiddleware/exceptions'
-
-import type {
-  AbortSignalWithReason,
-  AddListenerOverloads,
-} from '@internal/listenerMiddleware/types'
 
 const middlewareApi = {
   getState: expect.any(Function),
@@ -50,8 +46,6 @@ const middlewareApi = {
   cancel: expect.any(Function),
   throwIfCancelled: expect.any(Function),
 }
-
-const noop = () => {}
 
 // Copyright 2018-2021 the Deno authors. All rights reserved. MIT license.
 export interface Deferred<T> extends Promise<T> {
@@ -177,7 +171,9 @@ describe('createListenerMiddleware', () => {
 
   describe('Subscription and unsubscription', () => {
     test('directly subscribing', () => {
-      const effect = vi.fn((_: TestAction1) => {})
+      const effect = vi.fn((_: TestAction1) => {
+        /** No-Op */
+      })
 
       startListening({
         actionCreator: testAction1,
@@ -195,7 +191,9 @@ describe('createListenerMiddleware', () => {
     })
 
     test('stopListening returns true if an entry has been unsubscribed, false otherwise', () => {
-      const effect = vi.fn((_: TestAction1) => {})
+      const effect = vi.fn((_: TestAction1) => {
+        /** No-Op */
+      })
 
       startListening({
         actionCreator: testAction1,
@@ -207,7 +205,9 @@ describe('createListenerMiddleware', () => {
     })
 
     test('dispatch(removeListener({...})) returns true if an entry has been unsubscribed, false otherwise', () => {
-      const effect = vi.fn((_: TestAction1) => {})
+      const effect = vi.fn((_: TestAction1) => {
+        /** No-Op */
+      })
 
       startListening({
         actionCreator: testAction1,
@@ -233,7 +233,9 @@ describe('createListenerMiddleware', () => {
     })
 
     test('can subscribe with a string action type', () => {
-      const effect = vi.fn((_: UnknownAction) => {})
+      const effect = vi.fn((_: UnknownAction) => {
+        /** No-Op */
+      })
 
       store.dispatch(
         addListener({
@@ -252,7 +254,9 @@ describe('createListenerMiddleware', () => {
     })
 
     test('can subscribe with a matcher function', () => {
-      const effect = vi.fn((_: UnknownAction) => {})
+      const effect = vi.fn((_: UnknownAction) => {
+        /** No-Op */
+      })
 
       const isAction1Or2 = isAnyOf(testAction1, testAction2)
 
@@ -319,7 +323,9 @@ describe('createListenerMiddleware', () => {
     })
 
     test('subscribing with the same listener will not make it trigger twice (like EventTarget.addEventListener())', () => {
-      const effect = vi.fn((_: TestAction1) => {})
+      const effect = vi.fn((_: TestAction1) => {
+        /** No-Op */
+      })
 
       startListening({
         actionCreator: testAction1,
@@ -341,7 +347,9 @@ describe('createListenerMiddleware', () => {
     })
 
     test('subscribing with the same effect but different predicate is allowed', () => {
-      const effect = vi.fn((_: TestAction1 | TestAction2) => {})
+      const effect = vi.fn((_: TestAction1 | TestAction2) => {
+        /** No-Op */
+      })
 
       startListening({
         actionCreator: testAction1,
@@ -362,7 +370,9 @@ describe('createListenerMiddleware', () => {
     })
 
     test('unsubscribing via callback', () => {
-      const effect = vi.fn((_: TestAction1) => {})
+      const effect = vi.fn((_: TestAction1) => {
+        /** No-Op */
+      })
 
       const unsubscribe = startListening({
         actionCreator: testAction1,
@@ -378,7 +388,9 @@ describe('createListenerMiddleware', () => {
     })
 
     test('directly unsubscribing', () => {
-      const effect = vi.fn((_: TestAction1) => {})
+      const effect = vi.fn((_: TestAction1) => {
+        /** No-Op */
+      })
 
       startListening({
         actionCreator: testAction1,
@@ -399,7 +411,9 @@ describe('createListenerMiddleware', () => {
     })
 
     test('subscribing via action', () => {
-      const effect = vi.fn((_: TestAction1) => {})
+      const effect = vi.fn((_: TestAction1) => {
+        /** No-Op */
+      })
 
       store.dispatch(
         addListener({
@@ -419,7 +433,9 @@ describe('createListenerMiddleware', () => {
     })
 
     test('unsubscribing via callback from dispatch', () => {
-      const effect = vi.fn((_: TestAction1) => {})
+      const effect = vi.fn((_: TestAction1) => {
+        /** No-Op */
+      })
 
       const unsubscribe = store.dispatch(
         addListener({
@@ -438,7 +454,9 @@ describe('createListenerMiddleware', () => {
     })
 
     test('unsubscribing via action', () => {
-      const effect = vi.fn((_: TestAction1) => {})
+      const effect = vi.fn((_: TestAction1) => {
+        /** No-Op */
+      })
 
       startListening({
         actionCreator: testAction1,
@@ -658,7 +676,7 @@ describe('createListenerMiddleware', () => {
       let listenerCancelled = false
       let listenerStarted = false
       let listenerCompleted = false
-      let cancelListener: () => void = () => {}
+      let cancelListener: () => void = noop
       let error: TaskAbortError | undefined = undefined
 
       startListening({
@@ -950,7 +968,9 @@ describe('createListenerMiddleware', () => {
     test('by default, actions are forwarded to the store', () => {
       reducer.mockClear()
 
-      const effect = vi.fn((_: TestAction1) => {})
+      const effect = vi.fn((_: TestAction1) => {
+        /** No-Op */
+      })
 
       startListening({
         actionCreator: testAction1,
@@ -1015,7 +1035,7 @@ describe('createListenerMiddleware', () => {
         },
       })
 
-      const effect = vi.fn(() => {})
+      const effect = vi.fn(noop)
       startListening({ matcher, effect })
 
       store.dispatch(testAction1('a'))
@@ -1024,8 +1044,8 @@ describe('createListenerMiddleware', () => {
 
     test('Continues running other listeners if a predicate raises an error', () => {
       const matcher = (action: any): action is any => true
-      const firstListener = vi.fn(() => {})
-      const secondListener = vi.fn(() => {})
+      const firstListener = vi.fn(noop)
+      const secondListener = vi.fn(noop)
 
       startListening({
         // @ts-expect-error
