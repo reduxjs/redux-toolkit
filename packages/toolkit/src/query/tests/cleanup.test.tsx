@@ -22,7 +22,7 @@ const getSubStateB = () => storeRef.store.getState().api.queries['b(undefined)']
 function UsingA() {
   const { data } = api.endpoints.a.useQuery()
 
-  return <>Result: {data} </>
+  return <>Result: {data as React.ReactNode} </>
 }
 
 function UsingB() {
