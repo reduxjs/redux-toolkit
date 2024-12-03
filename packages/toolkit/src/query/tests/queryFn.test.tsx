@@ -1,3 +1,4 @@
+import { noop } from '@internal/listenerMiddleware/utils'
 import type { QuerySubState } from '@internal/query/core/apiState'
 import type { Post } from '@internal/query/tests/mocks/handlers'
 import { posts } from '@internal/query/tests/mocks/handlers'
@@ -184,17 +185,24 @@ describe('queryFn base implementation tests', () => {
     ['withAsyncQueryFn', withAsyncQueryFn, 'data'],
     ['withAsyncErrorQueryFn', withAsyncErrorQueryFn, 'error'],
     ['withAsyncThrowingQueryFn', withAsyncThrowingQueryFn, 'throw'],
-  ])('%s1', async (endpointName, endpoint, expectedResult) => {
+  ])('%s', async (endpointName, endpoint, expectedResult) => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(noop)
+
     const thunk = endpoint.initiate(endpointName)
-    let result: undefined | QuerySubState<any> = undefined
-    await expect(async () => {
-      result = await store.dispatch(thunk)
-    }).toHaveConsoleOutput(
-      endpointName.includes('Throw')
-        ? `An unhandled error occurred processing a request for the endpoint "${endpointName}".
-        In the case of an unhandled error, no tags will be "provided" or "invalidated". [Error: resultFrom(${endpointName})]`
-        : '',
-    )
+
+    const result: undefined | QuerySubState<any> = await store.dispatch(thunk)
+
+    if (endpointName.includes('Throw')) {
+      expect(consoleErrorSpy).toHaveBeenCalledOnce()
+
+      expect(consoleErrorSpy).toHaveBeenLastCalledWith(
+        `An unhandled error occurred processing a request for the endpoint "${endpointName}".\nIn the case of an unhandled error, no tags will be "provided" or "invalidated".`,
+        Error(`resultFrom(${endpointName})`),
+      )
+    } else {
+      expect(consoleErrorSpy).not.toHaveBeenCalled()
+    }
+
     if (expectedResult === 'data') {
       expect(result).toEqual(
         expect.objectContaining({
@@ -216,6 +224,8 @@ describe('queryFn base implementation tests', () => {
         }),
       )
     }
+
+    consoleErrorSpy.mockRestore()
   })
 
   test.each([
@@ -230,19 +240,25 @@ describe('queryFn base implementation tests', () => {
       'throw',
     ],
   ])('%s', async (endpointName, endpoint, expectedResult) => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(noop)
+
     const thunk = endpoint.initiate(endpointName)
-    let result:
+
+    const result:
       | undefined
       | { data: string }
-      | { error: string | SerializedError } = undefined
-    await expect(async () => {
-      result = await store.dispatch(thunk)
-    }).toHaveConsoleOutput(
-      endpointName.includes('Throw')
-        ? `An unhandled error occurred processing a request for the endpoint "${endpointName}".
-        In the case of an unhandled error, no tags will be "provided" or "invalidated". [Error: resultFrom(${endpointName})]`
-        : '',
-    )
+      | { error: string | SerializedError } = await store.dispatch(thunk)
+
+    if (endpointName.includes('Throw')) {
+      expect(consoleErrorSpy).toHaveBeenCalledOnce()
+
+      expect(consoleErrorSpy).toHaveBeenLastCalledWith(
+        `An unhandled error occurred processing a request for the endpoint "${endpointName}".\nIn the case of an unhandled error, no tags will be "provided" or "invalidated".`,
+        Error(`resultFrom(${endpointName})`),
+      )
+    } else {
+      expect(consoleErrorSpy).not.toHaveBeenCalled()
+    }
 
     if (expectedResult === 'data') {
       expect(result).toEqual(
@@ -265,42 +281,60 @@ describe('queryFn base implementation tests', () => {
         }),
       )
     }
+
+    consoleErrorSpy.mockRestore()
   })
 
   test('neither provided', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(noop)
+
     {
       const thunk = withNeither.initiate('withNeither')
-      let result: QuerySubState<any>
-      await expect(async () => {
-        result = await store.dispatch(thunk)
-      }).toHaveConsoleOutput(
-        `An unhandled error occurred processing a request for the endpoint "withNeither".
-        In the case of an unhandled error, no tags will be "provided" or "invalidated". [TypeError: endpointDefinition.queryFn is not a function]`,
+
+      const result: QuerySubState<any> = await store.dispatch(thunk)
+
+      expect(consoleErrorSpy).toHaveBeenCalledOnce()
+
+      expect(consoleErrorSpy).toHaveBeenLastCalledWith(
+        `An unhandled error occurred processing a request for the endpoint "withNeither".\nIn the case of an unhandled error, no tags will be "provided" or "invalidated".`,
+        TypeError('endpointDefinition.queryFn is not a function'),
       )
-      expect(result!.error).toEqual(
+
+      expect(result.error).toEqual(
         expect.objectContaining({
           message: 'endpointDefinition.queryFn is not a function',
         }),
       )
+
+      consoleErrorSpy.mockClear()
     }
     {
-      let result:
+      const thunk = mutationWithNeither.initiate('mutationWithNeither')
+
+      const result:
         | undefined
         | { data: string }
-        | { error: string | SerializedError } = undefined
-      const thunk = mutationWithNeither.initiate('mutationWithNeither')
-      await expect(async () => {
-        result = await store.dispatch(thunk)
-      }).toHaveConsoleOutput(
-        `An unhandled error occurred processing a request for the endpoint "mutationWithNeither".
-        In the case of an unhandled error, no tags will be "provided" or "invalidated". [TypeError: endpointDefinition.queryFn is not a function]`,
+        | { error: string | SerializedError } = await store.dispatch(thunk)
+
+      expect(consoleErrorSpy).toHaveBeenCalledOnce()
+
+      expect(consoleErrorSpy).toHaveBeenLastCalledWith(
+        `An unhandled error occurred processing a request for the endpoint "mutationWithNeither".\nIn the case of an unhandled error, no tags will be "provided" or "invalidated".`,
+        TypeError('endpointDefinition.queryFn is not a function'),
       )
-      expect((result as any).error).toEqual(
+
+      if (!('error' in result)) {
+        expect.fail()
+      }
+
+      expect(result.error).toEqual(
         expect.objectContaining({
           message: 'endpointDefinition.queryFn is not a function',
         }),
       )
     }
+
+    consoleErrorSpy.mockRestore()
   })
 })
 
@@ -385,21 +419,27 @@ describe('usage scenario tests', () => {
   })
 
   it('can wrap a service like Firebase and handle errors', async () => {
-    let result: QuerySubState<any>
-    await expect(async () => {
-      result = await storeRef.store.dispatch(
-        api.endpoints.getMissingFirebaseUser.initiate(1),
-      )
-    })
-      .toHaveConsoleOutput(`An unhandled error occurred processing a request for the endpoint "getMissingFirebaseUser".
-    In the case of an unhandled error, no tags will be "provided" or "invalidated". [Error: Missing user]`)
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(noop)
 
-    expect(result!.data).toBeUndefined()
-    expect(result!.error).toEqual(
+    const result: QuerySubState<any> = await storeRef.store.dispatch(
+      api.endpoints.getMissingFirebaseUser.initiate(1),
+    )
+
+    expect(consoleErrorSpy).toHaveBeenCalledOnce()
+
+    expect(consoleErrorSpy).toHaveBeenLastCalledWith(
+      `An unhandled error occurred processing a request for the endpoint "getMissingFirebaseUser".\nIn the case of an unhandled error, no tags will be "provided" or "invalidated".`,
+      Error('Missing user'),
+    )
+
+    expect(result.data).toBeUndefined()
+    expect(result.error).toEqual(
       expect.objectContaining({
         message: 'Missing user',
         name: 'Error',
       }),
     )
+
+    consoleErrorSpy.mockRestore()
   })
 })
