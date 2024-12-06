@@ -179,7 +179,7 @@ describe('fork', () => {
     })
     store.dispatch(increment())
 
-    expect(storeStateAfter).resolves.toEqual({ value: 1 })
+    await expect(storeStateAfter).resolves.toEqual({ value: 1 })
   })
 
   it.each<{
