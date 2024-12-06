@@ -648,7 +648,7 @@ describe('error handling in a component', () => {
         )
       })
       const unwrappedPromise = mutationqueryFulfilled!.unwrap()
-      expect(unwrappedPromise).rejects.toMatchObject({
+      await expect(unwrappedPromise).rejects.toMatchObject({
         status: 500,
         data: { value: 'error' },
       })

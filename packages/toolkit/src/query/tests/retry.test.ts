@@ -1,4 +1,3 @@
-import { vi } from 'vitest'
 import type { BaseQueryFn, FetchBaseQueryError } from '@reduxjs/toolkit/query'
 import { createApi, retry } from '@reduxjs/toolkit/query'
 import { setupApiStore } from '../../tests/utils/helpers'
@@ -223,7 +222,7 @@ describe('configuration', () => {
 
     await loopTimers(2)
 
-    expect(baseBaseQuery).toHaveBeenCalledTimes(1)
+    expect(baseBaseQuery).toHaveBeenCalledOnce()
   })
   test('calling retry.fail(error) will skip retrying and expose the error directly', async () => {
     const error = { message: 'banana' }
@@ -255,7 +254,7 @@ describe('configuration', () => {
 
     await loopTimers(2)
 
-    expect(baseBaseQuery).toHaveBeenCalledTimes(1)
+    expect(baseBaseQuery).toHaveBeenCalledOnce()
     expect(result.error).toEqual(error)
     expect(result).toEqual({
       endpointName: 'q1',
@@ -464,6 +463,6 @@ describe('configuration', () => {
     storeRef.store.dispatch(api.endpoints.q1.initiate({}))
     await loopTimers(2)
 
-    expect(baseBaseQuery).toHaveBeenCalledTimes(1)
+    expect(baseBaseQuery).toHaveBeenCalledOnce()
   })
 })

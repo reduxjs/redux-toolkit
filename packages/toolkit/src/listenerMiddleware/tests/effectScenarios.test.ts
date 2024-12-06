@@ -1,16 +1,13 @@
+import { noop } from '@internal/listenerMiddleware/utils'
+import type { PayloadAction } from '@reduxjs/toolkit'
 import {
   configureStore,
   createAction,
+  createListenerMiddleware,
   createSlice,
   isAnyOf,
+  TaskAbortError,
 } from '@reduxjs/toolkit'
-import { vi } from 'vitest'
-
-import type { PayloadAction } from '@reduxjs/toolkit'
-
-import { createListenerMiddleware, TaskAbortError } from '../index'
-
-import type { TypedAddListener } from '../index'
 
 describe('Saga-style Effects Scenarios', () => {
   interface CounterState {
@@ -57,10 +54,7 @@ describe('Saga-style Effects Scenarios', () => {
     return new Promise((resolve) => setTimeout(resolve, ms))
   }
 
-  beforeAll(() => {
-    const noop = () => {}
-    vi.spyOn(console, 'error').mockImplementation(noop)
-  })
+  const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(noop)
 
   beforeEach(() => {
     listenerMiddleware = createListenerMiddleware<CounterState>()
@@ -70,6 +64,14 @@ describe('Saga-style Effects Scenarios', () => {
       reducer,
       middleware: (gDM) => gDM().prepend(middleware),
     })
+  })
+
+  afterEach(() => {
+    vi.clearAllMocks()
+  })
+
+  afterAll(() => {
+    vi.restoreAllMocks()
   })
 
   test('throttle', async () => {
