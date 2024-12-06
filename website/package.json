@@ -13,8 +13,8 @@
     "@docusaurus/core": "2.1.0",
     "@docusaurus/preset-classic": "2.1.0",
     "classnames": "^2.2.6",
-    "react": "19.0.0-rc.1",
-    "react-dom": "19.0.0-rc.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
     "react-lite-youtube-embed": "^2.0.3",
     "remark-typescript-tools": "^1.1.0",
     "typescript": "^4.9"
