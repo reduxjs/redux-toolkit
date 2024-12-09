@@ -903,7 +903,7 @@ describe('hooks tests', () => {
         })
       })
 
-      test('reset after unmount/remount', async () => {
+      test('hook should not be stuck loading post resetApiState after re-render', async () => {
         const user = userEvent.setup()
 
         function QueryComponent() {
