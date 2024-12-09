@@ -1035,8 +1035,6 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         skipPollingIfUnfocused,
       })
 
-      const lastRenderHadSubscription = useRef(false)
-
       // TODO: Change this to `useRef<QueryActionCreatorResult<any>>(undefined)` after upgrading to React 19.
       /**
        * @todo Change this to `useRef<QueryActionCreatorResult<any>>(undefined)` after upgrading to React 19.
@@ -1059,11 +1057,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       }
 
       const subscriptionRemoved =
-        !currentRenderHasSubscription && lastRenderHadSubscription.current
-
-      usePossiblyImmediateEffect(() => {
-        lastRenderHadSubscription.current = currentRenderHasSubscription
-      })
+        !currentRenderHasSubscription && promiseRef.current !== undefined
 
       usePossiblyImmediateEffect((): void | undefined => {
         if (subscriptionRemoved) {
