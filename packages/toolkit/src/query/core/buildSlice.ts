@@ -1,59 +1,52 @@
-import type { Action, PayloadAction, UnknownAction } from '@reduxjs/toolkit'
-import {
-  combineReducers,
-  createAction,
-  createSlice,
-  isAnyOf,
-  isFulfilled,
-  isRejectedWithValue,
-  createNextState,
-  prepareAutoBatched,
-  SHOULD_AUTOBATCH,
-  nanoid,
-} from './rtkImports'
-import type {
-  QuerySubstateIdentifier,
-  QuerySubState,
-  MutationSubstateIdentifier,
-  MutationSubState,
-  MutationState,
-  QueryState,
-  InvalidationState,
-  Subscribers,
-  QueryCacheKey,
-  SubscriptionState,
-  ConfigState,
-  QueryKeys,
-} from './apiState'
-import { QueryStatus } from './apiState'
-import type {
-  MutationThunk,
-  QueryThunk,
-  QueryThunkArg,
-  RejectedAction,
-} from './buildThunks'
-import { calculateProvidedByThunk } from './buildThunks'
+import type { PayloadAction } from '@reduxjs/toolkit'
+import type { Patch } from 'immer'
+import { applyPatches, isDraft, original } from 'immer'
+import type { ApiContext } from '../apiTypes'
+import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import type {
   AssertTagTypes,
-  DefinitionType,
   EndpointDefinitions,
   FullTagDescription,
   QueryArgFrom,
   QueryDefinition,
   ResultTypeFrom,
 } from '../endpointDefinitions'
-import type { Patch } from 'immer'
-import { isDraft } from 'immer'
-import { applyPatches, original } from 'immer'
-import { onFocus, onFocusLost, onOffline, onOnline } from './setupListeners'
 import {
+  copyWithStructuralSharing,
   isDocumentVisible,
   isOnline,
-  copyWithStructuralSharing,
 } from '../utils'
-import type { ApiContext } from '../apiTypes'
+import type {
+  ConfigState,
+  InvalidationState,
+  MutationState,
+  MutationSubState,
+  MutationSubstateIdentifier,
+  QueryCacheKey,
+  QueryKeys,
+  QueryState,
+  QuerySubState,
+  QuerySubstateIdentifier,
+  Subscribers,
+  SubscriptionState,
+} from './apiState'
+import { QueryStatus } from './apiState'
 import { isUpsertQuery } from './buildInitiate'
-import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
+import type { MutationThunk, QueryThunk, QueryThunkArg } from './buildThunks'
+import { calculateProvidedByThunk } from './buildThunks'
+import {
+  SHOULD_AUTOBATCH,
+  combineReducers,
+  createAction,
+  createNextState,
+  createSlice,
+  isAnyOf,
+  isFulfilled,
+  isRejectedWithValue,
+  nanoid,
+  prepareAutoBatched,
+} from './rtkImports'
+import { onFocus, onFocusLost, onOffline, onOnline } from './setupListeners'
 
 /**
  * A typesafe single entry to be upserted into the cache
@@ -85,7 +78,7 @@ export type ProcessedQueryUpsertEntry = {
  * A typesafe representation of a util action creator that accepts cache entry descriptions to upsert
  */
 export type UpsertEntries<Definitions extends EndpointDefinitions> = <
-  EndpointNames extends Array<QueryKeys<Definitions>>,
+  EndpointNames extends QueryKeys<Definitions>[],
 >(
   entries: [
     ...{
@@ -231,15 +224,18 @@ export function buildSlice({
           // We're already inside an Immer-powered reducer, and the user could just mutate `substate.data`
           // themselves inside of `merge()`. But, they might also want to return a new value.
           // Try to let Immer figure that part out, save the result, and assign it to `substate.data`.
-          let newData = createNextState(substate.data, (draftSubstateData) => {
-            // As usual with Immer, you can mutate _or_ return inside here, but not both
-            return merge(draftSubstateData, payload, {
-              arg: arg.originalArgs,
-              baseQueryMeta,
-              fulfilledTimeStamp,
-              requestId,
-            })
-          })
+          const newData = createNextState(
+            substate.data,
+            (draftSubstateData) => {
+              // As usual with Immer, you can mutate _or_ return inside here, but not both
+              return merge(draftSubstateData, payload, {
+                arg: arg.originalArgs,
+                baseQueryMeta,
+                fulfilledTimeStamp,
+                requestId,
+              })
+            },
+          )
           substate.data = newData
         } else {
           // Presumably a fresh request. Just cache the response data.
@@ -248,7 +244,7 @@ export function buildSlice({
       } else {
         // Assign or safely update the cache data.
         substate.data =
-          definitions[meta.arg.endpointName].structuralSharing ?? true
+          (definitions[meta.arg.endpointName].structuralSharing ?? true)
             ? copyWithStructuralSharing(
                 isDraft(substate.data)
                   ? original(substate.data)
@@ -585,7 +581,9 @@ export function buildSlice({
       ) {
         // Dummy
       },
-      internal_getRTKQSubscriptions() {},
+      internal_getRTKQSubscriptions() {
+        /** No-Op */
+      },
     },
   })
 

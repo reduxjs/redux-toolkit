@@ -10,7 +10,7 @@ import { createImmutableStateInvariantMiddleware } from './immutableStateInvaria
 
 import type { SerializableStateInvariantMiddlewareOptions } from './serializableStateInvariantMiddleware'
 import { createSerializableStateInvariantMiddleware } from './serializableStateInvariantMiddleware'
-import type { ExcludeFromTuple } from './tsHelpers'
+import type { EmptyObject, ExcludeFromTuple } from './tsHelpers'
 import { Tuple } from './utils'
 
 function isBoolean(x: any): x is boolean {
@@ -30,7 +30,7 @@ interface GetDefaultMiddlewareOptions {
 
 export type ThunkMiddlewareFor<
   S,
-  O extends GetDefaultMiddlewareOptions = {},
+  O extends GetDefaultMiddlewareOptions = EmptyObject,
 > = O extends {
   thunk: false
 }
@@ -59,7 +59,7 @@ export const buildGetDefaultMiddleware = <S = any>(): GetDefaultMiddleware<S> =>
       actionCreatorCheck = true,
     } = options ?? {}
 
-    let middlewareArray = new Tuple<Middleware[]>()
+    const middlewareArray = new Tuple<Middleware[]>()
 
     if (thunk) {
       if (isBoolean(thunk)) {
