@@ -117,6 +117,7 @@ export async function generateApi(
     useEnumType = false,
     mergeReadWriteOnly = false,
     httpResolverOptions,
+    ESMExtensions = false
   }: GenerationOptions
 ) {
   const v3Doc = (v3DocCache[spec] ??= await getV3Doc(spec, httpResolverOptions));
@@ -161,7 +162,19 @@ export async function generateApi(
       if (!apiFile.startsWith('.')) apiFile = `./${apiFile}`;
     }
   }
-  apiFile = apiFile.replace(/\.[jt]sx?$/, '');
+  
+  if(ESMExtensions === true){
+  apiFile = apiFile.replace(/\.js$|\.ts$|\.mjs$|\.mts$|\.jsx$|\.tsx$/, (extension) => {
+    if (extension ==='.js') return '.js';
+    if (extension ==='.ts') return '.js';
+    if (extension ==='.mjs') return '.mjs';
+    if (extension ==='.mts') return '.mjs';
+    if (extension ==='.jsx') return '.jsx';
+    if (extension ==='.tsx') return '.jsx';
+    return apiFile;
+  });
+};
+if(!ESMExtensions || ESMExtensions === false){apiFile = apiFile.replace(/\.[jt]sx?$/, '');};
 
   return printer.printNode(
     ts.EmitHint.Unspecified,
