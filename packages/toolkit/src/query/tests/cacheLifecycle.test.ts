@@ -505,7 +505,7 @@ test('updateCachedData', async () => {
             draft.value = 'TEST'
             trackCalls()
           })
-          expect(trackCalls).toHaveBeenCalledTimes(0)
+          expect(trackCalls).not.toHaveBeenCalled()
           expect(getCacheEntry().data).toEqual(undefined)
 
           gotFirstValue(await cacheDataLoaded)
@@ -515,7 +515,7 @@ test('updateCachedData', async () => {
             draft.value = 'TEST'
             trackCalls()
           })
-          expect(trackCalls).toHaveBeenCalledTimes(1)
+          expect(trackCalls).toHaveBeenCalledOnce()
           expect(getCacheEntry().data).toEqual({ value: 'TEST' })
 
           await cacheEntryRemoved
@@ -526,7 +526,7 @@ test('updateCachedData', async () => {
             draft.value = 'TEST2'
             trackCalls()
           })
-          expect(trackCalls).toHaveBeenCalledTimes(1)
+          expect(trackCalls).toHaveBeenCalledOnce()
           expect(getCacheEntry().data).toEqual(undefined)
 
           onCleanup()
@@ -564,15 +564,15 @@ test('dispatching further actions does not trigger another lifecycle', async () 
     }),
   })
   await storeRef.store.dispatch(extended.endpoints.injected.initiate())
-  expect(onNewCacheEntry).toHaveBeenCalledTimes(1)
+  expect(onNewCacheEntry).toHaveBeenCalledOnce()
 
   await storeRef.store.dispatch(extended.endpoints.injected.initiate())
-  expect(onNewCacheEntry).toHaveBeenCalledTimes(1)
+  expect(onNewCacheEntry).toHaveBeenCalledOnce()
 
   await storeRef.store.dispatch(
     extended.endpoints.injected.initiate(undefined, { forceRefetch: true }),
   )
-  expect(onNewCacheEntry).toHaveBeenCalledTimes(1)
+  expect(onNewCacheEntry).toHaveBeenCalledOnce()
 })
 
 test('dispatching a query initializer with `subscribe: false` does also start a lifecycle', async () => {
@@ -590,11 +590,11 @@ test('dispatching a query initializer with `subscribe: false` does also start a 
   await storeRef.store.dispatch(
     extended.endpoints.injected.initiate(undefined, { subscribe: false }),
   )
-  expect(onNewCacheEntry).toHaveBeenCalledTimes(1)
+  expect(onNewCacheEntry).toHaveBeenCalledOnce()
 
   // will not be called a second time though
   await storeRef.store.dispatch(extended.endpoints.injected.initiate(undefined))
-  expect(onNewCacheEntry).toHaveBeenCalledTimes(1)
+  expect(onNewCacheEntry).toHaveBeenCalledOnce()
 })
 
 test('dispatching a mutation initializer with `track: false` does not start a lifecycle', async () => {
@@ -612,8 +612,8 @@ test('dispatching a mutation initializer with `track: false` does not start a li
   await storeRef.store.dispatch(
     extended.endpoints.injected.initiate(undefined, { track: false }),
   )
-  expect(onNewCacheEntry).toHaveBeenCalledTimes(0)
+  expect(onNewCacheEntry).not.toHaveBeenCalled()
 
   await storeRef.store.dispatch(extended.endpoints.injected.initiate(undefined))
-  expect(onNewCacheEntry).toHaveBeenCalledTimes(1)
+  expect(onNewCacheEntry).toHaveBeenCalledOnce()
 })

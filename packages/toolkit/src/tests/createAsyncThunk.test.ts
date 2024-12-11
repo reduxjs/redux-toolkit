@@ -1,19 +1,13 @@
+import { noop } from '@internal/listenerMiddleware/utils'
+import { delay } from '@internal/utils'
 import type { CreateAsyncThunkFunction, UnknownAction } from '@reduxjs/toolkit'
 import {
   configureStore,
   createAsyncThunk,
   createReducer,
-  unwrapResult,
   miniSerializeError,
+  unwrapResult,
 } from '@reduxjs/toolkit'
-import { vi } from 'vitest'
-
-import {
-  createConsole,
-  getLog,
-  mockConsole,
-} from 'console-testing-library/pure'
-import { delay } from '@internal/utils'
 
 declare global {
   interface Window {
@@ -498,23 +492,19 @@ describe('createAsyncThunk with abortController', () => {
   describe('behavior with missing AbortController', () => {
     let keepAbortController: (typeof window)['AbortController']
     let freshlyLoadedModule: typeof import('../createAsyncThunk')
-    let restore: () => void = () => {}
-    let nodeEnv: string
 
     beforeEach(async () => {
       keepAbortController = window.AbortController
       delete (window as any).AbortController
       vi.resetModules()
       freshlyLoadedModule = await import('../createAsyncThunk')
-      restore = mockConsole(createConsole())
-      nodeEnv = process.env.NODE_ENV!
-      ;(process.env as any).NODE_ENV = 'development'
+      vi.stubEnv('NODE_ENV', 'development')
     })
 
     afterEach(() => {
-      ;(process.env as any).NODE_ENV = nodeEnv
-      restore()
-      window.AbortController = keepAbortController
+      vi.unstubAllEnvs()
+      vi.clearAllMocks()
+      vi.stubGlobal('AbortController', keepAbortController)
       vi.resetModules()
     })
 
@@ -532,7 +522,7 @@ describe('createAsyncThunk with abortController', () => {
 })
 
 test('non-serializable arguments are ignored by serializableStateInvariantMiddleware', async () => {
-  const restore = mockConsole(createConsole())
+  const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(noop)
   const nonSerializableValue = new Map()
   const asyncThunk = createAsyncThunk('test', (arg: Map<any, any>) => {})
 
@@ -540,8 +530,9 @@ test('non-serializable arguments are ignored by serializableStateInvariantMiddle
     reducer: () => 0,
   }).dispatch(asyncThunk(nonSerializableValue))
 
-  expect(getLog().log).toMatchInlineSnapshot(`""`)
-  restore()
+  expect(consoleErrorSpy).not.toHaveBeenCalled()
+
+  consoleErrorSpy.mockRestore()
 })
 
 describe('conditional skipping of asyncThunks', () => {
@@ -596,7 +587,7 @@ describe('conditional skipping of asyncThunks', () => {
     const asyncThunk = createAsyncThunk('test', payloadCreator, { condition })
     await asyncThunk(arg)(dispatch, getState, extra)
 
-    expect(condition).toHaveBeenCalledTimes(1)
+    expect(condition).toHaveBeenCalledOnce()
     expect(condition).toHaveBeenLastCalledWith(
       arg,
       expect.objectContaining({ getState, extra }),
@@ -607,7 +598,7 @@ describe('conditional skipping of asyncThunks', () => {
     const condition = () => true
     const asyncThunk = createAsyncThunk('test', payloadCreator, { condition })
     const thunkCallPromise = asyncThunk(arg)(dispatch, getState, extra)
-    expect(dispatch).toHaveBeenCalledTimes(1)
+    expect(dispatch).toHaveBeenCalledOnce()
     await thunkCallPromise
     expect(dispatch).toHaveBeenCalledTimes(2)
   })
@@ -616,14 +607,14 @@ describe('conditional skipping of asyncThunks', () => {
     const condition = () => Promise.resolve(false)
     const asyncThunk = createAsyncThunk('test', payloadCreator, { condition })
     await asyncThunk(arg)(dispatch, getState, extra)
-    expect(dispatch).toHaveBeenCalledTimes(0)
+    expect(dispatch).not.toHaveBeenCalled()
   })
 
   test('async condition with rejected promise', async () => {
     const condition = () => Promise.reject()
     const asyncThunk = createAsyncThunk('test', payloadCreator, { condition })
     await asyncThunk(arg)(dispatch, getState, extra)
-    expect(dispatch).toHaveBeenCalledTimes(1)
+    expect(dispatch).toHaveBeenCalledOnce()
     expect(dispatch).toHaveBeenLastCalledWith(
       expect.objectContaining({ type: 'test/rejected' }),
     )
@@ -641,14 +632,14 @@ describe('conditional skipping of asyncThunks', () => {
       thunkPromise.abort()
       await thunkPromise
     } catch (err) {}
-    expect(dispatch).toHaveBeenCalledTimes(0)
+    expect(dispatch).not.toHaveBeenCalled()
   })
 
   test('rejected action is not dispatched by default', async () => {
     const asyncThunk = createAsyncThunk('test', payloadCreator, { condition })
     await asyncThunk(arg)(dispatch, getState, extra)
 
-    expect(dispatch).toHaveBeenCalledTimes(0)
+    expect(dispatch).not.toHaveBeenCalled()
   })
 
   test('does not fail when attempting to abort a canceled promise', async () => {
@@ -673,7 +664,7 @@ describe('conditional skipping of asyncThunks', () => {
     })
     await asyncThunk(arg)(dispatch, getState, extra)
 
-    expect(dispatch).toHaveBeenCalledTimes(1)
+    expect(dispatch).toHaveBeenCalledOnce()
     expect(dispatch).toHaveBeenLastCalledWith(
       expect.objectContaining({
         error: {
@@ -881,9 +872,9 @@ test('`condition` will see state changes from a synchronously invoked asyncThunk
   })
 
   store.dispatch(asyncThunk({ force: false }))
-  expect(onStart).toHaveBeenCalledTimes(1)
+  expect(onStart).toHaveBeenCalledOnce()
   store.dispatch(asyncThunk({ force: false }))
-  expect(onStart).toHaveBeenCalledTimes(1)
+  expect(onStart).toHaveBeenCalledOnce()
   store.dispatch(asyncThunk({ force: true }))
   expect(onStart).toHaveBeenCalledTimes(2)
 })

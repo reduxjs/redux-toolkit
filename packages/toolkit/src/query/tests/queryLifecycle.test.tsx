@@ -438,9 +438,9 @@ test('query: will only start lifecycle if query is not skipped due to `condition
   const promise = storeRef.store.dispatch(
     extended.endpoints.injected.initiate('arg'),
   )
-  expect(onStart).toHaveBeenCalledTimes(1)
+  expect(onStart).toHaveBeenCalledOnce()
   storeRef.store.dispatch(extended.endpoints.injected.initiate('arg'))
-  expect(onStart).toHaveBeenCalledTimes(1)
+  expect(onStart).toHaveBeenCalledOnce()
   await promise
   storeRef.store.dispatch(
     extended.endpoints.injected.initiate('arg', { forceRefetch: true }),

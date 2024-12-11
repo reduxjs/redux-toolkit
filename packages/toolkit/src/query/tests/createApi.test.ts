@@ -1,3 +1,4 @@
+import { noop } from '@internal/listenerMiddleware/utils'
 import { server } from '@internal/query/tests/mocks/server'
 import {
   getSerializedHeaders,
@@ -14,7 +15,6 @@ import type {
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 import { HttpResponse, delay, http } from 'msw'
 import nodeFetch from 'node-fetch'
-import type { MockInstance } from 'vitest'
 
 beforeAll(() => {
   vi.stubEnv('NODE_ENV', 'development')
@@ -22,16 +22,14 @@ beforeAll(() => {
   return vi.unstubAllEnvs
 })
 
-let spy: MockInstance
+const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(noop)
 
-beforeAll(() => {
-  spy = vi.spyOn(console, 'error').mockImplementation(() => {})
-})
 afterEach(() => {
-  spy.mockReset()
+  vi.clearAllMocks()
 })
+
 afterAll(() => {
-  spy.mockRestore()
+  vi.restoreAllMocks()
 })
 
 function paginate<T>(array: T[], page_size: number, page_number: number) {
@@ -171,11 +169,11 @@ describe('wrong tagTypes log errors', () => {
     } while (result.status === 'pending')
 
     if (shouldError) {
-      expect(spy).toHaveBeenCalledWith(
+      expect(consoleErrorSpy).toHaveBeenLastCalledWith(
         "Tag type 'Users' was used, but not specified in `tagTypes`!",
       )
     } else {
-      expect(spy).not.toHaveBeenCalled()
+      expect(consoleErrorSpy).not.toHaveBeenCalled()
     }
   })
 })
@@ -438,11 +436,14 @@ describe('endpoint definition typings', () => {
 
       storeRef.store.dispatch(api.endpoints.query1.initiate('in1'))
       await delay(1)
-      expect(spy).not.toHaveBeenCalled()
+      expect(consoleErrorSpy).not.toHaveBeenCalled()
 
       storeRef.store.dispatch(api.endpoints.query2.initiate('in2'))
       await delay(1)
-      expect(spy).toHaveBeenCalledWith(
+
+      expect(consoleErrorSpy).toHaveBeenCalledOnce()
+
+      expect(consoleErrorSpy).toHaveBeenLastCalledWith(
         "Tag type 'missing' was used, but not specified in `tagTypes`!",
       )
 
@@ -1015,7 +1016,7 @@ describe('custom serializeQueryArgs per endpoint', () => {
       api.endpoints.queryWithNoSerializer.initiate(99),
     )
 
-    expect(serializer1).toHaveBeenCalledTimes(0)
+    expect(serializer1).not.toHaveBeenCalled()
 
     await storeRef.store.dispatch(
       api.endpoints.queryWithCustomSerializer.initiate(42),
@@ -1044,7 +1045,7 @@ describe('custom serializeQueryArgs per endpoint', () => {
   })
 
   it('Works via injectEndpoints', async () => {
-    expect(serializer2).toHaveBeenCalledTimes(0)
+    expect(serializer2).not.toHaveBeenCalled()
 
     await storeRef.store.dispatch(
       injectedApi.endpoints.injectedQueryWithCustomSerializer.initiate(5),
@@ -1158,11 +1159,11 @@ describe('timeout behavior', () => {
         }),
       }),
     })
-  
+
     const storeRef = setupApiStore(api, undefined, {
       withoutTestLifecycles: true,
     })
-    
+
     server.use(
       http.get(
         'https://example.com/success',

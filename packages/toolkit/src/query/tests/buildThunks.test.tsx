@@ -102,7 +102,7 @@ describe('re-triggering behavior on arg change', () => {
       expect(result.current.status).not.toBe('pending')
     })
 
-    expect(spy).toHaveBeenCalledTimes(1)
+    expect(spy).toHaveBeenCalledOnce()
 
     for (let x = 1; x < 3; x++) {
       rerender(6)
@@ -133,7 +133,7 @@ describe('re-triggering behavior on arg change', () => {
     await waitFor(() => {
       expect(result.current.status).not.toBe('pending')
     })
-    expect(spy).toHaveBeenCalledTimes(1)
+    expect(spy).toHaveBeenCalledOnce()
 
     for (let x = 1; x < 3; x++) {
       rerender({ name: 'Bob', likes: 'waffles' })
@@ -166,7 +166,7 @@ describe('re-triggering behavior on arg change', () => {
     await waitFor(() => {
       expect(result.current.status).not.toBe('pending')
     })
-    expect(spy).toHaveBeenCalledTimes(1)
+    expect(spy).toHaveBeenCalledOnce()
 
     for (let x = 1; x < 3; x++) {
       rerender({ person: { name: name + x } })
@@ -189,14 +189,14 @@ describe('re-triggering behavior on arg change', () => {
     await waitFor(() => {
       expect(result.current.status).not.toBe('pending')
     })
-    expect(spy).toHaveBeenCalledTimes(1)
+    expect(spy).toHaveBeenCalledOnce()
 
     for (let x = 1; x < 3; x++) {
       rerender({ likes: 'Bananas', name: 'Tim' })
       await waitFor(() => {
         expect(result.current.status).not.toBe('pending')
       })
-      expect(spy).toHaveBeenCalledTimes(1)
+      expect(spy).toHaveBeenCalledOnce()
     }
   })
 })
