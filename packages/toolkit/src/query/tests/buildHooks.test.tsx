@@ -3077,6 +3077,48 @@ describe('skip behavior', () => {
     expect(getSubscriptionCount('getUser(1)')).toBe(0)
   })
 
+  test('skipToken does not break serializeQueryArgs', async () => {
+    const { result, rerender } = renderHook(
+      ([arg, options]: Parameters<
+        typeof api.endpoints.queryWithDeepArg.useQuery
+      >) => api.endpoints.queryWithDeepArg.useQuery(arg, options),
+      {
+        wrapper: storeRef.wrapper,
+        initialProps: [skipToken],
+      },
+    )
+
+    expect(result.current).toEqual(uninitialized)
+    await waitMs(1)
+
+    expect(getSubscriptionCount('nestedValue')).toBe(0)
+    // also no subscription on `getUser(skipToken)` or similar:
+    expect(getSubscriptions()).toEqual({})
+
+    rerender([{ param: { nested: 'nestedValue' } }])
+
+    await act(async () => {
+      await waitForFakeTimer(150)
+    })
+
+    expect(result.current).toMatchObject({ status: QueryStatus.fulfilled })
+    await waitMs(1)
+
+    expect(getSubscriptionCount('nestedValue')).toBe(1)
+    expect(getSubscriptions()).not.toEqual({})
+
+    rerender([skipToken])
+
+    expect(result.current).toEqual({
+      ...uninitialized,
+      isSuccess: true,
+      currentData: undefined,
+      data: {},
+    })
+    await waitMs(1)
+    expect(getSubscriptionCount('nestedValue')).toBe(0)
+  })
+
   test('skipping a previously fetched query retains the existing value as `data`, but clears `currentData`', async () => {
     const { result, rerender } = renderHook(
       ([arg, options]: Parameters<typeof api.endpoints.getUser.useQuery>) =>
