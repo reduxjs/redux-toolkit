@@ -905,16 +905,17 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       const { endpointName } = lastResult
       const endpointDefinition = context.endpointDefinitions[endpointName]
       if (
+        queryArgs !== skipToken &&
         serializeQueryArgs({
           queryArgs: lastResult.originalArgs,
           endpointDefinition,
           endpointName,
         }) ===
-        serializeQueryArgs({
-          queryArgs,
-          endpointDefinition,
-          endpointName,
-        })
+          serializeQueryArgs({
+            queryArgs,
+            endpointDefinition,
+            endpointName,
+          })
       )
         lastResult = undefined
     }
