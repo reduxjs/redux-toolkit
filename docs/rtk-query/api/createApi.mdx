@@ -54,7 +54,7 @@ export const { useGetPokemonByNameQuery } = pokemonApi
 // highlight-end
 ```
 
-## Parameters
+## `createApi` Parameters
 
 `createApi` accepts a single configuration object parameter with the following options:
 
@@ -357,6 +357,10 @@ See also [Server Side Rendering](../usage/server-side-rendering.mdx) and
 
 By default, this function will take the query arguments, sort object keys where applicable, stringify the result, and concatenate it with the endpoint name. This creates a cache key based on the combination of arguments + endpoint name (ignoring object key order), such that calling any given endpoint with the same arguments will result in the same cache key.
 
+### `invalidationBehavior`
+
+[summary](docblock://query/createApi.ts?token=CreateApiOptions.invalidationBehavior)
+
 ### `keepUnusedDataFor`
 
 [summary](docblock://query/createApi.ts?token=CreateApiOptions.keepUnusedDataFor)
@@ -389,7 +393,7 @@ You can set this globally in `createApi`, but you can also override the default 
 If you specify `track: false` when manually dispatching queries, RTK Query will not be able to automatically refetch for you.
 :::
 
-## Anatomy of an endpoint
+## Endpoint Definition Parameters
 
 ### `query`
 
