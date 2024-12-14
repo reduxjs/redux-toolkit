@@ -1,6 +1,7 @@
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import type {
   EndpointDefinitions,
+  InfiniteQueryArgFrom,
   InfiniteQueryDefinition,
   MutationDefinition,
   QueryArgFrom,
@@ -108,7 +109,7 @@ type InfiniteQueryResultSelectorFactory<
   Definition extends InfiniteQueryDefinition<any, any, any, any, any>,
   RootState,
 > = (
-  queryArg: QueryArgFrom<Definition> | SkipToken,
+  queryArg: InfiniteQueryArgFrom<Definition> | SkipToken,
 ) => (state: RootState) => InfiniteQueryResultSelectorResult<Definition>
 
 export type InfiniteQueryResultSelectorResult<
