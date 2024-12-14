@@ -1768,7 +1768,9 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         Definitions
       >
       const dispatch = useDispatch<ThunkDispatch<any, any, UnknownAction>>()
-      const subscriptionSelectorsRef = useRef<SubscriptionSelectors>()
+      const subscriptionSelectorsRef = useRef<
+        SubscriptionSelectors | undefined
+      >(undefined)
       if (!subscriptionSelectorsRef.current) {
         const returnedValue = dispatch(
           api.internalActions.internal_getRTKQSubscriptions(),
@@ -1809,7 +1811,9 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
       const lastRenderHadSubscription = useRef(false)
 
-      const promiseRef = useRef<InfiniteQueryActionCreatorResult<any>>()
+      const promiseRef = useRef<
+        InfiniteQueryActionCreatorResult<any> | undefined
+      >(undefined)
 
       let { queryCacheKey, requestId } = promiseRef.current || {}
 
@@ -1933,7 +1937,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
       type ApiRootState = Parameters<ReturnType<typeof select>>[0]
 
-      const lastValue = useRef<any>()
+      const lastValue = useRef<any>(undefined)
 
       const selectDefaultResult: Selector<ApiRootState, any, [any]> = useMemo(
         () =>
