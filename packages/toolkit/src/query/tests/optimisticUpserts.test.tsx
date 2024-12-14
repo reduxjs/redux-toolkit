@@ -5,13 +5,24 @@ import {
   hookWaitFor,
   setupApiStore,
 } from '../../tests/utils/helpers'
-import { renderHook, act, waitFor } from '@testing-library/react'
+import {
+  render,
+  renderHook,
+  act,
+  waitFor,
+  screen,
+} from '@testing-library/react'
 import { delay } from 'msw'
 
 interface Post {
   id: string
   title: string
   contents: string
+}
+
+interface FolderT {
+  id: number
+  children: FolderT[]
 }
 
 const baseQuery = vi.fn()
@@ -28,7 +39,7 @@ const api = createApi({
         .catch((e: any) => ({ error: e }))
     return { data: result, meta: 'meta' }
   },
-  tagTypes: ['Post'],
+  tagTypes: ['Post', 'Folder'],
   endpoints: (build) => ({
     getPosts: build.query<Post[], void>({
       query: () => '/posts',
@@ -79,6 +90,30 @@ const api = createApi({
         api.dispatch(postAddedAction(res.data.id))
       },
       keepUnusedDataFor: 0.01,
+    }),
+    getFolder: build.query<FolderT, number>({
+      queryFn: async (args) => {
+        return {
+          data: {
+            id: args,
+            // Folder contains children that are as well folders
+            children: [{ id: 2, children: [] }],
+          },
+        }
+      },
+      providesTags: (result, err, args) => [{ type: 'Folder', id: args }],
+      onQueryStarted: async (args, queryApi) => {
+        const { data } = await queryApi.queryFulfilled
+
+        // Upsert getFolder endpoint with children from response data
+        const upsertData = data.children.map((child) => ({
+          arg: child.id,
+          endpointName: 'getFolder' as const,
+          value: child,
+        }))
+
+        queryApi.dispatch(api.util.upsertQueryEntries(upsertData))
+      },
     }),
   }),
 })
@@ -433,6 +468,56 @@ describe('upsertQueryEntries', () => {
     expect(api.endpoints.postWithSideEffect.select('1')(stateAfter).data).toBe(
       undefined,
     )
+  })
+
+  test('Handles repeated upserts and async lifecycles', async () => {
+    const StateForUpsertFolder = ({ folderId }: { folderId: number }) => {
+      const { status } = api.useGetFolderQuery(folderId)
+
+      return (
+        <>
+          <div>
+            Status getFolder with ID (
+            {folderId === 1 ? 'original request' : 'upserted'}) {folderId}:{' '}
+            <span data-testid={`status-${folderId}`}>{status}</span>
+          </div>
+        </>
+      )
+    }
+
+    const Folder = () => {
+      const { data, isLoading, isError } = api.useGetFolderQuery(1)
+
+      return (
+        <div>
+          <h1>Folders</h1>
+
+          {isLoading && <div>Loading...</div>}
+
+          {isError && <div>Error...</div>}
+
+          <StateForUpsertFolder key={`state-${1}`} folderId={1} />
+          <StateForUpsertFolder key={`state-${2}`} folderId={2} />
+        </div>
+      )
+    }
+
+    render(<Folder />, {
+      wrapper: storeRef.wrapper,
+    })
+
+    await waitFor(() => {
+      const { actions } = storeRef.store.getState()
+      // Inspection:
+      // - 2 inits
+      // - 2 pendings, 2 fulfilleds for the hook queries
+      // - 2 upserts
+      expect(actions.length).toBe(8)
+      expect(
+        actions.filter((a) => api.util.upsertQueryEntries.match(a)).length,
+      ).toBe(2)
+    })
+    expect(screen.getByTestId('status-2').textContent).toBe('fulfilled')
   })
 })
 

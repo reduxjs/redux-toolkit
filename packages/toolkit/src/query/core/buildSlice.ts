@@ -84,7 +84,7 @@ export type ProcessedQueryUpsertEntry = {
 /**
  * A typesafe representation of a util action creator that accepts cache entry descriptions to upsert
  */
-export type UpsertEntries<Definitions extends EndpointDefinitions> = <
+export type UpsertEntries<Definitions extends EndpointDefinitions> = (<
   EndpointNames extends Array<QueryKeys<Definitions>>,
 >(
   entries: [
@@ -95,7 +95,11 @@ export type UpsertEntries<Definitions extends EndpointDefinitions> = <
       >
     },
   ],
-) => PayloadAction<NormalizedQueryUpsertEntryPayload[]>
+) => PayloadAction<NormalizedQueryUpsertEntryPayload[]>) & {
+  match: (
+    action: unknown,
+  ) => action is PayloadAction<NormalizedQueryUpsertEntryPayload[]>
+}
 
 function updateQuerySubstateIfExists(
   state: QueryState<any>,
@@ -212,10 +216,10 @@ export function buildSlice({
       // RTK_autoBatch: true
     },
     payload: unknown,
+    upserting: boolean,
   ) {
     updateQuerySubstateIfExists(draft, meta.arg.queryCacheKey, (substate) => {
-      if (substate.requestId !== meta.requestId && !isUpsertQuery(meta.arg))
-        return
+      if (substate.requestId !== meta.requestId && !upserting) return
       const { merge } = definitions[meta.arg.endpointName] as QueryDefinition<
         any,
         any,
@@ -248,7 +252,7 @@ export function buildSlice({
       } else {
         // Assign or safely update the cache data.
         substate.data =
-          definitions[meta.arg.endpointName].structuralSharing ?? true
+          (definitions[meta.arg.endpointName].structuralSharing ?? true)
             ? copyWithStructuralSharing(
                 isDraft(substate.data)
                   ? original(substate.data)
@@ -307,6 +311,8 @@ export function buildSlice({
                 baseQueryMeta: {},
               },
               value,
+              // We know we're upserting here
+              true,
             )
           }
         },
@@ -365,7 +371,8 @@ export function buildSlice({
           writePendingCacheEntry(draft, arg, upserting, meta)
         })
         .addCase(queryThunk.fulfilled, (draft, { meta, payload }) => {
-          writeFulfilledCacheEntry(draft, meta, payload)
+          const upserting = isUpsertQuery(meta.arg)
+          writeFulfilledCacheEntry(draft, meta, payload, upserting)
         })
         .addCase(
           queryThunk.rejected,
