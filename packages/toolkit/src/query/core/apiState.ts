@@ -238,6 +238,8 @@ export type QuerySubState<
     }
 >
 
+export type InfiniteQueryDirection = 'forward' | 'backward'
+
 export type InfiniteQuerySubState<
   D extends BaseEndpointDefinition<any, any, any>,
 > =
@@ -249,7 +251,7 @@ export type InfiniteQuerySubState<
         isFetchingNextPage?: boolean
         isFetchingPreviousPage?: boolean
         param?: PageParamFrom<D>
-        direction?: 'forward' | 'backward'
+        direction?: InfiniteQueryDirection
       }
     : never
 

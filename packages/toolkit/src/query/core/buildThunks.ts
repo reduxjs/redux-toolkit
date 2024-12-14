@@ -39,6 +39,7 @@ import type {
   InfiniteData,
   InfiniteQueryConfigOptions,
   QueryCacheKey,
+  InfiniteQueryDirection,
 } from './apiState'
 import { QueryStatus } from './apiState'
 import type {
@@ -131,7 +132,7 @@ export type InfiniteQueryThunkArg<
     endpointName: string
     param: unknown
     previous?: boolean
-    direction?: 'forward' | 'backward'
+    direction?: InfiniteQueryDirection
   }
 
 type MutationThunkArg = {

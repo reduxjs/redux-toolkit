@@ -63,6 +63,7 @@ import { UNINITIALIZED_VALUE } from './constants'
 import type { ReactHooksModuleOptions } from './module'
 import { useStableQueryArgs } from './useSerializedStableValue'
 import { useShallowStableValue } from './useShallowStableValue'
+import { InfiniteQueryDirection } from '../core/apiState'
 
 // Copy-pasted from React-Redux
 const canUseDOM = () =>
@@ -786,7 +787,7 @@ export type LazyInfiniteQueryTrigger<
    */
   (
     arg: QueryArgFrom<D>,
-    direction: 'forward' | 'backward',
+    direction: InfiniteQueryDirection,
   ): InfiniteQueryActionCreatorResult<D>
 }
 
