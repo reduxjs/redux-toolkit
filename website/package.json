@@ -33,6 +33,7 @@
     ]
   },
   "devDependencies": {
+    "@docusaurus/faster": "^3.6.3",
     "netlify-plugin-cache": "^1.0.3",
     "prettier": "^3.2.5"
   }
