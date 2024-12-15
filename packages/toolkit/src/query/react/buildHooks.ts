@@ -890,7 +890,10 @@ export type UseInfiniteQuery<
   arg: InfiniteQueryArgFrom<D> | SkipToken,
   options?: UseInfiniteQuerySubscriptionOptions<D> &
     UseInfiniteQueryStateOptions<D, R>,
-) => UseInfiniteQueryHookResult<D, R>
+) => UseInfiniteQueryHookResult<D, R> & {
+  fetchNextPage: () => InfiniteQueryActionCreatorResult<D>
+  fetchPreviousPage: () => InfiniteQueryActionCreatorResult<D>
+}
 
 export type UseInfiniteQueryState<
   D extends InfiniteQueryDefinition<any, any, any, any, any>,
@@ -898,7 +901,6 @@ export type UseInfiniteQueryState<
   arg: QueryArgFrom<D> | SkipToken,
   options?: UseInfiniteQueryStateOptions<D, R>,
 ) => UseInfiniteQueryStateResult<D, R>
-
 export type TypedUseInfiniteQueryState<
   ResultType,
   QueryArg,
@@ -1040,9 +1042,6 @@ type UseInfiniteQueryStateBaseResult<
   hasPreviousPage: false
   isFetchingNextPage: false
   isFetchingPreviousPage: false
-
-  fetchNextPage: () => Promise<InfiniteQueryActionCreatorResult<D>>
-  fetchPreviousPage: () => Promise<InfiniteQueryActionCreatorResult<D>>
 }
 
 type UseInfiniteQueryStateDefaultResult<
@@ -1347,12 +1346,6 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     // isSuccess = true when data is present
     const isSuccess = currentState.isSuccess || (isFetching && hasData)
 
-    const isFetchingNextPage =
-      isFetching && currentState.direction === 'forward'
-
-    const isFetchingPreviousPage =
-      isFetching && currentState.direction === 'backward'
-
     return {
       ...currentState,
       data,
@@ -1360,8 +1353,6 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       isFetching,
       isLoading,
       isSuccess,
-      isFetchingNextPage,
-      isFetchingPreviousPage,
     } as UseInfiniteQueryStateDefaultResult<any>
   }
 
