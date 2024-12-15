@@ -39,6 +39,7 @@ import type {
   InfiniteData,
   InfiniteQueryConfigOptions,
   QueryCacheKey,
+  InfiniteQueryDirection,
 } from './apiState'
 import { QueryStatus } from './apiState'
 import type {
@@ -131,7 +132,7 @@ export type InfiniteQueryThunkArg<
     endpointName: string
     param: unknown
     previous?: boolean
-    direction?: 'forward' | 'backward'
+    direction?: InfiniteQueryDirection
   }
 
 type MutationThunkArg = {
@@ -646,31 +647,6 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
     }
   }
 
-  function getNextPageParam(
-    options: InfiniteQueryConfigOptions<unknown, unknown>,
-    { pages, pageParams }: InfiniteData<unknown, unknown>,
-  ): unknown | undefined {
-    const lastIndex = pages.length - 1
-    return options.getNextPageParam(
-      pages[lastIndex],
-      pages,
-      pageParams[lastIndex],
-      pageParams,
-    )
-  }
-
-  function getPreviousPageParam(
-    options: InfiniteQueryConfigOptions<unknown, unknown>,
-    { pages, pageParams }: InfiniteData<unknown, unknown>,
-  ): unknown | undefined {
-    return options.getPreviousPageParam?.(
-      pages[0],
-      pages,
-      pageParams[0],
-      pageParams,
-    )
-  }
-
   function isForcedQuery(
     arg: QueryThunkArg,
     state: RootState<any, string, ReducerPath>,
@@ -890,6 +866,31 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
     patchQueryData,
     buildMatchThunkActions,
   }
+}
+
+export function getNextPageParam(
+  options: InfiniteQueryConfigOptions<unknown, unknown>,
+  { pages, pageParams }: InfiniteData<unknown, unknown>,
+): unknown | undefined {
+  const lastIndex = pages.length - 1
+  return options.getNextPageParam(
+    pages[lastIndex],
+    pages,
+    pageParams[lastIndex],
+    pageParams,
+  )
+}
+
+export function getPreviousPageParam(
+  options: InfiniteQueryConfigOptions<unknown, unknown>,
+  { pages, pageParams }: InfiniteData<unknown, unknown>,
+): unknown | undefined {
+  return options.getPreviousPageParam?.(
+    pages[0],
+    pages,
+    pageParams[0],
+    pageParams,
+  )
 }
 
 export function calculateProvidedByThunk(

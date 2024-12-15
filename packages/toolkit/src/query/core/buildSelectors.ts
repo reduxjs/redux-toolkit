@@ -1,6 +1,7 @@
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import type {
   EndpointDefinitions,
+  InfiniteQueryArgFrom,
   InfiniteQueryDefinition,
   MutationDefinition,
   QueryArgFrom,
@@ -12,6 +13,8 @@ import type {
 import { expandTagDescription } from '../endpointDefinitions'
 import { flatten, isNotNullish } from '../utils'
 import type {
+  InfiniteData,
+  InfiniteQueryConfigOptions,
   InfiniteQuerySubState,
   MutationSubState,
   QueryCacheKey,
@@ -25,6 +28,7 @@ import { QueryStatus, getRequestStatusFlags } from './apiState'
 import { getMutationCacheKey } from './buildSlice'
 import type { createSelector as _createSelector } from './rtkImports'
 import { createNextState } from './rtkImports'
+import { getNextPageParam, getPreviousPageParam } from './buildThunks'
 
 export type SkipToken = typeof skipToken
 /**
@@ -108,12 +112,23 @@ type InfiniteQueryResultSelectorFactory<
   Definition extends InfiniteQueryDefinition<any, any, any, any, any>,
   RootState,
 > = (
-  queryArg: QueryArgFrom<Definition> | SkipToken,
+  queryArg: InfiniteQueryArgFrom<Definition> | SkipToken,
 ) => (state: RootState) => InfiniteQueryResultSelectorResult<Definition>
+
+export type InfiniteQueryResultFlags = {
+  hasNextPage: boolean
+  hasPreviousPage: boolean
+  isFetchingNextPage: boolean
+  isFetchingPreviousPage: boolean
+  isFetchNextPageError: boolean
+  isFetchPreviousPageError: boolean
+}
 
 export type InfiniteQueryResultSelectorResult<
   Definition extends InfiniteQueryDefinition<any, any, any, any, any>,
-> = InfiniteQuerySubState<Definition> & RequestStatusFlags
+> = InfiniteQuerySubState<Definition> &
+  RequestStatusFlags &
+  InfiniteQueryResultFlags
 
 type MutationResultSelectorFactory<
   Definition extends MutationDefinition<any, any, any, any>,
@@ -230,7 +245,52 @@ export function buildSelectors<
       const finalSelectQuerySubState =
         queryArgs === skipToken ? selectSkippedQuery : selectQuerySubstate
 
-      return createSelector(finalSelectQuerySubState, withRequestFlags)
+      const { infiniteQueryOptions } = endpointDefinition
+
+      function withInfiniteQueryResultFlags<T extends { status: QueryStatus }>(
+        substate: T,
+      ): T & RequestStatusFlags & InfiniteQueryResultFlags {
+        const infiniteSubstate = substate as InfiniteQuerySubState<any>
+        const fetchDirection = infiniteSubstate.direction
+        const stateWithRequestFlags = {
+          ...infiniteSubstate,
+          ...getRequestStatusFlags(substate.status),
+        }
+
+        const { isLoading, isError } = stateWithRequestFlags
+
+        const isFetchNextPageError = isError && fetchDirection === 'forward'
+        const isFetchingNextPage = isLoading && fetchDirection === 'forward'
+
+        const isFetchPreviousPageError =
+          isError && fetchDirection === 'backward'
+        const isFetchingPreviousPage =
+          isLoading && fetchDirection === 'backward'
+
+        const hasNextPage = getHasNextPage(
+          infiniteQueryOptions,
+          stateWithRequestFlags.data,
+        )
+        const hasPreviousPage = getHasPreviousPage(
+          infiniteQueryOptions,
+          stateWithRequestFlags.data,
+        )
+
+        return {
+          ...stateWithRequestFlags,
+          hasNextPage,
+          hasPreviousPage,
+          isFetchingNextPage,
+          isFetchingPreviousPage,
+          isFetchNextPageError,
+          isFetchPreviousPageError,
+        }
+      }
+
+      return createSelector(
+        finalSelectQuerySubState,
+        withInfiniteQueryResultFlags,
+      )
     }) as InfiniteQueryResultSelectorFactory<any, RootState>
   }
 
@@ -314,5 +374,21 @@ export function buildSelectors<
           entry.status !== QueryStatus.uninitialized,
       )
       .map((entry) => entry.originalArgs)
+  }
+
+  function getHasNextPage(
+    options: InfiniteQueryConfigOptions<any, any>,
+    data?: InfiniteData<unknown, unknown>,
+  ): boolean {
+    if (!data) return false
+    return getNextPageParam(options, data) != null
+  }
+
+  function getHasPreviousPage(
+    options: InfiniteQueryConfigOptions<any, any>,
+    data?: InfiniteData<unknown, unknown>,
+  ): boolean {
+    if (!data || !options.getPreviousPageParam) return false
+    return getPreviousPageParam(options, data) != null
   }
 }

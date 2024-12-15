@@ -25,6 +25,7 @@ import type {
   ConfigState,
   QueryKeys,
   InfiniteQuerySubState,
+  InfiniteQueryDirection,
 } from './apiState'
 import { QueryStatus } from './apiState'
 import type {
@@ -35,14 +36,15 @@ import type {
   RejectedAction,
 } from './buildThunks'
 import { calculateProvidedByThunk } from './buildThunks'
-import type {
-  AssertTagTypes,
-  DefinitionType,
-  EndpointDefinitions,
-  FullTagDescription,
-  QueryArgFrom,
-  QueryDefinition,
-  ResultTypeFrom,
+import {
+  isInfiniteQueryDefinition,
+  type AssertTagTypes,
+  type DefinitionType,
+  type EndpointDefinitions,
+  type FullTagDescription,
+  type QueryArgFrom,
+  type QueryDefinition,
+  type ResultTypeFrom,
 } from '../endpointDefinitions'
 import type { Patch } from 'immer'
 import { isDraft } from 'immer'
@@ -205,15 +207,11 @@ export function buildSlice({
       }
       substate.startedTimeStamp = meta.startedTimeStamp
 
-      // TODO: Awful - fix this most likely by just moving it to its own slice that only works on InfQuery's
-      if (
-        'param' in substate &&
-        'direction' in substate &&
-        'param' in arg &&
-        'direction' in arg
-      ) {
-        substate.param = arg.param
-        substate.direction = arg.direction as 'forward' | 'backward' | undefined
+      const endpointDefinition = definitions[meta.arg.endpointName]
+
+      if (isInfiniteQueryDefinition(endpointDefinition) && 'direction' in arg) {
+        ;(substate as InfiniteQuerySubState<any>).direction =
+          arg.direction as InfiniteQueryDirection
       }
     })
   }
@@ -223,11 +221,9 @@ export function buildSlice({
     meta: {
       arg: QueryThunkArg
       requestId: string
-      // requestStatus: 'fulfilled'
     } & {
       fulfilledTimeStamp: number
       baseQueryMeta: unknown
-      // RTK_autoBatch: true
     },
     payload: unknown,
     upserting: boolean,

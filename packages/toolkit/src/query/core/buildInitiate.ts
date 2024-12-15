@@ -24,6 +24,7 @@ import { countObjectKeys, getOrInsert, isNotNullish } from '../utils'
 import type {
   InfiniteData,
   InfiniteQueryConfigOptions,
+  InfiniteQueryDirection,
   SubscriptionOptions,
 } from './apiState'
 import type {
@@ -73,7 +74,7 @@ export type StartInfiniteQueryActionCreatorOptions<
   subscribe?: boolean
   forceRefetch?: boolean | number
   subscriptionOptions?: SubscriptionOptions
-  direction?: 'forward' | 'backward'
+  direction?: InfiniteQueryDirection
   [forceQueryFnSymbol]?: () => QueryReturnValue
   param?: unknown
   previous?: boolean
