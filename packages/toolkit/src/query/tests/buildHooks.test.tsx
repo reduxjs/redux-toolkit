@@ -36,6 +36,7 @@ import type { SyncScreen } from '@testing-library/react-render-stream/pure'
 import { createRenderStream } from '@testing-library/react-render-stream/pure'
 import { HttpResponse, http } from 'msw'
 import { useEffect, useState } from 'react'
+import type { InfiniteQueryResultFlags } from '../core/buildSelectors'
 
 // Just setup a temporary in-memory counter for tests that `getIncrementedAmount`.
 // This can be used to test how many renders happen due to data changes or
@@ -1781,7 +1782,7 @@ describe('hooks tests', () => {
       )
     })
 
-    test('useInfiniteQuery fetchNextPage Trigger', async () => {
+    test.only('useInfiniteQuery fetchNextPage Trigger', async () => {
       const storeRef = setupApiStore(pokemonApi, undefined, {
         withoutTestLifecycles: true,
       })
@@ -1796,6 +1797,26 @@ describe('hooks tests', () => {
         //console.log('queries', queries, storeRef.store.getState().api.queries)
 
         expect(queries).toBe(count)
+      }
+
+      const checkEntryFlags = (
+        arg: string,
+        expectedFlags: Partial<InfiniteQueryResultFlags>,
+      ) => {
+        const selector = pokemonApi.endpoints.getInfinitePokemon.select(arg)
+        const entry = selector(storeRef.store.getState())
+
+        const actualFlags: InfiniteQueryResultFlags = {
+          hasNextPage: false,
+          hasPreviousPage: false,
+          isFetchingNextPage: false,
+          isFetchingPreviousPage: false,
+          isFetchNextPageError: false,
+          isFetchPreviousPageError: false,
+          ...expectedFlags,
+        }
+
+        expect(entry).toMatchObject(actualFlags)
       }
 
       const checkPageRows = (
@@ -1836,30 +1857,64 @@ describe('hooks tests', () => {
 
       const utils = render(<PokemonList />, { wrapper: storeRef.wrapper })
       checkNumQueries(1)
+      checkEntryFlags('fire', {})
       await waitForFetch(true)
       checkNumQueries(1)
       checkPageRows(getCurrentRender().withinDOM, 'fire', [0])
+      checkEntryFlags('fire', {
+        hasNextPage: true,
+      })
 
       fireEvent.click(screen.getByTestId('nextPage'), {})
+      checkEntryFlags('fire', {
+        hasNextPage: true,
+        isFetchingNextPage: true,
+      })
       await waitForFetch()
       checkPageRows(getCurrentRender().withinDOM, 'fire', [0, 1])
+      checkEntryFlags('fire', {
+        hasNextPage: true,
+      })
 
       fireEvent.click(screen.getByTestId('nextPage'))
       await waitForFetch()
       checkPageRows(getCurrentRender().withinDOM, 'fire', [0, 1, 2])
 
       utils.rerender(<PokemonList arg="water" initialPageParam={3} />)
+      checkEntryFlags('water', {})
       await waitForFetch(true)
       checkNumQueries(2)
       checkPageRows(getCurrentRender().withinDOM, 'water', [3])
+      checkEntryFlags('water', {
+        hasNextPage: true,
+        hasPreviousPage: true,
+      })
 
       fireEvent.click(screen.getByTestId('nextPage'))
+      checkEntryFlags('water', {
+        hasNextPage: true,
+        hasPreviousPage: true,
+        isFetchingNextPage: true,
+      })
       await waitForFetch()
       checkPageRows(getCurrentRender().withinDOM, 'water', [3, 4])
+      checkEntryFlags('water', {
+        hasNextPage: true,
+        hasPreviousPage: true,
+      })
 
       fireEvent.click(screen.getByTestId('prevPage'))
+      checkEntryFlags('water', {
+        hasNextPage: true,
+        hasPreviousPage: true,
+        isFetchingPreviousPage: true,
+      })
       await waitForFetch()
       checkPageRows(getCurrentRender().withinDOM, 'water', [2, 3, 4])
+      checkEntryFlags('water', {
+        hasNextPage: true,
+        hasPreviousPage: true,
+      })
     })
   })
 

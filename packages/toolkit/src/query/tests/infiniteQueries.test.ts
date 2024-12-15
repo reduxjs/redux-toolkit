@@ -10,6 +10,7 @@ import {
 import userEvent from '@testing-library/user-event'
 import { HttpResponse, http } from 'msw'
 import util from 'util'
+import type { InfiniteQueryActionCreatorResult } from '@reduxjs/toolkit/query/react'
 import {
   QueryStatus,
   createApi,
@@ -24,6 +25,7 @@ import {
 } from '../../tests/utils/helpers'
 import type { BaseQueryApi } from '../baseQueryTypes'
 import { server } from '@internal/query/tests/mocks/server'
+import type { InfiniteQueryResultFlags } from '../core/buildSelectors'
 
 describe('Infinite queries', () => {
   type Pokemon = {
@@ -138,93 +140,163 @@ describe('Infinite queries', () => {
     process.env.NODE_ENV = 'test'
   })
 
-  test('Basic infinite query behavior', async () => {
+  test.only('Basic infinite query behavior', async () => {
+    const checkFlags = (
+      value: unknown,
+      expectedFlags: Partial<InfiniteQueryResultFlags>,
+    ) => {
+      const actualFlags: InfiniteQueryResultFlags = {
+        hasNextPage: false,
+        hasPreviousPage: false,
+        isFetchingNextPage: false,
+        isFetchingPreviousPage: false,
+        isFetchNextPageError: false,
+        isFetchPreviousPageError: false,
+        ...expectedFlags,
+      }
+
+      expect(value).toMatchObject(actualFlags)
+    }
+
+    const checkEntryFlags = (
+      arg: string,
+      expectedFlags: Partial<InfiniteQueryResultFlags>,
+    ) => {
+      const selector = pokemonApi.endpoints.getInfinitePokemon.select(arg)
+      const entry = selector(storeRef.store.getState())
+
+      checkFlags(entry, expectedFlags)
+    }
+
+    type InfiniteQueryResult = Awaited<InfiniteQueryActionCreatorResult<any>>
+
+    const checkResultData = (
+      result: InfiniteQueryResult,
+      expectedValues: Pokemon[][],
+    ) => {
+      expect(result.status).toBe(QueryStatus.fulfilled)
+      if (result.status === QueryStatus.fulfilled) {
+        expect(result.data.pages).toEqual(expectedValues)
+      }
+    }
+
     const res1 = storeRef.store.dispatch(
-      // Should be `arg: string`
       pokemonApi.endpoints.getInfinitePokemon.initiate('fire', {}),
     )
 
+    checkEntryFlags('fire', {})
+
     const entry1InitialLoad = await res1
-    expect(entry1InitialLoad.status).toBe(QueryStatus.fulfilled)
-    // console.log('Value: ', util.inspect(entry1InitialLoad, { depth: Infinity }))
 
-    if (entry1InitialLoad.status === QueryStatus.fulfilled) {
-      expect(entry1InitialLoad.data.pages).toEqual([
-        // one page, one entry
-        [{ id: '0', name: 'Pokemon 0' }],
-      ])
-    }
+    checkResultData(entry1InitialLoad, [[{ id: '0', name: 'Pokemon 0' }]])
+    checkFlags(entry1InitialLoad, {
+      hasNextPage: true,
+    })
 
-    const entry1SecondPage = await storeRef.store.dispatch(
+    const res2 = storeRef.store.dispatch(
       pokemonApi.endpoints.getInfinitePokemon.initiate('fire', {
         direction: 'forward',
       }),
     )
 
-    expect(entry1SecondPage.status).toBe(QueryStatus.fulfilled)
-    if (entry1SecondPage.status === QueryStatus.fulfilled) {
-      expect(entry1SecondPage.data.pages).toEqual([
-        // two pages, one entry each
-        [{ id: '0', name: 'Pokemon 0' }],
-        [{ id: '1', name: 'Pokemon 1' }],
-      ])
-    }
+    checkEntryFlags('fire', {
+      hasNextPage: true,
+      isFetchingNextPage: true,
+    })
 
-    const entry1PrevPageMissing = await storeRef.store.dispatch(
+    const entry1SecondPage = await res2
+
+    checkResultData(entry1SecondPage, [
+      [{ id: '0', name: 'Pokemon 0' }],
+      [{ id: '1', name: 'Pokemon 1' }],
+    ])
+    checkFlags(entry1SecondPage, {
+      hasNextPage: true,
+    })
+
+    const res3 = storeRef.store.dispatch(
       pokemonApi.endpoints.getInfinitePokemon.initiate('fire', {
         direction: 'backward',
       }),
     )
 
-    if (entry1PrevPageMissing.status === QueryStatus.fulfilled) {
-      expect(entry1PrevPageMissing.data.pages).toEqual([
-        // two pages, one entry each
-        [{ id: '0', name: 'Pokemon 0' }],
-        [{ id: '1', name: 'Pokemon 1' }],
-      ])
-    }
+    checkEntryFlags('fire', {
+      hasNextPage: true,
+      isFetchingPreviousPage: true,
+    })
 
-    const entry2InitialLoad = await storeRef.store.dispatch(
+    const entry1PrevPageMissing = await res3
+
+    checkResultData(entry1PrevPageMissing, [
+      [{ id: '0', name: 'Pokemon 0' }],
+      [{ id: '1', name: 'Pokemon 1' }],
+    ])
+    checkFlags(entry1PrevPageMissing, {
+      hasNextPage: true,
+    })
+
+    const res4 = storeRef.store.dispatch(
       pokemonApi.endpoints.getInfinitePokemon.initiate('water', {
         initialPageParam: 3,
       }),
     )
 
-    if (entry2InitialLoad.status === QueryStatus.fulfilled) {
-      expect(entry2InitialLoad.data.pages).toEqual([
-        // one page, one entry
-        [{ id: '3', name: 'Pokemon 3' }],
-      ])
-    }
+    checkEntryFlags('water', {})
 
-    const entry2NextPage = await storeRef.store.dispatch(
+    const entry2InitialLoad = await res4
+
+    checkResultData(entry2InitialLoad, [[{ id: '3', name: 'Pokemon 3' }]])
+    checkFlags(entry2InitialLoad, {
+      hasNextPage: true,
+      hasPreviousPage: true,
+    })
+
+    const res5 = storeRef.store.dispatch(
       pokemonApi.endpoints.getInfinitePokemon.initiate('water', {
         direction: 'forward',
       }),
     )
 
-    if (entry2NextPage.status === QueryStatus.fulfilled) {
-      expect(entry2NextPage.data.pages).toEqual([
-        // two pages, one entry each
-        [{ id: '3', name: 'Pokemon 3' }],
-        [{ id: '4', name: 'Pokemon 4' }],
-      ])
-    }
+    checkEntryFlags('water', {
+      hasNextPage: true,
+      hasPreviousPage: true,
+      isFetchingNextPage: true,
+    })
 
-    const entry2PrevPage = await storeRef.store.dispatch(
+    const entry2NextPage = await res5
+
+    checkResultData(entry2NextPage, [
+      [{ id: '3', name: 'Pokemon 3' }],
+      [{ id: '4', name: 'Pokemon 4' }],
+    ])
+    checkFlags(entry2NextPage, {
+      hasNextPage: true,
+      hasPreviousPage: true,
+    })
+
+    const res6 = storeRef.store.dispatch(
       pokemonApi.endpoints.getInfinitePokemon.initiate('water', {
         direction: 'backward',
       }),
     )
 
-    if (entry2PrevPage.status === QueryStatus.fulfilled) {
-      expect(entry2PrevPage.data.pages).toEqual([
-        // three pages, one entry each
-        [{ id: '2', name: 'Pokemon 2' }],
-        [{ id: '3', name: 'Pokemon 3' }],
-        [{ id: '4', name: 'Pokemon 4' }],
-      ])
-    }
+    checkEntryFlags('water', {
+      hasNextPage: true,
+      hasPreviousPage: true,
+      isFetchingPreviousPage: true,
+    })
+
+    const entry2PrevPage = await res6
+
+    checkResultData(entry2PrevPage, [
+      [{ id: '2', name: 'Pokemon 2' }],
+      [{ id: '3', name: 'Pokemon 3' }],
+      [{ id: '4', name: 'Pokemon 4' }],
+    ])
+    checkFlags(entry2PrevPage, {
+      hasNextPage: true,
+      hasPreviousPage: true,
+    })
   })
 
   test.skip('does not break refetching query endpoints', async () => {

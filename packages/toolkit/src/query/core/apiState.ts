@@ -201,13 +201,6 @@ type BaseQuerySubState<
    * Time that the latest query was fulfilled
    */
   fulfilledTimeStamp?: number
-  /**
-   * Infinite Query Specific substate properties
-   */
-  hasNextPage?: boolean
-  hasPreviousPage?: boolean
-  direction?: 'forward' | 'backward'
-  param?: QueryArgFrom<D>
 }
 
 export type QuerySubState<
@@ -245,12 +238,6 @@ export type InfiniteQuerySubState<
 > =
   D extends InfiniteQueryDefinition<any, any, any, any, any>
     ? QuerySubState<D, InfiniteData<ResultTypeFrom<D>, PageParamFrom<D>>> & {
-        // TODO: These shouldn't be optional
-        hasNextPage?: boolean
-        hasPreviousPage?: boolean
-        isFetchingNextPage?: boolean
-        isFetchingPreviousPage?: boolean
-        param?: PageParamFrom<D>
         direction?: InfiniteQueryDirection
       }
     : never
