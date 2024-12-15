@@ -32,8 +32,11 @@ import {
   waitFor,
 } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
+import type { SyncScreen } from '@testing-library/react-render-stream/pure'
+import { createRenderStream } from '@testing-library/react-render-stream/pure'
 import { HttpResponse, http } from 'msw'
 import { useEffect, useState } from 'react'
+import type { InfiniteQueryResultFlags } from '../core/buildSelectors'
 
 // Just setup a temporary in-memory counter for tests that `getIncrementedAmount`.
 // This can be used to test how many renders happen due to data changes or
@@ -181,6 +184,8 @@ afterEach(() => {
   nextItemId = 0
   amount = 0
   listenerMiddleware.clearListeners()
+
+  server.resetHandlers()
 })
 
 let getRenderCount: () => number = () => 0
@@ -1565,7 +1570,7 @@ describe('hooks tests', () => {
 
             setDataFromTrigger(res) // adding client side state here will cause stale data
           } catch (error) {
-            console.error(error)
+            console.error('Error handling increment trigger', error)
           }
         }
 
@@ -1575,7 +1580,7 @@ describe('hooks tests', () => {
             // Force the lazy trigger to refetch
             await handleLoad()
           } catch (error) {
-            console.error(error)
+            console.error('Error handling mutate trigger', error)
           }
         }
 
@@ -1678,6 +1683,238 @@ describe('hooks tests', () => {
 
       await screen.findByText(/isUninitialized/i)
       expect(countObjectKeys(storeRef.store.getState().api.queries)).toBe(0)
+    })
+  })
+
+  describe('useInfiniteQuery', () => {
+    type Pokemon = {
+      id: string
+      name: string
+    }
+
+    const pokemonApi = createApi({
+      baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
+      endpoints: (builder) => ({
+        getInfinitePokemon: builder.infiniteQuery<Pokemon, string, number>({
+          infiniteQueryOptions: {
+            initialPageParam: 0,
+            getNextPageParam: (
+              lastPage,
+              allPages,
+              lastPageParam,
+              allPageParams,
+            ) => lastPageParam + 1,
+            getPreviousPageParam: (
+              firstPage,
+              allPages,
+              firstPageParam,
+              allPageParams,
+            ) => {
+              return firstPageParam > 0 ? firstPageParam - 1 : undefined
+            },
+          },
+          query(pageParam) {
+            return `https://example.com/listItems?page=${pageParam}`
+          },
+        }),
+      }),
+    })
+
+    function PokemonList({
+      arg = 'fire',
+      initialPageParam = 0,
+    }: {
+      arg?: string
+      initialPageParam?: number
+    }) {
+      const {
+        data,
+        isFetching,
+        isUninitialized,
+        fetchNextPage,
+        fetchPreviousPage,
+      } = pokemonApi.endpoints.getInfinitePokemon.useInfiniteQuery(arg, {
+        initialPageParam,
+      })
+
+      const handlePreviousPage = async () => {
+        const res = await fetchPreviousPage()
+      }
+
+      const handleNextPage = async () => {
+        const res = await fetchNextPage()
+      }
+
+      return (
+        <div>
+          <div data-testid="isUninitialized">{String(isUninitialized)}</div>
+          <div data-testid="isFetching">{String(isFetching)}</div>
+          <div>Type: {arg}</div>
+          <div data-testid="data">
+            {data?.pages.map((page, i: number | null | undefined) => (
+              <div key={i}>{page.name}</div>
+            ))}
+          </div>
+          <button data-testid="prevPage" onClick={() => handlePreviousPage()}>
+            nextPage
+          </button>
+          <button data-testid="nextPage" onClick={() => handleNextPage()}>
+            nextPage
+          </button>
+        </div>
+      )
+    }
+
+    beforeEach(() => {
+      server.use(
+        http.get('https://example.com/listItems', ({ request }) => {
+          const url = new URL(request.url)
+          const pageString = url.searchParams.get('page')
+          const pageNum = parseInt(pageString || '0')
+
+          const results: Pokemon = {
+            id: `${pageNum}`,
+            name: `Pokemon ${pageNum}`,
+          }
+
+          return HttpResponse.json(results)
+        }),
+      )
+    })
+
+    test('useInfiniteQuery fetchNextPage Trigger', async () => {
+      const storeRef = setupApiStore(pokemonApi, undefined, {
+        withoutTestLifecycles: true,
+      })
+
+      const { takeRender, render, getCurrentRender } = createRenderStream({
+        snapshotDOM: true,
+      })
+
+      const checkNumQueries = (count: number) => {
+        const cacheEntries = Object.keys(storeRef.store.getState().api.queries)
+        const queries = cacheEntries.length
+        //console.log('queries', queries, storeRef.store.getState().api.queries)
+
+        expect(queries).toBe(count)
+      }
+
+      const checkEntryFlags = (
+        arg: string,
+        expectedFlags: Partial<InfiniteQueryResultFlags>,
+      ) => {
+        const selector = pokemonApi.endpoints.getInfinitePokemon.select(arg)
+        const entry = selector(storeRef.store.getState())
+
+        const actualFlags: InfiniteQueryResultFlags = {
+          hasNextPage: false,
+          hasPreviousPage: false,
+          isFetchingNextPage: false,
+          isFetchingPreviousPage: false,
+          isFetchNextPageError: false,
+          isFetchPreviousPageError: false,
+          ...expectedFlags,
+        }
+
+        expect(entry).toMatchObject(actualFlags)
+      }
+
+      const checkPageRows = (
+        withinDOM: () => SyncScreen,
+        type: string,
+        ids: number[],
+      ) => {
+        expect(withinDOM().getByText(`Type: ${type}`)).toBeTruthy()
+        for (const id of ids) {
+          expect(withinDOM().getByText(`Pokemon ${id}`)).toBeTruthy()
+        }
+      }
+
+      async function waitForFetch(handleExtraMiddleRender = false) {
+        {
+          const { withinDOM } = await takeRender()
+          expect(withinDOM().getByTestId('isFetching').textContent).toBe('true')
+        }
+
+        // We seem to do an extra render when fetching an uninitialized entry
+        if (handleExtraMiddleRender) {
+          {
+            const { withinDOM } = await takeRender()
+            expect(withinDOM().getByTestId('isFetching').textContent).toBe(
+              'true',
+            )
+          }
+        }
+
+        {
+          // Second fetch complete
+          const { withinDOM } = await takeRender()
+          expect(withinDOM().getByTestId('isFetching').textContent).toBe(
+            'false',
+          )
+        }
+      }
+
+      const utils = render(<PokemonList />, { wrapper: storeRef.wrapper })
+      checkNumQueries(1)
+      checkEntryFlags('fire', {})
+      await waitForFetch(true)
+      checkNumQueries(1)
+      checkPageRows(getCurrentRender().withinDOM, 'fire', [0])
+      checkEntryFlags('fire', {
+        hasNextPage: true,
+      })
+
+      fireEvent.click(screen.getByTestId('nextPage'), {})
+      checkEntryFlags('fire', {
+        hasNextPage: true,
+        isFetchingNextPage: true,
+      })
+      await waitForFetch()
+      checkPageRows(getCurrentRender().withinDOM, 'fire', [0, 1])
+      checkEntryFlags('fire', {
+        hasNextPage: true,
+      })
+
+      fireEvent.click(screen.getByTestId('nextPage'))
+      await waitForFetch()
+      checkPageRows(getCurrentRender().withinDOM, 'fire', [0, 1, 2])
+
+      utils.rerender(<PokemonList arg="water" initialPageParam={3} />)
+      checkEntryFlags('water', {})
+      await waitForFetch(true)
+      checkNumQueries(2)
+      checkPageRows(getCurrentRender().withinDOM, 'water', [3])
+      checkEntryFlags('water', {
+        hasNextPage: true,
+        hasPreviousPage: true,
+      })
+
+      fireEvent.click(screen.getByTestId('nextPage'))
+      checkEntryFlags('water', {
+        hasNextPage: true,
+        hasPreviousPage: true,
+        isFetchingNextPage: true,
+      })
+      await waitForFetch()
+      checkPageRows(getCurrentRender().withinDOM, 'water', [3, 4])
+      checkEntryFlags('water', {
+        hasNextPage: true,
+        hasPreviousPage: true,
+      })
+
+      fireEvent.click(screen.getByTestId('prevPage'))
+      checkEntryFlags('water', {
+        hasNextPage: true,
+        hasPreviousPage: true,
+        isFetchingPreviousPage: true,
+      })
+      await waitForFetch()
+      checkPageRows(getCurrentRender().withinDOM, 'water', [2, 3, 4])
+      checkEntryFlags('water', {
+        hasNextPage: true,
+        hasPreviousPage: true,
+      })
     })
   })
 

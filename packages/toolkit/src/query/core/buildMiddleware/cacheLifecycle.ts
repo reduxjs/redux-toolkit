@@ -142,6 +142,19 @@ export type CacheLifecycleQueryExtraOptions<
   ): Promise<void> | void
 }
 
+// copying QueryDefinition to get past initial build
+export type CacheLifecycleInfiniteQueryExtraOptions<
+  ResultType,
+  QueryArg,
+  BaseQuery extends BaseQueryFn,
+  ReducerPath extends string = string,
+> = CacheLifecycleQueryExtraOptions<
+  ResultType,
+  QueryArg,
+  BaseQuery,
+  ReducerPath
+>
+
 export type CacheLifecycleMutationExtraOptions<
   ResultType,
   QueryArg,
