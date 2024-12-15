@@ -1,11 +1,11 @@
 // site configuration options.
-const { resolve } = require('path')
-const {
-  linkDocblocks,
-  transpileCodeblocks,
-} = require('remark-typescript-tools')
+import { resolve } from 'path'
+import { linkDocblocks, transpileCodeblocks } from 'remark-typescript-tools'
+import type { Options, ThemeConfig } from '@docusaurus/preset-classic'
+import type { Config } from '@docusaurus/types'
+import type { Options as UmamiOptions } from '@dipakparmar/docusaurus-plugin-umami'
 
-module.exports = {
+const config: Config = {
   presets: [
     [
       '@docusaurus/preset-classic',
@@ -49,7 +49,7 @@ module.exports = {
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
         },
-      },
+      } satisfies Options,
     ],
   ],
   projectName: 'redux-toolkit',
@@ -177,21 +177,21 @@ module.exports = {
       appId: 'CK59DFV0FC',
       apiKey: '98e886dfbcde7f7e8ec8d7ff1c2c34c8',
       indexName: 'redux-starter-kit',
-      algoliaOptions: {},
     },
-  },
+  } satisfies ThemeConfig,
   plugins: [
     [
       '@dipakparmar/docusaurus-plugin-umami',
-      /** @type {import('@dipakparmar/docusaurus-plugin-umami').Options} */
-      ({
+      {
         websiteID: '616c102e-05dd-4a74-b63e-01bb52f1bc6c',
         analyticsDomain: 'redux-docs-umami.up.railway.app',
         scriptName: 'script.js',
         dataAutoTrack: true,
         dataDoNotTrack: true,
         dataCache: true,
-      }),
+      } satisfies UmamiOptions,
     ],
   ],
 }
+
+export default config
