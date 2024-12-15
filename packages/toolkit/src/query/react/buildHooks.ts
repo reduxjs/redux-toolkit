@@ -63,6 +63,7 @@ import { UNINITIALIZED_VALUE } from './constants'
 import type { ReactHooksModuleOptions } from './module'
 import { useStableQueryArgs } from './useSerializedStableValue'
 import { useShallowStableValue } from './useShallowStableValue'
+import { InfiniteQueryDirection } from '../core/apiState'
 
 // Copy-pasted from React-Redux
 const canUseDOM = () =>
@@ -786,7 +787,7 @@ export type LazyInfiniteQueryTrigger<
    */
   (
     arg: QueryArgFrom<D>,
-    direction: 'forward' | 'backward',
+    direction: InfiniteQueryDirection,
   ): InfiniteQueryActionCreatorResult<D>
 }
 
@@ -889,7 +890,10 @@ export type UseInfiniteQuery<
   arg: InfiniteQueryArgFrom<D> | SkipToken,
   options?: UseInfiniteQuerySubscriptionOptions<D> &
     UseInfiniteQueryStateOptions<D, R>,
-) => UseInfiniteQueryHookResult<D, R>
+) => UseInfiniteQueryHookResult<D, R> & {
+  fetchNextPage: () => InfiniteQueryActionCreatorResult<D>
+  fetchPreviousPage: () => InfiniteQueryActionCreatorResult<D>
+}
 
 export type UseInfiniteQueryState<
   D extends InfiniteQueryDefinition<any, any, any, any, any>,
@@ -897,7 +901,6 @@ export type UseInfiniteQueryState<
   arg: QueryArgFrom<D> | SkipToken,
   options?: UseInfiniteQueryStateOptions<D, R>,
 ) => UseInfiniteQueryStateResult<D, R>
-
 export type TypedUseInfiniteQueryState<
   ResultType,
   QueryArg,
@@ -1039,9 +1042,6 @@ type UseInfiniteQueryStateBaseResult<
   hasPreviousPage: false
   isFetchingNextPage: false
   isFetchingPreviousPage: false
-
-  fetchNextPage: () => Promise<InfiniteQueryActionCreatorResult<D>>
-  fetchPreviousPage: () => Promise<InfiniteQueryActionCreatorResult<D>>
 }
 
 type UseInfiniteQueryStateDefaultResult<
@@ -1346,12 +1346,6 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     // isSuccess = true when data is present
     const isSuccess = currentState.isSuccess || (isFetching && hasData)
 
-    const isFetchingNextPage =
-      isFetching && currentState.direction === 'forward'
-
-    const isFetchingPreviousPage =
-      isFetching && currentState.direction === 'backward'
-
     return {
       ...currentState,
       data,
@@ -1359,8 +1353,6 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       isFetching,
       isLoading,
       isSuccess,
-      isFetchingNextPage,
-      isFetchingPreviousPage,
     } as UseInfiniteQueryStateDefaultResult<any>
   }
 
@@ -1767,7 +1759,9 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         Definitions
       >
       const dispatch = useDispatch<ThunkDispatch<any, any, UnknownAction>>()
-      const subscriptionSelectorsRef = useRef<SubscriptionSelectors>()
+      const subscriptionSelectorsRef = useRef<
+        SubscriptionSelectors | undefined
+      >(undefined)
       if (!subscriptionSelectorsRef.current) {
         const returnedValue = dispatch(
           api.internalActions.internal_getRTKQSubscriptions(),
@@ -1808,7 +1802,9 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
       const lastRenderHadSubscription = useRef(false)
 
-      const promiseRef = useRef<InfiniteQueryActionCreatorResult<any>>()
+      const promiseRef = useRef<
+        InfiniteQueryActionCreatorResult<any> | undefined
+      >(undefined)
 
       let { queryCacheKey, requestId } = promiseRef.current || {}
 
@@ -1932,7 +1928,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
       type ApiRootState = Parameters<ReturnType<typeof select>>[0]
 
-      const lastValue = useRef<any>()
+      const lastValue = useRef<any>(undefined)
 
       const selectDefaultResult: Selector<ApiRootState, any, [any]> = useMemo(
         () =>
