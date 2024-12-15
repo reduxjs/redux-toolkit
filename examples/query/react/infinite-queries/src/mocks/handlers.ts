@@ -4,6 +4,13 @@ function delay(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
+const projects = Array.from({ length: 50 }, (_, i) => {
+  return {
+    id: i,
+    createdAt: Date.now() + i * 1000,
+  }
+})
+
 export const handlers = [
   http.get("https://example.com/api/projects", async ({ request, params }) => {
     const url = new URL(request.url)
@@ -67,6 +74,84 @@ export const handlers = [
         nextId,
         previousId,
       })
+    },
+  ),
+  http.get(
+    "https://example.com/api/projectsBidirectionalCursor",
+    async ({ request }) => {
+      const url = new URL(request.url)
+      const limit = parseInt(url.searchParams.get("limit") ?? "5", 10)
+      const aroundCursor = parseInt(url.searchParams.get("around") ?? "", 10)
+      const afterCursor = parseInt(url.searchParams.get("after") ?? "", 10)
+      const beforeCursor = parseInt(url.searchParams.get("before") ?? "", 10)
+
+      const validateCursor = (cursor: number, cursorType: string): number => {
+        const cursorIndex = projects.findIndex(project => project.id === cursor)
+        if (cursorIndex === -1) {
+          throw new Error(`Invalid \`${cursorType}\` cursor.`)
+        }
+        return cursorIndex
+      }
+
+      let resultProjects = []
+      try {
+        if (!isNaN(afterCursor)) {
+          const afterCursorIndex = validateCursor(afterCursor, "after")
+          const afterIndex = afterCursorIndex + 1
+          resultProjects = projects.slice(afterIndex, afterIndex + limit)
+        } else if (!isNaN(beforeCursor)) {
+          const beforeCursorIndex = validateCursor(beforeCursor, "before")
+          const startIndex = Math.max(0, beforeCursorIndex - limit)
+          resultProjects = projects.slice(startIndex, beforeCursorIndex)
+        } else if (!isNaN(aroundCursor)) {
+          const aroundCursorIndex = validateCursor(aroundCursor, "around")
+          const ceiledLimit = Math.ceil(limit / 2)
+
+          const beforeIndex = Math.max(0, aroundCursorIndex - ceiledLimit)
+          const afterIndex = Math.min(
+            projects.length - 1,
+            aroundCursorIndex + ceiledLimit,
+          )
+          const beforeProjects = projects.slice(beforeIndex, aroundCursorIndex)
+          const afterProjects = projects.slice(
+            aroundCursorIndex + 1,
+            afterIndex + 1,
+          )
+
+          resultProjects = [
+            ...beforeProjects,
+            projects[aroundCursorIndex],
+            ...afterProjects,
+          ]
+        } else {
+          resultProjects = projects.slice(0, limit)
+        }
+
+        const startCursor = resultProjects[0]?.id
+        const endCursor = resultProjects[resultProjects.length - 1]?.id
+
+        const hasNextPage = endCursor != null && endCursor < projects.length - 1
+        const hasPreviousPage = startCursor !== 0
+
+        await delay(1000)
+
+        const serverTime = Date.now()
+
+        return HttpResponse.json({
+          projects: resultProjects,
+          serverTime,
+          pageInfo: {
+            startCursor,
+            endCursor,
+            hasNextPage,
+            hasPreviousPage,
+          },
+        })
+      } catch (error) {
+        if (error instanceof Error) {
+          return HttpResponse.json({ message: error.message }, { status: 400 })
+        }
+      }
     },
   ),
 ]
