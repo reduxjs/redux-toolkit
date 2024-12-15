@@ -140,7 +140,7 @@ describe('Infinite queries', () => {
     process.env.NODE_ENV = 'test'
   })
 
-  test.only('Basic infinite query behavior', async () => {
+  test('Basic infinite query behavior', async () => {
     const checkFlags = (
       value: unknown,
       expectedFlags: Partial<InfiniteQueryResultFlags>,

@@ -1782,7 +1782,7 @@ describe('hooks tests', () => {
       )
     })
 
-    test.only('useInfiniteQuery fetchNextPage Trigger', async () => {
+    test('useInfiniteQuery fetchNextPage Trigger', async () => {
       const storeRef = setupApiStore(pokemonApi, undefined, {
         withoutTestLifecycles: true,
       })
