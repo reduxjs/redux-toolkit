@@ -63,7 +63,7 @@ const handler: ApiMiddlewareInternalHandler = (action, mwApi) => {
 1. `invalidateTags()` initiates:
    1. invalidateTags function is called with a list of tags generated from the action metadata
    2. in the case of a [queryThunk] resolution an empty set of tags is always provided
-2. The tags calculated are added to the list of pending tags to invalidate (see [delayed](#Delayed))
+2. The tags calculated are added to the list of pending tags to invalidate (see [delayed](#delayed))
 3. (optional: 'Delayed') the invalidateTags function is ended if the `apiSlice.invalidationBehavior` is set to "delayed" and there are any pending thunks/queries running in that `apiSlice`
 4. Pending tags are reset to an empty list, if there are no tags the function ends here
 5. Selects all `{ endpointName, originalArgs, queryCacheKey }` combinations that would be invalidated by a specific set of tags.

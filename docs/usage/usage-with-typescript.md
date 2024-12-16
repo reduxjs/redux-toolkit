@@ -413,7 +413,7 @@ type AtLeastOneUserField = AtLeastOne<User>
 
 ### Typing Async Thunks Inside `createSlice`
 
-As of 2.0, `createSlice` allows [defining thunks inside of `reducers` using a callback syntax](../api/createSlice.mdx/#the-reducers-creator-callback-notation).
+As of 2.0, `createSlice` allows [defining thunks inside of `reducers` using a callback syntax](../api/createSlice.mdx#the-reducers-creator-callback-notation).
 
 Typing for the `create.asyncThunk` method works in the same way as [`createAsyncThunk`](#createasyncthunk), with one key difference.
 

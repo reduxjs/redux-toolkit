@@ -690,7 +690,7 @@ import type {
   FetchArgs,
   FetchBaseQueryError,
 } from '@reduxjs/toolkit/query'
-import type { FetchBaseQueryMeta } from '@reduxjs/toolkit/dist/query/fetchBaseQuery'
+import type { FetchBaseQueryMeta } from '@reduxjs/toolkit/query'
 import { uuid } from './idGenerator'
 
 // highlight-start
@@ -980,7 +980,7 @@ You could also try creating a custom base query that uses the SDK, and define en
 
 In certain scenarios, you may wish to have a `query` or `mutation` where sending a request or returning data is not relevant for the situation. Such a scenario would be to leverage the `invalidatesTags` property to force re-fetch specific `tags` that have been provided to the cache.
 
-See also [`providing errors to the cache`](./automated-refetching.mdx#providing-data-to-the-cache) to see additional detail and an example for such a scenario to 'refetch errored queries'.
+See also ["providing errors to the cache"](./automated-refetching.mdx#providing-errors-to-the-cache) to see additional detail and an example for such a scenario to 'refetch errored queries'.
 
 ```ts title="Using a no-op queryFn"
 // file: types.ts noEmit

@@ -1,7 +1,7 @@
 [build]
   base    = "website"
   publish = "build"
-  command = "yarn run netlify-build && ls  && cp _redirects ./build"
+  command = "pushd ../packages/toolkit && yarn build && popd && yarn run netlify-build && ls  && cp _redirects ./build"
   ignore = "git diff --quiet HEAD^ HEAD docs website"
 
 [build.environment]
