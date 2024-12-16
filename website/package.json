@@ -17,7 +17,6 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-lite-youtube-embed": "^2.0.3",
-    "remark-typescript-tools": "^1.1.0",
     "typescript": "^5.5.4"
   },
   "browserslist": {
@@ -35,6 +34,7 @@
   "devDependencies": {
     "@docusaurus/faster": "^3.6.3",
     "netlify-plugin-cache": "^1.0.3",
-    "prettier": "^3.2.5"
+    "prettier": "^3.2.5",
+    "remark-typescript-tools": "file:.yalc/remark-typescript-tools"
   }
 }

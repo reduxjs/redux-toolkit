@@ -4,6 +4,7 @@ import { linkDocblocks, transpileCodeblocks } from 'remark-typescript-tools'
 import type { Options, ThemeConfig } from '@docusaurus/preset-classic'
 import type { Config } from '@docusaurus/types'
 import type { Options as UmamiOptions } from '@dipakparmar/docusaurus-plugin-umami'
+import type { Options as RSDoctorOptions } from '@docusaurus/plugin-rsdoctor'
 
 const config: Config = {
   future: {
@@ -197,6 +198,7 @@ const config: Config = {
         dataCache: true,
       } satisfies UmamiOptions,
     ],
+    process.env.RSDOCTOR === 'true' && ['rsdoctor', {}],
   ],
 }
 

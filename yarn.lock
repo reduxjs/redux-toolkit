@@ -6873,17 +6873,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@microsoft/tsdoc@npm:0.15.1, @microsoft/tsdoc@npm:~0.15.1":
+"@microsoft/tsdoc@npm:0.15.1, @microsoft/tsdoc@npm:^0.15.0, @microsoft/tsdoc@npm:~0.15.1":
   version: 0.15.1
   resolution: "@microsoft/tsdoc@npm:0.15.1"
   checksum: 10/1a92612883088fe184dba596e7ba7a0daef0e6981caeca22bad6ad551d2247294f12e368537d0d8192525cf5743f7f15fcc2ad7b3b849f26a09a15ffdd89fd0c
-  languageName: node
-  linkType: hard
-
-"@microsoft/tsdoc@npm:^0.12.21":
-  version: 0.12.24
-  resolution: "@microsoft/tsdoc@npm:0.12.24"
-  checksum: 10/808121d234b7c2445d497cc446df6385eef50f9fae60758b42161bca3fe3371964e9585db787971f7aadaa327da5ab4a2590fd244b3224d59f8025cf1be86bf1
   languageName: node
   linkType: hard
 
@@ -9065,7 +9058,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/estree@npm:*, @types/estree@npm:1.0.6, @types/estree@npm:^1.0.0, @types/estree@npm:^1.0.6":
+"@types/estree@npm:*, @types/estree@npm:1.0.6, @types/estree@npm:^1.0.0, @types/estree@npm:^1.0.5, @types/estree@npm:^1.0.6":
   version: 1.0.6
   resolution: "@types/estree@npm:1.0.6"
   checksum: 10/9d35d475095199c23e05b431bcdd1f6fec7380612aed068b14b2a08aa70494de8a9026765a5a91b1073f636fb0368f6d8973f518a31391d519e20c59388ed88d
@@ -9716,7 +9709,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/unist@npm:*, @types/unist@npm:^3.0.0":
+"@types/unist@npm:*, @types/unist@npm:^3.0.0, @types/unist@npm:^3.0.3":
   version: 3.0.3
   resolution: "@types/unist@npm:3.0.3"
   checksum: 10/96e6453da9e075aaef1dc22482463898198acdc1eeb99b465e65e34303e2ec1e3b1ed4469a9118275ec284dc98019f63c3f5d49422f0e4ac707e5ab90fb3b71a
@@ -21310,7 +21303,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mdast-util-mdx-jsx@npm:^3.0.0":
+"mdast-util-mdx-jsx@npm:^3.0.0, mdast-util-mdx-jsx@npm:^3.1.3":
   version: 3.1.3
   resolution: "mdast-util-mdx-jsx@npm:3.1.3"
   dependencies:
@@ -21343,7 +21336,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mdast-util-mdxjs-esm@npm:^2.0.0":
+"mdast-util-mdxjs-esm@npm:^2.0.0, mdast-util-mdxjs-esm@npm:^2.0.1":
   version: 2.0.1
   resolution: "mdast-util-mdxjs-esm@npm:2.0.1"
   dependencies:
@@ -25594,16 +25587,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier@npm:^2.1.1":
-  version: 2.8.8
-  resolution: "prettier@npm:2.8.8"
-  bin:
-    prettier: bin-prettier.js
-  checksum: 10/00cdb6ab0281f98306cd1847425c24cbaaa48a5ff03633945ab4c701901b8e96ad558eb0777364ffc312f437af9b5a07d0f45346266e8245beaf6247b9c62b24
-  languageName: node
-  linkType: hard
-
-"prettier@npm:^3.2.5":
+"prettier@npm:^3.2.5, prettier@npm:^3.3.3":
   version: 3.4.2
   resolution: "prettier@npm:3.4.2"
   bin:
@@ -27121,17 +27105,26 @@ __metadata:
   languageName: node
   linkType: hard
 
-"remark-typescript-tools@npm:^1.1.0":
-  version: 1.1.0
-  resolution: "remark-typescript-tools@npm:1.1.0"
+"remark-typescript-tools@file:.yalc/remark-typescript-tools::locator=website%40workspace%3Awebsite":
+  version: 2.0.0-alpha.0
+  resolution: "remark-typescript-tools@file:.yalc/remark-typescript-tools#.yalc/remark-typescript-tools::hash=1c2f5d&locator=website%40workspace%3Awebsite"
   dependencies:
-    "@microsoft/tsdoc": "npm:^0.12.21"
-    prettier: "npm:^2.1.1"
+    "@microsoft/tsdoc": "npm:^0.15.0"
+    "@types/estree": "npm:^1.0.5"
+    "@types/unist": "npm:^3.0.3"
+    mdast-util-mdx-jsx: "npm:^3.1.3"
+    mdast-util-mdxjs-esm: "npm:^2.0.1"
+    prettier: "npm:^3.3.3"
+    tsx: "npm:^4.19.0"
     unist-util-flatmap: "npm:^1.0.0"
-    unist-util-visit: "npm:^2.0.3"
+    unist-util-visit: "npm:^5.0.0"
+    vfile: "npm:^6.0.3"
   peerDependencies:
-    typescript: ">=4.0"
-  checksum: 10/9c804788ec4b93156f33ffcf93fae93ff300543275a16bec0c17b80492886a30fe98283de0798dcb2d088291abc8e58043eeceda80fd6e97d4be00e8a1bd8fab
+    typescript: "*"
+  peerDependenciesMeta:
+    typescript:
+      optional: true
+  checksum: 10/868195b2323358df5be46e522c51f140acec025c9418d35370556680b01f337adc48d6b308e4b264919246e62f8d9c8a924c8fd30a3a234d26a96867c5b748bd
   languageName: node
   linkType: hard
 
@@ -30543,13 +30536,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"unist-util-is@npm:^4.0.0":
-  version: 4.1.0
-  resolution: "unist-util-is@npm:4.1.0"
-  checksum: 10/c046cc87c0a4f797b2afce76d917218e6a9af946a56cb5a88cb7f82be34f16c11050a10ddc4c66a3297dbb2782ca7d72a358cd77900b439ea9c683ba003ffe90
-  languageName: node
-  linkType: hard
-
 "unist-util-is@npm:^6.0.0":
   version: 6.0.0
   resolution: "unist-util-is@npm:6.0.0"
@@ -30586,16 +30572,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"unist-util-visit-parents@npm:^3.0.0":
-  version: 3.1.1
-  resolution: "unist-util-visit-parents@npm:3.1.1"
-  dependencies:
-    "@types/unist": "npm:^2.0.0"
-    unist-util-is: "npm:^4.0.0"
-  checksum: 10/1b18343d88a0ad9cafaf8164ff8a1d3e3903328b3936b1565d61731f0b5778b9b9f400c455d3ad5284eeebcfdd7558ce24eb15c303a9cc0bd9218d01b2116923
-  languageName: node
-  linkType: hard
-
 "unist-util-visit-parents@npm:^6.0.0":
   version: 6.0.1
   resolution: "unist-util-visit-parents@npm:6.0.1"
@@ -30603,17 +30579,6 @@ __metadata:
     "@types/unist": "npm:^3.0.0"
     unist-util-is: "npm:^6.0.0"
   checksum: 10/645b3cbc5e923bc692b1eb1a9ca17bffc5aabc25e6090ff3f1489bff8effd1890b28f7a09dc853cb6a7fa0da8581bfebc9b670a68b53c4c086cb9610dfd37701
-  languageName: node
-  linkType: hard
-
-"unist-util-visit@npm:^2.0.3":
-  version: 2.0.3
-  resolution: "unist-util-visit@npm:2.0.3"
-  dependencies:
-    "@types/unist": "npm:^2.0.0"
-    unist-util-is: "npm:^4.0.0"
-    unist-util-visit-parents: "npm:^3.0.0"
-  checksum: 10/1fe19d500e212128f96d8c3cfa3312846e586b797748a1fd195fe6479f06bc90a6f6904deb08eefc00dd58e83a1c8a32fb8677252d2273ad7a5e624525b69b8f
   languageName: node
   linkType: hard
 
@@ -31000,7 +30965,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vfile@npm:^6.0.0, vfile@npm:^6.0.1":
+"vfile@npm:^6.0.0, vfile@npm:^6.0.1, vfile@npm:^6.0.3":
   version: 6.0.3
   resolution: "vfile@npm:6.0.3"
   dependencies:
@@ -31562,7 +31527,7 @@ __metadata:
     react: "npm:^19.0.0"
     react-dom: "npm:^19.0.0"
     react-lite-youtube-embed: "npm:^2.0.3"
-    remark-typescript-tools: "npm:^1.1.0"
+    remark-typescript-tools: "file:.yalc/remark-typescript-tools"
     typescript: "npm:^5.5.4"
   languageName: unknown
   linkType: soft
