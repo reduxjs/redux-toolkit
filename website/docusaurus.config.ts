@@ -35,16 +35,19 @@ const config: Config = {
                 },
               },
             ],
-            [
-              transpileCodeblocks,
-              {
-                compilerSettings: {
-                  tsconfig: resolve(__dirname, '../docs/tsconfig.json'),
-                  externalResolutions: {},
-                },
-              },
-            ],
-          ],
+            // Only transpile codeblocks in CI, as it's slow
+            process.env.CI
+              ? [
+                  transpileCodeblocks,
+                  {
+                    compilerSettings: {
+                      tsconfig: resolve(__dirname, '../docs/tsconfig.json'),
+                      externalResolutions: {},
+                    },
+                  },
+                ]
+              : null,
+          ].filter(Boolean),
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
