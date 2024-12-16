@@ -1,3 +1,4 @@
+import { noop } from '@internal/listenerMiddleware/utils'
 import type {
   Action,
   ActionCreatorWithNonInferrablePayload,
@@ -15,7 +16,6 @@ import type {
   SerializedError,
   SliceCaseReducers,
   ThunkDispatch,
-  UnknownAction,
   ValidateSliceCaseReducers,
 } from '@reduxjs/toolkit'
 import {
@@ -28,6 +28,7 @@ import {
   isRejected,
 } from '@reduxjs/toolkit'
 import { castDraft } from 'immer'
+import type { AnyNonNullishValue, EmptyObject } from '../tsHelpers'
 
 describe('type tests', () => {
   const counterSlice = createSlice({
@@ -251,51 +252,58 @@ describe('type tests', () => {
       reducers: {
         // case: meta and error not used in reducer
         testDefaultMetaAndError: {
-          reducer(_, action: PayloadAction<number, string>) {},
+          reducer(_, action: PayloadAction<number, string>) {
+            /** No-Op */
+          },
           prepare: (payload: number) => ({
             payload,
-            meta: 'meta' as 'meta',
-            error: 'error' as 'error',
+            meta: 'meta' as const,
+            error: 'error' as const,
           }),
         },
         // case: meta and error marked as "unknown" in reducer
         testUnknownMetaAndError: {
-          reducer(
-            _,
-            action: PayloadAction<number, string, unknown, unknown>,
-          ) {},
+          reducer(_, action: PayloadAction<number, string, unknown, unknown>) {
+            /** No-Op */
+          },
           prepare: (payload: number) => ({
             payload,
-            meta: 'meta' as 'meta',
-            error: 'error' as 'error',
+            meta: 'meta' as const,
+            error: 'error' as const,
           }),
         },
         // case: meta and error are typed in the reducer as returned by prepare
         testMetaAndError: {
-          reducer(_, action: PayloadAction<number, string, 'meta', 'error'>) {},
+          reducer(_, action: PayloadAction<number, string, 'meta', 'error'>) {
+            /** No-Op */
+          },
           prepare: (payload: number) => ({
             payload,
-            meta: 'meta' as 'meta',
-            error: 'error' as 'error',
+            meta: 'meta' as const,
+            error: 'error' as const,
           }),
         },
         // case: meta is typed differently in the reducer than returned from prepare
         testErroneousMeta: {
-          reducer(_, action: PayloadAction<number, string, 'meta', 'error'>) {},
+          reducer(_, action: PayloadAction<number, string, 'meta', 'error'>) {
+            /** No-Op */
+          },
           // @ts-expect-error
           prepare: (payload: number) => ({
             payload,
             meta: 1,
-            error: 'error' as 'error',
+            error: 'error' as const,
           }),
         },
         // case: error is typed differently in the reducer than returned from prepare
         testErroneousError: {
-          reducer(_, action: PayloadAction<number, string, 'meta', 'error'>) {},
+          reducer(_, action: PayloadAction<number, string, 'meta', 'error'>) {
+            /** No-Op */
+          },
           // @ts-expect-error
           prepare: (payload: number) => ({
             payload,
-            meta: 'meta' as 'meta',
+            meta: 'meta' as const,
             error: 1,
           }),
         },
@@ -612,7 +620,7 @@ describe('type tests', () => {
         }>()
 
         // @ts-expect-error
-        create.asyncThunk<any, any, { state: StoreState }>(() => {})
+        create.asyncThunk<any, any, { state: StoreState }>(noop)
 
         // @ts-expect-error
         create.asyncThunk.withTypes<{
@@ -652,7 +660,7 @@ describe('type tests', () => {
               expectTypeOf(action.error).toEqualTypeOf<'error'>()
             },
           ),
-          testInferVoid: create.asyncThunk(() => {}, {
+          testInferVoid: create.asyncThunk(noop, {
             pending(state, action) {
               expectTypeOf(state).toEqualTypeOf<TestState>()
 
@@ -889,20 +897,20 @@ describe('type tests', () => {
     >()
 
     expectTypeOf(slice.actions.testInferVoid).toEqualTypeOf<
-      AsyncThunk<void, void, {}>
+      AsyncThunk<void, void, EmptyObject>
     >()
 
     expectTypeOf(slice.actions.testInferVoid).toBeCallableWith()
 
     expectTypeOf(slice.actions.testInfer).toEqualTypeOf<
-      AsyncThunk<TestReturned, TestArg, {}>
+      AsyncThunk<TestReturned, TestArg, EmptyObject>
     >()
 
     expectTypeOf(slice.actions.testExplicitType).toEqualTypeOf<
       AsyncThunk<TestReturned, TestArg, { rejectValue: TestReject }>
     >()
 
-    type TestInferThunk = AsyncThunk<TestReturned, TestArg, {}>
+    type TestInferThunk = AsyncThunk<TestReturned, TestArg, EmptyObject>
 
     expectTypeOf(slice.caseReducers.testInfer.pending).toEqualTypeOf<
       CaseReducer<TestState, ReturnType<TestInferThunk['pending']>>
@@ -980,7 +988,9 @@ describe('type tests', () => {
 
     // We use `not.toEqualTypeOf` instead of `not.toMatchTypeOf`
     // because `toMatchTypeOf` allows missing properties
-    expectTypeOf(counterSlice.selectSlice).parameter(0).not.toEqualTypeOf<{}>()
+    expectTypeOf(counterSlice.selectSlice)
+      .parameter(0)
+      .not.toEqualTypeOf<AnyNonNullishValue>()
   })
 
   test('buildCreateSlice', () => {
