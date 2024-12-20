@@ -16,7 +16,7 @@ const config: Config = {
       {
         docs: {
           path: '../docs',
-          sidebarPath: require.resolve('./sidebars.json'),
+          sidebarPath: require.resolve('./sidebars'),
           showLastUpdateTime: true,
           routeBasePath: '/',
           include: [
