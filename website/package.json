@@ -35,6 +35,6 @@
     "@docusaurus/faster": "^3.6.3",
     "netlify-plugin-cache": "^1.0.3",
     "prettier": "^3.2.5",
-    "remark-typescript-tools": "^1.1.0"
+    "remark-typescript-tools": "2.0.0-alpha.1"
   }
 }
