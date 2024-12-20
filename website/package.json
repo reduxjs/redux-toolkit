@@ -1,6 +1,7 @@
 {
   "name": "website",
   "scripts": {
+    "dev": "docusaurus start",
     "start": "docusaurus start",
     "build": "docusaurus build",
     "netlify-build": "yarn install && yarn build",
@@ -10,13 +11,12 @@
   },
   "dependencies": {
     "@dipakparmar/docusaurus-plugin-umami": "^2.0.6",
-    "@docusaurus/core": "2.1.0",
-    "@docusaurus/preset-classic": "2.1.0",
+    "@docusaurus/core": "3.6.3",
+    "@docusaurus/preset-classic": "3.6.3",
     "classnames": "^2.2.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-lite-youtube-embed": "^2.0.3",
-    "remark-typescript-tools": "^1.1.0",
     "typescript": "^5.5.4"
   },
   "browserslist": {
@@ -32,7 +32,9 @@
     ]
   },
   "devDependencies": {
+    "@docusaurus/faster": "^3.6.3",
     "netlify-plugin-cache": "^1.0.3",
-    "prettier": "^3.2.5"
+    "prettier": "^3.2.5",
+    "remark-typescript-tools": "2.0.0-alpha.1"
   }
 }

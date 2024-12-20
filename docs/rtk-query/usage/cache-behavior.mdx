@@ -403,7 +403,7 @@ The Redux docs have always recommended [keeping data in a normalized lookup tabl
 
 There are a couple additional points that can help here:
 
-- The generated query hooks have [a `selectFromResult` option](../api/created-api/hooks.mdx#selectfromresult) that allow components to read individual pieces of data from a query result. As an example, a `<TodoList>` component might call `useTodosQuery()`, and each individual `<TodoListItem>` could use the same query hook but select from the result to get the right todo object.
+- The generated query hooks have [a `selectFromResult` option](../api/created-api/hooks.mdx#usequery) that allow components to read individual pieces of data from a query result. As an example, a `<TodoList>` component might call `useTodosQuery()`, and each individual `<TodoListItem>` could use the same query hook but select from the result to get the right todo object.
 - You can use the [`transformResponse` endpoint option](../api/createApi.mdx#transformresponse) to modify the fetched data so that it's [stored in a different shape](./customizing-queries.mdx#customizing-query-responses-with-transformresponse), such as using `createEntityAdapter` to normalize the data _for this one response_ before it's inserted into the cache.
 
 ### Further information
