@@ -242,7 +242,7 @@ describe('option encodeQueryParams', () => {
     });
 
     expect(api).toMatch(
-      /params:\s*{\s*\n\s*status:\s*queryArg\.status\s*\?\s*encodeURIComponent\(\s*String\(queryArg\.status\)\s*\)\s*:\s*undefined\s*,?\s*\n\s*}/s
+      /params:\s*{\s*\n\s*status:\s*queryArg\.status\s*!=\s*null\s*\?\s*encodeURIComponent\(\s*String\(queryArg\.status\)\s*\)\s*:\s*undefined\s*,?\s*\n\s*}/s
     );
   });
 
