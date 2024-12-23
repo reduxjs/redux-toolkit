@@ -1,4 +1,5 @@
 import type { Api } from '@reduxjs/toolkit/query'
+import type { AnyFunction, AnyNonNullishValue } from '../tsHelpers'
 import type {
   BaseQueryApi,
   BaseQueryArg,
@@ -9,7 +10,7 @@ import type {
   BaseQueryResult,
   QueryReturnValue,
 } from './baseQueryTypes'
-import type { QuerySubState, RootState } from './core'
+import type { QuerySubState, RootState } from './core/apiState'
 import type { CacheCollectionQueryExtraOptions } from './core/buildMiddleware/cacheCollection'
 import type {
   CacheLifecycleMutationExtraOptions,
@@ -194,7 +195,7 @@ export type BaseEndpointDefinition<
   BaseQuery extends BaseQueryFn,
   ResultType,
 > = (
-  | ([CastAny<BaseQueryResult<BaseQuery>, {}>] extends [NEVER]
+  | ([CastAny<BaseQueryResult<BaseQuery>, AnyNonNullishValue>] extends [NEVER]
       ? never
       : EndpointDefinitionWithQuery<QueryArg, BaseQuery, ResultType>)
   | EndpointDefinitionWithQueryFn<QueryArg, BaseQuery, ResultType>
@@ -225,7 +226,7 @@ export type GetResultDescriptionFn<
   error: ErrorType | undefined,
   arg: QueryArg,
   meta: MetaType,
-) => ReadonlyArray<TagDescription<TagTypes> | undefined | null>
+) => readonly (TagDescription<TagTypes> | undefined | null)[]
 
 export type FullTagDescription<TagType> = {
   type: TagType
@@ -243,7 +244,7 @@ export type ResultDescription<
   ErrorType,
   MetaType,
 > =
-  | ReadonlyArray<TagDescription<TagTypes> | undefined | null>
+  | readonly (TagDescription<TagTypes> | undefined | null)[]
   | GetResultDescriptionFn<TagTypes, ResultType, QueryArg, ErrorType, MetaType>
 
 type QueryTypes<
@@ -789,7 +790,7 @@ export function calculateProvidedBy<ResultType, QueryArg, ErrorType, MetaType>(
   return []
 }
 
-function isFunction<T>(t: T): t is Extract<T, Function> {
+function isFunction<T>(t: T): t is Extract<T, AnyFunction> {
   return typeof t === 'function'
 }
 
