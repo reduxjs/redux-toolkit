@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react"
 import { Link, useLocation } from "react-router"
+import { useIntersectionCallback } from "../../app/useIntersectionCallback"
 import { apiWithInfiniteScroll } from "./infiniteScrollApi"
 
 const limit = 10
@@ -28,14 +29,8 @@ function BidirectionalCursorInfScroll({ startingProject = { id: 25 } }) {
       },
     )
 
-  const beforeRef = useIntersectionObserver({
-    isFetching,
-    callback: fetchPreviousPage,
-  })
-  const afterRef = useIntersectionObserver({
-    isFetching,
-    callback: fetchNextPage,
-  })
+  const beforeRef = useIntersectionCallback(fetchPreviousPage)
+  const afterRef = useIntersectionCallback(fetchNextPage)
 
   const location = useLocation()
 
@@ -82,7 +77,7 @@ function BidirectionalCursorInfScroll({ startingProject = { id: 25 } }) {
             height: "400px",
           }}
         >
-          <div ref={beforeRef}></div>
+          <div ref={beforeRef} />
           {data?.pages.map(page => (
             <React.Fragment key={page.pageInfo?.endCursor}>
               {page.projects.map((project, index, arr) => {
@@ -109,7 +104,7 @@ function BidirectionalCursorInfScroll({ startingProject = { id: 25 } }) {
               })}
             </React.Fragment>
           ))}
-          <div ref={afterRef}></div>
+          <div ref={afterRef} />
         </div>
         <div>
           <button
@@ -139,31 +134,3 @@ function BidirectionalCursorInfScroll({ startingProject = { id: 25 } }) {
 }
 
 export default BidirectionalCursorInfScroll
-
-const useIntersectionObserver = ({
-  isFetching,
-  callback,
-}: {
-  isFetching: boolean
-  callback: () => void
-}) => {
-  const observerRef = useRef<IntersectionObserver | null>(null)
-
-  const observerCallback = useCallback(
-    (node: HTMLDivElement | null) => {
-      if (isFetching) return
-      if (observerRef.current) observerRef.current.disconnect()
-
-      observerRef.current = new IntersectionObserver(entries => {
-        if (entries[0].isIntersecting) {
-          callback()
-        }
-      })
-
-      if (node) observerRef.current.observe(node)
-    },
-    [isFetching, callback],
-  )
-
-  return observerCallback
-}

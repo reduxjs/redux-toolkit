@@ -134,12 +134,9 @@ export const handlers = [
         const hasPreviousPage = startCursor !== 0
 
         await delay(1000)
-
-        const serverTime = Date.now()
-
         return HttpResponse.json({
           projects: resultProjects,
-          serverTime,
+          serverTime: Date.now(),
           pageInfo: {
             startCursor,
             endCursor,
@@ -154,4 +151,64 @@ export const handlers = [
       }
     },
   ),
+  http.get(
+    "https://example.com/api/projectsLimitOffset",
+    async ({ request }) => {
+      const url = new URL(request.url)
+      const limit = parseInt(url.searchParams.get("limit") ?? "5", 10)
+      let offset = parseInt(url.searchParams.get("offset") ?? "0", 10)
+
+      if (isNaN(offset) || offset < 0) {
+        offset = 0
+      }
+      if (isNaN(limit) || limit <= 0) {
+        return HttpResponse.json(
+          {
+            message:
+              "Invalid 'limit' parameter. It must be a positive integer.",
+          },
+          { status: 400 },
+        )
+      }
+
+      const result = projects.slice(offset, offset + limit)
+
+      await delay(1000)
+      return HttpResponse.json({
+        projects: result,
+        serverTime: Date.now(),
+        numFound: projects.length,
+      })
+    },
+  ),
+  http.get("https://example.com/api/projectsPaginated", async ({ request }) => {
+    const url = new URL(request.url)
+    const size = parseInt(url.searchParams.get("size") ?? "5", 10)
+    let page = parseInt(url.searchParams.get("page") ?? "0", 10)
+
+    if (isNaN(page) || page < 0) {
+      page = 0
+    }
+    if (isNaN(size) || size <= 0) {
+      return HttpResponse.json(
+        { message: "Invalid 'size' parameter. It must be a positive integer." },
+        { status: 400 },
+      )
+    }
+
+    const startIndex = page * size
+    const endIndex = startIndex + size
+    const result = projects.slice(startIndex, endIndex)
+
+    await delay(1000)
+    return HttpResponse.json({
+      projects: result,
+      serverTime: Date.now(),
+      totalPages: Math.ceil(projects.length / size), // totalPages is a parameter required for this example, but an API could include additional fields that can be used in certain scenarios, such as determining getNextPageParam or getPreviousPageParam.
+      // totalElements: projects.length,
+      // numberOfElements: result.length,
+      // isLast: endIndex >= projects.length,
+      // isFirst: page === 0,
+    })
+  }),
 ]

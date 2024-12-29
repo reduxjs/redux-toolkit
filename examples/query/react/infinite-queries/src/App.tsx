@@ -7,7 +7,9 @@ import {
   InfiniteScrollAbout,
   InfiniteScrollExample,
 } from "./features/infinite-scroll/InfiniteScrollExample"
+import LimitOffsetExample from "./features/limit-offset/LimitOffsetExample"
 import { InfiniteScrollMaxPagesExample } from "./features/max-pages/InfiniteScrollMaxExample"
+import PaginationInfScrollExample from "./features/pagination-infinite-scroll/PaginationInfScrollExample"
 import { PaginationExample } from "./features/pagination/PaginationExample"
 
 const Menu = () => {
@@ -29,6 +31,16 @@ const Menu = () => {
         <li>
           <Link to="/examples/bidirectional-cursor-infinte-scroll">
             Bidirectional Cursor-Based Infinite Scroll
+          </Link>
+        </li>
+        <li>
+          <Link to="/examples/limit-offset">
+            Limit and Offset Infinite Scroll
+          </Link>
+        </li>
+        <li>
+          <Link to="/examples/pagination-infinite-scroll">
+            Pagination Infinite Scroll
           </Link>
         </li>
       </ul>
@@ -66,6 +78,11 @@ const App = () => {
             <Route
               path="bidirectional-cursor-infinte-scroll"
               element={<BidirectionalCursorInfScroll />}
+            />
+            <Route path="limit-offset" element={<LimitOffsetExample />} />
+            <Route
+              path="pagination-infinite-scroll"
+              element={<PaginationInfScrollExample />}
             />
           </Route>
         </Routes>
