@@ -140,6 +140,28 @@ describe('Infinite queries', () => {
     process.env.NODE_ENV = 'test'
   })
 
+  type InfiniteQueryResult = Awaited<InfiniteQueryActionCreatorResult<any>>
+
+  const checkResultData = (
+    result: InfiniteQueryResult,
+    expectedValues: Pokemon[][],
+  ) => {
+    expect(result.status).toBe(QueryStatus.fulfilled)
+    if (result.status === QueryStatus.fulfilled) {
+      expect(result.data.pages).toEqual(expectedValues)
+    }
+  }
+
+  const checkResultLength = (
+    result: InfiniteQueryResult,
+    expectedLength: number,
+  ) => {
+    expect(result.status).toBe(QueryStatus.fulfilled)
+    if (result.status === QueryStatus.fulfilled) {
+      expect(result.data.pages).toHaveLength(expectedLength)
+    }
+  }
+
   test('Basic infinite query behavior', async () => {
     const checkFlags = (
       value: unknown,
@@ -166,18 +188,6 @@ describe('Infinite queries', () => {
       const entry = selector(storeRef.store.getState())
 
       checkFlags(entry, expectedFlags)
-    }
-
-    type InfiniteQueryResult = Awaited<InfiniteQueryActionCreatorResult<any>>
-
-    const checkResultData = (
-      result: InfiniteQueryResult,
-      expectedValues: Pokemon[][],
-    ) => {
-      expect(result.status).toBe(QueryStatus.fulfilled)
-      if (result.status === QueryStatus.fulfilled) {
-        expect(result.data.pages).toEqual(expectedValues)
-      }
     }
 
     const res1 = storeRef.store.dispatch(
@@ -331,9 +341,7 @@ describe('Infinite queries', () => {
         }),
       )
 
-      if (res.status === QueryStatus.fulfilled) {
-        expect(res.data.pages).toHaveLength(i)
-      }
+      checkResultLength(res, i)
     }
   })
 
@@ -344,10 +352,8 @@ describe('Infinite queries', () => {
           direction: 'forward',
         }),
       )
-      if (res.status === QueryStatus.fulfilled) {
-        // Should have 1, 2, 3 (repeating) pages
-        expect(res.data.pages).toHaveLength(Math.min(i, 3))
-      }
+
+      checkResultLength(res, Math.min(i, 3))
     }
 
     // Should now have entries 7, 8, 9 after the loop
@@ -358,14 +364,11 @@ describe('Infinite queries', () => {
       }),
     )
 
-    if (res.status === QueryStatus.fulfilled) {
-      // When we go back 1, we now have 6, 7, 8
-      expect(res.data.pages).toEqual([
-        [{ id: '6', name: 'Pokemon 6' }],
-        [{ id: '7', name: 'Pokemon 7' }],
-        [{ id: '8', name: 'Pokemon 8' }],
-      ])
-    }
+    checkResultData(res, [
+      [{ id: '6', name: 'Pokemon 6' }],
+      [{ id: '7', name: 'Pokemon 7' }],
+      [{ id: '8', name: 'Pokemon 8' }],
+    ])
   })
 
   test('validates maxPages during createApi call', async () => {
@@ -403,14 +406,12 @@ describe('Infinite queries', () => {
   test('refetches all existing pages', async () => {
     let hitCounter = 0
 
+    type HitCounter = { page: number; hitCounter: number }
+
     const countersApi = createApi({
       baseQuery: fakeBaseQuery(),
       endpoints: (build) => ({
-        counters: build.infiniteQuery<
-          { page: number; hitCounter: number },
-          string,
-          number
-        >({
+        counters: build.infiniteQuery<HitCounter, string, number>({
           queryFn(page) {
             hitCounter++
 
@@ -428,6 +429,16 @@ describe('Infinite queries', () => {
         }),
       }),
     })
+
+    const checkResultData = (
+      result: InfiniteQueryResult,
+      expectedValues: HitCounter[],
+    ) => {
+      expect(result.status).toBe(QueryStatus.fulfilled)
+      if (result.status === QueryStatus.fulfilled) {
+        expect(result.data.pages).toEqual(expectedValues)
+      }
+    }
 
     const storeRef = setupApiStore(
       countersApi,
@@ -456,23 +467,78 @@ describe('Infinite queries', () => {
     )
 
     const thirdRes = await thirdPromise
-    if (thirdRes.status === QueryStatus.fulfilled) {
-      expect(thirdRes.data.pages).toEqual([
-        { page: 3, hitCounter: 1 },
-        { page: 4, hitCounter: 2 },
-        { page: 5, hitCounter: 3 },
-      ])
-    }
+
+    checkResultData(thirdRes, [
+      { page: 3, hitCounter: 1 },
+      { page: 4, hitCounter: 2 },
+      { page: 5, hitCounter: 3 },
+    ])
 
     const fourthRes = await thirdPromise.refetch()
 
-    if (fourthRes.status === QueryStatus.fulfilled) {
-      // Refetching should call the query function again for each page
-      expect(fourthRes.data.pages).toEqual([
-        { page: 3, hitCounter: 4 },
-        { page: 4, hitCounter: 5 },
-        { page: 5, hitCounter: 6 },
-      ])
-    }
+    checkResultData(fourthRes, [
+      { page: 3, hitCounter: 4 },
+      { page: 4, hitCounter: 5 },
+      { page: 5, hitCounter: 6 },
+    ])
+  })
+
+  test('can fetch pages with refetchOnMountOrArgChange active', async () => {
+    const pokemonApiWithRefetch = createApi({
+      baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
+      endpoints: (builder) => ({
+        getInfinitePokemon: builder.infiniteQuery<Pokemon[], string, number>({
+          infiniteQueryOptions: {
+            initialPageParam: 0,
+            getNextPageParam: (
+              lastPage,
+              allPages,
+              // Page param type should be `number`
+              lastPageParam,
+              allPageParams,
+            ) => lastPageParam + 1,
+            getPreviousPageParam: (
+              firstPage,
+              allPages,
+              firstPageParam,
+              allPageParams,
+            ) => {
+              return firstPageParam > 0 ? firstPageParam - 1 : undefined
+            },
+          },
+          query(pageParam) {
+            return `https://example.com/listItems?page=${pageParam}`
+          },
+        }),
+      }),
+      refetchOnMountOrArgChange: true,
+    })
+
+    const storeRef = setupApiStore(
+      pokemonApiWithRefetch,
+      { ...actionsReducer },
+      {
+        withoutTestLifecycles: true,
+      },
+    )
+
+    const res1 = storeRef.store.dispatch(
+      pokemonApi.endpoints.getInfinitePokemon.initiate('fire', {}),
+    )
+
+    const entry1InitialLoad = await res1
+    checkResultData(entry1InitialLoad, [[{ id: '0', name: 'Pokemon 0' }]])
+
+    const res2 = storeRef.store.dispatch(
+      pokemonApi.endpoints.getInfinitePokemon.initiate('fire', {
+        direction: 'forward',
+      }),
+    )
+
+    const entry1SecondPage = await res2
+    checkResultData(entry1SecondPage, [
+      [{ id: '0', name: 'Pokemon 0' }],
+      [{ id: '1', name: 'Pokemon 1' }],
+    ])
   })
 })
