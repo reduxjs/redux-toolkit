@@ -1720,10 +1720,41 @@ describe('hooks tests', () => {
       }),
     })
 
+    const pokemonApiWithRefetch = createApi({
+      baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
+      endpoints: (builder) => ({
+        getInfinitePokemon: builder.infiniteQuery<Pokemon, string, number>({
+          infiniteQueryOptions: {
+            initialPageParam: 0,
+            getNextPageParam: (
+              lastPage,
+              allPages,
+              lastPageParam,
+              allPageParams,
+            ) => lastPageParam + 1,
+            getPreviousPageParam: (
+              firstPage,
+              allPages,
+              firstPageParam,
+              allPageParams,
+            ) => {
+              return firstPageParam > 0 ? firstPageParam - 1 : undefined
+            },
+          },
+          query(pageParam) {
+            return `https://example.com/listItems?page=${pageParam}`
+          },
+        }),
+      }),
+      refetchOnMountOrArgChange: true,
+    })
+
     function PokemonList({
+      api,
       arg = 'fire',
       initialPageParam = 0,
     }: {
+      api: typeof pokemonApi
       arg?: string
       initialPageParam?: number
     }) {
@@ -1733,7 +1764,7 @@ describe('hooks tests', () => {
         isUninitialized,
         fetchNextPage,
         fetchPreviousPage,
-      } = pokemonApi.endpoints.getInfinitePokemon.useInfiniteQuery(arg, {
+      } = api.endpoints.getInfinitePokemon.useInfiniteQuery(arg, {
         initialPageParam,
       })
 
@@ -1782,7 +1813,10 @@ describe('hooks tests', () => {
       )
     })
 
-    test('useInfiniteQuery fetchNextPage Trigger', async () => {
+    test.each([
+      ['no refetch', pokemonApi],
+      ['with refetch', pokemonApiWithRefetch],
+    ])(`useInfiniteQuery %s`, async (_, pokemonApi) => {
       const storeRef = setupApiStore(pokemonApi, undefined, {
         withoutTestLifecycles: true,
       })
@@ -1855,7 +1889,9 @@ describe('hooks tests', () => {
         }
       }
 
-      const utils = render(<PokemonList />, { wrapper: storeRef.wrapper })
+      const utils = render(<PokemonList api={pokemonApi} />, {
+        wrapper: storeRef.wrapper,
+      })
       checkNumQueries(1)
       checkEntryFlags('fire', {})
       await waitForFetch(true)
@@ -1880,7 +1916,9 @@ describe('hooks tests', () => {
       await waitForFetch()
       checkPageRows(getCurrentRender().withinDOM, 'fire', [0, 1, 2])
 
-      utils.rerender(<PokemonList arg="water" initialPageParam={3} />)
+      utils.rerender(
+        <PokemonList api={pokemonApi} arg="water" initialPageParam={3} />,
+      )
       checkEntryFlags('water', {})
       await waitForFetch(true)
       checkNumQueries(2)
