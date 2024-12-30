@@ -482,5 +482,63 @@ describe('Infinite queries', () => {
       { page: 5, hitCounter: 6 },
     ])
   })
+
+  test('can fetch pages with refetchOnMountOrArgChange active', async () => {
+    const pokemonApiWithRefetch = createApi({
+      baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
+      endpoints: (builder) => ({
+        getInfinitePokemon: builder.infiniteQuery<Pokemon[], string, number>({
+          infiniteQueryOptions: {
+            initialPageParam: 0,
+            getNextPageParam: (
+              lastPage,
+              allPages,
+              // Page param type should be `number`
+              lastPageParam,
+              allPageParams,
+            ) => lastPageParam + 1,
+            getPreviousPageParam: (
+              firstPage,
+              allPages,
+              firstPageParam,
+              allPageParams,
+            ) => {
+              return firstPageParam > 0 ? firstPageParam - 1 : undefined
+            },
+          },
+          query(pageParam) {
+            return `https://example.com/listItems?page=${pageParam}`
+          },
+        }),
+      }),
+      refetchOnMountOrArgChange: true,
+    })
+
+    const storeRef = setupApiStore(
+      pokemonApiWithRefetch,
+      { ...actionsReducer },
+      {
+        withoutTestLifecycles: true,
+      },
+    )
+
+    const res1 = storeRef.store.dispatch(
+      pokemonApi.endpoints.getInfinitePokemon.initiate('fire', {}),
+    )
+
+    const entry1InitialLoad = await res1
+    checkResultData(entry1InitialLoad, [[{ id: '0', name: 'Pokemon 0' }]])
+
+    const res2 = storeRef.store.dispatch(
+      pokemonApi.endpoints.getInfinitePokemon.initiate('fire', {
+        direction: 'forward',
+      }),
+    )
+
+    const entry1SecondPage = await res2
+    checkResultData(entry1SecondPage, [
+      [{ id: '0', name: 'Pokemon 0' }],
+      [{ id: '1', name: 'Pokemon 1' }],
+    ])
   })
 })
