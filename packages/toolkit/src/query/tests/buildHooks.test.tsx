@@ -1813,7 +1813,7 @@ describe('hooks tests', () => {
       )
     })
 
-    test.only.each([
+    test.each([
       ['no refetch', pokemonApi],
       ['with refetch', pokemonApiWithRefetch],
     ])(`useInfiniteQuery %s`, async (_, pokemonApi) => {

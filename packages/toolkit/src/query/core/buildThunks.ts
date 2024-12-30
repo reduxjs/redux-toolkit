@@ -552,8 +552,10 @@ export function buildThunks<
         const blankData = { pages: [], pageParams: [] }
         const cachedData = getState()[reducerPath].queries[arg.queryCacheKey]
           ?.data as InfiniteData<unknown, unknown> | undefined
+        // Don't want to use `isForcedQuery` here, because that
+        // includes `refetchOnMountOrArgChange`.
         const existingData = (
-          isForcedQuery(arg, getState()) || !cachedData ? blankData : cachedData
+          arg.forceRefetch || !cachedData ? blankData : cachedData
         ) as InfiniteData<unknown, unknown>
 
         // If the thunk specified a direction and we do have at least one page,
