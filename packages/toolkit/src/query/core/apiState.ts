@@ -154,6 +154,19 @@ export type QueryKeys<Definitions extends EndpointDefinitions> = {
     ? K
     : never
 }[keyof Definitions]
+
+export type InfiniteQueryKeys<Definitions extends EndpointDefinitions> = {
+  [K in keyof Definitions]: Definitions[K] extends InfiniteQueryDefinition<
+    any,
+    any,
+    any,
+    any,
+    any
+  >
+    ? K
+    : never
+}[keyof Definitions]
+
 export type MutationKeys<Definitions extends EndpointDefinitions> = {
   [K in keyof Definitions]: Definitions[K] extends MutationDefinition<
     any,

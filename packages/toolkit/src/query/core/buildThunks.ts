@@ -6,6 +6,7 @@ import type {
   ThunkDispatch,
   UnknownAction,
 } from '@reduxjs/toolkit'
+import util from 'util'
 import type { Patch } from 'immer'
 import { isDraftable, produceWithPatches } from 'immer'
 import type { Api, ApiContext } from '../apiTypes'
@@ -19,8 +20,10 @@ import type {
   AssertTagTypes,
   EndpointDefinition,
   EndpointDefinitions,
+  InfiniteQueryArgFrom,
   InfiniteQueryDefinition,
   MutationDefinition,
+  PageParamFrom,
   QueryArgFrom,
   QueryDefinition,
   ResultTypeFrom,
@@ -40,9 +43,11 @@ import type {
   InfiniteQueryConfigOptions,
   QueryCacheKey,
   InfiniteQueryDirection,
+  InfiniteQueryKeys,
 } from './apiState'
 import { QueryStatus } from './apiState'
 import type {
+  InfiniteQueryActionCreatorResult,
   QueryActionCreatorResult,
   StartInfiniteQueryActionCreatorOptions,
   StartQueryActionCreatorOptions,
@@ -194,29 +199,80 @@ export type PatchQueryDataThunk<
   updateProvided?: boolean,
 ) => ThunkAction<void, PartialState, any, UnknownAction>
 
+export type AllQueryKeys<Definitions extends EndpointDefinitions> =
+  | QueryKeys<Definitions>
+  | InfiniteQueryKeys<Definitions>
+
+export type QueryArgFromAnyQueryDefinition<
+  Definitions extends EndpointDefinitions,
+  EndpointName extends AllQueryKeys<Definitions>,
+> =
+  Definitions[EndpointName] extends InfiniteQueryDefinition<
+    any,
+    any,
+    any,
+    any,
+    any
+  >
+    ? InfiniteQueryArgFrom<Definitions[EndpointName]>
+    : Definitions[EndpointName] extends QueryDefinition<any, any, any, any>
+      ? QueryArgFrom<Definitions[EndpointName]>
+      : never
+
+export type DataFromAnyQueryDefinition<
+  Definitions extends EndpointDefinitions,
+  EndpointName extends AllQueryKeys<Definitions>,
+> =
+  Definitions[EndpointName] extends InfiniteQueryDefinition<
+    any,
+    any,
+    any,
+    any,
+    any
+  >
+    ? InfiniteData<
+        ResultTypeFrom<Definitions[EndpointName]>,
+        PageParamFrom<Definitions[EndpointName]>
+      >
+    : Definitions[EndpointName] extends QueryDefinition<any, any, any, any>
+      ? ResultTypeFrom<Definitions[EndpointName]>
+      : unknown
+
+export type UpsertThunkResult<
+  Definitions extends EndpointDefinitions,
+  EndpointName extends AllQueryKeys<Definitions>,
+> =
+  Definitions[EndpointName] extends InfiniteQueryDefinition<
+    any,
+    any,
+    any,
+    any,
+    any
+  >
+    ? InfiniteQueryActionCreatorResult<Definitions[EndpointName]>
+    : Definitions[EndpointName] extends QueryDefinition<any, any, any, any>
+      ? QueryActionCreatorResult<Definitions[EndpointName]>
+      : QueryActionCreatorResult<never>
+
 export type UpdateQueryDataThunk<
   Definitions extends EndpointDefinitions,
   PartialState,
-> = <EndpointName extends QueryKeys<Definitions>>(
+> = <EndpointName extends AllQueryKeys<Definitions>>(
   endpointName: EndpointName,
-  arg: QueryArgFrom<Definitions[EndpointName]>,
-  updateRecipe: Recipe<ResultTypeFrom<Definitions[EndpointName]>>,
+  arg: QueryArgFromAnyQueryDefinition<Definitions, EndpointName>,
+  updateRecipe: Recipe<DataFromAnyQueryDefinition<Definitions, EndpointName>>,
   updateProvided?: boolean,
 ) => ThunkAction<PatchCollection, PartialState, any, UnknownAction>
 
 export type UpsertQueryDataThunk<
   Definitions extends EndpointDefinitions,
   PartialState,
-> = <EndpointName extends QueryKeys<Definitions>>(
+> = <EndpointName extends AllQueryKeys<Definitions>>(
   endpointName: EndpointName,
-  arg: QueryArgFrom<Definitions[EndpointName]>,
-  value: ResultTypeFrom<Definitions[EndpointName]>,
+  arg: QueryArgFromAnyQueryDefinition<Definitions, EndpointName>,
+  value: DataFromAnyQueryDefinition<Definitions, EndpointName>,
 ) => ThunkAction<
-  QueryActionCreatorResult<
-    Definitions[EndpointName] extends QueryDefinition<any, any, any, any>
-      ? Definitions[EndpointName]
-      : never
-  >,
+  UpsertThunkResult<Definitions, EndpointName>,
   PartialState,
   any,
   UnknownAction
@@ -368,7 +424,8 @@ export function buildThunks<
 
   const upsertQueryData: UpsertQueryDataThunk<Definitions, State> =
     (endpointName, arg, value) => (dispatch) => {
-      return dispatch(
+      type EndpointName = typeof endpointName
+      const res = dispatch(
         (
           api.endpoints[endpointName] as ApiEndpointQuery<
             QueryDefinition<any, any, any, any, any>,
@@ -381,7 +438,9 @@ export function buildThunks<
             data: value,
           }),
         }),
-      )
+      ) as UpsertThunkResult<Definitions, EndpointName>
+
+      return res
     }
 
   // The generic async payload function for all of our thunks
@@ -581,6 +640,14 @@ export function buildThunks<
 
           // Fetch first page
           result = await fetchPage(existingData, firstPageParam, maxPages)
+
+          if (forceQueryFn) {
+            // HACK `upsertQueryData` expects the user to pass in the `{pages, pageParams}` structure,
+            // but `fetchPage` treats that as `pages[0]`. We have to manually un-nest it.
+            result = {
+              data: (result.data as InfiniteData<unknown, unknown>).pages[0],
+            } as QueryReturnValue
+          }
 
           // Fetch remaining pages
           for (let i = 1; i < totalPages; i++) {
