@@ -1764,7 +1764,7 @@ describe('hooks tests', () => {
         isUninitialized,
         fetchNextPage,
         fetchPreviousPage,
-      } = api.endpoints.getInfinitePokemon.useInfiniteQuery(arg, {
+      } = api.useGetInfinitePokemonInfiniteQuery(arg, {
         initialPageParam,
       })
 
