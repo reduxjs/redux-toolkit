@@ -121,7 +121,7 @@ export type QueryActionCreatorResult<
 export type InfiniteQueryActionCreatorResult<
   D extends InfiniteQueryDefinition<any, any, any, any, any>,
 > = Promise<InfiniteQueryResultSelectorResult<D>> & {
-  arg: QueryArgFrom<D>
+  arg: InfiniteQueryArgFrom<D>
   requestId: string
   subscriptionOptions: SubscriptionOptions | undefined
   abort(): void

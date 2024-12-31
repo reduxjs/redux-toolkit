@@ -29,6 +29,9 @@ import type {
 } from './apiState'
 import { QueryStatus } from './apiState'
 import type {
+  AllQueryKeys,
+  QueryArgFromAnyQueryDefinition,
+  DataFromAnyQueryDefinition,
   InfiniteQueryThunk,
   MutationThunk,
   QueryThunk,
@@ -64,11 +67,11 @@ import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
  */
 export type NormalizedQueryUpsertEntry<
   Definitions extends EndpointDefinitions,
-  EndpointName extends QueryKeys<Definitions>,
+  EndpointName extends AllQueryKeys<Definitions>,
 > = {
   endpointName: EndpointName
-  arg: QueryArgFrom<Definitions[EndpointName]>
-  value: ResultTypeFrom<Definitions[EndpointName]>
+  arg: QueryArgFromAnyQueryDefinition<Definitions, EndpointName>
+  value: DataFromAnyQueryDefinition<Definitions, EndpointName>
 }
 
 /**
@@ -89,7 +92,7 @@ export type ProcessedQueryUpsertEntry = {
  * A typesafe representation of a util action creator that accepts cache entry descriptions to upsert
  */
 export type UpsertEntries<Definitions extends EndpointDefinitions> = (<
-  EndpointNames extends Array<QueryKeys<Definitions>>,
+  EndpointNames extends Array<AllQueryKeys<Definitions>>,
 >(
   entries: [
     ...{
