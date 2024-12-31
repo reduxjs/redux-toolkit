@@ -1,6 +1,6 @@
 import { baseApi } from "../baseApi"
 
-type Project = {
+export type Project = {
   id: number
   name: string
 }

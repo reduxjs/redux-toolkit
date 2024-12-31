@@ -3,6 +3,7 @@ import { useInView } from "react-intersection-observer"
 import { Link } from "react-router"
 
 import { apiWithInfiniteScroll } from "./infiniteScrollApi"
+import type { Project } from "./infiniteScrollApi"
 
 export const InfiniteScrollAbout = () => {
   return (
@@ -15,6 +16,22 @@ export const InfiniteScrollAbout = () => {
     >
       Back
     </a>
+  )
+}
+
+export const ProjectRow = ({ project }: { project: Project }) => {
+  return (
+    <p
+      style={{
+        border: "1px solid gray",
+        borderRadius: "5px",
+        padding: "5rem 1rem",
+        background: `hsla(${project.id * 30}, 60%, 80%, 1)`,
+      }}
+      key={project.id}
+    >
+      {project.name}
+    </p>
   )
 }
 
@@ -67,17 +84,7 @@ export const InfiniteScrollExample = () => {
           {data?.pages.map(page => (
             <React.Fragment key={page.nextId}>
               {page.projects.map(project => (
-                <p
-                  style={{
-                    border: "1px solid gray",
-                    borderRadius: "5px",
-                    padding: "5rem 1rem",
-                    background: `hsla(${project.id * 30}, 60%, 80%, 1)`,
-                  }}
-                  key={project.id}
-                >
-                  {project.name}
-                </p>
+                <ProjectRow key={project.id} project={project} />
               ))}
             </React.Fragment>
           ))}
