@@ -6,6 +6,7 @@ import type {
   ThunkDispatch,
   UnknownAction,
 } from '@reduxjs/toolkit'
+import util from 'util'
 import type { Patch } from 'immer'
 import { isDraftable, produceWithPatches } from 'immer'
 import type { Api, ApiContext } from '../apiTypes'
@@ -198,11 +199,11 @@ export type PatchQueryDataThunk<
   updateProvided?: boolean,
 ) => ThunkAction<void, PartialState, any, UnknownAction>
 
-type AllQueryKeys<Definitions extends EndpointDefinitions> =
+export type AllQueryKeys<Definitions extends EndpointDefinitions> =
   | QueryKeys<Definitions>
   | InfiniteQueryKeys<Definitions>
 
-type QueryArgFromAnyQueryDefinition<
+export type QueryArgFromAnyQueryDefinition<
   Definitions extends EndpointDefinitions,
   EndpointName extends AllQueryKeys<Definitions>,
 > =
@@ -218,7 +219,7 @@ type QueryArgFromAnyQueryDefinition<
       ? QueryArgFrom<Definitions[EndpointName]>
       : never
 
-type DataFromAnyQueryDefinition<
+export type DataFromAnyQueryDefinition<
   Definitions extends EndpointDefinitions,
   EndpointName extends AllQueryKeys<Definitions>,
 > =
@@ -237,7 +238,7 @@ type DataFromAnyQueryDefinition<
       ? ResultTypeFrom<Definitions[EndpointName]>
       : unknown
 
-type UpsertThunkResult<
+export type UpsertThunkResult<
   Definitions extends EndpointDefinitions,
   EndpointName extends AllQueryKeys<Definitions>,
 > =
