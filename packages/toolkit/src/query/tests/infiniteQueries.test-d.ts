@@ -53,6 +53,8 @@ describe('Infinite queries', () => {
       .parameter(0)
       .toBeString()
 
+    expectTypeOf(pokemonApi.useGetInfinitePokemonInfiniteQuery).toBeFunction()
+
     const res = storeRef.store.dispatch(
       pokemonApi.endpoints.getInfinitePokemon.initiate('fire', {}),
     )
