@@ -7739,9 +7739,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@reduxjs/toolkit@https://pkg.csb.dev/reduxjs/redux-toolkit/commit/87270fe3/@reduxjs/toolkit/_pkg.tgz":
+"@reduxjs/toolkit@https://pkg.csb.dev/reduxjs/redux-toolkit/commit/c9cc8ca0/@reduxjs/toolkit/_pkg.tgz":
   version: 2.5.0
-  resolution: "@reduxjs/toolkit@https://pkg.csb.dev/reduxjs/redux-toolkit/commit/87270fe3/@reduxjs/toolkit/_pkg.tgz"
+  resolution: "@reduxjs/toolkit@https://pkg.csb.dev/reduxjs/redux-toolkit/commit/c9cc8ca0/@reduxjs/toolkit/_pkg.tgz"
   dependencies:
     immer: "npm:^10.0.3"
     redux: "npm:^5.0.1"
@@ -7755,7 +7755,7 @@ __metadata:
       optional: true
     react-redux:
       optional: true
-  checksum: 10/e4102c8593bbf280b7b35b0245fbd5bd8d16a230e6cf9876acc62faeaa74f57386367ca4d66bf0eeb31badf05909dba82389a9f310862dffa537286095c61c5a
+  checksum: 10/89bff8594de9815bdfc909e2e3942cb3983b8f32b3335b49ab042288609c990d26ba9b3ca1f65439d8d409bb642b938354079517d0c26db976155430cd7df659
   languageName: node
   linkType: hard
 
@@ -32439,7 +32439,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "vite-template-redux@workspace:examples/query/react/infinite-queries"
   dependencies:
-    "@reduxjs/toolkit": "https://pkg.csb.dev/reduxjs/redux-toolkit/commit/87270fe3/@reduxjs/toolkit/_pkg.tgz"
+    "@reduxjs/toolkit": "https://pkg.csb.dev/reduxjs/redux-toolkit/commit/c9cc8ca0/@reduxjs/toolkit/_pkg.tgz"
     "@testing-library/dom": "npm:^9.3.4"
     "@testing-library/jest-dom": "npm:^6.2.0"
     "@testing-library/react": "npm:^14.1.2"
