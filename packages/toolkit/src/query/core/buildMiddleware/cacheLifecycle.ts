@@ -344,7 +344,7 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
             mwApi.dispatch(
               api.util.updateQueryData(
                 endpointName as never,
-                originalArgs,
+                originalArgs as never,
                 updateRecipe,
               ),
             )
