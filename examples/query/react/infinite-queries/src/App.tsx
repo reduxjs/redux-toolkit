@@ -11,6 +11,7 @@ import LimitOffsetExample from "./features/limit-offset/LimitOffsetExample"
 import { InfiniteScrollMaxPagesExample } from "./features/max-pages/InfiniteScrollMaxExample"
 import PaginationInfScrollExample from "./features/pagination-infinite-scroll/PaginationInfScrollExample"
 import { PaginationExample } from "./features/pagination/PaginationExample"
+import { FlatlistExample } from "./features/rn-flatlist/FlatlistExample"
 
 const Menu = () => {
   return (
@@ -42,6 +43,9 @@ const Menu = () => {
           <Link to="/examples/pagination-infinite-scroll">
             Pagination Infinite Scroll
           </Link>
+        </li>
+        <li>
+          <Link to="/examples/rn-flatlist">RN FlatList</Link>
         </li>
       </ul>
     </div>
@@ -84,6 +88,7 @@ const App = () => {
               path="pagination-infinite-scroll"
               element={<PaginationInfScrollExample />}
             />
+            <Route path="rn-flatlist" element={<FlatlistExample />} />
           </Route>
         </Routes>
       </div>

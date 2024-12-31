@@ -63,7 +63,7 @@ import { UNINITIALIZED_VALUE } from './constants'
 import type { ReactHooksModuleOptions } from './module'
 import { useStableQueryArgs } from './useSerializedStableValue'
 import { useShallowStableValue } from './useShallowStableValue'
-import { InfiniteQueryDirection } from '../core/apiState'
+import type { InfiniteQueryDirection } from '../core/apiState'
 
 // Copy-pasted from React-Redux
 const canUseDOM = () =>
@@ -857,7 +857,9 @@ export type TypedUseInfiniteQuerySubscription<
 
 export type UseInfiniteQuerySubscriptionResult<
   D extends InfiniteQueryDefinition<any, any, any, any, any>,
-> = LazyInfiniteQueryTrigger<D>
+> = Pick<InfiniteQueryActionCreatorResult<D>, 'refetch'> & {
+  trigger: LazyInfiniteQueryTrigger<D>
+}
 
 /**
  * Helper type to manually type the result
@@ -922,15 +924,13 @@ export type UseInfiniteQuerySubscription<
 > = (
   arg: QueryArgFrom<D> | SkipToken,
   options?: UseInfiniteQuerySubscriptionOptions<D>,
-) => readonly [
-  LazyInfiniteQueryTrigger<D>,
-  QueryArgFrom<D> | UninitializedValue,
-]
+) => UseInfiniteQuerySubscriptionResult<D>
 
 export type UseInfiniteQueryHookResult<
   D extends InfiniteQueryDefinition<any, any, any, any, any>,
   R = UseInfiniteQueryStateDefaultResult<D>,
-> = UseInfiniteQueryStateResult<D, R>
+> = UseInfiniteQueryStateResult<D, R> &
+  Pick<UseInfiniteQuerySubscriptionResult<D>, 'refetch'>
 
 export type UseInfiniteQueryStateOptions<
   D extends InfiniteQueryDefinition<any, any, any, any, any>,
@@ -1000,8 +1000,6 @@ export type UseInfiniteQueryStateOptions<
    * ```
    */
   selectFromResult?: InfiniteQueryStateSelector<R, D>
-  // TODO: This shouldn't be any
-  trigger?: any
 }
 
 export type UseInfiniteQueryStateResult<
@@ -1906,14 +1904,29 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         }
       }, [])
 
-      return useMemo(() => [trigger, arg] as const, [trigger, arg])
+      return useMemo(
+        () => ({
+          trigger,
+          /**
+           * A method to manually refetch data for the query
+           */
+          refetch: () => {
+            if (!promiseRef.current)
+              throw new Error(
+                'Cannot refetch a query that has not been started yet.',
+              )
+            return promiseRef.current?.refetch()
+          },
+        }),
+        [trigger],
+      )
     }
 
     const useInfiniteQueryState: UseInfiniteQueryState<any> = (
       arg: any,
-      { skip = false, selectFromResult, trigger } = {},
+      { skip = false, selectFromResult } = {},
     ) => {
-      const { select, initiate } = api.endpoints[
+      const { select } = api.endpoints[
         name
       ] as unknown as ApiEndpointInfiniteQuery<
         InfiniteQueryDefinition<any, any, any, any, any>,
@@ -1980,13 +1993,12 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       useInfiniteQueryState,
       useInfiniteQuerySubscription,
       useInfiniteQuery(arg, options) {
-        const [trigger] = useInfiniteQuerySubscription(arg, options)
+        const { trigger, refetch } = useInfiniteQuerySubscription(arg, options)
         const queryStateResults = useInfiniteQueryState(arg, {
           selectFromResult:
             arg === skipToken || options?.skip
               ? undefined
               : noPendingQueryStateSelector,
-          trigger,
           ...options,
         })
 
@@ -2023,8 +2035,13 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         }, [trigger, arg])
 
         return useMemo(
-          () => ({ ...queryStateResults, fetchNextPage, fetchPreviousPage }),
-          [queryStateResults, fetchNextPage, fetchPreviousPage],
+          () => ({
+            ...queryStateResults,
+            fetchNextPage,
+            fetchPreviousPage,
+            refetch,
+          }),
+          [queryStateResults, fetchNextPage, fetchPreviousPage, refetch],
         )
       },
     }
