@@ -523,14 +523,14 @@ describe('Infinite queries', () => {
     )
 
     const res1 = storeRef.store.dispatch(
-      pokemonApi.endpoints.getInfinitePokemon.initiate('fire', {}),
+      pokemonApiWithRefetch.endpoints.getInfinitePokemon.initiate('fire', {}),
     )
 
     const entry1InitialLoad = await res1
     checkResultData(entry1InitialLoad, [[{ id: '0', name: 'Pokemon 0' }]])
 
     const res2 = storeRef.store.dispatch(
-      pokemonApi.endpoints.getInfinitePokemon.initiate('fire', {
+      pokemonApiWithRefetch.endpoints.getInfinitePokemon.initiate('fire', {
         direction: 'forward',
       }),
     )
@@ -540,5 +540,85 @@ describe('Infinite queries', () => {
       [{ id: '0', name: 'Pokemon 0' }],
       [{ id: '1', name: 'Pokemon 1' }],
     ])
+  })
+
+  test('Works with cache manipulation utils', async () => {
+    const res1 = storeRef.store.dispatch(
+      pokemonApi.endpoints.getInfinitePokemon.initiate('fire', {}),
+    )
+
+    const entry1InitialLoad = await res1
+    checkResultData(entry1InitialLoad, [[{ id: '0', name: 'Pokemon 0' }]])
+
+    storeRef.store.dispatch(
+      pokemonApi.util.updateQueryData('getInfinitePokemon', 'fire', (draft) => {
+        draft.pages.push([{ id: '1', name: 'Pokemon 1' }])
+        draft.pageParams.push(1)
+      }),
+    )
+
+    const selectFire = pokemonApi.endpoints.getInfinitePokemon.select('fire')
+    const entry1Updated = selectFire(storeRef.store.getState())
+
+    expect(entry1Updated.data).toEqual({
+      pages: [
+        [{ id: '0', name: 'Pokemon 0' }],
+        [{ id: '1', name: 'Pokemon 1' }],
+      ],
+      pageParams: [0, 1],
+    })
+
+    const res2 = storeRef.store.dispatch(
+      pokemonApi.util.upsertQueryData('getInfinitePokemon', 'water', {
+        pages: [[{ id: '2', name: 'Pokemon 2' }]],
+        pageParams: [2],
+      }),
+    )
+
+    const entry2InitialLoad = await res2
+    const selectWater = pokemonApi.endpoints.getInfinitePokemon.select('water')
+    const entry2Updated = selectWater(storeRef.store.getState())
+
+    expect(entry2Updated.data).toEqual({
+      pages: [[{ id: '2', name: 'Pokemon 2' }]],
+      pageParams: [2],
+    })
+
+    storeRef.store.dispatch(
+      pokemonApi.util.upsertQueryEntries([
+        {
+          endpointName: 'getInfinitePokemon',
+          arg: 'air',
+          value: {
+            pages: [[{ id: '3', name: 'Pokemon 3' }]],
+            pageParams: [3],
+          },
+        },
+      ]),
+    )
+
+    const selectAir = pokemonApi.endpoints.getInfinitePokemon.select('air')
+    const entry3Initial = selectAir(storeRef.store.getState())
+
+    expect(entry3Initial.data).toEqual({
+      pages: [[{ id: '3', name: 'Pokemon 3' }]],
+      pageParams: [3],
+    })
+
+    await storeRef.store.dispatch(
+      pokemonApi.endpoints.getInfinitePokemon.initiate('air', {
+        direction: 'forward',
+      }),
+    )
+
+    const entry3Updated = selectAir(storeRef.store.getState())
+
+    expect(entry3Updated.data).toEqual({
+      pages: [
+        [{ id: '3', name: 'Pokemon 3' }],
+        [{ id: '4', name: 'Pokemon 4' }],
+      ],
+      pageParams: [3, 4],
+    })
   })
 })
