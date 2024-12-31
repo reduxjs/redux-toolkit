@@ -523,14 +523,14 @@ describe('Infinite queries', () => {
     )
 
     const res1 = storeRef.store.dispatch(
-      pokemonApi.endpoints.getInfinitePokemon.initiate('fire', {}),
+      pokemonApiWithRefetch.endpoints.getInfinitePokemon.initiate('fire', {}),
     )
 
     const entry1InitialLoad = await res1
     checkResultData(entry1InitialLoad, [[{ id: '0', name: 'Pokemon 0' }]])
 
     const res2 = storeRef.store.dispatch(
-      pokemonApi.endpoints.getInfinitePokemon.initiate('fire', {
+      pokemonApiWithRefetch.endpoints.getInfinitePokemon.initiate('fire', {
         direction: 'forward',
       }),
     )
@@ -540,5 +540,33 @@ describe('Infinite queries', () => {
       [{ id: '0', name: 'Pokemon 0' }],
       [{ id: '1', name: 'Pokemon 1' }],
     ])
+  })
+
+  test('Works with cache manipulation utils', async () => {
+    const res1 = storeRef.store.dispatch(
+      pokemonApi.endpoints.getInfinitePokemon.initiate('fire', {}),
+    )
+
+    const entry1InitialLoad = await res1
+    checkResultData(entry1InitialLoad, [[{ id: '0', name: 'Pokemon 0' }]])
+
+    storeRef.store.dispatch(
+      pokemonApi.util.updateQueryData('getInfinitePokemon', 'fire', (draft) => {
+        draft.pages.push([{ id: '1', name: 'Pokemon 1' }])
+        draft.pageParams.push(1)
+      }),
+    )
+
+    const entry1Updated = pokemonApi.endpoints.getInfinitePokemon.select(
+      'fire',
+    )(storeRef.store.getState())
+
+    expect(entry1Updated.data).toEqual({
+      pages: [
+        [{ id: '0', name: 'Pokemon 0' }],
+        [{ id: '1', name: 'Pokemon 1' }],
+      ],
+      pageParams: [0, 1],
+    })
   })
 })

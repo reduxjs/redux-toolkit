@@ -19,8 +19,10 @@ import type {
   AssertTagTypes,
   EndpointDefinition,
   EndpointDefinitions,
+  InfiniteQueryArgFrom,
   InfiniteQueryDefinition,
   MutationDefinition,
+  PageParamFrom,
   QueryArgFrom,
   QueryDefinition,
   ResultTypeFrom,
@@ -40,6 +42,7 @@ import type {
   InfiniteQueryConfigOptions,
   QueryCacheKey,
   InfiniteQueryDirection,
+  InfiniteQueryKeys,
 } from './apiState'
 import { QueryStatus } from './apiState'
 import type {
@@ -194,13 +197,39 @@ export type PatchQueryDataThunk<
   updateProvided?: boolean,
 ) => ThunkAction<void, PartialState, any, UnknownAction>
 
+type AllQueryKeys<Definitions extends EndpointDefinitions> =
+  | QueryKeys<Definitions>
+  | InfiniteQueryKeys<Definitions>
+
 export type UpdateQueryDataThunk<
   Definitions extends EndpointDefinitions,
   PartialState,
-> = <EndpointName extends QueryKeys<Definitions>>(
+> = <EndpointName extends AllQueryKeys<Definitions>>(
   endpointName: EndpointName,
-  arg: QueryArgFrom<Definitions[EndpointName]>,
-  updateRecipe: Recipe<ResultTypeFrom<Definitions[EndpointName]>>,
+  // TODO Find a way to deduplicate this ugly conditional type
+  arg: Definitions[EndpointName] extends InfiniteQueryDefinition<
+    any,
+    any,
+    any,
+    any,
+    any
+  >
+    ? InfiniteQueryArgFrom<Definitions[EndpointName]>
+    : QueryArgFrom<Definitions[EndpointName]>,
+  updateRecipe: Recipe<
+    Definitions[EndpointName] extends InfiniteQueryDefinition<
+      any,
+      any,
+      any,
+      any,
+      any
+    >
+      ? InfiniteData<
+          ResultTypeFrom<Definitions[EndpointName]>,
+          PageParamFrom<Definitions[EndpointName]>
+        >
+      : ResultTypeFrom<Definitions[EndpointName]>
+  >,
   updateProvided?: boolean,
 ) => ThunkAction<PatchCollection, PartialState, any, UnknownAction>
 
