@@ -1,0 +1,75 @@
+{
+  "name": "@reduxjs/prettier-config",
+  "version": "0.0.1",
+  "description": "Prettier configuration for Redux projects",
+  "keywords": [
+    "prettier",
+    "config",
+    "prettier-config",
+    "reduxjs",
+    "redux-toolkit",
+    "configuration"
+  ],
+  "homepage": "https://github.com/reduxjs/redux-toolkit/tree/master/packages/configs/prettier#readme",
+  "bugs": {
+    "url": "https://github.com/reduxjs/redux-toolkit/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/reduxjs/redux-toolkit.git",
+    "directory": "packages/configs/prettier"
+  },
+  "sideEffects": false,
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "module-sync": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "module": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "default": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "source": "./src/index.mts",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "yarn clean && tsup",
+    "clean": "rimraf dist",
+    "prepack": "yarn build"
+  },
+  "devDependencies": {
+    "@reduxjs/tsconfig": "workspace:^",
+    "prettier": "^3.4.2",
+    "rimraf": "^6.0.1",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2"
+  },
+  "peerDependencies": {
+    "prettier": ">=3"
+  },
+  "peerDependenciesMeta": {
+    "prettier": {
+      "optional": true
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
