@@ -568,5 +568,27 @@ describe('Infinite queries', () => {
       ],
       pageParams: [0, 1],
     })
+
+    const res2 = storeRef.store.dispatch(
+      pokemonApi.util.upsertQueryData('getInfinitePokemon', 'water', {
+        pages: [[{ id: '2', name: 'Pokemon 2' }]],
+        pageParams: [2],
+      }),
+    )
+
+    const entry2InitialLoad = await res2
+    const entry2Updated = pokemonApi.endpoints.getInfinitePokemon.select(
+      'water',
+    )(storeRef.store.getState())
+
+    console.log(
+      'entry2Updated',
+      util.inspect(entry2Updated, { depth: Infinity }),
+    )
+
+    expect(entry2Updated.data).toEqual({
+      pages: [[{ id: '2', name: 'Pokemon 2' }]],
+      pageParams: [2],
+    })
   })
 })
