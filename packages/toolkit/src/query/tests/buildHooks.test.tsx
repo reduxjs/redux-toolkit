@@ -1764,6 +1764,7 @@ describe('hooks tests', () => {
         isUninitialized,
         fetchNextPage,
         fetchPreviousPage,
+        refetch,
       } = api.useGetInfinitePokemonInfiniteQuery(arg, {
         initialPageParam,
       })
@@ -1774,6 +1775,10 @@ describe('hooks tests', () => {
 
       const handleNextPage = async () => {
         const res = await fetchNextPage()
+      }
+
+      const handleRefetch = async () => {
+        const res = await refetch()
       }
 
       return (
@@ -1791,6 +1796,9 @@ describe('hooks tests', () => {
           </button>
           <button data-testid="nextPage" onClick={() => handleNextPage()}>
             nextPage
+          </button>
+          <button data-testid="refetch" onClick={() => handleRefetch()}>
+            refetch
           </button>
         </div>
       )
@@ -1946,6 +1954,18 @@ describe('hooks tests', () => {
         hasNextPage: true,
         hasPreviousPage: true,
         isFetchingPreviousPage: true,
+      })
+      await waitForFetch()
+      checkPageRows(getCurrentRender().withinDOM, 'water', [2, 3, 4])
+      checkEntryFlags('water', {
+        hasNextPage: true,
+        hasPreviousPage: true,
+      })
+
+      fireEvent.click(screen.getByTestId('refetch'))
+      checkEntryFlags('water', {
+        hasNextPage: true,
+        hasPreviousPage: true,
       })
       await waitForFetch()
       checkPageRows(getCurrentRender().withinDOM, 'water', [2, 3, 4])
