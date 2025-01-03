@@ -1,5 +1,6 @@
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import type {
+  EndpointDefinition,
   EndpointDefinitions,
   InfiniteQueryArgFrom,
   InfiniteQueryDefinition,
@@ -206,34 +207,14 @@ export function buildSelectors<
     return state
   }
 
-  function buildQuerySelector(
+  function buildAnyQuerySelector(
     endpointName: string,
-    endpointDefinition: QueryDefinition<any, any, any, any>,
+    endpointDefinition: EndpointDefinition<any, any, any, any>,
+    combiner: <T extends { status: QueryStatus }>(
+      substate: T,
+    ) => T & RequestStatusFlags,
   ) {
-    return ((queryArgs: any) => {
-      if (queryArgs === skipToken) {
-        return createSelector(selectSkippedQuery, withRequestFlags)
-      }
-      const serializedArgs = serializeQueryArgs({
-        queryArgs,
-        endpointDefinition,
-        endpointName,
-      })
-      const selectQuerySubstate = (state: RootState) =>
-        selectInternalState(state)?.queries?.[serializedArgs] ??
-        defaultQuerySubState
-
-      return createSelector(selectQuerySubstate, withRequestFlags)
-    }) as QueryResultSelectorFactory<any, RootState>
-  }
-
-  // Selector will merge all existing entries in the cache and return the result
-  // selector currently is just a clone of Query though
-  function buildInfiniteQuerySelector(
-    endpointName: string,
-    endpointDefinition: InfiniteQueryDefinition<any, any, any, any, any>,
-  ) {
-    return ((queryArgs: any) => {
+    return (queryArgs: any) => {
       const serializedArgs = serializeQueryArgs({
         queryArgs,
         endpointDefinition,
@@ -245,53 +226,61 @@ export function buildSelectors<
       const finalSelectQuerySubState =
         queryArgs === skipToken ? selectSkippedQuery : selectQuerySubstate
 
-      const { infiniteQueryOptions } = endpointDefinition
+      return createSelector(finalSelectQuerySubState, combiner)
+    }
+  }
 
-      function withInfiniteQueryResultFlags<T extends { status: QueryStatus }>(
-        substate: T,
-      ): T & RequestStatusFlags & InfiniteQueryResultFlags {
-        const infiniteSubstate = substate as InfiniteQuerySubState<any>
-        const fetchDirection = infiniteSubstate.direction
-        const stateWithRequestFlags = {
-          ...infiniteSubstate,
-          ...getRequestStatusFlags(substate.status),
-        }
+  function buildQuerySelector(
+    endpointName: string,
+    endpointDefinition: QueryDefinition<any, any, any, any>,
+  ) {
+    return buildAnyQuerySelector(
+      endpointName,
+      endpointDefinition,
+      withRequestFlags,
+    ) as QueryResultSelectorFactory<any, RootState>
+  }
 
-        const { isLoading, isError } = stateWithRequestFlags
+  function buildInfiniteQuerySelector(
+    endpointName: string,
+    endpointDefinition: InfiniteQueryDefinition<any, any, any, any, any>,
+  ) {
+    const { infiniteQueryOptions } = endpointDefinition
 
-        const isFetchNextPageError = isError && fetchDirection === 'forward'
-        const isFetchingNextPage = isLoading && fetchDirection === 'forward'
-
-        const isFetchPreviousPageError =
-          isError && fetchDirection === 'backward'
-        const isFetchingPreviousPage =
-          isLoading && fetchDirection === 'backward'
-
-        const hasNextPage = getHasNextPage(
-          infiniteQueryOptions,
-          stateWithRequestFlags.data,
-        )
-        const hasPreviousPage = getHasPreviousPage(
-          infiniteQueryOptions,
-          stateWithRequestFlags.data,
-        )
-
-        return {
-          ...stateWithRequestFlags,
-          hasNextPage,
-          hasPreviousPage,
-          isFetchingNextPage,
-          isFetchingPreviousPage,
-          isFetchNextPageError,
-          isFetchPreviousPageError,
-        }
+    function withInfiniteQueryResultFlags<T extends { status: QueryStatus }>(
+      substate: T,
+    ): T & RequestStatusFlags & InfiniteQueryResultFlags {
+      const stateWithRequestFlags = {
+        ...(substate as InfiniteQuerySubState<any>),
+        ...getRequestStatusFlags(substate.status),
       }
 
-      return createSelector(
-        finalSelectQuerySubState,
-        withInfiniteQueryResultFlags,
-      )
-    }) as InfiniteQueryResultSelectorFactory<any, RootState>
+      const { isLoading, isError, direction } = stateWithRequestFlags
+      const isForward = direction === 'forward'
+      const isBackward = direction === 'backward'
+
+      return {
+        ...stateWithRequestFlags,
+        hasNextPage: getHasNextPage(
+          infiniteQueryOptions,
+          stateWithRequestFlags.data,
+        ),
+        hasPreviousPage: getHasPreviousPage(
+          infiniteQueryOptions,
+          stateWithRequestFlags.data,
+        ),
+        isFetchingNextPage: isLoading && isForward,
+        isFetchingPreviousPage: isLoading && isBackward,
+        isFetchNextPageError: isError && isForward,
+        isFetchPreviousPageError: isError && isBackward,
+      }
+    }
+
+    return buildAnyQuerySelector(
+      endpointName,
+      endpointDefinition,
+      withInfiniteQueryResultFlags,
+    ) as unknown as InfiniteQueryResultSelectorFactory<any, RootState>
   }
 
   function buildMutationSelector() {
