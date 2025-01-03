@@ -115,6 +115,13 @@ const entryPoints: EntryPointOptions[] = [
     extractionConfig: 'api-extractor.query-react.json',
     externals: ['redux', '@reduxjs/toolkit'],
   },
+  {
+    prefix: 'rtk-query-react',
+    folder: 'query/react.rsc',
+    entryPoint: 'src/query/react/index.rsc.ts',
+    extractionConfig: 'api-extractor.query-react.json',
+    externals: ['redux', '@reduxjs/toolkit'],
+  },
 ]
 
 function writeCommonJSEntry(folder: string, prefix: string) {
