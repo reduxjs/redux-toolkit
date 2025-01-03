@@ -657,10 +657,11 @@ export const coreModule = ({
           string,
           CoreModule
         >
-        anyApi.endpoints[endpointName] ??= {} as any
+        const endpoint = (anyApi.endpoints[endpointName] ??= {} as any)
+
         if (isQueryDefinition(definition)) {
           safeAssign(
-            anyApi.endpoints[endpointName],
+            endpoint,
             {
               name: endpointName,
               select: buildQuerySelector(endpointName, definition),
@@ -671,7 +672,7 @@ export const coreModule = ({
         }
         if (isMutationDefinition(definition)) {
           safeAssign(
-            anyApi.endpoints[endpointName],
+            endpoint,
             {
               name: endpointName,
               select: buildMutationSelector(),
@@ -682,7 +683,7 @@ export const coreModule = ({
         }
         if (isInfiniteQueryDefinition(definition)) {
           safeAssign(
-            anyApi.endpoints[endpointName],
+            endpoint,
             {
               name: endpointName,
               select: buildInfiniteQuerySelector(endpointName, definition),
