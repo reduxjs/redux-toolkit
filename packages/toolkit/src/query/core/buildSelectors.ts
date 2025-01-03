@@ -238,6 +238,11 @@ export function buildSelectors<
     ) => T & RequestStatusFlags,
   ) {
     return (queryArgs: any) => {
+      // Avoid calling serializeQueryArgs if the arg is skipToken
+      if (queryArgs === skipToken) {
+        return createSelector(selectSkippedQuery, combiner)
+      }
+
       const serializedArgs = serializeQueryArgs({
         queryArgs,
         endpointDefinition,
@@ -245,10 +250,8 @@ export function buildSelectors<
       })
       const selectQuerySubstate = (state: RootState) =>
         selectQueryEntry(state, serializedArgs) ?? defaultQuerySubState
-      const finalSelectQuerySubState =
-        queryArgs === skipToken ? selectSkippedQuery : selectQuerySubstate
 
-      return createSelector(finalSelectQuerySubState, combiner)
+      return createSelector(selectQuerySubstate, combiner)
     }
   }
 
