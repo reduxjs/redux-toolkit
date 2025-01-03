@@ -53,6 +53,7 @@ import type {
   StartQueryActionCreatorOptions,
 } from './buildInitiate'
 import { forceQueryFnSymbol, isUpsertQuery } from './buildInitiate'
+import type { AllSelectors } from './buildSelectors'
 import type { ApiEndpointQuery, PrefetchOptions } from './module'
 import {
   createAsyncThunk,
@@ -307,6 +308,7 @@ export function buildThunks<
   serializeQueryArgs,
   api,
   assertTagType,
+  selectors,
 }: {
   baseQuery: BaseQuery
   reducerPath: ReducerPath
@@ -314,6 +316,7 @@ export function buildThunks<
   serializeQueryArgs: InternalSerializeQueryArgs
   api: Api<BaseQuery, Definitions, ReducerPath, any>
   assertTagType: AssertTagTypes
+  selectors: AllSelectors
 }) {
   type State = RootState<any, string, ReducerPath>
 
@@ -609,8 +612,10 @@ export function buildThunks<
         // Start by looking up the existing InfiniteData value from state,
         // falling back to an empty value if it doesn't exist yet
         const blankData = { pages: [], pageParams: [] }
-        const cachedData = getState()[reducerPath].queries[arg.queryCacheKey]
-          ?.data as InfiniteData<unknown, unknown> | undefined
+        const cachedData = selectors.selectQueryEntry(
+          getState(),
+          arg.queryCacheKey,
+        )?.data as InfiniteData<unknown, unknown> | undefined
         // Don't want to use `isForcedQuery` here, because that
         // includes `refetchOnMountOrArgChange`.
         const existingData = (
@@ -720,9 +725,9 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
     arg: QueryThunkArg,
     state: RootState<any, string, ReducerPath>,
   ) {
-    const requestState = state[reducerPath]?.queries?.[arg.queryCacheKey]
+    const requestState = selectors.selectQueryEntry(state, arg.queryCacheKey)
     const baseFetchOnMountOrArgChange =
-      state[reducerPath]?.config.refetchOnMountOrArgChange
+      selectors.selectConfig(state).refetchOnMountOrArgChange
 
     const fulfilledVal = requestState?.fulfilledTimeStamp
     const refetchVal =

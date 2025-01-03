@@ -578,6 +578,7 @@ export const coreModule = ({
       api,
       serializeQueryArgs,
       assertTagType,
+      selectors,
     })
 
     const { reducer, actions: sliceActions } = buildSlice({
@@ -616,6 +617,7 @@ export const coreModule = ({
       infiniteQueryThunk,
       api,
       assertTagType,
+      selectors,
     })
     safeAssign(api.util, middlewareActions)
 
