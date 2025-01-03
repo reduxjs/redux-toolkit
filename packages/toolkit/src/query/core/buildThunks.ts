@@ -136,7 +136,6 @@ export type InfiniteQueryThunkArg<
     originalArgs: unknown
     endpointName: string
     param: unknown
-    previous?: boolean
     direction?: InfiniteQueryDirection
   }
 
