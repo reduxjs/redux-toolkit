@@ -462,9 +462,9 @@ export function buildThunks<
   const getTransformCallbackForEndpoint = (
     endpointDefinition: EndpointDefinition<any, any, any, any>,
     transformFieldName: 'transformResponse' | 'transformErrorResponse',
-  ) => {
+  ): TransformCallback => {
     return endpointDefinition.query && endpointDefinition[transformFieldName]
-      ? endpointDefinition[transformFieldName]
+      ? endpointDefinition[transformFieldName]!
       : defaultTransformResponse
   }
 
