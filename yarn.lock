@@ -7528,8 +7528,8 @@ __metadata:
     "@babel/helper-module-imports": "npm:^7.24.7"
     "@microsoft/api-extractor": "npm:^7.13.2"
     "@phryneas/ts-version": "npm:^1.0.2"
-    "@size-limit/file": "npm:^11.0.1"
-    "@size-limit/webpack": "npm:^11.0.1"
+    "@size-limit/file": "npm:^11.1.6"
+    "@size-limit/webpack": "npm:^11.1.6"
     "@testing-library/dom": "npm:^10.4.0"
     "@testing-library/react": "npm:^16.1.0"
     "@testing-library/user-event": "npm:^14.5.2"
@@ -7571,7 +7571,7 @@ __metadata:
     redux-thunk: "npm:^3.1.0"
     reselect: "npm:^5.1.0"
     rimraf: "npm:^3.0.2"
-    size-limit: "npm:^11.0.1"
+    size-limit: "npm:^11.1.6"
     tslib: "npm:^1.10.0"
     tsup: "npm:^8.2.3"
     tsx: "npm:^4.19.0"
@@ -8189,7 +8189,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@size-limit/file@npm:^11.0.1":
+"@size-limit/file@npm:^11.1.6":
   version: 11.1.6
   resolution: "@size-limit/file@npm:11.1.6"
   peerDependencies:
@@ -8198,7 +8198,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@size-limit/webpack@npm:^11.0.1":
+"@size-limit/webpack@npm:^11.1.6":
   version: 11.1.6
   resolution: "@size-limit/webpack@npm:11.1.6"
   dependencies:
@@ -28443,7 +28443,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"size-limit@npm:^11.0.1":
+"size-limit@npm:^11.1.6":
   version: 11.1.6
   resolution: "size-limit@npm:11.1.6"
   dependencies:
