@@ -159,6 +159,8 @@ const defaultMutationSubState = /* @__PURE__ */ createNextState(
   () => {},
 )
 
+export type AllSelectors = ReturnType<typeof buildSelectors>
+
 export function buildSelectors<
   Definitions extends EndpointDefinitions,
   ReducerPath extends string,
@@ -182,6 +184,11 @@ export function buildSelectors<
     buildMutationSelector,
     selectInvalidatedBy,
     selectCachedArgsForQuery,
+    selectApiState,
+    selectQueries,
+    selectMutations,
+    selectQueryEntry,
+    selectConfig,
   }
 
   function withRequestFlags<T extends { status: QueryStatus }>(
@@ -193,18 +200,34 @@ export function buildSelectors<
     }
   }
 
-  function selectInternalState(rootState: RootState) {
+  function selectApiState(rootState: RootState) {
     const state = rootState[reducerPath]
     if (process.env.NODE_ENV !== 'production') {
       if (!state) {
-        if ((selectInternalState as any).triggered) return state
-        ;(selectInternalState as any).triggered = true
+        if ((selectApiState as any).triggered) return state
+        ;(selectApiState as any).triggered = true
         console.error(
           `Error: No data found at \`state.${reducerPath}\`. Did you forget to add the reducer to the store?`,
         )
       }
     }
     return state
+  }
+
+  function selectQueries(rootState: RootState) {
+    return selectApiState(rootState)?.queries
+  }
+
+  function selectQueryEntry(rootState: RootState, cacheKey: QueryCacheKey) {
+    return selectQueries(rootState)?.[cacheKey]
+  }
+
+  function selectMutations(rootState: RootState) {
+    return selectApiState(rootState)?.mutations
+  }
+
+  function selectConfig(rootState: RootState) {
+    return selectApiState(rootState)?.config
   }
 
   function buildAnyQuerySelector(
@@ -221,8 +244,7 @@ export function buildSelectors<
         endpointName,
       })
       const selectQuerySubstate = (state: RootState) =>
-        selectInternalState(state)?.queries?.[serializedArgs] ??
-        defaultQuerySubState
+        selectQueryEntry(state, serializedArgs) ?? defaultQuerySubState
       const finalSelectQuerySubState =
         queryArgs === skipToken ? selectSkippedQuery : selectQuerySubstate
 
@@ -292,7 +314,7 @@ export function buildSelectors<
         mutationId = id
       }
       const selectMutationSubstate = (state: RootState) =>
-        selectInternalState(state)?.mutations?.[mutationId as string] ??
+        selectApiState(state)?.mutations?.[mutationId as string] ??
         defaultMutationSubState
       const finalSelectMutationSubstate =
         mutationId === skipToken
@@ -351,7 +373,7 @@ export function buildSelectors<
     state: RootState,
     queryName: QueryName,
   ): Array<QueryArgFrom<Definitions[QueryName]>> {
-    return Object.values(state[reducerPath].queries as QueryState<any>)
+    return Object.values(selectQueries(state) as QueryState<any>)
       .filter(
         (
           entry,

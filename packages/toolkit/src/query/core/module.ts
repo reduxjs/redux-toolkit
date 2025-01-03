@@ -546,6 +546,22 @@ export const coreModule = ({
       util: {},
     })
 
+    const selectors = buildSelectors({
+      serializeQueryArgs: serializeQueryArgs as any,
+      reducerPath,
+      createSelector,
+    })
+
+    const {
+      selectInvalidatedBy,
+      selectCachedArgsForQuery,
+      buildQuerySelector,
+      buildInfiniteQuerySelector,
+      buildMutationSelector,
+    } = selectors
+
+    safeAssign(api.util, { selectInvalidatedBy, selectCachedArgsForQuery })
+
     const {
       queryThunk,
       infiniteQueryThunk,
@@ -604,20 +620,6 @@ export const coreModule = ({
     safeAssign(api.util, middlewareActions)
 
     safeAssign(api, { reducer: reducer as any, middleware })
-
-    const {
-      buildQuerySelector,
-      buildInfiniteQuerySelector,
-      buildMutationSelector,
-      selectInvalidatedBy,
-      selectCachedArgsForQuery,
-    } = buildSelectors({
-      serializeQueryArgs: serializeQueryArgs as any,
-      reducerPath,
-      createSelector,
-    })
-
-    safeAssign(api.util, { selectInvalidatedBy, selectCachedArgsForQuery })
 
     const {
       buildInitiateQuery,
