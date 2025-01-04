@@ -3,6 +3,7 @@ on:
   pull_request:
     branches:
       - master
+      - 'feature/infinite-query-integration'
 permissions:
   pull-requests: write
 jobs:

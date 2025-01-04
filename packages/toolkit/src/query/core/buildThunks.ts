@@ -6,7 +6,6 @@ import type {
   ThunkDispatch,
   UnknownAction,
 } from '@reduxjs/toolkit'
-import util from 'util'
 import type { Patch } from 'immer'
 import { isDraftable, produceWithPatches } from 'immer'
 import type { Api, ApiContext } from '../apiTypes'
@@ -53,6 +52,7 @@ import type {
   StartQueryActionCreatorOptions,
 } from './buildInitiate'
 import { forceQueryFnSymbol, isUpsertQuery } from './buildInitiate'
+import type { AllSelectors } from './buildSelectors'
 import type { ApiEndpointQuery, PrefetchOptions } from './module'
 import {
   createAsyncThunk,
@@ -136,7 +136,6 @@ export type InfiniteQueryThunkArg<
     originalArgs: unknown
     endpointName: string
     param: unknown
-    previous?: boolean
     direction?: InfiniteQueryDirection
   }
 
@@ -296,6 +295,21 @@ export type PatchCollection = {
   undo: () => void
 }
 
+type TransformCallback = (
+  baseQueryReturnValue: unknown,
+  meta: unknown,
+  arg: unknown,
+) => any
+
+export const addShouldAutoBatch = <T extends Record<string, any>>(
+  arg: T = {} as T,
+): T & { [SHOULD_AUTOBATCH]: true } => {
+  return {
+    ...arg,
+    [SHOULD_AUTOBATCH]: true,
+  }
+}
+
 export function buildThunks<
   BaseQuery extends BaseQueryFn,
   ReducerPath extends string,
@@ -307,6 +321,7 @@ export function buildThunks<
   serializeQueryArgs,
   api,
   assertTagType,
+  selectors,
 }: {
   baseQuery: BaseQuery
   reducerPath: ReducerPath
@@ -314,6 +329,7 @@ export function buildThunks<
   serializeQueryArgs: InternalSerializeQueryArgs
   api: Api<BaseQuery, Definitions, ReducerPath, any>
   assertTagType: AssertTagTypes
+  selectors: AllSelectors
 }) {
   type State = RootState<any, string, ReducerPath>
 
@@ -443,6 +459,15 @@ export function buildThunks<
       return res
     }
 
+  const getTransformCallbackForEndpoint = (
+    endpointDefinition: EndpointDefinition<any, any, any, any>,
+    transformFieldName: 'transformResponse' | 'transformErrorResponse',
+  ): TransformCallback => {
+    return endpointDefinition.query && endpointDefinition[transformFieldName]
+      ? endpointDefinition[transformFieldName]!
+      : defaultTransformResponse
+  }
+
   // The generic async payload function for all of our thunks
   const executeEndpoint: AsyncThunkPayloadCreator<
     ThunkResult,
@@ -463,14 +488,8 @@ export function buildThunks<
     const endpointDefinition = endpointDefinitions[arg.endpointName]
 
     try {
-      let transformResponse: (
-        baseQueryReturnValue: any,
-        meta: any,
-        arg: any,
-      ) => any =
-        endpointDefinition.query && endpointDefinition.transformResponse
-          ? endpointDefinition.transformResponse
-          : defaultTransformResponse
+      let transformResponse: TransformCallback =
+        getTransformCallbackForEndpoint(endpointDefinition, 'transformResponse')
 
       const baseQueryApi = {
         signal,
@@ -506,7 +525,6 @@ export function buildThunks<
 
         const pageResponse = await executeRequest(param)
 
-        // TODO Get maxPages from endpoint config
         const addTo = previous ? addToStart : addToEnd
 
         return {
@@ -523,6 +541,7 @@ export function buildThunks<
         finalQueryArg: unknown,
       ): Promise<QueryReturnValue> {
         let result: QueryReturnValue
+        const { extraOptions } = endpointDefinition
 
         if (forceQueryFn) {
           // upsertQueryData relies on this to pass in the user-provided value
@@ -531,19 +550,14 @@ export function buildThunks<
           result = await baseQuery(
             endpointDefinition.query(finalQueryArg),
             baseQueryApi,
-            endpointDefinition.extraOptions as any,
+            extraOptions as any,
           )
         } else {
           result = await endpointDefinition.queryFn(
             finalQueryArg,
             baseQueryApi,
-            endpointDefinition.extraOptions as any,
-            (arg) =>
-              baseQuery(
-                arg,
-                baseQueryApi,
-                endpointDefinition.extraOptions as any,
-              ),
+            extraOptions as any,
+            (arg) => baseQuery(arg, baseQueryApi, extraOptions as any),
           )
         }
 
@@ -609,8 +623,10 @@ export function buildThunks<
         // Start by looking up the existing InfiniteData value from state,
         // falling back to an empty value if it doesn't exist yet
         const blankData = { pages: [], pageParams: [] }
-        const cachedData = getState()[reducerPath].queries[arg.queryCacheKey]
-          ?.data as InfiniteData<unknown, unknown> | undefined
+        const cachedData = selectors.selectQueryEntry(
+          getState(),
+          arg.queryCacheKey,
+        )?.data as InfiniteData<unknown, unknown> | undefined
         // Don't want to use `isForcedQuery` here, because that
         // includes `refetchOnMountOrArgChange`.
         const existingData = (
@@ -652,7 +668,7 @@ export function buildThunks<
           // Fetch remaining pages
           for (let i = 1; i < totalPages; i++) {
             const param = getNextPageParam(
-              endpointDefinition.infiniteQueryOptions,
+              infiniteQueryOptions,
               result.data as InfiniteData<unknown, unknown>,
             )
             result = await fetchPage(
@@ -670,22 +686,21 @@ export function buildThunks<
       }
 
       // console.log('Final result: ', transformedData)
-      return fulfillWithValue(finalQueryReturnValue.data, {
-        fulfilledTimeStamp: Date.now(),
-        baseQueryMeta: finalQueryReturnValue.meta,
-        [SHOULD_AUTOBATCH]: true,
-      })
+      return fulfillWithValue(
+        finalQueryReturnValue.data,
+        addShouldAutoBatch({
+          fulfilledTimeStamp: Date.now(),
+          baseQueryMeta: finalQueryReturnValue.meta,
+        }),
+      )
     } catch (error) {
       let catchedError = error
       if (catchedError instanceof HandledError) {
-        let transformErrorResponse: (
-          baseQueryReturnValue: any,
-          meta: any,
-          arg: any,
-        ) => any =
-          endpointDefinition.query && endpointDefinition.transformErrorResponse
-            ? endpointDefinition.transformErrorResponse
-            : defaultTransformResponse
+        let transformErrorResponse: TransformCallback =
+          getTransformCallbackForEndpoint(
+            endpointDefinition,
+            'transformErrorResponse',
+          )
 
         try {
           return rejectWithValue(
@@ -694,7 +709,7 @@ export function buildThunks<
               catchedError.meta,
               arg.originalArgs,
             ),
-            { baseQueryMeta: catchedError.meta, [SHOULD_AUTOBATCH]: true },
+            addShouldAutoBatch({ baseQueryMeta: catchedError.meta }),
           )
         } catch (e) {
           catchedError = e
@@ -720,9 +735,9 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
     arg: QueryThunkArg,
     state: RootState<any, string, ReducerPath>,
   ) {
-    const requestState = state[reducerPath]?.queries?.[arg.queryCacheKey]
+    const requestState = selectors.selectQueryEntry(state, arg.queryCacheKey)
     const baseFetchOnMountOrArgChange =
-      state[reducerPath]?.config.refetchOnMountOrArgChange
+      selectors.selectConfig(state).refetchOnMountOrArgChange
 
     const fulfilledVal = requestState?.fulfilledTimeStamp
     const refetchVal =
@@ -738,116 +753,84 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
     return false
   }
 
-  const queryThunk = createAsyncThunk<
-    ThunkResult,
-    QueryThunkArg,
-    ThunkApiMetaConfig & { state: RootState<any, string, ReducerPath> }
-  >(`${reducerPath}/executeQuery`, executeEndpoint, {
-    getPendingMeta() {
-      return { startedTimeStamp: Date.now(), [SHOULD_AUTOBATCH]: true }
-    },
-    condition(queryThunkArgs, { getState }) {
-      const state = getState()
-
-      const requestState =
-        state[reducerPath]?.queries?.[queryThunkArgs.queryCacheKey]
-      const fulfilledVal = requestState?.fulfilledTimeStamp
-      const currentArg = queryThunkArgs.originalArgs
-      const previousArg = requestState?.originalArgs
-      const endpointDefinition =
-        endpointDefinitions[queryThunkArgs.endpointName]
-
-      // Order of these checks matters.
-      // In order for `upsertQueryData` to successfully run while an existing request is in flight,
-      /// we have to check for that first, otherwise `queryThunk` will bail out and not run at all.
-      if (isUpsertQuery(queryThunkArgs)) {
-        return true
-      }
-
-      // Don't retry a request that's currently in-flight
-      if (requestState?.status === 'pending') {
-        return false
-      }
-
-      // if this is forced, continue
-      if (isForcedQuery(queryThunkArgs, state)) {
-        return true
-      }
-
-      if (
-        isQueryDefinition(endpointDefinition) &&
-        endpointDefinition?.forceRefetch?.({
-          currentArg,
-          previousArg,
-          endpointState: requestState,
-          state,
+  const createQueryThunk = <
+    ThunkArgType extends QueryThunkArg | InfiniteQueryThunkArg<any>,
+  >() => {
+    const generatedQueryThunk = createAsyncThunk<
+      ThunkResult,
+      ThunkArgType,
+      ThunkApiMetaConfig & { state: RootState<any, string, ReducerPath> }
+    >(`${reducerPath}/executeQuery`, executeEndpoint, {
+      getPendingMeta({ arg }) {
+        const endpointDefinition = endpointDefinitions[arg.endpointName]
+        return addShouldAutoBatch({
+          startedTimeStamp: Date.now(),
+          ...(isInfiniteQueryDefinition(endpointDefinition)
+            ? {
+                direction: (arg as InfiniteQueryThunkArg<any>).direction,
+              }
+            : {}),
         })
-      ) {
+      },
+      condition(queryThunkArg, { getState }) {
+        const state = getState()
+
+        const requestState = selectors.selectQueryEntry(
+          state,
+          queryThunkArg.queryCacheKey,
+        )
+        const fulfilledVal = requestState?.fulfilledTimeStamp
+        const currentArg = queryThunkArg.originalArgs
+        const previousArg = requestState?.originalArgs
+        const endpointDefinition =
+          endpointDefinitions[queryThunkArg.endpointName]
+        const direction = (queryThunkArg as InfiniteQueryThunkArg<any>)
+          .direction
+
+        // Order of these checks matters.
+        // In order for `upsertQueryData` to successfully run while an existing request is in flight,
+        /// we have to check for that first, otherwise `queryThunk` will bail out and not run at all.
+        if (isUpsertQuery(queryThunkArg)) {
+          return true
+        }
+
+        // Don't retry a request that's currently in-flight
+        if (requestState?.status === 'pending') {
+          return false
+        }
+
+        // if this is forced, continue
+        if (isForcedQuery(queryThunkArg, state)) {
+          return true
+        }
+
+        if (
+          isQueryDefinition(endpointDefinition) &&
+          endpointDefinition?.forceRefetch?.({
+            currentArg,
+            previousArg,
+            endpointState: requestState,
+            state,
+          })
+        ) {
+          return true
+        }
+
+        // Pull from the cache unless we explicitly force refetch or qualify based on time
+        if (fulfilledVal && !direction) {
+          // Value is cached and we didn't specify to refresh, skip it.
+          return false
+        }
+
         return true
-      }
+      },
+      dispatchConditionRejection: true,
+    })
+    return generatedQueryThunk
+  }
 
-      // Pull from the cache unless we explicitly force refetch or qualify based on time
-      if (fulfilledVal) {
-        // Value is cached and we didn't specify to refresh, skip it.
-        return false
-      }
-
-      return true
-    },
-    dispatchConditionRejection: true,
-  })
-
-  const infiniteQueryThunk = createAsyncThunk<
-    ThunkResult,
-    InfiniteQueryThunkArg<any>,
-    ThunkApiMetaConfig & { state: RootState<any, string, ReducerPath> }
-  >(`${reducerPath}/executeQuery`, executeEndpoint, {
-    getPendingMeta(queryThunkArgs) {
-      return {
-        startedTimeStamp: Date.now(),
-        [SHOULD_AUTOBATCH]: true,
-        direction: queryThunkArgs.arg.direction,
-      }
-    },
-    condition(queryThunkArgs, { getState }) {
-      const state = getState()
-
-      const requestState =
-        state[reducerPath]?.queries?.[queryThunkArgs.queryCacheKey]
-      const fulfilledVal = requestState?.fulfilledTimeStamp
-      const currentArg = queryThunkArgs.originalArgs
-      const previousArg = requestState?.originalArgs
-      const endpointDefinition =
-        endpointDefinitions[queryThunkArgs.endpointName]
-      const direction = queryThunkArgs.direction
-
-      // Order of these checks matters.
-      // In order for `upsertQueryData` to successfully run while an existing request is in flight,
-      /// we have to check for that first, otherwise `queryThunk` will bail out and not run at all.
-      // if (isUpsertQuery(queryThunkArgs)) {
-      //   return true
-      // }
-
-      // Don't retry a request that's currently in-flight
-      if (requestState?.status === 'pending') {
-        return false
-      }
-
-      // if this is forced, continue
-      if (isForcedQuery(queryThunkArgs, state)) {
-        return true
-      }
-
-      // Pull from the cache unless we explicitly force refetch or qualify based on time
-      if (fulfilledVal && !direction) {
-        // Value is cached and we didn't specify to refresh, skip it.
-        return false
-      }
-
-      return true
-    },
-    dispatchConditionRejection: true,
-  })
+  const queryThunk = createQueryThunk<QueryThunkArg>()
+  const infiniteQueryThunk = createQueryThunk<InfiniteQueryThunkArg<any>>()
 
   const mutationThunk = createAsyncThunk<
     ThunkResult,
@@ -855,7 +838,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
     ThunkApiMetaConfig & { state: RootState<any, string, ReducerPath> }
   >(`${reducerPath}/executeMutation`, executeEndpoint, {
     getPendingMeta() {
-      return { startedTimeStamp: Date.now(), [SHOULD_AUTOBATCH]: true }
+      return addShouldAutoBatch({ startedTimeStamp: Date.now() })
     },
   })
 
