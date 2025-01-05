@@ -64,6 +64,11 @@ import type { ReactHooksModuleOptions } from './module'
 import { useStableQueryArgs } from './useSerializedStableValue'
 import { useShallowStableValue } from './useShallowStableValue'
 import type { InfiniteQueryDirection } from '../core/apiState'
+import { isInfiniteQueryDefinition } from '../endpointDefinitions'
+import {
+  StartInfiniteQueryActionCreatorOptions,
+  StartInfiniteQueryActionCreator,
+} from '../core/buildInitiate'
 
 // Copy-pasted from React-Redux
 const canUseDOM = () =>
@@ -1376,152 +1381,176 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     )
   }
 
+  function useQuerySubscriptionCommonImpl<
+    T extends
+      | QueryActionCreatorResult<any>
+      | InfiniteQueryActionCreatorResult<any>,
+  >(
+    endpointName: string,
+    arg: unknown | SkipToken,
+    {
+      refetchOnReconnect,
+      refetchOnFocus,
+      refetchOnMountOrArgChange,
+      skip = false,
+      pollingInterval = 0,
+      skipPollingIfUnfocused = false,
+      ...rest
+    }: UseQuerySubscriptionOptions = {},
+  ) {
+    const { initiate } = api.endpoints[endpointName] as ApiEndpointQuery<
+      QueryDefinition<any, any, any, any, any>,
+      Definitions
+    >
+    const dispatch = useDispatch<ThunkDispatch<any, any, UnknownAction>>()
+
+    // TODO: Change this to `useRef<SubscriptionSelectors>(undefined)` after upgrading to React 19.
+    const subscriptionSelectorsRef = useRef<SubscriptionSelectors | undefined>(
+      undefined,
+    )
+
+    if (!subscriptionSelectorsRef.current) {
+      const returnedValue = dispatch(
+        api.internalActions.internal_getRTKQSubscriptions(),
+      )
+
+      if (process.env.NODE_ENV !== 'production') {
+        if (
+          typeof returnedValue !== 'object' ||
+          typeof returnedValue?.type === 'string'
+        ) {
+          throw new Error(
+            `Warning: Middleware for RTK-Query API at reducerPath "${api.reducerPath}" has not been added to the store.
+    You must add the middleware for RTK-Query to function correctly!`,
+          )
+        }
+      }
+
+      subscriptionSelectorsRef.current =
+        returnedValue as unknown as SubscriptionSelectors
+    }
+    const stableArg = useStableQueryArgs(
+      skip ? skipToken : arg,
+      // Even if the user provided a per-endpoint `serializeQueryArgs` with
+      // a consistent return value, _here_ we want to use the default behavior
+      // so we can tell if _anything_ actually changed. Otherwise, we can end up
+      // with a case where the query args did change but the serialization doesn't,
+      // and then we never try to initiate a refetch.
+      defaultSerializeQueryArgs,
+      context.endpointDefinitions[endpointName],
+      endpointName,
+    )
+    const stableSubscriptionOptions = useShallowStableValue({
+      refetchOnReconnect,
+      refetchOnFocus,
+      pollingInterval,
+      skipPollingIfUnfocused,
+    })
+
+    const lastRenderHadSubscription = useRef(false)
+
+    const initialPageParam = (rest as UseInfiniteQuerySubscriptionOptions<any>)
+      .initialPageParam
+    const stableInitialPageParam = useShallowStableValue(initialPageParam)
+
+    /**
+     * @todo Change this to `useRef<QueryActionCreatorResult<any>>(undefined)` after upgrading to React 19.
+     */
+    const promiseRef = useRef<T | undefined>(undefined)
+
+    let { queryCacheKey, requestId } = promiseRef.current || {}
+
+    // HACK We've saved the middleware subscription lookup callbacks into a ref,
+    // so we can directly check here if the subscription exists for this query.
+    let currentRenderHasSubscription = false
+    if (queryCacheKey && requestId) {
+      currentRenderHasSubscription =
+        subscriptionSelectorsRef.current.isRequestSubscribed(
+          queryCacheKey,
+          requestId,
+        )
+    }
+
+    const subscriptionRemoved =
+      !currentRenderHasSubscription && lastRenderHadSubscription.current
+
+    usePossiblyImmediateEffect(() => {
+      lastRenderHadSubscription.current = currentRenderHasSubscription
+    })
+
+    usePossiblyImmediateEffect((): void | undefined => {
+      if (subscriptionRemoved) {
+        promiseRef.current = undefined
+      }
+    }, [subscriptionRemoved])
+
+    usePossiblyImmediateEffect((): void | undefined => {
+      const lastPromise = promiseRef.current
+      if (
+        typeof process !== 'undefined' &&
+        process.env.NODE_ENV === 'removeMeOnCompilation'
+      ) {
+        // this is only present to enforce the rule of hooks to keep `isSubscribed` in the dependency array
+        console.log(subscriptionRemoved)
+      }
+
+      if (stableArg === skipToken) {
+        lastPromise?.unsubscribe()
+        promiseRef.current = undefined
+        return
+      }
+
+      const lastSubscriptionOptions = promiseRef.current?.subscriptionOptions
+
+      if (!lastPromise || lastPromise.arg !== stableArg) {
+        lastPromise?.unsubscribe()
+        const promise = dispatch(
+          initiate(stableArg, {
+            subscriptionOptions: stableSubscriptionOptions,
+            forceRefetch: refetchOnMountOrArgChange,
+            ...(isInfiniteQueryDefinition(
+              context.endpointDefinitions[endpointName],
+            )
+              ? {
+                  initialPageParam: stableInitialPageParam,
+                }
+              : {}),
+          }),
+        )
+
+        promiseRef.current = promise as T
+      } else if (stableSubscriptionOptions !== lastSubscriptionOptions) {
+        lastPromise.updateSubscriptionOptions(stableSubscriptionOptions)
+      }
+    }, [
+      dispatch,
+      initiate,
+      refetchOnMountOrArgChange,
+      stableArg,
+      stableSubscriptionOptions,
+      subscriptionRemoved,
+      stableInitialPageParam,
+      endpointName,
+    ])
+
+    return [promiseRef, dispatch, initiate, stableSubscriptionOptions] as const
+  }
+
   function buildQueryHooks(endpointName: string): QueryHooks<any> {
     const useQuerySubscription: UseQuerySubscription<any> = (
       arg: any,
-      {
-        refetchOnReconnect,
-        refetchOnFocus,
-        refetchOnMountOrArgChange,
-        skip = false,
-        pollingInterval = 0,
-        skipPollingIfUnfocused = false,
-      } = {},
+      options = {},
     ) => {
-      const { initiate } = api.endpoints[endpointName] as ApiEndpointQuery<
-        QueryDefinition<any, any, any, any, any>,
-        Definitions
-      >
-      const dispatch = useDispatch<ThunkDispatch<any, any, UnknownAction>>()
-
-      // TODO: Change this to `useRef<SubscriptionSelectors>(undefined)` after upgrading to React 19.
-      /**
-       * @todo Change this to `useRef<SubscriptionSelectors>(undefined)` after upgrading to React 19.
-       */
-      const subscriptionSelectorsRef = useRef<
-        SubscriptionSelectors | undefined
-      >(undefined)
-
-      if (!subscriptionSelectorsRef.current) {
-        const returnedValue = dispatch(
-          api.internalActions.internal_getRTKQSubscriptions(),
-        )
-
-        if (process.env.NODE_ENV !== 'production') {
-          if (
-            typeof returnedValue !== 'object' ||
-            typeof returnedValue?.type === 'string'
-          ) {
-            throw new Error(
-              `Warning: Middleware for RTK-Query API at reducerPath "${api.reducerPath}" has not been added to the store.
-    You must add the middleware for RTK-Query to function correctly!`,
-            )
-          }
-        }
-
-        subscriptionSelectorsRef.current =
-          returnedValue as unknown as SubscriptionSelectors
-      }
-      const stableArg = useStableQueryArgs(
-        skip ? skipToken : arg,
-        // Even if the user provided a per-endpoint `serializeQueryArgs` with
-        // a consistent return value, _here_ we want to use the default behavior
-        // so we can tell if _anything_ actually changed. Otherwise, we can end up
-        // with a case where the query args did change but the serialization doesn't,
-        // and then we never try to initiate a refetch.
-        defaultSerializeQueryArgs,
-        context.endpointDefinitions[endpointName],
-        endpointName,
-      )
-      const stableSubscriptionOptions = useShallowStableValue({
-        refetchOnReconnect,
-        refetchOnFocus,
-        pollingInterval,
-        skipPollingIfUnfocused,
-      })
-
-      const lastRenderHadSubscription = useRef(false)
-
-      // TODO: Change this to `useRef<QueryActionCreatorResult<any>>(undefined)` after upgrading to React 19.
-      /**
-       * @todo Change this to `useRef<QueryActionCreatorResult<any>>(undefined)` after upgrading to React 19.
-       */
-      const promiseRef = useRef<QueryActionCreatorResult<any> | undefined>(
-        undefined,
-      )
-
-      let { queryCacheKey, requestId } = promiseRef.current || {}
-
-      // HACK We've saved the middleware subscription lookup callbacks into a ref,
-      // so we can directly check here if the subscription exists for this query.
-      let currentRenderHasSubscription = false
-      if (queryCacheKey && requestId) {
-        currentRenderHasSubscription =
-          subscriptionSelectorsRef.current.isRequestSubscribed(
-            queryCacheKey,
-            requestId,
-          )
-      }
-
-      const subscriptionRemoved =
-        !currentRenderHasSubscription && lastRenderHadSubscription.current
-
-      usePossiblyImmediateEffect(() => {
-        lastRenderHadSubscription.current = currentRenderHasSubscription
-      })
-
-      usePossiblyImmediateEffect((): void | undefined => {
-        if (subscriptionRemoved) {
-          promiseRef.current = undefined
-        }
-      }, [subscriptionRemoved])
-
-      usePossiblyImmediateEffect((): void | undefined => {
-        const lastPromise = promiseRef.current
-        if (
-          typeof process !== 'undefined' &&
-          process.env.NODE_ENV === 'removeMeOnCompilation'
-        ) {
-          // this is only present to enforce the rule of hooks to keep `isSubscribed` in the dependency array
-          console.log(subscriptionRemoved)
-        }
-
-        if (stableArg === skipToken) {
-          lastPromise?.unsubscribe()
-          promiseRef.current = undefined
-          return
-        }
-
-        const lastSubscriptionOptions = promiseRef.current?.subscriptionOptions
-
-        if (!lastPromise || lastPromise.arg !== stableArg) {
-          lastPromise?.unsubscribe()
-          const promise = dispatch(
-            initiate(stableArg, {
-              subscriptionOptions: stableSubscriptionOptions,
-              forceRefetch: refetchOnMountOrArgChange,
-            }),
-          )
-
-          promiseRef.current = promise
-        } else if (stableSubscriptionOptions !== lastSubscriptionOptions) {
-          lastPromise.updateSubscriptionOptions(stableSubscriptionOptions)
-        }
-      }, [
-        dispatch,
-        initiate,
-        refetchOnMountOrArgChange,
-        stableArg,
-        stableSubscriptionOptions,
-        subscriptionRemoved,
-      ])
+      const [promiseRef] = useQuerySubscriptionCommonImpl<
+        QueryActionCreatorResult<any>
+      >(endpointName, arg, options)
 
       useEffect(() => {
         return () => {
           promiseRef.current?.unsubscribe()
           promiseRef.current = undefined
         }
-      }, [])
+      }, [promiseRef])
 
       return useMemo(
         () => ({
@@ -1536,7 +1565,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
             return promiseRef.current?.refetch()
           },
         }),
-        [],
+        [promiseRef],
       )
     }
 
@@ -1745,137 +1774,145 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
   ): InfiniteQueryHooks<any> {
     const useInfiniteQuerySubscription: UseInfiniteQuerySubscription<any> = (
       arg: any,
-      {
-        refetchOnReconnect,
-        refetchOnFocus,
-        refetchOnMountOrArgChange,
-        skip = false,
-        pollingInterval = 0,
-        skipPollingIfUnfocused = false,
-        initialPageParam,
-      } = {},
+      options = {},
+      // {
+      //   refetchOnReconnect,
+      //   refetchOnFocus,
+      //   refetchOnMountOrArgChange,
+      //   skip = false,
+      //   pollingInterval = 0,
+      //   skipPollingIfUnfocused = false,
+      //   initialPageParam,
+      // } = {},
     ) => {
-      const { initiate } = api.endpoints[
-        endpointName
-      ] as unknown as ApiEndpointInfiniteQuery<
-        InfiniteQueryDefinition<any, any, any, any, any>,
-        Definitions
-      >
-      const dispatch = useDispatch<ThunkDispatch<any, any, UnknownAction>>()
-      const subscriptionSelectorsRef = useRef<
-        SubscriptionSelectors | undefined
-      >(undefined)
-      if (!subscriptionSelectorsRef.current) {
-        const returnedValue = dispatch(
-          api.internalActions.internal_getRTKQSubscriptions(),
+      const [promiseRef, dispatch, initiate, stableSubscriptionOptions] =
+        useQuerySubscriptionCommonImpl<InfiniteQueryActionCreatorResult<any>>(
+          endpointName,
+          arg,
+          options,
         )
 
-        if (process.env.NODE_ENV !== 'production') {
-          if (
-            typeof returnedValue !== 'object' ||
-            typeof returnedValue?.type === 'string'
-          ) {
-            throw new Error(
-              `Warning: Middleware for RTK-Query API at reducerPath "${api.reducerPath}" has not been added to the store.
-    You must add the middleware for RTK-Query to function correctly!`,
-            )
-          }
-        }
+      //   const { initiate } = api.endpoints[
+      //     endpointName
+      //   ] as unknown as ApiEndpointInfiniteQuery<
+      //     InfiniteQueryDefinition<any, any, any, any, any>,
+      //     Definitions
+      //   >
+      //   const dispatch = useDispatch<ThunkDispatch<any, any, UnknownAction>>()
+      //   const subscriptionSelectorsRef = useRef<
+      //     SubscriptionSelectors | undefined
+      //   >(undefined)
+      //   if (!subscriptionSelectorsRef.current) {
+      //     const returnedValue = dispatch(
+      //       api.internalActions.internal_getRTKQSubscriptions(),
+      //     )
 
-        subscriptionSelectorsRef.current =
-          returnedValue as unknown as SubscriptionSelectors
-      }
-      const stableArg = useStableQueryArgs(
-        skip ? skipToken : arg,
-        // Even if the user provided a per-endpoint `serializeQueryArgs` with
-        // a consistent return value, _here_ we want to use the default behavior
-        // so we can tell if _anything_ actually changed. Otherwise, we can end up
-        // with a case where the query args did change but the serialization doesn't,
-        // and then we never try to initiate a refetch.
-        defaultSerializeQueryArgs,
-        context.endpointDefinitions[endpointName],
-        endpointName,
-      )
-      const stableSubscriptionOptions = useShallowStableValue({
-        refetchOnReconnect,
-        refetchOnFocus,
-        pollingInterval,
-        skipPollingIfUnfocused,
-      })
+      //     if (process.env.NODE_ENV !== 'production') {
+      //       if (
+      //         typeof returnedValue !== 'object' ||
+      //         typeof returnedValue?.type === 'string'
+      //       ) {
+      //         throw new Error(
+      //           `Warning: Middleware for RTK-Query API at reducerPath "${api.reducerPath}" has not been added to the store.
+      // You must add the middleware for RTK-Query to function correctly!`,
+      //         )
+      //       }
+      //     }
 
-      const lastRenderHadSubscription = useRef(false)
+      //     subscriptionSelectorsRef.current =
+      //       returnedValue as unknown as SubscriptionSelectors
+      //   }
+      //   const stableArg = useStableQueryArgs(
+      //     skip ? skipToken : arg,
+      //     // Even if the user provided a per-endpoint `serializeQueryArgs` with
+      //     // a consistent return value, _here_ we want to use the default behavior
+      //     // so we can tell if _anything_ actually changed. Otherwise, we can end up
+      //     // with a case where the query args did change but the serialization doesn't,
+      //     // and then we never try to initiate a refetch.
+      //     defaultSerializeQueryArgs,
+      //     context.endpointDefinitions[endpointName],
+      //     endpointName,
+      //   )
+      //   const stableSubscriptionOptions = useShallowStableValue({
+      //     refetchOnReconnect,
+      //     refetchOnFocus,
+      //     pollingInterval,
+      //     skipPollingIfUnfocused,
+      //   })
 
-      const promiseRef = useRef<
-        InfiniteQueryActionCreatorResult<any> | undefined
-      >(undefined)
+      //   const lastRenderHadSubscription = useRef(false)
 
-      let { queryCacheKey, requestId } = promiseRef.current || {}
+      //   const promiseRef = useRef<
+      //     InfiniteQueryActionCreatorResult<any> | undefined
+      //   >(undefined)
 
-      // HACK We've saved the middleware subscription lookup callbacks into a ref,
-      // so we can directly check here if the subscription exists for this query.
-      let currentRenderHasSubscription = false
-      if (queryCacheKey && requestId) {
-        currentRenderHasSubscription =
-          subscriptionSelectorsRef.current.isRequestSubscribed(
-            queryCacheKey,
-            requestId,
-          )
-      }
+      //   let { queryCacheKey, requestId } = promiseRef.current || {}
 
-      const subscriptionRemoved =
-        !currentRenderHasSubscription && lastRenderHadSubscription.current
+      //   // HACK We've saved the middleware subscription lookup callbacks into a ref,
+      //   // so we can directly check here if the subscription exists for this query.
+      //   let currentRenderHasSubscription = false
+      //   if (queryCacheKey && requestId) {
+      //     currentRenderHasSubscription =
+      //       subscriptionSelectorsRef.current.isRequestSubscribed(
+      //         queryCacheKey,
+      //         requestId,
+      //       )
+      //   }
 
-      usePossiblyImmediateEffect(() => {
-        lastRenderHadSubscription.current = currentRenderHasSubscription
-      })
+      //   const subscriptionRemoved =
+      //     !currentRenderHasSubscription && lastRenderHadSubscription.current
 
-      usePossiblyImmediateEffect((): void | undefined => {
-        if (subscriptionRemoved) {
-          promiseRef.current = undefined
-        }
-      }, [subscriptionRemoved])
+      //   usePossiblyImmediateEffect(() => {
+      //     lastRenderHadSubscription.current = currentRenderHasSubscription
+      //   })
 
-      usePossiblyImmediateEffect((): void | undefined => {
-        const lastPromise = promiseRef.current
-        if (
-          typeof process !== 'undefined' &&
-          process.env.NODE_ENV === 'removeMeOnCompilation'
-        ) {
-          // this is only present to enforce the rule of hooks to keep `isSubscribed` in the dependency array
-          console.log(subscriptionRemoved)
-        }
+      //   usePossiblyImmediateEffect((): void | undefined => {
+      //     if (subscriptionRemoved) {
+      //       promiseRef.current = undefined
+      //     }
+      //   }, [subscriptionRemoved])
 
-        if (stableArg === skipToken) {
-          lastPromise?.unsubscribe()
-          promiseRef.current = undefined
-          return
-        }
+      //   usePossiblyImmediateEffect((): void | undefined => {
+      //     const lastPromise = promiseRef.current
+      //     if (
+      //       typeof process !== 'undefined' &&
+      //       process.env.NODE_ENV === 'removeMeOnCompilation'
+      //     ) {
+      //       // this is only present to enforce the rule of hooks to keep `isSubscribed` in the dependency array
+      //       console.log(subscriptionRemoved)
+      //     }
 
-        const lastSubscriptionOptions = promiseRef.current?.subscriptionOptions
+      //     if (stableArg === skipToken) {
+      //       lastPromise?.unsubscribe()
+      //       promiseRef.current = undefined
+      //       return
+      //     }
 
-        if (!lastPromise || lastPromise.arg !== stableArg) {
-          lastPromise?.unsubscribe()
-          const promise = dispatch(
-            initiate(stableArg, {
-              initialPageParam,
-              subscriptionOptions: stableSubscriptionOptions,
-              forceRefetch: refetchOnMountOrArgChange,
-            }),
-          )
+      //     const lastSubscriptionOptions = promiseRef.current?.subscriptionOptions
 
-          promiseRef.current = promise
-        } else if (stableSubscriptionOptions !== lastSubscriptionOptions) {
-          lastPromise.updateSubscriptionOptions(stableSubscriptionOptions)
-        }
-      }, [
-        dispatch,
-        initiate,
-        refetchOnMountOrArgChange,
-        stableArg,
-        stableSubscriptionOptions,
-        subscriptionRemoved,
-        initialPageParam,
-      ])
+      //     if (!lastPromise || lastPromise.arg !== stableArg) {
+      //       lastPromise?.unsubscribe()
+      //       const promise = dispatch(
+      //         initiate(stableArg, {
+      //           initialPageParam,
+      //           subscriptionOptions: stableSubscriptionOptions,
+      //           forceRefetch: refetchOnMountOrArgChange,
+      //         }),
+      //       )
+
+      //       promiseRef.current = promise
+      //     } else if (stableSubscriptionOptions !== lastSubscriptionOptions) {
+      //       lastPromise.updateSubscriptionOptions(stableSubscriptionOptions)
+      //     }
+      //   }, [
+      //     dispatch,
+      //     initiate,
+      //     refetchOnMountOrArgChange,
+      //     stableArg,
+      //     stableSubscriptionOptions,
+      //     subscriptionRemoved,
+      //     initialPageParam,
+      //   ])
 
       const subscriptionOptionsRef = useRef(stableSubscriptionOptions)
       usePossiblyImmediateEffect(() => {
@@ -1890,7 +1927,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
             promiseRef.current?.unsubscribe()
 
             promiseRef.current = promise = dispatch(
-              initiate(arg, {
+              (initiate as StartInfiniteQueryActionCreator<any>)(arg, {
                 subscriptionOptions: subscriptionOptionsRef.current,
                 direction,
               }),
@@ -1899,7 +1936,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
           return promise!
         },
-        [dispatch, initiate],
+        [promiseRef, dispatch, initiate],
       )
 
       useEffect(() => {
@@ -1907,7 +1944,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           promiseRef.current?.unsubscribe()
           promiseRef.current = undefined
         }
-      }, [])
+      }, [promiseRef])
 
       return useMemo(
         () => ({
@@ -1923,7 +1960,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
             return promiseRef.current?.refetch()
           },
         }),
-        [trigger],
+        [promiseRef, trigger],
       )
     }
 

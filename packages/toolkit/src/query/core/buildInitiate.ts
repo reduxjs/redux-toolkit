@@ -98,7 +98,7 @@ type StartQueryActionCreator<
 
 // placeholder type which
 // may attempt to derive the list of args to query in pagination
-type StartInfiniteQueryActionCreator<
+export type StartInfiniteQueryActionCreator<
   D extends InfiniteQueryDefinition<any, any, any, any, any>,
 > = (
   arg: InfiniteQueryArgFrom<D>,
