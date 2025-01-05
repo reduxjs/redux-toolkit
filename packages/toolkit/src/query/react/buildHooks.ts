@@ -65,10 +65,7 @@ import { useStableQueryArgs } from './useSerializedStableValue'
 import { useShallowStableValue } from './useShallowStableValue'
 import type { InfiniteQueryDirection } from '../core/apiState'
 import { isInfiniteQueryDefinition } from '../endpointDefinitions'
-import {
-  StartInfiniteQueryActionCreatorOptions,
-  StartInfiniteQueryActionCreator,
-} from '../core/buildInitiate'
+import { StartInfiniteQueryActionCreator } from '../core/buildInitiate'
 
 // Copy-pasted from React-Redux
 const canUseDOM = () =>
@@ -1647,7 +1644,8 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     useEffect(() => {
       return () => {
         promiseRef.current?.unsubscribe?.()
-        promiseRef.current = undefined
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        ;(promiseRef.current as any) = undefined
       }
     }, [promiseRef])
   }
