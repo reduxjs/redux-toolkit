@@ -911,6 +911,7 @@ export type UseInfiniteQueryState<
   arg: QueryArgFrom<D> | SkipToken,
   options?: UseInfiniteQueryStateOptions<D, R>,
 ) => UseInfiniteQueryStateResult<D, R>
+
 export type TypedUseInfiniteQueryState<
   ResultType,
   QueryArg,
@@ -1556,6 +1557,89 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     return [promiseRef, dispatch, initiate, stableSubscriptionOptions] as const
   }
 
+  function buildUseQueryState(
+    endpointName: string,
+    preSelector:
+      | typeof queryStatePreSelector
+      | typeof infiniteQueryStatePreSelector,
+  ) {
+    const useQueryState = (
+      arg: any,
+      {
+        skip = false,
+        selectFromResult,
+      }:
+        | UseQueryStateOptions<any, any>
+        | UseInfiniteQueryStateOptions<any, any> = {},
+    ) => {
+      const { select } = api.endpoints[endpointName] as ApiEndpointQuery<
+        QueryDefinition<any, any, any, any, any>,
+        Definitions
+      >
+      const stableArg = useStableQueryArgs(
+        skip ? skipToken : arg,
+        serializeQueryArgs,
+        context.endpointDefinitions[endpointName],
+        endpointName,
+      )
+
+      type ApiRootState = Parameters<ReturnType<typeof select>>[0]
+
+      const lastValue = useRef<any>(undefined)
+
+      const selectDefaultResult: Selector<ApiRootState, any, [any]> = useMemo(
+        () =>
+          // Normally ts-ignores are bad and should be avoided, but we're
+          // already casting this selector to be `Selector<any>` anyway,
+          // so the inconsistencies don't matter here
+          // @ts-ignore
+          createSelector(
+            [
+              select(stableArg),
+              (_: ApiRootState, lastResult: any) => lastResult,
+              (_: ApiRootState) => stableArg,
+            ],
+            preSelector,
+            {
+              memoizeOptions: {
+                resultEqualityCheck: shallowEqual,
+              },
+            },
+          ),
+        [select, stableArg],
+      )
+
+      const querySelector: Selector<ApiRootState, any, [any]> = useMemo(
+        () =>
+          selectFromResult
+            ? createSelector([selectDefaultResult], selectFromResult, {
+                devModeChecks: { identityFunctionCheck: 'never' },
+              })
+            : selectDefaultResult,
+        [selectDefaultResult, selectFromResult],
+      )
+
+      const currentState = useSelector(
+        (state: RootState<Definitions, any, any>) =>
+          querySelector(state, lastValue.current),
+        shallowEqual,
+      )
+
+      const store = useStore<RootState<Definitions, any, any>>()
+      const newLastValue = selectDefaultResult(
+        store.getState(),
+        lastValue.current,
+      )
+      useIsomorphicLayoutEffect(() => {
+        lastValue.current = newLastValue
+      }, [newLastValue])
+
+      return currentState
+    }
+
+    return useQueryState
+  }
+
   function buildQueryHooks(endpointName: string): QueryHooks<any> {
     const useQuerySubscription: UseQuerySubscription<any> = (
       arg: any,
@@ -1685,70 +1769,10 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       )
     }
 
-    const useQueryState: UseQueryState<any> = (
-      arg: any,
-      { skip = false, selectFromResult } = {},
-    ) => {
-      const { select } = api.endpoints[endpointName] as ApiEndpointQuery<
-        QueryDefinition<any, any, any, any, any>,
-        Definitions
-      >
-      const stableArg = useStableQueryArgs(
-        skip ? skipToken : arg,
-        serializeQueryArgs,
-        context.endpointDefinitions[endpointName],
-        endpointName,
-      )
-
-      type ApiRootState = Parameters<ReturnType<typeof select>>[0]
-
-      const lastValue = useRef<any>(undefined)
-
-      const selectDefaultResult: Selector<ApiRootState, any, [any]> = useMemo(
-        () =>
-          createSelector(
-            [
-              select(stableArg),
-              (_: ApiRootState, lastResult: any) => lastResult,
-              (_: ApiRootState) => stableArg,
-            ],
-            queryStatePreSelector,
-            {
-              memoizeOptions: {
-                resultEqualityCheck: shallowEqual,
-              },
-            },
-          ),
-        [select, stableArg],
-      )
-
-      const querySelector: Selector<ApiRootState, any, [any]> = useMemo(
-        () =>
-          selectFromResult
-            ? createSelector([selectDefaultResult], selectFromResult, {
-                devModeChecks: { identityFunctionCheck: 'never' },
-              })
-            : selectDefaultResult,
-        [selectDefaultResult, selectFromResult],
-      )
-
-      const currentState = useSelector(
-        (state: RootState<Definitions, any, any>) =>
-          querySelector(state, lastValue.current),
-        shallowEqual,
-      )
-
-      const store = useStore<RootState<Definitions, any, any>>()
-      const newLastValue = selectDefaultResult(
-        store.getState(),
-        lastValue.current,
-      )
-      useIsomorphicLayoutEffect(() => {
-        lastValue.current = newLastValue
-      }, [newLastValue])
-
-      return currentState
-    }
+    const useQueryState: UseQueryState<any> = buildUseQueryState(
+      endpointName,
+      queryStatePreSelector,
+    )
 
     return {
       useQueryState,
@@ -1794,15 +1818,6 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     const useInfiniteQuerySubscription: UseInfiniteQuerySubscription<any> = (
       arg: any,
       options = {},
-      // {
-      //   refetchOnReconnect,
-      //   refetchOnFocus,
-      //   refetchOnMountOrArgChange,
-      //   skip = false,
-      //   pollingInterval = 0,
-      //   skipPollingIfUnfocused = false,
-      //   initialPageParam,
-      // } = {},
     ) => {
       const [promiseRef, dispatch, initiate, stableSubscriptionOptions] =
         useQuerySubscriptionCommonImpl<InfiniteQueryActionCreatorResult<any>>(
@@ -1810,128 +1825,6 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           arg,
           options,
         )
-
-      //   const { initiate } = api.endpoints[
-      //     endpointName
-      //   ] as unknown as ApiEndpointInfiniteQuery<
-      //     InfiniteQueryDefinition<any, any, any, any, any>,
-      //     Definitions
-      //   >
-      //   const dispatch = useDispatch<ThunkDispatch<any, any, UnknownAction>>()
-      //   const subscriptionSelectorsRef = useRef<
-      //     SubscriptionSelectors | undefined
-      //   >(undefined)
-      //   if (!subscriptionSelectorsRef.current) {
-      //     const returnedValue = dispatch(
-      //       api.internalActions.internal_getRTKQSubscriptions(),
-      //     )
-
-      //     if (process.env.NODE_ENV !== 'production') {
-      //       if (
-      //         typeof returnedValue !== 'object' ||
-      //         typeof returnedValue?.type === 'string'
-      //       ) {
-      //         throw new Error(
-      //           `Warning: Middleware for RTK-Query API at reducerPath "${api.reducerPath}" has not been added to the store.
-      // You must add the middleware for RTK-Query to function correctly!`,
-      //         )
-      //       }
-      //     }
-
-      //     subscriptionSelectorsRef.current =
-      //       returnedValue as unknown as SubscriptionSelectors
-      //   }
-      //   const stableArg = useStableQueryArgs(
-      //     skip ? skipToken : arg,
-      //     // Even if the user provided a per-endpoint `serializeQueryArgs` with
-      //     // a consistent return value, _here_ we want to use the default behavior
-      //     // so we can tell if _anything_ actually changed. Otherwise, we can end up
-      //     // with a case where the query args did change but the serialization doesn't,
-      //     // and then we never try to initiate a refetch.
-      //     defaultSerializeQueryArgs,
-      //     context.endpointDefinitions[endpointName],
-      //     endpointName,
-      //   )
-      //   const stableSubscriptionOptions = useShallowStableValue({
-      //     refetchOnReconnect,
-      //     refetchOnFocus,
-      //     pollingInterval,
-      //     skipPollingIfUnfocused,
-      //   })
-
-      //   const lastRenderHadSubscription = useRef(false)
-
-      //   const promiseRef = useRef<
-      //     InfiniteQueryActionCreatorResult<any> | undefined
-      //   >(undefined)
-
-      //   let { queryCacheKey, requestId } = promiseRef.current || {}
-
-      //   // HACK We've saved the middleware subscription lookup callbacks into a ref,
-      //   // so we can directly check here if the subscription exists for this query.
-      //   let currentRenderHasSubscription = false
-      //   if (queryCacheKey && requestId) {
-      //     currentRenderHasSubscription =
-      //       subscriptionSelectorsRef.current.isRequestSubscribed(
-      //         queryCacheKey,
-      //         requestId,
-      //       )
-      //   }
-
-      //   const subscriptionRemoved =
-      //     !currentRenderHasSubscription && lastRenderHadSubscription.current
-
-      //   usePossiblyImmediateEffect(() => {
-      //     lastRenderHadSubscription.current = currentRenderHasSubscription
-      //   })
-
-      //   usePossiblyImmediateEffect((): void | undefined => {
-      //     if (subscriptionRemoved) {
-      //       promiseRef.current = undefined
-      //     }
-      //   }, [subscriptionRemoved])
-
-      //   usePossiblyImmediateEffect((): void | undefined => {
-      //     const lastPromise = promiseRef.current
-      //     if (
-      //       typeof process !== 'undefined' &&
-      //       process.env.NODE_ENV === 'removeMeOnCompilation'
-      //     ) {
-      //       // this is only present to enforce the rule of hooks to keep `isSubscribed` in the dependency array
-      //       console.log(subscriptionRemoved)
-      //     }
-
-      //     if (stableArg === skipToken) {
-      //       lastPromise?.unsubscribe()
-      //       promiseRef.current = undefined
-      //       return
-      //     }
-
-      //     const lastSubscriptionOptions = promiseRef.current?.subscriptionOptions
-
-      //     if (!lastPromise || lastPromise.arg !== stableArg) {
-      //       lastPromise?.unsubscribe()
-      //       const promise = dispatch(
-      //         initiate(stableArg, {
-      //           initialPageParam,
-      //           subscriptionOptions: stableSubscriptionOptions,
-      //           forceRefetch: refetchOnMountOrArgChange,
-      //         }),
-      //       )
-
-      //       promiseRef.current = promise
-      //     } else if (stableSubscriptionOptions !== lastSubscriptionOptions) {
-      //       lastPromise.updateSubscriptionOptions(stableSubscriptionOptions)
-      //     }
-      //   }, [
-      //     dispatch,
-      //     initiate,
-      //     refetchOnMountOrArgChange,
-      //     stableArg,
-      //     stableSubscriptionOptions,
-      //     subscriptionRemoved,
-      //     initialPageParam,
-      //   ])
 
       const subscriptionOptionsRef = useRef(stableSubscriptionOptions)
       usePossiblyImmediateEffect(() => {
@@ -1995,72 +1888,8 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       }, [promiseRef, trigger, arg])
     }
 
-    const useInfiniteQueryState: UseInfiniteQueryState<any> = (
-      arg: any,
-      { skip = false, selectFromResult } = {},
-    ) => {
-      const { select } = api.endpoints[
-        endpointName
-      ] as unknown as ApiEndpointInfiniteQuery<
-        InfiniteQueryDefinition<any, any, any, any, any>,
-        Definitions
-      >
-      const stableArg = useStableQueryArgs(
-        skip ? skipToken : arg,
-        serializeQueryArgs,
-        context.endpointDefinitions[endpointName],
-        endpointName,
-      )
-
-      type ApiRootState = Parameters<ReturnType<typeof select>>[0]
-
-      const lastValue = useRef<any>(undefined)
-
-      const selectDefaultResult: Selector<ApiRootState, any, [any]> = useMemo(
-        () =>
-          createSelector(
-            [
-              select(stableArg),
-              (_: ApiRootState, lastResult: any) => lastResult,
-              (_: ApiRootState) => stableArg,
-            ],
-            infiniteQueryStatePreSelector,
-            {
-              memoizeOptions: {
-                resultEqualityCheck: shallowEqual,
-              },
-            },
-          ),
-        [select, stableArg],
-      )
-
-      const querySelector: Selector<ApiRootState, any, [any]> = useMemo(
-        () =>
-          selectFromResult
-            ? createSelector([selectDefaultResult], selectFromResult, {
-                devModeChecks: { identityFunctionCheck: 'never' },
-              })
-            : selectDefaultResult,
-        [selectDefaultResult, selectFromResult],
-      )
-
-      const currentState = useSelector(
-        (state: RootState<Definitions, any, any>) =>
-          querySelector(state, lastValue.current),
-        shallowEqual,
-      )
-
-      const store = useStore<RootState<Definitions, any, any>>()
-      const newLastValue = selectDefaultResult(
-        store.getState(),
-        lastValue.current,
-      )
-      useIsomorphicLayoutEffect(() => {
-        lastValue.current = newLastValue
-      }, [newLastValue])
-
-      return currentState
-    }
+    const useInfiniteQueryState: UseInfiniteQueryState<any> =
+      buildUseQueryState(endpointName, infiniteQueryStatePreSelector)
 
     return {
       useInfiniteQueryState,
