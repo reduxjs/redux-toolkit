@@ -26,6 +26,7 @@ import type {
   ThunkResult,
 } from '../buildThunks'
 import type { QueryActionCreatorResult } from '../buildInitiate'
+import type { AllSelectors } from '../buildSelectors'
 
 export type QueryStateMeta<T> = Record<string, undefined | T>
 export type TimeoutId = ReturnType<typeof setTimeout>
@@ -52,6 +53,7 @@ export interface BuildMiddlewareInput<
   infiniteQueryThunk: InfiniteQueryThunk<any>
   api: Api<any, Definitions, ReducerPath, TagTypes>
   assertTagType: AssertTagTypes
+  selectors: AllSelectors
 }
 
 export type SubMiddlewareApi = MiddlewareAPI<
@@ -69,6 +71,7 @@ export interface BuildSubMiddlewareInput
     >,
   ): ThunkAction<QueryActionCreatorResult<any>, any, any, UnknownAction>
   isThisApiSliceAction: (action: Action) => boolean
+  selectors: AllSelectors
 }
 
 export type SubMiddlewareBuilder = (

@@ -546,6 +546,22 @@ export const coreModule = ({
       util: {},
     })
 
+    const selectors = buildSelectors({
+      serializeQueryArgs: serializeQueryArgs as any,
+      reducerPath,
+      createSelector,
+    })
+
+    const {
+      selectInvalidatedBy,
+      selectCachedArgsForQuery,
+      buildQuerySelector,
+      buildInfiniteQuerySelector,
+      buildMutationSelector,
+    } = selectors
+
+    safeAssign(api.util, { selectInvalidatedBy, selectCachedArgsForQuery })
+
     const {
       queryThunk,
       infiniteQueryThunk,
@@ -562,6 +578,7 @@ export const coreModule = ({
       api,
       serializeQueryArgs,
       assertTagType,
+      selectors,
     })
 
     const { reducer, actions: sliceActions } = buildSlice({
@@ -600,24 +617,11 @@ export const coreModule = ({
       infiniteQueryThunk,
       api,
       assertTagType,
+      selectors,
     })
     safeAssign(api.util, middlewareActions)
 
     safeAssign(api, { reducer: reducer as any, middleware })
-
-    const {
-      buildQuerySelector,
-      buildInfiniteQuerySelector,
-      buildMutationSelector,
-      selectInvalidatedBy,
-      selectCachedArgsForQuery,
-    } = buildSelectors({
-      serializeQueryArgs: serializeQueryArgs as any,
-      reducerPath,
-      createSelector,
-    })
-
-    safeAssign(api.util, { selectInvalidatedBy, selectCachedArgsForQuery })
 
     const {
       buildInitiateQuery,
@@ -653,10 +657,11 @@ export const coreModule = ({
           string,
           CoreModule
         >
-        anyApi.endpoints[endpointName] ??= {} as any
+        const endpoint = (anyApi.endpoints[endpointName] ??= {} as any)
+
         if (isQueryDefinition(definition)) {
           safeAssign(
-            anyApi.endpoints[endpointName],
+            endpoint,
             {
               name: endpointName,
               select: buildQuerySelector(endpointName, definition),
@@ -667,7 +672,7 @@ export const coreModule = ({
         }
         if (isMutationDefinition(definition)) {
           safeAssign(
-            anyApi.endpoints[endpointName],
+            endpoint,
             {
               name: endpointName,
               select: buildMutationSelector(),
@@ -678,7 +683,7 @@ export const coreModule = ({
         }
         if (isInfiniteQueryDefinition(definition)) {
           safeAssign(
-            anyApi.endpoints[endpointName],
+            endpoint,
             {
               name: endpointName,
               select: buildInfiniteQuerySelector(endpointName, definition),
