@@ -1211,6 +1211,23 @@ const noPendingQueryStateSelector: QueryStateSelector<any, any> = (
   return selected
 }
 
+function pick<T, K extends keyof T>(obj: T, ...keys: K[]): Pick<T, K> {
+  const ret: any = {}
+  keys.forEach((key) => {
+    ret[key] = obj[key]
+  })
+  return ret
+}
+
+const COMMON_HOOK_DEBUG_FIELDS = [
+  'data',
+  'status',
+  'isLoading',
+  'isSuccess',
+  'isError',
+  'error',
+] as const
+
 type GenericPrefetchThunk = (
   endpointName: any,
   arg: any,
@@ -1760,9 +1777,8 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           ...options,
         })
 
-        const { data, status, isLoading, isSuccess, isError, error } =
-          queryStateResults
-        useDebugValue({ data, status, isLoading, isSuccess, isError, error })
+        const debugValue = pick(queryStateResults, ...COMMON_HOOK_DEBUG_FIELDS)
+        useDebugValue(debugValue)
 
         return useMemo(
           () => ({ ...queryStateResults, ...querySubscriptionResults }),
@@ -2060,26 +2076,13 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           ...options,
         })
 
-        const {
-          data,
-          status,
-          isLoading,
-          isSuccess,
-          isError,
-          error,
-          hasNextPage,
-          hasPreviousPage,
-        } = queryStateResults
-        useDebugValue({
-          data,
-          status,
-          isLoading,
-          isSuccess,
-          isError,
-          error,
-          hasNextPage,
-          hasPreviousPage,
-        })
+        const debugValue = pick(
+          queryStateResults,
+          ...COMMON_HOOK_DEBUG_FIELDS,
+          'hasNextPage',
+          'hasPreviousPage',
+        )
+        useDebugValue(debugValue)
 
         return useMemo(
           () => ({
@@ -2153,24 +2156,12 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         })
       }, [dispatch, fixedCacheKey, promise, requestId])
 
-      const {
-        endpointName,
-        data,
-        status,
-        isLoading,
-        isSuccess,
-        isError,
-        error,
-      } = currentState
-      useDebugValue({
-        endpointName,
-        data,
-        status,
-        isLoading,
-        isSuccess,
-        isError,
-        error,
-      })
+      const debugValue = pick(
+        currentState,
+        ...COMMON_HOOK_DEBUG_FIELDS,
+        'endpointName',
+      )
+      useDebugValue(debugValue)
 
       const finalState = useMemo(
         () => ({ ...currentState, originalArgs, reset }),
