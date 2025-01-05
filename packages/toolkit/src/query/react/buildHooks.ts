@@ -864,6 +864,8 @@ export type UseInfiniteQuerySubscriptionResult<
   D extends InfiniteQueryDefinition<any, any, any, any, any>,
 > = Pick<InfiniteQueryActionCreatorResult<D>, 'refetch'> & {
   trigger: LazyInfiniteQueryTrigger<D>
+  fetchNextPage: () => InfiniteQueryActionCreatorResult<D>
+  fetchPreviousPage: () => InfiniteQueryActionCreatorResult<D>
 }
 
 /**
@@ -897,10 +899,11 @@ export type UseInfiniteQuery<
   arg: InfiniteQueryArgFrom<D> | SkipToken,
   options?: UseInfiniteQuerySubscriptionOptions<D> &
     UseInfiniteQueryStateOptions<D, R>,
-) => UseInfiniteQueryHookResult<D, R> & {
-  fetchNextPage: () => InfiniteQueryActionCreatorResult<D>
-  fetchPreviousPage: () => InfiniteQueryActionCreatorResult<D>
-}
+) => UseInfiniteQueryHookResult<D, R> &
+  Pick<
+    UseInfiniteQuerySubscriptionResult<D>,
+    'fetchNextPage' | 'fetchPreviousPage'
+  >
 
 export type UseInfiniteQueryState<
   D extends InfiniteQueryDefinition<any, any, any, any, any>,
@@ -1946,8 +1949,19 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         }
       }, [promiseRef])
 
-      return useMemo(
-        () => ({
+      return useMemo(() => {
+        const fetchNextPage = () => {
+          // TODO the hasNextPage bailout breaks things
+          //if (!hasNextPage) return
+          return trigger(arg, 'forward')
+        }
+
+        const fetchPreviousPage = () => {
+          //if (!hasPreviousPage) return
+          return trigger(arg, 'backward')
+        }
+
+        return {
           trigger,
           /**
            * A method to manually refetch data for the query
@@ -1959,9 +1973,10 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
               )
             return promiseRef.current?.refetch()
           },
-        }),
-        [promiseRef, trigger],
-      )
+          fetchNextPage,
+          fetchPreviousPage,
+        }
+      }, [promiseRef, trigger, arg])
     }
 
     const useInfiniteQueryState: UseInfiniteQueryState<any> = (
@@ -2035,7 +2050,8 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       useInfiniteQueryState,
       useInfiniteQuerySubscription,
       useInfiniteQuery(arg, options) {
-        const { trigger, refetch } = useInfiniteQuerySubscription(arg, options)
+        const { refetch, fetchNextPage, fetchPreviousPage } =
+          useInfiniteQuerySubscription(arg, options)
         const queryStateResults = useInfiniteQueryState(arg, {
           selectFromResult:
             arg === skipToken || options?.skip
@@ -2064,17 +2080,6 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           hasNextPage,
           hasPreviousPage,
         })
-
-        const fetchNextPage = useCallback(() => {
-          // TODO the hasNextPage bailout breaks things
-          //if (!hasNextPage) return
-          return trigger(arg, 'forward')
-        }, [trigger, arg])
-
-        const fetchPreviousPage = useCallback(() => {
-          //if (!hasPreviousPage) return
-          return trigger(arg, 'backward')
-        }, [trigger, arg])
 
         return useMemo(
           () => ({
