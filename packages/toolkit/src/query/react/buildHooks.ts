@@ -1595,6 +1595,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           // @ts-ignore
           createSelector(
             [
+              // @ts-ignore
               select(stableArg),
               (_: ApiRootState, lastResult: any) => lastResult,
               (_: ApiRootState) => stableArg,
@@ -1640,6 +1641,27 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     return useQueryState
   }
 
+  function usePromiseRefUnsubscribeOnUnmount(
+    promiseRef: React.RefObject<{ unsubscribe?: () => void } | undefined>,
+  ) {
+    useEffect(() => {
+      return () => {
+        promiseRef.current?.unsubscribe?.()
+        promiseRef.current = undefined
+      }
+    }, [promiseRef])
+  }
+
+  function refetchOrErrorIfUnmounted<
+    T extends
+      | QueryActionCreatorResult<any>
+      | InfiniteQueryActionCreatorResult<any>,
+  >(promiseRef: React.RefObject<T | undefined>): T {
+    if (!promiseRef.current)
+      throw new Error('Cannot refetch a query that has not been started yet.')
+    return promiseRef.current.refetch() as T
+  }
+
   function buildQueryHooks(endpointName: string): QueryHooks<any> {
     const useQuerySubscription: UseQuerySubscription<any> = (
       arg: any,
@@ -1649,25 +1671,14 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         QueryActionCreatorResult<any>
       >(endpointName, arg, options)
 
-      useEffect(() => {
-        return () => {
-          promiseRef.current?.unsubscribe()
-          promiseRef.current = undefined
-        }
-      }, [promiseRef])
+      usePromiseRefUnsubscribeOnUnmount(promiseRef)
 
       return useMemo(
         () => ({
           /**
            * A method to manually refetch data for the query
            */
-          refetch: () => {
-            if (!promiseRef.current)
-              throw new Error(
-                'Cannot refetch a query that has not been started yet.',
-              )
-            return promiseRef.current?.refetch()
-          },
+          refetch: () => refetchOrErrorIfUnmounted(promiseRef),
         }),
         [promiseRef],
       )
@@ -1851,12 +1862,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         [promiseRef, dispatch, initiate],
       )
 
-      useEffect(() => {
-        return () => {
-          promiseRef.current?.unsubscribe()
-          promiseRef.current = undefined
-        }
-      }, [promiseRef])
+      usePromiseRefUnsubscribeOnUnmount(promiseRef)
 
       return useMemo(() => {
         const fetchNextPage = () => {
@@ -1875,13 +1881,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           /**
            * A method to manually refetch data for the query
            */
-          refetch: () => {
-            if (!promiseRef.current)
-              throw new Error(
-                'Cannot refetch a query that has not been started yet.',
-              )
-            return promiseRef.current?.refetch()
-          },
+          refetch: () => refetchOrErrorIfUnmounted(promiseRef),
           fetchNextPage,
           fetchPreviousPage,
         }
