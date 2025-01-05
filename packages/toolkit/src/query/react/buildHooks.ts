@@ -1376,7 +1376,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     )
   }
 
-  function buildQueryHooks(name: string): QueryHooks<any> {
+  function buildQueryHooks(endpointName: string): QueryHooks<any> {
     const useQuerySubscription: UseQuerySubscription<any> = (
       arg: any,
       {
@@ -1388,7 +1388,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         skipPollingIfUnfocused = false,
       } = {},
     ) => {
-      const { initiate } = api.endpoints[name] as ApiEndpointQuery<
+      const { initiate } = api.endpoints[endpointName] as ApiEndpointQuery<
         QueryDefinition<any, any, any, any, any>,
         Definitions
       >
@@ -1430,8 +1430,8 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         // with a case where the query args did change but the serialization doesn't,
         // and then we never try to initiate a refetch.
         defaultSerializeQueryArgs,
-        context.endpointDefinitions[name],
-        name,
+        context.endpointDefinitions[endpointName],
+        endpointName,
       )
       const stableSubscriptionOptions = useShallowStableValue({
         refetchOnReconnect,
@@ -1546,7 +1546,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       pollingInterval = 0,
       skipPollingIfUnfocused = false,
     } = {}) => {
-      const { initiate } = api.endpoints[name] as ApiEndpointQuery<
+      const { initiate } = api.endpoints[endpointName] as ApiEndpointQuery<
         QueryDefinition<any, any, any, any, any>,
         Definitions
       >
@@ -1640,15 +1640,15 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       arg: any,
       { skip = false, selectFromResult } = {},
     ) => {
-      const { select } = api.endpoints[name] as ApiEndpointQuery<
+      const { select } = api.endpoints[endpointName] as ApiEndpointQuery<
         QueryDefinition<any, any, any, any, any>,
         Definitions
       >
       const stableArg = useStableQueryArgs(
         skip ? skipToken : arg,
         serializeQueryArgs,
-        context.endpointDefinitions[name],
-        name,
+        context.endpointDefinitions[endpointName],
+        endpointName,
       )
 
       type ApiRootState = Parameters<ReturnType<typeof select>>[0]
@@ -1740,7 +1740,9 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     }
   }
 
-  function buildInfiniteQueryHooks(name: string): InfiniteQueryHooks<any> {
+  function buildInfiniteQueryHooks(
+    endpointName: string,
+  ): InfiniteQueryHooks<any> {
     const useInfiniteQuerySubscription: UseInfiniteQuerySubscription<any> = (
       arg: any,
       {
@@ -1754,7 +1756,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       } = {},
     ) => {
       const { initiate } = api.endpoints[
-        name
+        endpointName
       ] as unknown as ApiEndpointInfiniteQuery<
         InfiniteQueryDefinition<any, any, any, any, any>,
         Definitions
@@ -1791,8 +1793,8 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         // with a case where the query args did change but the serialization doesn't,
         // and then we never try to initiate a refetch.
         defaultSerializeQueryArgs,
-        context.endpointDefinitions[name],
-        name,
+        context.endpointDefinitions[endpointName],
+        endpointName,
       )
       const stableSubscriptionOptions = useShallowStableValue({
         refetchOnReconnect,
@@ -1930,7 +1932,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       { skip = false, selectFromResult } = {},
     ) => {
       const { select } = api.endpoints[
-        name
+        endpointName
       ] as unknown as ApiEndpointInfiniteQuery<
         InfiniteQueryDefinition<any, any, any, any, any>,
         Definitions
@@ -1938,8 +1940,8 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       const stableArg = useStableQueryArgs(
         skip ? skipToken : arg,
         serializeQueryArgs,
-        context.endpointDefinitions[name],
-        name,
+        context.endpointDefinitions[endpointName],
+        endpointName,
       )
 
       type ApiRootState = Parameters<ReturnType<typeof select>>[0]
