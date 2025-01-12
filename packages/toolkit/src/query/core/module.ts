@@ -58,10 +58,12 @@ import { buildSelectors } from './buildSelectors'
 import type { SliceActions, UpsertEntries } from './buildSlice'
 import { buildSlice } from './buildSlice'
 import type {
+  AllQueryKeys,
   BuildThunksApiEndpointInfiniteQuery,
   BuildThunksApiEndpointMutation,
   BuildThunksApiEndpointQuery,
   PatchQueryDataThunk,
+  QueryArgFromAnyQueryDefinition,
   UpdateQueryDataThunk,
   UpsertQueryDataThunk,
 } from './buildThunks'
@@ -167,9 +169,9 @@ export interface ApiModules<
        *
        * See https://redux-toolkit.js.org/rtk-query/usage/server-side-rendering for details.
        */
-      getRunningQueryThunk<EndpointName extends QueryKeys<Definitions>>(
+      getRunningQueryThunk<EndpointName extends AllQueryKeys<Definitions>>(
         endpointName: EndpointName,
-        arg: QueryArgFrom<Definitions[EndpointName]>,
+        arg: QueryArgFromAnyQueryDefinition<Definitions, EndpointName>,
       ): ThunkWithReturnValue<
         | QueryActionCreatorResult<
             Definitions[EndpointName] & { type: 'query' }

@@ -101,6 +101,40 @@ describe('Infinite queries', () => {
     }),
   })
 
+  let hitCounter = 0
+
+  type HitCounter = { page: number; hitCounter: number }
+
+  const countersApi = createApi({
+    baseQuery: fakeBaseQuery(),
+    tagTypes: ['Counter'],
+    endpoints: (build) => ({
+      counters: build.infiniteQuery<HitCounter, string, number>({
+        queryFn(page) {
+          hitCounter++
+
+          return { data: { page, hitCounter } }
+        },
+        infiniteQueryOptions: {
+          initialPageParam: 0,
+          getNextPageParam: (
+            lastPage,
+            allPages,
+            lastPageParam,
+            allPageParams,
+          ) => lastPageParam + 1,
+        },
+        providesTags: ['Counter'],
+      }),
+      mutation: build.mutation<null, void>({
+        queryFn: async () => {
+          return { data: null }
+        },
+        invalidatesTags: ['Counter'],
+      }),
+    }),
+  })
+
   let storeRef = setupApiStore(
     pokemonApi,
     { ...actionsReducer },
@@ -132,6 +166,8 @@ describe('Infinite queries', () => {
     )
 
     counters = {}
+
+    hitCounter = 0
 
     process.env.NODE_ENV = 'development'
   })
@@ -404,32 +440,6 @@ describe('Infinite queries', () => {
   })
 
   test('refetches all existing pages', async () => {
-    let hitCounter = 0
-
-    type HitCounter = { page: number; hitCounter: number }
-
-    const countersApi = createApi({
-      baseQuery: fakeBaseQuery(),
-      endpoints: (build) => ({
-        counters: build.infiniteQuery<HitCounter, string, number>({
-          queryFn(page) {
-            hitCounter++
-
-            return { data: { page, hitCounter } }
-          },
-          infiniteQueryOptions: {
-            initialPageParam: 0,
-            getNextPageParam: (
-              lastPage,
-              allPages,
-              lastPageParam,
-              allPageParams,
-            ) => lastPageParam + 1,
-          },
-        }),
-      }),
-    })
-
     const checkResultData = (
       result: InfiniteQueryResult,
       expectedValues: HitCounter[],
@@ -477,6 +487,79 @@ describe('Infinite queries', () => {
     const fourthRes = await thirdPromise.refetch()
 
     checkResultData(fourthRes, [
+      { page: 3, hitCounter: 4 },
+      { page: 4, hitCounter: 5 },
+      { page: 5, hitCounter: 6 },
+    ])
+  })
+
+  test('Refetches on invalidation', async () => {
+    const checkResultData = (
+      result: InfiniteQueryResult,
+      expectedValues: HitCounter[],
+    ) => {
+      expect(result.status).toBe(QueryStatus.fulfilled)
+      if (result.status === QueryStatus.fulfilled) {
+        expect(result.data.pages).toEqual(expectedValues)
+      }
+    }
+
+    const storeRef = setupApiStore(
+      countersApi,
+      { ...actionsReducer },
+      {
+        withoutTestLifecycles: true,
+      },
+    )
+
+    await storeRef.store.dispatch(
+      countersApi.endpoints.counters.initiate('item', {
+        initialPageParam: 3,
+      }),
+    )
+
+    await storeRef.store.dispatch(
+      countersApi.endpoints.counters.initiate('item', {
+        direction: 'forward',
+      }),
+    )
+
+    const thirdPromise = storeRef.store.dispatch(
+      countersApi.endpoints.counters.initiate('item', {
+        direction: 'forward',
+      }),
+    )
+
+    const thirdRes = await thirdPromise
+
+    checkResultData(thirdRes, [
+      { page: 3, hitCounter: 1 },
+      { page: 4, hitCounter: 2 },
+      { page: 5, hitCounter: 3 },
+    ])
+
+    await storeRef.store.dispatch(countersApi.endpoints.mutation.initiate())
+
+    let entry = countersApi.endpoints.counters.select('item')(
+      storeRef.store.getState(),
+    )
+    const promise = storeRef.store.dispatch(
+      countersApi.util.getRunningQueryThunk('counters', 'item'),
+    )
+    const promises = storeRef.store.dispatch(
+      countersApi.util.getRunningQueriesThunk(),
+    )
+    expect(entry).toMatchObject({
+      status: 'pending',
+    })
+
+    expect(promise).toBeInstanceOf(Promise)
+
+    expect(promises).toEqual([promise])
+
+    const finalRes = await promise
+
+    checkResultData(finalRes as any, [
       { page: 3, hitCounter: 4 },
       { page: 4, hitCounter: 5 },
       { page: 5, hitCounter: 6 },
