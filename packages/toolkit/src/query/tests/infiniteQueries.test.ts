@@ -8,9 +8,12 @@ import {
   waitFor,
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { HttpResponse, http } from 'msw'
+import { HttpResponse, delay, http } from 'msw'
 import util from 'util'
-import type { InfiniteQueryActionCreatorResult } from '@reduxjs/toolkit/query/react'
+import type {
+  InfiniteQueryActionCreatorResult,
+  QueryCacheKey,
+} from '@reduxjs/toolkit/query/react'
 import {
   QueryStatus,
   createApi,
@@ -560,6 +563,80 @@ describe('Infinite queries', () => {
     const finalRes = await promise
 
     checkResultData(finalRes as any, [
+      { page: 3, hitCounter: 4 },
+      { page: 4, hitCounter: 5 },
+      { page: 5, hitCounter: 6 },
+    ])
+  })
+
+  test('Refetches on polling', async () => {
+    const checkResultData = (
+      result: InfiniteQueryResult,
+      expectedValues: HitCounter[],
+    ) => {
+      expect(result.status).toBe(QueryStatus.fulfilled)
+      if (result.status === QueryStatus.fulfilled) {
+        expect(result.data.pages).toEqual(expectedValues)
+      }
+    }
+
+    const storeRef = setupApiStore(
+      countersApi,
+      { ...actionsReducer },
+      {
+        withoutTestLifecycles: true,
+      },
+    )
+
+    await storeRef.store.dispatch(
+      countersApi.endpoints.counters.initiate('item', {
+        initialPageParam: 3,
+      }),
+    )
+
+    await storeRef.store.dispatch(
+      countersApi.endpoints.counters.initiate('item', {
+        direction: 'forward',
+      }),
+    )
+
+    const thirdPromise = storeRef.store.dispatch(
+      countersApi.endpoints.counters.initiate('item', {
+        direction: 'forward',
+      }),
+    )
+
+    const thirdRes = await thirdPromise
+
+    checkResultData(thirdRes, [
+      { page: 3, hitCounter: 1 },
+      { page: 4, hitCounter: 2 },
+      { page: 5, hitCounter: 3 },
+    ])
+
+    thirdPromise.updateSubscriptionOptions({
+      pollingInterval: 10,
+    })
+
+    await delay(5)
+
+    let entry = countersApi.endpoints.counters.select('item')(
+      storeRef.store.getState(),
+    )
+
+    checkResultData(thirdRes, [
+      { page: 3, hitCounter: 1 },
+      { page: 4, hitCounter: 2 },
+      { page: 5, hitCounter: 3 },
+    ])
+
+    await delay(10)
+
+    entry = countersApi.endpoints.counters.select('item')(
+      storeRef.store.getState(),
+    )
+
+    checkResultData(entry as any, [
       { page: 3, hitCounter: 4 },
       { page: 4, hitCounter: 5 },
       { page: 5, hitCounter: 6 },
