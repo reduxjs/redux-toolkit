@@ -51,6 +51,7 @@ import { UNINITIALIZED_VALUE } from './constants'
 import type { ReactHooksModuleOptions } from './module'
 import { useStableQueryArgs } from './useSerializedStableValue'
 import { useShallowStableValue } from './useShallowStableValue'
+import { isQueryDefinition } from '../endpointDefinitions'
 
 // Copy-pasted from React-Redux
 const canUseDOM = () =>
@@ -1316,9 +1317,17 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       },
       useQuery(arg, options) {
         const querySubscriptionResults = useQuerySubscription(arg, options)
+        const store = useStore<RootState<Definitions, any, any>>()
+
+        const endpointDefinition = context.endpointDefinitions[name]
+        const shouldSkipFromCondition =
+          isQueryDefinition(endpointDefinition) &&
+          endpointDefinition?.skipCondition &&
+          endpointDefinition?.skipCondition(store.getState())
+
         const queryStateResults = useQueryState(arg, {
           selectFromResult:
-            arg === skipToken || options?.skip
+            arg === skipToken || options?.skip || shouldSkipFromCondition
               ? undefined
               : noPendingQueryStateSelector,
           ...options,

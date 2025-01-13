@@ -30,6 +30,7 @@ import type {
   UnwrapPromise,
 } from './tsHelpers'
 import { isNotNullish } from './utils'
+import type { QueryThunkArg, ThunkApiMetaConfig } from './core/buildThunks'
 
 const resultType = /* @__PURE__ */ Symbol()
 const baseQuery = /* @__PURE__ */ Symbol()
@@ -348,6 +349,8 @@ export interface QueryExtraOptions<
    * Not to be used. A query should not invalidate tags in the cache.
    */
   invalidatesTags?: never
+
+  skipCondition?: (state: RootState<any, string, ReducerPath>) => boolean
 
   /**
    * Can be provided to return a custom cache key value based on the query arguments.

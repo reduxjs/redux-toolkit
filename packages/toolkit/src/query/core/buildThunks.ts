@@ -523,7 +523,8 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
     getPendingMeta() {
       return { startedTimeStamp: Date.now(), [SHOULD_AUTOBATCH]: true }
     },
-    condition(queryThunkArgs, { getState }) {
+    condition(queryThunkArgs, options) {
+      const { getState } = options
       const state = getState()
 
       const requestState =
@@ -549,6 +550,14 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
       // if this is forced, continue
       if (isForcedQuery(queryThunkArgs, state)) {
         return true
+      }
+
+      if (
+        isQueryDefinition(endpointDefinition) &&
+        endpointDefinition?.skipCondition &&
+        endpointDefinition?.skipCondition(state)
+      ) {
+        return false
       }
 
       if (
