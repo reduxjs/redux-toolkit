@@ -483,7 +483,7 @@ export const buildQueryLifecycleHandler: InternalHandlerBuilder = ({
             : undefined) as any,
           queryFulfilled,
         }
-        onQueryStarted(originalArgs, lifecycleApi)
+        onQueryStarted(originalArgs, lifecycleApi as any)
       }
     } else if (isFullfilledThunk(action)) {
       const { requestId, baseQueryMeta } = action.meta

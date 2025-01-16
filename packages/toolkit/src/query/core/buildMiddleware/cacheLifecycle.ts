@@ -355,7 +355,7 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
       cacheEntryRemoved,
     }
 
-    const runningHandler = onCacheEntryAdded(originalArgs, lifecycleApi)
+    const runningHandler = onCacheEntryAdded(originalArgs, lifecycleApi as any)
     // if a `neverResolvedError` was thrown, but not handled in the running handler, do not let it leak out further
     Promise.resolve(runningHandler).catch((e) => {
       if (e === neverResolvedError) return

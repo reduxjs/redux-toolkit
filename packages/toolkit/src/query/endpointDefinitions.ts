@@ -21,6 +21,7 @@ import type {
   QueryLifecycleQueryExtraOptions,
 } from './core/buildMiddleware/queryLifecycle'
 import type {
+  InfiniteData,
   InfiniteQueryConfigOptions,
   QuerySubState,
   RootState,
@@ -580,13 +581,13 @@ export interface InfiniteQueryExtraOptions<
   BaseQuery extends BaseQueryFn,
   ReducerPath extends string = string,
 > extends CacheLifecycleInfiniteQueryExtraOptions<
-      ResultType,
+      InfiniteData<ResultType, PageParam>,
       QueryArg,
       BaseQuery,
       ReducerPath
     >,
     QueryLifecycleInfiniteQueryExtraOptions<
-      ResultType,
+      InfiniteData<ResultType, PageParam>,
       QueryArg,
       BaseQuery,
       ReducerPath
