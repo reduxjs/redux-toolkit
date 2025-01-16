@@ -657,12 +657,10 @@ describe('Infinite queries', () => {
           },
           async onCacheEntryAdded(arg, api) {
             const data = await api.cacheDataLoaded
-            console.log('onCacheEntryAdded data: ', arg, data)
             cacheEntryAddedCallback(arg, data)
           },
           async onQueryStarted(arg, api) {
             const data = await api.queryFulfilled
-            console.log('onQueryStarted data: ', arg, data)
             queryStartedCallback(arg, data)
           },
         }),
