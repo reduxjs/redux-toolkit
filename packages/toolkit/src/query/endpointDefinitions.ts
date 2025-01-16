@@ -607,6 +607,12 @@ export interface InfiniteQueryExtraOptions<
    */
   invalidatesTags?: never
 
+  /**
+   * Required options to configure the infinite query behavior.
+   * `initialPageParam` and `getNextPageParam` are required, to
+   * ensure the infinite query can properly fetch the next page of data. `initialPageparam` may be specified when using the
+   * endpoint, to override the default value.
+   */
   infiniteQueryOptions: InfiniteQueryConfigOptions<ResultType, PageParam>
 
   /**
