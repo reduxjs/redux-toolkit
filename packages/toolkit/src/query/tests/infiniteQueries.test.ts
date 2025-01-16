@@ -621,4 +621,84 @@ describe('Infinite queries', () => {
       pageParams: [3, 4],
     })
   })
+
+  test('Cache lifecycle methods are called', async () => {
+    const cacheEntryAddedCallback = vi.fn()
+    const queryStartedCallback = vi.fn()
+
+    const pokemonApi = createApi({
+      baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
+      endpoints: (builder) => ({
+        getInfinitePokemonWithLifecycles: builder.infiniteQuery<
+          Pokemon[],
+          string,
+          number
+        >({
+          infiniteQueryOptions: {
+            initialPageParam: 0,
+            getNextPageParam: (
+              lastPage,
+              allPages,
+              // Page param type should be `number`
+              lastPageParam,
+              allPageParams,
+            ) => lastPageParam + 1,
+            getPreviousPageParam: (
+              firstPage,
+              allPages,
+              firstPageParam,
+              allPageParams,
+            ) => {
+              return firstPageParam > 0 ? firstPageParam - 1 : undefined
+            },
+          },
+          query(pageParam) {
+            return `https://example.com/listItems?page=${pageParam}`
+          },
+          async onCacheEntryAdded(arg, api) {
+            const data = await api.cacheDataLoaded
+            cacheEntryAddedCallback(arg, data)
+          },
+          async onQueryStarted(arg, api) {
+            const data = await api.queryFulfilled
+            queryStartedCallback(arg, data)
+          },
+        }),
+      }),
+    })
+
+    const storeRef = setupApiStore(
+      pokemonApi,
+      { ...actionsReducer },
+      {
+        withoutTestLifecycles: true,
+      },
+    )
+
+    const res1 = storeRef.store.dispatch(
+      pokemonApi.endpoints.getInfinitePokemonWithLifecycles.initiate(
+        'fire',
+        {},
+      ),
+    )
+
+    const entry1InitialLoad = await res1
+    checkResultData(entry1InitialLoad, [[{ id: '0', name: 'Pokemon 0' }]])
+
+    expect(cacheEntryAddedCallback).toHaveBeenCalledWith('fire', {
+      data: {
+        pages: [[{ id: '0', name: 'Pokemon 0' }]],
+        pageParams: [0],
+      },
+      meta: undefined,
+    })
+
+    expect(queryStartedCallback).toHaveBeenCalledWith('fire', {
+      data: {
+        pages: [[{ id: '0', name: 'Pokemon 0' }]],
+        pageParams: [0],
+      },
+      meta: undefined,
+    })
+  })
 })

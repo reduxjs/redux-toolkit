@@ -30,34 +30,31 @@ export type RefetchConfigOptions = {
   refetchOnFocus: boolean
 }
 
-export type GetNextPageParamFunction<TPageParam, TQueryFnData> = (
-  lastPage: TQueryFnData,
-  allPages: Array<TQueryFnData>,
-  lastPageParam: TPageParam,
-  allPageParams: Array<TPageParam>,
-) => TPageParam | undefined | null
+export type PageParamFunction<DataType, PageParam> = (
+  firstPage: DataType,
+  allPages: Array<DataType>,
+  firstPageParam: PageParam,
+  allPageParams: Array<PageParam>,
+) => PageParam | undefined | null
 
-export type GetPreviousPageParamFunction<TPageParam, TQueryFnData> = (
-  firstPage: TQueryFnData,
-  allPages: Array<TQueryFnData>,
-  firstPageParam: TPageParam,
-  allPageParams: Array<TPageParam>,
-) => TPageParam | undefined | null
-
-export type InfiniteQueryConfigOptions<TQueryFnData, TPageParam> = {
-  initialPageParam: TPageParam
+export type InfiniteQueryConfigOptions<DataType, PageParam> = {
+  initialPageParam: PageParam
   maxPages?: number
   /**
    * This function can be set to automatically get the previous cursor for infinite queries.
    * The result will also be used to determine the value of `hasPreviousPage`.
    */
-  getPreviousPageParam?: GetPreviousPageParamFunction<TPageParam, TQueryFnData>
-  getNextPageParam: GetNextPageParamFunction<TPageParam, TQueryFnData>
+  getPreviousPageParam?: PageParamFunction<DataType, PageParam>
+  /**
+   * This function is required to automatically get the next cursor for infinite queries.
+   * The result will also be used to determine the value of `hasNextPage`.
+   */
+  getNextPageParam: PageParamFunction<DataType, PageParam>
 }
 
-export interface InfiniteData<TData, TPageParam> {
-  pages: Array<TData>
-  pageParams: Array<TPageParam>
+export interface InfiniteData<DataType, PageParam> {
+  pages: Array<DataType>
+  pageParams: Array<PageParam>
 }
 
 /**

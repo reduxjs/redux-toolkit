@@ -41,6 +41,18 @@ describe('Infinite queries', () => {
 
             return `https://example.com/listItems?page=${pageParam}`
           },
+          async onCacheEntryAdded(arg, api) {
+            const data = await api.cacheDataLoaded
+            expectTypeOf(data.data).toEqualTypeOf<
+              InfiniteData<Pokemon[], number>
+            >()
+          },
+          async onQueryStarted(arg, api) {
+            const data = await api.queryFulfilled
+            expectTypeOf(data.data).toEqualTypeOf<
+              InfiniteData<Pokemon[], number>
+            >()
+          },
         }),
       }),
     })
