@@ -39,8 +39,8 @@ import type { Pokemon } from './types'
 export const pokemonApi = createApi({
   reducerPath: 'pokemonApi',
   baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
-  endpoints: (builder) => ({
-    getPokemonByName: builder.query<Pokemon, string>({
+  endpoints: (build) => ({
+    getPokemonByName: build.query<Pokemon, string>({
       query: (name) => `pokemon/${name}`,
     }),
   }),
@@ -148,7 +148,7 @@ See [Endpoint Definition Parameters](#endpoint-definition-parameters) for detail
 
 #### Query endpoint definition
 
-Query endpoints (defined with `builder.query()`) are used to cache data fetched from the server.
+Query endpoints (defined with `build.query()`) are used to cache data fetched from the server.
 
 You must specify either a `query` field (which will use the API's `baseQuery` to make a request), or a `queryFn` function with your own async logic. All other fields are optional.
 
@@ -226,9 +226,9 @@ export type QueryDefinition<
 
 #### Infinite Query endpoint definition
 
-Infinite query endpoints (defined with `builder.infiniteQuery()`) are used to cache multi-page data sets from the server. They have all the same callbacks and options as standard query endpoints, but also require an additional [`infiniteQueryOptions`](#infinitequeryoptions) field to specify how to calculate the unique parameters to fetch each page.
+Infinite query endpoints (defined with `build.infiniteQuery()`) are used to cache multi-page data sets from the server. They have all the same callbacks and options as standard query endpoints, but also require an additional [`infiniteQueryOptions`](#infinitequeryoptions) field to specify how to calculate the unique parameters to fetch each page.
 
-For infinite query endpoints, there is a separation between the "query arg" used for the cache key, and the "page param" used to fetch a specific page. For example, a Pokemon API endpoint might have a string query arg like `"fire"` as the query arg, but use a page number as the param to determine which page to fetch out of the results. This means the page param is what will be passed to your `query` or `queryFn` methods.
+For infinite query endpoints, there is a separation between the "query arg" used for the cache key, and the "page param" used to fetch a specific page. For example, a Pokemon API endpoint might have a string query arg like `"fire"` , but use a page number as the param to determine which page to fetch out of the results. This means the page param is what will be passed to your `query` or `queryFn` methods.
 
 ```ts title="Infinite Query endpoint definition" no-transpile
 export type PageParamFunction<DataType, PageParam> = (
@@ -284,7 +284,7 @@ export type InfiniteQueryDefinition<
 
 #### Mutation endpoint definition
 
-Mutation endpoints (defined with `builder.mutation()`) are used to send updates to the server, and force invalidation and refetching of query endpoints.
+Mutation endpoints (defined with build.mutation()`) are used to send updates to the server, and force invalidation and refetching of query endpoints.
 
 As with queries, you must specify either the `query` option or the `queryFn` async method.
 

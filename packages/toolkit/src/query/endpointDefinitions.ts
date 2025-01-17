@@ -618,7 +618,7 @@ export interface InfiniteQueryExtraOptions<
    * 
    * ```ts
    * // codeblock-meta title="infiniteQueryOptions example"
-   * getInfinitePokemonWithMax: builder.infiniteQuery<
+   * getInfinitePokemonWithMax: build.infiniteQuery<
         Pokemon[],
         string,
         number
