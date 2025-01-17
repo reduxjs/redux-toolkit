@@ -65,7 +65,7 @@ import { useStableQueryArgs } from './useSerializedStableValue'
 import { useShallowStableValue } from './useShallowStableValue'
 import type { InfiniteQueryDirection } from '../core/apiState'
 import { isInfiniteQueryDefinition } from '../endpointDefinitions'
-import { StartInfiniteQueryActionCreator } from '../core/buildInitiate'
+import type { StartInfiniteQueryActionCreator } from '../core/buildInitiate'
 
 // Copy-pasted from React-Redux
 const canUseDOM = () =>

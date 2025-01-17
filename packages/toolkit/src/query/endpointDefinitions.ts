@@ -610,8 +610,42 @@ export interface InfiniteQueryExtraOptions<
   /**
    * Required options to configure the infinite query behavior.
    * `initialPageParam` and `getNextPageParam` are required, to
-   * ensure the infinite query can properly fetch the next page of data. `initialPageparam` may be specified when using the
+   * ensure the infinite query can properly fetch the next page of data.
+   * `initialPageParam` may be specified when using the
    * endpoint, to override the default value.
+   * 
+   * @example
+   * 
+   * ```ts
+   * // codeblock-meta title="infiniteQueryOptions example"
+   * getInfinitePokemonWithMax: builder.infiniteQuery<
+        Pokemon[],
+        string,
+        number
+      >({
+        infiniteQueryOptions: {
+          initialPageParam: 0,
+          maxPages: 3,
+          getNextPageParam: (
+            lastPage,
+            allPages,
+            lastPageParam,
+            allPageParams,
+          ) => lastPageParam + 1,
+          getPreviousPageParam: (
+            firstPage,
+            allPages,
+            firstPageParam,
+            allPageParams,
+          ) => {
+            return firstPageParam > 0 ? firstPageParam - 1 : undefined
+          },
+        },
+        query(pageParam) {
+          return `https://example.com/listItems?page=${pageParam}`
+        },
+      }),
+   * ```
    */
   infiniteQueryOptions: InfiniteQueryConfigOptions<ResultType, PageParam>
 
@@ -697,7 +731,7 @@ export type InfiniteQueryDefinition<
   ResultType,
   ReducerPath extends string = string,
 > =
-  // Intentionally use `PageParam` as the QueryArg` type
+  // Intentionally use `PageParam` as the `QueryArg` type
   BaseEndpointDefinition<PageParam, BaseQuery, ResultType> &
     InfiniteQueryExtraOptions<
       TagTypes,
