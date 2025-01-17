@@ -102,6 +102,7 @@ const sidebars: SidebarsConfig = {
           collapsed: true,
           items: [
             'rtk-query/usage/queries',
+            'rtk-query/usage/infinite-queries',
             'rtk-query/usage/mutations',
             'rtk-query/usage/cache-behavior',
             'rtk-query/usage/automated-refetching',

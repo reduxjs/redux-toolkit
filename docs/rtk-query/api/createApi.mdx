@@ -537,6 +537,9 @@ The `infiniteQueryOptions` field includes:
 - `getNextPageParam`: a required callback you must provide to calculate the next page param, given the existing cached pages and page params
 - `getPreviousPageParam`: an optional callback that will be used to calculate the previous page param, if you try to fetch backwards.
 
+Both `initialPageParam` and `getNextPageParam` are required, to
+ensure the infinite query can properly fetch the next page of data.Also, `initialPageParam` may be specified when using the endpoint, to override the default value. `maxPages` and `getPreviousPageParam` are both optional.
+
 [examples](docblock://query/endpointDefinitions.ts?token=InfiniteQueryExtraOptions.infiniteQueryOptions)
 
 ### `transformResponse`
