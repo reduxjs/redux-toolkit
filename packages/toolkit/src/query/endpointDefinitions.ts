@@ -595,7 +595,13 @@ export interface InfiniteQueryExtraOptions<
     CacheCollectionQueryExtraOptions {
   type: DefinitionType.infinitequery
 
-  providesTags?: never
+  providesTags?: ResultDescription<
+    TagTypes,
+    ResultType,
+    QueryArg,
+    BaseQueryError<BaseQuery>,
+    BaseQueryMeta<BaseQuery>
+  >
   /**
    * Not to be used. A query should not invalidate tags in the cache.
    */
