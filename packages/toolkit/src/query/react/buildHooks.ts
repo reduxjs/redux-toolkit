@@ -895,7 +895,16 @@ export type InfiniteQueryStateSelector<
  *
  * The query arg is used as a cache key. Changing the query arg will tell the hook to re-fetch the data if it does not exist in the cache already, and the hook will return the data for that query arg once it's available.
  *
- * This hook combines the functionality of both [`useInfiniteQueryState`](#useinfinitequerystate) and [`useQuerySubscription`](#useinfinitequerysubscription) together, and is intended to be used in the majority of situations.
+ *  The `data` field will be a `{pages: Data[], pageParams: PageParam[]}` structure containing all fetched page responses and the corresponding page param values for each page. You may use this to render individual pages, combine all pages into a single infinite list, or other display logic as needed.
+ *
+ * This hook combines the functionality of both [`useInfiniteQueryState`](#useinfinitequerystate) and [`useInfiniteQuerySubscription`](#useinfinitequerysubscription) together, and is intended to be used in the majority of situations.
+ *
+ * As with normal query hooks, `skipToken` is a valid argument that will skip the query from executing.
+ *
+ * By default, the initial request will use the `initialPageParam` value that was defined on the infinite query endpoint. If you want to start from a different value, you can pass `initialPageParam` as part of the hook options to override that initial request value.
+ *
+ * Use the returned `fetchNextPage` and `fetchPreviousPage` methods on the hook result object to trigger fetches forwards and backwards. These will always calculate the next or previous page param based on the current cached pages and the provided `getNext/PreviousPageParam` callbacks defined in the endpoint.
+ *
  *
  * #### Features
  *

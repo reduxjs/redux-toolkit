@@ -434,14 +434,12 @@ selectFromResult: () => ({})
 ### `useInfiniteQuery`
 
 ```ts title="Accessing a useQuery hook" no-transpile
-const useQueryResult = api.endpoints.getPosts.useInfiniteQuery(arg, options)
+const useQueryResult = api.endpoints.getManyPosts.useInfiniteQuery(arg, options)
 // or
-const useQueryResult = api.useGetPostsInfiniteQuery(arg, options)
+const useQueryResult = api.useGetManyPostsInfiniteQuery(arg, options)
 ```
 
 [summary](docblock://query/react/buildHooks.ts?token=UseInfiniteQuery)
-
-As with normal query hooks, `skipToken` is a valid argument that will skip the query from executing.
 
 #### `useInfiniteQuery` Signature
 
