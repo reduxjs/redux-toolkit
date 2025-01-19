@@ -19,9 +19,11 @@ However, RTK Query also provides the ability to auto-generate React hooks for ea
 import { createApi } from '@reduxjs/toolkit/query/react'
 ```
 
-If you have used the React-specific version of `createApi`, the generated `Api` slice structure will also contain a set of React hooks. The primary endpoint hooks are available as `api.endpoints[endpointName].useQuery` or `api.endpoints[endpointName].useMutation`, matching how you defined that endpoint.
+If you have used the React-specific version of `createApi`, the generated `api` slice structure will also contain a set of React hooks. The primary endpoint hooks are available as `api.endpoints[endpointName].useQuery` or `api.endpoints[endpointName].useMutation`, matching how you defined that endpoint.
 
-The same hooks are also added to the `Api` object itself, and given auto-generated names based on the endpoint name and query/mutation type.
+### Generated Hook Names
+
+The same hooks are also added to the `api` object itself, and given auto-generated names based on the endpoint name and query/mutation type.
 
 For example, if you had endpoints for `getPosts` and `updatePost`, these options would be available:
 
@@ -37,15 +39,27 @@ const [updatePost, { data }] = api.useUpdatePostMutation()
 
 The general format is `use(Endpointname)(Query|Mutation)` - `use` is prefixed, the first letter of your endpoint name is capitalized, then `Query` or `Mutation` is appended depending on the type.
 
-RTK Query provides additional hooks for more advanced use-cases, although not all are generated directly on the `Api` object as well. The full list of hooks generated in the React-specific version of `createApi` is as follows:
+### Available Hooks
 
-- [`useQuery`](#usequery) (endpoint-specific, also generated on the `Api` object)
-- [`useMutation`](#usemutation) (endpoint-specific, also generated on the `Api` object)
-- [`useQueryState`](#usequerystate) (endpoint-specific)
-- [`useQuerySubscription`](#usequerysubscription) (endpoint-specific)
-- [`useLazyQuery`](#uselazyquery) (endpoint-specific, also generated on the `Api` object)
-- [`useLazyQuerySubscription`](#uselazyquerysubscription) (endpoint-specific)
-- [`usePrefetch`](#useprefetch) (endpoint-agnostic)
+RTK Query provides additional hooks for more advanced use-cases, although not all are generated directly on the `api` object as well.
+
+Most of the hooks are generated on a per-endpoint basis.
+
+The full list of hooks generated in the React-specific version of `createApi` is as follows:
+
+- Endpoint-specific, generated the `api` object with a unique name and on the endpoint object with a generic name:
+  - [`useQuery`](#usequery) (all standard queries)
+  - [`useMutation`](#usemutation) (all mutations)
+  - [`useInfiniteQuery`](#useinfinitequery) (only infinite queries)
+  - [`useLazyQuery`](#uselazyquery) (all standard queries)
+- Endpoint-specific, only generated on the endpoint object with a generic name:
+  - [`useQueryState`](#usequerystate)
+  - [`useQuerySubscription](#usequerysubscription)
+  - [`useLazyQuerySubscription](#uselazyquerysubscription)
+  - [`useInfiniteQueryState`](#useinfinitequerystate)
+  - [`useInfiniteQuerySubscription](#useinfinitequerysubscription)
+- Endpoint-agnostic, generated on the `api` object:
+  - [`usePrefetch`](#useprefetch)
 
 For the example above, the full set of generated hooks for the api would be like so:
 
@@ -57,13 +71,24 @@ api.endpoints.getPosts.useQuerySubscription(arg, options)
 api.endpoints.getPosts.useLazyQuery(options)
 api.endpoints.getPosts.useLazyQuerySubscription(options)
 
+/* hooks attached to the `getManyPosts` infinite query endpoint definition */
+api.endpoints.getManyPosts.useInfiniteQuery(arg, options)
+api.endpoints.getManyPosts.useInfiniteQueryState(arg, options)
+api.endpoints.getManyPosts.useInfiniteQuerySubscription(arg, options)
+
 /* Hooks attached to the `updatePost` mutation endpoint definition */
 api.endpoints.updatePost.useMutation(options)
 
-/* Hooks attached to the `Api` object */
-api.useGetPostsQuery(arg, options) // same as api.endpoints.getPosts.useQuery
-api.useLazyGetPostsQuery(options) // same as api.endpoints.getPosts.useLazyQuery
-api.useUpdatePostMutation(options) // same as api.endpoints.updatePost.useMutation
+/* Hooks attached to the `api` object */
+// same as api.endpoints.getPosts.useQuery
+api.useGetPostsQuery(arg, options)
+// same as api.endpoints.getPosts.useLazyQuery
+api.useLazyGetPostsQuery(arg, options)
+// same as api.endpoints.updatePost.useMutation
+api.useUpdatePostMutation(arg, options)
+// same as api.endpoints.getManyPosts.useInfiniteQuery
+api.useGetManyPostsInfiniteQuery(arg, options)
+// Generic, used for any endpoint
 api.usePrefetch(endpointName, options)
 ```
 
