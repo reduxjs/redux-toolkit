@@ -140,23 +140,20 @@ const pokemonApi = createApi({
 
 There are 3 infinite query-related hooks:
 
-1. [`useInfiniteQuery`]()
-
-- Composes `useInfiniteQuerySubscription` and `useInfiniteQueryState`, and is the primary hook. Automatically triggers fetches of data from an endpoint, 'subscribes' the component to the cached data, and reads the request status and cached data from the Redux store.
-
-2. [`useInfiniteQuerySubscription`]()
-
-- Returns a `refetch` function and accepts all hooks options. Automatically triggers refetches of data from an endpoint, and 'subscribes' the component to the cached data.
-
-3. [`useInfiniteQueryState`]()
-
-- Returns the query state and accepts `skip` and `selectFromResult`. Reads the request status and cached data from the Redux store.
+1. [`useInfiniteQuery`](../api/created-api/hooks.mdx#useinfinitequery)
+   - Composes `useInfiniteQuerySubscription` and `useInfiniteQueryState`, and is the primary hook. Automatically triggers fetches of data from an endpoint, 'subscribes' the component to the cached data, and reads the request status and cached data from the Redux store.
+2. [`useInfiniteQuerySubscription`](../api/created-api/hooks.mdx#useinfinitequerysubscription)
+   - Returns a `refetch` function and `fetchNext/PreviousPage` functions, and accepts all hooks options. Automatically triggers refetches of data from an endpoint, and 'subscribes' the component to the cached data.
+3. [`useInfiniteQueryState`](../api/created-api/hooks.mdx#useinfinitequerystate)
+   - Returns the query state and accepts `skip` and `selectFromResult`. Reads the request status and cached data from the Redux store.
 
 In practice, the standard `useInfiniteQuery`-based hooks such as `useGetPokemonInfiniteQuery` will be the primary hooks used in your application, but the other hooks are available for specific use cases.
 
 ### Query Hook Options
 
 The query hooks expect two parameters: `(queryArg?, queryOptions?)`.
+
+The `queryOptions` object accepts [all the same parameters as `useQuery`](./queries.mdx#query-hook-options), including `skip`, `selectFromResult`, and refetching/polling options.
 
 Unlike normal query hooks, your `query` or `queryFn` callbacks will receive a "page param" value to generate the URL or make the request. By default, the `initialPageParam` value specified in the endpoint will be used to make the first request, and then your `getNext/PreviousPageParam` callbacks will be used to calculate further page params as you fetch forwards or backwards.
 
