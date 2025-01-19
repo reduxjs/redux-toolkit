@@ -785,7 +785,21 @@ type UseQuerySubscriptionResult = {
 
 ### `useInfiniteQueryState`
 
+```ts title="Accessing a useInfiniteQueryState hook" no-transpile
+const useInfiniteQueryStateResult =
+  api.endpoints.getManyPosts.useInfiniteQueryState(arg, options)
+```
+
+[summary](docblock://query/react/buildHooks.ts?token=UseInfiniteQueryState)
+
 ### `useInfiniteQuerySubscription`
+
+```ts title="Accessing a useInfiniteQuerySubscription hook" no-transpile
+const useInfiniteQuerySubscriptionResult =
+  api.endpoints.getManyPosts.useInfiniteQuerySubscription(arg, options)
+```
+
+[summary](docblock://query/react/buildHooks.ts?token=UseInfiniteQuerySubscription)
 
 ### `useLazyQuerySubscription`
 
