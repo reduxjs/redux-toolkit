@@ -890,6 +890,22 @@ export type InfiniteQueryStateSelector<
   D extends InfiniteQueryDefinition<any, any, any, any, any>,
 > = (state: UseInfiniteQueryStateDefaultResult<D>) => R
 
+/**
+ * A React hook that automatically triggers fetches of data from an endpoint, 'subscribes' the component to the cached data, and reads the request status and cached data from the Redux store. The component will re-render as the loading status changes and the data becomes available.  Additionally, it will cache multiple "pages" worth of responses within a single cache entry, and allows fetching more pages forwards and backwards from the current cached pages.
+ *
+ * The query arg is used as a cache key. Changing the query arg will tell the hook to re-fetch the data if it does not exist in the cache already, and the hook will return the data for that query arg once it's available.
+ *
+ * This hook combines the functionality of both [`useInfiniteQueryState`](#useinfinitequerystate) and [`useQuerySubscription`](#useinfinitequerysubscription) together, and is intended to be used in the majority of situations.
+ *
+ * #### Features
+ *
+ * - Automatically triggers requests to retrieve data based on the hook argument and whether cached data exists by default
+ * - 'Subscribes' the component to keep cached data in the store, and 'unsubscribes' when the component unmounts
+ * - Caches multiple pages worth of responses, and provides methods to trigger more page fetches forwards and backwards
+ * - Accepts polling/re-fetching options to trigger automatic re-fetches when the corresponding criteria is met
+ * - Returns the latest request status and cached data from the Redux store
+ * - Re-renders as the request status changes and data becomes available
+ */
 export type UseInfiniteQuery<
   D extends InfiniteQueryDefinition<any, any, any, any, any>,
 > = <R extends Record<string, any> = UseInfiniteQueryStateDefaultResult<D>>(
