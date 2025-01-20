@@ -858,4 +858,77 @@ describe('Infinite queries', () => {
       meta: undefined,
     })
   })
+
+  test('Can use transformResponse', async () => {
+    type PokemonPage = { items: Pokemon[]; page: number }
+    const pokemonApi = createApi({
+      baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
+      endpoints: (builder) => ({
+        getInfinitePokemonWithTransform: builder.infiniteQuery<
+          PokemonPage,
+          string,
+          number
+        >({
+          infiniteQueryOptions: {
+            initialPageParam: 0,
+            getNextPageParam: (
+              lastPage,
+              allPages,
+              // Page param type should be `number`
+              lastPageParam,
+              allPageParams,
+            ) => lastPageParam + 1,
+          },
+          query(pageParam) {
+            return `https://example.com/listItems?page=${pageParam}`
+          },
+          transformResponse(baseQueryReturnValue: Pokemon[], meta, arg) {
+            expect(Array.isArray(baseQueryReturnValue)).toBe(true)
+            return {
+              items: baseQueryReturnValue,
+              page: arg,
+            }
+          },
+        }),
+      }),
+    })
+
+    const storeRef = setupApiStore(
+      pokemonApi,
+      { ...actionsReducer },
+      {
+        withoutTestLifecycles: true,
+      },
+    )
+
+    const checkResultData = (
+      result: InfiniteQueryResult,
+      expectedValues: PokemonPage[],
+    ) => {
+      expect(result.status).toBe(QueryStatus.fulfilled)
+      if (result.status === QueryStatus.fulfilled) {
+        expect(result.data.pages).toEqual(expectedValues)
+      }
+    }
+
+    const res1 = storeRef.store.dispatch(
+      pokemonApi.endpoints.getInfinitePokemonWithTransform.initiate('fire', {}),
+    )
+
+    const entry1InitialLoad = await res1
+    checkResultData(entry1InitialLoad, [
+      { items: [{ id: '0', name: 'Pokemon 0' }], page: 0 },
+    ])
+
+    const entry1Updated = await storeRef.store.dispatch(
+      pokemonApi.endpoints.getInfinitePokemonWithTransform.initiate('fire', {
+        direction: 'forward',
+      }),
+    )
+
+    checkResultData(entry1Updated, [
+      { items: [{ id: '0', name: 'Pokemon 0' }], page: 0 },
+      { items: [{ id: '1', name: 'Pokemon 1' }], page: 1 },
+    ])
+  })
 })
