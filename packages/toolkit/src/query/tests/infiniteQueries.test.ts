@@ -40,38 +40,10 @@ describe('Infinite queries', () => {
 
   const pokemonApi = createApi({
     baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
-    endpoints: (builder) => ({
-      getInfinitePokemon: builder.infiniteQuery<Pokemon[], string, number>({
+    endpoints: (build) => ({
+      getInfinitePokemon: build.infiniteQuery<Pokemon[], string, number>({
         infiniteQueryOptions: {
           initialPageParam: 0,
-          getNextPageParam: (
-            lastPage,
-            allPages,
-            // Page param type should be `number`
-            lastPageParam,
-            allPageParams,
-          ) => lastPageParam + 1,
-          getPreviousPageParam: (
-            firstPage,
-            allPages,
-            firstPageParam,
-            allPageParams,
-          ) => {
-            return firstPageParam > 0 ? firstPageParam - 1 : undefined
-          },
-        },
-        query(pageParam) {
-          return `https://example.com/listItems?page=${pageParam}`
-        },
-      }),
-      getInfinitePokemonWithMax: builder.infiniteQuery<
-        Pokemon[],
-        string,
-        number
-      >({
-        infiniteQueryOptions: {
-          initialPageParam: 0,
-          maxPages: 3,
           getNextPageParam: (
             lastPage,
             allPages,
@@ -91,7 +63,32 @@ describe('Infinite queries', () => {
           return `https://example.com/listItems?page=${pageParam}`
         },
       }),
-      counters: builder.query<{ id: string; counter: number }, string>({
+      getInfinitePokemonWithMax: build.infiniteQuery<Pokemon[], string, number>(
+        {
+          infiniteQueryOptions: {
+            initialPageParam: 0,
+            maxPages: 3,
+            getNextPageParam: (
+              lastPage,
+              allPages,
+              lastPageParam,
+              allPageParams,
+            ) => lastPageParam + 1,
+            getPreviousPageParam: (
+              firstPage,
+              allPages,
+              firstPageParam,
+              allPageParams,
+            ) => {
+              return firstPageParam > 0 ? firstPageParam - 1 : undefined
+            },
+          },
+          query(pageParam) {
+            return `https://example.com/listItems?page=${pageParam}`
+          },
+        },
+      ),
+      counters: build.query<{ id: string; counter: number }, string>({
         queryFn: async (arg) => {
           if (!(arg in counters)) {
             counters[arg] = 0
@@ -646,8 +643,8 @@ describe('Infinite queries', () => {
   test('can fetch pages with refetchOnMountOrArgChange active', async () => {
     const pokemonApiWithRefetch = createApi({
       baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
-      endpoints: (builder) => ({
-        getInfinitePokemon: builder.infiniteQuery<Pokemon[], string, number>({
+      endpoints: (build) => ({
+        getInfinitePokemon: build.infiniteQuery<Pokemon[], string, number>({
           infiniteQueryOptions: {
             initialPageParam: 0,
             getNextPageParam: (

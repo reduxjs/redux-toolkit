@@ -15,8 +15,8 @@ describe('Infinite queries', () => {
 
     const pokemonApi = createApi({
       baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
-      endpoints: (builder) => ({
-        getInfinitePokemon: builder.infiniteQuery<Pokemon[], string, number>({
+      endpoints: (build) => ({
+        getInfinitePokemon: build.infiniteQuery<Pokemon[], string, number>({
           infiniteQueryOptions: {
             initialPageParam: 0,
             getNextPageParam: (

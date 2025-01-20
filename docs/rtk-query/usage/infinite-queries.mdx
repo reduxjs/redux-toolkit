@@ -1,0 +1,249 @@
+---
+id: infinite-queries
+title: Infinite Queries
+sidebar_label: Infinite Queries
+hide_title: true
+description: 'RTK Query > Usage > Infinite Queries: fetching many data pages from a server'
+---
+
+&nbsp;
+
+# Infinite Queries
+
+## Overview
+
+Rendering lists that can additively "load more" data onto an existing set of data or "infinite scroll" is a common UI pattern.
+
+RTK Query supports this use case via "infinite query" endpoints. Infinite Query endpoints are similar to standard query endpoints, in that they fetch data and cache the results. However, infinite query endpoints have the ability to fetch "next" and "previous" pages, and contain all related fetched pages in a single cache entry.
+
+## Infinite Query Concepts
+
+RTK Query's support for infinite queries is modeled after [React Query's infinite query API design](https://tanstack.com/query/latest/docs/framework/react/guides/infinite-queries).
+
+### Query Args, Page Params, and Cache Structure
+
+With standard query endpoints:
+
+- You specify the "query arg" value, which is passed to the `query` or `queryFn` function that will calculate the desired URL or do the actual fetching
+- The query arg is also serialized to generate the unique internal key for this specific cache entry
+- The single response value is directly stored as the `data` field in the cache entry
+
+Infinite queries work similarly, but have a couple additional layers:
+
+- You still specify a "query arg", which is still used to generate the unique cache key for this specific cache entry
+- However, there is a separation between the "query arg" used for the cache key, and the "page param" used to fetch a specific page. This means the page param is what will be passed to your `query` or `queryFn` methods.
+- The `data` field in the cache entry stores a `{pages: DataType[], pageParams: PageParam[]}` structure that contains _all_ of the fetched page results and their corresponding page params used to fetch them.
+
+For example, a Pokemon API endpoint might have a string query arg like `"fire"`, but use a page number as the param to determine which page to fetch out of the results. For a query like `useGetPokemonInfiniteQuery('fire')`, the resulting cache data might look like this:
+
+```ts no-transpile
+{
+  queries: {
+    "getPokemon('fire')": {
+      data: {
+        pages: [
+          ["Charmander", "Charmeleon"],
+          ["Charizard", "Vulpix"],
+          ["Magmar", "Flareon"]
+        ],
+        pageParams: [
+          1,
+          2,
+          3
+        ]
+      }
+    }
+  }
+}
+```
+
+This structure allows flexibility in how your UI chooses to render the data (showing individual pages, flattening into a single list), enables limiting how many pages are kept in cache, and makes it possible to dynamically determine the next or previous page to fetch based on either the data or the page params.
+
+## Defining Infinite Query Endpoints
+
+Infinite query endpoints are defined by returning an object inside the `endpoints` section of `createApi`, and defining the fields using the `build.infiniteQuery()` method. They are an extension of standard query endpoints - you can specify [the same options as standard queries](./queries.mdx#defining-query-endpoints) (providing either `query` or `queryFn`, customizing with `transformResponse`, lifecycles with `onCacheEntryAdded` and `onQueryStarted`, defining tags, etc). However, they also require an additional `infiniteQueryOptions` field to specify the infinite query behavior.
+
+With TypeScript, you must supply 3 generic arguments: `build.infiniteQuery<ResultType, QueryArg, PageParam>`, where `ResultType` is the contents of a single page, `QueryArg` is the type passed in as the cache key, and `PageParam` is the value that will be passed to `query/queryFn` to make the rest. If there is no argument, use `void` for the arg type instead.
+
+### `infiniteQueryOptions`
+
+The `infiniteQueryOptions` field includes:
+
+- `initialPageParam`: the default page param value used for the first request, if this was not specified at the usage site
+- `maxPages`: an optional limit to how many fetched pages will be kept in the cache entry at a time
+- `getNextPageParam`: a required callback you must provide to calculate the next page param, given the existing cached pages and page params
+- `getPreviousPageParam`: an optional callback that will be used to calculate the previous page param, if you try to fetch backwards.
+
+Both `initialPageParam` and `getNextPageParam` are required, to
+ensure the infinite query can properly fetch the next page of data.Also, `initialPageParam` may be specified when using the endpoint, to override the default value for a first fetch. `maxPages` and `getPreviousPageParam` are both optional.
+
+### Page Param Functions
+
+`getNextPageParam` and `getPreviousPageParam` are user-defined, giving you flexibility to determine how those values are calculated:
+
+```ts
+export type PageParamFunction<DataType, PageParam> = (
+  currentPage: DataType,
+  allPages: DataType[],
+  currentPageParam: PageParam,
+  allPageParams: PageParam[],
+) => PageParam | undefined | null
+```
+
+A page param can be any value at all: numbers, strings, objects, arrays, etc. Since the existing page param values are stored in Redux state, you should still treat those immutably. For example, if you had a param structure like `{page: Number, filters: Filters}`, incrementing the page would look like `return {...currentPageParam, page: currentPageParam.page + 1}`.
+
+Since both actual page contents and page params are passed in, you can calculate new page params based on any of those. This enables a number of possible infinite query use cases, including cursor-based and limit+offset-based queries.
+
+The "current" arguments will be either the last page for `getNextPageParam`, or the first page for `getPreviousPageParam`.
+
+If there is no possible page to fetch in that direction, the callback should return `undefined`.
+
+### Infinite Query Definition Example
+
+A complete example of this might look like:
+
+```ts no-transpile title="Infinite Query definition example"
+type Pokemon = {
+  id: string
+  name: string
+}
+
+const pokemonApi = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
+  endpoints: (build) => ({
+    getInfinitePokemonWithMax: build.infiniteQuery<Pokemon[], string, number>({
+      infiniteQueryOptions: {
+        initialPageParam: 0,
+        maxPages: 3,
+        getNextPageParam: (lastPage, allPages, lastPageParam, allPageParams) =>
+          lastPageParam + 1,
+        getPreviousPageParam: (
+          firstPage,
+          allPages,
+          firstPageParam,
+          allPageParams,
+        ) => {
+          return firstPageParam > 0 ? firstPageParam - 1 : undefined
+        },
+      },
+      query(pageParam) {
+        return `https://example.com/listItems?page=${pageParam}`
+      },
+    }),
+  }),
+})
+```
+
+## Performing Infinite Queries with React Hooks
+
+[Similar to query endpoints](./queries.mdx#performing-queries-with-react-hooks), RTK Query will automatically generate React hooks for infinite query endpoints based on the name of the endpoint. An endpoint field with `getPokemon: build.infiniteQuery()` will generate a hook named `useGetPokemonInfiniteQuery`, as well as a generically-named hook attached to the endpoint, like `api.endpoints.getPokemon.useInfiniteQuery`.
+
+### Hook Types
+
+There are 3 infinite query-related hooks:
+
+1. [`useInfiniteQuery`](../api/created-api/hooks.mdx#useinfinitequery)
+   - Composes `useInfiniteQuerySubscription` and `useInfiniteQueryState`, and is the primary hook. Automatically triggers fetches of data from an endpoint, 'subscribes' the component to the cached data, and reads the request status and cached data from the Redux store.
+2. [`useInfiniteQuerySubscription`](../api/created-api/hooks.mdx#useinfinitequerysubscription)
+   - Returns a `refetch` function and `fetchNext/PreviousPage` functions, and accepts all hooks options. Automatically triggers refetches of data from an endpoint, and 'subscribes' the component to the cached data.
+3. [`useInfiniteQueryState`](../api/created-api/hooks.mdx#useinfinitequerystate)
+   - Returns the query state and accepts `skip` and `selectFromResult`. Reads the request status and cached data from the Redux store.
+
+In practice, the standard `useInfiniteQuery`-based hooks such as `useGetPokemonInfiniteQuery` will be the primary hooks used in your application, but the other hooks are available for specific use cases.
+
+### Query Hook Options
+
+The query hooks expect two parameters: `(queryArg?, queryOptions?)`.
+
+The `queryOptions` object accepts [all the same parameters as `useQuery`](./queries.mdx#query-hook-options), including `skip`, `selectFromResult`, and refetching/polling options.
+
+Unlike normal query hooks, your `query` or `queryFn` callbacks will receive a "page param" value to generate the URL or make the request, instead of the "query arg" that was passed to the hook. By default, the `initialPageParam` value specified in the endpoint will be used to make the first request, and then your `getNext/PreviousPageParam` callbacks will be used to calculate further page params as you fetch forwards or backwards.
+
+If you want to start from a different page param, you may override the `initialPageParam` by passing it as part of the hook options:
+
+```ts no-transpile
+const { data } = useGetPokemonInfiniteQuery('fire', {
+  initialPageParam: 3,
+})
+```
+
+The next and previous page params will still be calculated as needed.
+
+### Frequently Used Query Hook Return Values
+
+Infinite query hooks return [the same result object as normal query hooks](./queries.mdx#frequently-used-query-hook-return-values), but with [a few additional fields specific to infinite queries](../api/created-api/hooks.mdx#useinfinitequery-signature) and a different structure for `data` and `currentData`.
+
+- `data` / `currentData`: These contain the same "latest successful" and "latest for current arg" results as normal queries, but the value is the `{pages, pageParams}` infinite query object with all fetched pages instead of a single response value.
+- `hasNextPage` / `hasPreviousPage`: When true, indicates that there _should_ be another page available to fetch in that direction. This is calculated by calling `getNext/PreviousPageParam` with the latest fetched pages.
+- `isFetchingNext/PreviousPage`: When true, indicates that the current `isFetching` flag represents a fetch in that direction.
+- `isFetchNext/PreviousPageError`: When true, indicates that the current `isError` flag represents an error for a failed fetch in that direction
+- `fetchNext/PreviousPage`: methods that will trigger a fetch for another page in that direction.
+
+In most cases, you will probably read `data` and either `isLoading` or `isFetching` in order to render your UI. You will also want to use the `fetchNext/PreviousPage` methods to trigger fetching additional pages.
+
+### Infinite Query Hook Usage Example
+
+Here is an example of a typical infinite query endpoint definition, and hook usage in a component:
+
+```tsx no-transpile
+type Pokemon = {
+  id: string
+  name: string
+}
+
+const pokemonApi = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
+  endpoints: (build) => ({
+    getPokemon: build.infiniteQuery<Pokemon[], string, number>({
+      infiniteQueryOptions: {
+        initialPageParam: 0,
+        getNextPageParam: (lastPage, allPages, lastPageParam, allPageParams) =>
+          lastPageParam + 1,
+      },
+      query(pageParam) {
+        return `https://example.com/listItems?page=${pageParam}`
+      },
+    }),
+  }),
+})
+
+function PokemonList({ pokemonType }: { pokemonType: string }) {
+  const { data, isFetching, fetchNextPage, fetchPreviousPage, refetch } =
+    pokemonApi.useGetPokemonInfiniteQuery(pokemonType)
+
+  const handleNextPage = async () => {
+    await fetchNextPage()
+  }
+
+  const handleRefetch = async () => {
+    await refetch()
+  }
+
+  const allResults = data?.pages.flat() ?? []
+
+  return (
+    <div>
+      <div>Type: {pokemonType}</div>
+      <div>
+        {allResults.map((pokemon, i: number | null | undefined) => (
+          <div key={i}>{pokemon.name}</div>
+        ))}
+      </div>
+      <button onClick={() => handleNextPage()}>Fetch More</button>
+      <button onClick={() => handleRefetch()}>Refetch</button>
+    </div>
+  )
+}
+```
+
+In this example, the server returns an array of Pokemon as the response for each individual page. This component shows the results as a single list. Since the `data` field itself has a `pages` array of all responses, the component needs to flatten the pages into a single array to render that list. Alternately, it could map over the pages and show them in a paginated format.
+
+Similarly, this example relies on manual user clicks on a "Fetch More" button to trigger fetching the next page, but could automatically call `fetchNextPage` based on things like an `IntersectionObserver`, a list component triggering some kind of "end of the list" event, or other similar indicators.
+
+The endpoint itself only defines `getNextPageParam`, so this example doesn't support fetching backwards, but that can be provided in cases where backwards fetching makes sense. The page param here is a simple incremented number, but the page param
+
+## Limiting Cache Entry Size
+
+All fetched pages for a given query arg are stored in the `pages` array in that cache entry. By default, there is no limit to the number of stored pages - if you call `fetchNextPage()` 1000 times, `data.pages` will have 1000 pages stored.
+
+If you need to limit the number of stored pages (for reasons like memory usage), you can supply a `maxPages` option as part of the endpoint. If provided, fetching a page when already at the max will automatically drop the last page in the opposite direction. For example, with `maxPages: 3` and a cached page params of `[1, 2, 3]`, calling `fetchNextPage()` would result in page `1` being dropped and the new cached pages being `[2, 3, 4]`. From there, calling `fetchNextPage()` would result in `[3, 4, 5]`, or calling `fetchPreviousPage()` would go back to `[1, 2, 3]`.
