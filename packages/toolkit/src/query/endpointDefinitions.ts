@@ -618,33 +618,38 @@ export interface InfiniteQueryExtraOptions<
    * 
    * ```ts
    * // codeblock-meta title="infiniteQueryOptions example"
-   * getInfinitePokemonWithMax: build.infiniteQuery<
-        Pokemon[],
-        string,
-        number
-      >({
-        infiniteQueryOptions: {
-          initialPageParam: 0,
-          maxPages: 3,
-          getNextPageParam: (
-            lastPage,
-            allPages,
-            lastPageParam,
-            allPageParams,
-          ) => lastPageParam + 1,
-          getPreviousPageParam: (
-            firstPage,
-            allPages,
-            firstPageParam,
-            allPageParams,
-          ) => {
-            return firstPageParam > 0 ? firstPageParam - 1 : undefined
+   * import { createApi, fetchBaseQuery, defaultSerializeQueryArgs } from '@reduxjs/toolkit/query/react'
+   * 
+   * type Pokemon = {
+   *   id: string
+   *   name: string
+   * }
+   * 
+    const pokemonApi = createApi({
+      baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
+      endpoints: (build) => ({
+        getInfinitePokemonWithMax: build.infiniteQuery<Pokemon[], string, number>({
+          infiniteQueryOptions: {
+            initialPageParam: 0,
+            maxPages: 3,
+            getNextPageParam: (lastPage, allPages, lastPageParam, allPageParams) =>
+              lastPageParam + 1,
+            getPreviousPageParam: (
+              firstPage,
+              allPages,
+              firstPageParam,
+              allPageParams,
+            ) => {
+              return firstPageParam > 0 ? firstPageParam - 1 : undefined
+            },
           },
-        },
-        query(pageParam) {
-          return `https://example.com/listItems?page=${pageParam}`
-        },
+          query(pageParam) {
+            return `https://example.com/listItems?page=${pageParam}`
+          },
+        }),
       }),
+    })
+   
    * ```
    */
   infiniteQueryOptions: InfiniteQueryConfigOptions<ResultType, PageParam>
