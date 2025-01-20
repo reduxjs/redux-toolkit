@@ -1789,7 +1789,7 @@ describe('hooks tests', () => {
             ))}
           </div>
           <button data-testid="prevPage" onClick={() => handlePreviousPage()}>
-            nextPage
+            previousPage
           </button>
           <button data-testid="nextPage" onClick={() => handleNextPage()}>
             nextPage
