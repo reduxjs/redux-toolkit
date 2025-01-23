@@ -36,8 +36,9 @@ describe('Infinite queries', () => {
               return lastPageParam + 1
             },
           },
-          query(pageParam) {
+          query({ pageParam, queryArg }) {
             expectTypeOf(pageParam).toBeNumber()
+            expectTypeOf(queryArg).toBeString()
 
             return `https://example.com/listItems?page=${pageParam}`
           },

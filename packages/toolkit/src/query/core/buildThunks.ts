@@ -20,6 +20,7 @@ import type {
   EndpointDefinition,
   EndpointDefinitions,
   InfiniteQueryArgFrom,
+  InfiniteQueryCombinedArg,
   InfiniteQueryDefinition,
   MutationDefinition,
   PageParamFrom,
@@ -464,7 +465,7 @@ export function buildThunks<
     transformFieldName: 'transformResponse' | 'transformErrorResponse',
   ): TransformCallback => {
     return endpointDefinition.query && endpointDefinition[transformFieldName]
-      ? endpointDefinition[transformFieldName]!
+      ? (endpointDefinition[transformFieldName]! as TransformCallback)
       : defaultTransformResponse
   }
 
@@ -523,7 +524,12 @@ export function buildThunks<
           return Promise.resolve({ data })
         }
 
-        const pageResponse = await executeRequest(param)
+        const finalQueryArg: InfiniteQueryCombinedArg<any, any> = {
+          queryArg: arg.originalArgs,
+          pageParam: param,
+        }
+
+        const pageResponse = await executeRequest(finalQueryArg)
 
         const addTo = previous ? addToStart : addToEnd
 
@@ -548,13 +554,13 @@ export function buildThunks<
           result = forceQueryFn()
         } else if (endpointDefinition.query) {
           result = await baseQuery(
-            endpointDefinition.query(finalQueryArg),
+            endpointDefinition.query(finalQueryArg as any),
             baseQueryApi,
             extraOptions as any,
           )
         } else {
           result = await endpointDefinition.queryFn(
-            finalQueryArg,
+            finalQueryArg as any,
             baseQueryApi,
             extraOptions as any,
             (arg) => baseQuery(arg, baseQueryApi, extraOptions as any),
