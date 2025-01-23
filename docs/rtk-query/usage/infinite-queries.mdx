@@ -198,7 +198,7 @@ const pokemonApi = createApi({
   endpoints: (build) => ({
     getPokemon: build.infiniteQuery<Pokemon[], string, number>({
       infiniteQueryOptions: {
-        initialPageParam: 0,
+        initialPageParam: 1,
         getNextPageParam: (lastPage, allPages, lastPageParam, allPageParams) =>
           lastPageParam + 1,
       },
