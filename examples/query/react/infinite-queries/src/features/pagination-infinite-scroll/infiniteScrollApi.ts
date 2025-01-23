@@ -61,7 +61,7 @@ export const apiWithInfiniteScroll = baseApi.injectEndpoints({
           }
         },
       },
-      query: ({ page, size }) => {
+      query: ({ pageParam: { page, size } }) => {
         return {
           url: `https://example.com/api/projectsPaginated?page=${page}&size=${size}`,
           method: "GET",
