@@ -18,7 +18,8 @@ export const apiWithInfiniteScrollMax = baseApi.injectEndpoints({
       string,
       number
     >({
-      query: page => `https://example.com/api/projectsCursor?cursor=${page}`,
+      query: ({ pageParam }) =>
+        `https://example.com/api/projectsCursor?cursor=${pageParam}`,
       infiniteQueryOptions: {
         initialPageParam: 0,
         maxPages: 3,

@@ -61,7 +61,7 @@ export const apiWithInfiniteScroll = baseApi.injectEndpoints({
           }
         },
       },
-      query: ({ offset, limit }) => {
+      query: ({ pageParam: { offset, limit } }) => {
         return {
           url: `https://example.com/api/projectsLimitOffset?offset=${offset}&limit=${limit}`,
           method: "GET",

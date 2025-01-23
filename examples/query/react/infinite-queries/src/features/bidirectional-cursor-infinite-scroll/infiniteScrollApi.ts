@@ -31,7 +31,7 @@ export const apiWithInfiniteScroll = baseApi.injectEndpoints({
       QueryParamLimit,
       ProjectsInitialPageParam
     >({
-      query: ({ before, after, around, limit }) => {
+      query: ({ pageParam: { before, after, around, limit } }) => {
         const params = new URLSearchParams()
         params.append("limit", String(limit))
         if (after != null) {
