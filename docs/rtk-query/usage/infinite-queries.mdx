@@ -31,7 +31,7 @@ With standard query endpoints:
 Infinite queries work similarly, but have a couple additional layers:
 
 - You still specify a "query arg", which is still used to generate the unique cache key for this specific cache entry
-- However, there is a separation between the "query arg" used for the cache key, and the "page param" used to fetch a specific page. This means the page param is what will be passed to your `query` or `queryFn` methods.
+- However, there is a separation between the "query arg" used for the cache key, and the "page param" used to fetch a specific page. Since both are useful for determining what to fetch, your `query` and `queryFn` methods will receive a combined object with `{queryArg, pageParam}` as the first argument, instead of just the `queryArg` by itself.
 - The `data` field in the cache entry stores a `{pages: DataType[], pageParams: PageParam[]}` structure that contains _all_ of the fetched page results and their corresponding page params used to fetch them.
 
 For example, a Pokemon API endpoint might have a string query arg like `"fire"`, but use a page number as the param to determine which page to fetch out of the results. For a query like `useGetPokemonInfiniteQuery('fire')`, the resulting cache data might look like this:
@@ -100,7 +100,7 @@ If there is no possible page to fetch in that direction, the callback should ret
 
 ### Infinite Query Definition Example
 
-A complete example of this might look like:
+A complete example of this for a fictional Pokemon API service might look like:
 
 ```ts no-transpile title="Infinite Query definition example"
 type Pokemon = {
@@ -109,11 +109,12 @@ type Pokemon = {
 }
 
 const pokemonApi = createApi({
-  baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
+  baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com/pokemon' }),
   endpoints: (build) => ({
+    // 3 TS generics: page contents, query arg, page param
     getInfinitePokemonWithMax: build.infiniteQuery<Pokemon[], string, number>({
       infiniteQueryOptions: {
-        initialPageParam: 0,
+        initialPageParam: 1,
         maxPages: 3,
         getNextPageParam: (lastPage, allPages, lastPageParam, allPageParams) =>
           lastPageParam + 1,
@@ -126,8 +127,9 @@ const pokemonApi = createApi({
           return firstPageParam > 0 ? firstPageParam - 1 : undefined
         },
       },
-      query(pageParam) {
-        return `https://example.com/listItems?page=${pageParam}`
+      // The `query` function receives `{queryArg, pageParam}` as its argument
+      query({ queryArg, pageParam }) {
+        return `/type/${queryArg}?page=${pageParam}`
       },
     }),
   }),
@@ -192,7 +194,7 @@ type Pokemon = {
 }
 
 const pokemonApi = createApi({
-  baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
+  baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com/pokemon' }),
   endpoints: (build) => ({
     getPokemon: build.infiniteQuery<Pokemon[], string, number>({
       infiniteQueryOptions: {
@@ -200,8 +202,8 @@ const pokemonApi = createApi({
         getNextPageParam: (lastPage, allPages, lastPageParam, allPageParams) =>
           lastPageParam + 1,
       },
-      query(pageParam) {
-        return `https://example.com/listItems?page=${pageParam}`
+      query({ queryArg, pageParam }) {
+        return `/type/${queryArg}?page=${pageParam}`
       },
     }),
   }),

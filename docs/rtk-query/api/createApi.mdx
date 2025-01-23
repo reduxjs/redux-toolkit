@@ -228,7 +228,7 @@ export type QueryDefinition<
 
 Infinite query endpoints (defined with `build.infiniteQuery()`) are used to cache multi-page data sets from the server. They have all the same callbacks and options as standard query endpoints, but also require an additional [`infiniteQueryOptions`](#infinitequeryoptions) field to specify how to calculate the unique parameters to fetch each page.
 
-For infinite query endpoints, there is a separation between the "query arg" used for the cache key, and the "page param" used to fetch a specific page. For example, a Pokemon API endpoint might have a string query arg like `"fire"` , but use a page number as the param to determine which page to fetch out of the results. This means the page param is what will be passed to your `query` or `queryFn` methods.
+For infinite query endpoints, there is a separation between the "query arg" used for the cache key, and the "page param" used to fetch a specific page. For example, a Pokemon API endpoint might have a string query arg like `"fire"` , but use a page number as the param to determine which page to fetch out of the results. The `query` and `queryFn` methods will receive a combined `{queryArg, pageParam}` object as the argument, rather than just the `queryArg` by itself.
 
 ```ts title="Infinite Query endpoint definition" no-transpile
 export type PageParamFunction<DataType, PageParam> = (
@@ -237,6 +237,11 @@ export type PageParamFunction<DataType, PageParam> = (
   firstPageParam: PageParam,
   allPageParams: Array<PageParam>,
 ) => PageParam | undefined | null
+
+type InfiniteQueryCombinedArg<QueryArg, PageParam> = {
+  queryArg: QueryArg
+  pageParam: PageParam
+}
 
 export type InfiniteQueryDefinition<
   QueryArg,
@@ -247,9 +252,14 @@ export type InfiniteQueryDefinition<
   ReducerPath extends string = string,
 > =
   // Infinite queries have all the same options as query endpoints,
-  // but store the `{data, pages}` structure, and use the
-  // `PageParam` type as the `QueryArg` for fetching.
-  QueryDefinition<PageParam, BaseQuery, TagTypes, InfiniteData<ResultType>> & {
+  // but store the `{pages, pageParams}` structure, and receive an object
+  // with both `{queryArg, pageParam}` as the arg for `query` and `queryFn`.
+  QueryDefinition<
+    InfiniteQueryCombinedArg<QueryArg, PageParam>,
+    BaseQuery,
+    TagTypes,
+    InfiniteData<ResultType>
+  > & {
     /**
      * Required options to configure the infinite query behavior.
      * `initialPageParam` and `getNextPageParam` are required, to
