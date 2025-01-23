@@ -643,7 +643,7 @@ export interface InfiniteQueryExtraOptions<
               return firstPageParam > 0 ? firstPageParam - 1 : undefined
             },
           },
-          query(pageParam) {
+          query({pageParam}) {
             return `https://example.com/listItems?page=${pageParam}`
           },
         }),
@@ -737,7 +737,11 @@ export type InfiniteQueryDefinition<
   ReducerPath extends string = string,
 > =
   // Intentionally use `PageParam` as the `QueryArg` type
-  BaseEndpointDefinition<PageParam, BaseQuery, ResultType> &
+  BaseEndpointDefinition<
+    InfiniteQueryCombinedArg<QueryArg, PageParam>,
+    BaseQuery,
+    ResultType
+  > &
     InfiniteQueryExtraOptions<
       TagTypes,
       ResultType,
@@ -1070,6 +1074,11 @@ export type PageParamFrom<
   D extends InfiniteQueryDefinition<any, any, any, any, any>,
 > =
   D extends InfiniteQueryDefinition<any, infer PP, any, any, any> ? PP : unknown
+
+export type InfiniteQueryCombinedArg<QueryArg, PageParam> = {
+  queryArg: QueryArg
+  pageParam: PageParam
+}
 
 export type TagTypesFromApi<T> =
   T extends Api<any, any, any, infer TagTypes> ? TagTypes : never

@@ -59,7 +59,7 @@ describe('Infinite queries', () => {
             return firstPageParam > 0 ? firstPageParam - 1 : undefined
           },
         },
-        query(pageParam) {
+        query({ pageParam }) {
           return `https://example.com/listItems?page=${pageParam}`
         },
       }),
@@ -83,7 +83,7 @@ describe('Infinite queries', () => {
               return firstPageParam > 0 ? firstPageParam - 1 : undefined
             },
           },
-          query(pageParam) {
+          query({ pageParam }) {
             return `https://example.com/listItems?page=${pageParam}`
           },
         },
@@ -110,10 +110,10 @@ describe('Infinite queries', () => {
     tagTypes: ['Counter'],
     endpoints: (build) => ({
       counters: build.infiniteQuery<HitCounter, string, number>({
-        queryFn(page) {
+        queryFn({ pageParam }) {
           hitCounter++
 
-          return { data: { page, hitCounter } }
+          return { data: { page: pageParam, hitCounter } }
         },
         infiniteQueryOptions: {
           initialPageParam: 0,
@@ -663,7 +663,7 @@ describe('Infinite queries', () => {
               return firstPageParam > 0 ? firstPageParam - 1 : undefined
             },
           },
-          query(pageParam) {
+          query({ pageParam }) {
             return `https://example.com/listItems?page=${pageParam}`
           },
         }),
@@ -809,7 +809,7 @@ describe('Infinite queries', () => {
               return firstPageParam > 0 ? firstPageParam - 1 : undefined
             },
           },
-          query(pageParam) {
+          query({ pageParam }) {
             return `https://example.com/listItems?page=${pageParam}`
           },
           async onCacheEntryAdded(arg, api) {
@@ -879,14 +879,14 @@ describe('Infinite queries', () => {
               allPageParams,
             ) => lastPageParam + 1,
           },
-          query(pageParam) {
+          query({ pageParam }) {
             return `https://example.com/listItems?page=${pageParam}`
           },
           transformResponse(baseQueryReturnValue: Pokemon[], meta, arg) {
             expect(Array.isArray(baseQueryReturnValue)).toBe(true)
             return {
               items: baseQueryReturnValue,
-              page: arg,
+              page: arg.pageParam,
             }
           },
         }),

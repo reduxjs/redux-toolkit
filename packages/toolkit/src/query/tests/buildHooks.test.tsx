@@ -1710,7 +1710,7 @@ describe('hooks tests', () => {
               return firstPageParam > 0 ? firstPageParam - 1 : undefined
             },
           },
-          query(pageParam) {
+          query({ pageParam }) {
             return `https://example.com/listItems?page=${pageParam}`
           },
         }),
@@ -1738,7 +1738,7 @@ describe('hooks tests', () => {
               return firstPageParam > 0 ? firstPageParam - 1 : undefined
             },
           },
-          query(pageParam) {
+          query({ pageParam }) {
             return `https://example.com/listItems?page=${pageParam}`
           },
         }),
@@ -2035,7 +2035,8 @@ describe('hooks tests', () => {
                 }
               },
             },
-            query: ({ offset, limit }) => {
+            query: ({ pageParam }) => {
+              const { offset, limit } = pageParam
               return {
                 url: `https://example.com/api/projectsLimitOffset?offset=${offset}&limit=${limit}`,
                 method: 'GET',
