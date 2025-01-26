@@ -1,9 +1,11 @@
-import { configureStore } from '../configureStore'
-import { createSlice } from '../createSlice'
-import type { AutoBatchOptions } from '../autoBatchEnhancer'
-import { autoBatchEnhancer, prepareAutoBatched } from '../autoBatchEnhancer'
-import { delay } from '../utils'
+import type { AutoBatchOptions } from '@reduxjs/toolkit'
+import {
+  configureStore,
+  createSlice,
+  prepareAutoBatched,
+} from '@reduxjs/toolkit'
 import { debounce } from 'lodash'
+import { delay } from '../utils'
 
 interface CounterState {
   value: number
