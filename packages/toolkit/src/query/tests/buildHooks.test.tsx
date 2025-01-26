@@ -32,8 +32,11 @@ import {
   waitFor,
 } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
-import { HttpResponse, http } from 'msw'
-import { useEffect, useState } from 'react'
+import type { SyncScreen } from '@testing-library/react-render-stream/pure'
+import { createRenderStream } from '@testing-library/react-render-stream/pure'
+import { HttpResponse, http, delay } from 'msw'
+import { useEffect, useMemo, useState } from 'react'
+import type { InfiniteQueryResultFlags } from '../core/buildSelectors'
 
 // Just setup a temporary in-memory counter for tests that `getIncrementedAmount`.
 // This can be used to test how many renders happen due to data changes or
@@ -181,6 +184,8 @@ afterEach(() => {
   nextItemId = 0
   amount = 0
   listenerMiddleware.clearListeners()
+
+  server.resetHandlers()
 })
 
 let getRenderCount: () => number = () => 0
@@ -924,9 +929,6 @@ describe('hooks tests', () => {
     // See https://github.com/reduxjs/redux-toolkit/issues/4267 - Memory leak in useQuery rapid query arg changes
     test('Hook subscriptions are properly cleaned up when query is fulfilled/rejected', async () => {
       // This is imported already, but it seems to be causing issues with the test on certain matrixes
-      function delay(ms: number) {
-        return new Promise((resolve) => setTimeout(resolve, ms))
-      }
 
       const pokemonApi = createApi({
         baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
@@ -1565,7 +1567,7 @@ describe('hooks tests', () => {
 
             setDataFromTrigger(res) // adding client side state here will cause stale data
           } catch (error) {
-            console.error(error)
+            console.error('Error handling increment trigger', error)
           }
         }
 
@@ -1575,7 +1577,7 @@ describe('hooks tests', () => {
             // Force the lazy trigger to refetch
             await handleLoad()
           } catch (error) {
-            console.error(error)
+            console.error('Error handling mutate trigger', error)
           }
         }
 
@@ -1678,6 +1680,541 @@ describe('hooks tests', () => {
 
       await screen.findByText(/isUninitialized/i)
       expect(countObjectKeys(storeRef.store.getState().api.queries)).toBe(0)
+    })
+  })
+
+  describe('useInfiniteQuery', () => {
+    type Pokemon = {
+      id: string
+      name: string
+    }
+
+    const pokemonApi = createApi({
+      baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
+      endpoints: (builder) => ({
+        getInfinitePokemon: builder.infiniteQuery<Pokemon, string, number>({
+          infiniteQueryOptions: {
+            initialPageParam: 0,
+            getNextPageParam: (
+              lastPage,
+              allPages,
+              lastPageParam,
+              allPageParams,
+            ) => lastPageParam + 1,
+            getPreviousPageParam: (
+              firstPage,
+              allPages,
+              firstPageParam,
+              allPageParams,
+            ) => {
+              return firstPageParam > 0 ? firstPageParam - 1 : undefined
+            },
+          },
+          query({ pageParam }) {
+            return `https://example.com/listItems?page=${pageParam}`
+          },
+        }),
+      }),
+    })
+
+    const pokemonApiWithRefetch = createApi({
+      baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
+      endpoints: (builder) => ({
+        getInfinitePokemon: builder.infiniteQuery<Pokemon, string, number>({
+          infiniteQueryOptions: {
+            initialPageParam: 0,
+            getNextPageParam: (
+              lastPage,
+              allPages,
+              lastPageParam,
+              allPageParams,
+            ) => lastPageParam + 1,
+            getPreviousPageParam: (
+              firstPage,
+              allPages,
+              firstPageParam,
+              allPageParams,
+            ) => {
+              return firstPageParam > 0 ? firstPageParam - 1 : undefined
+            },
+          },
+          query({ pageParam }) {
+            return `https://example.com/listItems?page=${pageParam}`
+          },
+        }),
+      }),
+      refetchOnMountOrArgChange: true,
+    })
+
+    function PokemonList({
+      api,
+      arg = 'fire',
+      initialPageParam = 0,
+    }: {
+      api: typeof pokemonApi
+      arg?: string
+      initialPageParam?: number
+    }) {
+      const {
+        data,
+        isFetching,
+        isUninitialized,
+        fetchNextPage,
+        fetchPreviousPage,
+        refetch,
+      } = api.useGetInfinitePokemonInfiniteQuery(arg, {
+        initialPageParam,
+      })
+
+      const handlePreviousPage = async () => {
+        const res = await fetchPreviousPage()
+      }
+
+      const handleNextPage = async () => {
+        const res = await fetchNextPage()
+      }
+
+      const handleRefetch = async () => {
+        const res = await refetch()
+      }
+
+      return (
+        <div>
+          <div data-testid="isUninitialized">{String(isUninitialized)}</div>
+          <div data-testid="isFetching">{String(isFetching)}</div>
+          <div>Type: {arg}</div>
+          <div data-testid="data">
+            {data?.pages.map((page, i: number | null | undefined) => (
+              <div key={i}>{page.name}</div>
+            ))}
+          </div>
+          <button data-testid="prevPage" onClick={() => handlePreviousPage()}>
+            previousPage
+          </button>
+          <button data-testid="nextPage" onClick={() => handleNextPage()}>
+            nextPage
+          </button>
+          <button data-testid="refetch" onClick={() => handleRefetch()}>
+            refetch
+          </button>
+        </div>
+      )
+    }
+
+    beforeEach(() => {
+      server.use(
+        http.get('https://example.com/listItems', ({ request }) => {
+          const url = new URL(request.url)
+          const pageString = url.searchParams.get('page')
+          const pageNum = parseInt(pageString || '0')
+
+          const results: Pokemon = {
+            id: `${pageNum}`,
+            name: `Pokemon ${pageNum}`,
+          }
+
+          return HttpResponse.json(results)
+        }),
+      )
+    })
+
+    test.each([
+      ['no refetch', pokemonApi],
+      ['with refetch', pokemonApiWithRefetch],
+    ])(`useInfiniteQuery %s`, async (_, pokemonApi) => {
+      const storeRef = setupApiStore(pokemonApi, undefined, {
+        withoutTestLifecycles: true,
+      })
+
+      const { takeRender, render, getCurrentRender } = createRenderStream({
+        snapshotDOM: true,
+      })
+
+      const checkNumQueries = (count: number) => {
+        const cacheEntries = Object.keys(storeRef.store.getState().api.queries)
+        const queries = cacheEntries.length
+        //console.log('queries', queries, storeRef.store.getState().api.queries)
+
+        expect(queries).toBe(count)
+      }
+
+      const checkEntryFlags = (
+        arg: string,
+        expectedFlags: Partial<InfiniteQueryResultFlags>,
+      ) => {
+        const selector = pokemonApi.endpoints.getInfinitePokemon.select(arg)
+        const entry = selector(storeRef.store.getState())
+
+        const actualFlags: InfiniteQueryResultFlags = {
+          hasNextPage: false,
+          hasPreviousPage: false,
+          isFetchingNextPage: false,
+          isFetchingPreviousPage: false,
+          isFetchNextPageError: false,
+          isFetchPreviousPageError: false,
+          ...expectedFlags,
+        }
+
+        expect(entry).toMatchObject(actualFlags)
+      }
+
+      const checkPageRows = (
+        withinDOM: () => SyncScreen,
+        type: string,
+        ids: number[],
+      ) => {
+        expect(withinDOM().getByText(`Type: ${type}`)).toBeTruthy()
+        for (const id of ids) {
+          expect(withinDOM().getByText(`Pokemon ${id}`)).toBeTruthy()
+        }
+      }
+
+      async function waitForFetch(handleExtraMiddleRender = false) {
+        {
+          const { withinDOM } = await takeRender()
+          expect(withinDOM().getByTestId('isFetching').textContent).toBe('true')
+        }
+
+        // We seem to do an extra render when fetching an uninitialized entry
+        if (handleExtraMiddleRender) {
+          {
+            const { withinDOM } = await takeRender()
+            expect(withinDOM().getByTestId('isFetching').textContent).toBe(
+              'true',
+            )
+          }
+        }
+
+        {
+          // Second fetch complete
+          const { withinDOM } = await takeRender()
+          expect(withinDOM().getByTestId('isFetching').textContent).toBe(
+            'false',
+          )
+        }
+      }
+
+      const utils = render(<PokemonList api={pokemonApi} />, {
+        wrapper: storeRef.wrapper,
+      })
+      checkNumQueries(1)
+      checkEntryFlags('fire', {})
+      await waitForFetch(true)
+      checkNumQueries(1)
+      checkPageRows(getCurrentRender().withinDOM, 'fire', [0])
+      checkEntryFlags('fire', {
+        hasNextPage: true,
+      })
+
+      fireEvent.click(screen.getByTestId('nextPage'), {})
+      checkEntryFlags('fire', {
+        hasNextPage: true,
+        isFetchingNextPage: true,
+      })
+      await waitForFetch()
+      checkPageRows(getCurrentRender().withinDOM, 'fire', [0, 1])
+      checkEntryFlags('fire', {
+        hasNextPage: true,
+      })
+
+      fireEvent.click(screen.getByTestId('nextPage'))
+      await waitForFetch()
+      checkPageRows(getCurrentRender().withinDOM, 'fire', [0, 1, 2])
+
+      utils.rerender(
+        <PokemonList api={pokemonApi} arg="water" initialPageParam={3} />,
+      )
+      checkEntryFlags('water', {})
+      await waitForFetch(true)
+      checkNumQueries(2)
+      checkPageRows(getCurrentRender().withinDOM, 'water', [3])
+      checkEntryFlags('water', {
+        hasNextPage: true,
+        hasPreviousPage: true,
+      })
+
+      fireEvent.click(screen.getByTestId('nextPage'))
+      checkEntryFlags('water', {
+        hasNextPage: true,
+        hasPreviousPage: true,
+        isFetchingNextPage: true,
+      })
+      await waitForFetch()
+      checkPageRows(getCurrentRender().withinDOM, 'water', [3, 4])
+      checkEntryFlags('water', {
+        hasNextPage: true,
+        hasPreviousPage: true,
+      })
+
+      fireEvent.click(screen.getByTestId('prevPage'))
+      checkEntryFlags('water', {
+        hasNextPage: true,
+        hasPreviousPage: true,
+        isFetchingPreviousPage: true,
+      })
+      await waitForFetch()
+      checkPageRows(getCurrentRender().withinDOM, 'water', [2, 3, 4])
+      checkEntryFlags('water', {
+        hasNextPage: true,
+        hasPreviousPage: true,
+      })
+
+      fireEvent.click(screen.getByTestId('refetch'))
+      checkEntryFlags('water', {
+        hasNextPage: true,
+        hasPreviousPage: true,
+      })
+      await waitForFetch()
+      checkPageRows(getCurrentRender().withinDOM, 'water', [2, 3, 4])
+      checkEntryFlags('water', {
+        hasNextPage: true,
+        hasPreviousPage: true,
+      })
+    })
+
+    test('Object page params does not keep forcing refetching', async () => {
+      type Project = {
+        id: number
+        createdAt: string
+      }
+
+      type ProjectsResponse = {
+        projects: Project[]
+        numFound: number
+        serverTime: string
+      }
+
+      interface ProjectsInitialPageParam {
+        offset: number
+        limit: number
+      }
+
+      const apiWithInfiniteScroll = createApi({
+        baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com/' }),
+        endpoints: (builder) => ({
+          projectsLimitOffset: builder.infiniteQuery<
+            ProjectsResponse,
+            void,
+            ProjectsInitialPageParam
+          >({
+            infiniteQueryOptions: {
+              initialPageParam: {
+                offset: 0,
+                limit: 20,
+              },
+              getNextPageParam: (
+                lastPage,
+                allPages,
+                lastPageParam,
+                allPageParams,
+              ) => {
+                const nextOffset = lastPageParam.offset + lastPageParam.limit
+                const remainingItems = lastPage?.numFound - nextOffset
+
+                if (remainingItems <= 0) {
+                  return undefined
+                }
+
+                return {
+                  ...lastPageParam,
+                  offset: nextOffset,
+                }
+              },
+              getPreviousPageParam: (
+                firstPage,
+                allPages,
+                firstPageParam,
+                allPageParams,
+              ) => {
+                const prevOffset = firstPageParam.offset - firstPageParam.limit
+                if (prevOffset < 0) return undefined
+
+                return {
+                  ...firstPageParam,
+                  offset: firstPageParam.offset - firstPageParam.limit,
+                }
+              },
+            },
+            query: ({ pageParam }) => {
+              const { offset, limit } = pageParam
+              return {
+                url: `https://example.com/api/projectsLimitOffset?offset=${offset}&limit=${limit}`,
+                method: 'GET',
+              }
+            },
+          }),
+        }),
+      })
+
+      const projects = Array.from({ length: 50 }, (_, i) => {
+        return {
+          id: i,
+          createdAt: Date.now() + i * 1000,
+        }
+      })
+
+      let numRequests = 0
+
+      server.use(
+        http.get(
+          'https://example.com/api/projectsLimitOffset',
+          async ({ request }) => {
+            const url = new URL(request.url)
+            const limit = parseInt(url.searchParams.get('limit') ?? '5', 10)
+            let offset = parseInt(url.searchParams.get('offset') ?? '0', 10)
+
+            numRequests++
+
+            if (isNaN(offset) || offset < 0) {
+              offset = 0
+            }
+            if (isNaN(limit) || limit <= 0) {
+              return HttpResponse.json(
+                {
+                  message:
+                    "Invalid 'limit' parameter. It must be a positive integer.",
+                } as any,
+                { status: 400 },
+              )
+            }
+
+            const result = projects.slice(offset, offset + limit)
+
+            await delay(10)
+            return HttpResponse.json({
+              projects: result,
+              serverTime: Date.now(),
+              numFound: projects.length,
+            })
+          },
+        ),
+      )
+
+      function LimitOffsetExample() {
+        const {
+          data,
+          hasPreviousPage,
+          hasNextPage,
+          error,
+          isFetching,
+          isLoading,
+          isError,
+          fetchNextPage,
+          fetchPreviousPage,
+          isFetchingNextPage,
+          isFetchingPreviousPage,
+          status,
+        } = apiWithInfiniteScroll.useProjectsLimitOffsetInfiniteQuery(
+          undefined,
+          {
+            initialPageParam: {
+              offset: 10,
+              limit: 10,
+            },
+          },
+        )
+
+        const [counter, setCounter] = useState(0)
+
+        const combinedData = useMemo(() => {
+          return data?.pages?.map((item) => item?.projects)?.flat()
+        }, [data])
+
+        return (
+          <div>
+            <h2>Limit and Offset Infinite Scroll</h2>
+            <button onClick={() => setCounter((c) => c + 1)}>Increment</button>
+            <div>Counter: {counter}</div>
+            {isLoading ? (
+              <p>Loading...</p>
+            ) : isError ? (
+              <span>Error: {error.message}</span>
+            ) : null}
+
+            <>
+              <div>
+                <button
+                  onClick={() => fetchPreviousPage()}
+                  disabled={!hasPreviousPage || isFetchingPreviousPage}
+                >
+                  {isFetchingPreviousPage
+                    ? 'Loading more...'
+                    : hasPreviousPage
+                      ? 'Load Older'
+                      : 'Nothing more to load'}
+                </button>
+              </div>
+              <div data-testid="projects">
+                {combinedData?.map((project, index, arr) => {
+                  return (
+                    <div key={project.id}>
+                      <div data-testid="project">
+                        <div>{`Project ${project.id} (created at: ${project.createdAt})`}</div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+              <div>
+                <button
+                  onClick={() => fetchNextPage()}
+                  disabled={!hasNextPage || isFetchingNextPage}
+                >
+                  {isFetchingNextPage
+                    ? 'Loading more...'
+                    : hasNextPage
+                      ? 'Load Newer'
+                      : 'Nothing more to load'}
+                </button>
+              </div>
+              <div>
+                {isFetching && !isFetchingPreviousPage && !isFetchingNextPage
+                  ? 'Background Updating...'
+                  : null}
+              </div>
+            </>
+          </div>
+        )
+      }
+
+      const storeRef = setupApiStore(
+        apiWithInfiniteScroll,
+        { ...actionsReducer },
+        {
+          withoutTestLifecycles: true,
+        },
+      )
+
+      const { takeRender, render, totalRenderCount } = createRenderStream({
+        snapshotDOM: true,
+      })
+
+      render(<LimitOffsetExample />, {
+        wrapper: storeRef.wrapper,
+      })
+
+      {
+        const { withinDOM } = await takeRender()
+        withinDOM().getByText('Counter: 0')
+        withinDOM().getByText('Loading...')
+      }
+
+      {
+        const { withinDOM } = await takeRender()
+        withinDOM().getByText('Counter: 0')
+        withinDOM().getByText('Loading...')
+      }
+
+      {
+        const { withinDOM } = await takeRender()
+        withinDOM().getByText('Counter: 0')
+
+        expect(withinDOM().getAllByTestId('project').length).toBe(10)
+        expect(withinDOM().queryByTestId('Loading...')).toBeNull()
+      }
+
+      expect(totalRenderCount()).toBe(3)
+      expect(numRequests).toBe(1)
     })
   })
 

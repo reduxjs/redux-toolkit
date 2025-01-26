@@ -12,9 +12,9 @@ description: 'RTK Query > Usage > Queries: fetching data from a server'
 
 ## Overview
 
-This is the most common use case for RTK Query. A query operation can be performed with any data fetching library of your choice, but the general recommendation is that you only use queries for requests that retrieve data. For anything that alters data on the server or will possibly invalidate the cache, you should use a [Mutation](./mutations).
+Queries are operations that fetch data from the server and cache it within the client. This is the most common use case for RTK Query. A query operation can be performed with any data fetching library of your choice, but the general recommendation is that you only use queries for requests that retrieve data. For anything that alters data on the server or will possibly invalidate the cache, you should use a [Mutation](./mutations).
 
-By default, RTK Query ships with [`fetchBaseQuery`](../api/fetchBaseQuery), which is a lightweight [`fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) wrapper that automatically handles request headers and response parsing in a manner similar to common libraries like `axios`. See [Customizing Queries](./customizing-queries) if `fetchBaseQuery` does not handle your requirements.
+A query can cache the status and result of any async/promise method. Since the most common type of query is an HTTP request, RTK Query ships with [`fetchBaseQuery`](../api/fetchBaseQuery), which is a lightweight [`fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) wrapper that automatically handles request headers and response parsing in a manner similar to common libraries like `axios`. See [Customizing Queries](./customizing-queries) if `fetchBaseQuery` does not handle your requirements.
 
 :::info
 
@@ -105,7 +105,7 @@ const api = createApi({
 
 If you're using React Hooks, RTK Query does a few additional things for you. The primary benefit is that you get a render-optimized hook that allows you to have 'background fetching' as well as [derived booleans](#frequently-used-query-hook-return-values) for convenience.
 
-Hooks are automatically generated based on the name of the `endpoint` in the service definition. An endpoint field with `getPost: builder.query()` will generate a hook named `useGetPostQuery`.
+Hooks are automatically generated based on the name of the `endpoint` in the service definition. An endpoint field with `getPost: builder.query()` will generate a hook named `useGetPostQuery`, as well as a generically-named hook attached to the endpoint, like `api.endpoints.getPost.useQuery`.
 
 ### Hook types
 

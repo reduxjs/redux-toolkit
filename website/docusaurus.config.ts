@@ -70,6 +70,10 @@ const config: Config = {
     repoUrl: 'https://github.com/reduxjs/redux-toolkit',
   },
   themeConfig: {
+    tableOfContents: {
+      minHeadingLevel: 2,
+      maxHeadingLevel: 4,
+    },
     metadata: [{ name: 'twitter:card', content: 'summary' }],
     prism: {
       theme: require('./src/js/monokaiTheme.js'),

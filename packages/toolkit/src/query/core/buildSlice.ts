@@ -24,23 +24,30 @@ import type {
   SubscriptionState,
   ConfigState,
   QueryKeys,
+  InfiniteQuerySubState,
+  InfiniteQueryDirection,
 } from './apiState'
 import { QueryStatus } from './apiState'
 import type {
+  AllQueryKeys,
+  QueryArgFromAnyQueryDefinition,
+  DataFromAnyQueryDefinition,
+  InfiniteQueryThunk,
   MutationThunk,
   QueryThunk,
   QueryThunkArg,
   RejectedAction,
 } from './buildThunks'
 import { calculateProvidedByThunk } from './buildThunks'
-import type {
-  AssertTagTypes,
-  DefinitionType,
-  EndpointDefinitions,
-  FullTagDescription,
-  QueryArgFrom,
-  QueryDefinition,
-  ResultTypeFrom,
+import {
+  isInfiniteQueryDefinition,
+  type AssertTagTypes,
+  type DefinitionType,
+  type EndpointDefinitions,
+  type FullTagDescription,
+  type QueryArgFrom,
+  type QueryDefinition,
+  type ResultTypeFrom,
 } from '../endpointDefinitions'
 import type { Patch } from 'immer'
 import { isDraft } from 'immer'
@@ -60,11 +67,11 @@ import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
  */
 export type NormalizedQueryUpsertEntry<
   Definitions extends EndpointDefinitions,
-  EndpointName extends QueryKeys<Definitions>,
+  EndpointName extends AllQueryKeys<Definitions>,
 > = {
   endpointName: EndpointName
-  arg: QueryArgFrom<Definitions[EndpointName]>
-  value: ResultTypeFrom<Definitions[EndpointName]>
+  arg: QueryArgFromAnyQueryDefinition<Definitions, EndpointName>
+  value: DataFromAnyQueryDefinition<Definitions, EndpointName>
 }
 
 /**
@@ -85,7 +92,7 @@ export type ProcessedQueryUpsertEntry = {
  * A typesafe representation of a util action creator that accepts cache entry descriptions to upsert
  */
 export type UpsertEntries<Definitions extends EndpointDefinitions> = (<
-  EndpointNames extends Array<QueryKeys<Definitions>>,
+  EndpointNames extends Array<AllQueryKeys<Definitions>>,
 >(
   entries: [
     ...{
@@ -104,7 +111,7 @@ export type UpsertEntries<Definitions extends EndpointDefinitions> = (<
 function updateQuerySubstateIfExists(
   state: QueryState<any>,
   queryCacheKey: QueryCacheKey,
-  update: (substate: QuerySubState<any>) => void,
+  update: (substate: QuerySubState<any> | InfiniteQuerySubState<any>) => void,
 ) {
   const substate = state[queryCacheKey]
   if (substate) {
@@ -162,6 +169,7 @@ export function buildSlice({
 }: {
   reducerPath: string
   queryThunk: QueryThunk
+  infiniteQueryThunk: InfiniteQueryThunk<any>
   mutationThunk: MutationThunk
   serializeQueryArgs: InternalSerializeQueryArgs
   context: ApiContext<EndpointDefinitions>
@@ -201,6 +209,13 @@ export function buildSlice({
         substate.originalArgs = arg.originalArgs
       }
       substate.startedTimeStamp = meta.startedTimeStamp
+
+      const endpointDefinition = definitions[meta.arg.endpointName]
+
+      if (isInfiniteQueryDefinition(endpointDefinition) && 'direction' in arg) {
+        ;(substate as InfiniteQuerySubState<any>).direction =
+          arg.direction as InfiniteQueryDirection
+      }
     })
   }
 
@@ -209,11 +224,9 @@ export function buildSlice({
     meta: {
       arg: QueryThunkArg
       requestId: string
-      // requestStatus: 'fulfilled'
     } & {
       fulfilledTimeStamp: number
       baseQueryMeta: unknown
-      // RTK_autoBatch: true
     },
     payload: unknown,
     upserting: boolean,

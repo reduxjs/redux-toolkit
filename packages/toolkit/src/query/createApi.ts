@@ -7,7 +7,11 @@ import type {
   EndpointBuilder,
   EndpointDefinitions,
 } from './endpointDefinitions'
-import { DefinitionType, isQueryDefinition } from './endpointDefinitions'
+import {
+  DefinitionType,
+  isInfiniteQueryDefinition,
+  isQueryDefinition,
+} from './endpointDefinitions'
 import { nanoid } from './core/rtkImports'
 import type { UnknownAction } from '@reduxjs/toolkit'
 import type { NoInfer } from './tsHelpers'
@@ -94,7 +98,7 @@ export interface CreateApiOptions<
    */
   serializeQueryArgs?: SerializeQueryArgs<unknown>
   /**
-   * Endpoints are just a set of operations that you want to perform against your server. You define them as an object using the builder syntax. There are two basic endpoint types: [`query`](../../rtk-query/usage/queries) and [`mutation`](../../rtk-query/usage/mutations).
+   * Endpoints are a set of operations that you want to perform against your server. You define them as an object using the builder syntax. There are three endpoint types: [`query`](../../rtk-query/usage/queries), [`infiniteQuery`](../../rtk-query/usage/infinite-queries) and [`mutation`](../../rtk-query/usage/mutations).
    */
   endpoints(
     build: EndpointBuilder<BaseQuery, TagTypes, ReducerPath>,
@@ -347,6 +351,8 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
       const evaluatedEndpoints = inject.endpoints({
         query: (x) => ({ ...x, type: DefinitionType.query }) as any,
         mutation: (x) => ({ ...x, type: DefinitionType.mutation }) as any,
+        infiniteQuery: (x) =>
+          ({ ...x, type: DefinitionType.infinitequery }) as any,
       })
 
       for (const [endpointName, definition] of Object.entries(
@@ -370,6 +376,30 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
           }
 
           continue
+        }
+
+        if (
+          typeof process !== 'undefined' &&
+          process.env.NODE_ENV === 'development'
+        ) {
+          if (isInfiniteQueryDefinition(definition)) {
+            const { infiniteQueryOptions } = definition
+            const { maxPages, getPreviousPageParam } = infiniteQueryOptions
+
+            if (typeof maxPages === 'number') {
+              if (maxPages < 1) {
+                throw new Error(
+                  `maxPages for endpoint '${endpointName}' must be a number greater than 0`,
+                )
+              }
+
+              if (typeof getPreviousPageParam !== 'function') {
+                throw new Error(
+                  `getPreviousPageParam for endpoint '${endpointName}' must be a function if maxPages is used`,
+                )
+              }
+            }
+          }
         }
 
         context.endpointDefinitions[endpointName] = definition

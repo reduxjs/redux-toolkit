@@ -1,4 +1,8 @@
-import type { QuerySubstateIdentifier, Subscribers } from '../apiState'
+import type {
+  QueryCacheKey,
+  QuerySubstateIdentifier,
+  Subscribers,
+} from '../apiState'
 import { QueryStatus } from '../apiState'
 import type {
   QueryStateMeta,
@@ -47,6 +51,20 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
     if (api.util.resetApiState.match(action)) {
       clearPolls()
     }
+  }
+
+  function getCacheEntrySubscriptions(
+    queryCacheKey: QueryCacheKey,
+    api: SubMiddlewareApi,
+  ) {
+    const state = api.getState()[reducerPath]
+    const querySubState = state.queries[queryCacheKey]
+    const subscriptions = internalState.currentSubscriptions[queryCacheKey]
+
+    if (!querySubState || querySubState.status === QueryStatus.uninitialized)
+      return
+
+    return subscriptions
   }
 
   function startNextPoll(
