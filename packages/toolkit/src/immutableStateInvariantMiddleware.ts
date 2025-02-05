@@ -55,6 +55,7 @@ function trackProperties(
         ignorePaths,
         obj[key],
         childPath,
+        checkedObjects
       )
     }
   }
