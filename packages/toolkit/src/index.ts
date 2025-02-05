@@ -17,7 +17,7 @@ export {
   lruMemoize,
   weakMapMemoize,
 } from 'reselect'
-export type { Selector, OutputSelector } from 'reselect'
+export type { Selector, OutputSelector, setGlobalDevModeChecks } from 'reselect'
 export {
   createDraftSafeSelector,
   createDraftSafeSelectorCreator,
