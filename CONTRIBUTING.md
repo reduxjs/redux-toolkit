@@ -82,7 +82,6 @@ yarn test --watch
 - Create a new feature branch based off the `master` branch.
 - Make sure all tests pass and there are no linting errors.
 - Submit a pull request, referencing any issues it addresses.
-- If you changed external-facing types, make sure to also build the project locally and include the updated API report file etc/redux-toolkit.api.md in your pull request.
 
 Please try to keep your pull request focused in scope and avoid including unrelated commits.
 
