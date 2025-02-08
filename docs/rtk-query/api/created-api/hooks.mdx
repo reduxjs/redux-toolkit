@@ -483,7 +483,7 @@ const [trigger, result, lastPromiseInfo] = api.useLazyGetPostsQuery(options)
 ```ts no-transpile
 type UseLazyQuery = (
   options?: UseLazyQueryOptions
-) => [UseLazyQueryTrigger, UseQueryStateResult, UseLazyQueryLastPromiseInfo]
+) => [UseLazyQueryTrigger, UseLazyQueryStateResult, UseLazyQueryLastPromiseInfo]
 
 type UseLazyQueryOptions = {
   pollingInterval?: number
@@ -506,7 +506,7 @@ type UseLazyQueryTrigger<T> = (arg: any, preferCacheValue?: boolean) => Promise<
   updateSubscriptionOptions: (options: SubscriptionOptions) () => void // A method used to update the subscription options (eg. pollingInterval)
 }
 
-type UseQueryStateResult<T> = {
+type UseLazyQueryStateResult<T> = {
   // Base query state
   originalArgs?: unknown // Arguments passed to the query
   data?: T // The latest returned result regardless of trigger arg, if present
@@ -522,6 +522,8 @@ type UseQueryStateResult<T> = {
   isFetching: false // Query is currently fetching, but might have data from an earlier request.
   isSuccess: false // Query has data from a successful load.
   isError: false // Query is currently in an "error" state.
+
+  reset: () => void // Resets the lazy query state to its initial uninitialized state. This will also remove the last result from the cache.
 }
 
 type UseLazyQueryLastPromiseInfo = {
