@@ -1,0 +1,12 @@
+.DS_Store
+*.log
+node_modules
+.vscode
+dist
+build
+temp
+.yalc
+yalc.lock
+tsconfig.vitest-temp.json
+.eslintcache
+*.tgz
