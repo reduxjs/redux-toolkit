@@ -1,7 +1,6 @@
 // This must remain here so that the `mangleErrors.cjs` build script
 // does not have to import this into each source file it rewrites.
 import { formatProdErrorMessage } from '@reduxjs/toolkit'
-import { batch, useDispatch, useSelector, useStore } from 'react-redux'
 
 import { buildCreateApi, coreModule } from '@reduxjs/toolkit/query'
 import { unboundHooksModule, reactHooksModuleName } from './module'
@@ -9,13 +8,17 @@ import { unboundHooksModule, reactHooksModuleName } from './module'
 export * from '@reduxjs/toolkit/query'
 export { ApiProvider } from './ApiProvider'
 
+const throwFn = () => {
+  throw new Error('Hooks can only be used in Client Components')
+}
+
 const reactHooksModule = unboundHooksModule({
   hooks: {
-    useDispatch,
-    useSelector,
-    useStore,
+    useDispatch: throwFn,
+    useSelector: throwFn,
+    useStore: throwFn,
   },
-  batch,
+  batch: throwFn,
 })
 
 const createApi = /* @__PURE__ */ buildCreateApi(
@@ -38,7 +41,6 @@ export type {
   TypedUseQuerySubscription,
   TypedUseLazyQuerySubscription,
   TypedUseQueryStateOptions,
-  TypedUseLazyQueryStateResult,
 } from './buildHooks'
 export { UNINITIALIZED_VALUE } from './constants'
 export { createApi, reactHooksModule, reactHooksModuleName }
