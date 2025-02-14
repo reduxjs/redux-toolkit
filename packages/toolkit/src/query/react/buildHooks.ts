@@ -1829,7 +1829,6 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     useEffect(() => {
       return () => {
         promiseRef.current?.unsubscribe?.()
-        // eslint-disable-next-line react-hooks/exhaustive-deps
         ;(promiseRef.current as any) = undefined
       }
     }, [promiseRef])

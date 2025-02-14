@@ -1,9 +1,9 @@
-import * as React from 'react'
 import { nanoid } from '@reduxjs/toolkit'
+import * as React from 'react'
 import { useEffect } from 'react'
 import { useGetTimeQuery, usePrefetchTime } from '../../app/services/times'
-import { Container } from '../common/Container'
 import { useTypedSelector } from '../../app/store'
+import { Container } from '../common/Container'
 import {
   selectGlobalPollingEnabled,
   selectPollingConfigByApp,
@@ -116,7 +116,7 @@ const TimeDisplay = ({ offset, label }: { offset: string; label: string }) => {
 }
 
 export const TimeList = () => {
-  const [times, setTimes] = React.useState<{ [key: string]: string }>({
+  const [times, setTimes] = React.useState<Record<string, string>>({
     [nanoid()]: '-08:00',
   })
   const [selectedValue, setSelectedValue] = React.useState<string>('')

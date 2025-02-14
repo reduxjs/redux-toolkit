@@ -1,11 +1,11 @@
-import * as React from 'react'
-import { createDynamicMiddleware } from '../react'
-import { configureStore } from '../../configureStore'
-import { makeProbeableMiddleware, probeMiddleware } from './index.test'
 import { render } from '@testing-library/react'
-import type { Dispatch } from 'redux'
+import * as React from 'react'
 import type { ReactReduxContextValue } from 'react-redux'
 import { Provider } from 'react-redux'
+import type { Dispatch } from 'redux'
+import { configureStore } from '../../configureStore'
+import { createDynamicMiddleware } from '../react'
+import { makeProbeableMiddleware, probeMiddleware } from './index.test'
 
 const staticMiddleware = makeProbeableMiddleware(1)
 

@@ -9,9 +9,7 @@ export type PollingConfig = {
 
 export type SliceState = {
   enabled: boolean
-  apps: {
-    [key: string]: PollingConfig
-  }
+  apps: Record<string, PollingConfig>
 }
 
 export const initialState: SliceState = {
