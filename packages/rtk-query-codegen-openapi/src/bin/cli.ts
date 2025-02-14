@@ -13,7 +13,9 @@ try {
     require('esbuild-runner/register')
   }
   ts = true
-} catch {}
+} catch {
+  /** No-Op */
+}
 
 try {
   if (!ts) {
@@ -29,9 +31,10 @@ try {
 
     ts = true
   }
-} catch {}
+} catch {
+  /** No-Op */
+}
 
-// tslint:disable-next-line
 const meta = require('../../package.json')
 
 program.version(meta.version).usage('</path/to/config.js>').parse(process.argv)
