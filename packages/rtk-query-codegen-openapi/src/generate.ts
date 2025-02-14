@@ -649,7 +649,7 @@ function generatePathExpression(
   isFlatArg: boolean,
   encodePathParams: boolean,
 ) {
-  const expressions: Array<[string, string]> = []
+  const expressions: [string, string][] = []
 
   const head = path.replace(
     /\{(.*?)}(.*?)(?=\{|$)/g,
