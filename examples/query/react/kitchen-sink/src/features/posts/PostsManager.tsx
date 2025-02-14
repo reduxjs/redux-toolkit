@@ -1,14 +1,14 @@
 import React, { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Route, Routes, useNavigate } from 'react-router-dom'
+import type { Post } from '../../app/services/posts'
 import {
-  Post,
   useAddPostMutation,
+  useGetErrorProneQuery,
   useGetPostsQuery,
   useLoginMutation,
-  useGetErrorProneQuery,
 } from '../../app/services/posts'
-import { selectIsAuthenticated, logout } from '../auth/authSlice'
+import { logout, selectIsAuthenticated } from '../auth/authSlice'
 import { PostDetail } from './PostDetail'
 import './PostsManager.css'
 

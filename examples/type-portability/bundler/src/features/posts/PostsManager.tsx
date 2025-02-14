@@ -6,9 +6,9 @@ import type { Post } from '../../app/services/posts'
 import {
   useAddPostMutation,
   useGetErrorProneQuery,
+  useGetInfinitePostsInfiniteQuery,
   useGetPostsQuery,
   useLoginMutation,
-  useGetInfinitePostsInfiniteQuery,
 } from '../../app/services/posts'
 import { logout, selectIsAuthenticated } from '../auth/authSlice'
 import { PostDetail } from './PostDetail'

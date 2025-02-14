@@ -183,7 +183,7 @@ export function configureStore<
   }
 
   if (process.env.NODE_ENV !== 'production' && duplicateMiddlewareCheck) {
-    let middlewareReferences = new Set<Middleware<any, S>>()
+    const middlewareReferences = new Set<Middleware<any, S>>()
     finalMiddleware.forEach((middleware) => {
       if (middlewareReferences.has(middleware)) {
         throw new Error(
