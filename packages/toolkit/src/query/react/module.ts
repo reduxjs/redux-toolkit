@@ -10,6 +10,7 @@ import type {
   QueryDefinition,
   QueryKeys,
 } from '@reduxjs/toolkit/query'
+import type * as ReactRedux from 'react-redux'
 import {
   batch as rrBatch,
   useDispatch as rrUseDispatch,
@@ -81,7 +82,7 @@ declare module '@reduxjs/toolkit/query' {
   }
 }
 
-type RR = typeof import('react-redux')
+type RR = typeof ReactRedux
 
 export interface ReactHooksModuleOptions {
   /**

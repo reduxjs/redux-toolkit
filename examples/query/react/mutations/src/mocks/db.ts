@@ -1,7 +1,7 @@
 import { factory, primaryKey } from '@mswjs/data'
 import { nanoid } from '@reduxjs/toolkit'
 import { rest } from 'msw'
-import { Post } from '../app/services/posts'
+import type { Post } from '../app/services/posts'
 
 const db = factory({
   post: {

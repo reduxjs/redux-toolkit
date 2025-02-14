@@ -1,8 +1,9 @@
-import { nanoid } from '@reduxjs/toolkit'
 import { factory, primaryKey } from '@mswjs/data'
+import { nanoid } from '@reduxjs/toolkit'
 import faker from 'faker'
-import { Post, postStatuses } from '../app/services/posts'
 import { rest } from 'msw'
+import type { Post } from '../app/services/posts'
+import { postStatuses } from '../app/services/posts'
 
 const db = factory({
   post: {
