@@ -8,6 +8,7 @@ import {
   miniSerializeError,
   unwrapResult,
 } from '@reduxjs/toolkit'
+import type * as createAsyncThunkModule from '../createAsyncThunk'
 
 declare global {
   interface Window {
@@ -503,7 +504,7 @@ describe('createAsyncThunk with abortController', () => {
 
   describe('behavior with missing AbortController', () => {
     let keepAbortController: (typeof window)['AbortController']
-    let freshlyLoadedModule: typeof import('../createAsyncThunk')
+    let freshlyLoadedModule: typeof createAsyncThunkModule
 
     beforeEach(async () => {
       keepAbortController = window.AbortController

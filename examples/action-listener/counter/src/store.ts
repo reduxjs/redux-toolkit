@@ -1,12 +1,15 @@
-import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux'
+import type {
+  ListenerEffectAPI,
+  TypedAddListener,
+  TypedStartListening,
+} from '@reduxjs/toolkit'
 import {
+  addListener,
   configureStore,
   createListenerMiddleware,
-  TypedStartListening,
-  TypedAddListener,
-  ListenerEffectAPI,
-  addListener,
 } from '@reduxjs/toolkit'
+import type { TypedUseSelectorHook } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { counterSlice } from './services/counter/slice'
 import { themeSlice } from './services/theme/slice'
 

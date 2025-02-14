@@ -1,11 +1,10 @@
-import React from 'react'
-import { Routes, Route, Link } from 'react-router-dom'
-import { PostsManager } from './features/posts/PostsManager'
-import { CounterList } from './features/counter/CounterList'
-import { TimeList } from './features/time/TimeList'
-import { PollingToggles } from './features/polling/PollingToggles'
-import { Lazy } from './features/bundleSplitting'
+import { Link, Route, Routes } from 'react-router-dom'
 import './App.css'
+import { Lazy } from './features/bundleSplitting'
+import { CounterList } from './features/counter/CounterList'
+import { PollingToggles } from './features/polling/PollingToggles'
+import { PostsManager } from './features/posts/PostsManager'
+import { TimeList } from './features/time/TimeList'
 
 function App() {
   return (

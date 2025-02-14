@@ -18,7 +18,18 @@ type Optional<T, K extends keyof T> = { [k in K]?: NonNullable<T[k]> } & Omit<
   T,
   K
 >
-type Id<T> = { [K in keyof T]: T[K] } & {}
+
+/**
+ * An alias for type `{}`. Represents any value that is not
+ * `null` or `undefined`. It is mostly used for semantic purposes
+ * to help distinguish between an empty object type and `{}` as
+ * they are not the same.
+ *
+ * @internal
+ */
+export type AnyNonNullishValue = NonNullable<unknown>
+
+type Id<T> = { [K in keyof T]: T[K] } & AnyNonNullishValue
 type AtLeastOneKey<T> = {
   [K in keyof T]-?: Pick<T, K> & Partial<T>
 }[keyof T]
@@ -183,8 +194,6 @@ export type ConfigFile =
   | Id<Require<CommonOptions & OutputFileOptions, 'outputFile'>>
   | Id<
       Omit<CommonOptions, 'outputFile'> & {
-        outputFiles: {
-          [outputFile: string]: Omit<OutputFileOptions, 'outputFile'>
-        }
+        outputFiles: Record<string, Omit<OutputFileOptions, 'outputFile'>>
       }
     >

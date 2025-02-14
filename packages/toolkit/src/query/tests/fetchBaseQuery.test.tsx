@@ -84,9 +84,7 @@ beforeEach(() => {
   const abortController = new AbortController()
   commonBaseQueryApi = {
     signal: abortController.signal,
-    abort: (reason) =>
-      // @ts-ignore
-      abortController.abort(reason),
+    abort: (reason) => abortController.abort(reason),
     dispatch: storeRef.store.dispatch,
     getState: storeRef.store.getState,
     extra: undefined,
@@ -95,7 +93,7 @@ beforeEach(() => {
   }
 })
 
-describe('fetchBaseQuery', () => {
+describe(fetchBaseQuery, () => {
   describe('basic functionality', () => {
     it('should return an object for a simple GET request when it is json data', async () => {
       const req = baseQuery('/success', commonBaseQueryApi, {})
@@ -1393,7 +1391,7 @@ describe('fetchFn', () => {
   })
 })
 
-describe('FormData', () => {
+describe(FormData, () => {
   test('sets the right headers when sending FormData', async () => {
     const body = new FormData()
 
@@ -1553,23 +1551,37 @@ describe('FormData', () => {
 
 describe('Accept header handling', () => {
   test('sets Accept header to application/json for json responseHandler', async () => {
-    let request: any
-    ;({ data: request } = await baseQuery(
+    const { data: request } = await baseQuery(
       { url: '/echo', responseHandler: 'json' },
       commonBaseQueryApi,
       {},
-    ))
+    )
+
+    if (!isObject(request)) {
+      expect.fail('Expected request to be an object')
+    }
+
+    if (!('headers' in request)) {
+      expect.fail('Expected request to have headers')
+    }
 
     expect(request.headers['accept']).toBe('application/json')
   })
 
   test('sets Accept header to application/json by default (json is default responseHandler)', async () => {
-    let request: any
-    ;({ data: request } = await baseQuery(
+    const { data: request } = await baseQuery(
       { url: '/echo' },
       commonBaseQueryApi,
       {},
-    ))
+    )
+
+    if (!isObject(request)) {
+      expect.fail('Expected request to be an object')
+    }
+
+    if (!('headers' in request)) {
+      expect.fail('Expected request to have headers')
+    }
 
     expect(request.headers['accept']).toBe('application/json')
   })
@@ -1582,13 +1594,20 @@ describe('Accept header handling', () => {
       responseHandler: 'text',
     })
 
-    let request: any
-      // Override to json just for this test so we can inspect the echoed request object
-    ;({ data: request } = await textBaseQuery(
+    // Override to json just for this test so we can inspect the echoed request object
+    const { data: request } = await textBaseQuery(
       { url: '/echo', responseHandler: 'json' },
       commonBaseQueryApi,
       {},
-    ))
+    )
+
+    if (!isObject(request)) {
+      expect.fail('Expected request to be an object')
+    }
+
+    if (!('headers' in request)) {
+      expect.fail('Expected request to have headers')
+    }
 
     // The endpoint-level 'json' responseHandler overrides the global 'text',
     // so the Accept header should be application/json
@@ -1596,8 +1615,7 @@ describe('Accept header handling', () => {
   })
 
   test('does not override explicit Accept header from endpoint', async () => {
-    let request: any
-    ;({ data: request } = await baseQuery(
+    const { data: request } = await baseQuery(
       {
         url: '/echo',
         responseHandler: 'json',
@@ -1605,7 +1623,15 @@ describe('Accept header handling', () => {
       },
       commonBaseQueryApi,
       {},
-    ))
+    )
+
+    if (!isObject(request)) {
+      expect.fail('Expected request to be an object')
+    }
+
+    if (!('headers' in request)) {
+      expect.fail('Expected request to have headers')
+    }
 
     expect(request.headers['accept']).toBe('application/xml')
   })
@@ -1620,27 +1646,35 @@ describe('Accept header handling', () => {
       },
     })
 
-    let request: any
-    ;({ data: request } = await customBaseQuery(
+    const { data: request } = await customBaseQuery(
       { url: '/echo', responseHandler: 'json' },
       commonBaseQueryApi,
       {},
-    ))
+    )
+
+    if (!isObject(request)) {
+      expect.fail('Expected request to be an object')
+    }
+
+    if (!('headers' in request)) {
+      expect.fail('Expected request to have headers')
+    }
 
     expect(request.headers['accept']).toBe('application/vnd.api+json')
   })
 
   test('does not set Accept header for content-type responseHandler', async () => {
-    let request: any
-    ;({ data: request } = await baseQuery(
-      { url: '/echo', responseHandler: 'content-type' },
-      commonBaseQueryApi,
-      {},
-    ))
+    const request = (
+      await baseQuery(
+        { url: '/echo', responseHandler: 'content-type' },
+        commonBaseQueryApi,
+        {},
+      )
+    ).data as any
 
     // Should either not have accept header or have a permissive one
     // content-type handler adapts to whatever server sends
-    const acceptHeader = request.headers['accept']
+    const acceptHeader = request.headers?.['accept']
     if (acceptHeader) {
       expect(acceptHeader).toMatch(/\*\/\*/)
     }
@@ -1653,13 +1687,20 @@ describe('Accept header handling', () => {
       responseHandler: 'text',
     })
 
-    let request: any
-      // Override to json just for this test so we can inspect the echoed request object
-    ;({ data: request } = await textBaseQuery(
+    // Override to json just for this test so we can inspect the echoed request object
+    const { data: request } = await textBaseQuery(
       { url: '/echo', responseHandler: 'json' },
       commonBaseQueryApi,
       {},
-    ))
+    )
+
+    if (!isObject(request)) {
+      expect.fail('Expected request to be an object')
+    }
+
+    if (!('headers' in request)) {
+      expect.fail('Expected request to have headers')
+    }
 
     // The endpoint-level 'json' responseHandler overrides the global 'text',
     // so the Accept header should be application/json (proving endpoint-level takes precedence)

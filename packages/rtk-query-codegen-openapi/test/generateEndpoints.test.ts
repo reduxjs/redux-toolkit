@@ -32,7 +32,7 @@ test('should include default response type in request when includeDefault is set
     schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
     includeDefault: true,
   })
-  // eslint-disable-next-line no-template-curly-in-string
+
   expect(api).toMatch(
     /export type CreateUserApiResponse =[\s\S/*]+status default successful operation[\s/*]+User;/,
   )
@@ -197,7 +197,7 @@ describe('option encodePathParams', () => {
       ...config,
       filterEndpoints: ['getOrderById'],
     })
-    // eslint-disable-next-line no-template-curly-in-string
+
     expect(api).toContain(
       '`/store/order/${encodeURIComponent(String(queryArg.orderId))}`',
     )
@@ -226,7 +226,7 @@ describe('option encodePathParams', () => {
       flattenArg: true,
       filterEndpoints: ['getOrderById'],
     })
-    // eslint-disable-next-line no-template-curly-in-string
+
     expect(api).toContain(
       '`/store/order/${encodeURIComponent(String(queryArg))}`',
     )
@@ -238,7 +238,7 @@ describe('option encodePathParams', () => {
       encodePathParams: false,
       filterEndpoints: ['findPetsByStatus', 'getOrderById'],
     })
-    // eslint-disable-next-line no-template-curly-in-string
+
     expect(api).toContain('`/store/order/${queryArg.orderId}`')
   })
 })
@@ -266,7 +266,7 @@ describe('option encodeQueryParams', () => {
       ...config,
       filterEndpoints: ['getOrderById'],
     })
-    // eslint-disable-next-line no-template-curly-in-string
+
     expect(api).toContain('`/store/order/${queryArg.orderId}`')
   })
 
@@ -301,7 +301,7 @@ describe('option flattenArg', () => {
       ...config,
       filterEndpoints: ['getOrderById'],
     })
-    // eslint-disable-next-line no-template-curly-in-string
+
     expect(api).toContain('`/store/order/${queryArg}`')
     expect(api).toMatch(
       /export type GetOrderByIdApiArg =[\s/*]+ID of order that needs to be fetched[\s/*]+number;/,
@@ -487,7 +487,7 @@ test('should use brackets in a querystring urls arg, when the arg contains full 
     apiFile: './fixtures/emptyApi.ts',
     schemaFile: resolve(__dirname, 'fixtures/params.json'),
   })
-  // eslint-disable-next-line no-template-curly-in-string
+
   expect(api).toContain('`/api/v1/list/${queryArg["item.id"]}`')
   expect(api).toMatchSnapshot()
 })
@@ -498,7 +498,7 @@ test('duplicate parameter names must be prefixed with a path or query prefix', a
     apiFile: './fixtures/emptyApi.ts',
     schemaFile: resolve(__dirname, 'fixtures/params.json'),
   })
-  // eslint-disable-next-line no-template-curly-in-string
+
   expect(api).toContain('pathSomeName: string')
   expect(api).toContain('querySomeName: string')
   expect(api).toMatchSnapshot()

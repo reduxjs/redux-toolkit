@@ -480,8 +480,8 @@ describe('configuration', () => {
 
     // Verify the retry condition was called and we have a signal
     expect(retryConditionCalled).toBe(true)
-    expect(capturedSignal).toBeDefined()
-    expect(capturedSignal!.aborted).toBe(false)
+    assert.isDefined(capturedSignal)
+    expect(capturedSignal.aborted).toBe(false)
 
     // Unsubscribe to trigger cache removal
     queryPromise.unsubscribe()
@@ -493,7 +493,7 @@ describe('configuration', () => {
     await loopTimers(3)
 
     // The signal should now be aborted
-    expect(capturedSignal!.aborted).toBe(true)
+    expect(capturedSignal.aborted).toBe(true)
 
     // We should have stopped retrying early due to the abort signal
     // If abort signal wasn't working, we'd see many more retry attempts
@@ -516,7 +516,7 @@ describe('configuration', () => {
       baseQuery,
       endpoints: (build) => ({
         q1: build.query({
-          query: () => {},
+          query: noop,
         }),
       }),
     })
@@ -553,7 +553,7 @@ describe('configuration', () => {
       baseQuery,
       endpoints: (build) => ({
         q1: build.query({
-          query: () => {},
+          query: noop,
         }),
       }),
     })
@@ -584,7 +584,7 @@ describe('configuration', () => {
       baseQuery,
       endpoints: (build) => ({
         q1: build.query({
-          query: () => {},
+          query: noop,
         }),
       }),
     })
@@ -639,7 +639,7 @@ describe('configuration', () => {
       const api = createApi({
         baseQuery,
         endpoints: (build) => ({
-          q1: build.query({ query: () => {} }),
+          q1: build.query({ query: noop }),
         }),
       })
 
@@ -677,7 +677,7 @@ describe('configuration', () => {
       const api = createApi({
         baseQuery,
         endpoints: (build) => ({
-          q1: build.query({ query: () => {} }),
+          q1: build.query({ query: noop }),
         }),
       })
 
@@ -717,7 +717,7 @@ describe('configuration', () => {
       const api = createApi({
         baseQuery,
         endpoints: (build) => ({
-          q1: build.query({ query: () => {} }),
+          q1: build.query({ query: noop }),
         }),
       })
 
@@ -744,7 +744,7 @@ describe('configuration', () => {
       const api = createApi({
         baseQuery,
         endpoints: (build) => ({
-          q1: build.query({ query: () => {} }),
+          q1: build.query({ query: noop }),
         }),
       })
 
@@ -808,7 +808,7 @@ describe('configuration', () => {
       const api = createApi({
         baseQuery,
         endpoints: (build) => ({
-          q1: build.query({ query: () => {} }),
+          q1: build.query({ query: noop }),
         }),
       })
 
@@ -839,7 +839,7 @@ describe('configuration', () => {
       const api = createApi({
         baseQuery,
         endpoints: (build) => ({
-          q1: build.query({ query: () => {} }),
+          q1: build.query({ query: noop }),
         }),
       })
 
@@ -869,7 +869,7 @@ describe('configuration', () => {
       const api = createApi({
         baseQuery,
         endpoints: (build) => ({
-          q1: build.query({ query: () => {} }),
+          q1: build.query({ query: noop }),
         }),
       })
 
@@ -896,7 +896,7 @@ describe('configuration', () => {
       const api = createApi({
         baseQuery,
         endpoints: (build) => ({
-          q1: build.query({ query: () => {} }),
+          q1: build.query({ query: noop }),
         }),
       })
 

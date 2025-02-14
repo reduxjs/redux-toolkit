@@ -1,4 +1,5 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import type { PayloadAction } from '@reduxjs/toolkit'
+import { createSlice } from '@reduxjs/toolkit'
 import type { RootState } from '../../app/store'
 
 type PollingConfig = {
@@ -8,9 +9,7 @@ type PollingConfig = {
 
 type SliceState = {
   enabled: boolean
-  apps: {
-    [key: string]: PollingConfig
-  }
+  apps: Record<string, PollingConfig>
 }
 
 const initialState: SliceState = {

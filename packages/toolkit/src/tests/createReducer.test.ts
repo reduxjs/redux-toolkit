@@ -13,7 +13,6 @@ import {
   createReducer,
   isPlainObject,
 } from '@reduxjs/toolkit'
-import { waitMs } from './utils/helpers'
 
 interface Todo {
   text: string
@@ -577,7 +576,7 @@ describe('createReducer', () => {
     test('calling addAsyncThunk after addDefaultCase should result in an error in development mode', () => {
       expect(() =>
         createReducer(initialState, (builder: any) =>
-          builder.addDefaultCase(() => {}).addAsyncThunk(addTodoThunk, {}),
+          builder.addDefaultCase(noop).addAsyncThunk(addTodoThunk, {}),
         ),
       ).toThrowErrorMatchingInlineSnapshot(
         `[Error: \`builder.addAsyncThunk\` should only be called before calling \`builder.addDefaultCase\`]`,

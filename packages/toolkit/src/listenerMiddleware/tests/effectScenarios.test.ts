@@ -466,7 +466,7 @@ describe('Saga-style Effects Scenarios', () => {
         const pollingTask = listenerApi.fork(async (forkApi) => {
           try {
             // Cancellation-aware indefinite pause
-            await forkApi.pause(new Promise(() => {}))
+            await forkApi.pause(new Promise(noop))
           } catch (err) {
             if (err instanceof TaskAbortError) {
               innerAborted = true

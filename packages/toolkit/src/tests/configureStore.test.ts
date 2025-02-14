@@ -5,7 +5,7 @@ import { Tuple } from '@reduxjs/toolkit'
 import type * as Redux from 'redux'
 
 vi.doMock('redux', async (importOriginal) => {
-  const redux = await importOriginal<typeof import('redux')>()
+  const redux = await importOriginal<typeof Redux>()
 
   vi.spyOn(redux, 'applyMiddleware')
   vi.spyOn(redux, 'combineReducers')

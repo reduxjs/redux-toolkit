@@ -496,10 +496,10 @@ export function buildSlice({
         reducer(
           draft,
           action: PayloadAction<
-            Array<{
+            {
               queryCacheKey: QueryCacheKey
               providedTags: readonly FullTagDescription<string>[]
-            }>
+            }[]
           >,
         ) {
           for (const { queryCacheKey, providedTags } of action.payload) {
@@ -522,10 +522,10 @@ export function buildSlice({
           }
         },
         prepare: prepareAutoBatched<
-          Array<{
+          {
             queryCacheKey: QueryCacheKey
             providedTags: readonly FullTagDescription<string>[]
-          }>
+          }[]
         >(),
       },
     },

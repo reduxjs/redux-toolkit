@@ -4,6 +4,7 @@ import { generateEndpoints, parseConfig } from '@rtk-query/codegen-openapi'
 import program from 'commander'
 import { createRequire } from 'node:module'
 import { dirname, resolve } from 'node:path'
+import type * as TSNode from 'ts-node'
 
 const require = createRequire(__filename)
 
@@ -13,12 +14,14 @@ try {
     require('esbuild-runner/register')
   }
   ts = true
-} catch {}
+} catch {
+  /** No-Op */
+}
 
 try {
   if (!ts) {
     if (require.resolve('typescript') && require.resolve('ts-node')) {
-      ;(require('ts-node') as typeof import('ts-node')).register({
+      ;(require('ts-node') as typeof TSNode).register({
         transpileOnly: true,
         compilerOptions: {
           target: 'es6',
@@ -29,9 +32,10 @@ try {
 
     ts = true
   }
-} catch {}
+} catch {
+  /** No-Op */
+}
 
-// tslint:disable-next-line
 const meta = require('../../package.json')
 
 program.version(meta.version).usage('</path/to/config.js>').parse(process.argv)

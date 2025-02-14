@@ -1,4 +1,4 @@
-import { createSlice, createAction } from '@reduxjs/toolkit'
+import { createAction, createSlice } from '@reduxjs/toolkit'
 import type { CombinedState } from '@reduxjs/toolkit/query'
 import { createApi } from '@reduxjs/toolkit/query'
 import { delay } from 'msw'

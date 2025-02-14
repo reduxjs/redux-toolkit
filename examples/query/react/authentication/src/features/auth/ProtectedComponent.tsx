@@ -1,4 +1,4 @@
-import { Center, VStack, Box, Button } from '@chakra-ui/react'
+import { Box, Button, Center, VStack } from '@chakra-ui/react'
 import { useProtectedMutation } from '../../app/services/auth'
 
 export function ProtectedComponent() {

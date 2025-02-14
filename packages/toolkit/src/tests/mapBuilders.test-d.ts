@@ -130,21 +130,21 @@ describe('type tests', () => {
         })
 
       test('addAsyncThunk() should prevent further calls to addCase() ', () => {
-        const asyncThunk = createAsyncThunk('test', () => {})
+        const asyncThunk = createAsyncThunk('test', noop)
         const b = builder.addAsyncThunk(asyncThunk, {
-          pending: () => {},
-          rejected: () => {},
-          fulfilled: () => {},
-          settled: () => {},
+          pending: noop,
+          rejected: noop,
+          fulfilled: noop,
+          settled: noop,
         })
 
         expectTypeOf(b).not.toHaveProperty('addCase')
 
         expectTypeOf(b.addAsyncThunk).toBeFunction()
 
-        expectTypeOf(b.addMatcher).toBeCallableWith(increment.match, () => {})
+        expectTypeOf(b.addMatcher).toBeCallableWith(increment.match, noop)
 
-        expectTypeOf(b.addDefaultCase).toBeCallableWith(() => {})
+        expectTypeOf(b.addDefaultCase).toBeCallableWith(noop)
       })
 
       test('addMatcher() should prevent further calls to addCase() and addAsyncThunk()', () => {

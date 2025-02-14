@@ -1,6 +1,5 @@
-import { ActivityIndicator, FlatList, View, Text } from 'react-native-web'
 import { useMemo } from 'react'
-
+import { ActivityIndicator, FlatList, Text, View } from 'react-native-web'
 import { apiWithInfiniteScroll } from '../infinite-scroll/infiniteScrollApi'
 import { ProjectRow } from '../infinite-scroll/InfiniteScrollExample'
 

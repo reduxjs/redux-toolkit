@@ -33,6 +33,7 @@ import {
 } from '@testing-library/react'
 import type { SyncScreen } from '@testing-library/react-render-stream/pure'
 import { createRenderStream } from '@testing-library/react-render-stream/pure'
+import { userEvent } from '@testing-library/user-event'
 import { HttpResponse, delay, http } from 'msw'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { InfiniteQueryResultFlags } from '../core/buildSelectors'

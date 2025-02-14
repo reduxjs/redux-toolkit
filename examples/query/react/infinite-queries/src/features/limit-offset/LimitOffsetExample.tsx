@@ -1,11 +1,12 @@
 import { createSelector } from '@reduxjs/toolkit'
-import {
+import type {
   BaseQueryFn,
   TypedUseQueryStateResult,
 } from '@reduxjs/toolkit/query/react'
 import { Link, useLocation } from 'react-router'
 import { useIntersectionCallback } from '../../app/useIntersectionCallback'
-import { apiWithInfiniteScroll, ProjectsResponse } from './infiniteScrollApi'
+import type { ProjectsResponse } from './infiniteScrollApi'
+import { apiWithInfiniteScroll } from './infiniteScrollApi'
 
 type ProjectsInfiniteQueryResult = TypedUseQueryStateResult<
   { pages: ProjectsResponse[] },

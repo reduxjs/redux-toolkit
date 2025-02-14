@@ -509,7 +509,7 @@ export function buildThunks<
       endpointDefinition
 
     try {
-      const transformResponse: TransformCallback = defaultTransformResponse
+      let transformResponse: TransformCallback = defaultTransformResponse
 
       const baseQueryApi = {
         signal,

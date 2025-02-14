@@ -91,7 +91,7 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
     newEntities: readonly T[] | Record<Id, T>,
     state: R,
   ): void {
-    let deduplicatedEntities = {} as Record<Id, T>
+    const deduplicatedEntities = {} as Record<Id, T>
     newEntities = ensureEntitiesArray(newEntities)
     if (newEntities.length !== 0) {
       for (const item of newEntities) {

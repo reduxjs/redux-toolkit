@@ -122,7 +122,7 @@ export const TimeDisplay = ({
 }
 
 export const TimeList = () => {
-  const [times, setTimes] = React.useState<{ [key: string]: string }>({
+  const [times, setTimes] = React.useState<Record<string, string>>({
     [nanoid()]: '-08:00',
   })
   const [selectedValue, setSelectedValue] = React.useState<string>('')
