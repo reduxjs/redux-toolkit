@@ -1,7 +1,8 @@
-import { defineConfig } from 'vitest/config'
+import { createVitestConfig } from '@reduxjs/vitest-config'
 
-export default defineConfig({
+export default createVitestConfig({
   test: {
-    globals: true
-  }
+    dir: `${import.meta.dirname}/transforms`,
+    root: import.meta.dirname,
+  },
 })
