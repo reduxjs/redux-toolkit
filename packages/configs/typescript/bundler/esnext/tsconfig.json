@@ -1,0 +1,8 @@
+{
+  "extends": "@reduxjs/tsconfig/base",
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "moduleResolution": "Bundler"
+  },
+  "display": "Redux TSConfig with Bundler Resolution and ESNext Module"
+}

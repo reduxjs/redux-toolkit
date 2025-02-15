@@ -1,15 +1,16 @@
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
-import tsconfigPaths from 'vite-tsconfig-paths'
-import { defineConfig } from 'vitest/config'
+import { createVitestConfig } from '@reduxjs/vitest-config'
+import packageJson from './package.json' with { type: 'json' }
 
-// No __dirname under Node ESM
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
-
-export default defineConfig({
-  plugins: [tsconfigPaths({ root: __dirname })],
+export default createVitestConfig({
   test: {
+    dir: `${import.meta.dirname}/src`,
+    name: packageJson.name,
+    root: import.meta.dirname,
+
+    typecheck: {
+      tsconfig: `${import.meta.dirname}/tsconfig.json`,
+    },
+
     alias: process.env.TEST_DIST
       ? {
           '@reduxjs/toolkit': new URL(
@@ -18,10 +19,7 @@ export default defineConfig({
           ).pathname,
         }
       : undefined,
-    globals: true,
     environment: 'jsdom',
-    setupFiles: ['./vitest.setup.ts'],
-    include: ['./src/**/*.(spec|test).[jt]s?(x)'],
     server: { deps: { inline: ['redux', '@reduxjs/toolkit'] } },
   },
 })
