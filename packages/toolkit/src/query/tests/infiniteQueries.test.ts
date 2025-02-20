@@ -37,6 +37,7 @@ describe('Infinite queries', () => {
   }
 
   let counters: Record<string, number> = {}
+  let queryCounter = 0
 
   const pokemonApi = createApi({
     baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
@@ -149,6 +150,7 @@ describe('Infinite queries', () => {
         const url = new URL(request.url)
         const pageString = url.searchParams.get('page')
         const pageNum = parseInt(pageString || '0')
+        queryCounter++
 
         const results: Pokemon[] = [
           { id: `${pageNum}`, name: `Pokemon ${pageNum}` },
@@ -168,6 +170,7 @@ describe('Infinite queries', () => {
     counters = {}
 
     hitCounter = 0
+    queryCounter = 0
 
     process.env.NODE_ENV = 'development'
   })
@@ -697,6 +700,44 @@ describe('Infinite queries', () => {
       [{ id: '0', name: 'Pokemon 0' }],
       [{ id: '1', name: 'Pokemon 1' }],
     ])
+
+    expect(queryCounter).toBe(2)
+
+    const entry2InitialLoad = await storeRef.store.dispatch(
+      pokemonApiWithRefetch.endpoints.getInfinitePokemon.initiate('water', {}),
+    )
+
+    checkResultData(entry2InitialLoad, [[{ id: '0', name: 'Pokemon 0' }]])
+
+    expect(queryCounter).toBe(3)
+
+    const entry2SecondPage = await storeRef.store.dispatch(
+      pokemonApiWithRefetch.endpoints.getInfinitePokemon.initiate('water', {
+        direction: 'forward',
+      }),
+    )
+    checkResultData(entry2SecondPage, [
+      [{ id: '0', name: 'Pokemon 0' }],
+      [{ id: '1', name: 'Pokemon 1' }],
+    ])
+
+    expect(queryCounter).toBe(4)
+
+    // Should now be able to switch back to the first query.
+    // The hooks dispatch on arg change without a direction.
+    // That should trigger a refetch of the first query, meaning two requests.
+    // It should also _replace_ the existing results, rather than appending
+    // duplicate entries ([0, 1, 0, 1])
+    const entry1Refetched = await storeRef.store.dispatch(
+      pokemonApiWithRefetch.endpoints.getInfinitePokemon.initiate('fire', {}),
+    )
+
+    checkResultData(entry1Refetched, [
+      [{ id: '0', name: 'Pokemon 0' }],
+      [{ id: '1', name: 'Pokemon 1' }],
+    ])
+
+    expect(queryCounter).toBe(6)
   })
 
   test('Works with cache manipulation utils', async () => {
