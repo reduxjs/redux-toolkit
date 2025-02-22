@@ -31,7 +31,7 @@ With standard query endpoints:
 Infinite queries work similarly, but have a couple additional layers:
 
 - You still specify a "query arg", which is still used to generate the unique cache key for this specific cache entry
-- However, there is a separation between the "query arg" used for the cache key, and the "page param" used to fetch a specific page. Since both are useful for determining what to fetch, your `query` and `queryFn` methods will receive a combined object with `{queryArg, pageParam}` as the first argument, instead of just the `queryArg` by itself.
+- However, there is a separation between the "query arg" used for the cache key, and the "page param" used to fetch a specific page. Since both are useful for determining what to fetch, **your `query` and `queryFn` methods will receive a combined object with `{queryArg, pageParam}` as the first argument, instead of just the `queryArg` by itself**.
 - The `data` field in the cache entry stores a `{pages: DataType[], pageParams: PageParam[]}` structure that contains _all_ of the fetched page results and their corresponding page params used to fetch them.
 
 For example, a Pokemon API endpoint might have a string query arg like `"fire"`, but use a page number as the param to determine which page to fetch out of the results. For a query like `useGetPokemonInfiniteQuery('fire')`, the resulting cache data might look like this:
@@ -75,7 +75,7 @@ The `infiniteQueryOptions` field includes:
 - `getPreviousPageParam`: an optional callback that will be used to calculate the previous page param, if you try to fetch backwards.
 
 Both `initialPageParam` and `getNextPageParam` are required, to
-ensure the infinite query can properly fetch the next page of data.Also, `initialPageParam` may be specified when using the endpoint, to override the default value for a first fetch. `maxPages` and `getPreviousPageParam` are both optional.
+ensure the infinite query can properly fetch the next page of data. Also, `initialPageParam` may be specified when using the endpoint, to override the default value for a first fetch. `maxPages` and `getPreviousPageParam` are both optional.
 
 ### Page Param Functions
 
@@ -114,10 +114,14 @@ const pokemonApi = createApi({
     // 3 TS generics: page contents, query arg, page param
     getInfinitePokemonWithMax: build.infiniteQuery<Pokemon[], string, number>({
       infiniteQueryOptions: {
+        // Must provide a default initial page param value
         initialPageParam: 1,
+        // Optionally limit the number of cached pages
         maxPages: 3,
+        // Must provide a `getNextPageParam` function
         getNextPageParam: (lastPage, allPages, lastPageParam, allPageParams) =>
           lastPageParam + 1,
+        // Optionally provide a `getPreviousPageParam` function
         getPreviousPageParam: (
           firstPage,
           allPages,
@@ -249,3 +253,255 @@ The endpoint itself only defines `getNextPageParam`, so this example doesn't sup
 All fetched pages for a given query arg are stored in the `pages` array in that cache entry. By default, there is no limit to the number of stored pages - if you call `fetchNextPage()` 1000 times, `data.pages` will have 1000 pages stored.
 
 If you need to limit the number of stored pages (for reasons like memory usage), you can supply a `maxPages` option as part of the endpoint. If provided, fetching a page when already at the max will automatically drop the last page in the opposite direction. For example, with `maxPages: 3` and a cached page params of `[1, 2, 3]`, calling `fetchNextPage()` would result in page `1` being dropped and the new cached pages being `[2, 3, 4]`. From there, calling `fetchNextPage()` would result in `[3, 4, 5]`, or calling `fetchPreviousPage()` would go back to `[1, 2, 3]`.
+
+## Common Infinite Query Patterns
+
+The `getNext/PreviousPageParam` callbacks offer flexibility in how you interact with the backend API.
+
+Here are some examples of common infinite query patterns to show how you might approach different use cases.
+
+### Basic Pagination
+
+For a simple API that just needs page numbers, you can calculate the previous and next page numbers based on the existing page params:
+
+```ts no-transpile
+const pokemonApi = createApi({
+  baseQuery,
+  endpoints: (build) => ({
+    getInfinitePokemon: build.infiniteQuery<Pokemon[], string, number>({
+      infiniteQueryOptions: {
+        initialPageParam: 0,
+        getNextPageParam: (lastPage, allPages, lastPageParam) =>
+          lastPageParam + 1,
+        getPreviousPageParam: (firstPage, allPages, firstPageParam) => {
+          return firstPageParam > 0 ? firstPageParam - 1 : undefined
+        },
+      },
+      query({ pageParam }) {
+        return `https://example.com/listItems?page=${pageParam}`
+      },
+    }),
+  }),
+})
+```
+
+### Pagination with Sizes
+
+For an API that accepts values like page number and page size and includes total pages in the response, you can calculate whether there are more pages remaining:
+
+```ts no-transpile
+type ProjectsResponse = {
+  projects: Project[]
+  serverTime: string
+  totalPages: number
+}
+
+type ProjectsInitialPageParam = {
+  page: number
+  size: number
+}
+
+const projectsApi = createApi({
+  baseQuery,
+  endpoints: (build) => ({
+    projectsPaginated: build.infiniteQuery<
+      ProjectsResponse,
+      void,
+      ProjectsInitialPageParam
+    >({
+      infiniteQueryOptions: {
+        initialPageParam: {
+          page: 0,
+          size: 20,
+        },
+        getNextPageParam: (
+          lastPage,
+          allPages,
+          lastPageParam,
+          allPageParams,
+        ) => {
+          const nextPage = lastPageParam.page + 1
+          const remainingPages = lastPage?.totalPages - nextPage
+
+          if (remainingPages <= 0) {
+            return undefined
+          }
+
+          return {
+            ...lastPageParam,
+            page: nextPage,
+          }
+        },
+        getPreviousPageParam: (
+          firstPage,
+          allPages,
+          firstPageParam,
+          allPageParams,
+        ) => {
+          const prevPage = firstPageParam.page - 1
+          if (prevPage < 0) return undefined
+
+          return {
+            ...firstPageParam,
+            page: prevPage,
+          }
+        },
+      },
+      query: ({ pageParam: { page, size } }) => {
+        return `https://example.com/api/projectsPaginated?page=${page}&size=${size}`
+      },
+    }),
+  }),
+})
+```
+
+### Bidirectional Cursors
+
+If the server sends back cursor values in the response, you can use those as the page params for the next and previous requests:
+
+```ts no-transpile
+type ProjectsCursorPaginated = {
+  projects: Project[]
+  serverTime: string
+  pageInfo: {
+    startCursor: number
+    endCursor: number
+    hasNextPage: boolean
+    hasPreviousPage: boolean
+  }
+}
+
+type ProjectsInitialPageParam = {
+  before?: number
+  around?: number
+  after?: number
+  limit: number
+}
+type QueryParamLimit = number
+
+const projectsApi = createApi({
+  baseQuery,
+  endpoints: (build) => ({
+    getProjectsBidirectionalCursor: build.infiniteQuery<
+      ProjectsCursorPaginated,
+      QueryParamLimit,
+      ProjectsInitialPageParam
+    >({
+      infiniteQueryOptions: {
+        initialPageParam: { limit: 10 },
+        getPreviousPageParam: (
+          firstPage,
+          allPages,
+          firstPageParam,
+          allPageParams,
+        ) => {
+          if (!firstPage.pageInfo.hasPreviousPage) {
+            return undefined
+          }
+          return {
+            before: firstPage.pageInfo.startCursor,
+            limit: firstPageParam.limit,
+          }
+        },
+        getNextPageParam: (
+          lastPage,
+          allPages,
+          lastPageParam,
+          allPageParams,
+        ) => {
+          if (!lastPage.pageInfo.hasNextPage) {
+            return undefined
+          }
+          return {
+            after: lastPage.pageInfo.endCursor,
+            limit: lastPageParam.limit,
+          }
+        },
+      },
+      query: ({ pageParam: { before, after, around, limit } }) => {
+        const params = new URLSearchParams()
+        params.append('limit', String(limit))
+        if (after != null) {
+          params.append('after', String(after))
+        } else if (before != null) {
+          params.append('before', String(before))
+        } else if (around != null) {
+          params.append('around', String(around))
+        }
+
+        return `https://example.com/api/projectsBidirectionalCursor?${params.toString()}`,
+      },
+    }),
+  }),
+})
+```
+
+### Limit and Offset
+
+If the API expects a combination of limit and offset values, those can also be calculated based on the responses and page params.
+
+```ts no-transpile
+export type ProjectsResponse = {
+  projects: Project[]
+  numFound: number
+  serverTime: string
+}
+
+type ProjectsInitialPageParam = {
+  offset: number
+  limit: number
+}
+
+const projectsApi = createApi({
+  baseQuery,
+  endpoints: (build) => ({
+    projectsLimitOffset: build.infiniteQuery<
+      ProjectsResponse,
+      void,
+      ProjectsInitialPageParam
+    >({
+      infiniteQueryOptions: {
+        initialPageParam: {
+          offset: 0,
+          limit: 20,
+        },
+        getNextPageParam: (
+          lastPage,
+          allPages,
+          lastPageParam,
+          allPageParams,
+        ) => {
+          const nextOffset = lastPageParam.offset + lastPageParam.limit
+          const remainingItems = lastPage?.numFound - nextOffset
+
+          if (remainingItems <= 0) {
+            return undefined
+          }
+
+          return {
+            ...lastPageParam,
+            offset: nextOffset,
+          }
+        },
+        getPreviousPageParam: (
+          firstPage,
+          allPages,
+          firstPageParam,
+          allPageParams,
+        ) => {
+          const prevOffset = firstPageParam.offset - firstPageParam.limit
+          if (prevOffset < 0) return undefined
+
+          return {
+            ...firstPageParam,
+            offset: firstPageParam.offset - firstPageParam.limit,
+          }
+        },
+      },
+      query: ({ pageParam: { offset, limit } }) => {
+        return `https://example.com/api/projectsLimitOffset?offset=${offset}&limit=${limit}`
+      },
+    }),
+  }),
+})
+```
