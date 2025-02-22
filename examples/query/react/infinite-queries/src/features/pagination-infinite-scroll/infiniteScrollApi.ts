@@ -17,8 +17,8 @@ interface ProjectsInitialPageParam {
 }
 
 export const apiWithInfiniteScroll = baseApi.injectEndpoints({
-  endpoints: builder => ({
-    projectsPaginated: builder.infiniteQuery<
+  endpoints: build => ({
+    projectsPaginated: build.infiniteQuery<
       ProjectsResponse,
       void,
       ProjectsInitialPageParam

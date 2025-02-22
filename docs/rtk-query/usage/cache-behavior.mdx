@@ -100,8 +100,8 @@ export const api = createApi({
   // global configuration for the api
   keepUnusedDataFor: 30,
   // highlight-end
-  endpoints: (builder) => ({
-    getPosts: builder.query<Post[], number>({
+  endpoints: (build) => ({
+    getPosts: build.query<Post[], number>({
       query: () => `posts`,
       // highlight-start
       // configuration for an individual endpoint, overriding the api setting
@@ -189,8 +189,8 @@ export const api = createApi({
   // global configuration for the api
   refetchOnMountOrArgChange: 30,
   // highlight-end
-  endpoints: (builder) => ({
-    getPosts: builder.query<Post[], number>({
+  endpoints: (build) => ({
+    getPosts: build.query<Post[], number>({
       query: () => `posts`,
     }),
   }),
@@ -241,8 +241,8 @@ export const api = createApi({
   // global configuration for the api
   refetchOnFocus: true,
   // highlight-end
-  endpoints: (builder) => ({
-    getPosts: builder.query<Post[], number>({
+  endpoints: (build) => ({
+    getPosts: build.query<Post[], number>({
       query: () => `posts`,
     }),
   }),
@@ -266,8 +266,8 @@ export const api = createApi({
   // global configuration for the api
   refetchOnFocus: true,
   // highlight-end
-  endpoints: (builder) => ({
-    getPosts: builder.query<Post[], number>({
+  endpoints: (build) => ({
+    getPosts: build.query<Post[], number>({
       query: () => `posts`,
     }),
   }),
@@ -320,8 +320,8 @@ export const api = createApi({
   // global configuration for the api
   refetchOnReconnect: true,
   // highlight-end
-  endpoints: (builder) => ({
-    getPosts: builder.query<Post[], number>({
+  endpoints: (build) => ({
+    getPosts: build.query<Post[], number>({
       query: () => `posts`,
     }),
   }),
@@ -345,8 +345,8 @@ export const api = createApi({
   // global configuration for the api
   refetchOnReconnect: true,
   // highlight-end
-  endpoints: (builder) => ({
-    getPosts: builder.query<Post[], number>({
+  endpoints: (build) => ({
+    getPosts: build.query<Post[], number>({
       query: () => `posts`,
     }),
   }),

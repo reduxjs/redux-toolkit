@@ -446,8 +446,8 @@ export const api = createApi({
     baseUrl: 'https://graphqlzero.almansi.me/api',
   }),
   // highlight-end
-  endpoints: (builder) => ({
-    getPosts: builder.query({
+  endpoints: (build) => ({
+    getPosts: build.query({
       query: () => ({
         body: gql`
           query {
@@ -462,7 +462,7 @@ export const api = createApi({
       }),
       transformResponse: (response) => response.posts.data,
     }),
-    getPost: builder.query({
+    getPost: build.query({
       query: (id) => ({
         body: gql`
         query {
@@ -823,8 +823,8 @@ const dynamicBaseQuery: BaseQueryFn<
 
 export const api = createApi({
   baseQuery: dynamicBaseQuery,
-  endpoints: (builder) => ({
-    getPosts: builder.query<Post[], void>({
+  endpoints: (build) => ({
+    getPosts: build.query<Post[], void>({
       query: () => 'posts',
     }),
   }),
@@ -862,8 +862,8 @@ export const api = createApi({
   baseQuery: graphqlBaseQuery({
     baseUrl: '/graphql',
   }),
-  endpoints: (builder) => ({
-    getPosts: builder.query<Post[], void>({
+  endpoints: (build) => ({
+    getPosts: build.query<Post[], void>({
       query: () => ({
         body: gql`
           query {
@@ -959,8 +959,8 @@ import { supabase } from './supabaseApi'
 export const supabaseApi = createApi({
   reducerPath: 'supabaseApi',
   baseQuery: fakeBaseQuery(),
-  endpoints: (builder) => ({
-    getBlogs: builder.query({
+  endpoints: (build) => ({
+    getBlogs: build.query({
       queryFn: async () => {
         // Supabase conveniently already has `data` and `error` fields
         const { data, error } = await supabase.from('blogs').select()

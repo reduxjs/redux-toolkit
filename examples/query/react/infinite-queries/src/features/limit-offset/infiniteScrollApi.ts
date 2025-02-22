@@ -11,14 +11,14 @@ export type ProjectsResponse = {
   serverTime: string
 }
 
-interface ProjectsInitialPageParam {
+type ProjectsInitialPageParam = {
   offset: number
   limit: number
 }
 
 export const apiWithInfiniteScroll = baseApi.injectEndpoints({
-  endpoints: builder => ({
-    projectsLimitOffset: builder.infiniteQuery<
+  endpoints: build => ({
+    projectsLimitOffset: build.infiniteQuery<
       ProjectsResponse,
       void,
       ProjectsInitialPageParam
@@ -62,10 +62,7 @@ export const apiWithInfiniteScroll = baseApi.injectEndpoints({
         },
       },
       query: ({ pageParam: { offset, limit } }) => {
-        return {
-          url: `https://example.com/api/projectsLimitOffset?offset=${offset}&limit=${limit}`,
-          method: "GET",
-        }
+        return `https://example.com/api/projectsLimitOffset?offset=${offset}&limit=${limit}`
       },
     }),
   }),

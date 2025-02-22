@@ -826,8 +826,8 @@ describe('Infinite queries', () => {
 
     const pokemonApi = createApi({
       baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
-      endpoints: (builder) => ({
-        getInfinitePokemonWithLifecycles: builder.infiniteQuery<
+      endpoints: (build) => ({
+        getInfinitePokemonWithLifecycles: build.infiniteQuery<
           Pokemon[],
           string,
           number
@@ -904,8 +904,8 @@ describe('Infinite queries', () => {
     type PokemonPage = { items: Pokemon[]; page: number }
     const pokemonApi = createApi({
       baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
-      endpoints: (builder) => ({
-        getInfinitePokemonWithTransform: builder.infiniteQuery<
+      endpoints: (build) => ({
+        getInfinitePokemonWithTransform: build.infiniteQuery<
           PokemonPage,
           string,
           number

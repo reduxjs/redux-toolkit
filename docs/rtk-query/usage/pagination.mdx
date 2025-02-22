@@ -32,8 +32,8 @@ interface ListResponse<T> {
 
 export const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
-  endpoints: (builder) => ({
-    listPosts: builder.query<ListResponse<Post>, number | void>({
+  endpoints: (build) => ({
+    listPosts: build.query<ListResponse<Post>, number | void>({
       query: (page = 1) => `posts?page=${page}`,
     }),
   }),
