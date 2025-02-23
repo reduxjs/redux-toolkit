@@ -633,11 +633,18 @@ export function buildThunks<
           getState(),
           arg.queryCacheKey,
         )?.data as InfiniteData<unknown, unknown> | undefined
-        // Don't want to use `isForcedQuery` here, because that
-        // includes `refetchOnMountOrArgChange`.
+
+        // When the arg changes or the user forces a refetch,
+        // we don't include the `direction` flag. This lets us distinguish
+        // between actually refetching with a forced query, vs just fetching
+        // the next page.
+        const isForcedQueryNeedingRefetch = // arg.forceRefetch
+          isForcedQuery(arg, getState()) &&
+          !(arg as InfiniteQueryThunkArg<any>).direction
         const existingData = (
-          arg.forceRefetch || !cachedData ? blankData : cachedData
+          isForcedQueryNeedingRefetch || !cachedData ? blankData : cachedData
         ) as InfiniteData<unknown, unknown>
+
 
         // If the thunk specified a direction and we do have at least one page,
         // fetch the next or previous page
