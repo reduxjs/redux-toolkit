@@ -96,8 +96,6 @@ type StartQueryActionCreator<
   options?: StartQueryActionCreatorOptions,
 ) => ThunkAction<QueryActionCreatorResult<D>, any, any, UnknownAction>
 
-// placeholder type which
-// may attempt to derive the list of args to query in pagination
 export type StartInfiniteQueryActionCreator<
   D extends InfiniteQueryDefinition<any, any, any, any, any>,
 > = (

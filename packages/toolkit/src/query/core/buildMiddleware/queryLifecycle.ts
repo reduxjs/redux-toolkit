@@ -121,7 +121,6 @@ export type QueryLifecycleQueryExtraOptions<
   ): Promise<void> | void
 }
 
-// temporarily cloned QueryOptions again to just get the definition to build for now
 export type QueryLifecycleInfiniteQueryExtraOptions<
   ResultType,
   QueryArg,

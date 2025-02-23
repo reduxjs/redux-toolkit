@@ -16,7 +16,7 @@ type ProjectsCursorPaginated = {
   }
 }
 
-interface ProjectsInitialPageParam {
+type ProjectsInitialPageParam = {
   before?: number
   around?: number
   after?: number
@@ -25,8 +25,8 @@ interface ProjectsInitialPageParam {
 type QueryParamLimit = number
 
 export const apiWithInfiniteScroll = baseApi.injectEndpoints({
-  endpoints: builder => ({
-    getProjectsBidirectionalCursor: builder.infiniteQuery<
+  endpoints: build => ({
+    getProjectsBidirectionalCursor: build.infiniteQuery<
       ProjectsCursorPaginated,
       QueryParamLimit,
       ProjectsInitialPageParam

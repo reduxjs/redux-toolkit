@@ -1913,13 +1913,10 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
       return useMemo(() => {
         const fetchNextPage = () => {
-          // TODO the hasNextPage bailout breaks things
-          //if (!hasNextPage) return
           return trigger(arg, 'forward')
         }
 
         const fetchPreviousPage = () => {
-          //if (!hasPreviousPage) return
           return trigger(arg, 'backward')
         }
 
