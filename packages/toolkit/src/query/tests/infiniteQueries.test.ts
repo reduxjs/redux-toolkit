@@ -642,8 +642,6 @@ describe('Infinite queries', () => {
       }),
     )
 
-    console.log('Awaiting promises 1 and 2')
-
     const entry1 = await promise1
     const entry2 = await promise2
 

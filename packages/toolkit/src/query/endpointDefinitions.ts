@@ -219,7 +219,6 @@ export type BaseEndpointDefinition<
 export enum DefinitionType {
   query = 'query',
   mutation = 'mutation',
-  // hijacking query temporarily to get the definition to build
   infinitequery = 'infinitequery',
 }
 
@@ -545,7 +544,6 @@ export type QueryDefinition<
 > = BaseEndpointDefinition<QueryArg, BaseQuery, ResultType> &
   QueryExtraOptions<TagTypes, ResultType, QueryArg, BaseQuery, ReducerPath>
 
-// cloning Query Endpoint Definition with an extra option to begin with
 export interface InfiniteQueryTypes<
   QueryArg,
   PageParam,
@@ -613,6 +611,7 @@ export interface InfiniteQueryExtraOptions<
    * ensure the infinite query can properly fetch the next page of data.
    * `initialPageParam` may be specified when using the
    * endpoint, to override the default value.
+   * `maxPages` and `getPreviousPageParam` are both optional.
    * 
    * @example
    * 
@@ -625,30 +624,30 @@ export interface InfiniteQueryExtraOptions<
    *   name: string
    * }
    * 
-    const pokemonApi = createApi({
-      baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
-      endpoints: (build) => ({
-        getInfinitePokemonWithMax: build.infiniteQuery<Pokemon[], string, number>({
-          infiniteQueryOptions: {
-            initialPageParam: 0,
-            maxPages: 3,
-            getNextPageParam: (lastPage, allPages, lastPageParam, allPageParams) =>
-              lastPageParam + 1,
-            getPreviousPageParam: (
-              firstPage,
-              allPages,
-              firstPageParam,
-              allPageParams,
-            ) => {
-              return firstPageParam > 0 ? firstPageParam - 1 : undefined
-            },
-          },
-          query({pageParam}) {
-            return `https://example.com/listItems?page=${pageParam}`
-          },
-        }),
-      }),
-    })
+   * const pokemonApi = createApi({
+   *   baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
+   *   endpoints: (build) => ({
+   *     getInfinitePokemonWithMax: build.infiniteQuery<Pokemon[], string, number>({
+   *       infiniteQueryOptions: {
+   *         initialPageParam: 0,
+   *         maxPages: 3,
+   *         getNextPageParam: (lastPage, allPages, lastPageParam, allPageParams) =>
+   *           lastPageParam + 1,
+   *         getPreviousPageParam: (
+   *           firstPage,
+   *           allPages,
+   *           firstPageParam,
+   *           allPageParams,
+   *         ) => {
+   *           return firstPageParam > 0 ? firstPageParam - 1 : undefined
+   *         },
+   *       },
+   *       query({pageParam}) {
+   *         return `https://example.com/listItems?page=${pageParam}`
+   *       },
+   *     }),
+   *   }),
+   * })
    
    * ```
    */
@@ -736,7 +735,7 @@ export type InfiniteQueryDefinition<
   ResultType,
   ReducerPath extends string = string,
 > =
-  // Intentionally use `PageParam` as the `QueryArg` type
+  // Infinite query endpoints receive `{queryArg, pageParam}`
   BaseEndpointDefinition<
     InfiniteQueryCombinedArg<QueryArg, PageParam>,
     BaseQuery,

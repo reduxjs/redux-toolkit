@@ -43,21 +43,21 @@ export type InfiniteQueryConfigOptions<DataType, PageParam> = {
    */
   initialPageParam: PageParam
   /**
-   * If specified, only keep this many pages in cache at once.
-   * If additional pages are fetched, older pages in the other
-   * direction will be dropped from the cache.
+   * This function is required to automatically get the next cursor for infinite queries.
+   * The result will also be used to determine the value of `hasNextPage`.
    */
-  maxPages?: number
+  getNextPageParam: PageParamFunction<DataType, PageParam>
   /**
    * This function can be set to automatically get the previous cursor for infinite queries.
    * The result will also be used to determine the value of `hasPreviousPage`.
    */
   getPreviousPageParam?: PageParamFunction<DataType, PageParam>
   /**
-   * This function is required to automatically get the next cursor for infinite queries.
-   * The result will also be used to determine the value of `hasNextPage`.
+   * If specified, only keep this many pages in cache at once.
+   * If additional pages are fetched, older pages in the other
+   * direction will be dropped from the cache.
    */
-  getNextPageParam: PageParamFunction<DataType, PageParam>
+  maxPages?: number
 }
 
 export interface InfiniteData<DataType, PageParam> {

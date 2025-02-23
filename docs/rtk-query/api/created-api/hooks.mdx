@@ -11,15 +11,15 @@ hide_title: true
 
 ## Hooks Overview
 
-The core RTK Query `createApi` method is UI-agnostic, in the same way that the Redux core library and Redux Toolkit are UI-agnostic. They are all plain JS logic that can be used anywhere.
+The core RTK Query `createApi` method is UI-agnostic, in the same way that the Redux core library and Redux Toolkit are UI-agnostic. They are all plain JS logic that can be used anywhere. So, if you import `createApi` from `'@reduxjs/toolkit/query'`, it does not have any specific UI integrations included.
 
-However, RTK Query also provides the ability to auto-generate React hooks for each of your endpoints. Since this specifically depends on React itself, RTK Query provides an alternate entry point that exposes a customized version of `createApi` that includes that functionality:
+However, RTK Query also provides the ability to auto-generate React hooks for each of your endpoints. Since this specifically depends on React itself, RTK Query provides an additional entry point that exposes a customized version of `createApi` that includes that functionality:
 
 ```ts no-transpile
 import { createApi } from '@reduxjs/toolkit/query/react'
 ```
 
-If you have used the React-specific version of `createApi`, the generated `api` slice structure will also contain a set of React hooks. The primary endpoint hooks are available as `api.endpoints[endpointName].useQuery` or `api.endpoints[endpointName].useMutation`, matching how you defined that endpoint.
+If you have used the React-specific version of `createApi`, the generated `api` slice structure will also contain a set of React hooks. The primary endpoint hooks are available as `api.endpoints[endpointName].useQuery`, `api.endpoints[endpointName].useMutation`, and `api.endpoints[endpointName].useInfiniteQuery`, matching how you defined that endpoint.
 
 ### Generated Hook Names
 
@@ -37,7 +37,7 @@ const { data } = api.useGetPostsQuery()
 const [updatePost, { data }] = api.useUpdatePostMutation()
 ```
 
-The general format is `use(Endpointname)(Query|Mutation)` - `use` is prefixed, the first letter of your endpoint name is capitalized, then `Query` or `Mutation` is appended depending on the type.
+The general format is `use(Endpointname)(Query|Mutation|InfiniteQuery)` - `use` is prefixed, the first letter of your endpoint name is capitalized, then `Query` or `Mutation` or `InfiniteQuery` is appended depending on the type.
 
 ### Available Hooks
 
@@ -45,7 +45,7 @@ RTK Query provides additional hooks for more advanced use-cases, although not al
 
 Most of the hooks are generated on a per-endpoint basis.
 
-The full list of hooks generated in the React-specific version of `createApi` is as follows:
+The full list of hooks generated in the React-specific version of `createApi` is:
 
 - Endpoint-specific, generated the `api` object with a unique name and on the endpoint object with a generic name:
   - [`useQuery`](#usequery) (all standard queries)
@@ -54,10 +54,10 @@ The full list of hooks generated in the React-specific version of `createApi` is
   - [`useLazyQuery`](#uselazyquery) (all standard queries)
 - Endpoint-specific, only generated on the endpoint object with a generic name:
   - [`useQueryState`](#usequerystate)
-  - [`useQuerySubscription](#usequerysubscription)
-  - [`useLazyQuerySubscription](#uselazyquerysubscription)
+  - [`useQuerySubscription`](#usequerysubscription)
+  - [`useLazyQuerySubscription`](#uselazyquerysubscription)
   - [`useInfiniteQueryState`](#useinfinitequerystate)
-  - [`useInfiniteQuerySubscription](#useinfinitequerysubscription)
+  - [`useInfiniteQuerySubscription`](#useinfinitequerysubscription)
 - Endpoint-agnostic, generated on the `api` object:
   - [`usePrefetch`](#useprefetch)
 
