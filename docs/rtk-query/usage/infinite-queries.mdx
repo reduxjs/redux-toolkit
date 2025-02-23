@@ -187,6 +187,14 @@ Infinite query hooks return [the same result object as normal query hooks](./que
 
 In most cases, you will probably read `data` and either `isLoading` or `isFetching` in order to render your UI. You will also want to use the `fetchNext/PreviousPage` methods to trigger fetching additional pages.
 
+### Displaying Infinite Query Data
+
+For infinite query hooks, the `data` field returned by the hook will be the `{pages, pageParams}` structure containing all fetched pages, instead of just a single response value.
+
+This gives you control over how the data is used for display. You can flatten all the page contents into a single array for infinite scrolling, use the individual page results for pagination, sort or reverse the entries, or any other logic you need for rendering the UI with this data.
+
+As with any other Redux data, you should avoid mutating these arrays (including calling `array.sort/reverse()` directly on the existing references).
+
 ### Infinite Query Hook Usage Example
 
 Here is an example of a typical infinite query endpoint definition, and hook usage in a component:
@@ -248,6 +256,12 @@ Similarly, this example relies on manual user clicks on a "Fetch More" button to
 
 The endpoint itself only defines `getNextPageParam`, so this example doesn't support fetching backwards, but that can be provided in cases where backwards fetching makes sense. The page param here is a simple incremented number, but the page param
 
+## Refetching
+
+When an infinite query endpoint is refetched (due to tag invalidation, polling, arg change configuration, or manual refetching), RTK Query will try to sequentially refetch all pages currently in the cache. This ensures that the client is always working with the latest data, and avoids stale cursors or duplicate records.
+
+If the cache entry is ever removed and then re-added, it will start with only fetching the initial page.
+
 ## Limiting Cache Entry Size
 
 All fetched pages for a given query arg are stored in the `pages` array in that cache entry. By default, there is no limit to the number of stored pages - if you call `fetchNextPage()` 1000 times, `data.pages` will have 1000 pages stored.
@@ -259,6 +273,8 @@ If you need to limit the number of stored pages (for reasons like memory usage),
 The `getNext/PreviousPageParam` callbacks offer flexibility in how you interact with the backend API.
 
 Here are some examples of common infinite query patterns to show how you might approach different use cases.
+
+For additional examples, and to see some of these patterns in action, see [the RTK Query "infinite queries" example app in the repo](https://github.com/reduxjs/redux-toolkit/tree/master/examples/query/react/infinite-queries).
 
 ### Basic Pagination
 
