@@ -43,6 +43,7 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
   queryThunk,
   context,
   internalState,
+  selectors: { selectQueryEntry, selectConfig },
 }) => {
   const { removeQueryResult, unsubscribeQueryResult, cacheEntriesUpserted } =
     api.internalActions
@@ -66,8 +67,9 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
     mwApi,
     internalState,
   ) => {
+    const state = mwApi.getState()
+    const config = selectConfig(state)
     if (canTriggerUnsubscribe(action)) {
-      const state = mwApi.getState()[reducerPath]
       let queryCacheKeys: QueryCacheKey[]
 
       if (cacheEntriesUpserted.match(action)) {
@@ -81,14 +83,7 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
         queryCacheKeys = [queryCacheKey]
       }
 
-      for (const queryCacheKey of queryCacheKeys) {
-        handleUnsubscribe(
-          queryCacheKey,
-          state.queries[queryCacheKey]?.endpointName,
-          mwApi,
-          state.config,
-        )
-      }
+      handleUnsubscribeMany(queryCacheKeys, mwApi, config)
     }
 
     if (api.util.resetApiState.match(action)) {
@@ -99,19 +94,27 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
     }
 
     if (context.hasRehydrationInfo(action)) {
-      const state = mwApi.getState()[reducerPath]
       const { queries } = context.extractRehydrationInfo(action)!
-      for (const [queryCacheKey, queryState] of Object.entries(queries)) {
-        // Gotcha:
-        // If rehydrating before the endpoint has been injected,the global `keepUnusedDataFor`
-        // will be used instead of the endpoint-specific one.
-        handleUnsubscribe(
-          queryCacheKey as QueryCacheKey,
-          queryState?.endpointName,
-          mwApi,
-          state.config,
-        )
-      }
+      // Gotcha:
+      // If rehydrating before the endpoint has been injected,the global `keepUnusedDataFor`
+      // will be used instead of the endpoint-specific one.
+      handleUnsubscribeMany(
+        Object.keys(queries) as QueryCacheKey[],
+        mwApi,
+        config,
+      )
+    }
+  }
+
+  function handleUnsubscribeMany(
+    cacheKeys: QueryCacheKey[],
+    api: SubMiddlewareApi,
+    config: ConfigState<string>,
+  ) {
+    const state = api.getState()
+    for (const queryCacheKey of cacheKeys) {
+      const entry = selectQueryEntry(state, queryCacheKey)
+      handleUnsubscribe(queryCacheKey, entry?.endpointName, api, config)
     }
   }
 

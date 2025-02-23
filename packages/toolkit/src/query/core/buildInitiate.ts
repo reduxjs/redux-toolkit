@@ -1,31 +1,58 @@
 import type {
+  AsyncThunkAction,
+  SafePromise,
   SerializedError,
   ThunkAction,
   UnknownAction,
 } from '@reduxjs/toolkit'
 import type { Dispatch } from 'redux'
-import type { SafePromise } from '../../tsHelpers'
 import { asSafePromise } from '../../tsHelpers'
 import type { Api, ApiContext } from '../apiTypes'
 import type { BaseQueryError, QueryReturnValue } from '../baseQueryTypes'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
-import type {
-  EndpointDefinitions,
-  MutationDefinition,
-  QueryArgFrom,
-  QueryDefinition,
-  ResultTypeFrom,
+import {
+  isQueryDefinition,
+  type EndpointDefinition,
+  type EndpointDefinitions,
+  type InfiniteQueryArgFrom,
+  type InfiniteQueryDefinition,
+  type MutationDefinition,
+  type PageParamFrom,
+  type QueryArgFrom,
+  type QueryDefinition,
+  type ResultTypeFrom,
 } from '../endpointDefinitions'
 import { countObjectKeys, getOrInsert, isNotNullish } from '../utils'
-import type { SubscriptionOptions } from './apiState'
-import type { QueryResultSelectorResult } from './buildSelectors'
-import type { MutationThunk, QueryThunk, QueryThunkArg } from './buildThunks'
+import type {
+  InfiniteData,
+  InfiniteQueryConfigOptions,
+  InfiniteQueryDirection,
+  SubscriptionOptions,
+} from './apiState'
+import type {
+  InfiniteQueryResultSelectorResult,
+  QueryResultSelectorResult,
+} from './buildSelectors'
+import type {
+  InfiniteQueryThunk,
+  InfiniteQueryThunkArg,
+  MutationThunk,
+  QueryThunk,
+  QueryThunkArg,
+  ThunkApiMetaConfig,
+} from './buildThunks'
 import type { ApiEndpointQuery } from './module'
 
 export type BuildInitiateApiEndpointQuery<
   Definition extends QueryDefinition<any, any, any, any, any>,
 > = {
   initiate: StartQueryActionCreator<Definition>
+}
+
+export type BuildInitiateApiEndpointInfiniteQuery<
+  Definition extends InfiniteQueryDefinition<any, any, any, any, any>,
+> = {
+  initiate: StartInfiniteQueryActionCreator<Definition>
 }
 
 export type BuildInitiateApiEndpointMutation<
@@ -45,6 +72,23 @@ export type StartQueryActionCreatorOptions = {
   [forceQueryFnSymbol]?: () => QueryReturnValue
 }
 
+export type StartInfiniteQueryActionCreatorOptions<
+  D extends InfiniteQueryDefinition<any, any, any, any, any>,
+> = StartQueryActionCreatorOptions & {
+  direction?: InfiniteQueryDirection
+  param?: unknown
+} & Partial<
+    Pick<
+      Partial<InfiniteQueryConfigOptions<ResultTypeFrom<D>, PageParamFrom<D>>>,
+      'initialPageParam'
+    >
+  >
+
+type AnyQueryActionCreator<D extends EndpointDefinition<any, any, any, any>> = (
+  arg: any,
+  options?: StartQueryActionCreatorOptions,
+) => ThunkAction<AnyActionCreatorResult, any, any, UnknownAction>
+
 type StartQueryActionCreator<
   D extends QueryDefinition<any, any, any, any, any>,
 > = (
@@ -52,19 +96,46 @@ type StartQueryActionCreator<
   options?: StartQueryActionCreatorOptions,
 ) => ThunkAction<QueryActionCreatorResult<D>, any, any, UnknownAction>
 
-export type QueryActionCreatorResult<
-  D extends QueryDefinition<any, any, any, any>,
-> = SafePromise<QueryResultSelectorResult<D>> & {
-  arg: QueryArgFrom<D>
+export type StartInfiniteQueryActionCreator<
+  D extends InfiniteQueryDefinition<any, any, any, any, any>,
+> = (
+  arg: InfiniteQueryArgFrom<D>,
+  options?: StartInfiniteQueryActionCreatorOptions<D>,
+) => ThunkAction<InfiniteQueryActionCreatorResult<D>, any, any, UnknownAction>
+
+type QueryActionCreatorFields = {
   requestId: string
   subscriptionOptions: SubscriptionOptions | undefined
   abort(): void
-  unwrap(): Promise<ResultTypeFrom<D>>
   unsubscribe(): void
-  refetch(): QueryActionCreatorResult<D>
   updateSubscriptionOptions(options: SubscriptionOptions): void
   queryCacheKey: string
 }
+
+type AnyActionCreatorResult = SafePromise<any> &
+  QueryActionCreatorFields & {
+    arg: any
+    unwrap(): Promise<any>
+    refetch(): AnyActionCreatorResult
+  }
+
+export type QueryActionCreatorResult<
+  D extends QueryDefinition<any, any, any, any>,
+> = SafePromise<QueryResultSelectorResult<D>> &
+  QueryActionCreatorFields & {
+    arg: QueryArgFrom<D>
+    unwrap(): Promise<ResultTypeFrom<D>>
+    refetch(): QueryActionCreatorResult<D>
+  }
+
+export type InfiniteQueryActionCreatorResult<
+  D extends InfiniteQueryDefinition<any, any, any, any, any>,
+> = SafePromise<InfiniteQueryResultSelectorResult<D>> &
+  QueryActionCreatorFields & {
+    arg: InfiniteQueryArgFrom<D>
+    unwrap(): Promise<InfiniteData<ResultTypeFrom<D>, PageParamFrom<D>>>
+    refetch(): InfiniteQueryActionCreatorResult<D>
+  }
 
 type StartMutationActionCreator<
   D extends MutationDefinition<any, any, any, any>,
@@ -189,19 +260,26 @@ export type MutationActionCreatorResult<
 export function buildInitiate({
   serializeQueryArgs,
   queryThunk,
+  infiniteQueryThunk,
   mutationThunk,
   api,
   context,
 }: {
   serializeQueryArgs: InternalSerializeQueryArgs
   queryThunk: QueryThunk
+  infiniteQueryThunk: InfiniteQueryThunk<any>
   mutationThunk: MutationThunk
   api: Api<any, EndpointDefinitions, any, any>
   context: ApiContext<EndpointDefinitions>
 }) {
   const runningQueries: Map<
     Dispatch,
-    Record<string, QueryActionCreatorResult<any> | undefined>
+    Record<
+      string,
+      | QueryActionCreatorResult<any>
+      | InfiniteQueryActionCreatorResult<any>
+      | undefined
+    >
   > = new Map()
   const runningMutations: Map<
     Dispatch,
@@ -215,6 +293,7 @@ export function buildInitiate({
   } = api.internalActions
   return {
     buildInitiateQuery,
+    buildInitiateInfiniteQuery,
     buildInitiateMutation,
     getRunningQueryThunk,
     getRunningMutationThunk,
@@ -232,6 +311,7 @@ export function buildInitiate({
       })
       return runningQueries.get(dispatch)?.[queryCacheKey] as
         | QueryActionCreatorResult<never>
+        | InfiniteQueryActionCreatorResult<never>
         | undefined
     }
   }
@@ -285,11 +365,13 @@ You must add the middleware for RTK-Query to function correctly!`,
     }
   }
 
-  function buildInitiateQuery(
+  function buildInitiateAnyQuery<T extends 'query' | 'infiniteQuery'>(
     endpointName: string,
-    endpointDefinition: QueryDefinition<any, any, any, any>,
+    endpointDefinition:
+      | QueryDefinition<any, any, any, any>
+      | InfiniteQueryDefinition<any, any, any, any, any>,
   ) {
-    const queryAction: StartQueryActionCreator<any> =
+    const queryAction: AnyQueryActionCreator<any> =
       (
         arg,
         {
@@ -307,9 +389,11 @@ You must add the middleware for RTK-Query to function correctly!`,
           endpointName,
         })
 
-        const thunk = queryThunk({
+        let thunk: AsyncThunkAction<unknown, QueryThunkArg, ThunkApiMetaConfig>
+
+        const commonThunkArgs = {
           ...rest,
-          type: 'query',
+          type: 'query' as const,
           subscribe,
           forceRefetch: forceRefetch,
           subscriptionOptions,
@@ -317,7 +401,24 @@ You must add the middleware for RTK-Query to function correctly!`,
           originalArgs: arg,
           queryCacheKey,
           [forceQueryFnSymbol]: forceQueryFn,
-        })
+        }
+
+        if (isQueryDefinition(endpointDefinition)) {
+          thunk = queryThunk(commonThunkArgs)
+        } else {
+          const { direction, initialPageParam } = rest as Pick<
+            InfiniteQueryThunkArg<any>,
+            'direction' | 'initialPageParam'
+          >
+          thunk = infiniteQueryThunk({
+            ...(commonThunkArgs as InfiniteQueryThunkArg<any>),
+            // Supply these even if undefined. This helps with a field existence
+            // check over in `buildSlice.ts`
+            direction,
+            initialPageParam,
+          })
+        }
+
         const selector = (
           api.endpoints[endpointName] as ApiEndpointQuery<any, any>
         ).select(arg)
@@ -334,7 +435,7 @@ You must add the middleware for RTK-Query to function correctly!`,
         const runningQuery = runningQueries.get(dispatch)?.[queryCacheKey]
         const selectFromState = () => selector(getState())
 
-        const statePromise: QueryActionCreatorResult<any> = Object.assign(
+        const statePromise: AnyActionCreatorResult = Object.assign(
           (forceQueryFn
             ? // a query has been forced (upsertQueryData)
               // -> we want to resolve it once data has been written with the data that will be written
@@ -405,6 +506,28 @@ You must add the middleware for RTK-Query to function correctly!`,
         return statePromise
       }
     return queryAction
+  }
+
+  function buildInitiateQuery(
+    endpointName: string,
+    endpointDefinition: QueryDefinition<any, any, any, any>,
+  ) {
+    const queryAction: StartQueryActionCreator<any> = buildInitiateAnyQuery(
+      endpointName,
+      endpointDefinition,
+    )
+
+    return queryAction
+  }
+
+  function buildInitiateInfiniteQuery(
+    endpointName: string,
+    endpointDefinition: InfiniteQueryDefinition<any, any, any, any, any>,
+  ) {
+    const infiniteQueryAction: StartInfiniteQueryActionCreator<any> =
+      buildInitiateAnyQuery(endpointName, endpointDefinition)
+
+    return infiniteQueryAction
   }
 
   function buildInitiateMutation(

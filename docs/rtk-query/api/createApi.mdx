@@ -39,8 +39,8 @@ import type { Pokemon } from './types'
 export const pokemonApi = createApi({
   reducerPath: 'pokemonApi',
   baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
-  endpoints: (builder) => ({
-    getPokemonByName: builder.query<Pokemon, string>({
+  endpoints: (build) => ({
+    getPokemonByName: build.query<Pokemon, string>({
       query: (name) => `pokemon/${name}`,
     }),
   }),
@@ -148,6 +148,10 @@ See [Endpoint Definition Parameters](#endpoint-definition-parameters) for detail
 
 #### Query endpoint definition
 
+Query endpoints (defined with `build.query()`) are used to cache data fetched from the server.
+
+You must specify either a `query` field (which will use the API's `baseQuery` to make a request), or a `queryFn` function with your own async logic. All other fields are optional.
+
 ```ts title="Query endpoint definition" no-transpile
 export type QueryDefinition<
   QueryArg,
@@ -220,7 +224,79 @@ export type QueryDefinition<
 }
 ```
 
+#### Infinite Query endpoint definition
+
+Infinite query endpoints (defined with `build.infiniteQuery()`) are used to cache multi-page data sets from the server. They have all the same callbacks and options as standard query endpoints, but also require an additional [`infiniteQueryOptions`](#infinitequeryoptions) field to specify how to calculate the unique parameters to fetch each page.
+
+For infinite query endpoints, there is a separation between the "query arg" used for the cache key, and the "page param" used to fetch a specific page. For example, a Pokemon API endpoint might have a string query arg like `"fire"` , but use a page number as the param to determine which page to fetch out of the results. The `query` and `queryFn` methods will receive a combined `{queryArg, pageParam}` object as the argument, rather than just the `queryArg` by itself.
+
+```ts title="Infinite Query endpoint definition" no-transpile
+export type PageParamFunction<DataType, PageParam> = (
+  firstPage: DataType,
+  allPages: Array<DataType>,
+  firstPageParam: PageParam,
+  allPageParams: Array<PageParam>,
+) => PageParam | undefined | null
+
+type InfiniteQueryCombinedArg<QueryArg, PageParam> = {
+  queryArg: QueryArg
+  pageParam: PageParam
+}
+
+export type InfiniteQueryDefinition<
+  QueryArg,
+  PageParam,
+  BaseQuery extends BaseQueryFn,
+  TagTypes extends string,
+  ResultType,
+  ReducerPath extends string = string,
+> =
+  // Infinite queries have all the same options as query endpoints,
+  // but store the `{pages, pageParams}` structure, and receive an object
+  // with both `{queryArg, pageParam}` as the arg for `query` and `queryFn`.
+  QueryDefinition<
+    InfiniteQueryCombinedArg<QueryArg, PageParam>,
+    BaseQuery,
+    TagTypes,
+    InfiniteData<ResultType>
+  > & {
+    /**
+     * Required options to configure the infinite query behavior.
+     * `initialPageParam` and `getNextPageParam` are required, to
+     * ensure the infinite query can properly fetch the next page of data.
+     * `initialPageparam` may be specified when using the
+     * endpoint, to override the default value.
+     */
+    infiniteQueryOptions: {
+      /**
+       * The initial page parameter to use for the first page fetch.
+       */
+      initialPageParam: PageParam
+      /**
+       * This function is required to automatically get the next cursor for infinite queries.
+       * The result will also be used to determine the value of `hasNextPage`.
+       */
+      getNextPageParam: PageParamFunction<DataType, PageParam>
+      /**
+       * This function can be set to automatically get the previous cursor for infinite queries.
+       * The result will also be used to determine the value of `hasPreviousPage`.
+       */
+      getPreviousPageParam?: PageParamFunction<DataType, PageParam>
+      /**
+       * If specified, only keep this many pages in cache at once.
+       * If additional pages are fetched, older pages in the other
+       * direction will be dropped from the cache.
+       */
+      maxPages?: number
+    }
+  }
+```
+
 #### Mutation endpoint definition
+
+Mutation endpoints (defined with `build.mutation()`) are used to send updates to the server, and force invalidation and refetching of query endpoints.
+
+As with queries, you must specify either the `query` option or the `queryFn` async method.
 
 ```ts title="Mutation endpoint definition" no-transpile
 export type MutationDefinition<
@@ -446,7 +522,7 @@ export interface BaseQueryApi {
 }
 ```
 
-#### queryFn function arguments
+#### `queryFn` function arguments
 
 - `args` - The argument provided when the query itself is called
 - `api` - The `BaseQueryApi` object, containing `signal`, `dispatch` and `getState` properties
@@ -457,6 +533,21 @@ export interface BaseQueryApi {
 - `baseQuery` - The `baseQuery` function provided to the api itself
 
 [examples](docblock://query/endpointDefinitions.ts?token=EndpointDefinitionWithQueryFn.queryFn)
+
+### `infiniteQueryOptions`
+
+_(only for `infiniteQuery` endpoints)_
+
+[summary](docblock://query/endpointDefinitions.ts?token=InfiniteQueryExtraOptions.infiniteQueryOptions)
+
+The `infiniteQueryOptions` field includes:
+
+- `initialPageParam`: the default page param value used for the first request, if this was not specified at the usage site
+- `getNextPageParam`: a required callback you must provide to calculate the next page param, given the existing cached pages and page params
+- `getPreviousPageParam`: an optional callback that will be used to calculate the previous page param, if you try to fetch backwards.
+- `maxPages`: an optional limit to how many fetched pages will be kept in the cache entry at a time
+
+[examples](docblock://query/endpointDefinitions.ts?token=InfiniteQueryExtraOptions.infiniteQueryOptions)
 
 ### `transformResponse`
 

@@ -2,7 +2,7 @@ import type { ThunkDispatch, UnknownAction } from '@reduxjs/toolkit'
 import type { BaseQueryFn, BaseQueryMeta } from '../../baseQueryTypes'
 import type { BaseEndpointDefinition } from '../../endpointDefinitions'
 import { DefinitionType } from '../../endpointDefinitions'
-import type { RootState } from '../apiState'
+import type { QueryCacheKey, RootState } from '../apiState'
 import type {
   MutationResultSelectorResult,
   QueryResultSelectorResult,
@@ -142,6 +142,18 @@ export type CacheLifecycleQueryExtraOptions<
   ): Promise<void> | void
 }
 
+export type CacheLifecycleInfiniteQueryExtraOptions<
+  ResultType,
+  QueryArg,
+  BaseQuery extends BaseQueryFn,
+  ReducerPath extends string = string,
+> = CacheLifecycleQueryExtraOptions<
+  ResultType,
+  QueryArg,
+  BaseQuery,
+  ReducerPath
+>
+
 export type CacheLifecycleMutationExtraOptions<
   ResultType,
   QueryArg,
@@ -172,6 +184,7 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
   queryThunk,
   mutationThunk,
   internalState,
+  selectors: { selectQueryEntry, selectApiState },
 }) => {
   const isQueryThunk = isAsyncThunkAction(queryThunk)
   const isMutationThunk = isAsyncThunkAction(mutationThunk)
@@ -212,17 +225,17 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
     mwApi,
     stateBefore,
   ) => {
-    const cacheKey = getCacheKey(action)
+    const cacheKey = getCacheKey(action) as QueryCacheKey
 
     function checkForNewCacheKey(
       endpointName: string,
-      cacheKey: string,
+      cacheKey: QueryCacheKey,
       requestId: string,
       originalArgs: unknown,
     ) {
-      const oldState = stateBefore[reducerPath].queries[cacheKey]
-      const state = mwApi.getState()[reducerPath].queries[cacheKey]
-      if (!oldState && state) {
+      const oldEntry = selectQueryEntry(stateBefore, cacheKey)
+      const newEntry = selectQueryEntry(mwApi.getState(), cacheKey)
+      if (!oldEntry && newEntry) {
         handleNewKey(endpointName, originalArgs, cacheKey, mwApi, requestId)
       }
     }
@@ -331,7 +344,7 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
             mwApi.dispatch(
               api.util.updateQueryData(
                 endpointName as never,
-                originalArgs,
+                originalArgs as never,
                 updateRecipe,
               ),
             )
@@ -341,7 +354,7 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
       cacheEntryRemoved,
     }
 
-    const runningHandler = onCacheEntryAdded(originalArgs, lifecycleApi)
+    const runningHandler = onCacheEntryAdded(originalArgs, lifecycleApi as any)
     // if a `neverResolvedError` was thrown, but not handled in the running handler, do not let it leak out further
     Promise.resolve(runningHandler).catch((e) => {
       if (e === neverResolvedError) return
