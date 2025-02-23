@@ -348,30 +348,6 @@ describe('Infinite queries', () => {
     })
   })
 
-  test.skip('does not break refetching query endpoints', async () => {
-    const promise0 = storeRef.store.dispatch(
-      pokemonApi.endpoints.counters.initiate('a'),
-    )
-
-    console.log('State after dispatch: ', storeRef.store.getState().api.queries)
-
-    const res0 = await promise0
-
-    console.log('State after promise: ', storeRef.store.getState().api.queries)
-    console.log(storeRef.store.getState().actions)
-
-    const promise1 = storeRef.store.dispatch(
-      pokemonApi.util.upsertQueryData('counters', 'a', { id: 'a', counter: 1 }),
-    )
-
-    console.log('State after dispatch: ', storeRef.store.getState().api.queries)
-
-    const res = await promise1
-
-    console.log('State after promise: ', storeRef.store.getState().api.queries)
-    console.log(storeRef.store.getState().actions)
-  })
-
   test('does not have a page limit without maxPages', async () => {
     for (let i = 1; i <= 10; i++) {
       const res = await storeRef.store.dispatch(
@@ -640,6 +616,77 @@ describe('Infinite queries', () => {
       { page: 3, hitCounter: 4 },
       { page: 4, hitCounter: 5 },
       { page: 5, hitCounter: 6 },
+    ])
+  })
+
+  test('Handles multiple next page fetches at once', async () => {
+    const initialEntry = await storeRef.store.dispatch(
+      pokemonApi.endpoints.getInfinitePokemon.initiate('fire', {}),
+    )
+
+    checkResultData(initialEntry, [[{ id: '0', name: 'Pokemon 0' }]])
+
+    expect(queryCounter).toBe(1)
+
+    const promise1 = storeRef.store.dispatch(
+      pokemonApi.endpoints.getInfinitePokemon.initiate('fire', {
+        direction: 'forward',
+      }),
+    )
+
+    expect(queryCounter).toBe(1)
+
+    const promise2 = storeRef.store.dispatch(
+      pokemonApi.endpoints.getInfinitePokemon.initiate('fire', {
+        direction: 'forward',
+      }),
+    )
+
+    console.log('Awaiting promises 1 and 2')
+
+    const entry1 = await promise1
+    const entry2 = await promise2
+
+    // The second thunk should have bailed out because the entry was now
+    // pending, so we should only have sent one request.
+    expect(queryCounter).toBe(2)
+
+    expect(entry1).toEqual(entry2)
+
+    checkResultData(entry1, [
+      [{ id: '0', name: 'Pokemon 0' }],
+      [{ id: '1', name: 'Pokemon 1' }],
+    ])
+
+    expect(queryCounter).toBe(2)
+
+    const promise3 = storeRef.store.dispatch(
+      pokemonApi.endpoints.getInfinitePokemon.initiate('fire', {
+        direction: 'forward',
+      }),
+    )
+
+    expect(queryCounter).toBe(2)
+
+    // We can abort an existing promise, but due to timing issues,
+    // we have to await the promise first before triggering the next request.
+    promise3.abort()
+    const entry3 = await promise3
+
+    const promise4 = storeRef.store.dispatch(
+      pokemonApi.endpoints.getInfinitePokemon.initiate('fire', {
+        direction: 'forward',
+      }),
+    )
+
+    const entry4 = await promise4
+
+    expect(queryCounter).toBe(4)
+
+    checkResultData(entry4, [
+      [{ id: '0', name: 'Pokemon 0' }],
+      [{ id: '1', name: 'Pokemon 1' }],
+      [{ id: '2', name: 'Pokemon 2' }],
     ])
   })
 

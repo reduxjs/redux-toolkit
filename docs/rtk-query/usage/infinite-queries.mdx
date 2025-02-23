@@ -256,13 +256,23 @@ Similarly, this example relies on manual user clicks on a "Fetch More" button to
 
 The endpoint itself only defines `getNextPageParam`, so this example doesn't support fetching backwards, but that can be provided in cases where backwards fetching makes sense. The page param here is a simple incremented number, but the page param
 
-## Refetching
+## Infinite Query Behaviors
+
+### Overlapping Page Fetches
+
+Since all pages are stored in a single cache entry, there can only be one request in progress at a time. RTK Query already has logic built in to bail out of running a new request if there is already a request in flight for that cache entry.
+
+That means that if you call `fetchNextPage()` again while an existing request is in progress, the second call won't actually execute a request. Be sure to either await the previous `fetchNextPage()` promise result first or check the `isFetching` flag if you have concerns about a potential request already in progress.
+
+The promise returned from `fetchNextPage()` does have [a `promise.abort()` method attached](../../api/createAsyncThunk.mdx#canceling-while-running) that will force the earlier request to reject and not save the results. Note that this will mark the cache entry as errored, but the data will still exist. Since `promise.abort()` is synchronous, you would also need to await the previous promise to ensure the rejection is handled, and then trigger the new page fetch.
+
+### Refetching
 
 When an infinite query endpoint is refetched (due to tag invalidation, polling, arg change configuration, or manual refetching), RTK Query will try to sequentially refetch all pages currently in the cache. This ensures that the client is always working with the latest data, and avoids stale cursors or duplicate records.
 
 If the cache entry is ever removed and then re-added, it will start with only fetching the initial page.
 
-## Limiting Cache Entry Size
+### Limiting Cache Entry Size
 
 All fetched pages for a given query arg are stored in the `pages` array in that cache entry. By default, there is no limit to the number of stored pages - if you call `fetchNextPage()` 1000 times, `data.pages` will have 1000 pages stored.
 
