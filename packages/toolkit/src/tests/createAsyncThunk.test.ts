@@ -1,5 +1,5 @@
 import { noop } from '@internal/listenerMiddleware/utils'
-import { delay } from '@internal/utils'
+import { delay, promiseWithResolvers } from '@internal/utils'
 import type { CreateAsyncThunkFunction, UnknownAction } from '@reduxjs/toolkit'
 import {
   configureStore,
@@ -1014,7 +1014,7 @@ describe('dispatch config', () => {
   test('accepts external signal', async () => {
     const asyncThunk = createAsyncThunk('test', async (_: void, { signal }) => {
       signal.throwIfAborted()
-      const { promise, reject } = Promise.withResolvers()
+      const { promise, reject } = promiseWithResolvers<never>()
       signal.addEventListener('abort', () => reject(signal.reason))
       return promise
     })
@@ -1031,7 +1031,7 @@ describe('dispatch config', () => {
   test('handles already aborted external signal', async () => {
     const asyncThunk = createAsyncThunk('test', async (_: void, { signal }) => {
       signal.throwIfAborted()
-      const { promise, reject } = Promise.withResolvers()
+      const { promise, reject } = promiseWithResolvers<never>()
       signal.addEventListener('abort', () => reject(signal.reason))
       return promise
     })
