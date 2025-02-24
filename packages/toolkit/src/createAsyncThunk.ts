@@ -246,6 +246,10 @@ export type AsyncThunkAction<
   unwrap: () => Promise<Returned>
 }
 
+export interface AsyncThunkDispatchConfig {
+  signal?: AbortSignal
+}
+
 type AsyncThunkActionCreator<
   Returned,
   ThunkArg,
@@ -253,29 +257,42 @@ type AsyncThunkActionCreator<
 > = IsAny<
   ThunkArg,
   // any handling
-  (arg: ThunkArg) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig>,
+  (
+    arg: ThunkArg,
+    config?: AsyncThunkDispatchConfig,
+  ) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig>,
   // unknown handling
   unknown extends ThunkArg
-    ? (arg: ThunkArg) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> // argument not specified or specified as void or undefined
+    ? (
+        arg: ThunkArg,
+        config?: AsyncThunkDispatchConfig,
+      ) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> // argument not specified or specified as void or undefined
     : [ThunkArg] extends [void] | [undefined]
-      ? () => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> // argument contains void
+      ? (
+          arg?: undefined,
+          config?: AsyncThunkDispatchConfig,
+        ) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> // argument contains void
       : [void] extends [ThunkArg] // make optional
         ? (
             arg?: ThunkArg,
+            config?: AsyncThunkDispatchConfig,
           ) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig> // argument contains undefined
         : [undefined] extends [ThunkArg]
           ? WithStrictNullChecks<
               // with strict nullChecks: make optional
               (
                 arg?: ThunkArg,
+                config?: AsyncThunkDispatchConfig,
               ) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig>,
               // without strict null checks this will match everything, so don't make it optional
               (
                 arg: ThunkArg,
+                config?: AsyncThunkDispatchConfig,
               ) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig>
             > // default case: normal argument
           : (
               arg: ThunkArg,
+              config?: AsyncThunkDispatchConfig,
             ) => AsyncThunkAction<Returned, ThunkArg, ThunkApiConfig>
 >
 
@@ -492,6 +509,8 @@ type CreateAsyncThunk<CurriedThunkApiConfig extends AsyncThunkConfig> =
     >
   }
 
+const externalAbortMessage = 'External signal was aborted'
+
 export const createAsyncThunk = /* @__PURE__ */ (() => {
   function createAsyncThunk<
     Returned,
@@ -575,6 +594,7 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
 
     function actionCreator(
       arg: ThunkArg,
+      { signal }: AsyncThunkDispatchConfig = {},
     ): AsyncThunkAction<Returned, ThunkArg, Required<ThunkApiConfig>> {
       return (dispatch, getState, extra) => {
         const requestId = options?.idGenerator
@@ -588,6 +608,14 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
         function abort(reason?: string) {
           abortReason = reason
           abortController.abort()
+        }
+
+        if (signal) {
+          if (signal.aborted) {
+            abort(externalAbortMessage)
+          } else {
+            signal.addEventListener('abort', () => abort(externalAbortMessage))
+          }
         }
 
         const promise = (async function () {

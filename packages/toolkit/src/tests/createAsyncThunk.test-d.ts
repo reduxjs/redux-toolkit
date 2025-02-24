@@ -15,6 +15,7 @@ import {
 import type { TSVersion } from '@phryneas/ts-version'
 import type { AxiosError } from 'axios'
 import apiRequest from 'axios'
+import type { AsyncThunkDispatchConfig } from '@internal/createAsyncThunk'
 
 const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, UnknownAction>
 const unknownAction = { type: 'foo' } as UnknownAction
@@ -269,7 +270,9 @@ describe('type tests', () => {
 
       expectTypeOf(asyncThunk).toMatchTypeOf<() => any>()
 
-      expectTypeOf(asyncThunk).parameters.toEqualTypeOf<[]>()
+      expectTypeOf(asyncThunk).parameters.toEqualTypeOf<
+        [undefined?, AsyncThunkDispatchConfig?]
+      >()
 
       expectTypeOf(asyncThunk).returns.toBeFunction()
     })
@@ -279,7 +282,9 @@ describe('type tests', () => {
 
       expectTypeOf(asyncThunk).toMatchTypeOf<() => any>()
 
-      expectTypeOf(asyncThunk).parameters.toEqualTypeOf<[]>()
+      expectTypeOf(asyncThunk).parameters.toEqualTypeOf<
+        [undefined?, AsyncThunkDispatchConfig?]
+      >()
     })
 
     test('one argument, specified as void: asyncThunk has no argument', () => {
@@ -388,13 +393,14 @@ describe('type tests', () => {
 
       expectTypeOf(asyncThunk).toBeCallableWith()
 
-      // @ts-expect-error cannot be called with an argument, even if the argument is `undefined`
       expectTypeOf(asyncThunk).toBeCallableWith(undefined)
 
       // cannot be called with an argument
       expectTypeOf(asyncThunk).parameter(0).not.toBeAny()
 
-      expectTypeOf(asyncThunk).parameters.toEqualTypeOf<[]>()
+      expectTypeOf(asyncThunk).parameters.toEqualTypeOf<
+        [undefined?, AsyncThunkDispatchConfig?]
+      >()
     })
 
     test('two arguments, first specified as void: asyncThunk has no argument', () => {
@@ -409,7 +415,9 @@ describe('type tests', () => {
       // cannot be called with an argument
       expectTypeOf(asyncThunk).parameter(0).not.toBeAny()
 
-      expectTypeOf(asyncThunk).parameters.toEqualTypeOf<[]>()
+      expectTypeOf(asyncThunk).parameters.toEqualTypeOf<
+        [undefined?, AsyncThunkDispatchConfig?]
+      >()
     })
 
     test('two arguments, first specified as number|undefined: asyncThunk has optional number argument', () => {
