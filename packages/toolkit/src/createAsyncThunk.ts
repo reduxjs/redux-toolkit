@@ -246,7 +246,13 @@ export type AsyncThunkAction<
   unwrap: () => Promise<Returned>
 }
 
+/**
+ * Config provided when calling the async thunk action creator.
+ */
 export interface AsyncThunkDispatchConfig {
+  /**
+   * An external `AbortSignal` that will be tracked by the internal `AbortSignal`.
+   */
   signal?: AbortSignal
 }
 
