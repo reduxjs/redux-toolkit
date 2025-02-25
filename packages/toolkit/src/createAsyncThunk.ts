@@ -620,7 +620,11 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
           if (signal.aborted) {
             abort(externalAbortMessage)
           } else {
-            signal.addEventListener('abort', () => abort(externalAbortMessage))
+            signal.addEventListener(
+              'abort',
+              () => abort(externalAbortMessage),
+              { once: true },
+            )
           }
         }
 
