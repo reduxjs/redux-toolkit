@@ -103,19 +103,6 @@ type EndpointDefinitionWithQuery<
     meta: BaseQueryMeta<BaseQuery>,
     arg: QueryArg,
   ): unknown
-  /**
-   * Defaults to `true`.
-   *
-   * Most apps should leave this setting on. The only time it can be a performance issue
-   * is if an API returns extremely large amounts of data (e.g. 10,000 rows per request) and
-   * you're unable to paginate it.
-   *
-   * For details of how this works, please see the below. When it is set to `false`,
-   * every request will cause subscribed components to rerender, even when the data has not changed.
-   *
-   * @see https://redux-toolkit.js.org/api/other-exports#copywithstructuralsharing
-   */
-  structuralSharing?: boolean
 
   /** A schema for the result *before* it's passed to `transformResponse` */
   rawResultSchema?: StandardSchemaV1<BaseQueryResult<BaseQuery>>
@@ -184,19 +171,6 @@ type EndpointDefinitionWithQueryFn<
   transformErrorResponse?: never
   rawResultSchema?: never
   rawErrorSchema?: never
-  /**
-   * Defaults to `true`.
-   *
-   * Most apps should leave this setting on. The only time it can be a performance issue
-   * is if an API returns extremely large amounts of data (e.g. 10,000 rows per request) and
-   * you're unable to paginate it.
-   *
-   * For details of how this works, please see the below. When it is set to `false`,
-   * every request will cause subscribed components to rerender, even when the data has not changed.
-   *
-   * @see https://redux-toolkit.js.org/api/other-exports#copywithstructuralsharing
-   */
-  structuralSharing?: boolean
 }
 
 type BaseEndpointTypes<QueryArg, BaseQuery extends BaseQueryFn, ResultType> = {
@@ -226,6 +200,20 @@ export type BaseEndpointDefinition<
 
   /** A schema for the `meta` property returned by the `query` or `queryFn` */
   metaSchema?: StandardSchemaV1<BaseQueryMeta<BaseQuery>>
+
+  /**
+   * Defaults to `true`.
+   *
+   * Most apps should leave this setting on. The only time it can be a performance issue
+   * is if an API returns extremely large amounts of data (e.g. 10,000 rows per request) and
+   * you're unable to paginate it.
+   *
+   * For details of how this works, please see the below. When it is set to `false`,
+   * every request will cause subscribed components to rerender, even when the data has not changed.
+   *
+   * @see https://redux-toolkit.js.org/api/other-exports#copywithstructuralsharing
+   */
+  structuralSharing?: boolean
 
   /* phantom type */
   [resultType]?: ResultType
