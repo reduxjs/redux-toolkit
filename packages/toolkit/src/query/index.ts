@@ -46,6 +46,8 @@ export type {
   ResultDescription,
   TagTypesFromApi,
   UpdateDefinitions,
+  SchemaFailureHandler,
+  SchemaFailureInfo,
 } from './endpointDefinitions'
 export { fetchBaseQuery } from './fetchBaseQuery'
 export type {
@@ -98,3 +100,5 @@ export type {
   NoInfer as TSHelpersNoInfer,
   Override as TSHelpersOverride,
 } from './tsHelpers'
+
+export { NamedSchemaError } from './standardSchema'
