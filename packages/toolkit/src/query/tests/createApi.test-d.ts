@@ -1,6 +1,6 @@
 import { setupApiStore } from '@internal/tests/utils/helpers'
-import type { SerializedError } from '@reduxjs/toolkit'
-import { configureStore } from '@reduxjs/toolkit'
+import type { EntityState, SerializedError } from '@reduxjs/toolkit'
+import { configureStore, createEntityAdapter } from '@reduxjs/toolkit'
 import type {
   DefinitionsFromApi,
   FetchBaseQueryError,
@@ -467,6 +467,7 @@ describe('type tests', () => {
         })
       })
       test('schemas as a source of inference', () => {
+        const postAdapter = createEntityAdapter<Post>()
         const api = createApi({
           baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
           endpoints: (build) => ({
@@ -482,6 +483,14 @@ describe('type tests', () => {
               argSchema,
               responseSchema: postSchema,
             }),
+            query3: build.query({
+              query: (_arg: void) => `/posts`,
+              rawResponseSchema: v.array(postSchema),
+              transformResponse: (posts) => {
+                expectTypeOf(posts).toEqualTypeOf<Post[]>()
+                return postAdapter.getInitialState(undefined, posts)
+              },
+            }),
           }),
         })
 
@@ -496,6 +505,11 @@ describe('type tests', () => {
         expectTypeOf(
           api.endpoints.query2.Types.ResultType,
         ).toEqualTypeOf<Post>()
+
+        expectTypeOf(api.endpoints.query3.Types.QueryArg).toEqualTypeOf<void>()
+        expectTypeOf(api.endpoints.query3.Types.ResultType).toEqualTypeOf<
+          EntityState<Post, Post['id']>
+        >()
       })
     })
   })
