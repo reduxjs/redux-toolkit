@@ -18,6 +18,8 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 import { HttpResponse, delay, http } from 'msw'
 import nodeFetch from 'node-fetch'
 import * as v from 'valibot'
+import type { SchemaFailureHandler } from '../endpointDefinitions'
+import { NamedSchemaError } from '../standardSchema'
 
 beforeAll(() => {
   vi.stubEnv('NODE_ENV', 'development')
@@ -1199,13 +1201,44 @@ describe('endpoint schemas', () => {
     stack: expect.any(String),
   } satisfies SerializedError
 
+  const onSchemaFailureGlobal = vi.fn<Parameters<SchemaFailureHandler>>()
+  const onSchemaFailureEndpoint = vi.fn<Parameters<SchemaFailureHandler>>()
+  afterEach(() => {
+    onSchemaFailureGlobal.mockClear()
+    onSchemaFailureEndpoint.mockClear()
+  })
+
+  function expectFailureHandlersToHaveBeenCalled({
+    schemaName,
+    value,
+    arg,
+  }: {
+    schemaName: string
+    value: unknown
+    arg: unknown
+  }) {
+    for (const handler of [onSchemaFailureGlobal, onSchemaFailureEndpoint]) {
+      expect(handler).toHaveBeenCalledOnce()
+      const [taggedError, info] = handler.mock.calls[0]
+      expect(taggedError).toBeInstanceOf(NamedSchemaError)
+      expect(taggedError.issues.length).toBeGreaterThan(0)
+      expect(taggedError.value).toEqual(value)
+      expect(taggedError.schemaName).toBe(schemaName)
+      expect(info.endpoint).toBe('query')
+      expect(info.type).toBe('query')
+      expect(info.arg).toEqual(arg)
+    }
+  }
+
   test("can be used to validate the endpoint's arguments", async () => {
     const api = createApi({
       baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
+      onSchemaFailure: onSchemaFailureGlobal,
       endpoints: (build) => ({
         query: build.query<unknown, { id: number }>({
           query: ({ id }) => `/post/${id}`,
           argSchema: v.object({ id: v.number() }),
+          onSchemaFailure: onSchemaFailureEndpoint,
         }),
       }),
     })
@@ -1226,14 +1259,21 @@ describe('endpoint schemas', () => {
     )
 
     expect(invalidResult?.error).toEqual(serializedSchemaError)
+    expectFailureHandlersToHaveBeenCalled({
+      schemaName: 'argSchema',
+      value: { id: '1' },
+      arg: { id: '1' },
+    })
   })
   test("can be used to validate the endpoint's raw result", async () => {
     const api = createApi({
       baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
+      onSchemaFailure: onSchemaFailureGlobal,
       endpoints: (build) => ({
         query: build.query<{ success: boolean }, void>({
           query: () => '/success',
           rawResponseSchema: v.object({ value: v.literal('success!') }),
+          onSchemaFailure: onSchemaFailureEndpoint,
         }),
       }),
     })
@@ -1242,15 +1282,22 @@ describe('endpoint schemas', () => {
     })
     const result = await storeRef.store.dispatch(api.endpoints.query.initiate())
     expect(result?.error).toEqual(serializedSchemaError)
+    expectFailureHandlersToHaveBeenCalled({
+      schemaName: 'rawResponseSchema',
+      value: { value: 'success' },
+      arg: undefined,
+    })
   })
   test("can be used to validate the endpoint's final result", async () => {
     const api = createApi({
       baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
+      onSchemaFailure: onSchemaFailureGlobal,
       endpoints: (build) => ({
         query: build.query<{ success: boolean }, void>({
           query: () => '/success',
           transformResponse: () => ({ success: false }),
           responseSchema: v.object({ success: v.literal(true) }),
+          onSchemaFailure: onSchemaFailureEndpoint,
         }),
       }),
     })
@@ -1259,10 +1306,17 @@ describe('endpoint schemas', () => {
     })
     const result = await storeRef.store.dispatch(api.endpoints.query.initiate())
     expect(result?.error).toEqual(serializedSchemaError)
+
+    expectFailureHandlersToHaveBeenCalled({
+      schemaName: 'responseSchema',
+      value: { success: false },
+      arg: undefined,
+    })
   })
   test("can be used to validate the endpoint's raw error result", async () => {
     const api = createApi({
       baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
+      onSchemaFailure: onSchemaFailureGlobal,
       endpoints: (build) => ({
         query: build.query<{ success: boolean }, void>({
           query: () => '/error',
@@ -1270,6 +1324,7 @@ describe('endpoint schemas', () => {
             status: v.pipe(v.number(), v.minValue(400), v.maxValue(499)),
             data: v.unknown(),
           }),
+          onSchemaFailure: onSchemaFailureEndpoint,
         }),
       }),
     })
@@ -1278,10 +1333,16 @@ describe('endpoint schemas', () => {
     })
     const result = await storeRef.store.dispatch(api.endpoints.query.initiate())
     expect(result?.error).toEqual(serializedSchemaError)
+    expectFailureHandlersToHaveBeenCalled({
+      schemaName: 'rawErrorResponseSchema',
+      value: { status: 500, data: { value: 'error' } },
+      arg: undefined,
+    })
   })
   test("can be used to validate the endpoint's final error result", async () => {
     const api = createApi({
       baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
+      onSchemaFailure: onSchemaFailureGlobal,
       endpoints: (build) => ({
         query: build.query<{ success: boolean }, void>({
           query: () => '/error',
@@ -1295,6 +1356,7 @@ describe('endpoint schemas', () => {
             error: v.literal('oh no'),
             data: v.unknown(),
           }),
+          onSchemaFailure: onSchemaFailureEndpoint,
         }),
       }),
     })
@@ -1303,10 +1365,20 @@ describe('endpoint schemas', () => {
     })
     const result = await storeRef.store.dispatch(api.endpoints.query.initiate())
     expect(result?.error).toEqual(serializedSchemaError)
+    expectFailureHandlersToHaveBeenCalled({
+      schemaName: 'errorResponseSchema',
+      value: {
+        status: 'CUSTOM_ERROR',
+        error: 'whoops',
+        data: { status: 500, data: { value: 'error' } },
+      },
+      arg: undefined,
+    })
   })
   test("can be used to validate the endpoint's meta result", async () => {
     const api = createApi({
       baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
+      onSchemaFailure: onSchemaFailureGlobal,
       endpoints: (build) => ({
         query: build.query<{ success: boolean }, void>({
           query: () => '/success',
@@ -1315,6 +1387,7 @@ describe('endpoint schemas', () => {
             response: v.instance(Response),
             timestamp: v.number(),
           }),
+          onSchemaFailure: onSchemaFailureEndpoint,
         }),
       }),
     })
@@ -1323,5 +1396,13 @@ describe('endpoint schemas', () => {
     })
     const result = await storeRef.store.dispatch(api.endpoints.query.initiate())
     expect(result?.error).toEqual(serializedSchemaError)
+    expectFailureHandlersToHaveBeenCalled({
+      schemaName: 'metaSchema',
+      value: {
+        request: expect.any(Request),
+        response: expect.any(Response),
+      },
+      arg: undefined,
+    })
   })
 })

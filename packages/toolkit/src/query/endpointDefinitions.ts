@@ -38,9 +38,22 @@ import type {
   UnwrapPromise,
 } from './tsHelpers'
 import { isNotNullish } from './utils'
+import type { NamedSchemaError } from './standardSchema'
 
 const resultType = /* @__PURE__ */ Symbol()
 const baseQuery = /* @__PURE__ */ Symbol()
+
+export interface SchemaFailureInfo {
+  endpoint: string
+  arg: any
+  type: 'query' | 'mutation'
+  queryCacheKey?: string
+}
+
+export type SchemaFailureHandler = (
+  error: NamedSchemaError,
+  info: SchemaFailureInfo,
+) => void
 
 type EndpointDefinitionWithQuery<
   QueryArg,
@@ -221,6 +234,8 @@ export type BaseEndpointDefinition<
    * @see https://redux-toolkit.js.org/api/other-exports#copywithstructuralsharing
    */
   structuralSharing?: boolean
+
+  onSchemaFailure?: SchemaFailureHandler
 
   /* phantom type */
   [resultType]?: ResultType
