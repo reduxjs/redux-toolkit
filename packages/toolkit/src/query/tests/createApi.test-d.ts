@@ -11,6 +11,8 @@ import type {
   TagTypesFromApi,
 } from '@reduxjs/toolkit/query'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+import * as v from 'valibot'
+import type { Post } from './mocks/handlers'
 
 describe('type tests', () => {
   test('sensible defaults', () => {
@@ -371,6 +373,73 @@ describe('type tests', () => {
           | { data: Transformed }
           | { error: FetchBaseQueryError | SerializedError }
         >()
+      })
+    })
+    describe('endpoint schemas', () => {
+      test('schemas must match', () => {
+        const postSchema = v.object({
+          id: v.number(),
+          title: v.string(),
+          body: v.string(),
+        }) satisfies v.GenericSchema<Post>
+        const errorSchema = v.object({
+          status: v.number(),
+          data: v.unknown(),
+        }) satisfies v.GenericSchema<FetchBaseQueryError>
+        createApi({
+          baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
+          endpoints: (build) => ({
+            query: build.query<Post, { id: number }>({
+              query: ({ id }) => `/post/${id}`,
+              argSchema: v.object({ id: v.number() }),
+              resultSchema: postSchema,
+              errorSchema,
+            }),
+            bothMismatch: build.query<Post, { id: number }>({
+              query: ({ id }) => `/post/${id}`,
+              // @ts-expect-error wrong schema
+              argSchema: v.object({ id: v.string() }),
+              // @ts-expect-error wrong schema
+              resultSchema: v.object({ id: v.string() }),
+              // @ts-expect-error wrong schema
+              errorSchema: v.object({ status: v.string() }),
+            }),
+            inputMismatch: build.query<Post, { id: number }>({
+              query: ({ id }) => `/post/${id}`,
+              // @ts-expect-error can't expect different input
+              argSchema: v.object({
+                id: v.pipe(v.string(), v.transform(Number), v.number()),
+              }),
+              // @ts-expect-error can't expect different input
+              resultSchema: v.object({
+                ...postSchema.entries,
+                id: v.pipe(v.string(), v.transform(Number)),
+              }) satisfies v.GenericSchema<any, Post>,
+              // @ts-expect-error can't expect different input
+              errorSchema: v.object({
+                status: v.pipe(v.string(), v.transform(Number)),
+                data: v.unknown(),
+              }) satisfies v.GenericSchema<any, FetchBaseQueryError>,
+            }),
+            outputMismatch: build.query<Post, { id: number }>({
+              query: ({ id }) => `/post/${id}`,
+              // @ts-expect-error can't provide different output
+              argSchema: v.object({
+                id: v.pipe(v.number(), v.transform(String)),
+              }),
+              // @ts-expect-error can't provide different output
+              resultSchema: v.object({
+                ...postSchema.entries,
+                id: v.pipe(v.number(), v.transform(String)),
+              }) satisfies v.GenericSchema<Post, any>,
+              // @ts-expect-error can't provide different output
+              errorSchema: v.object({
+                status: v.pipe(v.number(), v.transform(String)),
+                data: v.unknown(),
+              }) satisfies v.GenericSchema<FetchBaseQueryError, any>,
+            }),
+          }),
+        })
       })
     })
   })
