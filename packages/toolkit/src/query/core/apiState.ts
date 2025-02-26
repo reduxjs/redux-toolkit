@@ -184,7 +184,7 @@ export type MutationKeys<Definitions extends EndpointDefinitions> = {
 }[keyof Definitions]
 
 type BaseQuerySubState<
-  D extends BaseEndpointDefinition<any, any, any>,
+  D extends BaseEndpointDefinition<any, any, any, any>,
   DataType = ResultTypeFrom<D>,
 > = {
   /**
@@ -222,7 +222,7 @@ type BaseQuerySubState<
 }
 
 export type QuerySubState<
-  D extends BaseEndpointDefinition<any, any, any>,
+  D extends BaseEndpointDefinition<any, any, any, any>,
   DataType = ResultTypeFrom<D>,
 > = Id<
   | ({
@@ -252,7 +252,7 @@ export type QuerySubState<
 export type InfiniteQueryDirection = 'forward' | 'backward'
 
 export type InfiniteQuerySubState<
-  D extends BaseEndpointDefinition<any, any, any>,
+  D extends BaseEndpointDefinition<any, any, any, any>,
 > =
   D extends InfiniteQueryDefinition<any, any, any, any, any>
     ? QuerySubState<D, InfiniteData<ResultTypeFrom<D>, PageParamFrom<D>>> & {
@@ -260,7 +260,9 @@ export type InfiniteQuerySubState<
       }
     : never
 
-type BaseMutationSubState<D extends BaseEndpointDefinition<any, any, any>> = {
+type BaseMutationSubState<
+  D extends BaseEndpointDefinition<any, any, any, any>,
+> = {
   requestId: string
   data?: ResultTypeFrom<D>
   error?:
@@ -273,7 +275,9 @@ type BaseMutationSubState<D extends BaseEndpointDefinition<any, any, any>> = {
   fulfilledTimeStamp?: number
 }
 
-export type MutationSubState<D extends BaseEndpointDefinition<any, any, any>> =
+export type MutationSubState<
+  D extends BaseEndpointDefinition<any, any, any, any>,
+> =
   | (({
       status: QueryStatus.fulfilled
     } & WithRequiredProp<
