@@ -555,7 +555,7 @@ export function buildThunks<
         finalQueryArg: unknown,
       ): Promise<QueryReturnValue> {
         let result: QueryReturnValue
-        const { extraOptions, argSchema, rawResultSchema, resultSchema } =
+        const { extraOptions, argSchema, rawResponseSchema, responseSchema } =
           endpointDefinition
 
         if (argSchema) {
@@ -617,8 +617,8 @@ export function buildThunks<
 
         let { data } = result
 
-        if (rawResultSchema) {
-          data = await parseWithSchema(rawResultSchema, result.data)
+        if (rawResponseSchema) {
+          data = await parseWithSchema(rawResponseSchema, result.data)
         }
 
         let transformedResponse = await transformResponse(
@@ -627,9 +627,9 @@ export function buildThunks<
           finalQueryArg,
         )
 
-        if (resultSchema) {
+        if (responseSchema) {
           transformedResponse = await parseWithSchema(
-            resultSchema,
+            responseSchema,
             transformedResponse,
           )
         }
