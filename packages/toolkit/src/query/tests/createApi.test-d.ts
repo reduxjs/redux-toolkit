@@ -398,7 +398,7 @@ describe('type tests', () => {
             query: build.query<Post, { id: number }>({
               query: ({ id }) => `/post/${id}`,
               argSchema,
-              resultSchema: postSchema,
+              responseSchema: postSchema,
               errorSchema,
               metaSchema,
             }),
@@ -407,7 +407,7 @@ describe('type tests', () => {
               // @ts-expect-error wrong schema
               argSchema: v.object({ id: v.string() }),
               // @ts-expect-error wrong schema
-              resultSchema: v.object({ id: v.string() }),
+              responseSchema: v.object({ id: v.string() }),
               // @ts-expect-error wrong schema
               errorSchema: v.object({ status: v.string() }),
               // @ts-expect-error wrong schema
@@ -420,7 +420,7 @@ describe('type tests', () => {
                 id: v.pipe(v.string(), v.transform(Number), v.number()),
               }),
               // @ts-expect-error can't expect different input
-              resultSchema: v.object({
+              responseSchema: v.object({
                 ...postSchema.entries,
                 id: v.pipe(v.string(), v.transform(Number)),
               }) satisfies v.GenericSchema<any, Post>,
@@ -445,7 +445,7 @@ describe('type tests', () => {
                 id: v.pipe(v.number(), v.transform(String)),
               }),
               // @ts-expect-error can't provide different output
-              resultSchema: v.object({
+              responseSchema: v.object({
                 ...postSchema.entries,
                 id: v.pipe(v.number(), v.transform(String)),
               }) satisfies v.GenericSchema<Post, any>,
@@ -471,9 +471,8 @@ describe('type tests', () => {
           baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
           endpoints: (build) => ({
             query: build.query({
-              query: ({ id }) => `/post/${id}`,
-              argSchema,
-              resultSchema: postSchema,
+              query: ({ id }: { id: number }) => `/post/${id}`,
+              responseSchema: postSchema,
             }),
           }),
         })
