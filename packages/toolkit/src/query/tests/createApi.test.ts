@@ -4,6 +4,7 @@ import {
   getSerializedHeaders,
   setupApiStore,
 } from '@internal/tests/utils/helpers'
+import type { SerializedError } from '@reduxjs/toolkit'
 import { configureStore, createAction, createReducer } from '@reduxjs/toolkit'
 import type {
   DefinitionsFromApi,
@@ -15,6 +16,7 @@ import type {
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 import { HttpResponse, delay, http } from 'msw'
 import nodeFetch from 'node-fetch'
+import * as v from 'valibot'
 
 beforeAll(() => {
   vi.stubEnv('NODE_ENV', 'development')
@@ -1184,6 +1186,45 @@ describe('timeout behavior', () => {
     expect(result?.error).toEqual({
       status: 'TIMEOUT_ERROR',
       error: expect.stringMatching(/^AbortError:/),
+    })
+  })
+})
+
+describe('endpoint schemas', () => {
+  test("can be used to validate the endpoint's arguments", async () => {
+    server.use(
+      http.get('https://example.com/success/1', () => HttpResponse.json({})),
+    )
+
+    const api = createApi({
+      baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
+      endpoints: (build) => ({
+        query: build.query<unknown, { id: number }>({
+          query: ({ id }) => `/success/${id}`,
+          argSchema: v.object({ id: v.number() }),
+        }),
+      }),
+    })
+
+    const storeRef = setupApiStore(api, undefined, {
+      withoutTestLifecycles: true,
+    })
+
+    const result = await storeRef.store.dispatch(
+      api.endpoints.query.initiate({ id: 1 }),
+    )
+
+    expect(result?.error).toBeUndefined()
+
+    const invalidResult = await storeRef.store.dispatch(
+      // @ts-expect-error
+      api.endpoints.query.initiate({ id: '1' }),
+    )
+
+    expect(invalidResult?.error).toEqual<SerializedError>({
+      name: 'SchemaError',
+      message: expect.any(String),
+      stack: expect.any(String),
     })
   })
 })

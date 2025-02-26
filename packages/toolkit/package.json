@@ -99,6 +99,7 @@
     "tsup": "^8.2.3",
     "tsx": "^4.19.0",
     "typescript": "^5.8.2",
+    "valibot": "^1.0.0",
     "vite-tsconfig-paths": "^4.3.1",
     "vitest": "^1.6.0",
     "yargs": "^15.3.1"
@@ -124,6 +125,7 @@
     "react"
   ],
   "dependencies": {
+    "@standard-schema/utils": "^0.3.0",
     "immer": "^10.0.3",
     "redux": "^5.0.1",
     "redux-thunk": "^3.1.0",
