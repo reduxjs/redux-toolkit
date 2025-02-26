@@ -8133,6 +8133,7 @@ __metadata:
     "@phryneas/ts-version": "npm:^1.0.2"
     "@size-limit/file": "npm:^11.0.1"
     "@size-limit/webpack": "npm:^11.0.1"
+    "@standard-schema/utils": "npm:^0.3.0"
     "@testing-library/dom": "npm:^10.4.0"
     "@testing-library/react": "npm:^16.0.1"
     "@testing-library/react-render-stream": "npm:^1.0.3"
@@ -8180,6 +8181,7 @@ __metadata:
     tsup: "npm:^8.2.3"
     tsx: "npm:^4.19.0"
     typescript: "npm:^5.5.4"
+    valibot: "npm:^1.0.0-rc.2"
     vite-tsconfig-paths: "npm:^4.3.1"
     vitest: "npm:^1.6.0"
     yargs: "npm:^15.3.1"
@@ -8840,6 +8842,13 @@ __metadata:
     micromark-util-character: "npm:^1.1.0"
     micromark-util-symbol: "npm:^1.0.1"
   checksum: 10/c96f1533d09913c57381859966f10a706afd8eb680923924af1c451f3b72f22c31e394028d7535131c10f8682d3c60206da95c50fb4f016fbbd04218c853cc88
+  languageName: node
+  linkType: hard
+
+"@standard-schema/utils@npm:^0.3.0":
+  version: 0.3.0
+  resolution: "@standard-schema/utils@npm:0.3.0"
+  checksum: 10/7084f875d322792f2e0a5904009434c8374b9345b09ba89828b68fd56fa3c2b366d35bf340d9e8c72736ef01793c2f70d350c372ed79845dc3566c58d34b4b51
   languageName: node
   linkType: hard
 
@@ -33972,6 +33981,18 @@ __metadata:
     convert-source-map: "npm:^1.6.0"
     source-map: "npm:^0.7.3"
   checksum: 10/db5469f133a7cfb7680a28ddfb31aad2cc64f282fa7cf0c8e91f91bfd542bf61597260282be28c9648f0f2114963a24b273ed92af9a5cad6cb629c708ca72f8e
+  languageName: node
+  linkType: hard
+
+"valibot@npm:^1.0.0-rc.2":
+  version: 1.0.0-rc.2
+  resolution: "valibot@npm:1.0.0-rc.2"
+  peerDependencies:
+    typescript: ">=5"
+  peerDependenciesMeta:
+    typescript:
+      optional: true
+  checksum: 10/f6ef9c5b8e6ac7162176489d6ea567513be7b1e78bbad8deecfe0f905d4063cdfc4382412f3c263dc65077a585198a5b0d454695a45bf77ff0a1cd2f644347ad
   languageName: node
   linkType: hard
 
