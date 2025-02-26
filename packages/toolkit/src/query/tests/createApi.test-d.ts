@@ -377,26 +377,27 @@ describe('type tests', () => {
       })
     })
     describe('endpoint schemas', () => {
+      const argSchema = v.object({ id: v.number() })
+      const postSchema = v.object({
+        id: v.number(),
+        title: v.string(),
+        body: v.string(),
+      }) satisfies v.GenericSchema<Post>
+      const errorSchema = v.object({
+        status: v.number(),
+        data: v.unknown(),
+      }) satisfies v.GenericSchema<FetchBaseQueryError>
+      const metaSchema = v.object({
+        request: v.instance(Request),
+        response: v.optional(v.instance(Response)),
+      }) satisfies v.GenericSchema<FetchBaseQueryMeta>
       test('schemas must match', () => {
-        const postSchema = v.object({
-          id: v.number(),
-          title: v.string(),
-          body: v.string(),
-        }) satisfies v.GenericSchema<Post>
-        const errorSchema = v.object({
-          status: v.number(),
-          data: v.unknown(),
-        }) satisfies v.GenericSchema<FetchBaseQueryError>
-        const metaSchema = v.object({
-          request: v.instance(Request),
-          response: v.optional(v.instance(Response)),
-        }) satisfies v.GenericSchema<FetchBaseQueryMeta>
         createApi({
           baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
           endpoints: (build) => ({
             query: build.query<Post, { id: number }>({
               query: ({ id }) => `/post/${id}`,
-              argSchema: v.object({ id: v.number() }),
+              argSchema,
               resultSchema: postSchema,
               errorSchema,
               metaSchema,
@@ -464,6 +465,23 @@ describe('type tests', () => {
             }),
           }),
         })
+      })
+      test('schemas as a source of inference', () => {
+        const api = createApi({
+          baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
+          endpoints: (build) => ({
+            query: build.query({
+              query: ({ id }) => `/post/${id}`,
+              argSchema,
+              resultSchema: postSchema,
+            }),
+          }),
+        })
+
+        expectTypeOf(api.endpoints.query.Types.QueryArg).toEqualTypeOf<{
+          id: number
+        }>()
+        expectTypeOf(api.endpoints.query.Types.ResultType).toEqualTypeOf<Post>()
       })
     })
   })
