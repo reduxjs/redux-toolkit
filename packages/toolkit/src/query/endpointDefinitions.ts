@@ -37,6 +37,7 @@ import type {
   UnwrapPromise,
 } from './tsHelpers'
 import { isNotNullish } from './utils'
+import type { StandardSchemaV1 } from './standardSchema'
 
 const resultType = /* @__PURE__ */ Symbol()
 const baseQuery = /* @__PURE__ */ Symbol()
@@ -115,6 +116,9 @@ type EndpointDefinitionWithQuery<
    * @see https://redux-toolkit.js.org/api/other-exports#copywithstructuralsharing
    */
   structuralSharing?: boolean
+
+  /** A schema for the result *before* it's passed to `transformResponse` */
+  rawResultSchema?: StandardSchemaV1<BaseQueryResult<BaseQuery>>
 }
 
 type EndpointDefinitionWithQueryFn<
@@ -175,6 +179,7 @@ type EndpointDefinitionWithQueryFn<
   query?: never
   transformResponse?: never
   transformErrorResponse?: never
+  rawResultSchema?: never
   /**
    * Defaults to `true`.
    *
@@ -206,6 +211,15 @@ export type BaseEndpointDefinition<
       : EndpointDefinitionWithQuery<QueryArg, BaseQuery, ResultType>)
   | EndpointDefinitionWithQueryFn<QueryArg, BaseQuery, ResultType>
 ) & {
+  /** A schema for the arguments to be passed to the `query` or `queryFn` */
+  argSchema?: StandardSchemaV1<QueryArg>
+
+  /** A schema for the result (including `transformResponse` if provided) */
+  resultSchema?: StandardSchemaV1<ResultType>
+
+  /** A schema for the error object returned by the `query` or `queryFn` */
+  errorSchema?: StandardSchemaV1<BaseQueryError<BaseQuery>>
+
   /* phantom type */
   [resultType]?: ResultType
   /* phantom type */

@@ -65,6 +65,7 @@ import {
   isRejectedWithValue,
   SHOULD_AUTOBATCH,
 } from './rtkImports'
+import { parseWithSchema } from '../standardSchema'
 
 export type BuildThunksApiEndpointQuery<
   Definition extends QueryDefinition<any, any, any, any, any>,
@@ -551,7 +552,11 @@ export function buildThunks<
         finalQueryArg: unknown,
       ): Promise<QueryReturnValue> {
         let result: QueryReturnValue
-        const { extraOptions } = endpointDefinition
+        const { extraOptions, argSchema } = endpointDefinition
+
+        if (argSchema) {
+          await parseWithSchema(argSchema, finalQueryArg)
+        }
 
         if (forceQueryFn) {
           // upsertQueryData relies on this to pass in the user-provided value
