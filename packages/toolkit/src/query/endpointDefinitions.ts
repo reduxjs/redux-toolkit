@@ -108,7 +108,7 @@ type EndpointDefinitionWithQuery<
   rawResponseSchema?: StandardSchemaV1<BaseQueryResult<BaseQuery>>
 
   /** A schema for the error object returned by the `query` or `queryFn`, *before* it's passed to `transformErrorResponse` */
-  rawErrorSchema?: StandardSchemaV1<BaseQueryError<BaseQuery>>
+  rawErrorResponseSchema?: StandardSchemaV1<BaseQueryError<BaseQuery>>
 }
 
 type EndpointDefinitionWithQueryFn<
@@ -170,7 +170,7 @@ type EndpointDefinitionWithQueryFn<
   transformResponse?: never
   transformErrorResponse?: never
   rawResponseSchema?: never
-  rawErrorSchema?: never
+  rawErrorResponseSchema?: never
 }
 
 type BaseEndpointTypes<QueryArg, BaseQuery extends BaseQueryFn, ResultType> = {
@@ -196,7 +196,7 @@ export type BaseEndpointDefinition<
   responseSchema?: StandardSchemaV1<ResultType>
 
   /** A schema for the error object returned by the `query` or `queryFn` (including `transformErrorResponse` if provided) */
-  errorSchema?: StandardSchemaV1<BaseQueryError<BaseQuery>>
+  errorResponseSchema?: StandardSchemaV1<BaseQueryError<BaseQuery>>
 
   /** A schema for the `meta` property returned by the `query` or `queryFn` */
   metaSchema?: StandardSchemaV1<BaseQueryMeta<BaseQuery>>

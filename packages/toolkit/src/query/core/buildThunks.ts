@@ -745,12 +745,13 @@ export function buildThunks<
           endpointDefinition,
           'transformErrorResponse',
         )
-        const { rawErrorSchema, errorSchema } = endpointDefinition
+        const { rawErrorResponseSchema, errorResponseSchema } =
+          endpointDefinition
 
         let { value, meta } = caughtError
 
-        if (rawErrorSchema) {
-          value = await parseWithSchema(rawErrorSchema, value)
+        if (rawErrorResponseSchema) {
+          value = await parseWithSchema(rawErrorResponseSchema, value)
         }
 
         if (metaSchema) {
@@ -763,9 +764,9 @@ export function buildThunks<
             meta,
             arg.originalArgs,
           )
-          if (errorSchema) {
+          if (errorResponseSchema) {
             transformedErrorResponse = await parseWithSchema(
-              errorSchema,
+              errorResponseSchema,
               transformedErrorResponse,
             )
           }

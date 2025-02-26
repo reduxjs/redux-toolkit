@@ -383,7 +383,7 @@ describe('type tests', () => {
         title: v.string(),
         body: v.string(),
       }) satisfies v.GenericSchema<Post>
-      const errorSchema = v.object({
+      const errorResponseSchema = v.object({
         status: v.number(),
         data: v.unknown(),
       }) satisfies v.GenericSchema<FetchBaseQueryError>
@@ -399,7 +399,7 @@ describe('type tests', () => {
               query: ({ id }) => `/post/${id}`,
               argSchema,
               responseSchema: postSchema,
-              errorSchema,
+              errorResponseSchema,
               metaSchema,
             }),
             bothMismatch: build.query<Post, { id: number }>({
@@ -409,7 +409,7 @@ describe('type tests', () => {
               // @ts-expect-error wrong schema
               responseSchema: v.object({ id: v.string() }),
               // @ts-expect-error wrong schema
-              errorSchema: v.object({ status: v.string() }),
+              errorResponseSchema: v.object({ status: v.string() }),
               // @ts-expect-error wrong schema
               metaSchema: v.object({ request: v.string() }),
             }),
@@ -425,8 +425,8 @@ describe('type tests', () => {
                 id: v.pipe(v.string(), v.transform(Number)),
               }) satisfies v.GenericSchema<any, Post>,
               // @ts-expect-error can't expect different input
-              errorSchema: v.object({
-                ...errorSchema.entries,
+              errorResponseSchema: v.object({
+                ...errorResponseSchema.entries,
                 status: v.pipe(v.string(), v.transform(Number)),
               }) satisfies v.GenericSchema<any, FetchBaseQueryError>,
               // @ts-expect-error can't expect different input
@@ -450,8 +450,8 @@ describe('type tests', () => {
                 id: v.pipe(v.number(), v.transform(String)),
               }) satisfies v.GenericSchema<Post, any>,
               // @ts-expect-error can't provide different output
-              errorSchema: v.object({
-                ...errorSchema.entries,
+              errorResponseSchema: v.object({
+                ...errorResponseSchema.entries,
                 status: v.pipe(v.number(), v.transform(String)),
               }) satisfies v.GenericSchema<FetchBaseQueryError, any>,
               // @ts-expect-error can't provide different output

@@ -1266,7 +1266,7 @@ describe('endpoint schemas', () => {
       endpoints: (build) => ({
         query: build.query<{ success: boolean }, void>({
           query: () => '/error',
-          rawErrorSchema: v.object({
+          rawErrorResponseSchema: v.object({
             status: v.pipe(v.number(), v.minValue(400), v.maxValue(499)),
             data: v.unknown(),
           }),
@@ -1290,7 +1290,7 @@ describe('endpoint schemas', () => {
             data: error,
             error: 'whoops',
           }),
-          errorSchema: v.object({
+          errorResponseSchema: v.object({
             status: v.literal('CUSTOM_ERROR'),
             error: v.literal('oh no'),
             data: v.unknown(),
