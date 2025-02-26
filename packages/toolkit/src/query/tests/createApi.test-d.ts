@@ -417,8 +417,8 @@ describe('type tests', () => {
               }) satisfies v.GenericSchema<any, Post>,
               // @ts-expect-error can't expect different input
               errorSchema: v.object({
+                ...errorSchema.entries,
                 status: v.pipe(v.string(), v.transform(Number)),
-                data: v.unknown(),
               }) satisfies v.GenericSchema<any, FetchBaseQueryError>,
             }),
             outputMismatch: build.query<Post, { id: number }>({
@@ -434,8 +434,8 @@ describe('type tests', () => {
               }) satisfies v.GenericSchema<Post, any>,
               // @ts-expect-error can't provide different output
               errorSchema: v.object({
+                ...errorSchema.entries,
                 status: v.pipe(v.number(), v.transform(String)),
-                data: v.unknown(),
               }) satisfies v.GenericSchema<FetchBaseQueryError, any>,
             }),
           }),
