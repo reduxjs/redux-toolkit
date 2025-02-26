@@ -558,7 +558,9 @@ export function buildThunks<
         const { extraOptions, argSchema, rawResultSchema, resultSchema } =
           endpointDefinition
 
-        if (argSchema) await parseWithSchema(argSchema, finalQueryArg)
+        if (argSchema) {
+          finalQueryArg = await parseWithSchema(argSchema, finalQueryArg)
+        }
 
         if (forceQueryFn) {
           // upsertQueryData relies on this to pass in the user-provided value
