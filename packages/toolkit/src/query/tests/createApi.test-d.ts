@@ -4,6 +4,7 @@ import { configureStore } from '@reduxjs/toolkit'
 import type {
   DefinitionsFromApi,
   FetchBaseQueryError,
+  FetchBaseQueryMeta,
   MutationDefinition,
   OverrideResultType,
   QueryDefinition,
@@ -386,6 +387,10 @@ describe('type tests', () => {
           status: v.number(),
           data: v.unknown(),
         }) satisfies v.GenericSchema<FetchBaseQueryError>
+        const metaSchema = v.object({
+          request: v.instance(Request),
+          response: v.optional(v.instance(Response)),
+        }) satisfies v.GenericSchema<FetchBaseQueryMeta>
         createApi({
           baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
           endpoints: (build) => ({
@@ -394,6 +399,7 @@ describe('type tests', () => {
               argSchema: v.object({ id: v.number() }),
               resultSchema: postSchema,
               errorSchema,
+              metaSchema,
             }),
             bothMismatch: build.query<Post, { id: number }>({
               query: ({ id }) => `/post/${id}`,
@@ -403,6 +409,8 @@ describe('type tests', () => {
               resultSchema: v.object({ id: v.string() }),
               // @ts-expect-error wrong schema
               errorSchema: v.object({ status: v.string() }),
+              // @ts-expect-error wrong schema
+              metaSchema: v.object({ request: v.string() }),
             }),
             inputMismatch: build.query<Post, { id: number }>({
               query: ({ id }) => `/post/${id}`,
@@ -420,6 +428,14 @@ describe('type tests', () => {
                 ...errorSchema.entries,
                 status: v.pipe(v.string(), v.transform(Number)),
               }) satisfies v.GenericSchema<any, FetchBaseQueryError>,
+              // @ts-expect-error can't expect different input
+              metaSchema: v.object({
+                ...metaSchema.entries,
+                request: v.pipe(
+                  v.string(),
+                  v.transform((url) => new Request(url)),
+                ),
+              }) satisfies v.GenericSchema<any, FetchBaseQueryMeta>,
             }),
             outputMismatch: build.query<Post, { id: number }>({
               query: ({ id }) => `/post/${id}`,
@@ -437,6 +453,14 @@ describe('type tests', () => {
                 ...errorSchema.entries,
                 status: v.pipe(v.number(), v.transform(String)),
               }) satisfies v.GenericSchema<FetchBaseQueryError, any>,
+              // @ts-expect-error can't provide different output
+              metaSchema: v.object({
+                ...metaSchema.entries,
+                request: v.pipe(
+                  v.instance(Request),
+                  v.transform((r) => r.url),
+                ),
+              }) satisfies v.GenericSchema<FetchBaseQueryMeta, any>,
             }),
           }),
         })
