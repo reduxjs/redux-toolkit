@@ -14,12 +14,15 @@ import type {
   SerializeQueryArgs,
   TagTypesFromApi,
 } from '@reduxjs/toolkit/query'
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+import {
+  createApi,
+  fetchBaseQuery,
+  NamedSchemaError,
+} from '@reduxjs/toolkit/query'
 import { HttpResponse, delay, http } from 'msw'
 import nodeFetch from 'node-fetch'
 import * as v from 'valibot'
 import type { SchemaFailureHandler } from '../endpointDefinitions'
-import { NamedSchemaError } from '../standardSchema'
 
 beforeAll(() => {
   vi.stubEnv('NODE_ENV', 'development')
@@ -1219,11 +1222,11 @@ describe('endpoint schemas', () => {
   }) {
     for (const handler of [onSchemaFailureGlobal, onSchemaFailureEndpoint]) {
       expect(handler).toHaveBeenCalledOnce()
-      const [taggedError, info] = handler.mock.calls[0]
-      expect(taggedError).toBeInstanceOf(NamedSchemaError)
-      expect(taggedError.issues.length).toBeGreaterThan(0)
-      expect(taggedError.value).toEqual(value)
-      expect(taggedError.schemaName).toBe(schemaName)
+      const [namedError, info] = handler.mock.calls[0]
+      expect(namedError).toBeInstanceOf(NamedSchemaError)
+      expect(namedError.issues.length).toBeGreaterThan(0)
+      expect(namedError.value).toEqual(value)
+      expect(namedError.schemaName).toBe(schemaName)
       expect(info.endpoint).toBe('query')
       expect(info.type).toBe('query')
       expect(info.arg).toEqual(arg)
