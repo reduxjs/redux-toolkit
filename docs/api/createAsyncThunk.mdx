@@ -139,7 +139,7 @@ The returned thunk action creator accepts an optional second argument with the f
 
 - `signal`: an optional [`AbortSignal`](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal) that will be tracked by the internal abort signal (see [Canceling While Running](#canceling-while-running))
 
-```ts
+```ts no-transpile
 const externalController = new AbortController()
 dispatch(fetchUserById(123, { signal: externalController.signal }))
 externalController.abort()
