@@ -1193,6 +1193,12 @@ describe('timeout behavior', () => {
 })
 
 describe('endpoint schemas', () => {
+  const serializedSchemaError = {
+    name: 'SchemaError',
+    message: expect.any(String),
+    stack: expect.any(String),
+  } satisfies SerializedError
+
   test("can be used to validate the endpoint's arguments", async () => {
     const api = createApi({
       baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
@@ -1219,11 +1225,7 @@ describe('endpoint schemas', () => {
       api.endpoints.query.initiate({ id: '1' }),
     )
 
-    expect(invalidResult?.error).toEqual<SerializedError>({
-      name: 'SchemaError',
-      message: expect.any(String),
-      stack: expect.any(String),
-    })
+    expect(invalidResult?.error).toEqual(serializedSchemaError)
   })
   test("can be used to validate the endpoint's raw result", async () => {
     const api = createApi({
@@ -1239,18 +1241,9 @@ describe('endpoint schemas', () => {
       withoutTestLifecycles: true,
     })
     const result = await storeRef.store.dispatch(api.endpoints.query.initiate())
-    expect(result?.error).toEqual<SerializedError>({
-      name: 'SchemaError',
-      message: expect.any(String),
-      stack: expect.any(String),
-    })
+    expect(result?.error).toEqual(serializedSchemaError)
   })
   test("can be used to validate the endpoint's final result", async () => {
-    server.use(
-      http.get('https://example.com/success/', () =>
-        HttpResponse.json({ success: true }),
-      ),
-    )
     const api = createApi({
       baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
       endpoints: (build) => ({
@@ -1265,11 +1258,7 @@ describe('endpoint schemas', () => {
       withoutTestLifecycles: true,
     })
     const result = await storeRef.store.dispatch(api.endpoints.query.initiate())
-    expect(result?.error).toEqual<SerializedError>({
-      name: 'SchemaError',
-      message: expect.any(String),
-      stack: expect.any(String),
-    })
+    expect(result?.error).toEqual(serializedSchemaError)
   })
   test("can be used to validate the endpoint's raw error result", async () => {
     const api = createApi({
@@ -1288,11 +1277,7 @@ describe('endpoint schemas', () => {
       withoutTestLifecycles: true,
     })
     const result = await storeRef.store.dispatch(api.endpoints.query.initiate())
-    expect(result?.error).toEqual<SerializedError>({
-      name: 'SchemaError',
-      message: expect.any(String),
-      stack: expect.any(String),
-    })
+    expect(result?.error).toEqual(serializedSchemaError)
   })
   test("can be used to validate the endpoint's final error result", async () => {
     const api = createApi({
@@ -1317,11 +1302,7 @@ describe('endpoint schemas', () => {
       withoutTestLifecycles: true,
     })
     const result = await storeRef.store.dispatch(api.endpoints.query.initiate())
-    expect(result?.error).toEqual<SerializedError>({
-      name: 'SchemaError',
-      message: expect.any(String),
-      stack: expect.any(String),
-    })
+    expect(result?.error).toEqual(serializedSchemaError)
   })
   test("can be used to validate the endpoint's meta result", async () => {
     const api = createApi({
@@ -1341,10 +1322,6 @@ describe('endpoint schemas', () => {
       withoutTestLifecycles: true,
     })
     const result = await storeRef.store.dispatch(api.endpoints.query.initiate())
-    expect(result?.error).toEqual<SerializedError>({
-      name: 'SchemaError',
-      message: expect.any(String),
-      stack: expect.any(String),
-    })
+    expect(result?.error).toEqual(serializedSchemaError)
   })
 })
