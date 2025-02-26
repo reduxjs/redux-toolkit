@@ -1,4 +1,5 @@
 import type { Api } from '@reduxjs/toolkit/query'
+import type { StandardSchemaV1 } from '@standard-schema/spec'
 import type {
   BaseQueryApi,
   BaseQueryArg,
@@ -37,7 +38,6 @@ import type {
   UnwrapPromise,
 } from './tsHelpers'
 import { isNotNullish } from './utils'
-import type { StandardSchemaV1 } from './standardSchema'
 
 const resultType = /* @__PURE__ */ Symbol()
 const baseQuery = /* @__PURE__ */ Symbol()
