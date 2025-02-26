@@ -1233,7 +1233,7 @@ describe('endpoint schemas', () => {
       endpoints: (build) => ({
         query: build.query<{ success: boolean }, void>({
           query: () => '/success',
-          rawResultSchema: v.object({ value: v.literal('success!') }),
+          rawResponseSchema: v.object({ value: v.literal('success!') }),
         }),
       }),
     })
@@ -1250,7 +1250,7 @@ describe('endpoint schemas', () => {
         query: build.query<{ success: boolean }, void>({
           query: () => '/success',
           transformResponse: () => ({ success: false }),
-          resultSchema: v.object({ success: v.literal(true) }),
+          responseSchema: v.object({ success: v.literal(true) }),
         }),
       }),
     })
