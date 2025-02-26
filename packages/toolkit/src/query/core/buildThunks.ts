@@ -28,6 +28,8 @@ import type {
   QueryDefinition,
   ResultDescription,
   ResultTypeFrom,
+  SchemaFailureHandler,
+  SchemaFailureInfo,
 } from '../endpointDefinitions'
 import {
   calculateProvidedBy,
@@ -65,7 +67,7 @@ import {
   isRejectedWithValue,
   SHOULD_AUTOBATCH,
 } from './rtkImports'
-import { parseWithSchema } from '../standardSchema'
+import { parseWithSchema, NamedSchemaError } from '../standardSchema'
 
 export type BuildThunksApiEndpointQuery<
   Definition extends QueryDefinition<any, any, any, any, any>,
@@ -330,6 +332,7 @@ export function buildThunks<
   api,
   assertTagType,
   selectors,
+  onSchemaFailure,
 }: {
   baseQuery: BaseQuery
   reducerPath: ReducerPath
@@ -338,6 +341,7 @@ export function buildThunks<
   api: Api<BaseQuery, Definitions, ReducerPath, any>
   assertTagType: AssertTagTypes
   selectors: AllSelectors
+  onSchemaFailure: SchemaFailureHandler | undefined
 }) {
   type State = RootState<any, string, ReducerPath>
 
@@ -559,7 +563,11 @@ export function buildThunks<
           endpointDefinition
 
         if (argSchema) {
-          finalQueryArg = await parseWithSchema(argSchema, finalQueryArg)
+          finalQueryArg = await parseWithSchema(
+            argSchema,
+            finalQueryArg,
+            'argSchema',
+          )
         }
 
         if (forceQueryFn) {
@@ -618,7 +626,11 @@ export function buildThunks<
         let { data } = result
 
         if (rawResponseSchema) {
-          data = await parseWithSchema(rawResponseSchema, result.data)
+          data = await parseWithSchema(
+            rawResponseSchema,
+            result.data,
+            'rawResponseSchema',
+          )
         }
 
         let transformedResponse = await transformResponse(
@@ -631,6 +643,7 @@ export function buildThunks<
           transformedResponse = await parseWithSchema(
             responseSchema,
             transformedResponse,
+            'responseSchema',
           )
         }
 
@@ -727,6 +740,7 @@ export function buildThunks<
         finalQueryReturnValue.meta = await parseWithSchema(
           metaSchema,
           finalQueryReturnValue.meta,
+          'metaSchema',
         )
       }
 
@@ -739,59 +753,78 @@ export function buildThunks<
         }),
       )
     } catch (error) {
-      let caughtError = error
-      if (caughtError instanceof HandledError) {
-        let transformErrorResponse = getTransformCallbackForEndpoint(
-          endpointDefinition,
-          'transformErrorResponse',
-        )
-        const { rawErrorResponseSchema, errorResponseSchema } =
-          endpointDefinition
-
-        let { value, meta } = caughtError
-
-        if (rawErrorResponseSchema) {
-          value = await parseWithSchema(rawErrorResponseSchema, value)
-        }
-
-        if (metaSchema) {
-          meta = await parseWithSchema(metaSchema, meta)
-        }
-
-        try {
-          let transformedErrorResponse = await transformErrorResponse(
-            value,
-            meta,
-            arg.originalArgs,
+      try {
+        let caughtError = error
+        if (caughtError instanceof HandledError) {
+          let transformErrorResponse = getTransformCallbackForEndpoint(
+            endpointDefinition,
+            'transformErrorResponse',
           )
-          if (errorResponseSchema) {
-            transformedErrorResponse = await parseWithSchema(
-              errorResponseSchema,
-              transformedErrorResponse,
+          const { rawErrorResponseSchema, errorResponseSchema } =
+            endpointDefinition
+
+          let { value, meta } = caughtError
+
+          if (rawErrorResponseSchema) {
+            value = await parseWithSchema(
+              rawErrorResponseSchema,
+              value,
+              'rawErrorResponseSchema',
             )
           }
 
-          return rejectWithValue(
-            transformedErrorResponse,
-            addShouldAutoBatch({ baseQueryMeta: meta }),
-          )
-        } catch (e) {
-          caughtError = e
+          if (metaSchema) {
+            meta = await parseWithSchema(metaSchema, meta, 'metaSchema')
+          }
+
+          try {
+            let transformedErrorResponse = await transformErrorResponse(
+              value,
+              meta,
+              arg.originalArgs,
+            )
+            if (errorResponseSchema) {
+              transformedErrorResponse = await parseWithSchema(
+                errorResponseSchema,
+                transformedErrorResponse,
+                'errorResponseSchema',
+              )
+            }
+
+            return rejectWithValue(
+              transformedErrorResponse,
+              addShouldAutoBatch({ baseQueryMeta: meta }),
+            )
+          } catch (e) {
+            caughtError = e
+          }
         }
-      }
-      if (
-        typeof process !== 'undefined' &&
-        process.env.NODE_ENV !== 'production'
-      ) {
-        console.error(
-          `An unhandled error occurred processing a request for the endpoint "${arg.endpointName}".
+        if (
+          typeof process !== 'undefined' &&
+          process.env.NODE_ENV !== 'production'
+        ) {
+          console.error(
+            `An unhandled error occurred processing a request for the endpoint "${arg.endpointName}".
 In the case of an unhandled error, no tags will be "provided" or "invalidated".`,
-          caughtError,
-        )
-      } else {
-        console.error(caughtError)
+            caughtError,
+          )
+        } else {
+          console.error(caughtError)
+        }
+        throw caughtError
+      } catch (error) {
+        if (error instanceof NamedSchemaError) {
+          const info: SchemaFailureInfo = {
+            endpoint: arg.endpointName,
+            arg: arg.originalArgs,
+            type: arg.type,
+            queryCacheKey: arg.type === 'query' ? arg.queryCacheKey : undefined,
+          }
+          endpointDefinition.onSchemaFailure?.(error, info)
+          onSchemaFailure?.(error, info)
+        }
+        throw error
       }
-      throw caughtError
     }
   }
 
