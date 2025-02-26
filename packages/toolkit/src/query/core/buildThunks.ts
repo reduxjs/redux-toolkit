@@ -488,10 +488,13 @@ export function buildThunks<
     },
   ) => {
     const endpointDefinition = endpointDefinitions[arg.endpointName]
+    const { metaSchema } = endpointDefinition
 
     try {
-      let transformResponse: TransformCallback =
-        getTransformCallbackForEndpoint(endpointDefinition, 'transformResponse')
+      let transformResponse = getTransformCallbackForEndpoint(
+        endpointDefinition,
+        'transformResponse',
+      )
 
       const baseQueryApi = {
         signal,
@@ -548,11 +551,10 @@ export function buildThunks<
         finalQueryArg: unknown,
       ): Promise<QueryReturnValue> {
         let result: QueryReturnValue
-        const { extraOptions, argSchema } = endpointDefinition
+        const { extraOptions, argSchema, rawResultSchema, resultSchema } =
+          endpointDefinition
 
-        if (argSchema) {
-          await parseWithSchema(argSchema, finalQueryArg)
-        }
+        if (argSchema) await parseWithSchema(argSchema, finalQueryArg)
 
         if (forceQueryFn) {
           // upsertQueryData relies on this to pass in the user-provided value
@@ -607,11 +609,24 @@ export function buildThunks<
 
         if (result.error) throw new HandledError(result.error, result.meta)
 
-        const transformedResponse = await transformResponse(
-          result.data,
+        let { data } = result
+
+        if (rawResultSchema) {
+          data = await parseWithSchema(rawResultSchema, result.data)
+        }
+
+        let transformedResponse = await transformResponse(
+          data,
           result.meta,
           finalQueryArg,
         )
+
+        if (resultSchema) {
+          transformedResponse = await parseWithSchema(
+            resultSchema,
+            transformedResponse,
+          )
+        }
 
         return {
           ...result,
@@ -702,6 +717,13 @@ export function buildThunks<
         finalQueryReturnValue = await executeRequest(arg.originalArgs)
       }
 
+      if (metaSchema && finalQueryReturnValue.meta) {
+        finalQueryReturnValue.meta = await parseWithSchema(
+          metaSchema,
+          finalQueryReturnValue.meta,
+        )
+      }
+
       // console.log('Final result: ', transformedData)
       return fulfillWithValue(
         finalQueryReturnValue.data,
@@ -711,25 +733,43 @@ export function buildThunks<
         }),
       )
     } catch (error) {
-      let catchedError = error
-      if (catchedError instanceof HandledError) {
-        let transformErrorResponse: TransformCallback =
-          getTransformCallbackForEndpoint(
-            endpointDefinition,
-            'transformErrorResponse',
-          )
+      let caughtError = error
+      if (caughtError instanceof HandledError) {
+        let transformErrorResponse = getTransformCallbackForEndpoint(
+          endpointDefinition,
+          'transformErrorResponse',
+        )
+        const { rawErrorSchema, errorSchema } = endpointDefinition
+
+        let { value, meta } = caughtError
+
+        if (rawErrorSchema) {
+          value = await parseWithSchema(rawErrorSchema, value)
+        }
+
+        if (metaSchema) {
+          meta = await parseWithSchema(metaSchema, meta)
+        }
 
         try {
+          let transformedErrorResponse = await transformErrorResponse(
+            value,
+            meta,
+            arg.originalArgs,
+          )
+          if (errorSchema) {
+            transformedErrorResponse = await parseWithSchema(
+              errorSchema,
+              transformedErrorResponse,
+            )
+          }
+
           return rejectWithValue(
-            await transformErrorResponse(
-              catchedError.value,
-              catchedError.meta,
-              arg.originalArgs,
-            ),
-            addShouldAutoBatch({ baseQueryMeta: catchedError.meta }),
+            transformedErrorResponse,
+            addShouldAutoBatch({ baseQueryMeta: meta }),
           )
         } catch (e) {
-          catchedError = e
+          caughtError = e
         }
       }
       if (
@@ -739,12 +779,12 @@ export function buildThunks<
         console.error(
           `An unhandled error occurred processing a request for the endpoint "${arg.endpointName}".
 In the case of an unhandled error, no tags will be "provided" or "invalidated".`,
-          catchedError,
+          caughtError,
         )
       } else {
-        console.error(catchedError)
+        console.error(caughtError)
       }
-      throw catchedError
+      throw caughtError
     }
   }
 
