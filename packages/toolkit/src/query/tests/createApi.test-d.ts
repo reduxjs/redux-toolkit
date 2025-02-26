@@ -474,6 +474,14 @@ describe('type tests', () => {
               query: ({ id }: { id: number }) => `/post/${id}`,
               responseSchema: postSchema,
             }),
+            query2: build.query({
+              query: (arg) => {
+                expectTypeOf(arg).toEqualTypeOf<{ id: number }>()
+                return `/post/${arg.id}`
+              },
+              argSchema,
+              responseSchema: postSchema,
+            }),
           }),
         })
 
@@ -481,6 +489,13 @@ describe('type tests', () => {
           id: number
         }>()
         expectTypeOf(api.endpoints.query.Types.ResultType).toEqualTypeOf<Post>()
+
+        expectTypeOf(api.endpoints.query2.Types.QueryArg).toEqualTypeOf<{
+          id: number
+        }>()
+        expectTypeOf(
+          api.endpoints.query2.Types.ResultType,
+        ).toEqualTypeOf<Post>()
       })
     })
   })
