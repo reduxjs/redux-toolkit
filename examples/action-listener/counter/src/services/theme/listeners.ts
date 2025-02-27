@@ -1,6 +1,6 @@
-import { themeActions } from './slice'
+import type { Unsubscribe } from '@reduxjs/toolkit'
 import type { AppStartListening } from '../../store'
-import { Unsubscribe } from '@reduxjs/toolkit'
+import { themeActions } from './slice'
 
 function onChangeColorScheme(
   action: ReturnType<typeof themeActions.changeColorScheme>,

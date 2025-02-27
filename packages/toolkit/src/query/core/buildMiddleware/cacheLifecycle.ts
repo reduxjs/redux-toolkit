@@ -1,7 +1,10 @@
 import type { ThunkDispatch, UnknownAction } from '@reduxjs/toolkit'
 import type { BaseQueryFn, BaseQueryMeta } from '../../baseQueryTypes'
-import type { BaseEndpointDefinition } from '../../endpointDefinitions'
-import { DefinitionType, isAnyQueryDefinition } from '../../endpointDefinitions'
+import type {
+  BaseEndpointDefinition,
+  DefinitionType,
+} from '../../endpointDefinitions'
+import { isAnyQueryDefinition } from '../../endpointDefinitions'
 import type { QueryCacheKey, RootState } from '../apiState'
 import type {
   MutationResultSelectorResult,

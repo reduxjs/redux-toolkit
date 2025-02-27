@@ -1,4 +1,4 @@
-import { http, HttpResponse } from 'msw'
+import { HttpResponse, http } from 'msw'
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))

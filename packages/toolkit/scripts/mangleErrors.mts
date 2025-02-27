@@ -1,9 +1,10 @@
+import type * as Babel from '@babel/core'
 import type { Node, PluginObj, PluginPass } from '@babel/core'
 import * as helperModuleImports from '@babel/helper-module-imports'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 
-type Babel = typeof import('@babel/core')
+type Babel = typeof Babel
 
 /**
  * Represents the options for the {@linkcode mangleErrorsPlugin}.
