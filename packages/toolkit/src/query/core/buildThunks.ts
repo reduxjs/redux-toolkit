@@ -26,6 +26,7 @@ import type {
   PageParamFrom,
   QueryArgFrom,
   QueryDefinition,
+  ResultDescription,
   ResultTypeFrom,
 } from '../endpointDefinitions'
 import {
@@ -71,14 +72,14 @@ export type BuildThunksApiEndpointQuery<
 
 export type BuildThunksApiEndpointInfiniteQuery<
   Definition extends InfiniteQueryDefinition<any, any, any, any, any>,
-> = Matchers<QueryThunk, Definition>
+> = Matchers<InfiniteQueryThunk<any>, Definition>
 
 export type BuildThunksApiEndpointMutation<
   Definition extends MutationDefinition<any, any, any, any, any>,
 > = Matchers<MutationThunk, Definition>
 
 type EndpointThunk<
-  Thunk extends QueryThunk | MutationThunk,
+  Thunk extends QueryThunk | MutationThunk | InfiniteQueryThunk<any>,
   Definition extends EndpointDefinition<any, any, any, any>,
 > =
   Definition extends EndpointDefinition<
@@ -94,27 +95,41 @@ type EndpointThunk<
           ATConfig & { rejectValue: BaseQueryError<BaseQueryFn> }
         >
       : never
-    : never
+    : Definition extends InfiniteQueryDefinition<
+          infer QueryArg,
+          infer PageParam,
+          infer BaseQueryFn,
+          any,
+          infer ResultType
+        >
+      ? Thunk extends AsyncThunk<unknown, infer ATArg, infer ATConfig>
+        ? AsyncThunk<
+            InfiniteData<ResultType, PageParam>,
+            ATArg & { originalArgs: QueryArg },
+            ATConfig & { rejectValue: BaseQueryError<BaseQueryFn> }
+          >
+        : never
+      : never
 
 export type PendingAction<
-  Thunk extends QueryThunk | MutationThunk,
+  Thunk extends QueryThunk | MutationThunk | InfiniteQueryThunk<any>,
   Definition extends EndpointDefinition<any, any, any, any>,
 > = ReturnType<EndpointThunk<Thunk, Definition>['pending']>
 
 export type FulfilledAction<
-  Thunk extends QueryThunk | MutationThunk,
+  Thunk extends QueryThunk | MutationThunk | InfiniteQueryThunk<any>,
   Definition extends EndpointDefinition<any, any, any, any>,
 > = ReturnType<EndpointThunk<Thunk, Definition>['fulfilled']>
 
 export type RejectedAction<
-  Thunk extends QueryThunk | MutationThunk,
+  Thunk extends QueryThunk | MutationThunk | InfiniteQueryThunk<any>,
   Definition extends EndpointDefinition<any, any, any, any>,
 > = ReturnType<EndpointThunk<Thunk, Definition>['rejected']>
 
 export type Matcher<M> = (value: any) => value is M
 
 export interface Matchers<
-  Thunk extends QueryThunk | MutationThunk,
+  Thunk extends QueryThunk | MutationThunk | InfiniteQueryThunk<any>,
   Definition extends EndpointDefinition<any, any, any, any>,
 > {
   matchPending: Matcher<PendingAction<Thunk, Definition>>
@@ -645,7 +660,6 @@ export function buildThunks<
           isForcedQueryNeedingRefetch || !cachedData ? blankData : cachedData
         ) as InfiniteData<unknown, unknown>
 
-
         // If the thunk specified a direction and we do have at least one page,
         // fetch the next or previous page
         if ('direction' in arg && arg.direction && existingData.pages.length) {
@@ -960,14 +974,18 @@ export function getPreviousPageParam(
 
 export function calculateProvidedByThunk(
   action: UnwrapPromise<
-    ReturnType<ReturnType<QueryThunk>> | ReturnType<ReturnType<MutationThunk>>
+    | ReturnType<ReturnType<QueryThunk>>
+    | ReturnType<ReturnType<MutationThunk>>
+    | ReturnType<ReturnType<InfiniteQueryThunk<any>>>
   >,
   type: 'providesTags' | 'invalidatesTags',
   endpointDefinitions: EndpointDefinitions,
   assertTagType: AssertTagTypes,
 ) {
   return calculateProvidedBy(
-    endpointDefinitions[action.meta.arg.endpointName][type],
+    endpointDefinitions[action.meta.arg.endpointName][
+      type
+    ] as ResultDescription<any, any, any, any, any>,
     isFulfilled(action) ? action.payload : undefined,
     isRejectedWithValue(action) ? action.payload : undefined,
     action.meta.arg.originalArgs,

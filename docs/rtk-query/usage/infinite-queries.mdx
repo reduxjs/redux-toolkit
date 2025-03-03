@@ -63,7 +63,7 @@ This structure allows flexibility in how your UI chooses to render the data (sho
 
 Infinite query endpoints are defined by returning an object inside the `endpoints` section of `createApi`, and defining the fields using the `build.infiniteQuery()` method. They are an extension of standard query endpoints - you can specify [the same options as standard queries](./queries.mdx#defining-query-endpoints) (providing either `query` or `queryFn`, customizing with `transformResponse`, lifecycles with `onCacheEntryAdded` and `onQueryStarted`, defining tags, etc). However, they also require an additional `infiniteQueryOptions` field to specify the infinite query behavior.
 
-With TypeScript, you must supply 3 generic arguments: `build.infiniteQuery<ResultType, QueryArg, PageParam>`, where `ResultType` is the contents of a single page, `QueryArg` is the type passed in as the cache key, and `PageParam` is the value that will be passed to `query/queryFn` to make the rest. If there is no argument, use `void` for the arg type instead.
+With TypeScript, you must supply 3 generic arguments: `build.infiniteQuery<ResultType, QueryArg, PageParam>`, where `ResultType` is the contents of a single page, `QueryArg` is the type passed in as the cache key, and `PageParam` is the value used to request a specific page. If there is no argument, use `void` for the arg type instead.
 
 ### `infiniteQueryOptions`
 
