@@ -26,6 +26,7 @@ import type {
   PageParamFrom,
   QueryArgFrom,
   QueryDefinition,
+  ResultDescription,
   ResultTypeFrom,
 } from '../endpointDefinitions'
 import {
@@ -973,14 +974,18 @@ export function getPreviousPageParam(
 
 export function calculateProvidedByThunk(
   action: UnwrapPromise<
-    ReturnType<ReturnType<QueryThunk>> | ReturnType<ReturnType<MutationThunk>>
+    | ReturnType<ReturnType<QueryThunk>>
+    | ReturnType<ReturnType<MutationThunk>>
+    | ReturnType<ReturnType<InfiniteQueryThunk<any>>>
   >,
   type: 'providesTags' | 'invalidatesTags',
   endpointDefinitions: EndpointDefinitions,
   assertTagType: AssertTagTypes,
 ) {
   return calculateProvidedBy(
-    endpointDefinitions[action.meta.arg.endpointName][type],
+    endpointDefinitions[action.meta.arg.endpointName][
+      type
+    ] as ResultDescription<any, any, any, any, any>,
     isFulfilled(action) ? action.payload : undefined,
     isRejectedWithValue(action) ? action.payload : undefined,
     action.meta.arg.originalArgs,
