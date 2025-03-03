@@ -595,7 +595,7 @@ export interface InfiniteQueryExtraOptions<
 
   providesTags?: ResultDescription<
     TagTypes,
-    ResultType,
+    InfiniteData<ResultType, PageParam>,
     QueryArg,
     BaseQueryError<BaseQuery>,
     BaseQueryMeta<BaseQuery>

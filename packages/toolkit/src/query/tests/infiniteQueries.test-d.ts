@@ -55,6 +55,12 @@ describe('Infinite queries', () => {
               InfiniteData<Pokemon[], number>
             >()
           },
+          providesTags: (result) => {
+            expectTypeOf(result).toEqualTypeOf<
+              InfiniteData<Pokemon[], number> | undefined
+            >()
+            return []
+          },
         }),
       }),
     })
