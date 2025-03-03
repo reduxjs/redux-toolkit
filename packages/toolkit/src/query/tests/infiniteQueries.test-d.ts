@@ -75,6 +75,20 @@ describe('Infinite queries', () => {
 
     expectTypeOf(pokemonApi.useGetInfinitePokemonInfiniteQuery).toBeFunction()
 
+    expectTypeOf(pokemonApi.endpoints.getInfinitePokemon.useInfiniteQuery)
+      .parameter(0)
+      .toEqualTypeOf<string | typeof skipToken>()
+
+    expectTypeOf(pokemonApi.endpoints.getInfinitePokemon.useInfiniteQueryState)
+      .parameter(0)
+      .toEqualTypeOf<string | typeof skipToken>()
+
+    expectTypeOf(
+      pokemonApi.endpoints.getInfinitePokemon.useInfiniteQuerySubscription,
+    )
+      .parameter(0)
+      .toEqualTypeOf<string | typeof skipToken>()
+
     const slice = createSlice({
       name: 'pokemon',
       initialState: {} as { data: Pokemon[] },

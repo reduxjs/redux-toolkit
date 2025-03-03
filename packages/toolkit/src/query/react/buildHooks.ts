@@ -940,7 +940,7 @@ export type UseInfiniteQuery<
 export type UseInfiniteQueryState<
   D extends InfiniteQueryDefinition<any, any, any, any, any>,
 > = <R extends Record<string, any> = UseInfiniteQueryStateDefaultResult<D>>(
-  arg: QueryArgFrom<D> | SkipToken,
+  arg: InfiniteQueryArgFrom<D> | SkipToken,
   options?: UseInfiniteQueryStateOptions<D, R>,
 ) => UseInfiniteQueryStateResult<D, R>
 
@@ -977,7 +977,7 @@ export type TypedUseInfiniteQueryState<
 export type UseInfiniteQuerySubscription<
   D extends InfiniteQueryDefinition<any, any, any, any, any>,
 > = (
-  arg: QueryArgFrom<D> | SkipToken,
+  arg: InfiniteQueryArgFrom<D> | SkipToken,
   options?: UseInfiniteQuerySubscriptionOptions<D>,
 ) => UseInfiniteQuerySubscriptionResult<D>
 
