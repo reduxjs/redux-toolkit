@@ -1,4 +1,4 @@
-import type { Action, PayloadAction, UnknownAction } from '@reduxjs/toolkit'
+import type { PayloadAction } from '@reduxjs/toolkit'
 import {
   combineReducers,
   createAction,
@@ -23,7 +23,6 @@ import type {
   QueryCacheKey,
   SubscriptionState,
   ConfigState,
-  QueryKeys,
   InfiniteQuerySubState,
   InfiniteQueryDirection,
 } from './apiState'
@@ -36,18 +35,14 @@ import type {
   MutationThunk,
   QueryThunk,
   QueryThunkArg,
-  RejectedAction,
 } from './buildThunks'
 import { calculateProvidedByThunk } from './buildThunks'
 import {
   isInfiniteQueryDefinition,
   type AssertTagTypes,
-  type DefinitionType,
   type EndpointDefinitions,
   type FullTagDescription,
-  type QueryArgFrom,
   type QueryDefinition,
-  type ResultTypeFrom,
 } from '../endpointDefinitions'
 import type { Patch } from 'immer'
 import { isDraft } from 'immer'
@@ -61,6 +56,7 @@ import {
 import type { ApiContext } from '../apiTypes'
 import { isUpsertQuery } from './buildInitiate'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
+import type { UnwrapPromise } from '../tsHelpers'
 
 /**
  * A typesafe single entry to be upserted into the cache
@@ -279,6 +275,7 @@ export function buildSlice({
       substate.fulfilledTimeStamp = meta.fulfilledTimeStamp
     })
   }
+
   const querySlice = createSlice({
     name: `${reducerPath}/queries`,
     initialState: initialState as QueryState<any>,
@@ -486,6 +483,11 @@ export function buildSlice({
     },
   })
 
+  type CalculateProvidedByAction = UnwrapPromise<
+    | ReturnType<ReturnType<QueryThunk>>
+    | ReturnType<ReturnType<InfiniteQueryThunk<any>>>
+  >
+
   const invalidationSlice = createSlice({
     name: `${reducerPath}/invalidation`,
     initialState: initialState as InvalidationState<string>,
@@ -562,25 +564,50 @@ export function buildSlice({
         .addMatcher(
           isAnyOf(isFulfilled(queryThunk), isRejectedWithValue(queryThunk)),
           (draft, action) => {
-            const providedTags = calculateProvidedByThunk(
-              action,
-              'providesTags',
-              definitions,
-              assertTagType,
-            )
-            const { queryCacheKey } = action.meta.arg
+            writeProvidedTagsForQuery(draft, action)
+          },
+        )
+        .addMatcher(
+          querySlice.actions.cacheEntriesUpserted.match,
+          (draft, action) => {
+            for (const { queryDescription: arg, value } of action.payload) {
+              const action: CalculateProvidedByAction = {
+                type: 'UNKNOWN',
+                payload: value,
+                meta: {
+                  requestStatus: 'fulfilled',
+                  requestId: 'UNKNOWN',
+                  arg,
+                },
+              }
 
-            invalidationSlice.caseReducers.updateProvidedBy(
-              draft,
-              invalidationSlice.actions.updateProvidedBy({
-                queryCacheKey,
-                providedTags,
-              }),
-            )
+              writeProvidedTagsForQuery(draft, action)
+            }
           },
         )
     },
   })
+
+  function writeProvidedTagsForQuery(
+    draft: InvalidationState<string>,
+    action: CalculateProvidedByAction,
+  ) {
+    const providedTags = calculateProvidedByThunk(
+      action,
+      'providesTags',
+      definitions,
+      assertTagType,
+    )
+    const { queryCacheKey } = action.meta.arg
+
+    invalidationSlice.caseReducers.updateProvidedBy(
+      draft,
+      invalidationSlice.actions.updateProvidedBy({
+        queryCacheKey,
+        providedTags,
+      }),
+    )
+  }
 
   // Dummy slice to generate actions
   const subscriptionSlice = createSlice({

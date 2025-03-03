@@ -81,7 +81,12 @@ const api = createApi({
     }),
     postWithSideEffect: build.query<Post, string>({
       query: (id) => `post/${id}`,
-      providesTags: ['Post'],
+      providesTags: (result) => {
+        if (result) {
+          return [{ type: 'Post', id: result.id } as const]
+        }
+        return []
+      },
       async onCacheEntryAdded(arg, api) {
         // Verify that lifecycle promise resolution works
         const res = await api.cacheDataLoaded
@@ -419,15 +424,16 @@ describe('upsertQueryEntries', () => {
 
     expect(api.endpoints.getPosts.select()(state).data).toBe(posts)
 
-    expect(api.endpoints.postWithSideEffect.select('1')(state).data).toBe(
-      posts[0],
-    )
-    expect(api.endpoints.postWithSideEffect.select('2')(state).data).toBe(
-      posts[1],
-    )
-    expect(api.endpoints.postWithSideEffect.select('3')(state).data).toBe(
-      posts[2],
-    )
+    for (const post of posts) {
+      expect(api.endpoints.postWithSideEffect.select(post.id)(state).data).toBe(
+        post,
+      )
+
+      // Should have added tags
+      expect(state.api.provided.Post[post.id]).toEqual([
+        `postWithSideEffect("${post.id}")`,
+      ])
+    }
   })
 
   test('Triggers cache lifecycles and side effects', async () => {
