@@ -5,6 +5,7 @@ import {
   QueryStatus,
 } from '@reduxjs/toolkit/query/react'
 import { setupApiStore } from '../../tests/utils/helpers'
+import { createSlice } from '@internal/createSlice'
 
 describe('Infinite queries', () => {
   test('Basic infinite query behavior', async () => {
@@ -67,6 +68,22 @@ describe('Infinite queries', () => {
       .toBeString()
 
     expectTypeOf(pokemonApi.useGetInfinitePokemonInfiniteQuery).toBeFunction()
+
+    const slice = createSlice({
+      name: 'pokemon',
+      initialState: {} as { data: Pokemon[] },
+      reducers: {},
+      extraReducers: (builder) => {
+        builder.addMatcher(
+          pokemonApi.endpoints.getInfinitePokemon.matchFulfilled,
+          (state, action) => {
+            expectTypeOf(action.payload).toEqualTypeOf<
+              InfiniteData<Pokemon[], number>
+            >()
+          },
+        )
+      },
+    })
 
     const res = storeRef.store.dispatch(
       pokemonApi.endpoints.getInfinitePokemon.initiate('fire', {}),
