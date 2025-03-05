@@ -1,33 +1,13 @@
-import { configureStore, isAllOf } from '@reduxjs/toolkit'
-import {
-  act,
-  fireEvent,
-  render,
-  renderHook,
-  screen,
-  waitFor,
-} from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { HttpResponse, delay, http } from 'msw'
-import util from 'util'
-import type {
-  InfiniteQueryActionCreatorResult,
-  QueryCacheKey,
-} from '@reduxjs/toolkit/query/react'
+import { server } from '@internal/query/tests/mocks/server'
+import type { InfiniteQueryActionCreatorResult } from '@reduxjs/toolkit/query/react'
 import {
   QueryStatus,
   createApi,
-  fetchBaseQuery,
   fakeBaseQuery,
-  skipToken,
+  fetchBaseQuery,
 } from '@reduxjs/toolkit/query/react'
-import {
-  actionsReducer,
-  setupApiStore,
-  withProvider,
-} from '../../tests/utils/helpers'
-import type { BaseQueryApi } from '../baseQueryTypes'
-import { server } from '@internal/query/tests/mocks/server'
+import { HttpResponse, delay, http } from 'msw'
+import { actionsReducer, setupApiStore } from '../../tests/utils/helpers'
 import type { InfiniteQueryResultFlags } from '../core/buildSelectors'
 
 describe('Infinite queries', () => {
@@ -171,12 +151,6 @@ describe('Infinite queries', () => {
 
     hitCounter = 0
     queryCounter = 0
-
-    process.env.NODE_ENV = 'development'
-  })
-
-  afterEach(() => {
-    process.env.NODE_ENV = 'test'
   })
 
   type InfiniteQueryResult = Awaited<InfiniteQueryActionCreatorResult<any>>
@@ -387,6 +361,8 @@ describe('Infinite queries', () => {
   })
 
   test('validates maxPages during createApi call', async () => {
+    vi.stubEnv('NODE_ENV', 'development')
+
     const createApiWithMaxPages = (
       maxPages: number,
       getPreviousPageParam: (() => number) | undefined,

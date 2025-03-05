@@ -159,6 +159,8 @@ describe('wrong tagTypes log errors', () => {
     ['invalidateWrongTypeWithId', true],
     ['invalidateWrongTypeWithIdAndCallback', true],
   ])(`endpoint %s should log an error? %s`, async (endpoint, shouldError) => {
+    vi.stubEnv('NODE_ENV', 'development')
+
     // @ts-ignore
     store.dispatch(api.endpoints[endpoint].initiate())
     let result: { status: string }
@@ -402,6 +404,8 @@ describe('endpoint definition typings', () => {
     })
 
     test('warn on wrong tagType', async () => {
+      vi.stubEnv('NODE_ENV', 'development')
+
       const storeRef = setupApiStore(api, undefined, {
         withoutTestLifecycles: true,
       })
