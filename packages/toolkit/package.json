@@ -54,8 +54,8 @@
     "@babel/helper-module-imports": "^7.24.7",
     "@microsoft/api-extractor": "^7.13.2",
     "@phryneas/ts-version": "^1.0.2",
-    "@size-limit/file": "^11.0.1",
-    "@size-limit/webpack": "^11.0.1",
+    "@size-limit/file": "^11.2.0",
+    "@size-limit/webpack": "^11.2.0",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "^16.0.1",
     "@testing-library/react-render-stream": "^1.0.3",
@@ -72,7 +72,7 @@
     "@typescript-eslint/eslint-plugin": "^6",
     "@typescript-eslint/parser": "^6",
     "axios": "^0.19.2",
-    "esbuild": "^0.23.0",
+    "esbuild": "^0.25.0",
     "esbuild-extra": "^0.4.0",
     "eslint": "^7.25.0",
     "eslint-config-prettier": "^9.1.0",
@@ -94,7 +94,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "rimraf": "^3.0.2",
-    "size-limit": "^11.0.1",
+    "size-limit": "^11.2.0",
     "tslib": "^1.10.0",
     "tsup": "^8.2.3",
     "tsx": "^4.19.0",
@@ -115,7 +115,7 @@
     "test:watch": "vitest --watch",
     "type-tests": "yarn tsc -p tsconfig.test.json --noEmit",
     "prepack": "yarn build",
-    "size": "size-limit"
+    "size": "size-limit --config $INIT_CWD/.size-limit.mts"
   },
   "files": [
     "dist/",
