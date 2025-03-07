@@ -793,6 +793,22 @@ export type LazyInfiniteQueryTrigger<
   ): InfiniteQueryActionCreatorResult<D>
 }
 
+export type TypedLazyInfiniteQueryTrigger<
+  ResultType,
+  QueryArg,
+  PageParam,
+  BaseQuery extends BaseQueryFn,
+> = LazyInfiniteQueryTrigger<
+  InfiniteQueryDefinition<
+    QueryArg,
+    PageParam,
+    BaseQuery,
+    string,
+    ResultType,
+    string
+  >
+>
+
 interface UseInfiniteQuerySubscriptionOptions<
   D extends InfiniteQueryDefinition<any, any, any, any, any>,
 > extends SubscriptionOptions {
@@ -890,6 +906,36 @@ export type InfiniteQueryStateSelector<
   D extends InfiniteQueryDefinition<any, any, any, any, any>,
 > = (state: UseInfiniteQueryStateDefaultResult<D>) => R
 
+export type TypedInfiniteQueryStateSelector<
+  ResultType,
+  QueryArg,
+  PageParam,
+  BaseQuery extends BaseQueryFn,
+  SelectedResult extends Record<
+    string,
+    any
+  > = UseInfiniteQueryStateDefaultResult<
+    InfiniteQueryDefinition<
+      QueryArg,
+      PageParam,
+      BaseQuery,
+      string,
+      ResultType,
+      string
+    >
+  >,
+> = InfiniteQueryStateSelector<
+  SelectedResult,
+  InfiniteQueryDefinition<
+    QueryArg,
+    PageParam,
+    BaseQuery,
+    string,
+    ResultType,
+    string
+  >
+>
+
 /**
  * A React hook that automatically triggers fetches of data from an endpoint, 'subscribes' the component to the cached data, and reads the request status and cached data from the Redux store. The component will re-render as the loading status changes and the data becomes available.  Additionally, it will cache multiple "pages" worth of responses within a single cache entry, and allows fetching more pages forwards and backwards from the current cached pages.
  *
@@ -926,6 +972,22 @@ export type UseInfiniteQuery<
     UseInfiniteQuerySubscriptionResult<D>,
     'fetchNextPage' | 'fetchPreviousPage'
   >
+
+export type TypedUseInfiniteQuery<
+  ResultType,
+  QueryArg,
+  PageParam,
+  BaseQuery extends BaseQueryFn,
+> = UseInfiniteQuery<
+  InfiniteQueryDefinition<
+    QueryArg,
+    PageParam,
+    BaseQuery,
+    string,
+    ResultType,
+    string
+  >
+>
 
 /**
  * A React hook that reads the request status and cached data from the Redux store. The component will re-render as the loading status changes and the data becomes available.
@@ -986,6 +1048,33 @@ export type UseInfiniteQueryHookResult<
   R = UseInfiniteQueryStateDefaultResult<D>,
 > = UseInfiniteQueryStateResult<D, R> &
   Pick<UseInfiniteQuerySubscriptionResult<D>, 'refetch'>
+
+export type TypedUseInfiniteQueryHookResult<
+  ResultType,
+  QueryArg,
+  PageParam,
+  BaseQuery extends BaseQueryFn,
+  R extends Record<string, any> = UseInfiniteQueryStateDefaultResult<
+    InfiniteQueryDefinition<
+      QueryArg,
+      PageParam,
+      BaseQuery,
+      string,
+      ResultType,
+      string
+    >
+  >,
+> = UseInfiniteQueryHookResult<
+  InfiniteQueryDefinition<
+    QueryArg,
+    PageParam,
+    BaseQuery,
+    string,
+    ResultType,
+    string
+  >,
+  R
+>
 
 export type UseInfiniteQueryStateOptions<
   D extends InfiniteQueryDefinition<any, any, any, any, any>,
@@ -1057,10 +1146,67 @@ export type UseInfiniteQueryStateOptions<
   selectFromResult?: InfiniteQueryStateSelector<R, D>
 }
 
+export type TypedUseInfiniteQueryStateOptions<
+  ResultType,
+  QueryArg,
+  PageParam,
+  BaseQuery extends BaseQueryFn,
+  SelectedResult extends Record<
+    string,
+    any
+  > = UseInfiniteQueryStateDefaultResult<
+    InfiniteQueryDefinition<
+      QueryArg,
+      PageParam,
+      BaseQuery,
+      string,
+      ResultType,
+      string
+    >
+  >,
+> = UseInfiniteQueryStateOptions<
+  InfiniteQueryDefinition<
+    QueryArg,
+    PageParam,
+    BaseQuery,
+    string,
+    ResultType,
+    string
+  >,
+  SelectedResult
+>
+
 export type UseInfiniteQueryStateResult<
-  _ extends InfiniteQueryDefinition<any, any, any, any, any>,
-  R,
+  D extends InfiniteQueryDefinition<any, any, any, any, any>,
+  R = UseInfiniteQueryStateDefaultResult<D>,
 > = TSHelpersNoInfer<R>
+
+export type TypedUseInfiniteQueryStateResult<
+  ResultType,
+  QueryArg,
+  PageParam,
+  BaseQuery extends BaseQueryFn,
+  R = UseInfiniteQueryStateDefaultResult<
+    InfiniteQueryDefinition<
+      QueryArg,
+      PageParam,
+      BaseQuery,
+      string,
+      ResultType,
+      string
+    >
+  >,
+> = UseInfiniteQueryStateResult<
+  InfiniteQueryDefinition<
+    QueryArg,
+    PageParam,
+    BaseQuery,
+    string,
+    ResultType,
+    string
+  >,
+  R
+>
 
 type UseInfiniteQueryStateBaseResult<
   D extends InfiniteQueryDefinition<any, any, any, any, any>,
