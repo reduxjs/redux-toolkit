@@ -809,9 +809,9 @@ export type TypedLazyInfiniteQueryTrigger<
   >
 >
 
-interface UseInfiniteQuerySubscriptionOptions<
+export type UseInfiniteQuerySubscriptionOptions<
   D extends InfiniteQueryDefinition<any, any, any, any, any>,
-> extends SubscriptionOptions {
+> = SubscriptionOptions & {
   /**
    * Prevents a query from automatically running.
    *

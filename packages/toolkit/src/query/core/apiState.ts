@@ -60,7 +60,7 @@ export type InfiniteQueryConfigOptions<DataType, PageParam> = {
   maxPages?: number
 }
 
-export interface InfiniteData<DataType, PageParam> {
+export type InfiniteData<DataType, PageParam> = {
   pages: Array<DataType>
   pageParams: Array<PageParam>
 }
