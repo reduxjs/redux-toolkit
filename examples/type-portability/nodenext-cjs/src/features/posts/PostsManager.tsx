@@ -18,6 +18,7 @@ import useAddPostMutation = postsModule.useAddPostMutation
 import useGetErrorProneQuery = postsModule.useGetErrorProneQuery
 import useGetPostsQuery = postsModule.useGetPostsQuery
 import useLoginMutation = postsModule.useLoginMutation
+import useGetInfinitePostsInfiniteQuery = postsModule.useGetInfinitePostsInfiniteQuery
 import logout = authSliceModule.logout
 import selectIsAuthenticated = authSliceModule.selectIsAuthenticated
 
@@ -81,6 +82,7 @@ const PostListItem = ({
 
 const PostList = () => {
   const { data: posts, isLoading } = useGetPostsQuery()
+  useGetInfinitePostsInfiniteQuery()
   const navigate = useNavigate()
 
   if (isLoading) {
