@@ -7,7 +7,7 @@
     "/examples/action-listener/counter",
     "/examples/publish-ci/cra5"
   ],
-  "node": "18",
+  "node": "20",
   "buildCommand": "build:packages",
   "packages": [
     "packages/toolkit",
