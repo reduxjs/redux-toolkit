@@ -1,5 +1,5 @@
 import { noop } from '@internal/listenerMiddleware/utils'
-import { delay } from '@internal/utils'
+import { delay, promiseWithResolvers } from '@internal/utils'
 import type { CreateAsyncThunkFunction, UnknownAction } from '@reduxjs/toolkit'
 import {
   configureStore,
@@ -879,17 +879,18 @@ test('`condition` will see state changes from a synchronously invoked asyncThunk
   expect(onStart).toHaveBeenCalledTimes(2)
 })
 
+const getNewStore = () =>
+  configureStore({
+    reducer(actions: UnknownAction[] = [], action) {
+      return [...actions, action]
+    },
+  })
+
 describe('meta', () => {
-  const getNewStore = () =>
-    configureStore({
-      reducer(actions = [], action) {
-        return [...actions, action]
-      },
-    })
-  const store = getNewStore()
+  let store = getNewStore()
 
   beforeEach(() => {
-    const store = getNewStore()
+    store = getNewStore()
   })
 
   test('pendingMeta', () => {
@@ -1001,5 +1002,44 @@ describe('meta', () => {
       throw new Error('should have thrown')
     }
     expect(result.error).toEqual('serialized!')
+  })
+})
+
+describe('dispatch config', () => {
+  let store = getNewStore()
+
+  beforeEach(() => {
+    store = getNewStore()
+  })
+  test('accepts external signal', async () => {
+    const asyncThunk = createAsyncThunk('test', async (_: void, { signal }) => {
+      signal.throwIfAborted()
+      const { promise, reject } = promiseWithResolvers<never>()
+      signal.addEventListener('abort', () => reject(signal.reason))
+      return promise
+    })
+
+    const abortController = new AbortController()
+    const promise = store.dispatch(
+      asyncThunk(undefined, { signal: abortController.signal }),
+    )
+    abortController.abort()
+    await expect(promise.unwrap()).rejects.toThrow(
+      'External signal was aborted',
+    )
+  })
+  test('handles already aborted external signal', async () => {
+    const asyncThunk = createAsyncThunk('test', async (_: void, { signal }) => {
+      signal.throwIfAborted()
+      const { promise, reject } = promiseWithResolvers<never>()
+      signal.addEventListener('abort', () => reject(signal.reason))
+      return promise
+    })
+
+    const signal = AbortSignal.abort()
+    const promise = store.dispatch(asyncThunk(undefined, { signal }))
+    await expect(promise.unwrap()).rejects.toThrow(
+      'Aborted due to condition callback returning false.',
+    )
   })
 })

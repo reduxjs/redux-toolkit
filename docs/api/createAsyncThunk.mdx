@@ -133,6 +133,18 @@ When dispatched, the thunk will:
   - if the promise failed and was not handled with `rejectWithValue`, dispatch the `rejected` action with a serialized version of the error value as `action.error`
 - Return a fulfilled promise containing the final dispatched action (either the `fulfilled` or `rejected` action object)
 
+## Thunk Dispatch Options
+
+The returned thunk action creator accepts an optional second argument with the following options:
+
+- `signal`: an optional [`AbortSignal`](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal) that will be tracked by the internal abort signal (see [Canceling While Running](#canceling-while-running))
+
+```ts no-transpile
+const externalController = new AbortController()
+dispatch(fetchUserById(123, { signal: externalController.signal }))
+externalController.abort()
+```
+
 ## Promise Lifecycle Actions
 
 `createAsyncThunk` will generate three Redux action creators using [`createAction`](./createAction.mdx): `pending`, `fulfilled`, and `rejected`. Each lifecycle action creator will be attached to the returned thunk action creator so that your reducer logic can reference the action types and respond to the actions when dispatched. Each action object will contain the current unique `requestId` and `arg` values under `action.meta`.
