@@ -6,7 +6,7 @@ import type {
   InfiniteQueryDefinition,
   MutationDefinition,
   PageParamFrom,
-  QueryArgFrom,
+  QueryArgFromAnyQuery,
   QueryDefinition,
   ResultTypeFrom,
 } from '../endpointDefinitions'
@@ -190,7 +190,7 @@ type BaseQuerySubState<
   /**
    * The argument originally passed into the hook or `initiate` action call
    */
-  originalArgs: QueryArgFrom<D>
+  originalArgs: QueryArgFromAnyQuery<D>
   /**
    * A unique ID associated with the request
    */

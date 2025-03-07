@@ -6,6 +6,7 @@ import type {
   InfiniteQueryDefinition,
   MutationDefinition,
   QueryArgFrom,
+  QueryArgFromAnyQuery,
   QueryDefinition,
   ReducerPathFrom,
   TagDescription,
@@ -29,7 +30,11 @@ import { QueryStatus, getRequestStatusFlags } from './apiState'
 import { getMutationCacheKey } from './buildSlice'
 import type { createSelector as _createSelector } from './rtkImports'
 import { createNextState } from './rtkImports'
-import { getNextPageParam, getPreviousPageParam } from './buildThunks'
+import {
+  type AllQueryKeys,
+  getNextPageParam,
+  getPreviousPageParam,
+} from './buildThunks'
 
 export type SkipToken = typeof skipToken
 /**
@@ -372,10 +377,12 @@ export function buildSelectors<
     )
   }
 
-  function selectCachedArgsForQuery<QueryName extends QueryKeys<Definitions>>(
+  function selectCachedArgsForQuery<
+    QueryName extends AllQueryKeys<Definitions>,
+  >(
     state: RootState,
     queryName: QueryName,
-  ): Array<QueryArgFrom<Definitions[QueryName]>> {
+  ): Array<QueryArgFromAnyQuery<Definitions[QueryName]>> {
     return Object.values(selectQueries(state) as QueryState<any>)
       .filter(
         (

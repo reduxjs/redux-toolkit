@@ -73,6 +73,21 @@ describe('type tests', () => {
         getTodos: build.query<Todos, string>({
           query: () => '/todos',
         }),
+        getInfiniteTodos: build.infiniteQuery<Todos, string, number>({
+          infiniteQueryOptions: {
+            initialPageParam: 0,
+            maxPages: 3,
+            getNextPageParam: (
+              lastPage,
+              allPages,
+              lastPageParam,
+              allPageParams,
+            ) => lastPageParam + 1,
+          },
+          query({ pageParam }) {
+            return `/todos?page=${pageParam}`
+          },
+        }),
       }),
     })
 
@@ -85,6 +100,12 @@ describe('type tests', () => {
 
     expectTypeOf(
       exampleApi.util.selectCachedArgsForQuery(store.getState(), 'getTodos'),
+    ).toEqualTypeOf<string[]>()
+    expectTypeOf(
+      exampleApi.util.selectCachedArgsForQuery(
+        store.getState(),
+        'getInfiniteTodos',
+      ),
     ).toEqualTypeOf<string[]>()
   })
 })

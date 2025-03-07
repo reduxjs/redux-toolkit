@@ -19,6 +19,7 @@ import type {
   InfiniteQueryDefinition,
   MutationDefinition,
   QueryArgFrom,
+  QueryArgFromAnyQuery,
   QueryDefinition,
   TagDescription,
 } from '../endpointDefinitions'
@@ -389,10 +390,10 @@ export interface ApiModules<
        *
        * Can be used for mutations that want to do optimistic updates instead of invalidating a set of tags, but don't know exactly what they need to update.
        */
-      selectCachedArgsForQuery: <QueryName extends QueryKeys<Definitions>>(
+      selectCachedArgsForQuery: <QueryName extends AllQueryKeys<Definitions>>(
         state: RootState<Definitions, string, ReducerPath>,
         queryName: QueryName,
-      ) => Array<QueryArgFrom<Definitions[QueryName]>>
+      ) => Array<QueryArgFromAnyQuery<Definitions[QueryName]>>
     }
     /**
      * Endpoints based on the input endpoints provided to `createApi`, containing `select` and `action matchers`.

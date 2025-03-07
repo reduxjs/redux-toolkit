@@ -1059,6 +1059,15 @@ export type InfiniteQueryArgFrom<
   D extends BaseEndpointDefinition<any, any, any>,
 > = D extends InfiniteQueryDefinition<infer QA, any, any, any, any> ? QA : never
 
+export type QueryArgFromAnyQuery<
+  D extends BaseEndpointDefinition<any, any, any>,
+> =
+  D extends InfiniteQueryDefinition<any, any, any, any, any>
+    ? InfiniteQueryArgFrom<D>
+    : D extends QueryDefinition<any, any, any, any>
+      ? QueryArgFrom<D>
+      : never
+
 export type ResultTypeFrom<D extends BaseEndpointDefinition<any, any, any>> =
   D extends BaseEndpointDefinition<any, any, infer RT> ? RT : unknown
 
