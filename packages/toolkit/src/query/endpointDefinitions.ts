@@ -544,14 +544,14 @@ export type QueryDefinition<
 > = BaseEndpointDefinition<QueryArg, BaseQuery, ResultType> &
   QueryExtraOptions<TagTypes, ResultType, QueryArg, BaseQuery, ReducerPath>
 
-export interface InfiniteQueryTypes<
+export type InfiniteQueryTypes<
   QueryArg,
   PageParam,
   BaseQuery extends BaseQueryFn,
   TagTypes extends string,
   ResultType,
   ReducerPath extends string = string,
-> extends BaseEndpointTypes<QueryArg, BaseQuery, ResultType> {
+> = BaseEndpointTypes<QueryArg, BaseQuery, ResultType> & {
   /**
    * The endpoint definition type. To be used with some internal generic types.
    * @example
