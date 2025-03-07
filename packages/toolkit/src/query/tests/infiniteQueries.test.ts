@@ -567,10 +567,10 @@ describe('Infinite queries', () => {
     ])
 
     thirdPromise.updateSubscriptionOptions({
-      pollingInterval: 10,
+      pollingInterval: 50,
     })
 
-    await delay(5)
+    await delay(25)
 
     let entry = countersApi.endpoints.counters.select('item')(
       storeRef.store.getState(),
@@ -582,7 +582,7 @@ describe('Infinite queries', () => {
       { page: 5, hitCounter: 3 },
     ])
 
-    await delay(10)
+    await delay(50)
 
     entry = countersApi.endpoints.counters.select('item')(
       storeRef.store.getState(),
