@@ -1,4 +1,5 @@
 import type { Api } from '@reduxjs/toolkit/query'
+import type { AnyFunction, AnyNonNullishValue } from '../tsHelpers'
 import type {
   BaseQueryApi,
   BaseQueryArg,
@@ -201,7 +202,7 @@ export type BaseEndpointDefinition<
   BaseQuery extends BaseQueryFn,
   ResultType,
 > = (
-  | ([CastAny<BaseQueryResult<BaseQuery>, {}>] extends [NEVER]
+  | ([CastAny<BaseQueryResult<BaseQuery>, AnyNonNullishValue>] extends [NEVER]
       ? never
       : EndpointDefinitionWithQuery<QueryArg, BaseQuery, ResultType>)
   | EndpointDefinitionWithQueryFn<QueryArg, BaseQuery, ResultType>
@@ -233,7 +234,7 @@ export type GetResultDescriptionFn<
   error: ErrorType | undefined,
   arg: QueryArg,
   meta: MetaType,
-) => ReadonlyArray<TagDescription<TagTypes> | undefined | null>
+) => readonly (TagDescription<TagTypes> | undefined | null)[]
 
 export type FullTagDescription<TagType> = {
   type: TagType
@@ -251,7 +252,7 @@ export type ResultDescription<
   ErrorType,
   MetaType,
 > =
-  | ReadonlyArray<TagDescription<TagTypes> | undefined | null>
+  | readonly (TagDescription<TagTypes> | undefined | null)[]
   | GetResultDescriptionFn<TagTypes, ResultType, QueryArg, ErrorType, MetaType>
 
 type QueryTypes<
@@ -612,18 +613,18 @@ export interface InfiniteQueryExtraOptions<
    * `initialPageParam` may be specified when using the
    * endpoint, to override the default value.
    * `maxPages` and `getPreviousPageParam` are both optional.
-   * 
+   *
    * @example
-   * 
+   *
    * ```ts
    * // codeblock-meta title="infiniteQueryOptions example"
    * import { createApi, fetchBaseQuery, defaultSerializeQueryArgs } from '@reduxjs/toolkit/query/react'
-   * 
+   *
    * type Pokemon = {
    *   id: string
    *   name: string
    * }
-   * 
+   *
    * const pokemonApi = createApi({
    *   baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
    *   endpoints: (build) => ({
@@ -648,7 +649,7 @@ export interface InfiniteQueryExtraOptions<
    *     }),
    *   }),
    * })
-   
+
    * ```
    */
   infiniteQueryOptions: InfiniteQueryConfigOptions<ResultType, PageParam>
@@ -1039,7 +1040,7 @@ export function calculateProvidedBy<ResultType, QueryArg, ErrorType, MetaType>(
   return []
 }
 
-function isFunction<T>(t: T): t is Extract<T, Function> {
+function isFunction<T>(t: T): t is Extract<T, AnyFunction> {
   return typeof t === 'function'
 }
 

@@ -1,18 +1,18 @@
 import type { Draft } from 'immer'
 import type {
+  DraftableEntityState,
+  EntityId,
   EntityStateAdapter,
   IdSelector,
   Update,
-  EntityId,
-  DraftableEntityState,
 } from './models'
 import {
-  createStateOperator,
   createSingleArgumentStateOperator,
+  createStateOperator,
 } from './state_adapter'
 import {
-  selectIdValue,
   ensureEntitiesArray,
+  selectIdValue,
   splitAddedUpdatedEntities,
 } from './utils'
 
@@ -102,7 +102,7 @@ export function createUnsortedStateAdapter<T, Id extends EntityId>(
   }
 
   function takeNewKey(
-    keys: { [id: string]: Id },
+    keys: Record<EntityId, Id>,
     update: Update<T, Id>,
     state: R,
   ): boolean {
@@ -129,12 +129,12 @@ export function createUnsortedStateAdapter<T, Id extends EntityId>(
   }
 
   function updateManyMutably(
-    updates: ReadonlyArray<Update<T, Id>>,
+    updates: readonly Update<T, Id>[],
     state: R,
   ): void {
-    const newKeys: { [id: string]: Id } = {}
+    const newKeys: Record<EntityId, Id> = {}
 
-    const updatesPerEntity: { [id: string]: Update<T, Id> } = {}
+    const updatesPerEntity: Record<EntityId, Update<T, Id>> = {}
 
     updates.forEach((update) => {
       // Only apply updates to entities that currently exist
