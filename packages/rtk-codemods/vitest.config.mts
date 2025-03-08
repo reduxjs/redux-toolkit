@@ -1,7 +1,11 @@
-import { defineConfig } from 'vitest/config'
+import { createVitestConfig } from '@reduxjs/vitest-config'
+import * as path from 'node:path'
 
-export default defineConfig({
+const vitestConfig = createVitestConfig({
   test: {
-    globals: true
-  }
+    dir: path.join(import.meta.dirname, 'transforms'),
+    root: import.meta.dirname,
+  },
 })
+
+export default vitestConfig

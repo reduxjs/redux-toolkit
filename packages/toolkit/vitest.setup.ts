@@ -41,6 +41,8 @@ const areErrorsEqual = (actualError: unknown, expectedError: unknown) => {
       actualError.message === expectedError.message
     )
   }
+
+  return undefined
 }
 
 expect.addEqualityTesters([areErrorsEqual])

@@ -1,0 +1,17 @@
+{
+  "extends": "@reduxjs/tsconfig",
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "rootDir": "./",
+    "outDir": "./dist",
+    "noEmit": true
+  },
+  "exclude": [
+    "dist",
+    "examples/publish-ci",
+    "**/dist",
+    "**/lib",
+    "**/__testfixtures__"
+  ]
+}
