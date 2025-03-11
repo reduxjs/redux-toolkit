@@ -4,16 +4,9 @@
   "description": "",
   "type": "module",
   "module": "../dist/react/redux-toolkit-react.legacy-esm.js",
-  "main": "../dist/react/cjs/index.js",
+  "main": "./../dist/react/redux-toolkit-react.modern.mjs",
   "types": "./../dist/react/index.d.ts",
-  "exports": {
-    "./package.json": "./package.json",
-    ".": {
-      "types": "./../dist/react/index.d.ts",
-      "import": "./../dist/react/redux-toolkit-react.modern.mjs",
-      "default": "./../dist/react/cjs/index.js"
-    }
-  },
+  "react-native": "./../dist/react/redux-toolkit-react.modern.mjs",
   "author": "Mark Erikson <mark@isquaredsoftware.com>",
   "license": "MIT",
   "sideEffects": false
