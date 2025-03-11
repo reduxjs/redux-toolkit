@@ -1,21 +1,21 @@
-import type { PayloadAction } from "@reduxjs/toolkit"
-import { createAppSlice } from "../../app/createAppSlice"
-import type { AppThunk } from "../../app/store"
-import { fetchCount } from "./counterAPI"
+import type { PayloadAction } from '@reduxjs/toolkit'
+import { createAppSlice } from '../../app/createAppSlice'
+import type { AppThunk } from '../../app/store'
+import { fetchCount } from './counterAPI'
 
-export interface CounterSliceState {
+export type CounterSliceState = {
   value: number
-  status: "idle" | "loading" | "failed"
+  status: 'idle' | 'loading' | 'failed'
 }
 
 const initialState: CounterSliceState = {
   value: 0,
-  status: "idle",
+  status: 'idle',
 }
 
 // If you are not using async thunks you can use the standalone `createSlice`.
 export const counterSlice = createAppSlice({
-  name: "counter",
+  name: 'counter',
   // `createSlice` will infer the state type from the `initialState` argument
   initialState,
   // The `reducers` field lets us define reducers and generate associated actions
@@ -49,14 +49,14 @@ export const counterSlice = createAppSlice({
       },
       {
         pending: state => {
-          state.status = "loading"
+          state.status = 'loading'
         },
         fulfilled: (state, action) => {
-          state.status = "idle"
+          state.status = 'idle'
           state.value += action.payload
         },
         rejected: state => {
-          state.status = "failed"
+          state.status = 'failed'
         },
       },
     ),

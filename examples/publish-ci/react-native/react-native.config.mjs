@@ -1,4 +1,4 @@
-/** @type {import('@react-native-community/cli-types').UserConfig } */
+/** @type {import('@react-native-community/cli-types').UserConfig} */
 const config = {
   project: {
     ios: {
