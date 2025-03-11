@@ -71,7 +71,6 @@ export default defineConfig((overrideOptions): TsupOptions[] => {
       'immer',
       'redux-thunk',
       'reselect',
-      '@reduxjs/toolkit',
     ],
     esbuildPlugins: [mangleErrorsTransform],
     format: ['cjs', 'esm'],
