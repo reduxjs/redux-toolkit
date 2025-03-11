@@ -1,14 +1,14 @@
-import type { Config } from "jest"
+import type { Config } from 'jest'
 
 const config: Config = {
-  preset: "react-native",
+  preset: 'react-native',
   verbose: true,
   /**
    * Without this we will get the following error:
    * `SyntaxError: Cannot use import statement outside a module`
    */
   transformIgnorePatterns: [
-    "node_modules/(?!((jest-)?react-native|...|react-redux))",
+    'node_modules/(?!((jest-)?react-native|...|react-redux))',
   ],
   /**
    * React Native's `jest` preset includes a
@@ -20,10 +20,15 @@ const config: Config = {
    */
   globals: {
     window: undefined,
-    navigator: { product: "ReactNative" },
+    navigator: {
+      product: 'ReactNative',
+    },
   },
-  setupFilesAfterEnv: ["<rootDir>/jest-setup.ts"],
-  fakeTimers: { enableGlobally: true },
+  setupFilesAfterEnv: ['<rootDir>/jest-setup.ts'],
+  fakeTimers: {
+    enableGlobally: true,
+    advanceTimers: true,
+  },
 }
 
 export default config
