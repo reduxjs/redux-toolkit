@@ -1,4 +1,5 @@
-import { useState } from "react"
+import type { JSX } from 'react'
+import { useState } from 'react'
 import {
   StyleSheet,
   Text,
@@ -6,10 +7,10 @@ import {
   TouchableOpacity,
   View,
   useColorScheme,
-} from "react-native"
-import { useAppDispatch, useAppSelector } from "../../app/hooks"
-import { AsyncButton } from "../../components/AsyncButton"
-import { TypedColors } from "../../constants/TypedColors"
+} from 'react-native'
+import { useAppDispatch, useAppSelector } from '../../app/hooks'
+import { AsyncButton } from '../../components/AsyncButton'
+import { TypedColors } from '../../constants/TypedColors'
 import {
   decrement,
   increment,
@@ -18,10 +19,10 @@ import {
   incrementIfOdd,
   selectCount,
   selectStatus,
-} from "./counterSlice"
+} from './counterSlice'
 
-export const Counter = () => {
-  const isDarkMode = useColorScheme() === "dark"
+export const Counter = (): JSX.Element => {
+  const isDarkMode = useColorScheme() === 'dark'
   const textStyle = {
     color: isDarkMode ? TypedColors.light : TypedColors.dark,
   }
@@ -29,7 +30,7 @@ export const Counter = () => {
   const dispatch = useAppDispatch()
   const count = useAppSelector(selectCount)
   const status = useAppSelector(selectStatus)
-  const [incrementAmount, setIncrementAmount] = useState("2")
+  const [incrementAmount, setIncrementAmount] = useState('2')
 
   const incrementValue = Number(incrementAmount) || 0
 
@@ -58,7 +59,7 @@ export const Counter = () => {
         <TextInput
           aria-label="Set increment amount"
           style={[styles.textbox, textStyle]}
-          value={`${incrementAmount}`}
+          value={incrementAmount}
           keyboardType="numeric"
           onChangeText={setIncrementAmount}
         />
@@ -72,9 +73,9 @@ export const Counter = () => {
           <AsyncButton
             aria-label="Async Button"
             style={styles.button}
-            disabled={status !== "idle"}
+            disabled={status !== 'idle'}
             onPress={() => {
-              dispatch(incrementAsync(incrementValue))
+              void dispatch(incrementAsync(incrementValue))
             }}
           >
             <Text style={styles.buttonText}>Add Async</Text>
@@ -95,10 +96,10 @@ export const Counter = () => {
 
 const styles = StyleSheet.create({
   row: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
   },
   value: {
     fontSize: 78,
@@ -106,7 +107,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   button: {
-    backgroundColor: "rgba(112, 76, 182, 0.1)",
+    backgroundColor: 'rgba(112, 76, 182, 0.1)',
     borderRadius: 2,
     paddingLeft: 12,
     paddingRight: 12,
@@ -114,17 +115,17 @@ const styles = StyleSheet.create({
     margin: 2,
   },
   buttonText: {
-    color: "rgb(112, 76, 182)",
+    color: 'rgb(112, 76, 182)',
     fontSize: 32,
-    textAlign: "center",
+    textAlign: 'center',
   },
   textbox: {
     fontSize: 48,
     padding: 2,
     width: 64,
-    textAlign: "center",
+    textAlign: 'center',
     marginRight: 8,
     borderWidth: 1,
-    justifyContent: "center",
+    justifyContent: 'center',
   },
 })
