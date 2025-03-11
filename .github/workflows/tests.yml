@@ -241,12 +241,13 @@ jobs:
       - name: Show installed RTK versions
         run: yarn info @reduxjs/toolkit && yarn why @reduxjs/toolkit
 
-      - name: Set up JDK 17 for React Native build
+      - name: Set up JDK 21 for React Native build
         if: matrix.example == 'react-native' || matrix.example == 'expo'
         uses: actions/setup-java@v4
         with:
-          java-version: '17.x'
+          java-version: '21.x'
           distribution: 'temurin'
+          cache: 'gradle'
 
       - name: Build example
         env:
