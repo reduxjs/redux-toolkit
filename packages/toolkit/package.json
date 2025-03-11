@@ -106,7 +106,7 @@
   },
   "scripts": {
     "clean": "rimraf dist",
-    "run-build": "tsup",
+    "run-build": "tsup --config=$INIT_CWD/tsup.config.mts",
     "build": "yarn clean && yarn run-build && tsx scripts/fixUniqueSymbolExports.mts",
     "build-only": "yarn clean && yarn run-build",
     "format": "prettier --write \"(src|examples)/**/*.{ts,tsx}\" \"**/*.md\"",
