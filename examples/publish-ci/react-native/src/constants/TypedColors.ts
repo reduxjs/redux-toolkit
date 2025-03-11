@@ -1,6 +1,6 @@
-import { Colors } from "react-native/Libraries/NewAppScreen"
+import { Colors } from 'react-native/Libraries/NewAppScreen'
 
-interface AllColors {
+type AllColors = {
   primary: string
   white: string
   lighter: string
@@ -10,4 +10,4 @@ interface AllColors {
   black: string
 }
 
-export const TypedColors = Colors as AllColors
+export const TypedColors: AllColors = Colors satisfies AllColors as AllColors
