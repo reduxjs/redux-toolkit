@@ -52,13 +52,15 @@ export function splitAddedUpdatedEntities<T, Id extends EntityId>(
   const existingIds = new Set<Id>(existingIdsArray)
 
   const added: T[] = []
+  const addedIds = new Set<Id>([])
   const updated: Update<T, Id>[] = []
 
   for (const entity of newEntities) {
     const id = selectIdValue(entity, selectId)
-    if (existingIds.has(id)) {
+    if (existingIds.has(id) || addedIds.has(id)) {
       updated.push({ id, changes: entity })
     } else {
+      addedIds.add(id)
       added.push(entity)
     }
   }
