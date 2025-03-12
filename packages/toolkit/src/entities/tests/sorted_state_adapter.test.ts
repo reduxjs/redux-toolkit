@@ -509,6 +509,28 @@ describe('Sorted State Adapter', () => {
     })
   })
 
+  it('should let you add a new entity then apply changes to it', () => {
+    const firstChange = { author: TheHobbit.author }
+    const secondChange = { title: 'Zack' }
+    const withMany = adapter.setAll(state, [AClockworkOrange])
+
+    const withUpserts = adapter.upsertMany(withMany, [
+      {...TheGreatGatsby}, { ...TheGreatGatsby, ...firstChange }, {...TheGreatGatsby, ...secondChange}
+    ])
+
+    expect(withUpserts).toEqual({
+      ids: [AClockworkOrange.id, TheGreatGatsby.id],
+      entities: {
+        [TheGreatGatsby.id]: {
+          ...TheGreatGatsby,
+          ...firstChange,
+          ...secondChange,
+        },
+        [AClockworkOrange.id]: AClockworkOrange,
+      },
+    })
+  })
+
   it('should let you add a new entity in the state with setOne() and keep the sorting', () => {
     const withMany = adapter.setAll(state, [AnimalFarm, TheHobbit])
     const withOneMore = adapter.setOne(withMany, TheGreatGatsby)

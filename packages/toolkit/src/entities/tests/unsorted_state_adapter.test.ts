@@ -355,6 +355,28 @@ describe('Unsorted State Adapter', () => {
     })
   })
 
+  it('should let you add a new entity then apply changes to it', () => {
+    const firstChange = { author: TheHobbit.author }
+    const secondChange = { title: 'Zack' }
+    const withMany = adapter.setAll(state, [TheGreatGatsby])
+
+    const withUpserts = adapter.upsertMany(withMany, [
+      {...AClockworkOrange}, { ...AClockworkOrange, ...firstChange }, {...AClockworkOrange, ...secondChange}
+    ])
+
+    expect(withUpserts).toEqual({
+      ids: [TheGreatGatsby.id, AClockworkOrange.id],
+      entities: {
+        [TheGreatGatsby.id]: TheGreatGatsby,
+        [AClockworkOrange.id]: {
+          ...AClockworkOrange,
+          ...firstChange,
+          ...secondChange,
+        },
+      },
+    })
+  })
+
   it('should let you add a new entity in the state with setOne()', () => {
     const withOne = adapter.setOne(state, TheGreatGatsby)
     expect(withOne).toEqual({
