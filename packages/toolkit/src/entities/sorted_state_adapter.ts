@@ -160,11 +160,11 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
       state,
     )
 
-    if (updated.length) {
-      updateManyMutably(updated, state)
-    }
     if (added.length) {
       addManyMutably(added, state, existingIdsArray)
+    }
+    if (updated.length) {
+      updateManyMutably(updated, state)
     }
   }
 
