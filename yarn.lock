@@ -5482,7 +5482,7 @@ __metadata:
     react-dom: "npm:^19.0.0"
     react-redux: "npm:^9.1.2"
     react-scripts: "npm:5.0.1"
-    typescript: "npm:~4.9"
+    typescript: "npm:^5.8.2"
   languageName: unknown
   linkType: soft
 
@@ -5497,7 +5497,7 @@ __metadata:
     react-dom: "npm:^19.0.0"
     react-redux: "npm:^9.1.2"
     react-scripts: "npm:5.0.1"
-    typescript: "npm:~4.9"
+    typescript: "npm:^5.8.2"
   languageName: unknown
   linkType: soft
 
@@ -5519,7 +5519,7 @@ __metadata:
     react-redux: "npm:^9.1.2"
     react-router-dom: "npm:6.3.0"
     react-scripts: "npm:5.0.1"
-    typescript: "npm:~4.9"
+    typescript: "npm:^5.8.2"
   languageName: unknown
   linkType: soft
 
@@ -5541,7 +5541,7 @@ __metadata:
     react-redux: "npm:^9.1.2"
     react-router-dom: "npm:6.3.0"
     react-scripts: "npm:5.0.1"
-    typescript: "npm:~4.9"
+    typescript: "npm:^5.8.2"
   languageName: unknown
   linkType: soft
 
@@ -5560,7 +5560,7 @@ __metadata:
     react-dom: "npm:^19.0.0"
     react-redux: "npm:^9.1.2"
     react-scripts: "npm:5.0.1"
-    typescript: "npm:~4.9"
+    typescript: "npm:^5.8.2"
   languageName: unknown
   linkType: soft
 
@@ -5575,7 +5575,7 @@ __metadata:
     react-dom: "npm:^19.0.0"
     react-redux: "npm:^9.1.2"
     react-scripts: "npm:5.0.1"
-    typescript: "npm:~4.9"
+    typescript: "npm:^5.8.2"
   languageName: unknown
   linkType: soft
 
@@ -5590,7 +5590,7 @@ __metadata:
     react-dom: "npm:^19.0.0"
     react-redux: "npm:^9.1.2"
     react-scripts: "npm:5.0.1"
-    typescript: "npm:~4.9"
+    typescript: "npm:^5.8.2"
   languageName: unknown
   linkType: soft
 
@@ -5631,7 +5631,7 @@ __metadata:
     react-router-dom: "npm:6.3.0"
     react-scripts: "npm:5.0.1"
     ts-node: "npm:^10.0.0"
-    typescript: "npm:4.1.3"
+    typescript: "npm:^5.8.2"
   languageName: unknown
   linkType: soft
 
@@ -5659,7 +5659,7 @@ __metadata:
     react-redux: "npm:^9.1.2"
     react-router-dom: "npm:6.3.0"
     react-scripts: "npm:5.0.1"
-    typescript: "npm:~4.2.4"
+    typescript: "npm:^5.8.2"
   languageName: unknown
   linkType: soft
 
@@ -5681,7 +5681,7 @@ __metadata:
     react-redux: "npm:^9.1.2"
     react-router-dom: "npm:6.3.0"
     react-scripts: "npm:5.0.1"
-    typescript: "npm:~4.9"
+    typescript: "npm:^5.8.2"
     whatwg-fetch: "npm:^3.4.1"
   languageName: unknown
   linkType: soft
@@ -5705,7 +5705,7 @@ __metadata:
     react-redux: "npm:^9.1.2"
     react-router-dom: "npm:6.3.0"
     react-scripts: "npm:5.0.1"
-    typescript: "npm:~4.9"
+    typescript: "npm:^5.8.2"
   languageName: unknown
   linkType: soft
 
@@ -5728,7 +5728,7 @@ __metadata:
     react-redux: "npm:^9.1.2"
     react-router-dom: "npm:6.3.0"
     react-scripts: "npm:5.0.1"
-    typescript: "npm:~4.9"
+    typescript: "npm:^5.8.2"
     uuid: "npm:^8.3.2"
     whatwg-fetch: "npm:^3.4.1"
   languageName: unknown
@@ -5754,7 +5754,7 @@ __metadata:
     react-icons: "npm:^5.0.1"
     react-redux: "npm:^9.1.2"
     react-scripts: "npm:5.0.1"
-    typescript: "npm:~4.9"
+    typescript: "npm:^5.8.2"
   languageName: unknown
   linkType: soft
 
@@ -5769,7 +5769,7 @@ __metadata:
     react-dom: "npm:^19.0.0"
     react-redux: "npm:^9.1.2"
     react-scripts: "npm:5.0.1"
-    typescript: "npm:~4.9"
+    typescript: "npm:^5.8.2"
   languageName: unknown
   linkType: soft
 
@@ -5794,7 +5794,7 @@ __metadata:
     react-redux: "npm:^9.1.2"
     react-router-dom: "npm:6.3.0"
     react-scripts: "npm:5.0.1"
-    typescript: "npm:~4.9"
+    typescript: "npm:^5.8.2"
   languageName: unknown
   linkType: soft
 
@@ -5819,7 +5819,7 @@ __metadata:
     react-redux: "npm:^9.1.2"
     react-router-dom: "npm:6.3.0"
     react-scripts: "npm:5.0.1"
-    typescript: "npm:~4.9"
+    typescript: "npm:^5.8.2"
   languageName: unknown
   linkType: soft
 
@@ -5844,7 +5844,7 @@ __metadata:
     react-redux: "npm:^9.1.2"
     react-router-dom: "npm:6.3.0"
     react-scripts: "npm:5.0.1"
-    typescript: "npm:~4.9"
+    typescript: "npm:^5.8.2"
   languageName: unknown
   linkType: soft
 
@@ -5859,7 +5859,7 @@ __metadata:
     react-dom: "npm:^19.0.0"
     react-redux: "npm:^9.1.2"
     react-scripts: "npm:5.0.1"
-    typescript: "npm:~4.9"
+    typescript: "npm:^5.8.2"
   languageName: unknown
   linkType: soft
 
@@ -5876,7 +5876,7 @@ __metadata:
     react-redux: "npm:^9.1.2"
     react-router-dom: "npm:^6.25.1"
     react-scripts: "npm:5.0.1"
-    typescript: "npm:^5.5.4"
+    typescript: "npm:^5.8.2"
   languageName: unknown
   linkType: soft
 
@@ -5893,7 +5893,7 @@ __metadata:
     react-redux: "npm:^9.1.2"
     react-router-dom: "npm:^6.25.1"
     react-scripts: "npm:5.0.1"
-    typescript: "npm:^5.5.4"
+    typescript: "npm:^5.8.2"
   languageName: unknown
   linkType: soft
 
@@ -5910,7 +5910,7 @@ __metadata:
     react-redux: "npm:^9.1.2"
     react-router-dom: "npm:^6.25.1"
     react-scripts: "npm:5.0.1"
-    typescript: "npm:^5.5.4"
+    typescript: "npm:^5.8.2"
   languageName: unknown
   linkType: soft
 
@@ -8035,7 +8035,7 @@ __metadata:
     jscodeshift: "npm:^0.15.1"
     prettier: "npm:^3.2.5"
     ts-node: "npm:^10.9.2"
-    typescript: "npm:^5.3.3"
+    typescript: "npm:^5.8.2"
     vitest: "npm:^1.6.0"
   bin:
     rtk-codemods: ./bin/cli.mjs
@@ -8179,7 +8179,7 @@ __metadata:
     tslib: "npm:^1.10.0"
     tsup: "npm:^8.2.3"
     tsx: "npm:^4.19.0"
-    typescript: "npm:^5.5.4"
+    typescript: "npm:^5.8.2"
     vite-tsconfig-paths: "npm:^4.3.1"
     vitest: "npm:^1.6.0"
     yargs: "npm:^15.3.1"
@@ -8587,7 +8587,7 @@ __metadata:
     swagger2openapi: "npm:^7.0.4"
     ts-node: "npm:^10.9.2"
     tsup: "npm:^8.2.4"
-    typescript: "npm:^5.5.4"
+    typescript: "npm:^5.8.2"
     vite-tsconfig-paths: "npm:^5.0.1"
     vitest: "npm:^2.0.5"
     yalc: "npm:^1.0.0-pre.47"
@@ -8617,7 +8617,7 @@ __metadata:
     graphql-request: "npm:^4.0.0 || ^5.0.0 || ^6.0.0"
     microbundle: "npm:^0.13.3"
     rimraf: "npm:^3.0.2"
-    typescript: "npm:^4.3.4"
+    typescript: "npm:^5.8.2"
   peerDependencies:
     "@reduxjs/toolkit": ^1.7.1 || ^2.0.0
     graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
@@ -30397,7 +30397,7 @@ __metadata:
     release-it: "npm:^14.12.5"
     serve: "npm:^14.2.0"
     ts-node: "npm:^10.9.2"
-    typescript: "npm:^5.5.4"
+    typescript: "npm:^5.8.2"
   languageName: unknown
   linkType: soft
 
@@ -33283,16 +33283,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:4.1.3":
-  version: 4.1.3
-  resolution: "typescript@npm:4.1.3"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: 10/674a898cc5c3afc4ad52d7305af7fee8b2ba17721b680d99907d450df9956137de8be456c47959ccbf59bce2281678c7e27e3a78c775cd24471bcd96883c0724
-  languageName: node
-  linkType: hard
-
 "typescript@npm:5.3.3":
   version: 5.3.3
   resolution: "typescript@npm:5.3.3"
@@ -33313,7 +33303,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^4.1.3, typescript@npm:^4.3.4, typescript@npm:~4.9":
+"typescript@npm:^4.1.3":
   version: 4.9.5
   resolution: "typescript@npm:4.9.5"
   bin:
@@ -33323,43 +33313,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^5.3.3, typescript@npm:^5.5.4":
-  version: 5.5.4
-  resolution: "typescript@npm:5.5.4"
+"typescript@npm:^5.4.5, typescript@npm:^5.8.2":
+  version: 5.8.2
+  resolution: "typescript@npm:5.8.2"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 10/1689ccafef894825481fc3d856b4834ba3cc185a9c2878f3c76a9a1ef81af04194849840f3c69e7961e2312771471bb3b460ca92561e1d87599b26c37d0ffb6f
-  languageName: node
-  linkType: hard
-
-"typescript@npm:^5.4.5":
-  version: 5.4.5
-  resolution: "typescript@npm:5.4.5"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: 10/d04a9e27e6d83861f2126665aa8d84847e8ebabcea9125b9ebc30370b98cb38b5dff2508d74e2326a744938191a83a69aa9fddab41f193ffa43eabfdf3f190a5
-  languageName: node
-  linkType: hard
-
-"typescript@npm:~4.2.4":
-  version: 4.2.4
-  resolution: "typescript@npm:4.2.4"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: 10/ca42873f8cdf67f7540e923475e7ad2a31aaa6e5e336ac309c9ab08ccc04555f4d3779285e8e8d8ab05413d4c02c5a26f96e0f8ea9a16affe721f639f87d053a
-  languageName: node
-  linkType: hard
-
-"typescript@patch:typescript@npm%3A4.1.3#optional!builtin<compat/typescript>":
-  version: 4.1.3
-  resolution: "typescript@patch:typescript@npm%3A4.1.3#optional!builtin<compat/typescript>::version=4.1.3&hash=4a8eb8"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: 10/085045b2cf7bdd60cb48bdf63469af4488f827df149c92a834f38aa89460e12b47402d8c0414b4e87c65fba3cb154285b3fbb581747985a597cced90c4973f77
+  checksum: 10/dbc2168a55d56771f4d581997be52bab5cbc09734fec976cfbaabd787e61fb4c6cf9125fd48c6f98054ce549c77ecedefc7f64252a830dd8e9c3381f61fbeb78
   languageName: node
   linkType: hard
 
@@ -33383,7 +33343,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@npm%3A^4.1.3#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^4.3.4#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A~4.9#optional!builtin<compat/typescript>":
+"typescript@patch:typescript@npm%3A^4.1.3#optional!builtin<compat/typescript>":
   version: 4.9.5
   resolution: "typescript@patch:typescript@npm%3A4.9.5#optional!builtin<compat/typescript>::version=4.9.5&hash=289587"
   bin:
@@ -33393,33 +33353,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@npm%3A^5.3.3#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^5.5.4#optional!builtin<compat/typescript>":
-  version: 5.5.4
-  resolution: "typescript@patch:typescript@npm%3A5.5.4#optional!builtin<compat/typescript>::version=5.5.4&hash=379a07"
+"typescript@patch:typescript@npm%3A^5.4.5#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^5.8.2#optional!builtin<compat/typescript>":
+  version: 5.8.2
+  resolution: "typescript@patch:typescript@npm%3A5.8.2#optional!builtin<compat/typescript>::version=5.8.2&hash=8c6c40"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 10/746fdd0865c5ce4f15e494c57ede03a9e12ede59cfdb40da3a281807853fe63b00ef1c912d7222143499aa82f18b8b472baa1830df8804746d09b55f6cf5b1cc
-  languageName: node
-  linkType: hard
-
-"typescript@patch:typescript@npm%3A^5.4.5#optional!builtin<compat/typescript>":
-  version: 5.4.5
-  resolution: "typescript@patch:typescript@npm%3A5.4.5#optional!builtin<compat/typescript>::version=5.4.5&hash=5adc0c"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: 10/760f7d92fb383dbf7dee2443bf902f4365db2117f96f875cf809167f6103d55064de973db9f78fe8f31ec08fff52b2c969aee0d310939c0a3798ec75d0bca2e1
-  languageName: node
-  linkType: hard
-
-"typescript@patch:typescript@npm%3A~4.2.4#optional!builtin<compat/typescript>":
-  version: 4.2.4
-  resolution: "typescript@patch:typescript@npm%3A4.2.4#optional!builtin<compat/typescript>::version=4.2.4&hash=334f98"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: 10/1ea3cb3bd8aca37b6fd4970ffecf2da000ce4ccaed54c71de87f56f6b0d792a8a7d8a36b521574911804a9789c2f461d319679e1f5580440910987e9f1fcc22a
+  checksum: 10/6ae9b2c4d3254ec2eaee6f26ed997e19c02177a212422993209f81e87092b2bb0a4738085549c5b0164982a5609364c047c72aeb281f6c8d802cd0d1c6f0d353
   languageName: node
   linkType: hard
 
@@ -34099,7 +34039,7 @@ __metadata:
     react-native-web: "npm:^0.19.13"
     react-redux: "npm:^9.1.0"
     react-router: "npm:^7.0.1"
-    typescript: "npm:^5.3.3"
+    typescript: "npm:^5.8.2"
     vite: "npm:^5.0.0"
     vitest: "npm:^1.2.0"
   languageName: unknown
@@ -34694,7 +34634,7 @@ __metadata:
     react-dom: "npm:^19.0.0"
     react-lite-youtube-embed: "npm:^2.0.3"
     remark-typescript-tools: "npm:2.0.0-alpha.1"
-    typescript: "npm:^5.5.4"
+    typescript: "npm:^5.8.2"
   languageName: unknown
   linkType: soft
 
