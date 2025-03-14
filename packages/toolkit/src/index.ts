@@ -15,6 +15,7 @@ export {
   createSelector,
   createSelectorCreator,
   lruMemoize,
+  setGlobalDevModeChecks,
   weakMapMemoize,
 } from 'reselect'
 export type { Selector, OutputSelector } from 'reselect'
