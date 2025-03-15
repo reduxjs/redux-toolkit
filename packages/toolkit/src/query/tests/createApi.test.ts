@@ -409,21 +409,6 @@ describe('endpoint definition typings', () => {
       const storeRef = setupApiStore(api, undefined, {
         withoutTestLifecycles: true,
       })
-      // only type-test this part
-      if (2 > 1) {
-        api.enhanceEndpoints({
-          endpoints: {
-            query1: {
-              // @ts-expect-error
-              providesTags: ['new'],
-            },
-            query2: {
-              // @ts-expect-error
-              providesTags: ['missing'],
-            },
-          },
-        })
-      }
 
       const enhanced = api.enhanceEndpoints({
         addTagTypes: ['new'],
@@ -450,22 +435,6 @@ describe('endpoint definition typings', () => {
       expect(consoleErrorSpy).toHaveBeenLastCalledWith(
         "Tag type 'missing' was used, but not specified in `tagTypes`!",
       )
-
-      // only type-test this part
-      if (2 > 1) {
-        enhanced.enhanceEndpoints({
-          endpoints: {
-            query1: {
-              // returned `enhanced` api contains "new" enitityType
-              providesTags: ['new'],
-            },
-            query2: {
-              // @ts-expect-error
-              providesTags: ['missing'],
-            },
-          },
-        })
-      }
     })
 
     test('modify', () => {

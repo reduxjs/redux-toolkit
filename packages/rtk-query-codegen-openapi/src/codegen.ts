@@ -1,32 +1,48 @@
-import { factory } from './utils/factory';
-import ts from 'typescript';
+import { factory } from './utils/factory'
+import ts from 'typescript'
 
-const defaultEndpointBuilder = factory.createIdentifier('build');
+const defaultEndpointBuilder = factory.createIdentifier('build')
 
-export type ObjectPropertyDefinitions = Record<string, ts.Expression | undefined>;
+export type ObjectPropertyDefinitions = Record<
+  string,
+  ts.Expression | undefined
+>
 export function generateObjectProperties(obj: ObjectPropertyDefinitions) {
   return Object.entries(obj)
     .filter(([_, v]) => v)
-    .map(([k, v]) => factory.createPropertyAssignment(factory.createIdentifier(k), v as ts.Expression));
+    .map(([k, v]) =>
+      factory.createPropertyAssignment(
+        factory.createIdentifier(k),
+        v as ts.Expression,
+      ),
+    )
 }
 
-export function generateImportNode(pkg: string, namedImports: Record<string, string>, defaultImportName?: string) {
+export function generateImportNode(
+  pkg: string,
+  namedImports: Record<string, string>,
+  defaultImportName?: string,
+) {
   return factory.createImportDeclaration(
     undefined,
     factory.createImportClause(
       false,
-      defaultImportName !== undefined ? factory.createIdentifier(defaultImportName) : undefined,
+      defaultImportName !== undefined
+        ? factory.createIdentifier(defaultImportName)
+        : undefined,
       factory.createNamedImports(
         Object.entries(namedImports).map(([propertyName, name]) =>
           factory.createImportSpecifier(
-            name === propertyName ? undefined : factory.createIdentifier(propertyName),
-            factory.createIdentifier(name)
-          )
-        )
-      )
+            name === propertyName
+              ? undefined
+              : factory.createIdentifier(propertyName),
+            factory.createIdentifier(name),
+          ),
+        ),
+      ),
     ),
-    factory.createStringLiteral(pkg)
-  );
+    factory.createStringLiteral(pkg),
+  )
 }
 
 export function generateCreateApiCall({
@@ -34,29 +50,45 @@ export function generateCreateApiCall({
   endpointDefinitions,
   tag,
 }: {
-  endpointBuilder?: ts.Identifier;
-  endpointDefinitions: ts.ObjectLiteralExpression;
-  tag: boolean;
+  endpointBuilder?: ts.Identifier
+  endpointDefinitions: ts.ObjectLiteralExpression
+  tag: boolean
 }) {
-  const injectEndpointsObjectLiteralExpression = factory.createObjectLiteralExpression(
-    generateObjectProperties({
-      endpoints: factory.createArrowFunction(
-        undefined,
-        undefined,
-        [factory.createParameterDeclaration(undefined, undefined, endpointBuilder, undefined, undefined, undefined)],
-        undefined,
-        factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
-        factory.createParenthesizedExpression(endpointDefinitions)
-      ),
-      overrideExisting: factory.createFalse(),
-    }),
-    true
-  );
+  const injectEndpointsObjectLiteralExpression =
+    factory.createObjectLiteralExpression(
+      generateObjectProperties({
+        endpoints: factory.createArrowFunction(
+          undefined,
+          undefined,
+          [
+            factory.createParameterDeclaration(
+              undefined,
+              undefined,
+              endpointBuilder,
+              undefined,
+              undefined,
+              undefined,
+            ),
+          ],
+          undefined,
+          factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
+          factory.createParenthesizedExpression(endpointDefinitions),
+        ),
+        overrideExisting: factory.createFalse(),
+      }),
+      true,
+    )
   if (tag) {
-    const enhanceEndpointsObjectLiteralExpression = factory.createObjectLiteralExpression(
-      [factory.createShorthandPropertyAssignment(factory.createIdentifier('addTagTypes'), undefined)],
-      true
-    );
+    const enhanceEndpointsObjectLiteralExpression =
+      factory.createObjectLiteralExpression(
+        [
+          factory.createShorthandPropertyAssignment(
+            factory.createIdentifier('addTagTypes'),
+            undefined,
+          ),
+        ],
+        true,
+      )
     return factory.createVariableStatement(
       undefined,
       factory.createVariableDeclarationList(
@@ -70,21 +102,21 @@ export function generateCreateApiCall({
                 factory.createCallExpression(
                   factory.createPropertyAccessExpression(
                     factory.createIdentifier('api'),
-                    factory.createIdentifier('enhanceEndpoints')
+                    factory.createIdentifier('enhanceEndpoints'),
                   ),
                   undefined,
-                  [enhanceEndpointsObjectLiteralExpression]
+                  [enhanceEndpointsObjectLiteralExpression],
                 ),
-                factory.createIdentifier('injectEndpoints')
+                factory.createIdentifier('injectEndpoints'),
               ),
               undefined,
-              [injectEndpointsObjectLiteralExpression]
-            )
+              [injectEndpointsObjectLiteralExpression],
+            ),
           ),
         ],
-        ts.NodeFlags.Const
-      )
-    );
+        ts.NodeFlags.Const,
+      ),
+    )
   }
 
   return factory.createVariableStatement(
@@ -98,16 +130,16 @@ export function generateCreateApiCall({
           factory.createCallExpression(
             factory.createPropertyAccessExpression(
               factory.createIdentifier('api'),
-              factory.createIdentifier('injectEndpoints')
+              factory.createIdentifier('injectEndpoints'),
             ),
             undefined,
-            [injectEndpointsObjectLiteralExpression]
-          )
+            [injectEndpointsObjectLiteralExpression],
+          ),
         ),
       ],
-      ts.NodeFlags.Const
-    )
-  );
+      ts.NodeFlags.Const,
+    ),
+  )
 }
 
 export function generateEndpointDefinition({
@@ -120,33 +152,43 @@ export function generateEndpointDefinition({
   extraEndpointsProps,
   tags,
 }: {
-  operationName: string;
-  type: 'query' | 'mutation';
-  Response: ts.TypeReferenceNode;
-  QueryArg: ts.TypeReferenceNode;
-  queryFn: ts.Expression;
-  endpointBuilder?: ts.Identifier;
-  extraEndpointsProps: ObjectPropertyDefinitions;
-  tags: string[];
+  operationName: string
+  type: 'query' | 'mutation'
+  Response: ts.TypeReferenceNode
+  QueryArg: ts.TypeReferenceNode
+  queryFn: ts.Expression
+  endpointBuilder?: ts.Identifier
+  extraEndpointsProps: ObjectPropertyDefinitions
+  tags: string[]
 }) {
-  const objectProperties = generateObjectProperties({ query: queryFn, ...extraEndpointsProps });
+  const objectProperties = generateObjectProperties({
+    query: queryFn,
+    ...extraEndpointsProps,
+  })
   if (tags.length > 0) {
     objectProperties.push(
       factory.createPropertyAssignment(
-        factory.createIdentifier(type === 'query' ? 'providesTags' : 'invalidatesTags'),
-        factory.createArrayLiteralExpression(tags.map((tag) => factory.createStringLiteral(tag), false))
-      )
-    );
+        factory.createIdentifier(
+          type === 'query' ? 'providesTags' : 'invalidatesTags',
+        ),
+        factory.createArrayLiteralExpression(
+          tags.map((tag) => factory.createStringLiteral(tag), false),
+        ),
+      ),
+    )
   }
   return factory.createPropertyAssignment(
     factory.createIdentifier(operationName),
 
     factory.createCallExpression(
-      factory.createPropertyAccessExpression(endpointBuilder, factory.createIdentifier(type)),
+      factory.createPropertyAccessExpression(
+        endpointBuilder,
+        factory.createIdentifier(type),
+      ),
       [Response, QueryArg],
-      [factory.createObjectLiteralExpression(objectProperties, true)]
-    )
-  );
+      [factory.createObjectLiteralExpression(objectProperties, true)],
+    ),
+  )
 }
 
 export function generateTagTypes({ addTagTypes }: { addTagTypes: string[] }) {
@@ -160,14 +202,19 @@ export function generateTagTypes({ addTagTypes }: { addTagTypes: string[] }) {
           undefined,
           factory.createAsExpression(
             factory.createArrayLiteralExpression(
-              addTagTypes.map((tagType) => factory.createStringLiteral(tagType)),
-              true
+              addTagTypes.map((tagType) =>
+                factory.createStringLiteral(tagType),
+              ),
+              true,
             ),
-            factory.createTypeReferenceNode(factory.createIdentifier('const'), undefined)
-          )
+            factory.createTypeReferenceNode(
+              factory.createIdentifier('const'),
+              undefined,
+            ),
+          ),
         ),
       ],
-      ts.NodeFlags.Const
-    )
-  );
+      ts.NodeFlags.Const,
+    ),
+  )
 }
