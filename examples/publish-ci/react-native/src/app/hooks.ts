@@ -3,11 +3,11 @@
 // usage of typed hooks throughout the application.
 // We disable the ESLint rule here because this is the designated place
 // for importing and re-exporting the typed versions of hooks.
-/* eslint-disable @typescript-eslint/no-restricted-imports */
-import { useEffect, useRef } from "react"
-import { Animated, useWindowDimensions } from "react-native"
-import { useDispatch, useSelector } from "react-redux"
-import type { AppDispatch, RootState } from "./store"
+/* eslint-disable no-restricted-imports */
+import { useEffect, useRef } from 'react'
+import { Animated, useWindowDimensions } from 'react-native'
+import { useDispatch, useSelector } from 'react-redux'
+import type { AppDispatch, RootState } from './store'
 
 // Use throughout your app instead of plain `useDispatch` and `useSelector`
 export const useAppDispatch = useDispatch.withTypes<AppDispatch>()
@@ -19,7 +19,7 @@ export const useAppSelector = useSelector.withTypes<RootState>()
  *
  * @returns An object containing the calculated viewport heigh and width values.
  */
-export const useViewportUnits = () => {
+export const useViewportUnits = (): { vh: number; vw: number } => {
   const { width, height } = useWindowDimensions()
 
   const vh = height / 100
@@ -34,7 +34,7 @@ export const useViewportUnits = () => {
  * @param value - The maximum height to which the object should bounce. Defaults to 10 if not provided.
  * @returns The `Animated.Value` object that can be used to drive animations.
  */
-export const useBounceAnimation = (value = 10) => {
+export const useBounceAnimation = (value = 10): Animated.Value => {
   const bounce = useRef(new Animated.Value(0)).current
 
   bounce.interpolate({
