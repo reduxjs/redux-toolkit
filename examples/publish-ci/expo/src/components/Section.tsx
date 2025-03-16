@@ -1,33 +1,35 @@
-import type { FC, PropsWithChildren } from 'react';
-import { StyleSheet, Text, View, useColorScheme } from 'react-native';
-import { TypedColors } from '../constants/TypedColors';
+import type { JSX, PropsWithChildren } from 'react'
+import { StyleSheet, Text, View, useColorScheme } from 'react-native'
+import { Colors } from '../constants/Colors'
 
 type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
+  title: string
+}>
 
-export const Section: FC<SectionProps> = ({ children, title }) => {
-  const isDarkMode = useColorScheme() === 'dark';
+export const Section = ({ children, title }: SectionProps): JSX.Element => {
+  const isDarkMode = useColorScheme() === 'dark'
 
   return (
     <View style={styles.sectionContainer}>
       <Text
         style={[
           styles.sectionTitle,
-          { color: isDarkMode ? TypedColors.white : TypedColors.black },
-        ]}>
+          { color: isDarkMode ? Colors.white : Colors.black },
+        ]}
+      >
         {title}
       </Text>
       <Text
         style={[
           styles.sectionDescription,
-          { color: isDarkMode ? TypedColors.light : TypedColors.dark },
-        ]}>
+          { color: isDarkMode ? Colors.light : Colors.dark },
+        ]}
+      >
         {children}
       </Text>
     </View>
-  );
-};
+  )
+}
 
 const styles = StyleSheet.create({
   sectionContainer: {
@@ -43,4 +45,4 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '400',
   },
-});
+})
