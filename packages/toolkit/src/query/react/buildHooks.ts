@@ -1471,6 +1471,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     // if we had a last result and the current result is uninitialized,
     // we might have called `api.util.resetApiState`
     // in this case, reset the hook
+    let shouldResetData = false;
     if (lastResult?.endpointName && currentState.isUninitialized) {
       const { endpointName } = lastResult
       const endpointDefinition = context.endpointDefinitions[endpointName]
@@ -1488,11 +1489,13 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           })
       )
         lastResult = undefined
+        shouldResetData = true
     }
 
     // data is the last known good request result we have tracked - or if none has been tracked yet the last good result for the current args
     let data = currentState.isSuccess ? currentState.data : lastResult?.data
     if (data === undefined) data = currentState.data
+    else if(shouldResetData) data = undefined
 
     const hasData = data !== undefined
 
@@ -1531,6 +1534,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     // if we had a last result and the current result is uninitialized,
     // we might have called `api.util.resetApiState`
     // in this case, reset the hook
+    let shouldResetData = false;
     if (lastResult?.endpointName && currentState.isUninitialized) {
       const { endpointName } = lastResult
       const endpointDefinition = context.endpointDefinitions[endpointName]
@@ -1547,11 +1551,13 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         })
       )
         lastResult = undefined
+        shouldResetData = true
     }
 
     // data is the last known good request result we have tracked - or if none has been tracked yet the last good result for the current args
     let data = currentState.isSuccess ? currentState.data : lastResult?.data
     if (data === undefined) data = currentState.data
+    else if(shouldResetData) data = undefined
 
     const hasData = data !== undefined
 
