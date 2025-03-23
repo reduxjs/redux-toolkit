@@ -328,7 +328,8 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
     cacheDataLoaded.catch(() => {})
     lifecycleMap[queryCacheKey] = lifecycle
     const selector = (api.endpoints[endpointName] as any).select(
-      endpointDefinition.type === DefinitionType.query
+      endpointDefinition.type === DefinitionType.query ||
+        endpointDefinition.type === DefinitionType.infinitequery
         ? originalArgs
         : queryCacheKey,
     )
@@ -339,7 +340,8 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
       getCacheEntry: () => selector(mwApi.getState()),
       requestId,
       extra,
-      updateCachedData: (endpointDefinition.type === DefinitionType.query
+      updateCachedData: (endpointDefinition.type === DefinitionType.query ||
+      endpointDefinition.type === DefinitionType.infinitequery
         ? (updateRecipe: Recipe<any>) =>
             mwApi.dispatch(
               api.util.updateQueryData(

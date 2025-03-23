@@ -342,8 +342,6 @@ test('mutation: getCacheEntry (error)', async () => {
 })
 
 test('query: updateCachedData', async () => {
-  const trackCalls = vi.fn()
-
   const extended = api.injectEndpoints({
     overrideExisting: true,
     endpoints: (build) => ({
@@ -366,7 +364,7 @@ test('query: updateCachedData', async () => {
           })
 
           try {
-            const val = await queryFulfilled
+            await queryFulfilled
             onSuccess(getCacheEntry().data)
           } catch (error) {
             updateCachedData((draft) => {
@@ -420,6 +418,106 @@ test('query: updateCachedData', async () => {
     expect(onSuccess).toHaveBeenCalled()
   })
   expect(onSuccess).toHaveBeenCalledWith({ value: 'success' })
+  onSuccess.mockClear()
+})
+
+test('infinite query: updateCachedData', async () => {
+  const extended = api.injectEndpoints({
+    overrideExisting: true,
+    endpoints: (build) => ({
+      infiniteInjected: build.infiniteQuery<{ value: string }, string, number>({
+        query: () => '/success',
+        infiniteQueryOptions: {
+          initialPageParam: 1,
+          getNextPageParam: (
+            lastPage,
+            allPages,
+            lastPageParam,
+            allPageParams,
+          ) => lastPageParam + 1,
+        },
+        async onQueryStarted(
+          arg,
+          {
+            dispatch,
+            getState,
+            getCacheEntry,
+            updateCachedData,
+            queryFulfilled,
+          },
+        ) {
+          // calling `updateCachedData` when there is no data yet should not do anything
+          // but if there is a cache value it will be updated & overwritten by the next successful result
+          updateCachedData((draft) => {
+            draft.pages = [{ value: '.' }]
+            draft.pageParams = [1]
+          })
+
+          try {
+            await queryFulfilled
+            onSuccess(getCacheEntry().data)
+          } catch (error) {
+            updateCachedData((draft) => {
+              draft.pages = [{ value: 'success.x' }]
+              draft.pageParams = [1]
+            })
+            onError(getCacheEntry().data)
+          }
+        },
+      }),
+    }),
+  })
+
+  // request 1: success
+  expect(onSuccess).not.toHaveBeenCalled()
+  storeRef.store.dispatch(extended.endpoints.infiniteInjected.initiate('arg'))
+
+  await waitFor(() => {
+    expect(onSuccess).toHaveBeenCalled()
+  })
+  expect(onSuccess).toHaveBeenCalledWith({
+    pages: [{ value: 'success' }],
+    pageParams: [1],
+  })
+  onSuccess.mockClear()
+
+  // request 2: error
+  expect(onError).not.toHaveBeenCalled()
+  server.use(
+    http.get(
+      'https://example.com/success',
+      () => {
+        return HttpResponse.json({ value: 'failed' }, { status: 500 })
+      },
+      { once: true },
+    ),
+  )
+  storeRef.store.dispatch(
+    extended.endpoints.infiniteInjected.initiate('arg', { forceRefetch: true }),
+  )
+
+  await waitFor(() => {
+    expect(onError).toHaveBeenCalled()
+  })
+  expect(onError).toHaveBeenCalledWith({
+    pages: [{ value: 'success.x' }],
+    pageParams: [1],
+  })
+
+  // request 3: success
+  expect(onSuccess).not.toHaveBeenCalled()
+
+  storeRef.store.dispatch(
+    extended.endpoints.infiniteInjected.initiate('arg', { forceRefetch: true }),
+  )
+
+  await waitFor(() => {
+    expect(onSuccess).toHaveBeenCalled()
+  })
+  expect(onSuccess).toHaveBeenCalledWith({
+    pages: [{ value: 'success' }],
+    pageParams: [1],
+  })
   onSuccess.mockClear()
 })
 

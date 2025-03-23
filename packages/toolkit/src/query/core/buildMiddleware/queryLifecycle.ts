@@ -459,7 +459,8 @@ export const buildQueryLifecycleHandler: InternalHandlerBuilder = ({
         queryFulfilled.catch(() => {})
         lifecycleMap[requestId] = lifecycle
         const selector = (api.endpoints[endpointName] as any).select(
-          endpointDefinition.type === DefinitionType.query
+          endpointDefinition.type === DefinitionType.query ||
+            endpointDefinition.type === DefinitionType.infinitequery
             ? originalArgs
             : requestId,
         )
@@ -470,7 +471,8 @@ export const buildQueryLifecycleHandler: InternalHandlerBuilder = ({
           getCacheEntry: () => selector(mwApi.getState()),
           requestId,
           extra,
-          updateCachedData: (endpointDefinition.type === DefinitionType.query
+          updateCachedData: (endpointDefinition.type === DefinitionType.query ||
+          endpointDefinition.type === DefinitionType.infinitequery
             ? (updateRecipe: Recipe<any>) =>
                 mwApi.dispatch(
                   api.util.updateQueryData(
