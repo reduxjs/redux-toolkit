@@ -644,6 +644,38 @@ describe('createSlice', () => {
       // these should be different
       expect(injected.selectors).not.toBe(injected2.selectors)
     })
+    it('caches initial states for selectors', () => {
+      const slice = createSlice({
+        name: 'counter',
+        initialState: () => ({ value: 0 }),
+        reducers: {},
+        selectors: {
+          selectObj: (state) => state,
+        },
+      })
+      // not cached
+      expect(slice.getInitialState()).not.toBe(slice.getInitialState())
+      expect(slice.reducer(undefined, { type: 'dummy' })).not.toBe(
+        slice.reducer(undefined, { type: 'dummy' }),
+      )
+
+      const combinedReducer = combineSlices({
+        static: slice.reducer,
+      }).withLazyLoadedSlices<WithSlice<typeof slice>>()
+
+      const injected = slice.injectInto(combinedReducer)
+
+      // still not cached
+      expect(injected.getInitialState()).not.toBe(injected.getInitialState())
+      expect(injected.reducer(undefined, { type: 'dummy' })).not.toBe(
+        injected.reducer(undefined, { type: 'dummy' }),
+      )
+      // cached
+      expect(injected.selectSlice({})).toBe(injected.selectSlice({}))
+      expect(injected.selectors.selectObj({})).toBe(
+        injected.selectors.selectObj({}),
+      )
+    })
   })
   describe('reducers definition with asyncThunks', () => {
     it('is disabled by default', () => {
