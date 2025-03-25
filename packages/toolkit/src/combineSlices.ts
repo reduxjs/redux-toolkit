@@ -322,8 +322,8 @@ const stateProxyMap = new WeakMap<object, object>()
 
 const createStateProxy = <State extends object>(
   state: State,
-  reducerMap: Partial<Record<string, Reducer>>,
-  initialStateCache: Record<string, unknown>,
+  reducerMap: Partial<Record<PropertyKey, Reducer>>,
+  initialStateCache: Record<PropertyKey, unknown>,
 ) =>
   getOrInsertComputed(
     stateProxyMap,
@@ -333,24 +333,23 @@ const createStateProxy = <State extends object>(
         get: (target, prop, receiver) => {
           if (prop === ORIGINAL_STATE) return target
           const result = Reflect.get(target, prop, receiver)
-          const propString = prop.toString()
           if (typeof result === 'undefined') {
-            const cached = initialStateCache[propString]
+            const cached = initialStateCache[prop]
             if (typeof cached !== 'undefined') return cached
-            const reducer = reducerMap[propString]
+            const reducer = reducerMap[prop]
             if (reducer) {
               // ensure action type is random, to prevent reducer treating it differently
               const reducerResult = reducer(undefined, { type: nanoid() })
               if (typeof reducerResult === 'undefined') {
                 throw new Error(
-                  `The slice reducer for key "${propString}" returned undefined when called for selector(). ` +
+                  `The slice reducer for key "${prop.toString()}" returned undefined when called for selector(). ` +
                     `If the state passed to the reducer is undefined, you must ` +
                     `explicitly return the initial state. The initial state may ` +
                     `not be undefined. If you don't want to set a value for this reducer, ` +
                     `you can use null instead of undefined.`,
                 )
               }
-              initialStateCache[propString] = reducerResult
+              initialStateCache[prop] = reducerResult
               return reducerResult
             }
           }
@@ -366,7 +365,8 @@ const original = (state: any) => {
   return state[ORIGINAL_STATE]
 }
 
-const noopReducer: Reducer<Record<string, any>> = (state = {}) => state
+const emptyObject = {}
+const noopReducer: Reducer<Record<string, any>> = (state = emptyObject) => state
 
 export function combineSlices<Slices extends Array<AnySliceLike | ReducerMap>>(
   ...slices: Slices
@@ -387,7 +387,7 @@ export function combineSlices<Slices extends Array<AnySliceLike | ReducerMap>>(
 
   combinedReducer.withLazyLoadedSlices = () => combinedReducer
 
-  const initialStateCache: Record<string, unknown> = {}
+  const initialStateCache: Record<PropertyKey, unknown> = {}
 
   const inject = (
     slice: AnySliceLike,
