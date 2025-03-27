@@ -217,10 +217,7 @@ export function buildSlice({
 
   function writeFulfilledCacheEntry(
     draft: QueryState<any>,
-    meta: {
-      arg: QueryThunkArg
-      requestId: string
-    } & {
+    meta: { arg: QueryThunkArg; requestId: string } & {
       fulfilledTimeStamp: number
       baseQueryMeta: unknown
     },
@@ -297,11 +294,7 @@ export function buildSlice({
           action: PayloadAction<
             ProcessedQueryUpsertEntry[],
             string,
-            {
-              RTK_autoBatch: boolean
-              requestId: string
-              timestamp: number
-            }
+            { RTK_autoBatch: boolean; requestId: string; timestamp: number }
           >,
         ) {
           for (const entry of action.payload) {
@@ -488,9 +481,14 @@ export function buildSlice({
     | ReturnType<ReturnType<InfiniteQueryThunk<any>>>
   >
 
+  const initialInvalidationState: InvalidationState<string> = {
+    tags: {},
+    keys: {},
+  }
+
   const invalidationSlice = createSlice({
     name: `${reducerPath}/invalidation`,
-    initialState: initialState as InvalidationState<string>,
+    initialState: initialInvalidationState,
     reducers: {
       updateProvidedBy: {
         reducer(
@@ -502,17 +500,10 @@ export function buildSlice({
         ) {
           const { queryCacheKey, providedTags } = action.payload
 
-          for (const tagTypeSubscriptions of Object.values(draft)) {
-            for (const idSubscriptions of Object.values(tagTypeSubscriptions)) {
-              const foundAt = idSubscriptions.indexOf(queryCacheKey)
-              if (foundAt !== -1) {
-                idSubscriptions.splice(foundAt, 1)
-              }
-            }
-          }
+          removeCacheKeyFromTags(draft, queryCacheKey)
 
           for (const { type, id } of providedTags) {
-            const subscribedQueries = ((draft[type] ??= {})[
+            const subscribedQueries = ((draft.tags[type] ??= {})[
               id || '__internal_without_id'
             ] ??= [])
             const alreadySubscribed = subscribedQueries.includes(queryCacheKey)
@@ -520,6 +511,10 @@ export function buildSlice({
               subscribedQueries.push(queryCacheKey)
             }
           }
+
+          // Remove readonly from the providedTags array
+          draft.keys[queryCacheKey] =
+            providedTags as FullTagDescription<string>[]
         },
         prepare: prepareAutoBatched<{
           queryCacheKey: QueryCacheKey
@@ -532,23 +527,14 @@ export function buildSlice({
         .addCase(
           querySlice.actions.removeQueryResult,
           (draft, { payload: { queryCacheKey } }) => {
-            for (const tagTypeSubscriptions of Object.values(draft)) {
-              for (const idSubscriptions of Object.values(
-                tagTypeSubscriptions,
-              )) {
-                const foundAt = idSubscriptions.indexOf(queryCacheKey)
-                if (foundAt !== -1) {
-                  idSubscriptions.splice(foundAt, 1)
-                }
-              }
-            }
+            removeCacheKeyFromTags(draft, queryCacheKey)
           },
         )
         .addMatcher(hasRehydrationInfo, (draft, action) => {
           const { provided } = extractRehydrationInfo(action)!
           for (const [type, incomingTags] of Object.entries(provided)) {
             for (const [id, cacheKeys] of Object.entries(incomingTags)) {
-              const subscribedQueries = ((draft[type] ??= {})[
+              const subscribedQueries = ((draft.tags[type] ??= {})[
                 id || '__internal_without_id'
               ] ??= [])
               for (const queryCacheKey of cacheKeys) {
@@ -574,11 +560,7 @@ export function buildSlice({
               const action: CalculateProvidedByAction = {
                 type: 'UNKNOWN',
                 payload: value,
-                meta: {
-                  requestStatus: 'fulfilled',
-                  requestId: 'UNKNOWN',
-                  arg,
-                },
+                meta: { requestStatus: 'fulfilled', requestId: 'UNKNOWN', arg },
               }
 
               writeProvidedTagsForQuery(draft, action)
@@ -587,6 +569,28 @@ export function buildSlice({
         )
     },
   })
+
+  function removeCacheKeyFromTags(
+    draft: InvalidationState<any>,
+    queryCacheKey: QueryCacheKey,
+  ) {
+    const existingTags = draft.keys[queryCacheKey] ?? []
+
+    // Delete this cache key from any existing tags that may have provided it
+    for (const tag of existingTags) {
+      const tagType = tag.type
+      const tagId = tag.id ?? '__internal_without_id'
+      const tagSubscriptions = draft.tags[tagType]?.[tagId]
+
+      if (tagSubscriptions) {
+        draft.tags[tagType][tagId] = tagSubscriptions.filter(
+          (qc) => qc !== queryCacheKey,
+        )
+      }
+    }
+
+    delete draft.keys[queryCacheKey]
+  }
 
   function writeProvidedTagsForQuery(
     draft: InvalidationState<string>,
