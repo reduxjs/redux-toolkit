@@ -517,6 +517,7 @@ export const coreModule = ({
       refetchOnReconnect,
       invalidationBehavior,
       onSchemaFailure,
+      skipSchemaValidation,
     },
     context,
   ) {
@@ -584,6 +585,7 @@ export const coreModule = ({
       assertTagType,
       selectors,
       onSchemaFailure,
+      skipSchemaValidation,
     })
 
     const { reducer, actions: sliceActions } = buildSlice({

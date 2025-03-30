@@ -333,6 +333,7 @@ export function buildThunks<
   assertTagType,
   selectors,
   onSchemaFailure,
+  skipSchemaValidation: globalSkipSchemaValidation,
 }: {
   baseQuery: BaseQuery
   reducerPath: ReducerPath
@@ -342,6 +343,7 @@ export function buildThunks<
   assertTagType: AssertTagTypes
   selectors: AllSelectors
   onSchemaFailure: SchemaFailureHandler | undefined
+  skipSchemaValidation: boolean | undefined
 }) {
   type State = RootState<any, string, ReducerPath>
 
@@ -496,7 +498,8 @@ export function buildThunks<
     },
   ) => {
     const endpointDefinition = endpointDefinitions[arg.endpointName]
-    const { metaSchema } = endpointDefinition
+    const { metaSchema, skipSchemaValidation = globalSkipSchemaValidation } =
+      endpointDefinition
 
     try {
       let transformResponse = getTransformCallbackForEndpoint(
@@ -562,7 +565,7 @@ export function buildThunks<
         const { extraOptions, argSchema, rawResponseSchema, responseSchema } =
           endpointDefinition
 
-        if (argSchema) {
+        if (argSchema && !skipSchemaValidation) {
           finalQueryArg = await parseWithSchema(
             argSchema,
             finalQueryArg,
@@ -625,7 +628,7 @@ export function buildThunks<
 
         let { data } = result
 
-        if (rawResponseSchema) {
+        if (rawResponseSchema && !skipSchemaValidation) {
           data = await parseWithSchema(
             rawResponseSchema,
             result.data,
@@ -639,7 +642,7 @@ export function buildThunks<
           finalQueryArg,
         )
 
-        if (responseSchema) {
+        if (responseSchema && !skipSchemaValidation) {
           transformedResponse = await parseWithSchema(
             responseSchema,
             transformedResponse,
@@ -736,7 +739,7 @@ export function buildThunks<
         finalQueryReturnValue = await executeRequest(arg.originalArgs)
       }
 
-      if (metaSchema && finalQueryReturnValue.meta) {
+      if (metaSchema && !skipSchemaValidation && finalQueryReturnValue.meta) {
         finalQueryReturnValue.meta = await parseWithSchema(
           metaSchema,
           finalQueryReturnValue.meta,
@@ -765,7 +768,7 @@ export function buildThunks<
 
           let { value, meta } = caughtError
 
-          if (rawErrorResponseSchema) {
+          if (rawErrorResponseSchema && !skipSchemaValidation) {
             value = await parseWithSchema(
               rawErrorResponseSchema,
               value,
@@ -773,7 +776,7 @@ export function buildThunks<
             )
           }
 
-          if (metaSchema) {
+          if (metaSchema && !skipSchemaValidation) {
             meta = await parseWithSchema(metaSchema, meta, 'metaSchema')
           }
 
@@ -783,7 +786,7 @@ export function buildThunks<
               meta,
               arg.originalArgs,
             )
-            if (errorResponseSchema) {
+            if (errorResponseSchema && !skipSchemaValidation) {
               transformedErrorResponse = await parseWithSchema(
                 errorResponseSchema,
                 transformedErrorResponse,
