@@ -215,6 +215,7 @@ export interface CreateApiOptions<
       >
 
   onSchemaFailure?: SchemaFailureHandler
+  skipSchemaValidation?: boolean
 }
 
 export type CreateApi<Modules extends ModuleName> = {

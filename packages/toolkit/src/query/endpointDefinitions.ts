@@ -236,6 +236,7 @@ export type BaseEndpointDefinition<
   structuralSharing?: boolean
 
   onSchemaFailure?: SchemaFailureHandler
+  skipSchemaValidation?: boolean
 
   /* phantom type */
   [resultType]?: ResultType
