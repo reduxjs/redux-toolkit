@@ -2216,6 +2216,41 @@ describe('hooks tests', () => {
       expect(totalRenderCount()).toBe(3)
       expect(numRequests).toBe(1)
     })
+
+    test('useInfiniteQuery hook does not fetch when the skip token is set', async () => {
+      function Pokemon() {
+        const [value, setValue] = useState(0)
+
+        const { isFetching } = pokemonApi.useGetInfinitePokemonInfiniteQuery(
+          'fire',
+          {
+            skip: value < 1,
+          },
+        )
+        getRenderCount = useRenderCounter()
+
+        return (
+          <div>
+            <div data-testid="isFetching">{String(isFetching)}</div>
+            <button onClick={() => setValue((val) => val + 1)}>
+              Increment value
+            </button>
+          </div>
+        )
+      }
+
+      render(<Pokemon />, { wrapper: storeRef.wrapper })
+      expect(getRenderCount()).toBe(1)
+
+      await waitFor(() =>
+        expect(screen.getByTestId('isFetching').textContent).toBe('false'),
+      )
+      fireEvent.click(screen.getByText('Increment value'))
+      await waitFor(() =>
+        expect(screen.getByTestId('isFetching').textContent).toBe('true'),
+      )
+      expect(getRenderCount()).toBe(2)
+    })
   })
 
   describe('useMutation', () => {
