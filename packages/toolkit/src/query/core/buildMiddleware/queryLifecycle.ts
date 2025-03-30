@@ -3,7 +3,7 @@ import type {
   BaseQueryFn,
   BaseQueryMeta,
 } from '../../baseQueryTypes'
-import { DefinitionType } from '../../endpointDefinitions'
+import { DefinitionType, isAnyQueryDefinition } from '../../endpointDefinitions'
 import type { Recipe } from '../buildThunks'
 import { isFulfilled, isPending, isRejected } from '../rtkImports'
 import type {
@@ -459,10 +459,7 @@ export const buildQueryLifecycleHandler: InternalHandlerBuilder = ({
         queryFulfilled.catch(() => {})
         lifecycleMap[requestId] = lifecycle
         const selector = (api.endpoints[endpointName] as any).select(
-          endpointDefinition.type === DefinitionType.query ||
-            endpointDefinition.type === DefinitionType.infinitequery
-            ? originalArgs
-            : requestId,
+          isAnyQueryDefinition(endpointDefinition) ? originalArgs : requestId,
         )
 
         const extra = mwApi.dispatch((_, __, extra) => extra)
@@ -471,8 +468,7 @@ export const buildQueryLifecycleHandler: InternalHandlerBuilder = ({
           getCacheEntry: () => selector(mwApi.getState()),
           requestId,
           extra,
-          updateCachedData: (endpointDefinition.type === DefinitionType.query ||
-          endpointDefinition.type === DefinitionType.infinitequery
+          updateCachedData: (isAnyQueryDefinition(endpointDefinition)
             ? (updateRecipe: Recipe<any>) =>
                 mwApi.dispatch(
                   api.util.updateQueryData(

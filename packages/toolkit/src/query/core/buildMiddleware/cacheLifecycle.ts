@@ -1,7 +1,7 @@
 import type { ThunkDispatch, UnknownAction } from '@reduxjs/toolkit'
 import type { BaseQueryFn, BaseQueryMeta } from '../../baseQueryTypes'
 import type { BaseEndpointDefinition } from '../../endpointDefinitions'
-import { DefinitionType } from '../../endpointDefinitions'
+import { DefinitionType, isAnyQueryDefinition } from '../../endpointDefinitions'
 import type { QueryCacheKey, RootState } from '../apiState'
 import type {
   MutationResultSelectorResult,
@@ -328,10 +328,7 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
     cacheDataLoaded.catch(() => {})
     lifecycleMap[queryCacheKey] = lifecycle
     const selector = (api.endpoints[endpointName] as any).select(
-      endpointDefinition.type === DefinitionType.query ||
-        endpointDefinition.type === DefinitionType.infinitequery
-        ? originalArgs
-        : queryCacheKey,
+      isAnyQueryDefinition(endpointDefinition) ? originalArgs : queryCacheKey,
     )
 
     const extra = mwApi.dispatch((_, __, extra) => extra)
@@ -340,8 +337,7 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
       getCacheEntry: () => selector(mwApi.getState()),
       requestId,
       extra,
-      updateCachedData: (endpointDefinition.type === DefinitionType.query ||
-      endpointDefinition.type === DefinitionType.infinitequery
+      updateCachedData: (isAnyQueryDefinition(endpointDefinition)
         ? (updateRecipe: Recipe<any>) =>
             mwApi.dispatch(
               api.util.updateQueryData(

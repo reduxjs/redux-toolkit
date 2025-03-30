@@ -912,6 +912,14 @@ export function isInfiniteQueryDefinition(
   return e.type === DefinitionType.infinitequery
 }
 
+export function isAnyQueryDefinition(
+  e: EndpointDefinition<any, any, any, any>,
+): e is
+  | QueryDefinition<any, any, any, any>
+  | InfiniteQueryDefinition<any, any, any, any, any> {
+  return isQueryDefinition(e) || isInfiniteQueryDefinition(e)
+}
+
 export type EndpointBuilder<
   BaseQuery extends BaseQueryFn,
   TagTypes extends string,
