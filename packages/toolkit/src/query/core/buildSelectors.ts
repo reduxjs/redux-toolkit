@@ -199,10 +199,7 @@ export function buildSelectors<
   function withRequestFlags<T extends { status: QueryStatus }>(
     substate: T,
   ): T & RequestStatusFlags {
-    return {
-      ...substate,
-      ...getRequestStatusFlags(substate.status),
-    }
+    return { ...substate, ...getRequestStatusFlags(substate.status) }
   }
 
   function selectApiState(rootState: RootState) {
@@ -344,7 +341,7 @@ export function buildSelectors<
     const apiState = state[reducerPath]
     const toInvalidate = new Set<QueryCacheKey>()
     for (const tag of tags.filter(isNotNullish).map(expandTagDescription)) {
-      const provided = apiState.provided[tag.type]
+      const provided = apiState.provided.tags[tag.type]
       if (!provided) {
         continue
       }

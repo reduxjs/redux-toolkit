@@ -60,9 +60,7 @@ const api = createApi({
   }),
 })
 
-const storeRef = setupApiStore(api, {
-  ...actionsReducer,
-})
+const storeRef = setupApiStore(api, { ...actionsReducer })
 
 describe('basic lifecycle', () => {
   let onStart = vi.fn(),
@@ -96,9 +94,7 @@ describe('basic lifecycle', () => {
   test('success', async () => {
     const { result } = renderHook(
       () => extendedApi.endpoints.test.useMutation(),
-      {
-        wrapper: storeRef.wrapper,
-      },
+      { wrapper: storeRef.wrapper },
     )
 
     baseQuery.mockResolvedValue('success')
@@ -119,9 +115,7 @@ describe('basic lifecycle', () => {
   test('error', async () => {
     const { result } = renderHook(
       () => extendedApi.endpoints.test.useMutation(),
-      {
-        wrapper: storeRef.wrapper,
-      },
+      { wrapper: storeRef.wrapper },
     )
 
     baseQuery.mockRejectedValueOnce('error')
@@ -201,11 +195,7 @@ describe('updateQueryData', () => {
   test('updates (list) cache values including provided tags, undos that', async () => {
     baseQuery
       .mockResolvedValueOnce([
-        {
-          id: '3',
-          title: 'All about cheese.',
-          contents: 'TODO',
-        },
+        { id: '3', title: 'All about cheese.', contents: 'TODO' },
       ])
       .mockResolvedValueOnce(42)
     const { result } = renderHook(() => api.endpoints.listPosts.useQuery(), {
@@ -218,7 +208,7 @@ describe('updateQueryData', () => {
       provided = storeRef.store.getState().api.provided
     })
 
-    const provided3 = provided.Post['3']
+    const provided3 = provided.tags.Post['3']
 
     let returnValue!: ReturnType<ReturnType<typeof api.util.updateQueryData>>
     act(() => {
@@ -242,7 +232,7 @@ describe('updateQueryData', () => {
       provided = storeRef.store.getState().api.provided
     })
 
-    const provided4 = provided.Post['4']
+    const provided4 = provided.tags.Post['4']
 
     expect(provided4).toEqual(provided3)
 
@@ -254,7 +244,7 @@ describe('updateQueryData', () => {
       provided = storeRef.store.getState().api.provided
     })
 
-    const provided4Next = provided.Post['4']
+    const provided4Next = provided.tags.Post['4']
 
     expect(provided4Next).toEqual([])
   })
@@ -262,11 +252,7 @@ describe('updateQueryData', () => {
   test('updates (list) cache values excluding provided tags, undoes that', async () => {
     baseQuery
       .mockResolvedValueOnce([
-        {
-          id: '3',
-          title: 'All about cheese.',
-          contents: 'TODO',
-        },
+        { id: '3', title: 'All about cheese.', contents: 'TODO' },
       ])
       .mockResolvedValueOnce(42)
     const { result } = renderHook(() => api.endpoints.listPosts.useQuery(), {
@@ -301,7 +287,7 @@ describe('updateQueryData', () => {
       provided = storeRef.store.getState().api.provided
     })
 
-    const provided4 = provided.Post['4']
+    const provided4 = provided.tags.Post['4']
 
     expect(provided4).toEqual(undefined)
 
@@ -313,7 +299,7 @@ describe('updateQueryData', () => {
       provided = storeRef.store.getState().api.provided
     })
 
-    const provided4Next = provided.Post['4']
+    const provided4Next = provided.tags.Post['4']
 
     expect(provided4Next).toEqual(undefined)
   })
@@ -382,9 +368,7 @@ describe('full integration', () => {
         query: api.endpoints.post.useQuery('3'),
         mutation: api.endpoints.updatePost.useMutation(),
       }),
-      {
-        wrapper: storeRef.wrapper,
-      },
+      { wrapper: storeRef.wrapper },
     )
     await hookWaitFor(() => expect(result.current.query.isSuccess).toBeTruthy())
 
@@ -433,9 +417,7 @@ describe('full integration', () => {
         query: api.endpoints.post.useQuery('3'),
         mutation: api.endpoints.updatePost.useMutation(),
       }),
-      {
-        wrapper: storeRef.wrapper,
-      },
+      { wrapper: storeRef.wrapper },
     )
     await hookWaitFor(() => expect(result.current.query.isSuccess).toBeTruthy())
 

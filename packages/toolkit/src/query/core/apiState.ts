@@ -3,6 +3,7 @@ import type { BaseQueryError } from '../baseQueryTypes'
 import type {
   BaseEndpointDefinition,
   EndpointDefinitions,
+  FullTagDescription,
   InfiniteQueryDefinition,
   MutationDefinition,
   PageParamFrom,
@@ -15,14 +16,8 @@ import type { Id, WithRequiredProp } from '../tsHelpers'
 export type QueryCacheKey = string & { _type: 'queryCacheKey' }
 export type QuerySubstateIdentifier = { queryCacheKey: QueryCacheKey }
 export type MutationSubstateIdentifier =
-  | {
-      requestId: string
-      fixedCacheKey?: string
-    }
-  | {
-      requestId?: string
-      fixedCacheKey: string
-    }
+  | { requestId: string; fixedCacheKey?: string }
+  | { requestId?: string; fixedCacheKey: string }
 
 export type RefetchConfigOptions = {
   refetchOnMountOrArgChange: boolean | number
@@ -225,18 +220,15 @@ export type QuerySubState<
   D extends BaseEndpointDefinition<any, any, any>,
   DataType = ResultTypeFrom<D>,
 > = Id<
-  | ({
-      status: QueryStatus.fulfilled
-    } & WithRequiredProp<
+  | ({ status: QueryStatus.fulfilled } & WithRequiredProp<
       BaseQuerySubState<D, DataType>,
       'data' | 'fulfilledTimeStamp'
     > & { error: undefined })
-  | ({
-      status: QueryStatus.pending
-    } & BaseQuerySubState<D, DataType>)
-  | ({
-      status: QueryStatus.rejected
-    } & WithRequiredProp<BaseQuerySubState<D, DataType>, 'error'>)
+  | ({ status: QueryStatus.pending } & BaseQuerySubState<D, DataType>)
+  | ({ status: QueryStatus.rejected } & WithRequiredProp<
+      BaseQuerySubState<D, DataType>,
+      'error'
+    >)
   | {
       status: QueryStatus.uninitialized
       originalArgs?: undefined
@@ -274,18 +266,17 @@ type BaseMutationSubState<D extends BaseEndpointDefinition<any, any, any>> = {
 }
 
 export type MutationSubState<D extends BaseEndpointDefinition<any, any, any>> =
-  | (({
-      status: QueryStatus.fulfilled
-    } & WithRequiredProp<
+  | (({ status: QueryStatus.fulfilled } & WithRequiredProp<
       BaseMutationSubState<D>,
       'data' | 'fulfilledTimeStamp'
     >) & { error: undefined })
-  | (({
-      status: QueryStatus.pending
-    } & BaseMutationSubState<D>) & { data?: undefined })
-  | ({
-      status: QueryStatus.rejected
-    } & WithRequiredProp<BaseMutationSubState<D>, 'error'>)
+  | (({ status: QueryStatus.pending } & BaseMutationSubState<D>) & {
+      data?: undefined
+    })
+  | ({ status: QueryStatus.rejected } & WithRequiredProp<
+      BaseMutationSubState<D>,
+      'error'
+    >)
   | {
       requestId?: undefined
       status: QueryStatus.uninitialized
@@ -309,10 +300,13 @@ export type CombinedState<
 }
 
 export type InvalidationState<TagTypes extends string> = {
-  [_ in TagTypes]: {
-    [id: string]: Array<QueryCacheKey>
-    [id: number]: Array<QueryCacheKey>
+  tags: {
+    [_ in TagTypes]: {
+      [id: string]: Array<QueryCacheKey>
+      [id: number]: Array<QueryCacheKey>
+    }
   }
+  keys: Record<QueryCacheKey, Array<FullTagDescription<any>>>
 }
 
 export type QueryState<D extends EndpointDefinitions> = {
@@ -346,6 +340,4 @@ export type RootState<
   Definitions extends EndpointDefinitions,
   TagTypes extends string,
   ReducerPath extends string,
-> = {
-  [P in ReducerPath]: CombinedState<Definitions, TagTypes, P>
-}
+> = { [P in ReducerPath]: CombinedState<Definitions, TagTypes, P> }
