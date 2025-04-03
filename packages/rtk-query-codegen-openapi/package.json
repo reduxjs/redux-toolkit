@@ -74,7 +74,7 @@
     "yalc": "^1.0.0-pre.47"
   },
   "dependencies": {
-    "@apidevtools/swagger-parser": "^10.0.2",
+    "@apidevtools/swagger-parser": "^10.1.1",
     "commander": "^6.2.0",
     "lodash.camelcase": "^4.3.0",
     "oazapfts": "^6.1.0",
