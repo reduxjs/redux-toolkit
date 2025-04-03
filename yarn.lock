@@ -417,7 +417,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@apidevtools/swagger-parser@npm:^10.0.2, @apidevtools/swagger-parser@npm:^10.1.1":
+"@apidevtools/swagger-parser@npm:^10.1.1":
   version: 10.1.1
   resolution: "@apidevtools/swagger-parser@npm:10.1.1"
   dependencies:
@@ -8247,7 +8247,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@rtk-query/codegen-openapi@workspace:packages/rtk-query-codegen-openapi"
   dependencies:
-    "@apidevtools/swagger-parser": "npm:^10.0.2"
+    "@apidevtools/swagger-parser": "npm:^10.1.1"
     "@babel/core": "npm:^7.12.10"
     "@babel/preset-env": "npm:^7.12.11"
     "@babel/preset-typescript": "npm:^7.12.7"
