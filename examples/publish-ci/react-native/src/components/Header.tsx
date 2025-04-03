@@ -1,10 +1,11 @@
-import { Animated, StyleSheet, View, useColorScheme } from "react-native"
-import { useBounceAnimation, useViewportUnits } from "../app/hooks"
-import { TypedColors } from "../constants/TypedColors"
-import logo from "./logo.gif"
+import type { JSX } from 'react'
+import { Animated, StyleSheet, View, useColorScheme } from 'react-native'
+import { useBounceAnimation, useViewportUnits } from '../app/hooks'
+import { TypedColors } from '../constants/TypedColors'
+import logo from './logo.gif'
 
-export const Header = () => {
-  const isDarkMode = useColorScheme() === "dark"
+export const Header = (): JSX.Element => {
+  const isDarkMode = useColorScheme() === 'dark'
   const { vh } = useViewportUnits()
   const bounce = useBounceAnimation()
   const height = 40 * vh
@@ -17,7 +18,7 @@ export const Header = () => {
       ]}
     >
       <Animated.Image
-        accessibilityRole={"image"}
+        accessibilityRole="image"
         source={logo}
         style={{ height, transform: [{ translateY: bounce }] }}
       />
@@ -27,7 +28,7 @@ export const Header = () => {
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: "row",
-    justifyContent: "center",
+    flexDirection: 'row',
+    justifyContent: 'center',
   },
 })
