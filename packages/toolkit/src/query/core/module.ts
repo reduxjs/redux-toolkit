@@ -516,6 +516,8 @@ export const coreModule = ({
       refetchOnFocus,
       refetchOnReconnect,
       invalidationBehavior,
+      onSchemaFailure,
+      skipSchemaValidation,
     },
     context,
   ) {
@@ -582,6 +584,8 @@ export const coreModule = ({
       serializeQueryArgs,
       assertTagType,
       selectors,
+      onSchemaFailure,
+      skipSchemaValidation,
     })
 
     const { reducer, actions: sliceActions } = buildSlice({

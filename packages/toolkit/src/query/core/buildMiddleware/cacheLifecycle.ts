@@ -1,5 +1,9 @@
 import type { ThunkDispatch, UnknownAction } from '@reduxjs/toolkit'
-import type { BaseQueryFn, BaseQueryMeta } from '../../baseQueryTypes'
+import type {
+  BaseQueryFn,
+  BaseQueryMeta,
+  BaseQueryResult,
+} from '../../baseQueryTypes'
 import type { BaseEndpointDefinition } from '../../endpointDefinitions'
 import { DefinitionType, isAnyQueryDefinition } from '../../endpointDefinitions'
 import type { QueryCacheKey, RootState } from '../apiState'
@@ -32,7 +36,8 @@ export interface QueryBaseLifecycleApi<
     { type: DefinitionType.query } & BaseEndpointDefinition<
       QueryArg,
       BaseQuery,
-      ResultType
+      ResultType,
+      BaseQueryResult<BaseQuery>
     >
   >
   /**
@@ -55,7 +60,8 @@ export type MutationBaseLifecycleApi<
     { type: DefinitionType.mutation } & BaseEndpointDefinition<
       QueryArg,
       BaseQuery,
-      ResultType
+      ResultType,
+      BaseQueryResult<BaseQuery>
     >
   >
 }

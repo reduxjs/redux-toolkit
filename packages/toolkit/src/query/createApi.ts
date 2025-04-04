@@ -6,6 +6,7 @@ import { defaultSerializeQueryArgs } from './defaultSerializeQueryArgs'
 import type {
   EndpointBuilder,
   EndpointDefinitions,
+  SchemaFailureHandler,
 } from './endpointDefinitions'
 import {
   DefinitionType,
@@ -212,6 +213,9 @@ export interface CreateApiOptions<
         NoInfer<TagTypes>,
         NoInfer<ReducerPath>
       >
+
+  onSchemaFailure?: SchemaFailureHandler
+  skipSchemaValidation?: boolean
 }
 
 export type CreateApi<Modules extends ModuleName> = {

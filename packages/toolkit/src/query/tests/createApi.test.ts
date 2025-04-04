@@ -4,17 +4,25 @@ import {
   getSerializedHeaders,
   setupApiStore,
 } from '@internal/tests/utils/helpers'
+import type { SerializedError } from '@reduxjs/toolkit'
 import { configureStore, createAction, createReducer } from '@reduxjs/toolkit'
 import type {
   DefinitionsFromApi,
+  FetchBaseQueryError,
   FetchBaseQueryMeta,
   OverrideResultType,
   SerializeQueryArgs,
   TagTypesFromApi,
 } from '@reduxjs/toolkit/query'
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+import {
+  createApi,
+  fetchBaseQuery,
+  NamedSchemaError,
+} from '@reduxjs/toolkit/query'
 import { HttpResponse, delay, http } from 'msw'
 import nodeFetch from 'node-fetch'
+import * as v from 'valibot'
+import type { SchemaFailureHandler } from '../endpointDefinitions'
 
 beforeAll(() => {
   vi.stubEnv('NODE_ENV', 'development')
@@ -26,6 +34,7 @@ const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(noop)
 
 afterEach(() => {
   vi.clearAllMocks()
+  server.resetHandlers()
 })
 
 afterAll(() => {
@@ -1184,6 +1193,426 @@ describe('timeout behavior', () => {
     expect(result?.error).toEqual({
       status: 'TIMEOUT_ERROR',
       error: expect.stringMatching(/^AbortError:/),
+    })
+  })
+})
+
+describe('endpoint schemas', () => {
+  const serializedSchemaError = {
+    name: 'SchemaError',
+    message: expect.any(String),
+    stack: expect.any(String),
+  } satisfies SerializedError
+
+  const onSchemaFailureGlobal = vi.fn<Parameters<SchemaFailureHandler>>()
+  const onSchemaFailureEndpoint = vi.fn<Parameters<SchemaFailureHandler>>()
+  afterEach(() => {
+    onSchemaFailureGlobal.mockClear()
+    onSchemaFailureEndpoint.mockClear()
+  })
+
+  function expectFailureHandlersToHaveBeenCalled({
+    schemaName,
+    value,
+    arg,
+  }: {
+    schemaName: string
+    value: unknown
+    arg: unknown
+  }) {
+    for (const handler of [onSchemaFailureGlobal, onSchemaFailureEndpoint]) {
+      expect(handler).toHaveBeenCalledOnce()
+      const [namedError, info] = handler.mock.calls[0]
+      expect(namedError).toBeInstanceOf(NamedSchemaError)
+      expect(namedError.issues.length).toBeGreaterThan(0)
+      expect(namedError.value).toEqual(value)
+      expect(namedError.schemaName).toBe(schemaName)
+      expect(info.endpoint).toBe('query')
+      expect(info.type).toBe('query')
+      expect(info.arg).toEqual(arg)
+    }
+  }
+
+  describe('argSchema', () => {
+    const makeApi = ({
+      globalSkip,
+      endpointSkip,
+    }: { globalSkip?: boolean; endpointSkip?: boolean } = {}) =>
+      createApi({
+        baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
+        onSchemaFailure: onSchemaFailureGlobal,
+        skipSchemaValidation: globalSkip,
+        endpoints: (build) => ({
+          query: build.query<unknown, { id: number }>({
+            query: ({ id }) => `/post/${id}`,
+            argSchema: v.object({ id: v.number() }),
+            onSchemaFailure: onSchemaFailureEndpoint,
+            skipSchemaValidation: endpointSkip,
+          }),
+        }),
+      })
+    test("can be used to validate the endpoint's arguments", async () => {
+      const api = makeApi()
+
+      const storeRef = setupApiStore(api, undefined, {
+        withoutTestLifecycles: true,
+      })
+
+      const result = await storeRef.store.dispatch(
+        api.endpoints.query.initiate({ id: 1 }),
+      )
+
+      expect(result?.error).toBeUndefined()
+
+      const invalidResult = await storeRef.store.dispatch(
+        // @ts-expect-error
+        api.endpoints.query.initiate({ id: '1' }),
+      )
+
+      expect(invalidResult?.error).toEqual(serializedSchemaError)
+      expectFailureHandlersToHaveBeenCalled({
+        schemaName: 'argSchema',
+        value: { id: '1' },
+        arg: { id: '1' },
+      })
+    })
+    test('can be skipped globally', async () => {
+      const api = makeApi({ globalSkip: true })
+
+      const storeRef = setupApiStore(api, undefined, {
+        withoutTestLifecycles: true,
+      })
+
+      const result = await storeRef.store.dispatch(
+        // @ts-expect-error
+        api.endpoints.query.initiate({ id: '1' }),
+      )
+
+      expect(result?.error).toBeUndefined()
+    })
+    test('can be skipped on the endpoint', async () => {
+      const api = makeApi({ endpointSkip: true })
+
+      const storeRef = setupApiStore(api, undefined, {
+        withoutTestLifecycles: true,
+      })
+
+      const result = await storeRef.store.dispatch(
+        // @ts-expect-error
+        api.endpoints.query.initiate({ id: '1' }),
+      )
+
+      expect(result?.error).toBeUndefined()
+    })
+    // we only need to test this once
+    test('endpoint overrides global skip', async () => {
+      const api = makeApi({ globalSkip: true, endpointSkip: false })
+
+      const storeRef = setupApiStore(api, undefined, {
+        withoutTestLifecycles: true,
+      })
+
+      const result = await storeRef.store.dispatch(
+        // @ts-expect-error
+        api.endpoints.query.initiate({ id: '1' }),
+      )
+
+      expect(result?.error).toEqual(serializedSchemaError)
+    })
+  })
+  describe('rawResponseSchema', () => {
+    const makeApi = ({
+      globalSkip,
+      endpointSkip,
+    }: { globalSkip?: boolean; endpointSkip?: boolean } = {}) =>
+      createApi({
+        baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
+        onSchemaFailure: onSchemaFailureGlobal,
+        skipSchemaValidation: globalSkip,
+        endpoints: (build) => ({
+          query: build.query<{ success: boolean }, void>({
+            query: () => '/success',
+            rawResponseSchema: v.object({ value: v.literal('success!') }),
+            onSchemaFailure: onSchemaFailureEndpoint,
+            skipSchemaValidation: endpointSkip,
+          }),
+        }),
+      })
+    test("can be used to validate the endpoint's raw result", async () => {
+      const api = makeApi()
+      const storeRef = setupApiStore(api, undefined, {
+        withoutTestLifecycles: true,
+      })
+      const result = await storeRef.store.dispatch(
+        api.endpoints.query.initiate(),
+      )
+      expect(result?.error).toEqual(serializedSchemaError)
+      expectFailureHandlersToHaveBeenCalled({
+        schemaName: 'rawResponseSchema',
+        value: { value: 'success' },
+        arg: undefined,
+      })
+    })
+    test('can be skipped globally', async () => {
+      const api = makeApi({ globalSkip: true })
+      const storeRef = setupApiStore(api, undefined, {
+        withoutTestLifecycles: true,
+      })
+      const result = await storeRef.store.dispatch(
+        api.endpoints.query.initiate(),
+      )
+      expect(result?.error).toBeUndefined()
+    })
+    test('can be skipped on the endpoint', async () => {
+      const api = makeApi({ endpointSkip: true })
+      const storeRef = setupApiStore(api, undefined, {
+        withoutTestLifecycles: true,
+      })
+      const result = await storeRef.store.dispatch(
+        api.endpoints.query.initiate(),
+      )
+      expect(result?.error).toBeUndefined()
+    })
+  })
+  describe('responseSchema', () => {
+    const makeApi = ({
+      globalSkip,
+      endpointSkip,
+    }: { globalSkip?: boolean; endpointSkip?: boolean } = {}) =>
+      createApi({
+        baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
+        onSchemaFailure: onSchemaFailureGlobal,
+        skipSchemaValidation: globalSkip,
+        endpoints: (build) => ({
+          query: build.query<{ success: boolean }, void>({
+            query: () => '/success',
+            transformResponse: () => ({ success: false }),
+            responseSchema: v.object({ success: v.literal(true) }),
+            onSchemaFailure: onSchemaFailureEndpoint,
+            skipSchemaValidation: endpointSkip,
+          }),
+        }),
+      })
+    test("can be used to validate the endpoint's final result", async () => {
+      const api = makeApi()
+      const storeRef = setupApiStore(api, undefined, {
+        withoutTestLifecycles: true,
+      })
+      const result = await storeRef.store.dispatch(
+        api.endpoints.query.initiate(),
+      )
+      expect(result?.error).toEqual(serializedSchemaError)
+
+      expectFailureHandlersToHaveBeenCalled({
+        schemaName: 'responseSchema',
+        value: { success: false },
+        arg: undefined,
+      })
+    })
+    test('can be skipped globally', async () => {
+      const api = makeApi({ globalSkip: true })
+      const storeRef = setupApiStore(api, undefined, {
+        withoutTestLifecycles: true,
+      })
+      const result = await storeRef.store.dispatch(
+        api.endpoints.query.initiate(),
+      )
+      expect(result?.error).toBeUndefined()
+    })
+    test('can be skipped on the endpoint', async () => {
+      const api = makeApi({ endpointSkip: true })
+      const storeRef = setupApiStore(api, undefined, {
+        withoutTestLifecycles: true,
+      })
+      const result = await storeRef.store.dispatch(
+        api.endpoints.query.initiate(),
+      )
+      expect(result?.error).toBeUndefined()
+    })
+  })
+  describe('rawErrorResponseSchema', () => {
+    const makeApi = ({
+      globalSkip,
+      endpointSkip,
+    }: { globalSkip?: boolean; endpointSkip?: boolean } = {}) =>
+      createApi({
+        baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
+        onSchemaFailure: onSchemaFailureGlobal,
+        skipSchemaValidation: globalSkip,
+        endpoints: (build) => ({
+          query: build.query<{ success: boolean }, void>({
+            query: () => '/error',
+            rawErrorResponseSchema: v.object({
+              status: v.pipe(v.number(), v.minValue(400), v.maxValue(499)),
+              data: v.unknown(),
+            }),
+            onSchemaFailure: onSchemaFailureEndpoint,
+            skipSchemaValidation: endpointSkip,
+          }),
+        }),
+      })
+    test("can be used to validate the endpoint's raw error result", async () => {
+      const api = makeApi()
+      const storeRef = setupApiStore(api, undefined, {
+        withoutTestLifecycles: true,
+      })
+      const result = await storeRef.store.dispatch(
+        api.endpoints.query.initiate(),
+      )
+      expect(result?.error).toEqual(serializedSchemaError)
+      expectFailureHandlersToHaveBeenCalled({
+        schemaName: 'rawErrorResponseSchema',
+        value: { status: 500, data: { value: 'error' } },
+        arg: undefined,
+      })
+    })
+    test('can be skipped globally', async () => {
+      const api = makeApi({ globalSkip: true })
+      const storeRef = setupApiStore(api, undefined, {
+        withoutTestLifecycles: true,
+      })
+      const result = await storeRef.store.dispatch(
+        api.endpoints.query.initiate(),
+      )
+      expect(result?.error).not.toEqual(serializedSchemaError)
+    })
+    test('can be skipped on the endpoint', async () => {
+      const api = makeApi({ endpointSkip: true })
+      const storeRef = setupApiStore(api, undefined, {
+        withoutTestLifecycles: true,
+      })
+      const result = await storeRef.store.dispatch(
+        api.endpoints.query.initiate(),
+      )
+      expect(result?.error).not.toEqual(serializedSchemaError)
+    })
+  })
+  describe('errorResponseSchema', () => {
+    const makeApi = ({
+      globalSkip,
+      endpointSkip,
+    }: { globalSkip?: boolean; endpointSkip?: boolean } = {}) =>
+      createApi({
+        baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
+        onSchemaFailure: onSchemaFailureGlobal,
+        skipSchemaValidation: globalSkip,
+        endpoints: (build) => ({
+          query: build.query<{ success: boolean }, void>({
+            query: () => '/error',
+            transformErrorResponse: (error): FetchBaseQueryError => ({
+              status: 'CUSTOM_ERROR',
+              data: error,
+              error: 'whoops',
+            }),
+            errorResponseSchema: v.object({
+              status: v.literal('CUSTOM_ERROR'),
+              error: v.literal('oh no'),
+              data: v.unknown(),
+            }),
+            onSchemaFailure: onSchemaFailureEndpoint,
+            skipSchemaValidation: endpointSkip,
+          }),
+        }),
+      })
+    test("can be used to validate the endpoint's final error result", async () => {
+      const api = makeApi()
+      const storeRef = setupApiStore(api, undefined, {
+        withoutTestLifecycles: true,
+      })
+      const result = await storeRef.store.dispatch(
+        api.endpoints.query.initiate(),
+      )
+      expect(result?.error).toEqual(serializedSchemaError)
+      expectFailureHandlersToHaveBeenCalled({
+        schemaName: 'errorResponseSchema',
+        value: {
+          status: 'CUSTOM_ERROR',
+          error: 'whoops',
+          data: { status: 500, data: { value: 'error' } },
+        },
+        arg: undefined,
+      })
+    })
+    test('can be skipped globally', async () => {
+      const api = makeApi({ globalSkip: true })
+      const storeRef = setupApiStore(api, undefined, {
+        withoutTestLifecycles: true,
+      })
+      const result = await storeRef.store.dispatch(
+        api.endpoints.query.initiate(),
+      )
+      expect(result?.error).not.toEqual(serializedSchemaError)
+    })
+    test('can be skipped on the endpoint', async () => {
+      const api = makeApi({ endpointSkip: true })
+      const storeRef = setupApiStore(api, undefined, {
+        withoutTestLifecycles: true,
+      })
+      const result = await storeRef.store.dispatch(
+        api.endpoints.query.initiate(),
+      )
+      expect(result?.error).not.toEqual(serializedSchemaError)
+    })
+  })
+  describe('metaSchema', () => {
+    const makeApi = ({
+      globalSkip,
+      endpointSkip,
+    }: { globalSkip?: boolean; endpointSkip?: boolean } = {}) =>
+      createApi({
+        baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
+        onSchemaFailure: onSchemaFailureGlobal,
+        skipSchemaValidation: globalSkip,
+        endpoints: (build) => ({
+          query: build.query<{ success: boolean }, void>({
+            query: () => '/success',
+            metaSchema: v.object({
+              request: v.instance(Request),
+              response: v.instance(Response),
+              timestamp: v.number(),
+            }),
+            onSchemaFailure: onSchemaFailureEndpoint,
+            skipSchemaValidation: endpointSkip,
+          }),
+        }),
+      })
+    test("can be used to validate the endpoint's meta result", async () => {
+      const api = makeApi()
+      const storeRef = setupApiStore(api, undefined, {
+        withoutTestLifecycles: true,
+      })
+      const result = await storeRef.store.dispatch(
+        api.endpoints.query.initiate(),
+      )
+      expect(result?.error).toEqual(serializedSchemaError)
+      expectFailureHandlersToHaveBeenCalled({
+        schemaName: 'metaSchema',
+        value: {
+          request: expect.any(Request),
+          response: expect.any(Response),
+        },
+        arg: undefined,
+      })
+    })
+    test('can be skipped globally', async () => {
+      const api = makeApi({ globalSkip: true })
+      const storeRef = setupApiStore(api, undefined, {
+        withoutTestLifecycles: true,
+      })
+      const result = await storeRef.store.dispatch(
+        api.endpoints.query.initiate(),
+      )
+      expect(result?.error).toBeUndefined()
+    })
+    test('can be skipped on the endpoint', async () => {
+      const api = makeApi({ endpointSkip: true })
+      const storeRef = setupApiStore(api, undefined, {
+        withoutTestLifecycles: true,
+      })
+      const result = await storeRef.store.dispatch(
+        api.endpoints.query.initiate(),
+      )
+      expect(result?.error).toBeUndefined()
     })
   })
 })

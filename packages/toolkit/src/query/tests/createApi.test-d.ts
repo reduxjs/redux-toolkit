@@ -1,9 +1,10 @@
 import { setupApiStore } from '@internal/tests/utils/helpers'
-import type { SerializedError } from '@reduxjs/toolkit'
-import { configureStore } from '@reduxjs/toolkit'
+import type { EntityState, SerializedError } from '@reduxjs/toolkit'
+import { configureStore, createEntityAdapter } from '@reduxjs/toolkit'
 import type {
   DefinitionsFromApi,
   FetchBaseQueryError,
+  FetchBaseQueryMeta,
   MutationDefinition,
   OverrideResultType,
   QueryDefinition,
@@ -11,6 +12,8 @@ import type {
   TagTypesFromApi,
 } from '@reduxjs/toolkit/query'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+import * as v from 'valibot'
+import type { Post } from './mocks/handlers'
 
 describe('type tests', () => {
   test('sensible defaults', () => {
@@ -370,6 +373,142 @@ describe('type tests', () => {
         expectTypeOf(mutationResponse).toMatchTypeOf<
           | { data: Transformed }
           | { error: FetchBaseQueryError | SerializedError }
+        >()
+      })
+    })
+    describe('endpoint schemas', () => {
+      const argSchema = v.object({ id: v.number() })
+      const postSchema = v.object({
+        id: v.number(),
+        title: v.string(),
+        body: v.string(),
+      }) satisfies v.GenericSchema<Post>
+      const errorResponseSchema = v.object({
+        status: v.number(),
+        data: v.unknown(),
+      }) satisfies v.GenericSchema<FetchBaseQueryError>
+      const metaSchema = v.object({
+        request: v.instance(Request),
+        response: v.optional(v.instance(Response)),
+      }) satisfies v.GenericSchema<FetchBaseQueryMeta>
+      test('schemas must match', () => {
+        createApi({
+          baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
+          endpoints: (build) => ({
+            query: build.query<Post, { id: number }>({
+              query: ({ id }) => `/post/${id}`,
+              argSchema,
+              responseSchema: postSchema,
+              errorResponseSchema,
+              metaSchema,
+            }),
+            bothMismatch: build.query<Post, { id: number }>({
+              query: ({ id }) => `/post/${id}`,
+              // @ts-expect-error wrong schema
+              argSchema: v.object({ id: v.string() }),
+              // @ts-expect-error wrong schema
+              responseSchema: v.object({ id: v.string() }),
+              // @ts-expect-error wrong schema
+              errorResponseSchema: v.object({ status: v.string() }),
+              // @ts-expect-error wrong schema
+              metaSchema: v.object({ request: v.string() }),
+            }),
+            inputMismatch: build.query<Post, { id: number }>({
+              query: ({ id }) => `/post/${id}`,
+              // @ts-expect-error can't expect different input
+              argSchema: v.object({
+                id: v.pipe(v.string(), v.transform(Number), v.number()),
+              }),
+              // @ts-expect-error can't expect different input
+              responseSchema: v.object({
+                ...postSchema.entries,
+                id: v.pipe(v.string(), v.transform(Number)),
+              }) satisfies v.GenericSchema<any, Post>,
+              // @ts-expect-error can't expect different input
+              errorResponseSchema: v.object({
+                ...errorResponseSchema.entries,
+                status: v.pipe(v.string(), v.transform(Number)),
+              }) satisfies v.GenericSchema<any, FetchBaseQueryError>,
+              // @ts-expect-error can't expect different input
+              metaSchema: v.object({
+                ...metaSchema.entries,
+                request: v.pipe(
+                  v.string(),
+                  v.transform((url) => new Request(url)),
+                ),
+              }) satisfies v.GenericSchema<any, FetchBaseQueryMeta>,
+            }),
+            outputMismatch: build.query<Post, { id: number }>({
+              query: ({ id }) => `/post/${id}`,
+              // @ts-expect-error can't provide different output
+              argSchema: v.object({
+                id: v.pipe(v.number(), v.transform(String)),
+              }),
+              // @ts-expect-error can't provide different output
+              responseSchema: v.object({
+                ...postSchema.entries,
+                id: v.pipe(v.number(), v.transform(String)),
+              }) satisfies v.GenericSchema<Post, any>,
+              // @ts-expect-error can't provide different output
+              errorResponseSchema: v.object({
+                ...errorResponseSchema.entries,
+                status: v.pipe(v.number(), v.transform(String)),
+              }) satisfies v.GenericSchema<FetchBaseQueryError, any>,
+              // @ts-expect-error can't provide different output
+              metaSchema: v.object({
+                ...metaSchema.entries,
+                request: v.pipe(
+                  v.instance(Request),
+                  v.transform((r) => r.url),
+                ),
+              }) satisfies v.GenericSchema<FetchBaseQueryMeta, any>,
+            }),
+          }),
+        })
+      })
+      test('schemas as a source of inference', () => {
+        const postAdapter = createEntityAdapter<Post>()
+        const api = createApi({
+          baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
+          endpoints: (build) => ({
+            query: build.query({
+              query: ({ id }: { id: number }) => `/post/${id}`,
+              responseSchema: postSchema,
+            }),
+            query2: build.query({
+              query: (arg) => {
+                expectTypeOf(arg).toEqualTypeOf<{ id: number }>()
+                return `/post/${arg.id}`
+              },
+              argSchema,
+              responseSchema: postSchema,
+            }),
+            query3: build.query({
+              query: (_arg: void) => `/posts`,
+              rawResponseSchema: v.array(postSchema),
+              transformResponse: (posts) => {
+                expectTypeOf(posts).toEqualTypeOf<Post[]>()
+                return postAdapter.getInitialState(undefined, posts)
+              },
+            }),
+          }),
+        })
+
+        expectTypeOf(api.endpoints.query.Types.QueryArg).toEqualTypeOf<{
+          id: number
+        }>()
+        expectTypeOf(api.endpoints.query.Types.ResultType).toEqualTypeOf<Post>()
+
+        expectTypeOf(api.endpoints.query2.Types.QueryArg).toEqualTypeOf<{
+          id: number
+        }>()
+        expectTypeOf(
+          api.endpoints.query2.Types.ResultType,
+        ).toEqualTypeOf<Post>()
+
+        expectTypeOf(api.endpoints.query3.Types.QueryArg).toEqualTypeOf<void>()
+        expectTypeOf(api.endpoints.query3.Types.ResultType).toEqualTypeOf<
+          EntityState<Post, Post['id']>
         >()
       })
     })
