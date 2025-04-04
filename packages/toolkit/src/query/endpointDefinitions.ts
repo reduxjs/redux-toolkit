@@ -913,38 +913,54 @@ export type EndpointDefinition<
   ResultType,
   ReducerPath extends string = string,
   PageParam = any,
+  RawResultType extends BaseQueryResult<BaseQuery> = BaseQueryResult<BaseQuery>,
 > =
-  | QueryDefinition<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>
-  | MutationDefinition<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>
+  | QueryDefinition<
+      QueryArg,
+      BaseQuery,
+      TagTypes,
+      ResultType,
+      ReducerPath,
+      RawResultType
+    >
+  | MutationDefinition<
+      QueryArg,
+      BaseQuery,
+      TagTypes,
+      ResultType,
+      ReducerPath,
+      RawResultType
+    >
   | InfiniteQueryDefinition<
       QueryArg,
       PageParam,
       BaseQuery,
       TagTypes,
       ResultType,
-      ReducerPath
+      ReducerPath,
+      RawResultType
     >
 
 export type EndpointDefinitions = Record<
   string,
-  EndpointDefinition<any, any, any, any>
+  EndpointDefinition<any, any, any, any, any, any, any>
 >
 
 export function isQueryDefinition(
-  e: EndpointDefinition<any, any, any, any>,
-): e is QueryDefinition<any, any, any, any> {
+  e: EndpointDefinition<any, any, any, any, any, any, any>,
+): e is QueryDefinition<any, any, any, any, any, any> {
   return e.type === DefinitionType.query
 }
 
 export function isMutationDefinition(
-  e: EndpointDefinition<any, any, any, any>,
-): e is MutationDefinition<any, any, any, any> {
+  e: EndpointDefinition<any, any, any, any, any, any, any>,
+): e is MutationDefinition<any, any, any, any, any, any> {
   return e.type === DefinitionType.mutation
 }
 
 export function isInfiniteQueryDefinition(
-  e: EndpointDefinition<any, any, any, any>,
-): e is InfiniteQueryDefinition<any, any, any, any, any> {
+  e: EndpointDefinition<any, any, any, any, any, any, any>,
+): e is InfiniteQueryDefinition<any, any, any, any, any, any, any> {
   return e.type === DefinitionType.infinitequery
 }
 
@@ -1004,7 +1020,15 @@ export type EndpointBuilder<
       >,
       'type'
     >,
-  ): QueryDefinition<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>
+  ): QueryDefinition<
+    QueryArg,
+    BaseQuery,
+    TagTypes,
+    ResultType,
+    ReducerPath,
+    RawResultType
+  >
+
   /**
    * An endpoint definition that alters data on the server or will possibly invalidate the cache.
    *
@@ -1048,9 +1072,22 @@ export type EndpointBuilder<
       >,
       'type'
     >,
-  ): MutationDefinition<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>
+  ): MutationDefinition<
+    QueryArg,
+    BaseQuery,
+    TagTypes,
+    ResultType,
+    ReducerPath,
+    RawResultType
+  >
 
-  infiniteQuery<ResultType, QueryArg, PageParam>(
+  infiniteQuery<
+    ResultType,
+    QueryArg,
+    PageParam,
+    RawResultType extends
+      BaseQueryResult<BaseQuery> = BaseQueryResult<BaseQuery>,
+  >(
     definition: OmitFromUnion<
       InfiniteQueryDefinition<
         QueryArg,
@@ -1058,7 +1095,8 @@ export type EndpointBuilder<
         BaseQuery,
         TagTypes,
         ResultType,
-        ReducerPath
+        ReducerPath,
+        RawResultType
       >,
       'type'
     >,
@@ -1068,7 +1106,8 @@ export type EndpointBuilder<
     BaseQuery,
     TagTypes,
     ResultType,
-    ReducerPath
+    ReducerPath,
+    RawResultType
   >
 }
 
@@ -1120,16 +1159,16 @@ export type QueryArgFrom<D extends BaseEndpointDefinition<any, any, any, any>> =
 export type InfiniteQueryArgFrom<
   D extends BaseEndpointDefinition<any, any, any, any>,
 > =
-  D extends InfiniteQueryDefinition<infer QA, any, any, any, any, any>
+  D extends InfiniteQueryDefinition<infer QA, any, any, any, any, any, any>
     ? QA
     : never
 
 export type QueryArgFromAnyQuery<
   D extends BaseEndpointDefinition<any, any, any, any>,
 > =
-  D extends InfiniteQueryDefinition<any, any, any, any, any, any>
+  D extends InfiniteQueryDefinition<any, any, any, any, any, any, any>
     ? InfiniteQueryArgFrom<D>
-    : D extends QueryDefinition<any, any, any, any>
+    : D extends QueryDefinition<any, any, any, any, any, any>
       ? QueryArgFrom<D>
       : never
 
@@ -1138,16 +1177,23 @@ export type ResultTypeFrom<
 > = D extends BaseEndpointDefinition<any, any, infer RT, any> ? RT : unknown
 
 export type ReducerPathFrom<
-  D extends EndpointDefinition<any, any, any, any, any>,
-> = D extends EndpointDefinition<any, any, any, any, infer RP> ? RP : unknown
+  D extends EndpointDefinition<any, any, any, any, any, any, any>,
+> =
+  D extends EndpointDefinition<any, any, any, any, infer RP, any, any>
+    ? RP
+    : unknown
 
-export type TagTypesFrom<D extends EndpointDefinition<any, any, any, any>> =
-  D extends EndpointDefinition<any, any, infer RP, any> ? RP : unknown
+export type TagTypesFrom<
+  D extends EndpointDefinition<any, any, any, any, any, any, any>,
+> =
+  D extends EndpointDefinition<any, any, infer TT, any, any, any, any>
+    ? TT
+    : unknown
 
 export type PageParamFrom<
-  D extends InfiniteQueryDefinition<any, any, any, any, any, any>,
+  D extends InfiniteQueryDefinition<any, any, any, any, any, any, any>,
 > =
-  D extends InfiniteQueryDefinition<any, infer PP, any, any, any, any>
+  D extends InfiniteQueryDefinition<any, infer PP, any, any, any, any, any>
     ? PP
     : unknown
 
