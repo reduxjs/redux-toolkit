@@ -1,4 +1,4 @@
-import { createApi, QueryStatus } from '@reduxjs/toolkit/query'
+import { QueryStatus, createApi } from '@reduxjs/toolkit/query'
 import { delay } from 'msw'
 import { actionsReducer, setupApiStore } from '../../tests/utils/helpers'
 

@@ -1,7 +1,10 @@
 import type { ThunkDispatch, UnknownAction } from '@reduxjs/toolkit'
 import type { BaseQueryFn, BaseQueryMeta } from '../../baseQueryTypes'
-import type { BaseEndpointDefinition } from '../../endpointDefinitions'
-import { DefinitionType, isAnyQueryDefinition } from '../../endpointDefinitions'
+import type {
+  BaseEndpointDefinition,
+  DefinitionType,
+} from '../../endpointDefinitions'
+import { isAnyQueryDefinition } from '../../endpointDefinitions'
 import type { QueryCacheKey, RootState } from '../apiState'
 import type {
   MutationResultSelectorResult,
@@ -325,7 +328,9 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
     ])
     // prevent uncaught promise rejections from happening.
     // if the original promise is used in any way, that will create a new promise that will throw again
-    cacheDataLoaded.catch(() => {})
+    cacheDataLoaded.catch(() => {
+      /** No-Op */
+    })
     lifecycleMap[queryCacheKey] = lifecycle
     const selector = (api.endpoints[endpointName] as any).select(
       isAnyQueryDefinition(endpointDefinition) ? originalArgs : queryCacheKey,

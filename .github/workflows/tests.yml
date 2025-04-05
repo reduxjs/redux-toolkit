@@ -46,6 +46,12 @@ jobs:
       - name: Install deps
         run: yarn install
 
+      - name: Check formatting
+        run: yarn workspaces foreach -Ap -j unlimited run format-check
+
+      - name: Lint files
+        run: yarn workspaces foreach -Ap -j unlimited run lint
+
       # Read existing version, reuse that, add a Git short hash
       - name: Set build version to Git commit
         run: yarn tsx scripts/writeGitVersion.mts $(git rev-parse --short HEAD)

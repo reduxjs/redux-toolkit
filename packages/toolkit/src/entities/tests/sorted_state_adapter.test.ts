@@ -21,7 +21,6 @@ describe('Sorted State Adapter', () => {
   let state: EntityState<BookModel, string>
 
   beforeAll(() => {
-    //eslint-disable-next-line
     Object.defineProperty(Array.prototype, 'unwantedField', {
       enumerable: true,
       configurable: true,
@@ -515,7 +514,9 @@ describe('Sorted State Adapter', () => {
     const withMany = adapter.setAll(state, [AClockworkOrange])
 
     const withUpserts = adapter.upsertMany(withMany, [
-      {...TheGreatGatsby}, { ...TheGreatGatsby, ...firstChange }, {...TheGreatGatsby, ...secondChange}
+      { ...TheGreatGatsby },
+      { ...TheGreatGatsby, ...firstChange },
+      { ...TheGreatGatsby, ...secondChange },
     ])
 
     expect(withUpserts).toEqual({

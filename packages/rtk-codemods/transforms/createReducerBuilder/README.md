@@ -39,13 +39,13 @@ node ./bin/cli.mjs createReducerBuilder path/of/files/ or/some**/*glob.js
 createReducer(initialState, {
   [todoAdded]: (state: SliceState, action: PayloadAction<string>) => {
     // stuff
-  }
+  },
 })
 
 createReducer(initialState, {
   [todoAdded](state: SliceState, action: PayloadAction<string>) {
     // stuff
-  }
+  },
 })
 ```
 
@@ -57,7 +57,7 @@ createReducer(initialState, (builder) => {
     todoAdded,
     (state: SliceState, action: PayloadAction<string>) => {
       // stuff
-    }
+    },
   )
 })
 
@@ -66,7 +66,7 @@ createReducer(initialState, (builder) => {
     todoAdded,
     (state: SliceState, action: PayloadAction<string>) => {
       // stuff
-    }
+    },
   )
 })
 ```
@@ -94,7 +94,7 @@ createReducer(initialState, {
   },
   todoAdded1f: (state, action) => {
     //stuff
-  }
+  },
 })
 
 createReducer(initialState, {
@@ -106,7 +106,7 @@ createReducer(initialState, {
   },
   [todoAdded2c]: function (state, action) {
     // stuff
-  }
+  },
 })
 ```
 
