@@ -703,3 +703,135 @@ function AddPost() {
   )
 }
 ```
+
+## Schema Validation
+
+Endpoints can have schemas for runtime validation of various values. Any [Standard Schema](https://standardschema.dev/) compliant library can be used. See [API reference](./api/createApi.mdx#schema-validation) for full list of available schemas.
+
+When following the default approach of explicitly specifying type parameters for queries and mutations, the schemas will be required to match the types provided.
+
+```ts title="Explicitly typed endpoint" no-transpile
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import * as v from 'valibot'
+
+const postSchema = v.object({
+  id: v.number(),
+  name: v.string(),
+})
+type Post = v.InferOutput<typeof postSchema>
+
+const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  endpoints: (build) => ({
+    getPost: build.query<Post, { id: number }>({
+      query: ({ id }) => `/post/${id}`,
+      responseSchema: postSchema, // errors if type mismatch
+    }),
+  }),
+})
+```
+
+Schemas can also be used as a source of inference, meaning that the type parameters can be omitted.
+
+```ts title="Implicitly typed endpoint" no-transpile
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import * as v from 'valibot'
+
+const postSchema = v.object({
+  id: v.number(),
+  name: v.string(),
+})
+type Post = v.InferOutput<typeof postSchema>
+
+const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  endpoints: (build) => ({
+    getPost: build.query({
+      // infer arg from here
+      query: ({ id }: { id: number }) => `/post/${id}`,
+      // infer result from here
+      responseSchema: postSchema,
+    }),
+    getTransformedPost: build.query({
+      // infer arg from here
+      query: ({ id }: { id: number }) => `/post/${id}`,
+      // infer untransformed result from here
+      rawResponseSchema: postSchema,
+      // infer transformed result from here
+      transformResponse: (response) => ({
+        ...response,
+        published_at: new Date(response.published_at),
+      }),
+    }),
+  }),
+})
+```
+
+:::warning
+
+Schemas should _not_ perform any transformation that would change the type of the value.
+
+```ts title="Incorrect usage" no-transpile
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import * as v from 'valibot'
+import { titleCase } from 'lodash'
+
+const postSchema = v.object({
+  id: v.number(),
+  name: v.pipe(
+    v.string(),
+    v.transform(titleCase), // fine - string -> string
+  ),
+  published_at: v.pipe(
+    v.string(),
+    // highlight-next-line
+    v.transform((s) => new Date(s)), // not allowed!
+    v.date(),
+  ),
+})
+type Post = v.InferOutput<typeof postSchema>
+
+const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  endpoints: (build) => ({
+    getPost: build.query<Post, { id: number }>({
+      query: ({ id }) => `/post/${id}`,
+      responseSchema: postSchema,
+    }),
+  }),
+})
+```
+
+Instead, transformation should be done with `transformResponse` and `transformErrorResponse` (when using `query`) or inside `queryFn` (when using `queryFn`).
+
+```ts title="Correct usage" no-transpile
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import * as v from 'valibot'
+
+const postSchema = v.object({
+  id: v.number(),
+  name: v.string(),
+  published_at: v.string(),
+})
+type RawPost = v.InferOutput<typeof postSchema>
+type Post = Omit<RawPost, 'published_at'> & { published_at: Date }
+
+const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  endpoints: (build) => ({
+    getPost: build.query<Post, { id: number }>({
+      query: ({ id }) => `/post/${id}`,
+      // use rawResponseSchema to validate *before* transformation
+      rawResponseSchema: postSchema,
+      // highlight-start
+      transformResponse: (response) => ({
+        ...response,
+        published_at: new Date(response.published_at),
+      }),
+      // highlight-end
+    }),
+  }),
+})
+```
+
+:::
