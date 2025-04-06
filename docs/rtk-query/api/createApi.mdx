@@ -221,6 +221,20 @@ export type QueryDefinition<
       updateCachedData, // available for query endpoints only
     }: QueryCacheLifecycleApi,
   ): Promise<void>
+
+  argSchema?: StandardSchemaV1<QueryArg>
+
+  /* only available with `query`, not `queryFn` */
+  rawResponseSchema?: StandardSchemaV1<BaseQueryResult<BaseQuery>>
+
+  responseSchema?: StandardSchemaV1<ResultType>
+
+  /* only available with `query`, not `queryFn` */
+  rawErrorResponseSchema?: StandardSchemaV1<BaseQueryError<BaseQuery>>
+
+  errorResponseSchema?: StandardSchemaV1<BaseQueryError<BaseQuery>>
+
+  metaSchema?: StandardSchemaV1<BaseQueryMeta<BaseQuery>>
 }
 ```
 
@@ -791,6 +805,56 @@ async function onCacheEntryAdded(
   }: QueryCacheLifecycleApi,
 ): Promise<void>
 ```
+
+### Schema Validation
+
+#### `argSchema`
+
+_(optional)_
+
+[summary](docblock://query/endpointDefinitions.ts?token=CommonEndpointDefinition.argSchema)
+
+[examples](docblock://query/endpointDefinitions.ts?token=CommonEndpointDefinition.argSchema)
+
+#### `responseSchema`
+
+_(optional)_
+
+[summary](docblock://query/endpointDefinitions.ts?token=CommonEndpointDefinition.responseSchema)
+
+[examples](docblock://query/endpointDefinitions.ts?token=CommonEndpointDefinition.responseSchema)
+
+#### `rawResponseSchema`
+
+_(optional, only for query endpoints)_
+
+[summary](docblock://query/endpointDefinitions.ts?token=EndpointDefinitionWithQuery.rawResponseSchema)
+
+[examples](docblock://query/endpointDefinitions.ts?token=EndpointDefinitionWithQuery.rawResponseSchema)
+
+#### `errorResponseSchema`
+
+_(optional)_
+
+[summary](docblock://query/endpointDefinitions.ts?token=CommonEndpointDefinition.errorResponseSchema)
+
+[examples](docblock://query/endpointDefinitions.ts?token=CommonEndpointDefinition.errorResponseSchema)
+
+#### `rawErrorResponseSchema`
+
+_(optional, only for query endpoints)_
+
+[summary](docblock://query/endpointDefinitions.ts?token=EndpointDefinitionWithQuery.rawErrorResponseSchema)
+
+[examples](docblock://query/endpointDefinitions.ts?token=EndpointDefinitionWithQuery.rawErrorResponseSchema)
+
+#### `metaSchema`
+
+_(optional)_
+
+[summary](docblock://query/endpointDefinitions.ts?token=CommonEndpointDefinition.metaSchema)
+
+[examples](docblock://query/endpointDefinitions.ts?token=CommonEndpointDefinition.metaSchema)
 
 ## Return value
 

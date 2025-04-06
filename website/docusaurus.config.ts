@@ -33,6 +33,7 @@ const config: Config = {
                     'index.ts',
                     'query/index.ts',
                     'query/createApi.ts',
+                    'query/endpointDefinitions.ts',
                     'query/react/index.ts',
                     'query/react/ApiProvider.tsx',
                   ],
