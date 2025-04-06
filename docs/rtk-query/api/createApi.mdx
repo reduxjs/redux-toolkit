@@ -828,6 +828,14 @@ async function onCacheEntryAdded(
 
 ### Schema Validation
 
+Endpoints can have schemas for runtime validation of various values. Any [Standard Schema](https://standardschema.dev/) compliant library can be used.
+
+:::warning
+
+Schema failures are treated as _fatal_, meaning that normal error handling such as tag invalidation will not be executed.
+
+:::
+
 #### `argSchema`
 
 _(optional)_
@@ -846,7 +854,7 @@ _(optional)_
 
 #### `rawResponseSchema`
 
-_(optional, only for query endpoints)_
+_(optional, not applicable with `queryFn`)_
 
 [summary](docblock://query/endpointDefinitions.ts?token=EndpointDefinitionWithQuery.rawResponseSchema)
 
@@ -862,7 +870,7 @@ _(optional)_
 
 #### `rawErrorResponseSchema`
 
-_(optional, only for query endpoints)_
+_(optional, not applicable with `queryFn`)_
 
 [summary](docblock://query/endpointDefinitions.ts?token=EndpointDefinitionWithQuery.rawErrorResponseSchema)
 
