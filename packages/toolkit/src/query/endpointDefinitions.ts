@@ -40,6 +40,7 @@ import type {
 import { isNotNullish } from './utils'
 import type { NamedSchemaError } from './standardSchema'
 
+const rawResultType = /* @__PURE__ */ Symbol()
 const resultType = /* @__PURE__ */ Symbol()
 const baseQuery = /* @__PURE__ */ Symbol()
 
@@ -118,10 +119,52 @@ type EndpointDefinitionWithQuery<
     arg: QueryArg,
   ): unknown
 
-  /** A schema for the result *before* it's passed to `transformResponse` */
+  /**
+   * A schema for the result *before* it's passed to `transformResponse`
+   *
+   * @example
+   * ```ts
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+   * import * as v from "valibot"
+   *
+   * const postSchema = v.object({ id: v.number(), name: v.string() })
+   * type Post = v.InferOutput<typeof postSchema>
+   *
+   * const api = createApi({
+   *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+   *   endpoints: (build) => ({
+   *     getPostName: build.query<Post, { id: number }>({
+   *       query: ({ id }) => `/post/${id}`,
+   *       rawResponseSchema: postSchema,
+   *       transformResponse: (post) => post.name,
+   *     }),
+   *   })
+   * })
+   * ```
+   */
   rawResponseSchema?: StandardSchemaV1<RawResultType>
 
-  /** A schema for the error object returned by the `query` or `queryFn`, *before* it's passed to `transformErrorResponse` */
+  /**
+   * A schema for the error object returned by the `query` or `queryFn`, *before* it's passed to `transformErrorResponse`
+   *
+   * @example
+   * ```ts
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+   * import * as v from "valibot"
+   * import {customBaseQuery, baseQueryErrorSchema} from "./customBaseQuery"
+   *
+   * const api = createApi({
+   *   baseQuery: customBaseQuery,
+   *   endpoints: (build) => ({
+   *     getPost: build.query<Post, { id: number }>({
+   *       query: ({ id }) => `/post/${id}`,
+   *       rawErrorResponseSchema: baseQueryErrorSchema,
+   *       transformErrorResponse: (error) => error.data,
+   *     }),
+   *   })
+   * })
+   * ```
+   */
   rawErrorResponseSchema?: StandardSchemaV1<BaseQueryError<BaseQuery>>
 }
 
@@ -193,32 +236,98 @@ type BaseEndpointTypes<QueryArg, BaseQuery extends BaseQueryFn, ResultType> = {
   ResultType: ResultType
 }
 
-export type BaseEndpointDefinition<
+interface CommonEndpointDefinition<
   QueryArg,
   BaseQuery extends BaseQueryFn,
   ResultType,
-  RawResultType extends BaseQueryResult<BaseQuery> = BaseQueryResult<BaseQuery>,
-> = (
-  | ([CastAny<BaseQueryResult<BaseQuery>, {}>] extends [NEVER]
-      ? never
-      : EndpointDefinitionWithQuery<
-          QueryArg,
-          BaseQuery,
-          ResultType,
-          RawResultType
-        >)
-  | EndpointDefinitionWithQueryFn<QueryArg, BaseQuery, ResultType>
-) & {
-  /** A schema for the arguments to be passed to the `query` or `queryFn` */
+> {
+  /**
+   * A schema for the arguments to be passed to the `query` or `queryFn`.
+   *
+   * @example
+   * ```ts
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+   * import * as v from "valibot"
+   *
+   * const api = createApi({
+   *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+   *   endpoints: (build) => ({
+   *     getPost: build.query<Post, { id: number }>({
+   *       query: ({ id }) => `/post/${id}`,
+   *       argSchema: v.object({ id: v.number() }),
+   *     }),
+   *   })
+   * })
+   * ```
+   */
   argSchema?: StandardSchemaV1<QueryArg>
 
-  /** A schema for the result (including `transformResponse` if provided) */
+  /**
+   * A schema for the result (including `transformResponse` if provided)
+   *
+   * @example
+   * ```ts
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+   * import * as v from "valibot"
+   *
+   * const postSchema = v.object({ id: v.number(), name: v.string() })
+   * type Post = v.InferOutput<typeof postSchema>
+   *
+   * const api = createApi({
+   *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+   *   endpoints: (build) => ({
+   *     getPost: build.query<Post, { id: number }>({
+   *       query: ({ id }) => `/post/${id}`,
+   *       responseSchema: postSchema,
+   *     }),
+   *   })
+   * })
+   * ```
+   */
   responseSchema?: StandardSchemaV1<ResultType>
 
-  /** A schema for the error object returned by the `query` or `queryFn` (including `transformErrorResponse` if provided) */
+  /**
+   * A schema for the error object returned by the `query` or `queryFn` (including `transformErrorResponse` if provided)
+   *
+   * @example
+   * ```ts
+   * import { createApi } from '@reduxjs/toolkit/query/react'
+   * import * as v from "valibot"
+   * import { customBaseQuery, baseQueryErrorSchema } from "./customBaseQuery"
+   *
+   * const api = createApi({
+   *   baseQuery: customBaseQuery,
+   *   endpoints: (build) => ({
+   *     getPost: build.query<Post, { id: number }>({
+   *       query: ({ id }) => `/post/${id}`,
+   *       errorResponseSchema: baseQueryErrorSchema,
+   *     }),
+   *   })
+   * })
+   * ```
+   */
   errorResponseSchema?: StandardSchemaV1<BaseQueryError<BaseQuery>>
 
-  /** A schema for the `meta` property returned by the `query` or `queryFn` */
+  /**
+   * A schema for the `meta` property returned by the `query` or `queryFn`
+   *
+   * @example
+   * ```ts
+   * import { createApi } from '@reduxjs/toolkit/query/react'
+   * import * as v from "valibot"
+   * import { customBaseQuery, baseQueryMetaSchema } from "./customBaseQuery"
+   *
+   * const api = createApi({
+   *   baseQuery: customBaseQuery,
+   *   endpoints: (build) => ({
+   *     getPost: build.query<Post, { id: number }>({
+   *       query: ({ id }) => `/post/${id}`,
+   *       metaSchema: baseQueryMetaSchema,
+   *     }),
+   *   })
+   * })
+   * ```
+   */
   metaSchema?: StandardSchemaV1<BaseQueryMeta<BaseQuery>>
 
   /**
@@ -237,12 +346,32 @@ export type BaseEndpointDefinition<
 
   onSchemaFailure?: SchemaFailureHandler
   skipSchemaValidation?: boolean
+}
 
-  /* phantom type */
-  [resultType]?: ResultType
-  /* phantom type */
-  [baseQuery]?: BaseQuery
-} & HasRequiredProps<
+export type BaseEndpointDefinition<
+  QueryArg,
+  BaseQuery extends BaseQueryFn,
+  ResultType,
+  RawResultType extends BaseQueryResult<BaseQuery> = BaseQueryResult<BaseQuery>,
+> = (
+  | ([CastAny<BaseQueryResult<BaseQuery>, {}>] extends [NEVER]
+      ? never
+      : EndpointDefinitionWithQuery<
+          QueryArg,
+          BaseQuery,
+          ResultType,
+          RawResultType
+        >)
+  | EndpointDefinitionWithQueryFn<QueryArg, BaseQuery, ResultType>
+) &
+  CommonEndpointDefinition<QueryArg, BaseQuery, ResultType> & {
+    /* phantom type */
+    [rawResultType]?: RawResultType
+    /* phantom type */
+    [resultType]?: ResultType
+    /* phantom type */
+    [baseQuery]?: BaseQuery
+  } & HasRequiredProps<
     BaseQueryExtraOptions<BaseQuery>,
     { extraOptions: BaseQueryExtraOptions<BaseQuery> },
     { extraOptions?: BaseQueryExtraOptions<BaseQuery> }
