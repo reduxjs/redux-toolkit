@@ -531,3 +531,59 @@ const projectsApi = createApi({
   }),
 })
 ```
+
+## Runtime Validation using Schemas
+
+Endpoints can use any [Standard Schema](https://standardschema.dev/) compliant library for runtime validation of various values. See [API reference](../api/createApi.mdx#schema-validation) for full list of available schemas.
+
+Most commonly, you'll want to use `responseSchema` to validate the response from the server (or `rawResponseSchema` when using `transformResponse`).
+
+```ts title="Using responseSchema" no-transpile
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import * as v from 'valibot'
+
+const pokemonSchema = v.object({
+  id: v.number(),
+  name: v.string(),
+})
+type Pokemon = v.InferOutput<typeof pokemonSchema>
+const transformedPokemonSchema = v.object({
+  ...pokemonSchema.entries,
+  id: v.string(),
+})
+type TransformedPokemon = v.InferOutput<typeof transformedPokemonSchema>
+
+const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com/pokemon' }),
+  endpoints: (build) => ({
+    getInfinitePokemon: build.infiniteQuery<Pokemon[], string, number>({
+      query: ({ queryArg, pageParam }) => `type/${queryArg}?page=${pageParam}`,
+      // argSchema for infinite queries must have both queryArg and pageParam
+      argSchema: v.object({
+        queryArg: v.string(),
+        pageParam: v.number(),
+      }),
+      responseSchema: v.array(pokemonSchema),
+    }),
+    getTransformedPokemon: build.infiniteQuery<
+      TransformedPokemon[],
+      string,
+      number
+    >({
+      query: ({ queryArg, pageParam }) => `type/${queryArg}?page=${pageParam}`,
+      argSchema: v.object({
+        queryArg: v.string(),
+        pageParam: v.number(),
+      }),
+      rawResponseSchema: v.array(pokemonSchema),
+      transformResponse: (response) =>
+        response.map((pokemon) => ({
+          ...pokemon,
+          id: String(pokemon.id),
+        })),
+      // responseSchema can still be provided, to validate the transformed response
+      responseSchema: v.array(transformedPokemonSchema),
+    }),
+  }),
+})
+```

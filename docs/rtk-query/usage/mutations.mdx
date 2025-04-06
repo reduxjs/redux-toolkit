@@ -340,9 +340,14 @@ import * as v from 'valibot'
 const postSchema = v.object({
   id: v.number(),
   name: v.string(),
+  published_at: v.string(),
 })
 type Post = v.InferOutput<typeof postSchema>
-type TransformedPost = Omit<Post, 'published_at'> & { published_at: Date }
+const transformedPost = v.object({
+  ...postSchema.entries,
+  published_at: v.date(),
+})
+type TransformedPost = v.InferOutput<typeof transformedPost>
 
 const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
@@ -373,11 +378,7 @@ const api = createApi({
         published_at: new Date(response.published_at),
       }),
       // responseSchema can still be provided, to validate the transformed response
-      responseSchema: v.object({
-        id: v.number(),
-        name: v.string(),
-        published_at: v.date(),
-      }),
+      responseSchema: transformedPost,
     }),
   }),
 })
