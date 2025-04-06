@@ -124,6 +124,8 @@ type EndpointDefinitionWithQuery<
    *
    * @example
    * ```ts
+   * // codeblock-meta no-transpile
+   *
    * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
    * import * as v from "valibot"
    *
@@ -149,6 +151,8 @@ type EndpointDefinitionWithQuery<
    *
    * @example
    * ```ts
+   * // codeblock-meta no-transpile
+   *
    * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
    * import * as v from "valibot"
    * import {customBaseQuery, baseQueryErrorSchema} from "./customBaseQuery"
@@ -246,6 +250,8 @@ interface CommonEndpointDefinition<
    *
    * @example
    * ```ts
+   * // codeblock-meta no-transpile
+   *
    * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
    * import * as v from "valibot"
    *
@@ -267,6 +273,8 @@ interface CommonEndpointDefinition<
    *
    * @example
    * ```ts
+   * // codeblock-meta no-transpile
+   *
    * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
    * import * as v from "valibot"
    *
@@ -291,6 +299,8 @@ interface CommonEndpointDefinition<
    *
    * @example
    * ```ts
+   * // codeblock-meta no-transpile
+   *
    * import { createApi } from '@reduxjs/toolkit/query/react'
    * import * as v from "valibot"
    * import { customBaseQuery, baseQueryErrorSchema } from "./customBaseQuery"
@@ -313,6 +323,8 @@ interface CommonEndpointDefinition<
    *
    * @example
    * ```ts
+   * // codeblock-meta no-transpile
+   *
    * import { createApi } from '@reduxjs/toolkit/query/react'
    * import * as v from "valibot"
    * import { customBaseQuery, baseQueryMetaSchema } from "./customBaseQuery"
