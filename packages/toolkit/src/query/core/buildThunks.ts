@@ -166,19 +166,13 @@ type MutationThunkArg = {
 export type ThunkResult = unknown
 
 export type ThunkApiMetaConfig = {
-  pendingMeta: {
-    startedTimeStamp: number
-    [SHOULD_AUTOBATCH]: true
-  }
+  pendingMeta: { startedTimeStamp: number; [SHOULD_AUTOBATCH]: true }
   fulfilledMeta: {
     fulfilledTimeStamp: number
     baseQueryMeta: unknown
     [SHOULD_AUTOBATCH]: true
   }
-  rejectedMeta: {
-    baseQueryMeta: unknown
-    [SHOULD_AUTOBATCH]: true
-  }
+  rejectedMeta: { baseQueryMeta: unknown; [SHOULD_AUTOBATCH]: true }
 }
 export type QueryThunk = AsyncThunk<
   ThunkResult,
@@ -320,10 +314,7 @@ type TransformCallback = (
 export const addShouldAutoBatch = <T extends Record<string, any>>(
   arg: T = {} as T,
 ): T & { [SHOULD_AUTOBATCH]: true } => {
-  return {
-    ...arg,
-    [SHOULD_AUTOBATCH]: true,
-  }
+  return { ...arg, [SHOULD_AUTOBATCH]: true }
 }
 
 export function buildThunks<
@@ -382,7 +373,7 @@ export function buildThunks<
       )
 
       dispatch(
-        api.internalActions.updateProvidedBy({ queryCacheKey, providedTags }),
+        api.internalActions.updateProvidedBy([{ queryCacheKey, providedTags }]),
       )
     }
 
@@ -466,9 +457,7 @@ export function buildThunks<
         ).initiate(arg, {
           subscribe: false,
           forceRefetch: true,
-          [forceQueryFnSymbol]: () => ({
-            data: value,
-          }),
+          [forceQueryFnSymbol]: () => ({ data: value }),
         }),
       ) as UpsertThunkResult<Definitions, EndpointName>
 
@@ -623,10 +612,7 @@ export function buildThunks<
           finalQueryArg,
         )
 
-        return {
-          ...result,
-          data: transformedResponse,
-        }
+        return { ...result, data: transformedResponse }
       }
 
       if (
@@ -793,9 +779,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
         return addShouldAutoBatch({
           startedTimeStamp: Date.now(),
           ...(isInfiniteQueryDefinition(endpointDefinition)
-            ? {
-                direction: (arg as InfiniteQueryThunkArg<any>).direction,
-              }
+            ? { direction: (arg as InfiniteQueryThunkArg<any>).direction }
             : {}),
         })
       },

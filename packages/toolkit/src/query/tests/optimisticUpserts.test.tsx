@@ -41,9 +41,7 @@ const api = createApi({
   },
   tagTypes: ['Post', 'Folder'],
   endpoints: (build) => ({
-    getPosts: build.query<Post[], void>({
-      query: () => '/posts',
-    }),
+    getPosts: build.query<Post[], void>({ query: () => '/posts' }),
     post: build.query<Post, string>({
       query: (id) => `post/${id}`,
       providesTags: ['Post'],
@@ -70,13 +68,7 @@ const api = createApi({
     post2: build.query<Post, string>({
       queryFn: async (id) => {
         await delay(20)
-        return {
-          data: {
-            id,
-            title: 'All about cheese.',
-            contents: 'TODO',
-          },
-        }
+        return { data: { id, title: 'All about cheese.', contents: 'TODO' } }
       },
     }),
     postWithSideEffect: build.query<Post, string>({
@@ -123,9 +115,7 @@ const api = createApi({
   }),
 })
 
-const storeRef = setupApiStore(api, {
-  ...actionsReducer,
-})
+const storeRef = setupApiStore(api, { ...actionsReducer })
 
 describe('basic lifecycle', () => {
   let onStart = vi.fn(),
@@ -194,9 +184,7 @@ describe('basic lifecycle', () => {
   test('success', async () => {
     const { result } = renderHook(
       () => extendedApi.endpoints.test.useMutation(),
-      {
-        wrapper: storeRef.wrapper,
-      },
+      { wrapper: storeRef.wrapper },
     )
 
     baseQuery.mockResolvedValue('success')
@@ -217,9 +205,7 @@ describe('basic lifecycle', () => {
   test('error', async () => {
     const { result } = renderHook(
       () => extendedApi.endpoints.test.useMutation(),
-      {
-        wrapper: storeRef.wrapper,
-      },
+      { wrapper: storeRef.wrapper },
     )
 
     baseQuery.mockRejectedValueOnce('error')
@@ -298,9 +284,7 @@ describe('upsertQueryData', () => {
     // is preserved normally after the last subscriber was unmounted
     const { result, rerender } = renderHook(
       () => api.endpoints.post.useQuery('4'),
-      {
-        wrapper: storeRef.wrapper,
-      },
+      { wrapper: storeRef.wrapper },
     )
     await hookWaitFor(() => expect(result.current.isError).toBeTruthy())
 
@@ -387,29 +371,13 @@ describe('upsertQueryData', () => {
 
 describe('upsertQueryEntries', () => {
   const posts: Post[] = [
-    {
-      id: '1',
-      contents: 'A',
-      title: 'A',
-    },
-    {
-      id: '2',
-      contents: 'B',
-      title: 'B',
-    },
-    {
-      id: '3',
-      contents: 'C',
-      title: 'C',
-    },
+    { id: '1', contents: 'A', title: 'A' },
+    { id: '2', contents: 'B', title: 'B' },
+    { id: '3', contents: 'C', title: 'C' },
   ]
 
   const entriesAction = api.util.upsertQueryEntries([
-    {
-      endpointName: 'getPosts',
-      arg: undefined,
-      value: posts,
-    },
+    { endpointName: 'getPosts', arg: undefined, value: posts },
     ...posts.map((post) => ({
       endpointName: 'postWithSideEffect' as const,
       arg: post.id,
@@ -430,7 +398,7 @@ describe('upsertQueryEntries', () => {
       )
 
       // Should have added tags
-      expect(state.api.provided.Post[post.id]).toEqual([
+      expect(state.api.provided.tags.Post[post.id]).toEqual([
         `postWithSideEffect("${post.id}")`,
       ])
     }
@@ -508,9 +476,7 @@ describe('upsertQueryEntries', () => {
       )
     }
 
-    render(<Folder />, {
-      wrapper: storeRef.wrapper,
-    })
+    render(<Folder />, { wrapper: storeRef.wrapper })
 
     await waitFor(() => {
       const { actions } = storeRef.store.getState()
@@ -551,9 +517,7 @@ describe('full integration', () => {
         query: api.endpoints.post.useQuery('3'),
         mutation: api.endpoints.updatePost.useMutation(),
       }),
-      {
-        wrapper: storeRef.wrapper,
-      },
+      { wrapper: storeRef.wrapper },
     )
     await hookWaitFor(() => expect(result.current.query.isSuccess).toBeTruthy())
 
@@ -605,9 +569,7 @@ describe('full integration', () => {
         query: api.endpoints.post.useQuery('3'),
         mutation: api.endpoints.updatePost.useMutation(),
       }),
-      {
-        wrapper: storeRef.wrapper,
-      },
+      { wrapper: storeRef.wrapper },
     )
     await hookWaitFor(() => expect(result.current.query.isSuccess).toBeTruthy())
 
