@@ -923,7 +923,7 @@ describe('hooks tests', () => {
             setOpen(false)
             setTimeout(() => {
               setOpen(true)
-            }, 1000)
+            }, 250)
           }
 
           const handleReset = () => {
