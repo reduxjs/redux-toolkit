@@ -120,12 +120,11 @@ type EndpointDefinitionWithQuery<
   ): unknown
 
   /**
-   * A schema for the result *before* it's passed to `transformResponse`
+   * A schema for the result *before* it's passed to `transformResponse`.
    *
    * @example
    * ```ts
    * // codeblock-meta no-transpile
-   *
    * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
    * import * as v from "valibot"
    *
@@ -147,12 +146,11 @@ type EndpointDefinitionWithQuery<
   rawResponseSchema?: StandardSchemaV1<RawResultType>
 
   /**
-   * A schema for the error object returned by the `query` or `queryFn`, *before* it's passed to `transformErrorResponse`
+   * A schema for the error object returned by the `query` or `queryFn`, *before* it's passed to `transformErrorResponse`.
    *
    * @example
    * ```ts
    * // codeblock-meta no-transpile
-   *
    * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
    * import * as v from "valibot"
    * import {customBaseQuery, baseQueryErrorSchema} from "./customBaseQuery"
@@ -251,7 +249,6 @@ interface CommonEndpointDefinition<
    * @example
    * ```ts
    * // codeblock-meta no-transpile
-   *
    * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
    * import * as v from "valibot"
    *
@@ -269,12 +266,11 @@ interface CommonEndpointDefinition<
   argSchema?: StandardSchemaV1<QueryArg>
 
   /**
-   * A schema for the result (including `transformResponse` if provided)
+   * A schema for the result (including `transformResponse` if provided).
    *
    * @example
    * ```ts
    * // codeblock-meta no-transpile
-   *
    * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
    * import * as v from "valibot"
    *
@@ -295,12 +291,11 @@ interface CommonEndpointDefinition<
   responseSchema?: StandardSchemaV1<ResultType>
 
   /**
-   * A schema for the error object returned by the `query` or `queryFn` (including `transformErrorResponse` if provided)
+   * A schema for the error object returned by the `query` or `queryFn` (including `transformErrorResponse` if provided).
    *
    * @example
    * ```ts
    * // codeblock-meta no-transpile
-   *
    * import { createApi } from '@reduxjs/toolkit/query/react'
    * import * as v from "valibot"
    * import { customBaseQuery, baseQueryErrorSchema } from "./customBaseQuery"
@@ -319,12 +314,11 @@ interface CommonEndpointDefinition<
   errorResponseSchema?: StandardSchemaV1<BaseQueryError<BaseQuery>>
 
   /**
-   * A schema for the `meta` property returned by the `query` or `queryFn`
+   * A schema for the `meta` property returned by the `query` or `queryFn`.
    *
    * @example
    * ```ts
    * // codeblock-meta no-transpile
-   *
    * import { createApi } from '@reduxjs/toolkit/query/react'
    * import * as v from "valibot"
    * import { customBaseQuery, baseQueryMetaSchema } from "./customBaseQuery"
@@ -356,7 +350,61 @@ interface CommonEndpointDefinition<
    */
   structuralSharing?: boolean
 
+  /**
+   * A function that is called when a schema validation fails.
+   *
+   * Gets called with a `NamedSchemaError` and an object containing the endpoint name, the type of the endpoint, the argument passed to the endpoint, and the query cache key (if applicable).
+   *
+   * `NamedSchemaError` has the following properties:
+   * - `issues`: an array of issues that caused the validation to fail
+   * - `value`: the value that was passed to the schema
+   * - `schemaName`: the name of the schema that was used to validate the value (e.g. `argSchema`)
+   *
+   * @example
+   * ```ts
+   * // codeblock-meta no-transpile
+   * import { createApi } from '@reduxjs/toolkit/query/react'
+   * import * as v from "valibot"
+   *
+   * const api = createApi({
+   *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+   *   endpoints: (build) => ({
+   *     getPost: build.query<Post, { id: number }>({
+   *       query: ({ id }) => `/post/${id}`,
+   *       onSchemaFailure: (error, info) => {
+   *         console.error(error, info)
+   *       },
+   *     }),
+   *   })
+   * })
+   * ```
+   */
   onSchemaFailure?: SchemaFailureHandler
+
+  /**
+   * Defaults to `false`.
+   *
+   * If set to `true`, will skip schema validation for this endpoint.
+   * Overrides the global setting.
+   *
+   * @example
+   * ```ts
+   * // codeblock-meta no-transpile
+   * import { createApi } from '@reduxjs/toolkit/query/react'
+   * import * as v from "valibot"
+   *
+   * const api = createApi({
+   *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+   *   endpoints: (build) => ({
+   *     getPost: build.query<Post, { id: number }>({
+   *       query: ({ id }) => `/post/${id}`,
+   *       responseSchema: v.object({ id: v.number(), name: v.string() }),
+   *       skipSchemaValidation: process.env.NODE_ENV === "test", // skip schema validation in tests, since we'll be mocking the response
+   *     }),
+   *   })
+   * })
+   * ```
+   */
   skipSchemaValidation?: boolean
 }
 
