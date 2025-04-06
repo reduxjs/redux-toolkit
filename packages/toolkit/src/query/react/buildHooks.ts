@@ -1661,8 +1661,6 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       skipPollingIfUnfocused,
     })
 
-    const lastRenderHadSubscription = useRef(false)
-
     const initialPageParam = (rest as UseInfiniteQuerySubscriptionOptions<any>)
       .initialPageParam
     const stableInitialPageParam = useShallowStableValue(initialPageParam)
@@ -1686,11 +1684,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     }
 
     const subscriptionRemoved =
-      !currentRenderHasSubscription && lastRenderHadSubscription.current
-
-    usePossiblyImmediateEffect(() => {
-      lastRenderHadSubscription.current = currentRenderHasSubscription
-    })
+      !currentRenderHasSubscription && promiseRef.current !== undefined
 
     usePossiblyImmediateEffect((): void | undefined => {
       if (subscriptionRemoved) {

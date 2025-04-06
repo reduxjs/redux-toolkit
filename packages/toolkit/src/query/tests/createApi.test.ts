@@ -1181,7 +1181,7 @@ describe('timeout behavior', () => {
       http.get(
         'https://example.com/success',
         async () => {
-          await delay(10)
+          await delay(50)
           return HttpResponse.json({ value: 'failed' }, { status: 500 })
         },
         { once: true },

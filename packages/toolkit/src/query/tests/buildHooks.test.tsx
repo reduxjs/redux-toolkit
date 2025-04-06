@@ -902,6 +902,71 @@ describe('hooks tests', () => {
           status: 'uninitialized',
         })
       })
+
+      test('hook should not be stuck loading post resetApiState after re-render', async () => {
+        const user = userEvent.setup()
+
+        function QueryComponent() {
+          const { isLoading, data } = api.endpoints.getUser.useQuery(1)
+
+          if (isLoading) {
+            return <p>Loading...</p>
+          }
+
+          return <p>{data?.name}</p>
+        }
+
+        function Wrapper() {
+          const [open, setOpen] = useState(true)
+
+          const handleRerender = () => {
+            setOpen(false)
+            setTimeout(() => {
+              setOpen(true)
+            }, 1000)
+          }
+
+          const handleReset = () => {
+            storeRef.store.dispatch(api.util.resetApiState())
+          }
+
+          return (
+            <>
+              <button onClick={handleRerender} aria-label="Rerender component">
+                Rerender
+              </button>
+              {open ? (
+                <div>
+                  <button onClick={handleReset} aria-label="Reset API state">
+                    Reset
+                  </button>
+
+                  <QueryComponent />
+                </div>
+              ) : null}
+            </>
+          )
+        }
+
+        render(<Wrapper />, { wrapper: storeRef.wrapper })
+
+        await user.click(
+          screen.getByRole('button', { name: /Rerender component/i }),
+        )
+        await waitFor(() => {
+          expect(screen.getByText('Timmy')).toBeTruthy()
+        })
+
+        await user.click(
+          screen.getByRole('button', { name: /reset api state/i }),
+        )
+        await waitFor(() => {
+          expect(screen.queryByText('Loading...')).toBeNull()
+        })
+        await waitFor(() => {
+          expect(screen.getByText('Timmy')).toBeTruthy()
+        })
+      })
     })
 
     test('useQuery refetch method returns a promise that resolves with the result', async () => {
