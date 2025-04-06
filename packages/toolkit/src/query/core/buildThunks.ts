@@ -28,6 +28,8 @@ import type {
   QueryDefinition,
   ResultDescription,
   ResultTypeFrom,
+  SchemaFailureHandler,
+  SchemaFailureInfo,
 } from '../endpointDefinitions'
 import {
   calculateProvidedBy,
@@ -65,6 +67,7 @@ import {
   isRejectedWithValue,
   SHOULD_AUTOBATCH,
 } from './rtkImports'
+import { parseWithSchema, NamedSchemaError } from '../standardSchema'
 
 export type BuildThunksApiEndpointQuery<
   Definition extends QueryDefinition<any, any, any, any, any>,
@@ -329,6 +332,8 @@ export function buildThunks<
   api,
   assertTagType,
   selectors,
+  onSchemaFailure,
+  skipSchemaValidation: globalSkipSchemaValidation,
 }: {
   baseQuery: BaseQuery
   reducerPath: ReducerPath
@@ -337,6 +342,8 @@ export function buildThunks<
   api: Api<BaseQuery, Definitions, ReducerPath, any>
   assertTagType: AssertTagTypes
   selectors: AllSelectors
+  onSchemaFailure: SchemaFailureHandler | undefined
+  skipSchemaValidation: boolean | undefined
 }) {
   type State = RootState<any, string, ReducerPath>
 
@@ -491,10 +498,14 @@ export function buildThunks<
     },
   ) => {
     const endpointDefinition = endpointDefinitions[arg.endpointName]
+    const { metaSchema, skipSchemaValidation = globalSkipSchemaValidation } =
+      endpointDefinition
 
     try {
-      let transformResponse: TransformCallback =
-        getTransformCallbackForEndpoint(endpointDefinition, 'transformResponse')
+      let transformResponse = getTransformCallbackForEndpoint(
+        endpointDefinition,
+        'transformResponse',
+      )
 
       const baseQueryApi = {
         signal,
@@ -551,7 +562,16 @@ export function buildThunks<
         finalQueryArg: unknown,
       ): Promise<QueryReturnValue> {
         let result: QueryReturnValue
-        const { extraOptions } = endpointDefinition
+        const { extraOptions, argSchema, rawResponseSchema, responseSchema } =
+          endpointDefinition
+
+        if (argSchema && !skipSchemaValidation) {
+          finalQueryArg = await parseWithSchema(
+            argSchema,
+            finalQueryArg,
+            'argSchema',
+          )
+        }
 
         if (forceQueryFn) {
           // upsertQueryData relies on this to pass in the user-provided value
@@ -606,13 +626,34 @@ export function buildThunks<
 
         if (result.error) throw new HandledError(result.error, result.meta)
 
-        const transformedResponse = await transformResponse(
-          result.data,
+        let { data } = result
+
+        if (rawResponseSchema && !skipSchemaValidation) {
+          data = await parseWithSchema(
+            rawResponseSchema,
+            result.data,
+            'rawResponseSchema',
+          )
+        }
+
+        let transformedResponse = await transformResponse(
+          data,
           result.meta,
           finalQueryArg,
         )
 
-        return { ...result, data: transformedResponse }
+        if (responseSchema && !skipSchemaValidation) {
+          transformedResponse = await parseWithSchema(
+            responseSchema,
+            transformedResponse,
+            'responseSchema',
+          )
+        }
+
+        return {
+          ...result,
+          data: transformedResponse,
+        }
       }
 
       if (
@@ -698,6 +739,14 @@ export function buildThunks<
         finalQueryReturnValue = await executeRequest(arg.originalArgs)
       }
 
+      if (metaSchema && !skipSchemaValidation && finalQueryReturnValue.meta) {
+        finalQueryReturnValue.meta = await parseWithSchema(
+          metaSchema,
+          finalQueryReturnValue.meta,
+          'metaSchema',
+        )
+      }
+
       // console.log('Final result: ', transformedData)
       return fulfillWithValue(
         finalQueryReturnValue.data,
@@ -707,40 +756,78 @@ export function buildThunks<
         }),
       )
     } catch (error) {
-      let catchedError = error
-      if (catchedError instanceof HandledError) {
-        let transformErrorResponse: TransformCallback =
-          getTransformCallbackForEndpoint(
+      try {
+        let caughtError = error
+        if (caughtError instanceof HandledError) {
+          let transformErrorResponse = getTransformCallbackForEndpoint(
             endpointDefinition,
             'transformErrorResponse',
           )
+          const { rawErrorResponseSchema, errorResponseSchema } =
+            endpointDefinition
 
-        try {
-          return rejectWithValue(
-            await transformErrorResponse(
-              catchedError.value,
-              catchedError.meta,
+          let { value, meta } = caughtError
+
+          if (rawErrorResponseSchema && !skipSchemaValidation) {
+            value = await parseWithSchema(
+              rawErrorResponseSchema,
+              value,
+              'rawErrorResponseSchema',
+            )
+          }
+
+          if (metaSchema && !skipSchemaValidation) {
+            meta = await parseWithSchema(metaSchema, meta, 'metaSchema')
+          }
+
+          try {
+            let transformedErrorResponse = await transformErrorResponse(
+              value,
+              meta,
               arg.originalArgs,
-            ),
-            addShouldAutoBatch({ baseQueryMeta: catchedError.meta }),
-          )
-        } catch (e) {
-          catchedError = e
+            )
+            if (errorResponseSchema && !skipSchemaValidation) {
+              transformedErrorResponse = await parseWithSchema(
+                errorResponseSchema,
+                transformedErrorResponse,
+                'errorResponseSchema',
+              )
+            }
+
+            return rejectWithValue(
+              transformedErrorResponse,
+              addShouldAutoBatch({ baseQueryMeta: meta }),
+            )
+          } catch (e) {
+            caughtError = e
+          }
         }
-      }
-      if (
-        typeof process !== 'undefined' &&
-        process.env.NODE_ENV !== 'production'
-      ) {
-        console.error(
-          `An unhandled error occurred processing a request for the endpoint "${arg.endpointName}".
+        if (
+          typeof process !== 'undefined' &&
+          process.env.NODE_ENV !== 'production'
+        ) {
+          console.error(
+            `An unhandled error occurred processing a request for the endpoint "${arg.endpointName}".
 In the case of an unhandled error, no tags will be "provided" or "invalidated".`,
-          catchedError,
-        )
-      } else {
-        console.error(catchedError)
+            caughtError,
+          )
+        } else {
+          console.error(caughtError)
+        }
+        throw caughtError
+      } catch (error) {
+        if (error instanceof NamedSchemaError) {
+          const info: SchemaFailureInfo = {
+            endpoint: arg.endpointName,
+            arg: arg.originalArgs,
+            type: arg.type,
+            queryCacheKey: arg.type === 'query' ? arg.queryCacheKey : undefined,
+          }
+          endpointDefinition.onSchemaFailure?.(error, info)
+          onSchemaFailure?.(error, info)
+        }
+        throw error
       }
-      throw catchedError
     }
   }
 
