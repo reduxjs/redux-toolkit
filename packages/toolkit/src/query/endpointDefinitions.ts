@@ -56,7 +56,7 @@ export type SchemaFailureHandler = (
   info: SchemaFailureInfo,
 ) => void
 
-type EndpointDefinitionWithQuery<
+export type EndpointDefinitionWithQuery<
   QueryArg,
   BaseQuery extends BaseQueryFn,
   ResultType,
@@ -170,7 +170,7 @@ type EndpointDefinitionWithQuery<
   rawErrorResponseSchema?: StandardSchemaV1<BaseQueryError<BaseQuery>>
 }
 
-type EndpointDefinitionWithQueryFn<
+export type EndpointDefinitionWithQueryFn<
   QueryArg,
   BaseQuery extends BaseQueryFn,
   ResultType,
