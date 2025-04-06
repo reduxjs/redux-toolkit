@@ -350,6 +350,48 @@ const { status, data, error, refetch } = dispatch(
 
 :::
 
+### Runtime Validation using Schemas
+
+Endpoints can use any [Standard Schema](https://standardschema.dev/) compliant library for runtime validation of various values. See [API reference](../api/createApi.mdx#schema-validation) for full list of available schemas.
+
+Most commonly, you'll want to use `responseSchema` to validate the response from the server (or `rawResponseSchema` when using `transformResponse`).
+
+```ts title="Using responseSchema" no-transpile
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import * as v from 'valibot'
+
+const postSchema = v.object({
+  id: v.number(),
+  name: v.string(),
+})
+type Post = v.InferOutput<typeof postSchema>
+type TransformedPost = Omit<Post, 'published_at'> & { published_at: Date }
+
+const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  endpoints: (build) => ({
+    getPost: build.query<Post, { id: number }>({
+      query: ({ id }) => `/post/${id}`,
+      responseSchema: postSchema,
+    }),
+    getTransformedPost: build.query<TransformedPost, { id: number }>({
+      query: ({ id }) => `/post/${id}`,
+      rawResponseSchema: postSchema,
+      transformResponse: (response) => ({
+        ...response,
+        published_at: new Date(response.published_at),
+      }),
+      // responseSchema can still be provided, to validate the transformed response
+      responseSchema: v.object({
+        id: v.number(),
+        name: v.string(),
+        published_at: v.date(),
+      }),
+    }),
+  }),
+})
+```
+
 ## Example: Observing caching behavior
 
 This example demonstrates request deduplication and caching behavior:
