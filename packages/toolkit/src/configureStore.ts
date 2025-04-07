@@ -187,7 +187,7 @@ export function configureStore<
     finalMiddleware.forEach((middleware) => {
       if (middlewareReferences.has(middleware)) {
         throw new Error(
-          'Duplicate middleware found. Ensure that each middleware is only included once',
+          'Duplicate middleware references found when creating the store. Ensure that each middleware is only included once.',
         )
       }
       middlewareReferences.add(middleware)
