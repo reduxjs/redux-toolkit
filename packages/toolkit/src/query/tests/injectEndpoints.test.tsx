@@ -1,4 +1,5 @@
 import { noop } from '@internal/listenerMiddleware/utils'
+import { configureStore } from '@internal/configureStore'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 
 const api = createApi({
@@ -90,5 +91,31 @@ describe('injectEndpoints', () => {
     })
 
     expect(consoleErrorSpy).not.toHaveBeenCalled()
+  })
+
+  test('adding the same middleware to the store twice throws an error', () => {
+    // Strictly speaking this is a duplicate of the tests in configureStore.test.ts,
+    // but this helps confirm that we throw the error for adding
+    // the same API middleware twice.
+    const extendedApi = api.injectEndpoints({
+      endpoints: (build) => ({
+        injected: build.query<unknown, string>({
+          query: () => '/success',
+        }),
+      }),
+    })
+
+    const makeStore = () =>
+      configureStore({
+        reducer: {
+          api: api.reducer,
+        },
+        middleware: (getDefaultMiddleware) =>
+          getDefaultMiddleware().concat(api.middleware, extendedApi.middleware),
+      })
+
+    expect(makeStore).toThrowError(
+      'Duplicate middleware found. Ensure that each middleware is only included once',
+    )
   })
 })
