@@ -115,7 +115,7 @@ describe('injectEndpoints', () => {
       })
 
     expect(makeStore).toThrowError(
-      'Duplicate middleware found. Ensure that each middleware is only included once',
+      'Duplicate middleware references found when creating the store. Ensure that each middleware is only included once.',
     )
   })
 })
