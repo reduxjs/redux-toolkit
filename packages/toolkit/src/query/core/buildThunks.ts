@@ -573,6 +573,7 @@ export function buildThunks<
             argSchema,
             finalQueryArg,
             'argSchema',
+            {}, // we don't have a meta yet, so we can't pass it
           )
         }
 
@@ -636,6 +637,7 @@ export function buildThunks<
             rawResponseSchema,
             result.data,
             'rawResponseSchema',
+            result.meta,
           )
         }
 
@@ -650,6 +652,7 @@ export function buildThunks<
             responseSchema,
             transformedResponse,
             'responseSchema',
+            result.meta,
           )
         }
 
@@ -747,6 +750,7 @@ export function buildThunks<
           metaSchema,
           finalQueryReturnValue.meta,
           'metaSchema',
+          finalQueryReturnValue.meta,
         )
       }
 
@@ -777,11 +781,12 @@ export function buildThunks<
                 rawErrorResponseSchema,
                 value,
                 'rawErrorResponseSchema',
+                meta,
               )
             }
 
             if (metaSchema && !skipSchemaValidation) {
-              meta = await parseWithSchema(metaSchema, meta, 'metaSchema')
+              meta = await parseWithSchema(metaSchema, meta, 'metaSchema', meta)
             }
             let transformedErrorResponse = await transformErrorResponse(
               value,
@@ -793,6 +798,7 @@ export function buildThunks<
                 errorResponseSchema,
                 transformedErrorResponse,
                 'errorResponseSchema',
+                meta,
               )
             }
 
@@ -816,7 +822,7 @@ export function buildThunks<
           if (catchSchemaFailure) {
             return rejectWithValue(
               catchSchemaFailure(caughtError, info),
-              addShouldAutoBatch({ baseQueryMeta: {} }), // TODO: how do we get meta here?
+              addShouldAutoBatch({ baseQueryMeta: caughtError._bqMeta }),
             )
           }
         }
