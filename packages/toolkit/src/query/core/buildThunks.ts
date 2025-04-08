@@ -809,23 +809,27 @@ export function buildThunks<
           caughtError = e
         }
       }
-      if (caughtError instanceof NamedSchemaError) {
-        const info: SchemaFailureInfo = {
-          endpoint: arg.endpointName,
-          arg: arg.originalArgs,
-          type: arg.type,
-          queryCacheKey: arg.type === 'query' ? arg.queryCacheKey : undefined,
+      try {
+        if (caughtError instanceof NamedSchemaError) {
+          const info: SchemaFailureInfo = {
+            endpoint: arg.endpointName,
+            arg: arg.originalArgs,
+            type: arg.type,
+            queryCacheKey: arg.type === 'query' ? arg.queryCacheKey : undefined,
+          }
+          endpointDefinition.onSchemaFailure?.(caughtError, info)
+          onSchemaFailure?.(caughtError, info)
+          const { catchSchemaFailure = globalCatchSchemaFailure } =
+            endpointDefinition
+          if (catchSchemaFailure) {
+            return rejectWithValue(
+              catchSchemaFailure(caughtError, info),
+              addShouldAutoBatch({ baseQueryMeta: caughtError._bqMeta }),
+            )
+          }
         }
-        endpointDefinition.onSchemaFailure?.(caughtError, info)
-        onSchemaFailure?.(caughtError, info)
-        const { catchSchemaFailure = globalCatchSchemaFailure } =
-          endpointDefinition
-        if (catchSchemaFailure) {
-          return rejectWithValue(
-            catchSchemaFailure(caughtError, info),
-            addShouldAutoBatch({ baseQueryMeta: caughtError._bqMeta }),
-          )
-        }
+      } catch (e) {
+        caughtError = e
       }
       if (
         typeof process !== 'undefined' &&
