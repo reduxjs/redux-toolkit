@@ -517,6 +517,7 @@ export const coreModule = ({
       refetchOnReconnect,
       invalidationBehavior,
       onSchemaFailure,
+      catchSchemaFailure,
       skipSchemaValidation,
     },
     context,
@@ -585,6 +586,7 @@ export const coreModule = ({
       assertTagType,
       selectors,
       onSchemaFailure,
+      catchSchemaFailure,
       skipSchemaValidation,
     })
 

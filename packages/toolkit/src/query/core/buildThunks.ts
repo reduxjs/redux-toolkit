@@ -28,6 +28,7 @@ import type {
   QueryDefinition,
   ResultDescription,
   ResultTypeFrom,
+  SchemaFailureConverter,
   SchemaFailureHandler,
   SchemaFailureInfo,
 } from '../endpointDefinitions'
@@ -333,6 +334,7 @@ export function buildThunks<
   assertTagType,
   selectors,
   onSchemaFailure,
+  catchSchemaFailure: globalCatchSchemaFailure,
   skipSchemaValidation: globalSkipSchemaValidation,
 }: {
   baseQuery: BaseQuery
@@ -343,6 +345,7 @@ export function buildThunks<
   assertTagType: AssertTagTypes
   selectors: AllSelectors
   onSchemaFailure: SchemaFailureHandler | undefined
+  catchSchemaFailure: SchemaFailureConverter<BaseQuery> | undefined
   skipSchemaValidation: boolean | undefined
 }) {
   type State = RootState<any, string, ReducerPath>
@@ -800,6 +803,22 @@ export function buildThunks<
             )
           } catch (e) {
             caughtError = e
+          }
+        }
+        if (caughtError instanceof NamedSchemaError) {
+          const info: SchemaFailureInfo = {
+            endpoint: arg.endpointName,
+            arg: arg.originalArgs,
+            type: arg.type,
+            queryCacheKey: arg.type === 'query' ? arg.queryCacheKey : undefined,
+          }
+          const { catchSchemaFailure = globalCatchSchemaFailure } =
+            endpointDefinition
+          if (catchSchemaFailure) {
+            return rejectWithValue(
+              catchSchemaFailure(caughtError, info),
+              addShouldAutoBatch({ baseQueryMeta: {} }), // TODO: how do we get meta here?
+            )
           }
         }
         if (

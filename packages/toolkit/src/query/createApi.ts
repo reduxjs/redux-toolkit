@@ -6,6 +6,7 @@ import { defaultSerializeQueryArgs } from './defaultSerializeQueryArgs'
 import type {
   EndpointBuilder,
   EndpointDefinitions,
+  SchemaFailureConverter,
   SchemaFailureHandler,
 } from './endpointDefinitions'
 import {
@@ -244,6 +245,35 @@ export interface CreateApiOptions<
    * ```
    */
   onSchemaFailure?: SchemaFailureHandler
+
+  /**
+   * Convert a schema validation failure into an error shape matching base query errors.
+   *
+   * When not provided, schema failures are treated as fatal, and normal error handling such as tag invalidation will not be executed.
+   *
+   * @example
+   * ```ts
+   * // codeblock-meta no-transpile
+   * import { createApi } from '@reduxjs/toolkit/query/react'
+   * import * as v from "valibot"
+   *
+   * const api = createApi({
+   *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+   *   endpoints: (build) => ({
+   *     getPost: build.query<Post, { id: number }>({
+   *       query: ({ id }) => `/post/${id}`,
+   *       responseSchema: v.object({ id: v.number(), name: v.string() }),
+   *     }),
+   *   }),
+   *   catchSchemaFailure: (error, info) => ({
+   *     status: "CUSTOM_ERROR",
+   *     error: error.schemaName + " failed validation",
+   *     data: error.issues,
+   *   }),
+   * })
+   */
+  catchSchemaFailure?: SchemaFailureConverter<BaseQuery>
+
   /**
    * Defaults to `false`.
    *
