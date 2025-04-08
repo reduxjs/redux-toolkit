@@ -493,6 +493,16 @@ If you specify `track: false` when manually dispatching queries, RTK Query will 
 You can set this globally in `createApi`, but you can also override the default value and have more granular control by passing `onSchemaFailure` to each individual endpoint definition.
 :::
 
+### `catchSchemaFailure`
+
+[summary](docblock://query/createApi.ts?token=CreateApiOptions.catchSchemaFailure)
+
+[examples](docblock://query/createApi.ts?token=CreateApiOptions.catchSchemaFailure)
+
+:::note
+You can set this globally in `createApi`, but you can also override the default value and have more granular control by passing `catchSchemaFailure` to each individual endpoint definition.
+:::
+
 ### `skipSchemaValidation`
 
 [summary](docblock://query/createApi.ts?token=CreateApiOptions.skipSchemaValidation)
@@ -832,7 +842,23 @@ Endpoints can have schemas for runtime validation of various values. Any [Standa
 
 :::warning
 
-Schema failures are treated as _fatal_, meaning that normal error handling such as tag invalidation will not be executed.
+By default, schema failures are treated as _fatal_, meaning that normal error handling such as tag invalidation will not be executed.
+
+In order for schema failures to be treated as non-fatal, you must provide a [`catchSchemaFailure`](#catchschemafailure) function, to convert the schema failure into an error shape matching the base query errors.
+
+```ts title="catchSchemaFailure example" no-transpile
+const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  catchSchemaFailure: (error, info) => ({
+    status: 'CUSTOM_ERROR',
+    error: error.schemaName + ' failed validation',
+    data: error,
+  }),
+  endpoints: (build) => ({
+    // ...
+  }),
+})
+```
 
 :::
 

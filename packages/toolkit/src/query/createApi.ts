@@ -271,6 +271,7 @@ export interface CreateApiOptions<
    *     data: error.issues,
    *   }),
    * })
+   * ```
    */
   catchSchemaFailure?: SchemaFailureConverter<BaseQuery>
 
