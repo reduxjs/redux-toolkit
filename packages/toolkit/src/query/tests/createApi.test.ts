@@ -1248,17 +1248,26 @@ describe('endpoint schemas', () => {
     const makeApi = ({
       globalSkip,
       endpointSkip,
-    }: { globalSkip?: boolean; endpointSkip?: boolean } = {}) =>
+      globalCatch,
+      endpointCatch,
+    }: {
+      globalSkip?: boolean
+      endpointSkip?: boolean
+      globalCatch?: boolean
+      endpointCatch?: boolean
+    } = {}) =>
       createApi({
         baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
         onSchemaFailure: onSchemaFailureGlobal,
         skipSchemaValidation: globalSkip,
+        catchSchemaFailure: globalCatch ? schemaConverter : undefined,
         endpoints: (build) => ({
           query: build.query<unknown, { id: number }>({
             query: ({ id }) => `/post/${id}`,
             argSchema: v.object({ id: v.number() }),
             onSchemaFailure: onSchemaFailureEndpoint,
             skipSchemaValidation: endpointSkip,
+            catchSchemaFailure: endpointCatch ? schemaConverter : undefined,
           }),
         }),
       })
@@ -1332,16 +1341,7 @@ describe('endpoint schemas', () => {
     })
 
     test('can be converted to a standard error object at global level', async () => {
-      const api = createApi({
-        baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
-        catchSchemaFailure: schemaConverter,
-        endpoints: (build) => ({
-          query: build.query<unknown, { id: number }>({
-            query: ({ id }) => `/post/${id}`,
-            argSchema: v.object({ id: v.number() }),
-          }),
-        }),
-      })
+      const api = makeApi({ globalCatch: true })
       const storeRef = setupApiStore(api, undefined, {
         withoutTestLifecycles: true,
       })
@@ -1355,19 +1355,16 @@ describe('endpoint schemas', () => {
         status: 'CUSTOM_ERROR',
         error: 'argSchema failed validation',
         data: expect.any(Array),
+      })
+
+      expectFailureHandlersToHaveBeenCalled({
+        schemaName: 'argSchema',
+        value: { id: '1' },
+        arg: { id: '1' },
       })
     })
     test('can be converted to a standard error object at endpoint level', async () => {
-      const api = createApi({
-        baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
-        endpoints: (build) => ({
-          query: build.query<unknown, { id: number }>({
-            query: ({ id }) => `/post/${id}`,
-            argSchema: v.object({ id: v.number() }),
-            catchSchemaFailure: schemaConverter,
-          }),
-        }),
-      })
+      const api = makeApi({ endpointCatch: true })
       const storeRef = setupApiStore(api, undefined, {
         withoutTestLifecycles: true,
       })
@@ -1381,6 +1378,11 @@ describe('endpoint schemas', () => {
         status: 'CUSTOM_ERROR',
         error: 'argSchema failed validation',
         data: expect.any(Array),
+      })
+      expectFailureHandlersToHaveBeenCalled({
+        schemaName: 'argSchema',
+        value: { id: '1' },
+        arg: { id: '1' },
       })
     })
   })
@@ -1388,16 +1390,25 @@ describe('endpoint schemas', () => {
     const makeApi = ({
       globalSkip,
       endpointSkip,
-    }: { globalSkip?: boolean; endpointSkip?: boolean } = {}) =>
+      globalCatch,
+      endpointCatch,
+    }: {
+      globalSkip?: boolean
+      endpointSkip?: boolean
+      globalCatch?: boolean
+      endpointCatch?: boolean
+    } = {}) =>
       createApi({
         baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
         onSchemaFailure: onSchemaFailureGlobal,
+        catchSchemaFailure: globalCatch ? schemaConverter : undefined,
         skipSchemaValidation: globalSkip,
         endpoints: (build) => ({
           query: build.query<{ success: boolean }, void>({
             query: () => '/success',
             rawResponseSchema: v.object({ value: v.literal('success!') }),
             onSchemaFailure: onSchemaFailureEndpoint,
+            catchSchemaFailure: endpointCatch ? schemaConverter : undefined,
             skipSchemaValidation: endpointSkip,
           }),
         }),
@@ -1438,16 +1449,7 @@ describe('endpoint schemas', () => {
       expect(result?.error).toBeUndefined()
     })
     test('can be converted to a standard error object at global level', async () => {
-      const api = createApi({
-        baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
-        catchSchemaFailure: schemaConverter,
-        endpoints: (build) => ({
-          query: build.query<{ success: boolean }, void>({
-            query: () => '/success',
-            rawResponseSchema: v.object({ value: v.literal('success!') }),
-          }),
-        }),
-      })
+      const api = makeApi({ globalCatch: true })
       const storeRef = setupApiStore(api, undefined, {
         withoutTestLifecycles: true,
       })
@@ -1458,19 +1460,15 @@ describe('endpoint schemas', () => {
         status: 'CUSTOM_ERROR',
         error: 'rawResponseSchema failed validation',
         data: expect.any(Array),
+      })
+      expectFailureHandlersToHaveBeenCalled({
+        schemaName: 'rawResponseSchema',
+        value: { value: 'success' },
+        arg: undefined,
       })
     })
     test('can be converted to a standard error object at endpoint level', async () => {
-      const api = createApi({
-        baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
-        endpoints: (build) => ({
-          query: build.query<{ success: boolean }, void>({
-            query: () => '/success',
-            rawResponseSchema: v.object({ value: v.literal('success!') }),
-            catchSchemaFailure: schemaConverter,
-          }),
-        }),
-      })
+      const api = makeApi({ endpointCatch: true })
       const storeRef = setupApiStore(api, undefined, {
         withoutTestLifecycles: true,
       })
@@ -1481,6 +1479,11 @@ describe('endpoint schemas', () => {
         status: 'CUSTOM_ERROR',
         error: 'rawResponseSchema failed validation',
         data: expect.any(Array),
+      })
+      expectFailureHandlersToHaveBeenCalled({
+        schemaName: 'rawResponseSchema',
+        value: { value: 'success' },
+        arg: undefined,
       })
     })
   })
@@ -1488,10 +1491,18 @@ describe('endpoint schemas', () => {
     const makeApi = ({
       globalSkip,
       endpointSkip,
-    }: { globalSkip?: boolean; endpointSkip?: boolean } = {}) =>
+      globalCatch,
+      endpointCatch,
+    }: {
+      globalSkip?: boolean
+      endpointSkip?: boolean
+      globalCatch?: boolean
+      endpointCatch?: boolean
+    } = {}) =>
       createApi({
         baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
         onSchemaFailure: onSchemaFailureGlobal,
+        catchSchemaFailure: globalCatch ? schemaConverter : undefined,
         skipSchemaValidation: globalSkip,
         endpoints: (build) => ({
           query: build.query<{ success: boolean }, void>({
@@ -1499,6 +1510,7 @@ describe('endpoint schemas', () => {
             transformResponse: () => ({ success: false }),
             responseSchema: v.object({ success: v.literal(true) }),
             onSchemaFailure: onSchemaFailureEndpoint,
+            catchSchemaFailure: endpointCatch ? schemaConverter : undefined,
             skipSchemaValidation: endpointSkip,
           }),
         }),
@@ -1540,17 +1552,7 @@ describe('endpoint schemas', () => {
       expect(result?.error).toBeUndefined()
     })
     test('can be converted to a standard error object at global level', async () => {
-      const api = createApi({
-        baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
-        catchSchemaFailure: schemaConverter,
-        endpoints: (build) => ({
-          query: build.query<{ success: boolean }, void>({
-            query: () => '/success',
-            transformResponse: () => ({ success: false }),
-            responseSchema: v.object({ success: v.literal(true) }),
-          }),
-        }),
-      })
+      const api = makeApi({ globalCatch: true })
       const storeRef = setupApiStore(api, undefined, {
         withoutTestLifecycles: true,
       })
@@ -1561,20 +1563,15 @@ describe('endpoint schemas', () => {
         status: 'CUSTOM_ERROR',
         error: 'responseSchema failed validation',
         data: expect.any(Array),
+      })
+      expectFailureHandlersToHaveBeenCalled({
+        schemaName: 'responseSchema',
+        value: { success: false },
+        arg: undefined,
       })
     })
     test('can be converted to a standard error object at endpoint level', async () => {
-      const api = createApi({
-        baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
-        endpoints: (build) => ({
-          query: build.query<{ success: boolean }, void>({
-            query: () => '/success',
-            transformResponse: () => ({ success: false }),
-            responseSchema: v.object({ success: v.literal(true) }),
-            catchSchemaFailure: schemaConverter,
-          }),
-        }),
-      })
+      const api = makeApi({ endpointCatch: true })
       const storeRef = setupApiStore(api, undefined, {
         withoutTestLifecycles: true,
       })
@@ -1585,6 +1582,11 @@ describe('endpoint schemas', () => {
         status: 'CUSTOM_ERROR',
         error: 'responseSchema failed validation',
         data: expect.any(Array),
+      })
+      expectFailureHandlersToHaveBeenCalled({
+        schemaName: 'responseSchema',
+        value: { success: false },
+        arg: undefined,
       })
     })
   })
@@ -1592,10 +1594,18 @@ describe('endpoint schemas', () => {
     const makeApi = ({
       globalSkip,
       endpointSkip,
-    }: { globalSkip?: boolean; endpointSkip?: boolean } = {}) =>
+      globalCatch,
+      endpointCatch,
+    }: {
+      globalSkip?: boolean
+      endpointSkip?: boolean
+      globalCatch?: boolean
+      endpointCatch?: boolean
+    } = {}) =>
       createApi({
         baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
         onSchemaFailure: onSchemaFailureGlobal,
+        catchSchemaFailure: globalCatch ? schemaConverter : undefined,
         skipSchemaValidation: globalSkip,
         endpoints: (build) => ({
           query: build.query<{ success: boolean }, void>({
@@ -1605,6 +1615,7 @@ describe('endpoint schemas', () => {
               data: v.unknown(),
             }),
             onSchemaFailure: onSchemaFailureEndpoint,
+            catchSchemaFailure: endpointCatch ? schemaConverter : undefined,
             skipSchemaValidation: endpointSkip,
           }),
         }),
@@ -1645,19 +1656,7 @@ describe('endpoint schemas', () => {
       expect(result?.error).not.toEqual(serializedSchemaError)
     })
     test('can be converted to a standard error object at global level', async () => {
-      const api = createApi({
-        baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
-        catchSchemaFailure: schemaConverter,
-        endpoints: (build) => ({
-          query: build.query<{ success: boolean }, void>({
-            query: () => '/error',
-            rawErrorResponseSchema: v.object({
-              status: v.pipe(v.number(), v.minValue(400), v.maxValue(499)),
-              data: v.unknown(),
-            }),
-          }),
-        }),
-      })
+      const api = makeApi({ globalCatch: true })
       const storeRef = setupApiStore(api, undefined, {
         withoutTestLifecycles: true,
       })
@@ -1668,22 +1667,15 @@ describe('endpoint schemas', () => {
         status: 'CUSTOM_ERROR',
         error: 'rawErrorResponseSchema failed validation',
         data: expect.any(Array),
+      })
+      expectFailureHandlersToHaveBeenCalled({
+        schemaName: 'rawErrorResponseSchema',
+        value: { status: 500, data: { value: 'error' } },
+        arg: undefined,
       })
     })
     test('can be converted to a standard error object at endpoint level', async () => {
-      const api = createApi({
-        baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
-        endpoints: (build) => ({
-          query: build.query<{ success: boolean }, void>({
-            query: () => '/error',
-            rawErrorResponseSchema: v.object({
-              status: v.pipe(v.number(), v.minValue(400), v.maxValue(499)),
-              data: v.unknown(),
-            }),
-            catchSchemaFailure: schemaConverter,
-          }),
-        }),
-      })
+      const api = makeApi({ endpointCatch: true })
       const storeRef = setupApiStore(api, undefined, {
         withoutTestLifecycles: true,
       })
@@ -1694,6 +1686,11 @@ describe('endpoint schemas', () => {
         status: 'CUSTOM_ERROR',
         error: 'rawErrorResponseSchema failed validation',
         data: expect.any(Array),
+      })
+      expectFailureHandlersToHaveBeenCalled({
+        schemaName: 'rawErrorResponseSchema',
+        value: { status: 500, data: { value: 'error' } },
+        arg: undefined,
       })
     })
   })
@@ -1701,10 +1698,18 @@ describe('endpoint schemas', () => {
     const makeApi = ({
       globalSkip,
       endpointSkip,
-    }: { globalSkip?: boolean; endpointSkip?: boolean } = {}) =>
+      globalCatch,
+      endpointCatch,
+    }: {
+      globalSkip?: boolean
+      endpointSkip?: boolean
+      globalCatch?: boolean
+      endpointCatch?: boolean
+    } = {}) =>
       createApi({
         baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
         onSchemaFailure: onSchemaFailureGlobal,
+        catchSchemaFailure: globalCatch ? schemaConverter : undefined,
         skipSchemaValidation: globalSkip,
         endpoints: (build) => ({
           query: build.query<{ success: boolean }, void>({
@@ -1720,6 +1725,7 @@ describe('endpoint schemas', () => {
               data: v.unknown(),
             }),
             onSchemaFailure: onSchemaFailureEndpoint,
+            catchSchemaFailure: endpointCatch ? schemaConverter : undefined,
             skipSchemaValidation: endpointSkip,
           }),
         }),
@@ -1764,25 +1770,7 @@ describe('endpoint schemas', () => {
       expect(result?.error).not.toEqual(serializedSchemaError)
     })
     test('can be converted to a standard error object at global level', async () => {
-      const api = createApi({
-        baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
-        catchSchemaFailure: schemaConverter,
-        endpoints: (build) => ({
-          query: build.query<{ success: boolean }, void>({
-            query: () => '/error',
-            transformErrorResponse: (error): FetchBaseQueryError => ({
-              status: 'CUSTOM_ERROR',
-              data: error,
-              error: 'whoops',
-            }),
-            errorResponseSchema: v.object({
-              status: v.literal('CUSTOM_ERROR'),
-              error: v.literal('oh no'),
-              data: v.unknown(),
-            }),
-          }),
-        }),
-      })
+      const api = makeApi({ globalCatch: true })
       const storeRef = setupApiStore(api, undefined, {
         withoutTestLifecycles: true,
       })
@@ -1793,28 +1781,19 @@ describe('endpoint schemas', () => {
         status: 'CUSTOM_ERROR',
         error: 'errorResponseSchema failed validation',
         data: expect.any(Array),
+      })
+      expectFailureHandlersToHaveBeenCalled({
+        schemaName: 'errorResponseSchema',
+        value: {
+          status: 'CUSTOM_ERROR',
+          error: 'whoops',
+          data: { status: 500, data: { value: 'error' } },
+        },
+        arg: undefined,
       })
     })
     test('can be converted to a standard error object at endpoint level', async () => {
-      const api = createApi({
-        baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
-        endpoints: (build) => ({
-          query: build.query<{ success: boolean }, void>({
-            query: () => '/error',
-            transformErrorResponse: (error): FetchBaseQueryError => ({
-              status: 'CUSTOM_ERROR',
-              data: error,
-              error: 'whoops',
-            }),
-            errorResponseSchema: v.object({
-              status: v.literal('CUSTOM_ERROR'),
-              error: v.literal('oh no'),
-              data: v.unknown(),
-            }),
-            catchSchemaFailure: schemaConverter,
-          }),
-        }),
-      })
+      const api = makeApi({ endpointCatch: true })
       const storeRef = setupApiStore(api, undefined, {
         withoutTestLifecycles: true,
       })
@@ -1825,6 +1804,15 @@ describe('endpoint schemas', () => {
         status: 'CUSTOM_ERROR',
         error: 'errorResponseSchema failed validation',
         data: expect.any(Array),
+      })
+      expectFailureHandlersToHaveBeenCalled({
+        schemaName: 'errorResponseSchema',
+        value: {
+          status: 'CUSTOM_ERROR',
+          error: 'whoops',
+          data: { status: 500, data: { value: 'error' } },
+        },
+        arg: undefined,
       })
     })
   })
@@ -1832,10 +1820,18 @@ describe('endpoint schemas', () => {
     const makeApi = ({
       globalSkip,
       endpointSkip,
-    }: { globalSkip?: boolean; endpointSkip?: boolean } = {}) =>
+      globalCatch,
+      endpointCatch,
+    }: {
+      globalSkip?: boolean
+      endpointSkip?: boolean
+      globalCatch?: boolean
+      endpointCatch?: boolean
+    } = {}) =>
       createApi({
         baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
         onSchemaFailure: onSchemaFailureGlobal,
+        catchSchemaFailure: globalCatch ? schemaConverter : undefined,
         skipSchemaValidation: globalSkip,
         endpoints: (build) => ({
           query: build.query<{ success: boolean }, void>({
@@ -1846,6 +1842,7 @@ describe('endpoint schemas', () => {
               timestamp: v.number(),
             }),
             onSchemaFailure: onSchemaFailureEndpoint,
+            catchSchemaFailure: endpointCatch ? schemaConverter : undefined,
             skipSchemaValidation: endpointSkip,
           }),
         }),
@@ -1889,20 +1886,7 @@ describe('endpoint schemas', () => {
       expect(result?.error).toBeUndefined()
     })
     test('can be converted to a standard error object at global level', async () => {
-      const api = createApi({
-        baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
-        catchSchemaFailure: schemaConverter,
-        endpoints: (build) => ({
-          query: build.query<{ success: boolean }, void>({
-            query: () => '/success',
-            metaSchema: v.object({
-              request: v.instance(Request),
-              response: v.instance(Response),
-              timestamp: v.number(),
-            }),
-          }),
-        }),
-      })
+      const api = makeApi({ globalCatch: true })
       const storeRef = setupApiStore(api, undefined, {
         withoutTestLifecycles: true,
       })
@@ -1913,23 +1897,18 @@ describe('endpoint schemas', () => {
         status: 'CUSTOM_ERROR',
         error: 'metaSchema failed validation',
         data: expect.any(Array),
+      })
+      expectFailureHandlersToHaveBeenCalled({
+        schemaName: 'metaSchema',
+        value: {
+          request: expect.any(Request),
+          response: expect.any(Response),
+        },
+        arg: undefined,
       })
     })
     test('can be converted to a standard error object at endpoint level', async () => {
-      const api = createApi({
-        baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
-        endpoints: (build) => ({
-          query: build.query<{ success: boolean }, void>({
-            query: () => '/success',
-            metaSchema: v.object({
-              request: v.instance(Request),
-              response: v.instance(Response),
-              timestamp: v.number(),
-            }),
-            catchSchemaFailure: schemaConverter,
-          }),
-        }),
-      })
+      const api = makeApi({ endpointCatch: true })
       const storeRef = setupApiStore(api, undefined, {
         withoutTestLifecycles: true,
       })
@@ -1940,6 +1919,14 @@ describe('endpoint schemas', () => {
         status: 'CUSTOM_ERROR',
         error: 'metaSchema failed validation',
         data: expect.any(Array),
+      })
+      expectFailureHandlersToHaveBeenCalled({
+        schemaName: 'metaSchema',
+        value: {
+          request: expect.any(Request),
+          response: expect.any(Response),
+        },
+        arg: undefined,
       })
     })
   })

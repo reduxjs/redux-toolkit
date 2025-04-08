@@ -763,95 +763,83 @@ export function buildThunks<
         }),
       )
     } catch (error) {
-      try {
-        let caughtError = error
-        if (caughtError instanceof HandledError) {
-          let transformErrorResponse = getTransformCallbackForEndpoint(
-            endpointDefinition,
-            'transformErrorResponse',
-          )
-          const { rawErrorResponseSchema, errorResponseSchema } =
-            endpointDefinition
+      let caughtError = error
+      if (caughtError instanceof HandledError) {
+        let transformErrorResponse = getTransformCallbackForEndpoint(
+          endpointDefinition,
+          'transformErrorResponse',
+        )
+        const { rawErrorResponseSchema, errorResponseSchema } =
+          endpointDefinition
 
-          let { value, meta } = caughtError
+        let { value, meta } = caughtError
 
-          try {
-            if (rawErrorResponseSchema && !skipSchemaValidation) {
-              value = await parseWithSchema(
-                rawErrorResponseSchema,
-                value,
-                'rawErrorResponseSchema',
-                meta,
-              )
-            }
-
-            if (metaSchema && !skipSchemaValidation) {
-              meta = await parseWithSchema(metaSchema, meta, 'metaSchema', meta)
-            }
-            let transformedErrorResponse = await transformErrorResponse(
+        try {
+          if (rawErrorResponseSchema && !skipSchemaValidation) {
+            value = await parseWithSchema(
+              rawErrorResponseSchema,
               value,
+              'rawErrorResponseSchema',
               meta,
-              arg.originalArgs,
             )
-            if (errorResponseSchema && !skipSchemaValidation) {
-              transformedErrorResponse = await parseWithSchema(
-                errorResponseSchema,
-                transformedErrorResponse,
-                'errorResponseSchema',
-                meta,
-              )
-            }
+          }
 
-            return rejectWithValue(
-              transformedErrorResponse,
-              addShouldAutoBatch({ baseQueryMeta: meta }),
-            )
-          } catch (e) {
-            caughtError = e
+          if (metaSchema && !skipSchemaValidation) {
+            meta = await parseWithSchema(metaSchema, meta, 'metaSchema', meta)
           }
-        }
-        if (caughtError instanceof NamedSchemaError) {
-          const info: SchemaFailureInfo = {
-            endpoint: arg.endpointName,
-            arg: arg.originalArgs,
-            type: arg.type,
-            queryCacheKey: arg.type === 'query' ? arg.queryCacheKey : undefined,
-          }
-          const { catchSchemaFailure = globalCatchSchemaFailure } =
-            endpointDefinition
-          if (catchSchemaFailure) {
-            return rejectWithValue(
-              catchSchemaFailure(caughtError, info),
-              addShouldAutoBatch({ baseQueryMeta: caughtError._bqMeta }),
-            )
-          }
-        }
-        if (
-          typeof process !== 'undefined' &&
-          process.env.NODE_ENV !== 'production'
-        ) {
-          console.error(
-            `An unhandled error occurred processing a request for the endpoint "${arg.endpointName}".
-In the case of an unhandled error, no tags will be "provided" or "invalidated".`,
-            caughtError,
+          let transformedErrorResponse = await transformErrorResponse(
+            value,
+            meta,
+            arg.originalArgs,
           )
-        } else {
-          console.error(caughtError)
-        }
-        throw caughtError
-      } catch (error) {
-        if (error instanceof NamedSchemaError) {
-          const info: SchemaFailureInfo = {
-            endpoint: arg.endpointName,
-            arg: arg.originalArgs,
-            type: arg.type,
-            queryCacheKey: arg.type === 'query' ? arg.queryCacheKey : undefined,
+          if (errorResponseSchema && !skipSchemaValidation) {
+            transformedErrorResponse = await parseWithSchema(
+              errorResponseSchema,
+              transformedErrorResponse,
+              'errorResponseSchema',
+              meta,
+            )
           }
-          endpointDefinition.onSchemaFailure?.(error, info)
-          onSchemaFailure?.(error, info)
+
+          return rejectWithValue(
+            transformedErrorResponse,
+            addShouldAutoBatch({ baseQueryMeta: meta }),
+          )
+        } catch (e) {
+          caughtError = e
         }
-        throw error
       }
+      if (caughtError instanceof NamedSchemaError) {
+        const info: SchemaFailureInfo = {
+          endpoint: arg.endpointName,
+          arg: arg.originalArgs,
+          type: arg.type,
+          queryCacheKey: arg.type === 'query' ? arg.queryCacheKey : undefined,
+        }
+        endpointDefinition.onSchemaFailure?.(caughtError, info)
+        onSchemaFailure?.(caughtError, info)
+        const { catchSchemaFailure = globalCatchSchemaFailure } =
+          endpointDefinition
+        if (catchSchemaFailure) {
+          return rejectWithValue(
+            catchSchemaFailure(caughtError, info),
+            addShouldAutoBatch({ baseQueryMeta: caughtError._bqMeta }),
+          )
+        }
+      }
+      if (
+        typeof process !== 'undefined' &&
+        process.env.NODE_ENV !== 'production'
+      ) {
+        console.error(
+          `An unhandled error occurred processing a request for the endpoint "${arg.endpointName}".
+In the case of an unhandled error, no tags will be "provided" or "invalidated".`,
+          caughtError,
+        )
+      } else {
+        console.error(caughtError)
+      }
+      throw caughtError
     }
   }
 
