@@ -385,6 +385,7 @@ interface CommonEndpointDefinition<
    * ```
    */
   onSchemaFailure?: SchemaFailureHandler
+
   /**
    * Convert a schema validation failure into an error shape matching base query errors.
    *

@@ -47,6 +47,7 @@ export type {
   TagTypesFromApi,
   UpdateDefinitions,
   SchemaFailureHandler,
+  SchemaFailureConverter,
   SchemaFailureInfo,
 } from './endpointDefinitions'
 export { fetchBaseQuery } from './fetchBaseQuery'

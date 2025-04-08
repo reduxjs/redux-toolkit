@@ -771,19 +771,18 @@ export function buildThunks<
 
           let { value, meta } = caughtError
 
-          if (rawErrorResponseSchema && !skipSchemaValidation) {
-            value = await parseWithSchema(
-              rawErrorResponseSchema,
-              value,
-              'rawErrorResponseSchema',
-            )
-          }
-
-          if (metaSchema && !skipSchemaValidation) {
-            meta = await parseWithSchema(metaSchema, meta, 'metaSchema')
-          }
-
           try {
+            if (rawErrorResponseSchema && !skipSchemaValidation) {
+              value = await parseWithSchema(
+                rawErrorResponseSchema,
+                value,
+                'rawErrorResponseSchema',
+              )
+            }
+
+            if (metaSchema && !skipSchemaValidation) {
+              meta = await parseWithSchema(metaSchema, meta, 'metaSchema')
+            }
             let transformedErrorResponse = await transformErrorResponse(
               value,
               meta,
