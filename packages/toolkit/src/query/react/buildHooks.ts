@@ -2064,6 +2064,11 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         endpointName,
       )
 
+      const refetch = useCallback(
+        () => refetchOrErrorIfUnmounted(promiseRef),
+        [promiseRef],
+      )
+
       return useMemo(() => {
         const fetchNextPage = () => {
           return trigger(stableArg, 'forward')
@@ -2078,11 +2083,11 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           /**
            * A method to manually refetch data for the query
            */
-          refetch: () => refetchOrErrorIfUnmounted(promiseRef),
+          refetch,
           fetchNextPage,
           fetchPreviousPage,
         }
-      }, [promiseRef, trigger, stableArg])
+      }, [refetch, trigger, stableArg])
     }
 
     const useInfiniteQueryState: UseInfiniteQueryState<any> =
