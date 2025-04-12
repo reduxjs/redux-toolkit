@@ -350,6 +350,50 @@ const { status, data, error, refetch } = dispatch(
 
 :::
 
+## Runtime Validation using Schemas
+
+Endpoints can use any [Standard Schema](https://standardschema.dev/) compliant library for runtime validation of query args, responses, and errors. See [API reference](../api/createApi.mdx#schema-validation) for full list of available schemas.
+
+When used with TypeScript, schemas can also be used to [infer the type of that value instead of having to declare it](../usage-with-typescript.mdx#schema-validation).
+
+Most commonly, you'll want to use `responseSchema` to validate the response from the server (or `rawResponseSchema` when using `transformResponse`).
+
+```ts title="Using responseSchema" no-transpile
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import * as v from 'valibot'
+
+const postSchema = v.object({
+  id: v.number(),
+  name: v.string(),
+})
+type Post = v.InferOutput<typeof postSchema>
+const transformedPost = v.object({
+  ...postSchema.entries,
+  published_at: v.date(),
+})
+type TransformedPost = v.InferOutput<typeof transformedPost>
+
+const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  endpoints: (build) => ({
+    getPost: build.query<Post, { id: number }>({
+      query: ({ id }) => `/post/${id}`,
+      responseSchema: postSchema,
+    }),
+    getTransformedPost: build.query<TransformedPost, { id: number }>({
+      query: ({ id }) => `/post/${id}`,
+      rawResponseSchema: postSchema,
+      transformResponse: (response) => ({
+        ...response,
+        published_at: new Date(response.published_at),
+      }),
+      // responseSchema can still be provided, to validate the transformed response
+      responseSchema: transformedPost,
+    }),
+  }),
+})
+```
+
 ## Example: Observing caching behavior
 
 This example demonstrates request deduplication and caching behavior:

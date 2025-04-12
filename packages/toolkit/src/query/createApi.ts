@@ -6,6 +6,7 @@ import { defaultSerializeQueryArgs } from './defaultSerializeQueryArgs'
 import type {
   EndpointBuilder,
   EndpointDefinitions,
+  SchemaFailureConverter,
   SchemaFailureHandler,
 } from './endpointDefinitions'
 import {
@@ -214,7 +215,89 @@ export interface CreateApiOptions<
         NoInfer<ReducerPath>
       >
 
+  /**
+   * A function that is called when a schema validation fails.
+   *
+   * Gets called with a `NamedSchemaError` and an object containing the endpoint name, the type of the endpoint, the argument passed to the endpoint, and the query cache key (if applicable).
+   *
+   * `NamedSchemaError` has the following properties:
+   * - `issues`: an array of issues that caused the validation to fail
+   * - `value`: the value that was passed to the schema
+   * - `schemaName`: the name of the schema that was used to validate the value (e.g. `argSchema`)
+   *
+   * @example
+   * ```ts
+   * // codeblock-meta no-transpile
+   * import { createApi } from '@reduxjs/toolkit/query/react'
+   * import * as v from "valibot"
+   *
+   * const api = createApi({
+   *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+   *   endpoints: (build) => ({
+   *     getPost: build.query<Post, { id: number }>({
+   *       query: ({ id }) => `/post/${id}`,
+   *     }),
+   *   }),
+   *   onSchemaFailure: (error, info) => {
+   *     console.error(error, info)
+   *   },
+   * })
+   * ```
+   */
   onSchemaFailure?: SchemaFailureHandler
+
+  /**
+   * Convert a schema validation failure into an error shape matching base query errors.
+   *
+   * When not provided, schema failures are treated as fatal, and normal error handling such as tag invalidation will not be executed.
+   *
+   * @example
+   * ```ts
+   * // codeblock-meta no-transpile
+   * import { createApi } from '@reduxjs/toolkit/query/react'
+   * import * as v from "valibot"
+   *
+   * const api = createApi({
+   *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+   *   endpoints: (build) => ({
+   *     getPost: build.query<Post, { id: number }>({
+   *       query: ({ id }) => `/post/${id}`,
+   *       responseSchema: v.object({ id: v.number(), name: v.string() }),
+   *     }),
+   *   }),
+   *   catchSchemaFailure: (error, info) => ({
+   *     status: "CUSTOM_ERROR",
+   *     error: error.schemaName + " failed validation",
+   *     data: error.issues,
+   *   }),
+   * })
+   * ```
+   */
+  catchSchemaFailure?: SchemaFailureConverter<BaseQuery>
+
+  /**
+   * Defaults to `false`.
+   *
+   * If set to `true`, will skip schema validation for all endpoints, unless overridden by the endpoint.
+   *
+   * @example
+   * ```ts
+   * // codeblock-meta no-transpile
+   * import { createApi } from '@reduxjs/toolkit/query/react'
+   * import * as v from "valibot"
+   *
+   * const api = createApi({
+   *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+   *   skipSchemaValidation: process.env.NODE_ENV === "test", // skip schema validation in tests, since we'll be mocking the response
+   *   endpoints: (build) => ({
+   *     getPost: build.query<Post, { id: number }>({
+   *       query: ({ id }) => `/post/${id}`,
+   *       responseSchema: v.object({ id: v.number(), name: v.string() }),
+   *     }),
+   *   })
+   * })
+   * ```
+   */
   skipSchemaValidation?: boolean
 }
 

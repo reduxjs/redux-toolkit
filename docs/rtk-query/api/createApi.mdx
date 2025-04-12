@@ -221,6 +221,20 @@ export type QueryDefinition<
       updateCachedData, // available for query endpoints only
     }: QueryCacheLifecycleApi,
   ): Promise<void>
+
+  argSchema?: StandardSchemaV1<QueryArg>
+
+  /* only available with `query`, not `queryFn` */
+  rawResponseSchema?: StandardSchemaV1<BaseQueryResult<BaseQuery>>
+
+  responseSchema?: StandardSchemaV1<ResultType>
+
+  /* only available with `query`, not `queryFn` */
+  rawErrorResponseSchema?: StandardSchemaV1<BaseQueryError<BaseQuery>>
+
+  errorResponseSchema?: StandardSchemaV1<BaseQueryError<BaseQuery>>
+
+  metaSchema?: StandardSchemaV1<BaseQueryMeta<BaseQuery>>
 }
 ```
 
@@ -467,6 +481,36 @@ If you specify `track: false` when manually dispatching queries, RTK Query will 
 You can set this globally in `createApi`, but you can also override the default value and have more granular control by passing `refetchOnReconnect` to each individual hook call or when dispatching the [`initiate`](./created-api/endpoints.mdx#initiate) action.
 
 If you specify `track: false` when manually dispatching queries, RTK Query will not be able to automatically refetch for you.
+:::
+
+### `onSchemaFailure`
+
+[summary](docblock://query/createApi.ts?token=CreateApiOptions.onSchemaFailure)
+
+[examples](docblock://query/createApi.ts?token=CreateApiOptions.onSchemaFailure)
+
+:::note
+You can set this globally in `createApi`, but you can also override the default value and have more granular control by passing `onSchemaFailure` to each individual endpoint definition.
+:::
+
+### `catchSchemaFailure`
+
+[summary](docblock://query/createApi.ts?token=CreateApiOptions.catchSchemaFailure)
+
+[examples](docblock://query/createApi.ts?token=CreateApiOptions.catchSchemaFailure)
+
+:::note
+You can set this globally in `createApi`, but you can also override the default value and have more granular control by passing `catchSchemaFailure` to each individual endpoint definition.
+:::
+
+### `skipSchemaValidation`
+
+[summary](docblock://query/createApi.ts?token=CreateApiOptions.skipSchemaValidation)
+
+[examples](docblock://query/createApi.ts?token=CreateApiOptions.skipSchemaValidation)
+
+:::note
+You can set this globally in `createApi`, but you can also override the default value and have more granular control by passing `skipSchemaValidation` to each individual endpoint definition.
 :::
 
 ## Endpoint Definition Parameters
@@ -791,6 +835,82 @@ async function onCacheEntryAdded(
   }: QueryCacheLifecycleApi,
 ): Promise<void>
 ```
+
+### Schema Validation
+
+Endpoints can have schemas for runtime validation of query args, responses, and errors. Any [Standard Schema](https://standardschema.dev/) compliant library can be used.
+
+When used with TypeScript, schemas can also be used to [infer the type of that value instead of having to declare it](../usage-with-typescript.mdx#schema-validation).
+
+:::warning
+
+By default, schema failures are treated as _fatal_, meaning that normal error handling such as tag invalidation will not be executed.
+
+In order for schema failures to be treated as non-fatal, you must provide a [`catchSchemaFailure`](#catchschemafailure) function, to convert the schema failure into an error shape matching the base query errors.
+
+```ts title="catchSchemaFailure example" no-transpile
+const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  catchSchemaFailure: (error, info) => ({
+    status: 'CUSTOM_ERROR',
+    error: error.schemaName + ' failed validation',
+    data: error,
+  }),
+  endpoints: (build) => ({
+    // ...
+  }),
+})
+```
+
+:::
+
+#### `argSchema`
+
+_(optional)_
+
+[summary](docblock://query/endpointDefinitions.ts?token=CommonEndpointDefinition.argSchema)
+
+[examples](docblock://query/endpointDefinitions.ts?token=CommonEndpointDefinition.argSchema)
+
+#### `responseSchema`
+
+_(optional)_
+
+[summary](docblock://query/endpointDefinitions.ts?token=CommonEndpointDefinition.responseSchema)
+
+[examples](docblock://query/endpointDefinitions.ts?token=CommonEndpointDefinition.responseSchema)
+
+#### `rawResponseSchema`
+
+_(optional, not applicable with `queryFn`)_
+
+[summary](docblock://query/endpointDefinitions.ts?token=EndpointDefinitionWithQuery.rawResponseSchema)
+
+[examples](docblock://query/endpointDefinitions.ts?token=EndpointDefinitionWithQuery.rawResponseSchema)
+
+#### `errorResponseSchema`
+
+_(optional)_
+
+[summary](docblock://query/endpointDefinitions.ts?token=CommonEndpointDefinition.errorResponseSchema)
+
+[examples](docblock://query/endpointDefinitions.ts?token=CommonEndpointDefinition.errorResponseSchema)
+
+#### `rawErrorResponseSchema`
+
+_(optional, not applicable with `queryFn`)_
+
+[summary](docblock://query/endpointDefinitions.ts?token=EndpointDefinitionWithQuery.rawErrorResponseSchema)
+
+[examples](docblock://query/endpointDefinitions.ts?token=EndpointDefinitionWithQuery.rawErrorResponseSchema)
+
+#### `metaSchema`
+
+_(optional)_
+
+[summary](docblock://query/endpointDefinitions.ts?token=CommonEndpointDefinition.metaSchema)
+
+[examples](docblock://query/endpointDefinitions.ts?token=CommonEndpointDefinition.metaSchema)
 
 ## Return value
 
