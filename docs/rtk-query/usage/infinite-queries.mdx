@@ -534,7 +534,9 @@ const projectsApi = createApi({
 
 ## Runtime Validation using Schemas
 
-Endpoints can use any [Standard Schema](https://standardschema.dev/) compliant library for runtime validation of various values. See [API reference](../api/createApi.mdx#schema-validation) for full list of available schemas.
+Endpoints can use any [Standard Schema](https://standardschema.dev/) compliant library for runtime validation of query args, responses, and errors. See [API reference](../api/createApi.mdx#schema-validation) for full list of available schemas.
+
+When used with TypeScript, schemas can also be used to [infer the type of that value instead of having to declare it](../usage-with-typescript.mdx#schema-validation).
 
 Most commonly, you'll want to use `responseSchema` to validate the response from the server (or `rawResponseSchema` when using `transformResponse`).
 

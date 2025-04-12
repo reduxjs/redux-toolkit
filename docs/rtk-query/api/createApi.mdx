@@ -838,7 +838,9 @@ async function onCacheEntryAdded(
 
 ### Schema Validation
 
-Endpoints can have schemas for runtime validation of various values. Any [Standard Schema](https://standardschema.dev/) compliant library can be used.
+Endpoints can have schemas for runtime validation of query args, responses, and errors. Any [Standard Schema](https://standardschema.dev/) compliant library can be used.
+
+When used with TypeScript, schemas can also be used to [infer the type of that value instead of having to declare it](../usage-with-typescript.mdx#schema-validation).
 
 :::warning
 
