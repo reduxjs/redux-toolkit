@@ -2052,13 +2052,30 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
       usePromiseRefUnsubscribeOnUnmount(promiseRef)
 
+      const stableArg = useStableQueryArgs(
+        options.skip ? skipToken : arg,
+        // Even if the user provided a per-endpoint `serializeQueryArgs` with
+        // a consistent return value, _here_ we want to use the default behavior
+        // so we can tell if _anything_ actually changed. Otherwise, we can end up
+        // with a case where the query args did change but the serialization doesn't,
+        // and then we never try to initiate a refetch.
+        defaultSerializeQueryArgs,
+        context.endpointDefinitions[endpointName],
+        endpointName,
+      )
+
+      const refetch = useCallback(
+        () => refetchOrErrorIfUnmounted(promiseRef),
+        [promiseRef],
+      )
+
       return useMemo(() => {
         const fetchNextPage = () => {
-          return trigger(arg, 'forward')
+          return trigger(stableArg, 'forward')
         }
 
         const fetchPreviousPage = () => {
-          return trigger(arg, 'backward')
+          return trigger(stableArg, 'backward')
         }
 
         return {
@@ -2066,11 +2083,11 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           /**
            * A method to manually refetch data for the query
            */
-          refetch: () => refetchOrErrorIfUnmounted(promiseRef),
+          refetch,
           fetchNextPage,
           fetchPreviousPage,
         }
-      }, [promiseRef, trigger, arg])
+      }, [refetch, trigger, stableArg])
     }
 
     const useInfiniteQueryState: UseInfiniteQueryState<any> =
