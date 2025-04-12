@@ -1,12 +1,11 @@
-import * as React from 'react'
 import {
   Badge,
   Box,
   Button,
   Divider,
   Flex,
-  Heading,
   HStack,
+  Heading,
   Icon,
   List,
   ListIcon,
@@ -16,8 +15,10 @@ import {
   StatLabel,
   StatNumber,
 } from '@chakra-ui/react'
+import * as React from 'react'
 import { MdArrowBack, MdArrowForward, MdBook } from 'react-icons/md'
-import { Post, useGetPostsQuery } from '../../app/services/posts'
+import type { Post } from '../../app/services/posts'
+import { useGetPostsQuery } from '../../app/services/posts'
 
 const getColorForStatus = (status: Post['status']) => {
   return status === 'draft'

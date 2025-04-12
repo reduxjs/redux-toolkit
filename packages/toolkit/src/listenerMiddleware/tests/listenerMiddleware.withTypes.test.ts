@@ -71,9 +71,17 @@ const stopAppListening = listenerMiddleware.stopListening.withTypes<
   ExtraArgument
 >()
 
-const addAppListener = addListener.withTypes<RootState, AppDispatch, ExtraArgument>()
+const addAppListener = addListener.withTypes<
+  RootState,
+  AppDispatch,
+  ExtraArgument
+>()
 
-const removeAppListener = removeListener.withTypes<RootState, AppDispatch, ExtraArgument>()
+const removeAppListener = removeListener.withTypes<
+  RootState,
+  AppDispatch,
+  ExtraArgument
+>()
 
 describe('startAppListening.withTypes', () => {
   test('should return startListening', () => {

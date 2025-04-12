@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useRef, useState } from "react"
-import { Link, useLocation } from "react-router"
-import { useIntersectionCallback } from "../../app/useIntersectionCallback"
-import { apiWithInfiniteScroll } from "./infiniteScrollApi"
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { Link, useLocation } from 'react-router'
+import { useIntersectionCallback } from '../../app/useIntersectionCallback'
+import { apiWithInfiniteScroll } from './infiniteScrollApi'
 
 const limit = 10
 
@@ -42,8 +42,8 @@ function BidirectionalCursorInfScroll({ startingProject = { id: 25 } }) {
     const startingElement = startingProjectRef.current
     if (startingElement) {
       startingElement.scrollIntoView({
-        behavior: "auto",
-        block: "center",
+        behavior: 'auto',
+        block: 'center',
       })
       setHasCentered(true)
     }
@@ -64,30 +64,30 @@ function BidirectionalCursorInfScroll({ startingProject = { id: 25 } }) {
             disabled={!hasPreviousPage || isFetchingPreviousPage}
           >
             {isFetchingPreviousPage
-              ? "Loading more..."
+              ? 'Loading more...'
               : hasPreviousPage
-                ? "Load Older"
-                : "Nothing more to load"}
+                ? 'Load Older'
+                : 'Nothing more to load'}
           </button>
         </div>
         <div
           style={{
-            overflow: "auto",
-            margin: "1rem 0px",
-            height: "400px",
+            overflow: 'auto',
+            margin: '1rem 0px',
+            height: '400px',
           }}
         >
           <div ref={beforeRef} />
-          {data?.pages.map(page => (
+          {data?.pages.map((page) => (
             <React.Fragment key={page.pageInfo?.endCursor}>
               {page.projects.map((project, index, arr) => {
                 return (
                   <div
                     style={{
-                      margin: "1em 0px",
-                      border: "1px solid gray",
-                      borderRadius: "5px",
-                      padding: "2rem 1rem",
+                      margin: '1em 0px',
+                      border: '1px solid gray',
+                      borderRadius: '5px',
+                      padding: '2rem 1rem',
                       background: `hsla(${project.id * 30}, 60%, 80%, 1)`,
                     }}
                     key={project.id}
@@ -112,15 +112,15 @@ function BidirectionalCursorInfScroll({ startingProject = { id: 25 } }) {
             disabled={!hasNextPage || isFetchingNextPage}
           >
             {isFetchingNextPage
-              ? "Loading more..."
+              ? 'Loading more...'
               : hasNextPage
-                ? "Load Newer"
-                : "Nothing more to load"}
+                ? 'Load Newer'
+                : 'Nothing more to load'}
           </button>
         </div>
         <div>
           {isFetching && !isFetchingPreviousPage && !isFetchingNextPage
-            ? "Background Updating..."
+            ? 'Background Updating...'
             : null}
         </div>
       </>

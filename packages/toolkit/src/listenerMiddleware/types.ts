@@ -72,14 +72,10 @@ export interface ForkedTaskAPI {
 }
 
 /** @public */
-export interface AsyncTaskExecutor<T> {
-  (forkApi: ForkedTaskAPI): Promise<T>
-}
+export type AsyncTaskExecutor<T> = (forkApi: ForkedTaskAPI) => Promise<T>
 
 /** @public */
-export interface SyncTaskExecutor<T> {
-  (forkApi: ForkedTaskAPI): T
-}
+export type SyncTaskExecutor<T> = (forkApi: ForkedTaskAPI) => T
 
 /** @public */
 export type ForkedTaskExecutor<T> = AsyncTaskExecutor<T> | SyncTaskExecutor<T>
@@ -295,9 +291,10 @@ export interface ListenerErrorInfo {
  * @param error The thrown error.
  * @param errorInfo Additional information regarding the thrown error.
  */
-export interface ListenerErrorHandler {
-  (error: unknown, errorInfo: ListenerErrorInfo): void
-}
+export type ListenerErrorHandler = (
+  error: unknown,
+  errorInfo: ListenerErrorInfo,
+) => void
 
 /** @public */
 export interface CreateListenerMiddlewareOptions<ExtraArgument = unknown> {
@@ -318,9 +315,7 @@ export type ListenerMiddleware<
   >,
   ExtraArgument = unknown,
 > = Middleware<
-  {
-    (action: Action<'listenerMiddleware/add'>): UnsubscribeListener
-  },
+  (action: Action<'listenerMiddleware/add'>) => UnsubscribeListener,
   State,
   DispatchType
 >

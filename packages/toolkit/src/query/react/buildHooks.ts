@@ -7,7 +7,6 @@ import type {
 import type {
   Api,
   ApiContext,
-  ApiEndpointInfiniteQuery,
   ApiEndpointMutation,
   ApiEndpointQuery,
   BaseQueryFn,
@@ -40,8 +39,8 @@ import type {
   TSHelpersOverride,
 } from '@reduxjs/toolkit/query'
 import {
-  defaultSerializeQueryArgs,
   QueryStatus,
+  defaultSerializeQueryArgs,
   skipToken,
 } from '@reduxjs/toolkit/query'
 import type { DependencyList } from 'react'
@@ -56,16 +55,16 @@ import {
 } from 'react'
 import { shallowEqual } from 'react-redux'
 
+import type { InfiniteQueryDirection } from '../core/apiState'
+import type { StartInfiniteQueryActionCreator } from '../core/buildInitiate'
 import type { SubscriptionSelectors } from '../core/buildMiddleware/index'
-import type { InfiniteData, InfiniteQueryConfigOptions } from '../core/index'
+import type { InfiniteData } from '../core/index'
+import { isInfiniteQueryDefinition } from '../endpointDefinitions'
 import type { UninitializedValue } from './constants'
 import { UNINITIALIZED_VALUE } from './constants'
 import type { ReactHooksModuleOptions } from './module'
 import { useStableQueryArgs } from './useSerializedStableValue'
 import { useShallowStableValue } from './useShallowStableValue'
-import type { InfiniteQueryDirection } from '../core/apiState'
-import { isInfiniteQueryDefinition } from '../endpointDefinitions'
-import type { StartInfiniteQueryActionCreator } from '../core/buildInitiate'
 
 // Copy-pasted from React-Redux
 const canUseDOM = () =>
@@ -318,7 +317,7 @@ export type TypedUseLazyQueryStateResult<
   R
 >
 
-export type LazyQueryTrigger<D extends QueryDefinition<any, any, any, any>> = {
+export type LazyQueryTrigger<D extends QueryDefinition<any, any, any, any>> =
   /**
    * Triggers a lazy query.
    *
@@ -342,8 +341,7 @@ export type LazyQueryTrigger<D extends QueryDefinition<any, any, any, any>> = {
   (
     arg: QueryArgFrom<D>,
     preferCacheValue?: boolean,
-  ): QueryActionCreatorResult<D>
-}
+  ) => QueryActionCreatorResult<D>
 
 export type TypedLazyQueryTrigger<
   ResultType,
@@ -766,7 +764,7 @@ type UseQueryStateDefaultResult<D extends QueryDefinition<any, any, any, any>> =
 
 export type LazyInfiniteQueryTrigger<
   D extends InfiniteQueryDefinition<any, any, any, any, any>,
-> = {
+> =
   /**
    * Triggers a lazy query.
    *
@@ -790,8 +788,7 @@ export type LazyInfiniteQueryTrigger<
   (
     arg: QueryArgFrom<D>,
     direction: InfiniteQueryDirection,
-  ): InfiniteQueryActionCreatorResult<D>
-}
+  ) => InfiniteQueryActionCreatorResult<D>
 
 export type TypedLazyInfiniteQueryTrigger<
   ResultType,
@@ -1355,25 +1352,23 @@ export type TypedUseMutation<
 >
 
 export type MutationTrigger<D extends MutationDefinition<any, any, any, any>> =
-  {
-    /**
-     * Triggers the mutation and returns a Promise.
-     * @remarks
-     * If you need to access the error or success payload immediately after a mutation, you can chain .unwrap().
-     *
-     * @example
-     * ```ts
-     * // codeblock-meta title="Using .unwrap with async await"
-     * try {
-     *   const payload = await addPost({ id: 1, name: 'Example' }).unwrap();
-     *   console.log('fulfilled', payload)
-     * } catch (error) {
-     *   console.error('rejected', error);
-     * }
-     * ```
-     */
-    (arg: QueryArgFrom<D>): MutationActionCreatorResult<D>
-  }
+  /**
+   * Triggers the mutation and returns a Promise.
+   * @remarks
+   * If you need to access the error or success payload immediately after a mutation, you can chain .unwrap().
+   *
+   * @example
+   * ```ts
+   * // codeblock-meta title="Using .unwrap with async await"
+   * try {
+   *   const payload = await addPost({ id: 1, name: 'Example' }).unwrap();
+   *   console.log('fulfilled', payload)
+   * } catch (error) {
+   *   console.error('rejected', error);
+   * }
+   * ```
+   */
+  (arg: QueryArgFrom<D>) => MutationActionCreatorResult<D>
 
 export type TypedMutationTrigger<
   ResultType,
@@ -1670,7 +1665,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
      */
     const promiseRef = useRef<T | undefined>(undefined)
 
-    let { queryCacheKey, requestId } = promiseRef.current || {}
+    const { queryCacheKey, requestId } = promiseRef.current || {}
 
     // HACK We've saved the middleware subscription lookup callbacks into a ref,
     // so we can directly check here if the subscription exists for this query.
@@ -1834,7 +1829,6 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     useEffect(() => {
       return () => {
         promiseRef.current?.unsubscribe?.()
-        // eslint-disable-next-line react-hooks/exhaustive-deps
         ;(promiseRef.current as any) = undefined
       }
     }, [promiseRef])

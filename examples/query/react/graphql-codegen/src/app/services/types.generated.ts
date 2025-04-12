@@ -1,5 +1,5 @@
 export type Maybe<T> = T
-export type Exact<T extends { [key: string]: unknown }> = {
+export type Exact<T extends Record<string, unknown>> = {
   [K in keyof T]: T[K]
 }
 export type MakeOptional<T, K extends keyof T> = Omit<T, K> & {
@@ -30,9 +30,9 @@ export type Mutation = {
   __typename?: 'Mutation'
   createPost?: Maybe<Post>
   updatePost?: Maybe<Post>
-  updatePosts?: Maybe<Array<Maybe<Post>>>
+  updatePosts?: Maybe<Maybe<Post>[]>
   deletePost?: Maybe<Post>
-  deletePosts?: Maybe<Array<Maybe<Post>>>
+  deletePosts?: Maybe<Maybe<Post>[]>
 }
 
 export type MutationCreatePostArgs = {
@@ -94,7 +94,7 @@ export type PostQueryInput = {
 export type Query = {
   __typename?: 'Query'
   post?: Maybe<Post>
-  posts?: Maybe<Array<Maybe<Post>>>
+  posts?: Maybe<Maybe<Post>[]>
 }
 
 export type QueryPostArgs = {

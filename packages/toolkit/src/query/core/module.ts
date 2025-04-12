@@ -10,6 +10,7 @@ import type {
   UnknownAction,
 } from '@reduxjs/toolkit'
 import { enablePatches } from 'immer'
+import type { AnyNonNullishValue } from '../../tsHelpers'
 import type { Api, Module } from '../apiTypes'
 import type { BaseQueryFn } from '../baseQueryTypes'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
@@ -36,12 +37,12 @@ import type {
   RootState,
 } from './apiState'
 import type {
+  BuildInitiateApiEndpointInfiniteQuery,
   BuildInitiateApiEndpointMutation,
   BuildInitiateApiEndpointQuery,
+  InfiniteQueryActionCreatorResult,
   MutationActionCreatorResult,
   QueryActionCreatorResult,
-  InfiniteQueryActionCreatorResult,
-  BuildInitiateApiEndpointInfiniteQuery,
 } from './buildInitiate'
 import { buildInitiate } from './buildInitiate'
 import type {
@@ -96,7 +97,6 @@ export type CoreModule =
 export type ThunkWithReturnValue<T> = ThunkAction<T, any, any, UnknownAction>
 
 export interface ApiModules<
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   BaseQuery extends BaseQueryFn,
   Definitions extends EndpointDefinitions,
   ReducerPath extends string,
@@ -152,7 +152,7 @@ export interface ApiModules<
      * ```
      */
     middleware: Middleware<
-      {},
+      AnyNonNullishValue,
       RootState<Definitions, string, ReducerPath>,
       ThunkDispatch<any, any, UnknownAction>
     >
@@ -212,9 +212,10 @@ export interface ApiModules<
        * See https://redux-toolkit.js.org/rtk-query/usage/server-side-rendering for details.
        */
       getRunningQueriesThunk(): ThunkWithReturnValue<
-        Array<
-          QueryActionCreatorResult<any> | InfiniteQueryActionCreatorResult<any>
-        >
+        (
+          | QueryActionCreatorResult<any>
+          | InfiniteQueryActionCreatorResult<any>
+        )[]
       >
 
       /**
@@ -226,7 +227,7 @@ export interface ApiModules<
        * See https://redux-toolkit.js.org/rtk-query/usage/server-side-rendering for details.
        */
       getRunningMutationsThunk(): ThunkWithReturnValue<
-        Array<MutationActionCreatorResult<any>>
+        MutationActionCreatorResult<any>[]
       >
 
       /**
@@ -367,7 +368,7 @@ export interface ApiModules<
        * ```
        */
       invalidateTags: ActionCreatorWithPayload<
-        Array<TagDescription<TagTypes> | null | undefined>,
+        (TagDescription<TagTypes> | null | undefined)[],
         string
       >
 
@@ -378,12 +379,12 @@ export interface ApiModules<
        */
       selectInvalidatedBy: (
         state: RootState<Definitions, string, ReducerPath>,
-        tags: ReadonlyArray<TagDescription<TagTypes> | null | undefined>,
-      ) => Array<{
+        tags: readonly (TagDescription<TagTypes> | null | undefined)[],
+      ) => {
         endpointName: string
         originalArgs: any
         queryCacheKey: string
-      }>
+      }[]
 
       /**
        * A function to select all arguments currently cached for a given endpoint.
@@ -393,7 +394,7 @@ export interface ApiModules<
       selectCachedArgsForQuery: <QueryName extends AllQueryKeys<Definitions>>(
         state: RootState<Definitions, string, ReducerPath>,
         queryName: QueryName,
-      ) => Array<QueryArgFromAnyQuery<Definitions[QueryName]>>
+      ) => QueryArgFromAnyQuery<Definitions[QueryName]>[]
     }
     /**
      * Endpoints based on the input endpoints provided to `createApi`, containing `select` and `action matchers`.
@@ -423,9 +424,7 @@ export interface ApiModules<
 }
 
 export interface ApiEndpointQuery<
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Definition extends QueryDefinition<any, any, any, any, any>,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Definitions extends EndpointDefinitions,
 > extends BuildThunksApiEndpointQuery<Definition>,
     BuildInitiateApiEndpointQuery<Definition>,
@@ -438,9 +437,7 @@ export interface ApiEndpointQuery<
 }
 
 export interface ApiEndpointInfiniteQuery<
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Definition extends InfiniteQueryDefinition<any, any, any, any, any>,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Definitions extends EndpointDefinitions,
 > extends BuildThunksApiEndpointInfiniteQuery<Definition>,
     BuildInitiateApiEndpointInfiniteQuery<Definition>,
@@ -452,11 +449,8 @@ export interface ApiEndpointInfiniteQuery<
   Types: NonNullable<Definition['Types']>
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export interface ApiEndpointMutation<
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Definition extends MutationDefinition<any, any, any, any, any>,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Definitions extends EndpointDefinitions,
 > extends BuildThunksApiEndpointMutation<Definition>,
     BuildInitiateApiEndpointMutation<Definition>,

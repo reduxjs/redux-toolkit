@@ -1,20 +1,19 @@
-import type { EntityAdapter, EntityState } from '../models'
+import { createNextState } from '../..'
 import { createEntityAdapter } from '../create_adapter'
+import type { EntityAdapter, EntityState } from '../models'
 import type { BookModel } from './fixtures/book'
 import {
-  TheGreatGatsby,
   AClockworkOrange,
   AnimalFarm,
+  TheGreatGatsby,
   TheHobbit,
 } from './fixtures/book'
-import { createNextState } from '../..'
 
 describe('Unsorted State Adapter', () => {
   let adapter: EntityAdapter<BookModel, string>
   let state: EntityState<BookModel, string>
 
   beforeAll(() => {
-    //eslint-disable-next-line
     Object.defineProperty(Array.prototype, 'unwantedField', {
       enumerable: true,
       configurable: true,
@@ -272,9 +271,9 @@ describe('Unsorted State Adapter', () => {
         entities: { b: { id: 'b', title: 'First' }, c: { id: 'c' } }
       }
       We now expect that only 'c' will be left:
-      { 
-        ids: [ 'c' ], 
-        entities: { c: { id: 'c', title: 'First' } } 
+      {
+        ids: [ 'c' ],
+        entities: { c: { id: 'c', title: 'First' } }
       }
     */
     expect(ids.length).toBe(1)
@@ -361,7 +360,9 @@ describe('Unsorted State Adapter', () => {
     const withMany = adapter.setAll(state, [TheGreatGatsby])
 
     const withUpserts = adapter.upsertMany(withMany, [
-      {...AClockworkOrange}, { ...AClockworkOrange, ...firstChange }, {...AClockworkOrange, ...secondChange}
+      { ...AClockworkOrange },
+      { ...AClockworkOrange, ...firstChange },
+      { ...AClockworkOrange, ...secondChange },
     ])
 
     expect(withUpserts).toEqual({

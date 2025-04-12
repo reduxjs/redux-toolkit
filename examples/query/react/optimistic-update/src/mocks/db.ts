@@ -1,6 +1,7 @@
 import { factory, primaryKey } from '@mswjs/data'
 import { rest } from 'msw'
-import { Post } from '../app/services/posts'
+import type { Post } from '../app/services/posts'
+
 const db = factory({
   post: {
     id: primaryKey(String),
