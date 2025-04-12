@@ -909,7 +909,10 @@ describe('Infinite queries', () => {
         pages: [[{ id: '0', name: 'Pokemon 0' }]],
         pageParams: [0],
       },
-      meta: undefined,
+      meta: expect.objectContaining({
+        request: expect.anything(),
+        response: expect.anything(),
+      }),
     })
 
     expect(queryStartedCallback).toHaveBeenCalledWith('fire', {
@@ -917,7 +920,10 @@ describe('Infinite queries', () => {
         pages: [[{ id: '0', name: 'Pokemon 0' }]],
         pageParams: [0],
       },
-      meta: undefined,
+      meta: expect.objectContaining({
+        request: expect.anything(),
+        response: expect.anything(),
+      }),
     })
   })
 

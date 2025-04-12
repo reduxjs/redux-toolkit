@@ -553,6 +553,7 @@ export function buildThunks<
             pages: addTo(data.pages, pageResponse.data, maxPages),
             pageParams: addTo(data.pageParams, param, maxPages),
           },
+          meta: pageResponse.meta,
         }
       }
 
