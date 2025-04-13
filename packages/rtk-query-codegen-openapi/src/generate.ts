@@ -448,7 +448,11 @@ export async function generateApi(
         const encodedValue =
           encodeQueryParams && param.param?.in === 'query'
             ? factory.createConditionalExpression(
-                value,
+                factory.createBinaryExpression(
+                  value,
+                  ts.SyntaxKind.ExclamationEqualsToken,
+                  factory.createNull()
+                ),
                 undefined,
                 factory.createCallExpression(factory.createIdentifier('encodeURIComponent'), undefined, [
                   factory.createCallExpression(factory.createIdentifier('String'), undefined, [value]),
