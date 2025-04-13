@@ -1,0 +1,8 @@
+{
+  "extends": "@reduxjs/tsconfig/base",
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "moduleResolution": "Node10"
+  },
+  "display": "TypeScript configuration with `Node10` module resolution. It serves as a backwards compatible replacement for the deprecated `Node` module resolution."
+}

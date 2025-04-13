@@ -16,9 +16,9 @@ import type {
   TagTypesFromApi,
 } from '@reduxjs/toolkit/query'
 import {
+  NamedSchemaError,
   createApi,
   fetchBaseQuery,
-  NamedSchemaError,
 } from '@reduxjs/toolkit/query'
 import { HttpResponse, delay, http } from 'msw'
 import nodeFetch from 'node-fetch'
@@ -1215,8 +1215,8 @@ describe('endpoint schemas', () => {
     stack: expect.any(String),
   } satisfies SerializedError
 
-  const onSchemaFailureGlobal = vi.fn<Parameters<SchemaFailureHandler>>()
-  const onSchemaFailureEndpoint = vi.fn<Parameters<SchemaFailureHandler>>()
+  const onSchemaFailureGlobal = vi.fn<SchemaFailureHandler>()
+  const onSchemaFailureEndpoint = vi.fn<SchemaFailureHandler>()
   afterEach(() => {
     onSchemaFailureGlobal.mockClear()
     onSchemaFailureEndpoint.mockClear()
