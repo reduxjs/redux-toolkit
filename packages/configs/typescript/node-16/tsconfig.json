@@ -1,0 +1,9 @@
+{
+  "extends": "@reduxjs/tsconfig/base",
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "module": "Node16",
+    "moduleResolution": "Node16"
+  },
+  "display": "TypeScript configuration with `Node16` module resolution"
+}
