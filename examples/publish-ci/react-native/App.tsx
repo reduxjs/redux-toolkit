@@ -1,3 +1,4 @@
+import type { JSX } from 'react'
 import {
   SafeAreaView,
   ScrollView,
@@ -6,23 +7,22 @@ import {
   Text,
   View,
   useColorScheme,
-} from "react-native"
-import { Counter } from "./src/features/counter/Counter"
-
+} from 'react-native'
 import {
   DebugInstructions,
   HermesBadge,
   LearnMoreLinks,
   ReloadInstructions,
-} from "react-native/Libraries/NewAppScreen"
-import { Header } from "./src/components/Header"
-import { LearnReduxLinks } from "./src/components/LearnReduxLinks"
-import { Section } from "./src/components/Section"
-import { TypedColors } from "./src/constants/TypedColors"
-import { Quotes } from "./src/features/quotes/Quotes"
+} from 'react-native/Libraries/NewAppScreen'
+import { Header } from './src/components/Header'
+import { LearnReduxLinks } from './src/components/LearnReduxLinks'
+import { Section } from './src/components/Section'
+import { TypedColors } from './src/constants/TypedColors'
+import { Counter } from './src/features/counter/Counter'
+import { Quotes } from './src/features/quotes/Quotes'
 
-export const App = () => {
-  const isDarkMode = useColorScheme() === "dark"
+export const App = (): JSX.Element => {
+  const isDarkMode = useColorScheme() === 'dark'
 
   const backgroundStyle = {
     backgroundColor: isDarkMode ? TypedColors.darker : TypedColors.lighter,
@@ -31,7 +31,7 @@ export const App = () => {
   return (
     <SafeAreaView style={backgroundStyle}>
       <StatusBar
-        barStyle={isDarkMode ? "light-content" : "dark-content"}
+        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
         backgroundColor={backgroundStyle.backgroundColor}
       />
       <ScrollView
@@ -73,6 +73,6 @@ export const App = () => {
 
 const styles = StyleSheet.create({
   highlight: {
-    fontWeight: "700",
+    fontWeight: '700',
   },
 })
