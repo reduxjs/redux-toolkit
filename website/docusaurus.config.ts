@@ -70,6 +70,7 @@ const config: Config = {
   customFields: {
     repoUrl: 'https://github.com/reduxjs/redux-toolkit',
   },
+  themes: [require.resolve('@getcanary/docusaurus-theme-search-pagefind')],
   themeConfig: {
     tableOfContents: {
       minHeadingLevel: 2,
@@ -185,11 +186,11 @@ const config: Config = {
       ],
       copyright: `Copyright © 2015–${new Date().getFullYear()} Dan Abramov and the Redux documentation authors.`,
     },
-    algolia: {
-      appId: 'CK59DFV0FC',
-      apiKey: '98e886dfbcde7f7e8ec8d7ff1c2c34c8',
-      indexName: 'redux-starter-kit',
-    },
+    // algolia: {
+    //   appId: 'CK59DFV0FC',
+    //   apiKey: '98e886dfbcde7f7e8ec8d7ff1c2c34c8',
+    //   indexName: 'redux-starter-kit',
+    // },
   } satisfies ThemeConfig,
   plugins: [
     [
