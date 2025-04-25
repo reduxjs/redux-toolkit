@@ -64,7 +64,10 @@ import type { ReactHooksModuleOptions } from './module'
 import { useStableQueryArgs } from './useSerializedStableValue'
 import { useShallowStableValue } from './useShallowStableValue'
 import type { InfiniteQueryDirection } from '../core/apiState'
-import { isInfiniteQueryDefinition } from '../endpointDefinitions'
+import {
+  isInfiniteQueryDefinition,
+  isQueryDefinition,
+} from '../endpointDefinitions'
 import type { StartInfiniteQueryActionCreator } from '../core/buildInitiate'
 
 // Copy-pasted from React-Redux
@@ -1992,9 +1995,17 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       },
       useQuery(arg, options) {
         const querySubscriptionResults = useQuerySubscription(arg, options)
+        const store = useStore<RootState<Definitions, any, any>>()
+
+        const endpointDefinition = context.endpointDefinitions[endpointName]
+        const shouldSkipFromCondition =
+          isQueryDefinition(endpointDefinition) &&
+          endpointDefinition?.skipCondition &&
+          endpointDefinition?.skipCondition(store.getState())
+
         const queryStateResults = useQueryState(arg, {
           selectFromResult:
-            arg === skipToken || options?.skip
+            arg === skipToken || options?.skip || shouldSkipFromCondition
               ? undefined
               : noPendingQueryStateSelector,
           ...options,

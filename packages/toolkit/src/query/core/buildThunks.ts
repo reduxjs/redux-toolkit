@@ -921,6 +921,14 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
 
         if (
           isQueryDefinition(endpointDefinition) &&
+          endpointDefinition?.skipCondition &&
+          endpointDefinition?.skipCondition(state)
+        ) {
+          return false
+        }
+
+        if (
+          isQueryDefinition(endpointDefinition) &&
           endpointDefinition?.forceRefetch?.({
             currentArg,
             previousArg,
