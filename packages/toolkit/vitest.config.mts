@@ -25,4 +25,7 @@ export default defineConfig({
     server: { deps: { inline: ['redux', '@reduxjs/toolkit'] } },
     unstubEnvs: true,
   },
+  resolve: {
+    mainFields: ['module'],
+  },
 })
