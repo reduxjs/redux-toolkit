@@ -1,9 +1,9 @@
-import type { RenderOptions } from "@testing-library/react-native"
-import { render, userEvent } from "@testing-library/react-native"
-import type { PropsWithChildren, ReactElement } from "react"
-import { Provider } from "react-redux"
-import type { AppStore, RootState } from "../app/store"
-import { makeStore } from "../app/store"
+import type { RenderOptions } from '@testing-library/react-native'
+import { render, userEvent } from '@testing-library/react-native'
+import type { PropsWithChildren, ReactElement } from 'react'
+import { Provider } from 'react-redux'
+import type { AppStore, RootState } from '../app/store'
+import { makeStore } from '../app/store'
 
 /**
  * This type extends the default options for
@@ -11,7 +11,7 @@ import { makeStore } from "../app/store"
  * additional configuration such as specifying an initial Redux state and
  * a custom store instance.
  */
-interface ExtendedRenderOptions extends Omit<RenderOptions, "queries"> {
+type ExtendedRenderOptions = Omit<RenderOptions, 'queries'> & {
   /**
    * Defines a specific portion or the entire initial state for the Redux store.
    * This is particularly useful for initializing the state in a
