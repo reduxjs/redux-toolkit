@@ -114,10 +114,17 @@ jobs:
       - name: Erase path aliases
         run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json
 
-      - name: Run tests, against dist
+      - name: Ensure there's no dist folder
+        run: rm -rf dist
+
+      - name: Change RTK package name to ensure node_modules is used
+        run: sed -i -e 's|@reduxjs/toolkit|@reduxjs/toolkit-test|' ./package.json
+
+      - name: Run tests, against installed artifact
         env:
           TEST_DIST: true
-        run: yarn test
+        working-directory: ./packages/toolkit
+        run: ../../node_modules/.bin/vitest --run --typecheck
 
       - name: Run type tests with `moduleResolution Bundler`
         run: rm -rf dist && yarn tsc -p . --moduleResolution Bundler --module ESNext --noEmit false --declaration --emitDeclarationOnly --outDir dist --target ESNext && rm -rf dist
