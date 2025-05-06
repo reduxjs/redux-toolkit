@@ -57,14 +57,16 @@ function createSlice({
     name: string,
     // The initial state for the reducer
     initialState: State,
-    // An object of "case reducers". Key names will be used to generate actions.
-    reducers: Record<string, ReducerFunction | ReducerAndPrepareObject>,
+    // An object of "case reducers", or a callback that returns an object. Key names will be used to generate actions.
+    reducers: Record<string, ReducerFunction | ReducerAndPrepareObject> | ((create: ReducerCreators<State>) => Record<string, ReducerDefinition>),
     // A "builder callback" function used to add more reducers
     extraReducers?: (builder: ActionReducerMapBuilder<State>) => void,
     // A preference for the slice reducer's location, used by `combineSlices` and `slice.selectors`. Defaults to `name`.
     reducerPath?: string,
     // An object of selectors, which receive the slice's state as their first parameter.
     selectors?: Record<string, (sliceState: State, ...args: any[]) => any>,
+    // An object of custom slice creators, used by the reducer callback.
+    creators?: Record<string, ReducerCreator>
 })
 ```
 
@@ -455,6 +457,14 @@ const counterSlice = createSlice({
 ```
 
 :::
+
+### `creators`
+
+While typically [custom creators](/usage/custom-slice-creators) will be provided on a per-app basis (see [`buildCreateSlice`](#buildcreateslice)), this field allows for custom slice creators to be passed in per slice.
+
+This is particularly useful when using a custom creator that is specific to a single slice.
+
+An error will be thrown if there is a naming conflict between an app-wide custom creator and a slice-specific custom creator.
 
 ## Return Value
 
