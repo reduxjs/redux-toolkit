@@ -1117,6 +1117,7 @@ export type UseInfiniteQueryStateOptions<
    * `selectFromResult` allows you to get a specific segment from a query result in a performant manner.
    * When using this feature, the component will not rerender unless the underlying data of the selected item has changed.
    * If the selected item is one element in a larger collection, it will disregard changes to elements in the same collection.
+   * Note that this should always return an object (not a primitive), as RTKQ adds fields to the return value.
    *
    * @example
    * ```ts

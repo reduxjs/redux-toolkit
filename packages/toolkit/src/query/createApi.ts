@@ -305,7 +305,7 @@ export type CreateApi<Modules extends ModuleName> = {
   /**
    * Creates a service to use in your application. Contains only the basic redux logic (the core module).
    *
-   * @link https://rtk-query-docs.netlify.app/api/createApi
+   * @link https://redux-toolkit.js.org/rtk-query/api/createApi
    */
   <
     BaseQuery extends BaseQueryFn,
@@ -320,7 +320,7 @@ export type CreateApi<Modules extends ModuleName> = {
 /**
  * Builds a `createApi` method based on the provided `modules`.
  *
- * @link https://rtk-query-docs.netlify.app/concepts/customizing-create-api
+ * @link https://redux-toolkit.js.org/rtk-query/usage/customizing-create-api
  *
  * @example
  * ```ts
