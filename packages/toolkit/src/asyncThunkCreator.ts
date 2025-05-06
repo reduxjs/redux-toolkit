@@ -15,37 +15,6 @@ import type {
 import { ReducerType } from './createSlice'
 import type { Id } from './tsHelpers'
 
-export type AsyncThunkCreatorExposes<
-  State,
-  CaseReducers extends CreatorCaseReducers<State>,
-> = {
-  actions: {
-    [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends AsyncThunkSliceReducerDefinition<
-      State,
-      infer ThunkArg,
-      infer Returned,
-      infer ThunkApiConfig
-    >
-      ? AsyncThunk<Returned, ThunkArg, ThunkApiConfig>
-      : never
-  }
-  caseReducers: {
-    [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends AsyncThunkSliceReducerDefinition<
-      State,
-      any,
-      any,
-      any
-    >
-      ? Id<
-          Pick<
-            Required<CaseReducers[ReducerName]>,
-            'fulfilled' | 'rejected' | 'pending' | 'settled'
-          >
-        >
-      : never
-  }
-}
-
 export type AsyncThunkSliceReducerConfig<
   State,
   ThunkArg extends any,
@@ -143,6 +112,37 @@ export interface AsyncThunkCreator<
     State,
     OverrideThunkApiConfigs<CurriedThunkApiConfig, ThunkApiConfig>
   >
+}
+
+export type AsyncThunkCreatorExposes<
+  State,
+  CaseReducers extends CreatorCaseReducers<State>,
+> = {
+  actions: {
+    [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends AsyncThunkSliceReducerDefinition<
+      State,
+      infer ThunkArg,
+      infer Returned,
+      infer ThunkApiConfig
+    >
+      ? AsyncThunk<Returned, ThunkArg, ThunkApiConfig>
+      : never
+  }
+  caseReducers: {
+    [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends AsyncThunkSliceReducerDefinition<
+      State,
+      any,
+      any,
+      any
+    >
+      ? Id<
+          Pick<
+            Required<CaseReducers[ReducerName]>,
+            'fulfilled' | 'rejected' | 'pending' | 'settled'
+          >
+        >
+      : never
+  }
 }
 
 export const asyncThunkCreator: ReducerCreator<ReducerType.asyncThunk> = {
