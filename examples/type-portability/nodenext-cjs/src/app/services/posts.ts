@@ -76,6 +76,18 @@ namespace postsModule {
       getErrorProne: build.query<{ success: boolean }, void>({
         query: () => 'error-prone',
       }),
+      getInfinitePosts: build.infiniteQuery<PostsResponse, void, number>({
+        queryFn: ({ pageParam = 0 }) => ({
+          data: [],
+        }),
+        infiniteQueryOptions: {
+          initialPageParam: 0,
+          getNextPageParam: (lastPage) =>
+            lastPage.length === 0
+              ? undefined
+              : lastPage[lastPage.length - 1].id,
+        },
+      }),
     }),
   })
 
@@ -90,6 +102,7 @@ namespace postsModule {
     useLazyGetErrorProneQuery,
     useLazyGetPostQuery,
     useLazyGetPostsQuery,
+    useGetInfinitePostsInfiniteQuery,
     endpoints,
     enhanceEndpoints,
     injectEndpoints,
@@ -109,6 +122,7 @@ namespace postsModule {
     getPosts,
     login,
     updatePost,
+    getInfinitePosts,
   } = endpoints
 
   export const {
@@ -184,6 +198,19 @@ namespace postsModule {
     select: _____select,
     useMutation: _____useMutation,
   } = updatePost
+
+  export const {
+    Types: ______Types,
+    initiate: ______initiate,
+    matchFulfilled: ______matchFulfilled,
+    matchPending: ______matchPending,
+    matchRejected: ______matchRejected,
+    name: ______name,
+    select: ______select,
+    useInfiniteQueryState: ______useQueryState,
+    useInfiniteQuery: ______useQuery,
+    useInfiniteQuerySubscription: ______useQuerySubscription,
+  } = getInfinitePosts
 
   export const {
     internal_getRTKQSubscriptions,

@@ -6,14 +6,7 @@
   "module": "../../dist/query/react/rtk-query-react.legacy-esm.js",
   "main": "../../dist/query/react/cjs/index.js",
   "types": "./../../dist/query/react/index.d.ts",
-  "exports": {
-    "./package.json": "./package.json",
-    ".": {
-      "types": "./../../dist/query/react/index.d.ts",
-      "import": "./../../dist/query/react/rtk-query-react.modern.mjs",
-      "default": "./../../dist/query/react/cjs/index.js"
-    }
-  },
+  "react-native": "./../../dist/query/react/rtk-query-react.legacy-esm.js",
   "author": "Mark Erikson <mark@isquaredsoftware.com>",
   "license": "MIT",
   "sideEffects": false

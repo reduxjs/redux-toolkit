@@ -1,25 +1,27 @@
-import {
-  mockConsole,
-  createConsole,
-  getLog,
-} from 'console-testing-library/pure'
+import { noop } from '@internal/listenerMiddleware/utils'
+import { isNestedFrozen } from '@internal/serializableStateInvariantMiddleware'
 import type { Reducer } from '@reduxjs/toolkit'
 import {
-  createNextState,
   configureStore,
+  createNextState,
   createSerializableStateInvariantMiddleware,
   findNonSerializableValue,
   isPlain,
   Tuple,
 } from '@reduxjs/toolkit'
-import { isNestedFrozen } from '@internal/serializableStateInvariantMiddleware'
 
 // Mocking console
-let restore = () => {}
-beforeEach(() => {
-  restore = mockConsole(createConsole())
+const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(noop)
+
+const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(noop)
+
+afterEach(() => {
+  vi.clearAllMocks()
 })
-afterEach(() => restore())
+
+afterAll(() => {
+  vi.restoreAllMocks()
+})
 
 describe('findNonSerializableValue', () => {
   it('Should return false if no matching values are found', () => {
@@ -109,15 +111,16 @@ describe('serializableStateInvariantMiddleware', () => {
 
     store.dispatch(dispatchedAction)
 
-    expect(getLog().log).toMatchInlineSnapshot(`
-      "A non-serializable value was detected in an action, in the path: \`payload\`. Value: Symbol(SOME_CONSTANT) 
-      Take a look at the logic that dispatched this action:  Object {
-        "payload": Symbol(SOME_CONSTANT),
-        "type": "an-action",
-      } 
-      (See https://redux.js.org/faq/actions#why-should-type-be-a-string-or-at-least-serializable-why-should-my-action-types-be-constants) 
-      (To allow non-serializable values see: https://redux-toolkit.js.org/usage/usage-guide#working-with-non-serializable-data)"
-    `)
+    expect(consoleErrorSpy).toHaveBeenCalledOnce()
+
+    expect(consoleErrorSpy).toHaveBeenLastCalledWith(
+      `A non-serializable value was detected in an action, in the path: \`payload\`. Value:`,
+      symbol,
+      `\nTake a look at the logic that dispatched this action: `,
+      dispatchedAction,
+      `\n(See https://redux.js.org/faq/actions#why-should-type-be-a-string-or-at-least-serializable-why-should-my-action-types-be-constants)`,
+      `\n(To allow non-serializable values see: https://redux-toolkit.js.org/usage/usage-guide#working-with-non-serializable-data)`,
+    )
   })
 
   it('Should log an error when a non-serializable value is in state', () => {
@@ -153,11 +156,14 @@ describe('serializableStateInvariantMiddleware', () => {
 
     store.dispatch({ type: ACTION_TYPE })
 
-    expect(getLog().log).toMatchInlineSnapshot(`
-      "A non-serializable value was detected in the state, in the path: \`testSlice.a\`. Value: Map {} 
-      Take a look at the reducer(s) handling this action type: TEST_ACTION.
-      (See https://redux.js.org/faq/organizing-state#can-i-put-functions-promises-or-other-non-serializable-items-in-my-store-state)"
-    `)
+    expect(consoleErrorSpy).toHaveBeenCalledOnce()
+
+    expect(consoleErrorSpy).toHaveBeenLastCalledWith(
+      `A non-serializable value was detected in the state, in the path: \`testSlice.a\`. Value:`,
+      badValue,
+      `\nTake a look at the reducer(s) handling this action type: TEST_ACTION.
+(See https://redux.js.org/faq/organizing-state#can-i-put-functions-promises-or-other-non-serializable-items-in-my-store-state)`,
+    )
   })
 
   describe('consumer tolerated structures', () => {
@@ -213,12 +219,15 @@ describe('serializableStateInvariantMiddleware', () => {
 
       store.dispatch({ type: ACTION_TYPE })
 
+      expect(consoleErrorSpy).toHaveBeenCalledOnce()
+
       // since default options are used, the `entries` function in `serializableObject` will cause the error
-      expect(getLog().log).toMatchInlineSnapshot(`
-        "A non-serializable value was detected in the state, in the path: \`testSlice.a.entries\`. Value: [Function entries] 
-        Take a look at the reducer(s) handling this action type: TEST_ACTION.
-        (See https://redux.js.org/faq/organizing-state#can-i-put-functions-promises-or-other-non-serializable-items-in-my-store-state)"
-      `)
+      expect(consoleErrorSpy).toHaveBeenLastCalledWith(
+        `A non-serializable value was detected in the state, in the path: \`testSlice.a.entries\`. Value:`,
+        serializableObject.entries,
+        `\nTake a look at the reducer(s) handling this action type: TEST_ACTION.
+(See https://redux.js.org/faq/organizing-state#can-i-put-functions-promises-or-other-non-serializable-items-in-my-store-state)`,
+      )
     })
 
     it('Should use consumer supplied isSerializable and getEntries options to tolerate certain structures', () => {
@@ -260,12 +269,15 @@ describe('serializableStateInvariantMiddleware', () => {
 
       store.dispatch({ type: ACTION_TYPE })
 
+      expect(consoleErrorSpy).toHaveBeenCalledOnce()
+
       // error reported is from a nested class instance, rather than the `entries` function `serializableObject`
-      expect(getLog().log).toMatchInlineSnapshot(`
-        "A non-serializable value was detected in the state, in the path: \`testSlice.a.third.bad-map-instance\`. Value: Map {} 
-        Take a look at the reducer(s) handling this action type: TEST_ACTION.
-        (See https://redux.js.org/faq/organizing-state#can-i-put-functions-promises-or-other-non-serializable-items-in-my-store-state)"
-      `)
+      expect(consoleErrorSpy).toHaveBeenLastCalledWith(
+        `A non-serializable value was detected in the state, in the path: \`testSlice.a.third.bad-map-instance\`. Value:`,
+        nonSerializableValue,
+        `\nTake a look at the reducer(s) handling this action type: TEST_ACTION.
+(See https://redux.js.org/faq/organizing-state#can-i-put-functions-promises-or-other-non-serializable-items-in-my-store-state)`,
+      )
     })
   })
 
@@ -306,7 +318,7 @@ describe('serializableStateInvariantMiddleware', () => {
 
     // Supplied 'isSerializable' considers all values serializable, hence
     // no error logging is expected:
-    expect(getLog().log).toBe('')
+    expect(consoleErrorSpy).not.toHaveBeenCalled()
   })
 
   it('should not check serializability for ignored action types', () => {
@@ -352,7 +364,7 @@ describe('serializableStateInvariantMiddleware', () => {
           new Tuple(createSerializableStateInvariantMiddleware()),
       }).dispatch({ type: 'test', meta: { arg: nonSerializableValue } })
 
-      expect(getLog().log).toMatchInlineSnapshot(`""`)
+      expect(consoleErrorSpy).not.toHaveBeenCalled()
     })
 
     it('default value can be overridden', () => {
@@ -366,17 +378,16 @@ describe('serializableStateInvariantMiddleware', () => {
           ),
       }).dispatch({ type: 'test', meta: { arg: nonSerializableValue } })
 
-      expect(getLog().log).toMatchInlineSnapshot(`
-        "A non-serializable value was detected in an action, in the path: \`meta.arg\`. Value: Map {} 
-        Take a look at the logic that dispatched this action:  Object {
-          "meta": Object {
-            "arg": Map {},
-          },
-          "type": "test",
-        } 
-        (See https://redux.js.org/faq/actions#why-should-type-be-a-string-or-at-least-serializable-why-should-my-action-types-be-constants) 
-        (To allow non-serializable values see: https://redux-toolkit.js.org/usage/usage-guide#working-with-non-serializable-data)"
-      `)
+      expect(consoleErrorSpy).toHaveBeenCalledOnce()
+
+      expect(consoleErrorSpy).toHaveBeenLastCalledWith(
+        `A non-serializable value was detected in an action, in the path: \`meta.arg\`. Value:`,
+        nonSerializableValue,
+        `\nTake a look at the logic that dispatched this action: `,
+        { type: 'test', meta: { arg: nonSerializableValue } },
+        `\n(See https://redux.js.org/faq/actions#why-should-type-be-a-string-or-at-least-serializable-why-should-my-action-types-be-constants)`,
+        `\n(To allow non-serializable values see: https://redux-toolkit.js.org/usage/usage-guide#working-with-non-serializable-data)`,
+      )
     })
 
     it('can specify (multiple) different values', () => {
@@ -394,7 +405,7 @@ describe('serializableStateInvariantMiddleware', () => {
         meta: { arg: nonSerializableValue },
       })
 
-      expect(getLog().log).toMatchInlineSnapshot(`""`)
+      expect(consoleErrorSpy).not.toHaveBeenCalled()
     })
 
     it('can specify regexp', () => {
@@ -411,7 +422,7 @@ describe('serializableStateInvariantMiddleware', () => {
         payload: { arg: nonSerializableValue },
       })
 
-      expect(getLog().log).toMatchInlineSnapshot(`""`)
+      expect(consoleErrorSpy).not.toHaveBeenCalled()
     })
   })
 
@@ -497,12 +508,15 @@ describe('serializableStateInvariantMiddleware', () => {
 
     store.dispatch({ type: ACTION_TYPE })
 
+    expect(consoleErrorSpy).toHaveBeenCalledOnce()
+
     // testSlice.b.d was not covered in ignoredPaths, so will still log the error
-    expect(getLog().log).toMatchInlineSnapshot(`
-      "A non-serializable value was detected in the state, in the path: \`testSlice.b.d\`. Value: Map {} 
-      Take a look at the reducer(s) handling this action type: TEST_ACTION.
-      (See https://redux.js.org/faq/organizing-state#can-i-put-functions-promises-or-other-non-serializable-items-in-my-store-state)"
-    `)
+    expect(consoleErrorSpy).toHaveBeenLastCalledWith(
+      `A non-serializable value was detected in the state, in the path: \`testSlice.b.d\`. Value:`,
+      badValue,
+      `\nTake a look at the reducer(s) handling this action type: TEST_ACTION.
+(See https://redux.js.org/faq/organizing-state#can-i-put-functions-promises-or-other-non-serializable-items-in-my-store-state)`,
+    )
   })
 
   it('allows ignoring state entirely', () => {
@@ -527,7 +541,7 @@ describe('serializableStateInvariantMiddleware', () => {
 
     store.dispatch({ type: 'test' })
 
-    expect(getLog().log).toMatchInlineSnapshot(`""`)
+    expect(consoleErrorSpy).not.toHaveBeenCalled()
 
     // Should be called twice for the action - there is an initial check for early returns, then a second and potentially 3rd for nested properties
     expect(numTimesCalled).toBe(2)
@@ -577,10 +591,15 @@ describe('serializableStateInvariantMiddleware', () => {
 
     store.dispatch({
       type: 'SOME_ACTION',
-      payload: new Array(10000).fill({ value: 'more' }),
+      payload: new Array(10_000).fill({ value: 'more' }),
     })
-    expect(getLog().log).toMatch(
-      /^SerializableStateInvariantMiddleware took \d*ms, which is more than the warning threshold of 4ms./,
+
+    expect(consoleWarnSpy).toHaveBeenCalledOnce()
+
+    expect(consoleWarnSpy).toHaveBeenLastCalledWith(
+      expect.stringMatching(
+        /^SerializableStateInvariantMiddleware took \d*ms, which is more than the warning threshold of 4ms./,
+      ),
     )
   })
 
@@ -602,7 +621,8 @@ describe('serializableStateInvariantMiddleware', () => {
     })
 
     store.dispatch({ type: 'SOME_ACTION' })
-    expect(getLog().log).toMatch('')
+
+    expect(consoleErrorSpy).not.toHaveBeenCalled()
   })
 
   it('Should cache its results', () => {

@@ -29,11 +29,8 @@ import {
   preparedReducerCreator,
   reducerCreator,
 } from '@reduxjs/toolkit'
-import {
-  createConsole,
-  getLog,
-  mockConsole,
-} from 'console-testing-library/pure'
+import { noop } from '@internal/listenerMiddleware/utils'
+
 import type { IfMaybeUndefined, NoInfer } from '../tsHelpers'
 
 enablePatches()
@@ -46,10 +43,14 @@ const undoableCreatorType = Symbol('undoableCreatorType')
 const patchCreatorType = Symbol('patchCreatorType')
 
 describe('createSlice', () => {
-  let restore: () => void
+  const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(noop)
 
   beforeEach(() => {
-    restore = mockConsole(createConsole())
+    vi.clearAllMocks()
+  })
+
+  afterAll(() => {
+    vi.restoreAllMocks()
   })
 
   describe('when slice is undefined', () => {
@@ -87,8 +88,10 @@ describe('createSlice', () => {
   describe('when initial state is undefined', () => {
     beforeEach(() => {
       vi.stubEnv('NODE_ENV', 'development')
+    })
 
-      return vi.unstubAllEnvs
+    afterEach(() => {
+      vi.unstubAllEnvs()
     })
 
     it('should throw an error', () => {
@@ -98,7 +101,9 @@ describe('createSlice', () => {
         initialState: undefined,
       })
 
-      expect(getLog().log).toBe(
+      expect(consoleErrorSpy).toHaveBeenCalledOnce()
+
+      expect(consoleErrorSpy).toHaveBeenLastCalledWith(
         'You must provide an `initialState` value that is not `undefined`. You may have misspelled `initialState`',
       )
     })
@@ -423,15 +428,12 @@ describe('createSlice', () => {
   })
 
   describe('Deprecation warnings', () => {
-    let originalNodeEnv = process.env.NODE_ENV
-
     beforeEach(() => {
       vi.resetModules()
-      restore = mockConsole(createConsole())
     })
 
     afterEach(() => {
-      process.env.NODE_ENV = originalNodeEnv
+      vi.unstubAllEnvs()
     })
 
     // NOTE: This needs to be in front of the later `createReducer` call to check the one-time warning
@@ -672,6 +674,38 @@ describe('createSlice', () => {
       expect(injected.getSelectors()).toBe(injected2.getSelectors())
       // these should be different
       expect(injected.selectors).not.toBe(injected2.selectors)
+    })
+    it('caches initial states for selectors', () => {
+      const slice = createSlice({
+        name: 'counter',
+        initialState: () => ({ value: 0 }),
+        reducers: {},
+        selectors: {
+          selectObj: (state) => state,
+        },
+      })
+      // not cached
+      expect(slice.getInitialState()).not.toBe(slice.getInitialState())
+      expect(slice.reducer(undefined, { type: 'dummy' })).not.toBe(
+        slice.reducer(undefined, { type: 'dummy' }),
+      )
+
+      const combinedReducer = combineSlices({
+        static: slice.reducer,
+      }).withLazyLoadedSlices<WithSlice<typeof slice>>()
+
+      const injected = slice.injectInto(combinedReducer)
+
+      // still not cached
+      expect(injected.getInitialState()).not.toBe(injected.getInitialState())
+      expect(injected.reducer(undefined, { type: 'dummy' })).not.toBe(
+        injected.reducer(undefined, { type: 'dummy' }),
+      )
+      // cached
+      expect(injected.selectSlice({})).toBe(injected.selectSlice({}))
+      expect(injected.selectors.selectObj({})).toBe(
+        injected.selectors.selectObj({}),
+      )
     })
   })
   test('reducer and preparedReducer creators can be invoked for object syntax', () => {

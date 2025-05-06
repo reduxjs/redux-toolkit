@@ -108,7 +108,7 @@ An object with the following optional fields:
 
 - `condition(arg, { getState, extra } ): boolean | Promise<boolean>`: a callback that can be used to skip execution of the payload creator and all action dispatches, if desired. See [Canceling Before Execution](#canceling-before-execution) for a complete description.
 - `dispatchConditionRejection`: if `condition()` returns `false`, the default behavior is that no actions will be dispatched at all. If you still want a "rejected" action to be dispatched when the thunk was canceled, set this flag to `true`.
-- `idGenerator(arg): string`: a function to use when generating the `requestId` for the request sequence. Defaults to use [nanoid](./otherExports.mdx/#nanoid), but you can implement your own ID generation logic.
+- `idGenerator(arg): string`: a function to use when generating the `requestId` for the request sequence. Defaults to use [nanoid](./otherExports.mdx#nanoid), but you can implement your own ID generation logic.
 - `serializeError(error: unknown) => any` to replace the internal `miniSerializeError` method with your own serialization logic.
 - `getPendingMeta({ arg, requestId }, { getState, extra }): any`: a function to create an object that will be merged into the `pendingAction.meta` field.
 
@@ -132,6 +132,18 @@ When dispatched, the thunk will:
   - if the promise resolved with a `rejectWithValue(value)` return value, dispatch the `rejected` action with the value passed into `action.payload` and 'Rejected' as `action.error.message`
   - if the promise failed and was not handled with `rejectWithValue`, dispatch the `rejected` action with a serialized version of the error value as `action.error`
 - Return a fulfilled promise containing the final dispatched action (either the `fulfilled` or `rejected` action object)
+
+## Thunk Dispatch Options
+
+The returned thunk action creator accepts an optional second argument with the following options:
+
+- `signal`: an optional [`AbortSignal`](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal) that will be tracked by the internal abort signal (see [Canceling While Running](#canceling-while-running))
+
+```ts no-transpile
+const externalController = new AbortController()
+dispatch(fetchUserById(123, { signal: externalController.signal }))
+externalController.abort()
+```
 
 ## Promise Lifecycle Actions
 

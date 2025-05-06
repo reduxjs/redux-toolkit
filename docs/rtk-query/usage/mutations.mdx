@@ -326,3 +326,62 @@ export const {
   allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
   sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
 ></iframe>
+
+## Runtime Validation using Schemas
+
+Endpoints can use any [Standard Schema](https://standardschema.dev/) compliant library for runtime validation of query args, responses, and errors. See [API reference](../api/createApi.mdx#schema-validation) for full list of available schemas.
+
+When used with TypeScript, schemas can also be used to [infer the type of that value instead of having to declare it](../usage-with-typescript.mdx#schema-validation).
+
+Most commonly, you'll want to use `responseSchema` to validate the response from the server (or `rawResponseSchema` when using `transformResponse`).
+
+```ts title="Using responseSchema" no-transpile
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import * as v from 'valibot'
+
+const postSchema = v.object({
+  id: v.number(),
+  name: v.string(),
+  published_at: v.string(),
+})
+type Post = v.InferOutput<typeof postSchema>
+const transformedPost = v.object({
+  ...postSchema.entries,
+  published_at: v.date(),
+})
+type TransformedPost = v.InferOutput<typeof transformedPost>
+
+const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  endpoints: (build) => ({
+    updatePost: build.mutation<Post, Partial<Post>>({
+      query(data) {
+        const { id, ...body } = data
+        return {
+          url: `post/${id}`,
+          method: 'PUT',
+          body,
+        }
+      },
+      responseSchema: postSchema,
+    }),
+    updatePostWithTransform: build.mutation<TransformedPost, Partial<Post>>({
+      query(data) {
+        const { id, ...body } = data
+        return {
+          url: `post/${id}`,
+          method: 'PUT',
+          body,
+        }
+      },
+      rawResponseSchema: postSchema,
+      transformResponse: (response) => ({
+        ...response,
+        published_at: new Date(response.published_at),
+      }),
+      // responseSchema can still be provided, to validate the transformed response
+      responseSchema: transformedPost,
+    }),
+  }),
+})
+```

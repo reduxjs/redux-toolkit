@@ -1,10 +1,16 @@
-import type { UseMutation, UseLazyQuery, UseQuery } from './buildHooks'
 import type {
   DefinitionType,
   EndpointDefinitions,
   MutationDefinition,
   QueryDefinition,
+  InfiniteQueryDefinition,
 } from '@reduxjs/toolkit/query'
+import type {
+  UseInfiniteQuery,
+  UseLazyQuery,
+  UseMutation,
+  UseQuery,
+} from './buildHooks'
 
 type QueryHookNames<Definitions extends EndpointDefinitions> = {
   [K in keyof Definitions as Definitions[K] extends {
@@ -26,6 +32,16 @@ type LazyQueryHookNames<Definitions extends EndpointDefinitions> = {
   >
 }
 
+type InfiniteQueryHookNames<Definitions extends EndpointDefinitions> = {
+  [K in keyof Definitions as Definitions[K] extends {
+    type: DefinitionType.infinitequery
+  }
+    ? `use${Capitalize<K & string>}InfiniteQuery`
+    : never]: UseInfiniteQuery<
+    Extract<Definitions[K], InfiniteQueryDefinition<any, any, any, any, any>>
+  >
+}
+
 type MutationHookNames<Definitions extends EndpointDefinitions> = {
   [K in keyof Definitions as Definitions[K] extends {
     type: DefinitionType.mutation
@@ -39,4 +55,5 @@ type MutationHookNames<Definitions extends EndpointDefinitions> = {
 export type HooksWithUniqueNames<Definitions extends EndpointDefinitions> =
   QueryHookNames<Definitions> &
     LazyQueryHookNames<Definitions> &
+    InfiniteQueryHookNames<Definitions> &
     MutationHookNames<Definitions>

@@ -14,10 +14,8 @@ import { buildGetDefaultMiddleware } from '@internal/getDefaultMiddleware'
 const getDefaultMiddleware = buildGetDefaultMiddleware()
 
 describe('getDefaultMiddleware', () => {
-  const ORIGINAL_NODE_ENV = process.env.NODE_ENV
-
   afterEach(() => {
-    process.env.NODE_ENV = ORIGINAL_NODE_ENV
+    vi.unstubAllEnvs()
   })
 
   describe('Production behavior', () => {
@@ -26,7 +24,8 @@ describe('getDefaultMiddleware', () => {
     })
 
     it('returns an array with only redux-thunk in production', async () => {
-      process.env.NODE_ENV = 'production'
+      vi.stubEnv('NODE_ENV', 'production')
+
       const { thunk } = await import('redux-thunk')
       const { buildGetDefaultMiddleware } = await import(
         '@internal/getDefaultMiddleware'

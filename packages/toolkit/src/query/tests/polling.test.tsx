@@ -45,13 +45,13 @@ describe('polling tests', () => {
       }),
     )
 
-    expect(mockBaseQuery).toHaveBeenCalledTimes(1)
+    expect(mockBaseQuery).toHaveBeenCalledOnce()
 
     storeRef.store.dispatch(api.util.resetApiState())
 
     await delay(30)
 
-    expect(mockBaseQuery).toHaveBeenCalledTimes(1)
+    expect(mockBaseQuery).toHaveBeenCalledOnce()
   })
 
   it('replaces polling interval when the subscription options are updated', async () => {

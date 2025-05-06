@@ -322,7 +322,8 @@ const stateProxyMap = new WeakMap<object, object>()
 
 const createStateProxy = <State extends object>(
   state: State,
-  reducerMap: Partial<Record<string, Reducer>>,
+  reducerMap: Partial<Record<PropertyKey, Reducer>>,
+  initialStateCache: Record<PropertyKey, unknown>,
 ) =>
   getOrInsertComputed(
     stateProxyMap,
@@ -333,7 +334,9 @@ const createStateProxy = <State extends object>(
           if (prop === ORIGINAL_STATE) return target
           const result = Reflect.get(target, prop, receiver)
           if (typeof result === 'undefined') {
-            const reducer = reducerMap[prop.toString()]
+            const cached = initialStateCache[prop]
+            if (typeof cached !== 'undefined') return cached
+            const reducer = reducerMap[prop]
             if (reducer) {
               // ensure action type is random, to prevent reducer treating it differently
               const reducerResult = reducer(undefined, { type: nanoid() })
@@ -346,6 +349,7 @@ const createStateProxy = <State extends object>(
                     `you can use null instead of undefined.`,
                 )
               }
+              initialStateCache[prop] = reducerResult
               return reducerResult
             }
           }
@@ -361,7 +365,8 @@ const original = (state: any) => {
   return state[ORIGINAL_STATE]
 }
 
-const noopReducer: Reducer<Record<string, any>> = (state = {}) => state
+const emptyObject = {}
+const noopReducer: Reducer<Record<string, any>> = (state = emptyObject) => state
 
 export function combineSlices<Slices extends Array<AnySliceLike | ReducerMap>>(
   ...slices: Slices
@@ -381,6 +386,8 @@ export function combineSlices<Slices extends Array<AnySliceLike | ReducerMap>>(
   }
 
   combinedReducer.withLazyLoadedSlices = () => combinedReducer
+
+  const initialStateCache: Record<PropertyKey, unknown> = {}
 
   const inject = (
     slice: AnySliceLike,
@@ -406,6 +413,10 @@ export function combineSlices<Slices extends Array<AnySliceLike | ReducerMap>>(
       return combinedReducer
     }
 
+    if (config.overrideExisting && currentReducer !== reducerToInject) {
+      delete initialStateCache[reducerPath]
+    }
+
     reducerMap[reducerPath] = reducerToInject
 
     reducer = getReducer()
@@ -423,6 +434,7 @@ export function combineSlices<Slices extends Array<AnySliceLike | ReducerMap>>(
           createStateProxy(
             selectState ? selectState(state as any, ...args) : state,
             reducerMap,
+            initialStateCache,
           ),
           ...args,
         )

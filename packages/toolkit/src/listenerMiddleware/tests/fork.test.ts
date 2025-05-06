@@ -179,7 +179,7 @@ describe('fork', () => {
     })
     store.dispatch(increment())
 
-    expect(storeStateAfter).resolves.toEqual({ value: 1 })
+    await expect(storeStateAfter).resolves.toEqual({ value: 1 })
   })
 
   it.each<{
@@ -265,7 +265,7 @@ describe('fork', () => {
       },
       expected: { status: 'ok', value: 5 },
     },
-  ])('%# - %j', async ({ executor, expected, cancelAfterMs }) => {
+  ])('$desc', async ({ executor, expected, cancelAfterMs }) => {
     let deferredResult = deferred()
     let forkedTask: any = {}
 
