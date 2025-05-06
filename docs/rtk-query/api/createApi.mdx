@@ -153,6 +153,32 @@ Query endpoints (defined with `build.query()`) are used to cache data fetched fr
 You must specify either a `query` field (which will use the API's `baseQuery` to make a request), or a `queryFn` function with your own async logic. All other fields are optional.
 
 ```ts title="Query endpoint definition" no-transpile
+export type FullTagDescription<TagType> = {
+  type: TagType
+  id?: number | string
+}
+export type TagDescription<TagType> = TagType | FullTagDescription<TagType>
+
+type TagDescriptionArray<TagTypes extends string> = ReadonlyArray<
+  TagDescription<TagTypes> | undefined | null
+>
+
+export type ResultDescription<
+  TagTypes extends string,
+  ResultType,
+  QueryArg,
+  ErrorType,
+  MetaType,
+> =
+  | TagDescriptionArray<TagTypes>
+  | (
+  result: ResultType | undefined,
+  error: ErrorType | undefined,
+  arg: QueryArg,
+  meta: MetaType,
+) => TagDescriptionArray<TagTypes>
+
+
 export type QueryDefinition<
   QueryArg,
   BaseQuery extends BaseQueryFn,
