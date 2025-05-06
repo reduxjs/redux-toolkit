@@ -3,7 +3,7 @@ import type {
   BaseQueryFn,
   BaseQueryMeta,
 } from '../../baseQueryTypes'
-import { DefinitionType } from '../../endpointDefinitions'
+import { DefinitionType, isAnyQueryDefinition } from '../../endpointDefinitions'
 import type { Recipe } from '../buildThunks'
 import { isFulfilled, isPending, isRejected } from '../rtkImports'
 import type {
@@ -121,6 +121,18 @@ export type QueryLifecycleQueryExtraOptions<
   ): Promise<void> | void
 }
 
+export type QueryLifecycleInfiniteQueryExtraOptions<
+  ResultType,
+  QueryArg,
+  BaseQuery extends BaseQueryFn,
+  ReducerPath extends string = string,
+> = QueryLifecycleQueryExtraOptions<
+  ResultType,
+  QueryArg,
+  BaseQuery,
+  ReducerPath
+>
+
 export type QueryLifecycleMutationExtraOptions<
   ResultType,
   QueryArg,
@@ -235,12 +247,12 @@ export type MutationLifecycleApi<
  *   baseQuery: fetchBaseQuery({ baseUrl: 'https://dummyjson.com' }),
  *   reducerPath: 'postsApi',
  *   tagTypes: ['Posts'],
- *   endpoints: (builder) => ({
- *     getPosts: builder.query<PostsApiResponse, void>({
+ *   endpoints: (build) => ({
+ *     getPosts: build.query<PostsApiResponse, void>({
  *       query: () => `/posts`,
  *     }),
  *
- *     getPostById: builder.query<Post, QueryArgument>({
+ *     getPostById: build.query<Post, QueryArgument>({
  *       query: (postId) => `/posts/${postId}`,
  *     }),
  *   }),
@@ -270,8 +282,8 @@ export type MutationLifecycleApi<
  * }
  *
  * export const extendedApiSlice = baseApiSlice.injectEndpoints({
- *   endpoints: (builder) => ({
- *     getPostsByUserId: builder.query<PostsApiResponse, QueryArgument>({
+ *   endpoints: (build) => ({
+ *     getPostsByUserId: build.query<PostsApiResponse, QueryArgument>({
  *       query: (userId) => `/posts/user/${userId}`,
  *
  *       onQueryStarted: updatePostOnFulfilled,
@@ -333,12 +345,12 @@ export type TypedQueryOnQueryStarted<
  *   baseQuery: fetchBaseQuery({ baseUrl: 'https://dummyjson.com' }),
  *   reducerPath: 'postsApi',
  *   tagTypes: ['Posts'],
- *   endpoints: (builder) => ({
- *     getPosts: builder.query<PostsApiResponse, void>({
+ *   endpoints: (build) => ({
+ *     getPosts: build.query<PostsApiResponse, void>({
  *       query: () => `/posts`,
  *     }),
  *
- *     getPostById: builder.query<Post, number>({
+ *     getPostById: build.query<Post, number>({
  *       query: (postId) => `/posts/${postId}`,
  *     }),
  *   }),
@@ -364,8 +376,8 @@ export type TypedQueryOnQueryStarted<
  * }
  *
  * export const extendedApiSlice = baseApiSlice.injectEndpoints({
- *   endpoints: (builder) => ({
- *     addPost: builder.mutation<Post, Omit<QueryArgument, 'id'>>({
+ *   endpoints: (build) => ({
+ *     addPost: build.mutation<Post, Omit<QueryArgument, 'id'>>({
  *       query: (body) => ({
  *         url: `posts/add`,
  *         method: 'POST',
@@ -375,7 +387,7 @@ export type TypedQueryOnQueryStarted<
  *       onQueryStarted: updatePostOnFulfilled,
  *     }),
  *
- *     updatePost: builder.mutation<Post, QueryArgument>({
+ *     updatePost: build.mutation<Post, QueryArgument>({
  *       query: ({ id, ...patch }) => ({
  *         url: `post/${id}`,
  *         method: 'PATCH',
@@ -447,9 +459,7 @@ export const buildQueryLifecycleHandler: InternalHandlerBuilder = ({
         queryFulfilled.catch(() => {})
         lifecycleMap[requestId] = lifecycle
         const selector = (api.endpoints[endpointName] as any).select(
-          endpointDefinition.type === DefinitionType.query
-            ? originalArgs
-            : requestId,
+          isAnyQueryDefinition(endpointDefinition) ? originalArgs : requestId,
         )
 
         const extra = mwApi.dispatch((_, __, extra) => extra)
@@ -458,19 +468,19 @@ export const buildQueryLifecycleHandler: InternalHandlerBuilder = ({
           getCacheEntry: () => selector(mwApi.getState()),
           requestId,
           extra,
-          updateCachedData: (endpointDefinition.type === DefinitionType.query
+          updateCachedData: (isAnyQueryDefinition(endpointDefinition)
             ? (updateRecipe: Recipe<any>) =>
                 mwApi.dispatch(
                   api.util.updateQueryData(
                     endpointName as never,
-                    originalArgs,
+                    originalArgs as never,
                     updateRecipe,
                   ),
                 )
             : undefined) as any,
           queryFulfilled,
         }
-        onQueryStarted(originalArgs, lifecycleApi)
+        onQueryStarted(originalArgs, lifecycleApi as any)
       }
     } else if (isFullfilledThunk(action)) {
       const { requestId, baseQueryMeta } = action.meta

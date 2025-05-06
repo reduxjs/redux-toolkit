@@ -1,4 +1,4 @@
-import type { Action, PayloadAction, UnknownAction } from '@reduxjs/toolkit'
+import type { PayloadAction } from '@reduxjs/toolkit'
 import {
   combineReducers,
   createAction,
@@ -23,24 +23,26 @@ import type {
   QueryCacheKey,
   SubscriptionState,
   ConfigState,
-  QueryKeys,
+  InfiniteQuerySubState,
+  InfiniteQueryDirection,
 } from './apiState'
 import { QueryStatus } from './apiState'
 import type {
+  AllQueryKeys,
+  QueryArgFromAnyQueryDefinition,
+  DataFromAnyQueryDefinition,
+  InfiniteQueryThunk,
   MutationThunk,
   QueryThunk,
   QueryThunkArg,
-  RejectedAction,
 } from './buildThunks'
 import { calculateProvidedByThunk } from './buildThunks'
-import type {
-  AssertTagTypes,
-  DefinitionType,
-  EndpointDefinitions,
-  FullTagDescription,
-  QueryArgFrom,
-  QueryDefinition,
-  ResultTypeFrom,
+import {
+  isInfiniteQueryDefinition,
+  type AssertTagTypes,
+  type EndpointDefinitions,
+  type FullTagDescription,
+  type QueryDefinition,
 } from '../endpointDefinitions'
 import type { Patch } from 'immer'
 import { isDraft } from 'immer'
@@ -54,17 +56,18 @@ import {
 import type { ApiContext } from '../apiTypes'
 import { isUpsertQuery } from './buildInitiate'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
+import type { UnwrapPromise } from '../tsHelpers'
 
 /**
  * A typesafe single entry to be upserted into the cache
  */
 export type NormalizedQueryUpsertEntry<
   Definitions extends EndpointDefinitions,
-  EndpointName extends QueryKeys<Definitions>,
+  EndpointName extends AllQueryKeys<Definitions>,
 > = {
   endpointName: EndpointName
-  arg: QueryArgFrom<Definitions[EndpointName]>
-  value: ResultTypeFrom<Definitions[EndpointName]>
+  arg: QueryArgFromAnyQueryDefinition<Definitions, EndpointName>
+  value: DataFromAnyQueryDefinition<Definitions, EndpointName>
 }
 
 /**
@@ -84,8 +87,8 @@ export type ProcessedQueryUpsertEntry = {
 /**
  * A typesafe representation of a util action creator that accepts cache entry descriptions to upsert
  */
-export type UpsertEntries<Definitions extends EndpointDefinitions> = <
-  EndpointNames extends Array<QueryKeys<Definitions>>,
+export type UpsertEntries<Definitions extends EndpointDefinitions> = (<
+  EndpointNames extends Array<AllQueryKeys<Definitions>>,
 >(
   entries: [
     ...{
@@ -95,12 +98,16 @@ export type UpsertEntries<Definitions extends EndpointDefinitions> = <
       >
     },
   ],
-) => PayloadAction<NormalizedQueryUpsertEntryPayload[]>
+) => PayloadAction<NormalizedQueryUpsertEntryPayload[]>) & {
+  match: (
+    action: unknown,
+  ) => action is PayloadAction<NormalizedQueryUpsertEntryPayload[]>
+}
 
 function updateQuerySubstateIfExists(
   state: QueryState<any>,
   queryCacheKey: QueryCacheKey,
-  update: (substate: QuerySubState<any>) => void,
+  update: (substate: QuerySubState<any> | InfiniteQuerySubState<any>) => void,
 ) {
   const substate = state[queryCacheKey]
   if (substate) {
@@ -158,6 +165,7 @@ export function buildSlice({
 }: {
   reducerPath: string
   queryThunk: QueryThunk
+  infiniteQueryThunk: InfiniteQueryThunk<any>
   mutationThunk: MutationThunk
   serializeQueryArgs: InternalSerializeQueryArgs
   context: ApiContext<EndpointDefinitions>
@@ -197,25 +205,27 @@ export function buildSlice({
         substate.originalArgs = arg.originalArgs
       }
       substate.startedTimeStamp = meta.startedTimeStamp
+
+      const endpointDefinition = definitions[meta.arg.endpointName]
+
+      if (isInfiniteQueryDefinition(endpointDefinition) && 'direction' in arg) {
+        ;(substate as InfiniteQuerySubState<any>).direction =
+          arg.direction as InfiniteQueryDirection
+      }
     })
   }
 
   function writeFulfilledCacheEntry(
     draft: QueryState<any>,
-    meta: {
-      arg: QueryThunkArg
-      requestId: string
-      // requestStatus: 'fulfilled'
-    } & {
+    meta: { arg: QueryThunkArg; requestId: string } & {
       fulfilledTimeStamp: number
       baseQueryMeta: unknown
-      // RTK_autoBatch: true
     },
     payload: unknown,
+    upserting: boolean,
   ) {
     updateQuerySubstateIfExists(draft, meta.arg.queryCacheKey, (substate) => {
-      if (substate.requestId !== meta.requestId && !isUpsertQuery(meta.arg))
-        return
+      if (substate.requestId !== meta.requestId && !upserting) return
       const { merge } = definitions[meta.arg.endpointName] as QueryDefinition<
         any,
         any,
@@ -248,7 +258,7 @@ export function buildSlice({
       } else {
         // Assign or safely update the cache data.
         substate.data =
-          definitions[meta.arg.endpointName].structuralSharing ?? true
+          (definitions[meta.arg.endpointName].structuralSharing ?? true)
             ? copyWithStructuralSharing(
                 isDraft(substate.data)
                   ? original(substate.data)
@@ -262,6 +272,7 @@ export function buildSlice({
       substate.fulfilledTimeStamp = meta.fulfilledTimeStamp
     })
   }
+
   const querySlice = createSlice({
     name: `${reducerPath}/queries`,
     initialState: initialState as QueryState<any>,
@@ -283,11 +294,7 @@ export function buildSlice({
           action: PayloadAction<
             ProcessedQueryUpsertEntry[],
             string,
-            {
-              RTK_autoBatch: boolean
-              requestId: string
-              timestamp: number
-            }
+            { RTK_autoBatch: boolean; requestId: string; timestamp: number }
           >,
         ) {
           for (const entry of action.payload) {
@@ -307,6 +314,8 @@ export function buildSlice({
                 baseQueryMeta: {},
               },
               value,
+              // We know we're upserting here
+              true,
             )
           }
         },
@@ -365,7 +374,8 @@ export function buildSlice({
           writePendingCacheEntry(draft, arg, upserting, meta)
         })
         .addCase(queryThunk.fulfilled, (draft, { meta, payload }) => {
-          writeFulfilledCacheEntry(draft, meta, payload)
+          const upserting = isUpsertQuery(meta.arg)
+          writeFulfilledCacheEntry(draft, meta, payload, upserting)
         })
         .addCase(
           queryThunk.rejected,
@@ -466,43 +476,56 @@ export function buildSlice({
     },
   })
 
+  type CalculateProvidedByAction = UnwrapPromise<
+    | ReturnType<ReturnType<QueryThunk>>
+    | ReturnType<ReturnType<InfiniteQueryThunk<any>>>
+  >
+
+  const initialInvalidationState: InvalidationState<string> = {
+    tags: {},
+    keys: {},
+  }
+
   const invalidationSlice = createSlice({
     name: `${reducerPath}/invalidation`,
-    initialState: initialState as InvalidationState<string>,
+    initialState: initialInvalidationState,
     reducers: {
       updateProvidedBy: {
         reducer(
           draft,
-          action: PayloadAction<{
-            queryCacheKey: QueryCacheKey
-            providedTags: readonly FullTagDescription<string>[]
-          }>,
+          action: PayloadAction<
+            Array<{
+              queryCacheKey: QueryCacheKey
+              providedTags: readonly FullTagDescription<string>[]
+            }>
+          >,
         ) {
-          const { queryCacheKey, providedTags } = action.payload
+          for (const { queryCacheKey, providedTags } of action.payload) {
+            removeCacheKeyFromTags(draft, queryCacheKey)
 
-          for (const tagTypeSubscriptions of Object.values(draft)) {
-            for (const idSubscriptions of Object.values(tagTypeSubscriptions)) {
-              const foundAt = idSubscriptions.indexOf(queryCacheKey)
-              if (foundAt !== -1) {
-                idSubscriptions.splice(foundAt, 1)
+            for (const { type, id } of providedTags) {
+              const subscribedQueries = ((draft.tags[type] ??= {})[
+                id || '__internal_without_id'
+              ] ??= [])
+              const alreadySubscribed =
+                subscribedQueries.includes(queryCacheKey)
+              if (!alreadySubscribed) {
+                subscribedQueries.push(queryCacheKey)
               }
             }
-          }
 
-          for (const { type, id } of providedTags) {
-            const subscribedQueries = ((draft[type] ??= {})[
-              id || '__internal_without_id'
-            ] ??= [])
-            const alreadySubscribed = subscribedQueries.includes(queryCacheKey)
-            if (!alreadySubscribed) {
-              subscribedQueries.push(queryCacheKey)
-            }
+            // Remove readonly from the providedTags array
+            draft.keys[queryCacheKey] =
+              providedTags as FullTagDescription<string>[]
           }
         },
-        prepare: prepareAutoBatched<{
-          queryCacheKey: QueryCacheKey
-          providedTags: readonly FullTagDescription<string>[]
-        }>(),
+        prepare:
+          prepareAutoBatched<
+            Array<{
+              queryCacheKey: QueryCacheKey
+              providedTags: readonly FullTagDescription<string>[]
+            }>
+          >(),
       },
     },
     extraReducers(builder) {
@@ -510,23 +533,14 @@ export function buildSlice({
         .addCase(
           querySlice.actions.removeQueryResult,
           (draft, { payload: { queryCacheKey } }) => {
-            for (const tagTypeSubscriptions of Object.values(draft)) {
-              for (const idSubscriptions of Object.values(
-                tagTypeSubscriptions,
-              )) {
-                const foundAt = idSubscriptions.indexOf(queryCacheKey)
-                if (foundAt !== -1) {
-                  idSubscriptions.splice(foundAt, 1)
-                }
-              }
-            }
+            removeCacheKeyFromTags(draft, queryCacheKey)
           },
         )
         .addMatcher(hasRehydrationInfo, (draft, action) => {
           const { provided } = extractRehydrationInfo(action)!
           for (const [type, incomingTags] of Object.entries(provided)) {
             for (const [id, cacheKeys] of Object.entries(incomingTags)) {
-              const subscribedQueries = ((draft[type] ??= {})[
+              const subscribedQueries = ((draft.tags[type] ??= {})[
                 id || '__internal_without_id'
               ] ??= [])
               for (const queryCacheKey of cacheKeys) {
@@ -542,25 +556,73 @@ export function buildSlice({
         .addMatcher(
           isAnyOf(isFulfilled(queryThunk), isRejectedWithValue(queryThunk)),
           (draft, action) => {
-            const providedTags = calculateProvidedByThunk(
-              action,
-              'providesTags',
-              definitions,
-              assertTagType,
+            writeProvidedTagsForQueries(draft, [action])
+          },
+        )
+        .addMatcher(
+          querySlice.actions.cacheEntriesUpserted.match,
+          (draft, action) => {
+            const mockActions: CalculateProvidedByAction[] = action.payload.map(
+              ({ queryDescription, value }) => {
+                return {
+                  type: 'UNKNOWN',
+                  payload: value,
+                  meta: {
+                    requestStatus: 'fulfilled',
+                    requestId: 'UNKNOWN',
+                    arg: queryDescription,
+                  },
+                }
+              },
             )
-            const { queryCacheKey } = action.meta.arg
-
-            invalidationSlice.caseReducers.updateProvidedBy(
-              draft,
-              invalidationSlice.actions.updateProvidedBy({
-                queryCacheKey,
-                providedTags,
-              }),
-            )
+            writeProvidedTagsForQueries(draft, mockActions)
           },
         )
     },
   })
+
+  function removeCacheKeyFromTags(
+    draft: InvalidationState<any>,
+    queryCacheKey: QueryCacheKey,
+  ) {
+    const existingTags = draft.keys[queryCacheKey] ?? []
+
+    // Delete this cache key from any existing tags that may have provided it
+    for (const tag of existingTags) {
+      const tagType = tag.type
+      const tagId = tag.id ?? '__internal_without_id'
+      const tagSubscriptions = draft.tags[tagType]?.[tagId]
+
+      if (tagSubscriptions) {
+        draft.tags[tagType][tagId] = tagSubscriptions.filter(
+          (qc) => qc !== queryCacheKey,
+        )
+      }
+    }
+
+    delete draft.keys[queryCacheKey]
+  }
+
+  function writeProvidedTagsForQueries(
+    draft: InvalidationState<string>,
+    actions: CalculateProvidedByAction[],
+  ) {
+    const providedByEntries = actions.map((action) => {
+      const providedTags = calculateProvidedByThunk(
+        action,
+        'providesTags',
+        definitions,
+        assertTagType,
+      )
+      const { queryCacheKey } = action.meta.arg
+      return { queryCacheKey, providedTags }
+    })
+
+    invalidationSlice.caseReducers.updateProvidedBy(
+      draft,
+      invalidationSlice.actions.updateProvidedBy(providedByEntries),
+    )
+  }
 
   // Dummy slice to generate actions
   const subscriptionSlice = createSlice({

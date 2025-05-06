@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: ['20.x']
+        node: ['22.x']
 
     steps:
       - name: Checkout repo
@@ -62,13 +62,27 @@ jobs:
           path: packages/toolkit/package.tgz
 
   test-dist:
-    name: Test against dist
+    name: Run local tests against build artifact (React ${{ matrix.react.version }})
     needs: [build]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        node: ['20.x']
+        node: ['22.x']
+        react:
+          [
+            {
+              version: '^18',
+              types: ^18,
+              react-dom: { version: '^18', types: '^18' },
+            },
+            {
+              version: '^19',
+              types: '^19',
+              react-dom: { version: '^19', types: '^19' },
+            },
+          ]
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -82,36 +96,63 @@ jobs:
       - name: Install deps
         run: yarn install
 
-      - uses: actions/download-artifact@v4
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
         with:
           name: package
           path: packages/toolkit
 
-      - run: ls -lah
+      - name: Check folder contents
+        run: ls -lah
+
+      - name: Install React ${{ matrix.react.version }} and React-DOM ${{ matrix.react.react-dom.version }}
+        run: yarn up react@${{ matrix.react.version }} react-dom@${{ matrix.react.react-dom.version }} @types/react@${{ matrix.react.types }} @types/react-dom@${{ matrix.react.react-dom.types }}
 
       - name: Install build artifact
         run: yarn workspace @reduxjs/toolkit add $(pwd)/package.tgz
 
-      - run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json
-
-      - name: Run tests, against dist
-        env:
-          TEST_DIST: true
-        run: yarn test
+      - name: Erase path aliases
+        run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json
 
       - name: Run type tests with `moduleResolution Bundler`
         run: rm -rf dist && yarn tsc -p . --moduleResolution Bundler --module ESNext --noEmit false --declaration --emitDeclarationOnly --outDir dist --target ESNext && rm -rf dist
 
+      - name: Ensure there's no dist folder
+        run: rm -rf dist
+
+      - name: Change RTK package name to ensure node_modules is used
+        run: sed -i -e 's|@reduxjs/toolkit|@reduxjs/toolkit-test|' ./package.json
+
+      - name: Run tests, against installed artifact
+        env:
+          TEST_DIST: true
+        working-directory: ./packages/toolkit
+        run: ../../node_modules/.bin/vitest --run --typecheck
+
   test-types:
-    name: 'Test Types: TS ${{ matrix.ts }}'
+    name: 'Test Types: TS ${{ matrix.ts }} and React ${{ matrix.react.version }}'
 
     needs: [build]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        node: ['20.x']
-        ts: ['5.0', '5.1', '5.2', '5.3', '5.4', '5.5']
+        node: ['22.x']
+        ts: ['5.1', '5.2', '5.3', '5.4', '5.5', '5.6', '5.7', '5.8']
+        react:
+          [
+            {
+              version: '^18',
+              types: ^18,
+              react-dom: { version: '^18', types: '^18' },
+            },
+            {
+              version: '^19',
+              types: '^19',
+              react-dom: { version: '^19', types: '^19' },
+            },
+          ]
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -124,6 +165,9 @@ jobs:
 
       - name: Install deps
         run: yarn install
+
+      - name: Install React ${{ matrix.react.version }} and React-DOM ${{ matrix.react.react-dom.version }}
+        run: yarn up react@${{ matrix.react.version }} react-dom@${{ matrix.react.react-dom.version }} @types/react@${{ matrix.react.types }} @types/react-dom@${{ matrix.react.react-dom.types }}
 
       - name: Install TypeScript ${{ matrix.ts }}
         run: yarn add typescript@${{ matrix.ts }}
@@ -139,7 +183,8 @@ jobs:
       - name: Show installed RTK versions
         run: yarn info @reduxjs/toolkit
 
-      - run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json
+      - name: Erase path aliases
+        run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json
 
       - name: Test types
         env:
@@ -156,7 +201,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: ['20.x']
+        node: ['22.x']
         example:
           [
             'cra4',
@@ -203,12 +248,13 @@ jobs:
       - name: Show installed RTK versions
         run: yarn info @reduxjs/toolkit && yarn why @reduxjs/toolkit
 
-      - name: Set up JDK 17 for React Native build
+      - name: Set up JDK 21 for React Native build
         if: matrix.example == 'react-native' || matrix.example == 'expo'
         uses: actions/setup-java@v4
         with:
-          java-version: '17.x'
+          java-version: '21.x'
           distribution: 'temurin'
+          cache: 'gradle'
 
       - name: Build example
         env:
@@ -226,7 +272,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: ['20.x']
+        node: ['22.x']
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -258,8 +304,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: ['20.x']
-        ts: ['5.3', '5.4', '5.5', 'next']
+        node: ['22.x']
+        ts: ['5.3', '5.4', '5.5', '5.6', '5.7', '5.8', 'next']
         example:
           [
             { name: 'bundler', moduleResolution: 'Bundler' },

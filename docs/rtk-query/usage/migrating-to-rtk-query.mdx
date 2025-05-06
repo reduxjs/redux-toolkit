@@ -375,8 +375,8 @@ interface Pokemon {}
 
 export const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
-  endpoints: (builder) => ({
-    getPokemonByName: builder.query<Pokemon, string>({
+  endpoints: (build) => ({
+    getPokemonByName: build.query<Pokemon, string>({
       query: (name) => `pokemon/${name}`,
     }),
   }),

@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "echo Done",
-    "test": "node test-cjs.cjs && node test-esm.mjs"
+    "test": "node --no-experimental-require-module test-cjs.cjs && node test-esm.mjs"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.0.0-rc.3",

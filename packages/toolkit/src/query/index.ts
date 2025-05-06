@@ -32,6 +32,10 @@ export type {
   QueryDefinition,
   MutationDefinition,
   MutationExtraOptions,
+  InfiniteQueryArgFrom,
+  InfiniteQueryDefinition,
+  InfiniteQueryExtraOptions,
+  PageParamFrom,
   TagDescription,
   QueryArgFrom,
   QueryExtraOptions,
@@ -42,6 +46,9 @@ export type {
   ResultDescription,
   TagTypesFromApi,
   UpdateDefinitions,
+  SchemaFailureHandler,
+  SchemaFailureConverter,
+  SchemaFailureInfo,
 } from './endpointDefinitions'
 export { fetchBaseQuery } from './fetchBaseQuery'
 export type {
@@ -70,12 +77,18 @@ export { _NEVER, fakeBaseQuery } from './fakeBaseQuery'
 export { copyWithStructuralSharing } from './utils/copyWithStructuralSharing'
 export { createApi, coreModule, coreModuleName } from './core/index'
 export type {
+  InfiniteData,
+  InfiniteQueryActionCreatorResult,
+  InfiniteQueryConfigOptions,
+  InfiniteQueryResultSelectorResult,
+  InfiniteQuerySubState,
   TypedMutationOnQueryStarted,
   TypedQueryOnQueryStarted,
 } from './core/index'
 export type {
   ApiEndpointMutation,
   ApiEndpointQuery,
+  ApiEndpointInfiniteQuery,
   ApiModules,
   CoreModule,
   PrefetchOptions,
@@ -88,3 +101,5 @@ export type {
   NoInfer as TSHelpersNoInfer,
   Override as TSHelpersOverride,
 } from './tsHelpers'
+
+export { NamedSchemaError } from './standardSchema'

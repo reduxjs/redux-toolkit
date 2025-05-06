@@ -29,6 +29,15 @@ export type {
   TypedUseLazyQuerySubscription,
   TypedUseQueryStateOptions,
   TypedUseLazyQueryStateResult,
+  TypedUseInfiniteQuery,
+  TypedUseInfiniteQueryHookResult,
+  TypedUseInfiniteQueryStateResult,
+  TypedUseInfiniteQuerySubscriptionResult,
+  TypedUseInfiniteQueryStateOptions,
+  TypedInfiniteQueryStateSelector,
+  TypedUseInfiniteQuerySubscription,
+  TypedUseInfiniteQueryState,
+  TypedLazyInfiniteQueryTrigger,
 } from './buildHooks'
 export { UNINITIALIZED_VALUE } from './constants'
 export { createApi, reactHooksModule, reactHooksModuleName }

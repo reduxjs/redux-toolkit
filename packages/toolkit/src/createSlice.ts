@@ -1078,6 +1078,8 @@ export function buildCreateSlice<
       >
     >()
 
+    const injectedStateCache = new WeakMap<(rootState: any) => State, State>()
+
     let _reducer: ReducerWithInitialState<State>
 
     function reducer(state: State | undefined, action: UnknownAction) {
@@ -1103,7 +1105,11 @@ export function buildCreateSlice<
         let sliceState = state[reducerPath]
         if (typeof sliceState === 'undefined') {
           if (injected) {
-            sliceState = getInitialState()
+            sliceState = getOrInsertComputed(
+              injectedStateCache,
+              selectSlice,
+              getInitialState,
+            )
           } else if (process.env.NODE_ENV !== 'production') {
             throw new Error(
               'selectSlice returned undefined for an uninjected slice reducer',
@@ -1112,6 +1118,7 @@ export function buildCreateSlice<
         }
         return sliceState
       }
+
       function getSelectors(
         selectState: (rootState: any) => State = selectSelf,
       ) {
@@ -1129,7 +1136,12 @@ export function buildCreateSlice<
             map[name] = wrapSelector(
               selector,
               selectState,
-              getInitialState,
+              () =>
+                getOrInsertComputed(
+                  injectedStateCache,
+                  selectState,
+                  getInitialState,
+                ),
               injected,
             )
           }

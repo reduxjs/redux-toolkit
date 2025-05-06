@@ -76,18 +76,18 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 
 export const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
-  endpoints: (builder) => ({
-    getUserByUserId: builder.query({
+  endpoints: (build) => ({
+    getUserByUserId: build.query({
       query() {
         return ''
       },
     }),
-    patchUserByUserId: builder.mutation({
+    patchUserByUserId: build.mutation({
       query() {
         return ''
       },
     }),
-    getUsers: builder.query({
+    getUsers: build.query({
       query() {
         return ''
       },

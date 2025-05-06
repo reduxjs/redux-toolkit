@@ -1,14 +1,16 @@
-import type { FC } from 'react';
-import { useState } from 'react';
+import type { JSX } from 'react'
+import { useState } from 'react'
 import {
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-} from 'react-native';
-import { useAppDispatch, useAppSelector } from '../../app/hooks';
-import { AsyncButton } from '../../components/AsyncButton';
+  useColorScheme,
+} from 'react-native'
+import { useAppDispatch, useAppSelector } from '../../app/hooks'
+import { AsyncButton } from '../../components/AsyncButton'
+import { Colors } from '../../constants/Colors'
 import {
   decrement,
   increment,
@@ -16,34 +18,47 @@ import {
   incrementByAmount,
   incrementIfOdd,
   selectCount,
-} from './counterSlice';
+  selectStatus,
+} from './counterSlice'
 
-export const Counter: FC = () => {
-  const [incrementAmount, setIncrementAmount] = useState('2');
-  const count = useAppSelector(selectCount);
-  const status = useAppSelector(state => state.counter.status);
-  const dispatch = useAppDispatch();
+export const Counter = (): JSX.Element => {
+  const isDarkMode = useColorScheme() === 'dark'
+  const textStyle = {
+    color: isDarkMode ? Colors.light : Colors.dark,
+  }
 
-  const incrementValue = Number(incrementAmount) || 0;
+  const dispatch = useAppDispatch()
+  const count = useAppSelector(selectCount)
+  const status = useAppSelector(selectStatus)
+  const [incrementAmount, setIncrementAmount] = useState('2')
+
+  const incrementValue = Number(incrementAmount) || 0
 
   return (
     <View>
       <View style={styles.row}>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => dispatch(increment())}>
-          <Text style={styles.buttonText}>+</Text>
+          aria-label="Decrement value"
+          onPress={() => dispatch(decrement())}
+        >
+          <Text style={styles.buttonText}>-</Text>
         </TouchableOpacity>
-        <Text style={styles.value}>{count}</Text>
+        <Text aria-label="Count" style={[styles.value, textStyle]}>
+          {count}
+        </Text>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => dispatch(decrement())}>
-          <Text style={styles.buttonText}>-</Text>
+          aria-label="Increment value"
+          onPress={() => dispatch(increment())}
+        >
+          <Text style={styles.buttonText}>+</Text>
         </TouchableOpacity>
       </View>
       <View style={styles.row}>
         <TextInput
-          style={styles.textbox}
+          aria-label="Set increment amount"
+          style={[styles.textbox, textStyle]}
           value={incrementAmount}
           keyboardType="numeric"
           onChangeText={setIncrementAmount}
@@ -51,29 +66,33 @@ export const Counter: FC = () => {
         <View>
           <TouchableOpacity
             style={styles.button}
-            onPress={() => dispatch(incrementByAmount(incrementValue))}>
+            onPress={() => dispatch(incrementByAmount(incrementValue))}
+          >
             <Text style={styles.buttonText}>Add Amount</Text>
           </TouchableOpacity>
           <AsyncButton
+            aria-label="Async Button"
             style={styles.button}
             disabled={status !== 'idle'}
             onPress={() => {
-              dispatch(incrementAsync(incrementValue)).catch(console.log);
-            }}>
+              void dispatch(incrementAsync(incrementValue))
+            }}
+          >
             <Text style={styles.buttonText}>Add Async</Text>
           </AsyncButton>
           <TouchableOpacity
             style={styles.button}
             onPress={() => {
-              dispatch(incrementIfOdd(incrementValue));
-            }}>
+              dispatch(incrementIfOdd(incrementValue))
+            }}
+          >
             <Text style={styles.buttonText}>Add If Odd</Text>
           </TouchableOpacity>
         </View>
       </View>
     </View>
-  );
-};
+  )
+}
 
 const styles = StyleSheet.create({
   row: {
@@ -109,4 +128,4 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     justifyContent: 'center',
   },
-});
+})

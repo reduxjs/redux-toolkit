@@ -1,5 +1,5 @@
 import * as DevTools from '@internal/devtoolsExtension'
-import type { StoreEnhancer } from '@reduxjs/toolkit'
+import type { Middleware, StoreEnhancer } from '@reduxjs/toolkit'
 import { Tuple } from '@reduxjs/toolkit'
 import type * as Redux from 'redux'
 import { vi } from 'vitest'
@@ -127,6 +127,37 @@ describe('configureStore', async () => {
         undefined,
         expect.any(Function),
       )
+    })
+  })
+
+  describe('given any middleware', () => {
+    const exampleMiddleware: Middleware<any, any> = () => (next) => (action) =>
+      next(action)
+    it('throws an error by default if there are duplicate middleware', () => {
+      const makeStore = () => {
+        return configureStore({
+          reducer,
+          middleware: (gDM) =>
+            gDM().concat(exampleMiddleware, exampleMiddleware),
+        })
+      }
+
+      expect(makeStore).toThrowError(
+        'Duplicate middleware references found when creating the store. Ensure that each middleware is only included once.',
+      )
+    })
+
+    it('does not throw a duplicate middleware error if duplicateMiddlewareCheck is disabled', () => {
+      const makeStore = () => {
+        return configureStore({
+          reducer,
+          middleware: (gDM) =>
+            gDM().concat(exampleMiddleware, exampleMiddleware),
+          duplicateMiddlewareCheck: false,
+        })
+      }
+
+      expect(makeStore).not.toThrowError()
     })
   })
 

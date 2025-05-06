@@ -4,8 +4,8 @@ import type { PokemonName } from '../pokemon.data'
 export const pokemonApi = createApi({
   reducerPath: 'pokemonApi',
   baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
-  endpoints: (builder) => ({
-    getPokemonByName: builder.query({
+  endpoints: (build) => ({
+    getPokemonByName: build.query({
       query: (name: PokemonName) => `pokemon/${name}`,
     }),
   }),

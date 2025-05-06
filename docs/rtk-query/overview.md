@@ -121,8 +121,8 @@ import type { Pokemon } from './types'
 export const pokemonApi = createApi({
   reducerPath: 'pokemonApi',
   baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
-  endpoints: (builder) => ({
-    getPokemonByName: builder.query<Pokemon, string>({
+  endpoints: (build) => ({
+    getPokemonByName: build.query<Pokemon, string>({
       query: (name) => `pokemon/${name}`,
     }),
   }),
@@ -179,7 +179,7 @@ export default function App() {
 
 ## Further Information
 
-See the [**RTK Query Quick Start tutorial**](../tutorials/rtk-query.mdx/) for examples of how to add RTK Query to a project that uses Redux Toolkit, set up an "API slice" with endpoint definitions, and how to use the auto-generated React hooks in your components.
+See the [**RTK Query Quick Start tutorial**](../tutorials/rtk-query.mdx) for examples of how to add RTK Query to a project that uses Redux Toolkit, set up an "API slice" with endpoint definitions, and how to use the auto-generated React hooks in your components.
 
 The [**RTK Query usage guide section**](./usage/queries.mdx) has information on topics like [querying data](./usage/queries.mdx), [using mutations to send updates to the server](./usage/mutations.mdx), [streaming cache updates](./usage/streaming-updates.mdx), and much more.
 
