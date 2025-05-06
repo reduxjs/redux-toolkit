@@ -28,15 +28,15 @@ export const api = createApi({
       return headers
     },
   }),
-  endpoints: (builder) => ({
-    login: builder.mutation<UserResponse, LoginRequest>({
+  endpoints: (build) => ({
+    login: build.mutation<UserResponse, LoginRequest>({
       query: (credentials) => ({
         url: 'login',
         method: 'POST',
         body: credentials,
       }),
     }),
-    protected: builder.mutation<{ message: string }, void>({
+    protected: build.mutation<{ message: string }, void>({
       query: () => 'protected',
     }),
   }),

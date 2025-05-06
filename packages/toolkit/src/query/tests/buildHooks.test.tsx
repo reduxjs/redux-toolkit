@@ -1,3 +1,4 @@
+import { noop } from '@internal/listenerMiddleware/utils'
 import type { SubscriptionOptions } from '@internal/query/core/apiState'
 import type { SubscriptionSelectors } from '@internal/query/core/buildMiddleware/types'
 import { server } from '@internal/query/tests/mocks/server'
@@ -30,10 +31,12 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { HttpResponse, http } from 'msw'
-import { useEffect, useState } from 'react'
-import type { MockInstance } from 'vitest'
+import { userEvent } from '@testing-library/user-event'
+import type { SyncScreen } from '@testing-library/react-render-stream/pure'
+import { createRenderStream } from '@testing-library/react-render-stream/pure'
+import { HttpResponse, http, delay } from 'msw'
+import { useEffect, useMemo, useState } from 'react'
+import type { InfiniteQueryResultFlags } from '../core/buildSelectors'
 
 // Just setup a temporary in-memory counter for tests that `getIncrementedAmount`.
 // This can be used to test how many renders happen due to data changes or
@@ -181,6 +184,8 @@ afterEach(() => {
   nextItemId = 0
   amount = 0
   listenerMiddleware.clearListeners()
+
+  server.resetHandlers()
 })
 
 let getRenderCount: () => number = () => 0
@@ -782,10 +787,12 @@ describe('hooks tests', () => {
     })
 
     test(`useQuery refetches when query args object changes even if serialized args don't change`, async () => {
+      const user = userEvent.setup()
+
       function ItemList() {
         const [pageNumber, setPageNumber] = useState(0)
         const { data = [] } = api.useListItemsQuery({
-          pageNumber: pageNumber,
+          pageNumber,
         })
 
         const renderedItems = data.map((item) => (
@@ -805,9 +812,7 @@ describe('hooks tests', () => {
 
       await screen.findByText('ID: 0')
 
-      await act(async () => {
-        screen.getByText('Next Page').click()
-      })
+      await user.click(screen.getByText('Next Page'))
 
       await screen.findByText('ID: 3')
     })
@@ -821,6 +826,8 @@ describe('hooks tests', () => {
     })
 
     test(`useQuery gracefully handles bigint types`, async () => {
+      const user = userEvent.setup()
+
       function ItemList() {
         const [pageNumber, setPageNumber] = useState(0)
         const { data = [] } = api.useListItemsQuery({
@@ -844,9 +851,7 @@ describe('hooks tests', () => {
 
       await screen.findByText('ID: 0')
 
-      await act(async () => {
-        screen.getByText('Next Page').click()
-      })
+      await user.click(screen.getByText('Next Page'))
 
       await screen.findByText('ID: 3')
     })
@@ -884,7 +889,9 @@ describe('hooks tests', () => {
 
         await waitFor(() => expect(result.current.isSuccess).toBe(true))
         selectFromResult.mockClear()
-        act(() => void storeRef.store.dispatch(api.util.resetApiState()))
+        act(() => {
+          storeRef.store.dispatch(api.util.resetApiState())
+        })
 
         expect(selectFromResult).toHaveBeenNthCalledWith(1, {
           isError: false,
@@ -893,6 +900,71 @@ describe('hooks tests', () => {
           isSuccess: false,
           isUninitialized: true,
           status: 'uninitialized',
+        })
+      })
+
+      test('hook should not be stuck loading post resetApiState after re-render', async () => {
+        const user = userEvent.setup()
+
+        function QueryComponent() {
+          const { isLoading, data } = api.endpoints.getUser.useQuery(1)
+
+          if (isLoading) {
+            return <p>Loading...</p>
+          }
+
+          return <p>{data?.name}</p>
+        }
+
+        function Wrapper() {
+          const [open, setOpen] = useState(true)
+
+          const handleRerender = () => {
+            setOpen(false)
+            setTimeout(() => {
+              setOpen(true)
+            }, 250)
+          }
+
+          const handleReset = () => {
+            storeRef.store.dispatch(api.util.resetApiState())
+          }
+
+          return (
+            <>
+              <button onClick={handleRerender} aria-label="Rerender component">
+                Rerender
+              </button>
+              {open ? (
+                <div>
+                  <button onClick={handleReset} aria-label="Reset API state">
+                    Reset
+                  </button>
+
+                  <QueryComponent />
+                </div>
+              ) : null}
+            </>
+          )
+        }
+
+        render(<Wrapper />, { wrapper: storeRef.wrapper })
+
+        await user.click(
+          screen.getByRole('button', { name: /Rerender component/i }),
+        )
+        await waitFor(() => {
+          expect(screen.getByText('Timmy')).toBeTruthy()
+        })
+
+        await user.click(
+          screen.getByRole('button', { name: /reset api state/i }),
+        )
+        await waitFor(() => {
+          expect(screen.queryByText('Loading...')).toBeNull()
+        })
+        await waitFor(() => {
+          expect(screen.getByText('Timmy')).toBeTruthy()
         })
       })
     })
@@ -922,9 +994,6 @@ describe('hooks tests', () => {
     // See https://github.com/reduxjs/redux-toolkit/issues/4267 - Memory leak in useQuery rapid query arg changes
     test('Hook subscriptions are properly cleaned up when query is fulfilled/rejected', async () => {
       // This is imported already, but it seems to be causing issues with the test on certain matrixes
-      function delay(ms: number) {
-        return new Promise((resolve) => setTimeout(resolve, ms))
-      }
 
       const pokemonApi = createApi({
         baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
@@ -1023,15 +1092,11 @@ describe('hooks tests', () => {
       })
 
       // 2) Set the current subscription to `{skip: true}
-      await act(async () => {
-        rerender(['a', { skip: true }])
-      })
+      rerender(['a', { skip: true }])
 
       // 3) Change _both_ the cache key _and_ `{skip: false}` at the same time.
       // This causes the `subscriptionRemoved` check to be `true`.
-      await act(async () => {
-        rerender(['b'])
-      })
+      rerender(['b'])
 
       // There should only be one active subscription after changing the arg
       checkNumSubscriptions('b', 1)
@@ -1040,9 +1105,7 @@ describe('hooks tests', () => {
       // This causes the `subscriptionRemoved` check to be `false`.
       // Correct behavior is this does _not_ clear the promise ref,
       // so
-      await act(async () => {
-        rerender(['b'])
-      })
+      rerender(['b'])
 
       // There should only be one active subscription after changing the arg
       checkNumSubscriptions('b', 1)
@@ -1092,19 +1155,27 @@ describe('hooks tests', () => {
 
       render(<Parent />, { wrapper: storeRef.wrapper })
 
+      expect(states).toHaveLength(2)
+
       // Allow at least three state effects to hit.
       // Trying to see if any [true, false, true] occurs.
       await act(async () => {
         await waitForFakeTimer(150)
       })
 
-      await act(async () => {
-        await waitForFakeTimer(150)
-      })
+      expect(states).toHaveLength(4)
 
       await act(async () => {
         await waitForFakeTimer(150)
       })
+
+      expect(states).toHaveLength(5)
+
+      await act(async () => {
+        await waitForFakeTimer(150)
+      })
+
+      expect(states).toHaveLength(5)
 
       // Find if at any time the isLoading state has reverted
       // E.G.: `[..., true, false, ..., true]`
@@ -1120,14 +1191,16 @@ describe('hooks tests', () => {
     })
 
     describe('Hook middleware requirements', () => {
-      let mock: MockInstance
-
-      beforeEach(() => {
-        mock = vi.spyOn(console, 'error').mockImplementation(() => {})
-      })
+      const consoleErrorSpy = vi
+        .spyOn(console, 'error')
+        .mockImplementation(noop)
 
       afterEach(() => {
-        mock.mockReset()
+        consoleErrorSpy.mockClear()
+      })
+
+      afterAll(() => {
+        consoleErrorSpy.mockRestore()
       })
 
       test('Throws error if middleware is not added to the store', async () => {
@@ -1138,12 +1211,9 @@ describe('hooks tests', () => {
         })
 
         const doRender = () => {
-          const { result } = renderHook(
-            () => api.endpoints.getIncrementedAmount.useQuery(),
-            {
-              wrapper: withProvider(store),
-            },
-          )
+          renderHook(() => api.endpoints.getIncrementedAmount.useQuery(), {
+            wrapper: withProvider(store),
+          })
         }
 
         expect(doRender).toThrowError(
@@ -1368,6 +1438,8 @@ describe('hooks tests', () => {
     })
 
     test('useLazyQuery hook callback returns various properties to handle the result', async () => {
+      const user = userEvent.setup()
+
       function User() {
         const [getUser] = api.endpoints.getUser.useLazyQuery()
         const [{ successMsg, errMsg, isAborted }, setValues] = useState({
@@ -1424,9 +1496,10 @@ describe('hooks tests', () => {
       expect(screen.queryByText(/Successfully fetched user/i)).toBeNull()
       screen.getByText('Request was aborted')
 
-      fireEvent.click(
+      await user.click(
         screen.getByRole('button', { name: 'Fetch User successfully' }),
       )
+
       await screen.findByText('Successfully fetched user Timmy')
       expect(screen.queryByText(/An error has occurred/i)).toBeNull()
       expect(screen.queryByText('Request was aborted')).toBeNull()
@@ -1538,6 +1611,8 @@ describe('hooks tests', () => {
     })
 
     test('useLazyQuery trigger promise returns the correctly updated data', async () => {
+      const user = userEvent.setup()
+
       const LazyUnwrapUseEffect = () => {
         const [triggerGetIncrementedAmount, { isFetching, isSuccess, data }] =
           api.endpoints.getIncrementedAmount.useLazyQuery()
@@ -1557,7 +1632,7 @@ describe('hooks tests', () => {
 
             setDataFromTrigger(res) // adding client side state here will cause stale data
           } catch (error) {
-            console.error(error)
+            console.error('Error handling increment trigger', error)
           }
         }
 
@@ -1567,7 +1642,7 @@ describe('hooks tests', () => {
             // Force the lazy trigger to refetch
             await handleLoad()
           } catch (error) {
-            console.error(error)
+            console.error('Error handling mutate trigger', error)
           }
         }
 
@@ -1605,9 +1680,7 @@ describe('hooks tests', () => {
       render(<LazyUnwrapUseEffect />, { wrapper: storeRef.wrapper })
 
       // Kick off the initial fetch via lazy query trigger
-      act(() => {
-        userEvent.click(screen.getByText('Load Data'))
-      })
+      await user.click(screen.getByText('Load Data'))
 
       // We get back initial data, which should get copied into local state,
       // and also should come back as valid via the lazy trigger promise
@@ -1617,9 +1690,7 @@ describe('hooks tests', () => {
       })
 
       // If we mutate and then re-run the lazy trigger afterwards...
-      act(() => {
-        userEvent.click(screen.getByText('Update Data'))
-      })
+      await user.click(screen.getByText('Update Data'))
 
       // We should see both sets of data agree (ie, the lazy trigger promise
       // should not return stale data or be out of sync with the hook).
@@ -1631,6 +1702,8 @@ describe('hooks tests', () => {
     })
 
     test('`reset` sets state back to original state', async () => {
+      const user = userEvent.setup()
+
       function User() {
         const [getUser, { isSuccess, isUninitialized, reset }, _lastInfo] =
           api.endpoints.getUser.useLazyQuery()
@@ -1659,12 +1732,12 @@ describe('hooks tests', () => {
       await screen.findByText(/isUninitialized/i)
       expect(countObjectKeys(storeRef.store.getState().api.queries)).toBe(0)
 
-      userEvent.click(screen.getByRole('button', { name: 'Fetch User' }))
+      await user.click(screen.getByRole('button', { name: 'Fetch User' }))
 
       await screen.findByText(/isSuccess/i)
       expect(countObjectKeys(storeRef.store.getState().api.queries)).toBe(1)
 
-      userEvent.click(
+      await user.click(
         screen.getByRole('button', {
           name: 'Reset',
         }),
@@ -1672,6 +1745,576 @@ describe('hooks tests', () => {
 
       await screen.findByText(/isUninitialized/i)
       expect(countObjectKeys(storeRef.store.getState().api.queries)).toBe(0)
+    })
+  })
+
+  describe('useInfiniteQuery', () => {
+    type Pokemon = {
+      id: string
+      name: string
+    }
+
+    const pokemonApi = createApi({
+      baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
+      endpoints: (builder) => ({
+        getInfinitePokemon: builder.infiniteQuery<Pokemon, string, number>({
+          infiniteQueryOptions: {
+            initialPageParam: 0,
+            getNextPageParam: (
+              lastPage,
+              allPages,
+              lastPageParam,
+              allPageParams,
+            ) => lastPageParam + 1,
+            getPreviousPageParam: (
+              firstPage,
+              allPages,
+              firstPageParam,
+              allPageParams,
+            ) => {
+              return firstPageParam > 0 ? firstPageParam - 1 : undefined
+            },
+          },
+          query({ pageParam }) {
+            return `https://example.com/listItems?page=${pageParam}`
+          },
+        }),
+      }),
+    })
+
+    const pokemonApiWithRefetch = createApi({
+      baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
+      endpoints: (builder) => ({
+        getInfinitePokemon: builder.infiniteQuery<Pokemon, string, number>({
+          infiniteQueryOptions: {
+            initialPageParam: 0,
+            getNextPageParam: (
+              lastPage,
+              allPages,
+              lastPageParam,
+              allPageParams,
+            ) => lastPageParam + 1,
+            getPreviousPageParam: (
+              firstPage,
+              allPages,
+              firstPageParam,
+              allPageParams,
+            ) => {
+              return firstPageParam > 0 ? firstPageParam - 1 : undefined
+            },
+          },
+          query({ pageParam }) {
+            return `https://example.com/listItems?page=${pageParam}`
+          },
+        }),
+      }),
+      refetchOnMountOrArgChange: true,
+    })
+
+    function PokemonList({
+      api,
+      arg = 'fire',
+      initialPageParam = 0,
+    }: {
+      api: typeof pokemonApi
+      arg?: string
+      initialPageParam?: number
+    }) {
+      const {
+        data,
+        isFetching,
+        isUninitialized,
+        fetchNextPage,
+        fetchPreviousPage,
+        refetch,
+      } = api.useGetInfinitePokemonInfiniteQuery(arg, {
+        initialPageParam,
+      })
+
+      const handlePreviousPage = async () => {
+        const res = await fetchPreviousPage()
+      }
+
+      const handleNextPage = async () => {
+        const res = await fetchNextPage()
+      }
+
+      const handleRefetch = async () => {
+        const res = await refetch()
+      }
+
+      return (
+        <div>
+          <div data-testid="isUninitialized">{String(isUninitialized)}</div>
+          <div data-testid="isFetching">{String(isFetching)}</div>
+          <div>Type: {arg}</div>
+          <div data-testid="data">
+            {data?.pages.map((page, i: number | null | undefined) => (
+              <div key={i}>{page.name}</div>
+            ))}
+          </div>
+          <button data-testid="prevPage" onClick={() => handlePreviousPage()}>
+            previousPage
+          </button>
+          <button data-testid="nextPage" onClick={() => handleNextPage()}>
+            nextPage
+          </button>
+          <button data-testid="refetch" onClick={() => handleRefetch()}>
+            refetch
+          </button>
+        </div>
+      )
+    }
+
+    beforeEach(() => {
+      server.use(
+        http.get('https://example.com/listItems', ({ request }) => {
+          const url = new URL(request.url)
+          const pageString = url.searchParams.get('page')
+          const pageNum = parseInt(pageString || '0')
+
+          const results: Pokemon = {
+            id: `${pageNum}`,
+            name: `Pokemon ${pageNum}`,
+          }
+
+          return HttpResponse.json(results)
+        }),
+      )
+    })
+
+    test.each([
+      ['no refetch', pokemonApi],
+      ['with refetch', pokemonApiWithRefetch],
+    ])(`useInfiniteQuery %s`, async (_, pokemonApi) => {
+      const storeRef = setupApiStore(pokemonApi, undefined, {
+        withoutTestLifecycles: true,
+      })
+
+      const { takeRender, render, getCurrentRender } = createRenderStream({
+        snapshotDOM: true,
+      })
+
+      const checkNumQueries = (count: number) => {
+        const cacheEntries = Object.keys(storeRef.store.getState().api.queries)
+        const queries = cacheEntries.length
+        //console.log('queries', queries, storeRef.store.getState().api.queries)
+
+        expect(queries).toBe(count)
+      }
+
+      const checkEntryFlags = (
+        arg: string,
+        expectedFlags: Partial<InfiniteQueryResultFlags>,
+      ) => {
+        const selector = pokemonApi.endpoints.getInfinitePokemon.select(arg)
+        const entry = selector(storeRef.store.getState())
+
+        const actualFlags: InfiniteQueryResultFlags = {
+          hasNextPage: false,
+          hasPreviousPage: false,
+          isFetchingNextPage: false,
+          isFetchingPreviousPage: false,
+          isFetchNextPageError: false,
+          isFetchPreviousPageError: false,
+          ...expectedFlags,
+        }
+
+        expect(entry).toMatchObject(actualFlags)
+      }
+
+      const checkPageRows = (
+        withinDOM: () => SyncScreen,
+        type: string,
+        ids: number[],
+      ) => {
+        expect(withinDOM().getByText(`Type: ${type}`)).toBeTruthy()
+        for (const id of ids) {
+          expect(withinDOM().getByText(`Pokemon ${id}`)).toBeTruthy()
+        }
+      }
+
+      async function waitForFetch(handleExtraMiddleRender = false) {
+        {
+          const { withinDOM } = await takeRender()
+          expect(withinDOM().getByTestId('isFetching').textContent).toBe('true')
+        }
+
+        // We seem to do an extra render when fetching an uninitialized entry
+        if (handleExtraMiddleRender) {
+          {
+            const { withinDOM } = await takeRender()
+            expect(withinDOM().getByTestId('isFetching').textContent).toBe(
+              'true',
+            )
+          }
+        }
+
+        {
+          // Second fetch complete
+          const { withinDOM } = await takeRender()
+          expect(withinDOM().getByTestId('isFetching').textContent).toBe(
+            'false',
+          )
+        }
+      }
+
+      const utils = render(<PokemonList api={pokemonApi} />, {
+        wrapper: storeRef.wrapper,
+      })
+      checkNumQueries(1)
+      checkEntryFlags('fire', {})
+      await waitForFetch(true)
+      checkNumQueries(1)
+      checkPageRows(getCurrentRender().withinDOM, 'fire', [0])
+      checkEntryFlags('fire', {
+        hasNextPage: true,
+      })
+
+      fireEvent.click(screen.getByTestId('nextPage'), {})
+      checkEntryFlags('fire', {
+        hasNextPage: true,
+        isFetchingNextPage: true,
+      })
+      await waitForFetch()
+      checkPageRows(getCurrentRender().withinDOM, 'fire', [0, 1])
+      checkEntryFlags('fire', {
+        hasNextPage: true,
+      })
+
+      fireEvent.click(screen.getByTestId('nextPage'))
+      await waitForFetch()
+      checkPageRows(getCurrentRender().withinDOM, 'fire', [0, 1, 2])
+
+      utils.rerender(
+        <PokemonList api={pokemonApi} arg="water" initialPageParam={3} />,
+      )
+      checkEntryFlags('water', {})
+      await waitForFetch(true)
+      checkNumQueries(2)
+      checkPageRows(getCurrentRender().withinDOM, 'water', [3])
+      checkEntryFlags('water', {
+        hasNextPage: true,
+        hasPreviousPage: true,
+      })
+
+      fireEvent.click(screen.getByTestId('nextPage'))
+      checkEntryFlags('water', {
+        hasNextPage: true,
+        hasPreviousPage: true,
+        isFetchingNextPage: true,
+      })
+      await waitForFetch()
+      checkPageRows(getCurrentRender().withinDOM, 'water', [3, 4])
+      checkEntryFlags('water', {
+        hasNextPage: true,
+        hasPreviousPage: true,
+      })
+
+      fireEvent.click(screen.getByTestId('prevPage'))
+      checkEntryFlags('water', {
+        hasNextPage: true,
+        hasPreviousPage: true,
+        isFetchingPreviousPage: true,
+      })
+      await waitForFetch()
+      checkPageRows(getCurrentRender().withinDOM, 'water', [2, 3, 4])
+      checkEntryFlags('water', {
+        hasNextPage: true,
+        hasPreviousPage: true,
+      })
+
+      fireEvent.click(screen.getByTestId('refetch'))
+      checkEntryFlags('water', {
+        hasNextPage: true,
+        hasPreviousPage: true,
+      })
+      await waitForFetch()
+      checkPageRows(getCurrentRender().withinDOM, 'water', [2, 3, 4])
+      checkEntryFlags('water', {
+        hasNextPage: true,
+        hasPreviousPage: true,
+      })
+    })
+
+    test('Object page params does not keep forcing refetching', async () => {
+      type Project = {
+        id: number
+        createdAt: string
+      }
+
+      type ProjectsResponse = {
+        projects: Project[]
+        numFound: number
+        serverTime: string
+      }
+
+      interface ProjectsInitialPageParam {
+        offset: number
+        limit: number
+      }
+
+      const apiWithInfiniteScroll = createApi({
+        baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com/' }),
+        endpoints: (builder) => ({
+          projectsLimitOffset: builder.infiniteQuery<
+            ProjectsResponse,
+            void,
+            ProjectsInitialPageParam
+          >({
+            infiniteQueryOptions: {
+              initialPageParam: {
+                offset: 0,
+                limit: 20,
+              },
+              getNextPageParam: (
+                lastPage,
+                allPages,
+                lastPageParam,
+                allPageParams,
+              ) => {
+                const nextOffset = lastPageParam.offset + lastPageParam.limit
+                const remainingItems = lastPage?.numFound - nextOffset
+
+                if (remainingItems <= 0) {
+                  return undefined
+                }
+
+                return {
+                  ...lastPageParam,
+                  offset: nextOffset,
+                }
+              },
+              getPreviousPageParam: (
+                firstPage,
+                allPages,
+                firstPageParam,
+                allPageParams,
+              ) => {
+                const prevOffset = firstPageParam.offset - firstPageParam.limit
+                if (prevOffset < 0) return undefined
+
+                return {
+                  ...firstPageParam,
+                  offset: firstPageParam.offset - firstPageParam.limit,
+                }
+              },
+            },
+            query: ({ pageParam }) => {
+              const { offset, limit } = pageParam
+              return {
+                url: `https://example.com/api/projectsLimitOffset?offset=${offset}&limit=${limit}`,
+                method: 'GET',
+              }
+            },
+          }),
+        }),
+      })
+
+      const projects = Array.from({ length: 50 }, (_, i) => {
+        return {
+          id: i,
+          createdAt: Date.now() + i * 1000,
+        }
+      })
+
+      let numRequests = 0
+
+      server.use(
+        http.get(
+          'https://example.com/api/projectsLimitOffset',
+          async ({ request }) => {
+            const url = new URL(request.url)
+            const limit = parseInt(url.searchParams.get('limit') ?? '5', 10)
+            let offset = parseInt(url.searchParams.get('offset') ?? '0', 10)
+
+            numRequests++
+
+            if (isNaN(offset) || offset < 0) {
+              offset = 0
+            }
+            if (isNaN(limit) || limit <= 0) {
+              return HttpResponse.json(
+                {
+                  message:
+                    "Invalid 'limit' parameter. It must be a positive integer.",
+                } as any,
+                { status: 400 },
+              )
+            }
+
+            const result = projects.slice(offset, offset + limit)
+
+            await delay(10)
+            return HttpResponse.json({
+              projects: result,
+              serverTime: Date.now(),
+              numFound: projects.length,
+            })
+          },
+        ),
+      )
+
+      function LimitOffsetExample() {
+        const {
+          data,
+          hasPreviousPage,
+          hasNextPage,
+          error,
+          isFetching,
+          isLoading,
+          isError,
+          fetchNextPage,
+          fetchPreviousPage,
+          isFetchingNextPage,
+          isFetchingPreviousPage,
+          status,
+        } = apiWithInfiniteScroll.useProjectsLimitOffsetInfiniteQuery(
+          undefined,
+          {
+            initialPageParam: {
+              offset: 10,
+              limit: 10,
+            },
+          },
+        )
+
+        const [counter, setCounter] = useState(0)
+
+        const combinedData = useMemo(() => {
+          return data?.pages?.map((item) => item?.projects)?.flat()
+        }, [data])
+
+        return (
+          <div>
+            <h2>Limit and Offset Infinite Scroll</h2>
+            <button onClick={() => setCounter((c) => c + 1)}>Increment</button>
+            <div>Counter: {counter}</div>
+            {isLoading ? (
+              <p>Loading...</p>
+            ) : isError ? (
+              <span>Error: {error.message}</span>
+            ) : null}
+
+            <>
+              <div>
+                <button
+                  onClick={() => fetchPreviousPage()}
+                  disabled={!hasPreviousPage || isFetchingPreviousPage}
+                >
+                  {isFetchingPreviousPage
+                    ? 'Loading more...'
+                    : hasPreviousPage
+                      ? 'Load Older'
+                      : 'Nothing more to load'}
+                </button>
+              </div>
+              <div data-testid="projects">
+                {combinedData?.map((project, index, arr) => {
+                  return (
+                    <div key={project.id}>
+                      <div data-testid="project">
+                        <div>{`Project ${project.id} (created at: ${project.createdAt})`}</div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+              <div>
+                <button
+                  onClick={() => fetchNextPage()}
+                  disabled={!hasNextPage || isFetchingNextPage}
+                >
+                  {isFetchingNextPage
+                    ? 'Loading more...'
+                    : hasNextPage
+                      ? 'Load Newer'
+                      : 'Nothing more to load'}
+                </button>
+              </div>
+              <div>
+                {isFetching && !isFetchingPreviousPage && !isFetchingNextPage
+                  ? 'Background Updating...'
+                  : null}
+              </div>
+            </>
+          </div>
+        )
+      }
+
+      const storeRef = setupApiStore(
+        apiWithInfiniteScroll,
+        { ...actionsReducer },
+        {
+          withoutTestLifecycles: true,
+        },
+      )
+
+      const { takeRender, render, totalRenderCount } = createRenderStream({
+        snapshotDOM: true,
+      })
+
+      render(<LimitOffsetExample />, {
+        wrapper: storeRef.wrapper,
+      })
+
+      {
+        const { withinDOM } = await takeRender()
+        withinDOM().getByText('Counter: 0')
+        withinDOM().getByText('Loading...')
+      }
+
+      {
+        const { withinDOM } = await takeRender()
+        withinDOM().getByText('Counter: 0')
+        withinDOM().getByText('Loading...')
+      }
+
+      {
+        const { withinDOM } = await takeRender()
+        withinDOM().getByText('Counter: 0')
+
+        expect(withinDOM().getAllByTestId('project').length).toBe(10)
+        expect(withinDOM().queryByTestId('Loading...')).toBeNull()
+      }
+
+      expect(totalRenderCount()).toBe(3)
+      expect(numRequests).toBe(1)
+    })
+
+    test('useInfiniteQuery hook does not fetch when the skip token is set', async () => {
+      function Pokemon() {
+        const [value, setValue] = useState(0)
+
+        const { isFetching } = pokemonApi.useGetInfinitePokemonInfiniteQuery(
+          'fire',
+          {
+            skip: value < 1,
+          },
+        )
+        getRenderCount = useRenderCounter()
+
+        return (
+          <div>
+            <div data-testid="isFetching">{String(isFetching)}</div>
+            <button onClick={() => setValue((val) => val + 1)}>
+              Increment value
+            </button>
+          </div>
+        )
+      }
+
+      render(<Pokemon />, { wrapper: storeRef.wrapper })
+      expect(getRenderCount()).toBe(1)
+
+      await waitFor(() =>
+        expect(screen.getByTestId('isFetching').textContent).toBe('false'),
+      )
+      fireEvent.click(screen.getByText('Increment value'))
+      await waitFor(() =>
+        expect(screen.getByTestId('isFetching').textContent).toBe('true'),
+      )
+      expect(getRenderCount()).toBe(2)
     })
   })
 
@@ -1732,6 +2375,8 @@ describe('hooks tests', () => {
     })
 
     test('useMutation hook callback returns various properties to handle the result', async () => {
+      const user = userEvent.setup()
+
       function User() {
         const [updateUser] = api.endpoints.updateUser.useMutation()
         const [successMsg, setSuccessMsg] = useState('')
@@ -1773,7 +2418,7 @@ describe('hooks tests', () => {
       expect(screen.queryByText(/Successfully updated user/i)).toBeNull()
       expect(screen.queryByText('Request was aborted')).toBeNull()
 
-      fireEvent.click(
+      await user.click(
         screen.getByRole('button', { name: 'Update User and abort' }),
       )
       await screen.findByText('An error has occurred updating user Banana')
@@ -1792,13 +2437,17 @@ describe('hooks tests', () => {
 
       const firstRenderResult = result.current
       expect(firstRenderResult[1].originalArgs).toBe(undefined)
-      act(() => void firstRenderResult[0](arg))
+      await act(async () => {
+        await firstRenderResult[0](arg)
+      })
       const secondRenderResult = result.current
       expect(firstRenderResult[1].originalArgs).toBe(undefined)
       expect(secondRenderResult[1].originalArgs).toBe(arg)
     })
 
     test('`reset` sets state back to original state', async () => {
+      const user = userEvent.setup()
+
       function User() {
         const [updateUser, result] = api.endpoints.updateUser.useMutation()
         return (
@@ -1822,13 +2471,13 @@ describe('hooks tests', () => {
       expect(screen.queryByText('Yay')).toBeNull()
       expect(countObjectKeys(storeRef.store.getState().api.mutations)).toBe(0)
 
-      userEvent.click(screen.getByRole('button', { name: 'trigger' }))
+      await user.click(screen.getByRole('button', { name: 'trigger' }))
 
       await screen.findByText(/isSuccess/i)
       expect(screen.queryByText('Yay')).not.toBeNull()
       expect(countObjectKeys(storeRef.store.getState().api.mutations)).toBe(1)
 
-      userEvent.click(screen.getByRole('button', { name: 'reset' }))
+      await user.click(screen.getByRole('button', { name: 'reset' }))
 
       await screen.findByText(/isUninitialized/i)
       expect(screen.queryByText('Yay')).toBeNull()
@@ -1838,6 +2487,8 @@ describe('hooks tests', () => {
 
   describe('usePrefetch', () => {
     test('usePrefetch respects force arg', async () => {
+      const user = userEvent.setup()
+
       const { usePrefetch } = api
       const USER_ID = 4
       function User() {
@@ -1864,7 +2515,7 @@ describe('hooks tests', () => {
         expect(screen.getByTestId('isFetching').textContent).toBe('false'),
       )
 
-      await userEvent.hover(screen.getByTestId('highPriority'))
+      await user.hover(screen.getByTestId('highPriority'))
 
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any),
@@ -1905,6 +2556,8 @@ describe('hooks tests', () => {
     })
 
     test('usePrefetch does not make an additional request if already in the cache and force=false', async () => {
+      const user = userEvent.setup()
+
       const { usePrefetch } = api
       const USER_ID = 2
 
@@ -1933,7 +2586,7 @@ describe('hooks tests', () => {
         expect(screen.getByTestId('isFetching').textContent).toBe('false'),
       )
       // Try to prefetch what we just loaded
-      userEvent.hover(screen.getByTestId('lowPriority'))
+      await user.hover(screen.getByTestId('lowPriority'))
 
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any),
@@ -1971,6 +2624,8 @@ describe('hooks tests', () => {
     })
 
     test('usePrefetch respects ifOlderThan when it evaluates to true', async () => {
+      const user = userEvent.setup()
+
       const { usePrefetch } = api
       const USER_ID = 47
 
@@ -2002,7 +2657,8 @@ describe('hooks tests', () => {
       await waitMs(400)
 
       // This should run the query being that we're past the threshold
-      await userEvent.hover(screen.getByTestId('lowPriority'))
+      await user.hover(screen.getByTestId('lowPriority'))
+
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any),
       ).toEqual({
@@ -2041,6 +2697,8 @@ describe('hooks tests', () => {
     })
 
     test('usePrefetch returns the last success result when ifOlderThan evalutes to false', async () => {
+      const user = userEvent.setup()
+
       const { usePrefetch } = api
       const USER_ID = 2
 
@@ -2074,7 +2732,8 @@ describe('hooks tests', () => {
         storeRef.store.getState() as any,
       )
 
-      userEvent.hover(screen.getByTestId('lowPriority'))
+      await user.hover(screen.getByTestId('lowPriority'))
+
       //  Serve up the result from the cache being that the condition wasn't met
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any),
@@ -2082,6 +2741,8 @@ describe('hooks tests', () => {
     })
 
     test('usePrefetch executes a query even if conditions fail when the cache is empty', async () => {
+      const user = userEvent.setup()
+
       const { usePrefetch } = api
       const USER_ID = 2
 
@@ -2102,10 +2763,10 @@ describe('hooks tests', () => {
 
       render(<User />, { wrapper: storeRef.wrapper })
 
-      await userEvent.hover(screen.getByTestId('lowPriority'))
+      await user.hover(screen.getByTestId('lowPriority'))
 
       expect(
-        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any),
+        api.endpoints.getUser.select(USER_ID)(storeRef.store.getState()),
       ).toEqual({
         endpointName: 'getUser',
         isError: false,
@@ -2991,9 +3652,7 @@ describe('skip behavior', () => {
     await waitMs(1)
     expect(getSubscriptionCount('getUser(1)')).toBe(0)
 
-    await act(async () => {
-      rerender([1])
-    })
+    rerender([1])
 
     await act(async () => {
       await waitForFakeTimer(150)
@@ -3003,9 +3662,8 @@ describe('skip behavior', () => {
     await waitMs(1)
     expect(getSubscriptionCount('getUser(1)')).toBe(1)
 
-    await act(async () => {
-      rerender([1, { skip: true }])
-    })
+    rerender([1, { skip: true }])
+
     expect(result.current).toEqual({
       ...uninitialized,
       isSuccess: true,
@@ -3033,9 +3691,7 @@ describe('skip behavior', () => {
     // also no subscription on `getUser(skipToken)` or similar:
     expect(getSubscriptions()).toEqual({})
 
-    await act(async () => {
-      rerender([1])
-    })
+    rerender([1])
 
     await act(async () => {
       await waitForFakeTimer(150)
@@ -3046,9 +3702,8 @@ describe('skip behavior', () => {
     expect(getSubscriptionCount('getUser(1)')).toBe(1)
     expect(getSubscriptions()).not.toEqual({})
 
-    await act(async () => {
-      rerender([skipToken])
-    })
+    rerender([skipToken])
+
     expect(result.current).toEqual({
       ...uninitialized,
       isSuccess: true,
@@ -3057,6 +3712,48 @@ describe('skip behavior', () => {
     })
     await waitMs(1)
     expect(getSubscriptionCount('getUser(1)')).toBe(0)
+  })
+
+  test('skipToken does not break serializeQueryArgs', async () => {
+    const { result, rerender } = renderHook(
+      ([arg, options]: Parameters<
+        typeof api.endpoints.queryWithDeepArg.useQuery
+      >) => api.endpoints.queryWithDeepArg.useQuery(arg, options),
+      {
+        wrapper: storeRef.wrapper,
+        initialProps: [skipToken],
+      },
+    )
+
+    expect(result.current).toEqual(uninitialized)
+    await waitMs(1)
+
+    expect(getSubscriptionCount('nestedValue')).toBe(0)
+    // also no subscription on `getUser(skipToken)` or similar:
+    expect(getSubscriptions()).toEqual({})
+
+    rerender([{ param: { nested: 'nestedValue' } }])
+
+    await act(async () => {
+      await waitForFakeTimer(150)
+    })
+
+    expect(result.current).toMatchObject({ status: QueryStatus.fulfilled })
+    await waitMs(1)
+
+    expect(getSubscriptionCount('nestedValue')).toBe(1)
+    expect(getSubscriptions()).not.toEqual({})
+
+    rerender([skipToken])
+
+    expect(result.current).toEqual({
+      ...uninitialized,
+      isSuccess: true,
+      currentData: undefined,
+      data: {},
+    })
+    await waitMs(1)
+    expect(getSubscriptionCount('nestedValue')).toBe(0)
   })
 
   test('skipping a previously fetched query retains the existing value as `data`, but clears `currentData`', async () => {
@@ -3081,10 +3778,7 @@ describe('skip behavior', () => {
       currentData: { name: 'Timmy' },
     })
 
-    await act(async () => {
-      rerender([1, { skip: true }])
-      await waitMs(1)
-    })
+    rerender([1, { skip: true }])
 
     // After skipping, the query is "uninitialized", but still retains the last fetched `data`
     // even though it's skipped. `currentData` is undefined, since that matches the current arg.

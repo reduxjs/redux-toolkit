@@ -5,13 +5,24 @@ import {
   hookWaitFor,
   setupApiStore,
 } from '../../tests/utils/helpers'
-import { renderHook, act, waitFor } from '@testing-library/react'
+import {
+  render,
+  renderHook,
+  act,
+  waitFor,
+  screen,
+} from '@testing-library/react'
 import { delay } from 'msw'
 
 interface Post {
   id: string
   title: string
   contents: string
+}
+
+interface FolderT {
+  id: number
+  children: FolderT[]
 }
 
 const baseQuery = vi.fn()
@@ -28,11 +39,9 @@ const api = createApi({
         .catch((e: any) => ({ error: e }))
     return { data: result, meta: 'meta' }
   },
-  tagTypes: ['Post'],
+  tagTypes: ['Post', 'Folder'],
   endpoints: (build) => ({
-    getPosts: build.query<Post[], void>({
-      query: () => '/posts',
-    }),
+    getPosts: build.query<Post[], void>({ query: () => '/posts' }),
     post: build.query<Post, string>({
       query: (id) => `post/${id}`,
       providesTags: ['Post'],
@@ -59,18 +68,17 @@ const api = createApi({
     post2: build.query<Post, string>({
       queryFn: async (id) => {
         await delay(20)
-        return {
-          data: {
-            id,
-            title: 'All about cheese.',
-            contents: 'TODO',
-          },
-        }
+        return { data: { id, title: 'All about cheese.', contents: 'TODO' } }
       },
     }),
     postWithSideEffect: build.query<Post, string>({
       query: (id) => `post/${id}`,
-      providesTags: ['Post'],
+      providesTags: (result) => {
+        if (result) {
+          return [{ type: 'Post', id: result.id } as const]
+        }
+        return []
+      },
       async onCacheEntryAdded(arg, api) {
         // Verify that lifecycle promise resolution works
         const res = await api.cacheDataLoaded
@@ -80,12 +88,34 @@ const api = createApi({
       },
       keepUnusedDataFor: 0.01,
     }),
+    getFolder: build.query<FolderT, number>({
+      queryFn: async (args) => {
+        return {
+          data: {
+            id: args,
+            // Folder contains children that are as well folders
+            children: [{ id: 2, children: [] }],
+          },
+        }
+      },
+      providesTags: (result, err, args) => [{ type: 'Folder', id: args }],
+      onQueryStarted: async (args, queryApi) => {
+        const { data } = await queryApi.queryFulfilled
+
+        // Upsert getFolder endpoint with children from response data
+        const upsertData = data.children.map((child) => ({
+          arg: child.id,
+          endpointName: 'getFolder' as const,
+          value: child,
+        }))
+
+        queryApi.dispatch(api.util.upsertQueryEntries(upsertData))
+      },
+    }),
   }),
 })
 
-const storeRef = setupApiStore(api, {
-  ...actionsReducer,
-})
+const storeRef = setupApiStore(api, { ...actionsReducer })
 
 describe('basic lifecycle', () => {
   let onStart = vi.fn(),
@@ -154,9 +184,7 @@ describe('basic lifecycle', () => {
   test('success', async () => {
     const { result } = renderHook(
       () => extendedApi.endpoints.test.useMutation(),
-      {
-        wrapper: storeRef.wrapper,
-      },
+      { wrapper: storeRef.wrapper },
     )
 
     baseQuery.mockResolvedValue('success')
@@ -177,9 +205,7 @@ describe('basic lifecycle', () => {
   test('error', async () => {
     const { result } = renderHook(
       () => extendedApi.endpoints.test.useMutation(),
-      {
-        wrapper: storeRef.wrapper,
-      },
+      { wrapper: storeRef.wrapper },
     )
 
     baseQuery.mockRejectedValueOnce('error')
@@ -258,9 +284,7 @@ describe('upsertQueryData', () => {
     // is preserved normally after the last subscriber was unmounted
     const { result, rerender } = renderHook(
       () => api.endpoints.post.useQuery('4'),
-      {
-        wrapper: storeRef.wrapper,
-      },
+      { wrapper: storeRef.wrapper },
     )
     await hookWaitFor(() => expect(result.current.isError).toBeTruthy())
 
@@ -347,29 +371,13 @@ describe('upsertQueryData', () => {
 
 describe('upsertQueryEntries', () => {
   const posts: Post[] = [
-    {
-      id: '1',
-      contents: 'A',
-      title: 'A',
-    },
-    {
-      id: '2',
-      contents: 'B',
-      title: 'B',
-    },
-    {
-      id: '3',
-      contents: 'C',
-      title: 'C',
-    },
+    { id: '1', contents: 'A', title: 'A' },
+    { id: '2', contents: 'B', title: 'B' },
+    { id: '3', contents: 'C', title: 'C' },
   ]
 
   const entriesAction = api.util.upsertQueryEntries([
-    {
-      endpointName: 'getPosts',
-      arg: undefined,
-      value: posts,
-    },
+    { endpointName: 'getPosts', arg: undefined, value: posts },
     ...posts.map((post) => ({
       endpointName: 'postWithSideEffect' as const,
       arg: post.id,
@@ -384,15 +392,16 @@ describe('upsertQueryEntries', () => {
 
     expect(api.endpoints.getPosts.select()(state).data).toBe(posts)
 
-    expect(api.endpoints.postWithSideEffect.select('1')(state).data).toBe(
-      posts[0],
-    )
-    expect(api.endpoints.postWithSideEffect.select('2')(state).data).toBe(
-      posts[1],
-    )
-    expect(api.endpoints.postWithSideEffect.select('3')(state).data).toBe(
-      posts[2],
-    )
+    for (const post of posts) {
+      expect(api.endpoints.postWithSideEffect.select(post.id)(state).data).toBe(
+        post,
+      )
+
+      // Should have added tags
+      expect(state.api.provided.tags.Post[post.id]).toEqual([
+        `postWithSideEffect("${post.id}")`,
+      ])
+    }
   })
 
   test('Triggers cache lifecycles and side effects', async () => {
@@ -434,6 +443,54 @@ describe('upsertQueryEntries', () => {
       undefined,
     )
   })
+
+  test('Handles repeated upserts and async lifecycles', async () => {
+    const StateForUpsertFolder = ({ folderId }: { folderId: number }) => {
+      const { status } = api.useGetFolderQuery(folderId)
+
+      return (
+        <>
+          <div>
+            Status getFolder with ID (
+            {folderId === 1 ? 'original request' : 'upserted'}) {folderId}:{' '}
+            <span data-testid={`status-${folderId}`}>{status}</span>
+          </div>
+        </>
+      )
+    }
+
+    const Folder = () => {
+      const { data, isLoading, isError } = api.useGetFolderQuery(1)
+
+      return (
+        <div>
+          <h1>Folders</h1>
+
+          {isLoading && <div>Loading...</div>}
+
+          {isError && <div>Error...</div>}
+
+          <StateForUpsertFolder key={`state-${1}`} folderId={1} />
+          <StateForUpsertFolder key={`state-${2}`} folderId={2} />
+        </div>
+      )
+    }
+
+    render(<Folder />, { wrapper: storeRef.wrapper })
+
+    await waitFor(() => {
+      const { actions } = storeRef.store.getState()
+      // Inspection:
+      // - 2 inits
+      // - 2 pendings, 2 fulfilleds for the hook queries
+      // - 2 upserts
+      expect(actions.length).toBe(8)
+      expect(
+        actions.filter((a) => api.util.upsertQueryEntries.match(a)).length,
+      ).toBe(2)
+    })
+    expect(screen.getByTestId('status-2').textContent).toBe('fulfilled')
+  })
 })
 
 describe('full integration', () => {
@@ -460,9 +517,7 @@ describe('full integration', () => {
         query: api.endpoints.post.useQuery('3'),
         mutation: api.endpoints.updatePost.useMutation(),
       }),
-      {
-        wrapper: storeRef.wrapper,
-      },
+      { wrapper: storeRef.wrapper },
     )
     await hookWaitFor(() => expect(result.current.query.isSuccess).toBeTruthy())
 
@@ -514,9 +569,7 @@ describe('full integration', () => {
         query: api.endpoints.post.useQuery('3'),
         mutation: api.endpoints.updatePost.useMutation(),
       }),
-      {
-        wrapper: storeRef.wrapper,
-      },
+      { wrapper: storeRef.wrapper },
     )
     await hookWaitFor(() => expect(result.current.query.isSuccess).toBeTruthy())
 

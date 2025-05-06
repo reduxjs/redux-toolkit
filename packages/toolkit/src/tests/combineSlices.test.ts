@@ -22,6 +22,12 @@ const numberSlice = createSlice({
 
 const booleanReducer = createReducer(false, () => {})
 
+const counterReducer = createSlice({
+  name: 'counter',
+  initialState: () => ({ value: 0 }),
+  reducers: {},
+})
+
 // mimic - we can't use RTKQ here directly
 const api = {
   reducerPath: 'api' as const,
@@ -144,6 +150,7 @@ describe('combineSlices', () => {
   describe('selector', () => {
     const combinedReducer = combineSlices(stringSlice).withLazyLoadedSlices<{
       boolean: boolean
+      counter: { value: number }
     }>()
 
     const uninjectedState = combinedReducer(undefined, dummyAction())
@@ -188,6 +195,21 @@ describe('combineSlices', () => {
       expect(selector(wrappedReducer(undefined, dummyAction()))).toBe(
         booleanReducer.getInitialState(),
       )
+    })
+    it('caches initial state', () => {
+      const beforeInject = combinedReducer(undefined, dummyAction())
+      const injectedReducer = combinedReducer.inject(counterReducer)
+      const selectCounter = injectedReducer.selector((state) => state.counter)
+      const counter = selectCounter(beforeInject)
+      expect(counter).toBe(selectCounter(beforeInject))
+
+      injectedReducer.inject(
+        { reducerPath: 'counter', reducer: () => ({ value: 0 }) },
+        { overrideExisting: true },
+      )
+      const counter2 = selectCounter(beforeInject)
+      expect(counter2).not.toBe(counter)
+      expect(counter2).toBe(selectCounter(beforeInject))
     })
   })
 })

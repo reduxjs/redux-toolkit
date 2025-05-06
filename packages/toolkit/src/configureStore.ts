@@ -67,6 +67,11 @@ export interface ConfigureStoreOptions<
   devTools?: boolean | DevToolsOptions
 
   /**
+   * Whether to check for duplicate middleware instances. Defaults to `true`.
+   */
+  duplicateMiddlewareCheck?: boolean
+
+  /**
    * The initial state, same as Redux's createStore.
    * You may optionally specify it to hydrate the state
    * from the server in universal apps, or to restore a previously serialized
@@ -128,6 +133,7 @@ export function configureStore<
     reducer = undefined,
     middleware,
     devTools = true,
+    duplicateMiddlewareCheck = true,
     preloadedState = undefined,
     enhancers = undefined,
   } = options || {}
@@ -174,6 +180,18 @@ export function configureStore<
     throw new Error(
       'each middleware provided to configureStore must be a function',
     )
+  }
+
+  if (process.env.NODE_ENV !== 'production' && duplicateMiddlewareCheck) {
+    let middlewareReferences = new Set<Middleware<any, S>>()
+    finalMiddleware.forEach((middleware) => {
+      if (middlewareReferences.has(middleware)) {
+        throw new Error(
+          'Duplicate middleware references found when creating the store. Ensure that each middleware is only included once.',
+        )
+      }
+      middlewareReferences.add(middleware)
+    })
   }
 
   let finalCompose = compose

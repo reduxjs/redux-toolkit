@@ -6,6 +6,7 @@ import type { Post } from '../../app/services/posts.js'
 import {
   useAddPostMutation,
   useGetErrorProneQuery,
+  useGetInfinitePostsInfiniteQuery,
   useGetPostsQuery,
   useLoginMutation,
 } from '../../app/services/posts.js'
@@ -70,6 +71,7 @@ export const PostListItem = ({
 
 export const PostList = () => {
   const { data: posts, isLoading } = useGetPostsQuery()
+  useGetInfinitePostsInfiniteQuery()
   const navigate = useNavigate()
 
   if (isLoading) {

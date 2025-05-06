@@ -183,8 +183,8 @@ export function createUnsortedStateAdapter<T, Id extends EntityId>(
       state,
     )
 
-    updateManyMutably(updated, state)
     addManyMutably(added, state)
+    updateManyMutably(updated, state)
   }
 
   return {
