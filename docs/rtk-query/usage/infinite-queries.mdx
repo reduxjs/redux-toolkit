@@ -82,11 +82,12 @@ ensure the infinite query can properly fetch the next page of data. Also, `initi
 `getNextPageParam` and `getPreviousPageParam` are user-defined, giving you flexibility to determine how those values are calculated:
 
 ```ts
-export type PageParamFunction<DataType, PageParam> = (
+export type PageParamFunction<DataType, PageParam, QueryArg> = (
   currentPage: DataType,
   allPages: DataType[],
   currentPageParam: PageParam,
   allPageParams: PageParam[],
+  queryArg: QueryArg,
 ) => PageParam | undefined | null
 ```
 
@@ -95,6 +96,8 @@ A page param can be any value at all: numbers, strings, objects, arrays, etc. Si
 Since both actual page contents and page params are passed in, you can calculate new page params based on any of those. This enables a number of possible infinite query use cases, including cursor-based and limit+offset-based queries.
 
 The "current" arguments will be either the last page for `getNextPageParam`, or the first page for `getPreviousPageParam`.
+
+The list of arguments is the same as with React Query, but with the addition of `queryArg` at the end. (This is because React Query always has access to the query arg when you pass the options to its `useQuery` hook, but with RTK Query the endpoints are defined separately, so this makes the query arg accessible if you need it to calculate the page params.)
 
 If there is no possible page to fetch in that direction, the callback should return `undefined`.
 
@@ -119,14 +122,20 @@ const pokemonApi = createApi({
         // Optionally limit the number of cached pages
         maxPages: 3,
         // Must provide a `getNextPageParam` function
-        getNextPageParam: (lastPage, allPages, lastPageParam, allPageParams) =>
-          lastPageParam + 1,
+        getNextPageParam: (
+          lastPage,
+          allPages,
+          lastPageParam,
+          allPageParams,
+          queryArg,
+        ) => lastPageParam + 1,
         // Optionally provide a `getPreviousPageParam` function
         getPreviousPageParam: (
           firstPage,
           allPages,
           firstPageParam,
           allPageParams,
+          queryArg,
         ) => {
           return firstPageParam > 0 ? firstPageParam - 1 : undefined
         },

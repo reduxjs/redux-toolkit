@@ -30,13 +30,19 @@ describe('Infinite queries', () => {
             allPages,
             lastPageParam,
             allPageParams,
-          ) => lastPageParam + 1,
+            queryArg,
+          ) => {
+            expect(typeof queryArg).toBe('string')
+            return lastPageParam + 1
+          },
           getPreviousPageParam: (
             firstPage,
             allPages,
             firstPageParam,
             allPageParams,
+            queryArg,
           ) => {
+            expect(typeof queryArg).toBe('string')
             return firstPageParam > 0 ? firstPageParam - 1 : undefined
           },
         },

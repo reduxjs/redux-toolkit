@@ -79,7 +79,13 @@ export type StartInfiniteQueryActionCreatorOptions<
   param?: unknown
 } & Partial<
     Pick<
-      Partial<InfiniteQueryConfigOptions<ResultTypeFrom<D>, PageParamFrom<D>>>,
+      Partial<
+        InfiniteQueryConfigOptions<
+          ResultTypeFrom<D>,
+          PageParamFrom<D>,
+          InfiniteQueryArgFrom<D>
+        >
+      >,
       'initialPageParam'
     >
   >
