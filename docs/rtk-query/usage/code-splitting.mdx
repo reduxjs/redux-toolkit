@@ -10,11 +10,17 @@ description: 'RTK Query > Usage > Code Splitting: dynamic injection of endpoints
 
 # Code Splitting
 
-RTK Query makes it possible to trim down your initial bundle size by allowing you to inject additional endpoints after you've set up your initial service definition. This can be very beneficial for larger applications that may have _many_ endpoints.
+## Overview
 
-`injectEndpoints` accepts a collection of endpoints, as well as an optional `overrideExisting` parameter.
+By default, an RTK Query API definition normally has all of the endpoint definitions in a single file. However, in larger applications this can result in very large files that may be harder to maintain. It also means that all of the relevant code is being imported right away.
 
-Calling `injectEndpoints` will inject the endpoints into the original API, but also give you that same API with correct types for these endpoints back. (Unfortunately, it cannot modify the types for the original definition.)
+RTK Query allows dynamically injecting endpoint definitions into an existing API service object. This enables splitting up endpoints into multiple files for maintainability, as well as lazy-loading endpoint definitions and associated code to trim down initial bundle sizes. This can be very beneficial for larger applications that may have _many_ endpoints.
+
+## Injecting Endpoints
+
+`api.injectEndpoints` accepts a collection of endpoint definitions (same as `createApi`), as well as an optional `overrideExisting` parameter.
+
+Calling `api.injectEndpoints` will inject the endpoints into the original API service object, modifying it immediately. It returns **the _same_ API service object reference**. If you're using TypeScript, the return value has the TS types for the new endpoints included. (Unfortunately, it cannot modify the types for the original API reference.)
 
 A typical approach would be to have one empty central API slice definition:
 
@@ -43,6 +49,7 @@ export const emptySplitApi = createApi({
 // file: extendedApi.ts
 import { emptySplitApi } from './emptySplitApi'
 
+// NOTE: these are the _SAME_ API reference!
 const extendedApi = emptySplitApi.injectEndpoints({
   endpoints: (build) => ({
     example: build.query({
@@ -60,3 +67,59 @@ If you inject an endpoint that already exists and don't explicitly specify `over
 will not be overridden. In development mode, you will get a warning about this if `overrideExisting` is set to `false`,
 and an error will be throw if set to `'throw'`.
 :::
+
+## Enhancing Endpoints
+
+Sometimes you may also need to modify an existing API definition, such as adding additional tag types, or providing additional configuration options to a given endpoint.
+
+`api.enhanceEndpoints` returns an updated and enhanced version of the API slice object, containing the combined endpoint definitions.
+
+This is primarily useful for taking an API slice object that was code-generated from an API schema file like OpenAPI, and adding additional specific hand-written configuration for cache invalidation management on top of the generated endpoint definitions.
+
+For example, `enhanceEndpoints` can be used to modify caching behavior by changing the values of `providesTags`, `invalidatesTags`, and `keepUnusedDataFor`:
+
+```ts
+// file: api.ts noEmit
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+
+export const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  endpoints: (build) => ({
+    getUserByUserId: build.query({
+      query() {
+        return ''
+      },
+    }),
+    patchUserByUserId: build.mutation({
+      query() {
+        return ''
+      },
+    }),
+    getUsers: build.query({
+      query() {
+        return ''
+      },
+    }),
+  }),
+})
+
+// file: enhanceEndpoints.ts
+import { api } from './api'
+
+const enhancedApi = api.enhanceEndpoints({
+  addTagTypes: ['User'],
+  endpoints: {
+    getUserByUserId: {
+      providesTags: ['User'],
+    },
+    patchUserByUserId: {
+      invalidatesTags: ['User'],
+    },
+    // alternatively, define a function which is called with the endpoint definition as an argument
+    getUsers(endpoint) {
+      endpoint.providesTags = ['User']
+      endpoint.keepUnusedDataFor = 120
+    },
+  },
+})
+```
