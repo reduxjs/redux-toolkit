@@ -49,8 +49,14 @@
         }
       },
       "browser": {
-        "types": "./dist/index.d.mts",
-        "default": "./dist/redux-toolkit.browser.mjs"
+        "import": {
+          "types": "./dist/index.d.mts",
+          "default": "./dist/redux-toolkit.browser.mjs"
+        },
+        "default": {
+          "types": "./dist/index.d.ts",
+          "default": "./dist/cjs/index.js"
+        }
       },
       "import": {
         "types": "./dist/index.d.mts",
@@ -81,8 +87,14 @@
         }
       },
       "browser": {
-        "types": "./dist/react/index.d.mts",
-        "default": "./dist/react/redux-toolkit-react.browser.mjs"
+        "import": {
+          "types": "./dist/react/index.d.mts",
+          "default": "./dist/react/redux-toolkit-react.browser.mjs"
+        },
+        "default": {
+          "types": "./dist/react/index.d.ts",
+          "default": "./dist/react/cjs/index.js"
+        }
       },
       "import": {
         "types": "./dist/react/index.d.mts",
@@ -113,8 +125,14 @@
         }
       },
       "browser": {
-        "types": "./dist/query/index.d.mts",
-        "default": "./dist/query/rtk-query.browser.mjs"
+        "import": {
+          "types": "./dist/query/index.d.mts",
+          "default": "./dist/query/rtk-query.browser.mjs"
+        },
+        "default": {
+          "types": "./dist/query/index.d.ts",
+          "default": "./dist/query/cjs/index.js"
+        }
       },
       "import": {
         "types": "./dist/query/index.d.mts",
@@ -145,8 +163,14 @@
         }
       },
       "browser": {
-        "types": "./dist/query/react/index.d.mts",
-        "default": "./dist/query/react/rtk-query-react.browser.mjs"
+        "import": {
+          "types": "./dist/query/react/index.d.mts",
+          "default": "./dist/query/react/rtk-query-react.browser.mjs"
+        },
+        "default": {
+          "types": "./dist/query/react/index.d.ts",
+          "default": "./dist/query/react/cjs/index.js"
+        }
       },
       "import": {
         "types": "./dist/query/react/index.d.mts",
