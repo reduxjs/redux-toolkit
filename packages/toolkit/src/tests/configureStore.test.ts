@@ -1,11 +1,11 @@
 import * as DevTools from '@internal/devtoolsExtension'
+import { noop } from '@internal/listenerMiddleware/utils'
 import type { Middleware, StoreEnhancer } from '@reduxjs/toolkit'
 import { Tuple } from '@reduxjs/toolkit'
 import type * as Redux from 'redux'
-import { vi } from 'vitest'
 
 vi.doMock('redux', async (importOriginal) => {
-  const redux = await importOriginal<typeof import('redux')>()
+  const redux = await importOriginal<typeof Redux>()
 
   vi.spyOn(redux, 'applyMiddleware')
   vi.spyOn(redux, 'combineReducers')
@@ -325,7 +325,7 @@ describe('configureStore', async () => {
 
       test('callback fails to return array', () => {
         expect(() =>
-          configureStore({ reducer, enhancers: (() => {}) as any }),
+          configureStore({ reducer, enhancers: noop as any }),
         ).toThrow('`enhancers` callback must return an array')
       })
 
@@ -336,7 +336,7 @@ describe('configureStore', async () => {
       })
     })
 
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(noop)
     beforeEach(() => {
       consoleSpy.mockClear()
     })

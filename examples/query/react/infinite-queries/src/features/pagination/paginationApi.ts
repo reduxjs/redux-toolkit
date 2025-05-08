@@ -1,4 +1,4 @@
-import { baseApi } from "../baseApi"
+import { baseApi } from '../baseApi'
 
 type Project = {
   id: number
@@ -11,7 +11,7 @@ type ProjectsPage = {
 }
 
 export const apiWithPagination = baseApi.injectEndpoints({
-  endpoints: build => ({
+  endpoints: (build) => ({
     getProjects: build.infiniteQuery<ProjectsPage, string, number>({
       query: ({ pageParam }) =>
         `https://example.com/api/projects?page=${pageParam}`,

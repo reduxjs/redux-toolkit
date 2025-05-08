@@ -1,6 +1,7 @@
-import { FormEvent, ChangeEvent } from 'react'
+import type { ChangeEvent, FormEvent } from 'react'
+import type { ThemeState } from '../../services/theme/slice'
+import { themeActions } from '../../services/theme/slice'
 import { useAppDispatch, useAppSelector } from '../../store'
-import { themeActions, ThemeState } from '../../services/theme/slice'
 import styles from './changeThemeForm.module.css'
 
 function isChecked(theme: ThemeState): boolean {

@@ -23,9 +23,10 @@ type SliceLikeReducerPath<A extends AnySliceLike> =
 type SliceLikeState<A extends AnySliceLike> =
   A extends SliceLike<any, infer State> ? State : never
 
-export type WithSlice<A extends AnySliceLike> = {
-  [Path in SliceLikeReducerPath<A>]: SliceLikeState<A>
-}
+export type WithSlice<A extends AnySliceLike> = Record<
+  SliceLikeReducerPath<A>,
+  SliceLikeState<A>
+>
 
 type ReducerMap = Record<string, Reducer>
 
@@ -79,7 +80,7 @@ export interface CombinedSliceReducer<
    * const withCustom = rootReducer.inject({ reducerPath: "customName", reducer: customSlice.reducer })
    * ```
    */
-  withLazyLoadedSlices<Lazy = {}>(): CombinedSliceReducer<
+  withLazyLoadedSlices<Lazy>(): CombinedSliceReducer<
     InitialState,
     Id<DeclaredState & Partial<Lazy>>
   >
@@ -292,7 +293,7 @@ export interface CombinedSliceReducer<
   }
 }
 
-type InitialState<Slices extends Array<AnySliceLike | ReducerMap>> =
+type InitialState<Slices extends (AnySliceLike | ReducerMap)[]> =
   UnionToIntersection<
     Slices[number] extends infer Slice
       ? Slice extends AnySliceLike
@@ -307,7 +308,7 @@ const isSliceLike = (
   'reducerPath' in maybeSliceLike &&
   typeof maybeSliceLike.reducerPath === 'string'
 
-const getReducers = (slices: Array<AnySliceLike | ReducerMap>) =>
+const getReducers = (slices: (AnySliceLike | ReducerMap)[]) =>
   slices.flatMap((sliceOrMap) =>
     isSliceLike(sliceOrMap)
       ? [[sliceOrMap.reducerPath, sliceOrMap.reducer] as const]
@@ -368,7 +369,7 @@ const original = (state: any) => {
 const emptyObject = {}
 const noopReducer: Reducer<Record<string, any>> = (state = emptyObject) => state
 
-export function combineSlices<Slices extends Array<AnySliceLike | ReducerMap>>(
+export function combineSlices<Slices extends (AnySliceLike | ReducerMap)[]>(
   ...slices: Slices
 ): CombinedSliceReducer<Id<InitialState<Slices>>> {
   const reducerMap = Object.fromEntries<Reducer>(getReducers(slices))

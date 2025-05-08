@@ -1,9 +1,9 @@
-import { EntityId } from '@reduxjs/toolkit'
+import type { EntityId } from '@reduxjs/toolkit'
+import clsx from 'clsx'
 import { memo } from 'react'
 import { counterActions, counterSelectors } from '../../services/counter/slice'
 import { useAppDispatch, useAppSelector } from '../../store'
 import styles from './counter.module.css'
-import clsx from 'clsx'
 
 export interface CounterProps {
   counterId: EntityId
