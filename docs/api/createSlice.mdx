@@ -138,10 +138,14 @@ const todosSlice = createSlice({
 
 Alternatively, the `reducers` field can be a callback which receives a "create" object.
 
-The main benefit of this is that you can create [async thunks](./createAsyncThunk) as part of your slice (though for bundle size reasons, you [need a bit of setup for this](#createasyncthunk)). Types are also slightly simplified for prepared reducers.
+The main benefit of this is that you can use [custom slice creators](../usage/custom-slice-creators), such as `asyncThunkCreator` which allows creating [async thunks](./createAsyncThunk) as part of your slice (though you [need a bit of setup for this](#createasyncthunk)). Types are also slightly simplified for prepared reducers.
 
 ```ts title="Creator callback for reducers"
-import { createSlice, nanoid } from '@reduxjs/toolkit'
+import { buildCreateSlice, asyncThunkCreator, nanoid } from '@reduxjs/toolkit'
+
+const createAppSlice = buildCreateSlice({
+  creators: { asyncThunk: asyncThunkCreator },
+})
 
 interface Item {
   id: string
@@ -153,7 +157,7 @@ interface TodoState {
   todos: Item[]
 }
 
-const todosSlice = createSlice({
+const todosSlice = createAppSlice({
   name: 'todos',
   initialState: {
     loading: false,
@@ -179,13 +183,13 @@ const todosSlice = createSlice({
         return (await res.json()) as Item
       },
       {
-        pending: (state) => {
+        pending(state) {
           state.loading = true
         },
-        rejected: (state, action) => {
+        rejected(state, action) {
           state.loading = false
         },
-        fulfilled: (state, action) => {
+        fulfilled(state, action) {
           state.loading = false
           state.todos.push(action.payload)
         },
@@ -244,7 +248,7 @@ Creates an async thunk instead of an action creator.
 
 To avoid pulling `createAsyncThunk` into the bundle size of `createSlice` by default, some extra setup is required to use `create.asyncThunk`.
 
-The version of `createSlice` exported from RTK will throw an error if `create.asyncThunk` is called.
+The version of `createSlice` exported from RTK will not include `create.asyncThunk`.
 
 Instead, import `buildCreateSlice` and `asyncThunkCreator`, and create your own version of `createSlice`:
 
@@ -257,6 +261,8 @@ export const createAppSlice = buildCreateSlice({
 ```
 
 Then import this `createAppSlice` as needed instead of the exported version from RTK.
+
+This same approach can be used to include other [custom creators](../usage/custom-slice-creators).
 
 :::
 
@@ -278,16 +284,16 @@ create.asyncThunk(
     return (await res.json()) as Item
   },
   {
-    pending: (state) => {
+    pending(state) {
       state.loading = true
     },
-    rejected: (state, action) => {
+    rejected(state, action)  {
       state.error = action.payload ?? action.error
     },
-    fulfilled: (state, action) => {
+    fulfilled(state, action)  {
       state.todos.push(action.payload)
     },
-    settled: (state, action) => {
+    settled(state, action)  {
       state.loading = false
     }
     options: {
@@ -662,3 +668,22 @@ console.log(counter.actions.decrement.type)
 store.dispatch(user.actions.setUserName('eric'))
 // -> { counter: 12, user: { name: 'eric', age: 22} }
 ```
+
+## `buildCreateSlice`
+
+`buildCreateSlice` allows you to create a custom version of `createSlice` with some configuration.
+
+Currently, this is only used for [slice creators](../usage/custom-slice-creators).
+
+### Parameters
+
+`buildCreateSlice` accepts a single configuration object parameter, with the following options:
+
+```ts no-transpile
+function buildCreateSlice({
+  // An map of creators to names. The names will used when constructing the `create` object passed to `reducers`.
+  creators?: Record<string, ReducerCreator>
+})
+```
+
+It returns an instance of [`createSlice`](#).
