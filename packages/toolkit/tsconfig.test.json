@@ -1,20 +1,8 @@
 {
-  // For runtime and type tests during CI.
+  // For type tests during CI.
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "emitDeclarationOnly": false,
-    "noEmit": true,
-    "rootDir": "./src",
-    "jsx": "react-jsx",
-    "skipLibCheck": true,
-    "noImplicitReturns": false
+    "noEmit": true
   },
-  "exclude": ["dist"],
-  "include": [
-    "src/**/*.test.ts*",
-    "src/**/*.test-d.ts*",
-    "src/**/*.spec.ts*",
-    "src/**/tests/**/*",
-    "src/**/*.typetest.ts*"
-  ]
+  "include": ["src/**/*.test-d.ts*", "src/**/*.spec-d.ts*"]
 }
