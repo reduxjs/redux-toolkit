@@ -18,7 +18,8 @@
         "types": "./lib/index.d.ts",
         "default": "./lib/index.js"
       }
-    }
+    },
+    "./cli": "./lib/bin/cli.mjs"
   },
   "repository": {
     "type": "git",
