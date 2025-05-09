@@ -84,6 +84,17 @@ const api = await generateEndpoints({
 })
 ```
 
+#### With Node.js Child process
+
+```ts no-transpile title="bin/openapi-codegen.ts"
+import { exec } from 'node:child_process'
+
+const cliPath = require.resolve('@rtk-query/codegen-openapi/cli')
+
+// you can also use esbuild-runner (esr) or ts-node instead of tsx
+exec(`tsx ${cliPath} config.ts`)
+```
+
 ### Config file options
 
 #### Simple usage
