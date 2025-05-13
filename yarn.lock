@@ -8096,48 +8096,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rtk-query/codegen-openapi@workspace:packages/rtk-query-codegen-openapi":
-  version: 0.0.0-use.local
-  resolution: "@rtk-query/codegen-openapi@workspace:packages/rtk-query-codegen-openapi"
-  dependencies:
-    "@apidevtools/swagger-parser": "npm:^10.1.1"
-    "@babel/core": "npm:^7.12.10"
-    "@babel/preset-env": "npm:^7.12.11"
-    "@babel/preset-typescript": "npm:^7.12.7"
-    "@oazapfts/runtime": "npm:^1.0.3"
-    "@reduxjs/toolkit": "npm:^1.6.0"
-    "@types/commander": "npm:^2.12.2"
-    "@types/glob-to-regexp": "npm:^0.4.0"
-    "@types/lodash.camelcase": "npm:^4.3.9"
-    "@types/node": "npm:^20.11.10"
-    "@types/semver": "npm:^7.3.9"
-    chalk: "npm:^4.1.0"
-    commander: "npm:^6.2.0"
-    del: "npm:^6.0.0"
-    esbuild: "npm:^0.25.1"
-    esbuild-runner: "npm:^2.2.1"
-    husky: "npm:^4.3.6"
-    lodash.camelcase: "npm:^4.3.0"
-    msw: "npm:^2.1.5"
-    node-fetch: "npm:^3.3.2"
-    oazapfts: "npm:^6.1.0"
-    openapi-types: "npm:^9.1.0"
-    prettier: "npm:^3.2.5"
-    pretty-quick: "npm:^4.0.0"
-    rimraf: "npm:^5.0.5"
-    semver: "npm:^7.3.5"
-    swagger2openapi: "npm:^7.0.4"
-    ts-node: "npm:^10.9.2"
-    tsup: "npm:^8.4.0"
-    typescript: "npm:^5.8.2"
-    vite-tsconfig-paths: "npm:^5.0.1"
-    vitest: "npm:^2.0.5"
-    yalc: "npm:^1.0.0-pre.47"
-  bin:
-    rtk-query-codegen-openapi: lib/bin/cli.mjs
-  languageName: unknown
-  linkType: soft
-
 "@rtk-query/graphql-request-base-query@npm:^2.0.0":
   version: 2.3.1
   resolution: "@rtk-query/graphql-request-base-query@npm:2.3.1"
@@ -9095,34 +9053,38 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@timtutenel/codegen-openapi@workspace:packages/rtk-query-codegen-openapi"
   dependencies:
-    "@apidevtools/swagger-parser": "npm:^10.0.2"
+    "@apidevtools/swagger-parser": "npm:^10.1.1"
     "@babel/core": "npm:^7.12.10"
     "@babel/preset-env": "npm:^7.12.11"
     "@babel/preset-typescript": "npm:^7.12.7"
+    "@oazapfts/runtime": "npm:^1.0.3"
     "@reduxjs/toolkit": "npm:^1.6.0"
     "@types/commander": "npm:^2.12.2"
     "@types/glob-to-regexp": "npm:^0.4.0"
-    "@types/lodash": "npm:^4.14.165"
+    "@types/lodash.camelcase": "npm:^4.3.9"
     "@types/node": "npm:^20.11.10"
     "@types/semver": "npm:^7.3.9"
     chalk: "npm:^4.1.0"
     commander: "npm:^6.2.0"
     del: "npm:^6.0.0"
-    esbuild: "npm:~0.17"
+    esbuild: "npm:^0.25.1"
     esbuild-runner: "npm:^2.2.1"
     husky: "npm:^4.3.6"
+    lodash.camelcase: "npm:^4.3.0"
     msw: "npm:^2.1.5"
     node-fetch: "npm:^3.3.2"
-    oazapfts: "npm:^4.8.0"
+    oazapfts: "npm:^6.1.0"
     openapi-types: "npm:^9.1.0"
     prettier: "npm:^3.2.5"
-    pretty-quick: "npm:^3.1.0"
+    pretty-quick: "npm:^4.0.0"
     rimraf: "npm:^5.0.5"
     semver: "npm:^7.3.5"
     swagger2openapi: "npm:^7.0.4"
     ts-node: "npm:^10.9.2"
-    typescript: "npm:^5.3.3"
-    vitest: "npm:^1.2.2"
+    tsup: "npm:^8.4.0"
+    typescript: "npm:^5.8.2"
+    vite-tsconfig-paths: "npm:^5.0.1"
+    vitest: "npm:^2.0.5"
     yalc: "npm:^1.0.0-pre.47"
   bin:
     rtk-query-codegen-openapi-macomi: lib/bin/cli.js

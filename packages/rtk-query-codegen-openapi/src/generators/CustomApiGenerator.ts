@@ -1,19 +1,20 @@
-import { Opts } from 'oazapfts/lib/codegen';
-import ApiGenerator from 'oazapfts/lib/codegen/generate';
-import { OpenAPIV3 } from 'openapi-types';
+import ApiGenerator from 'oazapfts/generate';
+import type { SchemaObject } from 'oazapfts/generate';
+import type { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types';
+import type {
+  TypeNode} from 'typescript';
 import typescript, {
-  __String,
-  TypeNode,
+  __String
 } from 'typescript';
 
-import { UuidHandlingOptions } from '../types';
+import type { UuidHandlingOptions } from '../types';
 
 export class CustomApiGenerator extends ApiGenerator {
 
 	uuidHandlingOptions: UuidHandlingOptions | null;
 	allPropertiesRequired: boolean;
 
-	constructor(uuidHandlingOptions: UuidHandlingOptions | null, allPropertiesRequired: boolean, spec: OpenAPIV3.Document<{}>, opts?: Opts | undefined) {
+	constructor(uuidHandlingOptions: UuidHandlingOptions | null, allPropertiesRequired: boolean, spec: OpenAPIV3.Document<{}>, opts?: any) {
 		super(spec, opts);
 		this.uuidHandlingOptions = uuidHandlingOptions;
 		this.allPropertiesRequired = allPropertiesRequired;
@@ -37,11 +38,11 @@ export class CustomApiGenerator extends ApiGenerator {
 		return super.getTypeFromProperties(props, this.allPropertiesRequired ? propertyNames : required, additionalProperties, onlyMode);
 	}
 
-	override preprocessComponents(schemas: { [key: string]: OpenAPIV3.ReferenceObject | (OpenAPIV3.SchemaObject & { const?: unknown; "x-enumNames"?: string[] | undefined; "x-enum-varnames"?: string[] | undefined; "x-component-ref-path"?: string | undefined; prefixItems?: (OpenAPIV3.ReferenceObject | (OpenAPIV3.SchemaObject & any))[] | undefined; }); }): void {
+	override preprocessComponents(schemas: { [key: string]: OpenAPIV3.ReferenceObject | OpenAPIV3_1.ReferenceObject | SchemaObject }): void {
 		super.preprocessComponents(schemas);
 	}
 	
-	override resolve<T>(obj: OpenAPIV3.ReferenceObject | T): T {
+	override resolve<T>(obj: OpenAPIV3.ReferenceObject | OpenAPIV3_1.ReferenceObject | T): T {
 		return super.resolve<T>(obj);
 	}
 	
