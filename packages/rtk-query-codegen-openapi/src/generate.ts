@@ -12,8 +12,15 @@ import ApiGenerator, {
 } from 'oazapfts/generate';
 import type { OpenAPIV3 } from 'openapi-types';
 import ts from 'typescript';
+
 import type { ObjectPropertyDefinitions } from './codegen';
-import { generateCreateApiCall, generateEndpointDefinition, generateImportNode, generateTagTypes } from './codegen';
+import {
+  generateCreateApiCall,
+  generateEndpointDefinition,
+  generateImportNode,
+  generateTagTypes,
+} from './codegen';
+import { CustomApiGenerator } from './generators/CustomApiGenerator';
 import { generateReactHooks } from './generators/react-hooks';
 import type {
   EndpointMatcher,
@@ -117,14 +124,17 @@ export async function generateApi(
     useEnumType = false,
     mergeReadWriteOnly = false,
     httpResolverOptions,
+    uuidHandling,
+    requireAllProperties,
   }: GenerationOptions
 ) {
   const v3Doc = (v3DocCache[spec] ??= await getV3Doc(spec, httpResolverOptions));
 
-  const apiGen = new ApiGenerator(v3Doc, {
+  const apiGen = new CustomApiGenerator(uuidHandling, requireAllProperties, v3Doc, {
     unionUndefined,
     useEnumType,
     mergeReadWriteOnly,
+    optimistic: true,
   });
 
   // temporary workaround for https://github.com/oazapfts/oazapfts/issues/491
@@ -163,49 +173,55 @@ export async function generateApi(
   }
   apiFile = apiFile.replace(/\.[jt]sx?$/, '');
 
+  let statements: ts.Statement[] = [];
+  if (uuidHandling) {
+    statements.push(generateImportNode(uuidHandling.importfile, { [uuidHandling.typeName]: uuidHandling.typeName }));
+  }
+  statements = [...statements,
+    generateImportNode(apiFile, { [apiImport]: 'api' }),
+    ...(tag ? [generateTagTypes({ addTagTypes: extractAllTagTypes({ operationDefinitions }) })] : []),
+    generateCreateApiCall({
+      tag,
+      endpointDefinitions: factory.createObjectLiteralExpression(
+        operationDefinitions.map((operationDefinition) =>
+          generateEndpoint({
+            operationDefinition,
+            overrides: getOverrides(operationDefinition, endpointOverrides),
+          })
+        ),
+        true
+      ),
+    }),
+    factory.createExportDeclaration(
+      undefined,
+      false,
+      factory.createNamedExports([
+        factory.createExportSpecifier(
+          factory.createIdentifier(generatedApiName),
+          factory.createIdentifier(exportName)
+        ),
+      ]),
+      undefined
+    ),
+    ...Object.values(interfaces),
+    ...apiGen.aliases,
+    ...apiGen.enumAliases,
+    ...(hooks
+      ? [
+          generateReactHooks({
+            exportName: generatedApiName,
+            operationDefinitions,
+            endpointOverrides,
+            config: hooks,
+          }),
+        ]
+      : []),
+  ];
+
   return printer.printNode(
     ts.EmitHint.Unspecified,
     factory.createSourceFile(
-      [
-        generateImportNode(apiFile, { [apiImport]: 'api' }),
-        ...(tag ? [generateTagTypes({ addTagTypes: extractAllTagTypes({ operationDefinitions }) })] : []),
-        generateCreateApiCall({
-          tag,
-          endpointDefinitions: factory.createObjectLiteralExpression(
-            operationDefinitions.map((operationDefinition) =>
-              generateEndpoint({
-                operationDefinition,
-                overrides: getOverrides(operationDefinition, endpointOverrides),
-              })
-            ),
-            true
-          ),
-        }),
-        factory.createExportDeclaration(
-          undefined,
-          false,
-          factory.createNamedExports([
-            factory.createExportSpecifier(
-              factory.createIdentifier(generatedApiName),
-              factory.createIdentifier(exportName)
-            ),
-          ]),
-          undefined
-        ),
-        ...Object.values(interfaces),
-        ...apiGen.aliases,
-        ...apiGen.enumAliases,
-        ...(hooks
-          ? [
-              generateReactHooks({
-                exportName: generatedApiName,
-                operationDefinitions,
-                endpointOverrides,
-                config: hooks,
-              }),
-            ]
-          : []),
-      ],
+      statements,
       factory.createToken(ts.SyntaxKind.EndOfFileToken),
       ts.NodeFlags.None
     ),

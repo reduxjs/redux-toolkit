@@ -31,6 +31,11 @@ export type GenerationOptions = Id<
     }
 >;
 
+export type UuidHandlingOptions = {
+  typeName: string;
+  importfile: string;
+}
+
 export interface CommonOptions {
   apiFile: string;
   /**
@@ -111,6 +116,9 @@ export interface CommonOptions {
    * resolution mechanism will be used.
    */
   prettierConfigFile?: string;
+
+  uuidHandling: UuidHandlingOptions | null;
+  requireAllProperties: boolean;
 }
 
 export type TextMatcher = string | RegExp | (string | RegExp)[];

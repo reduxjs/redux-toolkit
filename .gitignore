@@ -32,3 +32,4 @@ typesversions
 *.tgz
 
 tsconfig.vitest-temp.json
+packages/rtk-query-codegen-openapi/__azurite_db_table__.json
