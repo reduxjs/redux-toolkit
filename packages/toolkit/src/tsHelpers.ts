@@ -221,3 +221,26 @@ export function asSafePromise<Resolved, Rejected>(
 ) {
   return promise.catch(fallback) as SafePromise<Resolved | Rejected>
 }
+
+type NotUnknown<T> = IsUnknown<T, never, T>
+
+export type OverloadedReturnType<Fn extends (...args: any[]) => any> =
+  Fn extends {
+    (...args: any[]): infer R1
+    (...args: any[]): infer R2
+    (...args: any[]): infer R3
+    (...args: any[]): infer R4
+    (...args: any[]): infer R5
+  }
+    ?
+        | NotUnknown<R1>
+        | NotUnknown<R2>
+        | NotUnknown<R3>
+        | NotUnknown<R4>
+        | NotUnknown<R5>
+    : ReturnType<Fn>
+
+export type Increment<
+  N extends number,
+  Acc extends 0[] = [],
+> = Acc['length'] extends N ? [...Acc, 0]['length'] : Increment<N, [...Acc, 0]>
