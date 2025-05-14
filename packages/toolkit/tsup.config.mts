@@ -81,9 +81,18 @@ export default defineConfig((overrideOptions): TsupOptions[] => {
   return [
     {
       ...commonOptions,
-      name: 'Redux-Toolkit-ESM',
+      name: 'Redux-Toolkit-Core-ESM',
       entry: {
         'redux-toolkit.modern': 'src/index.ts',
+      },
+      outExtension: () => ({ js: '.mjs' }),
+      format: ['esm'],
+    },
+    {
+      ...commonOptions,
+      name: 'Redux-Toolkit-Nested-ESM',
+      external: commonOptions.external.concat('@reduxjs/toolkit'),
+      entry: {
         'react/redux-toolkit-react.modern': 'src/react/index.ts',
         'query/rtk-query.modern': 'src/query/index.ts',
         'query/react/rtk-query-react.modern': 'src/query/react/index.ts',
@@ -91,12 +100,23 @@ export default defineConfig((overrideOptions): TsupOptions[] => {
       outExtension: () => ({ js: '.mjs' }),
       format: ['esm'],
     },
-
     {
       ...commonOptions,
-      name: 'Redux-Toolkit-CJS-Development',
+      name: 'Redux-Toolkit-Core-CJS-Development',
       entry: {
         'cjs/redux-toolkit.development': 'src/index.ts',
+      },
+      outExtension: () => ({ js: '.cjs' }),
+      env: {
+        NODE_ENV: 'development',
+      },
+      format: ['cjs'],
+    },
+    {
+      ...commonOptions,
+      name: 'Redux-Toolkit-Nested-CJS-Development',
+      external: commonOptions.external.concat('@reduxjs/toolkit'),
+      entry: {
         'react/cjs/redux-toolkit-react.development': 'src/react/index.ts',
         'query/cjs/rtk-query.development': 'src/query/index.ts',
         'query/react/cjs/rtk-query-react.development':
@@ -108,16 +128,11 @@ export default defineConfig((overrideOptions): TsupOptions[] => {
       },
       format: ['cjs'],
     },
-
     {
       ...commonOptions,
-      name: 'Redux-Toolkit-CJS-Production',
+      name: 'Redux-Toolkit-Core-CJS-Production',
       entry: {
         'cjs/redux-toolkit.production.min': 'src/index.ts',
-        'react/cjs/redux-toolkit-react.production.min': 'src/react/index.ts',
-        'query/cjs/rtk-query.production.min': 'src/query/index.ts',
-        'query/react/cjs/rtk-query-react.production.min':
-          'src/query/react/index.ts',
       },
       outExtension: () => ({ js: '.cjs' }),
       env: {
@@ -131,7 +146,27 @@ export default defineConfig((overrideOptions): TsupOptions[] => {
           path.join(import.meta.dirname, 'dist', 'cjs'),
           'redux-toolkit',
         )
+      },
+    },
 
+    {
+      ...commonOptions,
+      name: 'Redux-Toolkit-Nested-CJS-Production',
+      external: commonOptions.external.concat('@reduxjs/toolkit'),
+      entry: {
+        'react/cjs/redux-toolkit-react.production.min': 'src/react/index.ts',
+        'query/cjs/rtk-query.production.min': 'src/query/index.ts',
+        'query/react/cjs/rtk-query-react.production.min':
+          'src/query/react/index.ts',
+      },
+      outExtension: () => ({ js: '.cjs' }),
+      env: {
+        NODE_ENV: 'production',
+      },
+      minify: true,
+      replaceNodeEnv: true,
+      format: ['cjs'],
+      onSuccess: async () => {
         await writeCommonJSEntry(
           path.join(import.meta.dirname, 'dist', 'react', 'cjs'),
           'redux-toolkit-react',
@@ -151,12 +186,9 @@ export default defineConfig((overrideOptions): TsupOptions[] => {
 
     {
       ...commonOptions,
-      name: 'Redux-Toolkit-Browser',
+      name: 'Redux-Toolkit-Core-Browser',
       entry: {
         'redux-toolkit.browser': 'src/index.ts',
-        'react/redux-toolkit-react.browser': 'src/react/index.ts',
-        'query/rtk-query.browser': 'src/query/index.ts',
-        'query/react/rtk-query-react.browser': 'src/query/react/index.ts',
       },
       outExtension: () => ({ js: '.mjs' }),
       platform: 'browser',
@@ -173,9 +205,46 @@ export default defineConfig((overrideOptions): TsupOptions[] => {
 
     {
       ...commonOptions,
-      name: 'Redux-Toolkit-Legacy-ESM',
+      name: 'Redux-Toolkit-Nested-Browser',
+      external: commonOptions.external.concat('@reduxjs/toolkit'),
+      entry: {
+        'react/redux-toolkit-react.browser': 'src/react/index.ts',
+        'query/rtk-query.browser': 'src/query/index.ts',
+        'query/react/rtk-query-react.browser': 'src/query/react/index.ts',
+      },
+      outExtension: () => ({ js: '.mjs' }),
+      platform: 'browser',
+      env: {
+        NODE_ENV: 'production',
+      },
+      minify: true,
+      define: {
+        process: 'undefined',
+      },
+      replaceNodeEnv: true,
+      format: ['esm'],
+    },
+    {
+      ...commonOptions,
+      name: 'Redux-Toolkit-Core-Legacy-ESM',
       entry: {
         'redux-toolkit.legacy-esm': 'src/index.ts',
+      },
+      outExtension: () => ({ js: '.js' }),
+      format: ['esm'],
+      target: ['es2017'],
+      onSuccess: async () => {
+        await fs.copyFile(
+          path.join(import.meta.dirname, 'src', 'uncheckedindexed.ts'),
+          path.join(outputDir, 'uncheckedindexed.ts'),
+        )
+      },
+    },
+    {
+      ...commonOptions,
+      name: 'Redux-Toolkit-Nexted-Legacy-ESM',
+      external: commonOptions.external.concat('@reduxjs/toolkit'),
+      entry: {
         'react/redux-toolkit-react.legacy-esm': 'src/react/index.ts',
         'query/rtk-query.legacy-esm': 'src/query/index.ts',
         'query/react/rtk-query-react.legacy-esm': 'src/query/react/index.ts',
