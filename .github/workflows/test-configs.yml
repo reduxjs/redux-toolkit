@@ -1,0 +1,117 @@
+name: Test Configs
+
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  test-types:
+    name: Test types with TypeScript ${{ matrix.ts }} on ${{ matrix.os }} and Node.js ${{ matrix.node }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+        package:
+          [
+            '@reduxjs/eslint-config',
+            '@reduxjs/prettier-config',
+            '@reduxjs/vitest-config',
+          ]
+        node: ['22.x']
+        os: [ubuntu-latest]
+        ts: ['5.3', '5.4', '5.5', '5.6', '5.7', '5.8']
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Use node ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Install TypeScript ${{ matrix.ts }}
+        run: yarn up typescript@${{ matrix.ts }}
+
+      - name: Run type tests
+        run: yarn workspace ${{ matrix.package }} run test-types
+
+  are-the-types-wrong:
+    name: Check if the type definitions for ${{ matrix.package }} are correct with Node.js ${{ matrix.node }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+        node: ['22.x']
+        package:
+          [
+            '@reduxjs/eslint-config',
+            '@reduxjs/prettier-config',
+            '@reduxjs/tsconfig',
+            '@reduxjs/vitest-config',
+          ]
+        os: [ubuntu-latest]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Use node ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Run are-the-types-wrong for ${{ matrix.package }} with Node.js ${{ matrix.node }} on ${{ matrix.os }}
+        run: yarn workspace ${{ matrix.package }} run check-exports --format table
+
+      - name: Did we fail?
+        if: failure()
+        run: ls -R
+
+  publint:
+    name: Check if the package.json for ${{ matrix.package }} is correct with Node.js ${{ matrix.node }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+        node: ['22.x']
+        package:
+          [
+            '@reduxjs/eslint-config',
+            '@reduxjs/prettier-config',
+            '@reduxjs/tsconfig',
+            '@reduxjs/vitest-config',
+          ]
+        os: [ubuntu-latest]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Use node ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Run publint for ${{ matrix.package }} with Node.js ${{ matrix.node }} on ${{ matrix.os }}
+        run: yarn workspace ${{ matrix.package }} run check-package-json
+
+      - name: Did we fail?
+        if: failure()
+        run: ls -R
