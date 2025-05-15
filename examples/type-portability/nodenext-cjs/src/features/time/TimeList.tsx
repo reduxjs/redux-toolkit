@@ -124,7 +124,7 @@ const TimeDisplay = ({ offset, label }: { offset: string; label: string }) => {
 }
 
 const TimeList = () => {
-  const [times, setTimes] = useState<{ [key: string]: string }>({
+  const [times, setTimes] = useState<Record<string, string>>({
     [nanoid()]: '-08:00',
   })
   const [selectedValue, setSelectedValue] = useState<string>('')

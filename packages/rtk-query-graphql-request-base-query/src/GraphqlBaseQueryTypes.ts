@@ -1,9 +1,9 @@
 import type { BaseQueryApi } from '@reduxjs/toolkit/query'
 import type {
-  GraphQLClient,
-  RequestOptions,
-  RequestDocument,
   ClientError,
+  GraphQLClient,
+  RequestDocument,
+  RequestOptions,
 } from 'graphql-request'
 
 export type Document = RequestDocument

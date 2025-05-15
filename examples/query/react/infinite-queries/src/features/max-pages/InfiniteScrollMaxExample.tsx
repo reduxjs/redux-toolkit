@@ -1,5 +1,5 @@
-import React from "react"
-import { apiWithInfiniteScrollMax } from "./infiniteScrollApi"
+import React from 'react'
+import { apiWithInfiniteScrollMax } from './infiniteScrollApi'
 
 export const InfiniteScrollMaxPagesExample = () => {
   const {
@@ -13,7 +13,7 @@ export const InfiniteScrollMaxPagesExample = () => {
     isError,
   } =
     apiWithInfiniteScrollMax.endpoints.getProjectsCursorMax.useInfiniteQuery(
-      "projects",
+      'projects',
     )
 
   // TODO This should be built in to RTKQ
@@ -38,19 +38,19 @@ export const InfiniteScrollMaxPagesExample = () => {
               {
                 /*isFetchingPreviousPage
                   ? 'Loading more...'
-                  :*/ hasPreviousPage ? "Load Older" : "Nothing more to load"
+                  :*/ hasPreviousPage ? 'Load Older' : 'Nothing more to load'
               }
             </button>
           </div>
-          {data?.pages.map(page => (
+          {data?.pages.map((page) => (
             <React.Fragment key={page.nextId}>
-              {page.projects.map(project => (
+              {page.projects.map((project) => (
                 <p
                   style={{
-                    border: "1px solid gray",
-                    borderRadius: "5px",
-                    padding: "8px",
-                    fontSize: "14px",
+                    border: '1px solid gray',
+                    borderRadius: '5px',
+                    padding: '8px',
+                    fontSize: '14px',
                     background: `hsla(${project.id * 30}, 60%, 80%, 1)`,
                   }}
                   key={project.id}
@@ -66,15 +66,15 @@ export const InfiniteScrollMaxPagesExample = () => {
               disabled={!hasNextPage /* || isFetchingNextPage*/}
             >
               {isFetchingNextPage
-                ? "Loading more..."
+                ? 'Loading more...'
                 : hasNextPage
-                  ? "Load Newer"
-                  : "Nothing more to load"}
+                  ? 'Load Newer'
+                  : 'Nothing more to load'}
             </button>
           </div>
           <div>
             {isFetching && !isFetchingNextPage
-              ? "Background Updating..."
+              ? 'Background Updating...'
               : null}
           </div>
         </>

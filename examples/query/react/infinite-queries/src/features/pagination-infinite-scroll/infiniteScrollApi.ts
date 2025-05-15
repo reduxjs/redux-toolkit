@@ -1,4 +1,4 @@
-import { baseApi } from "../baseApi"
+import { baseApi } from '../baseApi'
 
 type Project = {
   id: number
@@ -17,7 +17,7 @@ interface ProjectsInitialPageParam {
 }
 
 export const apiWithInfiniteScroll = baseApi.injectEndpoints({
-  endpoints: build => ({
+  endpoints: (build) => ({
     projectsPaginated: build.infiniteQuery<
       ProjectsResponse,
       void,
@@ -64,7 +64,7 @@ export const apiWithInfiniteScroll = baseApi.injectEndpoints({
       query: ({ pageParam: { page, size } }) => {
         return {
           url: `https://example.com/api/projectsPaginated?page=${page}&size=${size}`,
-          method: "GET",
+          method: 'GET',
         }
       },
     }),

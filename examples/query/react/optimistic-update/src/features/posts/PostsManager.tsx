@@ -16,17 +16,17 @@ import {
   StatLabel,
   StatNumber,
 } from '@chakra-ui/react'
-import { MdBook } from 'react-icons/md'
 import React, { useState } from 'react'
+import { MdBook } from 'react-icons/md'
 import { Route, Routes, useNavigate } from 'react-router-dom'
+import { v4 as uuid } from 'uuid'
+import type { Post } from '../../app/services/posts'
 import {
-  Post,
   useAddPostMutation,
   useGetPostQuery,
   useGetPostsQuery,
 } from '../../app/services/posts'
 import { PostDetail } from './PostDetail'
-import { v4 as uuid } from 'uuid'
 
 const AddPost = () => {
   const initialValue: Post = { id: uuid(), name: '' }

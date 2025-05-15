@@ -1,9 +1,8 @@
-import { Routes, Route } from 'react-router-dom'
 import { Box, Center, VStack } from '@chakra-ui/react'
-
+import { Route, Routes } from 'react-router-dom'
 import { Login } from './features/auth/Login'
-import { PrivateOutlet } from './utils/PrivateOutlet'
 import { ProtectedComponent } from './features/auth/ProtectedComponent'
+import { PrivateOutlet } from './utils/PrivateOutlet'
 
 function Hooray() {
   return (

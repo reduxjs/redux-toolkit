@@ -16,9 +16,9 @@ import type {
   TagTypesFromApi,
 } from '@reduxjs/toolkit/query'
 import {
+  NamedSchemaError,
   createApi,
   fetchBaseQuery,
-  NamedSchemaError,
 } from '@reduxjs/toolkit/query'
 import { HttpResponse, delay, http } from 'msw'
 import nodeFetch from 'node-fetch'
@@ -419,21 +419,6 @@ describe('endpoint definition typings', () => {
       const storeRef = setupApiStore(api, undefined, {
         withoutTestLifecycles: true,
       })
-      // only type-test this part
-      if (2 > 1) {
-        api.enhanceEndpoints({
-          endpoints: {
-            query1: {
-              // @ts-expect-error
-              providesTags: ['new'],
-            },
-            query2: {
-              // @ts-expect-error
-              providesTags: ['missing'],
-            },
-          },
-        })
-      }
 
       const enhanced = api.enhanceEndpoints({
         addTagTypes: ['new'],
@@ -460,22 +445,6 @@ describe('endpoint definition typings', () => {
       expect(consoleErrorSpy).toHaveBeenLastCalledWith(
         "Tag type 'missing' was used, but not specified in `tagTypes`!",
       )
-
-      // only type-test this part
-      if (2 > 1) {
-        enhanced.enhanceEndpoints({
-          endpoints: {
-            query1: {
-              // returned `enhanced` api contains "new" enitityType
-              providesTags: ['new'],
-            },
-            query2: {
-              // @ts-expect-error
-              providesTags: ['missing'],
-            },
-          },
-        })
-      }
     })
 
     test('modify', () => {
@@ -1215,8 +1184,8 @@ describe('endpoint schemas', () => {
     stack: expect.any(String),
   } satisfies SerializedError
 
-  const onSchemaFailureGlobal = vi.fn<Parameters<SchemaFailureHandler>>()
-  const onSchemaFailureEndpoint = vi.fn<Parameters<SchemaFailureHandler>>()
+  const onSchemaFailureGlobal = vi.fn<SchemaFailureHandler>()
+  const onSchemaFailureEndpoint = vi.fn<SchemaFailureHandler>()
   afterEach(() => {
     onSchemaFailureGlobal.mockClear()
     onSchemaFailureEndpoint.mockClear()

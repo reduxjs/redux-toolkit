@@ -456,7 +456,9 @@ export const buildQueryLifecycleHandler: InternalHandlerBuilder = ({
           })
         // prevent uncaught promise rejections from happening.
         // if the original promise is used in any way, that will create a new promise that will throw again
-        queryFulfilled.catch(() => {})
+        queryFulfilled.catch(() => {
+          /** No-Op */
+        })
         lifecycleMap[requestId] = lifecycle
         const selector = (api.endpoints[endpointName] as any).select(
           isAnyQueryDefinition(endpointDefinition) ? originalArgs : requestId,

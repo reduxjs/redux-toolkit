@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { Pokemon } from './Pokemon'
-import { PokemonName, POKEMON_NAMES } from './pokemon.data'
+import type { PokemonName } from './pokemon.data'
+import { POKEMON_NAMES } from './pokemon.data'
 import './styles.css'
 
 const getRandomPokemonName = () =>
