@@ -8156,7 +8156,7 @@ __metadata:
   dependencies:
     "@reduxjs/toolkit": "npm:^1.6.0 || ^2.0.0"
     graphql: "npm:^16.5.0"
-    graphql-request: "npm:^4.0.0 || ^5.0.0 || ^6.0.0"
+    graphql-request: "npm:^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0"
     microbundle: "npm:^0.13.3"
     rimraf: "npm:^3.0.2"
     typescript: "npm:^5.8.2"
@@ -17875,6 +17875,17 @@ __metadata:
   peerDependencies:
     graphql: 14 - 16
   checksum: 10/a9c6f2eeaad972cdecb91437c15c785a282263fd0ef36f6fc5648e0945da488cdc10ab4736891ee1fbb928c7bf6e0bc8e0284df514254adefe02cc406ba5fce5
+  languageName: node
+  linkType: hard
+
+"graphql-request@npm:^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0":
+  version: 7.1.2
+  resolution: "graphql-request@npm:7.1.2"
+  dependencies:
+    "@graphql-typed-document-node/core": "npm:^3.2.0"
+  peerDependencies:
+    graphql: 14 - 16
+  checksum: 10/08e6612d88103ced678f210e4c1a50366ca882622c6383e974aa285963e33c24979fea62aaeb4380b2c1069abd640346d132509f1350f4d4decdf5122ed21e16
   languageName: node
   linkType: hard
 
