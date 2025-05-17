@@ -1,9 +1,9 @@
-import type { EntityAdapter, EntityId, EntityAdapterOptions } from './models'
-import { createInitialStateFactory } from './entity_state'
-import { createSelectorsFactory } from './state_selectors'
-import { createSortedStateAdapter } from './sorted_state_adapter'
-import { createUnsortedStateAdapter } from './unsorted_state_adapter'
 import type { WithRequiredProp } from '../tsHelpers'
+import { createInitialStateFactory } from './entity_state'
+import type { EntityAdapter, EntityAdapterOptions, EntityId } from './models'
+import { createSortedStateAdapter } from './sorted_state_adapter'
+import { createSelectorsFactory } from './state_selectors'
+import { createUnsortedStateAdapter } from './unsorted_state_adapter'
 
 export function createEntityAdapter<T, Id extends EntityId>(
   options: WithRequiredProp<EntityAdapterOptions<T, Id>, 'selectId'>,

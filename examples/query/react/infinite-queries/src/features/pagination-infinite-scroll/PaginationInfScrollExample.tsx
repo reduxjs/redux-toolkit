@@ -1,11 +1,12 @@
-import { createSelector } from "@reduxjs/toolkit"
-import {
+import { createSelector } from '@reduxjs/toolkit'
+import type {
   BaseQueryFn,
   TypedUseQueryStateResult,
-} from "@reduxjs/toolkit/query/react"
-import { Link, useLocation } from "react-router"
-import { useIntersectionCallback } from "../../app/useIntersectionCallback"
-import { apiWithInfiniteScroll, ProjectsResponse } from "./infiniteScrollApi"
+} from '@reduxjs/toolkit/query/react'
+import { Link, useLocation } from 'react-router'
+import { useIntersectionCallback } from '../../app/useIntersectionCallback'
+import type { ProjectsResponse } from './infiniteScrollApi'
+import { apiWithInfiniteScroll } from './infiniteScrollApi'
 
 type ProjectsInfiniteQueryResult = TypedUseQueryStateResult<
   { pages: ProjectsResponse[] },
@@ -17,7 +18,7 @@ const selectCombinedProjects = createSelector(
   (res: ProjectsInfiniteQueryResult) => {
     return res.data
   },
-  data => data?.pages?.map(item => item?.projects)?.flat(),
+  (data) => data?.pages?.map((item) => item?.projects)?.flat(),
 )
 
 function PaginationInfScrollExample() {
@@ -37,7 +38,7 @@ function PaginationInfScrollExample() {
   } = apiWithInfiniteScroll.endpoints.projectsPaginated.useInfiniteQuery(
     undefined,
     {
-      selectFromResult: result => {
+      selectFromResult: (result) => {
         return {
           ...result,
           combinedData: selectCombinedProjects(result),
@@ -65,27 +66,27 @@ function PaginationInfScrollExample() {
             disabled={!hasPreviousPage || isFetchingPreviousPage}
           >
             {isFetchingPreviousPage
-              ? "Loading more..."
+              ? 'Loading more...'
               : hasPreviousPage
-                ? "Load Older"
-                : "Nothing more to load"}
+                ? 'Load Older'
+                : 'Nothing more to load'}
           </button>
         </div>
         <div
           style={{
-            overflow: "auto",
-            margin: "1rem 0px",
-            height: "400px",
+            overflow: 'auto',
+            margin: '1rem 0px',
+            height: '400px',
           }}
         >
           {combinedData?.map((project, index, arr) => {
             return (
               <div
                 style={{
-                  margin: "1em 0px",
-                  border: "1px solid gray",
-                  borderRadius: "5px",
-                  padding: "2rem 1rem",
+                  margin: '1em 0px',
+                  border: '1px solid gray',
+                  borderRadius: '5px',
+                  padding: '2rem 1rem',
                   background: `hsla(${project.id * 30}, 60%, 80%, 1)`,
                 }}
                 key={project.id}
@@ -105,15 +106,15 @@ function PaginationInfScrollExample() {
             disabled={!hasNextPage || isFetchingNextPage}
           >
             {isFetchingNextPage
-              ? "Loading more..."
+              ? 'Loading more...'
               : hasNextPage
-                ? "Load Newer"
-                : "Nothing more to load"}
+                ? 'Load Newer'
+                : 'Nothing more to load'}
           </button>
         </div>
         <div>
           {isFetching && !isFetchingPreviousPage && !isFetchingNextPage
-            ? "Background Updating..."
+            ? 'Background Updating...'
             : null}
         </div>
       </>

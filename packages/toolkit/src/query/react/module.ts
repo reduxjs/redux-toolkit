@@ -10,6 +10,7 @@ import type {
   QueryDefinition,
   QueryKeys,
 } from '@reduxjs/toolkit/query'
+import type * as ReactRedux from 'react-redux'
 import {
   batch as rrBatch,
   useDispatch as rrUseDispatch,
@@ -37,12 +38,9 @@ export type ReactHooksModule = typeof reactHooksModuleName
 
 declare module '@reduxjs/toolkit/query' {
   export interface ApiModules<
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     BaseQuery extends BaseQueryFn,
     Definitions extends EndpointDefinitions,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     ReducerPath extends string,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     TagTypes extends string,
   > {
     [reactHooksModuleName]: {
@@ -84,7 +82,7 @@ declare module '@reduxjs/toolkit/query' {
   }
 }
 
-type RR = typeof import('react-redux')
+type RR = typeof ReactRedux
 
 export interface ReactHooksModuleOptions {
   /**

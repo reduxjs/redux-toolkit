@@ -1,4 +1,4 @@
-import { baseApi } from "../baseApi"
+import { baseApi } from '../baseApi'
 
 export type Project = {
   id: number
@@ -12,13 +12,13 @@ type ProjectsPageCursor = {
 }
 
 export const apiWithInfiniteScroll = baseApi.injectEndpoints({
-  endpoints: build => ({
+  endpoints: (build) => ({
     getProjectsCursor: build.infiniteQuery<ProjectsPageCursor, string, number>({
       query: ({ pageParam }) =>
         `https://example.com/api/projectsCursor?cursor=${pageParam}`,
       infiniteQueryOptions: {
         initialPageParam: 0,
-        getPreviousPageParam: firstPage => firstPage.previousId,
+        getPreviousPageParam: (firstPage) => firstPage.previousId,
         getNextPageParam: (
           lastPage,
           allPages,
