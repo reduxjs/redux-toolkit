@@ -1,22 +1,23 @@
 #!/usr/bin/env node --import=tsx
 
-import fs from 'node:fs/promises'
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
-
-const __dirname = fileURLToPath(new URL('.', import.meta.url))
+import * as fs from 'node:fs/promises'
+import * as path from 'node:path'
 
 const entryPointDirectories = ['', 'react', 'query', 'query/react']
 
-const typeDefinitionEntryFiles = entryPointDirectories.map((filePath) =>
-  path.resolve(__dirname, '..', 'dist', filePath, 'index.d.ts'),
+const typeDefinitionEntryFiles = entryPointDirectories.flatMap(
+  (filePath) =>
+    [
+      path.join(import.meta.dirname, '..', 'dist', filePath, 'index.d.ts'),
+      path.join(import.meta.dirname, '..', 'dist', filePath, 'index.d.mts'),
+    ] as const,
 )
 
 const filePathsToContentMap = new Map<string, string>(
   await Promise.all(
     typeDefinitionEntryFiles.map(
       async (filePath) =>
-        [filePath, await fs.readFile(filePath, 'utf-8')] as const,
+        [filePath, await fs.readFile(filePath, { encoding: 'utf-8' })] as const,
     ),
   ),
 )
@@ -30,8 +31,8 @@ const main = async () => {
     const lines = content.split('\n')
 
     const allUniqueSymbols = lines
-      .filter((line) => /declare const (\w+)\: unique symbol;/.test(line))
-      .map((line) => line.match(/declare const (\w+)\: unique symbol;/)?.[1])
+      .filter((line) => /declare const (\w+): unique symbol;/.test(line))
+      .map((line) => line.match(/declare const (\w+): unique symbol;/)?.[1])
 
     if (allUniqueSymbols.length === 0) {
       console.log(`${filePath} does not have any unique symbols.`)
@@ -69,8 +70,8 @@ const main = async () => {
       )
     })
 
-    await fs.writeFile(filePath, newContent)
+    await fs.writeFile(filePath, newContent, { encoding: 'utf-8' })
   })
 }
 
-main()
+void main()

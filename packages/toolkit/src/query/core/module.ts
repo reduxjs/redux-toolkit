@@ -471,13 +471,13 @@ export interface ApiEndpointMutation<
 export type ListenerActions = {
   /**
    * Will cause the RTK Query middleware to trigger any refetchOnReconnect-related behavior
-   * @link https://rtk-query-docs.netlify.app/api/setupListeners
+   * @link https://redux-toolkit.js.org/rtk-query/api/setupListeners
    */
   onOnline: typeof onOnline
   onOffline: typeof onOffline
   /**
    * Will cause the RTK Query middleware to trigger any refetchOnFocus-related behavior
-   * @link https://rtk-query-docs.netlify.app/api/setupListeners
+   * @link https://redux-toolkit.js.org/rtk-query/api/setupListeners
    */
   onFocus: typeof onFocus
   onFocusLost: typeof onFocusLost

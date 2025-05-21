@@ -1,6 +1,6 @@
 {
   "name": "@reduxjs/toolkit",
-  "version": "2.6.1",
+  "version": "2.8.2",
   "description": "The official, opinionated, batteries-included toolset for efficient Redux development",
   "author": "Mark Erikson <mark@isquaredsoftware.com>",
   "license": "MIT",
@@ -25,27 +25,161 @@
   "module": "dist/redux-toolkit.legacy-esm.js",
   "main": "dist/cjs/index.js",
   "types": "dist/index.d.ts",
+  "react-native": "dist/redux-toolkit.legacy-esm.js",
+  "unpkg": "dist/redux-toolkit.browser.mjs",
   "exports": {
     "./package.json": "./package.json",
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/redux-toolkit.modern.mjs",
-      "default": "./dist/cjs/index.js"
+      "module-sync": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/redux-toolkit.modern.mjs"
+      },
+      "module": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/redux-toolkit.modern.mjs"
+      },
+      "react-native": {
+        "import": {
+          "types": "./dist/index.d.mts",
+          "default": "./dist/redux-toolkit.modern.mjs"
+        },
+        "default": {
+          "types": "./dist/index.d.ts",
+          "default": "./dist/cjs/index.js"
+        }
+      },
+      "browser": {
+        "import": {
+          "types": "./dist/index.d.mts",
+          "default": "./dist/redux-toolkit.browser.mjs"
+        },
+        "default": {
+          "types": "./dist/index.d.ts",
+          "default": "./dist/cjs/index.js"
+        }
+      },
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/redux-toolkit.modern.mjs"
+      },
+      "default": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/cjs/index.js"
+      }
     },
     "./react": {
-      "types": "./dist/react/index.d.ts",
-      "import": "./dist/react/redux-toolkit-react.modern.mjs",
-      "default": "./dist/react/cjs/index.js"
+      "module-sync": {
+        "types": "./dist/react/index.d.mts",
+        "default": "./dist/react/redux-toolkit-react.modern.mjs"
+      },
+      "module": {
+        "types": "./dist/react/index.d.mts",
+        "default": "./dist/react/redux-toolkit-react.modern.mjs"
+      },
+      "react-native": {
+        "import": {
+          "types": "./dist/react/index.d.mts",
+          "default": "./dist/react/redux-toolkit-react.modern.mjs"
+        },
+        "default": {
+          "types": "./dist/react/index.d.ts",
+          "default": "./dist/react/cjs/index.js"
+        }
+      },
+      "browser": {
+        "import": {
+          "types": "./dist/react/index.d.mts",
+          "default": "./dist/react/redux-toolkit-react.browser.mjs"
+        },
+        "default": {
+          "types": "./dist/react/index.d.ts",
+          "default": "./dist/react/cjs/index.js"
+        }
+      },
+      "import": {
+        "types": "./dist/react/index.d.mts",
+        "default": "./dist/react/redux-toolkit-react.modern.mjs"
+      },
+      "default": {
+        "types": "./dist/react/index.d.ts",
+        "default": "./dist/react/cjs/index.js"
+      }
     },
     "./query": {
-      "types": "./dist/query/index.d.ts",
-      "import": "./dist/query/rtk-query.modern.mjs",
-      "default": "./dist/query/cjs/index.js"
+      "module-sync": {
+        "types": "./dist/query/index.d.mts",
+        "default": "./dist/query/rtk-query.modern.mjs"
+      },
+      "module": {
+        "types": "./dist/query/index.d.mts",
+        "default": "./dist/query/rtk-query.modern.mjs"
+      },
+      "react-native": {
+        "import": {
+          "types": "./dist/query/index.d.mts",
+          "default": "./dist/query/rtk-query.modern.mjs"
+        },
+        "default": {
+          "types": "./dist/query/index.d.ts",
+          "default": "./dist/query/cjs/index.js"
+        }
+      },
+      "browser": {
+        "import": {
+          "types": "./dist/query/index.d.mts",
+          "default": "./dist/query/rtk-query.browser.mjs"
+        },
+        "default": {
+          "types": "./dist/query/index.d.ts",
+          "default": "./dist/query/cjs/index.js"
+        }
+      },
+      "import": {
+        "types": "./dist/query/index.d.mts",
+        "default": "./dist/query/rtk-query.modern.mjs"
+      },
+      "default": {
+        "types": "./dist/query/index.d.ts",
+        "default": "./dist/query/cjs/index.js"
+      }
     },
     "./query/react": {
-      "types": "./dist/query/react/index.d.ts",
-      "import": "./dist/query/react/rtk-query-react.modern.mjs",
-      "default": "./dist/query/react/cjs/index.js"
+      "module-sync": {
+        "types": "./dist/query/react/index.d.mts",
+        "default": "./dist/query/react/rtk-query-react.modern.mjs"
+      },
+      "module": {
+        "types": "./dist/query/react/index.d.mts",
+        "default": "./dist/query/react/rtk-query-react.modern.mjs"
+      },
+      "react-native": {
+        "import": {
+          "types": "./dist/query/react/index.d.mts",
+          "default": "./dist/query/react/rtk-query-react.modern.mjs"
+        },
+        "default": {
+          "types": "./dist/query/react/index.d.ts",
+          "default": "./dist/query/react/cjs/index.js"
+        }
+      },
+      "browser": {
+        "import": {
+          "types": "./dist/query/react/index.d.mts",
+          "default": "./dist/query/react/rtk-query-react.browser.mjs"
+        },
+        "default": {
+          "types": "./dist/query/react/index.d.ts",
+          "default": "./dist/query/react/cjs/index.js"
+        }
+      },
+      "import": {
+        "types": "./dist/query/react/index.d.mts",
+        "default": "./dist/query/react/rtk-query-react.modern.mjs"
+      },
+      "default": {
+        "types": "./dist/query/react/index.d.ts",
+        "default": "./dist/query/react/cjs/index.js"
+      }
     }
   },
   "devDependencies": {
@@ -96,7 +230,7 @@
     "rimraf": "^3.0.2",
     "size-limit": "^11.0.1",
     "tslib": "^1.10.0",
-    "tsup": "^8.2.3",
+    "tsup": "^8.4.0",
     "tsx": "^4.19.0",
     "typescript": "^5.8.2",
     "valibot": "^1.0.0",
@@ -106,7 +240,7 @@
   },
   "scripts": {
     "clean": "rimraf dist",
-    "run-build": "tsup",
+    "run-build": "tsup --config=$INIT_CWD/tsup.config.mts",
     "build": "yarn clean && yarn run-build && tsx scripts/fixUniqueSymbolExports.mts",
     "build-only": "yarn clean && yarn run-build",
     "format": "prettier --write \"(src|examples)/**/*.{ts,tsx}\" \"**/*.md\"",

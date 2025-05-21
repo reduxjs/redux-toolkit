@@ -291,10 +291,12 @@ export function buildSelectors<
         hasNextPage: getHasNextPage(
           infiniteQueryOptions,
           stateWithRequestFlags.data,
+          stateWithRequestFlags.originalArgs,
         ),
         hasPreviousPage: getHasPreviousPage(
           infiniteQueryOptions,
           stateWithRequestFlags.data,
+          stateWithRequestFlags.originalArgs,
         ),
         isFetchingNextPage: isLoading && isForward,
         isFetchingPreviousPage: isLoading && isBackward,
@@ -395,18 +397,20 @@ export function buildSelectors<
   }
 
   function getHasNextPage(
-    options: InfiniteQueryConfigOptions<any, any>,
+    options: InfiniteQueryConfigOptions<any, any, any>,
     data?: InfiniteData<unknown, unknown>,
+    queryArg?: unknown,
   ): boolean {
     if (!data) return false
-    return getNextPageParam(options, data) != null
+    return getNextPageParam(options, data, queryArg) != null
   }
 
   function getHasPreviousPage(
-    options: InfiniteQueryConfigOptions<any, any>,
+    options: InfiniteQueryConfigOptions<any, any, any>,
     data?: InfiniteData<unknown, unknown>,
+    queryArg?: unknown,
   ): boolean {
     if (!data || !options.getPreviousPageParam) return false
-    return getPreviousPageParam(options, data) != null
+    return getPreviousPageParam(options, data, queryArg) != null
   }
 }

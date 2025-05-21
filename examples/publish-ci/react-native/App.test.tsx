@@ -1,135 +1,171 @@
-import type { Action, Dispatch } from "@reduxjs/toolkit"
-import { configureStore } from "@reduxjs/toolkit"
-import { screen, waitFor } from "@testing-library/react-native"
-import { Component, PureComponent, type PropsWithChildren } from "react"
-import type { TextStyle } from "react-native"
-import { Button, Text, View } from "react-native"
-import { connect, Provider } from "react-redux"
-import { App } from "./App"
-import { renderWithProviders } from "./src/utils/test-utils"
+import type { Action } from '@reduxjs/toolkit'
+import { configureStore } from '@reduxjs/toolkit'
+import { act, screen } from '@testing-library/react-native'
+import type { Dispatch, PropsWithChildren } from 'react'
+import { Component, PureComponent } from 'react'
+import type { TextStyle } from 'react-native'
+import { Button, Text, View } from 'react-native'
+import { connect, Provider } from 'react-redux'
+import { App } from './App'
+import { renderWithProviders } from './src/utils/test-utils'
 
-test("App should have correct initial render", () => {
+test('App should have correct initial render', () => {
   renderWithProviders(<App />)
+
+  const countLabel = screen.getByLabelText('Count')
+
+  const incrementValueInput = screen.getByLabelText('Set increment amount')
 
   // The app should be rendered correctly
   expect(screen.getByText(/learn more redux/i)).toBeOnTheScreen()
 
   // Initial state: count should be 0, incrementValue should be 2
-  expect(screen.getByLabelText("Count")).toHaveTextContent("0")
-  expect(screen.getByLabelText("Set increment amount")).toHaveDisplayValue("2")
+  expect(countLabel).toHaveTextContent('0')
+  expect(incrementValueInput).toHaveDisplayValue('2')
 })
 
-test("Increment value and Decrement value should work as expected", async () => {
+test('Increment value and Decrement value should work as expected', async () => {
   const { user } = renderWithProviders(<App />)
+
+  const countLabel = screen.getByLabelText('Count')
+
+  const incrementValueButton = screen.getByLabelText('Increment value')
+
+  const decrementValueButton = screen.getByLabelText('Decrement value')
 
   // Click on "+" => Count should be 1
-  await user.press(screen.getByLabelText("Increment value"))
-  expect(screen.getByLabelText("Count")).toHaveTextContent("1")
+  await user.press(incrementValueButton)
+  expect(countLabel).toHaveTextContent('1')
 
   // Click on "-" => Count should be 0
-  await user.press(screen.getByLabelText("Decrement value"))
-  expect(screen.getByLabelText("Count")).toHaveTextContent("0")
+  await user.press(decrementValueButton)
+  expect(countLabel).toHaveTextContent('0')
 })
 
-test("Add Amount should work as expected", async () => {
+test('Add Amount should work as expected', async () => {
   const { user } = renderWithProviders(<App />)
 
-  // "Add Amount" button is clicked => Count should be 2
-  await user.press(screen.getByText("Add Amount"))
-  expect(screen.getByLabelText("Count")).toHaveTextContent("2")
+  const countLabel = screen.getByLabelText('Count')
 
-  const incrementValueInput = screen.getByLabelText("Set increment amount")
+  const incrementValueInput = screen.getByLabelText('Set increment amount')
+
+  const addAmountButton = screen.getByText('Add Amount')
+
+  // "Add Amount" button is clicked => Count should be 2
+  await user.press(addAmountButton)
+  expect(countLabel).toHaveTextContent('2')
+
   // incrementValue is 2, click on "Add Amount" => Count should be 4
   await user.clear(incrementValueInput)
-  await user.type(incrementValueInput, "2")
-  await user.press(screen.getByText("Add Amount"))
-  expect(screen.getByLabelText("Count")).toHaveTextContent("4")
+  await user.type(incrementValueInput, '2')
+  await user.press(addAmountButton)
+  expect(countLabel).toHaveTextContent('4')
 
   // [Negative number] incrementValue is -1, click on "Add Amount" => Count should be 3
   await user.clear(incrementValueInput)
-  await user.type(incrementValueInput, "-1")
-  await user.press(screen.getByText("Add Amount"))
-  expect(screen.getByLabelText("Count")).toHaveTextContent("3")
+  await user.type(incrementValueInput, '-1')
+  await user.press(addAmountButton)
+  expect(countLabel).toHaveTextContent('3')
 })
 
-it("Add Async should work as expected", async () => {
+it('Add Async should work as expected', async () => {
   const { user } = renderWithProviders(<App />)
 
-  // "Add Async" button is clicked => Count should be 2
-  await user.press(screen.getByText("Add Async"))
+  const addAsyncButton = screen.getByText('Add Async')
 
-  await waitFor(() => {
-    expect(screen.getByLabelText("Count")).toHaveTextContent("2")
+  const countLabel = screen.getByLabelText('Count')
+
+  const incrementValueInput = screen.getByLabelText('Set increment amount')
+
+  // "Add Async" button is clicked => Count should be 2
+  await user.press(addAsyncButton)
+
+  await act(async () => {
+    await jest.advanceTimersByTimeAsync(500)
   })
 
-  const incrementValueInput = screen.getByLabelText("Set increment amount")
+  expect(countLabel).toHaveTextContent('2')
+
   // incrementValue is 2, click on "Add Async" => Count should be 4
   await user.clear(incrementValueInput)
-  await user.type(incrementValueInput, "2")
+  await user.type(incrementValueInput, '2')
 
-  await user.press(screen.getByText("Add Async"))
-  await waitFor(() => {
-    expect(screen.getByLabelText("Count")).toHaveTextContent("4")
+  await user.press(addAsyncButton)
+
+  await act(async () => {
+    await jest.advanceTimersByTimeAsync(500)
   })
+
+  expect(countLabel).toHaveTextContent('4')
 
   // [Negative number] incrementValue is -1, click on "Add Async" => Count should be 3
   await user.clear(incrementValueInput)
-  await user.type(incrementValueInput, "-1")
-  await user.press(screen.getByText("Add Async"))
-  await waitFor(() => {
-    expect(screen.getByLabelText("Count")).toHaveTextContent("3")
+  await user.type(incrementValueInput, '-1')
+  await user.press(addAsyncButton)
+
+  await act(async () => {
+    await jest.advanceTimersByTimeAsync(500)
   })
+
+  expect(countLabel).toHaveTextContent('3')
 })
 
-test("Add If Odd should work as expected", async () => {
+test('Add If Odd should work as expected', async () => {
   const { user } = renderWithProviders(<App />)
 
+  const countLabel = screen.getByLabelText('Count')
+
+  const addIfOddButton = screen.getByText('Add If Odd')
+
+  const incrementValueInput = screen.getByLabelText('Set increment amount')
+
+  const incrementValueButton = screen.getByLabelText('Increment value')
+
   // "Add If Odd" button is clicked => Count should stay 0
-  await user.press(screen.getByText("Add If Odd"))
-  expect(screen.getByLabelText("Count")).toHaveTextContent("0")
+  await user.press(addIfOddButton)
+  expect(countLabel).toHaveTextContent('0')
 
   // Click on "+" => Count should be updated to 1
-  await user.press(screen.getByLabelText("Increment value"))
-  expect(screen.getByLabelText("Count")).toHaveTextContent("1")
+  await user.press(incrementValueButton)
+  expect(countLabel).toHaveTextContent('1')
 
   // "Add If Odd" button is clicked => Count should be updated to 3
-  await user.press(screen.getByText("Add If Odd"))
-  expect(screen.getByLabelText("Count")).toHaveTextContent("3")
+  await user.press(addIfOddButton)
+  expect(countLabel).toHaveTextContent('3')
 
-  const incrementValueInput = screen.getByLabelText("Set increment amount")
   // incrementValue is 1, click on "Add If Odd" => Count should be updated to 4
   await user.clear(incrementValueInput)
-  await user.type(incrementValueInput, "1")
-  await user.press(screen.getByText("Add If Odd"))
-  expect(screen.getByLabelText("Count")).toHaveTextContent("4")
+  await user.type(incrementValueInput, '1')
+  await user.press(addIfOddButton)
+  expect(countLabel).toHaveTextContent('4')
 
   // click on "Add If Odd" => Count should stay 4
   await user.clear(incrementValueInput)
-  await user.type(incrementValueInput, "-1")
-  await user.press(screen.getByText("Add If Odd"))
-  expect(screen.getByLabelText("Count")).toHaveTextContent("4")
+  await user.type(incrementValueInput, '-1')
+  await user.press(addIfOddButton)
+  expect(countLabel).toHaveTextContent('4')
 })
 
-test("React-Redux issue #2150: Nested component updates should be properly batched when using connect", async () => {
+test('React-Redux issue #2150: Nested component updates should be properly batched when using connect', async () => {
   // Original Issue: https://github.com/reduxjs/react-redux/issues/2150
   // Solution: https://github.com/reduxjs/react-redux/pull/2156
 
   // Actions
-  const ADD = "ADD"
-  const DATE = "DATE"
+  const ADD = 'ADD'
+  const DATE = 'DATE'
 
   // Action types
-  interface AddAction extends Action<string> {}
-  interface DateAction extends Action<string> {
+  type AddAction = {} & Action
+  type DateAction = {
     payload?: { date: number }
-  }
+  } & Action
 
   // Reducer states
-  interface DateState {
+  type DateState = {
     date: number | null
   }
 
-  interface CounterState {
+  type CounterState = {
     count: number
   }
 
@@ -173,7 +209,7 @@ test("React-Redux issue #2150: Nested component updates should be properly batch
   })
 
   // ======== COMPONENTS =========
-  interface CounterProps {
+  type CounterProps = {
     count?: number
     date?: number | null
     dispatch: Dispatch<AddAction | DateAction>
@@ -192,7 +228,7 @@ test("React-Redux issue #2150: Nested component updates should be properly batch
     render() {
       return (
         <View style={{ paddingVertical: 20 }}>
-          <Text testID={`${this.props.testID}-child`}>
+          <Text testID={`${this.props.testID ?? ''}-child`}>
             Counter Value: {this.props.count}
           </Text>
           <Text>date Value: {this.props.date}</Text>
@@ -241,7 +277,7 @@ test("React-Redux issue #2150: Nested component updates should be properly batch
     }
   }
 
-  const mapStateToPropsBreaking = (_state: any) => ({})
+  const mapStateToPropsBreaking = (_state: unknown) => ({})
 
   const ContainerBad = connect(mapStateToPropsBreaking, null)(Container)
 
@@ -254,7 +290,7 @@ test("React-Redux issue #2150: Nested component updates should be properly batch
     null,
   )(Container)
 
-  const mapStateToPropsNonBlocking2 = (state: any) => ({ state })
+  const mapStateToPropsNonBlocking2 = (state: unknown) => ({ state })
 
   const ContainerNonBlocking2 = connect(
     mapStateToPropsNonBlocking2,
@@ -303,13 +339,13 @@ test("React-Redux issue #2150: Nested component updates should be properly batch
 
   const { user, getByTestId, getByText } = renderWithProviders(<MainApp />)
 
-  expect(getByTestId("undesired-child")).toHaveTextContent("Counter Value: 0")
+  expect(getByTestId('undesired-child')).toHaveTextContent('Counter Value: 0')
 
-  await user.press(getByText("Increment Counter"))
+  await user.press(getByText('Increment Counter'))
 
-  expect(getByTestId("inconsistent-child")).toHaveTextContent(
-    "Counter Value: 1",
+  expect(getByTestId('inconsistent-child')).toHaveTextContent(
+    'Counter Value: 1',
   )
 
-  expect(getByTestId("undesired-child")).toHaveTextContent("Counter Value: 1")
+  expect(getByTestId('undesired-child')).toHaveTextContent('Counter Value: 1')
 })

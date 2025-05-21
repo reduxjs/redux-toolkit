@@ -477,6 +477,10 @@ export enum DefinitionType {
   infinitequery = 'infinitequery',
 }
 
+type TagDescriptionArray<TagTypes extends string> = ReadonlyArray<
+  TagDescription<TagTypes> | undefined | null
+>
+
 export type GetResultDescriptionFn<
   TagTypes extends string,
   ResultType,
@@ -488,7 +492,7 @@ export type GetResultDescriptionFn<
   error: ErrorType | undefined,
   arg: QueryArg,
   meta: MetaType,
-) => ReadonlyArray<TagDescription<TagTypes> | undefined | null>
+) => TagDescriptionArray<TagTypes>
 
 export type FullTagDescription<TagType> = {
   type: TagType
@@ -506,7 +510,7 @@ export type ResultDescription<
   ErrorType,
   MetaType,
 > =
-  | ReadonlyArray<TagDescription<TagTypes> | undefined | null>
+  | TagDescriptionArray<TagTypes>
   | GetResultDescriptionFn<TagTypes, ResultType, QueryArg, ErrorType, MetaType>
 
 type QueryTypes<
@@ -907,7 +911,11 @@ export interface InfiniteQueryExtraOptions<
    
    * ```
    */
-  infiniteQueryOptions: InfiniteQueryConfigOptions<ResultType, PageParam>
+  infiniteQueryOptions: InfiniteQueryConfigOptions<
+    ResultType,
+    PageParam,
+    QueryArg
+  >
 
   /**
    * Can be provided to return a custom cache key value based on the query arguments.

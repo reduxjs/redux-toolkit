@@ -699,7 +699,11 @@ export function buildThunks<
         if ('direction' in arg && arg.direction && existingData.pages.length) {
           const previous = arg.direction === 'backward'
           const pageParamFn = previous ? getPreviousPageParam : getNextPageParam
-          const param = pageParamFn(infiniteQueryOptions, existingData)
+          const param = pageParamFn(
+            infiniteQueryOptions,
+            existingData,
+            arg.originalArgs,
+          )
 
           result = await fetchPage(existingData, param, maxPages, previous)
         } else {
@@ -731,6 +735,7 @@ export function buildThunks<
             const param = getNextPageParam(
               infiniteQueryOptions,
               result.data as InfiniteData<unknown, unknown>,
+              arg.originalArgs,
             )
             result = await fetchPage(
               result.data as InfiniteData<unknown, unknown>,
@@ -1036,8 +1041,9 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
 }
 
 export function getNextPageParam(
-  options: InfiniteQueryConfigOptions<unknown, unknown>,
+  options: InfiniteQueryConfigOptions<unknown, unknown, unknown>,
   { pages, pageParams }: InfiniteData<unknown, unknown>,
+  queryArg: unknown,
 ): unknown | undefined {
   const lastIndex = pages.length - 1
   return options.getNextPageParam(
@@ -1045,18 +1051,21 @@ export function getNextPageParam(
     pages,
     pageParams[lastIndex],
     pageParams,
+    queryArg,
   )
 }
 
 export function getPreviousPageParam(
-  options: InfiniteQueryConfigOptions<unknown, unknown>,
+  options: InfiniteQueryConfigOptions<unknown, unknown, unknown>,
   { pages, pageParams }: InfiniteData<unknown, unknown>,
+  queryArg: unknown,
 ): unknown | undefined {
   return options.getPreviousPageParam?.(
     pages[0],
     pages,
     pageParams[0],
     pageParams,
+    queryArg,
   )
 }
 

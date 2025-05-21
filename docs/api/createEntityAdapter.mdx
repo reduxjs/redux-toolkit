@@ -377,6 +377,8 @@ If `updateMany()` is called with multiple updates targeted to the same ID, they 
 
 For both `updateOne()` and `updateMany()`, changing the ID of one existing entity to match the ID of a second existing entity will cause the first to replace the second completely.
 
+Additionally, if there is no item for that ID, the update will be silently ignored.
+
 ## Examples
 
 Exercising several of the CRUD methods and selectors:

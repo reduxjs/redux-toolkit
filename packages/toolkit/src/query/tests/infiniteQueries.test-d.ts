@@ -25,6 +25,7 @@ describe('Infinite queries', () => {
               allPages,
               lastPageParam,
               allPageParams,
+              queryArg,
             ) => {
               expectTypeOf(lastPage).toEqualTypeOf<Pokemon[]>()
 
@@ -33,6 +34,8 @@ describe('Infinite queries', () => {
               expectTypeOf(lastPageParam).toBeNumber()
 
               expectTypeOf(allPageParams).toEqualTypeOf<number[]>()
+
+              expectTypeOf(queryArg).toBeString()
 
               return lastPageParam + 1
             },
