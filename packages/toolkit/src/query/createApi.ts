@@ -6,8 +6,14 @@ import { defaultSerializeQueryArgs } from './defaultSerializeQueryArgs'
 import type {
   EndpointBuilder,
   EndpointDefinitions,
+  SchemaFailureConverter,
+  SchemaFailureHandler,
 } from './endpointDefinitions'
-import { DefinitionType, isQueryDefinition } from './endpointDefinitions'
+import {
+  DefinitionType,
+  isInfiniteQueryDefinition,
+  isQueryDefinition,
+} from './endpointDefinitions'
 import { nanoid } from './core/rtkImports'
 import type { UnknownAction } from '@reduxjs/toolkit'
 import type { NoInfer } from './tsHelpers'
@@ -94,7 +100,7 @@ export interface CreateApiOptions<
    */
   serializeQueryArgs?: SerializeQueryArgs<unknown>
   /**
-   * Endpoints are just a set of operations that you want to perform against your server. You define them as an object using the builder syntax. There are two basic endpoint types: [`query`](../../rtk-query/usage/queries) and [`mutation`](../../rtk-query/usage/mutations).
+   * Endpoints are a set of operations that you want to perform against your server. You define them as an object using the builder syntax. There are three endpoint types: [`query`](../../rtk-query/usage/queries), [`infiniteQuery`](../../rtk-query/usage/infinite-queries) and [`mutation`](../../rtk-query/usage/mutations).
    */
   endpoints(
     build: EndpointBuilder<BaseQuery, TagTypes, ReducerPath>,
@@ -208,13 +214,98 @@ export interface CreateApiOptions<
         NoInfer<TagTypes>,
         NoInfer<ReducerPath>
       >
+
+  /**
+   * A function that is called when a schema validation fails.
+   *
+   * Gets called with a `NamedSchemaError` and an object containing the endpoint name, the type of the endpoint, the argument passed to the endpoint, and the query cache key (if applicable).
+   *
+   * `NamedSchemaError` has the following properties:
+   * - `issues`: an array of issues that caused the validation to fail
+   * - `value`: the value that was passed to the schema
+   * - `schemaName`: the name of the schema that was used to validate the value (e.g. `argSchema`)
+   *
+   * @example
+   * ```ts
+   * // codeblock-meta no-transpile
+   * import { createApi } from '@reduxjs/toolkit/query/react'
+   * import * as v from "valibot"
+   *
+   * const api = createApi({
+   *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+   *   endpoints: (build) => ({
+   *     getPost: build.query<Post, { id: number }>({
+   *       query: ({ id }) => `/post/${id}`,
+   *     }),
+   *   }),
+   *   onSchemaFailure: (error, info) => {
+   *     console.error(error, info)
+   *   },
+   * })
+   * ```
+   */
+  onSchemaFailure?: SchemaFailureHandler
+
+  /**
+   * Convert a schema validation failure into an error shape matching base query errors.
+   *
+   * When not provided, schema failures are treated as fatal, and normal error handling such as tag invalidation will not be executed.
+   *
+   * @example
+   * ```ts
+   * // codeblock-meta no-transpile
+   * import { createApi } from '@reduxjs/toolkit/query/react'
+   * import * as v from "valibot"
+   *
+   * const api = createApi({
+   *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+   *   endpoints: (build) => ({
+   *     getPost: build.query<Post, { id: number }>({
+   *       query: ({ id }) => `/post/${id}`,
+   *       responseSchema: v.object({ id: v.number(), name: v.string() }),
+   *     }),
+   *   }),
+   *   catchSchemaFailure: (error, info) => ({
+   *     status: "CUSTOM_ERROR",
+   *     error: error.schemaName + " failed validation",
+   *     data: error.issues,
+   *   }),
+   * })
+   * ```
+   */
+  catchSchemaFailure?: SchemaFailureConverter<BaseQuery>
+
+  /**
+   * Defaults to `false`.
+   *
+   * If set to `true`, will skip schema validation for all endpoints, unless overridden by the endpoint.
+   *
+   * @example
+   * ```ts
+   * // codeblock-meta no-transpile
+   * import { createApi } from '@reduxjs/toolkit/query/react'
+   * import * as v from "valibot"
+   *
+   * const api = createApi({
+   *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+   *   skipSchemaValidation: process.env.NODE_ENV === "test", // skip schema validation in tests, since we'll be mocking the response
+   *   endpoints: (build) => ({
+   *     getPost: build.query<Post, { id: number }>({
+   *       query: ({ id }) => `/post/${id}`,
+   *       responseSchema: v.object({ id: v.number(), name: v.string() }),
+   *     }),
+   *   })
+   * })
+   * ```
+   */
+  skipSchemaValidation?: boolean
 }
 
 export type CreateApi<Modules extends ModuleName> = {
   /**
    * Creates a service to use in your application. Contains only the basic redux logic (the core module).
    *
-   * @link https://rtk-query-docs.netlify.app/api/createApi
+   * @link https://redux-toolkit.js.org/rtk-query/api/createApi
    */
   <
     BaseQuery extends BaseQueryFn,
@@ -229,7 +320,7 @@ export type CreateApi<Modules extends ModuleName> = {
 /**
  * Builds a `createApi` method based on the provided `modules`.
  *
- * @link https://rtk-query-docs.netlify.app/concepts/customizing-create-api
+ * @link https://redux-toolkit.js.org/rtk-query/usage/customizing-create-api
  *
  * @example
  * ```ts
@@ -347,6 +438,8 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
       const evaluatedEndpoints = inject.endpoints({
         query: (x) => ({ ...x, type: DefinitionType.query }) as any,
         mutation: (x) => ({ ...x, type: DefinitionType.mutation }) as any,
+        infiniteQuery: (x) =>
+          ({ ...x, type: DefinitionType.infinitequery }) as any,
       })
 
       for (const [endpointName, definition] of Object.entries(
@@ -370,6 +463,30 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
           }
 
           continue
+        }
+
+        if (
+          typeof process !== 'undefined' &&
+          process.env.NODE_ENV === 'development'
+        ) {
+          if (isInfiniteQueryDefinition(definition)) {
+            const { infiniteQueryOptions } = definition
+            const { maxPages, getPreviousPageParam } = infiniteQueryOptions
+
+            if (typeof maxPages === 'number') {
+              if (maxPages < 1) {
+                throw new Error(
+                  `maxPages for endpoint '${endpointName}' must be a number greater than 0`,
+                )
+              }
+
+              if (typeof getPreviousPageParam !== 'function') {
+                throw new Error(
+                  `getPreviousPageParam for endpoint '${endpointName}' must be a function if maxPages is used`,
+                )
+              }
+            }
+          }
         }
 
         context.endpointDefinitions[endpointName] = definition

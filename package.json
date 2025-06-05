@@ -31,8 +31,8 @@
     "@babel/helper-compilation-targets": "^7.23.6",
     "@babel/traverse": "^7.24.1",
     "@babel/types": "^7.24.0",
-    "@types/react": "^18.2.77",
-    "@types/react-dom": "^18.2.25",
+    "@types/react": "^19.0.1",
+    "@types/react-dom": "^19.0.1",
     "@typescript-eslint/eslint-plugin": "6.12.0",
     "@typescript-eslint/parser": "6.12.0",
     "eslint": "^7.25.0",
@@ -46,16 +46,13 @@
     "eslint-plugin-react-hooks": "^4.2.0",
     "netlify-plugin-cache": "^1.0.3",
     "prettier": "^3.2.5",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-redux": "^9.1.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-redux": "^9.1.2",
     "release-it": "^14.12.5",
     "serve": "^14.2.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.5.4"
-  },
-  "resolutions": {
-    "jest-snapshot": "29.3.1"
+    "typescript": "^5.8.2"
   },
   "scripts": {
     "build": "yarn build:packages",

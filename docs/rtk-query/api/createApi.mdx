@@ -39,8 +39,8 @@ import type { Pokemon } from './types'
 export const pokemonApi = createApi({
   reducerPath: 'pokemonApi',
   baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
-  endpoints: (builder) => ({
-    getPokemonByName: builder.query<Pokemon, string>({
+  endpoints: (build) => ({
+    getPokemonByName: build.query<Pokemon, string>({
       query: (name) => `pokemon/${name}`,
     }),
   }),
@@ -54,7 +54,7 @@ export const { useGetPokemonByNameQuery } = pokemonApi
 // highlight-end
 ```
 
-## Parameters
+## `createApi` Parameters
 
 `createApi` accepts a single configuration object parameter with the following options:
 
@@ -144,11 +144,41 @@ export type QueryReturnValue<T = unknown, E = unknown, M = unknown> =
 
 [summary](docblock://query/createApi.ts?token=CreateApiOptions.endpoints)
 
-See [Anatomy of an endpoint](#anatomy-of-an-endpoint) for details on individual properties.
+See [Endpoint Definition Parameters](#endpoint-definition-parameters) for details on individual properties.
 
 #### Query endpoint definition
 
+Query endpoints (defined with `build.query()`) are used to cache data fetched from the server.
+
+You must specify either a `query` field (which will use the API's `baseQuery` to make a request), or a `queryFn` function with your own async logic. All other fields are optional.
+
 ```ts title="Query endpoint definition" no-transpile
+export type FullTagDescription<TagType> = {
+  type: TagType
+  id?: number | string
+}
+export type TagDescription<TagType> = TagType | FullTagDescription<TagType>
+
+type TagDescriptionArray<TagTypes extends string> = ReadonlyArray<
+  TagDescription<TagTypes> | undefined | null
+>
+
+export type ResultDescription<
+  TagTypes extends string,
+  ResultType,
+  QueryArg,
+  ErrorType,
+  MetaType,
+> =
+  | TagDescriptionArray<TagTypes>
+  | (
+  result: ResultType | undefined,
+  error: ErrorType | undefined,
+  arg: QueryArg,
+  meta: MetaType,
+) => TagDescriptionArray<TagTypes>
+
+
 export type QueryDefinition<
   QueryArg,
   BaseQuery extends BaseQueryFn,
@@ -217,10 +247,97 @@ export type QueryDefinition<
       updateCachedData, // available for query endpoints only
     }: QueryCacheLifecycleApi,
   ): Promise<void>
+
+  argSchema?: StandardSchemaV1<QueryArg>
+
+  /* only available with `query`, not `queryFn` */
+  rawResponseSchema?: StandardSchemaV1<BaseQueryResult<BaseQuery>>
+
+  responseSchema?: StandardSchemaV1<ResultType>
+
+  /* only available with `query`, not `queryFn` */
+  rawErrorResponseSchema?: StandardSchemaV1<BaseQueryError<BaseQuery>>
+
+  errorResponseSchema?: StandardSchemaV1<BaseQueryError<BaseQuery>>
+
+  metaSchema?: StandardSchemaV1<BaseQueryMeta<BaseQuery>>
 }
 ```
 
+#### Infinite Query endpoint definition
+
+Infinite query endpoints (defined with `build.infiniteQuery()`) are used to cache multi-page data sets from the server. They have all the same callbacks and options as standard query endpoints, but also require an additional [`infiniteQueryOptions`](#infinitequeryoptions) field to specify how to calculate the unique parameters to fetch each page.
+
+For infinite query endpoints, there is a separation between the "query arg" used for the cache key, and the "page param" used to fetch a specific page. For example, a Pokemon API endpoint might have a string query arg like `"fire"` , but use a page number as the param to determine which page to fetch out of the results. The `query` and `queryFn` methods will receive a combined `{queryArg, pageParam}` object as the argument, rather than just the `queryArg` by itself.
+
+```ts title="Infinite Query endpoint definition" no-transpile
+export type PageParamFunction<DataType, PageParam, QueryArg> = (
+  firstPage: DataType,
+  allPages: Array<DataType>,
+  firstPageParam: PageParam,
+  allPageParams: Array<PageParam>,
+  queryArg: QueryArg,
+) => PageParam | undefined | null
+
+type InfiniteQueryCombinedArg<QueryArg, PageParam> = {
+  queryArg: QueryArg
+  pageParam: PageParam
+}
+
+export type InfiniteQueryDefinition<
+  QueryArg,
+  PageParam,
+  BaseQuery extends BaseQueryFn,
+  TagTypes extends string,
+  ResultType,
+  ReducerPath extends string = string,
+> =
+  // Infinite queries have all the same options as query endpoints,
+  // but store the `{pages, pageParams}` structure, and receive an object
+  // with both `{queryArg, pageParam}` as the arg for `query` and `queryFn`.
+  QueryDefinition<
+    InfiniteQueryCombinedArg<QueryArg, PageParam>,
+    BaseQuery,
+    TagTypes,
+    InfiniteData<ResultType>
+  > & {
+    /**
+     * Required options to configure the infinite query behavior.
+     * `initialPageParam` and `getNextPageParam` are required, to
+     * ensure the infinite query can properly fetch the next page of data.
+     * `initialPageparam` may be specified when using the
+     * endpoint, to override the default value.
+     */
+    infiniteQueryOptions: {
+      /**
+       * The initial page parameter to use for the first page fetch.
+       */
+      initialPageParam: PageParam
+      /**
+       * This function is required to automatically get the next cursor for infinite queries.
+       * The result will also be used to determine the value of `hasNextPage`.
+       */
+      getNextPageParam: PageParamFunction<DataType, PageParam, QueryArg>
+      /**
+       * This function can be set to automatically get the previous cursor for infinite queries.
+       * The result will also be used to determine the value of `hasPreviousPage`.
+       */
+      getPreviousPageParam?: PageParamFunction<DataType, PageParam, QueryArg>
+      /**
+       * If specified, only keep this many pages in cache at once.
+       * If additional pages are fetched, older pages in the other
+       * direction will be dropped from the cache.
+       */
+      maxPages?: number
+    }
+  }
+```
+
 #### Mutation endpoint definition
+
+Mutation endpoints (defined with `build.mutation()`) are used to send updates to the server, and force invalidation and refetching of query endpoints.
+
+As with queries, you must specify either the `query` option or the `queryFn` async method.
 
 ```ts title="Mutation endpoint definition" no-transpile
 export type MutationDefinition<
@@ -357,6 +474,10 @@ See also [Server Side Rendering](../usage/server-side-rendering.mdx) and
 
 By default, this function will take the query arguments, sort object keys where applicable, stringify the result, and concatenate it with the endpoint name. This creates a cache key based on the combination of arguments + endpoint name (ignoring object key order), such that calling any given endpoint with the same arguments will result in the same cache key.
 
+### `invalidationBehavior`
+
+[summary](docblock://query/createApi.ts?token=CreateApiOptions.invalidationBehavior)
+
 ### `keepUnusedDataFor`
 
 [summary](docblock://query/createApi.ts?token=CreateApiOptions.keepUnusedDataFor)
@@ -389,7 +510,37 @@ You can set this globally in `createApi`, but you can also override the default 
 If you specify `track: false` when manually dispatching queries, RTK Query will not be able to automatically refetch for you.
 :::
 
-## Anatomy of an endpoint
+### `onSchemaFailure`
+
+[summary](docblock://query/createApi.ts?token=CreateApiOptions.onSchemaFailure)
+
+[examples](docblock://query/createApi.ts?token=CreateApiOptions.onSchemaFailure)
+
+:::note
+You can set this globally in `createApi`, but you can also override the default value and have more granular control by passing `onSchemaFailure` to each individual endpoint definition.
+:::
+
+### `catchSchemaFailure`
+
+[summary](docblock://query/createApi.ts?token=CreateApiOptions.catchSchemaFailure)
+
+[examples](docblock://query/createApi.ts?token=CreateApiOptions.catchSchemaFailure)
+
+:::note
+You can set this globally in `createApi`, but you can also override the default value and have more granular control by passing `catchSchemaFailure` to each individual endpoint definition.
+:::
+
+### `skipSchemaValidation`
+
+[summary](docblock://query/createApi.ts?token=CreateApiOptions.skipSchemaValidation)
+
+[examples](docblock://query/createApi.ts?token=CreateApiOptions.skipSchemaValidation)
+
+:::note
+You can set this globally in `createApi`, but you can also override the default value and have more granular control by passing `skipSchemaValidation` to each individual endpoint definition.
+:::
+
+## Endpoint Definition Parameters
 
 ### `query`
 
@@ -442,7 +593,7 @@ export interface BaseQueryApi {
 }
 ```
 
-#### queryFn function arguments
+#### `queryFn` function arguments
 
 - `args` - The argument provided when the query itself is called
 - `api` - The `BaseQueryApi` object, containing `signal`, `dispatch` and `getState` properties
@@ -453,6 +604,21 @@ export interface BaseQueryApi {
 - `baseQuery` - The `baseQuery` function provided to the api itself
 
 [examples](docblock://query/endpointDefinitions.ts?token=EndpointDefinitionWithQueryFn.queryFn)
+
+### `infiniteQueryOptions`
+
+_(only for `infiniteQuery` endpoints)_
+
+[summary](docblock://query/endpointDefinitions.ts?token=InfiniteQueryExtraOptions.infiniteQueryOptions)
+
+The `infiniteQueryOptions` field includes:
+
+- `initialPageParam`: the default page param value used for the first request, if this was not specified at the usage site
+- `getNextPageParam`: a required callback you must provide to calculate the next page param, given the existing cached pages and page params
+- `getPreviousPageParam`: an optional callback that will be used to calculate the previous page param, if you try to fetch backwards.
+- `maxPages`: an optional limit to how many fetched pages will be kept in the cache entry at a time
+
+[examples](docblock://query/endpointDefinitions.ts?token=InfiniteQueryExtraOptions.infiniteQueryOptions)
 
 ### `transformResponse`
 
@@ -696,6 +862,82 @@ async function onCacheEntryAdded(
   }: QueryCacheLifecycleApi,
 ): Promise<void>
 ```
+
+### Schema Validation
+
+Endpoints can have schemas for runtime validation of query args, responses, and errors. Any [Standard Schema](https://standardschema.dev/) compliant library can be used.
+
+When used with TypeScript, schemas can also be used to [infer the type of that value instead of having to declare it](../usage-with-typescript.mdx#schema-validation).
+
+:::warning
+
+By default, schema failures are treated as _fatal_, meaning that normal error handling such as tag invalidation will not be executed.
+
+In order for schema failures to be treated as non-fatal, you must provide a [`catchSchemaFailure`](#catchschemafailure) function, to convert the schema failure into an error shape matching the base query errors.
+
+```ts title="catchSchemaFailure example" no-transpile
+const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  catchSchemaFailure: (error, info) => ({
+    status: 'CUSTOM_ERROR',
+    error: error.schemaName + ' failed validation',
+    data: error,
+  }),
+  endpoints: (build) => ({
+    // ...
+  }),
+})
+```
+
+:::
+
+#### `argSchema`
+
+_(optional)_
+
+[summary](docblock://query/endpointDefinitions.ts?token=CommonEndpointDefinition.argSchema)
+
+[examples](docblock://query/endpointDefinitions.ts?token=CommonEndpointDefinition.argSchema)
+
+#### `responseSchema`
+
+_(optional)_
+
+[summary](docblock://query/endpointDefinitions.ts?token=CommonEndpointDefinition.responseSchema)
+
+[examples](docblock://query/endpointDefinitions.ts?token=CommonEndpointDefinition.responseSchema)
+
+#### `rawResponseSchema`
+
+_(optional, not applicable with `queryFn`)_
+
+[summary](docblock://query/endpointDefinitions.ts?token=EndpointDefinitionWithQuery.rawResponseSchema)
+
+[examples](docblock://query/endpointDefinitions.ts?token=EndpointDefinitionWithQuery.rawResponseSchema)
+
+#### `errorResponseSchema`
+
+_(optional)_
+
+[summary](docblock://query/endpointDefinitions.ts?token=CommonEndpointDefinition.errorResponseSchema)
+
+[examples](docblock://query/endpointDefinitions.ts?token=CommonEndpointDefinition.errorResponseSchema)
+
+#### `rawErrorResponseSchema`
+
+_(optional, not applicable with `queryFn`)_
+
+[summary](docblock://query/endpointDefinitions.ts?token=EndpointDefinitionWithQuery.rawErrorResponseSchema)
+
+[examples](docblock://query/endpointDefinitions.ts?token=EndpointDefinitionWithQuery.rawErrorResponseSchema)
+
+#### `metaSchema`
+
+_(optional)_
+
+[summary](docblock://query/endpointDefinitions.ts?token=CommonEndpointDefinition.metaSchema)
+
+[examples](docblock://query/endpointDefinitions.ts?token=CommonEndpointDefinition.metaSchema)
 
 ## Return value
 

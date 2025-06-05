@@ -1,7 +1,20 @@
-/** @type {import('@babel/core').ConfigFunction} */
-module.exports = api => {
-  api.cache.forever();
+/** @import { ConfigFunction } from "@babel/core" */
+/** @import { BabelPresetExpoOptions } from "babel-preset-expo" */
+
+/**
+ * @satisfies {ConfigFunction}
+ */
+const config = api => {
+  api.cache.forever()
+
   return {
-    presets: ['babel-preset-expo'],
-  };
-};
+    presets: [
+      /**
+       * @satisfies {['babel-preset-expo', BabelPresetExpoOptions?]}
+       */
+      (['babel-preset-expo']),
+    ],
+  }
+}
+
+module.exports = config

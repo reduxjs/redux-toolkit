@@ -480,7 +480,7 @@ test(`mutation: getCacheEntry`, async () => {
   })
 })
 
-test('updateCachedData', async () => {
+test('query: updateCachedData', async () => {
   const trackCalls = vi.fn()
 
   const extended = api.injectEndpoints({
@@ -505,7 +505,7 @@ test('updateCachedData', async () => {
             draft.value = 'TEST'
             trackCalls()
           })
-          expect(trackCalls).toHaveBeenCalledTimes(0)
+          expect(trackCalls).not.toHaveBeenCalled()
           expect(getCacheEntry().data).toEqual(undefined)
 
           gotFirstValue(await cacheDataLoaded)
@@ -515,7 +515,7 @@ test('updateCachedData', async () => {
             draft.value = 'TEST'
             trackCalls()
           })
-          expect(trackCalls).toHaveBeenCalledTimes(1)
+          expect(trackCalls).toHaveBeenCalledOnce()
           expect(getCacheEntry().data).toEqual({ value: 'TEST' })
 
           await cacheEntryRemoved
@@ -526,7 +526,7 @@ test('updateCachedData', async () => {
             draft.value = 'TEST2'
             trackCalls()
           })
-          expect(trackCalls).toHaveBeenCalledTimes(1)
+          expect(trackCalls).toHaveBeenCalledOnce()
           expect(getCacheEntry().data).toEqual(undefined)
 
           onCleanup()
@@ -536,6 +536,95 @@ test('updateCachedData', async () => {
   })
   const promise = storeRef.store.dispatch(
     extended.endpoints.injected.initiate('arg'),
+  )
+  await promise
+  promise.unsubscribe()
+
+  await fakeTimerWaitFor(() => {
+    expect(gotFirstValue).toHaveBeenCalled()
+  })
+
+  await vi.advanceTimersByTimeAsync(61000)
+
+  await fakeTimerWaitFor(() => {
+    expect(onCleanup).toHaveBeenCalled()
+  })
+})
+
+test('updateCachedData - infinite query', async () => {
+  const trackCalls = vi.fn()
+
+  const extended = api.injectEndpoints({
+    overrideExisting: true,
+    endpoints: (build) => ({
+      infiniteInjected: build.infiniteQuery<{ value: string }, string, number>({
+        query: () => '/success',
+        infiniteQueryOptions: {
+          initialPageParam: 1,
+          getNextPageParam: (
+            lastPage,
+            allPages,
+            lastPageParam,
+            allPageParams,
+          ) => lastPageParam + 1,
+        },
+        async onCacheEntryAdded(
+          arg,
+          {
+            dispatch,
+            getState,
+            getCacheEntry,
+            updateCachedData,
+            cacheEntryRemoved,
+            cacheDataLoaded,
+          },
+        ) {
+          expect(getCacheEntry().data).toEqual(undefined)
+          // calling `updateCachedData` when there is no data yet should not do anything
+          updateCachedData((draft) => {
+            draft.pages = [{ value: 'TEST' }]
+            draft.pageParams = [1]
+            trackCalls()
+          })
+          expect(trackCalls).not.toHaveBeenCalled()
+          expect(getCacheEntry().data).toEqual(undefined)
+
+          gotFirstValue(await cacheDataLoaded)
+
+          expect(getCacheEntry().data).toEqual({
+            pages: [{ value: 'success' }],
+            pageParams: [1],
+          })
+          updateCachedData((draft) => {
+            draft.pages = [{ value: 'TEST' }]
+            draft.pageParams = [1]
+            trackCalls()
+          })
+          expect(trackCalls).toHaveBeenCalledOnce()
+          expect(getCacheEntry().data).toEqual({
+            pages: [{ value: 'TEST' }],
+            pageParams: [1],
+          })
+
+          await cacheEntryRemoved
+
+          expect(getCacheEntry().data).toEqual(undefined)
+          // calling `updateCachedData` when there is no data any more should not do anything
+          updateCachedData((draft) => {
+            draft.pages = [{ value: 'TEST' }, { value: 'TEST2' }]
+            draft.pageParams = [1, 2]
+            trackCalls()
+          })
+          expect(trackCalls).toHaveBeenCalledOnce()
+          expect(getCacheEntry().data).toEqual(undefined)
+
+          onCleanup()
+        },
+      }),
+    }),
+  })
+  const promise = storeRef.store.dispatch(
+    extended.endpoints.infiniteInjected.initiate('arg'),
   )
   await promise
   promise.unsubscribe()
@@ -564,15 +653,15 @@ test('dispatching further actions does not trigger another lifecycle', async () 
     }),
   })
   await storeRef.store.dispatch(extended.endpoints.injected.initiate())
-  expect(onNewCacheEntry).toHaveBeenCalledTimes(1)
+  expect(onNewCacheEntry).toHaveBeenCalledOnce()
 
   await storeRef.store.dispatch(extended.endpoints.injected.initiate())
-  expect(onNewCacheEntry).toHaveBeenCalledTimes(1)
+  expect(onNewCacheEntry).toHaveBeenCalledOnce()
 
   await storeRef.store.dispatch(
     extended.endpoints.injected.initiate(undefined, { forceRefetch: true }),
   )
-  expect(onNewCacheEntry).toHaveBeenCalledTimes(1)
+  expect(onNewCacheEntry).toHaveBeenCalledOnce()
 })
 
 test('dispatching a query initializer with `subscribe: false` does also start a lifecycle', async () => {
@@ -590,11 +679,11 @@ test('dispatching a query initializer with `subscribe: false` does also start a 
   await storeRef.store.dispatch(
     extended.endpoints.injected.initiate(undefined, { subscribe: false }),
   )
-  expect(onNewCacheEntry).toHaveBeenCalledTimes(1)
+  expect(onNewCacheEntry).toHaveBeenCalledOnce()
 
   // will not be called a second time though
   await storeRef.store.dispatch(extended.endpoints.injected.initiate(undefined))
-  expect(onNewCacheEntry).toHaveBeenCalledTimes(1)
+  expect(onNewCacheEntry).toHaveBeenCalledOnce()
 })
 
 test('dispatching a mutation initializer with `track: false` does not start a lifecycle', async () => {
@@ -612,8 +701,8 @@ test('dispatching a mutation initializer with `track: false` does not start a li
   await storeRef.store.dispatch(
     extended.endpoints.injected.initiate(undefined, { track: false }),
   )
-  expect(onNewCacheEntry).toHaveBeenCalledTimes(0)
+  expect(onNewCacheEntry).not.toHaveBeenCalled()
 
   await storeRef.store.dispatch(extended.endpoints.injected.initiate(undefined))
-  expect(onNewCacheEntry).toHaveBeenCalledTimes(1)
+  expect(onNewCacheEntry).toHaveBeenCalledOnce()
 })

@@ -26,12 +26,12 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 export const pokemonApi = createApi({
   // Set the baseUrl for every endpoint below
   baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
-  endpoints: (builder) => ({
-    getPokemonByName: builder.query({
+  endpoints: (build) => ({
+    getPokemonByName: build.query({
       // Will make a request like https://pokeapi.co/api/v2/pokemon/bulbasaur
       query: (name: string) => `pokemon/${name}`,
     }),
-    updatePokemon: builder.mutation({
+    updatePokemon: build.mutation({
       query: ({ name, patch }) => ({
         url: `pokemon/${name}`,
         // When performing a mutation, you typically use a method of
@@ -260,8 +260,8 @@ By default, `fetchBaseQuery` assumes that every request you make will be `json`,
 
 ```ts no-transpile
  // omitted
-  endpoints: (builder) => ({
-    updateUser: builder.query({
+  endpoints: (build) => ({
+    updateUser: build.query({
       query: (user: Record<string, string>) => ({
         url: `users`,
         method: 'PUT',
@@ -274,8 +274,8 @@ By default, `fetchBaseQuery` assumes that every request you make will be `json`,
 
 ```ts no-transpile
  // omitted
-  endpoints: (builder) => ({
-    updateUser: builder.query({
+  endpoints: (build) => ({
+    updateUser: build.query({
       query: (user: Record<string, string>) => ({
         url: `users`,
         method: 'PUT',
@@ -296,8 +296,8 @@ By default, `fetchBaseQuery` assumes that every request you make will be `json`,
 
 ```ts no-transpile
  // omitted
-  endpoints: (builder) => ({
-    updateUser: builder.query({
+  endpoints: (build) => ({
+    updateUser: build.query({
       query: (user: Record<string, string>) => ({
         url: `users`,
         // Assuming no `paramsSerializer` is specified, the user object is automatically converted
@@ -328,8 +328,8 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 
 export const customApi = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: '/api/' }),
-  endpoints: (builder) => ({
-    getUsers: builder.query({
+  endpoints: (build) => ({
+    getUsers: build.query({
       query: () => ({
         url: `users`,
         // This is the same as passing 'text'
@@ -365,8 +365,8 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 export const customApi = createApi({
   // Set the baseUrl for every endpoint below
   baseQuery: fetchBaseQuery({ baseUrl: '/api/' }),
-  endpoints: (builder) => ({
-    getUsers: builder.query({
+  endpoints: (build) => ({
+    getUsers: build.query({
       query: () => ({
         url: `users`,
         // Example: we have a backend API always returns a 200,
@@ -389,8 +389,8 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 export const api = createApi({
   // Set a default timeout of 10 seconds
   baseQuery: fetchBaseQuery({ baseUrl: '/api/', timeout: 10000 }),
-  endpoints: (builder) => ({
-    getUsers: builder.query({
+  endpoints: (build) => ({
+    getUsers: build.query({
       query: () => ({
         url: `users`,
         // Example: we know the users endpoint is _really fast_ because it's always cached.

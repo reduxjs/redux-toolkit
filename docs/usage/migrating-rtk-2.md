@@ -897,7 +897,7 @@ yield takeEvery(todoAdded.type, saga)
 
 ### Custom slice reducer creators
 
-With the addition of the [callback syntax for createSlice](#callback-syntax-for-createslicereducers), the [suggestion](https://github.com/reduxjs/redux-toolkit/issues/3837) was made to enable custom slice reducer creators. These creators would be able to:
+With the addition of the [callback syntax for createSlice](#createslicereducers-callback-syntax-and-thunk-support), the [suggestion](https://github.com/reduxjs/redux-toolkit/issues/3837) was made to enable custom slice reducer creators. These creators would be able to:
 
 - Modify reducer behavior by adding case or matcher reducers
 - Attach actions (or any other useful functions) to `slice.actions`

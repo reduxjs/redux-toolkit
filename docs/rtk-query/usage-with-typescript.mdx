@@ -51,8 +51,8 @@ import type { Pokemon } from './types'
 export const pokemonApi = createApi({
   reducerPath: 'pokemonApi',
   baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
-  endpoints: (builder) => ({
-    getPokemonByName: builder.query<Pokemon, string>({
+  endpoints: (build) => ({
+    getPokemonByName: build.query<Pokemon, string>({
       query: (name) => `pokemon/${name}`,
     }),
   }),
@@ -78,8 +78,8 @@ import type { Pokemon } from './types'
 export const pokemonApi = createApi({
   reducerPath: 'pokemonApi',
   baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
-  endpoints: (builder) => ({
-    getPokemonByName: builder.query<Pokemon, string>({
+  endpoints: (build) => ({
+    getPokemonByName: build.query<Pokemon, string>({
       query: (name) => `pokemon/${name}`,
     }),
   }),
@@ -178,8 +178,8 @@ const simpleBaseQuery: BaseQueryFn<
 
 const api = createApi({
   baseQuery: simpleBaseQuery,
-  endpoints: (builder) => ({
-    getSupport: builder.query({
+  endpoints: (build) => ({
+    getSupport: build.query({
       query: () => 'support me',
       extraOptions: {
         shout: true,
@@ -527,7 +527,7 @@ function MaybePost({ id }: { id?: number }) {
 
 ## Type safe error handling
 
-When an error is gracefully provided from a [`base query`](./api/createApi.mdx#baseQuery), RTK query will provide the error
+When an error is gracefully provided from a [`base query`](./api/createApi.mdx#basequery), RTK query will provide the error
 directly. If an unexpected error is thrown by user code rather than a handled error,
 that error will be transformed into a `SerializedError` shape. Users should make sure that they are checking which kind of error they are dealing with before attempting to access its properties. This can be done in a type safe manner either
 by using a type guard, e.g. by checking for [discriminated properties](https://www.typescriptlang.org/docs/handbook/2/narrowing.html#the-in-operator-narrowing),
@@ -613,7 +613,7 @@ function PostDetail() {
           <div>{errMsg}</div>
         </div>
       )
-    } 
+    }
     // you can access all properties of `SerializedError` here
     return <div>{error.message}</div>
   }
@@ -703,3 +703,135 @@ function AddPost() {
   )
 }
 ```
+
+## Schema Validation
+
+Endpoints can have schemas for runtime validation of query args, responses, and errors. Any [Standard Schema](https://standardschema.dev/) compliant library can be used. See [API reference](./api/createApi.mdx#schema-validation) for full list of available schemas.
+
+When following the default approach of explicitly specifying type parameters for queries and mutations, the schemas will be required to match the types provided.
+
+```ts title="Explicitly typed endpoint" no-transpile
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import * as v from 'valibot'
+
+const postSchema = v.object({
+  id: v.number(),
+  name: v.string(),
+})
+type Post = v.InferOutput<typeof postSchema>
+
+const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  endpoints: (build) => ({
+    getPost: build.query<Post, { id: number }>({
+      query: ({ id }) => `/post/${id}`,
+      responseSchema: postSchema, // errors if type mismatch
+    }),
+  }),
+})
+```
+
+Schemas can also be used as a source of inference, meaning that the type parameters can be omitted.
+
+```ts title="Implicitly typed endpoint" no-transpile
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import * as v from 'valibot'
+
+const postSchema = v.object({
+  id: v.number(),
+  name: v.string(),
+})
+type Post = v.InferOutput<typeof postSchema>
+
+const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  endpoints: (build) => ({
+    getPost: build.query({
+      // infer arg from here
+      query: ({ id }: { id: number }) => `/post/${id}`,
+      // infer result from here
+      responseSchema: postSchema,
+    }),
+    getTransformedPost: build.query({
+      // infer arg from here
+      query: ({ id }: { id: number }) => `/post/${id}`,
+      // infer untransformed result from here
+      rawResponseSchema: postSchema,
+      // infer transformed result from here
+      transformResponse: (response) => ({
+        ...response,
+        published_at: new Date(response.published_at),
+      }),
+    }),
+  }),
+})
+```
+
+:::warning
+
+Schemas should _not_ perform any transformation that would change the type of the value.
+
+```ts title="Incorrect usage" no-transpile
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import * as v from 'valibot'
+import { titleCase } from 'lodash'
+
+const postSchema = v.object({
+  id: v.number(),
+  name: v.pipe(
+    v.string(),
+    v.transform(titleCase), // fine - string -> string
+  ),
+  published_at: v.pipe(
+    v.string(),
+    // highlight-next-line
+    v.transform((s) => new Date(s)), // not allowed!
+    v.date(),
+  ),
+})
+type Post = v.InferOutput<typeof postSchema>
+
+const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  endpoints: (build) => ({
+    getPost: build.query<Post, { id: number }>({
+      query: ({ id }) => `/post/${id}`,
+      responseSchema: postSchema,
+    }),
+  }),
+})
+```
+
+Instead, transformation should be done with `transformResponse` and `transformErrorResponse` (when using `query`) or inside `queryFn` (when using `queryFn`).
+
+```ts title="Correct usage" no-transpile
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import * as v from 'valibot'
+
+const postSchema = v.object({
+  id: v.number(),
+  name: v.string(),
+  published_at: v.string(),
+})
+type RawPost = v.InferOutput<typeof postSchema>
+type Post = Omit<RawPost, 'published_at'> & { published_at: Date }
+
+const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  endpoints: (build) => ({
+    getPost: build.query<Post, { id: number }>({
+      query: ({ id }) => `/post/${id}`,
+      // use rawResponseSchema to validate *before* transformation
+      rawResponseSchema: postSchema,
+      // highlight-start
+      transformResponse: (response) => ({
+        ...response,
+        published_at: new Date(response.published_at),
+      }),
+      // highlight-end
+    }),
+  }),
+})
+```
+
+:::

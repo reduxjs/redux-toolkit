@@ -19,12 +19,14 @@ import type {
   SubscriptionState,
 } from '../apiState'
 import type {
+  InfiniteQueryThunk,
   MutationThunk,
   QueryThunk,
   QueryThunkArg,
   ThunkResult,
 } from '../buildThunks'
 import type { QueryActionCreatorResult } from '../buildInitiate'
+import type { AllSelectors } from '../buildSelectors'
 
 export type QueryStateMeta<T> = Record<string, undefined | T>
 export type TimeoutId = ReturnType<typeof setTimeout>
@@ -48,8 +50,10 @@ export interface BuildMiddlewareInput<
   context: ApiContext<Definitions>
   queryThunk: QueryThunk
   mutationThunk: MutationThunk
+  infiniteQueryThunk: InfiniteQueryThunk<any>
   api: Api<any, Definitions, ReducerPath, TagTypes>
   assertTagType: AssertTagTypes
+  selectors: AllSelectors
 }
 
 export type SubMiddlewareApi = MiddlewareAPI<
@@ -64,9 +68,10 @@ export interface BuildSubMiddlewareInput
     querySubState: Exclude<
       QuerySubState<any>,
       { status: QueryStatus.uninitialized }
-    >
+    >,
   ): ThunkAction<QueryActionCreatorResult<any>, any, any, UnknownAction>
   isThisApiSliceAction: (action: Action) => boolean
+  selectors: AllSelectors
 }
 
 export type SubMiddlewareBuilder = (

@@ -1,31 +1,68 @@
 import type { SerializedError } from '@reduxjs/toolkit'
 import type { BaseQueryError } from '../baseQueryTypes'
 import type {
-  QueryDefinition,
-  MutationDefinition,
-  EndpointDefinitions,
   BaseEndpointDefinition,
+  EndpointDefinitions,
+  FullTagDescription,
+  InfiniteQueryDefinition,
+  MutationDefinition,
+  PageParamFrom,
+  QueryArgFromAnyQuery,
+  QueryDefinition,
   ResultTypeFrom,
-  QueryArgFrom,
 } from '../endpointDefinitions'
 import type { Id, WithRequiredProp } from '../tsHelpers'
 
 export type QueryCacheKey = string & { _type: 'queryCacheKey' }
 export type QuerySubstateIdentifier = { queryCacheKey: QueryCacheKey }
 export type MutationSubstateIdentifier =
-  | {
-      requestId: string
-      fixedCacheKey?: string
-    }
-  | {
-      requestId?: string
-      fixedCacheKey: string
-    }
+  | { requestId: string; fixedCacheKey?: string }
+  | { requestId?: string; fixedCacheKey: string }
 
 export type RefetchConfigOptions = {
   refetchOnMountOrArgChange: boolean | number
   refetchOnReconnect: boolean
   refetchOnFocus: boolean
+}
+
+export type InfiniteQueryConfigOptions<DataType, PageParam, QueryArg> = {
+  /**
+   * The initial page parameter to use for the first page fetch.
+   */
+  initialPageParam: PageParam
+  /**
+   * This function is required to automatically get the next cursor for infinite queries.
+   * The result will also be used to determine the value of `hasNextPage`.
+   */
+  getNextPageParam: (
+    lastPage: DataType,
+    allPages: Array<DataType>,
+    lastPageParam: PageParam,
+    allPageParams: Array<PageParam>,
+    queryArg: QueryArg,
+  ) => PageParam | undefined | null
+  /**
+   * This function can be set to automatically get the previous cursor for infinite queries.
+   * The result will also be used to determine the value of `hasPreviousPage`.
+   */
+  getPreviousPageParam?: (
+    firstPage: DataType,
+    allPages: Array<DataType>,
+    firstPageParam: PageParam,
+    allPageParams: Array<PageParam>,
+    queryArg: QueryArg,
+  ) => PageParam | undefined | null
+  /**
+   * If specified, only keep this many pages in cache at once.
+   * If additional pages are fetched, older pages in the other
+   * direction will be dropped from the cache.
+   */
+  maxPages?: number
+}
+
+export type InfiniteData<DataType, PageParam> = {
+  pages: Array<DataType>
+  pageParams: Array<PageParam>
 }
 
 /**
@@ -122,6 +159,19 @@ export type QueryKeys<Definitions extends EndpointDefinitions> = {
     ? K
     : never
 }[keyof Definitions]
+
+export type InfiniteQueryKeys<Definitions extends EndpointDefinitions> = {
+  [K in keyof Definitions]: Definitions[K] extends InfiniteQueryDefinition<
+    any,
+    any,
+    any,
+    any,
+    any
+  >
+    ? K
+    : never
+}[keyof Definitions]
+
 export type MutationKeys<Definitions extends EndpointDefinitions> = {
   [K in keyof Definitions]: Definitions[K] extends MutationDefinition<
     any,
@@ -133,11 +183,14 @@ export type MutationKeys<Definitions extends EndpointDefinitions> = {
     : never
 }[keyof Definitions]
 
-type BaseQuerySubState<D extends BaseEndpointDefinition<any, any, any>> = {
+type BaseQuerySubState<
+  D extends BaseEndpointDefinition<any, any, any, any>,
+  DataType = ResultTypeFrom<D>,
+> = {
   /**
    * The argument originally passed into the hook or `initiate` action call
    */
-  originalArgs: QueryArgFrom<D>
+  originalArgs: QueryArgFromAnyQuery<D>
   /**
    * A unique ID associated with the request
    */
@@ -145,7 +198,7 @@ type BaseQuerySubState<D extends BaseEndpointDefinition<any, any, any>> = {
   /**
    * The received data from the query
    */
-  data?: ResultTypeFrom<D>
+  data?: DataType
   /**
    * The received error if applicable
    */
@@ -168,19 +221,19 @@ type BaseQuerySubState<D extends BaseEndpointDefinition<any, any, any>> = {
   fulfilledTimeStamp?: number
 }
 
-export type QuerySubState<D extends BaseEndpointDefinition<any, any, any>> = Id<
-  | ({
-      status: QueryStatus.fulfilled
-    } & WithRequiredProp<
-      BaseQuerySubState<D>,
+export type QuerySubState<
+  D extends BaseEndpointDefinition<any, any, any, any>,
+  DataType = ResultTypeFrom<D>,
+> = Id<
+  | ({ status: QueryStatus.fulfilled } & WithRequiredProp<
+      BaseQuerySubState<D, DataType>,
       'data' | 'fulfilledTimeStamp'
     > & { error: undefined })
-  | ({
-      status: QueryStatus.pending
-    } & BaseQuerySubState<D>)
-  | ({
-      status: QueryStatus.rejected
-    } & WithRequiredProp<BaseQuerySubState<D>, 'error'>)
+  | ({ status: QueryStatus.pending } & BaseQuerySubState<D, DataType>)
+  | ({ status: QueryStatus.rejected } & WithRequiredProp<
+      BaseQuerySubState<D, DataType>,
+      'error'
+    >)
   | {
       status: QueryStatus.uninitialized
       originalArgs?: undefined
@@ -193,7 +246,20 @@ export type QuerySubState<D extends BaseEndpointDefinition<any, any, any>> = Id<
     }
 >
 
-type BaseMutationSubState<D extends BaseEndpointDefinition<any, any, any>> = {
+export type InfiniteQueryDirection = 'forward' | 'backward'
+
+export type InfiniteQuerySubState<
+  D extends BaseEndpointDefinition<any, any, any, any>,
+> =
+  D extends InfiniteQueryDefinition<any, any, any, any, any>
+    ? QuerySubState<D, InfiniteData<ResultTypeFrom<D>, PageParamFrom<D>>> & {
+        direction?: InfiniteQueryDirection
+      }
+    : never
+
+type BaseMutationSubState<
+  D extends BaseEndpointDefinition<any, any, any, any>,
+> = {
   requestId: string
   data?: ResultTypeFrom<D>
   error?:
@@ -206,19 +272,22 @@ type BaseMutationSubState<D extends BaseEndpointDefinition<any, any, any>> = {
   fulfilledTimeStamp?: number
 }
 
-export type MutationSubState<D extends BaseEndpointDefinition<any, any, any>> =
+export type MutationSubState<
+  D extends BaseEndpointDefinition<any, any, any, any>,
+> =
   | (({
       status: QueryStatus.fulfilled
     } & WithRequiredProp<
       BaseMutationSubState<D>,
       'data' | 'fulfilledTimeStamp'
     >) & { error: undefined })
-  | (({
-      status: QueryStatus.pending
-    } & BaseMutationSubState<D>) & { data?: undefined })
-  | ({
-      status: QueryStatus.rejected
-    } & WithRequiredProp<BaseMutationSubState<D>, 'error'>)
+  | (({ status: QueryStatus.pending } & BaseMutationSubState<D>) & {
+      data?: undefined
+    })
+  | ({ status: QueryStatus.rejected } & WithRequiredProp<
+      BaseMutationSubState<D>,
+      'error'
+    >)
   | {
       requestId?: undefined
       status: QueryStatus.uninitialized
@@ -242,14 +311,20 @@ export type CombinedState<
 }
 
 export type InvalidationState<TagTypes extends string> = {
-  [_ in TagTypes]: {
-    [id: string]: Array<QueryCacheKey>
-    [id: number]: Array<QueryCacheKey>
+  tags: {
+    [_ in TagTypes]: {
+      [id: string]: Array<QueryCacheKey>
+      [id: number]: Array<QueryCacheKey>
+    }
   }
+  keys: Record<QueryCacheKey, Array<FullTagDescription<any>>>
 }
 
 export type QueryState<D extends EndpointDefinitions> = {
-  [queryCacheKey: string]: QuerySubState<D[string]> | undefined
+  [queryCacheKey: string]:
+    | QuerySubState<D[string]>
+    | InfiniteQuerySubState<D[string]>
+    | undefined
 }
 
 export type SubscriptionState = {
@@ -276,6 +351,4 @@ export type RootState<
   Definitions extends EndpointDefinitions,
   TagTypes extends string,
   ReducerPath extends string,
-> = {
-  [P in ReducerPath]: CombinedState<Definitions, TagTypes, P>
-}
+> = { [P in ReducerPath]: CombinedState<Definitions, TagTypes, P> }

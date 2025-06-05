@@ -65,6 +65,11 @@ interface ConfigureStoreOptions<
   devTools?: boolean | DevToolsOptions
 
   /**
+   * Whether to check for duplicate middleware instances. Defaults to `true`.
+   */
+  duplicateMiddlewareCheck?: boolean
+
+  /**
    * The initial state, same as Redux's createStore.
    * You may optionally specify it to hydrate the state
    * from the server in universal apps, or to restore a previously serialized
@@ -139,6 +144,12 @@ If this is a boolean, it will be used to indicate whether `configureStore` shoul
 If it is an object, then the DevTools Extension will be enabled, and the options object will be passed to `composeWithDevtools()`. See
 the DevTools Extension docs for [`EnhancerOptions`](https://github.com/reduxjs/redux-devtools/blob/main/extension/docs/API/Arguments.md) for
 a list of the specific options that are available.
+
+Defaults to `true`.
+
+### `duplicateMiddlewareCheck`
+
+If enabled, the store will check the final middleware array to see if there are any duplicate middleware references. This will catch issues like accidentally adding the same RTK Query API middleware twice (such as adding both the base API middleware and an injected API middleware, which are actually the exact same function reference).
 
 Defaults to `true`.
 

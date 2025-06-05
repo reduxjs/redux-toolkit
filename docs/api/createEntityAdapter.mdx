@@ -341,7 +341,7 @@ const globalizedSelectors = booksAdapter.getSelectors((state) => state.books, {
 })
 ```
 
-If no instance is passed, it will default to [`createDraftSafeSelector`](./createSelector#createDraftSafeSelector).
+If no instance is passed, it will default to [`createDraftSafeSelector`](./createSelector.mdx#createdraftsafeselector).
 
 :::
 
@@ -376,6 +376,8 @@ const allBooks = globalizedSelectors.selectAll(store.getState())
 If `updateMany()` is called with multiple updates targeted to the same ID, they will be merged into a single update, with later updates overwriting the earlier ones.
 
 For both `updateOne()` and `updateMany()`, changing the ID of one existing entity to match the ID of a second existing entity will cause the first to replace the second completely.
+
+Additionally, if there is no item for that ID, the update will be silently ignored.
 
 ## Examples
 

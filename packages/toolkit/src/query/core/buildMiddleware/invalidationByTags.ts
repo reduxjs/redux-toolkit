@@ -76,11 +76,11 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
   function hasPendingRequests(
     state: CombinedState<EndpointDefinitions, string, string>,
   ) {
-    for (const key in state.queries) {
-      if (state.queries[key]?.status === QueryStatus.pending) return true
-    }
-    for (const key in state.mutations) {
-      if (state.mutations[key]?.status === QueryStatus.pending) return true
+    const { queries, mutations } = state
+    for (const cacheRecord of [queries, mutations]) {
+      for (const key in cacheRecord) {
+        if (cacheRecord[key]?.status === QueryStatus.pending) return true
+      }
     }
     return false
   }

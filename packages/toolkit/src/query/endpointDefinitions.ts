@@ -1,4 +1,5 @@
 import type { Api } from '@reduxjs/toolkit/query'
+import type { StandardSchemaV1 } from '@standard-schema/spec'
 import type {
   BaseQueryApi,
   BaseQueryArg,
@@ -9,16 +10,23 @@ import type {
   BaseQueryResult,
   QueryReturnValue,
 } from './baseQueryTypes'
-import type { QuerySubState, RootState } from './core'
 import type { CacheCollectionQueryExtraOptions } from './core/buildMiddleware/cacheCollection'
 import type {
+  CacheLifecycleInfiniteQueryExtraOptions,
   CacheLifecycleMutationExtraOptions,
   CacheLifecycleQueryExtraOptions,
 } from './core/buildMiddleware/cacheLifecycle'
 import type {
+  QueryLifecycleInfiniteQueryExtraOptions,
   QueryLifecycleMutationExtraOptions,
   QueryLifecycleQueryExtraOptions,
 } from './core/buildMiddleware/queryLifecycle'
+import type {
+  InfiniteData,
+  InfiniteQueryConfigOptions,
+  QuerySubState,
+  RootState,
+} from './core/index'
 import type { SerializeQueryArgs } from './defaultSerializeQueryArgs'
 import type { NEVER } from './fakeBaseQuery'
 import type {
@@ -30,14 +38,34 @@ import type {
   UnwrapPromise,
 } from './tsHelpers'
 import { isNotNullish } from './utils'
+import type { NamedSchemaError } from './standardSchema'
 
+const rawResultType = /* @__PURE__ */ Symbol()
 const resultType = /* @__PURE__ */ Symbol()
 const baseQuery = /* @__PURE__ */ Symbol()
 
-type EndpointDefinitionWithQuery<
+export interface SchemaFailureInfo {
+  endpoint: string
+  arg: any
+  type: 'query' | 'mutation'
+  queryCacheKey?: string
+}
+
+export type SchemaFailureHandler = (
+  error: NamedSchemaError,
+  info: SchemaFailureInfo,
+) => void
+
+export type SchemaFailureConverter<BaseQuery extends BaseQueryFn> = (
+  error: NamedSchemaError,
+  info: SchemaFailureInfo,
+) => BaseQueryError<BaseQuery>
+
+export type EndpointDefinitionWithQuery<
   QueryArg,
   BaseQuery extends BaseQueryFn,
   ResultType,
+  RawResultType extends BaseQueryResult<BaseQuery>,
 > = {
   /**
    * `query` can be a function that returns either a `string` or an `object` which is passed to your `baseQuery`. If you are using [fetchBaseQuery](./fetchBaseQuery), this can return either a `string` or an `object` of properties in `FetchArgs`. If you use your own custom [`baseQuery`](../../rtk-query/usage/customizing-queries), you can customize this behavior to your liking.
@@ -83,7 +111,7 @@ type EndpointDefinitionWithQuery<
    * A function to manipulate the data returned by a query or mutation.
    */
   transformResponse?(
-    baseQueryReturnValue: BaseQueryResult<BaseQuery>,
+    baseQueryReturnValue: RawResultType,
     meta: BaseQueryMeta<BaseQuery>,
     arg: QueryArg,
   ): ResultType | Promise<ResultType>
@@ -95,22 +123,59 @@ type EndpointDefinitionWithQuery<
     meta: BaseQueryMeta<BaseQuery>,
     arg: QueryArg,
   ): unknown
+
   /**
-   * Defaults to `true`.
+   * A schema for the result *before* it's passed to `transformResponse`.
    *
-   * Most apps should leave this setting on. The only time it can be a performance issue
-   * is if an API returns extremely large amounts of data (e.g. 10,000 rows per request) and
-   * you're unable to paginate it.
+   * @example
+   * ```ts
+   * // codeblock-meta no-transpile
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+   * import * as v from "valibot"
    *
-   * For details of how this works, please see the below. When it is set to `false`,
-   * every request will cause subscribed components to rerender, even when the data has not changed.
+   * const postSchema = v.object({ id: v.number(), name: v.string() })
+   * type Post = v.InferOutput<typeof postSchema>
    *
-   * @see https://redux-toolkit.js.org/api/other-exports#copywithstructuralsharing
+   * const api = createApi({
+   *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+   *   endpoints: (build) => ({
+   *     getPostName: build.query<Post, { id: number }>({
+   *       query: ({ id }) => `/post/${id}`,
+   *       rawResponseSchema: postSchema,
+   *       transformResponse: (post) => post.name,
+   *     }),
+   *   })
+   * })
+   * ```
    */
-  structuralSharing?: boolean
+  rawResponseSchema?: StandardSchemaV1<RawResultType>
+
+  /**
+   * A schema for the error object returned by the `query` or `queryFn`, *before* it's passed to `transformErrorResponse`.
+   *
+   * @example
+   * ```ts
+   * // codeblock-meta no-transpile
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+   * import * as v from "valibot"
+   * import {customBaseQuery, baseQueryErrorSchema} from "./customBaseQuery"
+   *
+   * const api = createApi({
+   *   baseQuery: customBaseQuery,
+   *   endpoints: (build) => ({
+   *     getPost: build.query<Post, { id: number }>({
+   *       query: ({ id }) => `/post/${id}`,
+   *       rawErrorResponseSchema: baseQueryErrorSchema,
+   *       transformErrorResponse: (error) => error.data,
+   *     }),
+   *   })
+   * })
+   * ```
+   */
+  rawErrorResponseSchema?: StandardSchemaV1<BaseQueryError<BaseQuery>>
 }
 
-type EndpointDefinitionWithQueryFn<
+export type EndpointDefinitionWithQueryFn<
   QueryArg,
   BaseQuery extends BaseQueryFn,
   ResultType,
@@ -168,6 +233,114 @@ type EndpointDefinitionWithQueryFn<
   query?: never
   transformResponse?: never
   transformErrorResponse?: never
+  rawResponseSchema?: never
+  rawErrorResponseSchema?: never
+}
+
+type BaseEndpointTypes<QueryArg, BaseQuery extends BaseQueryFn, ResultType> = {
+  QueryArg: QueryArg
+  BaseQuery: BaseQuery
+  ResultType: ResultType
+}
+
+interface CommonEndpointDefinition<
+  QueryArg,
+  BaseQuery extends BaseQueryFn,
+  ResultType,
+> {
+  /**
+   * A schema for the arguments to be passed to the `query` or `queryFn`.
+   *
+   * @example
+   * ```ts
+   * // codeblock-meta no-transpile
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+   * import * as v from "valibot"
+   *
+   * const api = createApi({
+   *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+   *   endpoints: (build) => ({
+   *     getPost: build.query<Post, { id: number }>({
+   *       query: ({ id }) => `/post/${id}`,
+   *       argSchema: v.object({ id: v.number() }),
+   *     }),
+   *   })
+   * })
+   * ```
+   */
+  argSchema?: StandardSchemaV1<QueryArg>
+
+  /**
+   * A schema for the result (including `transformResponse` if provided).
+   *
+   * @example
+   * ```ts
+   * // codeblock-meta no-transpile
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+   * import * as v from "valibot"
+   *
+   * const postSchema = v.object({ id: v.number(), name: v.string() })
+   * type Post = v.InferOutput<typeof postSchema>
+   *
+   * const api = createApi({
+   *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+   *   endpoints: (build) => ({
+   *     getPost: build.query<Post, { id: number }>({
+   *       query: ({ id }) => `/post/${id}`,
+   *       responseSchema: postSchema,
+   *     }),
+   *   })
+   * })
+   * ```
+   */
+  responseSchema?: StandardSchemaV1<ResultType>
+
+  /**
+   * A schema for the error object returned by the `query` or `queryFn` (including `transformErrorResponse` if provided).
+   *
+   * @example
+   * ```ts
+   * // codeblock-meta no-transpile
+   * import { createApi } from '@reduxjs/toolkit/query/react'
+   * import * as v from "valibot"
+   * import { customBaseQuery, baseQueryErrorSchema } from "./customBaseQuery"
+   *
+   * const api = createApi({
+   *   baseQuery: customBaseQuery,
+   *   endpoints: (build) => ({
+   *     getPost: build.query<Post, { id: number }>({
+   *       query: ({ id }) => `/post/${id}`,
+   *       errorResponseSchema: baseQueryErrorSchema,
+   *     }),
+   *   })
+   * })
+   * ```
+   */
+  errorResponseSchema?: StandardSchemaV1<BaseQueryError<BaseQuery>>
+
+  /**
+   * A schema for the `meta` property returned by the `query` or `queryFn`.
+   *
+   * @example
+   * ```ts
+   * // codeblock-meta no-transpile
+   * import { createApi } from '@reduxjs/toolkit/query/react'
+   * import * as v from "valibot"
+   * import { customBaseQuery, baseQueryMetaSchema } from "./customBaseQuery"
+   *
+   * const api = createApi({
+   *   baseQuery: customBaseQuery,
+   *   endpoints: (build) => ({
+   *     getPost: build.query<Post, { id: number }>({
+   *       query: ({ id }) => `/post/${id}`,
+   *       metaSchema: baseQueryMetaSchema,
+   *     }),
+   *   })
+   * })
+   * ```
+   */
+  metaSchema?: StandardSchemaV1<BaseQueryMeta<BaseQuery>>
+
   /**
    * Defaults to `true`.
    *
@@ -181,29 +354,118 @@ type EndpointDefinitionWithQueryFn<
    * @see https://redux-toolkit.js.org/api/other-exports#copywithstructuralsharing
    */
   structuralSharing?: boolean
-}
 
-type BaseEndpointTypes<QueryArg, BaseQuery extends BaseQueryFn, ResultType> = {
-  QueryArg: QueryArg
-  BaseQuery: BaseQuery
-  ResultType: ResultType
+  /**
+   * A function that is called when a schema validation fails.
+   *
+   * Gets called with a `NamedSchemaError` and an object containing the endpoint name, the type of the endpoint, the argument passed to the endpoint, and the query cache key (if applicable).
+   *
+   * `NamedSchemaError` has the following properties:
+   * - `issues`: an array of issues that caused the validation to fail
+   * - `value`: the value that was passed to the schema
+   * - `schemaName`: the name of the schema that was used to validate the value (e.g. `argSchema`)
+   *
+   * @example
+   * ```ts
+   * // codeblock-meta no-transpile
+   * import { createApi } from '@reduxjs/toolkit/query/react'
+   * import * as v from "valibot"
+   *
+   * const api = createApi({
+   *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+   *   endpoints: (build) => ({
+   *     getPost: build.query<Post, { id: number }>({
+   *       query: ({ id }) => `/post/${id}`,
+   *       onSchemaFailure: (error, info) => {
+   *         console.error(error, info)
+   *       },
+   *     }),
+   *   })
+   * })
+   * ```
+   */
+  onSchemaFailure?: SchemaFailureHandler
+
+  /**
+   * Convert a schema validation failure into an error shape matching base query errors.
+   *
+   * When not provided, schema failures are treated as fatal, and normal error handling such as tag invalidation will not be executed.
+   *
+   * @example
+   * ```ts
+   * // codeblock-meta no-transpile
+   * import { createApi } from '@reduxjs/toolkit/query/react'
+   * import * as v from "valibot"
+   *
+   * const api = createApi({
+   *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+   *   endpoints: (build) => ({
+   *     getPost: build.query<Post, { id: number }>({
+   *       query: ({ id }) => `/post/${id}`,
+   *       responseSchema: v.object({ id: v.number(), name: v.string() }),
+   *       catchSchemaFailure: (error, info) => ({
+   *         status: "CUSTOM_ERROR",
+   *         error: error.schemaName + " failed validation",
+   *         data: error.issues,
+   *       }),
+   *     }),
+   *   }),
+   * })
+   * ```
+   */
+  catchSchemaFailure?: SchemaFailureConverter<BaseQuery>
+
+  /**
+   * Defaults to `false`.
+   *
+   * If set to `true`, will skip schema validation for this endpoint.
+   * Overrides the global setting.
+   *
+   * @example
+   * ```ts
+   * // codeblock-meta no-transpile
+   * import { createApi } from '@reduxjs/toolkit/query/react'
+   * import * as v from "valibot"
+   *
+   * const api = createApi({
+   *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+   *   endpoints: (build) => ({
+   *     getPost: build.query<Post, { id: number }>({
+   *       query: ({ id }) => `/post/${id}`,
+   *       responseSchema: v.object({ id: v.number(), name: v.string() }),
+   *       skipSchemaValidation: process.env.NODE_ENV === "test", // skip schema validation in tests, since we'll be mocking the response
+   *     }),
+   *   })
+   * })
+   * ```
+   */
+  skipSchemaValidation?: boolean
 }
 
 export type BaseEndpointDefinition<
   QueryArg,
   BaseQuery extends BaseQueryFn,
   ResultType,
+  RawResultType extends BaseQueryResult<BaseQuery> = BaseQueryResult<BaseQuery>,
 > = (
   | ([CastAny<BaseQueryResult<BaseQuery>, {}>] extends [NEVER]
       ? never
-      : EndpointDefinitionWithQuery<QueryArg, BaseQuery, ResultType>)
+      : EndpointDefinitionWithQuery<
+          QueryArg,
+          BaseQuery,
+          ResultType,
+          RawResultType
+        >)
   | EndpointDefinitionWithQueryFn<QueryArg, BaseQuery, ResultType>
-) & {
-  /* phantom type */
-  [resultType]?: ResultType
-  /* phantom type */
-  [baseQuery]?: BaseQuery
-} & HasRequiredProps<
+) &
+  CommonEndpointDefinition<QueryArg, BaseQuery, ResultType> & {
+    /* phantom type */
+    [rawResultType]?: RawResultType
+    /* phantom type */
+    [resultType]?: ResultType
+    /* phantom type */
+    [baseQuery]?: BaseQuery
+  } & HasRequiredProps<
     BaseQueryExtraOptions<BaseQuery>,
     { extraOptions: BaseQueryExtraOptions<BaseQuery> },
     { extraOptions?: BaseQueryExtraOptions<BaseQuery> }
@@ -212,7 +474,12 @@ export type BaseEndpointDefinition<
 export enum DefinitionType {
   query = 'query',
   mutation = 'mutation',
+  infinitequery = 'infinitequery',
 }
+
+type TagDescriptionArray<TagTypes extends string> = ReadonlyArray<
+  TagDescription<TagTypes> | undefined | null
+>
 
 export type GetResultDescriptionFn<
   TagTypes extends string,
@@ -225,7 +492,7 @@ export type GetResultDescriptionFn<
   error: ErrorType | undefined,
   arg: QueryArg,
   meta: MetaType,
-) => ReadonlyArray<TagDescription<TagTypes> | undefined | null>
+) => TagDescriptionArray<TagTypes>
 
 export type FullTagDescription<TagType> = {
   type: TagType
@@ -243,7 +510,7 @@ export type ResultDescription<
   ErrorType,
   MetaType,
 > =
-  | ReadonlyArray<TagDescription<TagTypes> | undefined | null>
+  | TagDescriptionArray<TagTypes>
   | GetResultDescriptionFn<TagTypes, ResultType, QueryArg, ErrorType, MetaType>
 
 type QueryTypes<
@@ -533,8 +800,221 @@ export type QueryDefinition<
   TagTypes extends string,
   ResultType,
   ReducerPath extends string = string,
-> = BaseEndpointDefinition<QueryArg, BaseQuery, ResultType> &
+  RawResultType extends BaseQueryResult<BaseQuery> = BaseQueryResult<BaseQuery>,
+> = BaseEndpointDefinition<QueryArg, BaseQuery, ResultType, RawResultType> &
   QueryExtraOptions<TagTypes, ResultType, QueryArg, BaseQuery, ReducerPath>
+
+export type InfiniteQueryTypes<
+  QueryArg,
+  PageParam,
+  BaseQuery extends BaseQueryFn,
+  TagTypes extends string,
+  ResultType,
+  ReducerPath extends string = string,
+> = BaseEndpointTypes<QueryArg, BaseQuery, ResultType> & {
+  /**
+   * The endpoint definition type. To be used with some internal generic types.
+   * @example
+   * ```ts
+   * const useMyWrappedHook: UseQuery<typeof api.endpoints.query.Types.QueryDefinition> = ...
+   * ```
+   */
+  InfiniteQueryDefinition: InfiniteQueryDefinition<
+    QueryArg,
+    PageParam,
+    BaseQuery,
+    TagTypes,
+    ResultType,
+    ReducerPath
+  >
+  TagTypes: TagTypes
+  ReducerPath: ReducerPath
+}
+
+export interface InfiniteQueryExtraOptions<
+  TagTypes extends string,
+  ResultType,
+  QueryArg,
+  PageParam,
+  BaseQuery extends BaseQueryFn,
+  ReducerPath extends string = string,
+> extends CacheLifecycleInfiniteQueryExtraOptions<
+      InfiniteData<ResultType, PageParam>,
+      QueryArg,
+      BaseQuery,
+      ReducerPath
+    >,
+    QueryLifecycleInfiniteQueryExtraOptions<
+      InfiniteData<ResultType, PageParam>,
+      QueryArg,
+      BaseQuery,
+      ReducerPath
+    >,
+    CacheCollectionQueryExtraOptions {
+  type: DefinitionType.infinitequery
+
+  providesTags?: ResultDescription<
+    TagTypes,
+    InfiniteData<ResultType, PageParam>,
+    QueryArg,
+    BaseQueryError<BaseQuery>,
+    BaseQueryMeta<BaseQuery>
+  >
+  /**
+   * Not to be used. A query should not invalidate tags in the cache.
+   */
+  invalidatesTags?: never
+
+  /**
+   * Required options to configure the infinite query behavior.
+   * `initialPageParam` and `getNextPageParam` are required, to
+   * ensure the infinite query can properly fetch the next page of data.
+   * `initialPageParam` may be specified when using the
+   * endpoint, to override the default value.
+   * `maxPages` and `getPreviousPageParam` are both optional.
+   * 
+   * @example
+   * 
+   * ```ts
+   * // codeblock-meta title="infiniteQueryOptions example"
+   * import { createApi, fetchBaseQuery, defaultSerializeQueryArgs } from '@reduxjs/toolkit/query/react'
+   * 
+   * type Pokemon = {
+   *   id: string
+   *   name: string
+   * }
+   * 
+   * const pokemonApi = createApi({
+   *   baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
+   *   endpoints: (build) => ({
+   *     getInfinitePokemonWithMax: build.infiniteQuery<Pokemon[], string, number>({
+   *       infiniteQueryOptions: {
+   *         initialPageParam: 0,
+   *         maxPages: 3,
+   *         getNextPageParam: (lastPage, allPages, lastPageParam, allPageParams) =>
+   *           lastPageParam + 1,
+   *         getPreviousPageParam: (
+   *           firstPage,
+   *           allPages,
+   *           firstPageParam,
+   *           allPageParams,
+   *         ) => {
+   *           return firstPageParam > 0 ? firstPageParam - 1 : undefined
+   *         },
+   *       },
+   *       query({pageParam}) {
+   *         return `https://example.com/listItems?page=${pageParam}`
+   *       },
+   *     }),
+   *   }),
+   * })
+   
+   * ```
+   */
+  infiniteQueryOptions: InfiniteQueryConfigOptions<
+    ResultType,
+    PageParam,
+    QueryArg
+  >
+
+  /**
+   * Can be provided to return a custom cache key value based on the query arguments.
+   *
+   * This is primarily intended for cases where a non-serializable value is passed as part of the query arg object and should be excluded from the cache key.  It may also be used for cases where an endpoint should only have a single cache entry, such as an infinite loading / pagination implementation.
+   *
+   * Unlike the `createApi` version which can _only_ return a string, this per-endpoint option can also return an an object, number, or boolean.  If it returns a string, that value will be used as the cache key directly.  If it returns an object / number / boolean, that value will be passed to the built-in `defaultSerializeQueryArgs`.  This simplifies the use case of stripping out args you don't want included in the cache key.
+   *
+   *
+   * @example
+   *
+   * ```ts
+   * // codeblock-meta title="serializeQueryArgs : exclude value"
+   *
+   * import { createApi, fetchBaseQuery, defaultSerializeQueryArgs } from '@reduxjs/toolkit/query/react'
+   * interface Post {
+   *   id: number
+   *   name: string
+   * }
+   *
+   * interface MyApiClient {
+   *   fetchPost: (id: string) => Promise<Post>
+   * }
+   *
+   * createApi({
+   *  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+   *  endpoints: (build) => ({
+   *    // Example: an endpoint with an API client passed in as an argument,
+   *    // but only the item ID should be used as the cache key
+   *    getPost: build.query<Post, { id: string; client: MyApiClient }>({
+   *      queryFn: async ({ id, client }) => {
+   *        const post = await client.fetchPost(id)
+   *        return { data: post }
+   *      },
+   *      // highlight-start
+   *      serializeQueryArgs: ({ queryArgs, endpointDefinition, endpointName }) => {
+   *        const { id } = queryArgs
+   *        // This can return a string, an object, a number, or a boolean.
+   *        // If it returns an object, number or boolean, that value
+   *        // will be serialized automatically via `defaultSerializeQueryArgs`
+   *        return { id } // omit `client` from the cache key
+   *
+   *        // Alternately, you can use `defaultSerializeQueryArgs` yourself:
+   *        // return defaultSerializeQueryArgs({
+   *        //   endpointName,
+   *        //   queryArgs: { id },
+   *        //   endpointDefinition
+   *        // })
+   *        // Or  create and return a string yourself:
+   *        // return `getPost(${id})`
+   *      },
+   *      // highlight-end
+   *    }),
+   *  }),
+   *})
+   * ```
+   */
+  serializeQueryArgs?: SerializeQueryArgs<
+    QueryArg,
+    string | number | boolean | Record<any, any>
+  >
+
+  /**
+   * All of these are `undefined` at runtime, purely to be used in TypeScript declarations!
+   */
+  Types?: InfiniteQueryTypes<
+    QueryArg,
+    PageParam,
+    BaseQuery,
+    TagTypes,
+    ResultType,
+    ReducerPath
+  >
+}
+
+export type InfiniteQueryDefinition<
+  QueryArg,
+  PageParam,
+  BaseQuery extends BaseQueryFn,
+  TagTypes extends string,
+  ResultType,
+  ReducerPath extends string = string,
+  RawResultType extends BaseQueryResult<BaseQuery> = BaseQueryResult<BaseQuery>,
+> =
+  // Infinite query endpoints receive `{queryArg, pageParam}`
+  BaseEndpointDefinition<
+    InfiniteQueryCombinedArg<QueryArg, PageParam>,
+    BaseQuery,
+    ResultType,
+    RawResultType
+  > &
+    InfiniteQueryExtraOptions<
+      TagTypes,
+      ResultType,
+      QueryArg,
+      PageParam,
+      BaseQuery,
+      ReducerPath
+    >
 
 type MutationTypes<
   QueryArg,
@@ -653,7 +1133,8 @@ export type MutationDefinition<
   TagTypes extends string,
   ResultType,
   ReducerPath extends string = string,
-> = BaseEndpointDefinition<QueryArg, BaseQuery, ResultType> &
+  RawResultType extends BaseQueryResult<BaseQuery> = BaseQueryResult<BaseQuery>,
+> = BaseEndpointDefinition<QueryArg, BaseQuery, ResultType, RawResultType> &
   MutationExtraOptions<TagTypes, ResultType, QueryArg, BaseQuery, ReducerPath>
 
 export type EndpointDefinition<
@@ -662,25 +1143,64 @@ export type EndpointDefinition<
   TagTypes extends string,
   ResultType,
   ReducerPath extends string = string,
+  PageParam = any,
+  RawResultType extends BaseQueryResult<BaseQuery> = BaseQueryResult<BaseQuery>,
 > =
-  | QueryDefinition<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>
-  | MutationDefinition<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>
+  | QueryDefinition<
+      QueryArg,
+      BaseQuery,
+      TagTypes,
+      ResultType,
+      ReducerPath,
+      RawResultType
+    >
+  | MutationDefinition<
+      QueryArg,
+      BaseQuery,
+      TagTypes,
+      ResultType,
+      ReducerPath,
+      RawResultType
+    >
+  | InfiniteQueryDefinition<
+      QueryArg,
+      PageParam,
+      BaseQuery,
+      TagTypes,
+      ResultType,
+      ReducerPath,
+      RawResultType
+    >
 
 export type EndpointDefinitions = Record<
   string,
-  EndpointDefinition<any, any, any, any>
+  EndpointDefinition<any, any, any, any, any, any, any>
 >
 
 export function isQueryDefinition(
-  e: EndpointDefinition<any, any, any, any>,
-): e is QueryDefinition<any, any, any, any> {
+  e: EndpointDefinition<any, any, any, any, any, any, any>,
+): e is QueryDefinition<any, any, any, any, any, any> {
   return e.type === DefinitionType.query
 }
 
 export function isMutationDefinition(
-  e: EndpointDefinition<any, any, any, any>,
-): e is MutationDefinition<any, any, any, any> {
+  e: EndpointDefinition<any, any, any, any, any, any, any>,
+): e is MutationDefinition<any, any, any, any, any, any> {
   return e.type === DefinitionType.mutation
+}
+
+export function isInfiniteQueryDefinition(
+  e: EndpointDefinition<any, any, any, any, any, any, any>,
+): e is InfiniteQueryDefinition<any, any, any, any, any, any, any> {
+  return e.type === DefinitionType.infinitequery
+}
+
+export function isAnyQueryDefinition(
+  e: EndpointDefinition<any, any, any, any>,
+): e is
+  | QueryDefinition<any, any, any, any>
+  | InfiniteQueryDefinition<any, any, any, any, any> {
+  return isQueryDefinition(e) || isInfiniteQueryDefinition(e)
 }
 
 export type EndpointBuilder<
@@ -714,12 +1234,32 @@ export type EndpointBuilder<
    *});
    *```
    */
-  query<ResultType, QueryArg>(
+  query<
+    ResultType,
+    QueryArg,
+    RawResultType extends
+      BaseQueryResult<BaseQuery> = BaseQueryResult<BaseQuery>,
+  >(
     definition: OmitFromUnion<
-      QueryDefinition<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>,
+      QueryDefinition<
+        QueryArg,
+        BaseQuery,
+        TagTypes,
+        ResultType,
+        ReducerPath,
+        RawResultType
+      >,
       'type'
     >,
-  ): QueryDefinition<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>
+  ): QueryDefinition<
+    QueryArg,
+    BaseQuery,
+    TagTypes,
+    ResultType,
+    ReducerPath,
+    RawResultType
+  >
+
   /**
    * An endpoint definition that alters data on the server or will possibly invalidate the cache.
    *
@@ -746,18 +1286,60 @@ export type EndpointBuilder<
    * });
    * ```
    */
-  mutation<ResultType, QueryArg>(
+  mutation<
+    ResultType,
+    QueryArg,
+    RawResultType extends
+      BaseQueryResult<BaseQuery> = BaseQueryResult<BaseQuery>,
+  >(
     definition: OmitFromUnion<
       MutationDefinition<
         QueryArg,
         BaseQuery,
         TagTypes,
         ResultType,
-        ReducerPath
+        ReducerPath,
+        RawResultType
       >,
       'type'
     >,
-  ): MutationDefinition<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>
+  ): MutationDefinition<
+    QueryArg,
+    BaseQuery,
+    TagTypes,
+    ResultType,
+    ReducerPath,
+    RawResultType
+  >
+
+  infiniteQuery<
+    ResultType,
+    QueryArg,
+    PageParam,
+    RawResultType extends
+      BaseQueryResult<BaseQuery> = BaseQueryResult<BaseQuery>,
+  >(
+    definition: OmitFromUnion<
+      InfiniteQueryDefinition<
+        QueryArg,
+        PageParam,
+        BaseQuery,
+        TagTypes,
+        ResultType,
+        ReducerPath,
+        RawResultType
+      >,
+      'type'
+    >,
+  ): InfiniteQueryDefinition<
+    QueryArg,
+    PageParam,
+    BaseQuery,
+    TagTypes,
+    ResultType,
+    ReducerPath,
+    RawResultType
+  >
 }
 
 export type AssertTagTypes = <T extends FullTagDescription<string>>(t: T) => T
@@ -799,17 +1381,57 @@ export function expandTagDescription(
   return typeof description === 'string' ? { type: description } : description
 }
 
-export type QueryArgFrom<D extends BaseEndpointDefinition<any, any, any>> =
-  D extends BaseEndpointDefinition<infer QA, any, any> ? QA : unknown
-export type ResultTypeFrom<D extends BaseEndpointDefinition<any, any, any>> =
-  D extends BaseEndpointDefinition<any, any, infer RT> ? RT : unknown
+export type QueryArgFrom<D extends BaseEndpointDefinition<any, any, any, any>> =
+  D extends BaseEndpointDefinition<infer QA, any, any, any> ? QA : never
+
+// Just extracting `QueryArg` from `BaseEndpointDefinition`
+// doesn't sufficiently match here.
+// We need to explicitly match against `InfiniteQueryDefinition`
+export type InfiniteQueryArgFrom<
+  D extends BaseEndpointDefinition<any, any, any, any>,
+> =
+  D extends InfiniteQueryDefinition<infer QA, any, any, any, any, any, any>
+    ? QA
+    : never
+
+export type QueryArgFromAnyQuery<
+  D extends BaseEndpointDefinition<any, any, any, any>,
+> =
+  D extends InfiniteQueryDefinition<any, any, any, any, any, any, any>
+    ? InfiniteQueryArgFrom<D>
+    : D extends QueryDefinition<any, any, any, any, any, any>
+      ? QueryArgFrom<D>
+      : never
+
+export type ResultTypeFrom<
+  D extends BaseEndpointDefinition<any, any, any, any>,
+> = D extends BaseEndpointDefinition<any, any, infer RT, any> ? RT : unknown
 
 export type ReducerPathFrom<
-  D extends EndpointDefinition<any, any, any, any, any>,
-> = D extends EndpointDefinition<any, any, any, any, infer RP> ? RP : unknown
+  D extends EndpointDefinition<any, any, any, any, any, any, any>,
+> =
+  D extends EndpointDefinition<any, any, any, any, infer RP, any, any>
+    ? RP
+    : unknown
 
-export type TagTypesFrom<D extends EndpointDefinition<any, any, any, any>> =
-  D extends EndpointDefinition<any, any, infer RP, any> ? RP : unknown
+export type TagTypesFrom<
+  D extends EndpointDefinition<any, any, any, any, any, any, any>,
+> =
+  D extends EndpointDefinition<any, any, infer TT, any, any, any, any>
+    ? TT
+    : unknown
+
+export type PageParamFrom<
+  D extends InfiniteQueryDefinition<any, any, any, any, any, any, any>,
+> =
+  D extends InfiniteQueryDefinition<any, infer PP, any, any, any, any, any>
+    ? PP
+    : unknown
+
+export type InfiniteQueryCombinedArg<QueryArg, PageParam> = {
+  queryArg: QueryArg
+  pageParam: PageParam
+}
 
 export type TagTypesFromApi<T> =
   T extends Api<any, any, any, infer TagTypes> ? TagTypes : never
@@ -852,7 +1474,23 @@ export type OverrideResultType<Definition, NewResultType> =
           NewResultType,
           ReducerPath
         >
-      : never
+      : Definition extends InfiniteQueryDefinition<
+            infer QueryArg,
+            infer PageParam,
+            infer BaseQuery,
+            infer TagTypes,
+            any,
+            infer ReducerPath
+          >
+        ? InfiniteQueryDefinition<
+            QueryArg,
+            PageParam,
+            BaseQuery,
+            TagTypes,
+            NewResultType,
+            ReducerPath
+          >
+        : never
 
 export type UpdateDefinitions<
   Definitions extends EndpointDefinitions,
@@ -887,5 +1525,21 @@ export type UpdateDefinitions<
           TransformedResponse<NewDefinitions, K, ResultType>,
           ReducerPath
         >
-      : never
+      : Definitions[K] extends InfiniteQueryDefinition<
+            infer QueryArg,
+            infer PageParam,
+            infer BaseQuery,
+            any,
+            infer ResultType,
+            infer ReducerPath
+          >
+        ? InfiniteQueryDefinition<
+            QueryArg,
+            PageParam,
+            BaseQuery,
+            NewTagTypes,
+            TransformedResponse<NewDefinitions, K, ResultType>,
+            ReducerPath
+          >
+        : never
 }

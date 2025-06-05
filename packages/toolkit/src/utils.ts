@@ -109,3 +109,17 @@ export function getOrInsertComputed<K extends object, V>(
 
   return map.set(key, compute(key)).get(key) as V
 }
+
+export function promiseWithResolvers<T>(): {
+  promise: Promise<T>
+  resolve: (value: T | PromiseLike<T>) => void
+  reject: (reason?: any) => void
+} {
+  let resolve: any
+  let reject: any
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res
+    reject = rej
+  })
+  return { promise, resolve, reject }
+}
