@@ -345,24 +345,24 @@ describe('createReducer', () => {
       expect(reducer(5, decrement(5))).toBe(0)
     })
     test('will throw if the same type is used twice', () => {
-      expect(() =>
-        createReducer(0, (builder) =>
+      expect(() => {
+        createReducer(0, (builder) => {
           builder
             .addCase(increment, (state, action) => state + action.payload)
             .addCase(increment, (state, action) => state + action.payload)
-            .addCase(decrement, (state, action) => state - action.payload),
-        ),
-      ).toThrowErrorMatchingInlineSnapshot(
+            .addCase(decrement, (state, action) => state - action.payload)
+        })
+      }).toThrowErrorMatchingInlineSnapshot(
         `[Error: \`builder.addCase\` cannot be called with two reducers for the same action type 'increment']`,
       )
-      expect(() =>
-        createReducer(0, (builder) =>
+      expect(() => {
+        createReducer(0, (builder) => {
           builder
             .addCase(increment, (state, action) => state + action.payload)
             .addCase('increment', (state) => state + 1)
-            .addCase(decrement, (state, action) => state - action.payload),
-        ),
-      ).toThrowErrorMatchingInlineSnapshot(
+            .addCase(decrement, (state, action) => state - action.payload)
+        })
+      }).toThrowErrorMatchingInlineSnapshot(
         `[Error: \`builder.addCase\` cannot be called with two reducers for the same action type 'increment']`,
       )
     })
@@ -373,14 +373,14 @@ describe('createReducer', () => {
         payload,
       })
       customActionCreator.type = ''
-      expect(() =>
-        createReducer(0, (builder) =>
+      expect(() => {
+        createReducer(0, (builder) => {
           builder.addCase(
             customActionCreator,
             (state, action) => state + action.payload,
-          ),
-        ),
-      ).toThrowErrorMatchingInlineSnapshot(
+          )
+        })
+      }).toThrowErrorMatchingInlineSnapshot(
         `[Error: \`builder.addCase\` cannot be called with an empty action type]`,
       )
     })
