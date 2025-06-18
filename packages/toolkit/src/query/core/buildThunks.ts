@@ -681,7 +681,8 @@ export function buildThunks<
         const { infiniteQueryOptions } = endpointDefinition
 
         // Runtime checks should guarantee this is a positive number if provided
-        const { maxPages = Infinity } = infiniteQueryOptions
+        const { maxPages = Infinity, refetchCachedPages = true } =
+          infiniteQueryOptions
 
         let result: QueryReturnValue
 
@@ -740,18 +741,20 @@ export function buildThunks<
             } as QueryReturnValue
           }
 
-          // Fetch remaining pages
-          for (let i = 1; i < totalPages; i++) {
-            const param = getNextPageParam(
-              infiniteQueryOptions,
-              result.data as InfiniteData<unknown, unknown>,
-              arg.originalArgs,
-            )
-            result = await fetchPage(
-              result.data as InfiniteData<unknown, unknown>,
-              param,
-              maxPages,
-            )
+          if (refetchCachedPages) {
+            // Fetch remaining pages
+            for (let i = 1; i < totalPages; i++) {
+              const param = getNextPageParam(
+                infiniteQueryOptions,
+                result.data as InfiniteData<unknown, unknown>,
+                arg.originalArgs,
+              )
+              result = await fetchPage(
+                result.data as InfiniteData<unknown, unknown>,
+                param,
+                maxPages,
+              )
+            }
           }
         }
 
