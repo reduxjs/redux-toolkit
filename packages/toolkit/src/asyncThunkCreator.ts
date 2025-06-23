@@ -17,33 +17,30 @@ import type { Id } from './tsHelpers'
 
 export type AsyncThunkCreatorExposes<
   State,
-  CaseReducers extends CreatorCaseReducers<State>,
+  Definition extends ReducerDefinition,
 > = {
-  actions: {
-    [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends AsyncThunkSliceReducerDefinition<
-      State,
-      infer ThunkArg,
-      infer Returned,
-      infer ThunkApiConfig
-    >
-      ? AsyncThunk<Returned, ThunkArg, ThunkApiConfig>
-      : never
-  }
-  caseReducers: {
-    [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends AsyncThunkSliceReducerDefinition<
-      State,
-      any,
-      any,
-      any
-    >
-      ? Id<
-          Pick<
-            Required<CaseReducers[ReducerName]>,
-            'fulfilled' | 'rejected' | 'pending' | 'settled'
-          >
+  action: Definition extends AsyncThunkSliceReducerDefinition<
+    State,
+    infer ThunkArg,
+    infer Returned,
+    infer ThunkApiConfig
+  >
+    ? AsyncThunk<Returned, ThunkArg, ThunkApiConfig>
+    : never
+
+  caseReducer: Definition extends AsyncThunkSliceReducerDefinition<
+    State,
+    any,
+    any,
+    any
+  >
+    ? Id<
+        Pick<
+          Required<Definition>,
+          'fulfilled' | 'rejected' | 'pending' | 'settled'
         >
-      : never
-  }
+      >
+    : never
 }
 
 export type AsyncThunkSliceReducers<
