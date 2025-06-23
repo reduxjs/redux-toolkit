@@ -29,7 +29,6 @@ import type {
   IsAny,
   OverloadedReturnType,
   TypeGuard,
-  UnionToIntersection,
 } from './tsHelpers'
 import { getOrInsertComputed } from './utils'
 
@@ -40,33 +39,12 @@ export enum ReducerType {
   entityMethods = 'entityMethods',
 }
 
-export type RegisteredReducerType = keyof SliceReducerCreators<
-  any,
-  any,
-  any,
-  any
->
+export type RegisteredReducerType = keyof SliceReducerCreators<any, any, any>
 
 export type ReducerDefinition<
   T extends RegisteredReducerType = RegisteredReducerType,
 > = {
   _reducerDefinitionType: T
-}
-
-export type ReducerCreatorEntry<
-  Create,
-  Exposes extends {
-    actions?: Record<string, unknown>
-    caseReducers?: Record<string, unknown>
-  } = {},
-> = {
-  create: Create
-  actions: Exposes extends { actions: NonNullable<unknown> }
-    ? Exposes['actions']
-    : {}
-  caseReducers: Exposes extends { caseReducers: NonNullable<unknown> }
-    ? Exposes['caseReducers']
-    : {}
 }
 
 export type CreatorCaseReducers<State> =
@@ -75,80 +53,62 @@ export type CreatorCaseReducers<State> =
 
 export interface SliceReducerCreators<
   State,
-  CaseReducers extends CreatorCaseReducers<State>,
-  Name extends string,
+  SliceName extends string,
   ReducerPath extends string,
 > {
-  [ReducerType.reducer]: ReducerCreatorEntry<
-    {
-      (
-        caseReducer: CaseReducer<State, PayloadAction>,
-      ): CaseReducerDefinition<State, PayloadAction>
-      <Payload = any>(
-        caseReducer: CaseReducer<State, PayloadAction<Payload>>,
-      ): CaseReducerDefinition<State, PayloadAction<Payload>>
-    },
-    {
-      actions: {
-        [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends CaseReducer<
-          State,
-          any
+  [ReducerType.reducer]: {
+    (
+      caseReducer: CaseReducer<State, PayloadAction>,
+    ): CaseReducerDefinition<State, PayloadAction>
+    <Payload = any>(
+      caseReducer: CaseReducer<State, PayloadAction<Payload>>,
+    ): CaseReducerDefinition<State, PayloadAction<Payload>>
+  }
+  [ReducerType.reducerWithPrepare]: <Prepare extends PrepareAction<any>>(
+    prepare: Prepare,
+    reducer: CaseReducer<
+      State,
+      ReturnType<_ActionCreatorWithPreparedPayload<Prepare>>
+    >,
+  ) => PreparedCaseReducerDefinition<State, Prepare>
+  [ReducerType.asyncThunk]: AsyncThunkCreator<State>
+  [ReducerType.entityMethods]: EntityMethodsCreator<State>
+}
+
+export interface SliceReducerCreatorsExposes<
+  State,
+  SliceName extends string,
+  ReducerPath extends string,
+  ReducerName extends PropertyKey,
+  Definition extends ReducerDefinition,
+> {
+  [creatorType: PropertyKey]: {
+    action?: NonNullable<unknown>
+    caseReducer?: NonNullable<unknown>
+  }
+  [ReducerType.reducer]: {
+    action: Definition extends CaseReducer<State, any>
+      ? ActionCreatorForCaseReducer<
+          Definition,
+          SliceActionType<SliceName, ReducerName>
         >
-          ? ActionCreatorForCaseReducer<
-              CaseReducers[ReducerName],
-              SliceActionType<Name, ReducerName>
-            >
-          : never
-      }
-      caseReducers: {
-        [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends CaseReducer<
-          State,
-          any
+      : never
+    caseReducer: Definition extends CaseReducer<State, any> ? Definition : never
+  }
+  [ReducerType.reducerWithPrepare]: {
+    action: Definition extends { prepare: any }
+      ? NonNullable<
+          ActionCreatorForCaseReducerWithPrepare<
+            Definition,
+            SliceActionType<SliceName, ReducerName>
+          >
         >
-          ? CaseReducers[ReducerName]
-          : never
-      }
-    }
-  >
-  [ReducerType.reducerWithPrepare]: ReducerCreatorEntry<
-    <Prepare extends PrepareAction<any>>(
-      prepare: Prepare,
-      reducer: CaseReducer<
-        State,
-        ReturnType<_ActionCreatorWithPreparedPayload<Prepare>>
-      >,
-    ) => PreparedCaseReducerDefinition<State, Prepare>,
-    {
-      actions: {
-        [ReducerName in keyof CaseReducers as ReducerName]: CaseReducers[ReducerName] extends CaseReducerWithPrepare<
-          State,
-          any
-        >
-          ? CaseReducers[ReducerName] extends { prepare: any }
-            ? ActionCreatorForCaseReducerWithPrepare<
-                CaseReducers[ReducerName],
-                SliceActionType<Name, ReducerName>
-              >
-            : never
-          : never
-      }
-      caseReducers: {
-        [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends CaseReducerWithPrepare<
-          State,
-          any
-        >
-          ? CaseReducers[ReducerName] extends { reducer: infer Reducer }
-            ? Reducer
-            : never
-          : never
-      }
-    }
-  >
-  [ReducerType.asyncThunk]: ReducerCreatorEntry<
-    AsyncThunkCreator<State>,
-    AsyncThunkCreatorExposes<State, CaseReducers>
-  >
-  [ReducerType.entityMethods]: ReducerCreatorEntry<EntityMethodsCreator<State>>
+      : never
+    caseReducer: Definition extends PreparedCaseReducerDefinition<State, any>
+      ? Definition['reducer']
+      : never
+  }
+  [ReducerType.asyncThunk]: AsyncThunkCreatorExposes<State, Definition>
 }
 
 export type ReducerCreators<
@@ -157,32 +117,24 @@ export type ReducerCreators<
   ReducerPath extends string = Name,
   CreatorMap extends Record<string, RegisteredReducerType> = {},
 > = {
-  reducer: SliceReducerCreators<
-    State,
-    any,
-    Name,
-    ReducerPath
-  >[ReducerType.reducer]['create']
+  reducer: SliceReducerCreators<State, Name, ReducerPath>[ReducerType.reducer]
   preparedReducer: SliceReducerCreators<
     State,
-    any,
     Name,
     ReducerPath
-  >[ReducerType.reducerWithPrepare]['create']
+  >[ReducerType.reducerWithPrepare]
 } & {
   [CreatorName in keyof CreatorMap as SliceReducerCreators<
     State,
-    never,
     Name,
     ReducerPath
-  >[CreatorMap[CreatorName]]['create'] extends never
+  >[CreatorMap[CreatorName]] extends never
     ? never
     : CreatorName]: SliceReducerCreators<
     State,
-    never,
     Name,
     ReducerPath
-  >[CreatorMap[CreatorName]]['create']
+  >[CreatorMap[CreatorName]]
 }
 
 interface InternalReducerHandlingContext<State> {
@@ -309,14 +261,14 @@ type DefinitionFromValue<
 
 type ReducerDefinitionsForType<Type extends RegisteredReducerType> = {
   [CreatorType in RegisteredReducerType]: DefinitionFromValue<
-    SliceReducerCreators<any, any, any, any>[CreatorType]['create'],
+    SliceReducerCreators<any, any, any>[CreatorType],
     Type
   >
 }[RegisteredReducerType]
 
 export type ReducerCreator<Type extends RegisteredReducerType> = {
   type: Type
-  create: SliceReducerCreators<any, any, any, any>[Type]['create']
+  create: SliceReducerCreators<any, any, any>[Type]
 } & (ReducerDefinitionsForType<Type> extends never
   ? {
       handle?<State>(
@@ -640,9 +592,15 @@ export type SliceActionType<
   ActionName extends keyof any,
 > = ActionName extends string | number ? `${SliceName}/${ActionName}` : string
 
-type ConvertNeverKeysToUnknown<T> = T extends any
-  ? { [K in keyof T]: T[K] extends never ? unknown : T[K] }
-  : never
+type TagAnonymousDefinition<
+  Definition extends CreatorCaseReducers<any>[string],
+> = Definition extends ReducerDefinition
+  ? Definition
+  : Definition extends CaseReducer<any, any>
+    ? Definition & ReducerDefinition<ReducerType.reducer>
+    : Definition extends CaseReducerWithPrepare<any, any>
+      ? Definition & ReducerDefinition<ReducerType.reducerWithPrepare>
+      : never
 
 /**
  * Derives the slice's `actions` property from the `reducers` options
@@ -654,18 +612,21 @@ export type CaseReducerActions<
   SliceName extends string,
   ReducerPath extends string = SliceName,
   State = any,
-> = Id<
-  UnionToIntersection<
-    ConvertNeverKeysToUnknown<
-      SliceReducerCreators<
+> = Id<{
+  [ReducerName in keyof CaseReducers]: TagAnonymousDefinition<
+    CaseReducers[ReducerName]
+  > extends ReducerDefinition<infer Type>
+    ? SliceReducerCreatorsExposes<
         State,
-        CaseReducers,
         SliceName,
-        ReducerPath
-      >[RegisteredReducerType]['actions']
-    >
-  >
->
+        ReducerPath,
+        ReducerName,
+        TagAnonymousDefinition<CaseReducers[ReducerName]>
+      > extends Record<Type, { action: infer Action extends {} }>
+      ? Action
+      : never
+    : never
+}>
 
 /**
  * Get a `PayloadActionCreator` type for a passed `CaseReducerWithPrepare`
@@ -702,18 +663,21 @@ type SliceDefinedCaseReducers<
   SliceName extends string = string,
   ReducerPath extends string = SliceName,
   State = any,
-> = Id<
-  UnionToIntersection<
-    ConvertNeverKeysToUnknown<
-      SliceReducerCreators<
+> = Id<{
+  [ReducerName in keyof CaseReducers]: TagAnonymousDefinition<
+    CaseReducers[ReducerName]
+  > extends ReducerDefinition<infer Type>
+    ? SliceReducerCreatorsExposes<
         State,
-        CaseReducers,
         SliceName,
-        ReducerPath
-      >[RegisteredReducerType]['caseReducers']
-    >
-  >
->
+        ReducerPath,
+        ReducerName,
+        TagAnonymousDefinition<CaseReducers[ReducerName]>
+      > extends Record<Type, { caseReducer: infer CaseReducer }>
+      ? CaseReducer
+      : never
+    : never
+}>
 
 type RemappedSelector<S extends Selector, NewState> =
   S extends Selector<any, infer R, infer P>

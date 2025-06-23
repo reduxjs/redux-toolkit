@@ -7,18 +7,14 @@ import type {
 } from './createAsyncThunk'
 import { createAsyncThunk } from './createAsyncThunk'
 import type { CaseReducer } from './createReducer'
-import type {
-  CreatorCaseReducers,
-  ReducerCreator,
-  ReducerDefinition,
-} from './createSlice'
+import type { ReducerCreator, ReducerDefinition } from './createSlice'
 import { ReducerType } from './createSlice'
 import type { Id } from './tsHelpers'
 
-export type AsyncThunkSliceReducerConfig<
+export type AsyncThunkSliceReducers<
   State,
-  ThunkArg extends any,
-  Returned = unknown,
+  ThunkArg,
+  Returned,
   ThunkApiConfig extends AsyncThunkConfig = {},
 > = {
   pending?: CaseReducer<
@@ -39,6 +35,14 @@ export type AsyncThunkSliceReducerConfig<
       AsyncThunk<Returned, ThunkArg, ThunkApiConfig>['rejected' | 'fulfilled']
     >
   >
+}
+
+export type AsyncThunkSliceReducerConfig<
+  State,
+  ThunkArg,
+  Returned,
+  ThunkApiConfig extends AsyncThunkConfig = {},
+> = AsyncThunkSliceReducers<State, ThunkArg, Returned, ThunkApiConfig> & {
   options?: AsyncThunkOptions<ThunkArg, ThunkApiConfig>
 }
 
@@ -116,33 +120,30 @@ export interface AsyncThunkCreator<
 
 export type AsyncThunkCreatorExposes<
   State,
-  CaseReducers extends CreatorCaseReducers<State>,
+  Definition extends ReducerDefinition,
 > = {
-  actions: {
-    [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends AsyncThunkSliceReducerDefinition<
-      State,
-      infer ThunkArg,
-      infer Returned,
-      infer ThunkApiConfig
-    >
-      ? AsyncThunk<Returned, ThunkArg, ThunkApiConfig>
-      : never
-  }
-  caseReducers: {
-    [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends AsyncThunkSliceReducerDefinition<
-      State,
-      any,
-      any,
-      any
-    >
-      ? Id<
-          Pick<
-            Required<CaseReducers[ReducerName]>,
-            'fulfilled' | 'rejected' | 'pending' | 'settled'
-          >
+  action: Definition extends AsyncThunkSliceReducerDefinition<
+    State,
+    infer ThunkArg,
+    infer Returned,
+    infer ThunkApiConfig
+  >
+    ? AsyncThunk<Returned, ThunkArg, ThunkApiConfig>
+    : never
+
+  caseReducer: Definition extends AsyncThunkSliceReducerDefinition<
+    State,
+    any,
+    any,
+    any
+  >
+    ? Id<
+        Pick<
+          Required<Definition>,
+          'fulfilled' | 'rejected' | 'pending' | 'settled'
         >
-      : never
-  }
+      >
+    : never
 }
 
 export const asyncThunkCreator: ReducerCreator<ReducerType.asyncThunk> = {
@@ -150,7 +151,7 @@ export const asyncThunkCreator: ReducerCreator<ReducerType.asyncThunk> = {
   create: /* @__PURE__ */ (() => {
     function asyncThunk(
       payloadCreator: AsyncThunkPayloadCreator<any, any>,
-      config: AsyncThunkSliceReducerConfig<any, any>,
+      config: AsyncThunkSliceReducerConfig<any, any, any>,
     ): AsyncThunkSliceReducerDefinition<any, any> {
       return {
         _reducerDefinitionType: ReducerType.asyncThunk,

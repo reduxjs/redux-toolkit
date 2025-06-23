@@ -83,8 +83,8 @@ export type {
   ReducerCreators,
   SliceSelectors,
   SliceReducerCreators,
+  SliceReducerCreatorsExposes,
   ReducerDefinition,
-  ReducerCreatorEntry,
   ReducerCreator,
   ReducerDetails,
   ReducerHandlingContext,
@@ -92,7 +92,11 @@ export type {
   CaseReducerDefinition,
   PreparedCaseReducerDefinition,
 } from './createSlice'
-export type { AsyncThunkSliceReducerDefinition } from './asyncThunkCreator'
+export type {
+  AsyncThunkSliceReducers,
+  AsyncThunkSliceReducerConfig,
+  AsyncThunkSliceReducerDefinition,
+} from './asyncThunkCreator'
 export type { ActionCreatorInvariantMiddlewareOptions } from './actionCreatorInvariantMiddleware'
 export { createActionCreatorInvariantMiddleware } from './actionCreatorInvariantMiddleware'
 export {

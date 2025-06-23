@@ -6,12 +6,10 @@ import type {
   ActionCreatorWithPreparedPayload,
   ActionCreatorWithoutPayload,
   ActionReducerMapBuilder,
-  CreatorCaseReducers,
   PayloadAction,
   PayloadActionCreator,
   Reducer,
   ReducerCreator,
-  ReducerCreatorEntry,
   ReducerCreators,
   ReducerDefinition,
   ReducerHandlingContext,
@@ -888,23 +886,24 @@ interface AddToastThunk<Name extends string, ReducerName extends PropertyKey> {
 declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
     State,
-    CaseReducers extends CreatorCaseReducers<State>,
-    Name extends string,
+    SliceName extends string,
     ReducerPath extends string,
   > {
-    [toasterCreatorType]: ReducerCreatorEntry<
-      State extends ToastState
-        ? () => ReducerDefinition<typeof toasterCreatorType>
-        : never,
-      {
-        actions: {
-          [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends ReducerDefinition<
-            typeof toasterCreatorType
-          >
-            ? AddToastThunk<Name, ReducerName>
-            : never
-        }
-      }
-    >
+    [toasterCreatorType]: State extends ToastState
+      ? () => ReducerDefinition<typeof toasterCreatorType>
+      : never
+  }
+  export interface SliceReducerCreatorsExposes<
+    State,
+    SliceName extends string,
+    ReducerPath extends string,
+    ReducerName extends PropertyKey,
+    Definition extends ReducerDefinition,
+  > {
+    [toasterCreatorType]: {
+      action: Definition extends ReducerDefinition<typeof toasterCreatorType>
+        ? AddToastThunk<SliceName, ReducerName>
+        : never
+    }
   }
 }
