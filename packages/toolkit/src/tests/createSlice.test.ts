@@ -5,11 +5,9 @@ import type {
   Action,
   CaseReducer,
   CaseReducerDefinition,
-  CreatorCaseReducers,
   PayloadAction,
   PayloadActionCreator,
   ReducerCreator,
-  ReducerCreatorEntry,
   ReducerCreators,
   ReducerDefinition,
   ReducerHandlingContext,
@@ -1237,101 +1235,80 @@ type PatchThunk<
 declare module '@reduxjs/toolkit' {
   export interface SliceReducerCreators<
     State,
-    CaseReducers extends CreatorCaseReducers<State>,
-    Name extends string,
+    SliceName extends string,
     ReducerPath extends string,
   > {
-    [loaderCreatorType]: ReducerCreatorEntry<
-      (
-        reducers: Pick<LoaderReducerDefinition<State>, 'ended' | 'started'>,
-      ) => LoaderReducerDefinition<State>,
-      {
-        actions: {
-          [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends ReducerDefinition<
-            typeof loaderCreatorType
-          >
-            ? LoaderThunk<Name, ReducerName>
-            : never
-        }
-        caseReducers: {
-          [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends ReducerDefinition<
-            typeof loaderCreatorType
-          >
-            ? Required<
-                Pick<LoaderReducerDefinition<State>, 'ended' | 'started'>
-              >
-            : never
-        }
-      }
-    >
-    [historyMethodsCreatorType]: ReducerCreatorEntry<
-      State extends HistoryState<unknown>
-        ? (this: ReducerCreators<State>) => {
-            undo: CaseReducerDefinition<State, PayloadAction>
-            redo: CaseReducerDefinition<State, PayloadAction>
-            reset: ReducerDefinition<typeof historyMethodsCreatorType> & {
-              type: 'reset'
-            }
+    [loaderCreatorType]: (
+      reducers: Pick<LoaderReducerDefinition<State>, 'ended' | 'started'>,
+    ) => LoaderReducerDefinition<State>
+    [historyMethodsCreatorType]: State extends HistoryState<unknown>
+      ? (this: ReducerCreators<State>) => {
+          undo: CaseReducerDefinition<State, PayloadAction>
+          redo: CaseReducerDefinition<State, PayloadAction>
+          reset: ReducerDefinition<typeof historyMethodsCreatorType> & {
+            type: 'reset'
           }
-        : never,
-      {
-        actions: {
-          [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends ReducerDefinition<
-            typeof historyMethodsCreatorType
-          > & { type: 'reset' }
-            ? PayloadActionCreator<void, SliceActionType<Name, ReducerName>>
-            : never
         }
-        caseReducers: {
-          [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends ReducerDefinition<
-            typeof historyMethodsCreatorType
-          > & { type: 'reset' }
-            ? CaseReducer<State, PayloadAction>
-            : never
-        }
-      }
-    >
-    [undoableCreatorType]: ReducerCreatorEntry<
-      State extends HistoryState<infer Data>
-        ? {
-            <A extends Action & { meta?: UndoableOptions }>(
-              this: ReducerCreators<State>,
-              reducer: CaseReducer<Data, NoInfer<A>>,
-            ): CaseReducer<State, A>
-            withoutPayload(): (options?: UndoableOptions) => {
-              payload: undefined
-              meta: UndoableOptions | undefined
-            }
-            withPayload<P>(): (
-              ...args: IfMaybeUndefined<
-                P,
-                [payload?: P, options?: UndoableOptions],
-                [payload: P, options?: UndoableOptions]
-              >
-            ) => { payload: P; meta: UndoableOptions | undefined }
+      : never
+    [undoableCreatorType]: State extends HistoryState<infer Data>
+      ? {
+          <A extends Action & { meta?: UndoableOptions }>(
+            this: ReducerCreators<State>,
+            reducer: CaseReducer<Data, NoInfer<A>>,
+          ): CaseReducer<State, A>
+          withoutPayload(): (options?: UndoableOptions) => {
+            payload: undefined
+            meta: UndoableOptions | undefined
           }
+          withPayload<P>(): (
+            ...args: IfMaybeUndefined<
+              P,
+              [payload?: P, options?: UndoableOptions],
+              [payload: P, options?: UndoableOptions]
+            >
+          ) => { payload: P; meta: UndoableOptions | undefined }
+        }
+      : never
+    [patchCreatorType]: State extends Objectish
+      ? ReducerDefinition<typeof patchCreatorType>
+      : never
+  }
+  export interface SliceReducerCreatorsExposes<
+    State,
+    SliceName extends string,
+    ReducerPath extends string,
+    ReducerName extends PropertyKey,
+    Definition extends ReducerDefinition,
+  > {
+    [loaderCreatorType]: {
+      action: Definition extends ReducerDefinition<typeof loaderCreatorType>
+        ? LoaderThunk<SliceName, ReducerName>
         : never
-    >
-    [patchCreatorType]: ReducerCreatorEntry<
-      State extends Objectish
-        ? ReducerDefinition<typeof patchCreatorType>
-        : never,
-      {
-        actions: {
-          [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends ReducerDefinition<
-            typeof patchCreatorType
-          >
-            ? PatchThunk<Name, ReducerName, ReducerPath, State>
-            : never
-        }
-        caseReducers: {
-          [ReducerName in keyof CaseReducers]: CaseReducers[ReducerName] extends ReducerDefinition<
-            typeof patchCreatorType
-          >
-            ? CaseReducer<State, PayloadAction<Patch[]>>
-            : never
-        }
-      }
-    >
+      caseReducer: Definition extends ReducerDefinition<
+        typeof loaderCreatorType
+      >
+        ? Required<Pick<LoaderReducerDefinition<State>, 'ended' | 'started'>>
+        : never
+    }
+    [historyMethodsCreatorType]: {
+      action: Definition extends ReducerDefinition<
+        typeof historyMethodsCreatorType
+      > & { type: 'reset' }
+        ? PayloadActionCreator<void, SliceActionType<SliceName, ReducerName>>
+        : never
+      caseReducer: Definition extends ReducerDefinition<
+        typeof historyMethodsCreatorType
+      > & { type: 'reset' }
+        ? CaseReducer<State, PayloadAction>
+        : never
+    }
+    [patchCreatorType]: {
+      action: Definition extends ReducerDefinition<typeof patchCreatorType>
+        ? PatchThunk<SliceName, ReducerName, ReducerPath, State>
+        : never
+      caseReducer: Definition extends ReducerDefinition<typeof patchCreatorType>
+        ? CaseReducer<State, PayloadAction<Patch[]>>
+        : never
+    }
   }
 }
