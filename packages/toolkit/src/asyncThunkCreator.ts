@@ -46,10 +46,10 @@ export type AsyncThunkCreatorExposes<
   }
 }
 
-export type AsyncThunkSliceReducerConfig<
+export type AsyncThunkSliceReducers<
   State,
-  ThunkArg extends any,
-  Returned = unknown,
+  ThunkArg,
+  Returned,
   ThunkApiConfig extends AsyncThunkConfig = {},
 > = {
   pending?: CaseReducer<
@@ -70,6 +70,14 @@ export type AsyncThunkSliceReducerConfig<
       AsyncThunk<Returned, ThunkArg, ThunkApiConfig>['rejected' | 'fulfilled']
     >
   >
+}
+
+export type AsyncThunkSliceReducerConfig<
+  State,
+  ThunkArg,
+  Returned,
+  ThunkApiConfig extends AsyncThunkConfig = {},
+> = AsyncThunkSliceReducers<State, ThunkArg, Returned, ThunkApiConfig> & {
   options?: AsyncThunkOptions<ThunkArg, ThunkApiConfig>
 }
 
@@ -150,7 +158,7 @@ export const asyncThunkCreator: ReducerCreator<ReducerType.asyncThunk> = {
   create: /* @__PURE__ */ (() => {
     function asyncThunk(
       payloadCreator: AsyncThunkPayloadCreator<any, any>,
-      config: AsyncThunkSliceReducerConfig<any, any>,
+      config: AsyncThunkSliceReducerConfig<any, any, any>,
     ): AsyncThunkSliceReducerDefinition<any, any> {
       return {
         _reducerDefinitionType: ReducerType.asyncThunk,
