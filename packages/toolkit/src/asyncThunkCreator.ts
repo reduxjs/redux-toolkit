@@ -7,11 +7,7 @@ import type {
 } from './createAsyncThunk'
 import { createAsyncThunk } from './createAsyncThunk'
 import type { CaseReducer } from './createReducer'
-import type {
-  CreatorCaseReducers,
-  ReducerCreator,
-  ReducerDefinition,
-} from './createSlice'
+import type { ReducerCreator, ReducerDefinition } from './createSlice'
 import { ReducerType } from './createSlice'
 import type { Id } from './tsHelpers'
 
