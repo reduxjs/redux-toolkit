@@ -125,6 +125,14 @@ interface InternalReducerHandlingContext<State> {
 
   sliceCaseReducersByName: Record<string, any>
   actionCreators: Record<string, any>
+
+  sliceCreators: Record<string, ReducerCreator<RegisteredReducerType>['create']>
+  sliceCreatorHandlers: Partial<
+    Record<
+      RegisteredReducerType,
+      ReducerCreator<RegisteredReducerType>['handle']
+    >
+  >
 }
 
 export interface ReducerHandlingContext<State> {
@@ -429,11 +437,15 @@ export interface CreateSliceOptions<
   State = any,
   CR extends
     | SliceCaseReducers<State>
-    | CreatorCallback<State, CreatorMap> = SliceCaseReducers<State>,
+    | CreatorCallback<
+        State,
+        CreatorMap & SliceCreatorMap
+      > = SliceCaseReducers<State>,
   Name extends string = string,
   ReducerPath extends string = Name,
   Selectors extends SliceSelectors<State> = SliceSelectors<State>,
   CreatorMap extends Record<string, RegisteredReducerType> = {},
+  SliceCreatorMap extends Record<string, RegisteredReducerType> = {},
 > {
   /**
    * The slice's name. Used to namespace the generated action types.
@@ -505,6 +517,10 @@ createSlice({
    * A map of selectors that receive the slice's state and any additional arguments, and return a result.
    */
   selectors?: Selectors
+
+  creators?: CreatorOption<SliceCreatorMap> & {
+    [K in keyof CreatorMap]?: never
+  }
 }
 
 export type CaseReducerDefinition<
@@ -745,14 +761,18 @@ const isCreatorCallback = (
   reducers: unknown,
 ): reducers is CreatorCallback<any, any> => typeof reducers === 'function'
 
+type CreatorOption<CreatorMap extends Record<string, RegisteredReducerType>> = {
+  [Name in keyof CreatorMap]: Name extends 'reducer' | 'preparedReducer'
+    ? never
+    : ReducerCreator<CreatorMap[Name]>
+} & {
+  asyncThunk?: ReducerCreator<ReducerType.asyncThunk>
+}
+
 interface BuildCreateSliceConfig<
   CreatorMap extends Record<string, RegisteredReducerType>,
 > {
-  creators?: {
-    [Name in keyof CreatorMap]: Name extends 'reducer' | 'preparedReducer'
-      ? never
-      : ReducerCreator<CreatorMap[Name]>
-  } & { asyncThunk?: ReducerCreator<ReducerType.asyncThunk> }
+  creators?: CreatorOption<CreatorMap>
 }
 
 export function buildCreateSlice<
@@ -809,10 +829,11 @@ export function buildCreateSlice<
     State,
     CaseReducers extends
       | SliceCaseReducers<State>
-      | CreatorCallback<State, CreatorMap>,
+      | CreatorCallback<State, CreatorMap & SliceCreatorMap>,
     Name extends string,
     Selectors extends SliceSelectors<State>,
     ReducerPath extends string = Name,
+    SliceCreatorMap extends Record<string, RegisteredReducerType> = {},
   >(
     options: CreateSliceOptions<
       State,
@@ -820,16 +841,24 @@ export function buildCreateSlice<
       Name,
       ReducerPath,
       Selectors,
-      CreatorMap
+      CreatorMap,
+      SliceCreatorMap
     >,
   ): Slice<
     State,
-    GetCaseReducers<State, CreatorMap, CaseReducers>,
+    GetCaseReducers<State, CreatorMap & SliceCreatorMap, CaseReducers>,
     Name,
     ReducerPath,
     Selectors
   > {
-    const { name, reducerPath = name as unknown as ReducerPath } = options
+    const {
+      name,
+      reducerPath = name as unknown as ReducerPath,
+      creators: sliceCreators = {} as Record<
+        string,
+        ReducerCreator<RegisteredReducerType>
+      >,
+    } = options
     if (!name) {
       throw new Error('`name` is a required option for createSlice')
     }
@@ -852,6 +881,20 @@ export function buildCreateSlice<
       sliceCaseReducersByType: {},
       actionCreators: {},
       sliceMatchers: [],
+      sliceCreators: { ...creators },
+      sliceCreatorHandlers: { ...handlers },
+    }
+
+    for (const [name, creator] of Object.entries(sliceCreators)) {
+      if (name in creators) {
+        throw new Error(
+          `A creator with the name ${name} has already been provided to buildCreateSlice`,
+        )
+      }
+      internalContext.sliceCreators[name] = creator.create
+      if ('handle' in creator) {
+        internalContext.sliceCreatorHandlers[creator.type] = creator.handle
+      }
     }
 
     function getContext({ reducerName }: ReducerDetails) {
@@ -917,7 +960,7 @@ export function buildCreateSlice<
     }
 
     if (isCreatorCallback(options.reducers)) {
-      const reducers = options.reducers(creators as any)
+      const reducers = options.reducers(internalContext.sliceCreators as any)
       for (const [reducerName, reducerDefinition] of Object.entries(reducers)) {
         const { _reducerDefinitionType: type } = reducerDefinition
         if (typeof type === 'undefined') {
@@ -925,7 +968,7 @@ export function buildCreateSlice<
             'Please use reducer creators passed to callback. Each reducer definition must have a `_reducerDefinitionType` property indicating which handler to use.',
           )
         }
-        const handle = handlers[type]
+        const handle = internalContext.sliceCreatorHandlers[type]
         if (!handle) {
           throw new Error(`Unsupported reducer type: ${String(type)}`)
         }
@@ -1027,7 +1070,7 @@ export function buildCreateSlice<
     ): Pick<
       Slice<
         State,
-        GetCaseReducers<State, CreatorMap, CaseReducers>,
+        GetCaseReducers<State, CreatorMap & SliceCreatorMap, CaseReducers>,
         Name,
         CurrentReducerPath,
         Selectors
@@ -1093,7 +1136,7 @@ export function buildCreateSlice<
 
     const slice: Slice<
       State,
-      GetCaseReducers<State, CreatorMap, CaseReducers>,
+      GetCaseReducers<State, CreatorMap & SliceCreatorMap, CaseReducers>,
       Name,
       ReducerPath,
       Selectors

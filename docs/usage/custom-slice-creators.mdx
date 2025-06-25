@@ -48,6 +48,12 @@ const { undo, redo, reset, updateTitle, togglePinned } =
 
 In order to use slice creators, `reducers` becomes a callback, which receives a `create` object. This `create` object contains a couple of [inbuilt creators](#rtk-creators), along with any creators passed to [`buildCreateSlice`](../api/createSlice#buildcreateslice).
 
+:::note
+
+Creators can also be [passed per slice](/api/createSlice#creators), but most creators will be useful in more than one slice - so it's recommended to pass them to `buildCreateSlice` instead.
+
+:::
+
 ```ts title="Creator callback for reducers"
 import { buildCreateSlice, asyncThunkCreator, nanoid } from '@reduxjs/toolkit'
 
@@ -166,7 +172,7 @@ The [creator definition](#creator-definitions) for `create.preparedReducer` is e
 
 These creators are not included in the default `create` object, but can be added by passing them to [`buildCreateSlice`](../api/createSlice#buildcreateslice).
 
-The name the creator is available under is based on the key used when calling `buildCreateSlice`. For example, to use `create.asyncThunk`:
+The name the creator is available under is based on the key used when calling `buildCreateSlice` (or [`createSlice`](/api/createSlice#creators)). For example, to use `create.asyncThunk`:
 
 ```ts
 import { buildCreateSlice, asyncThunkCreator } from '@reduxjs/toolkit'
@@ -464,7 +470,7 @@ Typically a creator will be a function that returns a [single reducer definition
 
 A creator definition contains the actual runtime logic for that creator. It's an object with a `type` property, a `create` value (typically a function or set of functions), and an optional `handle` method.
 
-It's passed to [`buildCreateSlice`](../api/createSlice#buildcreateslice) as part of the `creators` object, and the name used when calling `buildCreateSlice` will be the key the creator is nested under in the `create` object.
+It's passed to [`buildCreateSlice`](../api/createSlice#buildcreateslice) (or [`createSlice`](/api/createSlice#creators)) as part of the `creators` object, and the name used when calling `buildCreateSlice` will be the key the creator is nested under in the `create` object.
 
 ```ts no-transpile
 import { buildCreateSlice } from '@reduxjs/toolkit'

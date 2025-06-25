@@ -49,5 +49,6 @@
   "47": "context.exposeCaseReducer cannot be called twice for the same reducer definition: reducerName",
   "48": "Could not find \"\" slice in state. In order for slice creators to use \\`context.selectSlice\\`, the slice must be nested in the state under its reducerPath: \"\"",
   "49": "Please use reducer creators passed to callback. Each reducer definition must have a `_reducerDefinitionType` property indicating which handler to use.",
-  "50": "Unsupported reducer type: "
+  "50": "Unsupported reducer type: ",
+  "51": "A creator with the name  has already been provided to buildCreateSlice"
 }
