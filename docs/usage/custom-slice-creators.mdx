@@ -685,11 +685,7 @@ Creators are registered by using module augmentation to add a new key (their uni
 const reducerCreatorType = Symbol('reducerCreatorType')
 
 declare module '@reduxjs/toolkit' {
-  export interface SliceReducerCreators<
-    State,
-    SliceName extends string,
-    ReducerPath extends string,
-  > {
+  export interface SliceReducerCreators<State> {
     [reducerCreatorType]: () => ReducerDefinition<typeof reducerCreatorType>
   }
   export interface SliceReducerCreatorsExposes<
@@ -718,8 +714,6 @@ declare module '@reduxjs/toolkit' {
 The type parameters for `SliceReducerCreators` are:
 
 - `State` - The state type used by the slice.
-- `SliceName` - The [`name`](../api/createSlice#name) used by the slice.
-- `ReducerPath` - The [`reducerPath`](../api/createSlice#reducerpath) used by the slice.
 
 This is where you register the type of the `create` value of the creator definition (typically a function signature).
 
@@ -733,11 +727,7 @@ However, this should be specifically included in the function signature, so Type
 const batchedCreatorType = Symbol('batchedCreatorType')
 
 declare module '@reduxjs/toolkit' {
-  export interface SliceReducerCreators<
-    State,
-    SliceName extends string,
-    ReducerPath extends string,
-  > {
+  export interface SliceReducerCreators<State> {
     [batchedCreatorType]: <Payload>(
       // highlight-next-line
       this: ReducerCreators<State, {}>,
@@ -772,11 +762,7 @@ import {
 const batchedCreatorType = Symbol('batchedCreatorType')
 
 declare module '@reduxjs/toolkit' {
-  export interface SliceReducerCreators<
-    State,
-    SliceName extends string,
-    ReducerPath extends string,
-  > {
+  export interface SliceReducerCreators<State> {
     [batchedCreatorType]: <Payload>(
       reducer: CaseReducer<State, PayloadAction<Payload>>,
     ) => PreparedCaseReducerDefinition<
@@ -807,11 +793,7 @@ Sometimes it's useful to have a reducer creator that only works with a specific 
 const loaderCreatorType = Symbol('loaderCreatorType')
 
 declare module '@reduxjs/toolkit' {
-  export interface SliceReducerCreators<
-    State,
-    SliceName extends string,
-    ReducerPath extends string,
-  > {
+  export interface SliceReducerCreators<State> {
     // highlight-next-line
     [loaderCreatorType]: State extends { loading: boolean }
       ? () => {
@@ -831,11 +813,7 @@ An alternative would be just using that required type _as_ the `State` type for 
 const loaderCreatorType = Symbol('loaderCreatorType')
 
 declare module '@reduxjs/toolkit' {
-  export interface SliceReducerCreators<
-    State,
-    SliceName extends string,
-    ReducerPath extends string,
-  > {
+  export interface SliceReducerCreators<State> {
     [loaderCreatorType]: () => {
       start: CaseReducerDefinition<{ loading: boolean }, PayloadAction>
       end: CaseReducerDefinition<{ loading: boolean }, PayloadAction>
@@ -878,11 +856,7 @@ For example, with (a simplified version of) the `asyncThunk` creator:
 const asyncThunkCreatorType = Symbol('asyncThunkCreatorType')
 
 declare module '@reduxjs/toolkit' {
-  export interface SliceReducerCreators<
-    State,
-    SliceName extends string,
-    ReducerPath extends string,
-  > {
+  export interface SliceReducerCreators<State> {
     [asyncThunkCreatorType]: <ThunkArg, Returned>(
       payloadCreator: AsyncThunkPayloadCreator<ThunkArg, Returned>,
     ) => AsyncThunkReducerDefinition<State, ThunkArg, Returned>
@@ -921,11 +895,7 @@ For example, with the `preparedReducer` creator:
 const preparedReducerType = Symbol('preparedReducerType')
 
 declare module '@reduxjs/toolkit' {
-  export interface SliceReducerCreators<
-    State,
-    SliceName extends string,
-    ReducerPath extends string,
-  > {
+  export interface SliceReducerCreators<State> {
     [preparedReducerType]: <Prepare extends PrepareAction<any>>(
       prepare: Prepare,
       caseReducer: CaseReducer<State, ActionForPrepare<Prepare>>,
@@ -1023,11 +993,7 @@ interface ToastThunkCreator<
 
 // register the creator types
 declare module '@reduxjs/toolkit' {
-  export interface SliceReducerCreators<
-    State,
-    SliceName extends string,
-    ReducerPath extends string,
-  > {
+  export interface SliceReducerCreators<State> {
     [toastCreatorType]: (
       config: ToastReducerConfig<State>,
     ) => ToastReducerDefinition<State>
@@ -1151,11 +1117,7 @@ interface PaginationState {
 }
 
 declare module '@reduxjs/toolkit' {
-  export interface SliceReducerCreators<
-    State,
-    SliceName extends string,
-    ReducerPath extends string,
-  > {
+  export interface SliceReducerCreators<State> {
     // make sure the creator is only called when state is compatible
     [paginationCreatorType]: State extends PaginationState
       ? (this: ReducerCreators<State>) => {
@@ -1221,11 +1183,7 @@ interface HistoryState<T> {
 }
 
 declare module '@reduxjs/toolkit' {
-  export interface SliceReducerCreators<
-    State,
-    SliceName extends string,
-    ReducerPath extends string,
-  > {
+  export interface SliceReducerCreators<State> {
     // make sure the creator is only called when state is compatible
     [historyCreatorType]: State extends HistoryState<any>
       ? (this: ReducerCreators<State>) => {
