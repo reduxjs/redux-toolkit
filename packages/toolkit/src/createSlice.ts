@@ -38,7 +38,7 @@ export enum ReducerType {
   asyncThunk = 'asyncThunk',
 }
 
-export type RegisteredReducerType = keyof SliceReducerCreators<any, any, any>
+export type RegisteredReducerType = keyof SliceReducerCreators<any>
 
 export type ReducerDefinition<
   T extends RegisteredReducerType = RegisteredReducerType,
@@ -50,11 +50,7 @@ export type CreatorCaseReducers<State> =
   | Record<string, ReducerDefinition>
   | SliceCaseReducers<State>
 
-export interface SliceReducerCreators<
-  State,
-  SliceName extends string,
-  ReducerPath extends string,
-> {
+export interface SliceReducerCreators<State> {
   [ReducerType.reducer]: {
     (
       caseReducer: CaseReducer<State, PayloadAction>,
@@ -111,28 +107,14 @@ export interface SliceReducerCreatorsExposes<
 
 export type ReducerCreators<
   State,
-  Name extends string = string,
-  ReducerPath extends string = Name,
   CreatorMap extends Record<string, RegisteredReducerType> = {},
 > = {
-  reducer: SliceReducerCreators<State, Name, ReducerPath>[ReducerType.reducer]
-  preparedReducer: SliceReducerCreators<
-    State,
-    Name,
-    ReducerPath
-  >[ReducerType.reducerWithPrepare]
+  reducer: SliceReducerCreators<State>[ReducerType.reducer]
+  preparedReducer: SliceReducerCreators<State>[ReducerType.reducerWithPrepare]
 } & {
-  [CreatorName in keyof CreatorMap as SliceReducerCreators<
-    State,
-    Name,
-    ReducerPath
-  >[CreatorMap[CreatorName]] extends never
+  [CreatorName in keyof CreatorMap as SliceReducerCreators<State>[CreatorMap[CreatorName]] extends never
     ? never
-    : CreatorName]: SliceReducerCreators<
-    State,
-    Name,
-    ReducerPath
-  >[CreatorMap[CreatorName]]
+    : CreatorName]: SliceReducerCreators<State>[CreatorMap[CreatorName]]
 }
 
 interface InternalReducerHandlingContext<State> {
@@ -259,14 +241,14 @@ type DefinitionFromValue<
 
 type ReducerDefinitionsForType<Type extends RegisteredReducerType> = {
   [CreatorType in RegisteredReducerType]: DefinitionFromValue<
-    SliceReducerCreators<any, any, any>[CreatorType],
+    SliceReducerCreators<any>[CreatorType],
     Type
   >
 }[RegisteredReducerType]
 
 export type ReducerCreator<Type extends RegisteredReducerType> = {
   type: Type
-  create: SliceReducerCreators<any, any, any>[Type]
+  create: SliceReducerCreators<any>[Type]
 } & (ReducerDefinitionsForType<Type> extends never
   ? {
       handle?<State>(
@@ -425,23 +407,16 @@ type InjectedSlice<
 
 type CreatorCallback<
   State,
-  Name extends string,
-  ReducerPath extends string,
   CreatorMap extends Record<string, RegisteredReducerType>,
 > = (
-  create: ReducerCreators<State, Name, ReducerPath, CreatorMap>,
+  create: ReducerCreators<State, CreatorMap>,
 ) => Record<string, ReducerDefinition>
 
 type GetCaseReducers<
   State,
-  Name extends string,
-  ReducerPath extends string,
   CreatorMap extends Record<string, RegisteredReducerType>,
-  CR extends SliceCaseReducers<State> | CreatorCallback<State, any, any, any>,
-> =
-  CR extends CreatorCallback<State, Name, ReducerPath, CreatorMap>
-    ? ReturnType<CR>
-    : CR
+  CR extends SliceCaseReducers<State> | CreatorCallback<State, any>,
+> = CR extends CreatorCallback<State, CreatorMap> ? ReturnType<CR> : CR
 
 /**
  * Options for `createSlice()`.
@@ -452,12 +427,7 @@ export interface CreateSliceOptions<
   State = any,
   CR extends
     | SliceCaseReducers<State>
-    | CreatorCallback<
-        State,
-        Name,
-        ReducerPath,
-        CreatorMap
-      > = SliceCaseReducers<State>,
+    | CreatorCallback<State, CreatorMap> = SliceCaseReducers<State>,
   Name extends string = string,
   ReducerPath extends string = Name,
   Selectors extends SliceSelectors<State> = SliceSelectors<State>,
@@ -712,7 +682,7 @@ type SliceDefinedSelectors<
  */
 export type ValidateSliceCaseReducers<
   S,
-  ACR extends SliceCaseReducers<S> | CreatorCallback<S, any, any, any>,
+  ACR extends SliceCaseReducers<S> | CreatorCallback<S, any>,
 > = ACR & {
   [T in keyof ACR]: ACR[T] extends {
     reducer(s: S, action?: infer A): any
@@ -771,8 +741,7 @@ export const preparedReducerCreator: ReducerCreator<ReducerType.reducerWithPrepa
 
 const isCreatorCallback = (
   reducers: unknown,
-): reducers is CreatorCallback<any, any, any, any> =>
-  typeof reducers === 'function'
+): reducers is CreatorCallback<any, any> => typeof reducers === 'function'
 
 interface BuildCreateSliceConfig<
   CreatorMap extends Record<string, RegisteredReducerType>,
@@ -838,7 +807,7 @@ export function buildCreateSlice<
     State,
     CaseReducers extends
       | SliceCaseReducers<State>
-      | CreatorCallback<State, Name, ReducerPath, CreatorMap>,
+      | CreatorCallback<State, CreatorMap>,
     Name extends string,
     Selectors extends SliceSelectors<State>,
     ReducerPath extends string = Name,
@@ -853,7 +822,7 @@ export function buildCreateSlice<
     >,
   ): Slice<
     State,
-    GetCaseReducers<State, Name, ReducerPath, CreatorMap, CaseReducers>,
+    GetCaseReducers<State, CreatorMap, CaseReducers>,
     Name,
     ReducerPath,
     Selectors
@@ -1056,7 +1025,7 @@ export function buildCreateSlice<
     ): Pick<
       Slice<
         State,
-        GetCaseReducers<State, Name, ReducerPath, CreatorMap, CaseReducers>,
+        GetCaseReducers<State, CreatorMap, CaseReducers>,
         Name,
         CurrentReducerPath,
         Selectors
@@ -1122,7 +1091,7 @@ export function buildCreateSlice<
 
     const slice: Slice<
       State,
-      GetCaseReducers<State, Name, ReducerPath, CreatorMap, CaseReducers>,
+      GetCaseReducers<State, CreatorMap, CaseReducers>,
       Name,
       ReducerPath,
       Selectors
