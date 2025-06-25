@@ -1233,11 +1233,7 @@ type PatchThunk<
 }
 
 declare module '@reduxjs/toolkit' {
-  export interface SliceReducerCreators<
-    State,
-    SliceName extends string,
-    ReducerPath extends string,
-  > {
+  export interface SliceReducerCreators<State> {
     [loaderCreatorType]: (
       reducers: Pick<LoaderReducerDefinition<State>, 'ended' | 'started'>,
     ) => LoaderReducerDefinition<State>
