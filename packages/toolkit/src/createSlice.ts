@@ -20,6 +20,7 @@ import type {
   ReducerWithInitialState,
 } from './createReducer'
 import { createReducer, makeGetInitialState } from './createReducer'
+import type { EntityMethodsCreator } from './entities/slice_creator'
 import type { ActionReducerMapBuilder, TypedActionCreator } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
 import type {
@@ -28,7 +29,6 @@ import type {
   IsAny,
   OverloadedReturnType,
   TypeGuard,
-  UnionToIntersection,
 } from './tsHelpers'
 import { getOrInsertComputed } from './utils'
 
@@ -36,6 +36,7 @@ export enum ReducerType {
   reducer = 'reducer',
   reducerWithPrepare = 'reducerWithPrepare',
   asyncThunk = 'asyncThunk',
+  entityMethods = 'entityMethods',
 }
 
 export type RegisteredReducerType = keyof SliceReducerCreators<any>
@@ -67,6 +68,7 @@ export interface SliceReducerCreators<State> {
     >,
   ) => PreparedCaseReducerDefinition<State, Prepare>
   [ReducerType.asyncThunk]: AsyncThunkCreator<State>
+  [ReducerType.entityMethods]: EntityMethodsCreator<State>
 }
 
 export interface SliceReducerCreatorsExposes<

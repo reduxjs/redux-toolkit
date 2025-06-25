@@ -135,6 +135,10 @@ export type {
   IdSelector,
   Comparer,
 } from './entities/models'
+export {
+  createEntityMethods,
+  entityMethodsCreator,
+} from './entities/slice_creator'
 
 export {
   createAsyncThunk,
