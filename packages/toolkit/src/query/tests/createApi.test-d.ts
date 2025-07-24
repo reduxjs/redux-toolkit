@@ -498,6 +498,7 @@ describe('type tests', () => {
           id: number
         }>()
         expectTypeOf(api.endpoints.query.Types.ResultType).toEqualTypeOf<Post>()
+        expectTypeOf(api.endpoints.query.Types.RawResultType).toBeAny()
 
         expectTypeOf(api.endpoints.query2.Types.QueryArg).toEqualTypeOf<{
           id: number
@@ -505,10 +506,14 @@ describe('type tests', () => {
         expectTypeOf(
           api.endpoints.query2.Types.ResultType,
         ).toEqualTypeOf<Post>()
+        expectTypeOf(api.endpoints.query2.Types.RawResultType).toBeAny()
 
         expectTypeOf(api.endpoints.query3.Types.QueryArg).toEqualTypeOf<void>()
         expectTypeOf(api.endpoints.query3.Types.ResultType).toEqualTypeOf<
           EntityState<Post, Post['id']>
+        >()
+        expectTypeOf(api.endpoints.query3.Types.RawResultType).toEqualTypeOf<
+          Post[]
         >()
       })
     })

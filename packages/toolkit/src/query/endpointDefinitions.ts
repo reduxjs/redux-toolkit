@@ -237,10 +237,16 @@ export type EndpointDefinitionWithQueryFn<
   rawErrorResponseSchema?: never
 }
 
-type BaseEndpointTypes<QueryArg, BaseQuery extends BaseQueryFn, ResultType> = {
+type BaseEndpointTypes<
+  QueryArg,
+  BaseQuery extends BaseQueryFn,
+  ResultType,
+  RawResultType,
+> = {
   QueryArg: QueryArg
   BaseQuery: BaseQuery
   ResultType: ResultType
+  RawResultType: RawResultType
 }
 
 interface CommonEndpointDefinition<
@@ -519,7 +525,8 @@ type QueryTypes<
   TagTypes extends string,
   ResultType,
   ReducerPath extends string = string,
-> = BaseEndpointTypes<QueryArg, BaseQuery, ResultType> & {
+  RawResultType extends BaseQueryResult<BaseQuery> = BaseQueryResult<BaseQuery>,
+> = BaseEndpointTypes<QueryArg, BaseQuery, ResultType, RawResultType> & {
   /**
    * The endpoint definition type. To be used with some internal generic types.
    * @example
@@ -547,6 +554,7 @@ export interface QueryExtraOptions<
   QueryArg,
   BaseQuery extends BaseQueryFn,
   ReducerPath extends string = string,
+  RawResultType extends BaseQueryResult<BaseQuery> = BaseQueryResult<BaseQuery>,
 > extends CacheLifecycleQueryExtraOptions<
       ResultType,
       QueryArg,
@@ -791,7 +799,14 @@ export interface QueryExtraOptions<
   /**
    * All of these are `undefined` at runtime, purely to be used in TypeScript declarations!
    */
-  Types?: QueryTypes<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>
+  Types?: QueryTypes<
+    QueryArg,
+    BaseQuery,
+    TagTypes,
+    ResultType,
+    ReducerPath,
+    RawResultType
+  >
 }
 
 export type QueryDefinition<
@@ -802,7 +817,14 @@ export type QueryDefinition<
   ReducerPath extends string = string,
   RawResultType extends BaseQueryResult<BaseQuery> = BaseQueryResult<BaseQuery>,
 > = BaseEndpointDefinition<QueryArg, BaseQuery, ResultType, RawResultType> &
-  QueryExtraOptions<TagTypes, ResultType, QueryArg, BaseQuery, ReducerPath>
+  QueryExtraOptions<
+    TagTypes,
+    ResultType,
+    QueryArg,
+    BaseQuery,
+    ReducerPath,
+    RawResultType
+  >
 
 export type InfiniteQueryTypes<
   QueryArg,
@@ -811,7 +833,8 @@ export type InfiniteQueryTypes<
   TagTypes extends string,
   ResultType,
   ReducerPath extends string = string,
-> = BaseEndpointTypes<QueryArg, BaseQuery, ResultType> & {
+  RawResultType extends BaseQueryResult<BaseQuery> = BaseQueryResult<BaseQuery>,
+> = BaseEndpointTypes<QueryArg, BaseQuery, ResultType, RawResultType> & {
   /**
    * The endpoint definition type. To be used with some internal generic types.
    * @example
@@ -838,6 +861,7 @@ export interface InfiniteQueryExtraOptions<
   PageParam,
   BaseQuery extends BaseQueryFn,
   ReducerPath extends string = string,
+  RawResultType extends BaseQueryResult<BaseQuery> = BaseQueryResult<BaseQuery>,
 > extends CacheLifecycleInfiniteQueryExtraOptions<
       InfiniteData<ResultType, PageParam>,
       QueryArg,
@@ -987,7 +1011,8 @@ export interface InfiniteQueryExtraOptions<
     BaseQuery,
     TagTypes,
     ResultType,
-    ReducerPath
+    ReducerPath,
+    RawResultType
   >
 }
 
@@ -1013,7 +1038,8 @@ export type InfiniteQueryDefinition<
       QueryArg,
       PageParam,
       BaseQuery,
-      ReducerPath
+      ReducerPath,
+      RawResultType
     >
 
 type MutationTypes<
@@ -1022,7 +1048,8 @@ type MutationTypes<
   TagTypes extends string,
   ResultType,
   ReducerPath extends string = string,
-> = BaseEndpointTypes<QueryArg, BaseQuery, ResultType> & {
+  RawResultType extends BaseQueryResult<BaseQuery> = BaseQueryResult<BaseQuery>,
+> = BaseEndpointTypes<QueryArg, BaseQuery, ResultType, RawResultType> & {
   /**
    * The endpoint definition type. To be used with some internal generic types.
    * @example
@@ -1050,6 +1077,7 @@ export interface MutationExtraOptions<
   QueryArg,
   BaseQuery extends BaseQueryFn,
   ReducerPath extends string = string,
+  RawResultType extends BaseQueryResult<BaseQuery> = BaseQueryResult<BaseQuery>,
 > extends CacheLifecycleMutationExtraOptions<
       ResultType,
       QueryArg,
@@ -1124,7 +1152,14 @@ export interface MutationExtraOptions<
   /**
    * All of these are `undefined` at runtime, purely to be used in TypeScript declarations!
    */
-  Types?: MutationTypes<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>
+  Types?: MutationTypes<
+    QueryArg,
+    BaseQuery,
+    TagTypes,
+    ResultType,
+    ReducerPath,
+    RawResultType
+  >
 }
 
 export type MutationDefinition<
@@ -1135,7 +1170,14 @@ export type MutationDefinition<
   ReducerPath extends string = string,
   RawResultType extends BaseQueryResult<BaseQuery> = BaseQueryResult<BaseQuery>,
 > = BaseEndpointDefinition<QueryArg, BaseQuery, ResultType, RawResultType> &
-  MutationExtraOptions<TagTypes, ResultType, QueryArg, BaseQuery, ReducerPath>
+  MutationExtraOptions<
+    TagTypes,
+    ResultType,
+    QueryArg,
+    BaseQuery,
+    ReducerPath,
+    RawResultType
+  >
 
 export type EndpointDefinition<
   QueryArg,
