@@ -1,6 +1,6 @@
-import { Routes, Route } from 'react-router-dom'
-import { PostsManager } from './features/posts/PostsManager'
 import { Box } from '@chakra-ui/react'
+import { Route, Routes } from 'react-router-dom'
+import { PostsManager } from './features/posts/PostsManager'
 
 function App() {
   return (

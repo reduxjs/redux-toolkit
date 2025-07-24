@@ -1,12 +1,12 @@
 import type {
   Action,
-  AsyncThunkAction,
   Middleware,
   MiddlewareAPI,
   ThunkAction,
   ThunkDispatch,
   UnknownAction,
 } from '@reduxjs/toolkit'
+import type { AnyNonNullishValue } from '../../../tsHelpers'
 import type { Api, ApiContext } from '../../apiTypes'
 import type {
   AssertTagTypes,
@@ -18,15 +18,13 @@ import type {
   RootState,
   SubscriptionState,
 } from '../apiState'
+import type { QueryActionCreatorResult } from '../buildInitiate'
+import type { AllSelectors } from '../buildSelectors'
 import type {
   InfiniteQueryThunk,
   MutationThunk,
   QueryThunk,
-  QueryThunkArg,
-  ThunkResult,
 } from '../buildThunks'
-import type { QueryActionCreatorResult } from '../buildInitiate'
-import type { AllSelectors } from '../buildSelectors'
 
 export type QueryStateMeta<T> = Record<string, undefined | T>
 export type TimeoutId = ReturnType<typeof setTimeout>
@@ -77,7 +75,7 @@ export interface BuildSubMiddlewareInput
 export type SubMiddlewareBuilder = (
   input: BuildSubMiddlewareInput,
 ) => Middleware<
-  {},
+  AnyNonNullishValue,
   RootState<EndpointDefinitions, string, string>,
   ThunkDispatch<any, any, UnknownAction>
 >
@@ -94,7 +92,7 @@ export type InternalHandlerBuilder<ReturnType = void> = (
   input: BuildSubMiddlewareInput,
 ) => ApiMiddlewareInternalHandler<ReturnType>
 
-export interface PromiseConstructorWithKnownReason {
+export type PromiseConstructorWithKnownReason =
   /**
    * Creates a new Promise with a known rejection reason.
    * @param executor A callback used to initialize the promise. This callback is passed two arguments:
@@ -106,8 +104,7 @@ export interface PromiseConstructorWithKnownReason {
       resolve: (value: T | PromiseLike<T>) => void,
       reject: (reason?: R) => void,
     ) => void,
-  ): PromiseWithKnownReason<T, R>
-}
+  ) => PromiseWithKnownReason<T, R>
 
 export type PromiseWithKnownReason<T, R> = Omit<
   Promise<T>,

@@ -3,12 +3,12 @@ openapi: 3.0.2
 info:
   title: Swagger Petstore - OpenAPI 3.0
   description: "This is a sample Pet Store Server based on the OpenAPI 3.0 specification.\
-    \  You can find out more about\nSwagger at [http://swagger.io](http://swagger.io).\
-    \ In the third iteration of the pet store, we've switched to the design first\
-    \ approach!\nYou can now help us improve the API whether it's by making changes\
-    \ to the definition itself or to the code.\nThat way, with time, we can improve\
-    \ the API in general, and expose some of the new features in OAS3.\n\nSome useful\
-    \ links:\n- [The Pet Store repository](https://github.com/swagger-api/swagger-petstore)\n\
+    You can find out more about\nSwagger at [http://swagger.io](http://swagger.io).\
+    In the third iteration of the pet store, we've switched to the design first\
+    approach!\nYou can now help us improve the API whether it's by making changes\
+    to the definition itself or to the code.\nThat way, with time, we can improve\
+    the API in general, and expose some of the new features in OAS3.\n\nSome useful\
+    links:\n- [The Pet Store repository](https://github.com/swagger-api/swagger-petstore)\n\
     - [The source API definition for the Pet Store](https://github.com/swagger-api/swagger-petstore/blob/master/src/main/resources/openapi.yaml)"
   termsOfService: http://swagger.io/terms/
   contact:
@@ -157,7 +157,7 @@ paths:
         - pet
       summary: Finds Pets by tags
       description: "Multiple tags can be provided with comma separated strings. Use\
-        \ tag1, tag2, tag3 for testing."
+        tag1, tag2, tag3 for testing."
       operationId: findPetsByTags
       parameters:
         - name: tags
@@ -801,4 +801,4 @@ components:
       type: apiKey
       name: api_key
       in: header
-`;
+`

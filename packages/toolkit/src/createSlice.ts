@@ -25,7 +25,13 @@ import type {
 import { createReducer } from './createReducer'
 import type { ActionReducerMapBuilder, TypedActionCreator } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
-import type { Id, TypeGuard } from './tsHelpers'
+import type {
+  AnyFunction,
+  AnyNonNullishValue,
+  EmptyObject,
+  Id,
+  TypeGuard,
+} from './tsHelpers'
 import { getOrInsertComputed } from './utils'
 
 const asyncThunkSymbol = /* @__PURE__ */ Symbol.for(
@@ -105,7 +111,7 @@ export interface Slice<
    * Equivalent to `slice.getSelectors((state: RootState) => state[slice.reducerPath])`.
    */
   get selectors(): Id<
-    SliceDefinedSelectors<State, Selectors, { [K in ReducerPath]: State }>
+    SliceDefinedSelectors<State, Selectors, Record<ReducerPath, State>>
   >
 
   /**
@@ -127,7 +133,7 @@ export interface Slice<
    *
    * Will throw an error if slice is not found.
    */
-  selectSlice(state: { [K in ReducerPath]: State }): State
+  selectSlice(state: Record<ReducerPath, State>): State
 }
 
 /**
@@ -166,7 +172,7 @@ type InjectedSlice<
     SliceDefinedSelectors<
       State,
       Selectors,
-      { [K in ReducerPath]?: State | undefined }
+      Partial<Record<ReducerPath, State | undefined>>
     >
   >
 
@@ -175,7 +181,7 @@ type InjectedSlice<
    *
    * Returns initial state if slice is not found.
    */
-  selectSlice(state: { [K in ReducerPath]?: State | undefined }): State
+  selectSlice(state: Partial<Record<ReducerPath, State | undefined>>): State
 }
 
 /**
@@ -297,9 +303,9 @@ export interface CaseReducerWithPrepareDefinition<
 
 type AsyncThunkSliceReducerConfig<
   State,
-  ThunkArg extends any,
+  ThunkArg,
   Returned = unknown,
-  ThunkApiConfig extends AsyncThunkConfig = {},
+  ThunkApiConfig extends AsyncThunkConfig = EmptyObject,
 > = {
   pending?: CaseReducer<
     State,
@@ -324,9 +330,9 @@ type AsyncThunkSliceReducerConfig<
 
 type AsyncThunkSliceReducerDefinition<
   State,
-  ThunkArg extends any,
+  ThunkArg,
   Returned = unknown,
-  ThunkApiConfig extends AsyncThunkConfig = {},
+  ThunkApiConfig extends AsyncThunkConfig = EmptyObject,
 > = AsyncThunkSliceReducerConfig<State, ThunkArg, Returned, ThunkApiConfig> &
   ReducerDefinition<ReducerType.asyncThunk> & {
     payloadCreator: AsyncThunkPayloadCreator<Returned, ThunkArg, ThunkApiConfig>
@@ -367,7 +373,7 @@ interface AsyncThunkCreator<
   <
     Returned,
     ThunkArg,
-    ThunkApiConfig extends PreventCircular<AsyncThunkConfig> = {},
+    ThunkApiConfig extends PreventCircular<AsyncThunkConfig> = EmptyObject,
   >(
     payloadCreator: AsyncThunkPayloadCreator<
       Returned,
@@ -431,9 +437,10 @@ export type SliceCaseReducers<State> =
 /**
  * The type describing a slice's `selectors` option.
  */
-export type SliceSelectors<State> = {
-  [K: string]: (sliceState: State, ...args: any[]) => any
-}
+export type SliceSelectors<State> = Record<
+  string,
+  (sliceState: State, ...args: any[]) => any
+>
 
 type SliceActionType<
   SliceName extends string,
@@ -564,7 +571,7 @@ export type ValidateSliceCaseReducers<
     ? {
         prepare(...a: never[]): Omit<A, 'type'>
       }
-    : {}
+    : AnyNonNullishValue
 }
 
 function getType(slice: string, actionKey: string): string {
@@ -707,13 +714,13 @@ export function buildCreateSlice({ creators }: BuildCreateSliceConfig = {}) {
       }
 
       return createReducer(options.initialState, (builder) => {
-        for (let key in finalCaseReducers) {
+        for (const key in finalCaseReducers) {
           builder.addCase(key, finalCaseReducers[key] as CaseReducer<any>)
         }
-        for (let sM of context.sliceMatchers) {
+        for (const sM of context.sliceMatchers) {
           builder.addMatcher(sM.matcher, sM.reducer)
         }
-        for (let m of actionMatchers) {
+        for (const m of actionMatchers) {
           builder.addMatcher(m.matcher, m.reducer)
         }
         if (defaultCaseReducer) {
@@ -755,7 +762,7 @@ export function buildCreateSlice({ creators }: BuildCreateSliceConfig = {}) {
       Slice<State, CaseReducers, Name, CurrentReducerPath, Selectors>,
       'getSelectors' | 'selectors' | 'selectSlice' | 'reducerPath'
     > {
-      function selectSlice(state: { [K in CurrentReducerPath]: State }) {
+      function selectSlice(state: Record<CurrentReducerPath, State>) {
         let sliceState = state[reducerPath]
         if (typeof sliceState === 'undefined') {
           if (injected) {
@@ -876,7 +883,7 @@ interface ReducerHandlingContext<State> {
   >
   sliceCaseReducersByType: Record<string, CaseReducer<State, any>>
   sliceMatchers: ActionMatcherDescriptionCollection<State>
-  actionCreators: Record<string, Function>
+  actionCreators: Record<string, AnyFunction>
 }
 
 interface ReducerHandlingContextMethods<State> {
@@ -927,7 +934,7 @@ interface ReducerHandlingContextMethods<State> {
    */
   exposeAction(
     name: string,
-    actionCreator: Function,
+    actionCreator: AnyFunction,
   ): ReducerHandlingContextMethods<State>
   /**
    * Add a case reducer to be exposed under the final `slice.caseReducers` key.
@@ -1084,4 +1091,6 @@ function handleThunkCaseReducerDefinition<State>(
   })
 }
 
-function noop() {}
+function noop() {
+  /** No-Op */
+}

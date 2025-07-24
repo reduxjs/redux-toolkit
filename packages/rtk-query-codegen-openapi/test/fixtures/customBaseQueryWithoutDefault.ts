@@ -1,1 +1,3 @@
-function customBaseQuery() {}
+function customBaseQuery() {
+  /** No-Op */
+}

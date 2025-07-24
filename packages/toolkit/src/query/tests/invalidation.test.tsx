@@ -14,7 +14,7 @@ const tagTypes = [
   'giraffe',
 ] as const
 type TagTypes = (typeof tagTypes)[number]
-type ProvidedTags = TagDescription<TagTypes>[] 
+type ProvidedTags = TagDescription<TagTypes>[]
 type InvalidatesTags = (ProvidedTags[number] | null | undefined)[]
 /** providesTags, invalidatesTags, shouldInvalidate */
 const caseMatrix: [ProvidedTags, InvalidatesTags, boolean][] = [

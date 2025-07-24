@@ -6,5 +6,5 @@ runTransformTest(
   'createSliceBuilder',
   transform,
   parser,
-  path.join(__dirname, '__testfixtures__')
+  path.join(__dirname, '__testfixtures__'),
 )
