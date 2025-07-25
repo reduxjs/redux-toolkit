@@ -284,14 +284,17 @@ export type CaseReducerDefinition<
  *
  * @public
  */
-export type CaseReducerWithPrepare<State, Action extends PayloadAction> = {
+export type CaseReducerWithPrepare<
+  State,
+  Action extends PayloadAction<any, string, any, any>,
+> = {
   reducer: CaseReducer<State, Action>
   prepare: PrepareAction<Action['payload']>
 }
 
 export interface CaseReducerWithPrepareDefinition<
   State,
-  Action extends PayloadAction,
+  Action extends PayloadAction<any, string, any, any>,
 > extends CaseReducerWithPrepare<State, Action>,
     ReducerDefinition<ReducerType.reducerWithPrepare> {}
 
