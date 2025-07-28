@@ -249,6 +249,14 @@ type BaseEndpointTypes<
   RawResultType: RawResultType
 }
 
+export type SchemaType =
+  | 'arg'
+  | 'rawResponse'
+  | 'response'
+  | 'rawErrorResponse'
+  | 'errorResponse'
+  | 'meta'
+
 interface CommonEndpointDefinition<
   QueryArg,
   BaseQuery extends BaseQueryFn,
@@ -427,6 +435,8 @@ interface CommonEndpointDefinition<
    * If set to `true`, will skip schema validation for this endpoint.
    * Overrides the global setting.
    *
+   * Can be overridden for specific schemas by passing an array of schema types to skip.
+   *
    * @example
    * ```ts
    * // codeblock-meta no-transpile
@@ -439,13 +449,13 @@ interface CommonEndpointDefinition<
    *     getPost: build.query<Post, { id: number }>({
    *       query: ({ id }) => `/post/${id}`,
    *       responseSchema: v.object({ id: v.number(), name: v.string() }),
-   *       skipSchemaValidation: process.env.NODE_ENV === "test", // skip schema validation in tests, since we'll be mocking the response
+   *       skipSchemaValidation: process.env.NODE_ENV === "test" ? ["response"] : false, // skip schema validation for response in tests, since we'll be mocking the response
    *     }),
    *   })
    * })
    * ```
    */
-  skipSchemaValidation?: boolean
+  skipSchemaValidation?: boolean | SchemaType[]
 }
 
 export type BaseEndpointDefinition<

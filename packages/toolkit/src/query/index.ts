@@ -49,6 +49,7 @@ export type {
   SchemaFailureHandler,
   SchemaFailureConverter,
   SchemaFailureInfo,
+  SchemaType,
 } from './endpointDefinitions'
 export { fetchBaseQuery } from './fetchBaseQuery'
 export type {
