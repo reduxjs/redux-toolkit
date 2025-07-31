@@ -6,6 +6,7 @@ import {
   combineSlices,
   configureStore,
   createAction,
+  createAsyncThunk,
   createSlice,
 } from '@reduxjs/toolkit'
 
@@ -263,6 +264,58 @@ describe('createSlice', () => {
         }).toThrowErrorMatchingInlineSnapshot(
           `[Error: \`builder.addCase\` cannot be called with two reducers for the same action type 'increment']`,
         )
+      })
+
+      test('can be used with addAsyncThunk and async thunks', () => {
+        const asyncThunk = createAsyncThunk('test', (n: number) => n)
+        const slice = createSlice({
+          name: 'counter',
+          initialState: {
+            loading: false,
+            errored: false,
+            value: 0,
+          },
+          reducers: {},
+          extraReducers: (builder) =>
+            builder.addAsyncThunk(asyncThunk, {
+              pending(state) {
+                state.loading = true
+              },
+              fulfilled(state, action) {
+                state.value = action.payload
+              },
+              rejected(state) {
+                state.errored = true
+              },
+              settled(state) {
+                state.loading = false
+              },
+            }),
+        })
+        expect(
+          slice.reducer(undefined, asyncThunk.pending('requestId', 5)),
+        ).toEqual({
+          loading: true,
+          errored: false,
+          value: 0,
+        })
+        expect(
+          slice.reducer(undefined, asyncThunk.fulfilled(5, 'requestId', 5)),
+        ).toEqual({
+          loading: false,
+          errored: false,
+          value: 5,
+        })
+        expect(
+          slice.reducer(
+            undefined,
+            asyncThunk.rejected(new Error(), 'requestId', 5),
+          ),
+        ).toEqual({
+          loading: false,
+          errored: true,
+          value: 0,
+        })
       })
 
       test('can be used with addMatcher and type guard functions', () => {

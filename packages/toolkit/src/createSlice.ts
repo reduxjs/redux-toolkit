@@ -23,7 +23,11 @@ import type {
   ReducerWithInitialState,
 } from './createReducer'
 import { createReducer } from './createReducer'
-import type { ActionReducerMapBuilder, TypedActionCreator } from './mapBuilders'
+import type {
+  ActionReducerMapBuilder,
+  AsyncThunkReducers,
+  TypedActionCreator,
+} from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
 import type { Id, TypeGuard } from './tsHelpers'
 import { getOrInsertComputed } from './utils'
@@ -300,25 +304,7 @@ type AsyncThunkSliceReducerConfig<
   ThunkArg extends any,
   Returned = unknown,
   ThunkApiConfig extends AsyncThunkConfig = {},
-> = {
-  pending?: CaseReducer<
-    State,
-    ReturnType<AsyncThunk<Returned, ThunkArg, ThunkApiConfig>['pending']>
-  >
-  rejected?: CaseReducer<
-    State,
-    ReturnType<AsyncThunk<Returned, ThunkArg, ThunkApiConfig>['rejected']>
-  >
-  fulfilled?: CaseReducer<
-    State,
-    ReturnType<AsyncThunk<Returned, ThunkArg, ThunkApiConfig>['fulfilled']>
-  >
-  settled?: CaseReducer<
-    State,
-    ReturnType<
-      AsyncThunk<Returned, ThunkArg, ThunkApiConfig>['rejected' | 'fulfilled']
-    >
-  >
+> = AsyncThunkReducers<State, ThunkArg, Returned, ThunkApiConfig> & {
   options?: AsyncThunkOptions<ThunkArg, ThunkApiConfig>
 }
 
