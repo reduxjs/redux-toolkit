@@ -8,6 +8,7 @@ import type {
   ActionReducerMapBuilder,
   AsyncThunk,
   CaseReducer,
+  CaseReducerWithPrepare,
   PayloadAction,
   PayloadActionCreator,
   Reducer,
@@ -15,7 +16,6 @@ import type {
   SerializedError,
   SliceCaseReducers,
   ThunkDispatch,
-  UnknownAction,
   ValidateSliceCaseReducers,
 } from '@reduxjs/toolkit'
 import {
@@ -991,5 +991,23 @@ describe('type tests', () => {
       creators: { asyncThunk: { [Symbol()]: createAsyncThunk } },
     })
     buildCreateSlice({ creators: { asyncThunk: asyncThunkCreator } })
+  })
+
+  test('wrapping create reducer creators should be possible', () => {
+    const highOrderCreateCaseReducerWithPrepare = <S>(
+      creator: ReducerCreators<S>,
+    ): CaseReducerWithPrepare<S, PayloadAction<S, string, any, any>> =>
+      creator.preparedReducer(
+        (p: S) => ({ payload: p }),
+        (state, action) => action.payload,
+      )
+
+    createSlice({
+      name: 'test',
+      initialState: 0,
+      reducers: (creators) => ({
+        increment: highOrderCreateCaseReducerWithPrepare(creators),
+      }),
+    })
   })
 })
