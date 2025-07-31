@@ -65,9 +65,11 @@ export {
   // js
   createSlice,
   buildCreateSlice,
-  asyncThunkCreator,
+  reducerCreator,
+  preparedReducerCreator,
   ReducerType,
 } from './createSlice'
+export { asyncThunkCreator } from './asyncThunkCreator'
 
 export type {
   // types
@@ -75,11 +77,26 @@ export type {
   Slice,
   CaseReducerActions,
   SliceCaseReducers,
+  CreatorCaseReducers,
   ValidateSliceCaseReducers,
   CaseReducerWithPrepare,
   ReducerCreators,
   SliceSelectors,
+  SliceReducerCreators,
+  SliceReducerCreatorsExposes,
+  ReducerDefinition,
+  ReducerCreator,
+  ReducerDetails,
+  ReducerHandlingContext,
+  SliceActionType,
+  CaseReducerDefinition,
+  PreparedCaseReducerDefinition,
 } from './createSlice'
+export type {
+  AsyncThunkSliceReducers,
+  AsyncThunkSliceReducerConfig,
+  AsyncThunkSliceReducerDefinition,
+} from './asyncThunkCreator'
 export type { ActionCreatorInvariantMiddlewareOptions } from './actionCreatorInvariantMiddleware'
 export { createActionCreatorInvariantMiddleware } from './actionCreatorInvariantMiddleware'
 export {

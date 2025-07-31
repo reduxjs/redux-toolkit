@@ -152,14 +152,7 @@ export function createReducer<S extends NotFunction<any>>(
   let [actionsMap, finalActionMatchers, finalDefaultCaseReducer] =
     executeReducerBuilderCallback(mapOrBuilderCallback)
 
-  // Ensure the initial state gets frozen either way (if draftable)
-  let getInitialState: () => S
-  if (isStateFunction(initialState)) {
-    getInitialState = () => freezeDraftable(initialState())
-  } else {
-    const frozenInitialState = freezeDraftable(initialState)
-    getInitialState = () => frozenInitialState
-  }
+  const getInitialState = makeGetInitialState(initialState)
 
   function reducer(state = getInitialState(), action: any): S {
     let caseReducers = [
@@ -218,4 +211,18 @@ export function createReducer<S extends NotFunction<any>>(
   reducer.getInitialState = getInitialState
 
   return reducer as ReducerWithInitialState<S>
+}
+
+export function makeGetInitialState<S extends NotFunction<any>>(
+  initialState: S | (() => S),
+) {
+  // Ensure the initial state gets frozen either way (if draftable)
+  let getInitialState: () => S
+  if (isStateFunction(initialState)) {
+    getInitialState = () => freezeDraftable(initialState())
+  } else {
+    const frozenInitialState = freezeDraftable(initialState)
+    getInitialState = () => frozenInitialState
+  }
+  return getInitialState
 }

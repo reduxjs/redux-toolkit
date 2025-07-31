@@ -1,15 +1,43 @@
-import { noop } from '@internal/listenerMiddleware/utils'
-import type { PayloadAction, WithSlice } from '@reduxjs/toolkit'
+import { vi } from 'vitest'
+import type { Draft, Patch } from 'immer'
+import { applyPatches, enablePatches, produceWithPatches } from 'immer'
+import type {
+  Action,
+  CaseReducer,
+  CaseReducerDefinition,
+  PayloadAction,
+  PayloadActionCreator,
+  ReducerCreator,
+  ReducerCreators,
+  ReducerDefinition,
+  ReducerHandlingContext,
+  SliceActionType,
+  ThunkAction,
+  WithSlice,
+} from '@reduxjs/toolkit'
 import {
-  asyncThunkCreator,
   buildCreateSlice,
   combineSlices,
   configureStore,
   createAction,
+  createNextState,
   createSlice,
+  isAnyOf,
+  nanoid,
+  preparedReducerCreator,
+  reducerCreator,
 } from '@reduxjs/toolkit'
+import { noop } from '@internal/listenerMiddleware/utils'
+
+import type { IfMaybeUndefined, NoInfer } from '../tsHelpers'
+enablePatches()
 
 type CreateSlice = typeof createSlice
+
+const loaderCreatorType = Symbol('loaderCreatorType')
+const historyMethodsCreatorType = Symbol('historyMethodsCreatorType')
+const undoableCreatorType = Symbol('undoableCreatorType')
+const patchCreatorType = Symbol('patchCreatorType')
 
 describe('createSlice', () => {
   const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(noop)
@@ -677,258 +705,568 @@ describe('createSlice', () => {
       )
     })
   })
-  describe('reducers definition with asyncThunks', () => {
-    it('is disabled by default', () => {
+  test('reducer and preparedReducer creators can be invoked for object syntax', () => {
+    const counterSlice = createSlice({
+      name: 'counter',
+      initialState: 0,
+      reducers: {
+        incrementBy: reducerCreator.create<number>(
+          (state, action) => state + action.payload,
+        ),
+        decrementBy: preparedReducerCreator.create(
+          (amount: number) => ({
+            payload: amount,
+          }),
+          (state, action) => state - action.payload,
+        ),
+      },
+    })
+
+    const { incrementBy, decrementBy } = counterSlice.actions
+    expect(counterSlice.reducer(0, incrementBy(1))).toBe(1)
+    expect(counterSlice.reducer(0, decrementBy(3))).toBe(-3)
+  })
+  describe('custom slice reducer creators', () => {
+    const loaderCreator: ReducerCreator<typeof loaderCreatorType> = {
+      type: loaderCreatorType,
+      create(reducers) {
+        return {
+          _reducerDefinitionType: loaderCreatorType,
+          ...reducers,
+        }
+      },
+      handle({ reducerName, type }, { started, ended }, context) {
+        const startedAction = createAction<string>(type + '/started')
+        const endedAction = createAction<string>(type + '/ended')
+
+        function thunkCreator(): ThunkAction<
+          { loaderId: string; end: () => void },
+          unknown,
+          unknown,
+          Action
+        > {
+          return (dispatch) => {
+            const loaderId = nanoid()
+            dispatch(startedAction(loaderId))
+            return {
+              loaderId,
+              end: () => {
+                dispatch(endedAction(loaderId))
+              },
+            }
+          }
+        }
+        Object.assign(thunkCreator, {
+          started: startedAction,
+          ended: endedAction,
+        })
+
+        if (started) context.addCase(startedAction, started)
+        if (ended) context.addCase(endedAction, ended)
+
+        context.exposeAction(thunkCreator)
+        context.exposeCaseReducer({ started, ended })
+      },
+    }
+    test('allows passing custom reducer creators, which can add actions and case reducers', () => {
       expect(() =>
         createSlice({
-          name: 'test',
-          initialState: [] as any[],
-          reducers: (create) => ({ thunk: create.asyncThunk(() => {}) }),
-        }),
-      ).toThrowErrorMatchingInlineSnapshot(
-        `[Error: Cannot use \`create.asyncThunk\` in the built-in \`createSlice\`. Use \`buildCreateSlice({ creators: { asyncThunk: asyncThunkCreator } })\` to create a customised version of \`createSlice\`.]`,
-      )
-    })
-    const createAppSlice = buildCreateSlice({
-      creators: { asyncThunk: asyncThunkCreator },
-    })
-    function pending(state: any[], action: any) {
-      state.push(['pendingReducer', action])
-    }
-    function fulfilled(state: any[], action: any) {
-      state.push(['fulfilledReducer', action])
-    }
-    function rejected(state: any[], action: any) {
-      state.push(['rejectedReducer', action])
-    }
-    function settled(state: any[], action: any) {
-      state.push(['settledReducer', action])
-    }
-
-    test('successful thunk', async () => {
-      const slice = createAppSlice({
-        name: 'test',
-        initialState: [] as any[],
-        reducers: (create) => ({
-          thunkReducers: create.asyncThunk(
-            function payloadCreator(arg: string, api) {
-              return Promise.resolve('resolved payload')
-            },
-            { pending, fulfilled, rejected, settled },
-          ),
-        }),
-      })
-
-      const store = configureStore({
-        reducer: slice.reducer,
-      })
-      await store.dispatch(slice.actions.thunkReducers('test'))
-      expect(store.getState()).toMatchObject([
-        [
-          'pendingReducer',
-          {
-            type: 'test/thunkReducers/pending',
-            payload: undefined,
-          },
-        ],
-        [
-          'fulfilledReducer',
-          {
-            type: 'test/thunkReducers/fulfilled',
-            payload: 'resolved payload',
-          },
-        ],
-        [
-          'settledReducer',
-          {
-            type: 'test/thunkReducers/fulfilled',
-            payload: 'resolved payload',
-          },
-        ],
-      ])
-    })
-
-    test('rejected thunk', async () => {
-      const slice = createAppSlice({
-        name: 'test',
-        initialState: [] as any[],
-        reducers: (create) => ({
-          thunkReducers: create.asyncThunk(
-            // payloadCreator isn't allowed to return never
-            function payloadCreator(arg: string, api): any {
-              throw new Error('')
-            },
-            { pending, fulfilled, rejected, settled },
-          ),
-        }),
-      })
-
-      const store = configureStore({
-        reducer: slice.reducer,
-      })
-      await store.dispatch(slice.actions.thunkReducers('test'))
-      expect(store.getState()).toMatchObject([
-        [
-          'pendingReducer',
-          {
-            type: 'test/thunkReducers/pending',
-            payload: undefined,
-          },
-        ],
-        [
-          'rejectedReducer',
-          {
-            type: 'test/thunkReducers/rejected',
-            payload: undefined,
-          },
-        ],
-        [
-          'settledReducer',
-          {
-            type: 'test/thunkReducers/rejected',
-            payload: undefined,
-          },
-        ],
-      ])
-    })
-
-    test('with options', async () => {
-      const slice = createAppSlice({
-        name: 'test',
-        initialState: [] as any[],
-        reducers: (create) => ({
-          thunkReducers: create.asyncThunk(
-            function payloadCreator(arg: string, api) {
-              return 'should not call this'
-            },
-            {
-              options: {
-                condition() {
-                  return false
-                },
-                dispatchConditionRejection: true,
-              },
-              pending,
-              fulfilled,
-              rejected,
-              settled,
-            },
-          ),
-        }),
-      })
-
-      const store = configureStore({
-        reducer: slice.reducer,
-      })
-      await store.dispatch(slice.actions.thunkReducers('test'))
-      expect(store.getState()).toMatchObject([
-        [
-          'rejectedReducer',
-          {
-            type: 'test/thunkReducers/rejected',
-            payload: undefined,
-            meta: { condition: true },
-          },
-        ],
-        [
-          'settledReducer',
-          {
-            type: 'test/thunkReducers/rejected',
-            payload: undefined,
-            meta: { condition: true },
-          },
-        ],
-      ])
-    })
-
-    test('has caseReducers for the asyncThunk', async () => {
-      const slice = createAppSlice({
-        name: 'test',
-        initialState: [],
-        reducers: (create) => ({
-          thunkReducers: create.asyncThunk(
-            function payloadCreator(arg, api) {
-              return Promise.resolve('resolved payload')
-            },
-            { pending, fulfilled, settled },
-          ),
-        }),
-      })
-
-      expect(slice.caseReducers.thunkReducers.pending).toBe(pending)
-      expect(slice.caseReducers.thunkReducers.fulfilled).toBe(fulfilled)
-      expect(slice.caseReducers.thunkReducers.settled).toBe(settled)
-      // even though it is not defined above, this should at least be a no-op function to match the TypeScript typings
-      // and should be callable as a reducer even if it does nothing
-      expect(() =>
-        slice.caseReducers.thunkReducers.rejected(
-          [],
-          slice.actions.thunkReducers.rejected(
-            new Error('test'),
-            'fakeRequestId',
-          ),
-        ),
-      ).not.toThrow()
-    })
-
-    test('can define reducer with prepare statement using create.preparedReducer', async () => {
-      const slice = createSlice({
-        name: 'test',
-        initialState: [] as any[],
-        reducers: (create) => ({
-          prepared: create.preparedReducer(
-            (p: string, m: number, e: { message: string }) => ({
-              payload: p,
-              meta: m,
-              error: e,
-            }),
-            (state, action) => {
-              state.push(action)
-            },
-          ),
-        }),
-      })
-
-      expect(
-        slice.reducer(
-          [],
-          slice.actions.prepared('test', 1, { message: 'err' }),
-        ),
-      ).toMatchInlineSnapshot(`
-        [
-          {
-            "error": {
-              "message": "err",
-            },
-            "meta": 1,
-            "payload": "test",
-            "type": "test/prepared",
-          },
-        ]
-      `)
-    })
-
-    test('throws an error when invoked with a normal `prepare` object that has not gone through a `create.preparedReducer` call', async () => {
-      expect(() =>
-        createSlice({
-          name: 'test',
-          initialState: [] as any[],
-          reducers: (create) => ({
-            prepared: {
-              prepare: (p: string, m: number, e: { message: string }) => ({
-                payload: p,
-                meta: m,
-                error: e,
-              }),
-              reducer: (state, action) => {
-                state.push(action)
-              },
-            },
+          name: 'loader',
+          initialState: {} as Partial<Record<string, true>>,
+          reducers: () => ({
+            addLoader: loaderCreator.create({}),
           }),
         }),
       ).toThrowErrorMatchingInlineSnapshot(
-        `[Error: Please use the \`create.preparedReducer\` notation for prepared action creators with the \`create\` notation.]`,
+        `[Error: Unsupported reducer type: Symbol(loaderCreatorType)]`,
       )
+      const createAppSlice = buildCreateSlice({
+        creators: { loader: loaderCreator },
+      })
+
+      const loaderSlice = createAppSlice({
+        name: 'loader',
+        initialState: {} as Partial<Record<string, true>>,
+        reducers: (create) => ({
+          addLoader: create.loader({
+            started: (state, { payload }) => {
+              state[payload] = true
+            },
+            ended: (state, { payload }) => {
+              delete state[payload]
+            },
+          }),
+        }),
+        selectors: {
+          selectLoader: (state, id: string) => state[id],
+        },
+      })
+
+      const { addLoader } = loaderSlice.actions
+      const { selectLoader } = loaderSlice.selectors
+
+      expect(addLoader).toEqual(expect.any(Function))
+      expect(addLoader.started).toEqual(expect.any(Function))
+      expect(addLoader.started.type).toBe('loader/addLoader/started')
+
+      const isLoaderAction = isAnyOf(addLoader.started, addLoader.ended)
+
+      const store = configureStore({
+        reducer: {
+          [loaderSlice.reducerPath]: loaderSlice.reducer,
+          actions: (state: PayloadAction<string>[] = [], action) =>
+            isLoaderAction(action) ? [...state, action] : state,
+        },
+      })
+
+      expect(loaderSlice.selectSlice(store.getState())).toEqual({})
+
+      const { loaderId, end } = store.dispatch(addLoader())
+      expect(selectLoader(store.getState(), loaderId)).toBe(true)
+
+      end()
+      expect(selectLoader(store.getState(), loaderId)).toBe(undefined)
+
+      expect(store.getState().actions).toEqual([
+        addLoader.started(loaderId),
+        addLoader.ended(loaderId),
+      ])
+    })
+
+    describe('creators can return multiple definitions to be spread, or something else entirely', () => {
+      function getInitialHistoryState<T>(initialState: T): HistoryState<T> {
+        return {
+          past: [],
+          present: initialState,
+          future: [],
+        }
+      }
+      const historyMethodsCreator: ReducerCreator<
+        typeof historyMethodsCreatorType
+      > = {
+        type: historyMethodsCreatorType,
+        create() {
+          return {
+            undo: this.reducer((state: HistoryState<unknown>) => {
+              const historyEntry = state.past.pop()
+              if (historyEntry) {
+                applyPatches(state, historyEntry.undo)
+                state.future.unshift(historyEntry)
+              }
+            }),
+            redo: this.reducer((state: HistoryState<unknown>) => {
+              const historyEntry = state.future.shift()
+              if (historyEntry) {
+                applyPatches(state, historyEntry.redo)
+                state.past.push(historyEntry)
+              }
+            }),
+            reset: {
+              _reducerDefinitionType: historyMethodsCreatorType,
+              type: 'reset',
+            },
+          }
+        },
+        handle(details, definition, context) {
+          if (definition.type !== 'reset') {
+            throw new Error('unrecognised definition')
+          }
+          reducerCreator.handle(
+            details,
+            reducerCreator.create(() => context.getInitialState()),
+            context,
+          )
+        },
+      }
+
+      const undoableCreator: ReducerCreator<typeof undoableCreatorType> = {
+        type: undoableCreatorType,
+        create: Object.assign(
+          function makeUndoable<A extends Action & { meta?: UndoableOptions }>(
+            reducer: CaseReducer<any, A>,
+          ): CaseReducer<HistoryState<any>, A> {
+            return (state, action) => {
+              const [nextState, redoPatch, undoPatch] = produceWithPatches(
+                state,
+                (draft) => {
+                  const result = reducer(draft.present, action)
+                  if (typeof result !== 'undefined') {
+                    draft.present = result
+                  }
+                },
+              )
+              let finalState = nextState
+              const undoable = action.meta?.undoable ?? true
+              if (undoable) {
+                finalState = createNextState(finalState, (draft) => {
+                  draft.past.push({
+                    undo: undoPatch,
+                    redo: redoPatch,
+                  })
+                  draft.future = []
+                })
+              }
+              return finalState
+            }
+          },
+          {
+            withoutPayload() {
+              return (options?: UndoableOptions) => ({
+                payload: undefined,
+                meta: options,
+              })
+            },
+            withPayload<P>() {
+              return (
+                ...[payload, options]: IfMaybeUndefined<
+                  P,
+                  [payload?: P, options?: UndoableOptions],
+                  [payload: P, options?: UndoableOptions]
+                >
+              ) => ({ payload: payload as P, meta: options })
+            },
+          },
+        ),
+      }
+
+      const createAppSlice = buildCreateSlice({
+        creators: {
+          historyMethods: historyMethodsCreator,
+          undoable: undoableCreator,
+        },
+      })
+      test('history slice', () => {
+        const historySlice = createAppSlice({
+          name: 'history',
+          initialState: getInitialHistoryState({ value: 1 }),
+          reducers: (create) => ({
+            ...create.historyMethods(),
+            increment: create.preparedReducer(
+              create.undoable.withoutPayload(),
+              create.undoable((state) => {
+                state.value++
+              }),
+            ),
+            incrementBy: create.preparedReducer(
+              create.undoable.withPayload<number>(),
+              create.undoable((state, action) => {
+                state.value += action.payload
+              }),
+            ),
+          }),
+          selectors: {
+            selectValue: (state) => state.present.value,
+          },
+        })
+        const {
+          actions: { increment, incrementBy, undo, redo, reset },
+          selectors: { selectValue },
+        } = historySlice
+
+        const store = configureStore({
+          reducer: { [historySlice.reducerPath]: historySlice.reducer },
+        })
+
+        expect(selectValue(store.getState())).toBe(1)
+
+        store.dispatch(increment())
+        expect(selectValue(store.getState())).toBe(2)
+
+        store.dispatch(undo())
+        expect(selectValue(store.getState())).toBe(1)
+
+        store.dispatch(incrementBy(3))
+        expect(selectValue(store.getState())).toBe(4)
+
+        store.dispatch(undo())
+        expect(selectValue(store.getState())).toBe(1)
+
+        store.dispatch(redo())
+        expect(selectValue(store.getState())).toBe(4)
+
+        store.dispatch(reset())
+        expect(selectValue(store.getState())).toBe(1)
+      })
+    })
+    describe('context methods throw errors if used incorrectly', () => {
+      const makeSliceWithHandler = (
+        handle: ReducerCreator<typeof loaderCreatorType>['handle'],
+      ) => {
+        const loaderCreator: ReducerCreator<typeof loaderCreatorType> = {
+          type: loaderCreatorType,
+          create(reducers) {
+            return {
+              _reducerDefinitionType: loaderCreatorType,
+              ...reducers,
+            }
+          },
+          handle,
+        }
+        const createAppSlice = buildCreateSlice({
+          creators: {
+            loader: loaderCreator,
+          },
+        })
+        return createAppSlice({
+          name: 'loader',
+          initialState: {} as Partial<Record<string, true>>,
+          reducers: (create) => ({
+            addLoader: create.loader({}),
+          }),
+        })
+      }
+      test('context.addCase throws if called twice for same type', () => {
+        expect(() =>
+          makeSliceWithHandler((_details, _def, context) => {
+            context.addCase('foo', () => {}).addCase('foo', () => {})
+          }),
+        ).toThrowErrorMatchingInlineSnapshot(
+          `[Error: \`context.addCase\` cannot be called with two reducers for the same action type: foo]`,
+        )
+      })
+      test('context.addCase throws if empty action type', () => {
+        expect(() =>
+          makeSliceWithHandler((_details, _def, context) => {
+            context.addCase('', () => {})
+          }),
+        ).toThrowErrorMatchingInlineSnapshot(
+          `[Error: \`context.addCase\` cannot be called with an empty action type]`,
+        )
+      })
+      test('context.exposeAction throws if called twice for same reducer name', () => {
+        expect(() =>
+          makeSliceWithHandler((_details, _def, context) => {
+            context.exposeAction(() => {}).exposeAction(() => {})
+          }),
+        ).toThrowErrorMatchingInlineSnapshot(
+          `[Error: context.exposeAction cannot be called twice for the same reducer definition: addLoader]`,
+        )
+      })
+      test('context.exposeCaseReducer throws if called twice for same reducer name', () => {
+        expect(() =>
+          makeSliceWithHandler((_details, _def, context) => {
+            context.exposeCaseReducer({}).exposeCaseReducer({})
+          }),
+        ).toThrowErrorMatchingInlineSnapshot(
+          `[Error: context.exposeCaseReducer cannot be called twice for the same reducer definition: addLoader]`,
+        )
+      })
+      test('context.selectSlice throws if unable to find slice state', () => {
+        const patchCreator: ReducerCreator<typeof patchCreatorType> = {
+          type: patchCreatorType,
+          create: { _reducerDefinitionType: patchCreatorType },
+          handle({ type }, _def, context) {
+            const patchedAction = createAction<Patch[]>(type)
+            function patchThunk(
+              recipe: (draft: Draft<any>) => void,
+            ): ThunkAction<void, Record<string, any>, unknown, Action> {
+              return (dispatch, getState) => {
+                const [, patches] = produceWithPatches(
+                  context.selectSlice(getState()),
+                  recipe,
+                )
+                dispatch(patchedAction(patches))
+              }
+            }
+            Object.assign(patchThunk, { patched: patchedAction })
+
+            function applyPatchesReducer(
+              state: Objectish,
+              action: PayloadAction<Patch[]>,
+            ) {
+              return applyPatches(state, action.payload)
+            }
+
+            ;(context as ReducerHandlingContext<Objectish>)
+              .addCase(patchedAction, applyPatchesReducer)
+              .exposeAction(patchThunk)
+              .exposeCaseReducer(applyPatchesReducer)
+          },
+        }
+
+        const createAppSlice = buildCreateSlice({
+          creators: { patcher: patchCreator },
+        })
+
+        const personSlice = createAppSlice({
+          name: 'person',
+          initialState: { name: 'Alice' },
+          reducers: (create) => ({
+            patchPerson: create.patcher,
+          }),
+        })
+
+        const { patchPerson } = personSlice.actions
+
+        const correctStore = configureStore({
+          reducer: combineSlices(personSlice),
+        })
+
+        expect(correctStore.getState().person.name).toBe('Alice')
+
+        expect(() =>
+          correctStore.dispatch(
+            patchPerson((person) => {
+              person.name = 'Bob'
+            }),
+          ),
+        ).not.toThrow()
+
+        expect(correctStore.getState().person.name).toBe('Bob')
+
+        const incorrectStore = configureStore({
+          reducer: {
+            somewhere: personSlice.reducer,
+          },
+        })
+
+        expect(() =>
+          incorrectStore.dispatch(
+            // @ts-expect-error state mismatch
+            patchPerson((person) => {
+              person.name = 'Charlie'
+            }),
+          ),
+        ).toThrowErrorMatchingInlineSnapshot(
+          `[Error: Could not find "person" slice in state. In order for slice creators to use \`context.selectSlice\`, the slice must be nested in the state under its reducerPath: "person"]`,
+        )
+      })
     })
   })
 })
+
+interface LoaderReducerDefinition<State>
+  extends ReducerDefinition<typeof loaderCreatorType> {
+  started?: CaseReducer<State, PayloadAction<string>>
+  ended?: CaseReducer<State, PayloadAction<string>>
+}
+
+interface LoaderThunk<Name extends string, ReducerName extends PropertyKey> {
+  (): ThunkAction<
+    { loaderId: string; end: () => void },
+    unknown,
+    unknown,
+    Action
+  >
+  started: PayloadActionCreator<
+    string,
+    `${SliceActionType<Name, ReducerName>}/started`
+  >
+  ended: PayloadActionCreator<
+    string,
+    `${SliceActionType<Name, ReducerName>}/ended`
+  >
+}
+
+interface PatchesState {
+  undo: Patch[]
+  redo: Patch[]
+}
+
+interface HistoryState<T> {
+  past: PatchesState[]
+  present: T
+  future: PatchesState[]
+}
+
+interface UndoableOptions {
+  undoable?: boolean
+}
+
+// nicked from immer
+type Objectish = AnyObject | AnyArray | AnyMap | AnySet
+type AnyObject = {
+  [key: string]: any
+}
+type AnyArray = Array<any>
+type AnySet = Set<any>
+type AnyMap = Map<any, any>
+
+type PatchThunk<
+  Name extends string,
+  ReducerName extends PropertyKey,
+  ReducerPath extends string,
+  State,
+> = {
+  (
+    recipe: (draft: Draft<State>) => void,
+  ): ThunkAction<void, Record<ReducerPath, State>, unknown, Action>
+  patched: PayloadActionCreator<Patch[], SliceActionType<Name, ReducerName>>
+}
+
+declare module '@reduxjs/toolkit' {
+  export interface SliceReducerCreators<State> {
+    [loaderCreatorType]: (
+      reducers: Pick<LoaderReducerDefinition<State>, 'ended' | 'started'>,
+    ) => LoaderReducerDefinition<State>
+    [historyMethodsCreatorType]: State extends HistoryState<unknown>
+      ? (this: ReducerCreators<State>) => {
+          undo: CaseReducerDefinition<State, PayloadAction>
+          redo: CaseReducerDefinition<State, PayloadAction>
+          reset: ReducerDefinition<typeof historyMethodsCreatorType> & {
+            type: 'reset'
+          }
+        }
+      : never
+    [undoableCreatorType]: State extends HistoryState<infer Data>
+      ? {
+          <A extends Action & { meta?: UndoableOptions }>(
+            this: ReducerCreators<State>,
+            reducer: CaseReducer<Data, NoInfer<A>>,
+          ): CaseReducer<State, A>
+          withoutPayload(): (options?: UndoableOptions) => {
+            payload: undefined
+            meta: UndoableOptions | undefined
+          }
+          withPayload<P>(): (
+            ...args: IfMaybeUndefined<
+              P,
+              [payload?: P, options?: UndoableOptions],
+              [payload: P, options?: UndoableOptions]
+            >
+          ) => { payload: P; meta: UndoableOptions | undefined }
+        }
+      : never
+    [patchCreatorType]: State extends Objectish
+      ? ReducerDefinition<typeof patchCreatorType>
+      : never
+  }
+  export interface SliceReducerCreatorsExposes<
+    State,
+    SliceName extends string,
+    ReducerPath extends string,
+    ReducerName extends PropertyKey,
+    Definition extends ReducerDefinition,
+  > {
+    [loaderCreatorType]: {
+      action: Definition extends ReducerDefinition<typeof loaderCreatorType>
+        ? LoaderThunk<SliceName, ReducerName>
+        : never
+      caseReducer: Definition extends ReducerDefinition<
+        typeof loaderCreatorType
+      >
+        ? Required<Pick<LoaderReducerDefinition<State>, 'ended' | 'started'>>
+        : never
+    }
+    [historyMethodsCreatorType]: {
+      action: Definition extends ReducerDefinition<
+        typeof historyMethodsCreatorType
+      > & { type: 'reset' }
+        ? PayloadActionCreator<void, SliceActionType<SliceName, ReducerName>>
+        : never
+      caseReducer: Definition extends ReducerDefinition<
+        typeof historyMethodsCreatorType
+      > & { type: 'reset' }
+        ? CaseReducer<State, PayloadAction>
+        : never
+    }
+    [patchCreatorType]: {
+      action: Definition extends ReducerDefinition<typeof patchCreatorType>
+        ? PatchThunk<SliceName, ReducerName, ReducerPath, State>
+        : never
+      caseReducer: Definition extends ReducerDefinition<typeof patchCreatorType>
+        ? CaseReducer<State, PayloadAction<Patch[]>>
+        : never
+    }
+  }
+}

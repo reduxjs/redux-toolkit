@@ -1,15 +1,10 @@
 import { createEntityAdapter, createSlice } from '../..'
-import type {
-  PayloadAction,
-  Slice,
-  SliceCaseReducers,
-  UnknownAction,
-} from '../..'
-import type { EntityId, EntityState, IdSelector } from '../models'
+import type { PayloadAction, SliceCaseReducers, UnknownAction } from '../..'
+import type { EntityId, IdSelector } from '../models'
 import type { BookModel } from './fixtures/book'
 
 describe('Entity Slice Enhancer', () => {
-  let slice: Slice<EntityState<BookModel, BookModel['id']>>
+  let slice: ReturnType<typeof entitySliceEnhancer<BookModel, string>>
 
   beforeEach(() => {
     const indieSlice = entitySliceEnhancer({

@@ -6,15 +6,16 @@ import type {
   ActionCreatorWithPreparedPayload,
   ActionCreatorWithoutPayload,
   ActionReducerMapBuilder,
-  AsyncThunk,
-  CaseReducer,
   PayloadAction,
   PayloadActionCreator,
   Reducer,
+  ReducerCreator,
   ReducerCreators,
-  SerializedError,
+  ReducerDefinition,
+  ReducerHandlingContext,
+  SliceActionType,
   SliceCaseReducers,
-  ThunkDispatch,
+  ThunkAction,
   UnknownAction,
   ValidateSliceCaseReducers,
 } from '@reduxjs/toolkit'
@@ -25,9 +26,11 @@ import {
   createAction,
   createAsyncThunk,
   createSlice,
-  isRejected,
+  nanoid,
 } from '@reduxjs/toolkit'
 import { castDraft } from 'immer'
+
+const toasterCreatorType = Symbol()
 
 describe('type tests', () => {
   const counterSlice = createSlice({
@@ -606,240 +609,41 @@ describe('type tests', () => {
     const slice = createSlice({
       name: 'test',
       initialState: {} as TestState,
-      reducers: (create) => {
-        const preTypedAsyncThunk = create.asyncThunk.withTypes<{
-          rejectValue: TestReject
-        }>()
+      reducers: (create) => ({
+        normalReducer: create.reducer<string>((state, action) => {
+          expectTypeOf(state).toEqualTypeOf<TestState>()
 
-        // @ts-expect-error
-        create.asyncThunk<any, any, { state: StoreState }>(() => {})
+          expectTypeOf(action.payload).toBeString()
+        }),
+        optionalReducer: create.reducer<string | undefined>((state, action) => {
+          expectTypeOf(state).toEqualTypeOf<TestState>()
 
-        // @ts-expect-error
-        create.asyncThunk.withTypes<{
-          rejectValue: string
-          dispatch: StoreDispatch
-        }>()
-
-        return {
-          normalReducer: create.reducer<string>((state, action) => {
+          expectTypeOf(action.payload).toEqualTypeOf<string | undefined>()
+        }),
+        noActionReducer: create.reducer((state) => {
+          expectTypeOf(state).toEqualTypeOf<TestState>()
+        }),
+        preparedReducer: create.preparedReducer(
+          (payload: string) => ({
+            payload,
+            meta: 'meta' as const,
+            error: 'error' as const,
+          }),
+          (state, action) => {
             expectTypeOf(state).toEqualTypeOf<TestState>()
 
             expectTypeOf(action.payload).toBeString()
-          }),
-          optionalReducer: create.reducer<string | undefined>(
-            (state, action) => {
-              expectTypeOf(state).toEqualTypeOf<TestState>()
 
-              expectTypeOf(action.payload).toEqualTypeOf<string | undefined>()
-            },
-          ),
-          noActionReducer: create.reducer((state) => {
-            expectTypeOf(state).toEqualTypeOf<TestState>()
-          }),
-          preparedReducer: create.preparedReducer(
-            (payload: string) => ({
-              payload,
-              meta: 'meta' as const,
-              error: 'error' as const,
-            }),
-            (state, action) => {
-              expectTypeOf(state).toEqualTypeOf<TestState>()
+            expectTypeOf(action.meta).toEqualTypeOf<'meta'>()
 
-              expectTypeOf(action.payload).toBeString()
+            expectTypeOf(action.payload).toBeString()
 
-              expectTypeOf(action.meta).toEqualTypeOf<'meta'>()
+            expectTypeOf(action.meta).toEqualTypeOf<'meta'>()
 
-              expectTypeOf(action.error).toEqualTypeOf<'error'>()
-            },
-          ),
-          testInferVoid: create.asyncThunk(() => {}, {
-            pending(state, action) {
-              expectTypeOf(state).toEqualTypeOf<TestState>()
-
-              expectTypeOf(action.meta.arg).toBeVoid()
-            },
-            fulfilled(state, action) {
-              expectTypeOf(state).toEqualTypeOf<TestState>()
-
-              expectTypeOf(action.meta.arg).toBeVoid()
-
-              expectTypeOf(action.payload).toBeVoid()
-            },
-            rejected(state, action) {
-              expectTypeOf(state).toEqualTypeOf<TestState>()
-
-              expectTypeOf(action.meta.arg).toBeVoid()
-
-              expectTypeOf(action.error).toEqualTypeOf<SerializedError>()
-            },
-            settled(state, action) {
-              expectTypeOf(state).toEqualTypeOf<TestState>()
-
-              expectTypeOf(action.meta.arg).toBeVoid()
-
-              if (isRejected(action)) {
-                expectTypeOf(action.error).toEqualTypeOf<SerializedError>()
-              } else {
-                expectTypeOf(action.payload).toBeVoid()
-              }
-            },
-          }),
-          testInfer: create.asyncThunk(
-            function payloadCreator(arg: TestArg, api) {
-              return Promise.resolve<TestReturned>({ payload: 'foo' })
-            },
-            {
-              pending(state, action) {
-                expectTypeOf(state).toEqualTypeOf<TestState>()
-
-                expectTypeOf(action.meta.arg).toEqualTypeOf<TestArg>()
-              },
-              fulfilled(state, action) {
-                expectTypeOf(state).toEqualTypeOf<TestState>()
-
-                expectTypeOf(action.meta.arg).toEqualTypeOf<TestArg>()
-
-                expectTypeOf(action.payload).toEqualTypeOf<TestReturned>()
-              },
-              rejected(state, action) {
-                expectTypeOf(state).toEqualTypeOf<TestState>()
-
-                expectTypeOf(action.meta.arg).toEqualTypeOf<TestArg>()
-
-                expectTypeOf(action.error).toEqualTypeOf<SerializedError>()
-              },
-              settled(state, action) {
-                expectTypeOf(state).toEqualTypeOf<TestState>()
-
-                expectTypeOf(action.meta.arg).toEqualTypeOf<TestArg>()
-
-                if (isRejected(action)) {
-                  expectTypeOf(action.error).toEqualTypeOf<SerializedError>()
-                } else {
-                  expectTypeOf(action.payload).toEqualTypeOf<TestReturned>()
-                }
-              },
-            },
-          ),
-          testExplicitType: create.asyncThunk<
-            TestReturned,
-            TestArg,
-            {
-              rejectValue: TestReject
-            }
-          >(
-            function payloadCreator(arg, api) {
-              // here would be a circular reference
-              expectTypeOf(api.getState()).toBeUnknown()
-              // here would be a circular reference
-              expectTypeOf(api.dispatch).toMatchTypeOf<
-                ThunkDispatch<any, any, any>
-              >()
-
-              // so you need to cast inside instead
-              const getState = api.getState as () => StoreState
-              const dispatch = api.dispatch as StoreDispatch
-
-              expectTypeOf(arg).toEqualTypeOf<TestArg>()
-
-              expectTypeOf(api.rejectWithValue).toMatchTypeOf<
-                (value: TestReject) => any
-              >()
-
-              return Promise.resolve({ payload: 'foo' })
-            },
-            {
-              pending(state, action) {
-                expectTypeOf(state).toEqualTypeOf<TestState>()
-
-                expectTypeOf(action.meta.arg).toEqualTypeOf<TestArg>()
-              },
-              fulfilled(state, action) {
-                expectTypeOf(state).toEqualTypeOf<TestState>()
-
-                expectTypeOf(action.meta.arg).toEqualTypeOf<TestArg>()
-
-                expectTypeOf(action.payload).toEqualTypeOf<TestReturned>()
-              },
-              rejected(state, action) {
-                expectTypeOf(state).toEqualTypeOf<TestState>()
-
-                expectTypeOf(action.meta.arg).toEqualTypeOf<TestArg>()
-
-                expectTypeOf(action.error).toEqualTypeOf<SerializedError>()
-
-                expectTypeOf(action.payload).toEqualTypeOf<
-                  TestReject | undefined
-                >()
-              },
-              settled(state, action) {
-                expectTypeOf(state).toEqualTypeOf<TestState>()
-
-                expectTypeOf(action.meta.arg).toEqualTypeOf<TestArg>()
-
-                if (isRejected(action)) {
-                  expectTypeOf(action.error).toEqualTypeOf<SerializedError>()
-
-                  expectTypeOf(action.payload).toEqualTypeOf<
-                    TestReject | undefined
-                  >()
-                } else {
-                  expectTypeOf(action.payload).toEqualTypeOf<TestReturned>()
-                }
-              },
-            },
-          ),
-          testPreTyped: preTypedAsyncThunk(
-            function payloadCreator(arg: TestArg, api) {
-              expectTypeOf(api.rejectWithValue).toMatchTypeOf<
-                (value: TestReject) => any
-              >()
-
-              return Promise.resolve<TestReturned>({ payload: 'foo' })
-            },
-            {
-              pending(state, action) {
-                expectTypeOf(state).toEqualTypeOf<TestState>()
-
-                expectTypeOf(action.meta.arg).toEqualTypeOf<TestArg>()
-              },
-              fulfilled(state, action) {
-                expectTypeOf(state).toEqualTypeOf<TestState>()
-
-                expectTypeOf(action.meta.arg).toEqualTypeOf<TestArg>()
-
-                expectTypeOf(action.payload).toEqualTypeOf<TestReturned>()
-              },
-              rejected(state, action) {
-                expectTypeOf(state).toEqualTypeOf<TestState>()
-
-                expectTypeOf(action.meta.arg).toEqualTypeOf<TestArg>()
-
-                expectTypeOf(action.error).toEqualTypeOf<SerializedError>()
-
-                expectTypeOf(action.payload).toEqualTypeOf<
-                  TestReject | undefined
-                >()
-              },
-              settled(state, action) {
-                expectTypeOf(state).toEqualTypeOf<TestState>()
-
-                expectTypeOf(action.meta.arg).toEqualTypeOf<TestArg>()
-
-                if (isRejected(action)) {
-                  expectTypeOf(action.error).toEqualTypeOf<SerializedError>()
-
-                  expectTypeOf(action.payload).toEqualTypeOf<
-                    TestReject | undefined
-                  >()
-                } else {
-                  expectTypeOf(action.payload).toEqualTypeOf<TestReturned>()
-                }
-              },
-            },
-          ),
-        }
-      },
+            expectTypeOf(action.error).toEqualTypeOf<'error'>()
+          },
+        ),
+      }),
     })
 
     const store = configureStore({ reducer: { test: slice.reducer } })
@@ -887,34 +691,6 @@ describe('type tests', () => {
         'meta'
       >
     >()
-
-    expectTypeOf(slice.actions.testInferVoid).toEqualTypeOf<
-      AsyncThunk<void, void, {}>
-    >()
-
-    expectTypeOf(slice.actions.testInferVoid).toBeCallableWith()
-
-    expectTypeOf(slice.actions.testInfer).toEqualTypeOf<
-      AsyncThunk<TestReturned, TestArg, {}>
-    >()
-
-    expectTypeOf(slice.actions.testExplicitType).toEqualTypeOf<
-      AsyncThunk<TestReturned, TestArg, { rejectValue: TestReject }>
-    >()
-
-    type TestInferThunk = AsyncThunk<TestReturned, TestArg, {}>
-
-    expectTypeOf(slice.caseReducers.testInfer.pending).toEqualTypeOf<
-      CaseReducer<TestState, ReturnType<TestInferThunk['pending']>>
-    >()
-
-    expectTypeOf(slice.caseReducers.testInfer.fulfilled).toEqualTypeOf<
-      CaseReducer<TestState, ReturnType<TestInferThunk['fulfilled']>>
-    >()
-
-    expectTypeOf(slice.caseReducers.testInfer.rejected).toEqualTypeOf<
-      CaseReducer<TestState, ReturnType<TestInferThunk['rejected']>>
-    >()
   })
 
   test('wrapping createSlice should be possible, with callback', () => {
@@ -925,7 +701,7 @@ describe('type tests', () => {
 
     const createGenericSlice = <
       T,
-      Reducers extends SliceCaseReducers<GenericState<T>>,
+      Reducers extends Record<string, ReducerDefinition>,
     >({
       name = '',
       initialState,
@@ -992,4 +768,138 @@ describe('type tests', () => {
     })
     buildCreateSlice({ creators: { asyncThunk: asyncThunkCreator } })
   })
+  test('Default `createSlice` should not allow `create.asyncThunk()`, but it should allow `create.reducer()` and `create.preparedReducer()`', () => {
+    const sliceWithoutAsyncThunks = createSlice({
+      name: 'counter',
+      initialState: {
+        value: 0,
+        status: 'idle',
+      },
+      reducers: (create) => {
+        expectTypeOf(create).not.toHaveProperty('asyncThunk')
+        return {
+          increment: create.reducer((state) => {
+            state.value += 1
+          }),
+
+          incrementByAmount: create.preparedReducer(
+            (payload: number) => ({ payload }),
+            (state, action: PayloadAction<number>) => {
+              state.value += action.payload
+            },
+          ),
+        }
+      },
+    })
+  })
+  test('creators can disable themselves if state is incompatible', () => {
+    const toastCreator: ReducerCreator<typeof toasterCreatorType> = {
+      type: toasterCreatorType,
+      create: () => ({
+        _reducerDefinitionType: toasterCreatorType,
+      }),
+      handle({ type }, _definition, context) {
+        const toastOpened = createAction<{ message: string; id: string }>(
+          type + '/opened',
+        )
+        const toastClosed = createAction<string>(type + '/closed')
+        function openToast(
+          ms: number,
+          message: string,
+        ): ThunkAction<void, unknown, unknown, UnknownAction> {
+          return (dispatch, getState) => {
+            const id = nanoid()
+            dispatch(toastOpened({ message, id }))
+            setTimeout(() => {
+              dispatch(toastClosed(id))
+            }, ms)
+          }
+        }
+        Object.assign(openToast, { toastOpened, toastClosed })
+        ;(context as any as ReducerHandlingContext<ToastState>)
+          .addCase(toastOpened, (state, { payload: { message, id } }) => {
+            state.toasts[id] = { message }
+          })
+          .addCase(toastClosed, (state, action) => {
+            delete state.toasts[action.payload]
+          })
+          .exposeAction(openToast)
+      },
+    }
+
+    const createAppSlice = buildCreateSlice({
+      creators: { toaster: toastCreator },
+    })
+
+    const toastSlice = createAppSlice({
+      name: 'toasts',
+      initialState: { toasts: {} } as ToastState,
+      reducers: (create) => ({
+        toast: create.toaster(),
+      }),
+    })
+
+    expectTypeOf(toastSlice.actions.toast).toEqualTypeOf<
+      AddToastThunk<'toasts', 'toast'>
+    >()
+
+    expectTypeOf(toastSlice.actions.toast).toBeCallableWith(100, 'hello')
+
+    expectTypeOf(
+      toastSlice.actions.toast.toastOpened.type,
+    ).toEqualTypeOf<'toasts/toast/opened'>()
+
+    const incompatibleSlice = createAppSlice({
+      name: 'incompatible',
+      initialState: {},
+      reducers: (create) => {
+        expectTypeOf(create).not.toHaveProperty('toaster')
+        return {}
+      },
+    })
+  })
 })
+
+interface Toast {
+  message: string
+}
+
+interface ToastState {
+  toasts: Record<string, Toast>
+}
+
+interface AddToastThunk<Name extends string, ReducerName extends PropertyKey> {
+  (
+    ms: number,
+    message: string,
+  ): ThunkAction<void, unknown, unknown, UnknownAction>
+  toastOpened: PayloadActionCreator<
+    { message: string; id: string },
+    `${SliceActionType<Name, ReducerName>}/opened`
+  >
+  toastClosed: PayloadActionCreator<
+    string,
+    `${SliceActionType<Name, ReducerName>}/closed`
+  >
+}
+
+declare module '@reduxjs/toolkit' {
+  export interface SliceReducerCreators<State> {
+    [toasterCreatorType]: State extends ToastState
+      ? () => ReducerDefinition<typeof toasterCreatorType>
+      : never
+  }
+  export interface SliceReducerCreatorsExposes<
+    State,
+    SliceName extends string,
+    ReducerPath extends string,
+    ReducerName extends PropertyKey,
+    Definition extends ReducerDefinition,
+  > {
+    [toasterCreatorType]: {
+      action: Definition extends ReducerDefinition<typeof toasterCreatorType>
+        ? AddToastThunk<SliceName, ReducerName>
+        : never
+    }
+  }
+}

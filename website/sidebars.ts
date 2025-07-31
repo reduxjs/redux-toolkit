@@ -37,6 +37,7 @@ const sidebars: SidebarsConfig = {
         'usage/usage-with-typescript',
         'usage/immer-reducers',
         'usage/nextjs',
+        'usage/custom-slice-creators',
       ],
     },
     {
