@@ -110,6 +110,17 @@ export interface CommonOptions {
    * @default undefined
    */
   prettierConfigFile?: string;
+
+  /**
+   * Determines the fallback type for empty schemas.
+   *
+   * If set to **`true`**, **`unknown`** will be used
+   * instead of **`any`** when a schema is empty.
+   *
+   * @default false
+   * @since 2.1.0
+   */
+  useUnknown?: boolean;
 }
 
 export type TextMatcher = string | RegExp | (string | RegExp)[];
