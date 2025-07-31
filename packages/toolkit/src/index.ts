@@ -10,7 +10,7 @@ export {
   original,
   isDraft,
 } from 'immer'
-export type { Draft } from 'immer'
+export type { Draft, WritableDraft } from 'immer'
 export {
   createSelector,
   createSelectorCreator,
