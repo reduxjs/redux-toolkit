@@ -21,6 +21,7 @@
     "website",
     "examples/query/react/*",
     "examples/action-listener/*",
+    "examples/lazy-injection/*",
     "examples/type-portability/*"
   ],
   "devDependencies": {
