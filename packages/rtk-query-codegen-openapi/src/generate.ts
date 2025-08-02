@@ -117,6 +117,7 @@ export async function generateApi(
     useEnumType = false,
     mergeReadWriteOnly = false,
     httpResolverOptions,
+    useUnknown = false,
   }: GenerationOptions
 ) {
   const v3Doc = (v3DocCache[spec] ??= await getV3Doc(spec, httpResolverOptions));
@@ -125,6 +126,7 @@ export async function generateApi(
     unionUndefined,
     useEnumType,
     mergeReadWriteOnly,
+    useUnknown,
   });
 
   // temporary workaround for https://github.com/oazapfts/oazapfts/issues/491
