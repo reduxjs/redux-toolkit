@@ -4,71 +4,115 @@ import { renderHook, waitFor } from '@testing-library/react'
 import { actionsReducer, withProvider } from '../../tests/utils/helpers'
 import type { BaseQueryApi } from '../baseQueryTypes'
 
-test('handles a non-async baseQuery without error', async () => {
-  const baseQuery = (args?: any) => ({ data: args })
-  const api = createApi({
-    baseQuery,
-    endpoints: (build) => ({
-      getUser: build.query<unknown, number>({
-        query(id) {
-          return { url: `user/${id}` }
-        },
+describe('baseline thunk behavior', () => {
+  test('handles a non-async baseQuery without error', async () => {
+    const baseQuery = (args?: any) => ({ data: args })
+    const api = createApi({
+      baseQuery,
+      endpoints: (build) => ({
+        getUser: build.query<unknown, number>({
+          query(id) {
+            return { url: `user/${id}` }
+          },
+        }),
       }),
-    }),
-  })
-  const { getUser } = api.endpoints
-  const store = configureStore({
-    reducer: {
-      [api.reducerPath]: api.reducer,
-    },
-    middleware: (gDM) => gDM().concat(api.middleware),
-  })
+    })
+    const { getUser } = api.endpoints
+    const store = configureStore({
+      reducer: {
+        [api.reducerPath]: api.reducer,
+      },
+      middleware: (gDM) => gDM().concat(api.middleware),
+    })
 
-  const promise = store.dispatch(getUser.initiate(1))
-  const { data } = await promise
+    const promise = store.dispatch(getUser.initiate(1))
+    const { data } = await promise
 
-  expect(data).toEqual({
-    url: 'user/1',
-  })
-
-  const storeResult = getUser.select(1)(store.getState())
-  expect(storeResult).toEqual({
-    data: {
+    expect(data).toEqual({
       url: 'user/1',
-    },
-    endpointName: 'getUser',
-    isError: false,
-    isLoading: false,
-    isSuccess: true,
-    isUninitialized: false,
-    originalArgs: 1,
-    requestId: expect.any(String),
-    status: 'fulfilled',
-    startedTimeStamp: expect.any(Number),
-    fulfilledTimeStamp: expect.any(Number),
-  })
-})
+    })
 
-test('passes the extraArgument property to the baseQueryApi', async () => {
-  const baseQuery = (_args: any, api: BaseQueryApi) => ({ data: api.extra })
-  const api = createApi({
-    baseQuery,
-    endpoints: (build) => ({
-      getUser: build.query<unknown, void>({
-        query: () => '',
+    const storeResult = getUser.select(1)(store.getState())
+    expect(storeResult).toEqual({
+      data: {
+        url: 'user/1',
+      },
+      endpointName: 'getUser',
+      isError: false,
+      isLoading: false,
+      isSuccess: true,
+      isUninitialized: false,
+      originalArgs: 1,
+      requestId: expect.any(String),
+      status: 'fulfilled',
+      startedTimeStamp: expect.any(Number),
+      fulfilledTimeStamp: expect.any(Number),
+    })
+  })
+
+  test('passes the extraArgument property to the baseQueryApi', async () => {
+    const baseQuery = (_args: any, api: BaseQueryApi) => ({ data: api.extra })
+    const api = createApi({
+      baseQuery,
+      endpoints: (build) => ({
+        getUser: build.query<unknown, void>({
+          query: () => '',
+        }),
       }),
-    }),
+    })
+    const store = configureStore({
+      reducer: {
+        [api.reducerPath]: api.reducer,
+      },
+      middleware: (gDM) =>
+        gDM({ thunk: { extraArgument: 'cakes' } }).concat(api.middleware),
+    })
+    const { getUser } = api.endpoints
+    const { data } = await store.dispatch(getUser.initiate())
+    expect(data).toBe('cakes')
   })
-  const store = configureStore({
-    reducer: {
-      [api.reducerPath]: api.reducer,
-    },
-    middleware: (gDM) =>
-      gDM({ thunk: { extraArgument: 'cakes' } }).concat(api.middleware),
+
+  test('only triggers transformResponse when a query method is actually used', async () => {
+    const baseQuery = (args?: any) => ({ data: args })
+    const transformResponse = vi.fn((response: any) => response)
+    const api = createApi({
+      baseQuery,
+      endpoints: (build) => ({
+        hasQuery: build.query<string, string>({
+          query: (arg) => 'test',
+          transformResponse,
+        }),
+        hasQueryFn: build.query<string, void>(
+          // @ts-expect-error
+          {
+            queryFn: () => ({ data: 'test' }),
+            transformResponse,
+          },
+        ),
+      }),
+    })
+
+    const store = configureStore({
+      reducer: {
+        [api.reducerPath]: api.reducer,
+      },
+      middleware: (gDM) =>
+        gDM({ thunk: { extraArgument: 'cakes' } }).concat(api.middleware),
+    })
+
+    await store.dispatch(api.util.upsertQueryData('hasQuery', 'a', 'test'))
+    expect(transformResponse).not.toHaveBeenCalled()
+
+    transformResponse.mockReset()
+
+    await store.dispatch(api.endpoints.hasQuery.initiate('b'))
+    expect(transformResponse).toHaveBeenCalledTimes(1)
+
+    transformResponse.mockReset()
+
+    await store.dispatch(api.endpoints.hasQueryFn.initiate())
+    expect(transformResponse).not.toHaveBeenCalled()
   })
-  const { getUser } = api.endpoints
-  const { data } = await store.dispatch(getUser.initiate())
-  expect(data).toBe('cakes')
 })
 
 describe('re-triggering behavior on arg change', () => {
