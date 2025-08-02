@@ -110,6 +110,11 @@ export interface CommonOptions {
    * @default undefined
    */
   prettierConfigFile?: string;
+  /**
+   * default to false
+   * Will generate imports with file extension matching the expected compiled output of the api file
+   */
+  ESMExtensions?:boolean;
 }
 
 export type TextMatcher = string | RegExp | (string | RegExp)[];
