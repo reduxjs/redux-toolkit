@@ -144,7 +144,7 @@ a.contents__link > code {
     color: var(--ifm-color-primary-lightest);
 }
 
-a:visited {
+a:visited:not(.menu__link, .table-of-contents__link, .navbar__link:not([target="_blank"])) {
   color: var(--ifm-color-primary);
 }
 .navbar .navbar__inner {
