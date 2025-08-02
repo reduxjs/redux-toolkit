@@ -510,10 +510,7 @@ export function buildThunks<
       endpointDefinition
 
     try {
-      let transformResponse = getTransformCallbackForEndpoint(
-        endpointDefinition,
-        'transformResponse',
-      )
+      let transformResponse: TransformCallback = defaultTransformResponse
 
       const baseQueryApi = {
         signal,
@@ -587,6 +584,13 @@ export function buildThunks<
           // upsertQueryData relies on this to pass in the user-provided value
           result = forceQueryFn()
         } else if (endpointDefinition.query) {
+          // We should only run `transformResponse` when the endpoint has a `query` method,
+          // and we're not doing an `upsertQueryData`.
+          transformResponse = getTransformCallbackForEndpoint(
+            endpointDefinition,
+            'transformResponse',
+          )
+
           result = await baseQuery(
             endpointDefinition.query(finalQueryArg as any),
             baseQueryApi,
