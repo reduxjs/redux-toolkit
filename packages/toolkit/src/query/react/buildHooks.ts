@@ -1234,10 +1234,10 @@ type UseInfiniteQueryStateBaseResult<
    * Query is currently in "error" state.
    */
   isError: false
-  hasNextPage: false
-  hasPreviousPage: false
-  isFetchingNextPage: false
-  isFetchingPreviousPage: false
+  hasNextPage: boolean
+  hasPreviousPage: boolean
+  isFetchingNextPage: boolean
+  isFetchingPreviousPage: boolean
 }
 
 type UseInfiniteQueryStateDefaultResult<
