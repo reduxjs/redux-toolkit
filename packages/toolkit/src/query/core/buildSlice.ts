@@ -519,13 +519,12 @@ export function buildSlice({
               providedTags as FullTagDescription<string>[]
           }
         },
-        prepare:
-          prepareAutoBatched<
-            Array<{
-              queryCacheKey: QueryCacheKey
-              providedTags: readonly FullTagDescription<string>[]
-            }>
-          >(),
+        prepare: prepareAutoBatched<
+          Array<{
+            queryCacheKey: QueryCacheKey
+            providedTags: readonly FullTagDescription<string>[]
+          }>
+        >(),
       },
     },
     extraReducers(builder) {
@@ -538,7 +537,9 @@ export function buildSlice({
         )
         .addMatcher(hasRehydrationInfo, (draft, action) => {
           const { provided } = extractRehydrationInfo(action)!
-          for (const [type, incomingTags] of Object.entries(provided)) {
+          for (const [type, incomingTags] of Object.entries(
+            provided.tags ?? {},
+          )) {
             for (const [id, cacheKeys] of Object.entries(incomingTags)) {
               const subscribedQueries = ((draft.tags[type] ??= {})[
                 id || '__internal_without_id'
@@ -549,6 +550,7 @@ export function buildSlice({
                 if (!alreadySubscribed) {
                   subscribedQueries.push(queryCacheKey)
                 }
+                draft.keys[queryCacheKey] = provided.keys[queryCacheKey]
               }
             }
           }
