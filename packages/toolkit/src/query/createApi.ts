@@ -8,6 +8,7 @@ import type {
   EndpointDefinitions,
   SchemaFailureConverter,
   SchemaFailureHandler,
+  SchemaType,
 } from './endpointDefinitions'
 import {
   DefinitionType,
@@ -280,6 +281,8 @@ export interface CreateApiOptions<
    *
    * If set to `true`, will skip schema validation for all endpoints, unless overridden by the endpoint.
    *
+   * Can be overridden for specific schemas by passing an array of schema types to skip.
+   *
    * @example
    * ```ts
    * // codeblock-meta no-transpile
@@ -288,7 +291,7 @@ export interface CreateApiOptions<
    *
    * const api = createApi({
    *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
-   *   skipSchemaValidation: process.env.NODE_ENV === "test", // skip schema validation in tests, since we'll be mocking the response
+   *   skipSchemaValidation: process.env.NODE_ENV === "test" ? ["response"] : false, // skip schema validation for response in tests, since we'll be mocking the response
    *   endpoints: (build) => ({
    *     getPost: build.query<Post, { id: number }>({
    *       query: ({ id }) => `/post/${id}`,
@@ -298,7 +301,7 @@ export interface CreateApiOptions<
    * })
    * ```
    */
-  skipSchemaValidation?: boolean
+  skipSchemaValidation?: boolean | SchemaType[]
 }
 
 export type CreateApi<Modules extends ModuleName> = {

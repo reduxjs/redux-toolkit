@@ -39,11 +39,7 @@ import type {
   TSHelpersNoInfer,
   TSHelpersOverride,
 } from '@reduxjs/toolkit/query'
-import {
-  defaultSerializeQueryArgs,
-  QueryStatus,
-  skipToken,
-} from '@reduxjs/toolkit/query'
+import { QueryStatus, skipToken } from '@reduxjs/toolkit/query'
 import type { DependencyList } from 'react'
 import {
   useCallback,
@@ -1644,17 +1640,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       subscriptionSelectorsRef.current =
         returnedValue as unknown as SubscriptionSelectors
     }
-    const stableArg = useStableQueryArgs(
-      skip ? skipToken : arg,
-      // Even if the user provided a per-endpoint `serializeQueryArgs` with
-      // a consistent return value, _here_ we want to use the default behavior
-      // so we can tell if _anything_ actually changed. Otherwise, we can end up
-      // with a case where the query args did change but the serialization doesn't,
-      // and then we never try to initiate a refetch.
-      defaultSerializeQueryArgs,
-      context.endpointDefinitions[endpointName],
-      endpointName,
-    )
+    const stableArg = useStableQueryArgs(skip ? skipToken : arg)
     const stableSubscriptionOptions = useShallowStableValue({
       refetchOnReconnect,
       refetchOnFocus,
@@ -1764,12 +1750,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         QueryDefinition<any, any, any, any, any>,
         Definitions
       >
-      const stableArg = useStableQueryArgs(
-        skip ? skipToken : arg,
-        serializeQueryArgs,
-        context.endpointDefinitions[endpointName],
-        endpointName,
-      )
+      const stableArg = useStableQueryArgs(skip ? skipToken : arg)
 
       type ApiRootState = Parameters<ReturnType<typeof select>>[0]
 
@@ -2053,17 +2034,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
       usePromiseRefUnsubscribeOnUnmount(promiseRef)
 
-      const stableArg = useStableQueryArgs(
-        options.skip ? skipToken : arg,
-        // Even if the user provided a per-endpoint `serializeQueryArgs` with
-        // a consistent return value, _here_ we want to use the default behavior
-        // so we can tell if _anything_ actually changed. Otherwise, we can end up
-        // with a case where the query args did change but the serialization doesn't,
-        // and then we never try to initiate a refetch.
-        defaultSerializeQueryArgs,
-        context.endpointDefinitions[endpointName],
-        endpointName,
-      )
+      const stableArg = useStableQueryArgs(options.skip ? skipToken : arg)
 
       const refetch = useCallback(
         () => refetchOrErrorIfUnmounted(promiseRef),

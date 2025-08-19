@@ -1,31 +1,17 @@
 import { useEffect, useRef, useMemo } from 'react'
-import type { SerializeQueryArgs } from '@reduxjs/toolkit/query'
-import type { EndpointDefinition } from '@reduxjs/toolkit/query'
+import { copyWithStructuralSharing } from '@reduxjs/toolkit/query'
 
-export function useStableQueryArgs<T>(
-  queryArgs: T,
-  serialize: SerializeQueryArgs<any>,
-  endpointDefinition: EndpointDefinition<any, any, any, any>,
-  endpointName: string,
-) {
-  const incoming = useMemo(
-    () => ({
-      queryArgs,
-      serialized:
-        typeof queryArgs == 'object'
-          ? serialize({ queryArgs, endpointDefinition, endpointName })
-          : queryArgs,
-    }),
-    [queryArgs, serialize, endpointDefinition, endpointName],
+export function useStableQueryArgs<T>(queryArgs: T) {
+  const cache = useRef(queryArgs)
+  const copy = useMemo(
+    () => copyWithStructuralSharing(cache.current, queryArgs),
+    [queryArgs],
   )
-  const cache = useRef(incoming)
   useEffect(() => {
-    if (cache.current.serialized !== incoming.serialized) {
-      cache.current = incoming
+    if (cache.current !== copy) {
+      cache.current = copy
     }
-  }, [incoming])
+  }, [copy])
 
-  return cache.current.serialized === incoming.serialized
-    ? cache.current.queryArgs
-    : queryArgs
+  return copy
 }

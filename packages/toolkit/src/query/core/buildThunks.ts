@@ -31,6 +31,7 @@ import type {
   SchemaFailureConverter,
   SchemaFailureHandler,
   SchemaFailureInfo,
+  SchemaType,
 } from '../endpointDefinitions'
 import {
   calculateProvidedBy,
@@ -68,7 +69,11 @@ import {
   isRejectedWithValue,
   SHOULD_AUTOBATCH,
 } from './rtkImports'
-import { parseWithSchema, NamedSchemaError } from '../standardSchema'
+import {
+  parseWithSchema,
+  NamedSchemaError,
+  shouldSkip,
+} from '../standardSchema'
 
 export type BuildThunksApiEndpointQuery<
   Definition extends QueryDefinition<any, any, any, any, any>,
@@ -346,7 +351,7 @@ export function buildThunks<
   selectors: AllSelectors
   onSchemaFailure: SchemaFailureHandler | undefined
   catchSchemaFailure: SchemaFailureConverter<BaseQuery> | undefined
-  skipSchemaValidation: boolean | undefined
+  skipSchemaValidation: boolean | SchemaType[] | undefined
 }) {
   type State = RootState<any, string, ReducerPath>
 
@@ -505,10 +510,7 @@ export function buildThunks<
       endpointDefinition
 
     try {
-      let transformResponse = getTransformCallbackForEndpoint(
-        endpointDefinition,
-        'transformResponse',
-      )
+      let transformResponse: TransformCallback = defaultTransformResponse
 
       const baseQueryApi = {
         signal,
@@ -569,7 +571,7 @@ export function buildThunks<
         const { extraOptions, argSchema, rawResponseSchema, responseSchema } =
           endpointDefinition
 
-        if (argSchema && !skipSchemaValidation) {
+        if (argSchema && !shouldSkip(skipSchemaValidation, 'arg')) {
           finalQueryArg = await parseWithSchema(
             argSchema,
             finalQueryArg,
@@ -582,6 +584,13 @@ export function buildThunks<
           // upsertQueryData relies on this to pass in the user-provided value
           result = forceQueryFn()
         } else if (endpointDefinition.query) {
+          // We should only run `transformResponse` when the endpoint has a `query` method,
+          // and we're not doing an `upsertQueryData`.
+          transformResponse = getTransformCallbackForEndpoint(
+            endpointDefinition,
+            'transformResponse',
+          )
+
           result = await baseQuery(
             endpointDefinition.query(finalQueryArg as any),
             baseQueryApi,
@@ -633,7 +642,10 @@ export function buildThunks<
 
         let { data } = result
 
-        if (rawResponseSchema && !skipSchemaValidation) {
+        if (
+          rawResponseSchema &&
+          !shouldSkip(skipSchemaValidation, 'rawResponse')
+        ) {
           data = await parseWithSchema(
             rawResponseSchema,
             result.data,
@@ -648,7 +660,7 @@ export function buildThunks<
           finalQueryArg,
         )
 
-        if (responseSchema && !skipSchemaValidation) {
+        if (responseSchema && !shouldSkip(skipSchemaValidation, 'response')) {
           transformedResponse = await parseWithSchema(
             responseSchema,
             transformedResponse,
@@ -751,7 +763,11 @@ export function buildThunks<
         finalQueryReturnValue = await executeRequest(arg.originalArgs)
       }
 
-      if (metaSchema && !skipSchemaValidation && finalQueryReturnValue.meta) {
+      if (
+        metaSchema &&
+        !shouldSkip(skipSchemaValidation, 'meta') &&
+        finalQueryReturnValue.meta
+      ) {
         finalQueryReturnValue.meta = await parseWithSchema(
           metaSchema,
           finalQueryReturnValue.meta,
@@ -781,7 +797,10 @@ export function buildThunks<
         let { value, meta } = caughtError
 
         try {
-          if (rawErrorResponseSchema && !skipSchemaValidation) {
+          if (
+            rawErrorResponseSchema &&
+            !shouldSkip(skipSchemaValidation, 'rawErrorResponse')
+          ) {
             value = await parseWithSchema(
               rawErrorResponseSchema,
               value,
@@ -790,7 +809,7 @@ export function buildThunks<
             )
           }
 
-          if (metaSchema && !skipSchemaValidation) {
+          if (metaSchema && !shouldSkip(skipSchemaValidation, 'meta')) {
             meta = await parseWithSchema(metaSchema, meta, 'metaSchema', meta)
           }
           let transformedErrorResponse = await transformErrorResponse(
@@ -798,7 +817,10 @@ export function buildThunks<
             meta,
             arg.originalArgs,
           )
-          if (errorResponseSchema && !skipSchemaValidation) {
+          if (
+            errorResponseSchema &&
+            !shouldSkip(skipSchemaValidation, 'errorResponse')
+          ) {
             transformedErrorResponse = await parseWithSchema(
               errorResponseSchema,
               transformedErrorResponse,

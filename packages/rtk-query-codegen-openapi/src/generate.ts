@@ -117,6 +117,7 @@ export async function generateApi(
     useEnumType = false,
     mergeReadWriteOnly = false,
     httpResolverOptions,
+    useUnknown = false,
   }: GenerationOptions
 ) {
   const v3Doc = (v3DocCache[spec] ??= await getV3Doc(spec, httpResolverOptions));
@@ -125,6 +126,7 @@ export async function generateApi(
     unionUndefined,
     useEnumType,
     mergeReadWriteOnly,
+    useUnknown,
   });
 
   // temporary workaround for https://github.com/oazapfts/oazapfts/issues/491
@@ -448,7 +450,11 @@ export async function generateApi(
         const encodedValue =
           encodeQueryParams && param.param?.in === 'query'
             ? factory.createConditionalExpression(
-                value,
+                factory.createBinaryExpression(
+                  value,
+                  ts.SyntaxKind.ExclamationEqualsToken,
+                  factory.createNull()
+                ),
                 undefined,
                 factory.createCallExpression(factory.createIdentifier('encodeURIComponent'), undefined, [
                   factory.createCallExpression(factory.createIdentifier('String'), undefined, [value]),

@@ -8120,7 +8120,7 @@ __metadata:
     lodash.camelcase: "npm:^4.3.0"
     msw: "npm:^2.1.5"
     node-fetch: "npm:^3.3.2"
-    oazapfts: "npm:^6.1.0"
+    oazapfts: "npm:^6.3.0"
     openapi-types: "npm:^9.1.0"
     prettier: "npm:^3.2.5"
     pretty-quick: "npm:^4.0.0"
@@ -24086,21 +24086,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oazapfts@npm:^6.1.0":
-  version: 6.2.2
-  resolution: "oazapfts@npm:6.2.2"
+"oazapfts@npm:^6.3.0":
+  version: 6.3.0
+  resolution: "oazapfts@npm:6.3.0"
   dependencies:
     "@apidevtools/swagger-parser": "npm:^10.1.1"
     lodash: "npm:^4.17.21"
     minimist: "npm:^1.2.8"
     swagger2openapi: "npm:^7.0.8"
-    tapable: "npm:^2.2.1"
-    typescript: "npm:^5.8.2"
+    tapable: "npm:^2.2.2"
+    typescript: "npm:^5.8.3"
   peerDependencies:
     "@oazapfts/runtime": "*"
   bin:
     oazapfts: cli.js
-  checksum: 10/20402b38e657679a04a122217fe8728318e967f7684e9f968cf4c690e094d0e3c17ac248448bb16b4111b30db4f936d7db52ad115c06a6a228b68ef46c82ccfe
+  checksum: 10/a8f0d04123aca7578093eac91e7206936c2a1d0515eda34bde70b172065f36af6bbda3d15a38c8bcf687ffd2accf0a88117e115c455af2be3f4c4d5fa6c70c94
   languageName: node
   linkType: hard
 
@@ -30908,6 +30908,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"tapable@npm:^2.2.2":
+  version: 2.2.2
+  resolution: "tapable@npm:2.2.2"
+  checksum: 10/065a0dc44aba1b32020faa1c27c719e8f76e5345347515d8494bf158524f36e9f22ad9eaa5b5494f9d5d67bf0640afdd5698505948c46d720b6b7e69d19349a6
+  languageName: node
+  linkType: hard
+
 "tar@npm:^7.4.3":
   version: 7.4.3
   resolution: "tar@npm:7.4.3"
@@ -31772,7 +31779,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^5.8.2":
+"typescript@npm:^5.8.2, typescript@npm:^5.8.3":
   version: 5.8.3
   resolution: "typescript@npm:5.8.3"
   bin:
@@ -31812,7 +31819,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@npm%3A^5.8.2#optional!builtin<compat/typescript>":
+"typescript@patch:typescript@npm%3A^5.8.2#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^5.8.3#optional!builtin<compat/typescript>":
   version: 5.8.3
   resolution: "typescript@patch:typescript@npm%3A5.8.3#optional!builtin<compat/typescript>::version=5.8.3&hash=8c6c40"
   bin:
