@@ -173,3 +173,130 @@ describe('calling initiate should have resulting queryCacheKey match baseQuery q
     )
   })
 })
+
+describe('getRunningQueryThunk with multiple stores', () => {
+  test('should isolate running queries between different store instances using the same API', async () => {
+    // Create a shared API instance
+    const sharedApi = createApi({
+      baseQuery: fakeBaseQuery(),
+      endpoints: (build) => ({
+        testQuery: build.query<string, string>({
+          async queryFn(arg) {
+            // Add delay to ensure queries are running when we check
+            await new Promise((resolve) => setTimeout(resolve, 50))
+            return { data: `result-${arg}` }
+          },
+        }),
+      }),
+    })
+
+    // Create two separate stores using the same API instance
+    const store1 = setupApiStore(sharedApi, undefined, {
+      withoutTestLifecycles: true,
+    }).store
+    const store2 = setupApiStore(sharedApi, undefined, {
+      withoutTestLifecycles: true,
+    }).store
+
+    // Start queries on both stores
+    const query1Promise = store1.dispatch(
+      sharedApi.endpoints.testQuery.initiate('arg1'),
+    )
+    const query2Promise = store2.dispatch(
+      sharedApi.endpoints.testQuery.initiate('arg2'),
+    )
+
+    // Verify that getRunningQueryThunk returns the correct query for each store
+    const runningQuery1 = store1.dispatch(
+      sharedApi.util.getRunningQueryThunk('testQuery', 'arg1'),
+    )
+    const runningQuery2 = store2.dispatch(
+      sharedApi.util.getRunningQueryThunk('testQuery', 'arg2'),
+    )
+
+    // Each store should only see its own running query
+    expect(runningQuery1).toBeDefined()
+    expect(runningQuery2).toBeDefined()
+    expect(runningQuery1?.requestId).toBe(query1Promise.requestId)
+    expect(runningQuery2?.requestId).toBe(query2Promise.requestId)
+
+    // Cross-store queries should not be visible
+    const crossQuery1 = store1.dispatch(
+      sharedApi.util.getRunningQueryThunk('testQuery', 'arg2'),
+    )
+    const crossQuery2 = store2.dispatch(
+      sharedApi.util.getRunningQueryThunk('testQuery', 'arg1'),
+    )
+
+    expect(crossQuery1).toBeUndefined()
+    expect(crossQuery2).toBeUndefined()
+
+    // Wait for queries to complete
+    await Promise.all([query1Promise, query2Promise])
+
+    // After completion, getRunningQueryThunk should return undefined for both stores
+    const completedQuery1 = store1.dispatch(
+      sharedApi.util.getRunningQueryThunk('testQuery', 'arg1'),
+    )
+    const completedQuery2 = store2.dispatch(
+      sharedApi.util.getRunningQueryThunk('testQuery', 'arg2'),
+    )
+
+    expect(completedQuery1).toBeUndefined()
+    expect(completedQuery2).toBeUndefined()
+  })
+
+  test('should handle same query args on different stores independently', async () => {
+    // Create a shared API instance
+    const sharedApi = createApi({
+      baseQuery: fakeBaseQuery(),
+      endpoints: (build) => ({
+        sameArgQuery: build.query<string, string>({
+          async queryFn(arg) {
+            await new Promise((resolve) => setTimeout(resolve, 50))
+            return { data: `result-${arg}-${Math.random()}` }
+          },
+        }),
+      }),
+    })
+
+    // Create two separate stores
+    const store1 = setupApiStore(sharedApi, undefined, {
+      withoutTestLifecycles: true,
+    }).store
+    const store2 = setupApiStore(sharedApi, undefined, {
+      withoutTestLifecycles: true,
+    }).store
+
+    // Start the same query on both stores
+    const sameArg = 'shared-arg'
+    const query1Promise = store1.dispatch(
+      sharedApi.endpoints.sameArgQuery.initiate(sameArg),
+    )
+    const query2Promise = store2.dispatch(
+      sharedApi.endpoints.sameArgQuery.initiate(sameArg),
+    )
+
+    // Both stores should see their own running query with the same cache key
+    const runningQuery1 = store1.dispatch(
+      sharedApi.util.getRunningQueryThunk('sameArgQuery', sameArg),
+    )
+    const runningQuery2 = store2.dispatch(
+      sharedApi.util.getRunningQueryThunk('sameArgQuery', sameArg),
+    )
+
+    expect(runningQuery1).toBeDefined()
+    expect(runningQuery2).toBeDefined()
+    expect(runningQuery1?.requestId).toBe(query1Promise.requestId)
+    expect(runningQuery2?.requestId).toBe(query2Promise.requestId)
+
+    // The request IDs should be different even though the cache key is the same
+    expect(runningQuery1?.requestId).not.toBe(runningQuery2?.requestId)
+
+    // But the cache keys should be the same
+    expect(runningQuery1?.queryCacheKey).toBe(runningQuery2?.queryCacheKey)
+
+    // Wait for completion
+    await Promise.all([query1Promise, query2Promise])
+  })
+})
