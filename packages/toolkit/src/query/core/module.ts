@@ -618,20 +618,6 @@ export const coreModule = ({
     })
     safeAssign(api.internalActions, sliceActions)
 
-    const { middleware, actions: middlewareActions } = buildMiddleware({
-      reducerPath,
-      context,
-      queryThunk,
-      mutationThunk,
-      infiniteQueryThunk,
-      api,
-      assertTagType,
-      selectors,
-    })
-    safeAssign(api.util, middlewareActions)
-
-    safeAssign(api, { reducer: reducer as any, middleware })
-
     const {
       buildInitiateQuery,
       buildInitiateInfiniteQuery,
@@ -655,6 +641,21 @@ export const coreModule = ({
       getRunningQueryThunk,
       getRunningQueriesThunk,
     })
+
+    const { middleware, actions: middlewareActions } = buildMiddleware({
+      reducerPath,
+      context,
+      queryThunk,
+      mutationThunk,
+      infiniteQueryThunk,
+      api,
+      assertTagType,
+      selectors,
+      getRunningQueryThunk,
+    })
+    safeAssign(api.util, middlewareActions)
+
+    safeAssign(api, { reducer: reducer as any, middleware })
 
     return {
       name: coreModuleName,

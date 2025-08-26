@@ -1,6 +1,7 @@
 import type {
   Action,
   AsyncThunkAction,
+  Dispatch,
   Middleware,
   MiddlewareAPI,
   ThunkAction,
@@ -54,6 +55,10 @@ export interface BuildMiddlewareInput<
   api: Api<any, Definitions, ReducerPath, TagTypes>
   assertTagType: AssertTagTypes
   selectors: AllSelectors
+  getRunningQueryThunk: (
+    endpointName: string,
+    queryArgs: any,
+  ) => (dispatch: Dispatch) => QueryActionCreatorResult<any> | undefined
 }
 
 export type SubMiddlewareApi = MiddlewareAPI<
