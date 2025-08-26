@@ -1,5 +1,5 @@
 import type { QueryDefinition } from '../../endpointDefinitions'
-import type { ConfigState, QueryCacheKey } from '../apiState'
+import type { ConfigState, QueryCacheKey, QuerySubState } from '../apiState'
 import { isAnyOf } from '../rtkImports'
 import type {
   ApiMiddlewareInternalHandler,
@@ -10,16 +10,6 @@ import type {
 } from './types'
 
 export type ReferenceCacheCollection = never
-
-function isObjectEmpty(obj: Record<any, any>) {
-  // Apparently a for..in loop is faster than `Object.keys()` here:
-  // https://stackoverflow.com/a/59787784/62937
-  for (const k in obj) {
-    // If there is at least one key, it's not empty
-    return false
-  }
-  return true
-}
 
 export type CacheCollectionQueryExtraOptions = {
   /**
@@ -44,6 +34,7 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
   context,
   internalState,
   selectors: { selectQueryEntry, selectConfig },
+  getRunningQueryThunk,
 }) => {
   const { removeQueryResult, unsubscribeQueryResult, cacheEntriesUpserted } =
     api.internalActions
@@ -57,7 +48,18 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
 
   function anySubscriptionsRemainingForKey(queryCacheKey: string) {
     const subscriptions = internalState.currentSubscriptions[queryCacheKey]
-    return !!subscriptions && !isObjectEmpty(subscriptions)
+    if (!subscriptions) {
+      return false
+    }
+
+    // Check if there are any keys that are NOT _running subscriptions
+    for (const key in subscriptions) {
+      if (!key.endsWith('_running')) {
+        return true
+      }
+    }
+    // Only _running subscriptions remain (or empty)
+    return false
   }
 
   const currentRemovalTimeouts: QueryStateMeta<TimeoutId> = {}
@@ -69,6 +71,7 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
   ) => {
     const state = mwApi.getState()
     const config = selectConfig(state)
+
     if (canTriggerUnsubscribe(action)) {
       let queryCacheKeys: QueryCacheKey[]
 
@@ -114,18 +117,20 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
     const state = api.getState()
     for (const queryCacheKey of cacheKeys) {
       const entry = selectQueryEntry(state, queryCacheKey)
-      handleUnsubscribe(queryCacheKey, entry?.endpointName, api, config)
+      if (entry?.endpointName) {
+        handleUnsubscribe(queryCacheKey, entry.endpointName, api, config)
+      }
     }
   }
 
   function handleUnsubscribe(
     queryCacheKey: QueryCacheKey,
-    endpointName: string | undefined,
+    endpointName: string,
     api: SubMiddlewareApi,
     config: ConfigState<string>,
   ) {
     const endpointDefinition = context.endpointDefinitions[
-      endpointName!
+      endpointName
     ] as QueryDefinition<any, any, any, any>
     const keepUnusedDataFor =
       endpointDefinition?.keepUnusedDataFor ?? config.keepUnusedDataFor
@@ -151,6 +156,15 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
 
       currentRemovalTimeouts[queryCacheKey] = setTimeout(() => {
         if (!anySubscriptionsRemainingForKey(queryCacheKey)) {
+          // Try to abort any running query for this cache key
+          const entry = selectQueryEntry(api.getState(), queryCacheKey)
+
+          if (entry?.endpointName) {
+            const runningQuery = api.dispatch(
+              getRunningQueryThunk(entry.endpointName, entry.originalArgs),
+            )
+            runningQuery?.abort()
+          }
           api.dispatch(removeQueryResult({ queryCacheKey }))
         }
         delete currentRemovalTimeouts![queryCacheKey]
