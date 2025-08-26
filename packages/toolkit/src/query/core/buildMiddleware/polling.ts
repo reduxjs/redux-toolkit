@@ -21,11 +21,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
   refetchQuery,
   internalState,
 }) => {
-  const currentPolls: QueryStateMeta<{
-    nextPollTimestamp: number
-    timeout?: TimeoutId
-    pollingInterval: number
-  }> = {}
+  const { currentPolls } = internalState
 
   const { currentSubscriptions } = internalState
 
@@ -119,6 +115,13 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
     }
 
     const { lowestPollingInterval } = findLowestPollingInterval(subscriptions)
+
+    // HACK add extra data to track how many times this has been called in tests
+    if (process.env.NODE_ENV === 'test') {
+      const updateCounters = ((currentPolls as any).pollUpdateCounters ??= {})
+      updateCounters[queryCacheKey] ??= 0
+      updateCounters[queryCacheKey]++
+    }
 
     if (!Number.isFinite(lowestPollingInterval)) {
       cleanupPollForKey(queryCacheKey)

@@ -155,6 +155,15 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
 
     let actionShouldContinue = true
 
+    // HACK Sneak the test-only polling state back out
+    if (
+      process.env.NODE_ENV === 'test' &&
+      typeof action.type === 'string' &&
+      action.type === `${api.reducerPath}/getPolling`
+    ) {
+      return [false, internalState.currentPolls] as any
+    }
+
     if (didMutate) {
       if (!updateSyncTimer) {
         // We only use the subscription state for the Redux DevTools at this point,
