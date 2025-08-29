@@ -36,6 +36,7 @@ const config: Config = {
                     'query/endpointDefinitions.ts',
                     'query/react/index.ts',
                     'query/react/ApiProvider.tsx',
+                    'query/core/buildMiddleware/cacheCollection.ts',
                   ],
                 },
               },
