@@ -123,9 +123,9 @@ export interface CreateApiOptions<
    *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
    *   endpoints: (build) => ({
    *     getPosts: build.query<PostsResponse, void>({
-   *       query: () => 'posts',
+   *       query: () => 'posts'
    *     })
-   *   })
+   *   }),
    *   // highlight-start
    *   keepUnusedDataFor: 5
    *   // highlight-end
