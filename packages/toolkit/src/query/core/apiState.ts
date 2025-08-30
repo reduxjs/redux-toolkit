@@ -148,6 +148,7 @@ export type SubscriptionOptions = {
    */
   refetchOnFocus?: boolean
 }
+export type SubscribersInternal = Map<string, SubscriptionOptions>
 export type Subscribers = { [requestId: string]: SubscriptionOptions }
 export type QueryKeys<Definitions extends EndpointDefinitions> = {
   [K in keyof Definitions]: Definitions[K] extends QueryDefinition<
@@ -326,6 +327,8 @@ export type QueryState<D extends EndpointDefinitions> = {
     | InfiniteQuerySubState<D[string]>
     | undefined
 }
+
+export type SubscriptionInternalState = Map<string, SubscribersInternal>
 
 export type SubscriptionState = {
   [queryCacheKey: string]: Subscribers | undefined

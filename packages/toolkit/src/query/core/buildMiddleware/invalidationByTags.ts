@@ -17,9 +17,8 @@ import type {
   SubMiddlewareApi,
   InternalHandlerBuilder,
   ApiMiddlewareInternalHandler,
-  InternalMiddlewareState,
 } from './types'
-import { countObjectKeys } from '../../utils/countObjectKeys'
+import { getOrInsert } from '../../utils/getOrInsert'
 
 export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
   reducerPath,
@@ -111,11 +110,14 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
       const valuesArray = Array.from(toInvalidate.values())
       for (const { queryCacheKey } of valuesArray) {
         const querySubState = state.queries[queryCacheKey]
-        const subscriptionSubState =
-          internalState.currentSubscriptions[queryCacheKey] ?? {}
+        const subscriptionSubState = getOrInsert(
+          internalState.currentSubscriptions,
+          queryCacheKey,
+          new Map(),
+        )
 
         if (querySubState) {
-          if (countObjectKeys(subscriptionSubState) === 0) {
+          if (subscriptionSubState.size === 0) {
             mwApi.dispatch(
               removeQueryResult({
                 queryCacheKey: queryCacheKey as QueryCacheKey,

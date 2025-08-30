@@ -32,7 +32,7 @@ beforeEach(() => {
 })
 
 const getSubscribersForQueryCacheKey = (queryCacheKey: string) =>
-  getSubscriptions()[queryCacheKey] || {}
+  getSubscriptions().get(queryCacheKey) ?? new Map()
 const createSubscriptionGetter = (queryCacheKey: string) => () =>
   getSubscribersForQueryCacheKey(queryCacheKey)
 
@@ -66,14 +66,14 @@ describe('polling tests', () => {
     const getSubs = createSubscriptionGetter(queryCacheKey)
 
     await delay(1)
-    expect(Object.keys(getSubs())).toHaveLength(1)
-    expect(getSubs()[requestId].pollingInterval).toBe(10)
+    expect(getSubs().size).toBe(1)
+    expect(getSubs().get(requestId).pollingInterval).toBe(10)
 
     subscription.updateSubscriptionOptions({ pollingInterval: 20 })
 
     await delay(1)
-    expect(Object.keys(getSubs())).toHaveLength(1)
-    expect(getSubs()[requestId].pollingInterval).toBe(20)
+    expect(getSubs().size).toBe(1)
+    expect(getSubs().get(requestId).pollingInterval).toBe(20)
   })
 
   it(`doesn't replace the interval when removing a shared query instance with a poll `, async () => {
@@ -95,12 +95,12 @@ describe('polling tests', () => {
 
     const getSubs = createSubscriptionGetter(subscriptionOne.queryCacheKey)
 
-    expect(Object.keys(getSubs())).toHaveLength(2)
+    expect(getSubs().size).toBe(2)
 
     subscriptionOne.unsubscribe()
 
     await delay(1)
-    expect(Object.keys(getSubs())).toHaveLength(1)
+    expect(getSubs().size).toBe(1)
   })
 
   it('uses lowest specified interval when two components are mounted', async () => {
@@ -218,8 +218,8 @@ describe('polling tests', () => {
     const getSubs = createSubscriptionGetter(queryCacheKey)
 
     await delay(1)
-    expect(Object.keys(getSubs())).toHaveLength(1)
-    expect(getSubs()[requestId].skipPollingIfUnfocused).toBe(false)
+    expect(getSubs().size).toBe(1)
+    expect(getSubs().get(requestId)?.skipPollingIfUnfocused).toBe(false)
 
     subscription.updateSubscriptionOptions({
       pollingInterval: 20,
@@ -227,7 +227,7 @@ describe('polling tests', () => {
     })
 
     await delay(1)
-    expect(Object.keys(getSubs())).toHaveLength(1)
-    expect(getSubs()[requestId].skipPollingIfUnfocused).toBe(true)
+    expect(getSubs().size).toBe(1)
+    expect(getSubs().get(requestId)?.skipPollingIfUnfocused).toBe(true)
   })
 })
