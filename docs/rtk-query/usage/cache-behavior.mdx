@@ -122,7 +122,7 @@ Alternatively, you can dispatch the `initiate` thunk action for an endpoint, pas
 
 ```tsx no-transpile title="Force refetch example"
 import { useDispatch } from 'react-redux'
-import { useGetPostsQuery } from './api'
+import { api, useGetPostsQuery } from './api'
 
 const Component = () => {
   const dispatch = useDispatch()
