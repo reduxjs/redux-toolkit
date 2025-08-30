@@ -2,6 +2,7 @@ import type {
   QueryCacheKey,
   QuerySubstateIdentifier,
   Subscribers,
+  SubscribersInternal,
 } from '../apiState'
 import { QueryStatus } from '../apiState'
 import type {
@@ -25,6 +26,8 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
     timeout?: TimeoutId
     pollingInterval: number
   }> = {}
+
+  const { currentSubscriptions } = internalState
 
   const handler: ApiMiddlewareInternalHandler = (action, mwApi) => {
     if (
@@ -59,7 +62,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
   ) {
     const state = api.getState()[reducerPath]
     const querySubState = state.queries[queryCacheKey]
-    const subscriptions = internalState.currentSubscriptions[queryCacheKey]
+    const subscriptions = currentSubscriptions.get(queryCacheKey)
 
     if (!querySubState || querySubState.status === QueryStatus.uninitialized)
       return
@@ -73,7 +76,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
   ) {
     const state = api.getState()[reducerPath]
     const querySubState = state.queries[queryCacheKey]
-    const subscriptions = internalState.currentSubscriptions[queryCacheKey]
+    const subscriptions = currentSubscriptions.get(queryCacheKey)
 
     if (!querySubState || querySubState.status === QueryStatus.uninitialized)
       return
@@ -109,7 +112,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
   ) {
     const state = api.getState()[reducerPath]
     const querySubState = state.queries[queryCacheKey]
-    const subscriptions = internalState.currentSubscriptions[queryCacheKey]
+    const subscriptions = currentSubscriptions.get(queryCacheKey)
 
     if (!querySubState || querySubState.status === QueryStatus.uninitialized) {
       return
@@ -144,17 +147,20 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
     }
   }
 
-  function findLowestPollingInterval(subscribers: Subscribers = {}) {
+  function findLowestPollingInterval(
+    subscribers: SubscribersInternal = new Map(),
+  ) {
     let skipPollingIfUnfocused: boolean | undefined = false
     let lowestPollingInterval = Number.POSITIVE_INFINITY
-    for (let key in subscribers) {
-      if (!!subscribers[key].pollingInterval) {
+
+    for (const entry of subscribers.values()) {
+      if (!!entry.pollingInterval) {
         lowestPollingInterval = Math.min(
-          subscribers[key].pollingInterval!,
+          entry.pollingInterval!,
           lowestPollingInterval,
         )
         skipPollingIfUnfocused =
-          subscribers[key].skipPollingIfUnfocused || skipPollingIfUnfocused
+          entry.skipPollingIfUnfocused || skipPollingIfUnfocused
       }
     }
 

@@ -45,7 +45,7 @@ export function buildMiddleware<
   ReducerPath extends string,
   TagTypes extends string,
 >(input: BuildMiddlewareInput<Definitions, ReducerPath, TagTypes>) {
-  const { reducerPath, queryThunk, api, context } = input
+  const { reducerPath, queryThunk, api, context, internalState } = input
   const { apiUid } = context
 
   const actions = {
@@ -73,10 +73,6 @@ export function buildMiddleware<
   > = (mwApi) => {
     let initialized = false
 
-    const internalState: InternalMiddlewareState = {
-      currentSubscriptions: {},
-    }
-
     const builderArgs = {
       ...(input as any as BuildMiddlewareInput<
         EndpointDefinitions,
@@ -86,6 +82,7 @@ export function buildMiddleware<
       internalState,
       refetchQuery,
       isThisApiSliceAction,
+      mwApi,
     }
 
     const handlers = handlerBuilders.map((build) => build(builderArgs))
