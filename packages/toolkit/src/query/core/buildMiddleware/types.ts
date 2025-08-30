@@ -37,13 +37,15 @@ import type { AllSelectors } from '../buildSelectors'
 export type QueryStateMeta<T> = Record<string, undefined | T>
 export type TimeoutId = ReturnType<typeof setTimeout>
 
+type QueryPollState = {
+  nextPollTimestamp: number
+  timeout?: TimeoutId
+  pollingInterval: number
+}
+
 export interface InternalMiddlewareState {
   currentSubscriptions: SubscriptionInternalState
-  currentPolls: QueryStateMeta<{
-    nextPollTimestamp: number
-    timeout?: TimeoutId
-    pollingInterval: number
-  }>
+  currentPolls: Map<string, QueryPollState>
   runningQueries: Map<
     Dispatch,
     Record<

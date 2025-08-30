@@ -621,7 +621,7 @@ export const coreModule = ({
 
     const internalState: InternalMiddlewareState = {
       currentSubscriptions: new Map(),
-      currentPolls: {},
+      currentPolls: new Map(),
       runningQueries: new Map(),
       runningMutations: new Map(),
     }
