@@ -21,23 +21,25 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
   refetchQuery,
   internalState,
 }) => {
-  const { currentPolls } = internalState
+  const { currentPolls, currentSubscriptions } = internalState
 
-  const { currentSubscriptions } = internalState
+  // Batching state for polling updates
+  const pendingPollingUpdates = new Set<string>()
+  let pollingUpdateTimer: ReturnType<typeof setTimeout> | null = null
 
   const handler: ApiMiddlewareInternalHandler = (action, mwApi) => {
     if (
       api.internalActions.updateSubscriptionOptions.match(action) ||
       api.internalActions.unsubscribeQueryResult.match(action)
     ) {
-      updatePollingInterval(action.payload, mwApi)
+      schedulePollingUpdate(action.payload.queryCacheKey, mwApi)
     }
 
     if (
       queryThunk.pending.match(action) ||
       (queryThunk.rejected.match(action) && action.meta.condition)
     ) {
-      updatePollingInterval(action.meta.arg, mwApi)
+      schedulePollingUpdate(action.meta.arg.queryCacheKey, mwApi)
     }
 
     if (
@@ -49,6 +51,27 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
 
     if (api.util.resetApiState.match(action)) {
       clearPolls()
+      // Clear any pending updates
+      if (pollingUpdateTimer) {
+        clearTimeout(pollingUpdateTimer)
+        pollingUpdateTimer = null
+      }
+      pendingPollingUpdates.clear()
+    }
+  }
+
+  function schedulePollingUpdate(queryCacheKey: string, api: SubMiddlewareApi) {
+    pendingPollingUpdates.add(queryCacheKey)
+
+    if (!pollingUpdateTimer) {
+      pollingUpdateTimer = setTimeout(() => {
+        // Process all pending updates in a single batch
+        for (const key of pendingPollingUpdates) {
+          updatePollingInterval({ queryCacheKey: key as any }, api)
+        }
+        pendingPollingUpdates.clear()
+        pollingUpdateTimer = null
+      }, 0)
     }
   }
 
@@ -81,7 +104,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
       findLowestPollingInterval(subscriptions)
     if (!Number.isFinite(lowestPollingInterval)) return
 
-    const currentPoll = currentPolls[queryCacheKey]
+    const currentPoll = currentPolls.get(queryCacheKey)
 
     if (currentPoll?.timeout) {
       clearTimeout(currentPoll.timeout)
@@ -90,7 +113,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
 
     const nextPollTimestamp = Date.now() + lowestPollingInterval
 
-    currentPolls[queryCacheKey] = {
+    currentPolls.set(queryCacheKey, {
       nextPollTimestamp,
       pollingInterval: lowestPollingInterval,
       timeout: setTimeout(() => {
@@ -99,7 +122,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
         }
         startNextPoll({ queryCacheKey }, api)
       }, lowestPollingInterval),
-    }
+    })
   }
 
   function updatePollingInterval(
@@ -117,6 +140,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
     const { lowestPollingInterval } = findLowestPollingInterval(subscriptions)
 
     // HACK add extra data to track how many times this has been called in tests
+    // yes we're mutating a nonexistent field on a Map here
     if (process.env.NODE_ENV === 'test') {
       const updateCounters = ((currentPolls as any).pollUpdateCounters ??= {})
       updateCounters[queryCacheKey] ??= 0
@@ -128,7 +152,8 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
       return
     }
 
-    const currentPoll = currentPolls[queryCacheKey]
+    const currentPoll = currentPolls.get(queryCacheKey)
+
     const nextPollTimestamp = Date.now() + lowestPollingInterval
 
     if (!currentPoll || nextPollTimestamp < currentPoll.nextPollTimestamp) {
@@ -137,15 +162,15 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
   }
 
   function cleanupPollForKey(key: string) {
-    const existingPoll = currentPolls[key]
+    const existingPoll = currentPolls.get(key)
     if (existingPoll?.timeout) {
       clearTimeout(existingPoll.timeout)
     }
-    delete currentPolls[key]
+    currentPolls.delete(key)
   }
 
   function clearPolls() {
-    for (const key of Object.keys(currentPolls)) {
+    for (const key of currentPolls.keys()) {
       cleanupPollForKey(key)
     }
   }

@@ -16,6 +16,7 @@ describe('Infinite queries', () => {
     name: string
   }
 
+  type HitCounter = { page: number; hitCounter: number }
   let counters: Record<string, number> = {}
   let queryCounter = 0
 
@@ -88,39 +89,41 @@ describe('Infinite queries', () => {
     }),
   })
 
-  let hitCounter = 0
+  function createCountersApi() {
+    let hitCounter = 0
 
-  type HitCounter = { page: number; hitCounter: number }
+    const countersApi = createApi({
+      baseQuery: fakeBaseQuery(),
+      tagTypes: ['Counter'],
+      endpoints: (build) => ({
+        counters: build.infiniteQuery<HitCounter, string, number>({
+          queryFn({ pageParam }) {
+            hitCounter++
 
-  const countersApi = createApi({
-    baseQuery: fakeBaseQuery(),
-    tagTypes: ['Counter'],
-    endpoints: (build) => ({
-      counters: build.infiniteQuery<HitCounter, string, number>({
-        queryFn({ pageParam }) {
-          hitCounter++
-
-          return { data: { page: pageParam, hitCounter } }
-        },
-        infiniteQueryOptions: {
-          initialPageParam: 0,
-          getNextPageParam: (
-            lastPage,
-            allPages,
-            lastPageParam,
-            allPageParams,
-          ) => lastPageParam + 1,
-        },
-        providesTags: ['Counter'],
+            return { data: { page: pageParam, hitCounter } }
+          },
+          infiniteQueryOptions: {
+            initialPageParam: 0,
+            getNextPageParam: (
+              lastPage,
+              allPages,
+              lastPageParam,
+              allPageParams,
+            ) => lastPageParam + 1,
+          },
+          providesTags: ['Counter'],
+        }),
+        mutation: build.mutation<null, void>({
+          queryFn: async () => {
+            return { data: null }
+          },
+          invalidatesTags: ['Counter'],
+        }),
       }),
-      mutation: build.mutation<null, void>({
-        queryFn: async () => {
-          return { data: null }
-        },
-        invalidatesTags: ['Counter'],
-      }),
-    }),
-  })
+    })
+
+    return countersApi
+  }
 
   let storeRef = setupApiStore(
     pokemonApi,
@@ -155,7 +158,6 @@ describe('Infinite queries', () => {
 
     counters = {}
 
-    hitCounter = 0
     queryCounter = 0
   })
 
@@ -411,6 +413,8 @@ describe('Infinite queries', () => {
       }
     }
 
+    const countersApi = createCountersApi()
+
     const storeRef = setupApiStore(
       countersApi,
       { ...actionsReducer },
@@ -464,6 +468,8 @@ describe('Infinite queries', () => {
         expect(result.data.pages).toEqual(expectedValues)
       }
     }
+
+    const countersApi = createCountersApi()
 
     const storeRef = setupApiStore(
       countersApi,
@@ -528,6 +534,7 @@ describe('Infinite queries', () => {
   })
 
   test('Refetches on polling', async () => {
+    const countersApi = createCountersApi()
     const checkResultData = (
       result: InfiniteQueryResult,
       expectedValues: HitCounter[],
