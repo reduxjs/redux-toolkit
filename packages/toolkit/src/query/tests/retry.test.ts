@@ -465,4 +465,87 @@ describe('configuration', () => {
 
     expect(baseBaseQuery).toHaveBeenCalledOnce()
   })
+
+  test('retryCondition receives abort signal and stops retrying when cache entry is removed', async () => {
+    let capturedSignal: AbortSignal | undefined
+    let retryAttempts = 0
+
+    const baseBaseQuery = vi.fn<
+      Parameters<BaseQueryFn>,
+      ReturnType<BaseQueryFn>
+    >()
+
+    // Always return an error to trigger retries
+    baseBaseQuery.mockResolvedValue({ error: 'network error' })
+
+    let retryConditionCalled = false
+
+    const baseQuery = retry(baseBaseQuery, {
+      retryCondition: (error, args, { attempt, baseQueryApi }) => {
+        retryConditionCalled = true
+        retryAttempts = attempt
+        capturedSignal = baseQueryApi.signal
+
+        // Stop retrying if the signal is aborted
+        if (baseQueryApi.signal.aborted) {
+          return false
+        }
+
+        // Otherwise, retry up to 10 times
+        return attempt <= 10
+      },
+      backoff: async () => {
+        // Short backoff for faster test
+        await new Promise((resolve) => setTimeout(resolve, 10))
+      },
+    })
+
+    const api = createApi({
+      baseQuery,
+      endpoints: (build) => ({
+        getTest: build.query<string, number>({
+          query: (id) => ({ url: `test/${id}` }),
+          keepUnusedDataFor: 0.01, // Very short timeout (10ms)
+        }),
+      }),
+    })
+
+    const storeRef = setupApiStore(api, undefined, {
+      withoutTestLifecycles: true,
+    })
+
+    // Start the query
+    const queryPromise = storeRef.store.dispatch(
+      api.endpoints.getTest.initiate(1),
+    )
+
+    // Wait for the first retry to happen so we capture the signal
+    await loopTimers(2)
+
+    // Verify the retry condition was called and we have a signal
+    expect(retryConditionCalled).toBe(true)
+    expect(capturedSignal).toBeDefined()
+    expect(capturedSignal!.aborted).toBe(false)
+
+    // Unsubscribe to trigger cache removal
+    queryPromise.unsubscribe()
+
+    // Wait for the cache entry to be removed (keepUnusedDataFor: 0.01s = 10ms)
+    await vi.advanceTimersByTimeAsync(50)
+
+    // Allow some time for more retries to potentially happen
+    await loopTimers(3)
+
+    // The signal should now be aborted
+    expect(capturedSignal!.aborted).toBe(true)
+
+    // We should have stopped retrying early due to the abort signal
+    // If abort signal wasn't working, we'd see many more retry attempts
+    expect(retryAttempts).toBeLessThan(10)
+
+    // The base query should have been called at least once (initial attempt)
+    // but not the full 10+ times it would without abort signal
+    expect(baseBaseQuery).toHaveBeenCalled()
+    expect(baseBaseQuery.mock.calls.length).toBeLessThan(10)
+  })
 })

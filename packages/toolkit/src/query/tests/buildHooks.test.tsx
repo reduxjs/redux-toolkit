@@ -1190,6 +1190,87 @@ describe('hooks tests', () => {
       ).toBe(-1)
     })
 
+    test('query thunk should be aborted when component unmounts and cache entry is removed', async () => {
+      let abortSignalFromQueryFn: AbortSignal | undefined
+
+      const pokemonApi = createApi({
+        baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
+        endpoints: (builder) => ({
+          getTest: builder.query<string, number>({
+            async queryFn(arg, { signal }) {
+              abortSignalFromQueryFn = signal
+
+              // Simulate a long-running request that should be aborted
+              await new Promise((resolve, reject) => {
+                const timeout = setTimeout(resolve, 5000)
+
+                signal.addEventListener('abort', () => {
+                  clearTimeout(timeout)
+                  reject(new Error('Aborted'))
+                })
+              })
+
+              return { data: 'data!' }
+            },
+            keepUnusedDataFor: 0.01, // Very short timeout (10ms)
+          }),
+        }),
+      })
+
+      const storeRef = setupApiStore(pokemonApi, undefined, {
+        withoutTestLifecycles: true,
+      })
+
+      function TestComponent() {
+        const { data, isFetching } = pokemonApi.endpoints.getTest.useQuery(1)
+
+        return (
+          <div>
+            <div data-testid="isFetching">{String(isFetching)}</div>
+            <div data-testid="data">{data || 'no data'}</div>
+          </div>
+        )
+      }
+
+      function App() {
+        const [showComponent, setShowComponent] = useState(true)
+
+        return (
+          <div>
+            {showComponent && <TestComponent />}
+            <button
+              data-testid="unmount"
+              onClick={() => setShowComponent(false)}
+            >
+              Unmount Component
+            </button>
+          </div>
+        )
+      }
+
+      render(<App />, { wrapper: storeRef.wrapper })
+
+      // Wait for the query to start
+      await waitFor(() =>
+        expect(screen.getByTestId('isFetching').textContent).toBe('true'),
+      )
+
+      // Verify we have an abort signal
+      expect(abortSignalFromQueryFn).toBeDefined()
+      expect(abortSignalFromQueryFn!.aborted).toBe(false)
+
+      // Unmount the component
+      fireEvent.click(screen.getByTestId('unmount'))
+
+      // Wait for the cache entry to be removed (keepUnusedDataFor: 0.01s = 10ms)
+      await act(async () => {
+        await delay(100)
+      })
+
+      // The abort signal should now be aborted
+      expect(abortSignalFromQueryFn!.aborted).toBe(true)
+    })
+
     describe('Hook middleware requirements', () => {
       const consoleErrorSpy = vi
         .spyOn(console, 'error')
@@ -1898,7 +1979,6 @@ describe('hooks tests', () => {
       const checkNumQueries = (count: number) => {
         const cacheEntries = Object.keys(storeRef.store.getState().api.queries)
         const queries = cacheEntries.length
-        //console.log('queries', queries, storeRef.store.getState().api.queries)
 
         expect(queries).toBe(count)
       }
