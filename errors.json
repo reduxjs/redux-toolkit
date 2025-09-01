@@ -41,5 +41,6 @@
   "39": "called \\`injectEndpoints\\` to override already-existing endpointName  without specifying \\`overrideExisting: true\\`",
   "40": "maxPages for endpoint '' must be a number greater than 0",
   "41": "getPreviousPageParam for endpoint '' must be a function if maxPages is used",
-  "42": "Duplicate middleware references found when creating the store. Ensure that each middleware is only included once."
+  "42": "Duplicate middleware references found when creating the store. Ensure that each middleware is only included once.",
+  "43": "`builder.addAsyncThunk` should only be called before calling `builder.addDefaultCase`"
 }
