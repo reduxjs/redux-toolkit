@@ -18,7 +18,7 @@ import type {
   InternalHandlerBuilder,
   ApiMiddlewareInternalHandler,
 } from './types'
-import { getOrInsert } from '../../utils/getOrInsert'
+import { getOrInsertComputed, createNewMap } from '../../utils/getOrInsert'
 
 export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
   reducerPath,
@@ -110,10 +110,10 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
       const valuesArray = Array.from(toInvalidate.values())
       for (const { queryCacheKey } of valuesArray) {
         const querySubState = state.queries[queryCacheKey]
-        const subscriptionSubState = getOrInsert(
+        const subscriptionSubState = getOrInsertComputed(
           internalState.currentSubscriptions,
           queryCacheKey,
-          new Map(),
+          createNewMap,
         )
 
         if (querySubState) {

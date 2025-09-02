@@ -2,7 +2,7 @@ import type { InternalHandlerBuilder, SubscriptionSelectors } from './types'
 import type { SubscriptionInternalState, SubscriptionState } from '../apiState'
 import { produceWithPatches } from 'immer'
 import type { Action } from '@reduxjs/toolkit'
-import { getOrInsert } from '../../utils/getOrInsert'
+import { getOrInsertComputed, createNewMap } from '../../utils/getOrInsert'
 
 export const buildBatchedActionsHandler: InternalHandlerBuilder<
   [actionShouldContinue: boolean, returnValue: SubscriptionSelectors | boolean]
@@ -48,10 +48,10 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
       const {
         meta: { arg, requestId },
       } = action
-      const substate = getOrInsert(
+      const substate = getOrInsertComputed(
         currentSubscriptions,
         arg.queryCacheKey,
-        new Map(),
+        createNewMap,
       )
       if (arg.subscribe) {
         substate.set(
@@ -68,10 +68,10 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
         meta: { condition, arg, requestId },
       } = action
       if (condition && arg.subscribe) {
-        const substate = getOrInsert(
+        const substate = getOrInsertComputed(
           currentSubscriptions,
           arg.queryCacheKey,
-          new Map(),
+          createNewMap,
         )
         substate.set(
           requestId,
@@ -88,9 +88,8 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
   const getSubscriptions = () => internalState.currentSubscriptions
   const getSubscriptionCount = (queryCacheKey: string) => {
     const subscriptions = getSubscriptions()
-    const subscriptionsForQueryArg =
-      subscriptions.get(queryCacheKey) ?? new Map()
-    return subscriptionsForQueryArg.size
+    const subscriptionsForQueryArg = subscriptions.get(queryCacheKey)
+    return subscriptionsForQueryArg?.size ?? 0
   }
   const isRequestSubscribed = (queryCacheKey: string, requestId: string) => {
     const subscriptions = getSubscriptions()
