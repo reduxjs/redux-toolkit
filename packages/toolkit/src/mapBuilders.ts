@@ -73,6 +73,31 @@ export interface ActionReducerMapBuilder<State> {
    * All calls to `builder.addAsyncThunk` must come before after any calls to `builder.addCase` and before any calls to `builder.addMatcher` or `builder.addDefaultCase`.
    * @param asyncThunk - The async thunk action creator itself.
    * @param reducers - A mapping from each of the `AsyncThunk` action types to the case reducer that should handle those actions.
+   * @example
+```ts no-transpile
+import { createAsyncThunk, createReducer } from '@reduxjs/toolkit'
+
+const fetchUserById = createAsyncThunk('users/fetchUser', async (id) => {
+  const response = await fetch(`https://reqres.in/api/users/${id}`)
+  return (await response.json()).data
+})
+
+const reducer = createReducer(initialState, (builder) => {
+  builder.addAsyncThunk(fetchUserById, {
+    pending: (state, action) => {
+      state.fetchUserById.loading = 'pending'
+    },
+    fulfilled: (state, action) => {
+      state.fetchUserById.data = action.payload
+    },
+    rejected: (state, action) => {
+      state.fetchUserById.error = action.error
+    },
+    settled: (state, action) => {
+      state.fetchUserById.loading = action.meta.requestStatus
+    },
+  })
+})
    */
   addAsyncThunk<
     Returned,

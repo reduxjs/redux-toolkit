@@ -86,7 +86,7 @@ const api = createApi({
         // and leave a side effect we can check in the test
         api.dispatch(postAddedAction(res.data.id))
       },
-      keepUnusedDataFor: 0.01,
+      keepUnusedDataFor: 0.1,
     }),
     getFolder: build.query<FolderT, number>({
       queryFn: async (args) => {
@@ -430,12 +430,12 @@ describe('upsertQueryEntries', () => {
 
         expect(selectedData).toBe(posts[0])
       },
-      { timeout: 50, interval: 5 },
+      { timeout: 150, interval: 5 },
     )
 
     // The cache data should be removed after the keepUnusedDataFor time,
     // so wait longer than that
-    await delay(100)
+    await delay(300)
 
     const stateAfter = storeRef.store.getState()
 

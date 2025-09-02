@@ -104,6 +104,7 @@ export type {
 export type {
   // types
   ActionReducerMapBuilder,
+  AsyncThunkReducers,
 } from './mapBuilders'
 export { Tuple } from './utils'
 
