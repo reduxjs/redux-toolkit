@@ -71,6 +71,7 @@ import type {
 import { buildThunks } from './buildThunks'
 import { createSelector as _createSelector } from './rtkImports'
 import { onFocus, onFocusLost, onOffline, onOnline } from './setupListeners'
+import type { InternalMiddlewareState } from './buildMiddleware/types'
 
 /**
  * `ifOlderThan` - (default: `false` | `number`) - _number is value in seconds_
@@ -618,6 +619,13 @@ export const coreModule = ({
     })
     safeAssign(api.internalActions, sliceActions)
 
+    const internalState: InternalMiddlewareState = {
+      currentSubscriptions: new Map(),
+      currentPolls: new Map(),
+      runningQueries: new Map(),
+      runningMutations: new Map(),
+    }
+
     const {
       buildInitiateQuery,
       buildInitiateInfiniteQuery,
@@ -633,6 +641,7 @@ export const coreModule = ({
       api,
       serializeQueryArgs: serializeQueryArgs as any,
       context,
+      internalState,
     })
 
     safeAssign(api.util, {
@@ -652,6 +661,7 @@ export const coreModule = ({
       assertTagType,
       selectors,
       getRunningQueryThunk,
+      internalState,
     })
     safeAssign(api.util, middlewareActions)
 

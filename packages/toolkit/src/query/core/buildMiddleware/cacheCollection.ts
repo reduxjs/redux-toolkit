@@ -59,9 +59,12 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
   internalState,
   selectors: { selectQueryEntry, selectConfig },
   getRunningQueryThunk,
+  mwApi,
 }) => {
   const { removeQueryResult, unsubscribeQueryResult, cacheEntriesUpserted } =
     api.internalActions
+
+  const runningQueries = internalState.runningQueries.get(mwApi.dispatch)!
 
   const canTriggerUnsubscribe = isAnyOf(
     unsubscribeQueryResult.match,
@@ -71,19 +74,14 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
   )
 
   function anySubscriptionsRemainingForKey(queryCacheKey: string) {
-    const subscriptions = internalState.currentSubscriptions[queryCacheKey]
+    const subscriptions = internalState.currentSubscriptions.get(queryCacheKey)
     if (!subscriptions) {
       return false
     }
 
-    // Check if there are any keys that are NOT _running subscriptions
-    for (const key in subscriptions) {
-      if (!key.endsWith('_running')) {
-        return true
-      }
-    }
-    // Only _running subscriptions remain (or empty)
-    return false
+    const hasSubscriptions = subscriptions.size > 0
+    const isRunning = runningQueries?.[queryCacheKey] !== undefined
+    return hasSubscriptions || isRunning
   }
 
   const currentRemovalTimeouts: QueryStateMeta<TimeoutId> = {}

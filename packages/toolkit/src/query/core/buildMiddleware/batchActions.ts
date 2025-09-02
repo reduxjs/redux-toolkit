@@ -1,12 +1,12 @@
 import type { InternalHandlerBuilder, SubscriptionSelectors } from './types'
-import type { SubscriptionState } from '../apiState'
+import type { SubscriptionInternalState, SubscriptionState } from '../apiState'
 import { produceWithPatches } from 'immer'
 import type { Action } from '@reduxjs/toolkit'
-import { countObjectKeys } from '../../utils/countObjectKeys'
+import { getOrInsertComputed, createNewMap } from '../../utils/getOrInsert'
 
 export const buildBatchedActionsHandler: InternalHandlerBuilder<
   [actionShouldContinue: boolean, returnValue: SubscriptionSelectors | boolean]
-> = ({ api, queryThunk, internalState }) => {
+> = ({ api, queryThunk, internalState, mwApi }) => {
   const subscriptionsPrefix = `${api.reducerPath}/subscriptions`
 
   let previousSubscriptions: SubscriptionState =
@@ -20,58 +20,63 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
   // Actually intentionally mutate the subscriptions state used in the middleware
   // This is done to speed up perf when loading many components
   const actuallyMutateSubscriptions = (
-    mutableState: SubscriptionState,
+    currentSubscriptions: SubscriptionInternalState,
     action: Action,
   ) => {
     if (updateSubscriptionOptions.match(action)) {
       const { queryCacheKey, requestId, options } = action.payload
 
-      if (mutableState?.[queryCacheKey]?.[requestId]) {
-        mutableState[queryCacheKey]![requestId] = options
+      const sub = currentSubscriptions.get(queryCacheKey)
+      if (sub?.has(requestId)) {
+        sub.set(requestId, options)
       }
       return true
     }
     if (unsubscribeQueryResult.match(action)) {
       const { queryCacheKey, requestId } = action.payload
-      if (mutableState[queryCacheKey]) {
-        delete mutableState[queryCacheKey]![requestId]
+      const sub = currentSubscriptions.get(queryCacheKey)
+      if (sub) {
+        sub.delete(requestId)
       }
       return true
     }
     if (api.internalActions.removeQueryResult.match(action)) {
-      delete mutableState[action.payload.queryCacheKey]
+      currentSubscriptions.delete(action.payload.queryCacheKey)
       return true
     }
     if (queryThunk.pending.match(action)) {
       const {
         meta: { arg, requestId },
       } = action
-      const substate = (mutableState[arg.queryCacheKey] ??= {})
-      substate[`${requestId}_running`] = {}
+      const substate = getOrInsertComputed(
+        currentSubscriptions,
+        arg.queryCacheKey,
+        createNewMap,
+      )
       if (arg.subscribe) {
-        substate[requestId] =
-          arg.subscriptionOptions ?? substate[requestId] ?? {}
+        substate.set(
+          requestId,
+          arg.subscriptionOptions ?? substate.get(requestId) ?? {},
+        )
       }
       return true
     }
     let mutated = false
-    if (
-      queryThunk.fulfilled.match(action) ||
-      queryThunk.rejected.match(action)
-    ) {
-      const state = mutableState[action.meta.arg.queryCacheKey] || {}
-      const key = `${action.meta.requestId}_running`
-      mutated ||= !!state[key]
-      delete state[key]
-    }
+
     if (queryThunk.rejected.match(action)) {
       const {
         meta: { condition, arg, requestId },
       } = action
       if (condition && arg.subscribe) {
-        const substate = (mutableState[arg.queryCacheKey] ??= {})
-        substate[requestId] =
-          arg.subscriptionOptions ?? substate[requestId] ?? {}
+        const substate = getOrInsertComputed(
+          currentSubscriptions,
+          arg.queryCacheKey,
+          createNewMap,
+        )
+        substate.set(
+          requestId,
+          arg.subscriptionOptions ?? substate.get(requestId) ?? {},
+        )
 
         mutated = true
       }
@@ -83,18 +88,33 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
   const getSubscriptions = () => internalState.currentSubscriptions
   const getSubscriptionCount = (queryCacheKey: string) => {
     const subscriptions = getSubscriptions()
-    const subscriptionsForQueryArg = subscriptions[queryCacheKey] ?? {}
-    return countObjectKeys(subscriptionsForQueryArg)
+    const subscriptionsForQueryArg = subscriptions.get(queryCacheKey)
+    return subscriptionsForQueryArg?.size ?? 0
   }
   const isRequestSubscribed = (queryCacheKey: string, requestId: string) => {
     const subscriptions = getSubscriptions()
-    return !!subscriptions?.[queryCacheKey]?.[requestId]
+    return !!subscriptions?.get(queryCacheKey)?.get(requestId)
   }
 
   const subscriptionSelectors: SubscriptionSelectors = {
     getSubscriptions,
     getSubscriptionCount,
     isRequestSubscribed,
+  }
+
+  function serializeSubscriptions(
+    currentSubscriptions: SubscriptionInternalState,
+  ): SubscriptionState {
+    // We now use nested Maps for subscriptions, instead of
+    // plain Records. Stringify this accordingly so we can
+    // convert it to the shape we need for the store.
+    return JSON.parse(
+      JSON.stringify(
+        Object.fromEntries(
+          [...currentSubscriptions].map(([k, v]) => [k, Object.fromEntries(v)]),
+        ),
+      ),
+    )
   }
 
   return (
@@ -106,13 +126,14 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
   ] => {
     if (!previousSubscriptions) {
       // Initialize it the first time this handler runs
-      previousSubscriptions = JSON.parse(
-        JSON.stringify(internalState.currentSubscriptions),
+      previousSubscriptions = serializeSubscriptions(
+        internalState.currentSubscriptions,
       )
     }
 
     if (api.util.resetApiState.match(action)) {
-      previousSubscriptions = internalState.currentSubscriptions = {}
+      previousSubscriptions = {}
+      internalState.currentSubscriptions.clear()
       updateSyncTimer = null
       return [true, false]
     }
@@ -133,6 +154,15 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
 
     let actionShouldContinue = true
 
+    // HACK Sneak the test-only polling state back out
+    if (
+      process.env.NODE_ENV === 'test' &&
+      typeof action.type === 'string' &&
+      action.type === `${api.reducerPath}/getPolling`
+    ) {
+      return [false, internalState.currentPolls] as any
+    }
+
     if (didMutate) {
       if (!updateSyncTimer) {
         // We only use the subscription state for the Redux DevTools at this point,
@@ -142,8 +172,8 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
         // In 1.9, it was updated in a microtask, but now we do it at most every 500ms.
         updateSyncTimer = setTimeout(() => {
           // Deep clone the current subscription data
-          const newSubscriptions: SubscriptionState = JSON.parse(
-            JSON.stringify(internalState.currentSubscriptions),
+          const newSubscriptions: SubscriptionState = serializeSubscriptions(
+            internalState.currentSubscriptions,
           )
           // Figure out a smaller diff between original and current
           const [, patches] = produceWithPatches(

@@ -305,7 +305,7 @@ jobs:
       fail-fast: false
       matrix:
         node: ['22.x']
-        ts: ['5.3', '5.4', '5.5', '5.6', '5.7', '5.8', 'next']
+        ts: ['5.3', '5.4', '5.5', '5.6', '5.7', '5.8', '5.9', 'next']
         example:
           [
             { name: 'bundler', moduleResolution: 'Bundler' },
@@ -340,10 +340,11 @@ jobs:
         run: yarn workspace @examples-type-portability/${{ matrix.example.name }} run test
 
       - name: Test type portability with `moduleResolution Node10`
+        if: matrix.ts != 'next' && !startsWith(matrix.ts, '6.')
         run: yarn workspace @examples-type-portability/${{ matrix.example.name }} run test --module CommonJS --moduleResolution Node10 --preserveSymLinks --verbatimModuleSyntax false
 
       - name: Test type portability with `moduleResolution Node10` and `type module` in `package.json`
-        if: matrix.example.name == 'nodenext-esm' || matrix.example.name == 'bundler'
+        if: (matrix.example.name == 'nodenext-esm' || matrix.example.name == 'bundler') && matrix.ts != 'next' && !startsWith(matrix.ts, '6.')
         run: |
           npm --workspace=@examples-type-portability/${{ matrix.example.name }} pkg set type=module
           yarn workspace @examples-type-portability/${{ matrix.example.name }} run test --module ESNext --moduleResolution Node10 --preserveSymLinks --verbatimModuleSyntax false
