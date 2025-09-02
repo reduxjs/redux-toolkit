@@ -127,6 +127,8 @@ export {
 } from './createAsyncThunk'
 export type {
   AsyncThunk,
+  AsyncThunkConfig,
+  AsyncThunkDispatchConfig,
   AsyncThunkOptions,
   AsyncThunkAction,
   AsyncThunkPayloadCreatorReturnValue,
