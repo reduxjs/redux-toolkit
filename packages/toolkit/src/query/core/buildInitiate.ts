@@ -42,6 +42,7 @@ import type {
   ThunkApiMetaConfig,
 } from './buildThunks'
 import type { ApiEndpointQuery } from './module'
+import type { InternalMiddlewareState } from './buildMiddleware/types'
 
 export type BuildInitiateApiEndpointQuery<
   Definition extends QueryDefinition<any, any, any, any, any>,
@@ -270,6 +271,7 @@ export function buildInitiate({
   mutationThunk,
   api,
   context,
+  internalState,
 }: {
   serializeQueryArgs: InternalSerializeQueryArgs
   queryThunk: QueryThunk
@@ -277,20 +279,9 @@ export function buildInitiate({
   mutationThunk: MutationThunk
   api: Api<any, EndpointDefinitions, any, any>
   context: ApiContext<EndpointDefinitions>
+  internalState: InternalMiddlewareState
 }) {
-  const runningQueries: Map<
-    Dispatch,
-    Record<
-      string,
-      | QueryActionCreatorResult<any>
-      | InfiniteQueryActionCreatorResult<any>
-      | undefined
-    >
-  > = new Map()
-  const runningMutations: Map<
-    Dispatch,
-    Record<string, MutationActionCreatorResult<any> | undefined>
-  > = new Map()
+  const { runningQueries, runningMutations } = internalState
 
   const {
     unsubscribeQueryResult,

@@ -1068,7 +1068,7 @@ describe('hooks tests', () => {
 
       const checkNumSubscriptions = (arg: string, count: number) => {
         const subscriptions = getSubscriptions()
-        const cacheKeyEntry = subscriptions[arg]
+        const cacheKeyEntry = subscriptions.get(arg)
 
         if (cacheKeyEntry) {
           const subscriptionCount = Object.keys(cacheKeyEntry) //getSubscriptionCount(arg)
@@ -3780,7 +3780,7 @@ describe('skip behavior', () => {
 
     expect(getSubscriptionCount('getUser(1)')).toBe(0)
     // also no subscription on `getUser(skipToken)` or similar:
-    expect(getSubscriptions()).toEqual({})
+    expect(getSubscriptions().size).toBe(0)
 
     rerender([1])
 
@@ -3791,7 +3791,7 @@ describe('skip behavior', () => {
     expect(result.current).toMatchObject({ status: QueryStatus.fulfilled })
     await waitMs(1)
     expect(getSubscriptionCount('getUser(1)')).toBe(1)
-    expect(getSubscriptions()).not.toEqual({})
+    expect(getSubscriptions().size).toBe(1)
 
     rerender([skipToken])
 
@@ -3821,7 +3821,7 @@ describe('skip behavior', () => {
 
     expect(getSubscriptionCount('nestedValue')).toBe(0)
     // also no subscription on `getUser(skipToken)` or similar:
-    expect(getSubscriptions()).toEqual({})
+    expect(getSubscriptions().size).toBe(0)
 
     rerender([{ param: { nested: 'nestedValue' } }])
 
@@ -3833,7 +3833,7 @@ describe('skip behavior', () => {
     await waitMs(1)
 
     expect(getSubscriptionCount('nestedValue')).toBe(1)
-    expect(getSubscriptions()).not.toEqual({})
+    expect(getSubscriptions().size).toBe(1)
 
     rerender([skipToken])
 

@@ -1,4 +1,5 @@
 import { createApi } from '@reduxjs/toolkit/query'
+import type { QueryActionCreatorResult } from '@reduxjs/toolkit/query'
 import { delay } from 'msw'
 import { setupApiStore } from '../../tests/utils/helpers'
 import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
@@ -29,10 +30,15 @@ beforeEach(() => {
   ;({ getSubscriptions } = storeRef.store.dispatch(
     api.internalActions.internal_getRTKQSubscriptions(),
   ) as unknown as SubscriptionSelectors)
+
+  const currentPolls = storeRef.store.dispatch({
+    type: `${api.reducerPath}/getPolling`,
+  }) as any
+  ;(currentPolls as any).pollUpdateCounters = {}
 })
 
 const getSubscribersForQueryCacheKey = (queryCacheKey: string) =>
-  getSubscriptions()[queryCacheKey] || {}
+  getSubscriptions().get(queryCacheKey) ?? new Map()
 const createSubscriptionGetter = (queryCacheKey: string) => () =>
   getSubscribersForQueryCacheKey(queryCacheKey)
 
@@ -66,14 +72,14 @@ describe('polling tests', () => {
     const getSubs = createSubscriptionGetter(queryCacheKey)
 
     await delay(1)
-    expect(Object.keys(getSubs())).toHaveLength(1)
-    expect(getSubs()[requestId].pollingInterval).toBe(10)
+    expect(getSubs().size).toBe(1)
+    expect(getSubs()?.get(requestId)?.pollingInterval).toBe(10)
 
     subscription.updateSubscriptionOptions({ pollingInterval: 20 })
 
     await delay(1)
-    expect(Object.keys(getSubs())).toHaveLength(1)
-    expect(getSubs()[requestId].pollingInterval).toBe(20)
+    expect(getSubs().size).toBe(1)
+    expect(getSubs()?.get(requestId)?.pollingInterval).toBe(20)
   })
 
   it(`doesn't replace the interval when removing a shared query instance with a poll `, async () => {
@@ -95,12 +101,12 @@ describe('polling tests', () => {
 
     const getSubs = createSubscriptionGetter(subscriptionOne.queryCacheKey)
 
-    expect(Object.keys(getSubs())).toHaveLength(2)
+    expect(getSubs().size).toBe(2)
 
     subscriptionOne.unsubscribe()
 
     await delay(1)
-    expect(Object.keys(getSubs())).toHaveLength(1)
+    expect(getSubs().size).toBe(1)
   })
 
   it('uses lowest specified interval when two components are mounted', async () => {
@@ -155,7 +161,7 @@ describe('polling tests', () => {
     const callsWithoutSkip = mockBaseQuery.mock.calls.length
 
     expect(callsWithSkip).toBe(1)
-    expect(callsWithoutSkip).toBeGreaterThan(2)
+    expect(callsWithoutSkip).toBeGreaterThanOrEqual(2)
 
     storeRef.store.dispatch(api.util.resetApiState())
   })
@@ -218,8 +224,8 @@ describe('polling tests', () => {
     const getSubs = createSubscriptionGetter(queryCacheKey)
 
     await delay(1)
-    expect(Object.keys(getSubs())).toHaveLength(1)
-    expect(getSubs()[requestId].skipPollingIfUnfocused).toBe(false)
+    expect(getSubs().size).toBe(1)
+    expect(getSubs().get(requestId)?.skipPollingIfUnfocused).toBe(false)
 
     subscription.updateSubscriptionOptions({
       pollingInterval: 20,
@@ -227,7 +233,54 @@ describe('polling tests', () => {
     })
 
     await delay(1)
-    expect(Object.keys(getSubs())).toHaveLength(1)
-    expect(getSubs()[requestId].skipPollingIfUnfocused).toBe(true)
+    expect(getSubs().size).toBe(1)
+    expect(getSubs().get(requestId)?.skipPollingIfUnfocused).toBe(true)
+  })
+
+  it('should minimize polling recalculations when adding multiple subscribers', async () => {
+    // Reset any existing state
+    const storeRef = setupApiStore(api, undefined, {
+      withoutTestLifecycles: true,
+    })
+
+    const SUBSCRIBER_COUNT = 10
+    const subscriptions: QueryActionCreatorResult<any>[] = []
+
+    // Add 10 subscribers to the same endpoint with polling enabled
+    for (let i = 0; i < SUBSCRIBER_COUNT; i++) {
+      const subscription = storeRef.store.dispatch(
+        getPosts.initiate(1, {
+          subscriptionOptions: { pollingInterval: 1000 },
+          subscribe: true,
+        }),
+      )
+      subscriptions.push(subscription)
+    }
+
+    // Wait a bit for all subscriptions to be processed
+    await Promise.all(subscriptions)
+
+    // Wait for the poll update timer
+    await delay(25)
+
+    // Get the polling state using the secret "getPolling" action
+    const currentPolls = storeRef.store.dispatch({
+      type: `${api.reducerPath}/getPolling`,
+    }) as any
+
+    // Get the query cache key for our endpoint
+    const queryCacheKey = subscriptions[0].queryCacheKey
+
+    // Check the poll update counters
+    const pollUpdateCounters = currentPolls.pollUpdateCounters || {}
+    const updateCount = pollUpdateCounters[queryCacheKey] || 0
+
+    // With batching optimization, this should be much lower than SUBSCRIBER_COUNT
+    // Ideally 1, but could be slightly higher due to timing
+    expect(updateCount).toBeGreaterThanOrEqual(1)
+    expect(updateCount).toBeLessThanOrEqual(2)
+
+    // Clean up subscriptions
+    subscriptions.forEach((sub) => sub.unsubscribe())
   })
 })

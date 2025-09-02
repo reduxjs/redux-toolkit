@@ -79,23 +79,11 @@ describe('calling initiate without a cache entry, with subscribe: false still re
     expect(isRequestSubscribed('increment(undefined)', promise.requestId)).toBe(
       false,
     )
-    expect(
-      isRequestSubscribed(
-        'increment(undefined)',
-        `${promise.requestId}_running`,
-      ),
-    ).toBe(true)
 
     await expect(promise).resolves.toMatchObject({
       data: 0,
       status: 'fulfilled',
     })
-    expect(
-      isRequestSubscribed(
-        'increment(undefined)',
-        `${promise.requestId}_running`,
-      ),
-    ).toBe(false)
   })
 
   test('rejected query', async () => {
@@ -107,16 +95,10 @@ describe('calling initiate without a cache entry, with subscribe: false still re
     expect(isRequestSubscribed('failing(undefined)', promise.requestId)).toBe(
       false,
     )
-    expect(
-      isRequestSubscribed('failing(undefined)', `${promise.requestId}_running`),
-    ).toBe(true)
 
     await expect(promise).resolves.toMatchObject({
       status: 'rejected',
     })
-    expect(
-      isRequestSubscribed('failing(undefined)', `${promise.requestId}_running`),
-    ).toBe(false)
   })
 })
 
