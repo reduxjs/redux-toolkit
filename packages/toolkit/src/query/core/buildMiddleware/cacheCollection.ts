@@ -11,6 +11,30 @@ import type {
 
 export type ReferenceCacheCollection = never
 
+/**
+ * @example
+   * ```ts
+   * // codeblock-meta title="keepUnusedDataFor example"
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+   * interface Post {
+   *   id: number
+   *   name: string
+   * }
+   * type PostsResponse = Post[]
+   *
+   * const api = createApi({
+   *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+   *   endpoints: (build) => ({
+   *     getPosts: build.query<PostsResponse, void>({
+   *       query: () => 'posts',
+   *       // highlight-start
+   *       keepUnusedDataFor: 5
+   *       // highlight-end
+   *     })
+   *   })
+   * })
+   * ```
+ */
 export type CacheCollectionQueryExtraOptions = {
   /**
    * Overrides the api-wide definition of `keepUnusedDataFor` for this endpoint only. _(This value is in seconds.)_

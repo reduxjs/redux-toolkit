@@ -109,9 +109,9 @@ export interface CreateApiOptions<
   /**
    * Defaults to `60` _(this value is in seconds)_. This is how long RTK Query will keep your data cached for **after** the last component unsubscribes. For example, if you query an endpoint, then unmount the component, then mount another component that makes the same request within the given time frame, the most recent value will be served from the cache.
    *
+   * @example
    * ```ts
    * // codeblock-meta title="keepUnusedDataFor example"
-   *
    * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
    * interface Post {
    *   id: number
@@ -123,12 +123,12 @@ export interface CreateApiOptions<
    *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
    *   endpoints: (build) => ({
    *     getPosts: build.query<PostsResponse, void>({
-   *       query: () => 'posts',
-   *       // highlight-start
-   *       keepUnusedDataFor: 5
-   *       // highlight-end
+   *       query: () => 'posts'
    *     })
-   *   })
+   *   }),
+   *   // highlight-start
+   *   keepUnusedDataFor: 5
+   *   // highlight-end
    * })
    * ```
    */
