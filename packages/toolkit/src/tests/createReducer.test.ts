@@ -353,7 +353,7 @@ describe('createReducer', () => {
             .addCase(decrement, (state, action) => state - action.payload)
         })
       }).toThrowErrorMatchingInlineSnapshot(
-        `[Error: \`builder.addCase\` cannot be called with two reducers for the same action type 'increment']`,
+        `[Error: A reducer already exists for the action type 'increment']`,
       )
       expect(() => {
         createReducer(0, (builder) => {
@@ -363,7 +363,7 @@ describe('createReducer', () => {
             .addCase(decrement, (state, action) => state - action.payload)
         })
       }).toThrowErrorMatchingInlineSnapshot(
-        `[Error: \`builder.addCase\` cannot be called with two reducers for the same action type 'increment']`,
+        `[Error: A reducer already exists for the action type 'increment']`,
       )
     })
 
@@ -381,7 +381,7 @@ describe('createReducer', () => {
           )
         })
       }).toThrowErrorMatchingInlineSnapshot(
-        `[Error: \`builder.addCase\` cannot be called with an empty action type]`,
+        `[Error: A reducer cannot be defined for an empty action type]`,
       )
     })
   })
@@ -498,7 +498,23 @@ describe('createReducer', () => {
         stringActions: 0,
       })
     })
-    test('calling addCase, addMatcher and addDefaultCase in a nonsensical order should result in an error in development mode', () => {
+    test('calling addCase, addAsyncThunk, addMatcher and addDefaultCase in a nonsensical order should result in an error in development mode', () => {
+      expect(() =>
+        createReducer(initialState, (builder: any) =>
+          builder
+            .addAsyncThunk(addTodoThunk, {})
+            .addCase(incrementBy, () => {}),
+        ),
+      ).toThrowErrorMatchingInlineSnapshot(`[Error: \`builder.addCase\` should only be called before calling \`builder.addAsyncThunk\`]`)
+      expect(() =>
+        createReducer(initialState, (builder: any) =>
+          builder
+            .addMatcher(numberActionMatcher, () => {})
+            .addAsyncThunk(addTodoThunk, {}),
+        ),
+      ).toThrowErrorMatchingInlineSnapshot(
+        `[Error: \`builder.addAsyncThunk\` should only be called before calling \`builder.addMatcher\`]`,
+      )
       expect(() =>
         createReducer(initialState, (builder: any) =>
           builder
