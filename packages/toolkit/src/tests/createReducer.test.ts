@@ -505,7 +505,9 @@ describe('createReducer', () => {
             .addAsyncThunk(addTodoThunk, {})
             .addCase(incrementBy, () => {}),
         ),
-      ).toThrowErrorMatchingInlineSnapshot(`[Error: \`builder.addCase\` should only be called before calling \`builder.addAsyncThunk\`]`)
+      ).toThrowErrorMatchingInlineSnapshot(
+        `[Error: \`builder.addCase\` should only be called before calling \`builder.addAsyncThunk\`]`,
+      )
       expect(() =>
         createReducer(initialState, (builder: any) =>
           builder
@@ -597,6 +599,27 @@ describe('createReducer', () => {
       ).toThrowErrorMatchingInlineSnapshot(
         `[Error: \`builder.addAsyncThunk\` should only be called before calling \`builder.addDefaultCase\`]`,
       )
+    })
+    test('calling addAsyncThunk after addMatcher should result in an error in development mode', () => {
+      expect(() =>
+        createReducer(initialState, (builder: any) =>
+          builder
+            .addMatcher(
+              () => true,
+              () => {},
+            )
+            .addAsyncThunk(addTodoThunk, {}),
+        ),
+      ).toThrowErrorMatchingInlineSnapshot(`[Error: \`builder.addAsyncThunk\` should only be called before calling \`builder.addMatcher\`]`)
+    })
+    test('calling addAsyncThunk for an action already covered by addCase should result in an error in development mode', () => {
+      expect(() =>
+        createReducer(initialState, (builder: any) =>
+          builder
+            .addCase(addTodoThunk.pending, () => {})
+            .addAsyncThunk(addTodoThunk, { pending() {} }),
+        ),
+      ).toThrowErrorMatchingInlineSnapshot(`[Error: A reducer already exists for the action type 'todos/add/pending']`)
     })
   })
 })
