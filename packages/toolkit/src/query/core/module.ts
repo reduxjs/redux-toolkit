@@ -72,6 +72,12 @@ import { buildThunks } from './buildThunks'
 import { createSelector as _createSelector } from './rtkImports'
 import { onFocus, onFocusLost, onOffline, onOnline } from './setupListeners'
 import type { InternalMiddlewareState } from './buildMiddleware/types'
+import type { UpdateDescriptionFactory } from './buildMiddleware/applyUpdates'
+import {
+  UpdateKind,
+  UpdateMode,
+  buildUpdateFactory,
+} from './buildMiddleware/applyUpdates'
 
 /**
  * `ifOlderThan` - (default: `false` | `number`) - _number is value in seconds_
@@ -395,6 +401,29 @@ export interface ApiModules<
         state: RootState<Definitions, string, ReducerPath>,
         queryName: QueryName,
       ) => Array<QueryArgFromAnyQuery<Definitions[QueryName]>>
+
+      build: {
+        optimisticUpdate: UpdateDescriptionFactory<
+          Definitions,
+          UpdateKind.update,
+          UpdateMode.optimistic
+        >
+        pessimisticUpdate: UpdateDescriptionFactory<
+          Definitions,
+          UpdateKind.update,
+          UpdateMode.pessimistic
+        >
+        optimisticUpsert: UpdateDescriptionFactory<
+          Definitions,
+          UpdateKind.upsert,
+          UpdateMode.optimistic
+        >
+        pessimisticUpsert: UpdateDescriptionFactory<
+          Definitions,
+          UpdateKind.upsert,
+          UpdateMode.pessimistic
+        >
+      }
     }
     /**
      * Endpoints based on the input endpoints provided to `createApi`, containing `select` and `action matchers`.
@@ -616,6 +645,24 @@ export const coreModule = ({
       prefetch,
       resetApiState: sliceActions.resetApiState,
       upsertQueryEntries: sliceActions.cacheEntriesUpserted as any,
+      build: {
+        optimisticUpdate: buildUpdateFactory(
+          UpdateKind.update,
+          UpdateMode.optimistic,
+        ),
+        pessimisticUpdate: buildUpdateFactory(
+          UpdateKind.update,
+          UpdateMode.pessimistic,
+        ),
+        optimisticUpsert: buildUpdateFactory(
+          UpdateKind.upsert,
+          UpdateMode.optimistic,
+        ),
+        pessimisticUpsert: buildUpdateFactory(
+          UpdateKind.upsert,
+          UpdateMode.pessimistic,
+        ),
+      },
     })
     safeAssign(api.internalActions, sliceActions)
 
