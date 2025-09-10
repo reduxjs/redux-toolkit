@@ -19,7 +19,7 @@ const config: Config = {
           sidebarPath: require.resolve('./sidebars'),
           showLastUpdateTime: true,
           routeBasePath: '/',
-          editUrl: 'https://github.com/reduxjs/redux-toolkit/edit/master/docs/',
+          editUrl: 'https://github.com/reduxjs/redux-toolkit/blob/master/docs/',
           include: [
             '{api,assets,introduction,migrations,rtk-query,tutorials,usage}/**/*.{md,mdx}',
           ], // no other way to exclude node_modules
