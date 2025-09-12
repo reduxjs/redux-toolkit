@@ -24,7 +24,7 @@
     "test": "true"
   },
   "dependencies": {
-    "graphql-request": "^4.0.0 || ^5.0.0 || ^6.0.0"
+    "graphql-request": "^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0"
   },
   "peerDependencies": {
     "@reduxjs/toolkit": "^1.7.1 || ^2.0.0",
