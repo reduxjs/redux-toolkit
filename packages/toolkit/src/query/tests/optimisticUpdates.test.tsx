@@ -47,14 +47,11 @@ const api = createApi({
         method: 'PATCH',
         body: patch,
       }),
-      async onQueryStarted({ id, ...patch }, { dispatch, queryFulfilled }) {
-        const { undo } = dispatch(
-          api.util.updateQueryData('post', id, (draft) => {
-            Object.assign(draft, patch)
-          }),
-        )
-        queryFulfilled.catch(undo)
-      },
+      applyOptimistic: ({ id, ...patch }, { optimisticUpdate }) => [
+        optimisticUpdate('post', id, (draft) => {
+          Object.assign(draft, patch)
+        })
+      ],
       invalidatesTags: (result) => (result ? ['Post'] : []),
     }),
   }),
@@ -472,5 +469,203 @@ describe('full integration', () => {
         }),
       50,
     )
+  })
+})
+
+describe('applyOptimistic with onQueryStarted both defined', () => {
+  test('lifecycle order and behavior demonstration when both implemented', async () => {
+    const lifecycleEvents: string[] = []
+
+    const extendedApi = api.injectEndpoints({
+      endpoints: (build) => ({
+        updatePostWithLifecycle: build.mutation<void, Pick<Post, 'id'> & Partial<Post>>({
+          query: ({ id, ...patch }) => ({
+            url: `post/${id}`,
+            method: 'PATCH',
+            body: patch,
+          }),
+          applyOptimistic: ({ id, ...patch }, { optimisticUpdate }) => {
+            lifecycleEvents.push('1. applyOptimistic option called')
+            return [
+              optimisticUpdate('post', id, (draft) => {
+                lifecycleEvents.push('2. declarative optimistic update applied')
+                Object.assign(draft, patch)
+              })
+            ]
+          },
+          async onQueryStarted(arg, { applyOptimistic, queryFulfilled, dispatch }) {
+            lifecycleEvents.push('3. onQueryStarted called')
+
+            // Additional imperative optimistic update
+            await applyOptimistic([
+              dispatch(api.util.updateQueryData('post', arg.id, (draft) => {
+                lifecycleEvents.push('4. additional imperative optimistic update applied')
+                draft.title = 'Modified by onQueryStarted'
+              }))
+            ])
+
+            try {
+              lifecycleEvents.push('5. waiting for query to fulfill')
+              const result = await queryFulfilled
+              lifecycleEvents.push('6. query fulfilled successfully')
+            } catch (error) {
+              lifecycleEvents.push('6. query failed - error handling in onQueryStarted')
+              throw error
+            }
+          },
+          invalidatesTags: (result) => (result ? ['Post'] : []),
+        }),
+      }),
+      overrideExisting: true,
+    })
+
+    baseQuery
+      .mockResolvedValueOnce({
+        id: '3',
+        title: 'All about cheese.',
+        contents: 'TODO',
+      })
+      .mockResolvedValueOnce({
+        id: '3',
+        title: 'Final server state',
+        contents: 'Server result',
+      })
+
+    const { result } = renderHook(
+      () => ({
+        query: api.endpoints.post.useQuery('3'),
+        mutation: extendedApi.endpoints.updatePostWithLifecycle.useMutation(),
+      }),
+      { wrapper: storeRef.wrapper }
+    )
+    await hookWaitFor(() => expect(result.current.query.isSuccess).toBeTruthy())
+
+    expect(result.current.query.data).toEqual({
+      id: '3',
+      title: 'All about cheese.',
+      contents: 'TODO',
+    })
+
+    act(() => {
+      result.current.mutation[0]({ id: '3', contents: 'User input' })
+    })
+
+    await hookWaitFor(() =>
+      expect(lifecycleEvents).toContain('6. query fulfilled successfully')
+    )
+
+    expect(lifecycleEvents).toContain('1. applyOptimistic option called')
+    expect(lifecycleEvents).toContain('3. onQueryStarted called')
+
+    expect(lifecycleEvents).toEqual([
+      '1. applyOptimistic option called',
+      '2. declarative optimistic update applied',
+      '3. onQueryStarted called',
+      '4. additional imperative optimistic update applied',
+      '5. waiting for query to fulfill',
+      '6. query fulfilled successfully',
+    ])
+  })
+
+  test('error handling with both lifecycles present', async () => {
+    const lifecycleEvents: string[] = []
+    let customErrorHandled = false
+
+    const extendedApi = api.injectEndpoints({
+      endpoints: (build) => ({
+        updatePostWithError: build.mutation<void, Pick<Post, 'id'> & Partial<Post>>({
+          query: ({ id, ...patch }) => ({
+            url: `post/${id}`,
+            method: 'PATCH',
+            body: patch,
+          }),
+          applyOptimistic: ({ id, ...patch }, { optimisticUpdate }) => {
+            lifecycleEvents.push('1. applyOptimistic option called')
+            return [
+              optimisticUpdate('post', id, (draft) => {
+                lifecycleEvents.push('2. declarative optimistic update applied')
+                draft.contents = 'Optimistic: ' + patch.contents
+              })
+            ]
+          },
+          async onQueryStarted(arg, { applyOptimistic, queryFulfilled, dispatch }) {
+            lifecycleEvents.push('3. onQueryStarted called')
+
+            await applyOptimistic([
+              dispatch(api.util.updateQueryData('post', arg.id, (draft) => {
+                lifecycleEvents.push('4. additional optimistic update in onQueryStarted')
+                draft.title = 'Modified in onQueryStarted'
+              }))
+            ])
+
+            try {
+              lifecycleEvents.push('5. waiting for query to fulfill')
+              await queryFulfilled
+              lifecycleEvents.push('6. this should not be reached due to error')
+            } catch (error) {
+              lifecycleEvents.push('6. caught error in onQueryStarted')
+              customErrorHandled = true
+
+              lifecycleEvents.push('7. performing custom error handling')
+
+              // apply additional optimistic updates on error
+              dispatch(api.util.updateQueryData('post', arg.id, (draft) => {
+                draft.title = 'Error occurred - custom title'
+              }))
+            }
+          },
+          invalidatesTags: (result) => (result ? ['Post'] : []),
+        }),
+      }),
+      overrideExisting: true,
+    })
+
+    baseQuery
+      .mockResolvedValueOnce({
+        id: '3',
+        title: 'All about cheese.',
+        contents: 'TODO',
+      })
+      .mockRejectedValueOnce('Network error!')
+
+    const { result } = renderHook(
+      () => ({
+        query: api.endpoints.post.useQuery('3'),
+        mutation: extendedApi.endpoints.updatePostWithError.useMutation(),
+      }),
+      { wrapper: storeRef.wrapper }
+    )
+    await hookWaitFor(() => expect(result.current.query.isSuccess).toBeTruthy())
+
+    expect(result.current.query.data).toEqual({
+      id: '3',
+      title: 'All about cheese.',
+      contents: 'TODO',
+    })
+
+    act(() => {
+      result.current.mutation[0]({ id: '3', contents: 'This will fail' })
+    })
+
+    // Wait for optimistic updates to be applied
+    await act(() => delay(20))
+
+    // Wait for error and rollback
+    await hookWaitFor(() => {
+      // After error, most optimistic updates should be rolled back
+      // But custom error handling modifications remains
+      return result.current.query.data?.contents === 'TODO'
+    })
+
+    expect(customErrorHandled).toBe(true)
+    expect(lifecycleEvents).toEqual([
+      '1. applyOptimistic option called',
+      '2. declarative optimistic update applied',
+      '3. onQueryStarted called',
+      '4. additional optimistic update in onQueryStarted',
+      '5. waiting for query to fulfill',
+      '6. caught error in onQueryStarted',
+      '7. performing custom error handling',
+    ])
   })
 })
