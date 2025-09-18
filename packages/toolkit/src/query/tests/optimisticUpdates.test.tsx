@@ -47,14 +47,11 @@ const api = createApi({
         method: 'PATCH',
         body: patch,
       }),
-      async onQueryStarted({ id, ...patch }, { dispatch, queryFulfilled }) {
-        const { undo } = dispatch(
-          api.util.updateQueryData('post', id, (draft) => {
-            Object.assign(draft, patch)
-          }),
-        )
-        queryFulfilled.catch(undo)
-      },
+      applyOptimistic: ({ id, ...patch }, { optimisticUpdate }) => [
+        optimisticUpdate('post', id, (draft) => {
+          Object.assign(draft, patch)
+        })
+      ],
       invalidatesTags: (result) => (result ? ['Post'] : []),
     }),
   }),
