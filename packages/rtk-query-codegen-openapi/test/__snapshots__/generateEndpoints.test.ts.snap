@@ -2448,6 +2448,64 @@ export const { useLoginUserMutation } = injectedRtkApi;
 "
 `;
 
+exports[`hooks generation with operationNameSuffix > should generate an \`useGetPetByIdMySuffixQuery\` query hook and an \`useAddPetMySuffixMutation\` mutation hook 1`] = `
+"import { api } from "./fixtures/emptyApi";
+const injectedRtkApi = api.injectEndpoints({
+  endpoints: (build) => ({
+    AddPetMySuffix: build.mutation<
+      AddPetMySuffixApiResponse,
+      AddPetMySuffixApiArg
+    >({
+      query: (queryArg) => ({
+        url: \`/pet\`,
+        method: "POST",
+        body: queryArg.pet,
+      }),
+    }),
+    GetPetByIdMySuffix: build.query<
+      GetPetByIdMySuffixApiResponse,
+      GetPetByIdMySuffixApiArg
+    >({
+      query: (queryArg) => ({ url: \`/pet/\${queryArg.petId}\` }),
+    }),
+  }),
+  overrideExisting: false,
+});
+export { injectedRtkApi as enhancedApi };
+export type AddPetMySuffixApiResponse =
+  /** status 200 Successful operation */ Pet;
+export type AddPetMySuffixApiArg = {
+  /** Create a new pet in the store */
+  pet: Pet;
+};
+export type GetPetByIdMySuffixApiResponse =
+  /** status 200 successful operation */ Pet;
+export type GetPetByIdMySuffixApiArg = {
+  /** ID of pet to return */
+  petId: number;
+};
+export type Category = {
+  id?: number | undefined;
+  name?: string | undefined;
+};
+export type Tag = {
+  id?: number | undefined;
+  name?: string | undefined;
+};
+export type Pet = {
+  id?: number | undefined;
+  name: string;
+  category?: Category | undefined;
+  photoUrls: string[];
+  tags?: Tag[] | undefined;
+  /** pet status in the store */
+  status?: ("available" | "pending" | "sold") | undefined;
+};
+export const { useAddPetMySuffixMutation, useGetPetByIdMySuffixQuery } =
+  injectedRtkApi;
+"
+`;
+
 exports[`openapi spec > readOnly / writeOnly are merged 1`] = `
 "import { api } from "./fixtures/emptyApi";
 const injectedRtkApi = api.injectEndpoints({
