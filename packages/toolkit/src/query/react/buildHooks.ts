@@ -734,17 +734,22 @@ type UseQueryStateDefaultResult<D extends QueryDefinition<any, any, any, any>> =
             isSuccess: true
             isFetching: true
             error: undefined
+          } & {
+            data: ResultTypeFrom<D>
           } & Required<
-            Pick<UseQueryStateBaseResult<D>, 'data' | 'fulfilledTimeStamp'>
+            Pick<UseQueryStateBaseResult<D>, 'fulfilledTimeStamp'>
           >)
         | ({
             isSuccess: true
             isFetching: false
             error: undefined
+          } & {
+            data: ResultTypeFrom<D>
+            currentData: ResultTypeFrom<D>
           } & Required<
             Pick<
               UseQueryStateBaseResult<D>,
-              'data' | 'fulfilledTimeStamp' | 'currentData'
+              'fulfilledTimeStamp'
             >
           >)
         | ({ isError: true } & Required<
