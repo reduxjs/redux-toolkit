@@ -70,12 +70,14 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
     newEntities = ensureEntitiesArray(newEntities)
 
     const existingKeys = new Set<Id>(existingIds ?? getCurrent(state.ids))
-    const addedKeys = new Set<Id>([]);
+    const addedKeys = new Set<Id>();
     const models = newEntities.filter(
       (model) => {
-        const modelId = selectIdValue(model, selectId);
-        return !existingKeys.has(modelId) && !addedKeys.has(modelId) && addedKeys.add(modelId);
-      },
+          const modelId = selectIdValue(model, selectId);
+          const notAdded = !addedKeys.has(modelId);
+          if (notAdded) addedKeys.add(modelId);
+          return !existingKeys.has(modelId) && notAdded;
+      }
     )
 
     if (models.length !== 0) {
