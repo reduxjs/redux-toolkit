@@ -89,6 +89,26 @@ describe('Unsorted State Adapter', () => {
     })
   })
 
+  it('should let you add the only first occurrence for duplicate ids', () => {
+    const firstEntry = {id: AClockworkOrange.id, author: TheHobbit.author }
+    const secondEntry = {id: AClockworkOrange.id, title: 'Zack' }
+    const withOne = adapter.setAll(state, [TheGreatGatsby])
+    const withMany = adapter.addMany(withOne, [
+      { ...AClockworkOrange, ...firstEntry }, {...AClockworkOrange, ...secondEntry}
+    ])
+
+    expect(withMany).toEqual({
+      ids: [TheGreatGatsby.id, AClockworkOrange.id],
+      entities: {
+        [TheGreatGatsby.id]: TheGreatGatsby,
+        [AClockworkOrange.id]: {
+          ...AClockworkOrange,
+          ...firstEntry,
+        },
+      },
+    })
+  })
+
   it('should remove existing and add new ones on setAll', () => {
     const withOneEntity = adapter.addOne(state, TheGreatGatsby)
 
