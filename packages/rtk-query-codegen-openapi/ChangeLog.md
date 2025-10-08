@@ -4,6 +4,24 @@ All notable changes to the `RTK Query - Code Generator` for `Open API` project w
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 2.1.0 - 2025-10-08
+
+### Added
+
+- Add `useUnknown` config option to openapi codegen ([#4999](https://github.com/reduxjs/redux-toolkit/pull/4999))
+- Add cli to exports ([#4977](https://github.com/reduxjs/redux-toolkit/pull/4977))
+- JSDoc generation improvements ([#5032](https://github.com/reduxjs/redux-toolkit/pull/5032))
+
+### Fixed
+
+- Fix incorrect handling of query parameters with values 0 or empty strings in CodeGeneration output ([#4782](https://github.com/reduxjs/redux-toolkit/pull/4782))
+- Fix React-Native package exports ([#4887](https://github.com/reduxjs/redux-toolkit/pull/4887))
+
+### Changed
+
+- Update `@apidevtools/swagger-parser` to version 10.1.1 ([#4919](https://github.com/reduxjs/redux-toolkit/pull/4919))
+- Update TypeScript version to 5.8
+
 ## 1.2.0 - 2023-11-09
 
 This version adds a new `mergeReadWriteOnly` configuration option (default to `false`) that, when set to `true` will not generate separate types for read-only and write-only properties.
