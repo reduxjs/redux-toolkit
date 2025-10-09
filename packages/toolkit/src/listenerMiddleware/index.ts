@@ -262,10 +262,12 @@ const cancelActiveListeners = (
 
 const createClearListenerMiddleware = (
   listenerMap: Map<string, ListenerEntry>,
+  executingListeners: Map<ListenerEntry, number>,
 ) => {
   return () => {
-    listenerMap.forEach(cancelActiveListeners)
-
+    for (const listener of executingListeners.keys()) {
+      cancelActiveListeners(listener);
+    }
     listenerMap.clear()
   }
 }
@@ -339,6 +341,23 @@ export const createListenerMiddleware = <
   middlewareOptions: CreateListenerMiddlewareOptions<ExtraArgument> = {},
 ) => {
   const listenerMap = new Map<string, ListenerEntry>()
+
+  // Track listeners whose effect is currently executing so clearListeners can
+  // abort even listeners that have become unsubscribed while executing.
+  const executingListeners = new Map<ListenerEntry, number>()
+  const trackExecutingListener = (entry: ListenerEntry) => {
+    const count = executingListeners.get(entry) ?? 0
+    executingListeners.set(entry, count + 1)
+  }
+  const untrackExecutingListener = (entry: ListenerEntry) => {
+    const count = executingListeners.get(entry) ?? 1
+    if (count === 1) {
+      executingListeners.delete(entry)
+    } else {
+      executingListeners.set(entry, count - 1)
+    }
+  }
+
   const { extra, onError = defaultErrorHandler } = middlewareOptions
 
   assertFunction(onError, 'onError')
@@ -401,6 +420,7 @@ export const createListenerMiddleware = <
 
     try {
       entry.pending.add(internalTaskController)
+      trackExecutingListener(entry)
       await Promise.resolve(
         entry.effect(
           action,
@@ -452,11 +472,15 @@ export const createListenerMiddleware = <
       await Promise.all(autoJoinPromises)
 
       abortControllerWithReason(internalTaskController, listenerCompleted) // Notify that the task has completed
+      untrackExecutingListener(entry)
       entry.pending.delete(internalTaskController)
     }
   }
 
-  const clearListenerMiddleware = createClearListenerMiddleware(listenerMap)
+  const clearListenerMiddleware = createClearListenerMiddleware(
+    listenerMap,
+    executingListeners,
+  )
 
   const middleware: ListenerMiddleware<
     StateType,
