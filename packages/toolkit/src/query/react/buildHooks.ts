@@ -718,39 +718,58 @@ type UseQueryStateBaseResult<D extends QueryDefinition<any, any, any, any>> =
     isError: false
   }
 
+type UseQueryStateUninitialized<D extends QueryDefinition<any, any, any, any>> =
+  TSHelpersOverride<
+    Extract<UseQueryStateBaseResult<D>, { status: QueryStatus.uninitialized }>,
+    { isUninitialized: true }
+  >
+
+type UseQueryStateLoading<D extends QueryDefinition<any, any, any, any>> =
+  TSHelpersOverride<
+    UseQueryStateBaseResult<D>,
+    { isLoading: true; isFetching: boolean; data: undefined }
+  >
+
+type UseQueryStateSuccessFetching<
+  D extends QueryDefinition<any, any, any, any>,
+> = TSHelpersOverride<
+  UseQueryStateBaseResult<D>,
+  {
+    isSuccess: true
+    isFetching: true
+    error: undefined
+  } & {
+    data: ResultTypeFrom<D>
+  } & Required<Pick<UseQueryStateBaseResult<D>, 'fulfilledTimeStamp'>>
+>
+
+type UseQueryStateSuccessNotFetching<
+  D extends QueryDefinition<any, any, any, any>,
+> = TSHelpersOverride<
+  UseQueryStateBaseResult<D>,
+  {
+    isSuccess: true
+    isFetching: false
+    error: undefined
+  } & {
+    data: ResultTypeFrom<D>
+    currentData: ResultTypeFrom<D>
+  } & Required<Pick<UseQueryStateBaseResult<D>, 'fulfilledTimeStamp'>>
+>
+
+type UseQueryStateError<D extends QueryDefinition<any, any, any, any>> =
+  TSHelpersOverride<
+    UseQueryStateBaseResult<D>,
+    { isError: true } & Required<Pick<UseQueryStateBaseResult<D>, 'error'>>
+  >
+
 type UseQueryStateDefaultResult<D extends QueryDefinition<any, any, any, any>> =
   TSHelpersId<
-    | TSHelpersOverride<
-        Extract<
-          UseQueryStateBaseResult<D>,
-          { status: QueryStatus.uninitialized }
-        >,
-        { isUninitialized: true }
-      >
-    | TSHelpersOverride<
-        UseQueryStateBaseResult<D>,
-        | { isLoading: true; isFetching: boolean; data: undefined }
-        | ({
-            isSuccess: true
-            isFetching: true
-            error: undefined
-          } & Required<
-            Pick<UseQueryStateBaseResult<D>, 'data' | 'fulfilledTimeStamp'>
-          >)
-        | ({
-            isSuccess: true
-            isFetching: false
-            error: undefined
-          } & Required<
-            Pick<
-              UseQueryStateBaseResult<D>,
-              'data' | 'fulfilledTimeStamp' | 'currentData'
-            >
-          >)
-        | ({ isError: true } & Required<
-            Pick<UseQueryStateBaseResult<D>, 'error'>
-          >)
-      >
+    | UseQueryStateUninitialized<D>
+    | UseQueryStateLoading<D>
+    | UseQueryStateSuccessFetching<D>
+    | UseQueryStateSuccessNotFetching<D>
+    | UseQueryStateError<D>
   > & {
     /**
      * @deprecated Included for completeness, but discouraged.
