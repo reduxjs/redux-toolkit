@@ -607,6 +607,25 @@ describe('Sorted State Adapter', () => {
     expect(withOneSorted).toEqual(withOneUnsorted);
   })
 
+  it('should work consistent with Unsorted State Adapter adding duplicate ids', () => {
+    const unsortedAdaptor = createEntityAdapter({
+      selectId: (book: BookModel) => book.id
+    });
+
+    const firstEntry = {id: AClockworkOrange.id, author: TheHobbit.author }
+    const secondEntry = {id: AClockworkOrange.id, title: 'Zack' }
+    const withNothingSorted = adapter.setAll(state, [TheHobbit]);
+    const withNothingUnsorted = unsortedAdaptor.setAll(state, [TheHobbit]);
+    const withOneSorted = adapter.setMany(withNothingSorted, [
+      { ...AClockworkOrange, ...firstEntry, id: 'th' }, {...AClockworkOrange, ...secondEntry, id: 'th'}
+    ])
+    const withOneUnsorted = unsortedAdaptor.setMany(withNothingUnsorted, [
+      { ...AClockworkOrange, ...firstEntry, id: 'th' }, {...AClockworkOrange, ...secondEntry, id: 'th'}
+    ])
+
+    expect(withOneSorted).toEqual(withOneUnsorted);
+  })
+
   it('should let you set many entities in the state when passing in a dictionary', () => {
     const changeWithoutAuthor = { id: TheHobbit.id, title: 'Silmarillion' }
     const withMany = adapter.setAll(state, [TheHobbit])
