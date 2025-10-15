@@ -348,6 +348,22 @@ test('hooks generation', async () => {
   );
 });
 
+test('hooks generation with operationNameSuffix', async () => {
+  const api = await generateEndpoints({
+    unionUndefined: true,
+    apiFile: './fixtures/emptyApi.ts',
+    schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+    filterEndpoints: ['getPetById', 'addPet'],
+    hooks: true,
+    operationNameSuffix: 'MySuffix',
+  });
+  expect(api).toContain('useGetPetByIdMySuffixQuery');
+  expect(api).toContain('useAddPetMySuffixMutation');
+  expect(api).toMatchSnapshot(
+    'should generate an `useGetPetByIdMySuffixQuery` query hook and an `useAddPetMySuffixMutation` mutation hook'
+  );
+});
+
 it('supports granular hooks generation that includes all query types', async () => {
   const api = await generateEndpoints({
     apiFile: './fixtures/emptyApi.ts',
