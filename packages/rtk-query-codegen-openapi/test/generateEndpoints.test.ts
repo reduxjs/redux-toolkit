@@ -647,3 +647,86 @@ describe('query parameters', () => {
     expect(api).toMatchSnapshot();
   });
 });
+
+describe('esmExtensions option', () => {
+  beforeAll(async () => {
+    if (!(await isDir(tmpDir))) {
+      await fs.mkdir(tmpDir, { recursive: true });
+    }
+  });
+
+  afterEach(async () => {
+    await rimraf(`${tmpDir}/*.ts`, { glob: true });
+  });
+
+  test('should convert .ts to .js when esmExtensions is true', async () => {
+    await generateEndpoints({
+      apiFile: './fixtures/emptyApi.ts',
+      outputFile: './test/tmp/out.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      filterEndpoints: [],
+      esmExtensions: true,
+    });
+    const content = await fs.readFile('./test/tmp/out.ts', 'utf8');
+    expect(content).toContain("import { api } from '../../fixtures/emptyApi.js'");
+  });
+
+  test('should convert .mts to .mjs when esmExtensions is true', async () => {
+    await generateEndpoints({
+      apiFile: './fixtures/emptyApi.mts',
+      outputFile: './test/tmp/out.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      filterEndpoints: [],
+      esmExtensions: true,
+    });
+    const content = await fs.readFile('./test/tmp/out.ts', 'utf8');
+    expect(content).toContain("import { api } from '../../fixtures/emptyApi.mjs'");
+  });
+
+  test('should preserve .jsx when esmExtensions is true', async () => {
+    await generateEndpoints({
+      apiFile: './fixtures/emptyApi.jsx',
+      outputFile: './test/tmp/out.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      filterEndpoints: [],
+      esmExtensions: true,
+    });
+    const content = await fs.readFile('./test/tmp/out.ts', 'utf8');
+    expect(content).toContain("import { api } from '../../fixtures/emptyApi.jsx'");
+  });
+
+  test('should convert .tsx to .jsx when esmExtensions is true', async () => {
+    await generateEndpoints({
+      apiFile: './fixtures/emptyApi.tsx',
+      outputFile: './test/tmp/out.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      filterEndpoints: [],
+      esmExtensions: true,
+    });
+    const content = await fs.readFile('./test/tmp/out.ts', 'utf8');
+    expect(content).toContain("import { api } from '../../fixtures/emptyApi.jsx'");
+  });
+
+  test('should strip extensions when esmExtensions is false', async () => {
+    await generateEndpoints({
+      apiFile: './fixtures/emptyApi.ts',
+      outputFile: './test/tmp/out.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      filterEndpoints: [],
+      esmExtensions: false,
+    });
+    const content = await fs.readFile('./test/tmp/out.ts', 'utf8');
+    expect(content).toContain("import { api } from '../../fixtures/emptyApi'");
+  });
+
+  test('should strip extensions when esmExtensions is undefined (default)', async () => {
+    await generateEndpoints({
+      apiFile: './fixtures/emptyApi.ts',
+      outputFile: './test/tmp/out.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      filterEndpoints: [],
+    });
+    const content = await fs.readFile('./test/tmp/out.ts', 'utf8');
+    expect(content).toContain("import { api } from '../../fixtures/emptyApi'");
+  });
+});

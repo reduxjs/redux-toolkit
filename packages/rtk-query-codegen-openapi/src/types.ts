@@ -121,6 +121,11 @@ export interface CommonOptions {
    * @since 2.1.0
    */
   useUnknown?: boolean;
+  /**
+   * @default false
+   * Will generate imports with file extension matching the expected compiled output of the api file
+   */
+  esmExtensions?: boolean;
 }
 
 export type TextMatcher = string | RegExp | (string | RegExp)[];
