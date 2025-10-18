@@ -3,8 +3,9 @@ import type {
   BaseQueryFn,
   BaseQueryMeta,
 } from '../../baseQueryTypes'
-import { DefinitionType, isAnyQueryDefinition } from '../../endpointDefinitions'
-import type { Recipe } from '../buildThunks'
+import { DefinitionType, isAnyQueryDefinition, isMutationDefinition } from '../../endpointDefinitions'
+import type { EndpointDefinitions, QueryArgFrom, ResultTypeFrom } from '../../endpointDefinitions'
+import type { PatchCollection, Recipe } from '../buildThunks'
 import { isFulfilled, isPending, isRejected } from '../rtkImports'
 import type {
   MutationBaseLifecycleApi,
@@ -138,11 +139,19 @@ export type QueryLifecycleMutationExtraOptions<
   QueryArg,
   BaseQuery extends BaseQueryFn,
   ReducerPath extends string = string,
+  Definitions extends EndpointDefinitions = EndpointDefinitions,
 > = {
   /**
    * A function that is called when the individual mutation is started. The function is called with a lifecycle api object containing properties such as `queryFulfilled`, allowing code to be run when a query is started, when it succeeds, and when it fails (i.e. throughout the lifecycle of an individual query/mutation call).
    *
-   * Can be used for `optimistic updates`.
+   * Can be used for `optimistic updates`, side effects, and complex logic.
+   *
+   * **Note**: For simple optimistic updates, consider using the declarative `applyOptimistic` option instead.
+   * Use `onQueryStarted` when you need:
+   * - Conditional logic before applying updates
+   * - Side effects (logging, analytics, notifications)
+   * - Complex error handling
+   * - Access to additional state via `getState()`
    *
    * @example
    *
@@ -170,6 +179,7 @@ export type QueryLifecycleMutationExtraOptions<
    *         body: patch,
    *       }),
    *       invalidatesTags: ['Post'],
+   *       // Traditional manual approach (now simplified with applyOptimistic option)
    *       async onQueryStarted({ id, ...patch }, { dispatch, queryFulfilled }) {
    *         const patchResult = dispatch(
    *           api.util.updateQueryData('getPost', id, (draft) => {
@@ -196,6 +206,65 @@ export type QueryLifecycleMutationExtraOptions<
       ReducerPath
     >,
   ): Promise<void> | void
+
+  /**
+   * A declarative way to apply optimistic updates when the mutation starts.
+   * Returns an array of PatchCollections that will be automatically rolled back if the mutation fails.
+   *
+   * This is the **recommended approach** for most optimistic update use cases as it handles
+   * the try/catch logic automatically and provides a cleaner API.
+   *
+   * If the mutation succeeds, the optimistic updates remain.
+   * If the mutation fails, all optimistic updates are automatically rolled back.
+   *
+   * @example
+   * ```ts
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+   *
+   * const api = createApi({
+   *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+   *   endpoints: (build) => ({
+   *     getPost: build.query<Post, number>({
+   *       query: (id) => `post/${id}`,
+   *     }),
+   *     updatePost: build.mutation<Post, Pick<Post, 'id'> & Partial<Post>>({
+   *       query: ({ id, ...patch }) => ({
+   *         url: `post/${id}`,
+   *         method: 'PATCH',
+   *         body: patch,
+   *       }),
+   *       // Declarative optimistic updates - runs automatically when mutation starts
+   *       applyOptimistic: ({ id, ...patch }, { optimisticUpdate }) => [
+   *         // Simple case - update cache entries within this API
+   *         optimisticUpdate('getPost', id, (draft) => {
+   *           Object.assign(draft, patch)
+   *         }),
+   *         // Complex case - can still use other APIs for cross-API updates
+   *         // anotherApi.util.updateQueryData('otherEndpoint', id, ...)
+   *       ]
+   *     }),
+   *   }),
+   * })
+   * ```
+   */
+  applyOptimistic?(
+    queryArgument: QueryArg,
+    helpers: {
+      /**
+       * Simplified helper to update cache entries for endpoints within this API.
+       * Equivalent to calling `dispatch(api.util.updateQueryData(...))` but with cleaner syntax.
+       */
+      optimisticUpdate: <EndpointName extends keyof Definitions>(
+        endpointName: EndpointName,
+        arg: QueryArgFrom<Definitions[EndpointName]>,
+        updateRecipe: Recipe<ResultTypeFrom<Definitions[EndpointName]>>
+      ) => PatchCollection
+      /**
+       * Access to the full mutation lifecycle API for complex cases
+       */
+      lifecycleApi: MutationLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>
+    }
+  ): PatchCollection[]
 }
 
 export interface QueryLifecycleApi<
@@ -212,7 +281,40 @@ export type MutationLifecycleApi<
   ResultType,
   ReducerPath extends string = string,
 > = MutationBaseLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath> &
-  QueryLifecyclePromises<ResultType, BaseQuery>
+  QueryLifecyclePromises<ResultType, BaseQuery> & {
+    /**
+     * Imperative helper function to apply optimistic updates with automatic rollback on failure.
+     * Use this method inside `onQueryStarted` when you need conditional logic or complex control flow.
+     *
+     * For simple cases, prefer the declarative `applyOptimistic` option instead.
+     *
+     * @param patchCollections Array of PatchCollections to apply optimistically
+     * @returns Promise that resolves when the mutation completes successfully, or rejects and automatically rolls back updates on failure
+     *
+     * @example
+     * ```ts
+     * // For conditional optimistic updates inside onQueryStarted:
+     * updatePost: build.mutation<Post, UpdateArg>({
+     *   query: ({ id, ...patch }) => ({ url: `post/${id}`, method: 'PATCH', body: patch }),
+     *   async onQueryStarted({ id, ...patch }, { dispatch, applyOptimistic, getState }) {
+     *     // Only apply optimistic update if user is premium
+     *     if (getState().user.isPremium) {
+     *       await applyOptimistic([
+     *         dispatch(
+     *           api.util.updateQueryData('getPost', id, (draft) => {
+     *             Object.assign(draft, patch)
+     *           })
+     *         )
+     *       ])
+     *     }
+     *   }
+     * })
+     * ```
+     */
+    applyOptimistic(
+      patchCollections: PatchCollection[]
+    ): Promise<{ data: ResultType; meta: BaseQueryMeta<BaseQuery> }>
+  }
 
 /**
  * Provides a way to define a strongly-typed version of
@@ -433,6 +535,7 @@ export const buildQueryLifecycleHandler: InternalHandlerBuilder = ({
   type CacheLifecycle = {
     resolve(value: { data: unknown; meta: unknown }): unknown
     reject(value: QueryFulfilledRejectionReason<any>): unknown
+    optimisticPatches?: PatchCollection[]
   }
   const lifecycleMap: Record<string, CacheLifecycle> = {}
 
@@ -444,7 +547,11 @@ export const buildQueryLifecycleHandler: InternalHandlerBuilder = ({
       } = action.meta
       const endpointDefinition = context.endpointDefinitions[endpointName]
       const onQueryStarted = endpointDefinition?.onQueryStarted
-      if (onQueryStarted) {
+      const applyOptimisticDefinition = isMutationDefinition(endpointDefinition) 
+        ? endpointDefinition.applyOptimistic 
+        : undefined
+
+      if (onQueryStarted || applyOptimisticDefinition) {
         const lifecycle = {} as CacheLifecycle
         const queryFulfilled =
           new (Promise as PromiseConstructorWithKnownReason)<
@@ -463,6 +570,28 @@ export const buildQueryLifecycleHandler: InternalHandlerBuilder = ({
         )
 
         const extra = mwApi.dispatch((_, __, extra) => extra)
+
+        const optimisticUpdate = (endpointName: string, arg: any, updateRecipe: Recipe<any>): PatchCollection => {
+          // At runtime, these are just strings/objects, so we can call updateQueryData directly
+          // The type safety is enforced at the TypeScript level in the applyOptimistic function signature
+          return (api.util.updateQueryData as any)(endpointName, arg, updateRecipe)(mwApi.dispatch, mwApi.getState)
+        }
+
+        const applyOptimistic = async (
+          patchCollections: PatchCollection[]
+        ) => {
+          lifecycle.optimisticPatches = patchCollections
+
+          try {
+            const result = await queryFulfilled
+            // If successful, we keep the optimistic updates
+            return result
+          } catch (error) {
+            // If failed, rollback all optimistic updates
+            patchCollections.forEach(patch => patch.undo())
+          }
+        }
+
         const lifecycleApi = {
           ...mwApi,
           getCacheEntry: () => selector(mwApi.getState()),
@@ -479,8 +608,22 @@ export const buildQueryLifecycleHandler: InternalHandlerBuilder = ({
                 )
             : undefined) as any,
           queryFulfilled,
+          applyOptimistic,
         }
-        onQueryStarted(originalArgs, lifecycleApi as any)
+
+        if (applyOptimisticDefinition) {
+          const patchCollections = applyOptimisticDefinition(originalArgs, {
+            optimisticUpdate,
+            lifecycleApi: lifecycleApi as any
+          })
+          if (patchCollections && patchCollections.length > 0) {
+            applyOptimistic(patchCollections)
+          }
+        }
+
+        if (onQueryStarted) {
+          onQueryStarted(originalArgs, lifecycleApi as any)
+        }
       }
     } else if (isFullfilledThunk(action)) {
       const { requestId, baseQueryMeta } = action.meta
@@ -491,7 +634,9 @@ export const buildQueryLifecycleHandler: InternalHandlerBuilder = ({
       delete lifecycleMap[requestId]
     } else if (isRejectedThunk(action)) {
       const { requestId, rejectedWithValue, baseQueryMeta } = action.meta
-      lifecycleMap[requestId]?.reject({
+      const lifecycle = lifecycleMap[requestId]
+      
+      lifecycle?.reject({
         error: action.payload ?? action.error,
         isUnhandledError: !rejectedWithValue,
         meta: baseQueryMeta as any,
