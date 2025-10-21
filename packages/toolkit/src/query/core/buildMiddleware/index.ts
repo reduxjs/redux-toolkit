@@ -45,7 +45,7 @@ export function buildMiddleware<
   ReducerPath extends string,
   TagTypes extends string,
 >(input: BuildMiddlewareInput<Definitions, ReducerPath, TagTypes>) {
-  const { reducerPath, queryThunk, api, context, internalState } = input
+  const { reducerPath, queryThunk, api, context, getInternalState } = input
   const { apiUid } = context
 
   const actions = {
@@ -72,6 +72,8 @@ export function buildMiddleware<
     ThunkDispatch<any, any, UnknownAction>
   > = (mwApi) => {
     let initialized = false
+
+    const internalState = getInternalState(mwApi.dispatch)
 
     const builderArgs = {
       ...(input as any as BuildMiddlewareInput<

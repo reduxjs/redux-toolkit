@@ -47,18 +47,12 @@ export interface InternalMiddlewareState {
   currentSubscriptions: SubscriptionInternalState
   currentPolls: Map<string, QueryPollState>
   runningQueries: Map<
-    Dispatch,
-    Record<
-      string,
-      | QueryActionCreatorResult<any>
-      | InfiniteQueryActionCreatorResult<any>
-      | undefined
-    >
+    string,
+    | QueryActionCreatorResult<any>
+    | InfiniteQueryActionCreatorResult<any>
+    | undefined
   >
-  runningMutations: Map<
-    Dispatch,
-    Record<string, MutationActionCreatorResult<any> | undefined>
-  >
+  runningMutations: Map<string, MutationActionCreatorResult<any> | undefined>
 }
 
 export interface SubscriptionSelectors {
@@ -84,7 +78,7 @@ export interface BuildMiddlewareInput<
     endpointName: string,
     queryArgs: any,
   ) => (dispatch: Dispatch) => QueryActionCreatorResult<any> | undefined
-  internalState: InternalMiddlewareState
+  getInternalState: (dispatch: Dispatch) => InternalMiddlewareState
 }
 
 export type SubMiddlewareApi = MiddlewareAPI<
