@@ -1,6 +1,7 @@
 import { createApi } from '@reduxjs/toolkit/query'
 import { delay } from 'msw'
 import { actionsReducer, setupApiStore } from '../../tests/utils/helpers'
+import { vi } from 'vitest'
 
 const baseQuery = (args?: any) => ({ data: args })
 const api = createApi({
@@ -212,4 +213,54 @@ it('correctly stringifies subscription state and dispatches subscriptionsUpdated
   expect(
     subscriptionState['getBananas(undefined)']?.[subscription3.requestId],
   ).toEqual({})
+})
+
+it('does not leak subscription state between multiple stores using the same API instance (SSR scenario)', async () => {
+  vi.useFakeTimers()
+  // Simulate SSR: create API once at module level
+  const sharedApi = createApi({
+    baseQuery: (args?: any) => ({ data: args }),
+    tagTypes: ['Test'],
+    endpoints: (build) => ({
+      getTest: build.query<unknown, number>({
+        query(id) {
+          return { url: `test/${id}` }
+        },
+      }),
+    }),
+  })
+
+  // Create first store (simulating first SSR request)
+  const store1Ref = setupApiStore(sharedApi, {}, { withoutListeners: true })
+
+  // Add subscription in store1
+  const sub1 = store1Ref.store.dispatch(
+    sharedApi.endpoints.getTest.initiate(1, {
+      subscriptionOptions: { pollingInterval: 1000 },
+    }),
+  )
+  vi.advanceTimersByTime(10)
+  await sub1
+
+  // Wait for subscription sync (500ms + buffer)
+  vi.advanceTimersByTime(600)
+
+  // Verify store1 has the subscription
+  const store1SubscriptionSelectors = store1Ref.store.dispatch(
+    sharedApi.internalActions.internal_getRTKQSubscriptions(),
+  ) as any
+  const store1InternalSubs = store1SubscriptionSelectors.getSubscriptions()
+  expect(store1InternalSubs.size).toBe(1)
+
+  // Create second store (simulating second SSR request)
+  const store2Ref = setupApiStore(sharedApi, {}, { withoutListeners: true })
+
+  // Check subscriptions via internal action
+  const store2SubscriptionSelectors = store2Ref.store.dispatch(
+    sharedApi.internalActions.internal_getRTKQSubscriptions(),
+  ) as any
+
+  const store2InternalSubs = store2SubscriptionSelectors.getSubscriptions()
+
+  expect(store2InternalSubs.size).toBe(0)
 })

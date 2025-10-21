@@ -22,7 +22,7 @@ import {
   type QueryDefinition,
   type ResultTypeFrom,
 } from '../endpointDefinitions'
-import { countObjectKeys, getOrInsert, isNotNullish } from '../utils'
+import { filterNullishValues } from '../utils'
 import type {
   InfiniteData,
   InfiniteQueryConfigOptions,
@@ -271,7 +271,7 @@ export function buildInitiate({
   mutationThunk,
   api,
   context,
-  internalState,
+  getInternalState,
 }: {
   serializeQueryArgs: InternalSerializeQueryArgs
   queryThunk: QueryThunk
@@ -279,9 +279,12 @@ export function buildInitiate({
   mutationThunk: MutationThunk
   api: Api<any, EndpointDefinitions, any, any>
   context: ApiContext<EndpointDefinitions>
-  internalState: InternalMiddlewareState
+  getInternalState: (dispatch: Dispatch) => InternalMiddlewareState
 }) {
-  const { runningQueries, runningMutations } = internalState
+  const getRunningQueries = (dispatch: Dispatch) =>
+    getInternalState(dispatch)?.runningQueries
+  const getRunningMutations = (dispatch: Dispatch) =>
+    getInternalState(dispatch)?.runningMutations
 
   const {
     unsubscribeQueryResult,
@@ -306,7 +309,7 @@ export function buildInitiate({
         endpointDefinition,
         endpointName,
       })
-      return runningQueries.get(dispatch)?.[queryCacheKey] as
+      return getRunningQueries(dispatch)?.get(queryCacheKey) as
         | QueryActionCreatorResult<never>
         | InfiniteQueryActionCreatorResult<never>
         | undefined
@@ -322,7 +325,7 @@ export function buildInitiate({
     fixedCacheKeyOrRequestId: string,
   ) {
     return (dispatch: Dispatch) => {
-      return runningMutations.get(dispatch)?.[fixedCacheKeyOrRequestId] as
+      return getRunningMutations(dispatch)?.get(fixedCacheKeyOrRequestId) as
         | MutationActionCreatorResult<never>
         | undefined
     }
@@ -330,12 +333,12 @@ export function buildInitiate({
 
   function getRunningQueriesThunk() {
     return (dispatch: Dispatch) =>
-      Object.values(runningQueries.get(dispatch) || {}).filter(isNotNullish)
+      filterNullishValues(getRunningQueries(dispatch))
   }
 
   function getRunningMutationsThunk() {
     return (dispatch: Dispatch) =>
-      Object.values(runningMutations.get(dispatch) || {}).filter(isNotNullish)
+      filterNullishValues(getRunningMutations(dispatch))
   }
 
   function middlewareWarning(dispatch: Dispatch) {
@@ -429,7 +432,7 @@ You must add the middleware for RTK-Query to function correctly!`,
 
         const skippedSynchronously = stateAfter.requestId !== requestId
 
-        const runningQuery = runningQueries.get(dispatch)?.[queryCacheKey]
+        const runningQuery = getRunningQueries(dispatch)?.get(queryCacheKey)
         const selectFromState = () => selector(getState())
 
         const statePromise: AnyActionCreatorResult = Object.assign(
@@ -489,14 +492,11 @@ You must add the middleware for RTK-Query to function correctly!`,
         )
 
         if (!runningQuery && !skippedSynchronously && !forceQueryFn) {
-          const running = getOrInsert(runningQueries, dispatch, {})
-          running[queryCacheKey] = statePromise
+          const runningQueries = getRunningQueries(dispatch)!
+          runningQueries.set(queryCacheKey, statePromise)
 
           statePromise.then(() => {
-            delete running[queryCacheKey]
-            if (!countObjectKeys(running)) {
-              runningQueries.delete(dispatch)
-            }
+            runningQueries.delete(queryCacheKey)
           })
         }
 
@@ -559,23 +559,17 @@ You must add the middleware for RTK-Query to function correctly!`,
           reset,
         })
 
-        const running = runningMutations.get(dispatch) || {}
-        runningMutations.set(dispatch, running)
-        running[requestId] = ret
+        const runningMutations = getRunningMutations(dispatch)!
+
+        runningMutations.set(requestId, ret)
         ret.then(() => {
-          delete running[requestId]
-          if (!countObjectKeys(running)) {
-            runningMutations.delete(dispatch)
-          }
+          runningMutations.delete(requestId)
         })
         if (fixedCacheKey) {
-          running[fixedCacheKey] = ret
+          runningMutations.set(fixedCacheKey, ret)
           ret.then(() => {
-            if (running[fixedCacheKey] === ret) {
-              delete running[fixedCacheKey]
-              if (!countObjectKeys(running)) {
-                runningMutations.delete(dispatch)
-              }
+            if (runningMutations.get(fixedCacheKey) === ret) {
+              runningMutations.delete(fixedCacheKey)
             }
           })
         }

@@ -13,27 +13,27 @@ export type ReferenceCacheCollection = never
 
 /**
  * @example
-   * ```ts
-   * // codeblock-meta title="keepUnusedDataFor example"
-   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-   * interface Post {
-   *   id: number
-   *   name: string
-   * }
-   * type PostsResponse = Post[]
-   *
-   * const api = createApi({
-   *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
-   *   endpoints: (build) => ({
-   *     getPosts: build.query<PostsResponse, void>({
-   *       query: () => 'posts',
-   *       // highlight-start
-   *       keepUnusedDataFor: 5
-   *       // highlight-end
-   *     })
-   *   })
-   * })
-   * ```
+ * ```ts
+ * // codeblock-meta title="keepUnusedDataFor example"
+ * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+ * interface Post {
+ *   id: number
+ *   name: string
+ * }
+ * type PostsResponse = Post[]
+ *
+ * const api = createApi({
+ *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+ *   endpoints: (build) => ({
+ *     getPosts: build.query<PostsResponse, void>({
+ *       query: () => 'posts',
+ *       // highlight-start
+ *       keepUnusedDataFor: 5
+ *       // highlight-end
+ *     })
+ *   })
+ * })
+ * ```
  */
 export type CacheCollectionQueryExtraOptions = {
   /**
@@ -64,8 +64,6 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
   const { removeQueryResult, unsubscribeQueryResult, cacheEntriesUpserted } =
     api.internalActions
 
-  const runningQueries = internalState.runningQueries.get(mwApi.dispatch)!
-
   const canTriggerUnsubscribe = isAnyOf(
     unsubscribeQueryResult.match,
     queryThunk.fulfilled,
@@ -80,8 +78,7 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
     }
 
     const hasSubscriptions = subscriptions.size > 0
-    const isRunning = runningQueries?.[queryCacheKey] !== undefined
-    return hasSubscriptions || isRunning
+    return hasSubscriptions
   }
 
   const currentRemovalTimeouts: QueryStateMeta<TimeoutId> = {}
