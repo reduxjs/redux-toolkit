@@ -1,12 +1,13 @@
+import { noop } from '@internal/listenerMiddleware/utils'
+import { setupApiStore } from '@internal/tests/utils/helpers'
 import type { BaseQueryFn, FetchBaseQueryError } from '@reduxjs/toolkit/query'
 import { createApi, retry } from '@reduxjs/toolkit/query'
-import { setupApiStore } from '../../tests/utils/helpers'
 
 beforeEach(() => {
   vi.useFakeTimers()
 })
 
-const loopTimers = async (max: number = 12) => {
+const loopTimers = async (max = 12) => {
   let count = 0
   while (count < max) {
     await vi.advanceTimersByTimeAsync(1)
@@ -17,10 +18,7 @@ const loopTimers = async (max: number = 12) => {
 
 describe('configuration', () => {
   test('retrying without any config options', async () => {
-    const baseBaseQuery = vi.fn<
-      Parameters<BaseQueryFn>,
-      ReturnType<BaseQueryFn>
-    >()
+    const baseBaseQuery = vi.fn<BaseQueryFn>()
     baseBaseQuery.mockResolvedValue({ error: 'rejected' })
 
     const baseQuery = retry(baseBaseQuery)
@@ -28,7 +26,7 @@ describe('configuration', () => {
       baseQuery,
       endpoints: (build) => ({
         q1: build.query({
-          query: () => {},
+          query: noop,
         }),
       }),
     })
@@ -44,10 +42,7 @@ describe('configuration', () => {
   })
 
   test('retrying with baseQuery config that overrides default behavior (maxRetries: 5)', async () => {
-    const baseBaseQuery = vi.fn<
-      Parameters<BaseQueryFn>,
-      ReturnType<BaseQueryFn>
-    >()
+    const baseBaseQuery = vi.fn<BaseQueryFn>()
     baseBaseQuery.mockResolvedValue({ error: 'rejected' })
 
     const baseQuery = retry(baseBaseQuery, { maxRetries: 3 })
@@ -55,7 +50,7 @@ describe('configuration', () => {
       baseQuery,
       endpoints: (build) => ({
         q1: build.query({
-          query: () => {},
+          query: noop,
         }),
       }),
     })
@@ -71,10 +66,7 @@ describe('configuration', () => {
   })
 
   test('retrying with endpoint config that overrides baseQuery config', async () => {
-    const baseBaseQuery = vi.fn<
-      Parameters<BaseQueryFn>,
-      ReturnType<BaseQueryFn>
-    >()
+    const baseBaseQuery = vi.fn<BaseQueryFn>()
     baseBaseQuery.mockResolvedValue({ error: 'rejected' })
 
     const baseQuery = retry(baseBaseQuery, { maxRetries: 3 })
@@ -82,10 +74,10 @@ describe('configuration', () => {
       baseQuery,
       endpoints: (build) => ({
         q1: build.query({
-          query: () => {},
+          query: noop,
         }),
         q2: build.query({
-          query: () => {},
+          query: noop,
           extraOptions: { maxRetries: 8 },
         }),
       }),
@@ -110,10 +102,7 @@ describe('configuration', () => {
   })
 
   test('stops retrying a query after a success', async () => {
-    const baseBaseQuery = vi.fn<
-      Parameters<BaseQueryFn>,
-      ReturnType<BaseQueryFn>
-    >()
+    const baseBaseQuery = vi.fn<BaseQueryFn>()
     baseBaseQuery
       .mockResolvedValueOnce({ error: 'rejected' })
       .mockResolvedValueOnce({ error: 'rejected' })
@@ -124,7 +113,7 @@ describe('configuration', () => {
       baseQuery,
       endpoints: (build) => ({
         q1: build.mutation({
-          query: () => {},
+          query: noop,
         }),
       }),
     })
@@ -140,10 +129,7 @@ describe('configuration', () => {
   })
 
   test('retrying also works with mutations', async () => {
-    const baseBaseQuery = vi.fn<
-      Parameters<BaseQueryFn>,
-      ReturnType<BaseQueryFn>
-    >()
+    const baseBaseQuery = vi.fn<BaseQueryFn>()
     baseBaseQuery.mockResolvedValue({ error: 'rejected' })
 
     const baseQuery = retry(baseBaseQuery, { maxRetries: 3 })
@@ -168,10 +154,7 @@ describe('configuration', () => {
   })
 
   test('retrying stops after a success from a mutation', async () => {
-    const baseBaseQuery = vi.fn<
-      Parameters<BaseQueryFn>,
-      ReturnType<BaseQueryFn>
-    >()
+    const baseBaseQuery = vi.fn<BaseQueryFn>()
     baseBaseQuery
       .mockRejectedValueOnce(new Error('rejected'))
       .mockRejectedValueOnce(new Error('rejected'))
@@ -198,10 +181,7 @@ describe('configuration', () => {
     expect(baseBaseQuery).toHaveBeenCalledTimes(3)
   })
   test('non-error-cases should **not** retry', async () => {
-    const baseBaseQuery = vi.fn<
-      Parameters<BaseQueryFn>,
-      ReturnType<BaseQueryFn>
-    >()
+    const baseBaseQuery = vi.fn<BaseQueryFn>()
     baseBaseQuery.mockResolvedValue({ data: { success: true } })
 
     const baseQuery = retry(baseBaseQuery, { maxRetries: 3 })
@@ -209,7 +189,7 @@ describe('configuration', () => {
       baseQuery,
       endpoints: (build) => ({
         q1: build.query({
-          query: () => {},
+          query: noop,
         }),
       }),
     })
@@ -227,10 +207,7 @@ describe('configuration', () => {
   test('calling retry.fail(error) will skip retrying and expose the error directly', async () => {
     const error = { message: 'banana' }
 
-    const baseBaseQuery = vi.fn<
-      Parameters<BaseQueryFn>,
-      ReturnType<BaseQueryFn>
-    >()
+    const baseBaseQuery = vi.fn<BaseQueryFn>()
     baseBaseQuery.mockImplementation((input) => {
       retry.fail(error)
       return { data: `this won't happen` }
@@ -241,7 +218,7 @@ describe('configuration', () => {
       baseQuery,
       endpoints: (build) => ({
         q1: build.query({
-          query: () => {},
+          query: noop,
         }),
       }),
     })
@@ -275,10 +252,7 @@ describe('configuration', () => {
      * Note:
      * This will retry 16 total times because we try the initial + 3 retries (sum: 4), then retry that process 3 times (starting at 0 for a total of 4)... 4x4=16 (allegedly)
      */
-    const baseBaseQuery = vi.fn<
-      Parameters<BaseQueryFn>,
-      ReturnType<BaseQueryFn>
-    >()
+    const baseBaseQuery = vi.fn<BaseQueryFn>()
     baseBaseQuery.mockResolvedValue({ error: 'rejected' })
 
     const baseQuery = retry(retry(baseBaseQuery, { maxRetries: 3 }), {
@@ -288,7 +262,7 @@ describe('configuration', () => {
       baseQuery,
       endpoints: (build) => ({
         q1: build.query({
-          query: () => {},
+          query: noop,
         }),
       }),
     })
@@ -305,10 +279,7 @@ describe('configuration', () => {
   })
 
   test('accepts a custom backoff fn', async () => {
-    const baseBaseQuery = vi.fn<
-      Parameters<BaseQueryFn>,
-      ReturnType<BaseQueryFn>
-    >()
+    const baseBaseQuery = vi.fn<BaseQueryFn>()
     baseBaseQuery.mockResolvedValue({ error: 'rejected' })
 
     const baseQuery = retry(baseBaseQuery, {
@@ -325,7 +296,7 @@ describe('configuration', () => {
       baseQuery,
       endpoints: (build) => ({
         q1: build.query({
-          query: () => {},
+          query: noop,
         }),
       }),
     })
@@ -341,10 +312,7 @@ describe('configuration', () => {
   })
 
   test('accepts a custom retryCondition fn', async () => {
-    const baseBaseQuery = vi.fn<
-      Parameters<BaseQueryFn>,
-      ReturnType<BaseQueryFn>
-    >()
+    const baseBaseQuery = vi.fn<BaseQueryFn>()
     baseBaseQuery.mockResolvedValue({ error: 'rejected' })
 
     const overrideMaxRetries = 3
@@ -356,7 +324,7 @@ describe('configuration', () => {
       baseQuery,
       endpoints: (build) => ({
         q1: build.query({
-          query: () => {},
+          query: noop,
         }),
       }),
     })
@@ -372,10 +340,7 @@ describe('configuration', () => {
   })
 
   test('retryCondition with endpoint config that overrides baseQuery config', async () => {
-    const baseBaseQuery = vi.fn<
-      Parameters<BaseQueryFn>,
-      ReturnType<BaseQueryFn>
-    >()
+    const baseBaseQuery = vi.fn<BaseQueryFn>()
     baseBaseQuery.mockResolvedValue({ error: 'rejected' })
 
     const baseQuery = retry(baseBaseQuery, {
@@ -385,7 +350,7 @@ describe('configuration', () => {
       baseQuery,
       endpoints: (build) => ({
         q1: build.query({
-          query: () => {},
+          query: noop,
           extraOptions: {
             retryCondition: (_, __, { attempt }) => attempt <= 5,
           },
@@ -404,10 +369,7 @@ describe('configuration', () => {
   })
 
   test('retryCondition also works with mutations', async () => {
-    const baseBaseQuery = vi.fn<
-      Parameters<BaseQueryFn>,
-      ReturnType<BaseQueryFn>
-    >()
+    const baseBaseQuery = vi.fn<BaseQueryFn>()
 
     baseBaseQuery
       .mockRejectedValueOnce(new Error('rejected'))
@@ -440,10 +402,7 @@ describe('configuration', () => {
   })
 
   test('Specifying maxRetries as 0 in RetryOptions prevents retries', async () => {
-    const baseBaseQuery = vi.fn<
-      Parameters<BaseQueryFn>,
-      ReturnType<BaseQueryFn>
-    >()
+    const baseBaseQuery = vi.fn<BaseQueryFn>()
     baseBaseQuery.mockResolvedValue({ error: 'rejected' })
 
     const baseQuery = retry(baseBaseQuery, { maxRetries: 0 })
@@ -451,7 +410,7 @@ describe('configuration', () => {
       baseQuery,
       endpoints: (build) => ({
         q1: build.query({
-          query: () => {},
+          query: noop,
         }),
       }),
     })
@@ -470,10 +429,7 @@ describe('configuration', () => {
     let capturedSignal: AbortSignal | undefined
     let retryAttempts = 0
 
-    const baseBaseQuery = vi.fn<
-      Parameters<BaseQueryFn>,
-      ReturnType<BaseQueryFn>
-    >()
+    const baseBaseQuery = vi.fn<BaseQueryFn>()
 
     // Always return an error to trigger retries
     baseBaseQuery.mockResolvedValue({ error: 'network error' })
@@ -524,8 +480,8 @@ describe('configuration', () => {
 
     // Verify the retry condition was called and we have a signal
     expect(retryConditionCalled).toBe(true)
-    expect(capturedSignal).toBeDefined()
-    expect(capturedSignal!.aborted).toBe(false)
+    assert.isDefined(capturedSignal)
+    expect(capturedSignal.aborted).toBe(false)
 
     // Unsubscribe to trigger cache removal
     queryPromise.unsubscribe()
@@ -537,7 +493,7 @@ describe('configuration', () => {
     await loopTimers(3)
 
     // The signal should now be aborted
-    expect(capturedSignal!.aborted).toBe(true)
+    expect(capturedSignal.aborted).toBe(true)
 
     // We should have stopped retrying early due to the abort signal
     // If abort signal wasn't working, we'd see many more retry attempts
@@ -551,10 +507,7 @@ describe('configuration', () => {
 
   // Tests for issue #4079: Thrown errors should respect maxRetries
   test('thrown errors (not HandledError) should respect maxRetries', async () => {
-    const baseBaseQuery = vi.fn<
-      Parameters<BaseQueryFn>,
-      ReturnType<BaseQueryFn>
-    >()
+    const baseBaseQuery = vi.fn<BaseQueryFn>()
     // Simulate network error that keeps throwing
     baseBaseQuery.mockRejectedValue(new Error('Network timeout'))
 
@@ -563,7 +516,7 @@ describe('configuration', () => {
       baseQuery,
       endpoints: (build) => ({
         q1: build.query({
-          query: () => {},
+          query: noop,
         }),
       }),
     })
@@ -589,10 +542,7 @@ describe('configuration', () => {
       }
     }
 
-    const baseBaseQuery = vi.fn<
-      Parameters<BaseQueryFn>,
-      ReturnType<BaseQueryFn>
-    >()
+    const baseBaseQuery = vi.fn<BaseQueryFn>()
     // Simulate graphql-request throwing ClientError
     baseBaseQuery.mockImplementation(() => {
       throw new ClientError('GraphQL network error')
@@ -603,7 +553,7 @@ describe('configuration', () => {
       baseQuery,
       endpoints: (build) => ({
         q1: build.query({
-          query: () => {},
+          query: noop,
         }),
       }),
     })
@@ -622,10 +572,7 @@ describe('configuration', () => {
   })
 
   test('handles mix of returned errors and thrown errors', async () => {
-    const baseBaseQuery = vi.fn<
-      Parameters<BaseQueryFn>,
-      ReturnType<BaseQueryFn>
-    >()
+    const baseBaseQuery = vi.fn<BaseQueryFn>()
     baseBaseQuery
       .mockResolvedValueOnce({ error: 'returned error' }) // HandledError
       .mockRejectedValueOnce(new Error('thrown error')) // Not HandledError
@@ -637,7 +584,7 @@ describe('configuration', () => {
       baseQuery,
       endpoints: (build) => ({
         q1: build.query({
-          query: () => {},
+          query: noop,
         }),
       }),
     })
@@ -655,10 +602,7 @@ describe('configuration', () => {
   })
 
   test('thrown errors with mutations should respect maxRetries', async () => {
-    const baseBaseQuery = vi.fn<
-      Parameters<BaseQueryFn>,
-      ReturnType<BaseQueryFn>
-    >()
+    const baseBaseQuery = vi.fn<BaseQueryFn>()
     // Simulate persistent network error
     baseBaseQuery.mockRejectedValue(new Error('Connection refused'))
 
@@ -688,17 +632,14 @@ describe('configuration', () => {
   // These tests validate the abort signal handling implementation
   describe('abort signal handling', () => {
     test('retry loop exits immediately when signal is aborted before retry', async () => {
-      const baseBaseQuery = vi.fn<
-        Parameters<BaseQueryFn>,
-        ReturnType<BaseQueryFn>
-      >()
+      const baseBaseQuery = vi.fn<BaseQueryFn>()
       baseBaseQuery.mockResolvedValue({ error: 'network error' })
 
       const baseQuery = retry(baseBaseQuery, { maxRetries: 10 })
       const api = createApi({
         baseQuery,
         endpoints: (build) => ({
-          q1: build.query({ query: () => {} }),
+          q1: build.query({ query: noop }),
         }),
       })
 
@@ -723,10 +664,7 @@ describe('configuration', () => {
 
     test('abort during active request prevents retry', async () => {
       let requestInProgress = false
-      const baseBaseQuery = vi.fn<
-        Parameters<BaseQueryFn>,
-        ReturnType<BaseQueryFn>
-      >()
+      const baseBaseQuery = vi.fn<BaseQueryFn>()
 
       baseBaseQuery.mockImplementation(async () => {
         requestInProgress = true
@@ -739,7 +677,7 @@ describe('configuration', () => {
       const api = createApi({
         baseQuery,
         endpoints: (build) => ({
-          q1: build.query({ query: () => {} }),
+          q1: build.query({ query: noop }),
         }),
       })
 
@@ -763,10 +701,7 @@ describe('configuration', () => {
     })
 
     test('custom backoff without signal parameter still works', async () => {
-      const baseBaseQuery = vi.fn<
-        Parameters<BaseQueryFn>,
-        ReturnType<BaseQueryFn>
-      >()
+      const baseBaseQuery = vi.fn<BaseQueryFn>()
       baseBaseQuery.mockResolvedValue({ error: 'network error' })
 
       // Custom backoff that doesn't accept signal (backward compatibility)
@@ -782,7 +717,7 @@ describe('configuration', () => {
       const api = createApi({
         baseQuery,
         endpoints: (build) => ({
-          q1: build.query({ query: () => {} }),
+          q1: build.query({ query: noop }),
         }),
       })
 
@@ -799,10 +734,7 @@ describe('configuration', () => {
 
     test('abort signal is checked before each retry attempt', async () => {
       const attemptNumbers: number[] = []
-      const baseBaseQuery = vi.fn<
-        Parameters<BaseQueryFn>,
-        ReturnType<BaseQueryFn>
-      >()
+      const baseBaseQuery = vi.fn<BaseQueryFn>()
       baseBaseQuery.mockImplementation(async () => {
         attemptNumbers.push(attemptNumbers.length + 1)
         return { error: 'network error' }
@@ -812,7 +744,7 @@ describe('configuration', () => {
       const api = createApi({
         baseQuery,
         endpoints: (build) => ({
-          q1: build.query({ query: () => {} }),
+          q1: build.query({ query: noop }),
         }),
       })
 
@@ -836,10 +768,7 @@ describe('configuration', () => {
     })
 
     test('mutations respect abort signal during retry', async () => {
-      const baseBaseQuery = vi.fn<
-        Parameters<BaseQueryFn>,
-        ReturnType<BaseQueryFn>
-      >()
+      const baseBaseQuery = vi.fn<BaseQueryFn>()
       baseBaseQuery.mockResolvedValue({ error: 'network error' })
 
       const baseQuery = retry(baseBaseQuery, { maxRetries: 5 })
@@ -870,10 +799,7 @@ describe('configuration', () => {
     })
 
     test('abort after successful retry does not affect result', async () => {
-      const baseBaseQuery = vi.fn<
-        Parameters<BaseQueryFn>,
-        ReturnType<BaseQueryFn>
-      >()
+      const baseBaseQuery = vi.fn<BaseQueryFn>()
       baseBaseQuery
         .mockResolvedValueOnce({ error: 'network error' })
         .mockResolvedValue({ data: { success: true } })
@@ -882,7 +808,7 @@ describe('configuration', () => {
       const api = createApi({
         baseQuery,
         endpoints: (build) => ({
-          q1: build.query({ query: () => {} }),
+          q1: build.query({ query: noop }),
         }),
       })
 
@@ -906,17 +832,14 @@ describe('configuration', () => {
     })
 
     test('multiple aborts are handled gracefully', async () => {
-      const baseBaseQuery = vi.fn<
-        Parameters<BaseQueryFn>,
-        ReturnType<BaseQueryFn>
-      >()
+      const baseBaseQuery = vi.fn<BaseQueryFn>()
       baseBaseQuery.mockResolvedValue({ error: 'network error' })
 
       const baseQuery = retry(baseBaseQuery, { maxRetries: 10 })
       const api = createApi({
         baseQuery,
         endpoints: (build) => ({
-          q1: build.query({ query: () => {} }),
+          q1: build.query({ query: noop }),
         }),
       })
 
@@ -939,17 +862,14 @@ describe('configuration', () => {
     })
 
     test('abort signal already aborted before retry starts', async () => {
-      const baseBaseQuery = vi.fn<
-        Parameters<BaseQueryFn>,
-        ReturnType<BaseQueryFn>
-      >()
+      const baseBaseQuery = vi.fn<BaseQueryFn>()
       baseBaseQuery.mockResolvedValue({ error: 'network error' })
 
       const baseQuery = retry(baseBaseQuery, { maxRetries: 5 })
       const api = createApi({
         baseQuery,
         endpoints: (build) => ({
-          q1: build.query({ query: () => {} }),
+          q1: build.query({ query: noop }),
         }),
       })
 
@@ -969,17 +889,14 @@ describe('configuration', () => {
     })
 
     test('resetApiState aborts retrying queries', async () => {
-      const baseBaseQuery = vi.fn<
-        Parameters<BaseQueryFn>,
-        ReturnType<BaseQueryFn>
-      >()
+      const baseBaseQuery = vi.fn<BaseQueryFn>()
       baseBaseQuery.mockResolvedValue({ error: 'network error' })
 
       const baseQuery = retry(baseBaseQuery, { maxRetries: 10 })
       const api = createApi({
         baseQuery,
         endpoints: (build) => ({
-          q1: build.query({ query: () => {} }),
+          q1: build.query({ query: noop }),
         }),
       })
 

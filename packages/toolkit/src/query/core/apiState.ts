@@ -25,6 +25,13 @@ export type RefetchConfigOptions = {
   refetchOnFocus: boolean
 }
 
+export type PageParamFunction<DataType, PageParam> = (
+  firstPage: DataType,
+  allPages: DataType[],
+  firstPageParam: PageParam,
+  allPageParams: PageParam[],
+) => PageParam | undefined | null
+
 export type InfiniteQueryConfigOptions<DataType, PageParam, QueryArg> = {
   /**
    * The initial page parameter to use for the first page fetch.
@@ -36,9 +43,9 @@ export type InfiniteQueryConfigOptions<DataType, PageParam, QueryArg> = {
    */
   getNextPageParam: (
     lastPage: DataType,
-    allPages: Array<DataType>,
+    allPages: DataType[],
     lastPageParam: PageParam,
-    allPageParams: Array<PageParam>,
+    allPageParams: PageParam[],
     queryArg: QueryArg,
   ) => PageParam | undefined | null
   /**
@@ -47,9 +54,9 @@ export type InfiniteQueryConfigOptions<DataType, PageParam, QueryArg> = {
    */
   getPreviousPageParam?: (
     firstPage: DataType,
-    allPages: Array<DataType>,
+    allPages: DataType[],
     firstPageParam: PageParam,
-    allPageParams: Array<PageParam>,
+    allPageParams: PageParam[],
     queryArg: QueryArg,
   ) => PageParam | undefined | null
   /**
@@ -61,8 +68,8 @@ export type InfiniteQueryConfigOptions<DataType, PageParam, QueryArg> = {
 }
 
 export type InfiniteData<DataType, PageParam> = {
-  pages: Array<DataType>
-  pageParams: Array<PageParam>
+  pages: DataType[]
+  pageParams: PageParam[]
 }
 
 /**
@@ -149,7 +156,7 @@ export type SubscriptionOptions = {
   refetchOnFocus?: boolean
 }
 export type SubscribersInternal = Map<string, SubscriptionOptions>
-export type Subscribers = { [requestId: string]: SubscriptionOptions }
+export type Subscribers = Record<string, SubscriptionOptions>
 export type QueryKeys<Definitions extends EndpointDefinitions> = {
   [K in keyof Definitions]: Definitions[K] extends QueryDefinition<
     any,
@@ -312,27 +319,24 @@ export type CombinedState<
 }
 
 export type InvalidationState<TagTypes extends string> = {
-  tags: {
-    [_ in TagTypes]: {
-      [id: string]: Array<QueryCacheKey>
-      [id: number]: Array<QueryCacheKey>
+  tags: Record<
+    TagTypes,
+    {
+      [id: string]: QueryCacheKey[]
+      [id: number]: QueryCacheKey[]
     }
-  }
-  keys: Record<QueryCacheKey, Array<FullTagDescription<any>>>
+  >
+  keys: Record<QueryCacheKey, FullTagDescription<any>[]>
 }
 
-export type QueryState<D extends EndpointDefinitions> = {
-  [queryCacheKey: string]:
-    | QuerySubState<D[string]>
-    | InfiniteQuerySubState<D[string]>
-    | undefined
-}
+export type QueryState<D extends EndpointDefinitions> = Record<
+  string,
+  QuerySubState<D[string]> | InfiniteQuerySubState<D[string]> | undefined
+>
 
 export type SubscriptionInternalState = Map<string, SubscribersInternal>
 
-export type SubscriptionState = {
-  [queryCacheKey: string]: Subscribers | undefined
-}
+export type SubscriptionState = Record<string, Subscribers | undefined>
 
 export type ConfigState<ReducerPath> = RefetchConfigOptions & {
   reducerPath: ReducerPath
@@ -346,9 +350,10 @@ export type ModifiableConfigState = {
   invalidationBehavior: 'delayed' | 'immediately'
 } & RefetchConfigOptions
 
-export type MutationState<D extends EndpointDefinitions> = {
-  [requestId: string]: MutationSubState<D[string]> | undefined
-}
+export type MutationState<D extends EndpointDefinitions> = Record<
+  string,
+  MutationSubState<D[string]> | undefined
+>
 
 export type RootState<
   Definitions extends EndpointDefinitions,

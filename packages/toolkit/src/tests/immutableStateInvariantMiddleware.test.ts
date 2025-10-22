@@ -92,8 +92,8 @@ describe('createImmutableStateInvariantMiddleware', () => {
 
     const dispatch = middleware()(next)
 
-    let x: any = {}
-    let y: any = {}
+    const x: any = {}
+    const y: any = {}
     x.y = y
     y.x = x
 
@@ -162,7 +162,9 @@ describe('createImmutableStateInvariantMiddleware', () => {
   it('Should not print a warning if "next" takes too long', () => {
     const next: MWNext = (action) => {
       const started = Date.now()
-      while (Date.now() - started < 8) {}
+      while (Date.now() - started < 8) {
+        /* empty */
+      }
       return action
     }
 

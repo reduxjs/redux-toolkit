@@ -24,8 +24,8 @@ import { HandledError } from './HandledError'
  * @param maxRetries - Maximum number of retries
  */
 async function defaultBackoff(
-  attempt: number = 0,
-  maxRetries: number = 5,
+  attempt = 0,
+  maxRetries = 5,
   signal?: AbortSignal,
 ) {
   const attempts = Math.min(attempt, maxRetries)

@@ -1,9 +1,5 @@
-import {
-  createSlice,
-  createEntityAdapter,
-  nanoid,
-  PayloadAction,
-} from '@reduxjs/toolkit'
+import type { PayloadAction } from '@reduxjs/toolkit'
+import { createEntityAdapter, createSlice, nanoid } from '@reduxjs/toolkit'
 
 export interface Counter {
   value: number
@@ -70,7 +66,9 @@ export const counterSlice = createSlice({
     updateByAsync(
       _,
       action: PayloadAction<{ id: string; delta: number; delayMs: number }>,
-    ) {},
+    ) {
+      /* No-Op */
+    },
     cancelAsyncUpdates(state, { payload }: PayloadAction<string>) {
       delete state.counters.entities[payload]?.intervalMs
     },

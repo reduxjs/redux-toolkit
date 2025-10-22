@@ -1,6 +1,6 @@
-import { rest } from 'msw'
 import { createEntityAdapter, nanoid } from '@reduxjs/toolkit'
-import { Post } from '../app/services/posts'
+import { rest } from 'msw'
+import type { Post } from '../app/services/posts'
 
 // We're just going to use a simple in-memory store for both the counter and posts
 // The entity adapter will handle modifications when triggered by the MSW handlers
@@ -71,7 +71,7 @@ export const handlers = [
   }),
 
   rest.post('/posts', (req, res, ctx) => {
-    let post = req.body as Partial<Post>
+    const post = req.body as Partial<Post>
     startingId += 1
     state = adapter.addOne(state, { ...post, id: startingId } as Post)
     return res(ctx.json(Object.values(state.entities)), ctx.delay(400))

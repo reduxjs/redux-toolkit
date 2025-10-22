@@ -15,10 +15,11 @@
     "react-scripts": "5.0.1"
   },
   "devDependencies": {
-    "@types/node": "^20.14.11",
+    "@reduxjs/tsconfig": "workspace:^",
+    "@types/node": "^24.9.1",
     "@types/react": "^19.0.1",
     "@types/react-dom": "^19.0.1",
-    "typescript": "^5.8.2"
+    "typescript": "^5.9.3"
   },
   "eslintConfig": {
     "extends": [

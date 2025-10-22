@@ -1,9 +1,9 @@
 import type { StoreEnhancer } from 'redux'
 import type { AutoBatchOptions } from './autoBatchEnhancer'
 import { autoBatchEnhancer } from './autoBatchEnhancer'
-import { Tuple } from './utils'
 import type { Middlewares } from './configureStore'
 import type { ExtractDispatchExtensions } from './tsHelpers'
+import { Tuple } from './utils'
 
 type GetDefaultEnhancersOptions = {
   autoBatch?: boolean | AutoBatchOptions
@@ -19,7 +19,7 @@ export const buildGetDefaultEnhancers = <M extends Middlewares<any>>(
   function getDefaultEnhancers(options) {
     const { autoBatch = true } = options ?? {}
 
-    let enhancerArray = new Tuple<StoreEnhancer[]>(middlewareEnhancer)
+    const enhancerArray = new Tuple<StoreEnhancer[]>(middlewareEnhancer)
     if (autoBatch) {
       enhancerArray.push(
         autoBatchEnhancer(

@@ -1,18 +1,18 @@
 import type {
-  IdSelector,
   Comparer,
-  EntityStateAdapter,
-  Update,
-  EntityId,
   DraftableEntityState,
+  EntityId,
+  EntityStateAdapter,
+  IdSelector,
+  Update,
 } from './models'
 import { createStateOperator } from './state_adapter'
 import { createUnsortedStateAdapter } from './unsorted_state_adapter'
 import {
-  selectIdValue,
   ensureEntitiesArray,
-  splitAddedUpdatedEntities,
   getCurrent,
+  selectIdValue,
+  splitAddedUpdatedEntities,
 } from './utils'
 
 // Borrowed from Replay
@@ -24,7 +24,7 @@ export function findInsertIndex<T>(
   let lowIndex = 0
   let highIndex = sortedItems.length
   while (lowIndex < highIndex) {
-    let middleIndex = (lowIndex + highIndex) >>> 1
+    const middleIndex = (lowIndex + highIndex) >>> 1
     const currentItem = sortedItems[middleIndex]
     const res = comparisonFunction(item, currentItem)
     if (res >= 0) {
@@ -70,15 +70,13 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
     newEntities = ensureEntitiesArray(newEntities)
 
     const existingKeys = new Set<Id>(existingIds ?? getCurrent(state.ids))
-    const addedKeys = new Set<Id>();
-    const models = newEntities.filter(
-      (model) => {
-          const modelId = selectIdValue(model, selectId);
-          const notAdded = !addedKeys.has(modelId);
-          if (notAdded) addedKeys.add(modelId);
-          return !existingKeys.has(modelId) && notAdded;
-      }
-    )
+    const addedKeys = new Set<Id>()
+    const models = newEntities.filter((model) => {
+      const modelId = selectIdValue(model, selectId)
+      const notAdded = !addedKeys.has(modelId)
+      if (notAdded) addedKeys.add(modelId)
+      return !existingKeys.has(modelId) && notAdded
+    })
 
     if (models.length !== 0) {
       mergeFunction(state, models)
@@ -93,16 +91,16 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
     newEntities: readonly T[] | Record<Id, T>,
     state: R,
   ): void {
-    let deduplicatedEntities = {} as Record<Id, T>;
+    const deduplicatedEntities = {} as Record<Id, T>
     newEntities = ensureEntitiesArray(newEntities)
     if (newEntities.length !== 0) {
       for (const item of newEntities) {
-        const entityId = selectId(item);
+        const entityId = selectId(item)
         // For multiple items with the same ID, we should keep the last one.
-        deduplicatedEntities[entityId] = item;
+        deduplicatedEntities[entityId] = item
         delete (state.entities as Record<Id, T>)[entityId]
       }
-      newEntities = ensureEntitiesArray(deduplicatedEntities);
+      newEntities = ensureEntitiesArray(deduplicatedEntities)
       mergeFunction(state, newEntities)
     }
   }
@@ -123,13 +121,13 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
   }
 
   function updateManyMutably(
-    updates: ReadonlyArray<Update<T, Id>>,
+    updates: readonly Update<T, Id>[],
     state: R,
   ): void {
     let appliedUpdates = false
     let replacedIds = false
 
-    for (let update of updates) {
+    for (const update of updates) {
       const entity: T | undefined = (state.entities as Record<Id, T>)[update.id]
       if (!entity) {
         continue

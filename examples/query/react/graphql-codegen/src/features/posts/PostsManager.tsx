@@ -1,12 +1,11 @@
-import * as React from 'react'
 import {
   Badge,
   Box,
   Button,
   Divider,
   Flex,
-  Heading,
   HStack,
+  Heading,
   Icon,
   List,
   ListIcon,
@@ -16,6 +15,7 @@ import {
   StatLabel,
   StatNumber,
 } from '@chakra-ui/react'
+import * as React from 'react'
 import { MdArrowBack, MdArrowForward, MdBook } from 'react-icons/md'
 import { useGetPostsQuery } from './GetPosts.generated'
 

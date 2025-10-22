@@ -1,3 +1,4 @@
+import { noop } from '@internal/listenerMiddleware/utils'
 import type { WithSlice } from '@reduxjs/toolkit'
 import {
   combineSlices,
@@ -20,7 +21,7 @@ const numberSlice = createSlice({
   reducers: {},
 })
 
-const booleanReducer = createReducer(false, () => {})
+const booleanReducer = createReducer(false, noop)
 
 const counterReducer = createSlice({
   name: 'counter',
@@ -49,7 +50,7 @@ const api = {
         refetchOnFocus: false,
       },
     },
-    () => {},
+    noop,
   ),
 }
 
@@ -102,7 +103,7 @@ describe('combineSlices', () => {
       )
     })
     it('logs error when same name is used for different reducers', () => {
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(noop)
       const combinedReducer = combineSlices(stringSlice).withLazyLoadedSlices<{
         boolean: boolean
       }>()
@@ -131,7 +132,7 @@ describe('combineSlices', () => {
       consoleSpy.mockRestore()
     })
     it('allows replacement of reducers if overrideExisting is true', () => {
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(noop)
       const combinedReducer = combineSlices(stringSlice).withLazyLoadedSlices<
         WithSlice<typeof numberSlice> &
           WithSlice<typeof api> & { boolean: boolean }

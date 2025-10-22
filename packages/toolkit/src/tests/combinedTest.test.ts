@@ -1,10 +1,10 @@
 import type { PayloadAction } from '@reduxjs/toolkit'
 import {
-  createAsyncThunk,
-  createAction,
-  createSlice,
   configureStore,
+  createAction,
+  createAsyncThunk,
   createEntityAdapter,
+  createSlice,
 } from '@reduxjs/toolkit'
 import type { EntityAdapter } from '@internal/entities/models'
 import type { BookModel } from '@internal/entities/tests/fixtures/book'

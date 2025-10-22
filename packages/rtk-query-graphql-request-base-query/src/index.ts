@@ -2,7 +2,7 @@ import { isPlainObject } from '@reduxjs/toolkit'
 import type { BaseQueryFn } from '@reduxjs/toolkit/query'
 import type { DocumentNode } from 'graphql'
 import type { RequestOptions } from 'graphql-request'
-import { GraphQLClient, ClientError } from 'graphql-request'
+import { ClientError, GraphQLClient } from 'graphql-request'
 import type {
   ErrorResponse,
   GraphqlRequestBaseQueryArgs,

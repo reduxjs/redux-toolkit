@@ -1,6 +1,10 @@
+import type { UnknownAction } from '@reduxjs/toolkit'
+import { weakMapMemoize } from 'reselect'
+import type { AnyFunction, AnyObject } from '../tsHelpers'
 import type { Api, ApiContext, Module, ModuleName } from './apiTypes'
+import type { BaseQueryFn } from './baseQueryTypes'
 import type { CombinedState } from './core/apiState'
-import type { BaseQueryArg, BaseQueryFn } from './baseQueryTypes'
+import { nanoid } from './core/rtkImports'
 import type { SerializeQueryArgs } from './defaultSerializeQueryArgs'
 import { defaultSerializeQueryArgs } from './defaultSerializeQueryArgs'
 import type {
@@ -13,12 +17,8 @@ import type {
 import {
   DefinitionType,
   isInfiniteQueryDefinition,
-  isQueryDefinition,
 } from './endpointDefinitions'
-import { nanoid } from './core/rtkImports'
-import type { UnknownAction } from '@reduxjs/toolkit'
 import type { NoInfer } from './tsHelpers'
-import { weakMapMemoize } from 'reselect'
 
 export interface CreateApiOptions<
   BaseQuery extends BaseQueryFn,
@@ -304,7 +304,7 @@ export interface CreateApiOptions<
   skipSchemaValidation?: boolean | SchemaType[]
 }
 
-export type CreateApi<Modules extends ModuleName> = {
+export type CreateApi<Modules extends ModuleName> =
   /**
    * Creates a service to use in your application. Contains only the basic redux logic (the core module).
    *
@@ -317,8 +317,7 @@ export type CreateApi<Modules extends ModuleName> = {
     TagTypes extends string = never,
   >(
     options: CreateApiOptions<BaseQuery, Definitions, ReducerPath, TagTypes>,
-  ): Api<BaseQuery, Definitions, ReducerPath, TagTypes, Modules>
-}
+  ) => Api<BaseQuery, Definitions, ReducerPath, TagTypes, Modules>
 
 /**
  * Builds a `createApi` method based on the provided `modules`.
@@ -418,7 +417,9 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
             endpoints,
           )) {
             if (typeof partialDefinition === 'function') {
-              partialDefinition(context.endpointDefinitions[endpointName])
+              ;(partialDefinition as AnyFunction)(
+                context.endpointDefinitions[endpointName],
+              )
             } else {
               Object.assign(
                 context.endpointDefinitions[endpointName] || {},
@@ -429,7 +430,7 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
         }
         return api
       },
-    } as Api<BaseQueryFn, {}, string, string, Modules[number]['name']>
+    } as Api<BaseQueryFn, AnyObject, string, string, Modules[number]['name']>
 
     const initializedModules = modules.map((m) =>
       m.init(api as any, optionsWithDefaults as any, context),

@@ -1,19 +1,22 @@
-import type { EnhancedStore } from '@reduxjs/toolkit'
-import { configureStore, createSlice, createAction } from '@reduxjs/toolkit'
-
-import type { PayloadAction } from '@reduxjs/toolkit'
 import type {
-  AbortSignalWithReason,
   ForkedTaskExecutor,
+  PayloadAction,
   TaskResult,
-} from '../types'
-import { createListenerMiddleware, TaskAbortError } from '../index'
+} from '@reduxjs/toolkit'
+import {
+  TaskAbortError,
+  configureStore,
+  createAction,
+  createListenerMiddleware,
+  createSlice,
+} from '@reduxjs/toolkit'
 import {
   listenerCancelled,
   listenerCompleted,
   taskCancelled,
   taskCompleted,
 } from '../exceptions'
+import type { AbortSignalWithReason } from '../types'
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
@@ -266,7 +269,7 @@ describe('fork', () => {
       expected: { status: 'ok', value: 5 },
     },
   ])('$desc', async ({ executor, expected, cancelAfterMs }) => {
-    let deferredResult = deferred()
+    const deferredResult = deferred()
     let forkedTask: any = {}
 
     startListening({
@@ -296,7 +299,7 @@ describe('fork', () => {
 
   describe('forkAPI', () => {
     test('forkApi.delay rejects as soon as the task is cancelled', async () => {
-      let deferredResult = deferred()
+      const deferredResult = deferred()
 
       startListening({
         actionCreator: increment,
@@ -322,7 +325,7 @@ describe('fork', () => {
     })
 
     test('forkApi.delay rejects as soon as the parent listener is cancelled', async () => {
-      let deferredResult = deferred()
+      const deferredResult = deferred()
 
       startListening({
         actionCreator: increment,
@@ -374,7 +377,7 @@ describe('fork', () => {
     ])(
       'signal is $expectedAbortReason when autoJoin: $autoJoin, cancelListener: $cancelListener',
       async ({ autoJoin, cancelListener, expectedAbortReason }) => {
-        let deferredResult = deferred()
+        const deferredResult = deferred()
 
         const unsubscribe = startListening({
           actionCreator: increment,
@@ -406,8 +409,8 @@ describe('fork', () => {
     )
 
     test('fork.delay does not trigger unhandledRejections for completed or cancelled tasks', async () => {
-      let deferredCompletedEvt = deferred()
-      let deferredCancelledEvt = deferred()
+      const deferredCompletedEvt = deferred()
+      const deferredCancelledEvt = deferred()
 
       // Unfortunately we cannot test declaratively unhandleRejections in jest: https://github.com/facebook/jest/issues/5620
       // This test just fails if an `unhandledRejection` occurs.
@@ -453,7 +456,7 @@ describe('fork', () => {
   })
 
   test('forkApi.pause rejects if task is cancelled', async () => {
-    let deferredResult = deferred()
+    const deferredResult = deferred()
     startListening({
       actionCreator: increment,
       effect: async (_, listenerApi) => {
@@ -478,7 +481,7 @@ describe('fork', () => {
   })
 
   test('forkApi.pause rejects as soon as the parent listener is cancelled', async () => {
-    let deferredResult = deferred()
+    const deferredResult = deferred()
 
     startListening({
       actionCreator: increment,

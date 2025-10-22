@@ -44,6 +44,6 @@ describe(createDraftSafeSelector.withTypes, () => {
       (todos) => todos.map(({ id }) => id),
     )
 
-    expect(selectTodoIds(rootState)).to.be.an('array').that.is.not.empty
+    expect(selectTodoIds(rootState)).to.be.an('array').with.lengthOf(2)
   })
 })

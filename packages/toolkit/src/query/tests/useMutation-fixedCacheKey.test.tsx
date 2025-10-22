@@ -275,7 +275,7 @@ describe('fixedCacheKey', () => {
     render(<Component name="C1" />, {
       wrapper: storeRef.wrapper,
     })
-    let c1 = screen.getByTestId('C1')
+    const c1 = screen.getByTestId('C1')
     expect(getByTestId(c1, 'status').textContent).toBe('uninitialized')
     expect(getByTestId(c1, 'originalArgs').textContent).toBe('undefined')
 
@@ -291,7 +291,7 @@ describe('fixedCacheKey', () => {
     render(<Component name="C1" fixedCacheKey="test" />, {
       wrapper: storeRef.wrapper,
     })
-    let c1 = screen.getByTestId('C1')
+    const c1 = screen.getByTestId('C1')
     expect(getByTestId(c1, 'status').textContent).toBe('uninitialized')
     expect(getByTestId(c1, 'originalArgs').textContent).toBe('undefined')
 
@@ -371,7 +371,7 @@ describe('fixedCacheKey', () => {
       wrapper: storeRef.wrapper,
     })
 
-    let c1 = screen.getByTestId('C1')
+    const c1 = screen.getByTestId('C1')
 
     expect(getByTestId(c1, 'status').textContent).toBe('uninitialized')
     expect(getByTestId(c1, 'originalArgs').textContent).toBe('undefined')

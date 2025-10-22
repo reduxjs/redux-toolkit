@@ -33,6 +33,7 @@
     "@graphql-codegen/typescript-operations": "^1.18.0",
     "@graphql-codegen/typescript-rtk-query": "^1.1.0",
     "@graphql-typed-document-node/core": "^3.1.0",
+    "@reduxjs/tsconfig": "workspace:^",
     "@types/faker": "^5.5.5",
     "@types/react": "^19.0.1",
     "@types/react-dom": "^19.0.1",
@@ -40,7 +41,7 @@
     "concurrently": "^6.2.0",
     "cross-env": "^7.0.3",
     "ts-node": "^10.0.0",
-    "typescript": "^5.8.2"
+    "typescript": "^5.9.3"
   },
   "scripts": {
     "develop": "cross-env CHOKIDAR_USEPOLLING=true yarn start",

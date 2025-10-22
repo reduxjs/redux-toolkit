@@ -3,20 +3,20 @@ import type { SerializedError } from '@reduxjs/toolkit'
 import type {
   FetchBaseQueryError,
   QueryDefinition,
-  TypedUseMutationResult,
-  TypedUseQueryHookResult,
-  TypedUseQueryState,
-  TypedUseQueryStateResult,
-  TypedUseQuerySubscriptionResult,
   TypedLazyQueryTrigger,
-  TypedUseLazyQueryStateResult,
+  TypedMutationTrigger,
   TypedUseLazyQuery,
+  TypedUseLazyQueryStateResult,
   TypedUseLazyQuerySubscription,
   TypedUseMutation,
-  TypedMutationTrigger,
-  TypedUseQuerySubscription,
+  TypedUseMutationResult,
   TypedUseQuery,
+  TypedUseQueryHookResult,
+  TypedUseQueryState,
   TypedUseQueryStateOptions,
+  TypedUseQueryStateResult,
+  TypedUseQuerySubscription,
+  TypedUseQuerySubscriptionResult,
 } from '@reduxjs/toolkit/query/react'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 
@@ -662,7 +662,9 @@ describe('union types', () => {
       isLoading: true,
       isSuccess: false,
       isError: false,
-      reset: () => {},
+      reset: () => {
+        /** No-Op */
+      },
     }).toMatchTypeOf(result)
   })
 

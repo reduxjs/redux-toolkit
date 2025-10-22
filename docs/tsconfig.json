@@ -1,4 +1,5 @@
 {
+  "extends": "@reduxjs/tsconfig/base",
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,

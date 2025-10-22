@@ -1,12 +1,15 @@
 import type { Middleware } from 'redux'
 import { isActionCreator as isRTKAction } from './createAction'
+import type { AnyFunction } from './tsHelpers'
 
 export interface ActionCreatorInvariantMiddlewareOptions {
   /**
    * The function to identify whether a value is an action creator.
    * The default checks for a function with a static type property and match method.
    */
-  isActionCreator?: (action: unknown) => action is Function & { type?: unknown }
+  isActionCreator?: (
+    action: unknown,
+  ) => action is AnyFunction & { type?: unknown }
 }
 
 export function getMessage(type?: unknown) {
@@ -14,7 +17,7 @@ export function getMessage(type?: unknown) {
   const actionName = splitType[splitType.length - 1] || 'actionCreator'
   return `Detected an action creator with type "${
     type || 'unknown'
-  }" being dispatched. 
+  }" being dispatched.
 Make sure you're calling the action creator before dispatching, i.e. \`dispatch(${actionName}())\` instead of \`dispatch(${actionName})\`. This is necessary even if the action has no payload.`
 }
 

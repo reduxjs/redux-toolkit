@@ -1,7 +1,7 @@
-import type { Options } from 'tsup';
-import { defineConfig } from 'tsup';
+import type { Options } from 'tsup'
+import { defineConfig } from 'tsup'
 
-const tsconfig = 'tsconfig.build.json' satisfies Options['tsconfig'];
+const tsconfig = 'tsconfig.build.json' satisfies Options['tsconfig']
 
 export default defineConfig((options): Options[] => {
   const commonOptions: Options = {
@@ -15,11 +15,23 @@ export default defineConfig((options): Options[] => {
     removeNodeProtocol: false,
     shims: true,
     ...options,
-  };
+  }
 
   return [
-    { ...commonOptions, name: 'Modern ESM', format: ['esm'], entry: { index: 'src/index.ts' }, dts: true },
-    { ...commonOptions, name: 'CJS Development', format: ['cjs'], entry: { index: 'src/index.ts' }, dts: true },
+    {
+      ...commonOptions,
+      name: 'Modern ESM',
+      format: ['esm'],
+      entry: { index: 'src/index.ts' },
+      dts: true,
+    },
+    {
+      ...commonOptions,
+      name: 'CJS Development',
+      format: ['cjs'],
+      entry: { index: 'src/index.ts' },
+      dts: true,
+    },
     {
       ...commonOptions,
       format: ['esm'],
@@ -28,5 +40,5 @@ export default defineConfig((options): Options[] => {
       minify: true,
       entry: { 'bin/cli': 'src/bin/cli.ts' },
     },
-  ];
-});
+  ]
+})

@@ -1,36 +1,36 @@
 import type {
+  Action,
+  Middleware,
   Reducer,
   ReducersMapObject,
-  Middleware,
-  Action,
-  StoreEnhancer,
   Store,
+  StoreEnhancer,
   UnknownAction,
 } from 'redux'
 import {
   applyMiddleware,
-  createStore,
-  compose,
   combineReducers,
+  compose,
+  createStore,
   isPlainObject,
 } from 'redux'
 import type { DevToolsEnhancerOptions as DevToolsOptions } from './devtoolsExtension'
 import { composeWithDevTools } from './devtoolsExtension'
-
+import type { GetDefaultEnhancers } from './getDefaultEnhancers'
+import { buildGetDefaultEnhancers } from './getDefaultEnhancers'
 import type {
-  ThunkMiddlewareFor,
   GetDefaultMiddleware,
+  ThunkMiddlewareFor,
 } from './getDefaultMiddleware'
 import { buildGetDefaultMiddleware } from './getDefaultMiddleware'
 import type {
+  AnyNonNullishValue,
   ExtractDispatchExtensions,
-  ExtractStoreExtensions,
   ExtractStateExtensions,
+  ExtractStoreExtensions,
   UnknownIfNonSpecific,
 } from './tsHelpers'
 import type { Tuple } from './utils'
-import type { GetDefaultEnhancers } from './getDefaultEnhancers'
-import { buildGetDefaultEnhancers } from './getDefaultEnhancers'
 
 /**
  * Options for `configureStore()`.
@@ -93,9 +93,9 @@ export interface ConfigureStoreOptions<
   enhancers?: (getDefaultEnhancers: GetDefaultEnhancers<M>) => E
 }
 
-export type Middlewares<S> = ReadonlyArray<Middleware<{}, S>>
+export type Middlewares<S> = readonly Middleware<AnyNonNullishValue, S>[]
 
-type Enhancers = ReadonlyArray<StoreEnhancer>
+type Enhancers = readonly StoreEnhancer[]
 
 /**
  * A Redux store returned by `configureStore()`. Supports dispatching
@@ -183,7 +183,7 @@ export function configureStore<
   }
 
   if (process.env.NODE_ENV !== 'production' && duplicateMiddlewareCheck) {
-    let middlewareReferences = new Set<Middleware<any, S>>()
+    const middlewareReferences = new Set<Middleware<any, S>>()
     finalMiddleware.forEach((middleware) => {
       if (middlewareReferences.has(middleware)) {
         throw new Error(
@@ -216,7 +216,7 @@ export function configureStore<
     throw new Error('`enhancers` field must be a callback')
   }
 
-  let storeEnhancers =
+  const storeEnhancers =
     typeof enhancers === 'function'
       ? enhancers(getDefaultEnhancers)
       : getDefaultEnhancers()

@@ -89,7 +89,7 @@ describe('createSlice', () => {
     })
 
     it('should create increment action', () => {
-      expect(actions.hasOwnProperty('increment')).toBe(true)
+      expect(actions).toHaveProperty('increment')
     })
 
     it('should have the correct action for increment', () => {
@@ -406,7 +406,6 @@ describe('createSlice', () => {
           },
         },
         extraReducers(builder) {
-          // eslint-disable-next-line @typescript-eslint/no-use-before-define
           builder.addCase(second.actions.other, () => {
             return 'firstOther'
           })
@@ -497,10 +496,10 @@ describe('createSlice', () => {
     })
 
     // TODO Determine final production behavior here
-    it.todo('Crashes in production', () => {
+    it.todo('Crashes in production', async () => {
       vi.stubEnv('NODE_ENV', 'production')
 
-      const { createSlice } = require('../createSlice')
+      const { createSlice } = await import('../createSlice')
 
       const dummySlice = (createSlice as CreateSlice)({
         name: 'dummy',
@@ -736,7 +735,7 @@ describe('createSlice', () => {
         createSlice({
           name: 'test',
           initialState: [] as any[],
-          reducers: (create) => ({ thunk: create.asyncThunk(() => {}) }),
+          reducers: (create) => ({ thunk: create.asyncThunk(noop) }),
         }),
       ).toThrowErrorMatchingInlineSnapshot(
         `[Error: Cannot use \`create.asyncThunk\` in the built-in \`createSlice\`. Use \`buildCreateSlice({ creators: { asyncThunk: asyncThunkCreator } })\` to create a customised version of \`createSlice\`.]`,

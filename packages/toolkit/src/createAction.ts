@@ -1,9 +1,11 @@
 import { isAction } from 'redux'
 import type {
-  IsUnknownOrNonInferrable,
+  AnyFunction,
+  AnyNonNullishValue,
   IfMaybeUndefined,
   IfVoid,
   IsAny,
+  IsUnknownOrNonInferrable,
 } from './tsHelpers'
 import { hasMatchFunction } from './tsHelpers'
 
@@ -27,12 +29,12 @@ export type PayloadAction<
   payload: P
   type: T
 } & ([M] extends [never]
-  ? {}
+  ? AnyNonNullishValue
   : {
       meta: M
     }) &
   ([E] extends [never]
-    ? {}
+    ? AnyNonNullishValue
     : {
         error: E
       })
@@ -179,7 +181,7 @@ export interface ActionCreatorWithNonInferrablePayload<
    * return a {@link PayloadAction} of type `T` with a payload
    * of exactly the type of the argument.
    */
-  <PT extends unknown>(payload: PT): PayloadAction<PT, T>
+  <PT>(payload: PT): PayloadAction<PT, T>
 }
 
 /**
@@ -257,10 +259,10 @@ export function createAction<
   prepareAction: PA,
 ): PayloadActionCreator<ReturnType<PA>['payload'], T, PA>
 
-export function createAction(type: string, prepareAction?: Function): any {
+export function createAction(type: string, prepareAction?: AnyFunction): any {
   function actionCreator(...args: any[]) {
     if (prepareAction) {
-      let prepared = prepareAction(...args)
+      const prepared = prepareAction(...args)
       if (!prepared) {
         throw new Error('prepareAction did not return an object')
       }
@@ -290,7 +292,7 @@ export function createAction(type: string, prepareAction?: Function): any {
  */
 export function isActionCreator(
   action: unknown,
-): action is BaseActionCreator<unknown, string> & Function {
+): action is BaseActionCreator<unknown, string> & AnyFunction {
   return (
     typeof action === 'function' &&
     'type' in action &&

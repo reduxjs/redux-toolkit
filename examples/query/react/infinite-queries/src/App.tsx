@@ -1,17 +1,17 @@
-import { BrowserRouter, Link, Route, Routes, useLocation } from "react-router"
-import "./App.css"
+import { BrowserRouter, Link, Route, Routes, useLocation } from 'react-router'
+import './App.css'
 
-import { Outlet } from "react-router"
-import BidirectionalCursorInfScroll from "./features/bidirectional-cursor-infinite-scroll/BidirectionalCursorInfScroll"
+import { Outlet } from 'react-router'
+import BidirectionalCursorInfScroll from './features/bidirectional-cursor-infinite-scroll/BidirectionalCursorInfScroll'
 import {
   InfiniteScrollAbout,
   InfiniteScrollExample,
-} from "./features/infinite-scroll/InfiniteScrollExample"
-import LimitOffsetExample from "./features/limit-offset/LimitOffsetExample"
-import { InfiniteScrollMaxPagesExample } from "./features/max-pages/InfiniteScrollMaxExample"
-import PaginationInfScrollExample from "./features/pagination-infinite-scroll/PaginationInfScrollExample"
-import { PaginationExample } from "./features/pagination/PaginationExample"
-import { FlatlistExample } from "./features/rn-flatlist/FlatlistExample"
+} from './features/infinite-scroll/InfiniteScrollExample'
+import LimitOffsetExample from './features/limit-offset/LimitOffsetExample'
+import { InfiniteScrollMaxPagesExample } from './features/max-pages/InfiniteScrollMaxExample'
+import PaginationInfScrollExample from './features/pagination-infinite-scroll/PaginationInfScrollExample'
+import { PaginationExample } from './features/pagination/PaginationExample'
+import { FlatlistExample } from './features/rn-flatlist/FlatlistExample'
 
 const Menu = () => {
   return (

@@ -1,10 +1,10 @@
 // site configuration options.
-import { resolve } from 'path'
-import { linkDocblocks, transpileCodeblocks } from 'remark-typescript-tools'
+import type { Options as UmamiOptions } from '@dipakparmar/docusaurus-plugin-umami'
 import type { Options, ThemeConfig } from '@docusaurus/preset-classic'
 import type { Config } from '@docusaurus/types'
-import type { Options as UmamiOptions } from '@dipakparmar/docusaurus-plugin-umami'
-import type { Options as RSDoctorOptions } from '@docusaurus/plugin-rsdoctor'
+import { resolve } from 'node:path'
+import { linkDocblocks, transpileCodeblocks } from 'remark-typescript-tools'
+import monokaiTheme from './src/js/monokaiTheme.js'
 
 const config: Config = {
   future: {
@@ -80,7 +80,7 @@ const config: Config = {
     },
     metadata: [{ name: 'twitter:card', content: 'summary' }],
     prism: {
-      theme: require('./src/js/monokaiTheme.js'),
+      theme: monokaiTheme,
     },
     image: 'img/redux-logo-landscape.png',
     colorMode: {

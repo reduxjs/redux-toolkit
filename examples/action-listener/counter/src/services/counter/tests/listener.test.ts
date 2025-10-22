@@ -1,7 +1,7 @@
 import { configureStore, createListenerMiddleware } from '@reduxjs/toolkit'
-import { setupCounterListeners } from '../listeners'
-import { counterSlice, counterActions, counterSelectors } from '../slice'
 import type { AppStartListening } from '../../../store'
+import { setupCounterListeners } from '../listeners'
+import { counterActions, counterSelectors, counterSlice } from '../slice'
 
 function delay(timerMs: number): Promise<number> {
   return new Promise((resolve) => {
@@ -12,7 +12,9 @@ function delay(timerMs: number): Promise<number> {
 jest.useRealTimers()
 
 describe('counter - listeners', () => {
-  const onMiddlewareError = jest.fn((): void => {}) // https://jestjs.io/docs/mock-function-api
+  const onMiddlewareError = jest.fn((): void => {
+    /* No-Op */
+  }) // https://jestjs.io/docs/mock-function-api
 
   /**
    * @see https://redux-toolkit.js.org/api/createListenerMiddleware

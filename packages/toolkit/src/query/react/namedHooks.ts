@@ -1,9 +1,9 @@
 import type {
   DefinitionType,
   EndpointDefinitions,
+  InfiniteQueryDefinition,
   MutationDefinition,
   QueryDefinition,
-  InfiniteQueryDefinition,
 } from '@reduxjs/toolkit/query'
 import type {
   UseInfiniteQuery,

@@ -1,3 +1,4 @@
+import { noop } from '@internal/listenerMiddleware/utils'
 import { configureStore } from '@reduxjs/toolkit'
 import {
   ApiProvider,
@@ -77,7 +78,7 @@ describe('ApiProvider', () => {
   })
   test('ApiProvider throws if nested inside a Redux context', () => {
     // Intentionally swallow the "unhandled error" message
-    vi.spyOn(console, 'error').mockImplementation(() => {})
+    vi.spyOn(console, 'error').mockImplementation(noop)
     expect(() =>
       render(
         <Provider store={configureStore({ reducer: () => null })}>

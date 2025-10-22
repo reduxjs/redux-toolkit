@@ -1,62 +1,61 @@
 import type { PayloadAction } from '@reduxjs/toolkit'
-import {
-  combineReducers,
-  createAction,
-  createSlice,
-  isAnyOf,
-  isFulfilled,
-  isRejectedWithValue,
-  createNextState,
-  prepareAutoBatched,
-  SHOULD_AUTOBATCH,
-  nanoid,
-} from './rtkImports'
+import type { Patch } from 'immer'
+import { applyPatches, isDraft, original } from 'immer'
+import type { ApiContext } from '../apiTypes'
+import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import type {
-  QuerySubstateIdentifier,
-  QuerySubState,
-  MutationSubstateIdentifier,
-  MutationSubState,
-  MutationState,
-  QueryState,
-  InvalidationState,
-  Subscribers,
-  QueryCacheKey,
-  SubscriptionState,
+  AssertTagTypes,
+  EndpointDefinitions,
+  FullTagDescription,
+  QueryDefinition,
+} from '../endpointDefinitions'
+import { isInfiniteQueryDefinition } from '../endpointDefinitions'
+import type { UnwrapPromise } from '../tsHelpers'
+import {
+  copyWithStructuralSharing,
+  isDocumentVisible,
+  isOnline,
+} from '../utils'
+import type {
   ConfigState,
-  InfiniteQuerySubState,
   InfiniteQueryDirection,
+  InfiniteQuerySubState,
+  InvalidationState,
+  MutationState,
+  MutationSubState,
+  MutationSubstateIdentifier,
+  QueryCacheKey,
+  QueryState,
+  QuerySubState,
+  QuerySubstateIdentifier,
+  Subscribers,
+  SubscriptionState,
 } from './apiState'
 import { QueryStatus } from './apiState'
+import { isUpsertQuery } from './buildInitiate'
 import type {
   AllQueryKeys,
-  QueryArgFromAnyQueryDefinition,
   DataFromAnyQueryDefinition,
   InfiniteQueryThunk,
   MutationThunk,
+  QueryArgFromAnyQueryDefinition,
   QueryThunk,
   QueryThunkArg,
 } from './buildThunks'
 import { calculateProvidedByThunk } from './buildThunks'
 import {
-  isInfiniteQueryDefinition,
-  type AssertTagTypes,
-  type EndpointDefinitions,
-  type FullTagDescription,
-  type QueryDefinition,
-} from '../endpointDefinitions'
-import type { Patch } from 'immer'
-import { isDraft } from 'immer'
-import { applyPatches, original } from 'immer'
+  SHOULD_AUTOBATCH,
+  combineReducers,
+  createAction,
+  createNextState,
+  createSlice,
+  isAnyOf,
+  isFulfilled,
+  isRejectedWithValue,
+  nanoid,
+  prepareAutoBatched,
+} from './rtkImports'
 import { onFocus, onFocusLost, onOffline, onOnline } from './setupListeners'
-import {
-  isDocumentVisible,
-  isOnline,
-  copyWithStructuralSharing,
-} from '../utils'
-import type { ApiContext } from '../apiTypes'
-import { isUpsertQuery } from './buildInitiate'
-import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
-import type { UnwrapPromise } from '../tsHelpers'
 
 /**
  * A typesafe single entry to be upserted into the cache
@@ -88,7 +87,7 @@ export type ProcessedQueryUpsertEntry = {
  * A typesafe representation of a util action creator that accepts cache entry descriptions to upsert
  */
 export type UpsertEntries<Definitions extends EndpointDefinitions> = (<
-  EndpointNames extends Array<AllQueryKeys<Definitions>>,
+  EndpointNames extends AllQueryKeys<Definitions>[],
 >(
   entries: [
     ...{
@@ -241,15 +240,18 @@ export function buildSlice({
           // We're already inside an Immer-powered reducer, and the user could just mutate `substate.data`
           // themselves inside of `merge()`. But, they might also want to return a new value.
           // Try to let Immer figure that part out, save the result, and assign it to `substate.data`.
-          let newData = createNextState(substate.data, (draftSubstateData) => {
-            // As usual with Immer, you can mutate _or_ return inside here, but not both
-            return merge(draftSubstateData, payload, {
-              arg: arg.originalArgs,
-              baseQueryMeta,
-              fulfilledTimeStamp,
-              requestId,
-            })
-          })
+          const newData = createNextState(
+            substate.data,
+            (draftSubstateData) => {
+              // As usual with Immer, you can mutate _or_ return inside here, but not both
+              return merge(draftSubstateData, payload, {
+                arg: arg.originalArgs,
+                baseQueryMeta,
+                fulfilledTimeStamp,
+                requestId,
+              })
+            },
+          )
           substate.data = newData
         } else {
           // Presumably a fresh request. Just cache the response data.
@@ -494,10 +496,10 @@ export function buildSlice({
         reducer(
           draft,
           action: PayloadAction<
-            Array<{
+            {
               queryCacheKey: QueryCacheKey
               providedTags: readonly FullTagDescription<string>[]
-            }>
+            }[]
           >,
         ) {
           for (const { queryCacheKey, providedTags } of action.payload) {
@@ -520,10 +522,10 @@ export function buildSlice({
           }
         },
         prepare: prepareAutoBatched<
-          Array<{
+          {
             queryCacheKey: QueryCacheKey
             providedTags: readonly FullTagDescription<string>[]
-          }>
+          }[]
         >(),
       },
     },
@@ -649,7 +651,9 @@ export function buildSlice({
       ) {
         // Dummy
       },
-      internal_getRTKQSubscriptions() {},
+      internal_getRTKQSubscriptions() {
+        /** No-Op */
+      },
     },
   })
 

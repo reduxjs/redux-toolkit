@@ -1,17 +1,17 @@
 import type { Action } from 'redux'
+import type { AsyncThunk, AsyncThunkConfig } from './createAsyncThunk'
 import type {
+  ActionMatcherDescriptionCollection,
   CaseReducer,
   CaseReducers,
-  ActionMatcherDescriptionCollection,
 } from './createReducer'
-import type { TypeGuard } from './tsHelpers'
-import type { AsyncThunk, AsyncThunkConfig } from './createAsyncThunk'
+import type { AnyNonNullishValue, AnyObject, TypeGuard } from './tsHelpers'
 
 export type AsyncThunkReducers<
   State,
-  ThunkArg extends any,
+  ThunkArg,
   Returned = unknown,
-  ThunkApiConfig extends AsyncThunkConfig = {},
+  ThunkApiConfig extends AsyncThunkConfig = AnyObject,
 > = {
   pending?: CaseReducer<
     State,
@@ -102,7 +102,7 @@ const reducer = createReducer(initialState, (builder) => {
   addAsyncThunk<
     Returned,
     ThunkArg,
-    ThunkApiConfig extends AsyncThunkConfig = {},
+    ThunkApiConfig extends AsyncThunkConfig = AnyObject,
   >(
     asyncThunk: AsyncThunk<Returned, ThunkArg, ThunkApiConfig>,
     reducers: AsyncThunkReducers<State, ThunkArg, Returned, ThunkApiConfig>,
@@ -188,7 +188,7 @@ const reducer = createReducer(initialState, builder => {
 })
 ```
    */
-  addDefaultCase(reducer: CaseReducer<State, Action>): {}
+  addDefaultCase(reducer: CaseReducer<State, Action>): AnyNonNullishValue
 }
 
 export function executeReducerBuilderCallback<S>(
@@ -244,7 +244,7 @@ export function executeReducerBuilderCallback<S>(
     addAsyncThunk<
       Returned,
       ThunkArg,
-      ThunkApiConfig extends AsyncThunkConfig = {},
+      ThunkApiConfig extends AsyncThunkConfig = AnyObject,
     >(
       asyncThunk: AsyncThunk<Returned, ThunkArg, ThunkApiConfig>,
       reducers: AsyncThunkReducers<S, ThunkArg, Returned, ThunkApiConfig>,

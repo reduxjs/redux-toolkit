@@ -123,6 +123,7 @@ export const api = createApi({
     }),
   }),
 })
+type AnyNonNullishValue = NonNullable<unknown>
 export type UpdatePetApiResponse = /** status 200 Successful operation */ Pet
 export type UpdatePetApiArg = {
   /** Update an existent pet in the store */
@@ -174,10 +175,9 @@ export type UploadFileApiArg = {
   additionalMetadata?: string
   body: string
 }
-export type GetInventoryApiResponse = /** status 200 successful operation */ {
-  [key: string]: number
-}
-export type GetInventoryApiArg = {}
+export type GetInventoryApiResponse =
+  /** status 200 successful operation */ Record<string, number>
+export type GetInventoryApiArg = AnyNonNullishValue
 export type PlaceOrderApiResponse = /** status 200 successful operation */ Order
 export type PlaceOrderApiArg = {
   order: Order
@@ -211,7 +211,7 @@ export type LoginUserApiArg = {
   password?: string
 }
 export type LogoutUserApiResponse = unknown
-export type LogoutUserApiArg = {}
+export type LogoutUserApiArg = AnyNonNullishValue
 export type GetUserByNameApiResponse =
   /** status 200 successful operation */ User
 export type GetUserByNameApiArg = {

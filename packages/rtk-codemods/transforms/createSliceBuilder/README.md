@@ -42,8 +42,8 @@ const slice1 = createSlice({
   extraReducers: {
     [todoAdded]: (state: SliceState, action: PayloadAction<string>) => {
       // stuff
-    }
-  }
+    },
+  },
 })
 
 const slice2 = createSlice({
@@ -52,8 +52,8 @@ const slice2 = createSlice({
   extraReducers: {
     [todoAdded](state: SliceState, action: PayloadAction<string>) {
       // stuff
-    }
-  }
+    },
+  },
 })
 ```
 
@@ -69,9 +69,9 @@ const slice1 = createSlice({
       todoAdded,
       (state: SliceState, action: PayloadAction<string>) => {
         // stuff
-      }
+      },
     )
-  }
+  },
 })
 
 const slice2 = createSlice({
@@ -83,9 +83,9 @@ const slice2 = createSlice({
       todoAdded,
       (state: SliceState, action: PayloadAction<string>) => {
         // stuff
-      }
+      },
     )
-  }
+  },
 })
 ```
 
@@ -115,8 +115,8 @@ const slice1 = createSlice({
     },
     todoAdded1f: (state, action) => {
       //stuff
-    }
-  }
+    },
+  },
 })
 
 const slice2 = createSlice({
@@ -131,8 +131,8 @@ const slice2 = createSlice({
     },
     [todoAdded2c]: function (state, action) {
       // stuff
-    }
-  }
+    },
+  },
 })
 ```
 
@@ -165,7 +165,7 @@ const slice1 = createSlice({
     builder.addCase(todoAdded1f, (state, action) => {
       //stuff
     })
-  }
+  },
 })
 
 const slice2 = createSlice({
@@ -184,7 +184,7 @@ const slice2 = createSlice({
     builder.addCase(todoAdded2c, (state, action) => {
       // stuff
     })
-  }
+  },
 })
 ```
 

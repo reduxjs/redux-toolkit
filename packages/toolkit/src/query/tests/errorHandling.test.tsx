@@ -1,5 +1,5 @@
 import type { ThunkDispatch, UnknownAction } from '@reduxjs/toolkit'
-import type { BaseQueryFn, BaseQueryApi } from '@reduxjs/toolkit/query/react'
+import type { BaseQueryApi, BaseQueryFn } from '@reduxjs/toolkit/query/react'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import {
   act,

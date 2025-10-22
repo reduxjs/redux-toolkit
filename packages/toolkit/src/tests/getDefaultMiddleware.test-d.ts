@@ -10,14 +10,11 @@ import type {
   UnknownAction,
 } from '@reduxjs/toolkit'
 import { configureStore } from '@reduxjs/toolkit'
+import type { AnyNonNullishValue } from '../tsHelpers'
 
-declare const middleware1: Middleware<{
-  (_: string): number
-}>
+declare const middleware1: Middleware<(_: string) => number>
 
-declare const middleware2: Middleware<{
-  (_: number): string
-}>
+declare const middleware2: Middleware<(_: number) => string>
 
 type ThunkReturn = Promise<'thunk'>
 declare const thunkCreator: () => () => ThunkReturn
@@ -136,16 +133,18 @@ describe('type tests', () => {
     expectTypeOf(m2).toMatchTypeOf<Tuple<[]>>()
 
     const dummyMiddleware: Middleware<
-      {
-        (action: Action<'actionListenerMiddleware/add'>): () => void
-      },
+      (action: Action<'actionListenerMiddleware/add'>) => () => void,
       { counter: number }
     > = (storeApi) => (next) => (action) => {
       return next(action)
     }
 
-    const dummyMiddleware2: Middleware<{}, { counter: number }> =
-      (storeApi) => (next) => (action) => {}
+    const dummyMiddleware2: Middleware<
+      AnyNonNullishValue,
+      { counter: number }
+    > = (storeApi) => (next) => (action) => {
+      /** No-Op */
+    }
 
     const testThunk: ThunkAction<
       void,
@@ -181,7 +180,7 @@ describe('type tests', () => {
                 },
                 Dispatch<UnknownAction>
               >,
-              Middleware<{}, any, Dispatch<UnknownAction>>,
+              Middleware<AnyNonNullishValue, any, Dispatch<UnknownAction>>,
             ]
           >
         >()

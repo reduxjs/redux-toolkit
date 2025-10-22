@@ -1,5 +1,6 @@
 import type { Api } from '@reduxjs/toolkit/query'
 import type { StandardSchemaV1 } from '@standard-schema/spec'
+import type { AnyFunction, AnyObject } from '../tsHelpers'
 import type {
   BaseQueryApi,
   BaseQueryArg,
@@ -29,6 +30,7 @@ import type {
 } from './core/index'
 import type { SerializeQueryArgs } from './defaultSerializeQueryArgs'
 import type { NEVER } from './fakeBaseQuery'
+import type { NamedSchemaError } from './standardSchema'
 import type {
   CastAny,
   HasRequiredProps,
@@ -38,7 +40,6 @@ import type {
   UnwrapPromise,
 } from './tsHelpers'
 import { isNotNullish } from './utils'
-import type { NamedSchemaError } from './standardSchema'
 
 const rawResultType = /* @__PURE__ */ Symbol()
 const resultType = /* @__PURE__ */ Symbol()
@@ -464,7 +465,7 @@ export type BaseEndpointDefinition<
   ResultType,
   RawResultType extends BaseQueryResult<BaseQuery> = BaseQueryResult<BaseQuery>,
 > = (
-  | ([CastAny<BaseQueryResult<BaseQuery>, {}>] extends [NEVER]
+  | ([CastAny<BaseQueryResult<BaseQuery>, AnyObject>] extends [NEVER]
       ? never
       : EndpointDefinitionWithQuery<
           QueryArg,
@@ -493,9 +494,11 @@ export enum DefinitionType {
   infinitequery = 'infinitequery',
 }
 
-type TagDescriptionArray<TagTypes extends string> = ReadonlyArray<
-  TagDescription<TagTypes> | undefined | null
->
+type TagDescriptionArray<TagTypes extends string> = readonly (
+  | TagDescription<TagTypes>
+  | undefined
+  | null
+)[]
 
 export type GetResultDescriptionFn<
   TagTypes extends string,
@@ -906,18 +909,18 @@ export interface InfiniteQueryExtraOptions<
    * `initialPageParam` may be specified when using the
    * endpoint, to override the default value.
    * `maxPages` and `getPreviousPageParam` are both optional.
-   * 
+   *
    * @example
-   * 
+   *
    * ```ts
    * // codeblock-meta title="infiniteQueryOptions example"
    * import { createApi, fetchBaseQuery, defaultSerializeQueryArgs } from '@reduxjs/toolkit/query/react'
-   * 
+   *
    * type Pokemon = {
    *   id: string
    *   name: string
    * }
-   * 
+   *
    * const pokemonApi = createApi({
    *   baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
    *   endpoints: (build) => ({
@@ -942,7 +945,7 @@ export interface InfiniteQueryExtraOptions<
    *     }),
    *   }),
    * })
-   
+
    * ```
    */
   infiniteQueryOptions: InfiniteQueryConfigOptions<
@@ -1423,7 +1426,7 @@ export function calculateProvidedBy<ResultType, QueryArg, ErrorType, MetaType>(
   return []
 }
 
-function isFunction<T>(t: T): t is Extract<T, Function> {
+function isFunction<T>(t: T): t is Extract<T, AnyFunction> {
   return typeof t === 'function'
 }
 

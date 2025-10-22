@@ -12,7 +12,9 @@ export const assertFunction: (
   }
 }
 
-export const noop = () => {}
+export const noop = () => {
+  /** No-Op */
+}
 
 export const catchRejection = <T>(
   promise: Promise<T>,

@@ -1,15 +1,15 @@
-import React from "react"
-import { useInView } from "react-intersection-observer"
-import { Link } from "react-router"
+import React from 'react'
+import { useInView } from 'react-intersection-observer'
+import { Link } from 'react-router'
 
-import { apiWithInfiniteScroll } from "./infiniteScrollApi"
-import type { Project } from "./infiniteScrollApi"
+import { apiWithInfiniteScroll } from './infiniteScrollApi'
+import type { Project } from './infiniteScrollApi'
 
 export const InfiniteScrollAbout = () => {
   return (
     <a
       href=""
-      onClick={e => {
+      onClick={(e) => {
         window.history.back()
         e.preventDefault()
       }}
@@ -23,9 +23,9 @@ export const ProjectRow = ({ project }: { project: Project }) => {
   return (
     <p
       style={{
-        border: "1px solid gray",
-        borderRadius: "5px",
-        padding: "5rem 1rem",
+        border: '1px solid gray',
+        borderRadius: '5px',
+        padding: '5rem 1rem',
         background: `hsla(${project.id * 30}, 60%, 80%, 1)`,
       }}
       key={project.id}
@@ -47,14 +47,14 @@ export const InfiniteScrollExample = () => {
     isError,
   } =
     apiWithInfiniteScroll.endpoints.getProjectsCursor.useInfiniteQuery(
-      "projects",
+      'projects',
     )
 
   const { ref, inView } = useInView()
 
   React.useEffect(() => {
     if (inView) {
-      console.log("Fetching next page")
+      console.log('Fetching next page')
       fetchNextPage()
     }
   }, [fetchNextPage, inView])
@@ -81,9 +81,9 @@ export const InfiniteScrollExample = () => {
                   : "Nothing more to load"} */}
             </button>
           </div>
-          {data?.pages.map(page => (
+          {data?.pages.map((page) => (
             <React.Fragment key={page.nextId}>
-              {page.projects.map(project => (
+              {page.projects.map((project) => (
                 <ProjectRow key={project.id} project={project} />
               ))}
             </React.Fragment>
@@ -95,13 +95,13 @@ export const InfiniteScrollExample = () => {
               disabled={!hasNextPage || isFetchingNextPage}
             >
               {isFetchingNextPage
-                ? "Loading more..."
+                ? 'Loading more...'
                 : hasNextPage
-                  ? "Load Newer"
-                  : "Nothing more to load"}
+                  ? 'Load Newer'
+                  : 'Nothing more to load'}
             </button>
           </div>
-          <div>{isFetching ? "Background Updating..." : null}</div>
+          <div>{isFetching ? 'Background Updating...' : null}</div>
         </>
       }
       <hr />

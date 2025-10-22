@@ -2,12 +2,12 @@ import { noop } from '@internal/listenerMiddleware/utils'
 import { isNestedFrozen } from '@internal/serializableStateInvariantMiddleware'
 import type { Reducer } from '@reduxjs/toolkit'
 import {
+  Tuple,
   configureStore,
   createNextState,
   createSerializableStateInvariantMiddleware,
   findNonSerializableValue,
   isPlain,
-  Tuple,
 } from '@reduxjs/toolkit'
 
 // Mocking console
@@ -39,7 +39,9 @@ describe('findNonSerializableValue', () => {
   })
 
   it('Should return a keypath and the value if it finds a non-serializable value', () => {
-    function testFunction() {}
+    function testFunction() {
+      /* empty */
+    }
 
     const obj = {
       a: 42,
@@ -606,7 +608,9 @@ describe('serializableStateInvariantMiddleware', () => {
   it('Should not print a warning if "reducer" takes too long', () => {
     const reducer: Reducer = (state = 42, action) => {
       const started = Date.now()
-      while (Date.now() - started < 8) {}
+      while (Date.now() - started < 8) {
+        /** No-Op */
+      }
       return state
     }
 

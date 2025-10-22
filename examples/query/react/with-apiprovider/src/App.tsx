@@ -1,7 +1,7 @@
 import {
+  ApiProvider,
   createApi,
   fetchBaseQuery,
-  ApiProvider,
 } from '@reduxjs/toolkit/query/react'
 
 const api = createApi({

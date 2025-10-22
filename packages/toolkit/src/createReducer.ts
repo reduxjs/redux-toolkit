@@ -3,7 +3,7 @@ import { produce as createNextState, isDraft, isDraftable } from 'immer'
 import type { Action, Reducer, UnknownAction } from 'redux'
 import type { ActionReducerMapBuilder } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
-import type { NoInfer, TypeGuard } from './tsHelpers'
+import type { AnyFunction, NoInfer, TypeGuard } from './tsHelpers'
 import { freezeDraftable } from './utils'
 
 /**
@@ -21,13 +21,13 @@ export type ActionMatcherDescription<S, A extends Action> = {
   reducer: CaseReducer<S, NoInfer<A>>
 }
 
-export type ReadonlyActionMatcherDescriptionCollection<S> = ReadonlyArray<
-  ActionMatcherDescription<S, any>
->
+export type ReadonlyActionMatcherDescriptionCollection<S> =
+  readonly ActionMatcherDescription<S, any>[]
 
-export type ActionMatcherDescriptionCollection<S> = Array<
-  ActionMatcherDescription<S, any>
->
+export type ActionMatcherDescriptionCollection<S> = ActionMatcherDescription<
+  S,
+  any
+>[]
 
 /**
  * A *case reducer* is a reducer function for a specific action type. Case
@@ -63,7 +63,7 @@ export type CaseReducers<S, AS extends Actions> = {
   [T in keyof AS]: AS[T] extends Action ? CaseReducer<S, AS[T]> : void
 }
 
-export type NotFunction<T> = T extends Function ? never : T
+export type NotFunction<T> = T extends AnyFunction ? never : T
 
 function isStateFunction<S>(x: unknown): x is () => S {
   return typeof x === 'function'
@@ -149,7 +149,7 @@ export function createReducer<S extends NotFunction<any>>(
     }
   }
 
-  let [actionsMap, finalActionMatchers, finalDefaultCaseReducer] =
+  const [actionsMap, finalActionMatchers, finalDefaultCaseReducer] =
     executeReducerBuilderCallback(mapOrBuilderCallback)
 
   // Ensure the initial state gets frozen either way (if draftable)

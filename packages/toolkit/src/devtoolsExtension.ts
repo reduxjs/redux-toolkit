@@ -1,5 +1,6 @@
 import type { Action, ActionCreator, StoreEnhancer } from 'redux'
 import { compose } from 'redux'
+import type { AnyFunction, EmptyObject } from './tsHelpers'
 
 /**
  * @public
@@ -13,7 +14,7 @@ export interface DevToolsEnhancerOptions {
   /**
    * action creators functions to be available in the Dispatcher.
    */
-  actionCreators?: ActionCreator<any>[] | { [key: string]: ActionCreator<any> }
+  actionCreators?: ActionCreator<any>[] | Record<string, ActionCreator<any>>
   /**
    * if more than one action is dispatched in the indicated interval, all new actions will be collected and sent at once.
    * It is the joint between performance and speed. When set to `0`, all actions will be sent instantly.
@@ -208,7 +209,7 @@ type Compose = typeof compose
 
 interface ComposeWithDevTools {
   (options: DevToolsEnhancerOptions): Compose
-  <StoreExt extends {}>(
+  <StoreExt extends EmptyObject>(
     ...funcs: StoreEnhancer<StoreExt>[]
   ): StoreEnhancer<StoreExt>
 }
@@ -222,16 +223,18 @@ export const composeWithDevTools: ComposeWithDevTools =
     ? (window as any).__REDUX_DEVTOOLS_EXTENSION_COMPOSE__
     : function () {
         if (arguments.length === 0) return undefined
+        // eslint-disable-next-line prefer-rest-params
         if (typeof arguments[0] === 'object') return compose
-        return compose.apply(null, arguments as any as Function[])
+        // eslint-disable-next-line prefer-spread, prefer-rest-params
+        return compose.apply(null, arguments as any as AnyFunction[])
       }
 
 /**
  * @public
  */
-export const devToolsEnhancer: {
-  (options: DevToolsEnhancerOptions): StoreEnhancer<any>
-} =
+export const devToolsEnhancer: (
+  options: DevToolsEnhancerOptions,
+) => StoreEnhancer<any> =
   typeof window !== 'undefined' && (window as any).__REDUX_DEVTOOLS_EXTENSION__
     ? (window as any).__REDUX_DEVTOOLS_EXTENSION__
     : function () {
