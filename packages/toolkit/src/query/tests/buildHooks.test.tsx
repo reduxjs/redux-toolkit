@@ -1592,7 +1592,6 @@ describe('hooks tests', () => {
 
       // Create a fresh API instance with fetchBaseQuery and timeout, matching the user's example
       const timeoutApi = createApi({
-        reducerPath: 'timeoutApi',
         baseQuery: fetchBaseQuery({
           baseUrl: 'https://example.com',
           timeout: 5000,
@@ -1604,7 +1603,7 @@ describe('hooks tests', () => {
         }),
       })
 
-      const timeoutStoreRef = setupApiStore(timeoutApi as any, undefined, {
+      const timeoutStoreRef = setupApiStore(timeoutApi, undefined, {
         withoutTestLifecycles: true,
       })
 
@@ -2861,7 +2860,7 @@ describe('hooks tests', () => {
       })
     })
 
-    test('usePrefetch returns the last success result when ifOlderThan evalutes to false', async () => {
+    test('usePrefetch returns the last success result when ifOlderThan evaluates to false', async () => {
       const user = userEvent.setup()
 
       const { usePrefetch } = api
@@ -2942,6 +2941,60 @@ describe('hooks tests', () => {
         requestId: expect.any(String),
         startedTimeStamp: expect.any(Number),
         status: 'pending',
+      })
+    })
+
+    it('should create subscription when hook mounts after prefetch', async () => {
+      const api = createApi({
+        baseQuery: async () => ({ data: 'test data' }),
+        endpoints: (build) => ({
+          getTest: build.query<string, void>({
+            query: () => '',
+          }),
+        }),
+      })
+      const storeRef = setupApiStore(api, undefined, { withoutListeners: true })
+
+      // 1. Prefetch data (no subscription)
+      await storeRef.store.dispatch(api.util.prefetch('getTest', undefined))
+
+      // Verify data is cached
+      await waitFor(() => {
+        let state = storeRef.store.getState()
+        expect(state.api.queries['getTest(undefined)']?.data).toBe('test data')
+      })
+
+      // Verify no subscription exists
+      const subscriptions = storeRef.store.dispatch(
+        api.internalActions.internal_getRTKQSubscriptions(),
+      ) as any
+      expect(subscriptions.getSubscriptionCount('getTest(undefined)')).toBe(0)
+
+      // 2. Mount component with useQuery hook
+      function TestComponent() {
+        const result = api.endpoints.getTest.useQuery()
+        return <div>{result.data}</div>
+      }
+
+      const { unmount } = render(<TestComponent />, {
+        wrapper: storeRef.wrapper,
+      })
+
+      // Wait for hook to initialize
+      await waitFor(() => {
+        // EXPECTED: Subscription should be created
+        expect(subscriptions.getSubscriptionCount('getTest(undefined)')).toBe(1)
+      })
+
+      // 3. Verify data is still available
+      let state = storeRef.store.getState()
+      expect(state.api.queries['getTest(undefined)']?.data).toBe('test data')
+
+      // 4. Unmount and verify subscription is removed
+      unmount()
+
+      await waitFor(() => {
+        expect(subscriptions.getSubscriptionCount('getTest(undefined)')).toBe(0)
       })
     })
   })
