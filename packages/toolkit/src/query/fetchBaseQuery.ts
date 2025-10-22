@@ -279,6 +279,16 @@ export function fetchBaseQuery({
       config.body = JSON.stringify(config.body, jsonReplacer)
     }
 
+    // Set Accept header based on responseHandler if not already set
+    if (!config.headers.has('accept')) {
+      if (responseHandler === 'json') {
+        config.headers.set('accept', 'application/json')
+      } else if (responseHandler === 'text') {
+        config.headers.set('accept', 'text/plain, text/html, */*')
+      }
+      // For 'content-type' responseHandler, don't set Accept (let server decide)
+    }
+
     if (params) {
       const divider = ~url.indexOf('?') ? '&' : '?'
       const query = paramsSerializer

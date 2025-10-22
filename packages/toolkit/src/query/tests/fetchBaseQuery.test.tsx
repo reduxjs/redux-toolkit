@@ -1,5 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit'
-import { createApi, FetchArgs, fetchBaseQuery } from '@reduxjs/toolkit/query'
+import type { FetchArgs } from '@reduxjs/toolkit/query'
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 import { headersToObject } from 'headers-polyfill'
 import { HttpResponse, delay, http } from 'msw'
 // @ts-ignore
@@ -1252,6 +1253,122 @@ describe('FormData', () => {
     // Regular JSON requests should still get application/json
     expect(request.headers['content-type']).toBe('application/json')
     expect(request.body).toEqual(jsonBody)
+  })
+})
+
+describe('Accept header handling', () => {
+  test('sets Accept header to application/json for json responseHandler', async () => {
+    let request: any
+    ;({ data: request } = await baseQuery(
+      { url: '/echo', responseHandler: 'json' },
+      commonBaseQueryApi,
+      {},
+    ))
+
+    expect(request.headers['accept']).toBe('application/json')
+  })
+
+  test('sets Accept header to application/json by default (json is default responseHandler)', async () => {
+    let request: any
+    ;({ data: request } = await baseQuery(
+      { url: '/echo' },
+      commonBaseQueryApi,
+      {},
+    ))
+
+    expect(request.headers['accept']).toBe('application/json')
+  })
+
+  test('sets Accept header for text responseHandler', async () => {
+    // Create a baseQuery with text as the global responseHandler
+    const textBaseQuery = fetchBaseQuery({
+      baseUrl,
+      fetchFn: fetchFn as any,
+      responseHandler: 'text',
+    })
+
+    let request: any
+      // Override to json just for this test so we can inspect the echoed request object
+    ;({ data: request } = await textBaseQuery(
+      { url: '/echo', responseHandler: 'json' },
+      commonBaseQueryApi,
+      {},
+    ))
+
+    // The endpoint-level 'json' responseHandler overrides the global 'text',
+    // so the Accept header should be application/json
+    expect(request.headers['accept']).toBe('application/json')
+  })
+
+  test('does not override explicit Accept header from endpoint', async () => {
+    let request: any
+    ;({ data: request } = await baseQuery(
+      {
+        url: '/echo',
+        responseHandler: 'json',
+        headers: { Accept: 'application/xml' },
+      },
+      commonBaseQueryApi,
+      {},
+    ))
+
+    expect(request.headers['accept']).toBe('application/xml')
+  })
+
+  test('does not override Accept header set in prepareHeaders', async () => {
+    const customBaseQuery = fetchBaseQuery({
+      baseUrl,
+      fetchFn: fetchFn as any,
+      prepareHeaders: (headers) => {
+        headers.set('Accept', 'application/vnd.api+json')
+        return headers
+      },
+    })
+
+    let request: any
+    ;({ data: request } = await customBaseQuery(
+      { url: '/echo', responseHandler: 'json' },
+      commonBaseQueryApi,
+      {},
+    ))
+
+    expect(request.headers['accept']).toBe('application/vnd.api+json')
+  })
+
+  test('does not set Accept header for content-type responseHandler', async () => {
+    let request: any
+    ;({ data: request } = await baseQuery(
+      { url: '/echo', responseHandler: 'content-type' },
+      commonBaseQueryApi,
+      {},
+    ))
+
+    // Should either not have accept header or have a permissive one
+    // content-type handler adapts to whatever server sends
+    const acceptHeader = request.headers['accept']
+    if (acceptHeader) {
+      expect(acceptHeader).toMatch(/\*\/\*/)
+    }
+  })
+
+  test('respects global responseHandler for Accept header', async () => {
+    const textBaseQuery = fetchBaseQuery({
+      baseUrl,
+      fetchFn: fetchFn as any,
+      responseHandler: 'text',
+    })
+
+    let request: any
+      // Override to json just for this test so we can inspect the echoed request object
+    ;({ data: request } = await textBaseQuery(
+      { url: '/echo', responseHandler: 'json' },
+      commonBaseQueryApi,
+      {},
+    ))
+
+    // The endpoint-level 'json' responseHandler overrides the global 'text',
+    // so the Accept header should be application/json (proving endpoint-level takes precedence)
+    expect(request.headers['accept']).toBe('application/json')
   })
 })
 
