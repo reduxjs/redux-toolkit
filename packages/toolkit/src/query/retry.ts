@@ -127,16 +127,24 @@ const retryWithBackoff: BaseQueryEnhancer<
         throw e
       }
 
-      if (
-        e instanceof HandledError &&
-        !options.retryCondition(e.value.error as FetchBaseQueryError, args, {
-          attempt: retry,
-          baseQueryApi: api,
-          extraOptions,
-        })
-      ) {
-        return e.value
+      if (e instanceof HandledError) {
+        if (
+          !options.retryCondition(e.value.error as FetchBaseQueryError, args, {
+            attempt: retry,
+            baseQueryApi: api,
+            extraOptions,
+          })
+        ) {
+          return e.value // Max retries for expected error
+        }
+      } else {
+        // For unexpected errors, respect maxRetries
+        if (retry > options.maxRetries) {
+          // Return the error as a proper error response instead of throwing
+          return { error: e }
+        }
       }
+
       await options.backoff(retry, options.maxRetries)
     }
   }

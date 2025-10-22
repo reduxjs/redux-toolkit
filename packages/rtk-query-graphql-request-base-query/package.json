@@ -21,7 +21,8 @@
     "build": "microbundle",
     "prepack": "rimraf dist/*; yarn build",
     "dev": "microbundle watch",
-    "test": "true"
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "graphql-request": "^4.0.0 || ^5.0.0 || ^6.0.0"
@@ -32,10 +33,12 @@
   },
   "devDependencies": {
     "@reduxjs/toolkit": "^1.6.0 || ^2.0.0",
+    "@types/node": "^20.11.0",
     "graphql": "^16.5.0",
     "microbundle": "^0.13.3",
     "rimraf": "^3.0.2",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "vitest": "^1.6.0"
   },
   "publishConfig": {
     "access": "public"

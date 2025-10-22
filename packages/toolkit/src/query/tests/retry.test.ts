@@ -548,4 +548,140 @@ describe('configuration', () => {
     expect(baseBaseQuery).toHaveBeenCalled()
     expect(baseBaseQuery.mock.calls.length).toBeLessThan(10)
   })
+
+  // Tests for issue #4079: Thrown errors should respect maxRetries
+  test('thrown errors (not HandledError) should respect maxRetries', async () => {
+    const baseBaseQuery = vi.fn<
+      Parameters<BaseQueryFn>,
+      ReturnType<BaseQueryFn>
+    >()
+    // Simulate network error that keeps throwing
+    baseBaseQuery.mockRejectedValue(new Error('Network timeout'))
+
+    const baseQuery = retry(baseBaseQuery, { maxRetries: 3 })
+    const api = createApi({
+      baseQuery,
+      endpoints: (build) => ({
+        q1: build.query({
+          query: () => {},
+        }),
+      }),
+    })
+
+    const storeRef = setupApiStore(api, undefined, {
+      withoutTestLifecycles: true,
+    })
+
+    storeRef.store.dispatch(api.endpoints.q1.initiate({}))
+
+    await loopTimers(5)
+
+    // Should try initial + 3 retries = 4 total, then stop
+    // Currently this will fail because it retries infinitely
+    expect(baseBaseQuery).toHaveBeenCalledTimes(4)
+  })
+
+  test('graphql-style thrown errors should respect maxRetries', async () => {
+    class ClientError extends Error {
+      constructor(message: string) {
+        super(message)
+        this.name = 'ClientError'
+      }
+    }
+
+    const baseBaseQuery = vi.fn<
+      Parameters<BaseQueryFn>,
+      ReturnType<BaseQueryFn>
+    >()
+    // Simulate graphql-request throwing ClientError
+    baseBaseQuery.mockImplementation(() => {
+      throw new ClientError('GraphQL network error')
+    })
+
+    const baseQuery = retry(baseBaseQuery, { maxRetries: 2 })
+    const api = createApi({
+      baseQuery,
+      endpoints: (build) => ({
+        q1: build.query({
+          query: () => {},
+        }),
+      }),
+    })
+
+    const storeRef = setupApiStore(api, undefined, {
+      withoutTestLifecycles: true,
+    })
+
+    storeRef.store.dispatch(api.endpoints.q1.initiate({}))
+
+    await loopTimers(4)
+
+    // Should try initial + 2 retries = 3 total, then stop
+    // Currently this will fail because it retries infinitely
+    expect(baseBaseQuery).toHaveBeenCalledTimes(3)
+  })
+
+  test('handles mix of returned errors and thrown errors', async () => {
+    const baseBaseQuery = vi.fn<
+      Parameters<BaseQueryFn>,
+      ReturnType<BaseQueryFn>
+    >()
+    baseBaseQuery
+      .mockResolvedValueOnce({ error: 'returned error' }) // HandledError
+      .mockRejectedValueOnce(new Error('thrown error')) // Not HandledError
+      .mockResolvedValueOnce({ error: 'returned error' }) // HandledError
+      .mockResolvedValue({ data: { success: true } })
+
+    const baseQuery = retry(baseBaseQuery, { maxRetries: 5 })
+    const api = createApi({
+      baseQuery,
+      endpoints: (build) => ({
+        q1: build.query({
+          query: () => {},
+        }),
+      }),
+    })
+
+    const storeRef = setupApiStore(api, undefined, {
+      withoutTestLifecycles: true,
+    })
+
+    storeRef.store.dispatch(api.endpoints.q1.initiate({}))
+
+    await loopTimers(6)
+
+    // Should eventually succeed after 4 attempts
+    expect(baseBaseQuery).toHaveBeenCalledTimes(4)
+  })
+
+  test('thrown errors with mutations should respect maxRetries', async () => {
+    const baseBaseQuery = vi.fn<
+      Parameters<BaseQueryFn>,
+      ReturnType<BaseQueryFn>
+    >()
+    // Simulate persistent network error
+    baseBaseQuery.mockRejectedValue(new Error('Connection refused'))
+
+    const baseQuery = retry(baseBaseQuery, { maxRetries: 2 })
+    const api = createApi({
+      baseQuery,
+      endpoints: (build) => ({
+        m1: build.mutation({
+          query: () => ({ method: 'POST' }),
+        }),
+      }),
+    })
+
+    const storeRef = setupApiStore(api, undefined, {
+      withoutTestLifecycles: true,
+    })
+
+    storeRef.store.dispatch(api.endpoints.m1.initiate({}))
+
+    await loopTimers(4)
+
+    // Should try initial + 2 retries = 3 total, then stop
+    // Currently this will fail because it retries infinitely
+    expect(baseBaseQuery).toHaveBeenCalledTimes(3)
+  })
 })
