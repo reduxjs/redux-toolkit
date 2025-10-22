@@ -248,7 +248,7 @@ export interface ApiModules<
       prefetch<EndpointName extends QueryKeys<Definitions>>(
         endpointName: EndpointName,
         arg: QueryArgFrom<Definitions[EndpointName]>,
-        options: PrefetchOptions,
+        options?: PrefetchOptions,
       ): ThunkAction<void, any, any, UnknownAction>
       /**
        * A Redux thunk action creator that, when dispatched, creates and applies a set of JSON diff/patch objects to the current state. This immediately updates the Redux state with those changes.

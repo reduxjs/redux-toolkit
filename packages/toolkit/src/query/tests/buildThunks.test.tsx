@@ -1,7 +1,11 @@
-import { configureStore, isAllOf } from '@reduxjs/toolkit'
+import { configureStore } from '@reduxjs/toolkit'
 import { createApi } from '@reduxjs/toolkit/query/react'
 import { renderHook, waitFor } from '@testing-library/react'
-import { actionsReducer, withProvider } from '../../tests/utils/helpers'
+import {
+  actionsReducer,
+  setupApiStore,
+  withProvider,
+} from '../../tests/utils/helpers'
 import type { BaseQueryApi } from '../baseQueryTypes'
 
 describe('baseline thunk behavior', () => {
@@ -246,50 +250,171 @@ describe('re-triggering behavior on arg change', () => {
 })
 
 describe('prefetch', () => {
-  const baseQuery = () => ({ data: null })
+  const baseQuery = () => ({ data: { name: 'Test User' } })
+
   const api = createApi({
     baseQuery,
+    tagTypes: ['User'],
     endpoints: (build) => ({
-      getUser: build.query<any, any>({
-        query: (obj) => obj,
+      getUser: build.query<any, number>({
+        query: (id) => ({ url: `user/${id}` }),
+        providesTags: (result, error, id) => [{ type: 'User', id }],
+      }),
+      updateUser: build.mutation<any, { id: number; name: string }>({
+        query: ({ id, name }) => ({
+          url: `user/${id}`,
+          method: 'PUT',
+          body: { name },
+        }),
+        invalidatesTags: (result, error, { id }) => [{ type: 'User', id }],
       }),
     }),
+    keepUnusedDataFor: 0.1, // 100ms for faster test cleanup
   })
 
-  const store = configureStore({
-    reducer: { [api.reducerPath]: api.reducer, ...actionsReducer },
-    middleware: (gDM) => gDM().concat(api.middleware),
+  let storeRef = setupApiStore(
+    api,
+    { ...actionsReducer },
+    {
+      withoutListeners: true,
+    },
+  )
+
+  let getSubscriptions: () => Map<string, any>
+  let getSubscriptionCount: (queryCacheKey: string) => number
+
+  beforeEach(() => {
+    storeRef = setupApiStore(
+      api,
+      { ...actionsReducer },
+      {
+        withoutListeners: true,
+      },
+    )
+    // Get subscription helpers
+    const subscriptionSelectors = storeRef.store.dispatch(
+      api.internalActions.internal_getRTKQSubscriptions(),
+    ) as any
+    getSubscriptions = subscriptionSelectors.getSubscriptions
+    getSubscriptionCount = subscriptionSelectors.getSubscriptionCount
   })
-  it('should attach isPrefetch if prefetching', async () => {
-    store.dispatch(api.util.prefetch('getUser', 1, {}))
 
-    await Promise.all(store.dispatch(api.util.getRunningQueriesThunk()))
+  describe('subscription behavior', () => {
+    it('prefetch should NOT create a subscription', async () => {
+      const queryCacheKey = 'getUser(1)'
 
-    const isPrefetch = (
-      action: any,
-    ): action is { meta: { arg: { isPrefetch: true } } } =>
-      action?.meta?.arg?.isPrefetch
+      // Initially no subscriptions
+      expect(getSubscriptionCount(queryCacheKey)).toBe(0)
 
-    expect(store.getState().actions).toMatchSequence(
-      api.internalActions.middlewareRegistered.match,
-      isAllOf(api.endpoints.getUser.matchPending, isPrefetch),
-      isAllOf(api.endpoints.getUser.matchFulfilled, isPrefetch),
-    )
+      // Dispatch prefetch
+      storeRef.store.dispatch(api.util.prefetch('getUser', 1, {}))
+      await Promise.all(
+        storeRef.store.dispatch(api.util.getRunningQueriesThunk()),
+      )
 
-    // compare against a regular initiate call
-    await store.dispatch(
-      api.endpoints.getUser.initiate(1, { forceRefetch: true }),
-    )
+      expect(getSubscriptionCount(queryCacheKey)).toBe(0)
+    })
 
-    const isNotPrefetch = (action: any): action is unknown =>
-      !isPrefetch(action)
+    it('prefetch allows cache cleanup after keepUnusedDataFor', async () => {
+      const queryCacheKey = 'getUser(1)'
 
-    expect(store.getState().actions).toMatchSequence(
-      api.internalActions.middlewareRegistered.match,
-      isAllOf(api.endpoints.getUser.matchPending, isPrefetch),
-      isAllOf(api.endpoints.getUser.matchFulfilled, isPrefetch),
-      isAllOf(api.endpoints.getUser.matchPending, isNotPrefetch),
-      isAllOf(api.endpoints.getUser.matchFulfilled, isNotPrefetch),
-    )
+      // Prefetch the data
+      storeRef.store.dispatch(api.util.prefetch('getUser', 1, {}))
+      await Promise.all(
+        storeRef.store.dispatch(api.util.getRunningQueriesThunk()),
+      )
+
+      // Verify data is in cache
+      let state = api.endpoints.getUser.select(1)(storeRef.store.getState())
+      expect(state.data).toEqual({ name: 'Test User' })
+
+      // Wait longer than keepUnusedDataFor
+      await new Promise((resolve) => setTimeout(resolve, 150))
+
+      state = api.endpoints.getUser.select(1)(storeRef.store.getState())
+      expect(state.status).toBe('uninitialized')
+      expect(state.data).toBeUndefined()
+    })
+
+    it('prefetch does NOT trigger refetch on tag invalidation', async () => {
+      // Prefetch user 1
+      storeRef.store.dispatch(api.util.prefetch('getUser', 1, {}))
+      await Promise.all(
+        storeRef.store.dispatch(api.util.getRunningQueriesThunk()),
+      )
+
+      // Verify data is in cache
+      let state = api.endpoints.getUser.select(1)(storeRef.store.getState())
+      expect(state.data).toEqual({ name: 'Test User' })
+
+      // Invalidate the tag by updating the user
+      await storeRef.store.dispatch(
+        api.endpoints.updateUser.initiate({ id: 1, name: 'Updated' }),
+      )
+
+      // Since there's no subscription, the cache entry gets removed on invalidation
+      await Promise.all(
+        storeRef.store.dispatch(api.util.getRunningQueriesThunk()),
+      )
+
+      // Cache entry should be cleared (no subscription to keep it alive)
+      state = api.endpoints.getUser.select(1)(storeRef.store.getState())
+      expect(state.status).toBe('uninitialized')
+      expect(state.data).toBeUndefined()
+    })
+
+    it('multiple prefetches do not accumulate subscriptions', async () => {
+      const queryCacheKey = 'getUser(1)'
+
+      expect(getSubscriptionCount(queryCacheKey)).toBe(0)
+
+      // First prefetch
+      storeRef.store.dispatch(api.util.prefetch('getUser', 1, {}))
+      await Promise.all(
+        storeRef.store.dispatch(api.util.getRunningQueriesThunk()),
+      )
+      expect(getSubscriptionCount(queryCacheKey)).toBe(0)
+
+      // Second prefetch (force refetch)
+      storeRef.store.dispatch(api.util.prefetch('getUser', 1, { force: true }))
+      await Promise.all(
+        storeRef.store.dispatch(api.util.getRunningQueriesThunk()),
+      )
+
+      // Still no subscriptions
+      expect(getSubscriptionCount(queryCacheKey)).toBe(0)
+
+      // Third prefetch
+      storeRef.store.dispatch(api.util.prefetch('getUser', 1, { force: true }))
+      await Promise.all(
+        storeRef.store.dispatch(api.util.getRunningQueriesThunk()),
+      )
+      expect(getSubscriptionCount(queryCacheKey)).toBe(0)
+    })
+
+    it('prefetch followed by regular query should work correctly', async () => {
+      const queryCacheKey = 'getUser(1)'
+
+      // Prefetch first
+      storeRef.store.dispatch(api.util.prefetch('getUser', 1, {}))
+      await Promise.all(
+        storeRef.store.dispatch(api.util.getRunningQueriesThunk()),
+      )
+
+      // No subscription from prefetch
+      expect(getSubscriptionCount(queryCacheKey)).toBe(0)
+
+      // Now create a real subscription via initiate
+      const promise = storeRef.store.dispatch(api.endpoints.getUser.initiate(1))
+
+      // Should have 1 subscription from the initiate call
+      expect(getSubscriptionCount(queryCacheKey)).toBe(1)
+
+      // Unsubscribe
+      promise.unsubscribe()
+
+      // Subscription should be cleaned up
+      expect(getSubscriptionCount(queryCacheKey)).toBe(0)
+    })
   })
 })
