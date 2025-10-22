@@ -1,10 +1,10 @@
-import { describe, it, expect, vi } from 'vitest'
+import type { BaseQueryApi } from '@reduxjs/toolkit/query'
 import type { GraphQLClient } from 'graphql-request'
 import { ClientError } from 'graphql-request'
+import { describe, expect, it, vi } from 'vitest'
 import { graphqlRequestBaseQuery } from './index'
-import type { BaseQueryApi } from '@reduxjs/toolkit/query'
 
-describe('graphqlRequestBaseQuery', () => {
+describe(graphqlRequestBaseQuery, () => {
   const mockGetState = vi.fn()
   const mockDispatch = vi.fn()
   const mockAbort = vi.fn()

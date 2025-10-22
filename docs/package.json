@@ -2,6 +2,7 @@
   "name": "docs",
   "devDependencies": {
     "@manaflair/redux-batch": "^1.0.0",
+    "@reduxjs/tsconfig": "workspace:^",
     "@types/nanoid": "^2.1.0",
     "@types/react": "^19.0.1",
     "async-mutex": "^0.3.2",
@@ -12,6 +13,7 @@
     "nanoid": "^3.1.23",
     "next-redux-wrapper": "^7.0.5",
     "redux-persist": "^6.0.0",
-    "rxjs": "^6.6.2"
+    "rxjs": "^6.6.2",
+    "typescript": "^5.9.3"
   }
 }

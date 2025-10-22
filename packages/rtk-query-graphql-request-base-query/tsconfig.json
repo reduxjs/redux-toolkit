@@ -1,17 +1,10 @@
 {
+  "extends": "@reduxjs/tsconfig/bundler/esnext",
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "ESNext",
-    "lib": ["ES2020"],
-    "moduleResolution": "bundler",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "declaration": true,
     "declarationMap": true,
-    "sourceMap": true,
-    "types": ["vitest/globals"]
+    "lib": ["ES2020"],
+    "outDir": "./dist",
+    "target": "ES2020"
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]

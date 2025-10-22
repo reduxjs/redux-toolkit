@@ -36,3 +36,5 @@ tsconfig.vitest-temp.json
 # node version manager files
 .node-version
 .nvmrc
+
+.eslintcache

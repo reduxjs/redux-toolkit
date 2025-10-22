@@ -1,26 +1,24 @@
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
-import { defineConfig } from 'vitest/config'
+import { createVitestProject } from '@reduxjs/vitest-config'
+import * as path from 'node:path'
+import packageJson from './package.json' with { type: 'json' }
 
-// No __dirname under Node ESM
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+const vitestConfig = createVitestProject({
+  root: import.meta.dirname,
 
-export default defineConfig({
   test: {
-    globals: true,
-    environment: 'node', // Node environment since this is a baseQuery, not React
-    include: ['./src/**/*.test.ts'],
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json', 'html'],
-      include: ['src/**/*.ts'],
-      exclude: ['src/**/*.test.ts', 'src/**/*.d.ts'],
-    },
-  },
-  resolve: {
     alias: {
-      '@reduxjs/toolkit': path.resolve(__dirname, '../toolkit/src'),
+      '@reduxjs/toolkit': path.join(
+        import.meta.dirname,
+        '..',
+        'toolkit',
+        'src',
+      ),
     },
+    dir: path.join(import.meta.dirname, 'src'),
+    include: ['./**/*.test.ts'],
+    name: packageJson.name,
+    root: import.meta.dirname,
   },
 })
+
+export default vitestConfig

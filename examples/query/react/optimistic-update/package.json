@@ -22,9 +22,10 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
+    "@reduxjs/tsconfig": "workspace:^",
     "@types/react": "^19.0.1",
     "@types/react-dom": "^19.0.1",
-    "typescript": "^5.8.2",
+    "typescript": "^5.9.3",
     "whatwg-fetch": "^3.4.1"
   },
   "scripts": {

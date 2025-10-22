@@ -19,7 +19,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-lite-youtube-embed": "^2.0.3",
-    "typescript": "^5.8.2"
+    "typescript": "^5.9.3"
   },
   "browserslist": {
     "production": [
@@ -36,7 +36,7 @@
   "devDependencies": {
     "@docusaurus/faster": "^3.6.3",
     "netlify-plugin-cache": "^1.0.3",
-    "prettier": "^3.2.5",
+    "prettier": "^3.6.2",
     "remark-typescript-tools": "2.0.0-alpha.1"
   }
 }
