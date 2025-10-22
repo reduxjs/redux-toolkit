@@ -1,7 +1,8 @@
 import { isPlainObject } from '@reduxjs/toolkit'
 import type { BaseQueryFn } from '@reduxjs/toolkit/query'
 import type { DocumentNode } from 'graphql'
-import { GraphQLClient, ClientError, RequestOptions } from 'graphql-request'
+import type { RequestOptions } from 'graphql-request'
+import { GraphQLClient, ClientError } from 'graphql-request'
 import type {
   ErrorResponse,
   GraphqlRequestBaseQueryArgs,
@@ -59,7 +60,17 @@ export const graphqlRequestBaseQuery = <E = ErrorResponse>(
 
         return { error: customizedErrors, meta: { request, response } }
       }
-      throw error
+      // Base queries should never throw, but return {error}.
+      // This also ensures that retry logic works correctly.
+      const err = error as Error
+      return {
+        error: {
+          name: err?.name || 'NetworkError',
+          message: err?.message || 'An unknown network error occurred',
+          stack: err?.stack,
+        } as E,
+        meta: {},
+      }
     }
   }
 }

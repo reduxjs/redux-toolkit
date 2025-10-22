@@ -118,10 +118,17 @@ describe('graphqlRequestBaseQuery', () => {
         {},
       )
 
-      expect(result.error).toBeDefined()
-      expect(result.error).toHaveProperty('name')
-      expect(result.error).toHaveProperty('message')
-      expect(result.meta).toBeDefined()
+      expect(result).toEqual({
+        error: {
+          name: expect.any(String),
+          message: expect.any(String),
+          stack: expect.any(String),
+        },
+        meta: {
+          request: expect.any(Object),
+          response: expect.any(Object),
+        },
+      })
     })
 
     it('includes request and response in meta for ClientError', async () => {
@@ -146,7 +153,7 @@ describe('graphqlRequestBaseQuery', () => {
       expect(result.meta).toHaveProperty('response')
     })
 
-    it('throws network errors (non-ClientError) - documents current bug', async () => {
+    it('returns network errors (non-ClientError) instead of throwing', async () => {
       const networkError = new Error('Network timeout')
       const mockClient = {
         request: vi.fn().mockRejectedValue(networkError),
@@ -154,19 +161,26 @@ describe('graphqlRequestBaseQuery', () => {
 
       const baseQuery = graphqlRequestBaseQuery({ client: mockClient })
 
-      // Currently throws - this test documents the bug that causes infinite retries
-      await expect(
-        baseQuery(
-          {
-            document: 'query { user { id } }',
-          },
-          createMockApi(),
-          {},
-        ),
-      ).rejects.toThrow('Network timeout')
+      const result = await baseQuery(
+        {
+          document: 'query { user { id } }',
+        },
+        createMockApi(),
+        {},
+      )
+
+      // Should return error instead of throwing
+      expect(result).toEqual({
+        error: {
+          name: 'Error',
+          message: 'Network timeout',
+          stack: expect.any(String),
+        },
+        meta: {},
+      })
     })
 
-    it('throws fetch errors - documents current bug', async () => {
+    it('returns fetch errors instead of throwing', async () => {
       const fetchError = new Error('Failed to fetch')
       const mockClient = {
         request: vi.fn().mockRejectedValue(fetchError),
@@ -174,15 +188,23 @@ describe('graphqlRequestBaseQuery', () => {
 
       const baseQuery = graphqlRequestBaseQuery({ client: mockClient })
 
-      await expect(
-        baseQuery(
-          {
-            document: 'query { test }',
-          },
-          createMockApi(),
-          {},
-        ),
-      ).rejects.toThrow('Failed to fetch')
+      const result = await baseQuery(
+        {
+          document: 'query { test }',
+        },
+        createMockApi(),
+        {},
+      )
+
+      // Should return error instead of throwing
+      expect(result).toEqual({
+        error: {
+          name: 'Error',
+          message: 'Failed to fetch',
+          stack: expect.any(String),
+        },
+        meta: {},
+      })
     })
 
     it('uses custom error handler when provided', async () => {
@@ -243,9 +265,17 @@ describe('graphqlRequestBaseQuery', () => {
         {},
       )
 
-      expect(result.error).toHaveProperty('name')
-      expect(result.error).toHaveProperty('message')
-      expect(result.error).toHaveProperty('stack')
+      expect(result).toEqual({
+        error: {
+          name: expect.any(String),
+          message: expect.any(String),
+          stack: expect.any(String),
+        },
+        meta: {
+          request: expect.any(Object),
+          response: expect.any(Object),
+        },
+      })
     })
   })
 
