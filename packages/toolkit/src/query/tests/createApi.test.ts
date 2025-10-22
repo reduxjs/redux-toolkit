@@ -712,6 +712,7 @@ describe('additional transformResponse behaviors', () => {
       meta: {
         request: {
           headers: {
+            accept: 'application/json',
             'content-type': 'application/json',
           },
         },
@@ -733,7 +734,9 @@ describe('additional transformResponse behaviors', () => {
       value: 'success',
       meta: {
         request: {
-          headers: {},
+          headers: {
+            accept: 'application/json',
+          },
         },
         response: {
           headers: {

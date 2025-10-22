@@ -105,6 +105,13 @@ function stripUndefined(obj: any) {
   return copy
 }
 
+// Only set the content-type to json if appropriate. Will not be true for FormData, ArrayBuffer, Blob, etc.
+const isJsonifiable = (body: any) =>
+  typeof body === 'object' &&
+  (isPlainObject(body) ||
+    Array.isArray(body) ||
+    typeof body.toJSON === 'function')
+
 export type FetchBaseQueryArgs = {
   baseUrl?: string
   prepareHeaders?: (
@@ -252,19 +259,34 @@ export function fetchBaseQuery({
         extraOptions,
       })) || headers
 
-    // Only set the content-type to json if appropriate. Will not be true for FormData, ArrayBuffer, Blob, etc.
-    const isJsonifiable = (body: any) =>
-      typeof body === 'object' &&
-      (isPlainObject(body) ||
-        Array.isArray(body) ||
-        typeof body.toJSON === 'function')
+    const bodyIsJsonifiable = isJsonifiable(config.body)
 
-    if (!config.headers.has('content-type') && isJsonifiable(config.body)) {
+    // Remove content-type for non-jsonifiable bodies to let the browser set it automatically
+    // Exception: keep content-type for string bodies as they might be intentional (text/plain, text/html, etc.)
+    if (
+      config.body != null &&
+      !bodyIsJsonifiable &&
+      typeof config.body !== 'string'
+    ) {
+      config.headers.delete('content-type')
+    }
+
+    if (!config.headers.has('content-type') && bodyIsJsonifiable) {
       config.headers.set('content-type', jsonContentType)
     }
 
-    if (isJsonifiable(config.body) && isJsonContentType(config.headers)) {
+    if (bodyIsJsonifiable && isJsonContentType(config.headers)) {
       config.body = JSON.stringify(config.body, jsonReplacer)
+    }
+
+    // Set Accept header based on responseHandler if not already set
+    if (!config.headers.has('accept')) {
+      if (responseHandler === 'json') {
+        config.headers.set('accept', 'application/json')
+      } else if (responseHandler === 'text') {
+        config.headers.set('accept', 'text/plain, text/html, */*')
+      }
+      // For 'content-type' responseHandler, don't set Accept (let server decide)
     }
 
     if (params) {

@@ -35,7 +35,7 @@ import { userEvent } from '@testing-library/user-event'
 import type { SyncScreen } from '@testing-library/react-render-stream/pure'
 import { createRenderStream } from '@testing-library/react-render-stream/pure'
 import { HttpResponse, http, delay } from 'msw'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { InfiniteQueryResultFlags } from '../core/buildSelectors'
 
 // Just setup a temporary in-memory counter for tests that `getIncrementedAmount`.
@@ -1584,6 +1584,80 @@ describe('hooks tests', () => {
       await screen.findByText('Successfully fetched user Timmy')
       expect(screen.queryByText(/An error has occurred/i)).toBeNull()
       expect(screen.queryByText('Request was aborted')).toBeNull()
+    })
+
+    // Based on issue #5079, which I couldn't reproduce but we might as well capture
+    test('useLazyQuery calling abort() multiple times does not throw an error', async () => {
+      const user = userEvent.setup()
+
+      // Create a fresh API instance with fetchBaseQuery and timeout, matching the user's example
+      const timeoutApi = createApi({
+        reducerPath: 'timeoutApi',
+        baseQuery: fetchBaseQuery({
+          baseUrl: 'https://example.com',
+          timeout: 5000,
+        }),
+        endpoints: (builder) => ({
+          getData: builder.query<string, void>({
+            query: () => ({ url: '/data/' }),
+          }),
+        }),
+      })
+
+      const timeoutStoreRef = setupApiStore(timeoutApi as any, undefined, {
+        withoutTestLifecycles: true,
+      })
+
+      // Set up a mock handler for the endpoint
+      server.use(
+        http.get('https://example.com/data/', async () => {
+          await delay(100)
+          return HttpResponse.json('test data')
+        }),
+      )
+
+      function Component() {
+        const [trigger] = timeoutApi.endpoints.getData.useLazyQuery()
+        const abortRef = useRef<(() => void) | undefined>(undefined)
+        const [errorMsg, setErrorMsg] = useState('')
+
+        const handleChange = () => {
+          // Abort any previous request
+          abortRef.current?.()
+
+          // Trigger new request
+          const result = trigger()
+
+          // Store abort function for next call
+          abortRef.current = () => {
+            try {
+              result.abort()
+            } catch (err: any) {
+              setErrorMsg(err.message)
+            }
+          }
+        }
+
+        return (
+          <div>
+            <input data-testid="input" onChange={handleChange} />
+            <div data-testid="error">{errorMsg}</div>
+          </div>
+        )
+      }
+
+      render(<Component />, { wrapper: timeoutStoreRef.wrapper })
+
+      const input = screen.getByTestId('input')
+
+      // Trigger multiple rapid changes that will call abort() multiple times
+      await user.type(input, 'abc')
+
+      // Wait a bit to ensure any errors would have been caught
+      await waitMs(200)
+
+      // Should not have any error messages
+      expect(screen.getByTestId('error').textContent).toBe('')
     })
 
     test('unwrapping the useLazyQuery trigger result does not throw on ConditionError and instead returns the aggregate error', async () => {

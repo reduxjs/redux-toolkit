@@ -2,6 +2,7 @@ import { setupApiStore } from '@internal/tests/utils/helpers'
 import { createApi } from '../core'
 import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
 import { fakeBaseQuery } from '../fakeBaseQuery'
+import { delay } from '@internal/utils'
 
 let calls = 0
 const api = createApi({
@@ -13,6 +14,14 @@ const api = createApi({
         await Promise.resolve()
         return { data }
       },
+    }),
+    incrementKeep0: build.query<number, void>({
+      async queryFn() {
+        const data = calls++
+        await delay(10)
+        return { data }
+      },
+      keepUnusedDataFor: 0,
     }),
     failing: build.query<void, void>({
       async queryFn() {
@@ -84,6 +93,19 @@ describe('calling initiate without a cache entry, with subscribe: false still re
       data: 0,
       status: 'fulfilled',
     })
+  })
+
+  test('successful query with keepUnusedDataFor: 0', async () => {
+    const { store, api } = storeRef
+    calls = 0
+    const promise = store.dispatch(
+      api.endpoints.incrementKeep0.initiate(undefined, { subscribe: false }),
+    )
+    expect(isRequestSubscribed('increment(undefined)', promise.requestId)).toBe(
+      false,
+    )
+
+    await expect(promise.unwrap()).resolves.toBe(0)
   })
 
   test('rejected query', async () => {
