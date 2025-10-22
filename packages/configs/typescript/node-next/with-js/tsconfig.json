@@ -1,0 +1,9 @@
+{
+  "extends": "@reduxjs/tsconfig/node-next",
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true
+  },
+  "display": "TypeScript configuration with `NodeNext` module resolution and JavaScript support"
+}
