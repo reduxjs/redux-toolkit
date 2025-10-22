@@ -83,11 +83,15 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
 
   const currentRemovalTimeouts: QueryStateMeta<TimeoutId> = {}
 
-  const handler: ApiMiddlewareInternalHandler = (
-    action,
-    mwApi,
-    internalState,
-  ) => {
+  function abortAllPromises<T extends { abort?: () => void }>(
+    promiseMap: Map<string, T | undefined>,
+  ): void {
+    for (const promise of promiseMap.values()) {
+      promise?.abort?.()
+    }
+  }
+
+  const handler: ApiMiddlewareInternalHandler = (action, mwApi) => {
     const state = mwApi.getState()
     const config = selectConfig(state)
 
@@ -113,6 +117,9 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
         if (timeout) clearTimeout(timeout)
         delete currentRemovalTimeouts[key]
       }
+
+      abortAllPromises(internalState.runningQueries)
+      abortAllPromises(internalState.runningMutations)
     }
 
     if (context.hasRehydrationInfo(action)) {

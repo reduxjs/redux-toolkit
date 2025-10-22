@@ -684,4 +684,322 @@ describe('configuration', () => {
     // Currently this will fail because it retries infinitely
     expect(baseBaseQuery).toHaveBeenCalledTimes(3)
   })
+
+  // These tests validate the abort signal handling implementation
+  describe('abort signal handling', () => {
+    test('retry loop exits immediately when signal is aborted before retry', async () => {
+      const baseBaseQuery = vi.fn<
+        Parameters<BaseQueryFn>,
+        ReturnType<BaseQueryFn>
+      >()
+      baseBaseQuery.mockResolvedValue({ error: 'network error' })
+
+      const baseQuery = retry(baseBaseQuery, { maxRetries: 10 })
+      const api = createApi({
+        baseQuery,
+        endpoints: (build) => ({
+          q1: build.query({ query: () => {} }),
+        }),
+      })
+
+      const storeRef = setupApiStore(api, undefined, {
+        withoutTestLifecycles: true,
+      })
+      const promise = storeRef.store.dispatch(api.endpoints.q1.initiate({}))
+
+      // Let first attempt fail
+      await loopTimers(1)
+      expect(baseBaseQuery).toHaveBeenCalledTimes(1)
+
+      // Abort the query
+      promise.abort()
+
+      // Advance timers to allow retry attempts
+      await loopTimers(5)
+
+      // Should not have retried after abort
+      expect(baseBaseQuery).toHaveBeenCalledTimes(1)
+    })
+
+    test('abort during active request prevents retry', async () => {
+      let requestInProgress = false
+      const baseBaseQuery = vi.fn<
+        Parameters<BaseQueryFn>,
+        ReturnType<BaseQueryFn>
+      >()
+
+      baseBaseQuery.mockImplementation(async () => {
+        requestInProgress = true
+        await new Promise((resolve) => setTimeout(resolve, 100))
+        requestInProgress = false
+        return { error: 'network error' }
+      })
+
+      const baseQuery = retry(baseBaseQuery, { maxRetries: 5 })
+      const api = createApi({
+        baseQuery,
+        endpoints: (build) => ({
+          q1: build.query({ query: () => {} }),
+        }),
+      })
+
+      const storeRef = setupApiStore(api, undefined, {
+        withoutTestLifecycles: true,
+      })
+      const promise = storeRef.store.dispatch(api.endpoints.q1.initiate({}))
+
+      // Wait for request to start
+      await vi.advanceTimersByTimeAsync(50)
+      expect(requestInProgress).toBe(true)
+
+      // Abort while request is in progress
+      promise.abort()
+
+      // Let request complete
+      await loopTimers(2)
+
+      // Should not retry after abort
+      expect(baseBaseQuery).toHaveBeenCalledTimes(1)
+    })
+
+    test('custom backoff without signal parameter still works', async () => {
+      const baseBaseQuery = vi.fn<
+        Parameters<BaseQueryFn>,
+        ReturnType<BaseQueryFn>
+      >()
+      baseBaseQuery.mockResolvedValue({ error: 'network error' })
+
+      // Custom backoff that doesn't accept signal (backward compatibility)
+      const customBackoff = async (attempt: number, maxRetries: number) => {
+        await new Promise((resolve) => setTimeout(resolve, 100))
+      }
+
+      const baseQuery = retry(baseBaseQuery, {
+        maxRetries: 3,
+        backoff: customBackoff,
+      })
+
+      const api = createApi({
+        baseQuery,
+        endpoints: (build) => ({
+          q1: build.query({ query: () => {} }),
+        }),
+      })
+
+      const storeRef = setupApiStore(api, undefined, {
+        withoutTestLifecycles: true,
+      })
+      storeRef.store.dispatch(api.endpoints.q1.initiate({}))
+
+      await loopTimers(5)
+
+      // Should complete all retries (not cancellable without signal)
+      expect(baseBaseQuery).toHaveBeenCalledTimes(4)
+    })
+
+    test('abort signal is checked before each retry attempt', async () => {
+      const attemptNumbers: number[] = []
+      const baseBaseQuery = vi.fn<
+        Parameters<BaseQueryFn>,
+        ReturnType<BaseQueryFn>
+      >()
+      baseBaseQuery.mockImplementation(async () => {
+        attemptNumbers.push(attemptNumbers.length + 1)
+        return { error: 'network error' }
+      })
+
+      const baseQuery = retry(baseBaseQuery, { maxRetries: 10 })
+      const api = createApi({
+        baseQuery,
+        endpoints: (build) => ({
+          q1: build.query({ query: () => {} }),
+        }),
+      })
+
+      const storeRef = setupApiStore(api, undefined, {
+        withoutTestLifecycles: true,
+      })
+      const promise = storeRef.store.dispatch(api.endpoints.q1.initiate({}))
+
+      // Let 3 attempts happen
+      await loopTimers(3)
+      expect(attemptNumbers).toEqual([1, 2, 3])
+
+      // Abort
+      promise.abort()
+
+      // Try to let more attempts happen
+      await loopTimers(5)
+
+      // Should not have any more attempts
+      expect(attemptNumbers).toEqual([1, 2, 3])
+    })
+
+    test('mutations respect abort signal during retry', async () => {
+      const baseBaseQuery = vi.fn<
+        Parameters<BaseQueryFn>,
+        ReturnType<BaseQueryFn>
+      >()
+      baseBaseQuery.mockResolvedValue({ error: 'network error' })
+
+      const baseQuery = retry(baseBaseQuery, { maxRetries: 5 })
+      const api = createApi({
+        baseQuery,
+        endpoints: (build) => ({
+          m1: build.mutation({ query: () => ({ method: 'POST' }) }),
+        }),
+      })
+
+      const storeRef = setupApiStore(api, undefined, {
+        withoutTestLifecycles: true,
+      })
+      const promise = storeRef.store.dispatch(api.endpoints.m1.initiate({}))
+
+      // Let first attempt fail
+      await loopTimers(1)
+      expect(baseBaseQuery).toHaveBeenCalledTimes(1)
+
+      // Abort
+      promise.abort()
+
+      // Try to let retries happen
+      await loopTimers(5)
+
+      // Should not have retried
+      expect(baseBaseQuery).toHaveBeenCalledTimes(1)
+    })
+
+    test('abort after successful retry does not affect result', async () => {
+      const baseBaseQuery = vi.fn<
+        Parameters<BaseQueryFn>,
+        ReturnType<BaseQueryFn>
+      >()
+      baseBaseQuery
+        .mockResolvedValueOnce({ error: 'network error' })
+        .mockResolvedValue({ data: { success: true } })
+
+      const baseQuery = retry(baseBaseQuery, { maxRetries: 5 })
+      const api = createApi({
+        baseQuery,
+        endpoints: (build) => ({
+          q1: build.query({ query: () => {} }),
+        }),
+      })
+
+      const storeRef = setupApiStore(api, undefined, {
+        withoutTestLifecycles: true,
+      })
+      const promise = storeRef.store.dispatch(api.endpoints.q1.initiate({}))
+
+      // Let it succeed on retry
+      await loopTimers(3)
+      expect(baseBaseQuery).toHaveBeenCalledTimes(2)
+
+      const result = await promise
+
+      // Abort after success
+      promise.abort()
+
+      // Result should still be successful
+      expect(result.isSuccess).toBe(true)
+      expect(result.data).toEqual({ success: true })
+    })
+
+    test('multiple aborts are handled gracefully', async () => {
+      const baseBaseQuery = vi.fn<
+        Parameters<BaseQueryFn>,
+        ReturnType<BaseQueryFn>
+      >()
+      baseBaseQuery.mockResolvedValue({ error: 'network error' })
+
+      const baseQuery = retry(baseBaseQuery, { maxRetries: 10 })
+      const api = createApi({
+        baseQuery,
+        endpoints: (build) => ({
+          q1: build.query({ query: () => {} }),
+        }),
+      })
+
+      const storeRef = setupApiStore(api, undefined, {
+        withoutTestLifecycles: true,
+      })
+      const promise = storeRef.store.dispatch(api.endpoints.q1.initiate({}))
+
+      await loopTimers(1)
+
+      // Call abort multiple times
+      promise.abort()
+      promise.abort()
+      promise.abort()
+
+      await loopTimers(3)
+
+      // Should handle gracefully
+      expect(baseBaseQuery).toHaveBeenCalledTimes(1)
+    })
+
+    test('abort signal already aborted before retry starts', async () => {
+      const baseBaseQuery = vi.fn<
+        Parameters<BaseQueryFn>,
+        ReturnType<BaseQueryFn>
+      >()
+      baseBaseQuery.mockResolvedValue({ error: 'network error' })
+
+      const baseQuery = retry(baseBaseQuery, { maxRetries: 5 })
+      const api = createApi({
+        baseQuery,
+        endpoints: (build) => ({
+          q1: build.query({ query: () => {} }),
+        }),
+      })
+
+      const storeRef = setupApiStore(api, undefined, {
+        withoutTestLifecycles: true,
+      })
+      const promise = storeRef.store.dispatch(api.endpoints.q1.initiate({}))
+
+      // Abort immediately
+      promise.abort()
+
+      await loopTimers(5)
+
+      // May have started the first attempt before abort was processed
+      // but should not retry
+      expect(baseBaseQuery.mock.calls.length).toBeLessThanOrEqual(1)
+    })
+
+    test('resetApiState aborts retrying queries', async () => {
+      const baseBaseQuery = vi.fn<
+        Parameters<BaseQueryFn>,
+        ReturnType<BaseQueryFn>
+      >()
+      baseBaseQuery.mockResolvedValue({ error: 'network error' })
+
+      const baseQuery = retry(baseBaseQuery, { maxRetries: 10 })
+      const api = createApi({
+        baseQuery,
+        endpoints: (build) => ({
+          q1: build.query({ query: () => {} }),
+        }),
+      })
+
+      const storeRef = setupApiStore(api, undefined, {
+        withoutTestLifecycles: true,
+      })
+      storeRef.store.dispatch(api.endpoints.q1.initiate({}))
+
+      // Let first attempt fail and start retrying
+      await loopTimers(2)
+      expect(baseBaseQuery).toHaveBeenCalledTimes(2)
+
+      // Reset API state (should abort the retry loop)
+      storeRef.store.dispatch(api.util.resetApiState())
+
+      // Try to let more retries happen
+      await loopTimers(5)
+
+      // Should not have retried after resetApiState
+      expect(baseBaseQuery).toHaveBeenCalledTimes(2)
+    })
+  })
 })
