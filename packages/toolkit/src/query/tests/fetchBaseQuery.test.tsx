@@ -992,6 +992,146 @@ describe('fetchBaseQuery', () => {
       expect(res.data).toEqual(`this is not json!`)
     })
 
+    test('Global responseHandler: content-type with text response', async () => {
+      server.use(
+        http.get(
+          'https://example.com/success',
+          () => HttpResponse.text(`this is plain text!`),
+          { once: true },
+        ),
+      )
+
+      const globalizedBaseQuery = fetchBaseQuery({
+        baseUrl,
+        fetchFn: fetchFn as any,
+        responseHandler: 'content-type',
+      })
+
+      const res = await globalizedBaseQuery(
+        { url: '/success' },
+        commonBaseQueryApi,
+        {},
+      )
+
+      expect(res.error).toBeUndefined()
+      expect(res.data).toEqual(`this is plain text!`)
+      expect(res.meta?.response?.headers.get('content-type')).toEqual(
+        'text/plain',
+      )
+    })
+
+    test('Global responseHandler: content-type with JSON response', async () => {
+      server.use(
+        http.get(
+          'https://example.com/success',
+          () => HttpResponse.json({ message: 'this is json!' }),
+          { once: true },
+        ),
+      )
+
+      const globalizedBaseQuery = fetchBaseQuery({
+        baseUrl,
+        fetchFn: fetchFn as any,
+        responseHandler: 'content-type',
+      })
+
+      const res = await globalizedBaseQuery(
+        { url: '/success' },
+        commonBaseQueryApi,
+        {},
+      )
+
+      expect(res.error).toBeUndefined()
+      expect(res.data).toEqual({ message: 'this is json!' })
+      expect(res.meta?.response?.headers.get('content-type')).toEqual(
+        'application/json',
+      )
+    })
+
+    test('Global responseHandler: content-type can be overridden at endpoint level', async () => {
+      server.use(
+        http.get(
+          'https://example.com/success',
+          () => HttpResponse.text(`this is text but will be parsed as json`),
+          { once: true },
+        ),
+      )
+
+      const globalizedBaseQuery = fetchBaseQuery({
+        baseUrl,
+        fetchFn: fetchFn as any,
+        responseHandler: 'content-type',
+      })
+
+      // Override global content-type handler with explicit text handler
+      const res = await globalizedBaseQuery(
+        { url: '/success', responseHandler: 'text' },
+        commonBaseQueryApi,
+        {},
+      )
+
+      expect(res.error).toBeUndefined()
+      expect(res.data).toEqual(`this is text but will be parsed as json`)
+    })
+
+    test('Global responseHandler: content-type with error response (text)', async () => {
+      const errorMessage = 'Internal Server Error'
+      server.use(
+        http.get('https://example.com/error', () =>
+          HttpResponse.text(errorMessage, { status: 500 }),
+        ),
+      )
+
+      const globalizedBaseQuery = fetchBaseQuery({
+        baseUrl,
+        fetchFn: fetchFn as any,
+        responseHandler: 'content-type',
+      })
+
+      const res = await globalizedBaseQuery(
+        { url: '/error' },
+        commonBaseQueryApi,
+        {},
+      )
+
+      expect(res.error).toEqual({
+        status: 500,
+        data: errorMessage,
+      })
+      expect(res.meta?.response?.headers.get('content-type')).toEqual(
+        'text/plain',
+      )
+    })
+
+    test('Global responseHandler: content-type with error response (JSON)', async () => {
+      const errorData = { error: 'Something went wrong', code: 'ERR_500' }
+      server.use(
+        http.get('https://example.com/error', () =>
+          HttpResponse.json(errorData, { status: 500 }),
+        ),
+      )
+
+      const globalizedBaseQuery = fetchBaseQuery({
+        baseUrl,
+        fetchFn: fetchFn as any,
+        responseHandler: 'content-type',
+      })
+
+      const res = await globalizedBaseQuery(
+        { url: '/error' },
+        commonBaseQueryApi,
+        {},
+      )
+
+      expect(res.error).toEqual({
+        status: 500,
+        data: errorData,
+      })
+      expect(res.meta?.response?.headers.get('content-type')).toEqual(
+        'application/json',
+      )
+    })
+
     test('Global validateStatus', async () => {
       const globalizedBaseQuery = fetchBaseQuery({
         baseUrl,
