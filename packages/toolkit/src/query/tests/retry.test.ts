@@ -967,5 +967,39 @@ describe('configuration', () => {
       // but should not retry
       expect(baseBaseQuery.mock.calls.length).toBeLessThanOrEqual(1)
     })
+
+    test('resetApiState aborts retrying queries', async () => {
+      const baseBaseQuery = vi.fn<
+        Parameters<BaseQueryFn>,
+        ReturnType<BaseQueryFn>
+      >()
+      baseBaseQuery.mockResolvedValue({ error: 'network error' })
+
+      const baseQuery = retry(baseBaseQuery, { maxRetries: 10 })
+      const api = createApi({
+        baseQuery,
+        endpoints: (build) => ({
+          q1: build.query({ query: () => {} }),
+        }),
+      })
+
+      const storeRef = setupApiStore(api, undefined, {
+        withoutTestLifecycles: true,
+      })
+      storeRef.store.dispatch(api.endpoints.q1.initiate({}))
+
+      // Let first attempt fail and start retrying
+      await loopTimers(2)
+      expect(baseBaseQuery).toHaveBeenCalledTimes(2)
+
+      // Reset API state (should abort the retry loop)
+      storeRef.store.dispatch(api.util.resetApiState())
+
+      // Try to let more retries happen
+      await loopTimers(5)
+
+      // Should not have retried after resetApiState
+      expect(baseBaseQuery).toHaveBeenCalledTimes(2)
+    })
   })
 })
