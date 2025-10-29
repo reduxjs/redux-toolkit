@@ -1219,8 +1219,8 @@ describe('endpoint schemas', () => {
     stack: expect.any(String),
   } satisfies SerializedError
 
-  const onSchemaFailureGlobal = vi.fn<Parameters<SchemaFailureHandler>>()
-  const onSchemaFailureEndpoint = vi.fn<Parameters<SchemaFailureHandler>>()
+  const onSchemaFailureGlobal = vi.fn<SchemaFailureHandler>()
+  const onSchemaFailureEndpoint = vi.fn<SchemaFailureHandler>()
   afterEach(() => {
     onSchemaFailureGlobal.mockClear()
     onSchemaFailureEndpoint.mockClear()

@@ -19,8 +19,7 @@ const defaultHeaders: Record<string, string> = {
 
 const baseUrl = 'https://example.com'
 
-// @ts-ignore
-const fetchFn = vi.fn<Promise<any>, any[]>(nodeFetch)
+const fetchFn = vi.fn(nodeFetch)
 
 const baseQuery = fetchBaseQuery({
   baseUrl,

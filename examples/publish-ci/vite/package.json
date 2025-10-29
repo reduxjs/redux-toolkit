@@ -26,12 +26,12 @@
     "@types/node": "^17.0.45",
     "@types/react": "^18.0.26",
     "@types/react-dom": "^18.0.10",
-    "@vitejs/plugin-react": "^3.0.0",
+    "@vitejs/plugin-react": "^5",
     "playwright": "^1.31.1",
     "prettier": "^3.2.5",
     "serve": "^14.2.0",
     "typescript": "^5.8.2",
-    "vite": "^4.2.1"
+    "vite": "^7"
   },
   "msw": {
     "workerDirectory": "public"
