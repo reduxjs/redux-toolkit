@@ -74,6 +74,7 @@ import { createSelector as _createSelector } from './rtkImports'
 import { onFocus, onFocusLost, onOffline, onOnline } from './setupListeners'
 import type { InternalMiddlewareState } from './buildMiddleware/types'
 import { getOrInsertComputed } from '../utils'
+import type { CreateSelectorFunction } from 'reselect'
 
 /**
  * `ifOlderThan` - (default: `false` | `number`) - _number is value in seconds_
@@ -492,7 +493,7 @@ export interface CoreModuleOptions {
   /**
    * A selector creator (usually from `reselect`, or matching the same signature)
    */
-  createSelector?: typeof _createSelector
+  createSelector?: CreateSelectorFunction<any, any, any>
 }
 
 /**
