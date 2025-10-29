@@ -31,12 +31,12 @@
     "@types/react": "18.3.12",
     "@types/react-dom": "18.3.1",
     "@types/react-native-web": "^0.19",
-    "@vitejs/plugin-react": "^4.2.1",
+    "@vitejs/plugin-react": "^5",
     "jsdom": "^23.2.0",
     "msw": "^2.6.6",
     "prettier": "^3.2.1",
     "typescript": "^5.8.2",
-    "vite": "^5.0.0",
+    "vite": "^7",
     "vitest": "^4"
   },
   "resolutions": {
