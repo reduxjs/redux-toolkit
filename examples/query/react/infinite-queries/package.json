@@ -37,7 +37,7 @@
     "prettier": "^3.2.1",
     "typescript": "^5.8.2",
     "vite": "^5.0.0",
-    "vitest": "^2"
+    "vitest": "^3"
   },
   "resolutions": {
     "@types/react": "18.3.12",
