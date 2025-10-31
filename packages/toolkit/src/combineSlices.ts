@@ -346,7 +346,7 @@ const isSliceLike = (
 const getReducers = (slices: Array<AnySliceLike | ReducerMap>) =>
   slices.flatMap<[string, Reducer]>((sliceOrMap) =>
     isSliceLike(sliceOrMap)
-      ? [[sliceOrMap.reducerPath, sliceOrMap.reducer] as const]
+      ? [[sliceOrMap.reducerPath, sliceOrMap.reducer]]
       : Object.entries(sliceOrMap),
   )
 
@@ -411,7 +411,7 @@ export function combineSlices<Slices extends Array<AnySliceLike | ReducerMap>>(
   Id<InitialState<Slices>>,
   Partial<Id<InitialPreloadedState<Slices>>>
 > {
-  const reducerMap = Object.fromEntries<Reducer>(getReducers(slices))
+  const reducerMap = Object.fromEntries(getReducers(slices))
 
   const getReducer = () =>
     Object.keys(reducerMap).length ? combineReducers(reducerMap) : noopReducer
