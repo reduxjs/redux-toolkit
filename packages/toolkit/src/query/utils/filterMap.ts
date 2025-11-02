@@ -16,17 +16,12 @@ export function filterMap<T, U>(
   predicate: (item: T, index: number) => boolean,
   mapper: (item: T, index: number) => U | U[],
 ): U[] {
-  const result: U[] = []
-  for (let i = 0; i < array.length; i++) {
-    const item = array[i]
-    if (predicate(item, i)) {
-      const mapped = mapper(item, i)
-      if (Array.isArray(mapped)) {
-        result.push(...mapped)
-      } else {
-        result.push(mapped)
+  return array
+    .reduce<(U | U[])[]>((acc, item, i) => {
+      if (predicate(item as any, i)) {
+        acc.push(mapper(item as any, i))
       }
-    }
-  }
-  return result
+      return acc
+    }, [])
+    .flat() as U[]
 }
