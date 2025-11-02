@@ -39,6 +39,7 @@ import type {
 } from './tsHelpers'
 import { isNotNullish } from './utils'
 import type { NamedSchemaError } from './standardSchema'
+import { filterMap } from './utils/filterMap'
 
 const rawResultType = /* @__PURE__ */ Symbol()
 const resultType = /* @__PURE__ */ Symbol()
@@ -1406,20 +1407,21 @@ export function calculateProvidedBy<ResultType, QueryArg, ErrorType, MetaType>(
   meta: MetaType | undefined,
   assertTagTypes: AssertTagTypes,
 ): readonly FullTagDescription<string>[] {
-  if (isFunction(description)) {
-    return description(
-      result as ResultType,
-      error as undefined,
-      queryArg,
-      meta as MetaType,
+  const finalDescription = isFunction(description)
+    ? description(
+        result as ResultType,
+        error as undefined,
+        queryArg,
+        meta as MetaType,
+      )
+    : description
+
+  if (finalDescription) {
+    return filterMap(finalDescription, isNotNullish, (tag) =>
+      assertTagTypes(expandTagDescription(tag)),
     )
-      .filter(isNotNullish)
-      .map(expandTagDescription)
-      .map(assertTagTypes)
   }
-  if (Array.isArray(description)) {
-    return description.map(expandTagDescription).map(assertTagTypes)
-  }
+
   return []
 }
 
