@@ -57,6 +57,7 @@ import type { ApiContext } from '../apiTypes'
 import { isUpsertQuery } from './buildInitiate'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import type { UnwrapPromise } from '../tsHelpers'
+import { getCurrent } from '../utils/getCurrent'
 
 /**
  * A typesafe single entry to be upserted into the cache
@@ -587,7 +588,7 @@ export function buildSlice({
     draft: InvalidationState<any>,
     queryCacheKey: QueryCacheKey,
   ) {
-    const existingTags = draft.keys[queryCacheKey] ?? []
+    const existingTags = getCurrent(draft.keys[queryCacheKey] ?? [])
 
     // Delete this cache key from any existing tags that may have provided it
     for (const tag of existingTags) {
@@ -596,7 +597,7 @@ export function buildSlice({
       const tagSubscriptions = draft.tags[tagType]?.[tagId]
 
       if (tagSubscriptions) {
-        draft.tags[tagType][tagId] = tagSubscriptions.filter(
+        draft.tags[tagType][tagId] = getCurrent(tagSubscriptions).filter(
           (qc) => qc !== queryCacheKey,
         )
       }
