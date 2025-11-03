@@ -242,7 +242,7 @@ export default defineConfig((overrideOptions): TsupOptions[] => {
     },
     {
       ...commonOptions,
-      name: 'Redux-Toolkit-Nexted-Legacy-ESM',
+      name: 'Redux-Toolkit-Nested-Legacy-ESM',
       external: commonOptions.external.concat('@reduxjs/toolkit'),
       entry: {
         'react/redux-toolkit-react.legacy-esm': 'src/react/index.ts',

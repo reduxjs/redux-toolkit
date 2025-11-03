@@ -1,10 +1,5 @@
 import { vi } from 'vitest'
-import {
-  isOnline,
-  isDocumentVisible,
-  flatten,
-  joinUrls,
-} from '@internal/query/utils'
+import { isOnline, isDocumentVisible, joinUrls } from '@internal/query/utils'
 
 afterAll(() => {
   vi.restoreAllMocks()
@@ -94,16 +89,5 @@ describe('joinUrls', () => {
     ['https://example.com/api/', '//example.org', '//example.org'],
   ])('%s and %s join to %s', (base, url, expected) => {
     expect(joinUrls(base, url)).toBe(expected)
-  })
-})
-
-describe('flatten', () => {
-  test('flattens an array to a depth of 1', () => {
-    expect(flatten([1, 2, [3, 4]])).toEqual([1, 2, 3, 4])
-  })
-  test('does not flatten to a depth of 2', () => {
-    const flattenResult = flatten([1, 2, [3, 4, [5, 6]]])
-    expect(flattenResult).not.toEqual([1, 2, 3, 4, 5, 6])
-    expect(flattenResult).toEqual([1, 2, 3, 4, [5, 6]])
   })
 })
