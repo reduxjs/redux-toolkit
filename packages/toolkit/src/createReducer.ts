@@ -1,10 +1,22 @@
 import type { Draft } from 'immer'
-import { produce as createNextState, isDraft, isDraftable } from 'immer'
+import {
+  produce as createNextState,
+  isDraft,
+  isDraftable,
+  setUseStrictIteration,
+} from 'immer'
 import type { Action, Reducer, UnknownAction } from 'redux'
 import type { ActionReducerMapBuilder } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
 import type { NoInfer, TypeGuard } from './tsHelpers'
 import { freezeDraftable } from './utils'
+
+// Immer 10.2 defaults to still using strict iteration (specifically
+// `Reflect.ownKeys()` for symbols support). However, we assume that
+// Redux users are not using symbols as state keys, so we'll override
+// this to prefer `Object.keys()` instead, as it provides a ~10% speedup.
+// If users do need symbol support, they can call `setUseStrictIteration(true)` themselves.
+setUseStrictIteration(false)
 
 /**
  * Defines a mapping from action types to corresponding action object shapes.
