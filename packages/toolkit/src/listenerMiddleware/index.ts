@@ -1,5 +1,5 @@
 import type { Action, Dispatch, MiddlewareAPI, UnknownAction } from 'redux'
-import { isAction } from 'redux'
+import { isAction } from '../reduxImports'
 import type { ThunkDispatch } from 'redux-thunk'
 import { createAction } from '../createAction'
 import { nanoid } from '../nanoid'
@@ -266,7 +266,7 @@ const createClearListenerMiddleware = (
 ) => {
   return () => {
     for (const listener of executingListeners.keys()) {
-      cancelActiveListeners(listener);
+      cancelActiveListeners(listener)
     }
     listenerMap.clear()
   }

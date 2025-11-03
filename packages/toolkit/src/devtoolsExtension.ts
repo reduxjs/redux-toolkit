@@ -1,5 +1,5 @@
 import type { Action, ActionCreator, StoreEnhancer } from 'redux'
-import { compose } from 'redux'
+import { compose } from './reduxImports'
 
 /**
  * @public

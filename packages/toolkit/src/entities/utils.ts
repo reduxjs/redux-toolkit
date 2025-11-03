@@ -1,5 +1,5 @@
 import type { Draft } from 'immer'
-import { current, isDraft } from 'immer'
+import { current, isDraft } from '../immerImports'
 import type {
   DraftableEntityState,
   EntityId,
