@@ -52,8 +52,7 @@ import {
   type QueryDefinition,
 } from '../endpointDefinitions'
 import type { Patch } from 'immer'
-import { isDraft } from 'immer'
-import { applyPatches, original } from '../utils/immerImports'
+import { applyPatches, original, isDraft } from '../utils/immerImports'
 import { onFocus, onFocusLost, onOffline, onOnline } from './setupListeners'
 import {
   isDocumentVisible,
