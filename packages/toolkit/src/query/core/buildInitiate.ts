@@ -11,6 +11,7 @@ import type { Api, ApiContext } from '../apiTypes'
 import type { BaseQueryError, QueryReturnValue } from '../baseQueryTypes'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import {
+  ENDPOINT_QUERY,
   isQueryDefinition,
   type EndpointDefinition,
   type EndpointDefinitions,
@@ -393,7 +394,7 @@ You must add the middleware for RTK-Query to function correctly!`,
 
         const commonThunkArgs = {
           ...rest,
-          type: 'query' as const,
+          type: ENDPOINT_QUERY as 'query',
           subscribe,
           forceRefetch: forceRefetch,
           subscriptionOptions,

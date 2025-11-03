@@ -488,11 +488,17 @@ export type BaseEndpointDefinition<
     { extraOptions?: BaseQueryExtraOptions<BaseQuery> }
   >
 
+// NOTE As with QueryStatus in `apiState.ts`, don't use this for real comparisons
+// at runtime, use the string constants defined below.
 export enum DefinitionType {
   query = 'query',
   mutation = 'mutation',
   infinitequery = 'infinitequery',
 }
+
+export const ENDPOINT_QUERY = DefinitionType.query
+export const ENDPOINT_MUTATION = DefinitionType.mutation
+export const ENDPOINT_INFINITEQUERY = DefinitionType.infinitequery
 
 type TagDescriptionArray<TagTypes extends string> = ReadonlyArray<
   TagDescription<TagTypes> | undefined | null
@@ -1233,19 +1239,19 @@ export type EndpointDefinitions = Record<
 export function isQueryDefinition(
   e: EndpointDefinition<any, any, any, any, any, any, any>,
 ): e is QueryDefinition<any, any, any, any, any, any> {
-  return e.type === DefinitionType.query
+  return e.type === ENDPOINT_QUERY
 }
 
 export function isMutationDefinition(
   e: EndpointDefinition<any, any, any, any, any, any, any>,
 ): e is MutationDefinition<any, any, any, any, any, any> {
-  return e.type === DefinitionType.mutation
+  return e.type === ENDPOINT_MUTATION
 }
 
 export function isInfiniteQueryDefinition(
   e: EndpointDefinition<any, any, any, any, any, any, any>,
 ): e is InfiniteQueryDefinition<any, any, any, any, any, any, any> {
-  return e.type === DefinitionType.infinitequery
+  return e.type === ENDPOINT_INFINITEQUERY
 }
 
 export function isAnyQueryDefinition(

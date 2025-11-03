@@ -12,6 +12,9 @@ import type {
 } from './endpointDefinitions'
 import {
   DefinitionType,
+  ENDPOINT_INFINITEQUERY,
+  ENDPOINT_MUTATION,
+  ENDPOINT_QUERY,
   isInfiniteQueryDefinition,
   isQueryDefinition,
 } from './endpointDefinitions'
@@ -439,10 +442,9 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
       inject: Parameters<typeof api.injectEndpoints>[0],
     ) {
       const evaluatedEndpoints = inject.endpoints({
-        query: (x) => ({ ...x, type: DefinitionType.query }) as any,
-        mutation: (x) => ({ ...x, type: DefinitionType.mutation }) as any,
-        infiniteQuery: (x) =>
-          ({ ...x, type: DefinitionType.infinitequery }) as any,
+        query: (x) => ({ ...x, type: ENDPOINT_QUERY }) as any,
+        mutation: (x) => ({ ...x, type: ENDPOINT_MUTATION }) as any,
+        infiniteQuery: (x) => ({ ...x, type: ENDPOINT_INFINITEQUERY }) as any,
       })
 
       for (const [endpointName, definition] of Object.entries(

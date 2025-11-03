@@ -44,6 +44,7 @@ import type {
 } from './buildThunks'
 import { calculateProvidedByThunk } from './buildThunks'
 import {
+  ENDPOINT_QUERY,
   isInfiniteQueryDefinition,
   type AssertTagTypes,
   type EndpointDefinitions,
@@ -332,8 +333,8 @@ export function buildSlice({
               const { endpointName, arg, value } = entry
               const endpointDefinition = definitions[endpointName]
               const queryDescription: QueryThunkArg = {
-                type: 'query',
-                endpointName: endpointName,
+                type: ENDPOINT_QUERY as 'query',
+                endpointName,
                 originalArgs: entry.arg,
                 queryCacheKey: serializeQueryArgs({
                   queryArgs: arg,
