@@ -39,7 +39,7 @@ import type {
   TSHelpersNoInfer,
   TSHelpersOverride,
 } from '@reduxjs/toolkit/query'
-import { QueryStatus, skipToken } from '@reduxjs/toolkit/query'
+import { QueryStatus, skipToken } from './rtkqImports'
 import type { DependencyList } from 'react'
 import {
   useCallback,
@@ -1414,6 +1414,8 @@ const noPendingQueryStateSelector: QueryStateSelector<any, any> = (
       isUninitialized: false,
       isFetching: true,
       isLoading: selected.data !== undefined ? false : true,
+      // This is the one place where we still have to use `QueryStatus` as an enum,
+      // since it's the only reference in the React package and not in the core.
       status: QueryStatus.pending,
     } as any
   }
@@ -1472,6 +1474,15 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     deps?: DependencyList,
   ) => void = unstable__sideEffectsInRender ? (cb) => cb() : useEffect
 
+  type UnsubscribePromiseRef = React.RefObject<
+    { unsubscribe?: () => void } | undefined
+  >
+
+  const unsubscribePromiseRef = (ref: UnsubscribePromiseRef) =>
+    ref.current?.unsubscribe?.()
+
+  const endpointDefinitions = context.endpointDefinitions
+
   return {
     buildQueryHooks,
     buildInfiniteQueryHooks,
@@ -1489,7 +1500,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     // in this case, reset the hook
     if (lastResult?.endpointName && currentState.isUninitialized) {
       const { endpointName } = lastResult
-      const endpointDefinition = context.endpointDefinitions[endpointName]
+      const endpointDefinition = endpointDefinitions[endpointName]
       if (
         queryArgs !== skipToken &&
         serializeQueryArgs({
@@ -1549,7 +1560,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     // in this case, reset the hook
     if (lastResult?.endpointName && currentState.isUninitialized) {
       const { endpointName } = lastResult
-      const endpointDefinition = context.endpointDefinitions[endpointName]
+      const endpointDefinition = endpointDefinitions[endpointName]
       if (
         queryArgs !== skipToken &&
         serializeQueryArgs({
@@ -1722,9 +1733,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           initiate(stableArg, {
             subscriptionOptions: stableSubscriptionOptions,
             forceRefetch: refetchOnMountOrArgChange,
-            ...(isInfiniteQueryDefinition(
-              context.endpointDefinitions[endpointName],
-            )
+            ...(isInfiniteQueryDefinition(endpointDefinitions[endpointName])
               ? {
                   initialPageParam: stableInitialPageParam,
                 }
@@ -1830,11 +1839,11 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
   }
 
   function usePromiseRefUnsubscribeOnUnmount(
-    promiseRef: React.RefObject<{ unsubscribe?: () => void } | undefined>,
+    promiseRef: UnsubscribePromiseRef,
   ) {
     useEffect(() => {
       return () => {
-        promiseRef.current?.unsubscribe?.()
+        unsubscribePromiseRef(promiseRef)
         // eslint-disable-next-line react-hooks/exhaustive-deps
         ;(promiseRef.current as any) = undefined
       }
@@ -1922,7 +1931,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           let promise: QueryActionCreatorResult<any>
 
           batch(() => {
-            promiseRef.current?.unsubscribe()
+            unsubscribePromiseRef(promiseRef)
 
             promiseRef.current = promise = dispatch(
               initiate(arg, {
@@ -1952,7 +1961,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       /* cleanup on unmount */
       useEffect(() => {
         return () => {
-          promiseRef?.current?.unsubscribe()
+          unsubscribePromiseRef(promiseRef)
         }
       }, [])
 
@@ -2036,7 +2045,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           let promise: InfiniteQueryActionCreatorResult<any>
 
           batch(() => {
-            promiseRef.current?.unsubscribe()
+            unsubscribePromiseRef(promiseRef)
 
             promiseRef.current = promise = dispatch(
               (initiate as StartInfiniteQueryActionCreator<any>)(arg, {

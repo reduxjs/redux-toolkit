@@ -35,6 +35,7 @@ import type {
 } from '../endpointDefinitions'
 import {
   calculateProvidedBy,
+  ENDPOINT_QUERY,
   isInfiniteQueryDefinition,
   isQueryDefinition,
 } from '../endpointDefinitions'
@@ -50,7 +51,7 @@ import type {
   InfiniteQueryDirection,
   InfiniteQueryKeys,
 } from './apiState'
-import { QueryStatus } from './apiState'
+import { QueryStatus, STATUS_UNINITIALIZED } from './apiState'
 import type {
   InfiniteQueryActionCreatorResult,
   QueryActionCreatorResult,
@@ -425,7 +426,7 @@ export function buildThunks<
             ),
           ),
       }
-      if (currentState.status === QueryStatus.uninitialized) {
+      if (currentState.status === STATUS_UNINITIALIZED) {
         return ret
       }
       let newValue
@@ -509,6 +510,8 @@ export function buildThunks<
     const { metaSchema, skipSchemaValidation = globalSkipSchemaValidation } =
       endpointDefinition
 
+    const isQuery = arg.type === ENDPOINT_QUERY
+
     try {
       let transformResponse: TransformCallback = defaultTransformResponse
 
@@ -520,13 +523,11 @@ export function buildThunks<
         extra,
         endpoint: arg.endpointName,
         type: arg.type,
-        forced:
-          arg.type === 'query' ? isForcedQuery(arg, getState()) : undefined,
-        queryCacheKey: arg.type === 'query' ? arg.queryCacheKey : undefined,
+        forced: isQuery ? isForcedQuery(arg, getState()) : undefined,
+        queryCacheKey: isQuery ? arg.queryCacheKey : undefined,
       }
 
-      const forceQueryFn =
-        arg.type === 'query' ? arg[forceQueryFnSymbol] : undefined
+      const forceQueryFn = isQuery ? arg[forceQueryFnSymbol] : undefined
 
       let finalQueryReturnValue: QueryReturnValue
 
@@ -675,10 +676,7 @@ export function buildThunks<
         }
       }
 
-      if (
-        arg.type === 'query' &&
-        'infiniteQueryOptions' in endpointDefinition
-      ) {
+      if (isQuery && 'infiniteQueryOptions' in endpointDefinition) {
         // This is an infinite query endpoint
         const { infiniteQueryOptions } = endpointDefinition
 
@@ -843,7 +841,7 @@ export function buildThunks<
             endpoint: arg.endpointName,
             arg: arg.originalArgs,
             type: arg.type,
-            queryCacheKey: arg.type === 'query' ? arg.queryCacheKey : undefined,
+            queryCacheKey: isQuery ? arg.queryCacheKey : undefined,
           }
           endpointDefinition.onSchemaFailure?.(caughtError, info)
           onSchemaFailure?.(caughtError, info)

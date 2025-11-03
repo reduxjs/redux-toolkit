@@ -2,7 +2,7 @@
 // does not have to import this into each source file it rewrites.
 import { formatProdErrorMessage } from '@reduxjs/toolkit'
 
-import { buildCreateApi, coreModule } from '@reduxjs/toolkit/query'
+import { buildCreateApi, coreModule } from './rtkqImports'
 import { reactHooksModule, reactHooksModuleName } from './module'
 
 export * from '@reduxjs/toolkit/query'

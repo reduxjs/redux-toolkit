@@ -7,10 +7,11 @@ import type {
 } from '@reduxjs/toolkit'
 import type { Dispatch } from 'redux'
 import { asSafePromise } from '../../tsHelpers'
-import type { Api, ApiContext } from '../apiTypes'
+import { getEndpointDefinition, type Api, type ApiContext } from '../apiTypes'
 import type { BaseQueryError, QueryReturnValue } from '../baseQueryTypes'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import {
+  ENDPOINT_QUERY,
   isQueryDefinition,
   type EndpointDefinition,
   type EndpointDefinitions,
@@ -303,7 +304,7 @@ export function buildInitiate({
 
   function getRunningQueryThunk(endpointName: string, queryArgs: any) {
     return (dispatch: Dispatch) => {
-      const endpointDefinition = context.endpointDefinitions[endpointName]
+      const endpointDefinition = getEndpointDefinition(context, endpointName)
       const queryCacheKey = serializeQueryArgs({
         queryArgs,
         endpointDefinition,
@@ -393,7 +394,7 @@ You must add the middleware for RTK-Query to function correctly!`,
 
         const commonThunkArgs = {
           ...rest,
-          type: 'query' as const,
+          type: ENDPOINT_QUERY as 'query',
           subscribe,
           forceRefetch: forceRefetch,
           subscriptionOptions,

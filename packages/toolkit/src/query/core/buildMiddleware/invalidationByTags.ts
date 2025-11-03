@@ -11,7 +11,7 @@ import type {
 } from '../../endpointDefinitions'
 import { calculateProvidedBy } from '../../endpointDefinitions'
 import type { CombinedState, QueryCacheKey } from '../apiState'
-import { QueryStatus } from '../apiState'
+import { QueryStatus, STATUS_UNINITIALIZED } from '../apiState'
 import { calculateProvidedByThunk } from '../buildThunks'
 import type {
   SubMiddlewareApi,
@@ -127,7 +127,7 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
                 queryCacheKey: queryCacheKey as QueryCacheKey,
               }),
             )
-          } else if (querySubState.status !== QueryStatus.uninitialized) {
+          } else if (querySubState.status !== STATUS_UNINITIALIZED) {
             mwApi.dispatch(refetchQuery(querySubState))
           }
         }

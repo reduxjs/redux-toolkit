@@ -1,4 +1,4 @@
-import { QueryStatus } from '../apiState'
+import { QueryStatus, STATUS_UNINITIALIZED } from '../apiState'
 import type { QueryCacheKey } from '../apiState'
 import { onFocus, onOnline } from '../setupListeners'
 import type {
@@ -6,7 +6,6 @@ import type {
   InternalHandlerBuilder,
   SubMiddlewareApi,
 } from './types'
-import { countObjectKeys } from '../../utils/countObjectKeys'
 
 export const buildWindowEventHandler: InternalHandlerBuilder = ({
   reducerPath,
@@ -53,7 +52,7 @@ export const buildWindowEventHandler: InternalHandlerBuilder = ({
                 queryCacheKey: queryCacheKey as QueryCacheKey,
               }),
             )
-          } else if (querySubState.status !== QueryStatus.uninitialized) {
+          } else if (querySubState.status !== STATUS_UNINITIALIZED) {
             api.dispatch(refetchQuery(querySubState))
           }
         }

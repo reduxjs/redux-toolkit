@@ -1,3 +1,4 @@
+import { getEndpointDefinition } from '@internal/query/apiTypes'
 import type { QueryDefinition } from '../../endpointDefinitions'
 import type { ConfigState, QueryCacheKey, QuerySubState } from '../apiState'
 import { isAnyOf } from '../rtkImports'
@@ -155,9 +156,10 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
     api: SubMiddlewareApi,
     config: ConfigState<string>,
   ) {
-    const endpointDefinition = context.endpointDefinitions[
-      endpointName
-    ] as QueryDefinition<any, any, any, any>
+    const endpointDefinition = getEndpointDefinition(
+      context,
+      endpointName,
+    ) as QueryDefinition<any, any, any, any>
     const keepUnusedDataFor =
       endpointDefinition?.keepUnusedDataFor ?? config.keepUnusedDataFor
 

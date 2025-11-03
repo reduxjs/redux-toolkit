@@ -1,4 +1,10 @@
-import type { Api, ApiContext, Module, ModuleName } from './apiTypes'
+import {
+  getEndpointDefinition,
+  type Api,
+  type ApiContext,
+  type Module,
+  type ModuleName,
+} from './apiTypes'
 import type { CombinedState } from './core/apiState'
 import type { BaseQueryArg, BaseQueryFn } from './baseQueryTypes'
 import type { SerializeQueryArgs } from './defaultSerializeQueryArgs'
@@ -12,6 +18,9 @@ import type {
 } from './endpointDefinitions'
 import {
   DefinitionType,
+  ENDPOINT_INFINITEQUERY,
+  ENDPOINT_MUTATION,
+  ENDPOINT_QUERY,
   isInfiniteQueryDefinition,
   isQueryDefinition,
 } from './endpointDefinitions'
@@ -418,10 +427,10 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
             endpoints,
           )) {
             if (typeof partialDefinition === 'function') {
-              partialDefinition(context.endpointDefinitions[endpointName])
+              partialDefinition(getEndpointDefinition(context, endpointName))
             } else {
               Object.assign(
-                context.endpointDefinitions[endpointName] || {},
+                getEndpointDefinition(context, endpointName) || {},
                 partialDefinition,
               )
             }
@@ -439,10 +448,9 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
       inject: Parameters<typeof api.injectEndpoints>[0],
     ) {
       const evaluatedEndpoints = inject.endpoints({
-        query: (x) => ({ ...x, type: DefinitionType.query }) as any,
-        mutation: (x) => ({ ...x, type: DefinitionType.mutation }) as any,
-        infiniteQuery: (x) =>
-          ({ ...x, type: DefinitionType.infinitequery }) as any,
+        query: (x) => ({ ...x, type: ENDPOINT_QUERY }) as any,
+        mutation: (x) => ({ ...x, type: ENDPOINT_MUTATION }) as any,
+        infiniteQuery: (x) => ({ ...x, type: ENDPOINT_INFINITEQUERY }) as any,
       })
 
       for (const [endpointName, definition] of Object.entries(

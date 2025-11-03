@@ -65,6 +65,13 @@ export type InfiniteData<DataType, PageParam> = {
   pageParams: Array<PageParam>
 }
 
+// NOTE: DO NOT import and use this for runtime comparisons internally,
+// except in the RTKQ React package. Use the string versions just below this.
+// ESBuild auto-inlines TS enums, which bloats our bundle with many repeated
+// constants like "initialized":
+// https://github.com/evanw/esbuild/releases/tag/v0.14.7
+// We still have to use this in the React package since we don't publicly export
+// the string constants below.
 /**
  * Strings describing the query state at any given time.
  */
@@ -74,6 +81,12 @@ export enum QueryStatus {
   fulfilled = 'fulfilled',
   rejected = 'rejected',
 }
+
+// Use these string constants for runtime comparisons internally
+export const STATUS_UNINITIALIZED = QueryStatus.uninitialized
+export const STATUS_PENDING = QueryStatus.pending
+export const STATUS_FULFILLED = QueryStatus.fulfilled
+export const STATUS_REJECTED = QueryStatus.rejected
 
 export type RequestStatusFlags =
   | {
@@ -108,10 +121,10 @@ export type RequestStatusFlags =
 export function getRequestStatusFlags(status: QueryStatus): RequestStatusFlags {
   return {
     status,
-    isUninitialized: status === QueryStatus.uninitialized,
-    isLoading: status === QueryStatus.pending,
-    isSuccess: status === QueryStatus.fulfilled,
-    isError: status === QueryStatus.rejected,
+    isUninitialized: status === STATUS_UNINITIALIZED,
+    isLoading: status === STATUS_PENDING,
+    isSuccess: status === STATUS_FULFILLED,
+    isError: status === STATUS_REJECTED,
   } as any
 }
 
