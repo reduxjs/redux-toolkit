@@ -75,20 +75,6 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
     }
   }
 
-  function getCacheEntrySubscriptions(
-    queryCacheKey: QueryCacheKey,
-    api: SubMiddlewareApi,
-  ) {
-    const state = api.getState()[reducerPath]
-    const querySubState = state.queries[queryCacheKey]
-    const subscriptions = currentSubscriptions.get(queryCacheKey)
-
-    if (!querySubState || querySubState.status === QueryStatus.uninitialized)
-      return
-
-    return subscriptions
-  }
-
   function startNextPoll(
     { queryCacheKey }: QuerySubstateIdentifier,
     api: SubMiddlewareApi,
