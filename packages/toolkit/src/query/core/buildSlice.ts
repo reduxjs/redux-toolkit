@@ -26,7 +26,13 @@ import type {
   InfiniteQuerySubState,
   InfiniteQueryDirection,
 } from './apiState'
-import { QueryStatus } from './apiState'
+import {
+  STATUS_FULFILLED,
+  STATUS_PENDING,
+  QueryStatus,
+  STATUS_REJECTED,
+  STATUS_UNINITIALIZED,
+} from './apiState'
 import type {
   AllQueryKeys,
   QueryArgFromAnyQueryDefinition,
@@ -46,7 +52,7 @@ import {
 } from '../endpointDefinitions'
 import type { Patch } from 'immer'
 import { isDraft } from 'immer'
-import { applyPatches, original } from 'immer'
+import { applyPatches, original } from '../utils/immerImports'
 import { onFocus, onFocusLost, onOffline, onOnline } from './setupListeners'
 import {
   isDocumentVisible,
@@ -189,12 +195,12 @@ export function buildSlice({
     } & { startedTimeStamp: number },
   ) {
     draft[arg.queryCacheKey] ??= {
-      status: QueryStatus.uninitialized,
+      status: STATUS_UNINITIALIZED,
       endpointName: arg.endpointName,
     }
 
     updateQuerySubstateIfExists(draft, arg.queryCacheKey, (substate) => {
-      substate.status = QueryStatus.pending
+      substate.status = STATUS_PENDING
 
       substate.requestId =
         upserting && substate.requestId
@@ -233,7 +239,7 @@ export function buildSlice({
         any,
         any
       >
-      substate.status = QueryStatus.fulfilled
+      substate.status = STATUS_FULFILLED
 
       if (merge) {
         if (substate.data !== undefined) {
@@ -390,7 +396,7 @@ export function buildSlice({
                 } else {
                   // request failed
                   if (substate.requestId !== requestId) return
-                  substate.status = QueryStatus.rejected
+                  substate.status = STATUS_REJECTED
                   substate.error = (payload ?? error) as any
                 }
               },
@@ -402,8 +408,8 @@ export function buildSlice({
           for (const [key, entry] of Object.entries(queries)) {
             if (
               // do not rehydrate entries that were currently in flight.
-              entry?.status === QueryStatus.fulfilled ||
-              entry?.status === QueryStatus.rejected
+              entry?.status === STATUS_FULFILLED ||
+              entry?.status === STATUS_REJECTED
             ) {
               draft[key] = entry
             }
@@ -434,7 +440,7 @@ export function buildSlice({
 
             draft[getMutationCacheKey(meta)] = {
               requestId,
-              status: QueryStatus.pending,
+              status: STATUS_PENDING,
               endpointName: arg.endpointName,
               startedTimeStamp,
             }
@@ -445,7 +451,7 @@ export function buildSlice({
 
           updateMutationSubstateIfExists(draft, meta, (substate) => {
             if (substate.requestId !== meta.requestId) return
-            substate.status = QueryStatus.fulfilled
+            substate.status = STATUS_FULFILLED
             substate.data = payload
             substate.fulfilledTimeStamp = meta.fulfilledTimeStamp
           })
@@ -456,7 +462,7 @@ export function buildSlice({
           updateMutationSubstateIfExists(draft, meta, (substate) => {
             if (substate.requestId !== meta.requestId) return
 
-            substate.status = QueryStatus.rejected
+            substate.status = STATUS_REJECTED
             substate.error = (payload ?? error) as any
           })
         })
@@ -465,8 +471,8 @@ export function buildSlice({
           for (const [key, entry] of Object.entries(mutations)) {
             if (
               // do not rehydrate entries that were currently in flight.
-              (entry?.status === QueryStatus.fulfilled ||
-                entry?.status === QueryStatus.rejected) &&
+              (entry?.status === STATUS_FULFILLED ||
+                entry?.status === STATUS_REJECTED) &&
               // only rehydrate endpoints that were persisted using a `fixedCacheKey`
               key !== entry?.requestId
             ) {

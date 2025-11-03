@@ -50,7 +50,7 @@ import type {
   InfiniteQueryDirection,
   InfiniteQueryKeys,
 } from './apiState'
-import { QueryStatus } from './apiState'
+import { QueryStatus, STATUS_UNINITIALIZED } from './apiState'
 import type {
   InfiniteQueryActionCreatorResult,
   QueryActionCreatorResult,
@@ -425,7 +425,7 @@ export function buildThunks<
             ),
           ),
       }
-      if (currentState.status === QueryStatus.uninitialized) {
+      if (currentState.status === STATUS_UNINITIALIZED) {
         return ret
       }
       let newValue

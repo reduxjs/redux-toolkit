@@ -1414,6 +1414,8 @@ const noPendingQueryStateSelector: QueryStateSelector<any, any> = (
       isUninitialized: false,
       isFetching: true,
       isLoading: selected.data !== undefined ? false : true,
+      // This is the one place where we still have to use `QueryStatus` as an enum,
+      // since it's the only reference in the React package and not in the core.
       status: QueryStatus.pending,
     } as any
   }

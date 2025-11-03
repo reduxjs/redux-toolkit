@@ -20,13 +20,13 @@ import type {
   InfiniteQuerySubState,
   MutationSubState,
   QueryCacheKey,
-  QueryKeys,
   QueryState,
   QuerySubState,
   RequestStatusFlags,
   RootState as _RootState,
+  QueryStatus,
 } from './apiState'
-import { QueryStatus, getRequestStatusFlags } from './apiState'
+import { STATUS_UNINITIALIZED, getRequestStatusFlags } from './apiState'
 import { getMutationCacheKey } from './buildSlice'
 import type { createSelector as _createSelector } from './rtkImports'
 import { createNextState } from './rtkImports'
@@ -151,7 +151,7 @@ export type MutationResultSelectorResult<
 > = MutationSubState<Definition> & RequestStatusFlags
 
 const initialSubState: QuerySubState<any> = {
-  status: QueryStatus.uninitialized as const,
+  status: STATUS_UNINITIALIZED,
 }
 
 // abuse immer to freeze default states
@@ -388,7 +388,7 @@ export function buildSelectors<
         { status: QueryStatus.uninitialized }
       > =>
         entry?.endpointName === queryName &&
-        entry.status !== QueryStatus.uninitialized,
+        entry.status !== STATUS_UNINITIALIZED,
       (entry) => entry.originalArgs,
     )
   }

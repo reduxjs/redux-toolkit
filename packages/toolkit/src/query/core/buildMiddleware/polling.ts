@@ -4,7 +4,7 @@ import type {
   Subscribers,
   SubscribersInternal,
 } from '../apiState'
-import { QueryStatus } from '../apiState'
+import { QueryStatus, STATUS_UNINITIALIZED } from '../apiState'
 import type {
   QueryStateMeta,
   SubMiddlewareApi,
@@ -83,8 +83,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
     const querySubState = state.queries[queryCacheKey]
     const subscriptions = currentSubscriptions.get(queryCacheKey)
 
-    if (!querySubState || querySubState.status === QueryStatus.uninitialized)
-      return
+    if (!querySubState || querySubState.status === STATUS_UNINITIALIZED) return
 
     const { lowestPollingInterval, skipPollingIfUnfocused } =
       findLowestPollingInterval(subscriptions)
@@ -119,7 +118,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
     const querySubState = state.queries[queryCacheKey]
     const subscriptions = currentSubscriptions.get(queryCacheKey)
 
-    if (!querySubState || querySubState.status === QueryStatus.uninitialized) {
+    if (!querySubState || querySubState.status === STATUS_UNINITIALIZED) {
       return
     }
 
