@@ -49,8 +49,8 @@ import {
   useMemo,
   useRef,
   useState,
-} from 'react'
-import { shallowEqual } from 'react-redux'
+} from './reactImports'
+import { shallowEqual } from './reactReduxImports'
 
 import type { SubscriptionSelectors } from '../core/buildMiddleware/index'
 import type { InfiniteData, InfiniteQueryConfigOptions } from '../core/index'

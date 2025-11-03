@@ -10,7 +10,7 @@ import type {
   ThunkDispatch,
   UnknownAction,
 } from '@reduxjs/toolkit'
-import { enablePatches } from 'immer'
+import { enablePatches } from '../utils/immerImports'
 import type { Api, Module } from '../apiTypes'
 import type { BaseQueryFn } from '../baseQueryTypes'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'

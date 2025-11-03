@@ -1,4 +1,4 @@
-import { useEffect, useRef, useMemo } from 'react'
+import { useEffect, useRef, useMemo } from './reactImports'
 import { copyWithStructuralSharing } from '@reduxjs/toolkit/query'
 
 export function useStableQueryArgs<T>(queryArgs: T) {

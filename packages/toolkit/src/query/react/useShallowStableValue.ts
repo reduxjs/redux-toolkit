@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react'
-import { shallowEqual } from 'react-redux'
+import { useEffect, useRef } from './reactImports'
+import { shallowEqual } from './reactReduxImports'
 
 export function useShallowStableValue<T>(value: T) {
   const cache = useRef(value)
