@@ -1,8 +1,11 @@
 const webpack = require('webpack')
 let { join } = require('path')
 
-const esmSuffixes = ['modern.mjs' /*, 'browser.mjs', 'legacy-esm.js'*/]
-const cjsSuffixes = [/*'development.cjs',*/ 'production.min.cjs']
+const esmSuffixes = ['modern.mjs', 'browser.mjs' /*, 'legacy-esm.js'*/]
+const cjsSuffixes = [
+  /*'development.cjs',*/
+  /*'production.min.cjs'*/
+]
 
 function withRtkPath(suffix, cjs = false) {
   /**
