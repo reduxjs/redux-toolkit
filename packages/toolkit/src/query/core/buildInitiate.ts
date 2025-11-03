@@ -7,7 +7,7 @@ import type {
 } from '@reduxjs/toolkit'
 import type { Dispatch } from 'redux'
 import { asSafePromise } from '../../tsHelpers'
-import type { Api, ApiContext } from '../apiTypes'
+import { getEndpointDefinition, type Api, type ApiContext } from '../apiTypes'
 import type { BaseQueryError, QueryReturnValue } from '../baseQueryTypes'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import {
@@ -304,7 +304,7 @@ export function buildInitiate({
 
   function getRunningQueryThunk(endpointName: string, queryArgs: any) {
     return (dispatch: Dispatch) => {
-      const endpointDefinition = context.endpointDefinitions[endpointName]
+      const endpointDefinition = getEndpointDefinition(context, endpointName)
       const queryCacheKey = serializeQueryArgs({
         queryArgs,
         endpointDefinition,

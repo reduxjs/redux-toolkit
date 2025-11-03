@@ -23,6 +23,7 @@ import type {
   PromiseWithKnownReason,
   SubMiddlewareApi,
 } from './types'
+import { getEndpointDefinition } from '@internal/query/apiTypes'
 
 export type ReferenceCacheLifecycle = never
 
@@ -317,7 +318,7 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
     mwApi: SubMiddlewareApi,
     requestId: string,
   ) {
-    const endpointDefinition = context.endpointDefinitions[endpointName]
+    const endpointDefinition = getEndpointDefinition(context, endpointName)
     const onCacheEntryAdded = endpointDefinition?.onCacheEntryAdded
     if (!onCacheEntryAdded) return
 

@@ -1,4 +1,10 @@
-import type { Api, ApiContext, Module, ModuleName } from './apiTypes'
+import {
+  getEndpointDefinition,
+  type Api,
+  type ApiContext,
+  type Module,
+  type ModuleName,
+} from './apiTypes'
 import type { CombinedState } from './core/apiState'
 import type { BaseQueryArg, BaseQueryFn } from './baseQueryTypes'
 import type { SerializeQueryArgs } from './defaultSerializeQueryArgs'
@@ -421,10 +427,10 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
             endpoints,
           )) {
             if (typeof partialDefinition === 'function') {
-              partialDefinition(context.endpointDefinitions[endpointName])
+              partialDefinition(getEndpointDefinition(context, endpointName))
             } else {
               Object.assign(
-                context.endpointDefinitions[endpointName] || {},
+                getEndpointDefinition(context, endpointName) || {},
                 partialDefinition,
               )
             }
