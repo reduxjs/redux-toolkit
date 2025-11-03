@@ -3,8 +3,8 @@ import type { Context } from 'react'
 import { useContext, useEffect } from './reactImports'
 import * as React from 'react'
 import type { ReactReduxContextValue } from 'react-redux'
-import { Provider, ReactReduxContext } from 'react-redux'
-import { setupListeners } from '@reduxjs/toolkit/query'
+import { Provider, ReactReduxContext } from './reactReduxImports'
+import { setupListeners } from './rtkqImports'
 import type { Api } from '@reduxjs/toolkit/query'
 
 /**

@@ -1,1 +1,1 @@
-export { shallowEqual } from 'react-redux'
+export { shallowEqual, Provider, ReactReduxContext } from 'react-redux'
