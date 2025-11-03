@@ -205,6 +205,9 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
   }
   const lifecycleMap: Record<string, CacheLifecycle> = {}
 
+  const { removeQueryResult, removeMutationResult, cacheEntriesUpserted } =
+    api.internalActions
+
   function resolveLifecycleEntry(
     cacheKey: string,
     data: unknown,
@@ -229,6 +232,16 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
     }
   }
 
+  function getActionMetaFields(
+    action:
+      | ReturnType<typeof queryThunk.pending>
+      | ReturnType<typeof mutationThunk.pending>,
+  ) {
+    const { arg, requestId } = action.meta
+    const { endpointName, originalArgs } = arg
+    return [endpointName, originalArgs, requestId] as const
+  }
+
   const handler: ApiMiddlewareInternalHandler = (
     action,
     mwApi,
@@ -250,13 +263,10 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
     }
 
     if (queryThunk.pending.match(action)) {
-      checkForNewCacheKey(
-        action.meta.arg.endpointName,
-        cacheKey,
-        action.meta.requestId,
-        action.meta.arg.originalArgs,
-      )
-    } else if (api.internalActions.cacheEntriesUpserted.match(action)) {
+      const [endpointName, originalArgs, requestId] =
+        getActionMetaFields(action)
+      checkForNewCacheKey(endpointName, cacheKey, requestId, originalArgs)
+    } else if (cacheEntriesUpserted.match(action)) {
       for (const { queryDescription, value } of action.payload) {
         const { endpointName, originalArgs, queryCacheKey } = queryDescription
         checkForNewCacheKey(
@@ -271,19 +281,15 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
     } else if (mutationThunk.pending.match(action)) {
       const state = mwApi.getState()[reducerPath].mutations[cacheKey]
       if (state) {
-        handleNewKey(
-          action.meta.arg.endpointName,
-          action.meta.arg.originalArgs,
-          cacheKey,
-          mwApi,
-          action.meta.requestId,
-        )
+        const [endpointName, originalArgs, requestId] =
+          getActionMetaFields(action)
+        handleNewKey(endpointName, originalArgs, cacheKey, mwApi, requestId)
       }
     } else if (isFulfilledThunk(action)) {
       resolveLifecycleEntry(cacheKey, action.payload, action.meta.baseQueryMeta)
     } else if (
-      api.internalActions.removeQueryResult.match(action) ||
-      api.internalActions.removeMutationResult.match(action)
+      removeQueryResult.match(action) ||
+      removeMutationResult.match(action)
     ) {
       removeLifecycleEntry(cacheKey)
     } else if (api.util.resetApiState.match(action)) {
@@ -298,9 +304,8 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
     if (isMutationThunk(action)) {
       return action.meta.arg.fixedCacheKey ?? action.meta.requestId
     }
-    if (api.internalActions.removeQueryResult.match(action))
-      return action.payload.queryCacheKey
-    if (api.internalActions.removeMutationResult.match(action))
+    if (removeQueryResult.match(action)) return action.payload.queryCacheKey
+    if (removeMutationResult.match(action))
       return getMutationCacheKey(action.payload)
     return ''
   }
