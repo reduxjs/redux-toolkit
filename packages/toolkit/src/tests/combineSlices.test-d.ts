@@ -1,4 +1,10 @@
-import type { Reducer, Slice, WithSlice } from '@reduxjs/toolkit'
+import type {
+  Action,
+  Reducer,
+  Slice,
+  WithSlice,
+  WithSlicePreloadedState,
+} from '@reduxjs/toolkit'
 import { combineSlices } from '@reduxjs/toolkit'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 
@@ -7,6 +13,13 @@ declare const stringSlice: Slice<string, {}, 'string'>
 declare const numberSlice: Slice<number, {}, 'number'>
 
 declare const booleanReducer: Reducer<boolean>
+
+declare const mixedReducer: Reducer<string, Action, number>
+
+declare const mixedSliceLike: {
+  reducerPath: 'mixedSlice'
+  reducer: typeof mixedReducer
+}
 
 const exampleApi = createApi({
   baseQuery: fetchBaseQuery(),
@@ -21,16 +34,31 @@ type ExampleApiState = ReturnType<typeof exampleApi.reducer>
 
 describe('type tests', () => {
   test('combineSlices correctly combines static state', () => {
-    const rootReducer = combineSlices(stringSlice, numberSlice, exampleApi, {
-      boolean: booleanReducer,
-    })
+    const rootReducer = combineSlices(
+      stringSlice,
+      numberSlice,
+      exampleApi,
+      {
+        boolean: booleanReducer,
+        mixed: mixedReducer,
+      },
+      mixedSliceLike,
+    )
 
     expectTypeOf(rootReducer(undefined, { type: '' })).toEqualTypeOf<{
       string: string
       number: number
       boolean: boolean
       api: ExampleApiState
+      mixed: string
+      mixedSlice: string
     }>()
+
+    // test for correct preloaded state handling
+    expectTypeOf(rootReducer).toBeCallableWith(
+      { mixed: 9, mixedSlice: 9 },
+      { type: '' },
+    )
   })
 
   test('combineSlices allows passing no initial reducers', () => {
@@ -63,7 +91,21 @@ describe('type tests', () => {
   test('inject marks injected keys as required', () => {
     const rootReducer = combineSlices(stringSlice).withLazyLoadedSlices<
       WithSlice<typeof numberSlice> &
-        WithSlice<typeof exampleApi> & { boolean: boolean }
+        WithSlice<typeof exampleApi> & { boolean: boolean } & WithSlice<
+          typeof mixedSliceLike
+        > &
+        WithSlice<{
+          reducerPath: 'mixedReducer'
+          reducer: typeof mixedReducer
+        }>,
+      WithSlicePreloadedState<typeof numberSlice> &
+        WithSlicePreloadedState<typeof exampleApi> & {
+          boolean: boolean
+        } & WithSlicePreloadedState<typeof mixedSliceLike> &
+        WithSlicePreloadedState<{
+          reducerPath: 'mixedReducer'
+          reducer: typeof mixedReducer
+        }>
     >()
 
     expectTypeOf(rootReducer(undefined, { type: '' }).number).toEqualTypeOf<
@@ -77,6 +119,14 @@ describe('type tests', () => {
     expectTypeOf(rootReducer(undefined, { type: '' }).api).toEqualTypeOf<
       ExampleApiState | undefined
     >()
+
+    expectTypeOf(rootReducer(undefined, { type: '' }).mixedSlice).toEqualTypeOf<
+      string | undefined
+    >()
+
+    expectTypeOf(
+      rootReducer(undefined, { type: '' }).mixedReducer,
+    ).toEqualTypeOf<string | undefined>()
 
     const withNumber = rootReducer.inject(numberSlice)
 
@@ -94,6 +144,21 @@ describe('type tests', () => {
     expectTypeOf(
       withApi(undefined, { type: '' }).api,
     ).toEqualTypeOf<ExampleApiState>()
+
+    const withMixedSlice = rootReducer.inject(mixedSliceLike)
+
+    expectTypeOf(
+      withMixedSlice(undefined, { type: '' }).mixedSlice,
+    ).toBeString()
+
+    const withMixedReducer = rootReducer.inject({
+      reducerPath: 'mixedReducer',
+      reducer: mixedReducer,
+    })
+
+    expectTypeOf(
+      withMixedReducer(undefined, { type: '' }).mixedReducer,
+    ).toBeString()
   })
 
   test('selector() allows defining selectors with injected reducers defined', () => {
