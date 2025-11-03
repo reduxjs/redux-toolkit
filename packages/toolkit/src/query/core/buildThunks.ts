@@ -7,7 +7,7 @@ import type {
   UnknownAction,
 } from '@reduxjs/toolkit'
 import type { Patch } from 'immer'
-import { isDraftable, produceWithPatches } from 'immer'
+import { isDraftable, produceWithPatches } from '../utils/immerImports'
 import type { Api, ApiContext } from '../apiTypes'
 import type {
   BaseQueryError,

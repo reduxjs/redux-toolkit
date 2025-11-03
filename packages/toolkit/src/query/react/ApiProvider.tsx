@@ -1,7 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit'
 import type { Context } from 'react'
-import { useContext } from 'react'
-import { useEffect } from 'react'
+import { useContext, useEffect } from './reactImports'
 import * as React from 'react'
 import type { ReactReduxContextValue } from 'react-redux'
 import { Provider, ReactReduxContext } from 'react-redux'

@@ -1,5 +1,5 @@
-import { current, isDraft } from 'immer'
-import { createSelectorCreator, weakMapMemoize } from 'reselect'
+import { current, isDraft } from './immerImports'
+import { createSelectorCreator, weakMapMemoize } from './reselectImports'
 
 export const createDraftSafeSelectorCreator: typeof createSelectorCreator = (
   ...args: unknown[]

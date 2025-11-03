@@ -3,20 +3,11 @@
 import { formatProdErrorMessage } from './formatProdErrorMessage'
 
 export * from 'redux'
-export {
-  produce as createNextState,
-  current,
-  freeze,
-  original,
-  isDraft,
-} from 'immer'
+export { freeze, original } from 'immer'
+export { createNextState, current, isDraft } from './immerImports'
 export type { Draft, WritableDraft } from 'immer'
-export {
-  createSelector,
-  createSelectorCreator,
-  lruMemoize,
-  weakMapMemoize,
-} from 'reselect'
+export { createSelector, lruMemoize } from 'reselect'
+export { createSelectorCreator, weakMapMemoize } from './reselectImports'
 export type { Selector, OutputSelector } from 'reselect'
 export {
   createDraftSafeSelector,
