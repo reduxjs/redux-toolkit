@@ -83,8 +83,7 @@ export function setupListeners(
     }
 
     if (!initialized) {
-      const WINDOW = window
-      if (typeof WINDOW !== 'undefined' && !!WINDOW.addEventListener) {
+      if (typeof window !== 'undefined' && window.addEventListener) {
         const handlers = {
           [FOCUS]: handleFocus,
           [VISIBILITYCHANGE]: handleVisibilityChange,
@@ -95,9 +94,9 @@ export function setupListeners(
         function updateListeners(add: boolean) {
           Object.entries(handlers).forEach(([event, handler]) => {
             if (add) {
-              WINDOW.addEventListener(event, handler, false)
+              window.addEventListener(event, handler, false)
             } else {
-              WINDOW.removeEventListener(event, handler)
+              window.removeEventListener(event, handler)
             }
           })
         }
