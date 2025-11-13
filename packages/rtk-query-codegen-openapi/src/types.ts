@@ -154,6 +154,8 @@ export type EndpointOverrides = {
 } & AtLeastOneKey<{
   type: 'mutation' | 'query';
   parameterFilter: ParameterMatcher;
+  providesTags: string[];
+  invalidatesTags: string[];
 }>;
 
 export type ConfigFile =
