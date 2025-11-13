@@ -315,7 +315,7 @@ export async function generateApi(
       operation: { responses, requestBody },
     } = operationDefinition;
     const operationName = getOperationName({ verb, path, operation });
-    const tags = tag ? getTags({ verb, pathItem }) : [];
+    const tags = tag ? getTags({ verb, pathItem }) : undefined;
     const isQuery = testIsQuery(verb, overrides);
 
     const returnsJson = apiGen.getResponseType(responses) === 'json';
@@ -470,6 +470,14 @@ export async function generateApi(
       ).name
     );
 
+    const tagOverrides =
+      overrides && (overrides.providesTags !== undefined || overrides.invalidatesTags !== undefined)
+        ? {
+            ...(overrides.providesTags !== undefined ? { providesTags: overrides.providesTags } : {}),
+            ...(overrides.invalidatesTags !== undefined ? { invalidatesTags: overrides.invalidatesTags } : {}),
+          }
+        : undefined;
+
     return generateEndpointDefinition({
       operationName: operationNameSuffix ? capitalize(operationName + operationNameSuffix) : operationName,
       type: isQuery ? 'query' : 'mutation',
@@ -487,6 +495,7 @@ export async function generateApi(
         ? generateQueryEndpointProps({ operationDefinition })
         : generateMutationEndpointProps({ operationDefinition }),
       tags,
+      tagOverrides,
     });
   }
 
