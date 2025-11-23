@@ -870,6 +870,16 @@ export type UseInfiniteQuerySubscriptionOptions<
    */
   refetchOnMountOrArgChange?: boolean | number
   initialPageParam?: PageParamFrom<D>
+  /**
+   * Defaults to `true`. When this is `true` and an infinite query endpoint is refetched
+   * (due to tag invalidation, polling, arg change configuration, or manual refetching),
+   * RTK Query will try to sequentially refetch all pages currently in the cache.
+   * When `false` only the first page will be refetched.
+   *
+   * This option applies to all automatic refetches for this subscription (polling, tag invalidation, etc.).
+   * It can be overridden on a per-call basis using the `refetch()` method.
+   */
+  refetchCachedPages?: boolean
 }
 
 export type TypedUseInfiniteQuerySubscription<
@@ -890,7 +900,13 @@ export type TypedUseInfiniteQuerySubscription<
 
 export type UseInfiniteQuerySubscriptionResult<
   D extends InfiniteQueryDefinition<any, any, any, any, any>,
-> = Pick<InfiniteQueryActionCreatorResult<D>, 'refetch'> & {
+> = {
+  refetch: (
+    options?: Pick<
+      UseInfiniteQuerySubscriptionOptions<D>,
+      'refetchCachedPages'
+    >,
+  ) => InfiniteQueryActionCreatorResult<D>
   trigger: LazyInfiniteQueryTrigger<D>
   fetchNextPage: () => InfiniteQueryActionCreatorResult<D>
   fetchPreviousPage: () => InfiniteQueryActionCreatorResult<D>
@@ -1682,6 +1698,11 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       .initialPageParam
     const stableInitialPageParam = useShallowStableValue(initialPageParam)
 
+    const refetchCachedPages = (
+      rest as UseInfiniteQuerySubscriptionOptions<any>
+    ).refetchCachedPages
+    const stableRefetchCachedPages = useShallowStableValue(refetchCachedPages)
+
     /**
      * @todo Change this to `useRef<QueryActionCreatorResult<any>>(undefined)` after upgrading to React 19.
      */
@@ -1736,6 +1757,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
             ...(isInfiniteQueryDefinition(endpointDefinitions[endpointName])
               ? {
                   initialPageParam: stableInitialPageParam,
+                  refetchCachedPages: stableRefetchCachedPages,
                 }
               : {}),
           }),
@@ -1753,6 +1775,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       stableSubscriptionOptions,
       subscriptionRemoved,
       stableInitialPageParam,
+      stableRefetchCachedPages,
       endpointName,
     ])
 
@@ -2040,6 +2063,14 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         subscriptionOptionsRef.current = stableSubscriptionOptions
       }, [stableSubscriptionOptions])
 
+      // Extract and stabilize the hook-level refetchCachedPages option
+      const hookRefetchCachedPages = (
+        options as UseInfiniteQuerySubscriptionOptions<any>
+      ).refetchCachedPages
+      const stableHookRefetchCachedPages = useShallowStableValue(
+        hookRefetchCachedPages,
+      )
+
       const trigger: LazyInfiniteQueryTrigger<any> = useCallback(
         function (arg: unknown, direction: 'forward' | 'backward') {
           let promise: InfiniteQueryActionCreatorResult<any>
@@ -2065,8 +2096,24 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       const stableArg = useStableQueryArgs(options.skip ? skipToken : arg)
 
       const refetch = useCallback(
-        () => refetchOrErrorIfUnmounted(promiseRef),
-        [promiseRef],
+        (
+          options?: Pick<
+            UseInfiniteQuerySubscriptionOptions<any>,
+            'refetchCachedPages'
+          >,
+        ) => {
+          if (!promiseRef.current)
+            throw new Error(
+              'Cannot refetch a query that has not been started yet.',
+            )
+          // Merge per-call options with hook-level default
+          const mergedOptions = {
+            refetchCachedPages:
+              options?.refetchCachedPages ?? stableHookRefetchCachedPages,
+          }
+          return promiseRef.current.refetch(mergedOptions)
+        },
+        [promiseRef, stableHookRefetchCachedPages],
       )
 
       return useMemo(() => {
