@@ -7695,7 +7695,7 @@ __metadata:
     eslint-plugin-react: "npm:^7.23.2"
     eslint-plugin-react-hooks: "npm:^4.2.0"
     fs-extra: "npm:^9.1.0"
-    immer: "npm:^10.2.0"
+    immer: "npm:^11.0.0"
     invariant: "npm:^2.2.4"
     jsdom: "npm:^25.0.1"
     json-stringify-safe: "npm:^5.0.1"
@@ -18728,10 +18728,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"immer@npm:^10.2.0":
-  version: 10.2.0
-  resolution: "immer@npm:10.2.0"
-  checksum: 10/d73e218c8f8ffbb39f9290dfafa478b94af73403dcf26b5672eef35233bb30f09ffe231f8a78a6c9cb442968510edd89e851776ec90a5ddfa82cee6db6b35137
+"immer@npm:^11.0.0":
+  version: 11.0.0
+  resolution: "immer@npm:11.0.0"
+  checksum: 10/d79824edac56741986d80f091fcec00330e7fa4406a82f9e6bb30997c2674c468afe5196750456fc592c7e40cf903d968e04f8035efc9f26c073b5ed2b52462f
   languageName: node
   linkType: hard
 

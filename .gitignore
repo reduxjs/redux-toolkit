@@ -36,3 +36,8 @@ tsconfig.vitest-temp.json
 # node version manager files
 .node-version
 .nvmrc
+
+# Assorted local docs
+docs/dev-plans
+# Perf protobufs
+*.pb.gz

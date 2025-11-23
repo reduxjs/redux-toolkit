@@ -261,7 +261,7 @@
   "dependencies": {
     "@standard-schema/spec": "^1.0.0",
     "@standard-schema/utils": "^0.3.0",
-    "immer": "^10.2.0",
+    "immer": "^11.0.0",
     "redux": "^5.0.1",
     "redux-thunk": "^3.1.0",
     "reselect": "^5.1.0"
