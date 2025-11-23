@@ -74,6 +74,10 @@ export type StartQueryActionCreatorOptions = {
   [forceQueryFnSymbol]?: () => QueryReturnValue
 }
 
+type RefetchOptions = {
+  refetchCachedPages?: boolean
+}
+
 export type StartInfiniteQueryActionCreatorOptions<
   D extends InfiniteQueryDefinition<any, any, any, any, any>,
 > = StartQueryActionCreatorOptions & {
@@ -88,7 +92,7 @@ export type StartInfiniteQueryActionCreatorOptions<
           InfiniteQueryArgFrom<D>
         >
       >,
-      'initialPageParam'
+      'initialPageParam' | 'refetchCachedPages'
     >
   >
 
@@ -124,7 +128,7 @@ type AnyActionCreatorResult = SafePromise<any> &
   QueryActionCreatorFields & {
     arg: any
     unwrap(): Promise<any>
-    refetch(): AnyActionCreatorResult
+    refetch(options?: RefetchOptions): AnyActionCreatorResult
   }
 
 export type QueryActionCreatorResult<
@@ -142,7 +146,12 @@ export type InfiniteQueryActionCreatorResult<
   QueryActionCreatorFields & {
     arg: InfiniteQueryArgFrom<D>
     unwrap(): Promise<InfiniteData<ResultTypeFrom<D>, PageParamFrom<D>>>
-    refetch(): InfiniteQueryActionCreatorResult<D>
+    refetch(
+      options?: Pick<
+        StartInfiniteQueryActionCreatorOptions<D>,
+        'refetchCachedPages'
+      >,
+    ): InfiniteQueryActionCreatorResult<D>
   }
 
 type StartMutationActionCreator<
@@ -407,16 +416,18 @@ You must add the middleware for RTK-Query to function correctly!`,
         if (isQueryDefinition(endpointDefinition)) {
           thunk = queryThunk(commonThunkArgs)
         } else {
-          const { direction, initialPageParam } = rest as Pick<
-            InfiniteQueryThunkArg<any>,
-            'direction' | 'initialPageParam'
-          >
+          const { direction, initialPageParam, refetchCachedPages } =
+            rest as Pick<
+              InfiniteQueryThunkArg<any>,
+              'direction' | 'initialPageParam' | 'refetchCachedPages'
+            >
           thunk = infiniteQueryThunk({
             ...(commonThunkArgs as InfiniteQueryThunkArg<any>),
             // Supply these even if undefined. This helps with a field existence
             // check over in `buildSlice.ts`
             direction,
             initialPageParam,
+            refetchCachedPages,
           })
         }
 
@@ -465,9 +476,13 @@ You must add the middleware for RTK-Query to function correctly!`,
 
               return result.data
             },
-            refetch: () =>
+            refetch: (options?: RefetchOptions) =>
               dispatch(
-                queryAction(arg, { subscribe: false, forceRefetch: true }),
+                queryAction(arg, {
+                  subscribe: false,
+                  forceRefetch: true,
+                  ...options,
+                }),
               ),
             unsubscribe() {
               if (subscribe)

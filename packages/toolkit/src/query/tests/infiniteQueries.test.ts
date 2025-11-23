@@ -1012,4 +1012,803 @@ describe('Infinite queries', () => {
       { items: [{ id: '1', name: 'Pokemon 1' }], page: 1 },
     ])
   })
+
+  describe('refetchCachedPages option', () => {
+    test('refetches all pages by default (refetchCachedPages: true)', async () => {
+      let hitCounter = 0
+
+      const countersApi = createApi({
+        baseQuery: fakeBaseQuery(),
+        tagTypes: ['Counter'],
+        endpoints: (build) => ({
+          counters: build.infiniteQuery<HitCounter, string, number>({
+            queryFn({ pageParam }) {
+              hitCounter++
+              return { data: { page: pageParam, hitCounter } }
+            },
+            infiniteQueryOptions: {
+              initialPageParam: 0,
+              getNextPageParam: (
+                lastPage,
+                allPages,
+                lastPageParam,
+                allPageParams,
+              ) => lastPageParam + 1,
+            },
+            providesTags: ['Counter'],
+          }),
+        }),
+      })
+
+      const storeRef = setupApiStore(
+        countersApi,
+        { ...actionsReducer },
+        {
+          withoutTestLifecycles: true,
+        },
+      )
+
+      // Load 3 pages
+      await storeRef.store.dispatch(
+        countersApi.endpoints.counters.initiate('item', {
+          initialPageParam: 0,
+        }),
+      )
+
+      await storeRef.store.dispatch(
+        countersApi.endpoints.counters.initiate('item', {
+          direction: 'forward',
+        }),
+      )
+
+      const thirdPromise = storeRef.store.dispatch(
+        countersApi.endpoints.counters.initiate('item', {
+          direction: 'forward',
+        }),
+      )
+
+      const thirdRes = await thirdPromise
+
+      // Should have 3 pages with hitCounters 1, 2, 3
+      expect(thirdRes.data!.pages).toEqual([
+        { page: 0, hitCounter: 1 },
+        { page: 1, hitCounter: 2 },
+        { page: 2, hitCounter: 3 },
+      ])
+
+      // Refetch without specifying refetchCachedPages
+      const refetchRes = await thirdPromise.refetch()
+
+      // All 3 pages should be refetched (hitCounters 4, 5, 6)
+      expect(refetchRes.data!.pages).toEqual([
+        { page: 0, hitCounter: 4 },
+        { page: 1, hitCounter: 5 },
+        { page: 2, hitCounter: 6 },
+      ])
+      expect(refetchRes.data!.pages).toHaveLength(3)
+    })
+
+    test('refetches all pages when refetchCachedPages is explicitly true', async () => {
+      let hitCounter = 0
+
+      const countersApi = createApi({
+        baseQuery: fakeBaseQuery(),
+        tagTypes: ['Counter'],
+        endpoints: (build) => ({
+          counters: build.infiniteQuery<HitCounter, string, number>({
+            queryFn({ pageParam }) {
+              hitCounter++
+              return { data: { page: pageParam, hitCounter } }
+            },
+            infiniteQueryOptions: {
+              initialPageParam: 0,
+              getNextPageParam: (
+                lastPage,
+                allPages,
+                lastPageParam,
+                allPageParams,
+              ) => lastPageParam + 1,
+              refetchCachedPages: true, // Explicit true
+            },
+            providesTags: ['Counter'],
+          }),
+        }),
+      })
+
+      const storeRef = setupApiStore(
+        countersApi,
+        { ...actionsReducer },
+        {
+          withoutTestLifecycles: true,
+        },
+      )
+
+      // Load 3 pages
+      await storeRef.store.dispatch(
+        countersApi.endpoints.counters.initiate('item', {
+          initialPageParam: 0,
+        }),
+      )
+
+      await storeRef.store.dispatch(
+        countersApi.endpoints.counters.initiate('item', {
+          direction: 'forward',
+        }),
+      )
+
+      const thirdPromise = storeRef.store.dispatch(
+        countersApi.endpoints.counters.initiate('item', {
+          direction: 'forward',
+        }),
+      )
+
+      const thirdRes = await thirdPromise
+
+      expect(thirdRes.data!.pages).toHaveLength(3)
+
+      // Refetch
+      const refetchRes = await thirdPromise.refetch()
+
+      // All 3 pages should be refetched
+      expect(refetchRes.data!.pages).toHaveLength(3)
+      expect(refetchRes.data!.pages[0].hitCounter).toBeGreaterThan(
+        thirdRes.data!.pages[0].hitCounter,
+      )
+    })
+
+    test('refetches only first page when refetchCachedPages is false', async () => {
+      let hitCounter = 0
+
+      const countersApi = createApi({
+        baseQuery: fakeBaseQuery(),
+        tagTypes: ['Counter'],
+        endpoints: (build) => ({
+          counters: build.infiniteQuery<HitCounter, string, number>({
+            queryFn({ pageParam }) {
+              hitCounter++
+              return { data: { page: pageParam, hitCounter } }
+            },
+            infiniteQueryOptions: {
+              initialPageParam: 0,
+              getNextPageParam: (
+                lastPage,
+                allPages,
+                lastPageParam,
+                allPageParams,
+              ) => lastPageParam + 1,
+              refetchCachedPages: false, // Only refetch first page
+            },
+            providesTags: ['Counter'],
+          }),
+        }),
+      })
+
+      const storeRef = setupApiStore(
+        countersApi,
+        { ...actionsReducer },
+        {
+          withoutTestLifecycles: true,
+        },
+      )
+
+      // Load 3 pages
+      await storeRef.store.dispatch(
+        countersApi.endpoints.counters.initiate('item', {
+          initialPageParam: 0,
+        }),
+      )
+
+      await storeRef.store.dispatch(
+        countersApi.endpoints.counters.initiate('item', {
+          direction: 'forward',
+        }),
+      )
+
+      const thirdPromise = storeRef.store.dispatch(
+        countersApi.endpoints.counters.initiate('item', {
+          direction: 'forward',
+        }),
+      )
+
+      const thirdRes = await thirdPromise
+
+      // Should have 3 pages with hitCounters 1, 2, 3
+      expect(thirdRes.data!.pages).toEqual([
+        { page: 0, hitCounter: 1 },
+        { page: 1, hitCounter: 2 },
+        { page: 2, hitCounter: 3 },
+      ])
+
+      // Refetch with refetchCachedPages: false
+      const refetchRes = await thirdPromise.refetch()
+
+      // Only first page should be refetched, cache reset to 1 page
+      expect(refetchRes.data!.pages).toEqual([{ page: 0, hitCounter: 4 }])
+      expect(refetchRes.data!.pageParams).toEqual([0])
+    })
+
+    test('refetches only first page on tag invalidation when refetchCachedPages is false', async () => {
+      let hitCounter = 0
+
+      const countersApi = createApi({
+        baseQuery: fakeBaseQuery(),
+        tagTypes: ['Counter'],
+        endpoints: (build) => ({
+          counters: build.infiniteQuery<HitCounter, string, number>({
+            queryFn({ pageParam }) {
+              hitCounter++
+              return { data: { page: pageParam, hitCounter } }
+            },
+            infiniteQueryOptions: {
+              initialPageParam: 0,
+              getNextPageParam: (
+                lastPage,
+                allPages,
+                lastPageParam,
+                allPageParams,
+              ) => lastPageParam + 1,
+              refetchCachedPages: false,
+            },
+            providesTags: ['Counter'],
+          }),
+          mutation: build.mutation<null, void>({
+            queryFn: async () => ({ data: null }),
+            invalidatesTags: ['Counter'],
+          }),
+        }),
+      })
+
+      const storeRef = setupApiStore(
+        countersApi,
+        { ...actionsReducer },
+        {
+          withoutTestLifecycles: true,
+        },
+      )
+
+      // Load 3 pages
+      await storeRef.store.dispatch(
+        countersApi.endpoints.counters.initiate('item', {
+          initialPageParam: 0,
+        }),
+      )
+
+      await storeRef.store.dispatch(
+        countersApi.endpoints.counters.initiate('item', {
+          direction: 'forward',
+        }),
+      )
+
+      await storeRef.store.dispatch(
+        countersApi.endpoints.counters.initiate('item', {
+          direction: 'forward',
+        }),
+      )
+
+      // Verify we have 3 pages
+      let entry = countersApi.endpoints.counters.select('item')(
+        storeRef.store.getState(),
+      )
+      expect(entry.data?.pages).toHaveLength(3)
+
+      // Trigger mutation to invalidate tags
+      await storeRef.store.dispatch(countersApi.endpoints.mutation.initiate())
+
+      // Wait for refetch to complete
+      const promise = storeRef.store.dispatch(
+        countersApi.util.getRunningQueryThunk('counters', 'item'),
+      )
+      const finalRes = await promise
+
+      // Only first page should be refetched
+      expect((finalRes as any).data.pages).toEqual([{ page: 0, hitCounter: 4 }])
+    })
+
+    test('refetches only first page during polling when refetchCachedPages is false', async () => {
+      let hitCounter = 0
+
+      const countersApi = createApi({
+        baseQuery: fakeBaseQuery(),
+        endpoints: (build) => ({
+          counters: build.infiniteQuery<HitCounter, string, number>({
+            queryFn({ pageParam }) {
+              hitCounter++
+              return { data: { page: pageParam, hitCounter } }
+            },
+            infiniteQueryOptions: {
+              initialPageParam: 0,
+              getNextPageParam: (
+                lastPage,
+                allPages,
+                lastPageParam,
+                allPageParams,
+              ) => lastPageParam + 1,
+              refetchCachedPages: false,
+            },
+          }),
+        }),
+      })
+
+      const storeRef = setupApiStore(
+        countersApi,
+        { ...actionsReducer },
+        {
+          withoutTestLifecycles: true,
+        },
+      )
+
+      // Load 3 pages
+      await storeRef.store.dispatch(
+        countersApi.endpoints.counters.initiate('item', {
+          initialPageParam: 0,
+        }),
+      )
+
+      await storeRef.store.dispatch(
+        countersApi.endpoints.counters.initiate('item', {
+          direction: 'forward',
+        }),
+      )
+
+      const thirdPromise = storeRef.store.dispatch(
+        countersApi.endpoints.counters.initiate('item', {
+          direction: 'forward',
+        }),
+      )
+
+      await thirdPromise
+
+      // Enable polling
+      thirdPromise.updateSubscriptionOptions({
+        pollingInterval: 50,
+      })
+
+      // Wait for first poll
+      await delay(75)
+
+      const entry = countersApi.endpoints.counters.select('item')(
+        storeRef.store.getState(),
+      )
+
+      // Should only have 1 page after poll
+      expect(entry.data?.pages).toEqual([{ page: 0, hitCounter: 4 }])
+    })
+
+    test('refetchCachedPages: false works with maxPages', async () => {
+      let hitCounter = 0
+
+      const countersApi = createApi({
+        baseQuery: fakeBaseQuery(),
+        endpoints: (build) => ({
+          counters: build.infiniteQuery<HitCounter, string, number>({
+            queryFn({ pageParam }) {
+              hitCounter++
+              return { data: { page: pageParam, hitCounter } }
+            },
+            infiniteQueryOptions: {
+              initialPageParam: 0,
+              maxPages: 3,
+              getNextPageParam: (
+                lastPage,
+                allPages,
+                lastPageParam,
+                allPageParams,
+              ) => lastPageParam + 1,
+              getPreviousPageParam: (
+                firstPage,
+                allPages,
+                firstPageParam,
+                allPageParams,
+              ) => (firstPageParam > 0 ? firstPageParam - 1 : undefined),
+              refetchCachedPages: false,
+            },
+          }),
+        }),
+      })
+
+      const storeRef = setupApiStore(
+        countersApi,
+        { ...actionsReducer },
+        {
+          withoutTestLifecycles: true,
+        },
+      )
+
+      // Load 5 pages (but maxPages will limit to 3)
+      await storeRef.store.dispatch(
+        countersApi.endpoints.counters.initiate('item', {
+          initialPageParam: 0,
+        }),
+      )
+
+      for (let i = 0; i < 4; i++) {
+        await storeRef.store.dispatch(
+          countersApi.endpoints.counters.initiate('item', {
+            direction: 'forward',
+          }),
+        )
+      }
+
+      let entry = countersApi.endpoints.counters.select('item')(
+        storeRef.store.getState(),
+      )
+
+      // Should have 3 pages due to maxPages
+      expect(entry.data?.pages).toHaveLength(3)
+
+      // Refetch
+      const refetchPromise = storeRef.store.dispatch(
+        countersApi.endpoints.counters.initiate('item', {
+          forceRefetch: true,
+        }),
+      )
+
+      const refetchRes = await refetchPromise
+
+      // Should only have 1 page after refetch (refetchCachedPages: false)
+      // Note: With maxPages: 3, the cache kept pages 2, 3, 4
+      // So refetch starts from the first cached page param, which is 2
+      expect(refetchRes.data!.pages).toHaveLength(1)
+      expect(refetchRes.data!.pages[0].page).toBe(2)
+    })
+
+    test('can fetch next page after refetch with refetchCachedPages: false', async () => {
+      let hitCounter = 0
+
+      const countersApi = createApi({
+        baseQuery: fakeBaseQuery(),
+        endpoints: (build) => ({
+          counters: build.infiniteQuery<HitCounter, string, number>({
+            queryFn({ pageParam }) {
+              hitCounter++
+              return { data: { page: pageParam, hitCounter } }
+            },
+            infiniteQueryOptions: {
+              initialPageParam: 0,
+              getNextPageParam: (
+                lastPage,
+                allPages,
+                lastPageParam,
+                allPageParams,
+              ) => lastPageParam + 1,
+              refetchCachedPages: false,
+            },
+          }),
+        }),
+      })
+
+      const storeRef = setupApiStore(
+        countersApi,
+        { ...actionsReducer },
+        {
+          withoutTestLifecycles: true,
+        },
+      )
+
+      // Load 3 pages
+      await storeRef.store.dispatch(
+        countersApi.endpoints.counters.initiate('item', {
+          initialPageParam: 0,
+        }),
+      )
+
+      await storeRef.store.dispatch(
+        countersApi.endpoints.counters.initiate('item', {
+          direction: 'forward',
+        }),
+      )
+
+      const thirdPromise = storeRef.store.dispatch(
+        countersApi.endpoints.counters.initiate('item', {
+          direction: 'forward',
+        }),
+      )
+
+      await thirdPromise
+
+      // Refetch (resets to 1 page)
+      await thirdPromise.refetch()
+
+      let entry = countersApi.endpoints.counters.select('item')(
+        storeRef.store.getState(),
+      )
+      expect(entry.data?.pages).toHaveLength(1)
+
+      // Fetch next page
+      const nextPageRes = await storeRef.store.dispatch(
+        countersApi.endpoints.counters.initiate('item', {
+          direction: 'forward',
+        }),
+      )
+
+      // Should now have 2 pages
+      expect(nextPageRes.data!.pages).toEqual([
+        { page: 0, hitCounter: 4 },
+        { page: 1, hitCounter: 5 },
+      ])
+    })
+
+    describe('per-call refetchCachedPages override', () => {
+      test('per-call false overrides endpoint true', async () => {
+        let hitCounter = 0
+
+        const countersApi = createApi({
+          baseQuery: fakeBaseQuery(),
+          endpoints: (build) => ({
+            counters: build.infiniteQuery<HitCounter, string, number>({
+              queryFn({ pageParam }) {
+                hitCounter++
+                return { data: { page: pageParam, hitCounter } }
+              },
+              infiniteQueryOptions: {
+                initialPageParam: 0,
+                getNextPageParam: (
+                  lastPage,
+                  allPages,
+                  lastPageParam,
+                  allPageParams,
+                ) => lastPageParam + 1,
+                refetchCachedPages: true, // Endpoint default: refetch all
+              },
+            }),
+          }),
+        })
+
+        const storeRef = setupApiStore(
+          countersApi,
+          { ...actionsReducer },
+          {
+            withoutTestLifecycles: true,
+          },
+        )
+
+        // Load 3 pages
+        await storeRef.store.dispatch(
+          countersApi.endpoints.counters.initiate('item', {
+            initialPageParam: 0,
+          }),
+        )
+
+        await storeRef.store.dispatch(
+          countersApi.endpoints.counters.initiate('item', {
+            direction: 'forward',
+          }),
+        )
+
+        await storeRef.store.dispatch(
+          countersApi.endpoints.counters.initiate('item', {
+            direction: 'forward',
+          }),
+        )
+
+        // Should have 3 pages with hitCounters 1, 2, 3
+        let entry = countersApi.endpoints.counters.select('item')(
+          storeRef.store.getState(),
+        )
+        expect(entry.data?.pages).toEqual([
+          { page: 0, hitCounter: 1 },
+          { page: 1, hitCounter: 2 },
+          { page: 2, hitCounter: 3 },
+        ])
+
+        // Refetch with per-call override: false
+        const refetchRes = await storeRef.store.dispatch(
+          countersApi.endpoints.counters.initiate('item', {
+            forceRefetch: true,
+            refetchCachedPages: false, // Override to false
+          }),
+        )
+
+        // Only first page should be refetched (hitCounter 4)
+        expect(refetchRes.data!.pages).toEqual([{ page: 0, hitCounter: 4 }])
+        expect(refetchRes.data!.pageParams).toEqual([0])
+      })
+
+      test('per-call true overrides endpoint false', async () => {
+        let hitCounter = 0
+
+        const countersApi = createApi({
+          baseQuery: fakeBaseQuery(),
+          endpoints: (build) => ({
+            counters: build.infiniteQuery<HitCounter, string, number>({
+              queryFn({ pageParam }) {
+                hitCounter++
+                return { data: { page: pageParam, hitCounter } }
+              },
+              infiniteQueryOptions: {
+                initialPageParam: 0,
+                getNextPageParam: (
+                  lastPage,
+                  allPages,
+                  lastPageParam,
+                  allPageParams,
+                ) => lastPageParam + 1,
+                refetchCachedPages: false, // Endpoint default: only first page
+              },
+            }),
+          }),
+        })
+
+        const storeRef = setupApiStore(
+          countersApi,
+          { ...actionsReducer },
+          {
+            withoutTestLifecycles: true,
+          },
+        )
+
+        // Load 3 pages
+        await storeRef.store.dispatch(
+          countersApi.endpoints.counters.initiate('item', {
+            initialPageParam: 0,
+          }),
+        )
+
+        await storeRef.store.dispatch(
+          countersApi.endpoints.counters.initiate('item', {
+            direction: 'forward',
+          }),
+        )
+
+        await storeRef.store.dispatch(
+          countersApi.endpoints.counters.initiate('item', {
+            direction: 'forward',
+          }),
+        )
+
+        // Should have 3 pages
+        let entry = countersApi.endpoints.counters.select('item')(
+          storeRef.store.getState(),
+        )
+        expect(entry.data?.pages).toHaveLength(3)
+
+        // Refetch with per-call override: true
+        const refetchRes = await storeRef.store.dispatch(
+          countersApi.endpoints.counters.initiate('item', {
+            forceRefetch: true,
+            refetchCachedPages: true, // Override to true
+          }),
+        )
+
+        // All 3 pages should be refetched
+        expect(refetchRes.data!.pages).toEqual([
+          { page: 0, hitCounter: 4 },
+          { page: 1, hitCounter: 5 },
+          { page: 2, hitCounter: 6 },
+        ])
+        expect(refetchRes.data!.pages).toHaveLength(3)
+      })
+
+      test('uses endpoint config when no per-call override', async () => {
+        let hitCounter = 0
+
+        const countersApi = createApi({
+          baseQuery: fakeBaseQuery(),
+          endpoints: (build) => ({
+            counters: build.infiniteQuery<HitCounter, string, number>({
+              queryFn({ pageParam }) {
+                hitCounter++
+                return { data: { page: pageParam, hitCounter } }
+              },
+              infiniteQueryOptions: {
+                initialPageParam: 0,
+                getNextPageParam: (
+                  lastPage,
+                  allPages,
+                  lastPageParam,
+                  allPageParams,
+                ) => lastPageParam + 1,
+                refetchCachedPages: false, // Endpoint config
+              },
+            }),
+          }),
+        })
+
+        const storeRef = setupApiStore(
+          countersApi,
+          { ...actionsReducer },
+          {
+            withoutTestLifecycles: true,
+          },
+        )
+
+        // Load 3 pages
+        await storeRef.store.dispatch(
+          countersApi.endpoints.counters.initiate('item', {
+            initialPageParam: 0,
+          }),
+        )
+
+        await storeRef.store.dispatch(
+          countersApi.endpoints.counters.initiate('item', {
+            direction: 'forward',
+          }),
+        )
+
+        await storeRef.store.dispatch(
+          countersApi.endpoints.counters.initiate('item', {
+            direction: 'forward',
+          }),
+        )
+
+        // Refetch without per-call override
+        const refetchRes = await storeRef.store.dispatch(
+          countersApi.endpoints.counters.initiate('item', {
+            forceRefetch: true,
+            // No refetchCachedPages specified
+          }),
+        )
+
+        // Should use endpoint config (false) - only first page
+        expect(refetchRes.data!.pages).toEqual([{ page: 0, hitCounter: 4 }])
+      })
+
+      test('defaults to true when no config at any level', async () => {
+        let hitCounter = 0
+
+        const countersApi = createApi({
+          baseQuery: fakeBaseQuery(),
+          endpoints: (build) => ({
+            counters: build.infiniteQuery<HitCounter, string, number>({
+              queryFn({ pageParam }) {
+                hitCounter++
+                return { data: { page: pageParam, hitCounter } }
+              },
+              infiniteQueryOptions: {
+                initialPageParam: 0,
+                getNextPageParam: (
+                  lastPage,
+                  allPages,
+                  lastPageParam,
+                  allPageParams,
+                ) => lastPageParam + 1,
+                // No refetchCachedPages specified
+              },
+            }),
+          }),
+        })
+
+        const storeRef = setupApiStore(
+          countersApi,
+          { ...actionsReducer },
+          {
+            withoutTestLifecycles: true,
+          },
+        )
+
+        // Load 3 pages
+        await storeRef.store.dispatch(
+          countersApi.endpoints.counters.initiate('item', {
+            initialPageParam: 0,
+          }),
+        )
+
+        await storeRef.store.dispatch(
+          countersApi.endpoints.counters.initiate('item', {
+            direction: 'forward',
+          }),
+        )
+
+        await storeRef.store.dispatch(
+          countersApi.endpoints.counters.initiate('item', {
+            direction: 'forward',
+          }),
+        )
+
+        // Refetch without any config
+        const refetchRes = await storeRef.store.dispatch(
+          countersApi.endpoints.counters.initiate('item', {
+            forceRefetch: true,
+          }),
+        )
+
+        // Should default to true - refetch all pages
+        expect(refetchRes.data!.pages).toEqual([
+          { page: 0, hitCounter: 4 },
+          { page: 1, hitCounter: 5 },
+          { page: 2, hitCounter: 6 },
+        ])
+      })
+    })
+  })
 })
