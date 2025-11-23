@@ -277,9 +277,17 @@ The promise returned from `fetchNextPage()` does have [a `promise.abort()` metho
 
 ### Refetching
 
-When an infinite query endpoint is refetched (due to tag invalidation, polling, arg change configuration, or manual refetching), RTK Query will try to sequentially refetch all pages currently in the cache. This ensures that the client is always working with the latest data, and avoids stale cursors or duplicate records.
+When an infinite query endpoint is refetched (due to tag invalidation, polling, arg change configuration, or manual refetching), RTK Query's default behavior is **sequentially refetching _all_ pages currently in the cache**. This ensures that the client is always working with the latest data, and avoids stale cursors or duplicate records.
 
 If the cache entry is ever removed and then re-added, it will start with only fetching the initial page.
+
+There may be cases when you want a refetch to _only_ refetch the first page, and not any of the other pages in cache (ie, the refetch shrinks the cache from N pages to 1 page). This can be done via the `refetchCachedPages` option, which can be passed in several different places:
+
+- Defined on the endpoint as part of `infiniteQueryOptions`: applies to all attempted refetches
+- Passed as an option to a `useInfiniteQuery` hook: applies to all attempted refetches
+- Passed as an option to `endpoint.initiate()`, or the `refetch` method available on the `initiate` or hook result objects: applies only to the manually triggered refetch
+
+Overall, the refetch logic defaults to refetching all pages, but will override that with the option provided to the endpoint or a manual refetch.
 
 ### Limiting Cache Entry Size
 
