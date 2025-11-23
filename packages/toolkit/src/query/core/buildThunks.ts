@@ -163,6 +163,7 @@ export type InfiniteQueryThunkArg<
     endpointName: string
     param: unknown
     direction?: InfiniteQueryDirection
+    refetchCachedPages?: boolean
   }
 
 type MutationThunkArg = {
@@ -683,6 +684,12 @@ export function buildThunks<
         // Runtime checks should guarantee this is a positive number if provided
         const { maxPages = Infinity } = infiniteQueryOptions
 
+        // Priority: per-call override > endpoint config > default (true)
+        const refetchCachedPages =
+          (arg as InfiniteQueryThunkArg<any>).refetchCachedPages ??
+          infiniteQueryOptions.refetchCachedPages ??
+          true
+
         let result: QueryReturnValue
 
         // Start by looking up the existing InfiniteData value from state,
@@ -740,18 +747,20 @@ export function buildThunks<
             } as QueryReturnValue
           }
 
-          // Fetch remaining pages
-          for (let i = 1; i < totalPages; i++) {
-            const param = getNextPageParam(
-              infiniteQueryOptions,
-              result.data as InfiniteData<unknown, unknown>,
-              arg.originalArgs,
-            )
-            result = await fetchPage(
-              result.data as InfiniteData<unknown, unknown>,
-              param,
-              maxPages,
-            )
+          if (refetchCachedPages) {
+            // Fetch remaining pages
+            for (let i = 1; i < totalPages; i++) {
+              const param = getNextPageParam(
+                infiniteQueryOptions,
+                result.data as InfiniteData<unknown, unknown>,
+                arg.originalArgs,
+              )
+              result = await fetchPage(
+                result.data as InfiniteData<unknown, unknown>,
+                param,
+                maxPages,
+              )
+            }
           }
         }
 

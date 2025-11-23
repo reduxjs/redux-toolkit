@@ -58,6 +58,13 @@ export type InfiniteQueryConfigOptions<DataType, PageParam, QueryArg> = {
    * direction will be dropped from the cache.
    */
   maxPages?: number
+  /**
+   * Defaults to `true`. When this is `true` and an infinite query endpoint is refetched
+   * (due to tag invalidation, polling, arg change configuration, or manual refetching),
+   * RTK Query will try to sequentially refetch all pages currently in the cache.
+   * When `false` only the first page will be refetched.
+   */
+  refetchCachedPages?: boolean
 }
 
 export type InfiniteData<DataType, PageParam> = {

@@ -2480,6 +2480,138 @@ describe('hooks tests', () => {
         expect(getRenderCount()).toBe(2)
       },
     )
+
+    test('useInfiniteQuery hook option refetchCachedPages: false only refetches first page', async () => {
+      const storeRef = setupApiStore(pokemonApi, undefined, {
+        withoutTestLifecycles: true,
+      })
+
+      function PokemonList() {
+        const { data, fetchNextPage, refetch } =
+          pokemonApi.useGetInfinitePokemonInfiniteQuery('fire', {
+            refetchCachedPages: false,
+          })
+
+        return (
+          <div>
+            <div data-testid="data">
+              {data?.pages.map((page, i) => (
+                <div key={i} data-testid={`page-${i}`}>
+                  {page.name}
+                </div>
+              ))}
+            </div>
+            <button data-testid="nextPage" onClick={() => fetchNextPage()}>
+              Next Page
+            </button>
+            <button data-testid="refetch" onClick={() => refetch()}>
+              Refetch
+            </button>
+          </div>
+        )
+      }
+
+      render(<PokemonList />, { wrapper: storeRef.wrapper })
+
+      // Wait for initial page to load
+      await waitFor(() => {
+        expect(screen.getByTestId('page-0').textContent).toBe('Pokemon 0')
+      })
+
+      // Fetch second page
+      fireEvent.click(screen.getByTestId('nextPage'))
+      await waitFor(() => {
+        expect(screen.getByTestId('page-1').textContent).toBe('Pokemon 1')
+      })
+
+      // Fetch third page
+      fireEvent.click(screen.getByTestId('nextPage'))
+      await waitFor(() => {
+        expect(screen.getByTestId('page-2').textContent).toBe('Pokemon 2')
+      })
+
+      // Now we have 3 pages. Refetch with refetchCachedPages: false should only refetch page 0
+      fireEvent.click(screen.getByTestId('refetch'))
+
+      await waitFor(
+        () => {
+          // Should only have 1 page
+          expect(screen.queryByTestId('page-0')).toBeTruthy()
+          expect(screen.queryByTestId('page-1')).toBeNull()
+          expect(screen.queryByTestId('page-2')).toBeNull()
+        },
+        { timeout: 1000 },
+      )
+
+      // Verify we only have 1 page (not refetched all)
+      const pages = screen.getAllByTestId(/^page-/)
+      expect(pages).toHaveLength(1)
+    })
+
+    test('useInfiniteQuery refetch() method option refetchCachedPages: false only refetches first page', async () => {
+      const storeRef = setupApiStore(pokemonApi, undefined, {
+        withoutTestLifecycles: true,
+      })
+
+      function PokemonList() {
+        const { data, fetchNextPage, refetch } =
+          pokemonApi.useGetInfinitePokemonInfiniteQuery('fire')
+
+        return (
+          <div>
+            <div data-testid="data">
+              {data?.pages.map((page, i) => (
+                <div key={i} data-testid={`page-${i}`}>
+                  {page.name}
+                </div>
+              ))}
+            </div>
+            <button data-testid="nextPage" onClick={() => fetchNextPage()}>
+              Next Page
+            </button>
+            <button
+              data-testid="refetch"
+              onClick={() => refetch({ refetchCachedPages: false })}
+            >
+              Refetch
+            </button>
+          </div>
+        )
+      }
+
+      render(<PokemonList />, { wrapper: storeRef.wrapper })
+
+      // Wait for initial page to load
+      await waitFor(() => {
+        expect(screen.getByTestId('page-0').textContent).toBe('Pokemon 0')
+      })
+
+      // Fetch second page
+      fireEvent.click(screen.getByTestId('nextPage'))
+      await waitFor(() => {
+        expect(screen.getByTestId('page-1').textContent).toBe('Pokemon 1')
+      })
+
+      // Fetch third page
+      fireEvent.click(screen.getByTestId('nextPage'))
+      await waitFor(() => {
+        expect(screen.getByTestId('page-2').textContent).toBe('Pokemon 2')
+      })
+
+      // Now we have 3 pages. Refetch with refetchCachedPages: false should only refetch page 0
+      fireEvent.click(screen.getByTestId('refetch'))
+
+      await waitFor(() => {
+        // Should only have 1 page
+        expect(screen.queryByTestId('page-0')).toBeTruthy()
+        expect(screen.queryByTestId('page-1')).toBeNull()
+        expect(screen.queryByTestId('page-2')).toBeNull()
+      })
+
+      // Verify we only have 1 page (not refetched all)
+      const pages = screen.getAllByTestId(/^page-/)
+      expect(pages).toHaveLength(1)
+    })
   })
 
   describe('useMutation', () => {
