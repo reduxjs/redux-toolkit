@@ -2,13 +2,13 @@ import camelCase from 'lodash.camelcase';
 import path from 'node:path';
 import ApiGenerator, {
   getOperationName as _getOperationName,
-  getReferenceName,
-  isReference,
-  supportDeepObjects,
   createPropertyAssignment,
   createQuestionToken,
+  getReferenceName,
+  isReference,
   isValidIdentifier,
   keywordType,
+  supportDeepObjects,
 } from 'oazapfts/generate';
 import type { OpenAPIV3 } from 'openapi-types';
 import ts from 'typescript';
@@ -87,6 +87,56 @@ function withQueryComment<T extends ts.Node>(node: T, def: QueryArgDefinition, h
   return node;
 }
 
+function getPatternFromProperty(
+  property: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject,
+  apiGen: ApiGenerator
+): string | null {
+  const resolved = apiGen.resolve(property);
+  if (!resolved || typeof resolved !== 'object' || !('pattern' in resolved)) return null;
+  if (resolved.type !== 'string') return null;
+  const pattern = resolved.pattern;
+  return typeof pattern === 'string' && pattern.length > 0 ? pattern : null;
+}
+
+function generateRegexConstantsForType(
+  typeName: string,
+  schema: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject,
+  apiGen: ApiGenerator
+): ts.VariableStatement[] {
+  const resolvedSchema = apiGen.resolve(schema);
+  if (!resolvedSchema || !('properties' in resolvedSchema) || !resolvedSchema.properties) return [];
+
+  const constants: ts.VariableStatement[] = [];
+
+  for (const [propertyName, property] of Object.entries(resolvedSchema.properties)) {
+    const pattern = getPatternFromProperty(property, apiGen);
+    if (!pattern) continue;
+
+    const constantName = camelCase(`${typeName} ${propertyName} Pattern`);
+    const escapedPattern = pattern.replaceAll('/', String.raw`\/`);
+    const regexLiteral = factory.createRegularExpressionLiteral(`/${escapedPattern}/`);
+
+    constants.push(
+      factory.createVariableStatement(
+        [factory.createModifier(ts.SyntaxKind.ExportKeyword)],
+        factory.createVariableDeclarationList(
+          [
+            factory.createVariableDeclaration(
+              factory.createIdentifier(constantName),
+              undefined,
+              undefined,
+              regexLiteral
+            ),
+          ],
+          ts.NodeFlags.Const
+        )
+      )
+    );
+  }
+
+  return constants;
+}
+
 export function getOverrides(
   operation: OperationDefinition,
   endpointOverrides?: EndpointOverrides[]
@@ -119,6 +169,7 @@ export async function generateApi(
     httpResolverOptions,
     useUnknown = false,
     esmExtensions = false,
+    outputRegexConstants = false,
   }: GenerationOptions
 ) {
   const v3Doc = (v3DocCache[spec] ??= await getV3Doc(spec, httpResolverOptions));
@@ -206,7 +257,18 @@ export async function generateApi(
           undefined
         ),
         ...Object.values(interfaces),
-        ...apiGen.aliases,
+        ...(outputRegexConstants
+          ? apiGen.aliases.flatMap((alias) => {
+              if (!ts.isInterfaceDeclaration(alias) && !ts.isTypeAliasDeclaration(alias)) return [alias];
+
+              const typeName = alias.name.escapedText.toString();
+              const schema = v3Doc.components?.schemas?.[typeName];
+              if (!schema) return [alias];
+
+              const regexConstants = generateRegexConstantsForType(typeName, schema, apiGen);
+              return regexConstants.length > 0 ? [alias, ...regexConstants] : [alias];
+            })
+          : apiGen.aliases),
         ...apiGen.enumAliases,
         ...(hooks
           ? [

@@ -695,15 +695,19 @@ components:
           example: James
         email:
           type: string
+          pattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
           example: john@email.com
         password:
           type: string
+          pattern: ''
           example: '12345'
         phone:
           type: string
+          pattern: '^\+?[1-9]\d{1,14}$'
           example: '12345'
         userStatus:
           type: integer
+          pattern: '^[1-9]\d{0,2}$'
           description: User Status
           format: int32
           example: 1
@@ -717,6 +721,7 @@ components:
           format: int64
         name:
           type: string
+          pattern: '^\S+$'
       xml:
         name: tag
     Pet:
