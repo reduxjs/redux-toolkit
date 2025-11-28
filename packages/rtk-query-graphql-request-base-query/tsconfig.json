@@ -11,7 +11,7 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "types": ["vitest/globals"]
+    "types": ["vitest/globals", "vitest/importMeta", "node"]
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
