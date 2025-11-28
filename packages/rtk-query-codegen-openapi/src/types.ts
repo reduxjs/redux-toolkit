@@ -126,6 +126,11 @@ export interface CommonOptions {
    * Will generate imports with file extension matching the expected compiled output of the api file
    */
   esmExtensions?: boolean;
+  /**
+   * @default false
+   * Will generate regex constants for pattern keywords in the schema
+   */
+  outputRegexConstants?: boolean;
 }
 
 export type TextMatcher = string | RegExp | (string | RegExp)[];
