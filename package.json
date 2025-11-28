@@ -21,6 +21,7 @@
     "website",
     "examples/query/react/*",
     "examples/action-listener/*",
+    "packages/configs/*",
     "examples/type-portability/*"
   ],
   "devDependencies": {
@@ -56,6 +57,8 @@
   "scripts": {
     "build": "yarn build:packages",
     "test": "yarn test:packages",
+    "postinstall": "yarn build-configs",
+    "build-configs": "yarn workspaces foreach -Atip --include='packages/configs/*' run build",
     "build:examples": "yarn workspaces foreach -A --include '@reduxjs/*' --include '@examples-query-react/*' --include '@examples-action-listener/*' -vtp run build",
     "build:docs": "yarn workspace website run build",
     "build:packages": "yarn workspaces foreach -A --include '@reduxjs/*' --include '@rtk-query/*' --topological-dev run build",
