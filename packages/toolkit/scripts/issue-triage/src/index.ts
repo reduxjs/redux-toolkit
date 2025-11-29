@@ -5,10 +5,12 @@
  */
 
 import { writeFile } from 'fs/promises'
+import path from 'path'
 import { GitHubClient, checkGhCli } from './github/gh-client.js'
 import { GhCliError, GhApiError, GhParseError } from './utils/errors.js'
 import { categorizeIssues, CATEGORIES } from './categorize/index.js'
 import { findAllDuplicates, createWorkClusters } from './similarity/index.js'
+import { generateReport, type ReportData } from './reports/index.js'
 
 async function main() {
   console.log('GitHub Issues Triage Tool v1.0.0')
@@ -248,15 +250,51 @@ async function main() {
     await writeFile(outputPath, JSON.stringify(exportData, null, 2), 'utf-8')
     console.log(`✓ Results exported to ${outputPath}`)
 
-    console.log('\n✓ Categorization complete!')
+    // Step 11: Generate Markdown reports
+    console.log('\n📝 Generating reports...')
+
+    const reportData: ReportData = {
+      issues: categorizedItems,
+      duplicates: duplicateGroups,
+      clusters: workClusters,
+      metadata: {
+        generatedAt: new Date().toISOString(),
+        totalIssues: issues.length,
+        totalPRs: prs.length,
+        categorizedIssues: categorizedItems.filter(
+          (i) => i.categorization.primary !== 'uncategorized',
+        ).length,
+        uncategorizedIssues: categorizedItems.filter(
+          (i) => i.categorization.primary === 'uncategorized',
+        ).length,
+      },
+    }
+
+    // Generate full report
+    const fullReport = generateReport(reportData, { variant: 'full' })
+    const fullReportPath = path.join('cache', 'triage-report-full.md')
+    await writeFile(fullReportPath, fullReport, 'utf-8')
+    console.log(`✓ Full report: ${fullReportPath}`)
+
+    // Generate priority report
+    const priorityReport = generateReport(reportData, {
+      variant: 'priority',
+      maxIssuesPerSection: 30,
+    })
+    const priorityReportPath = path.join('cache', 'triage-report-priority.md')
+    await writeFile(priorityReportPath, priorityReport, 'utf-8')
+    console.log(`✓ Priority report: ${priorityReportPath}`)
+
+    console.log('\n✓ Triage complete!')
+    console.log('\nGenerated files:')
+    console.log(`  - ${outputPath} (JSON data)`)
+    console.log(`  - ${fullReportPath} (Full markdown report)`)
+    console.log(`  - ${priorityReportPath} (Priority issues report)`)
     console.log('\nNext steps:')
-    console.log(
-      '- Review categorization results in cache/categorization-results.json',
-    )
-    console.log('- Use LLM to analyze categorization accuracy')
-    console.log('- Generate detailed triage reports')
-    console.log('- Add LLM-based categorization for ambiguous cases')
-    console.log('- Implement trend analysis')
+    console.log('- Review the generated reports')
+    console.log('- Use reports to prioritize maintenance work')
+    console.log('- Close duplicate issues')
+    console.log('- Address urgent bugs and easy fixes')
   } catch (error) {
     // Handle specific error types with helpful messages
     if (error instanceof GhCliError) {

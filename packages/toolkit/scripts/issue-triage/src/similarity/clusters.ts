@@ -80,7 +80,52 @@ function generateClusterReasoning(
   category: string,
 ): string {
   const [primary, secondary] = category.split('/')
-  return `All issues in ${primary}${secondary !== 'other' ? `/${secondary}` : ''} category with related functionality`
+
+  // Extract common keywords from titles
+  const allWords = issues.flatMap((i) =>
+    i.title
+      .toLowerCase()
+      .replace(/[^\w\s]/g, ' ')
+      .split(/\s+/)
+      .filter((w) => w.length > 3),
+  )
+
+  const wordCounts: Record<string, number> = {}
+  for (const word of allWords) {
+    wordCounts[word] = (wordCounts[word] || 0) + 1
+  }
+
+  const commonWords = Object.entries(wordCounts)
+    .filter(([_, count]) => count >= 2)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([word]) => word)
+
+  let reasoning = `Related ${primary}${secondary !== 'other' ? `/${secondary}` : ''} issues`
+
+  if (commonWords.length > 0) {
+    reasoning += ` involving: ${commonWords.join(', ')}`
+  }
+
+  // Add specific patterns
+  const hasErrors = issues.some((i) => i.body?.toLowerCase().includes('error'))
+  const hasTypes = issues.some((i) => i.body?.toLowerCase().includes('type'))
+  const hasPerf = issues.some(
+    (i) =>
+      i.title.toLowerCase().includes('performance') ||
+      i.title.toLowerCase().includes('slow'),
+  )
+
+  const patterns: string[] = []
+  if (hasErrors) patterns.push('error handling')
+  if (hasTypes) patterns.push('TypeScript types')
+  if (hasPerf) patterns.push('performance')
+
+  if (patterns.length > 0) {
+    reasoning += `. Focus areas: ${patterns.join(', ')}`
+  }
+
+  return reasoning
 }
 
 /**
