@@ -12,6 +12,9 @@ async function main() {
   console.log('==================================\n')
 
   try {
+    // Parse CLI arguments
+    const useCache = process.argv.includes('--use-cache')
+
     // Step 1: Verify gh CLI is available and authenticated
     console.log('Checking GitHub CLI...')
     await checkGhCli()
@@ -22,7 +25,7 @@ async function main() {
 
     // Step 3: Fetch all open issues and PRs
     console.log('Fetching data from reduxjs/redux-toolkit...\n')
-    const allItems = await client.fetchAll()
+    const allItems = await client.fetchAll({ useCache })
 
     // Step 4: Display summary statistics
     const issues = allItems.filter((item) => item.type === 'issue')
@@ -51,9 +54,9 @@ async function main() {
           console.log(`Author: ${detailed.author}`)
           console.log(`Created: ${detailed.created_at.toISOString()}`)
           console.log(`Labels: ${detailed.labels.join(', ') || 'none'}`)
-          console.log(`Comments: ${detailed.comments.length}`)
+          console.log(`Comments: ${detailed.comments?.length || 0}`)
 
-          if (detailed.comments.length > 0) {
+          if (detailed.comments && detailed.comments.length > 0) {
             console.log(
               `Latest comment by: ${detailed.comments[detailed.comments.length - 1].author}`,
             )

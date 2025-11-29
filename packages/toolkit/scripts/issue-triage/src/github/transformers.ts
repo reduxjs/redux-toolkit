@@ -6,9 +6,23 @@ import type {
   GhIssueResponse,
   GhPullRequestResponse,
   GhIssueDetailResponse,
+  GhComment,
+  SimplifiedComment,
   Issue,
   DetailedIssue,
 } from './types.js'
+
+/**
+ * Simplify a comment object for caching by removing unnecessary fields
+ */
+function simplifyComment(comment: GhComment): SimplifiedComment {
+  return {
+    author: comment.author.login,
+    authorAssociation: comment.authorAssociation,
+    body: comment.body,
+    createdAt: comment.createdAt,
+  }
+}
 
 /**
  * Transform a raw GitHub issue or PR response to our internal format
@@ -17,6 +31,14 @@ export function transformIssue(
   raw: GhIssueResponse | GhPullRequestResponse,
   type: 'issue' | 'pr',
 ): Issue {
+  // Handle comments - can be either a count or full array
+  const commentCount =
+    typeof raw.comments === 'number' ? raw.comments : raw.comments.length
+
+  const simplifiedComments = Array.isArray(raw.comments)
+    ? raw.comments.map(simplifyComment)
+    : undefined
+
   const base: Issue = {
     number: raw.number,
     title: raw.title,
@@ -28,8 +50,8 @@ export function transformIssue(
     url: raw.url,
     author: raw.author.login,
     labels: raw.labels.map((label) => label.name),
-    assignees: raw.assignees.map((assignee) => assignee.login),
-    comment_count: raw.comments,
+    comment_count: commentCount,
+    comments: simplifiedComments,
     body: raw.body || '',
   }
 
@@ -62,18 +84,12 @@ export function transformDetailedIssue(
     url: raw.url,
     author: raw.author.login,
     labels: raw.labels.map((label) => label.name),
-    assignees: raw.assignees.map((assignee) => assignee.login),
     comment_count: raw.comments.length,
     body: raw.body || '',
   }
 
-  // Transform comments
-  const comments = raw.comments.map((comment) => ({
-    author: comment.author.login,
-    body: comment.body,
-    created_at: new Date(comment.createdAt),
-    updated_at: new Date(comment.updatedAt),
-  }))
+  // Transform comments to simplified format
+  const comments = raw.comments.map(simplifyComment)
 
   return {
     ...baseIssue,

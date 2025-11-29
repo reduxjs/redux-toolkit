@@ -3,6 +3,40 @@
  */
 
 /**
+ * Comment object from GitHub API
+ */
+export interface GhComment {
+  id: string
+  author: {
+    login: string
+  }
+  authorAssociation: string
+  body: string
+  createdAt: string
+  includesCreatedEdit: boolean
+  isMinimized: boolean
+  minimizedReason: string
+  reactionGroups: Array<{
+    content: string
+    users: {
+      totalCount: number
+    }
+  }>
+  url: string
+  viewerDidAuthor: boolean
+}
+
+/**
+ * Simplified comment for caching
+ */
+export interface SimplifiedComment {
+  author: string
+  authorAssociation: string
+  body: string
+  createdAt: string
+}
+
+/**
  * Raw response from `gh issue list --json` command
  */
 export interface GhIssueResponse {
@@ -23,7 +57,7 @@ export interface GhIssueResponse {
   assignees: Array<{
     login: string
   }>
-  comments: number
+  comments: number | GhComment[] // Can be count or full array
   body: string
 }
 
@@ -77,14 +111,7 @@ export interface GhIssueDetailResponse {
     login: string
   }>
   body: string
-  comments: Array<{
-    author: {
-      login: string
-    }
-    body: string
-    createdAt: string
-    updatedAt: string
-  }>
+  comments: GhComment[]
 }
 
 /**
@@ -101,8 +128,8 @@ export interface Issue {
   url: string
   author: string
   labels: string[]
-  assignees: string[]
   comment_count: number
+  comments?: SimplifiedComment[] // Optional simplified comments for caching
   body: string
   // PR-specific fields
   is_draft?: boolean
@@ -114,10 +141,5 @@ export interface Issue {
  * Detailed issue with comments loaded
  */
 export interface DetailedIssue extends Issue {
-  comments: Array<{
-    author: string
-    body: string
-    created_at: Date
-    updated_at: Date
-  }>
+  comments: SimplifiedComment[]
 }

@@ -38,6 +38,22 @@ Or for development (builds and runs):
 npm run dev
 ```
 
+### Using Cached Data
+
+The tool automatically saves fetched data to `cache/issues-data.json` after each run. To use cached data instead of fetching fresh data (useful for development and testing):
+
+```bash
+npm start -- --use-cache
+```
+
+Or with the dev command:
+
+```bash
+npm run dev -- --use-cache
+```
+
+**Note:** The `--use-cache` flag is primarily for development/testing purposes. It loads data from the cache file instantly without making API calls. If the cache file doesn't exist or is corrupted, the tool will automatically fetch fresh data.
+
 ## Project Structure
 
 ```
