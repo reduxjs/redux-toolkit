@@ -8,6 +8,7 @@ import { writeFile } from 'fs/promises'
 import { GitHubClient, checkGhCli } from './github/gh-client.js'
 import { GhCliError, GhApiError, GhParseError } from './utils/errors.js'
 import { categorizeIssues, CATEGORIES } from './categorize/index.js'
+import { findAllDuplicates, createWorkClusters } from './similarity/index.js'
 
 async function main() {
   console.log('GitHub Issues Triage Tool v1.0.0')
@@ -89,7 +90,20 @@ async function main() {
     console.log(`  ✅ Easy Fix: ${easyFixCount}`)
     console.log(`  🏷️  Needs Triage: ${needsTriageCount}`)
 
-    // Step 7: Display sample categorized issues
+    // Step 7: Run similarity detection
+    console.log('\n🔍 Running Similarity Detection')
+    console.log('================================')
+
+    const startTime = Date.now()
+    const duplicateGroups = findAllDuplicates(issues)
+    const workClusters = createWorkClusters(issues)
+    const endTime = Date.now()
+
+    console.log(`✓ Similarity detection completed in ${endTime - startTime}ms`)
+    console.log(`  Found ${duplicateGroups.length} potential duplicate groups`)
+    console.log(`  Created ${workClusters.length} work clusters`)
+
+    // Step 8: Display sample categorized issues
     if (issues.length > 0) {
       console.log('\n📝 Sample Categorized Issues')
       console.log('============================\n')
@@ -127,7 +141,50 @@ async function main() {
       }
     }
 
-    // Step 8: Export categorization results to JSON
+    // Step 9: Display sample similarity results
+    if (duplicateGroups.length > 0) {
+      console.log('\n🔄 Sample Duplicate Groups')
+      console.log('==========================\n')
+
+      const samplesToShow = Math.min(3, duplicateGroups.length)
+      for (let i = 0; i < samplesToShow; i++) {
+        const group = duplicateGroups[i]
+        console.log(
+          `Primary Issue #${group.primary.number}: ${group.primary.title}`,
+        )
+        console.log(`  Potential duplicates: ${group.duplicates.length}`)
+        for (const dup of group.duplicates.slice(0, 2)) {
+          console.log(`    - #${dup.issue.number}: ${dup.issue.title}`)
+          console.log(`      Confidence: ${(dup.confidence * 100).toFixed(0)}%`)
+        }
+        console.log('')
+      }
+    }
+
+    if (workClusters.length > 0) {
+      console.log('\n📦 Sample Work Clusters')
+      console.log('=======================\n')
+
+      const samplesToShow = Math.min(3, workClusters.length)
+      for (let i = 0; i < samplesToShow; i++) {
+        const cluster = workClusters[i]
+        console.log(
+          `Cluster ${cluster.id}: ${cluster.category}${cluster.subcategory ? `/${cluster.subcategory}` : ''}`,
+        )
+        console.log(`  Issues: ${cluster.issues.length}`)
+        console.log(`  Priority: ${cluster.priority.toFixed(1)}`)
+        console.log(
+          `  Avg Complexity: ${cluster.metrics.avgComplexity.toFixed(0)}`,
+        )
+        console.log(
+          `  Estimated Effort: ${cluster.metrics.estimatedEffort} days`,
+        )
+        console.log(`  Reasoning: ${cluster.reasoning}`)
+        console.log('')
+      }
+    }
+
+    // Step 10: Export categorization results to JSON
     console.log('\n💾 Exporting categorization results...')
     const outputPath = 'cache/categorization-results.json'
 
@@ -146,6 +203,29 @@ async function main() {
           easyFix: easyFixCount,
           needsTriage: needsTriageCount,
         },
+      },
+      similarity: {
+        duplicateGroups: duplicateGroups.map((group) => ({
+          primary: {
+            number: group.primary.number,
+            title: group.primary.title,
+          },
+          duplicates: group.duplicates.map((dup) => ({
+            number: dup.issue.number,
+            title: dup.issue.title,
+            confidence: dup.confidence,
+            signals: dup.signals,
+          })),
+        })),
+        workClusters: workClusters.map((cluster) => ({
+          id: cluster.id,
+          category: cluster.category,
+          subcategory: cluster.subcategory,
+          issueNumbers: cluster.issues.map((i) => i.number),
+          metrics: cluster.metrics,
+          reasoning: cluster.reasoning,
+          priority: cluster.priority,
+        })),
       },
       items: categorizedItems.map((item) => ({
         number: item.number,
