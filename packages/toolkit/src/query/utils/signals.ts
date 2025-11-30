@@ -20,7 +20,7 @@ export const anySignal = (...signals: AbortSignal[]) => {
     signal.addEventListener(
       'abort',
       () => abortController.abort(signal.reason),
-      { signal: abortController.signal },
+      { signal: abortController.signal, once: true },
     )
   }
   return abortController.signal
