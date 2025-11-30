@@ -1192,7 +1192,7 @@ describe('fetchBaseQuery', () => {
 
       expect(result?.error).toEqual({
         status: 'TIMEOUT_ERROR',
-        error: expect.stringMatching(/^AbortError:/),
+        error: expect.stringMatching(/^TimeoutError:/),
       })
     })
   })
@@ -1559,7 +1559,7 @@ describe('timeout', () => {
 
     expect(result?.error).toEqual({
       status: 'TIMEOUT_ERROR',
-      error: expect.stringMatching(/^AbortError:/),
+      error: expect.stringMatching(/^TimeoutError:/),
     })
   })
 })
