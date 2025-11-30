@@ -237,7 +237,10 @@ export function fetchBaseQuery({
       signal = api.signal
     if (timeout) {
       abortController = new AbortController()
-      api.signal.addEventListener('abort', abortController.abort)
+      // TODO: can we improve this logic using AbortSignal.any/AbortSignal.timeout?
+      api.signal.addEventListener('abort', () =>
+        abortController?.abort(api.signal.reason),
+      )
       signal = abortController.signal
     }
 
@@ -323,10 +326,6 @@ export function fetchBaseQuery({
       }
     } finally {
       if (timeoutId) clearTimeout(timeoutId)
-      abortController?.signal.removeEventListener(
-        'abort',
-        abortController.abort,
-      )
     }
     const responseClone = response.clone()
 
