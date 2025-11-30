@@ -302,12 +302,18 @@ export function fetchBaseQuery({
     try {
       response = await fetchFn(request)
     } catch (e) {
+      if (e instanceof DOMException && e.name === 'TimeoutError') {
+        return {
+          error: {
+            status: 'TIMEOUT_ERROR',
+            error: 'TIMEOUT_ERROR',
+          },
+          meta,
+        }
+      }
       return {
         error: {
-          status:
-            e instanceof DOMException && e.name === 'TimeoutError'
-              ? 'TIMEOUT_ERROR'
-              : 'FETCH_ERROR',
+          status: 'FETCH_ERROR',
           error: String(e),
         },
         meta,
