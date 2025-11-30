@@ -3,7 +3,6 @@ import type { FetchArgs } from '@reduxjs/toolkit/query'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 import { headersToObject } from 'headers-polyfill'
 import { HttpResponse, delay, http } from 'msw'
-// @ts-ignore
 import nodeFetch from 'node-fetch'
 import queryString from 'query-string'
 import { vi } from 'vitest'
@@ -19,12 +18,11 @@ const defaultHeaders: Record<string, string> = {
 
 const baseUrl = 'https://example.com'
 
-// @ts-ignore
-const fetchFn = vi.fn<Promise<any>, any[]>(nodeFetch)
+const fetchFn = vi.fn(fetch)
 
 const baseQuery = fetchBaseQuery({
   baseUrl,
-  fetchFn: fetchFn as any,
+  fetchFn,
   prepareHeaders: (headers, { getState }) => {
     const { token } = (getState() as RootState).auth
 
@@ -419,7 +417,6 @@ describe('fetchBaseQuery', () => {
     it('supports a custom jsonContentType', async () => {
       const baseQuery = fetchBaseQuery({
         baseUrl,
-        fetchFn: fetchFn as any,
         jsonContentType: 'application/vnd.api+json',
       })
 
@@ -459,7 +456,6 @@ describe('fetchBaseQuery', () => {
       // Use jsonReplacer
       const baseQueryWithReplacer = fetchBaseQuery({
         baseUrl,
-        fetchFn: fetchFn as any,
         jsonReplacer: (key, value) =>
           value instanceof Set ? [...value] : value,
       })
@@ -546,7 +542,6 @@ describe('fetchBaseQuery', () => {
     it('should support a paramsSerializer', async () => {
       const baseQuery = fetchBaseQuery({
         baseUrl,
-        fetchFn: fetchFn as any,
         paramsSerializer: (params: Record<string, unknown>) =>
           queryString.stringify(params, { arrayFormat: 'bracket' }),
       })
@@ -591,7 +586,6 @@ describe('fetchBaseQuery', () => {
       }
       const baseQuery = fetchBaseQuery({
         baseUrl,
-        fetchFn: fetchFn as any,
         isJsonContentType: (headers) =>
           [
             'application/vnd.api+json',
@@ -805,7 +799,6 @@ describe('fetchBaseQuery', () => {
 
       const baseQuery = fetchBaseQuery({
         baseUrl,
-        fetchFn: fetchFn as any,
         prepareHeaders: (
           headers,
           { getState, arg, extra, endpoint, type, forced },
@@ -974,7 +967,6 @@ describe('fetchBaseQuery', () => {
 
       const globalizedBaseQuery = fetchBaseQuery({
         baseUrl,
-        fetchFn: fetchFn as any,
         responseHandler: 'text',
       })
 
@@ -1003,7 +995,6 @@ describe('fetchBaseQuery', () => {
 
       const globalizedBaseQuery = fetchBaseQuery({
         baseUrl,
-        fetchFn: fetchFn as any,
         responseHandler: 'content-type',
       })
 
@@ -1031,7 +1022,6 @@ describe('fetchBaseQuery', () => {
 
       const globalizedBaseQuery = fetchBaseQuery({
         baseUrl,
-        fetchFn: fetchFn as any,
         responseHandler: 'content-type',
       })
 
@@ -1059,7 +1049,6 @@ describe('fetchBaseQuery', () => {
 
       const globalizedBaseQuery = fetchBaseQuery({
         baseUrl,
-        fetchFn: fetchFn as any,
         responseHandler: 'content-type',
       })
 
@@ -1084,7 +1073,6 @@ describe('fetchBaseQuery', () => {
 
       const globalizedBaseQuery = fetchBaseQuery({
         baseUrl,
-        fetchFn: fetchFn as any,
         responseHandler: 'content-type',
       })
 
@@ -1113,7 +1101,6 @@ describe('fetchBaseQuery', () => {
 
       const globalizedBaseQuery = fetchBaseQuery({
         baseUrl,
-        fetchFn: fetchFn as any,
         responseHandler: 'content-type',
       })
 
@@ -1135,7 +1122,6 @@ describe('fetchBaseQuery', () => {
     test('Global validateStatus', async () => {
       const globalizedBaseQuery = fetchBaseQuery({
         baseUrl,
-        fetchFn: fetchFn as any,
         validateStatus: (response, body) =>
           response.status === 200 && body.success === false ? false : true,
       })
@@ -1180,7 +1166,6 @@ describe('fetchBaseQuery', () => {
 
       const globalizedBaseQuery = fetchBaseQuery({
         baseUrl,
-        fetchFn: fetchFn as any,
         timeout: 200,
       })
 
@@ -1192,7 +1177,7 @@ describe('fetchBaseQuery', () => {
 
       expect(result?.error).toEqual({
         status: 'TIMEOUT_ERROR',
-        error: expect.stringMatching(/^TimeoutError:/),
+        error: expect.stringMatching(/^TimeoutError/),
       })
     })
   })
@@ -1266,7 +1251,6 @@ describe('FormData', () => {
     // This test covers the exact scenario from issue #4669
     const baseQueryWithJsonDefault = fetchBaseQuery({
       baseUrl,
-      fetchFn: fetchFn as any,
       prepareHeaders: (headers) => {
         // Set default Content-Type for all requests
         headers.set('Content-Type', 'application/json')
@@ -1301,7 +1285,6 @@ describe('FormData', () => {
     // This tests the workaround solution from the issue comments
     const baseQueryWithConditionalHeader = fetchBaseQuery({
       baseUrl,
-      fetchFn: fetchFn as any,
       prepareHeaders: (headers, { arg }) => {
         // Check if body is FormData and skip setting Content-Type
         if ((arg as FetchArgs).body instanceof FormData) {
@@ -1336,7 +1319,6 @@ describe('FormData', () => {
     // This tests the fetch API quirk mentioned in the issue
     const baseQueryWithJsonDefault = fetchBaseQuery({
       baseUrl,
-      fetchFn: fetchFn as any,
       prepareHeaders: (headers) => {
         headers.set('Content-Type', 'application/json')
         return headers
@@ -1371,7 +1353,6 @@ describe('FormData', () => {
     // Verify that the workaround doesn't break normal JSON requests
     const baseQueryWithConditionalHeader = fetchBaseQuery({
       baseUrl,
-      fetchFn: fetchFn as any,
       prepareHeaders: (headers, { arg }) => {
         if (!((arg as FetchArgs).body instanceof FormData)) {
           headers.set('Content-Type', 'application/json')
@@ -1423,7 +1404,6 @@ describe('Accept header handling', () => {
     // Create a baseQuery with text as the global responseHandler
     const textBaseQuery = fetchBaseQuery({
       baseUrl,
-      fetchFn: fetchFn as any,
       responseHandler: 'text',
     })
 
@@ -1458,7 +1438,6 @@ describe('Accept header handling', () => {
   test('does not override Accept header set in prepareHeaders', async () => {
     const customBaseQuery = fetchBaseQuery({
       baseUrl,
-      fetchFn: fetchFn as any,
       prepareHeaders: (headers) => {
         headers.set('Accept', 'application/vnd.api+json')
         return headers
@@ -1494,7 +1473,6 @@ describe('Accept header handling', () => {
   test('respects global responseHandler for Accept header', async () => {
     const textBaseQuery = fetchBaseQuery({
       baseUrl,
-      fetchFn: fetchFn as any,
       responseHandler: 'text',
     })
 

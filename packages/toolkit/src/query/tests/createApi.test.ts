@@ -1197,7 +1197,7 @@ describe('timeout behavior', () => {
 
     expect(result?.error).toEqual({
       status: 'TIMEOUT_ERROR',
-      error: expect.stringMatching(/^TimeoutError:/),
+      error: expect.stringMatching(/^TimeoutError/),
     })
   })
 })
