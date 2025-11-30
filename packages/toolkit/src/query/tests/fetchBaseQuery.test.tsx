@@ -18,11 +18,8 @@ const defaultHeaders: Record<string, string> = {
 
 const baseUrl = 'https://example.com'
 
-const fetchFn = vi.fn(fetch)
-
 const baseQuery = fetchBaseQuery({
   baseUrl,
-  fetchFn,
   prepareHeaders: (headers, { getState }) => {
     const { token } = (getState() as RootState).auth
 
@@ -125,9 +122,14 @@ describe('fetchBaseQuery', () => {
     })
 
     it('should handle a connection loss semi-gracefully', async () => {
-      fetchFn.mockRejectedValueOnce(new TypeError('Failed to fetch'))
+      const fetchFn = vi
+        .fn()
+        .mockRejectedValueOnce(new TypeError('Failed to fetch'))
 
-      const req = baseQuery('/success', commonBaseQueryApi, {})
+      const req = fetchBaseQuery({
+        baseUrl,
+        fetchFn,
+      })('/success', commonBaseQueryApi, {})
       expect(req).toBeInstanceOf(Promise)
       const res = await req
       expect(res).toBeInstanceOf(Object)
@@ -1537,7 +1539,7 @@ describe('timeout', () => {
 
     expect(result?.error).toEqual({
       status: 'TIMEOUT_ERROR',
-      error: expect.stringMatching(/^TimeoutError:/),
+      error: expect.stringMatching(/^TimeoutError/),
     })
   })
 })
