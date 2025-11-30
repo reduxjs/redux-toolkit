@@ -651,7 +651,9 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
                   message: abortReason || 'Aborted',
                 })
               }
-              abortController.signal.addEventListener('abort', abortHandler)
+              abortController.signal.addEventListener('abort', abortHandler, {
+                once: true,
+              })
             })
             dispatch(
               pending(

@@ -2,10 +2,7 @@ import {
   listenerCancelled,
   listenerCompleted,
 } from '@internal/listenerMiddleware/exceptions'
-import type {
-  AbortSignalWithReason,
-  AddListenerOverloads,
-} from '@internal/listenerMiddleware/types'
+import type { AddListenerOverloads } from '@internal/listenerMiddleware/types'
 import { noop } from '@internal/listenerMiddleware/utils'
 import type {
   Action,
@@ -606,7 +603,7 @@ describe('createListenerMiddleware', () => {
           signal.addEventListener(
             'abort',
             () => {
-              payload.resolve((signal as AbortSignalWithReason<string>).reason)
+              payload.resolve(signal.reason)
             },
             { once: true },
           )
@@ -636,7 +633,7 @@ describe('createListenerMiddleware', () => {
           signal.addEventListener(
             'abort',
             () => {
-              payload.resolve((signal as AbortSignalWithReason<string>).reason)
+              payload.resolve(signal.reason)
             },
             { once: true },
           )

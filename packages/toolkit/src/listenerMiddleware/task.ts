@@ -1,17 +1,16 @@
 import { TaskAbortError } from './exceptions'
-import type { AbortSignalWithReason, TaskResult } from './types'
+import type { TaskResult } from './types'
 import { addAbortSignalListener, catchRejection, noop } from './utils'
 
 /**
  * Synchronously raises {@link TaskAbortError} if the task tied to the input `signal` has been cancelled.
  * @param signal
- * @param reason
  * @see {TaskAbortError}
+ * @throws {TaskAbortError} if the task tied to the input `signal` has been cancelled.
  */
 export const validateActive = (signal: AbortSignal): void => {
   if (signal.aborted) {
-    const { reason } = signal as AbortSignalWithReason<string>
-    throw new TaskAbortError(reason)
+    throw new TaskAbortError(signal.reason)
   }
 }
 
@@ -21,7 +20,7 @@ export const validateActive = (signal: AbortSignal): void => {
  * https://github.com/nodejs/node/issues/17469#issuecomment-349794909
  */
 export function raceWithSignal<T>(
-  signal: AbortSignalWithReason<string>,
+  signal: AbortSignal,
   promise: Promise<T>,
 ): Promise<T> {
   let cleanup = noop

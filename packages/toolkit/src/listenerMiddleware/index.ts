@@ -19,7 +19,6 @@ import {
   validateActive,
 } from './task'
 import type {
-  AbortSignalWithReason,
   AddListenerOverloads,
   AnyListenerPredicate,
   CreateListenerMiddlewareOptions,
@@ -41,7 +40,6 @@ import type {
   UnsubscribeListenerOptions,
 } from './types'
 import {
-  abortControllerWithReason,
   addAbortSignalListener,
   assertFunction,
   catchRejection,
@@ -82,12 +80,12 @@ const INTERNAL_NIL_TOKEN = {} as const
 const alm = 'listenerMiddleware' as const
 
 const createFork = (
-  parentAbortSignal: AbortSignalWithReason<unknown>,
+  parentAbortSignal: AbortSignal,
   parentBlockingPromises: Promise<any>[],
 ) => {
   const linkControllers = (controller: AbortController) =>
     addAbortSignalListener(parentAbortSignal, () =>
-      abortControllerWithReason(controller, parentAbortSignal.reason),
+      controller.abort(parentAbortSignal.reason),
     )
 
   return <T>(
@@ -111,7 +109,7 @@ const createFork = (
         validateActive(childAbortController.signal)
         return result
       },
-      () => abortControllerWithReason(childAbortController, taskCompleted),
+      () => childAbortController.abort(taskCompleted),
     )
 
     if (opts?.autoJoin) {
@@ -121,7 +119,7 @@ const createFork = (
     return {
       result: createPause<TaskResult<T>>(parentAbortSignal)(result),
       cancel() {
-        abortControllerWithReason(childAbortController, taskCancelled)
+        childAbortController.abort(taskCancelled)
       },
     }
   }
@@ -256,7 +254,7 @@ const cancelActiveListeners = (
   entry: ListenerEntry<unknown, Dispatch<UnknownAction>>,
 ) => {
   entry.pending.forEach((controller) => {
-    abortControllerWithReason(controller, listenerCancelled)
+    controller.abort(listenerCancelled)
   })
 }
 
@@ -444,16 +442,13 @@ export const createListenerMiddleware = <
             cancelActiveListeners: () => {
               entry.pending.forEach((controller, _, set) => {
                 if (controller !== internalTaskController) {
-                  abortControllerWithReason(controller, listenerCancelled)
+                  controller.abort(listenerCancelled)
                   set.delete(controller)
                 }
               })
             },
             cancel: () => {
-              abortControllerWithReason(
-                internalTaskController,
-                listenerCancelled,
-              )
+              internalTaskController.abort(listenerCancelled)
               entry.pending.delete(internalTaskController)
             },
             throwIfCancelled: () => {
@@ -471,7 +466,7 @@ export const createListenerMiddleware = <
     } finally {
       await Promise.all(autoJoinPromises)
 
-      abortControllerWithReason(internalTaskController, listenerCompleted) // Notify that the task has completed
+      internalTaskController.abort(listenerCompleted) // Notify that the task has completed
       untrackExecutingListener(entry)
       entry.pending.delete(internalTaskController)
     }

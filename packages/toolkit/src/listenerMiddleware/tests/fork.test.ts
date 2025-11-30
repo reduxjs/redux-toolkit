@@ -2,11 +2,7 @@ import type { EnhancedStore } from '@reduxjs/toolkit'
 import { configureStore, createSlice, createAction } from '@reduxjs/toolkit'
 
 import type { PayloadAction } from '@reduxjs/toolkit'
-import type {
-  AbortSignalWithReason,
-  ForkedTaskExecutor,
-  TaskResult,
-} from '../types'
+import type { ForkedTaskExecutor, TaskResult } from '../types'
 import { createListenerMiddleware, TaskAbortError } from '../index'
 import {
   listenerCancelled,
@@ -382,9 +378,7 @@ describe('fork', () => {
             listenerApi.fork(
               async (forkApi) => {
                 forkApi.signal.addEventListener('abort', () => {
-                  deferredResult.resolve(
-                    (forkApi.signal as AbortSignalWithReason<unknown>).reason,
-                  )
+                  deferredResult.resolve(forkApi.signal.reason)
                 })
 
                 await forkApi.delay(10)
