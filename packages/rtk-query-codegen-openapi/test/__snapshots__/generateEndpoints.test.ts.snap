@@ -241,6 +241,7 @@ export type User = {
   email?: string;
   password?: string;
   phone?: string;
+  website?: string;
   /** User Status */
   userStatus?: number;
 };
@@ -488,6 +489,7 @@ export type User = {
   email?: string;
   password?: string;
   phone?: string;
+  website?: string;
   /** User Status */
   userStatus?: number;
 };
@@ -791,6 +793,7 @@ export type User = {
   email?: string | undefined;
   password?: string | undefined;
   phone?: string | undefined;
+  website?: string | undefined;
   /** User Status */
   userStatus?: number | undefined;
 };
@@ -1196,6 +1199,7 @@ export type User = {
   email?: string | undefined;
   password?: string | undefined;
   phone?: string | undefined;
+  website?: string | undefined;
   /** User Status */
   userStatus?: number | undefined;
 };
@@ -1477,6 +1481,7 @@ export type User = {
   email?: string | undefined;
   password?: string | undefined;
   phone?: string | undefined;
+  website?: string | undefined;
   /** User Status */
   userStatus?: number | undefined;
 };
@@ -1776,6 +1781,7 @@ export type User = {
   email?: string | undefined;
   password?: string | undefined;
   phone?: string | undefined;
+  website?: string | undefined;
   /** User Status */
   userStatus?: number | undefined;
 };
@@ -2057,6 +2063,7 @@ export type User = {
   email?: string | undefined;
   password?: string | undefined;
   phone?: string | undefined;
+  website?: string | undefined;
   /** User Status */
   userStatus?: number | undefined;
 };
@@ -2329,6 +2336,7 @@ export type User = {
   email?: string | undefined;
   password?: string | undefined;
   phone?: string | undefined;
+  website?: string | undefined;
   /** User Status */
   userStatus?: number | undefined;
 };
@@ -2886,6 +2894,7 @@ export type User = {
   email?: string | undefined;
   password?: string | undefined;
   phone?: string | undefined;
+  website?: string | undefined;
   /** User Status */
   userStatus?: number | undefined;
 };
@@ -3513,6 +3522,7 @@ export type User = {
   email?: string | undefined;
   password?: string | undefined;
   phone?: string | undefined;
+  website?: string | undefined;
   /** User Status */
   userStatus?: number | undefined;
 };

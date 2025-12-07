@@ -121,6 +121,7 @@ interface SimpleUsage {
   endpointOverrides?: EndpointOverrides[]
   flattenArg?: boolean
   useEnumType?: boolean
+  outputRegexConstants?: boolean
   httpResolverOptions?: SwaggerParser.HTTPResolverOptions
 }
 
@@ -191,6 +192,47 @@ const withOverride: ConfigFile = {
 #### Generating hooks
 
 Setting `hooks: true` will generate `useQuery` and `useMutation` hook exports. If you also want `useLazyQuery` hooks generated or more granular control, you can also pass an object in the shape of: `{ queries: boolean; lazyQueries: boolean; mutations: boolean }`.
+
+#### Generating regex constants for schema patterns
+
+If your OpenAPI schema uses the [`pattern` keyword](https://swagger.io/docs/specification/data-models/data-types/#pattern) to specify regex validation on string properties, you can export these patterns as JavaScript regex constants by setting `outputRegexConstants: true`.
+
+```ts no-transpile title="openapi-config.ts"
+const config: ConfigFile = {
+  schemaFile: 'https://petstore3.swagger.io/api/v3/openapi.json',
+  apiFile: './src/store/emptyApi.ts',
+  outputFile: './src/store/petApi.ts',
+  outputRegexConstants: true,
+}
+```
+
+For a schema with pattern-validated properties like:
+
+```yaml
+User:
+  type: object
+  properties:
+    email:
+      type: string
+      pattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    phone:
+      type: string
+      pattern: '^\+?[1-9]\d{1,14}$'
+```
+
+The codegen will generate:
+
+```ts no-transpile title="Generated output"
+export const userEmailPattern =
+  /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+export const userPhonePattern = /^\+?[1-9]\d{1,14}$/
+```
+
+These constants can be used for client-side validation to ensure consistency with API expectations.
+
+:::note
+Only string-type properties with non-empty `pattern` values will generate constants. The constant name follows the format `{typeName}{propertyName}Pattern` in camelCase.
+:::
 
 #### Multiple output files
 

@@ -648,6 +648,79 @@ describe('query parameters', () => {
   });
 });
 
+describe('regex constants', () => {
+  it('should export regex constants for patterns', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      outputRegexConstants: true,
+    });
+
+    expect(api).toContain(String.raw`export const tagNamePattern = /^\S+$/`);
+    expect(api).toContain(String.raw`export const userEmailPattern`);
+    expect(api).toContain(String.raw`/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/`);
+    expect(api).toContain(String.raw`export const userPhonePattern = /^\+?[1-9]\d{1,14}$/`);
+  });
+
+  it('should not export constants for invalid patterns', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      outputRegexConstants: true,
+    });
+
+    // Empty pattern should not generate a constant
+    expect(api).not.toContain('userPasswordPattern');
+    expect(api).not.toContain('passwordPattern');
+
+    // Pattern on non-string property (integer) should not generate a constant
+    expect(api).not.toContain('userUserStatusPattern');
+    expect(api).not.toContain('userStatusPattern');
+  });
+
+  it('should export regex constants for patterns from YAML file', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.yaml'),
+      outputRegexConstants: true,
+    });
+
+    expect(api).toContain(String.raw`export const tagNamePattern = /^\S+$/`);
+    expect(api).toContain(String.raw`export const userEmailPattern`);
+    expect(api).toContain(String.raw`/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/`);
+    expect(api).toContain(String.raw`export const userPhonePattern = /^\+?[1-9]\d{1,14}$/`);
+  });
+
+  it('should not export regex constants when outputRegexConstants is false', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      outputRegexConstants: false,
+    });
+
+    expect(api).not.toContain('Pattern = /');
+    expect(api).not.toContain('tagNamePattern');
+    expect(api).not.toContain('userEmailPattern');
+    expect(api).not.toContain('userPhonePattern');
+  });
+
+  it('should properly escape forward slashes in patterns', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      outputRegexConstants: true,
+    });
+
+    // The userWebsitePattern should have escaped forward slashes
+    expect(api).toContain(String.raw`export const userWebsitePattern = /^https?:\/\/[^\s]+$/`);
+  });
+});
+
 describe('esmExtensions option', () => {
   beforeAll(async () => {
     if (!(await isDir(tmpDir))) {

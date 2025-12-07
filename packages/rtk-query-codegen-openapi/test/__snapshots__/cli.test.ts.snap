@@ -241,6 +241,7 @@ export type User = {
   email?: string;
   password?: string;
   phone?: string;
+  website?: string;
   /** User Status */
   userStatus?: number;
 };
@@ -488,6 +489,7 @@ export type User = {
   email?: string;
   password?: string;
   phone?: string;
+  website?: string;
   /** User Status */
   userStatus?: number;
 };
