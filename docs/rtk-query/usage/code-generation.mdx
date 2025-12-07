@@ -67,9 +67,12 @@ npx @rtk-query/codegen-openapi openapi-config.ts
 If your OpenAPI specification uses [tags](https://swagger.io/docs/specification/grouping-operations-with-tags/), you can specify the `tag` option to the codegen.
 That will result in all generated endpoints having `providesTags`/`invalidatesTags` declarations for the `tags` of their respective operation definition.
 
-Note that this will only result in string tags with no ids, so it might lead to scenarios where too much is invalidated and unneccessary requests are made on mutation.
+Note that this will only result in string tags with no ids, so it might lead to scenarios where too much is invalidated and unnecessary requests are made on mutation.
 
-In that case it is still recommended to manually specify tags by using [`enhanceEndpoints`](../api/created-api/code-splitting.mdx) on top of the generated api and manually declare `providesTags`/`invalidatesTags`.
+In that case you have two options:
+
+1. Use [`endpointOverrides`](#overriding-tags) to customize tags for specific endpoints during code generation
+2. Use [`enhanceEndpoints`](../api/created-api/code-splitting.mdx) after generation to manually add more specific `providesTags`/`invalidatesTags` with IDs
 
 ### Programmatic usage
 
@@ -120,6 +123,16 @@ interface SimpleUsage {
     | Array<string | RegExp | EndpointMatcherFunction>
   endpointOverrides?: EndpointOverrides[]
   flattenArg?: boolean
+}
+
+export type EndpointOverrides = {
+  pattern: EndpointMatcher
+} & AtLeastOneOf<{
+  type: 'mutation' | 'query'
+  parameterFilter: ParameterMatcher
+  providesTags: string[]
+  invalidatesTags: string[]
+}>
   useEnumType?: boolean
   outputRegexConstants?: boolean
   httpResolverOptions?: SwaggerParser.HTTPResolverOptions
@@ -188,6 +201,53 @@ const withOverride: ConfigFile = {
   ],
 }
 ```
+
+#### Overriding tags
+
+You can override the `providesTags` and `invalidatesTags` generated for any endpoint, regardless of whether the global `tag` option is enabled:
+
+```ts no-transpile title="openapi-config.ts"
+const withTagOverrides: ConfigFile = {
+  // ...
+  tag: true, // or false - overrides work either way
+  endpointOverrides: [
+    {
+      // Override the tags for a specific query
+      pattern: 'getPetById',
+      providesTags: ['SinglePet', 'PetDetails'],
+    },
+    {
+      // Remove auto-generated tags by providing an empty array
+      pattern: 'deletePet',
+      invalidatesTags: [],
+    },
+    {
+      // Add both providesTags AND invalidatesTags to any endpoint
+      pattern: 'updatePet',
+      providesTags: ['LastUpdatedPet'],
+      invalidatesTags: ['Pet', 'PetList'],
+    },
+  ],
+}
+```
+
+**Key behaviors:**
+
+- Tag overrides take precedence over auto-generated tags from the OpenAPI `tags` field
+- You can use an empty array (`[]`) to explicitly remove tags from an endpoint
+- Both `providesTags` and `invalidatesTags` can be set on any endpoint type (query or mutation)
+- Overrides work regardless of whether the global `tag: true` option is set
+
+This is useful when:
+
+- The OpenAPI tags don't match your caching strategy
+- You need more specific cache invalidation than the default tag generation provides
+- A mutation should also provide tags (e.g., login returning user data)
+- A query should also invalidate tags (e.g., polling that triggers cache updates)
+
+:::note
+When using tag overrides with `tag: false`, the overridden tags will be emitted in the generated code, but they won't be automatically added to `addTagTypes`. You may need to manually add your custom tags to the base API's `tagTypes` array.
+:::
 
 #### Generating hooks
 

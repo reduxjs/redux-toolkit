@@ -154,12 +154,33 @@ export interface OutputFileOptions extends Partial<CommonOptions> {
   useEnumType?: boolean;
 }
 
+/**
+ * Configuration for overriding specific endpoint behaviors during code generation.
+ * At least one override option (besides `pattern`) must be specified.
+ */
 export type EndpointOverrides = {
+  /** Pattern to match endpoint names. Can be a string, RegExp, or matcher function. */
   pattern: EndpointMatcher;
 } & AtLeastOneKey<{
+  /** Override the endpoint type (query vs mutation) when the inferred type is incorrect. */
   type: 'mutation' | 'query';
+  /** Filter which parameters are included in the generated endpoint. Path parameters cannot be filtered. */
   parameterFilter: ParameterMatcher;
+  /**
+   * Override providesTags for this endpoint.
+   * Takes precedence over auto-generated tags from OpenAPI spec.
+   * Use an empty array to explicitly omit providesTags.
+   * Works regardless of the global `tag` setting and endpoint type.
+   * @example ['Pet', 'SinglePet']
+   */
   providesTags: string[];
+  /**
+   * Override invalidatesTags for this endpoint.
+   * Takes precedence over auto-generated tags from OpenAPI spec.
+   * Use an empty array to explicitly omit invalidatesTags.
+   * Works regardless of the global `tag` setting and endpoint type.
+   * @example ['Pet', 'PetList']
+   */
   invalidatesTags: string[];
 }>;
 
