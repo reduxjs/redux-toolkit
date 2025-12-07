@@ -14,6 +14,19 @@ on:
           - '@rtk-query/codegen-openapi'
           - '@rtk-query/graphql-request-base-query'
           - '@reduxjs/rtk-codemods'
+      tag:
+        description: 'NPM dist-tag (latest, alpha, beta, next)'
+        required: true
+        default: 'latest'
+        type: choice
+        options:
+          - latest
+          - next
+          - alpha
+          - beta
+
+permissions: {}
+
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -29,6 +42,4 @@ jobs:
           cache: 'yarn'
       - run: yarn install --frozen-lockfile
       - run: yarn workspace ${{ inputs.package }} test
-      - run: yarn workspace ${{ inputs.package }} exec npm publish --access public --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
+      - run: yarn workspace ${{ inputs.package }} exec npm publish --access public --provenance --tag ${{ inputs.tag }}
