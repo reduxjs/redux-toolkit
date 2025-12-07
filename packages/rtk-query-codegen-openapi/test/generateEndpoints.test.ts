@@ -172,6 +172,118 @@ describe('endpoint overrides', () => {
     expect(api).not.toMatch(/headers: {/);
     expect(api).toMatchSnapshot('should remove all parameters except for findPetsByStatus');
   });
+
+  it('should override generated tags', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      tag: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      filterEndpoints: ['getPetById', 'deletePet'],
+      endpointOverrides: [
+        {
+          pattern: 'getPetById',
+          providesTags: ['CustomQueryTag'],
+        },
+        {
+          pattern: 'deletePet',
+          invalidatesTags: [],
+        },
+      ],
+    });
+
+    expect(api).toMatch(/getPetById: build\.query[\s\S]*providesTags: \["CustomQueryTag"\]/);
+    expect(api).not.toMatch(/getPetById: build\.query[\s\S]*providesTags: \["pet"\]/);
+    expect(api).toMatch(/deletePet: build\.mutation[\s\S]*invalidatesTags: \[\]/);
+    expect(api).not.toMatch(/deletePet: build\.mutation[\s\S]*invalidatesTags: \["pet"\]/);
+  });
+
+  it('should allow tag overrides when tag generation is disabled', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      filterEndpoints: ['getPetById', 'deletePet'],
+      endpointOverrides: [
+        {
+          pattern: 'getPetById',
+          providesTags: ['ManualProvides'],
+        },
+        {
+          pattern: 'deletePet',
+          invalidatesTags: ['ManualInvalidates'],
+        },
+      ],
+    });
+
+    expect(api).toMatch(/getPetById: build\.query[\s\S]*providesTags: \["ManualProvides"\]/);
+    expect(api).toMatch(/deletePet: build\.mutation[\s\S]*invalidatesTags: \["ManualInvalidates"\]/);
+    expect(api).not.toMatch(/providesTags: \[\]/);
+    expect(api).not.toMatch(/invalidatesTags: \[\]/);
+  });
+
+  it('allows overriding tags regardless of inferred endpoint type', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      filterEndpoints: 'loginUser',
+      endpointOverrides: [
+        {
+          pattern: 'loginUser',
+          type: 'mutation',
+          providesTags: ['LoginStatus'],
+        },
+      ],
+    });
+
+    expect(api).toMatch(/loginUser: build\.mutation/);
+    expect(api).toMatch(/providesTags: \["LoginStatus"\]/);
+    expect(api).not.toMatch(/invalidatesTags:/);
+  });
+
+  it('allows overriding both providesTags and invalidatesTags simultaneously', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      tag: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      filterEndpoints: 'findPetsByStatus',
+      endpointOverrides: [
+        {
+          pattern: 'findPetsByStatus',
+          providesTags: ['CustomProvide'],
+          invalidatesTags: ['CustomInvalidate'],
+        },
+      ],
+    });
+
+    expect(api).toMatch(/findPetsByStatus: build\.query/);
+    expect(api).toMatch(/providesTags: \["CustomProvide"\]/);
+    expect(api).toMatch(/invalidatesTags: \["CustomInvalidate"\]/);
+    expect(api).not.toMatch(/providesTags: \["pet"\]/);
+    expect(api).not.toMatch(/invalidatesTags: \["pet"\]/);
+  });
+
+  it('does not add override tags to addTagTypes when tag generation is disabled', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      filterEndpoints: 'getPetById',
+      endpointOverrides: [
+        {
+          pattern: 'getPetById',
+          providesTags: ['CustomTag'],
+        },
+      ],
+    });
+
+    // The providesTags override should be present in the generated code
+    expect(api).toMatch(/providesTags: \["CustomTag"\]/);
+    // But addTagTypes should not be generated when tag: false (default)
+    expect(api).not.toContain('addTagTypes');
+  });
 });
 
 describe('option encodePathParams', () => {
