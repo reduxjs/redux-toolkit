@@ -21,7 +21,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 12.x
+          node-version: 24.x
       - name: install dependencies
         run: yarn install --frozen-lockfile
       - name: linting
@@ -33,7 +33,7 @@ jobs:
 
     strategy:
       matrix:
-        node: ['10', '12', '14']
+        node: ['24.x']
 
     steps:
       - uses: actions/checkout@v4
@@ -53,7 +53,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '12.x'
+          node-version: '24.x'
       - name: install dependencies
         run: yarn install --no-lockfile
       - name: test
