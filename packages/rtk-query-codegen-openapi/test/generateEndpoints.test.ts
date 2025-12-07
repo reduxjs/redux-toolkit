@@ -264,6 +264,26 @@ describe('endpoint overrides', () => {
     expect(api).not.toMatch(/providesTags: \["pet"\]/);
     expect(api).not.toMatch(/invalidatesTags: \["pet"\]/);
   });
+
+  it('does not add override tags to addTagTypes when tag generation is disabled', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      filterEndpoints: 'getPetById',
+      endpointOverrides: [
+        {
+          pattern: 'getPetById',
+          providesTags: ['CustomTag'],
+        },
+      ],
+    });
+
+    // The providesTags override should be present in the generated code
+    expect(api).toMatch(/providesTags: \["CustomTag"\]/);
+    // But addTagTypes should not be generated when tag: false (default)
+    expect(api).not.toContain('addTagTypes');
+  });
 });
 
 describe('option encodePathParams', () => {
