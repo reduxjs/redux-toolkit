@@ -7,6 +7,7 @@
     "tagName": "@rtk-query/codegen-openapi@${version}"
   },
   "npm": {
+    "publish": false,
     "versionArgs": ["--workspaces-update=false"]
   }
 }
