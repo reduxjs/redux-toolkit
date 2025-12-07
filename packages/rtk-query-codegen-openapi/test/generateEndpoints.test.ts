@@ -725,6 +725,24 @@ describe('tests from issues', () => {
     });
     expect(result).toMatchSnapshot();
   });
+
+  it('issue #3369: discriminated unions should use enum values, not schema names', async () => {
+    const result = await generateEndpoints({
+      apiFile: './tmp/emptyApi.ts',
+      schemaFile: './test/fixtures/issue-3369-discriminator-enum.json',
+    });
+
+    // The discriminator value should be 'engineering' and 'standard' (from enum)
+    // NOT 'EngineeringAllowance' and 'StandardAllowance' (schema names)
+    expect(result).toContain('allowance_type: "engineering"');
+    expect(result).toContain('allowance_type: "standard"');
+
+    // Should NOT use schema names as discriminator values
+    expect(result).not.toContain('allowance_type: "EngineeringAllowance"');
+    expect(result).not.toContain('allowance_type: "StandardAllowance"');
+
+    expect(result).toMatchSnapshot();
+  });
 });
 
 describe('openapi spec', () => {
