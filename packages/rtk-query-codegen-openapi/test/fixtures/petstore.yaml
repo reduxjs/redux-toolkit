@@ -705,6 +705,10 @@ components:
           type: string
           pattern: '^\+?[1-9]\d{1,14}$'
           example: '12345'
+        website:
+          type: string
+          pattern: '^https?://[^\s]+$'
+          example: 'https://example.com'
         userStatus:
           type: integer
           pattern: '^[1-9]\d{0,2}$'

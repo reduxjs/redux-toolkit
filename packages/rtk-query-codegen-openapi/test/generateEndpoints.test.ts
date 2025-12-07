@@ -693,6 +693,32 @@ describe('regex constants', () => {
     expect(api).toContain(String.raw`/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/`);
     expect(api).toContain(String.raw`export const userPhonePattern = /^\+?[1-9]\d{1,14}$/`);
   });
+
+  it('should not export regex constants when outputRegexConstants is false', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      outputRegexConstants: false,
+    });
+
+    expect(api).not.toContain('Pattern = /');
+    expect(api).not.toContain('tagNamePattern');
+    expect(api).not.toContain('userEmailPattern');
+    expect(api).not.toContain('userPhonePattern');
+  });
+
+  it('should properly escape forward slashes in patterns', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      outputRegexConstants: true,
+    });
+
+    // The userWebsitePattern should have escaped forward slashes
+    expect(api).toContain(String.raw`export const userWebsitePattern = /^https?:\/\/[^\s]+$/`);
+  });
 });
 
 describe('esmExtensions option', () => {
