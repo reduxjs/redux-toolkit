@@ -4,9 +4,8 @@ node_modules/
 # Build output
 dist/
 
-# Cache and reports
+# Cache
 cache/
-reports/
 
 # Environment variables
 .env
