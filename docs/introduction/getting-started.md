@@ -87,6 +87,24 @@ yarn add react-redux
 
 The package includes a precompiled ESM build that can be used as a [`<script type="module">` tag](https://unpkg.com/@reduxjs/toolkit/dist/redux-toolkit.browser.mjs) directly in the browser.
 
+## Requirements
+
+### TypeScript
+
+Redux Toolkit follows [DefinitelyTyped's policy](https://github.com/DefinitelyTyped/DefinitelyTyped#support-window) of supporting TypeScript versions released within the past two years. As of RTK 2.11, this means we support:
+
+| RTK Version | Minimum TypeScript |
+| ----------- | ------------------ |
+| 2.x         | 5.4+               |
+| 1.9.x       | 4.7+               |
+
+<details>
+<summary>Using an older TypeScript version?</summary>
+
+If you're unable to upgrade TypeScript, RTK may still work with older versions, but you may encounter type errors or missing type inference. We strongly recommend upgrading to take advantage of improved type safety and developer experience.
+
+</details>
+
 ## What's Included
 
 Redux Toolkit includes these APIs:

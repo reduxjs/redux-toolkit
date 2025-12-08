@@ -29,6 +29,24 @@ If you encounter any problems with the types that are not described on this page
 
 :::
 
+:::tip TypeScript Version Requirement
+
+Redux Toolkit follows [DefinitelyTyped's policy](https://github.com/DefinitelyTyped/DefinitelyTyped#support-window) of supporting TypeScript versions released within the past two years. As of RTK 2.11, this means we support:
+
+| RTK Version | Minimum TypeScript |
+| ----------- | ------------------ |
+| 2.x         | 5.4+               |
+| 1.9.x       | 4.7+               |
+
+<details>
+<summary>Using an older TypeScript version?</summary>
+
+If you're unable to upgrade TypeScript, RTK may still work with older versions, but you may encounter type errors or missing type inference. We strongly recommend upgrading to take advantage of improved type safety and developer experience.
+
+</details>
+
+:::
+
 ## `configureStore`
 
 The basics of using `configureStore` are shown in [TypeScript Quick Start tutorial page](../tutorials/typescript.md). Here are some additional details that you might find useful.
