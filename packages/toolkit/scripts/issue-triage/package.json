@@ -1,0 +1,21 @@
+{
+  "name": "github-issues-triage",
+  "version": "1.0.0",
+  "description": "Tool for triaging and categorizing GitHub issues",
+  "type": "module",
+  "scripts": {
+    "start": "bun src/index.ts",
+    "build": "tsc"
+  },
+  "keywords": [
+    "github",
+    "issues",
+    "triage"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}

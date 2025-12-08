@@ -1,0 +1,5 @@
+export * from './types.js'
+export * from './similarity.js'
+export * from './duplicates.js'
+export * from './clusters.js'
+export * from './utils.js'
