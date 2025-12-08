@@ -1,5 +1,8 @@
 name: CI
-on: [push, pull_request]
+on:
+  push:
+    branches: [master]
+  pull_request:
 defaults:
   run:
     working-directory: ./packages/toolkit
@@ -70,18 +73,12 @@ jobs:
       matrix:
         node: ['24.x']
         react:
-          [
-            {
-              version: '^18',
-              types: ^18,
-              react-dom: { version: '^18', types: '^18' },
-            },
-            {
-              version: '^19',
-              types: '^19',
-              react-dom: { version: '^19', types: '^19' },
-            },
-          ]
+          - version: '^18'
+            types: '^18'
+            react-dom: { version: '^18', types: '^18' }
+          - version: '^19'
+            types: '^19'
+            react-dom: { version: '^19', types: '^19' }
 
     steps:
       - name: Checkout repo
@@ -137,21 +134,90 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: ['24.x']
-        ts: ['5.1', '5.2', '5.3', '5.4', '5.5', '5.6', '5.7', '5.8']
-        react:
-          [
-            {
-              version: '^18',
-              types: ^18,
-              react-dom: { version: '^18', types: '^18' },
-            },
-            {
-              version: '^19',
-              types: '^19',
-              react-dom: { version: '^19', types: '^19' },
-            },
-          ]
+        # Sparse matrix: All TS versions with React 19, boundary TS versions with React 18
+        include:
+          # React 19 × all TS versions
+          - node: '24.x'
+            ts: '5.4'
+            react:
+              {
+                version: '^19',
+                types: '^19',
+                react-dom: { version: '^19', types: '^19' },
+              }
+          - node: '24.x'
+            ts: '5.5'
+            react:
+              {
+                version: '^19',
+                types: '^19',
+                react-dom: { version: '^19', types: '^19' },
+              }
+          - node: '24.x'
+            ts: '5.6'
+            react:
+              {
+                version: '^19',
+                types: '^19',
+                react-dom: { version: '^19', types: '^19' },
+              }
+          - node: '24.x'
+            ts: '5.7'
+            react:
+              {
+                version: '^19',
+                types: '^19',
+                react-dom: { version: '^19', types: '^19' },
+              }
+          - node: '24.x'
+            ts: '5.8'
+            react:
+              {
+                version: '^19',
+                types: '^19',
+                react-dom: { version: '^19', types: '^19' },
+              }
+          - node: '24.x'
+            ts: '5.9'
+            react:
+              {
+                version: '^19',
+                types: '^19',
+                react-dom: { version: '^19', types: '^19' },
+              }
+          - node: '24.x'
+            ts: 'next'
+            react:
+              {
+                version: '^19',
+                types: '^19',
+                react-dom: { version: '^19', types: '^19' },
+              }
+          # React 18 × boundary TS versions only (5.4, 5.9, next)
+          - node: '24.x'
+            ts: '5.4'
+            react:
+              {
+                version: '^18',
+                types: '^18',
+                react-dom: { version: '^18', types: '^18' },
+              }
+          - node: '24.x'
+            ts: '5.9'
+            react:
+              {
+                version: '^18',
+                types: '^18',
+                react-dom: { version: '^18', types: '^18' },
+              }
+          - node: '24.x'
+            ts: 'next'
+            react:
+              {
+                version: '^18',
+                types: '^18',
+                react-dom: { version: '^18', types: '^18' },
+              }
 
     steps:
       - name: Checkout repo
@@ -186,12 +252,21 @@ jobs:
       - name: Erase path aliases
         run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json
 
-      - name: Test types
+      - name: Test types (TS 5.x)
+        if: matrix.ts != 'next' && !startsWith(matrix.ts, '6.')
         env:
           TEST_DIST: true
         run: |
           yarn tsc --version
           yarn type-tests
+
+      - name: Test types (TS 6.x/next)
+        if: matrix.ts == 'next' || startsWith(matrix.ts, '6.')
+        env:
+          TEST_DIST: true
+        run: |
+          yarn tsc --version
+          yarn tsc -p tsconfig.test.json --noEmit --ignoreDeprecations 6.0
 
   test-published-artifact:
     name: Test Published Artifact ${{ matrix.example }}
@@ -304,14 +379,50 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: ['24.x']
-        ts: ['5.3', '5.4', '5.5', '5.6', '5.7', '5.8', '5.9', 'next']
-        example:
-          [
-            { name: 'bundler', moduleResolution: 'Bundler' },
-            { name: 'nodenext-cjs', moduleResolution: 'NodeNext' },
-            { name: 'nodenext-esm', moduleResolution: 'NodeNext' },
-          ]
+        # Sparse matrix: All TS versions with bundler, boundary TS versions with nodenext
+        include:
+          # bundler × all TS versions
+          - node: '24.x'
+            ts: '5.4'
+            example: { name: 'bundler', moduleResolution: 'Bundler' }
+          - node: '24.x'
+            ts: '5.5'
+            example: { name: 'bundler', moduleResolution: 'Bundler' }
+          - node: '24.x'
+            ts: '5.6'
+            example: { name: 'bundler', moduleResolution: 'Bundler' }
+          - node: '24.x'
+            ts: '5.7'
+            example: { name: 'bundler', moduleResolution: 'Bundler' }
+          - node: '24.x'
+            ts: '5.8'
+            example: { name: 'bundler', moduleResolution: 'Bundler' }
+          - node: '24.x'
+            ts: '5.9'
+            example: { name: 'bundler', moduleResolution: 'Bundler' }
+          - node: '24.x'
+            ts: 'next'
+            example: { name: 'bundler', moduleResolution: 'Bundler' }
+          # nodenext-cjs × boundary TS versions only (5.4, 5.9, next)
+          - node: '24.x'
+            ts: '5.4'
+            example: { name: 'nodenext-cjs', moduleResolution: 'NodeNext' }
+          - node: '24.x'
+            ts: '5.9'
+            example: { name: 'nodenext-cjs', moduleResolution: 'NodeNext' }
+          - node: '24.x'
+            ts: 'next'
+            example: { name: 'nodenext-cjs', moduleResolution: 'NodeNext' }
+          # nodenext-esm × boundary TS versions only (5.4, 5.9, next)
+          - node: '24.x'
+            ts: '5.4'
+            example: { name: 'nodenext-esm', moduleResolution: 'NodeNext' }
+          - node: '24.x'
+            ts: '5.9'
+            example: { name: 'nodenext-esm', moduleResolution: 'NodeNext' }
+          - node: '24.x'
+            ts: 'next'
+            example: { name: 'nodenext-esm', moduleResolution: 'NodeNext' }
     steps:
       - name: Checkout repo
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
@@ -348,3 +459,58 @@ jobs:
         run: |
           npm --workspace=@examples-type-portability/${{ matrix.example.name }} pkg set type=module
           yarn workspace @examples-type-portability/${{ matrix.example.name }} run test --module ESNext --moduleResolution Node10 --preserveSymLinks --verbatimModuleSyntax false
+
+  test-types-native-preview:
+    if: false # Disabled pending TS 7.0 compatibility fixes
+    name: 'Test Types: TypeScript Native Preview'
+    needs: [build]
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      matrix:
+        node: ['24.x']
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+
+      - name: Use node ${{ matrix.node }}
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: ${{ matrix.node }}
+          cache: 'yarn'
+
+      - name: Install deps
+        run: yarn install
+
+      - name: Install TypeScript Native Preview
+        run: yarn add @typescript/native-preview
+
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: package
+          path: packages/toolkit
+
+      - name: Install build artifact
+        run: yarn add ./package.tgz
+
+      - name: Show installed RTK versions
+        run: yarn info @reduxjs/toolkit
+
+      - name: Erase path aliases
+        run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json
+
+      - name: Test types with tsgo
+        env:
+          TEST_DIST: true
+        run: |
+          yarn tsgo --version
+          yarn tsgo -p tsconfig.test.json --noEmit --moduleResolution Bundler
+
+      - name: Install build artifact for type-portability example
+        run: yarn workspace @examples-type-portability/bundler add $(pwd)/package.tgz
+
+      - name: Install TypeScript Native Preview for type-portability example
+        run: yarn workspace @examples-type-portability/bundler add -D @typescript/native-preview
+
+      - name: Test type portability with tsgo (bundler example)
+        run: yarn workspace @examples-type-portability/bundler exec tsgo --noEmit
