@@ -186,12 +186,21 @@ jobs:
       - name: Erase path aliases
         run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json
 
-      - name: Test types
+      - name: Test types (TS 5.x)
+        if: matrix.ts != 'next' && !startsWith(matrix.ts, '6.')
         env:
           TEST_DIST: true
         run: |
           yarn tsc --version
           yarn type-tests
+
+      - name: Test types (TS 6.x/next)
+        if: matrix.ts == 'next' || startsWith(matrix.ts, '6.')
+        env:
+          TEST_DIST: true
+        run: |
+          yarn tsc --version
+          yarn tsc -p tsconfig.test.json --noEmit --ignoreDeprecations 6.0
 
   test-published-artifact:
     name: Test Published Artifact ${{ matrix.example }}
