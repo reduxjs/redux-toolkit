@@ -392,7 +392,7 @@ jobs:
           TEST_DIST: true
         run: |
           yarn tsgo --version
-          yarn tsgo -p tsconfig.test.json --noEmit
+          yarn tsgo -p tsconfig.test.json --noEmit --moduleResolution Bundler
 
       - name: Install build artifact for type-portability example
         run: yarn workspace @examples-type-portability/bundler add $(pwd)/package.tgz
