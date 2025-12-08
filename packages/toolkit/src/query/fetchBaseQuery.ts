@@ -2,6 +2,7 @@ import { joinUrls } from './utils'
 import { isPlainObject } from './core/rtkImports'
 import type { BaseQueryApi, BaseQueryFn } from './baseQueryTypes'
 import type { MaybePromise, Override } from './tsHelpers'
+import { anySignal, timeoutSignal } from './utils/signals'
 
 export type ResponseHandler =
   | 'content-type'
@@ -233,17 +234,11 @@ export function fetchBaseQuery({
       ...rest
     } = typeof arg == 'string' ? { url: arg } : arg
 
-    let abortController: AbortController | undefined,
-      signal = api.signal
-    if (timeout) {
-      abortController = new AbortController()
-      api.signal.addEventListener('abort', abortController.abort)
-      signal = abortController.signal
-    }
-
     let config: RequestInit = {
       ...baseFetchOptions,
-      signal,
+      signal: timeout
+        ? anySignal(api.signal, timeoutSignal(timeout))
+        : api.signal,
       ...rest,
     }
 
@@ -303,30 +298,20 @@ export function fetchBaseQuery({
     const requestClone = new Request(url, config)
     meta = { request: requestClone }
 
-    let response,
-      timedOut = false,
-      timeoutId =
-        abortController &&
-        setTimeout(() => {
-          timedOut = true
-          abortController!.abort()
-        }, timeout)
+    let response
     try {
       response = await fetchFn(request)
     } catch (e) {
       return {
         error: {
-          status: timedOut ? 'TIMEOUT_ERROR' : 'FETCH_ERROR',
+          status:
+            e instanceof DOMException && e.name === 'TimeoutError'
+              ? 'TIMEOUT_ERROR'
+              : 'FETCH_ERROR',
           error: String(e),
         },
         meta,
       }
-    } finally {
-      if (timeoutId) clearTimeout(timeoutId)
-      abortController?.signal.removeEventListener(
-        'abort',
-        abortController.abort,
-      )
     }
     const responseClone = response.clone()
 
