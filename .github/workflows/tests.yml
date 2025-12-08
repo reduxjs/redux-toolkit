@@ -1,5 +1,8 @@
 name: CI
-on: [push, pull_request]
+on:
+  push:
+    branches: [master]
+  pull_request:
 defaults:
   run:
     working-directory: ./packages/toolkit
@@ -70,18 +73,12 @@ jobs:
       matrix:
         node: ['24.x']
         react:
-          [
-            {
-              version: '^18',
-              types: ^18,
-              react-dom: { version: '^18', types: '^18' },
-            },
-            {
-              version: '^19',
-              types: '^19',
-              react-dom: { version: '^19', types: '^19' },
-            },
-          ]
+          - version: '^18'
+            types: '^18'
+            react-dom: { version: '^18', types: '^18' }
+          - version: '^19'
+            types: '^19'
+            react-dom: { version: '^19', types: '^19' }
 
     steps:
       - name: Checkout repo
@@ -137,21 +134,90 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: ['24.x']
-        ts: ['5.4', '5.5', '5.6', '5.7', '5.8', '5.9', 'next']
-        react:
-          [
-            {
-              version: '^18',
-              types: ^18,
-              react-dom: { version: '^18', types: '^18' },
-            },
-            {
-              version: '^19',
-              types: '^19',
-              react-dom: { version: '^19', types: '^19' },
-            },
-          ]
+        # Sparse matrix: All TS versions with React 19, boundary TS versions with React 18
+        include:
+          # React 19 × all TS versions
+          - node: '24.x'
+            ts: '5.4'
+            react:
+              {
+                version: '^19',
+                types: '^19',
+                react-dom: { version: '^19', types: '^19' },
+              }
+          - node: '24.x'
+            ts: '5.5'
+            react:
+              {
+                version: '^19',
+                types: '^19',
+                react-dom: { version: '^19', types: '^19' },
+              }
+          - node: '24.x'
+            ts: '5.6'
+            react:
+              {
+                version: '^19',
+                types: '^19',
+                react-dom: { version: '^19', types: '^19' },
+              }
+          - node: '24.x'
+            ts: '5.7'
+            react:
+              {
+                version: '^19',
+                types: '^19',
+                react-dom: { version: '^19', types: '^19' },
+              }
+          - node: '24.x'
+            ts: '5.8'
+            react:
+              {
+                version: '^19',
+                types: '^19',
+                react-dom: { version: '^19', types: '^19' },
+              }
+          - node: '24.x'
+            ts: '5.9'
+            react:
+              {
+                version: '^19',
+                types: '^19',
+                react-dom: { version: '^19', types: '^19' },
+              }
+          - node: '24.x'
+            ts: 'next'
+            react:
+              {
+                version: '^19',
+                types: '^19',
+                react-dom: { version: '^19', types: '^19' },
+              }
+          # React 18 × boundary TS versions only (5.4, 5.9, next)
+          - node: '24.x'
+            ts: '5.4'
+            react:
+              {
+                version: '^18',
+                types: '^18',
+                react-dom: { version: '^18', types: '^18' },
+              }
+          - node: '24.x'
+            ts: '5.9'
+            react:
+              {
+                version: '^18',
+                types: '^18',
+                react-dom: { version: '^18', types: '^18' },
+              }
+          - node: '24.x'
+            ts: 'next'
+            react:
+              {
+                version: '^18',
+                types: '^18',
+                react-dom: { version: '^18', types: '^18' },
+              }
 
     steps:
       - name: Checkout repo
@@ -313,14 +379,50 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: ['24.x']
-        ts: ['5.4', '5.5', '5.6', '5.7', '5.8', '5.9', 'next']
-        example:
-          [
-            { name: 'bundler', moduleResolution: 'Bundler' },
-            { name: 'nodenext-cjs', moduleResolution: 'NodeNext' },
-            { name: 'nodenext-esm', moduleResolution: 'NodeNext' },
-          ]
+        # Sparse matrix: All TS versions with bundler, boundary TS versions with nodenext
+        include:
+          # bundler × all TS versions
+          - node: '24.x'
+            ts: '5.4'
+            example: { name: 'bundler', moduleResolution: 'Bundler' }
+          - node: '24.x'
+            ts: '5.5'
+            example: { name: 'bundler', moduleResolution: 'Bundler' }
+          - node: '24.x'
+            ts: '5.6'
+            example: { name: 'bundler', moduleResolution: 'Bundler' }
+          - node: '24.x'
+            ts: '5.7'
+            example: { name: 'bundler', moduleResolution: 'Bundler' }
+          - node: '24.x'
+            ts: '5.8'
+            example: { name: 'bundler', moduleResolution: 'Bundler' }
+          - node: '24.x'
+            ts: '5.9'
+            example: { name: 'bundler', moduleResolution: 'Bundler' }
+          - node: '24.x'
+            ts: 'next'
+            example: { name: 'bundler', moduleResolution: 'Bundler' }
+          # nodenext-cjs × boundary TS versions only (5.4, 5.9, next)
+          - node: '24.x'
+            ts: '5.4'
+            example: { name: 'nodenext-cjs', moduleResolution: 'NodeNext' }
+          - node: '24.x'
+            ts: '5.9'
+            example: { name: 'nodenext-cjs', moduleResolution: 'NodeNext' }
+          - node: '24.x'
+            ts: 'next'
+            example: { name: 'nodenext-cjs', moduleResolution: 'NodeNext' }
+          # nodenext-esm × boundary TS versions only (5.4, 5.9, next)
+          - node: '24.x'
+            ts: '5.4'
+            example: { name: 'nodenext-esm', moduleResolution: 'NodeNext' }
+          - node: '24.x'
+            ts: '5.9'
+            example: { name: 'nodenext-esm', moduleResolution: 'NodeNext' }
+          - node: '24.x'
+            ts: 'next'
+            example: { name: 'nodenext-esm', moduleResolution: 'NodeNext' }
     steps:
       - name: Checkout repo
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
