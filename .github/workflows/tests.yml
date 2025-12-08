@@ -350,6 +350,7 @@ jobs:
           yarn workspace @examples-type-portability/${{ matrix.example.name }} run test --module ESNext --moduleResolution Node10 --preserveSymLinks --verbatimModuleSyntax false
 
   test-types-native-preview:
+    if: false # Disabled pending TS 7.0 compatibility fixes
     name: 'Test Types: TypeScript Native Preview'
     needs: [build]
     runs-on: ubuntu-latest
