@@ -2,6 +2,7 @@
   // For runtime and type tests during CI.
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
+    "ignoreDeprecations": "6.0",
     "emitDeclarationOnly": false,
     "noEmit": true,
     "rootDir": "./src",
