@@ -305,7 +305,9 @@ export function fetchBaseQuery({
       return {
         error: {
           status:
-            (e instanceof Error || e instanceof DOMException) &&
+            (e instanceof Error ||
+              (typeof DOMException !== 'undefined' &&
+                e instanceof DOMException)) &&
             e.name === 'TimeoutError'
               ? 'TIMEOUT_ERROR'
               : 'FETCH_ERROR',
