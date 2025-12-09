@@ -1,10 +1,16 @@
 // AbortSignal.timeout() is currently baseline 2024
 export const timeoutSignal = (milliseconds: number) => {
   const abortController = new AbortController()
-  setTimeout(
-    () => abortController.abort(new DOMException('', 'TimeoutError')),
-    milliseconds,
-  )
+  setTimeout(() => {
+    const message = 'signal timed out'
+    const name = 'TimeoutError'
+    abortController.abort(
+      // some environments (React Native, Node) don't have DOMException
+      typeof DOMException !== 'undefined'
+        ? new DOMException(message, name)
+        : Object.assign(new Error(message), { name }),
+    )
+  }, milliseconds)
   return abortController.signal
 }
 
