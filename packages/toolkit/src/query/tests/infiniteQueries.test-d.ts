@@ -78,9 +78,11 @@ describe('Infinite queries', () => {
 
     expectTypeOf(pokemonApi.useGetInfinitePokemonInfiniteQuery).toBeFunction()
 
-    expectTypeOf(pokemonApi.endpoints.getInfinitePokemon.useInfiniteQuery)
-      .parameter(0)
-      .toEqualTypeOf<string | typeof skipToken>()
+    expectTypeOf<
+      Parameters<
+        typeof pokemonApi.endpoints.getInfinitePokemon.useInfiniteQuery
+      >[0]
+    >().toEqualTypeOf<string | typeof skipToken>()
 
     expectTypeOf(pokemonApi.endpoints.getInfinitePokemon.useInfiniteQueryState)
       .parameter(0)
@@ -128,9 +130,9 @@ describe('Infinite queries', () => {
     const useGetInfinitePokemonQuery =
       pokemonApi.endpoints.getInfinitePokemon.useInfiniteQuery
 
-    expectTypeOf(useGetInfinitePokemonQuery)
-      .parameter(0)
-      .toEqualTypeOf<string | typeof skipToken>()
+    expectTypeOf<
+      Parameters<typeof useGetInfinitePokemonQuery>[0]
+    >().toEqualTypeOf<string | typeof skipToken>()
 
     function PokemonList() {
       const {
