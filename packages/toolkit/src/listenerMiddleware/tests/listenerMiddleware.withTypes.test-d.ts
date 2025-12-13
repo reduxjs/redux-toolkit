@@ -115,7 +115,11 @@ describe('listenerMiddleware.withTypes<RootState, AppDispatch>()', () => {
   })
 
   test('addListener.withTypes', () => {
-    const addAppListener = addListener.withTypes<RootState, AppDispatch, ExtraArgument>()
+    const addAppListener = addListener.withTypes<
+      RootState,
+      AppDispatch,
+      ExtraArgument
+    >()
 
     expectTypeOf(addAppListener).toEqualTypeOf<
       TypedAddListener<RootState, AppDispatch, ExtraArgument>
@@ -138,7 +142,11 @@ describe('listenerMiddleware.withTypes<RootState, AppDispatch>()', () => {
   })
 
   test('removeListener.withTypes', () => {
-    const removeAppListener = removeListener.withTypes<RootState, AppDispatch, ExtraArgument>()
+    const removeAppListener = removeListener.withTypes<
+      RootState,
+      AppDispatch,
+      ExtraArgument
+    >()
 
     expectTypeOf(removeAppListener).toEqualTypeOf<
       TypedRemoveListener<RootState, AppDispatch, ExtraArgument>

@@ -15,7 +15,6 @@ import type {
   SerializedError,
   SliceCaseReducers,
   ThunkDispatch,
-  UnknownAction,
   ValidateSliceCaseReducers,
 } from '@reduxjs/toolkit'
 import {
@@ -80,13 +79,9 @@ describe('type tests', () => {
     })
 
     test('Reducer', () => {
-      expectTypeOf(slice.reducer).toMatchTypeOf<
-        Reducer<number, PayloadAction>
-      >()
+      expectTypeOf(slice.reducer).toExtend<Reducer<number, PayloadAction>>()
 
-      expectTypeOf(slice.reducer).not.toMatchTypeOf<
-        Reducer<string, PayloadAction>
-      >()
+      expectTypeOf(slice.reducer).not.toExtend<Reducer<string, PayloadAction>>()
     })
 
     test('Actions', () => {
@@ -122,37 +117,35 @@ describe('type tests', () => {
 
     expectTypeOf(
       counter.actions.increment,
-    ).toMatchTypeOf<ActionCreatorWithoutPayload>()
+    ).toExtend<ActionCreatorWithoutPayload>()
 
     counter.actions.increment()
 
-    expectTypeOf(counter.actions.decrement).toMatchTypeOf<
+    expectTypeOf(counter.actions.decrement).toExtend<
       ActionCreatorWithOptionalPayload<number | undefined>
     >()
 
     counter.actions.decrement()
     counter.actions.decrement(2)
 
-    expectTypeOf(counter.actions.multiply).toMatchTypeOf<
+    expectTypeOf(counter.actions.multiply).toExtend<
       ActionCreatorWithPayload<number | number[]>
     >()
 
     counter.actions.multiply(2)
     counter.actions.multiply([2, 3, 4])
 
-    expectTypeOf(counter.actions.addTwo).toMatchTypeOf<
+    expectTypeOf(counter.actions.addTwo).toExtend<
       ActionCreatorWithPreparedPayload<[number, number], number>
     >()
 
     counter.actions.addTwo(1, 2)
 
-    expectTypeOf(counter.actions.multiply).parameters.not.toMatchTypeOf<[]>()
+    expectTypeOf(counter.actions.multiply).parameters.not.toExtend<[]>()
 
     expectTypeOf(counter.actions.multiply).parameter(0).not.toBeString()
 
-    expectTypeOf(counter.actions.addTwo).parameters.not.toMatchTypeOf<
-      [number]
-    >()
+    expectTypeOf(counter.actions.addTwo).parameters.not.toExtend<[number]>()
 
     expectTypeOf(counter.actions.addTwo).parameters.toEqualTypeOf<
       [number, number]
@@ -197,9 +190,7 @@ describe('type tests', () => {
       counter.actions.multiply(1).type,
     ).toEqualTypeOf<'counter/multiply'>()
 
-    expectTypeOf(
-      counter.actions.increment.type,
-    ).not.toMatchTypeOf<'increment'>()
+    expectTypeOf(counter.actions.increment.type).not.toExtend<'increment'>()
   })
 
   test('Slice action creator types are inferred for enhanced reducers.', () => {
@@ -323,25 +314,25 @@ describe('type tests', () => {
     })
 
     test('Should match positively', () => {
-      expectTypeOf(counter.caseReducers.increment).toMatchTypeOf<
+      expectTypeOf(counter.caseReducers.increment).toExtend<
         (state: number, action: PayloadAction<number>) => number | void
       >()
     })
 
     test('Should match positively for reducers with prepare callback', () => {
-      expectTypeOf(counter.caseReducers.decrement).toMatchTypeOf<
+      expectTypeOf(counter.caseReducers.decrement).toExtend<
         (state: number, action: PayloadAction<number>) => number | void
       >()
     })
 
     test("Should not mismatch the payload if it's a simple reducer", () => {
-      expectTypeOf(counter.caseReducers.increment).not.toMatchTypeOf<
+      expectTypeOf(counter.caseReducers.increment).not.toExtend<
         (state: number, action: PayloadAction<string>) => number | void
       >()
     })
 
     test("Should not mismatch the payload if it's a reducer with a prepare callback", () => {
-      expectTypeOf(counter.caseReducers.decrement).not.toMatchTypeOf<
+      expectTypeOf(counter.caseReducers.decrement).not.toExtend<
         (state: number, action: PayloadAction<string>) => number | void
       >()
     })
@@ -392,7 +383,7 @@ describe('type tests', () => {
 
     expectTypeOf(
       mySlice.actions.setName,
-    ).toMatchTypeOf<ActionCreatorWithNonInferrablePayload>()
+    ).toExtend<ActionCreatorWithNonInferrablePayload>()
 
     const x = mySlice.actions.setName
 
@@ -418,7 +409,7 @@ describe('type tests', () => {
 
       expectTypeOf(x.payload).toBeString()
     } else {
-      expectTypeOf(x.type).not.toMatchTypeOf<'name/setName'>()
+      expectTypeOf(x.type).not.toExtend<'name/setName'>()
 
       expectTypeOf(x).not.toHaveProperty('payload')
     }
@@ -476,7 +467,7 @@ describe('type tests', () => {
         magic(state) {
           expectTypeOf(state).toEqualTypeOf<GenericState<string>>()
 
-          expectTypeOf(state).not.toMatchTypeOf<GenericState<number>>()
+          expectTypeOf(state).not.toExtend<GenericState<number>>()
 
           state.status = 'finished'
           state.data = 'hocus pocus'
@@ -484,11 +475,11 @@ describe('type tests', () => {
       },
     })
 
-    expectTypeOf(wrappedSlice.actions.success).toMatchTypeOf<
+    expectTypeOf(wrappedSlice.actions.success).toExtend<
       ActionCreatorWithPayload<string>
     >()
 
-    expectTypeOf(wrappedSlice.actions.magic).toMatchTypeOf<
+    expectTypeOf(wrappedSlice.actions.magic).toExtend<
       ActionCreatorWithoutPayload<string>
     >()
   })
@@ -732,7 +723,7 @@ describe('type tests', () => {
               // here would be a circular reference
               expectTypeOf(api.getState()).toBeUnknown()
               // here would be a circular reference
-              expectTypeOf(api.dispatch).toMatchTypeOf<
+              expectTypeOf(api.dispatch).toExtend<
                 ThunkDispatch<any, any, any>
               >()
 
@@ -742,7 +733,7 @@ describe('type tests', () => {
 
               expectTypeOf(arg).toEqualTypeOf<TestArg>()
 
-              expectTypeOf(api.rejectWithValue).toMatchTypeOf<
+              expectTypeOf(api.rejectWithValue).toExtend<
                 (value: TestReject) => any
               >()
 
@@ -791,7 +782,7 @@ describe('type tests', () => {
           ),
           testPreTyped: preTypedAsyncThunk(
             function payloadCreator(arg: TestArg, api) {
-              expectTypeOf(api.rejectWithValue).toMatchTypeOf<
+              expectTypeOf(api.rejectWithValue).toExtend<
                 (value: TestReject) => any
               >()
 
@@ -848,19 +839,19 @@ describe('type tests', () => {
 
     type StoreDispatch = typeof store.dispatch
 
-    expectTypeOf(slice.actions.normalReducer).toMatchTypeOf<
+    expectTypeOf(slice.actions.normalReducer).toExtend<
       PayloadActionCreator<string>
     >()
 
     expectTypeOf(slice.actions.normalReducer).toBeCallableWith('')
 
-    expectTypeOf(slice.actions.normalReducer).parameters.not.toMatchTypeOf<[]>()
+    expectTypeOf(slice.actions.normalReducer).parameters.not.toExtend<[]>()
 
-    expectTypeOf(slice.actions.normalReducer).parameters.not.toMatchTypeOf<
+    expectTypeOf(slice.actions.normalReducer).parameters.not.toExtend<
       [number]
     >()
 
-    expectTypeOf(slice.actions.optionalReducer).toMatchTypeOf<
+    expectTypeOf(slice.actions.optionalReducer).toExtend<
       ActionCreatorWithOptionalPayload<string | undefined>
     >()
 
@@ -872,7 +863,7 @@ describe('type tests', () => {
 
     expectTypeOf(
       slice.actions.noActionReducer,
-    ).toMatchTypeOf<ActionCreatorWithoutPayload>()
+    ).toExtend<ActionCreatorWithoutPayload>()
 
     expectTypeOf(slice.actions.noActionReducer).toBeCallableWith()
 
@@ -958,7 +949,7 @@ describe('type tests', () => {
         magic: create.reducer((state) => {
           expectTypeOf(state).toEqualTypeOf<GenericState<string>>()
 
-          expectTypeOf(state).not.toMatchTypeOf<GenericState<number>>()
+          expectTypeOf(state).not.toExtend<GenericState<number>>()
 
           state.status = 'finished'
           state.data = 'hocus pocus'
@@ -966,11 +957,11 @@ describe('type tests', () => {
       }),
     })
 
-    expectTypeOf(wrappedSlice.actions.success).toMatchTypeOf<
+    expectTypeOf(wrappedSlice.actions.success).toExtend<
       ActionCreatorWithPayload<string>
     >()
 
-    expectTypeOf(wrappedSlice.actions.magic).toMatchTypeOf<
+    expectTypeOf(wrappedSlice.actions.magic).toExtend<
       ActionCreatorWithoutPayload<string>
     >()
   })
@@ -978,8 +969,8 @@ describe('type tests', () => {
   test('selectSlice', () => {
     expectTypeOf(counterSlice.selectSlice({ counter: 0 })).toBeNumber()
 
-    // We use `not.toEqualTypeOf` instead of `not.toMatchTypeOf`
-    // because `toMatchTypeOf` allows missing properties
+    // We use `not.toEqualTypeOf` instead of `not.toMatchObjectType`
+    // because `toMatchObjectType` allows missing properties
     expectTypeOf(counterSlice.selectSlice).parameter(0).not.toEqualTypeOf<{}>()
   })
 

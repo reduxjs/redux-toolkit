@@ -1,12 +1,14 @@
-import { createDraftSafeSelectorCreator } from '../../createDraftSafeSelector'
-import type { EntityAdapter, EntityState } from '../index'
-import { createEntityAdapter } from '../index'
-import type { EntitySelectors } from '../models'
+import type {
+  EntityAdapter,
+  EntitySelectors,
+  EntityState,
+} from '@reduxjs/toolkit'
+import {
+  createDraftSafeSelectorCreator,
+  createEntityAdapter,
+} from '@reduxjs/toolkit'
 import type { BookModel } from './fixtures/book'
 import { AClockworkOrange, AnimalFarm, TheGreatGatsby } from './fixtures/book'
-import type { Selector } from 'reselect'
-import { createSelector, weakMapMemoize } from 'reselect'
-import { vi } from 'vitest'
 
 describe('Entity State Selectors', () => {
   describe('Composed Selectors', () => {
@@ -103,12 +105,6 @@ describe('Entity State Selectors', () => {
       expect(entities).toEqual(state.entities)
     })
 
-    it('should type single entity from Dictionary as entity type or undefined', () => {
-      expectType<
-        Selector<EntityState<BookModel, string>, BookModel | undefined>
-      >(createSelector(selectors.selectEntities, (entities) => entities[0]))
-    })
-
     it('should create a selector for selecting the list of models', () => {
       const models = selectors.selectAll(state)
 
@@ -148,7 +144,3 @@ describe('Entity State Selectors', () => {
     })
   })
 })
-
-function expectType<T>(t: T) {
-  return t
-}

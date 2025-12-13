@@ -3,20 +3,20 @@ import type { SerializedError } from '@reduxjs/toolkit'
 import type {
   FetchBaseQueryError,
   QueryDefinition,
-  TypedUseMutationResult,
-  TypedUseQueryHookResult,
-  TypedUseQueryState,
-  TypedUseQueryStateResult,
-  TypedUseQuerySubscriptionResult,
   TypedLazyQueryTrigger,
-  TypedUseLazyQueryStateResult,
+  TypedMutationTrigger,
   TypedUseLazyQuery,
+  TypedUseLazyQueryStateResult,
   TypedUseLazyQuerySubscription,
   TypedUseMutation,
-  TypedMutationTrigger,
-  TypedUseQuerySubscription,
+  TypedUseMutationResult,
   TypedUseQuery,
+  TypedUseQueryHookResult,
+  TypedUseQueryState,
   TypedUseQueryStateOptions,
+  TypedUseQueryStateResult,
+  TypedUseQuerySubscription,
+  TypedUseQuerySubscriptionResult,
 } from '@reduxjs/toolkit/query/react'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 
@@ -490,13 +490,13 @@ describe('union types', () => {
 
     assertType<typeof useQueryResultWithoutMethods>(useQueryStateResult)
 
-    expectTypeOf(useQueryStateResult).toMatchTypeOf(
-      useQueryResultWithoutMethods,
-    )
+    expectTypeOf(useQueryStateResult).toExtend<
+      typeof useQueryResultWithoutMethods
+    >()
 
     expectTypeOf(useQueryStateWithSelectFromResult)
       .parameter(0)
-      .not.toMatchTypeOf(useQueryResultWithoutMethods)
+      .not.toExtend<typeof useQueryResultWithoutMethods>()
 
     expectTypeOf(api.endpoints.getTest.select).returns.returns.toEqualTypeOf<
       Awaited<ReturnType<typeof refetch>>
@@ -663,7 +663,7 @@ describe('union types', () => {
       isSuccess: false,
       isError: false,
       reset: () => {},
-    }).toMatchTypeOf(result)
+    }).toExtend<typeof result>()
   })
 
   test('useMutation TS4.1 union', () => {
@@ -737,9 +737,9 @@ describe('union types', () => {
 
 describe('"Typed" helper types', () => {
   test('useQuery', () => {
-    expectTypeOf<TypedUseQuery<string, void, typeof baseQuery>>().toMatchTypeOf(
-      api.endpoints.getTest.useQuery,
-    )
+    expectTypeOf<TypedUseQuery<string, void, typeof baseQuery>>().toExtend<
+      typeof api.endpoints.getTest.useQuery
+    >()
 
     const result = api.endpoints.getTest.useQuery()
 
@@ -759,9 +759,9 @@ describe('"Typed" helper types', () => {
   })
 
   test('useQueryState', () => {
-    expectTypeOf<
-      TypedUseQueryState<string, void, typeof baseQuery>
-    >().toMatchTypeOf(api.endpoints.getTest.useQueryState)
+    expectTypeOf<TypedUseQueryState<string, void, typeof baseQuery>>().toExtend<
+      typeof api.endpoints.getTest.useQueryState
+    >()
 
     const result = api.endpoints.getTest.useQueryState()
 
@@ -783,9 +783,7 @@ describe('"Typed" helper types', () => {
   test('useQueryState options', () => {
     expectTypeOf<
       TypedUseQueryStateOptions<string, void, typeof baseQuery>
-    >().toMatchTypeOf<
-      Parameters<typeof api.endpoints.getTest.useQueryState>[1]
-    >()
+    >().toExtend<Parameters<typeof api.endpoints.getTest.useQueryState>[1]>()
 
     expectTypeOf<
       UseQueryStateOptions<
@@ -800,7 +798,7 @@ describe('"Typed" helper types', () => {
   test('useQuerySubscription', () => {
     expectTypeOf<
       TypedUseQuerySubscription<string, void, typeof baseQuery>
-    >().toMatchTypeOf(api.endpoints.getTest.useQuerySubscription)
+    >().toExtend<typeof api.endpoints.getTest.useQuerySubscription>()
 
     const result = api.endpoints.getTest.useQuerySubscription()
 
@@ -810,19 +808,19 @@ describe('"Typed" helper types', () => {
   })
 
   test('useLazyQuery', () => {
-    expectTypeOf<
-      TypedUseLazyQuery<string, void, typeof baseQuery>
-    >().toMatchTypeOf(api.endpoints.getTest.useLazyQuery)
+    expectTypeOf<TypedUseLazyQuery<string, void, typeof baseQuery>>().toExtend<
+      typeof api.endpoints.getTest.useLazyQuery
+    >()
 
     const [trigger, result] = api.endpoints.getTest.useLazyQuery()
 
     expectTypeOf<
       TypedLazyQueryTrigger<string, void, typeof baseQuery>
-    >().toMatchTypeOf(trigger)
+    >().toExtend<typeof trigger>()
 
     expectTypeOf<
       TypedUseLazyQueryStateResult<string, void, typeof baseQuery>
-    >().toMatchTypeOf(result)
+    >().toExtend<typeof result>()
   })
 
   test('useLazyQuery with selectFromResult', () => {
@@ -832,7 +830,7 @@ describe('"Typed" helper types', () => {
 
     expectTypeOf<
       TypedLazyQueryTrigger<string, void, typeof baseQuery>
-    >().toMatchTypeOf(trigger)
+    >().toExtend<typeof trigger>()
 
     expectTypeOf<
       TypedUseLazyQueryStateResult<
@@ -841,35 +839,35 @@ describe('"Typed" helper types', () => {
         typeof baseQuery,
         { x: boolean }
       >
-    >().toMatchTypeOf(result)
+    >().toExtend<typeof result>()
   })
 
   test('useLazyQuerySubscription', () => {
     expectTypeOf<
       TypedUseLazyQuerySubscription<string, void, typeof baseQuery>
-    >().toMatchTypeOf(api.endpoints.getTest.useLazyQuerySubscription)
+    >().toExtend<typeof api.endpoints.getTest.useLazyQuerySubscription>()
 
     const [trigger] = api.endpoints.getTest.useLazyQuerySubscription()
 
     expectTypeOf<
       TypedLazyQueryTrigger<string, void, typeof baseQuery>
-    >().toMatchTypeOf(trigger)
+    >().toExtend<typeof trigger>()
   })
 
   test('useMutation', () => {
-    expectTypeOf<
-      TypedUseMutation<string, void, typeof baseQuery>
-    >().toMatchTypeOf(api.endpoints.mutation.useMutation)
+    expectTypeOf<TypedUseMutation<string, void, typeof baseQuery>>().toExtend<
+      typeof api.endpoints.mutation.useMutation
+    >()
 
     const [trigger, result] = api.endpoints.mutation.useMutation()
 
     expectTypeOf<
       TypedMutationTrigger<string, void, typeof baseQuery>
-    >().toMatchTypeOf(trigger)
+    >().toExtend<typeof trigger>()
 
     expectTypeOf<
       TypedUseMutationResult<string, void, typeof baseQuery>
-    >().toMatchTypeOf(result)
+    >().toExtend<typeof result>()
   })
 
   test('useQuery - defining selectFromResult separately', () => {

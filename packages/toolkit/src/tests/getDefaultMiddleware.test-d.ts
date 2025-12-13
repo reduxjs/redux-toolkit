@@ -133,7 +133,7 @@ describe('type tests', () => {
       thunk: false,
     })
 
-    expectTypeOf(m2).toMatchTypeOf<Tuple<[]>>()
+    expectTypeOf(m2).toExtend<Tuple<[]>>()
 
     const dummyMiddleware: Middleware<
       {
@@ -170,7 +170,7 @@ describe('type tests', () => {
 
         const m3 = middleware.concat(dummyMiddleware, dummyMiddleware2)
 
-        expectTypeOf(m3).toMatchTypeOf<
+        expectTypeOf(m3).toExtend<
           Tuple<
             [
               ThunkMiddleware<any, UnknownAction, 42>,
@@ -190,7 +190,7 @@ describe('type tests', () => {
       },
     })
 
-    expectTypeOf(store.dispatch).toMatchTypeOf<
+    expectTypeOf(store.dispatch).toExtend<
       ThunkDispatch<any, 42, UnknownAction> & Dispatch<UnknownAction>
     >()
 
