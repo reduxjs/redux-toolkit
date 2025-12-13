@@ -199,10 +199,10 @@ describe('type tests', () => {
     expectTypeOf(selector).toBeCallableWith(state, 0)
 
     // required argument
-    expectTypeOf(selector).parameters.not.toMatchTypeOf([state])
+    expectTypeOf(selector).parameters.not.toExtend<[typeof state]>()
 
     // number not string
-    expectTypeOf(selector).parameters.not.toMatchTypeOf([state, ''])
+    expectTypeOf(selector).parameters.not.toExtend<[typeof state, string]>()
   })
 
   test('nested calls inferred correctly', () => {
@@ -220,7 +220,7 @@ describe('type tests', () => {
 
     type RootState = ReturnType<typeof outerReducer>
 
-    expectTypeOf(outerReducer(undefined, { type: '' })).toMatchTypeOf<{
+    expectTypeOf(outerReducer(undefined, { type: '' })).toMatchObjectType<{
       inner: { string: string }
     }>()
 
@@ -277,8 +277,6 @@ describe('type tests', () => {
       number: number
     }>()
 
-    expectTypeOf(
-      withNumber(undefined, { type: '' }).number,
-    ).toMatchTypeOf<number>()
+    expectTypeOf(withNumber(undefined, { type: '' }).number).toBeNumber()
   })
 })

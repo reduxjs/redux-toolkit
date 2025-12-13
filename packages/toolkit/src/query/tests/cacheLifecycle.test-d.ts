@@ -19,7 +19,7 @@ describe('type tests', () => {
           ) {
             const firstValue = await cacheDataLoaded
 
-            expectTypeOf(firstValue).toMatchTypeOf<{
+            expectTypeOf(firstValue).toExtend<{
               data: number
               meta?: FetchBaseQueryMeta
             }>()

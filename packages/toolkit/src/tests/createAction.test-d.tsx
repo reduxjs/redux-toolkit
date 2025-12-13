@@ -23,7 +23,7 @@ describe('type tests', () => {
     })
 
     test('PayloadAction type parameter is required.', () => {
-      expectTypeOf({ type: '', payload: 5 }).not.toMatchTypeOf<PayloadAction>()
+      expectTypeOf({ type: '', payload: 5 }).not.toExtend<PayloadAction>()
     })
 
     test('PayloadAction has a string type tag.', () => {
@@ -31,13 +31,13 @@ describe('type tests', () => {
         PayloadAction<number>
       >()
 
-      expectTypeOf({ type: 1, payload: 5 }).not.toMatchTypeOf<PayloadAction>()
+      expectTypeOf({ type: 1, payload: 5 }).not.toExtend<PayloadAction>()
     })
 
     test('PayloadAction is compatible with Action<string>', () => {
       const action: PayloadAction<number> = { type: '', payload: 5 }
 
-      expectTypeOf(action).toMatchTypeOf<Action<string>>()
+      expectTypeOf(action).toMatchObjectType<Action<string>>()
     })
   })
 
@@ -63,11 +63,9 @@ describe('type tests', () => {
         PayloadAction<number | undefined>
       >()
 
-      expectTypeOf(actionCreator()).not.toMatchTypeOf<PayloadAction<number>>()
+      expectTypeOf(actionCreator()).not.toExtend<PayloadAction<number>>()
 
-      expectTypeOf(actionCreator(1)).not.toMatchTypeOf<
-        PayloadAction<undefined>
-      >()
+      expectTypeOf(actionCreator(1)).not.toExtend<PayloadAction<undefined>>()
     })
 
     test('PayloadActionCreator is compatible with ActionCreator.', () => {
@@ -79,7 +77,7 @@ describe('type tests', () => {
         { type: 'action' },
       ) as PayloadActionCreator
 
-      expectTypeOf(payloadActionCreator).toMatchTypeOf<
+      expectTypeOf(payloadActionCreator).toExtend<
         ActionCreator<UnknownAction>
       >()
 
@@ -91,7 +89,7 @@ describe('type tests', () => {
         { type: 'action' },
       ) as PayloadActionCreator<number>
 
-      expectTypeOf(payloadActionCreator2).toMatchTypeOf<
+      expectTypeOf(payloadActionCreator2).toExtend<
         ActionCreator<PayloadAction<number>>
       >()
     })
@@ -120,7 +118,7 @@ describe('type tests', () => {
 
     expectTypeOf(increment(1).type).toEqualTypeOf<'increment'>()
 
-    expectTypeOf(increment(1).type).not.toMatchTypeOf<'other'>()
+    expectTypeOf(increment(1).type).not.toExtend<'other'>()
 
     expectTypeOf(increment(1).type).not.toBeNumber()
   })
@@ -189,7 +187,7 @@ describe('type tests', () => {
 
     expectTypeOf(action({ input: '' }).payload.input).not.toBeNumber()
 
-    expectTypeOf(action).parameter(0).not.toMatchTypeOf({ input: 3 })
+    expectTypeOf(action).parameter(0).not.toExtend<{ input: number }>()
   })
 
   test('regression test for https://github.com/reduxjs/redux-toolkit/issues/224', () => {
@@ -217,7 +215,7 @@ describe('type tests', () => {
 
         expectTypeOf(x.payload).toBeString()
       } else {
-        expectTypeOf(x.type).not.toMatchTypeOf<'test'>()
+        expectTypeOf(x.type).not.toExtend<'test'>()
 
         expectTypeOf(x).not.toHaveProperty('payload')
       }
@@ -243,7 +241,7 @@ describe('type tests', () => {
       if (actionCreator.match(x)) {
         expectTypeOf(x.type).toEqualTypeOf<'test'>()
 
-        expectTypeOf(x.payload).not.toMatchTypeOf<{}>()
+        expectTypeOf(x.payload).not.toExtend<{}>()
       }
     })
 

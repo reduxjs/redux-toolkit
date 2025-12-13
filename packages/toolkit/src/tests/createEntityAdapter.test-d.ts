@@ -31,71 +31,71 @@ describe('type tests', () => {
       },
     })
 
-    expectTypeOf(slice.actions.addOne).toMatchTypeOf<
+    expectTypeOf(slice.actions.addOne).toExtend<
       ActionCreatorWithPayload<Entity>
     >()
 
-    expectTypeOf(slice.actions.addMany).toMatchTypeOf<
+    expectTypeOf(slice.actions.addMany).toExtend<
       ActionCreatorWithPayload<ReadonlyArray<Entity> | Record<string, Entity>>
     >()
 
-    expectTypeOf(slice.actions.setAll).toMatchTypeOf<
+    expectTypeOf(slice.actions.setAll).toExtend<
       ActionCreatorWithPayload<ReadonlyArray<Entity> | Record<string, Entity>>
     >()
 
-    expectTypeOf(slice.actions.removeOne).toMatchTypeOf<
+    expectTypeOf(slice.actions.removeOne).toExtend<
       ActionCreatorWithPayload<Id>
     >()
 
-    expectTypeOf(slice.actions.addMany).not.toMatchTypeOf<
+    expectTypeOf(slice.actions.addMany).not.toExtend<
       ActionCreatorWithPayload<Entity[] | Record<string, Entity>>
     >()
 
-    expectTypeOf(slice.actions.setAll).not.toMatchTypeOf<
+    expectTypeOf(slice.actions.setAll).not.toExtend<
       ActionCreatorWithPayload<ReadonlyArray<Id>>
     >()
 
-    expectTypeOf(slice.actions.removeOne).toMatchTypeOf<
+    expectTypeOf(slice.actions.removeOne).toExtend<
       ActionCreatorWithPayload<Id>
     >()
 
-    expectTypeOf(slice.actions.removeMany).toMatchTypeOf<
+    expectTypeOf(slice.actions.removeMany).toExtend<
       ActionCreatorWithPayload<ReadonlyArray<Id>>
     >()
 
-    expectTypeOf(slice.actions.removeMany).not.toMatchTypeOf<
+    expectTypeOf(slice.actions.removeMany).not.toExtend<
       ActionCreatorWithPayload<EntityId[]>
     >()
 
     expectTypeOf(
       slice.actions.removeAll,
-    ).toMatchTypeOf<ActionCreatorWithoutPayload>()
+    ).toExtend<ActionCreatorWithoutPayload>()
 
-    expectTypeOf(slice.actions.updateOne).toMatchTypeOf<
+    expectTypeOf(slice.actions.updateOne).toExtend<
       ActionCreatorWithPayload<Update<Entity, Id>>
     >()
 
-    expectTypeOf(slice.actions.updateMany).not.toMatchTypeOf<
+    expectTypeOf(slice.actions.updateMany).not.toExtend<
       ActionCreatorWithPayload<Update<Entity, Id>[]>
     >()
 
-    expectTypeOf(slice.actions.upsertOne).toMatchTypeOf<
+    expectTypeOf(slice.actions.upsertOne).toExtend<
       ActionCreatorWithPayload<Entity>
     >()
 
-    expectTypeOf(slice.actions.updateMany).toMatchTypeOf<
+    expectTypeOf(slice.actions.updateMany).toExtend<
       ActionCreatorWithPayload<ReadonlyArray<Update<Entity, Id>>>
     >()
 
-    expectTypeOf(slice.actions.upsertOne).toMatchTypeOf<
+    expectTypeOf(slice.actions.upsertOne).toExtend<
       ActionCreatorWithPayload<Entity>
     >()
 
-    expectTypeOf(slice.actions.upsertMany).toMatchTypeOf<
+    expectTypeOf(slice.actions.upsertMany).toExtend<
       ActionCreatorWithPayload<ReadonlyArray<Entity> | Record<string, Entity>>
     >()
 
-    expectTypeOf(slice.actions.upsertMany).not.toMatchTypeOf<
+    expectTypeOf(slice.actions.upsertMany).not.toExtend<
       ActionCreatorWithPayload<Entity[] | Record<string, Entity>>
     >()
   })
