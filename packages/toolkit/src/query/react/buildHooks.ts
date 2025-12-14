@@ -1078,7 +1078,10 @@ export type UseInfiniteQueryHookResult<
   D extends InfiniteQueryDefinition<any, any, any, any, any>,
   R = UseInfiniteQueryStateDefaultResult<D>,
 > = UseInfiniteQueryStateResult<D, R> &
-  Pick<UseInfiniteQuerySubscriptionResult<D>, 'refetch'>
+  Pick<
+    UseInfiniteQuerySubscriptionResult<D>,
+    'refetch' | 'fetchNextPage' | 'fetchPreviousPage'
+  >
 
 export type TypedUseInfiniteQueryHookResult<
   ResultType,
