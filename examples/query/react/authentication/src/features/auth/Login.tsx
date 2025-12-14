@@ -80,7 +80,7 @@ export const Login = () => {
           <PasswordInput onChange={handleChange} name="password" />
         </InputGroup>
         <Button
-          width={'100%'}
+          width="100%"
           onClick={async () => {
             try {
               const user = await login(formState).unwrap()
