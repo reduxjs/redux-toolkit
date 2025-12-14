@@ -11,15 +11,14 @@ import type {
 } from '../../endpointDefinitions'
 import { calculateProvidedBy } from '../../endpointDefinitions'
 import type { CombinedState, QueryCacheKey } from '../apiState'
-import { QueryStatus } from '../apiState'
+import { QueryStatus, STATUS_UNINITIALIZED } from '../apiState'
 import { calculateProvidedByThunk } from '../buildThunks'
 import type {
   SubMiddlewareApi,
   InternalHandlerBuilder,
   ApiMiddlewareInternalHandler,
-  InternalMiddlewareState,
 } from './types'
-import { countObjectKeys } from '../../utils/countObjectKeys'
+import { getOrInsertComputed, createNewMap } from '../../utils/getOrInsert'
 
 export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
   reducerPath,
@@ -39,13 +38,25 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
   )
 
   const isQueryEnd = isAnyOf(
-    isFulfilled(mutationThunk, queryThunk),
-    isRejected(mutationThunk, queryThunk),
+    isFulfilled(queryThunk, mutationThunk),
+    isRejected(queryThunk, mutationThunk),
   )
-
   let pendingTagInvalidations: FullTagDescription<string>[] = []
+  // Track via counter so we can avoid iterating over state every time
+  let pendingRequestCount = 0
 
   const handler: ApiMiddlewareInternalHandler = (action, mwApi) => {
+    if (
+      queryThunk.pending.match(action) ||
+      mutationThunk.pending.match(action)
+    ) {
+      pendingRequestCount++
+    }
+
+    if (isQueryEnd(action)) {
+      pendingRequestCount = Math.max(0, pendingRequestCount - 1)
+    }
+
     if (isThunkActionWithTags(action)) {
       invalidateTags(
         calculateProvidedByThunk(
@@ -73,16 +84,8 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
     }
   }
 
-  function hasPendingRequests(
-    state: CombinedState<EndpointDefinitions, string, string>,
-  ) {
-    const { queries, mutations } = state
-    for (const cacheRecord of [queries, mutations]) {
-      for (const key in cacheRecord) {
-        if (cacheRecord[key]?.status === QueryStatus.pending) return true
-      }
-    }
-    return false
+  function hasPendingRequests() {
+    return pendingRequestCount > 0
   }
 
   function invalidateTags(
@@ -96,7 +99,7 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
 
     if (
       state.config.invalidationBehavior === 'delayed' &&
-      hasPendingRequests(state)
+      hasPendingRequests()
     ) {
       return
     }
@@ -111,17 +114,20 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
       const valuesArray = Array.from(toInvalidate.values())
       for (const { queryCacheKey } of valuesArray) {
         const querySubState = state.queries[queryCacheKey]
-        const subscriptionSubState =
-          internalState.currentSubscriptions[queryCacheKey] ?? {}
+        const subscriptionSubState = getOrInsertComputed(
+          internalState.currentSubscriptions,
+          queryCacheKey,
+          createNewMap,
+        )
 
         if (querySubState) {
-          if (countObjectKeys(subscriptionSubState) === 0) {
+          if (subscriptionSubState.size === 0) {
             mwApi.dispatch(
               removeQueryResult({
                 queryCacheKey: queryCacheKey as QueryCacheKey,
               }),
             )
-          } else if (querySubState.status !== QueryStatus.uninitialized) {
+          } else if (querySubState.status !== STATUS_UNINITIALIZED) {
             mwApi.dispatch(refetchQuery(querySubState))
           }
         }

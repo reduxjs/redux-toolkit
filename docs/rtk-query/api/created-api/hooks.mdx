@@ -463,6 +463,7 @@ type UseInfiniteQueryOptions = {
   refetchOnMountOrArgChange?: boolean | number
   selectFromResult?: (result: UseQueryStateDefaultResult) => any
   initialPageParam?: PageParam
+  refetchCachedPages?: boolean
 }
 
 type UseInfiniteQueryResult<Data, PageParam> = {
@@ -514,7 +515,9 @@ type UseInfiniteQueryResult<Data, PageParam> = {
   isFetchPreviousPageError: boolean
 
   // A function to force refetch the query - returns a Promise with additional methods
-  refetch: () => InfiniteQueryActionCreatorResult
+  refetch: (options?: {
+    refetchCachedPages?: boolean
+  }) => InfiniteQueryActionCreatorResult
 
   // Triggers a fetch for the next page, based on the current cache
   fetchNextPage: () => InfiniteQueryActionCreatorResult

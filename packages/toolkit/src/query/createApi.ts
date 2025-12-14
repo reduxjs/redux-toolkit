@@ -1,4 +1,10 @@
-import type { Api, ApiContext, Module, ModuleName } from './apiTypes'
+import {
+  getEndpointDefinition,
+  type Api,
+  type ApiContext,
+  type Module,
+  type ModuleName,
+} from './apiTypes'
 import type { CombinedState } from './core/apiState'
 import type { BaseQueryArg, BaseQueryFn } from './baseQueryTypes'
 import type { SerializeQueryArgs } from './defaultSerializeQueryArgs'
@@ -8,9 +14,13 @@ import type {
   EndpointDefinitions,
   SchemaFailureConverter,
   SchemaFailureHandler,
+  SchemaType,
 } from './endpointDefinitions'
 import {
   DefinitionType,
+  ENDPOINT_INFINITEQUERY,
+  ENDPOINT_MUTATION,
+  ENDPOINT_QUERY,
   isInfiniteQueryDefinition,
   isQueryDefinition,
 } from './endpointDefinitions'
@@ -108,9 +118,9 @@ export interface CreateApiOptions<
   /**
    * Defaults to `60` _(this value is in seconds)_. This is how long RTK Query will keep your data cached for **after** the last component unsubscribes. For example, if you query an endpoint, then unmount the component, then mount another component that makes the same request within the given time frame, the most recent value will be served from the cache.
    *
+   * @example
    * ```ts
    * // codeblock-meta title="keepUnusedDataFor example"
-   *
    * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
    * interface Post {
    *   id: number
@@ -122,12 +132,12 @@ export interface CreateApiOptions<
    *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
    *   endpoints: (build) => ({
    *     getPosts: build.query<PostsResponse, void>({
-   *       query: () => 'posts',
-   *       // highlight-start
-   *       keepUnusedDataFor: 5
-   *       // highlight-end
+   *       query: () => 'posts'
    *     })
-   *   })
+   *   }),
+   *   // highlight-start
+   *   keepUnusedDataFor: 5
+   *   // highlight-end
    * })
    * ```
    */
@@ -280,6 +290,8 @@ export interface CreateApiOptions<
    *
    * If set to `true`, will skip schema validation for all endpoints, unless overridden by the endpoint.
    *
+   * Can be overridden for specific schemas by passing an array of schema types to skip.
+   *
    * @example
    * ```ts
    * // codeblock-meta no-transpile
@@ -288,7 +300,7 @@ export interface CreateApiOptions<
    *
    * const api = createApi({
    *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
-   *   skipSchemaValidation: process.env.NODE_ENV === "test", // skip schema validation in tests, since we'll be mocking the response
+   *   skipSchemaValidation: process.env.NODE_ENV === "test" ? ["response"] : false, // skip schema validation for response in tests, since we'll be mocking the response
    *   endpoints: (build) => ({
    *     getPost: build.query<Post, { id: number }>({
    *       query: ({ id }) => `/post/${id}`,
@@ -298,7 +310,7 @@ export interface CreateApiOptions<
    * })
    * ```
    */
-  skipSchemaValidation?: boolean
+  skipSchemaValidation?: boolean | SchemaType[]
 }
 
 export type CreateApi<Modules extends ModuleName> = {
@@ -415,10 +427,10 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
             endpoints,
           )) {
             if (typeof partialDefinition === 'function') {
-              partialDefinition(context.endpointDefinitions[endpointName])
+              partialDefinition(getEndpointDefinition(context, endpointName))
             } else {
               Object.assign(
-                context.endpointDefinitions[endpointName] || {},
+                getEndpointDefinition(context, endpointName) || {},
                 partialDefinition,
               )
             }
@@ -436,10 +448,9 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
       inject: Parameters<typeof api.injectEndpoints>[0],
     ) {
       const evaluatedEndpoints = inject.endpoints({
-        query: (x) => ({ ...x, type: DefinitionType.query }) as any,
-        mutation: (x) => ({ ...x, type: DefinitionType.mutation }) as any,
-        infiniteQuery: (x) =>
-          ({ ...x, type: DefinitionType.infinitequery }) as any,
+        query: (x) => ({ ...x, type: ENDPOINT_QUERY }) as any,
+        mutation: (x) => ({ ...x, type: ENDPOINT_MUTATION }) as any,
+        infiniteQuery: (x) => ({ ...x, type: ENDPOINT_INFINITEQUERY }) as any,
       })
 
       for (const [endpointName, definition] of Object.entries(

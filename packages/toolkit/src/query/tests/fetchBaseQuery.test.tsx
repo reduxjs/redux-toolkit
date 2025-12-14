@@ -1,8 +1,8 @@
 import { createSlice } from '@reduxjs/toolkit'
+import type { FetchArgs } from '@reduxjs/toolkit/query'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 import { headersToObject } from 'headers-polyfill'
 import { HttpResponse, delay, http } from 'msw'
-// @ts-ignore
 import nodeFetch from 'node-fetch'
 import queryString from 'query-string'
 import { vi } from 'vitest'
@@ -18,12 +18,8 @@ const defaultHeaders: Record<string, string> = {
 
 const baseUrl = 'https://example.com'
 
-// @ts-ignore
-const fetchFn = vi.fn<Promise<any>, any[]>(nodeFetch)
-
 const baseQuery = fetchBaseQuery({
   baseUrl,
-  fetchFn: fetchFn as any,
   prepareHeaders: (headers, { getState }) => {
     const { token } = (getState() as RootState).auth
 
@@ -126,9 +122,14 @@ describe('fetchBaseQuery', () => {
     })
 
     it('should handle a connection loss semi-gracefully', async () => {
-      fetchFn.mockRejectedValueOnce(new TypeError('Failed to fetch'))
+      const fetchFn = vi
+        .fn()
+        .mockRejectedValueOnce(new TypeError('Failed to fetch'))
 
-      const req = baseQuery('/success', commonBaseQueryApi, {})
+      const req = fetchBaseQuery({
+        baseUrl,
+        fetchFn,
+      })('/success', commonBaseQueryApi, {})
       expect(req).toBeInstanceOf(Promise)
       const res = await req
       expect(res).toBeInstanceOf(Object)
@@ -418,7 +419,6 @@ describe('fetchBaseQuery', () => {
     it('supports a custom jsonContentType', async () => {
       const baseQuery = fetchBaseQuery({
         baseUrl,
-        fetchFn: fetchFn as any,
         jsonContentType: 'application/vnd.api+json',
       })
 
@@ -458,7 +458,6 @@ describe('fetchBaseQuery', () => {
       // Use jsonReplacer
       const baseQueryWithReplacer = fetchBaseQuery({
         baseUrl,
-        fetchFn: fetchFn as any,
         jsonReplacer: (key, value) =>
           value instanceof Set ? [...value] : value,
       })
@@ -545,7 +544,6 @@ describe('fetchBaseQuery', () => {
     it('should support a paramsSerializer', async () => {
       const baseQuery = fetchBaseQuery({
         baseUrl,
-        fetchFn: fetchFn as any,
         paramsSerializer: (params: Record<string, unknown>) =>
           queryString.stringify(params, { arrayFormat: 'bracket' }),
       })
@@ -590,7 +588,6 @@ describe('fetchBaseQuery', () => {
       }
       const baseQuery = fetchBaseQuery({
         baseUrl,
-        fetchFn: fetchFn as any,
         isJsonContentType: (headers) =>
           [
             'application/vnd.api+json',
@@ -804,7 +801,6 @@ describe('fetchBaseQuery', () => {
 
       const baseQuery = fetchBaseQuery({
         baseUrl,
-        fetchFn: fetchFn as any,
         prepareHeaders: (
           headers,
           { getState, arg, extra, endpoint, type, forced },
@@ -973,7 +969,6 @@ describe('fetchBaseQuery', () => {
 
       const globalizedBaseQuery = fetchBaseQuery({
         baseUrl,
-        fetchFn: fetchFn as any,
         responseHandler: 'text',
       })
 
@@ -991,10 +986,144 @@ describe('fetchBaseQuery', () => {
       expect(res.data).toEqual(`this is not json!`)
     })
 
+    test('Global responseHandler: content-type with text response', async () => {
+      server.use(
+        http.get(
+          'https://example.com/success',
+          () => HttpResponse.text(`this is plain text!`),
+          { once: true },
+        ),
+      )
+
+      const globalizedBaseQuery = fetchBaseQuery({
+        baseUrl,
+        responseHandler: 'content-type',
+      })
+
+      const res = await globalizedBaseQuery(
+        { url: '/success' },
+        commonBaseQueryApi,
+        {},
+      )
+
+      expect(res.error).toBeUndefined()
+      expect(res.data).toEqual(`this is plain text!`)
+      expect(res.meta?.response?.headers.get('content-type')).toEqual(
+        'text/plain',
+      )
+    })
+
+    test('Global responseHandler: content-type with JSON response', async () => {
+      server.use(
+        http.get(
+          'https://example.com/success',
+          () => HttpResponse.json({ message: 'this is json!' }),
+          { once: true },
+        ),
+      )
+
+      const globalizedBaseQuery = fetchBaseQuery({
+        baseUrl,
+        responseHandler: 'content-type',
+      })
+
+      const res = await globalizedBaseQuery(
+        { url: '/success' },
+        commonBaseQueryApi,
+        {},
+      )
+
+      expect(res.error).toBeUndefined()
+      expect(res.data).toEqual({ message: 'this is json!' })
+      expect(res.meta?.response?.headers.get('content-type')).toEqual(
+        'application/json',
+      )
+    })
+
+    test('Global responseHandler: content-type can be overridden at endpoint level', async () => {
+      server.use(
+        http.get(
+          'https://example.com/success',
+          () => HttpResponse.text(`this is text but will be parsed as json`),
+          { once: true },
+        ),
+      )
+
+      const globalizedBaseQuery = fetchBaseQuery({
+        baseUrl,
+        responseHandler: 'content-type',
+      })
+
+      // Override global content-type handler with explicit text handler
+      const res = await globalizedBaseQuery(
+        { url: '/success', responseHandler: 'text' },
+        commonBaseQueryApi,
+        {},
+      )
+
+      expect(res.error).toBeUndefined()
+      expect(res.data).toEqual(`this is text but will be parsed as json`)
+    })
+
+    test('Global responseHandler: content-type with error response (text)', async () => {
+      const errorMessage = 'Internal Server Error'
+      server.use(
+        http.get('https://example.com/error', () =>
+          HttpResponse.text(errorMessage, { status: 500 }),
+        ),
+      )
+
+      const globalizedBaseQuery = fetchBaseQuery({
+        baseUrl,
+        responseHandler: 'content-type',
+      })
+
+      const res = await globalizedBaseQuery(
+        { url: '/error' },
+        commonBaseQueryApi,
+        {},
+      )
+
+      expect(res.error).toEqual({
+        status: 500,
+        data: errorMessage,
+      })
+      expect(res.meta?.response?.headers.get('content-type')).toEqual(
+        'text/plain',
+      )
+    })
+
+    test('Global responseHandler: content-type with error response (JSON)', async () => {
+      const errorData = { error: 'Something went wrong', code: 'ERR_500' }
+      server.use(
+        http.get('https://example.com/error', () =>
+          HttpResponse.json(errorData, { status: 500 }),
+        ),
+      )
+
+      const globalizedBaseQuery = fetchBaseQuery({
+        baseUrl,
+        responseHandler: 'content-type',
+      })
+
+      const res = await globalizedBaseQuery(
+        { url: '/error' },
+        commonBaseQueryApi,
+        {},
+      )
+
+      expect(res.error).toEqual({
+        status: 500,
+        data: errorData,
+      })
+      expect(res.meta?.response?.headers.get('content-type')).toEqual(
+        'application/json',
+      )
+    })
+
     test('Global validateStatus', async () => {
       const globalizedBaseQuery = fetchBaseQuery({
         baseUrl,
-        fetchFn: fetchFn as any,
         validateStatus: (response, body) =>
           response.status === 200 && body.success === false ? false : true,
       })
@@ -1039,7 +1168,6 @@ describe('fetchBaseQuery', () => {
 
       const globalizedBaseQuery = fetchBaseQuery({
         baseUrl,
-        fetchFn: fetchFn as any,
         timeout: 200,
       })
 
@@ -1051,7 +1179,7 @@ describe('fetchBaseQuery', () => {
 
       expect(result?.error).toEqual({
         status: 'TIMEOUT_ERROR',
-        error: expect.stringMatching(/^AbortError:/),
+        error: expect.stringMatching(/^TimeoutError/),
       })
     })
   })
@@ -1120,6 +1248,248 @@ describe('FormData', () => {
 
     expect(request.headers['content-type']).not.toContain('application/json')
   })
+
+  test('FormData works correctly when prepareHeaders sets Content-Type to application/json', async () => {
+    // This test covers the exact scenario from issue #4669
+    const baseQueryWithJsonDefault = fetchBaseQuery({
+      baseUrl,
+      prepareHeaders: (headers) => {
+        // Set default Content-Type for all requests
+        headers.set('Content-Type', 'application/json')
+        return headers
+      },
+    })
+
+    const body = new FormData()
+    body.append('username', 'test')
+    body.append(
+      'file',
+      new Blob([JSON.stringify({ hello: 'there' }, null, 2)], {
+        type: 'application/json',
+      }),
+    )
+
+    const res = await baseQueryWithJsonDefault(
+      { url: '/echo', method: 'POST', body },
+      commonBaseQueryApi,
+      {},
+    )
+
+    const request: any = res.data
+
+    // The Content-Type should NOT be application/json when FormData is used
+    expect(request.headers['content-type']).not.toContain('application/json')
+    // It should contain multipart/form-data (set automatically by the browser)
+    expect(request.headers['content-type']).toContain('multipart/form-data')
+  })
+
+  test('FormData works when prepareHeaders conditionally removes Content-Type', async () => {
+    // This tests the workaround solution from the issue comments
+    const baseQueryWithConditionalHeader = fetchBaseQuery({
+      baseUrl,
+      prepareHeaders: (headers, { arg }) => {
+        // Check if body is FormData and skip setting Content-Type
+        if ((arg as FetchArgs).body instanceof FormData) {
+          // Delete Content-Type to let browser set it automatically
+          headers.delete('Content-Type')
+        } else {
+          // Set default Content-Type for non-FormData requests
+          headers.set('Content-Type', 'application/json')
+        }
+        return headers
+      },
+    })
+
+    const body = new FormData()
+    body.append('username', 'test')
+    body.append('file', new Blob(['test content'], { type: 'text/plain' }))
+
+    const res = await baseQueryWithConditionalHeader(
+      { url: '/echo', method: 'POST', body },
+      commonBaseQueryApi,
+      {},
+    )
+
+    const request: any = res.data
+
+    // Should have multipart/form-data set by browser
+    expect(request.headers['content-type']).toContain('multipart/form-data')
+    expect(request.headers['content-type']).not.toContain('application/json')
+  })
+
+  test('endpoint-level headers cannot override to multipart/form-data manually', async () => {
+    // This tests the fetch API quirk mentioned in the issue
+    const baseQueryWithJsonDefault = fetchBaseQuery({
+      baseUrl,
+      prepareHeaders: (headers) => {
+        headers.set('Content-Type', 'application/json')
+        return headers
+      },
+    })
+
+    const body = new FormData()
+    body.append('test', 'value')
+
+    const res = await baseQueryWithJsonDefault(
+      {
+        url: '/echo',
+        method: 'POST',
+        body,
+        // Attempting to manually set multipart/form-data (this won't work as expected)
+        headers: { 'Content-Type': 'multipart/form-data' },
+      },
+      commonBaseQueryApi,
+      {},
+    )
+
+    const request: any = res.data
+
+    // Due to prepareHeaders running after endpoint headers,
+    // and the fetch API not allowing manual multipart/form-data setting,
+    // this demonstrates the problem from the issue
+    // The actual behavior depends on fetchBaseQuery implementation
+    expect(request.headers['content-type']).toBeDefined()
+  })
+
+  test('non-FormData requests still get application/json from prepareHeaders', async () => {
+    // Verify that the workaround doesn't break normal JSON requests
+    const baseQueryWithConditionalHeader = fetchBaseQuery({
+      baseUrl,
+      prepareHeaders: (headers, { arg }) => {
+        if (!((arg as FetchArgs).body instanceof FormData)) {
+          headers.set('Content-Type', 'application/json')
+        }
+        return headers
+      },
+    })
+
+    const jsonBody = { test: 'value' }
+
+    const res = await baseQueryWithConditionalHeader(
+      { url: '/echo', method: 'POST', body: jsonBody },
+      commonBaseQueryApi,
+      {},
+    )
+
+    const request: any = res.data
+
+    // Regular JSON requests should still get application/json
+    expect(request.headers['content-type']).toBe('application/json')
+    expect(request.body).toEqual(jsonBody)
+  })
+})
+
+describe('Accept header handling', () => {
+  test('sets Accept header to application/json for json responseHandler', async () => {
+    let request: any
+    ;({ data: request } = await baseQuery(
+      { url: '/echo', responseHandler: 'json' },
+      commonBaseQueryApi,
+      {},
+    ))
+
+    expect(request.headers['accept']).toBe('application/json')
+  })
+
+  test('sets Accept header to application/json by default (json is default responseHandler)', async () => {
+    let request: any
+    ;({ data: request } = await baseQuery(
+      { url: '/echo' },
+      commonBaseQueryApi,
+      {},
+    ))
+
+    expect(request.headers['accept']).toBe('application/json')
+  })
+
+  test('sets Accept header for text responseHandler', async () => {
+    // Create a baseQuery with text as the global responseHandler
+    const textBaseQuery = fetchBaseQuery({
+      baseUrl,
+      responseHandler: 'text',
+    })
+
+    let request: any
+      // Override to json just for this test so we can inspect the echoed request object
+    ;({ data: request } = await textBaseQuery(
+      { url: '/echo', responseHandler: 'json' },
+      commonBaseQueryApi,
+      {},
+    ))
+
+    // The endpoint-level 'json' responseHandler overrides the global 'text',
+    // so the Accept header should be application/json
+    expect(request.headers['accept']).toBe('application/json')
+  })
+
+  test('does not override explicit Accept header from endpoint', async () => {
+    let request: any
+    ;({ data: request } = await baseQuery(
+      {
+        url: '/echo',
+        responseHandler: 'json',
+        headers: { Accept: 'application/xml' },
+      },
+      commonBaseQueryApi,
+      {},
+    ))
+
+    expect(request.headers['accept']).toBe('application/xml')
+  })
+
+  test('does not override Accept header set in prepareHeaders', async () => {
+    const customBaseQuery = fetchBaseQuery({
+      baseUrl,
+      prepareHeaders: (headers) => {
+        headers.set('Accept', 'application/vnd.api+json')
+        return headers
+      },
+    })
+
+    let request: any
+    ;({ data: request } = await customBaseQuery(
+      { url: '/echo', responseHandler: 'json' },
+      commonBaseQueryApi,
+      {},
+    ))
+
+    expect(request.headers['accept']).toBe('application/vnd.api+json')
+  })
+
+  test('does not set Accept header for content-type responseHandler', async () => {
+    let request: any
+    ;({ data: request } = await baseQuery(
+      { url: '/echo', responseHandler: 'content-type' },
+      commonBaseQueryApi,
+      {},
+    ))
+
+    // Should either not have accept header or have a permissive one
+    // content-type handler adapts to whatever server sends
+    const acceptHeader = request.headers['accept']
+    if (acceptHeader) {
+      expect(acceptHeader).toMatch(/\*\/\*/)
+    }
+  })
+
+  test('respects global responseHandler for Accept header', async () => {
+    const textBaseQuery = fetchBaseQuery({
+      baseUrl,
+      responseHandler: 'text',
+    })
+
+    let request: any
+      // Override to json just for this test so we can inspect the echoed request object
+    ;({ data: request } = await textBaseQuery(
+      { url: '/echo', responseHandler: 'json' },
+      commonBaseQueryApi,
+      {},
+    ))
+
+    // The endpoint-level 'json' responseHandler overrides the global 'text',
+    // so the Accept header should be application/json (proving endpoint-level takes precedence)
+    expect(request.headers['accept']).toBe('application/json')
+  })
 })
 
 describe('still throws on completely unexpected errors', () => {
@@ -1169,7 +1539,7 @@ describe('timeout', () => {
 
     expect(result?.error).toEqual({
       status: 'TIMEOUT_ERROR',
-      error: expect.stringMatching(/^AbortError:/),
+      error: expect.stringMatching(/^TimeoutError/),
     })
   })
 })

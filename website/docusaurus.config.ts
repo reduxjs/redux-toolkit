@@ -19,6 +19,7 @@ const config: Config = {
           sidebarPath: require.resolve('./sidebars'),
           showLastUpdateTime: true,
           routeBasePath: '/',
+          editUrl: 'https://github.com/reduxjs/redux-toolkit/blob/master/docs/',
           include: [
             '{api,assets,introduction,migrations,rtk-query,tutorials,usage}/**/*.{md,mdx}',
           ], // no other way to exclude node_modules
@@ -36,6 +37,7 @@ const config: Config = {
                     'query/endpointDefinitions.ts',
                     'query/react/index.ts',
                     'query/react/ApiProvider.tsx',
+                    'query/core/buildMiddleware/cacheCollection.ts',
                   ],
                 },
               },
@@ -83,21 +85,6 @@ const config: Config = {
     image: 'img/redux-logo-landscape.png',
     colorMode: {
       respectPrefersColorScheme: true,
-    },
-    announcementBar: {
-      id: 'redux-dev-course',
-      content: `      
-      <a href="https://redux.dev">
-        <img
-          src="/img/course-callout-wide.svg"
-          alt="Redux.dev - a new course by Mark Erikson + ui.dev - Learn more"
-          style="margin-top: 5px;"
-        />
-      </a>
-      `,
-      backgroundColor: '#fafbfc',
-      textColor: '#091E42',
-      isCloseable: false,
     },
     navbar: {
       title: 'Redux Toolkit',

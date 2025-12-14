@@ -329,6 +329,13 @@ export type InfiniteQueryDefinition<
        * direction will be dropped from the cache.
        */
       maxPages?: number
+      /**
+       * Defaults to `true`. When this is `true` and an infinite query endpoint is refetched
+       * (due to tag invalidation, polling, arg change configuration, or manual refetching),
+       * RTK Query will try to sequentially refetch all pages currently in the cache.
+       * When `false` only the first page will be refetched.
+       */
+      refetchCachedPages?: boolean
     }
   }
 ```
@@ -481,6 +488,8 @@ By default, this function will take the query arguments, sort object keys where 
 ### `keepUnusedDataFor`
 
 [summary](docblock://query/createApi.ts?token=CreateApiOptions.keepUnusedDataFor)
+
+[examples](docblock://query/createApi.ts?token=CreateApiOptions.keepUnusedDataFor)
 
 ### `refetchOnMountOrArgChange`
 
@@ -684,7 +693,7 @@ Overrides the api-wide definition of `keepUnusedDataFor` for this endpoint only.
 
 [summary](docblock://query/createApi.ts?token=CreateApiOptions.keepUnusedDataFor)
 
-[examples](docblock://query/createApi.ts?token=CreateApiOptions.keepUnusedDataFor)
+[examples](docblock://query/core/buildMiddleware/cacheCollection.ts?token=CacheCollectionQueryExtraOptions)
 
 ### `serializeQueryArgs`
 

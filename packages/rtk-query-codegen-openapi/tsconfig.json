@@ -24,6 +24,6 @@
     "sourceMap": true,
     "strict": true,
     "target": "ESNext",
-    "types": ["vitest/globals", "vitest/importMeta"]
+    "types": ["vitest/globals", "vitest/importMeta", "node"]
   }
 }

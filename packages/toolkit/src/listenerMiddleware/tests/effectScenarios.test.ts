@@ -364,4 +364,135 @@ describe('Saga-style Effects Scenarios', () => {
 
     expect(canceledCheck).toBe(true)
   })
+
+  test('long-running listener with immediate unsubscribe is cancelable', async () => {
+    let runCount = 0
+    let abortCount = 0
+
+    startListening({
+      actionCreator: increment,
+      effect: async (action, listenerApi) => {
+        runCount++
+
+        // Stop listening for this action
+        listenerApi.unsubscribe()
+
+        try {
+          // Wait indefinitely
+          await listenerApi.condition(() => false)
+        } catch (err) {
+          if (err instanceof TaskAbortError) {
+            abortCount++
+          }
+        }
+      },
+    })
+
+    // First action starts the listener, which unsubscribes
+    store.dispatch(increment())
+    expect(runCount).toBe(1)
+
+    // Verify that the first action unsubscribed the listener
+    store.dispatch(increment())
+    expect(runCount).toBe(1)
+
+    // Now call clearListeners, which should abort the running effect, even
+    // though the listener is no longer subscribed
+    listenerMiddleware.clearListeners()
+    await delay(0)
+
+    expect(abortCount).toBe(1)
+  })
+
+  test('long-running listener with unsubscribe race is cancelable', async () => {
+    let runCount = 0
+    let abortCount = 0
+
+    startListening({
+      actionCreator: increment,
+      effect: async (action, listenerApi) => {
+        runCount++
+
+        if (runCount === 2) {
+          // On the second run, stop listening for this action
+          listenerApi.unsubscribe()
+          return
+        }
+
+        try {
+          // Wait indefinitely
+          await listenerApi.condition(() => false)
+        } catch (err) {
+          if (err instanceof TaskAbortError) {
+            abortCount++
+          }
+        }
+      },
+    })
+
+    // First action starts the hanging effect
+    store.dispatch(increment())
+    expect(runCount).toBe(1)
+
+    // Second action starts the fast effect, which unsubscribes
+    store.dispatch(increment())
+    expect(runCount).toBe(2)
+
+    // Third action should be a noop
+    store.dispatch(increment())
+    expect(runCount).toBe(2)
+
+    // The hanging effect should still be hanging
+    expect(abortCount).toBe(0)
+
+    // Now call clearListeners, which should abort the hanging effect, even
+    // though the listener is no longer subscribed
+    listenerMiddleware.clearListeners()
+    await delay(0)
+
+    expect(abortCount).toBe(1)
+  })
+
+  test('long-running listener with immediate unsubscribe and forked child is cancelable', async () => {
+    let outerAborted = false
+    let innerAborted = false
+
+    startListening({
+      actionCreator: increment,
+      effect: async (action, listenerApi) => {
+        // Stop listening for this action
+        listenerApi.unsubscribe()
+
+        const pollingTask = listenerApi.fork(async (forkApi) => {
+          try {
+            // Cancellation-aware indefinite pause
+            await forkApi.pause(new Promise(() => {}))
+          } catch (err) {
+            if (err instanceof TaskAbortError) {
+              innerAborted = true
+            }
+          }
+        })
+
+        try {
+          // Wait indefinitely
+          await listenerApi.condition(() => false)
+          pollingTask.cancel()
+        } catch (err) {
+          if (err instanceof TaskAbortError) {
+            outerAborted = true
+          }
+        }
+      },
+    })
+
+    store.dispatch(increment())
+    await delay(0)
+
+    listenerMiddleware.clearListeners()
+    await delay(0)
+
+    expect(outerAborted).toBe(true)
+    expect(innerAborted).toBe(true)
+  })
 })

@@ -1,6 +1,7 @@
 import type {
   Action,
   AsyncThunkAction,
+  Dispatch,
   Middleware,
   MiddlewareAPI,
   ThunkAction,
@@ -16,6 +17,7 @@ import type {
   QueryStatus,
   QuerySubState,
   RootState,
+  SubscriptionInternalState,
   SubscriptionState,
 } from '../apiState'
 import type {
@@ -25,18 +27,36 @@ import type {
   QueryThunkArg,
   ThunkResult,
 } from '../buildThunks'
-import type { QueryActionCreatorResult } from '../buildInitiate'
+import type {
+  InfiniteQueryActionCreatorResult,
+  MutationActionCreatorResult,
+  QueryActionCreatorResult,
+} from '../buildInitiate'
 import type { AllSelectors } from '../buildSelectors'
 
 export type QueryStateMeta<T> = Record<string, undefined | T>
 export type TimeoutId = ReturnType<typeof setTimeout>
 
+type QueryPollState = {
+  nextPollTimestamp: number
+  timeout?: TimeoutId
+  pollingInterval: number
+}
+
 export interface InternalMiddlewareState {
-  currentSubscriptions: SubscriptionState
+  currentSubscriptions: SubscriptionInternalState
+  currentPolls: Map<string, QueryPollState>
+  runningQueries: Map<
+    string,
+    | QueryActionCreatorResult<any>
+    | InfiniteQueryActionCreatorResult<any>
+    | undefined
+  >
+  runningMutations: Map<string, MutationActionCreatorResult<any> | undefined>
 }
 
 export interface SubscriptionSelectors {
-  getSubscriptions: () => SubscriptionState
+  getSubscriptions: () => SubscriptionInternalState
   getSubscriptionCount: (queryCacheKey: string) => number
   isRequestSubscribed: (queryCacheKey: string, requestId: string) => boolean
 }
@@ -54,6 +74,11 @@ export interface BuildMiddlewareInput<
   api: Api<any, Definitions, ReducerPath, TagTypes>
   assertTagType: AssertTagTypes
   selectors: AllSelectors
+  getRunningQueryThunk: (
+    endpointName: string,
+    queryArgs: any,
+  ) => (dispatch: Dispatch) => QueryActionCreatorResult<any> | undefined
+  getInternalState: (dispatch: Dispatch) => InternalMiddlewareState
 }
 
 export type SubMiddlewareApi = MiddlewareAPI<
@@ -72,6 +97,10 @@ export interface BuildSubMiddlewareInput
   ): ThunkAction<QueryActionCreatorResult<any>, any, any, UnknownAction>
   isThisApiSliceAction: (action: Action) => boolean
   selectors: AllSelectors
+  mwApi: MiddlewareAPI<
+    ThunkDispatch<any, any, UnknownAction>,
+    RootState<EndpointDefinitions, string, string>
+  >
 }
 
 export type SubMiddlewareBuilder = (

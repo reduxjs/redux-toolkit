@@ -3,20 +3,11 @@
 import { formatProdErrorMessage } from './formatProdErrorMessage'
 
 export * from 'redux'
-export {
-  produce as createNextState,
-  current,
-  freeze,
-  original,
-  isDraft,
-} from 'immer'
-export type { Draft } from 'immer'
-export {
-  createSelector,
-  createSelectorCreator,
-  lruMemoize,
-  weakMapMemoize,
-} from 'reselect'
+export { freeze, original } from 'immer'
+export { createNextState, current, isDraft } from './immerImports'
+export type { Draft, WritableDraft } from 'immer'
+export { createSelector, lruMemoize } from 'reselect'
+export { createSelectorCreator, weakMapMemoize } from './reselectImports'
 export type { Selector, OutputSelector } from 'reselect'
 export {
   createDraftSafeSelector,
@@ -104,6 +95,7 @@ export type {
 export type {
   // types
   ActionReducerMapBuilder,
+  AsyncThunkReducers,
 } from './mapBuilders'
 export { Tuple } from './utils'
 
@@ -126,6 +118,8 @@ export {
 } from './createAsyncThunk'
 export type {
   AsyncThunk,
+  AsyncThunkConfig,
+  AsyncThunkDispatchConfig,
   AsyncThunkOptions,
   AsyncThunkAction,
   AsyncThunkPayloadCreatorReturnValue,
@@ -205,7 +199,11 @@ export type { AutoBatchOptions } from './autoBatchEnhancer'
 
 export { combineSlices } from './combineSlices'
 
-export type { CombinedSliceReducer, WithSlice } from './combineSlices'
+export type {
+  CombinedSliceReducer,
+  WithSlice,
+  WithSlicePreloadedState,
+} from './combineSlices'
 
 export type {
   ExtractDispatchExtensions as TSHelpersExtractDispatchExtensions,

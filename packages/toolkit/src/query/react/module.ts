@@ -16,6 +16,7 @@ import {
   useSelector as rrUseSelector,
   useStore as rrUseStore,
 } from 'react-redux'
+import type { CreateSelectorFunction } from 'reselect'
 import { createSelector as _createSelector } from 'reselect'
 import {
   isInfiniteQueryDefinition,
@@ -130,7 +131,7 @@ export interface ReactHooksModuleOptions {
   /**
    * A selector creator (usually from `reselect`, or matching the same signature)
    */
-  createSelector?: typeof _createSelector
+  createSelector?: CreateSelectorFunction<any, any, any>
 }
 
 /**

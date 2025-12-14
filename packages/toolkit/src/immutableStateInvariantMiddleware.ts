@@ -15,13 +15,13 @@ export function isImmutableDefault(value: unknown): boolean {
 
 export function trackForMutations(
   isImmutable: IsImmutableFunc,
-  ignorePaths: IgnorePaths | undefined,
+  ignoredPaths: IgnorePaths | undefined,
   obj: any,
 ) {
-  const trackedProperties = trackProperties(isImmutable, ignorePaths, obj)
+  const trackedProperties = trackProperties(isImmutable, ignoredPaths, obj)
   return {
     detectMutations() {
-      return detectMutations(isImmutable, ignorePaths, trackedProperties, obj)
+      return detectMutations(isImmutable, ignoredPaths, trackedProperties, obj)
     },
   }
 }
@@ -33,7 +33,7 @@ interface TrackedProperty {
 
 function trackProperties(
   isImmutable: IsImmutableFunc,
-  ignorePaths: IgnorePaths = [],
+  ignoredPaths: IgnorePaths = [],
   obj: Record<string, any>,
   path: string = '',
   checkedObjects: Set<Record<string, any>> = new Set(),
@@ -44,17 +44,28 @@ function trackProperties(
     checkedObjects.add(obj)
     tracked.children = {}
 
+    const hasIgnoredPaths = ignoredPaths.length > 0
+
     for (const key in obj) {
-      const childPath = path ? path + '.' + key : key
-      if (ignorePaths.length && ignorePaths.indexOf(childPath) !== -1) {
-        continue
+      const nestedPath = path ? path + '.' + key : key
+
+      if (hasIgnoredPaths) {
+        const hasMatches = ignoredPaths.some((ignored) => {
+          if (ignored instanceof RegExp) {
+            return ignored.test(nestedPath)
+          }
+          return nestedPath === ignored
+        })
+        if (hasMatches) {
+          continue
+        }
       }
 
       tracked.children[key] = trackProperties(
         isImmutable,
-        ignorePaths,
+        ignoredPaths,
         obj[key],
-        childPath,
+        nestedPath,
       )
     }
   }

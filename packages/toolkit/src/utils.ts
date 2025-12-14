@@ -1,4 +1,4 @@
-import { produce as createNextState, isDraftable } from 'immer'
+import { createNextState, isDraftable } from './immerImports'
 
 export function getTimeMeasureUtils(maxDelay: number, fnName: string) {
   let elapsed = 0

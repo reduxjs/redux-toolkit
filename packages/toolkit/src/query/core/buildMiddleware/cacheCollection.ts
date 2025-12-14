@@ -1,5 +1,6 @@
+import { getEndpointDefinition } from '@internal/query/apiTypes'
 import type { QueryDefinition } from '../../endpointDefinitions'
-import type { ConfigState, QueryCacheKey } from '../apiState'
+import type { ConfigState, QueryCacheKey, QuerySubState } from '../apiState'
 import { isAnyOf } from '../rtkImports'
 import type {
   ApiMiddlewareInternalHandler,
@@ -11,16 +12,30 @@ import type {
 
 export type ReferenceCacheCollection = never
 
-function isObjectEmpty(obj: Record<any, any>) {
-  // Apparently a for..in loop is faster than `Object.keys()` here:
-  // https://stackoverflow.com/a/59787784/62937
-  for (const k in obj) {
-    // If there is at least one key, it's not empty
-    return false
-  }
-  return true
-}
-
+/**
+ * @example
+ * ```ts
+ * // codeblock-meta title="keepUnusedDataFor example"
+ * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+ * interface Post {
+ *   id: number
+ *   name: string
+ * }
+ * type PostsResponse = Post[]
+ *
+ * const api = createApi({
+ *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+ *   endpoints: (build) => ({
+ *     getPosts: build.query<PostsResponse, void>({
+ *       query: () => 'posts',
+ *       // highlight-start
+ *       keepUnusedDataFor: 5
+ *       // highlight-end
+ *     })
+ *   })
+ * })
+ * ```
+ */
 export type CacheCollectionQueryExtraOptions = {
   /**
    * Overrides the api-wide definition of `keepUnusedDataFor` for this endpoint only. _(This value is in seconds.)_
@@ -44,6 +59,8 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
   context,
   internalState,
   selectors: { selectQueryEntry, selectConfig },
+  getRunningQueryThunk,
+  mwApi,
 }) => {
   const { removeQueryResult, unsubscribeQueryResult, cacheEntriesUpserted } =
     api.internalActions
@@ -56,19 +73,29 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
   )
 
   function anySubscriptionsRemainingForKey(queryCacheKey: string) {
-    const subscriptions = internalState.currentSubscriptions[queryCacheKey]
-    return !!subscriptions && !isObjectEmpty(subscriptions)
+    const subscriptions = internalState.currentSubscriptions.get(queryCacheKey)
+    if (!subscriptions) {
+      return false
+    }
+
+    const hasSubscriptions = subscriptions.size > 0
+    return hasSubscriptions
   }
 
   const currentRemovalTimeouts: QueryStateMeta<TimeoutId> = {}
 
-  const handler: ApiMiddlewareInternalHandler = (
-    action,
-    mwApi,
-    internalState,
-  ) => {
+  function abortAllPromises<T extends { abort?: () => void }>(
+    promiseMap: Map<string, T | undefined>,
+  ): void {
+    for (const promise of promiseMap.values()) {
+      promise?.abort?.()
+    }
+  }
+
+  const handler: ApiMiddlewareInternalHandler = (action, mwApi) => {
     const state = mwApi.getState()
     const config = selectConfig(state)
+
     if (canTriggerUnsubscribe(action)) {
       let queryCacheKeys: QueryCacheKey[]
 
@@ -91,6 +118,9 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
         if (timeout) clearTimeout(timeout)
         delete currentRemovalTimeouts[key]
       }
+
+      abortAllPromises(internalState.runningQueries)
+      abortAllPromises(internalState.runningMutations)
     }
 
     if (context.hasRehydrationInfo(action)) {
@@ -114,19 +144,22 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
     const state = api.getState()
     for (const queryCacheKey of cacheKeys) {
       const entry = selectQueryEntry(state, queryCacheKey)
-      handleUnsubscribe(queryCacheKey, entry?.endpointName, api, config)
+      if (entry?.endpointName) {
+        handleUnsubscribe(queryCacheKey, entry.endpointName, api, config)
+      }
     }
   }
 
   function handleUnsubscribe(
     queryCacheKey: QueryCacheKey,
-    endpointName: string | undefined,
+    endpointName: string,
     api: SubMiddlewareApi,
     config: ConfigState<string>,
   ) {
-    const endpointDefinition = context.endpointDefinitions[
-      endpointName!
-    ] as QueryDefinition<any, any, any, any>
+    const endpointDefinition = getEndpointDefinition(
+      context,
+      endpointName,
+    ) as QueryDefinition<any, any, any, any>
     const keepUnusedDataFor =
       endpointDefinition?.keepUnusedDataFor ?? config.keepUnusedDataFor
 
@@ -151,6 +184,15 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
 
       currentRemovalTimeouts[queryCacheKey] = setTimeout(() => {
         if (!anySubscriptionsRemainingForKey(queryCacheKey)) {
+          // Try to abort any running query for this cache key
+          const entry = selectQueryEntry(api.getState(), queryCacheKey)
+
+          if (entry?.endpointName) {
+            const runningQuery = api.dispatch(
+              getRunningQueryThunk(entry.endpointName, entry.originalArgs),
+            )
+            runningQuery?.abort()
+          }
           api.dispatch(removeQueryResult({ queryCacheKey }))
         }
         delete currentRemovalTimeouts![queryCacheKey]

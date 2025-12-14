@@ -173,7 +173,7 @@ type prepareHeaders = (
 
 _(optional)_
 
-A function that can be used to apply custom transformations to the data passed into [`params`](#setting-the-query-string). If you don't provide this, `params` will be given directly to `new URLSearchParams()`. With some API integrations, you may need to leverage this to use something like the [`query-string`](https://github.com/sindresorhus/query-string) library to support different array types.
+A function that can be used to apply custom transformations to the data passed into [`params`](#setting-the-query-string). If you don't provide this, `params` will be stripped of keys with `undefined` values, and then passed to `new URLSearchParams()`. With some API integrations, you may need to leverage this to use something like the [`query-string`](https://github.com/sindresorhus/query-string) library to support different array types.
 
 ### `fetchFn`
 

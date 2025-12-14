@@ -7,10 +7,11 @@ import type {
 } from '@reduxjs/toolkit'
 import type { Dispatch } from 'redux'
 import { asSafePromise } from '../../tsHelpers'
-import type { Api, ApiContext } from '../apiTypes'
+import { getEndpointDefinition, type Api, type ApiContext } from '../apiTypes'
 import type { BaseQueryError, QueryReturnValue } from '../baseQueryTypes'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import {
+  ENDPOINT_QUERY,
   isQueryDefinition,
   type EndpointDefinition,
   type EndpointDefinitions,
@@ -22,7 +23,7 @@ import {
   type QueryDefinition,
   type ResultTypeFrom,
 } from '../endpointDefinitions'
-import { countObjectKeys, getOrInsert, isNotNullish } from '../utils'
+import { filterNullishValues } from '../utils'
 import type {
   InfiniteData,
   InfiniteQueryConfigOptions,
@@ -42,6 +43,7 @@ import type {
   ThunkApiMetaConfig,
 } from './buildThunks'
 import type { ApiEndpointQuery } from './module'
+import type { InternalMiddlewareState } from './buildMiddleware/types'
 
 export type BuildInitiateApiEndpointQuery<
   Definition extends QueryDefinition<any, any, any, any, any>,
@@ -72,6 +74,10 @@ export type StartQueryActionCreatorOptions = {
   [forceQueryFnSymbol]?: () => QueryReturnValue
 }
 
+type RefetchOptions = {
+  refetchCachedPages?: boolean
+}
+
 export type StartInfiniteQueryActionCreatorOptions<
   D extends InfiniteQueryDefinition<any, any, any, any, any>,
 > = StartQueryActionCreatorOptions & {
@@ -86,7 +92,7 @@ export type StartInfiniteQueryActionCreatorOptions<
           InfiniteQueryArgFrom<D>
         >
       >,
-      'initialPageParam'
+      'initialPageParam' | 'refetchCachedPages'
     >
   >
 
@@ -122,7 +128,7 @@ type AnyActionCreatorResult = SafePromise<any> &
   QueryActionCreatorFields & {
     arg: any
     unwrap(): Promise<any>
-    refetch(): AnyActionCreatorResult
+    refetch(options?: RefetchOptions): AnyActionCreatorResult
   }
 
 export type QueryActionCreatorResult<
@@ -140,7 +146,12 @@ export type InfiniteQueryActionCreatorResult<
   QueryActionCreatorFields & {
     arg: InfiniteQueryArgFrom<D>
     unwrap(): Promise<InfiniteData<ResultTypeFrom<D>, PageParamFrom<D>>>
-    refetch(): InfiniteQueryActionCreatorResult<D>
+    refetch(
+      options?: Pick<
+        StartInfiniteQueryActionCreatorOptions<D>,
+        'refetchCachedPages'
+      >,
+    ): InfiniteQueryActionCreatorResult<D>
   }
 
 type StartMutationActionCreator<
@@ -270,6 +281,7 @@ export function buildInitiate({
   mutationThunk,
   api,
   context,
+  getInternalState,
 }: {
   serializeQueryArgs: InternalSerializeQueryArgs
   queryThunk: QueryThunk
@@ -277,20 +289,12 @@ export function buildInitiate({
   mutationThunk: MutationThunk
   api: Api<any, EndpointDefinitions, any, any>
   context: ApiContext<EndpointDefinitions>
+  getInternalState: (dispatch: Dispatch) => InternalMiddlewareState
 }) {
-  const runningQueries: Map<
-    Dispatch,
-    Record<
-      string,
-      | QueryActionCreatorResult<any>
-      | InfiniteQueryActionCreatorResult<any>
-      | undefined
-    >
-  > = new Map()
-  const runningMutations: Map<
-    Dispatch,
-    Record<string, MutationActionCreatorResult<any> | undefined>
-  > = new Map()
+  const getRunningQueries = (dispatch: Dispatch) =>
+    getInternalState(dispatch)?.runningQueries
+  const getRunningMutations = (dispatch: Dispatch) =>
+    getInternalState(dispatch)?.runningMutations
 
   const {
     unsubscribeQueryResult,
@@ -309,13 +313,13 @@ export function buildInitiate({
 
   function getRunningQueryThunk(endpointName: string, queryArgs: any) {
     return (dispatch: Dispatch) => {
-      const endpointDefinition = context.endpointDefinitions[endpointName]
+      const endpointDefinition = getEndpointDefinition(context, endpointName)
       const queryCacheKey = serializeQueryArgs({
         queryArgs,
         endpointDefinition,
         endpointName,
       })
-      return runningQueries.get(dispatch)?.[queryCacheKey] as
+      return getRunningQueries(dispatch)?.get(queryCacheKey) as
         | QueryActionCreatorResult<never>
         | InfiniteQueryActionCreatorResult<never>
         | undefined
@@ -331,7 +335,7 @@ export function buildInitiate({
     fixedCacheKeyOrRequestId: string,
   ) {
     return (dispatch: Dispatch) => {
-      return runningMutations.get(dispatch)?.[fixedCacheKeyOrRequestId] as
+      return getRunningMutations(dispatch)?.get(fixedCacheKeyOrRequestId) as
         | MutationActionCreatorResult<never>
         | undefined
     }
@@ -339,12 +343,12 @@ export function buildInitiate({
 
   function getRunningQueriesThunk() {
     return (dispatch: Dispatch) =>
-      Object.values(runningQueries.get(dispatch) || {}).filter(isNotNullish)
+      filterNullishValues(getRunningQueries(dispatch))
   }
 
   function getRunningMutationsThunk() {
     return (dispatch: Dispatch) =>
-      Object.values(runningMutations.get(dispatch) || {}).filter(isNotNullish)
+      filterNullishValues(getRunningMutations(dispatch))
   }
 
   function middlewareWarning(dispatch: Dispatch) {
@@ -399,7 +403,7 @@ You must add the middleware for RTK-Query to function correctly!`,
 
         const commonThunkArgs = {
           ...rest,
-          type: 'query' as const,
+          type: ENDPOINT_QUERY as 'query',
           subscribe,
           forceRefetch: forceRefetch,
           subscriptionOptions,
@@ -412,16 +416,18 @@ You must add the middleware for RTK-Query to function correctly!`,
         if (isQueryDefinition(endpointDefinition)) {
           thunk = queryThunk(commonThunkArgs)
         } else {
-          const { direction, initialPageParam } = rest as Pick<
-            InfiniteQueryThunkArg<any>,
-            'direction' | 'initialPageParam'
-          >
+          const { direction, initialPageParam, refetchCachedPages } =
+            rest as Pick<
+              InfiniteQueryThunkArg<any>,
+              'direction' | 'initialPageParam' | 'refetchCachedPages'
+            >
           thunk = infiniteQueryThunk({
             ...(commonThunkArgs as InfiniteQueryThunkArg<any>),
             // Supply these even if undefined. This helps with a field existence
             // check over in `buildSlice.ts`
             direction,
             initialPageParam,
+            refetchCachedPages,
           })
         }
 
@@ -438,7 +444,7 @@ You must add the middleware for RTK-Query to function correctly!`,
 
         const skippedSynchronously = stateAfter.requestId !== requestId
 
-        const runningQuery = runningQueries.get(dispatch)?.[queryCacheKey]
+        const runningQuery = getRunningQueries(dispatch)?.get(queryCacheKey)
         const selectFromState = () => selector(getState())
 
         const statePromise: AnyActionCreatorResult = Object.assign(
@@ -470,9 +476,13 @@ You must add the middleware for RTK-Query to function correctly!`,
 
               return result.data
             },
-            refetch: () =>
+            refetch: (options?: RefetchOptions) =>
               dispatch(
-                queryAction(arg, { subscribe: false, forceRefetch: true }),
+                queryAction(arg, {
+                  subscribe: false,
+                  forceRefetch: true,
+                  ...options,
+                }),
               ),
             unsubscribe() {
               if (subscribe)
@@ -498,14 +508,11 @@ You must add the middleware for RTK-Query to function correctly!`,
         )
 
         if (!runningQuery && !skippedSynchronously && !forceQueryFn) {
-          const running = getOrInsert(runningQueries, dispatch, {})
-          running[queryCacheKey] = statePromise
+          const runningQueries = getRunningQueries(dispatch)!
+          runningQueries.set(queryCacheKey, statePromise)
 
           statePromise.then(() => {
-            delete running[queryCacheKey]
-            if (!countObjectKeys(running)) {
-              runningQueries.delete(dispatch)
-            }
+            runningQueries.delete(queryCacheKey)
           })
         }
 
@@ -568,23 +575,17 @@ You must add the middleware for RTK-Query to function correctly!`,
           reset,
         })
 
-        const running = runningMutations.get(dispatch) || {}
-        runningMutations.set(dispatch, running)
-        running[requestId] = ret
+        const runningMutations = getRunningMutations(dispatch)!
+
+        runningMutations.set(requestId, ret)
         ret.then(() => {
-          delete running[requestId]
-          if (!countObjectKeys(running)) {
-            runningMutations.delete(dispatch)
-          }
+          runningMutations.delete(requestId)
         })
         if (fixedCacheKey) {
-          running[fixedCacheKey] = ret
+          runningMutations.set(fixedCacheKey, ret)
           ret.then(() => {
-            if (running[fixedCacheKey] === ret) {
-              delete running[fixedCacheKey]
-              if (!countObjectKeys(running)) {
-                runningMutations.delete(dispatch)
-              }
+            if (runningMutations.get(fixedCacheKey) === ret) {
+              runningMutations.delete(fixedCacheKey)
             }
           })
         }

@@ -13,7 +13,7 @@ import {
   compose,
   combineReducers,
   isPlainObject,
-} from 'redux'
+} from './reduxImports'
 import type { DevToolsEnhancerOptions as DevToolsOptions } from './devtoolsExtension'
 import { composeWithDevTools } from './devtoolsExtension'
 

@@ -39,6 +39,7 @@ import type {
 } from './tsHelpers'
 import { isNotNullish } from './utils'
 import type { NamedSchemaError } from './standardSchema'
+import { filterMap } from './utils/filterMap'
 
 const rawResultType = /* @__PURE__ */ Symbol()
 const resultType = /* @__PURE__ */ Symbol()
@@ -237,11 +238,25 @@ export type EndpointDefinitionWithQueryFn<
   rawErrorResponseSchema?: never
 }
 
-type BaseEndpointTypes<QueryArg, BaseQuery extends BaseQueryFn, ResultType> = {
+type BaseEndpointTypes<
+  QueryArg,
+  BaseQuery extends BaseQueryFn,
+  ResultType,
+  RawResultType,
+> = {
   QueryArg: QueryArg
   BaseQuery: BaseQuery
   ResultType: ResultType
+  RawResultType: RawResultType
 }
+
+export type SchemaType =
+  | 'arg'
+  | 'rawResponse'
+  | 'response'
+  | 'rawErrorResponse'
+  | 'errorResponse'
+  | 'meta'
 
 interface CommonEndpointDefinition<
   QueryArg,
@@ -421,6 +436,8 @@ interface CommonEndpointDefinition<
    * If set to `true`, will skip schema validation for this endpoint.
    * Overrides the global setting.
    *
+   * Can be overridden for specific schemas by passing an array of schema types to skip.
+   *
    * @example
    * ```ts
    * // codeblock-meta no-transpile
@@ -433,13 +450,13 @@ interface CommonEndpointDefinition<
    *     getPost: build.query<Post, { id: number }>({
    *       query: ({ id }) => `/post/${id}`,
    *       responseSchema: v.object({ id: v.number(), name: v.string() }),
-   *       skipSchemaValidation: process.env.NODE_ENV === "test", // skip schema validation in tests, since we'll be mocking the response
+   *       skipSchemaValidation: process.env.NODE_ENV === "test" ? ["response"] : false, // skip schema validation for response in tests, since we'll be mocking the response
    *     }),
    *   })
    * })
    * ```
    */
-  skipSchemaValidation?: boolean
+  skipSchemaValidation?: boolean | SchemaType[]
 }
 
 export type BaseEndpointDefinition<
@@ -471,11 +488,17 @@ export type BaseEndpointDefinition<
     { extraOptions?: BaseQueryExtraOptions<BaseQuery> }
   >
 
+// NOTE As with QueryStatus in `apiState.ts`, don't use this for real comparisons
+// at runtime, use the string constants defined below.
 export enum DefinitionType {
   query = 'query',
   mutation = 'mutation',
   infinitequery = 'infinitequery',
 }
+
+export const ENDPOINT_QUERY = DefinitionType.query
+export const ENDPOINT_MUTATION = DefinitionType.mutation
+export const ENDPOINT_INFINITEQUERY = DefinitionType.infinitequery
 
 type TagDescriptionArray<TagTypes extends string> = ReadonlyArray<
   TagDescription<TagTypes> | undefined | null
@@ -519,7 +542,8 @@ type QueryTypes<
   TagTypes extends string,
   ResultType,
   ReducerPath extends string = string,
-> = BaseEndpointTypes<QueryArg, BaseQuery, ResultType> & {
+  RawResultType extends BaseQueryResult<BaseQuery> = BaseQueryResult<BaseQuery>,
+> = BaseEndpointTypes<QueryArg, BaseQuery, ResultType, RawResultType> & {
   /**
    * The endpoint definition type. To be used with some internal generic types.
    * @example
@@ -547,6 +571,7 @@ export interface QueryExtraOptions<
   QueryArg,
   BaseQuery extends BaseQueryFn,
   ReducerPath extends string = string,
+  RawResultType extends BaseQueryResult<BaseQuery> = BaseQueryResult<BaseQuery>,
 > extends CacheLifecycleQueryExtraOptions<
       ResultType,
       QueryArg,
@@ -791,7 +816,14 @@ export interface QueryExtraOptions<
   /**
    * All of these are `undefined` at runtime, purely to be used in TypeScript declarations!
    */
-  Types?: QueryTypes<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>
+  Types?: QueryTypes<
+    QueryArg,
+    BaseQuery,
+    TagTypes,
+    ResultType,
+    ReducerPath,
+    RawResultType
+  >
 }
 
 export type QueryDefinition<
@@ -802,7 +834,14 @@ export type QueryDefinition<
   ReducerPath extends string = string,
   RawResultType extends BaseQueryResult<BaseQuery> = BaseQueryResult<BaseQuery>,
 > = BaseEndpointDefinition<QueryArg, BaseQuery, ResultType, RawResultType> &
-  QueryExtraOptions<TagTypes, ResultType, QueryArg, BaseQuery, ReducerPath>
+  QueryExtraOptions<
+    TagTypes,
+    ResultType,
+    QueryArg,
+    BaseQuery,
+    ReducerPath,
+    RawResultType
+  >
 
 export type InfiniteQueryTypes<
   QueryArg,
@@ -811,7 +850,8 @@ export type InfiniteQueryTypes<
   TagTypes extends string,
   ResultType,
   ReducerPath extends string = string,
-> = BaseEndpointTypes<QueryArg, BaseQuery, ResultType> & {
+  RawResultType extends BaseQueryResult<BaseQuery> = BaseQueryResult<BaseQuery>,
+> = BaseEndpointTypes<QueryArg, BaseQuery, ResultType, RawResultType> & {
   /**
    * The endpoint definition type. To be used with some internal generic types.
    * @example
@@ -838,6 +878,7 @@ export interface InfiniteQueryExtraOptions<
   PageParam,
   BaseQuery extends BaseQueryFn,
   ReducerPath extends string = string,
+  RawResultType extends BaseQueryResult<BaseQuery> = BaseQueryResult<BaseQuery>,
 > extends CacheLifecycleInfiniteQueryExtraOptions<
       InfiniteData<ResultType, PageParam>,
       QueryArg,
@@ -987,7 +1028,8 @@ export interface InfiniteQueryExtraOptions<
     BaseQuery,
     TagTypes,
     ResultType,
-    ReducerPath
+    ReducerPath,
+    RawResultType
   >
 }
 
@@ -1013,7 +1055,8 @@ export type InfiniteQueryDefinition<
       QueryArg,
       PageParam,
       BaseQuery,
-      ReducerPath
+      ReducerPath,
+      RawResultType
     >
 
 type MutationTypes<
@@ -1022,7 +1065,8 @@ type MutationTypes<
   TagTypes extends string,
   ResultType,
   ReducerPath extends string = string,
-> = BaseEndpointTypes<QueryArg, BaseQuery, ResultType> & {
+  RawResultType extends BaseQueryResult<BaseQuery> = BaseQueryResult<BaseQuery>,
+> = BaseEndpointTypes<QueryArg, BaseQuery, ResultType, RawResultType> & {
   /**
    * The endpoint definition type. To be used with some internal generic types.
    * @example
@@ -1050,6 +1094,7 @@ export interface MutationExtraOptions<
   QueryArg,
   BaseQuery extends BaseQueryFn,
   ReducerPath extends string = string,
+  RawResultType extends BaseQueryResult<BaseQuery> = BaseQueryResult<BaseQuery>,
 > extends CacheLifecycleMutationExtraOptions<
       ResultType,
       QueryArg,
@@ -1124,7 +1169,14 @@ export interface MutationExtraOptions<
   /**
    * All of these are `undefined` at runtime, purely to be used in TypeScript declarations!
    */
-  Types?: MutationTypes<QueryArg, BaseQuery, TagTypes, ResultType, ReducerPath>
+  Types?: MutationTypes<
+    QueryArg,
+    BaseQuery,
+    TagTypes,
+    ResultType,
+    ReducerPath,
+    RawResultType
+  >
 }
 
 export type MutationDefinition<
@@ -1135,7 +1187,14 @@ export type MutationDefinition<
   ReducerPath extends string = string,
   RawResultType extends BaseQueryResult<BaseQuery> = BaseQueryResult<BaseQuery>,
 > = BaseEndpointDefinition<QueryArg, BaseQuery, ResultType, RawResultType> &
-  MutationExtraOptions<TagTypes, ResultType, QueryArg, BaseQuery, ReducerPath>
+  MutationExtraOptions<
+    TagTypes,
+    ResultType,
+    QueryArg,
+    BaseQuery,
+    ReducerPath,
+    RawResultType
+  >
 
 export type EndpointDefinition<
   QueryArg,
@@ -1180,19 +1239,19 @@ export type EndpointDefinitions = Record<
 export function isQueryDefinition(
   e: EndpointDefinition<any, any, any, any, any, any, any>,
 ): e is QueryDefinition<any, any, any, any, any, any> {
-  return e.type === DefinitionType.query
+  return e.type === ENDPOINT_QUERY
 }
 
 export function isMutationDefinition(
   e: EndpointDefinition<any, any, any, any, any, any, any>,
 ): e is MutationDefinition<any, any, any, any, any, any> {
-  return e.type === DefinitionType.mutation
+  return e.type === ENDPOINT_MUTATION
 }
 
 export function isInfiniteQueryDefinition(
   e: EndpointDefinition<any, any, any, any, any, any, any>,
 ): e is InfiniteQueryDefinition<any, any, any, any, any, any, any> {
-  return e.type === DefinitionType.infinitequery
+  return e.type === ENDPOINT_INFINITEQUERY
 }
 
 export function isAnyQueryDefinition(
@@ -1354,20 +1413,21 @@ export function calculateProvidedBy<ResultType, QueryArg, ErrorType, MetaType>(
   meta: MetaType | undefined,
   assertTagTypes: AssertTagTypes,
 ): readonly FullTagDescription<string>[] {
-  if (isFunction(description)) {
-    return description(
-      result as ResultType,
-      error as undefined,
-      queryArg,
-      meta as MetaType,
+  const finalDescription = isFunction(description)
+    ? description(
+        result as ResultType,
+        error as undefined,
+        queryArg,
+        meta as MetaType,
+      )
+    : description
+
+  if (finalDescription) {
+    return filterMap(finalDescription, isNotNullish, (tag) =>
+      assertTagTypes(expandTagDescription(tag)),
     )
-      .filter(isNotNullish)
-      .map(expandTagDescription)
-      .map(assertTagTypes)
   }
-  if (Array.isArray(description)) {
-    return description.map(expandTagDescription).map(assertTagTypes)
-  }
+
   return []
 }
 

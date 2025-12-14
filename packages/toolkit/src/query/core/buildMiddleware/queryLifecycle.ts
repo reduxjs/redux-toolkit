@@ -1,9 +1,10 @@
+import { getEndpointDefinition } from '@internal/query/apiTypes'
 import type {
   BaseQueryError,
   BaseQueryFn,
   BaseQueryMeta,
 } from '../../baseQueryTypes'
-import { DefinitionType, isAnyQueryDefinition } from '../../endpointDefinitions'
+import { isAnyQueryDefinition } from '../../endpointDefinitions'
 import type { Recipe } from '../buildThunks'
 import { isFulfilled, isPending, isRejected } from '../rtkImports'
 import type {
@@ -442,7 +443,7 @@ export const buildQueryLifecycleHandler: InternalHandlerBuilder = ({
         requestId,
         arg: { endpointName, originalArgs },
       } = action.meta
-      const endpointDefinition = context.endpointDefinitions[endpointName]
+      const endpointDefinition = getEndpointDefinition(context, endpointName)
       const onQueryStarted = endpointDefinition?.onQueryStarted
       if (onQueryStarted) {
         const lifecycle = {} as CacheLifecycle

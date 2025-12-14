@@ -7,7 +7,7 @@ import type {
   UnknownAction,
 } from '@reduxjs/toolkit'
 import type { Patch } from 'immer'
-import { isDraftable, produceWithPatches } from 'immer'
+import { isDraftable, produceWithPatches } from '../utils/immerImports'
 import type { Api, ApiContext } from '../apiTypes'
 import type {
   BaseQueryError,
@@ -31,9 +31,11 @@ import type {
   SchemaFailureConverter,
   SchemaFailureHandler,
   SchemaFailureInfo,
+  SchemaType,
 } from '../endpointDefinitions'
 import {
   calculateProvidedBy,
+  ENDPOINT_QUERY,
   isInfiniteQueryDefinition,
   isQueryDefinition,
 } from '../endpointDefinitions'
@@ -49,7 +51,7 @@ import type {
   InfiniteQueryDirection,
   InfiniteQueryKeys,
 } from './apiState'
-import { QueryStatus } from './apiState'
+import { QueryStatus, STATUS_UNINITIALIZED } from './apiState'
 import type {
   InfiniteQueryActionCreatorResult,
   QueryActionCreatorResult,
@@ -68,7 +70,11 @@ import {
   isRejectedWithValue,
   SHOULD_AUTOBATCH,
 } from './rtkImports'
-import { parseWithSchema, NamedSchemaError } from '../standardSchema'
+import {
+  parseWithSchema,
+  NamedSchemaError,
+  shouldSkip,
+} from '../standardSchema'
 
 export type BuildThunksApiEndpointQuery<
   Definition extends QueryDefinition<any, any, any, any, any>,
@@ -157,6 +163,7 @@ export type InfiniteQueryThunkArg<
     endpointName: string
     param: unknown
     direction?: InfiniteQueryDirection
+    refetchCachedPages?: boolean
   }
 
 type MutationThunkArg = {
@@ -346,7 +353,7 @@ export function buildThunks<
   selectors: AllSelectors
   onSchemaFailure: SchemaFailureHandler | undefined
   catchSchemaFailure: SchemaFailureConverter<BaseQuery> | undefined
-  skipSchemaValidation: boolean | undefined
+  skipSchemaValidation: boolean | SchemaType[] | undefined
 }) {
   type State = RootState<any, string, ReducerPath>
 
@@ -420,7 +427,7 @@ export function buildThunks<
             ),
           ),
       }
-      if (currentState.status === QueryStatus.uninitialized) {
+      if (currentState.status === STATUS_UNINITIALIZED) {
         return ret
       }
       let newValue
@@ -504,11 +511,10 @@ export function buildThunks<
     const { metaSchema, skipSchemaValidation = globalSkipSchemaValidation } =
       endpointDefinition
 
+    const isQuery = arg.type === ENDPOINT_QUERY
+
     try {
-      let transformResponse = getTransformCallbackForEndpoint(
-        endpointDefinition,
-        'transformResponse',
-      )
+      let transformResponse: TransformCallback = defaultTransformResponse
 
       const baseQueryApi = {
         signal,
@@ -518,13 +524,11 @@ export function buildThunks<
         extra,
         endpoint: arg.endpointName,
         type: arg.type,
-        forced:
-          arg.type === 'query' ? isForcedQuery(arg, getState()) : undefined,
-        queryCacheKey: arg.type === 'query' ? arg.queryCacheKey : undefined,
+        forced: isQuery ? isForcedQuery(arg, getState()) : undefined,
+        queryCacheKey: isQuery ? arg.queryCacheKey : undefined,
       }
 
-      const forceQueryFn =
-        arg.type === 'query' ? arg[forceQueryFnSymbol] : undefined
+      const forceQueryFn = isQuery ? arg[forceQueryFnSymbol] : undefined
 
       let finalQueryReturnValue: QueryReturnValue
 
@@ -569,7 +573,7 @@ export function buildThunks<
         const { extraOptions, argSchema, rawResponseSchema, responseSchema } =
           endpointDefinition
 
-        if (argSchema && !skipSchemaValidation) {
+        if (argSchema && !shouldSkip(skipSchemaValidation, 'arg')) {
           finalQueryArg = await parseWithSchema(
             argSchema,
             finalQueryArg,
@@ -582,6 +586,13 @@ export function buildThunks<
           // upsertQueryData relies on this to pass in the user-provided value
           result = forceQueryFn()
         } else if (endpointDefinition.query) {
+          // We should only run `transformResponse` when the endpoint has a `query` method,
+          // and we're not doing an `upsertQueryData`.
+          transformResponse = getTransformCallbackForEndpoint(
+            endpointDefinition,
+            'transformResponse',
+          )
+
           result = await baseQuery(
             endpointDefinition.query(finalQueryArg as any),
             baseQueryApi,
@@ -633,7 +644,10 @@ export function buildThunks<
 
         let { data } = result
 
-        if (rawResponseSchema && !skipSchemaValidation) {
+        if (
+          rawResponseSchema &&
+          !shouldSkip(skipSchemaValidation, 'rawResponse')
+        ) {
           data = await parseWithSchema(
             rawResponseSchema,
             result.data,
@@ -648,7 +662,7 @@ export function buildThunks<
           finalQueryArg,
         )
 
-        if (responseSchema && !skipSchemaValidation) {
+        if (responseSchema && !shouldSkip(skipSchemaValidation, 'response')) {
           transformedResponse = await parseWithSchema(
             responseSchema,
             transformedResponse,
@@ -663,15 +677,18 @@ export function buildThunks<
         }
       }
 
-      if (
-        arg.type === 'query' &&
-        'infiniteQueryOptions' in endpointDefinition
-      ) {
+      if (isQuery && 'infiniteQueryOptions' in endpointDefinition) {
         // This is an infinite query endpoint
         const { infiniteQueryOptions } = endpointDefinition
 
         // Runtime checks should guarantee this is a positive number if provided
         const { maxPages = Infinity } = infiniteQueryOptions
+
+        // Priority: per-call override > endpoint config > default (true)
+        const refetchCachedPages =
+          (arg as InfiniteQueryThunkArg<any>).refetchCachedPages ??
+          infiniteQueryOptions.refetchCachedPages ??
+          true
 
         let result: QueryReturnValue
 
@@ -730,18 +747,20 @@ export function buildThunks<
             } as QueryReturnValue
           }
 
-          // Fetch remaining pages
-          for (let i = 1; i < totalPages; i++) {
-            const param = getNextPageParam(
-              infiniteQueryOptions,
-              result.data as InfiniteData<unknown, unknown>,
-              arg.originalArgs,
-            )
-            result = await fetchPage(
-              result.data as InfiniteData<unknown, unknown>,
-              param,
-              maxPages,
-            )
+          if (refetchCachedPages) {
+            // Fetch remaining pages
+            for (let i = 1; i < totalPages; i++) {
+              const param = getNextPageParam(
+                infiniteQueryOptions,
+                result.data as InfiniteData<unknown, unknown>,
+                arg.originalArgs,
+              )
+              result = await fetchPage(
+                result.data as InfiniteData<unknown, unknown>,
+                param,
+                maxPages,
+              )
+            }
           }
         }
 
@@ -751,7 +770,11 @@ export function buildThunks<
         finalQueryReturnValue = await executeRequest(arg.originalArgs)
       }
 
-      if (metaSchema && !skipSchemaValidation && finalQueryReturnValue.meta) {
+      if (
+        metaSchema &&
+        !shouldSkip(skipSchemaValidation, 'meta') &&
+        finalQueryReturnValue.meta
+      ) {
         finalQueryReturnValue.meta = await parseWithSchema(
           metaSchema,
           finalQueryReturnValue.meta,
@@ -781,7 +804,10 @@ export function buildThunks<
         let { value, meta } = caughtError
 
         try {
-          if (rawErrorResponseSchema && !skipSchemaValidation) {
+          if (
+            rawErrorResponseSchema &&
+            !shouldSkip(skipSchemaValidation, 'rawErrorResponse')
+          ) {
             value = await parseWithSchema(
               rawErrorResponseSchema,
               value,
@@ -790,7 +816,7 @@ export function buildThunks<
             )
           }
 
-          if (metaSchema && !skipSchemaValidation) {
+          if (metaSchema && !shouldSkip(skipSchemaValidation, 'meta')) {
             meta = await parseWithSchema(metaSchema, meta, 'metaSchema', meta)
           }
           let transformedErrorResponse = await transformErrorResponse(
@@ -798,7 +824,10 @@ export function buildThunks<
             meta,
             arg.originalArgs,
           )
-          if (errorResponseSchema && !skipSchemaValidation) {
+          if (
+            errorResponseSchema &&
+            !shouldSkip(skipSchemaValidation, 'errorResponse')
+          ) {
             transformedErrorResponse = await parseWithSchema(
               errorResponseSchema,
               transformedErrorResponse,
@@ -821,7 +850,7 @@ export function buildThunks<
             endpoint: arg.endpointName,
             arg: arg.originalArgs,
             type: arg.type,
-            queryCacheKey: arg.type === 'query' ? arg.queryCacheKey : undefined,
+            queryCacheKey: isQuery ? arg.queryCacheKey : undefined,
           }
           endpointDefinition.onSchemaFailure?.(caughtError, info)
           onSchemaFailure?.(caughtError, info)
@@ -972,14 +1001,17 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
     <EndpointName extends QueryKeys<Definitions>>(
       endpointName: EndpointName,
       arg: any,
-      options: PrefetchOptions,
+      options: PrefetchOptions = {},
     ): ThunkAction<void, any, any, UnknownAction> =>
     (dispatch: ThunkDispatch<any, any, any>, getState: () => any) => {
       const force = hasTheForce(options) && options.force
       const maxAge = hasMaxAge(options) && options.ifOlderThan
 
       const queryAction = (force: boolean = true) => {
-        const options = { forceRefetch: force, isPrefetch: true }
+        const options: StartQueryActionCreatorOptions = {
+          forceRefetch: force,
+          subscribe: false,
+        }
         return (
           api.endpoints[endpointName] as ApiEndpointQuery<any, any>
         ).initiate(arg, options)

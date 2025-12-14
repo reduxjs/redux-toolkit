@@ -1,5 +1,8 @@
 name: CI
-on: [push, pull_request]
+on:
+  push:
+    branches: [master]
+  pull_request:
 defaults:
   run:
     working-directory: ./packages/toolkit
@@ -11,8 +14,8 @@ jobs:
     outputs:
       toolkit: ${{ steps.filter.outputs.toolkit }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v3
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3
         id: filter
         with:
           filters: |
@@ -31,14 +34,14 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: ['22.x']
+        node: ['24.x']
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
       - name: Use node ${{ matrix.node }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: ${{ matrix.node }}
           cache: 'yarn'
@@ -56,7 +59,7 @@ jobs:
       - name: Pack
         run: yarn pack
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: package
           path: packages/toolkit/package.tgz
@@ -68,27 +71,21 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: ['22.x']
+        node: ['24.x']
         react:
-          [
-            {
-              version: '^18',
-              types: ^18,
-              react-dom: { version: '^18', types: '^18' },
-            },
-            {
-              version: '^19',
-              types: '^19',
-              react-dom: { version: '^19', types: '^19' },
-            },
-          ]
+          - version: '^18'
+            types: '^18'
+            react-dom: { version: '^18', types: '^18' }
+          - version: '^19'
+            types: '^19'
+            react-dom: { version: '^19', types: '^19' }
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
       - name: Use node ${{ matrix.node }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: ${{ matrix.node }}
           cache: 'yarn'
@@ -97,7 +94,7 @@ jobs:
         run: yarn install
 
       - name: Download build artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: package
           path: packages/toolkit
@@ -137,28 +134,97 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: ['22.x']
-        ts: ['5.1', '5.2', '5.3', '5.4', '5.5', '5.6', '5.7', '5.8']
-        react:
-          [
-            {
-              version: '^18',
-              types: ^18,
-              react-dom: { version: '^18', types: '^18' },
-            },
-            {
-              version: '^19',
-              types: '^19',
-              react-dom: { version: '^19', types: '^19' },
-            },
-          ]
+        # Sparse matrix: All TS versions with React 19, boundary TS versions with React 18
+        include:
+          # React 19 × all TS versions
+          - node: '24.x'
+            ts: '5.4'
+            react:
+              {
+                version: '^19',
+                types: '^19',
+                react-dom: { version: '^19', types: '^19' },
+              }
+          - node: '24.x'
+            ts: '5.5'
+            react:
+              {
+                version: '^19',
+                types: '^19',
+                react-dom: { version: '^19', types: '^19' },
+              }
+          - node: '24.x'
+            ts: '5.6'
+            react:
+              {
+                version: '^19',
+                types: '^19',
+                react-dom: { version: '^19', types: '^19' },
+              }
+          - node: '24.x'
+            ts: '5.7'
+            react:
+              {
+                version: '^19',
+                types: '^19',
+                react-dom: { version: '^19', types: '^19' },
+              }
+          - node: '24.x'
+            ts: '5.8'
+            react:
+              {
+                version: '^19',
+                types: '^19',
+                react-dom: { version: '^19', types: '^19' },
+              }
+          - node: '24.x'
+            ts: '5.9'
+            react:
+              {
+                version: '^19',
+                types: '^19',
+                react-dom: { version: '^19', types: '^19' },
+              }
+          - node: '24.x'
+            ts: 'next'
+            react:
+              {
+                version: '^19',
+                types: '^19',
+                react-dom: { version: '^19', types: '^19' },
+              }
+          # React 18 × boundary TS versions only (5.4, 5.9, next)
+          - node: '24.x'
+            ts: '5.4'
+            react:
+              {
+                version: '^18',
+                types: '^18',
+                react-dom: { version: '^18', types: '^18' },
+              }
+          - node: '24.x'
+            ts: '5.9'
+            react:
+              {
+                version: '^18',
+                types: '^18',
+                react-dom: { version: '^18', types: '^18' },
+              }
+          - node: '24.x'
+            ts: 'next'
+            react:
+              {
+                version: '^18',
+                types: '^18',
+                react-dom: { version: '^18', types: '^18' },
+              }
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
       - name: Use node ${{ matrix.node }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: ${{ matrix.node }}
           cache: 'yarn'
@@ -172,7 +238,7 @@ jobs:
       - name: Install TypeScript ${{ matrix.ts }}
         run: yarn add typescript@${{ matrix.ts }}
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: package
           path: packages/toolkit
@@ -186,12 +252,21 @@ jobs:
       - name: Erase path aliases
         run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json
 
-      - name: Test types
+      - name: Test types (TS 5.x)
+        if: matrix.ts != 'next' && !startsWith(matrix.ts, '6.')
         env:
           TEST_DIST: true
         run: |
           yarn tsc --version
           yarn type-tests
+
+      - name: Test types (TS 6.x/next)
+        if: matrix.ts == 'next' || startsWith(matrix.ts, '6.')
+        env:
+          TEST_DIST: true
+        run: |
+          yarn tsc --version
+          yarn tsc -p tsconfig.test.json --noEmit --ignoreDeprecations 6.0
 
   test-published-artifact:
     name: Test Published Artifact ${{ matrix.example }}
@@ -201,7 +276,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: ['22.x']
+        node: ['24.x']
         example:
           [
             'cra4',
@@ -220,10 +295,10 @@ jobs:
       YARN_ENABLE_IMMUTABLE_INSTALLS: false
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
       - name: Use node ${{ matrix.node }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: ${{ matrix.node }}
           cache: 'yarn'
@@ -234,7 +309,7 @@ jobs:
       - name: Remove existing RTK
         run: yarn remove @reduxjs/toolkit
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: package
           path: ./examples/publish-ci/${{ matrix.example }}
@@ -250,7 +325,7 @@ jobs:
 
       - name: Set up JDK 21 for React Native build
         if: matrix.example == 'react-native' || matrix.example == 'expo'
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4
         with:
           java-version: '21.x'
           distribution: 'temurin'
@@ -272,13 +347,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: ['22.x']
+        node: ['24.x']
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
       - name: Use node ${{ matrix.node }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: ${{ matrix.node }}
           cache: 'yarn'
@@ -286,7 +361,7 @@ jobs:
       - name: Install deps
         run: yarn install
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: package
           path: packages/toolkit
@@ -304,20 +379,56 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: ['22.x']
-        ts: ['5.3', '5.4', '5.5', '5.6', '5.7', '5.8', 'next']
-        example:
-          [
-            { name: 'bundler', moduleResolution: 'Bundler' },
-            { name: 'nodenext-cjs', moduleResolution: 'NodeNext' },
-            { name: 'nodenext-esm', moduleResolution: 'NodeNext' },
-          ]
+        # Sparse matrix: All TS versions with bundler, boundary TS versions with nodenext
+        include:
+          # bundler × all TS versions
+          - node: '24.x'
+            ts: '5.4'
+            example: { name: 'bundler', moduleResolution: 'Bundler' }
+          - node: '24.x'
+            ts: '5.5'
+            example: { name: 'bundler', moduleResolution: 'Bundler' }
+          - node: '24.x'
+            ts: '5.6'
+            example: { name: 'bundler', moduleResolution: 'Bundler' }
+          - node: '24.x'
+            ts: '5.7'
+            example: { name: 'bundler', moduleResolution: 'Bundler' }
+          - node: '24.x'
+            ts: '5.8'
+            example: { name: 'bundler', moduleResolution: 'Bundler' }
+          - node: '24.x'
+            ts: '5.9'
+            example: { name: 'bundler', moduleResolution: 'Bundler' }
+          - node: '24.x'
+            ts: 'next'
+            example: { name: 'bundler', moduleResolution: 'Bundler' }
+          # nodenext-cjs × boundary TS versions only (5.4, 5.9, next)
+          - node: '24.x'
+            ts: '5.4'
+            example: { name: 'nodenext-cjs', moduleResolution: 'NodeNext' }
+          - node: '24.x'
+            ts: '5.9'
+            example: { name: 'nodenext-cjs', moduleResolution: 'NodeNext' }
+          - node: '24.x'
+            ts: 'next'
+            example: { name: 'nodenext-cjs', moduleResolution: 'NodeNext' }
+          # nodenext-esm × boundary TS versions only (5.4, 5.9, next)
+          - node: '24.x'
+            ts: '5.4'
+            example: { name: 'nodenext-esm', moduleResolution: 'NodeNext' }
+          - node: '24.x'
+            ts: '5.9'
+            example: { name: 'nodenext-esm', moduleResolution: 'NodeNext' }
+          - node: '24.x'
+            ts: 'next'
+            example: { name: 'nodenext-esm', moduleResolution: 'NodeNext' }
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
       - name: Use node ${{ matrix.node }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: ${{ matrix.node }}
           cache: 'yarn'
@@ -325,7 +436,7 @@ jobs:
       - name: Install deps
         run: yarn install
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: package
           path: packages/toolkit
@@ -340,10 +451,66 @@ jobs:
         run: yarn workspace @examples-type-portability/${{ matrix.example.name }} run test
 
       - name: Test type portability with `moduleResolution Node10`
+        if: matrix.ts != 'next' && !startsWith(matrix.ts, '6.')
         run: yarn workspace @examples-type-portability/${{ matrix.example.name }} run test --module CommonJS --moduleResolution Node10 --preserveSymLinks --verbatimModuleSyntax false
 
       - name: Test type portability with `moduleResolution Node10` and `type module` in `package.json`
-        if: matrix.example.name == 'nodenext-esm' || matrix.example.name == 'bundler'
+        if: (matrix.example.name == 'nodenext-esm' || matrix.example.name == 'bundler') && matrix.ts != 'next' && !startsWith(matrix.ts, '6.')
         run: |
           npm --workspace=@examples-type-portability/${{ matrix.example.name }} pkg set type=module
           yarn workspace @examples-type-portability/${{ matrix.example.name }} run test --module ESNext --moduleResolution Node10 --preserveSymLinks --verbatimModuleSyntax false
+
+  test-types-native-preview:
+    if: false # Disabled pending TS 7.0 compatibility fixes
+    name: 'Test Types: TypeScript Native Preview'
+    needs: [build]
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      matrix:
+        node: ['24.x']
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+
+      - name: Use node ${{ matrix.node }}
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: ${{ matrix.node }}
+          cache: 'yarn'
+
+      - name: Install deps
+        run: yarn install
+
+      - name: Install TypeScript Native Preview
+        run: yarn add @typescript/native-preview
+
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: package
+          path: packages/toolkit
+
+      - name: Install build artifact
+        run: yarn add ./package.tgz
+
+      - name: Show installed RTK versions
+        run: yarn info @reduxjs/toolkit
+
+      - name: Erase path aliases
+        run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json
+
+      - name: Test types with tsgo
+        env:
+          TEST_DIST: true
+        run: |
+          yarn tsgo --version
+          yarn tsgo -p tsconfig.test.json --noEmit --moduleResolution Bundler
+
+      - name: Install build artifact for type-portability example
+        run: yarn workspace @examples-type-portability/bundler add $(pwd)/package.tgz
+
+      - name: Install TypeScript Native Preview for type-portability example
+        run: yarn workspace @examples-type-portability/bundler add -D @typescript/native-preview
+
+      - name: Test type portability with tsgo (bundler example)
+        run: yarn workspace @examples-type-portability/bundler exec tsgo --noEmit

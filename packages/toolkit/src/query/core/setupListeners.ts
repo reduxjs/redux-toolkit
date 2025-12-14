@@ -4,10 +4,33 @@ import type {
 } from '@reduxjs/toolkit'
 import { createAction } from './rtkImports'
 
-export const onFocus = /* @__PURE__ */ createAction('__rtkq/focused')
-export const onFocusLost = /* @__PURE__ */ createAction('__rtkq/unfocused')
-export const onOnline = /* @__PURE__ */ createAction('__rtkq/online')
-export const onOffline = /* @__PURE__ */ createAction('__rtkq/offline')
+export const INTERNAL_PREFIX = '__rtkq/'
+
+const ONLINE = 'online'
+const OFFLINE = 'offline'
+const FOCUS = 'focus'
+const FOCUSED = 'focused'
+const VISIBILITYCHANGE = 'visibilitychange'
+
+export const onFocus = /* @__PURE__ */ createAction(
+  `${INTERNAL_PREFIX}${FOCUSED}`,
+)
+export const onFocusLost = /* @__PURE__ */ createAction(
+  `${INTERNAL_PREFIX}un${FOCUSED}`,
+)
+export const onOnline = /* @__PURE__ */ createAction(
+  `${INTERNAL_PREFIX}${ONLINE}`,
+)
+export const onOffline = /* @__PURE__ */ createAction(
+  `${INTERNAL_PREFIX}${OFFLINE}`,
+)
+
+const actions = {
+  onFocus,
+  onFocusLost,
+  onOnline,
+  onOffline,
+}
 
 let initialized = false
 
@@ -40,10 +63,13 @@ export function setupListeners(
   ) => () => void,
 ) {
   function defaultHandler() {
-    const handleFocus = () => dispatch(onFocus())
-    const handleFocusLost = () => dispatch(onFocusLost())
-    const handleOnline = () => dispatch(onOnline())
-    const handleOffline = () => dispatch(onOffline())
+    const [handleFocus, handleFocusLost, handleOnline, handleOffline] = [
+      onFocus,
+      onFocusLost,
+      onOnline,
+      onOffline,
+    ].map((action) => () => dispatch(action()))
+
     const handleVisibilityChange = () => {
       if (window.document.visibilityState === 'visible') {
         handleFocus()
@@ -52,33 +78,41 @@ export function setupListeners(
       }
     }
 
-    if (!initialized) {
-      if (typeof window !== 'undefined' && window.addEventListener) {
-        // Handle focus events
-        window.addEventListener(
-          'visibilitychange',
-          handleVisibilityChange,
-          false,
-        )
-        window.addEventListener('focus', handleFocus, false)
-
-        // Handle connection events
-        window.addEventListener('online', handleOnline, false)
-        window.addEventListener('offline', handleOffline, false)
-        initialized = true
-      }
-    }
-    const unsubscribe = () => {
-      window.removeEventListener('focus', handleFocus)
-      window.removeEventListener('visibilitychange', handleVisibilityChange)
-      window.removeEventListener('online', handleOnline)
-      window.removeEventListener('offline', handleOffline)
+    let unsubscribe = () => {
       initialized = false
     }
+
+    if (!initialized) {
+      if (typeof window !== 'undefined' && window.addEventListener) {
+        const handlers = {
+          [FOCUS]: handleFocus,
+          [VISIBILITYCHANGE]: handleVisibilityChange,
+          [ONLINE]: handleOnline,
+          [OFFLINE]: handleOffline,
+        }
+
+        function updateListeners(add: boolean) {
+          Object.entries(handlers).forEach(([event, handler]) => {
+            if (add) {
+              window.addEventListener(event, handler, false)
+            } else {
+              window.removeEventListener(event, handler)
+            }
+          })
+        }
+        // Handle focus events
+        updateListeners(true)
+        initialized = true
+
+        unsubscribe = () => {
+          updateListeners(false)
+          initialized = false
+        }
+      }
+    }
+
     return unsubscribe
   }
 
-  return customHandler
-    ? customHandler(dispatch, { onFocus, onFocusLost, onOffline, onOnline })
-    : defaultHandler()
+  return customHandler ? customHandler(dispatch, actions) : defaultHandler()
 }

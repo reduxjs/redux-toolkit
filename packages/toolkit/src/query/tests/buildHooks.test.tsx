@@ -35,7 +35,7 @@ import { userEvent } from '@testing-library/user-event'
 import type { SyncScreen } from '@testing-library/react-render-stream/pure'
 import { createRenderStream } from '@testing-library/react-render-stream/pure'
 import { HttpResponse, http, delay } from 'msw'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { InfiniteQueryResultFlags } from '../core/buildSelectors'
 
 // Just setup a temporary in-memory counter for tests that `getIncrementedAmount`.
@@ -1068,7 +1068,7 @@ describe('hooks tests', () => {
 
       const checkNumSubscriptions = (arg: string, count: number) => {
         const subscriptions = getSubscriptions()
-        const cacheKeyEntry = subscriptions[arg]
+        const cacheKeyEntry = subscriptions.get(arg)
 
         if (cacheKeyEntry) {
           const subscriptionCount = Object.keys(cacheKeyEntry) //getSubscriptionCount(arg)
@@ -1188,6 +1188,87 @@ describe('hooks tests', () => {
         revertedState,
         `Expected isLoading state to never revert back to true but did after ${revertedState} renders...`,
       ).toBe(-1)
+    })
+
+    test('query thunk should be aborted when component unmounts and cache entry is removed', async () => {
+      let abortSignalFromQueryFn: AbortSignal | undefined
+
+      const pokemonApi = createApi({
+        baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
+        endpoints: (builder) => ({
+          getTest: builder.query<string, number>({
+            async queryFn(arg, { signal }) {
+              abortSignalFromQueryFn = signal
+
+              // Simulate a long-running request that should be aborted
+              await new Promise((resolve, reject) => {
+                const timeout = setTimeout(resolve, 5000)
+
+                signal.addEventListener('abort', () => {
+                  clearTimeout(timeout)
+                  reject(new Error('Aborted'))
+                })
+              })
+
+              return { data: 'data!' }
+            },
+            keepUnusedDataFor: 0.01, // Very short timeout (10ms)
+          }),
+        }),
+      })
+
+      const storeRef = setupApiStore(pokemonApi, undefined, {
+        withoutTestLifecycles: true,
+      })
+
+      function TestComponent() {
+        const { data, isFetching } = pokemonApi.endpoints.getTest.useQuery(1)
+
+        return (
+          <div>
+            <div data-testid="isFetching">{String(isFetching)}</div>
+            <div data-testid="data">{data || 'no data'}</div>
+          </div>
+        )
+      }
+
+      function App() {
+        const [showComponent, setShowComponent] = useState(true)
+
+        return (
+          <div>
+            {showComponent && <TestComponent />}
+            <button
+              data-testid="unmount"
+              onClick={() => setShowComponent(false)}
+            >
+              Unmount Component
+            </button>
+          </div>
+        )
+      }
+
+      render(<App />, { wrapper: storeRef.wrapper })
+
+      // Wait for the query to start
+      await waitFor(() =>
+        expect(screen.getByTestId('isFetching').textContent).toBe('true'),
+      )
+
+      // Verify we have an abort signal
+      expect(abortSignalFromQueryFn).toBeDefined()
+      expect(abortSignalFromQueryFn!.aborted).toBe(false)
+
+      // Unmount the component
+      fireEvent.click(screen.getByTestId('unmount'))
+
+      // Wait for the cache entry to be removed (keepUnusedDataFor: 0.01s = 10ms)
+      await act(async () => {
+        await delay(100)
+      })
+
+      // The abort signal should now be aborted
+      expect(abortSignalFromQueryFn!.aborted).toBe(true)
     })
 
     describe('Hook middleware requirements', () => {
@@ -1503,6 +1584,79 @@ describe('hooks tests', () => {
       await screen.findByText('Successfully fetched user Timmy')
       expect(screen.queryByText(/An error has occurred/i)).toBeNull()
       expect(screen.queryByText('Request was aborted')).toBeNull()
+    })
+
+    // Based on issue #5079, which I couldn't reproduce but we might as well capture
+    test('useLazyQuery calling abort() multiple times does not throw an error', async () => {
+      const user = userEvent.setup()
+
+      // Create a fresh API instance with fetchBaseQuery and timeout, matching the user's example
+      const timeoutApi = createApi({
+        baseQuery: fetchBaseQuery({
+          baseUrl: 'https://example.com',
+          timeout: 5000,
+        }),
+        endpoints: (builder) => ({
+          getData: builder.query<string, void>({
+            query: () => ({ url: '/data/' }),
+          }),
+        }),
+      })
+
+      const timeoutStoreRef = setupApiStore(timeoutApi, undefined, {
+        withoutTestLifecycles: true,
+      })
+
+      // Set up a mock handler for the endpoint
+      server.use(
+        http.get('https://example.com/data/', async () => {
+          await delay(100)
+          return HttpResponse.json('test data')
+        }),
+      )
+
+      function Component() {
+        const [trigger] = timeoutApi.endpoints.getData.useLazyQuery()
+        const abortRef = useRef<(() => void) | undefined>(undefined)
+        const [errorMsg, setErrorMsg] = useState('')
+
+        const handleChange = () => {
+          // Abort any previous request
+          abortRef.current?.()
+
+          // Trigger new request
+          const result = trigger()
+
+          // Store abort function for next call
+          abortRef.current = () => {
+            try {
+              result.abort()
+            } catch (err: any) {
+              setErrorMsg(err.message)
+            }
+          }
+        }
+
+        return (
+          <div>
+            <input data-testid="input" onChange={handleChange} />
+            <div data-testid="error">{errorMsg}</div>
+          </div>
+        )
+      }
+
+      render(<Component />, { wrapper: timeoutStoreRef.wrapper })
+
+      const input = screen.getByTestId('input')
+
+      // Trigger multiple rapid changes that will call abort() multiple times
+      await user.type(input, 'abc')
+
+      // Wait a bit to ensure any errors would have been caught
+      await waitMs(200)
+
+      // Should not have any error messages
+      expect(screen.getByTestId('error').textContent).toBe('')
     })
 
     test('unwrapping the useLazyQuery trigger result does not throw on ConditionError and instead returns the aggregate error', async () => {
@@ -1898,7 +2052,6 @@ describe('hooks tests', () => {
       const checkNumQueries = (count: number) => {
         const cacheEntries = Object.keys(storeRef.store.getState().api.queries)
         const queries = cacheEntries.length
-        //console.log('queries', queries, storeRef.store.getState().api.queries)
 
         expect(queries).toBe(count)
       }
@@ -2282,39 +2435,182 @@ describe('hooks tests', () => {
       expect(numRequests).toBe(1)
     })
 
-    test('useInfiniteQuery hook does not fetch when the skip token is set', async () => {
-      function Pokemon() {
-        const [value, setValue] = useState(0)
+    test.each([
+      ['skip token', true],
+      ['skip option', false],
+    ])(
+      'useInfiniteQuery hook does not fetch when skipped via %s',
+      async (_, useSkipToken) => {
+        function Pokemon() {
+          const [value, setValue] = useState(0)
 
-        const { isFetching } = pokemonApi.useGetInfinitePokemonInfiniteQuery(
-          'fire',
-          {
-            skip: value < 1,
-          },
+          const shouldFetch = value > 0
+
+          const arg = shouldFetch || !useSkipToken ? 'fire' : skipToken
+          const skip = useSkipToken ? undefined : shouldFetch ? undefined : true
+
+          const { isFetching } = pokemonApi.useGetInfinitePokemonInfiniteQuery(
+            arg,
+            {
+              skip,
+            },
+          )
+          getRenderCount = useRenderCounter()
+
+          return (
+            <div>
+              <div data-testid="isFetching">{String(isFetching)}</div>
+              <button onClick={() => setValue((val) => val + 1)}>
+                Increment value
+              </button>
+            </div>
+          )
+        }
+
+        render(<Pokemon />, { wrapper: storeRef.wrapper })
+        expect(getRenderCount()).toBe(1)
+
+        await waitFor(() =>
+          expect(screen.getByTestId('isFetching').textContent).toBe('false'),
         )
-        getRenderCount = useRenderCounter()
+        fireEvent.click(screen.getByText('Increment value'))
+        await waitFor(() =>
+          expect(screen.getByTestId('isFetching').textContent).toBe('true'),
+        )
+        expect(getRenderCount()).toBe(2)
+      },
+    )
+
+    test('useInfiniteQuery hook option refetchCachedPages: false only refetches first page', async () => {
+      const storeRef = setupApiStore(pokemonApi, undefined, {
+        withoutTestLifecycles: true,
+      })
+
+      function PokemonList() {
+        const { data, fetchNextPage, refetch } =
+          pokemonApi.useGetInfinitePokemonInfiniteQuery('fire', {
+            refetchCachedPages: false,
+          })
 
         return (
           <div>
-            <div data-testid="isFetching">{String(isFetching)}</div>
-            <button onClick={() => setValue((val) => val + 1)}>
-              Increment value
+            <div data-testid="data">
+              {data?.pages.map((page, i) => (
+                <div key={i} data-testid={`page-${i}`}>
+                  {page.name}
+                </div>
+              ))}
+            </div>
+            <button data-testid="nextPage" onClick={() => fetchNextPage()}>
+              Next Page
+            </button>
+            <button data-testid="refetch" onClick={() => refetch()}>
+              Refetch
             </button>
           </div>
         )
       }
 
-      render(<Pokemon />, { wrapper: storeRef.wrapper })
-      expect(getRenderCount()).toBe(1)
+      render(<PokemonList />, { wrapper: storeRef.wrapper })
 
-      await waitFor(() =>
-        expect(screen.getByTestId('isFetching').textContent).toBe('false'),
+      // Wait for initial page to load
+      await waitFor(() => {
+        expect(screen.getByTestId('page-0').textContent).toBe('Pokemon 0')
+      })
+
+      // Fetch second page
+      fireEvent.click(screen.getByTestId('nextPage'))
+      await waitFor(() => {
+        expect(screen.getByTestId('page-1').textContent).toBe('Pokemon 1')
+      })
+
+      // Fetch third page
+      fireEvent.click(screen.getByTestId('nextPage'))
+      await waitFor(() => {
+        expect(screen.getByTestId('page-2').textContent).toBe('Pokemon 2')
+      })
+
+      // Now we have 3 pages. Refetch with refetchCachedPages: false should only refetch page 0
+      fireEvent.click(screen.getByTestId('refetch'))
+
+      await waitFor(
+        () => {
+          // Should only have 1 page
+          expect(screen.queryByTestId('page-0')).toBeTruthy()
+          expect(screen.queryByTestId('page-1')).toBeNull()
+          expect(screen.queryByTestId('page-2')).toBeNull()
+        },
+        { timeout: 1000 },
       )
-      fireEvent.click(screen.getByText('Increment value'))
-      await waitFor(() =>
-        expect(screen.getByTestId('isFetching').textContent).toBe('true'),
-      )
-      expect(getRenderCount()).toBe(2)
+
+      // Verify we only have 1 page (not refetched all)
+      const pages = screen.getAllByTestId(/^page-/)
+      expect(pages).toHaveLength(1)
+    })
+
+    test('useInfiniteQuery refetch() method option refetchCachedPages: false only refetches first page', async () => {
+      const storeRef = setupApiStore(pokemonApi, undefined, {
+        withoutTestLifecycles: true,
+      })
+
+      function PokemonList() {
+        const { data, fetchNextPage, refetch } =
+          pokemonApi.useGetInfinitePokemonInfiniteQuery('fire')
+
+        return (
+          <div>
+            <div data-testid="data">
+              {data?.pages.map((page, i) => (
+                <div key={i} data-testid={`page-${i}`}>
+                  {page.name}
+                </div>
+              ))}
+            </div>
+            <button data-testid="nextPage" onClick={() => fetchNextPage()}>
+              Next Page
+            </button>
+            <button
+              data-testid="refetch"
+              onClick={() => refetch({ refetchCachedPages: false })}
+            >
+              Refetch
+            </button>
+          </div>
+        )
+      }
+
+      render(<PokemonList />, { wrapper: storeRef.wrapper })
+
+      // Wait for initial page to load
+      await waitFor(() => {
+        expect(screen.getByTestId('page-0').textContent).toBe('Pokemon 0')
+      })
+
+      // Fetch second page
+      fireEvent.click(screen.getByTestId('nextPage'))
+      await waitFor(() => {
+        expect(screen.getByTestId('page-1').textContent).toBe('Pokemon 1')
+      })
+
+      // Fetch third page
+      fireEvent.click(screen.getByTestId('nextPage'))
+      await waitFor(() => {
+        expect(screen.getByTestId('page-2').textContent).toBe('Pokemon 2')
+      })
+
+      // Now we have 3 pages. Refetch with refetchCachedPages: false should only refetch page 0
+      fireEvent.click(screen.getByTestId('refetch'))
+
+      await waitFor(() => {
+        // Should only have 1 page
+        expect(screen.queryByTestId('page-0')).toBeTruthy()
+        expect(screen.queryByTestId('page-1')).toBeNull()
+        expect(screen.queryByTestId('page-2')).toBeNull()
+      })
+
+      // Verify we only have 1 page (not refetched all)
+      const pages = screen.getAllByTestId(/^page-/)
+      expect(pages).toHaveLength(1)
     })
   })
 
@@ -2696,7 +2992,7 @@ describe('hooks tests', () => {
       })
     })
 
-    test('usePrefetch returns the last success result when ifOlderThan evalutes to false', async () => {
+    test('usePrefetch returns the last success result when ifOlderThan evaluates to false', async () => {
       const user = userEvent.setup()
 
       const { usePrefetch } = api
@@ -2777,6 +3073,60 @@ describe('hooks tests', () => {
         requestId: expect.any(String),
         startedTimeStamp: expect.any(Number),
         status: 'pending',
+      })
+    })
+
+    it('should create subscription when hook mounts after prefetch', async () => {
+      const api = createApi({
+        baseQuery: async () => ({ data: 'test data' }),
+        endpoints: (build) => ({
+          getTest: build.query<string, void>({
+            query: () => '',
+          }),
+        }),
+      })
+      const storeRef = setupApiStore(api, undefined, { withoutListeners: true })
+
+      // 1. Prefetch data (no subscription)
+      await storeRef.store.dispatch(api.util.prefetch('getTest', undefined))
+
+      // Verify data is cached
+      await waitFor(() => {
+        let state = storeRef.store.getState()
+        expect(state.api.queries['getTest(undefined)']?.data).toBe('test data')
+      })
+
+      // Verify no subscription exists
+      const subscriptions = storeRef.store.dispatch(
+        api.internalActions.internal_getRTKQSubscriptions(),
+      ) as any
+      expect(subscriptions.getSubscriptionCount('getTest(undefined)')).toBe(0)
+
+      // 2. Mount component with useQuery hook
+      function TestComponent() {
+        const result = api.endpoints.getTest.useQuery()
+        return <div>{result.data}</div>
+      }
+
+      const { unmount } = render(<TestComponent />, {
+        wrapper: storeRef.wrapper,
+      })
+
+      // Wait for hook to initialize
+      await waitFor(() => {
+        // EXPECTED: Subscription should be created
+        expect(subscriptions.getSubscriptionCount('getTest(undefined)')).toBe(1)
+      })
+
+      // 3. Verify data is still available
+      let state = storeRef.store.getState()
+      expect(state.api.queries['getTest(undefined)']?.data).toBe('test data')
+
+      // 4. Unmount and verify subscription is removed
+      unmount()
+
+      await waitFor(() => {
+        expect(subscriptions.getSubscriptionCount('getTest(undefined)')).toBe(0)
       })
     })
   })
@@ -3689,7 +4039,7 @@ describe('skip behavior', () => {
 
     expect(getSubscriptionCount('getUser(1)')).toBe(0)
     // also no subscription on `getUser(skipToken)` or similar:
-    expect(getSubscriptions()).toEqual({})
+    expect(getSubscriptions().size).toBe(0)
 
     rerender([1])
 
@@ -3700,7 +4050,7 @@ describe('skip behavior', () => {
     expect(result.current).toMatchObject({ status: QueryStatus.fulfilled })
     await waitMs(1)
     expect(getSubscriptionCount('getUser(1)')).toBe(1)
-    expect(getSubscriptions()).not.toEqual({})
+    expect(getSubscriptions().size).toBe(1)
 
     rerender([skipToken])
 
@@ -3730,7 +4080,7 @@ describe('skip behavior', () => {
 
     expect(getSubscriptionCount('nestedValue')).toBe(0)
     // also no subscription on `getUser(skipToken)` or similar:
-    expect(getSubscriptions()).toEqual({})
+    expect(getSubscriptions().size).toBe(0)
 
     rerender([{ param: { nested: 'nestedValue' } }])
 
@@ -3742,7 +4092,7 @@ describe('skip behavior', () => {
     await waitMs(1)
 
     expect(getSubscriptionCount('nestedValue')).toBe(1)
-    expect(getSubscriptions()).not.toEqual({})
+    expect(getSubscriptions().size).toBe(1)
 
     rerender([skipToken])
 

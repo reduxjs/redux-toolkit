@@ -1,0 +1,134 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Discriminator Enum Test - Issue 3369",
+    "description": "Test that discriminated unions use enum values (e.g., 'standard') instead of schema names (e.g., 'StandardAllowance')",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://localhost:8000"
+    }
+  ],
+  "paths": {
+    "/api/allowances": {
+      "get": {
+        "operationId": "getAllowances",
+        "summary": "Get all allowances",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Allowance"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/allowances/{id}": {
+      "post": {
+        "operationId": "createAllowance",
+        "summary": "Create an allowance",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Allowance"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Allowance"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Allowance": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/EngineeringAllowance"
+          },
+          {
+            "$ref": "#/components/schemas/StandardAllowance"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "allowance_type"
+        }
+      },
+      "EngineeringAllowance": {
+        "type": "object",
+        "properties": {
+          "allowance_type": {
+            "type": "string",
+            "enum": ["engineering"]
+          },
+          "distribution": {
+            "type": "string",
+            "enum": ["MARECO", "LINEAR"]
+          },
+          "capacity_speed_limit": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "StandardAllowance": {
+        "type": "object",
+        "properties": {
+          "allowance_type": {
+            "type": "string",
+            "enum": ["standard"]
+          },
+          "default_value": {
+            "type": "number"
+          },
+          "ranges": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "min": {
+                  "type": "number"
+                },
+                "max": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
