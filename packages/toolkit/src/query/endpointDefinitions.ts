@@ -65,8 +65,8 @@ export type SchemaFailureConverter<BaseQuery extends BaseQueryFn> = (
 export type EndpointDefinitionWithQuery<
   QueryArg,
   BaseQuery extends BaseQueryFn,
-  ResultType,
-  RawResultType extends BaseQueryResult<BaseQuery>,
+  out ResultType,
+  out RawResultType extends BaseQueryResult<BaseQuery>,
 > = {
   /**
    * `query` can be a function that returns either a `string` or an `object` which is passed to your `baseQuery`. If you are using [fetchBaseQuery](./fetchBaseQuery), this can return either a `string` or an `object` of properties in `FetchArgs`. If you use your own custom [`baseQuery`](../../rtk-query/usage/customizing-queries), you can customize this behavior to your liking.
@@ -566,12 +566,13 @@ type QueryTypes<
  * @public
  */
 export interface QueryExtraOptions<
-  TagTypes extends string,
-  ResultType,
-  QueryArg,
-  BaseQuery extends BaseQueryFn,
-  ReducerPath extends string = string,
-  RawResultType extends BaseQueryResult<BaseQuery> = BaseQueryResult<BaseQuery>,
+  out TagTypes extends string,
+  in out ResultType,
+  in out QueryArg,
+  out BaseQuery extends BaseQueryFn,
+  out ReducerPath extends string = string,
+  out RawResultType extends
+    BaseQueryResult<BaseQuery> = BaseQueryResult<BaseQuery>,
 > extends CacheLifecycleQueryExtraOptions<
       ResultType,
       QueryArg,
@@ -872,13 +873,14 @@ export type InfiniteQueryTypes<
 }
 
 export interface InfiniteQueryExtraOptions<
-  TagTypes extends string,
-  ResultType,
-  QueryArg,
-  PageParam,
-  BaseQuery extends BaseQueryFn,
-  ReducerPath extends string = string,
-  RawResultType extends BaseQueryResult<BaseQuery> = BaseQueryResult<BaseQuery>,
+  out TagTypes extends string,
+  in out ResultType,
+  in out QueryArg,
+  in out PageParam,
+  out BaseQuery extends BaseQueryFn,
+  out ReducerPath extends string = string,
+  out RawResultType extends
+    BaseQueryResult<BaseQuery> = BaseQueryResult<BaseQuery>,
 > extends CacheLifecycleInfiniteQueryExtraOptions<
       InfiniteData<ResultType, PageParam>,
       QueryArg,
@@ -1089,12 +1091,13 @@ type MutationTypes<
  * @public
  */
 export interface MutationExtraOptions<
-  TagTypes extends string,
-  ResultType,
-  QueryArg,
-  BaseQuery extends BaseQueryFn,
-  ReducerPath extends string = string,
-  RawResultType extends BaseQueryResult<BaseQuery> = BaseQueryResult<BaseQuery>,
+  out TagTypes extends string,
+  in out ResultType,
+  in out QueryArg,
+  out BaseQuery extends BaseQueryFn,
+  out ReducerPath extends string = string,
+  out RawResultType extends
+    BaseQueryResult<BaseQuery> = BaseQueryResult<BaseQuery>,
 > extends CacheLifecycleMutationExtraOptions<
       ResultType,
       QueryArg,
@@ -1262,11 +1265,11 @@ export function isAnyQueryDefinition(
   return isQueryDefinition(e) || isInfiniteQueryDefinition(e)
 }
 
-export type EndpointBuilder<
-  BaseQuery extends BaseQueryFn,
-  TagTypes extends string,
-  ReducerPath extends string,
-> = {
+export interface EndpointBuilder<
+  out BaseQuery extends BaseQueryFn,
+  out TagTypes extends string,
+  out ReducerPath extends string,
+> {
   /**
    * An endpoint definition that retrieves data, and may provide tags to the cache.
    *

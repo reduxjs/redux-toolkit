@@ -202,8 +202,8 @@ export type QueryLifecycleMutationExtraOptions<
 export interface QueryLifecycleApi<
   QueryArg,
   BaseQuery extends BaseQueryFn,
-  ResultType,
-  ReducerPath extends string = string,
+  out ResultType,
+  in ReducerPath extends string = string,
 > extends QueryBaseLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
     QueryLifecyclePromises<ResultType, BaseQuery> {}
 

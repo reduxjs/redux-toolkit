@@ -89,7 +89,10 @@ type LifecycleApi<ReducerPath extends string = string> = {
   requestId: string
 }
 
-type CacheLifecyclePromises<ResultType = unknown, MetaType = unknown> = {
+type CacheLifecyclePromises<
+  out ResultType = unknown,
+  out MetaType = unknown,
+> = {
   /**
    * Promise that will resolve with the first value for this cache key.
    * This allows you to `await` until an actual value is in cache.
@@ -125,10 +128,10 @@ type CacheLifecyclePromises<ResultType = unknown, MetaType = unknown> = {
 }
 
 export interface QueryCacheLifecycleApi<
-  QueryArg,
-  BaseQuery extends BaseQueryFn,
-  ResultType,
-  ReducerPath extends string = string,
+  in QueryArg,
+  in BaseQuery extends BaseQueryFn,
+  out ResultType,
+  in ReducerPath extends string = string,
 > extends QueryBaseLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
     CacheLifecyclePromises<ResultType, BaseQueryMeta<BaseQuery>> {}
 
