@@ -52,10 +52,10 @@ export interface QueryBaseLifecycleApi<
 }
 
 export interface MutationBaseLifecycleApi<
-  QueryArg,
-  BaseQuery extends BaseQueryFn,
-  ResultType,
-  ReducerPath extends string = string,
+  in QueryArg,
+  in BaseQuery extends BaseQueryFn,
+  in ResultType,
+  in ReducerPath extends string = string,
 > extends LifecycleApi<ReducerPath> {
   /**
    * Gets the current value of this cache entry.
