@@ -1,7 +1,9 @@
 // This must remain here so that the `mangleErrors.cjs` build script
 // does not have to import this into each source file it rewrites.
 import { formatProdErrorMessage } from '@reduxjs/toolkit'
-import type { MutationBaseLifecycleApi } from './core/buildMiddleware/cacheLifecycle'
+import type { MutationBaseLifecycleApi, MutationCacheLifecycleApi } from './core/buildMiddleware/cacheLifecycle'
+import type { MutationTypes } from './endpointDefinitions'
+import type { MutationLifecycleApi } from './core/buildMiddleware'
 
 export type {
   CombinedState,
@@ -108,6 +110,9 @@ export { NamedSchemaError } from './standardSchema'
 
 // This is for type portability when using interfaces that we don't want to expose
 // interfaces are sometimes preferred over type aliases for faster type inference
-export declare namespace RTKInternalDoNotUse {
-  export { MutationBaseLifecycleApi }
+export {
+  MutationBaseLifecycleApi as RTKInternalDoNotUseMutationBaseLifecycleApi,
+  MutationCacheLifecycleApi as RTKInternalDoNotUseMutationCacheLifecycleApi,
+  MutationLifecycleApi as RTKInternalDoNotUseMutationLifecycleApi,
+  MutationTypes as RTKInternalDoNotUseMutationTypes
 }

@@ -1061,14 +1061,14 @@ export type InfiniteQueryDefinition<
       RawResultType
     >
 
-type MutationTypes<
-  QueryArg,
-  BaseQuery extends BaseQueryFn,
-  TagTypes extends string,
-  ResultType,
-  ReducerPath extends string = string,
-  RawResultType extends BaseQueryResult<BaseQuery> = BaseQueryResult<BaseQuery>,
-> = BaseEndpointTypes<QueryArg, BaseQuery, ResultType, RawResultType> & {
+export interface  MutationTypes<
+  in out QueryArg,
+  out BaseQuery extends BaseQueryFn,
+  out TagTypes extends string,
+  in out ResultType,
+  out ReducerPath extends string = string,
+  out RawResultType extends BaseQueryResult<BaseQuery> = BaseQueryResult<BaseQuery>,
+> extends BaseEndpointTypes<QueryArg, BaseQuery, ResultType, RawResultType> {
   /**
    * The endpoint definition type. To be used with some internal generic types.
    * @example
