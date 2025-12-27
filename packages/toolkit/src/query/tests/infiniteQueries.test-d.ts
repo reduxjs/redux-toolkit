@@ -1,11 +1,11 @@
-import type { skipToken, InfiniteData } from '@reduxjs/toolkit/query/react'
+import { createSlice } from '@reduxjs/toolkit'
+import type { InfiniteData, skipToken } from '@reduxjs/toolkit/query/react'
 import {
   createApi,
   fetchBaseQuery,
   QueryStatus,
 } from '@reduxjs/toolkit/query/react'
 import { setupApiStore } from '../../tests/utils/helpers'
-import { createSlice } from '@internal/createSlice'
 
 describe('Infinite queries', () => {
   test('Basic infinite query behavior', async () => {

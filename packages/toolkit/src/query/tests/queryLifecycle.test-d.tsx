@@ -26,7 +26,7 @@ describe('type tests', () => {
             // unfortunately we cannot test for that in jest.
             const result = await queryFulfilled
 
-            expectTypeOf(result).toMatchTypeOf<{
+            expectTypeOf(result).toExtend<{
               data: number
               meta?: FetchBaseQueryMeta
             }>()
@@ -45,7 +45,7 @@ describe('type tests', () => {
           async onQueryStarted(arg, { queryFulfilled }) {
             queryFulfilled.then(
               (result) => {
-                expectTypeOf(result).toMatchTypeOf<{
+                expectTypeOf(result).toExtend<{
                   data: number
                   meta?: FetchBaseQueryMeta
                 }>()
@@ -85,7 +85,7 @@ describe('type tests', () => {
 
             const result = await queryFulfilled
 
-            expectTypeOf(result).toMatchTypeOf<{
+            expectTypeOf(result).toExtend<{
               data: number
               meta?: FetchBaseQueryMeta
             }>()
@@ -104,7 +104,7 @@ describe('type tests', () => {
           async onQueryStarted(arg, { queryFulfilled }) {
             queryFulfilled.then(
               (result) => {
-                expectTypeOf(result).toMatchTypeOf<{
+                expectTypeOf(result).toExtend<{
                   data: number
                   meta?: FetchBaseQueryMeta
                 }>()
@@ -144,7 +144,7 @@ describe('type tests', () => {
 
             const result = await queryFulfilled
 
-            expectTypeOf(result).toMatchTypeOf<{
+            expectTypeOf(result).toExtend<{
               data: number
               meta?: FetchBaseQueryMeta
             }>()

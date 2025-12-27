@@ -19,9 +19,9 @@ describe('type tests', () => {
         .addCase('decrement', decrementHandler)
     })
 
-    expectTypeOf(reducer).toMatchTypeOf<Reducer<number>>()
+    expectTypeOf(reducer).toExtend<Reducer<number>>()
 
-    expectTypeOf(reducer).not.toMatchTypeOf<Reducer<string>>()
+    expectTypeOf(reducer).not.toExtend<Reducer<string>>()
   })
 
   test('createReducer() state type can be specified explicitly.', () => {
@@ -45,11 +45,11 @@ describe('type tests', () => {
     createReducer<string>(0 as number, (builder) => {
       expectTypeOf(builder.addCase)
         .parameter(1)
-        .not.toMatchTypeOf(incrementHandler)
+        .not.toExtend<typeof incrementHandler>()
 
       expectTypeOf(builder.addCase)
         .parameter(1)
-        .not.toMatchTypeOf(decrementHandler)
+        .not.toExtend<typeof decrementHandler>()
     })
   })
 

@@ -51,9 +51,9 @@ describe('type tests', () => {
 
     const store = configureStore({ reducer })
 
-    expectTypeOf(store).toMatchTypeOf<Store<number, UnknownAction>>()
+    expectTypeOf(store).toExtend<Store<number, UnknownAction>>()
 
-    expectTypeOf(store).not.toMatchTypeOf<Store<string, UnknownAction>>()
+    expectTypeOf(store).not.toExtend<Store<string, UnknownAction>>()
   })
 
   test('configureStore() infers the store action type.', () => {
@@ -61,11 +61,9 @@ describe('type tests', () => {
 
     const store = configureStore({ reducer })
 
-    expectTypeOf(store).toMatchTypeOf<Store<number, PayloadAction<number>>>()
+    expectTypeOf(store).toExtend<Store<number, PayloadAction<number>>>()
 
-    expectTypeOf(store).not.toMatchTypeOf<
-      Store<number, PayloadAction<string>>
-    >()
+    expectTypeOf(store).not.toExtend<Store<number, PayloadAction<string>>>()
   })
 
   test('configureStore() accepts Tuple for middleware, but not plain array.', () => {
@@ -150,7 +148,7 @@ describe('type tests', () => {
       enhancers: () => [enhancer],
     })
 
-    expectTypeOf(store.dispatch).toMatchTypeOf<
+    expectTypeOf(store.dispatch).toExtend<
       Dispatch & ThunkDispatch<number, undefined, UnknownAction>
     >()
 
@@ -202,7 +200,7 @@ describe('type tests', () => {
           .concat(somePropertyStoreEnhancer),
     })
 
-    expectTypeOf(store3.dispatch).toMatchTypeOf<
+    expectTypeOf(store3.dispatch).toExtend<
       Dispatch & ThunkDispatch<number, undefined, UnknownAction>
     >()
 
@@ -470,7 +468,7 @@ describe('type tests', () => {
 
       const dispatchResult = store.dispatch(action)
 
-      expectTypeOf(dispatchResult).toMatchTypeOf<{
+      expectTypeOf(dispatchResult).toExtend<{
         type: string
         payload: number
       }>()
@@ -495,7 +493,7 @@ describe('type tests', () => {
 
       const dispatchResult2 = store2.dispatch(action)
 
-      expectTypeOf(dispatchResult2).toMatchTypeOf<{
+      expectTypeOf(dispatchResult2).toExtend<{
         type: string
         payload: number
       }>()
@@ -507,9 +505,13 @@ describe('type tests', () => {
         middleware: () => new Tuple(),
       })
 
-      expectTypeOf(store.dispatch).parameter(0).not.toMatchTypeOf(thunkA())
+      expectTypeOf(store.dispatch)
+        .parameter(0)
+        .not.toExtend<ReturnType<typeof thunkA>>()
 
-      expectTypeOf(store.dispatch).parameter(0).not.toMatchTypeOf(thunkB())
+      expectTypeOf(store.dispatch)
+        .parameter(0)
+        .not.toExtend<ReturnType<typeof thunkB>>()
     })
 
     test('adding the thunk middleware by hand', () => {
@@ -606,7 +608,9 @@ describe('type tests', () => {
 
       expectTypeOf(store.dispatch(thunkA())).toEqualTypeOf<Promise<'A'>>()
 
-      expectTypeOf(store.dispatch).parameter(0).not.toMatchTypeOf(thunkB())
+      expectTypeOf(store.dispatch)
+        .parameter(0)
+        .not.toExtend<ReturnType<typeof thunkB>>()
     })
 
     test('custom middleware and getDefaultMiddleware, using prepend', () => {
@@ -618,7 +622,7 @@ describe('type tests', () => {
         middleware: (gDM) => {
           const concatenated = gDM().prepend(otherMiddleware)
 
-          expectTypeOf(concatenated).toMatchTypeOf<
+          expectTypeOf(concatenated).toExtend<
             ReadonlyArray<
               typeof otherMiddleware | ThunkMiddleware | Middleware<{}>
             >
@@ -632,7 +636,9 @@ describe('type tests', () => {
 
       expectTypeOf(store.dispatch(thunkA())).toEqualTypeOf<Promise<'A'>>()
 
-      expectTypeOf(store.dispatch).parameter(0).not.toMatchTypeOf(thunkB())
+      expectTypeOf(store.dispatch)
+        .parameter(0)
+        .not.toExtend<ReturnType<typeof thunkB>>()
     })
 
     test('custom middleware and getDefaultMiddleware, using concat', () => {
@@ -644,7 +650,7 @@ describe('type tests', () => {
         middleware: (gDM) => {
           const concatenated = gDM().concat(otherMiddleware)
 
-          expectTypeOf(concatenated).toMatchTypeOf<
+          expectTypeOf(concatenated).toExtend<
             ReadonlyArray<
               typeof otherMiddleware | ThunkMiddleware | Middleware<{}>
             >
@@ -658,7 +664,9 @@ describe('type tests', () => {
 
       expectTypeOf(store.dispatch(thunkA())).toEqualTypeOf<Promise<'A'>>()
 
-      expectTypeOf(store.dispatch).parameter(0).not.toMatchTypeOf(thunkB())
+      expectTypeOf(store.dispatch)
+        .parameter(0)
+        .not.toExtend<ReturnType<typeof thunkB>>()
     })
 
     test('middlewareBuilder notation, getDefaultMiddleware (unconfigured)', () => {
@@ -675,7 +683,9 @@ describe('type tests', () => {
 
       expectTypeOf(store.dispatch(thunkA())).toEqualTypeOf<Promise<'A'>>()
 
-      expectTypeOf(store.dispatch).parameter(0).not.toMatchTypeOf(thunkB())
+      expectTypeOf(store.dispatch)
+        .parameter(0)
+        .not.toExtend<ReturnType<typeof thunkB>>()
     })
 
     test('middlewareBuilder notation, getDefaultMiddleware, concat & prepend', () => {
@@ -699,7 +709,9 @@ describe('type tests', () => {
 
       expectTypeOf(store.dispatch('b')).toEqualTypeOf<'B'>()
 
-      expectTypeOf(store.dispatch).parameter(0).not.toMatchTypeOf(thunkB())
+      expectTypeOf(store.dispatch)
+        .parameter(0)
+        .not.toExtend<ReturnType<typeof thunkB>>()
     })
 
     test('middlewareBuilder notation, getDefaultMiddleware (thunk: false)', () => {
@@ -713,7 +725,9 @@ describe('type tests', () => {
 
       expectTypeOf(store.dispatch('a')).toEqualTypeOf<'A'>()
 
-      expectTypeOf(store.dispatch).parameter(0).not.toMatchTypeOf(thunkA())
+      expectTypeOf(store.dispatch)
+        .parameter(0)
+        .not.toExtend<ReturnType<typeof thunkA>>()
     })
 
     test("badly typed middleware won't make `dispatch` `any`", () => {

@@ -854,7 +854,6 @@ describe('fetchBaseQuery', () => {
       const prepare = vitest.fn()
       const baseQuery = fetchBaseQuery({
         prepareHeaders(headers, api) {
-          expectTypeOf(api.extraOptions).toEqualTypeOf<unknown>()
           prepare.apply(undefined, arguments as unknown as any[])
         },
       })
