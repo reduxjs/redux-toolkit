@@ -6,7 +6,7 @@
   "keywords": [],
   "main": "./src/index.tsx",
   "dependencies": {
-    "@chakra-ui/react": "1.0.0",
+    "@chakra-ui/react": "2.10.7",
     "@emotion/react": "^11.4.0",
     "@emotion/styled": "^11.3.0",
     "@reduxjs/toolkit": "^1.6.0-rc.1",
