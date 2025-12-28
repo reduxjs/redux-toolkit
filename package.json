@@ -51,7 +51,7 @@
     "release-it": "^14.12.5",
     "serve": "^14.2.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.2"
+    "typescript": "^5.9.3"
   },
   "scripts": {
     "build": "yarn build:packages",

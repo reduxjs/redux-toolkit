@@ -29,7 +29,7 @@
     "playwright": "^1.31.1",
     "prettier": "^3.2.5",
     "serve": "^14.2.0",
-    "typescript": "^5.8.2"
+    "typescript": "^5.9.3"
   },
   "msw": {
     "workerDirectory": "public"
