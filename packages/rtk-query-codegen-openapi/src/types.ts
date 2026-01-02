@@ -112,9 +112,6 @@ export interface CommonOptions {
   prettierConfigFile?: string;
 
   /**
-   * TODO: Fill out this JSDoc
-   */
-  exactOperationIds?: boolean;
    * Determines the fallback type for empty schemas.
    *
    * If set to **`true`**, **`unknown`** will be used
@@ -124,16 +121,23 @@ export interface CommonOptions {
    * @since 2.1.0
    */
   useUnknown?: boolean;
+
   /**
    * @default false
    * Will generate imports with file extension matching the expected compiled output of the api file
    */
   esmExtensions?: boolean;
+
   /**
    * @default false
    * Will generate regex constants for pattern keywords in the schema
    */
   outputRegexConstants?: boolean;
+
+  /**
+   * TODO: Fill out this JSDoc
+   */
+  exactOperationIds?: boolean;
 }
 
 export type TextMatcher = string | RegExp | (string | RegExp)[];

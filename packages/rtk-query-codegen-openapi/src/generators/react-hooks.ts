@@ -46,7 +46,7 @@ const getReactHookName = ({
   endpointOverrides,
   config,
   exactOperationIds,
-  operationNameSuffix
+  operationNameSuffix,
 }: GetReactHookNameParams) => {
   const overrides = getOverrides(operationDefinition, endpointOverrides, exactOperationIds);
 
@@ -99,7 +99,13 @@ export const generateReactHooks = ({
           factory.createObjectBindingPattern(
             operationDefinitions
               .map((operationDefinition) =>
-                getReactHookName({ operationDefinition, endpointOverrides, config, exactOperationIds, operationNameSuffix })
+                getReactHookName({
+                  operationDefinition,
+                  endpointOverrides,
+                  config,
+                  exactOperationIds,
+                  operationNameSuffix,
+                })
               )
               .flat()
           ),
