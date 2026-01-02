@@ -189,11 +189,6 @@ export async function generateApi(
     useUnknown,
   });
 
-  // temporary workaround for https://github.com/oazapfts/oazapfts/issues/491
-  if (apiGen.spec.components?.schemas) {
-    apiGen.preprocessComponents(apiGen.spec.components.schemas);
-  }
-
   const operationDefinitions = getOperationDefinitions(v3Doc).filter(
     operationMatches(filterEndpoints, exactOperationIds)
   );
