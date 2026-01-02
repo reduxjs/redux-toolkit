@@ -11,24 +11,24 @@ type GetReactHookNameParams = {
   operationDefinition: OperationDefinition;
   endpointOverrides: EndpointOverrides[] | undefined;
   config: HooksConfigOptions;
-  exactOperationIds: boolean;
   operationNameSuffix?: string;
+  exactOperationIds: boolean;
 };
 
 type CreateBindingParams = {
   operationDefinition: OperationDefinition;
   overrides?: EndpointOverrides;
   isLazy?: boolean;
-  exactOperationIds: boolean;
   operationNameSuffix?: string;
+  exactOperationIds: boolean;
 };
 
 const createBinding = ({
   operationDefinition: { verb, path, operation },
   overrides,
   isLazy = false,
-  exactOperationIds,
   operationNameSuffix,
+  exactOperationIds,
 }: CreateBindingParams) =>
   factory.createBindingElement(
     undefined,
@@ -45,16 +45,16 @@ const getReactHookName = ({
   operationDefinition,
   endpointOverrides,
   config,
-  exactOperationIds,
   operationNameSuffix,
+  exactOperationIds,
 }: GetReactHookNameParams) => {
   const overrides = getOverrides(operationDefinition, endpointOverrides, exactOperationIds);
 
   const baseParams = {
     operationDefinition,
     overrides,
-    exactOperationIds,
     operationNameSuffix,
+    exactOperationIds,
   };
 
   const _isQuery = isQuery(operationDefinition.verb, overrides);
@@ -80,16 +80,16 @@ type GenerateReactHooksParams = {
   operationDefinitions: OperationDefinition[];
   endpointOverrides: EndpointOverrides[] | undefined;
   config: HooksConfigOptions;
-  exactOperationIds: boolean;
   operationNameSuffix?: string;
+  exactOperationIds: boolean;
 };
 export const generateReactHooks = ({
   exportName,
   operationDefinitions,
   endpointOverrides,
   config,
-  exactOperationIds,
   operationNameSuffix,
+  exactOperationIds,
 }: GenerateReactHooksParams) =>
   factory.createVariableStatement(
     [factory.createModifier(ts.SyntaxKind.ExportKeyword)],
@@ -103,8 +103,8 @@ export const generateReactHooks = ({
                   operationDefinition,
                   endpointOverrides,
                   config,
-                  exactOperationIds,
                   operationNameSuffix,
+                  exactOperationIds,
                 })
               )
               .flat()
