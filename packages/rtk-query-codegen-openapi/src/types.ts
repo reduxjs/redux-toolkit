@@ -135,7 +135,9 @@ export interface CommonOptions {
   outputRegexConstants?: boolean;
 
   /**
-   * TODO: Fill out this JSDoc
+   * @default false
+   * Will use the original operation IDs from the schema instead of converting them to camel case.
+   * May cause issues if you have duplicate/missing operation IDs
    */
   exactOperationIds?: boolean;
 }
