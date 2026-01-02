@@ -110,6 +110,11 @@ export interface CommonOptions {
    * @default undefined
    */
   prettierConfigFile?: string;
+
+  /**
+   * TODO: Fill out this JSDoc
+   */
+  exactOperationIds?: boolean;
 }
 
 export type TextMatcher = string | RegExp | (string | RegExp)[];
