@@ -199,9 +199,10 @@ export async function generateApi(
   );
 
   if (exactOperationIds) {
-    const duplicateOperationIds = operationDefinitions
-      .map((o) => o.operation.operationId!)
-      .filter((operationId, index, allOperationIds) => allOperationIds.findIndex((id) => id === operationId) !== index);
+    const allOperationIds = operationDefinitions.map((o) => o.operation.operationId!);
+    const duplicateOperationIds = allOperationIds.filter(
+      (operationId, index) => allOperationIds.findIndex((id) => id === operationId) !== index
+    );
     if (duplicateOperationIds.length > 0) {
       // TODO: More descriptive error message with traceable information
       throw new Error('Duplicate operation IDs not allowed when using exactOperationIds');
