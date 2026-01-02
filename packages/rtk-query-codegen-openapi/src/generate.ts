@@ -62,7 +62,7 @@ function operationMatches(pattern: EndpointMatcher | undefined, exactOperationId
     if (!pattern) return true;
     if (exactOperationIds && operationDefinition.operation.operationId === undefined) {
       // TODO: More descriptive error message with traceable information
-      throw new Error('exactOperationIds specified, but operation missing operationId');
+      throw new Error('exactOperationIds specified, but found operation missing operationId');
     }
     const operationName = exactOperationIds
       ? operationDefinition.operation.operationId!
@@ -188,6 +188,11 @@ export async function generateApi(
     mergeReadWriteOnly,
     useUnknown,
   });
+
+  // temporary workaround for https://github.com/oazapfts/oazapfts/issues/491
+  if (apiGen.spec.components?.schemas) {
+    apiGen.preprocessComponents(apiGen.spec.components.schemas);
+  }
 
   const operationDefinitions = getOperationDefinitions(v3Doc).filter(
     operationMatches(filterEndpoints, exactOperationIds)
