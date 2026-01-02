@@ -935,17 +935,53 @@ describe('esmExtensions option', () => {
 });
 
 describe('exactOperationIds option', () => {
-  test('regular camelCase operation IDs are kept the same', async () => {});
+  const generateCode = (filterEndpoints: Array<string>, schemaFile: string = 'fixtures/exactOperationId.yaml') =>
+    generateEndpoints({
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, schemaFile),
+      filterEndpoints,
+      hooks: true,
+      exactOperationIds: true,
+    });
 
-  test('operations missing operation ID should not be allowed', async () => {});
+  test('regular camelCase operation IDs are kept the same', async () => {
+    const content = await generateCode(['addPet']);
+    expect(content).toContain('addPet: build.mutation<');
+    expect(content).toContain('type AddPetApiResponse');
+    expect(content).toContain('type AddPetApiArg');
+    expect(content).toContain('useAddPetMutation');
+  });
 
-  test('duplicate operation IDs should not be allowed', async () => {});
+  test('operations missing operation ID should not be allowed', async () => {
+    expect(
+      async () => await generateCode(['addPet'], 'fixtures/exactOperationIdMissingOperationId.yaml')
+    ).rejects.toThrow(new Error('exactOperationIds specified, but found operation missing operationId'));
+  });
+
+  test('duplicate operation IDs should not be allowed', async () => {
+    expect(async () => await generateCode(['addPet', 'findPETScansByStatus'])).rejects.toThrow(
+      new Error('Duplicate operation IDs not allowed when using exactOperationIds')
+    );
+  });
 
   describe('operation IDs with subsequent uppercase characters', () => {
-    test('should not be changed in endpoint definition key', async () => {});
+    let content: string;
 
-    test('should not be changed in exported hook name', async () => {});
+    beforeAll(async () => {
+      content = (await generateCode(['updatePETScan', 'addPet'])) as string;
+    });
 
-    test('should not be changed in generated type names', async () => {});
+    test('should not be changed in endpoint definition key', async () => {
+      expect(content).toContain('updatePETScan: build.mutation');
+    });
+
+    test('should not be changed in exported hook name', async () => {
+      expect(content).toContain('useUpdatePETScanMutation');
+    });
+
+    test('should not be changed in generated type names', async () => {
+      expect(content).toContain('UpdatePETScanApiResponse');
+      expect(content).toContain('UpdatePETScanApiArg');
+    });
   });
 });
