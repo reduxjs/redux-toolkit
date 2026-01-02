@@ -174,10 +174,10 @@ export async function generateApi(
     useEnumType = false,
     mergeReadWriteOnly = false,
     httpResolverOptions,
-    exactOperationIds = false,
     useUnknown = false,
     esmExtensions = false,
     outputRegexConstants = false,
+    exactOperationIds = false,
   }: GenerationOptions
 ) {
   const v3Doc = (v3DocCache[spec] ??= await getV3Doc(spec, httpResolverOptions));
@@ -288,8 +288,8 @@ export async function generateApi(
                 operationDefinitions,
                 endpointOverrides,
                 config: hooks,
-                exactOperationIds,
                 operationNameSuffix,
+                exactOperationIds,
               }),
             ]
           : []),
