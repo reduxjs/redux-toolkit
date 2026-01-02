@@ -13,20 +13,20 @@ import type {
   TagTypesFrom,
 } from '../endpointDefinitions'
 import { expandTagDescription } from '../endpointDefinitions'
-import { flatten, isNotNullish } from '../utils'
+import { filterMap, isNotNullish } from '../utils'
 import type {
   InfiniteData,
   InfiniteQueryConfigOptions,
   InfiniteQuerySubState,
   MutationSubState,
   QueryCacheKey,
-  QueryKeys,
   QueryState,
   QuerySubState,
   RequestStatusFlags,
   RootState as _RootState,
+  QueryStatus,
 } from './apiState'
-import { QueryStatus, getRequestStatusFlags } from './apiState'
+import { STATUS_UNINITIALIZED, getRequestStatusFlags } from './apiState'
 import { getMutationCacheKey } from './buildSlice'
 import type { createSelector as _createSelector } from './rtkImports'
 import { createNextState } from './rtkImports'
@@ -151,7 +151,7 @@ export type MutationResultSelectorResult<
 > = MutationSubState<Definition> & RequestStatusFlags
 
 const initialSubState: QuerySubState<any> = {
-  status: QueryStatus.uninitialized as const,
+  status: STATUS_UNINITIALIZED,
 }
 
 // abuse immer to freeze default states
@@ -342,7 +342,8 @@ export function buildSelectors<
   }> {
     const apiState = state[reducerPath]
     const toInvalidate = new Set<QueryCacheKey>()
-    for (const tag of tags.filter(isNotNullish).map(expandTagDescription)) {
+    const finalTags = filterMap(tags, isNotNullish, expandTagDescription)
+    for (const tag of finalTags) {
       const provided = apiState.provided.tags[tag.type]
       if (!provided) {
         continue
@@ -353,27 +354,23 @@ export function buildSelectors<
           ? // id given: invalidate all queries that provide this type & id
             provided[tag.id]
           : // no id: invalidate all queries that provide this type
-            flatten(Object.values(provided))) ?? []
+            Object.values(provided).flat()) ?? []
 
       for (const invalidate of invalidateSubscriptions) {
         toInvalidate.add(invalidate)
       }
     }
 
-    return flatten(
-      Array.from(toInvalidate.values()).map((queryCacheKey) => {
-        const querySubState = apiState.queries[queryCacheKey]
-        return querySubState
-          ? [
-              {
-                queryCacheKey,
-                endpointName: querySubState.endpointName!,
-                originalArgs: querySubState.originalArgs,
-              },
-            ]
-          : []
-      }),
-    )
+    return Array.from(toInvalidate.values()).flatMap((queryCacheKey) => {
+      const querySubState = apiState.queries[queryCacheKey]
+      return querySubState
+        ? {
+            queryCacheKey,
+            endpointName: querySubState.endpointName!,
+            originalArgs: querySubState.originalArgs,
+          }
+        : []
+    })
   }
 
   function selectCachedArgsForQuery<
@@ -382,18 +379,18 @@ export function buildSelectors<
     state: RootState,
     queryName: QueryName,
   ): Array<QueryArgFromAnyQuery<Definitions[QueryName]>> {
-    return Object.values(selectQueries(state) as QueryState<any>)
-      .filter(
-        (
-          entry,
-        ): entry is Exclude<
-          QuerySubState<Definitions[QueryName]>,
-          { status: QueryStatus.uninitialized }
-        > =>
-          entry?.endpointName === queryName &&
-          entry.status !== QueryStatus.uninitialized,
-      )
-      .map((entry) => entry.originalArgs)
+    return filterMap(
+      Object.values(selectQueries(state) as QueryState<any>),
+      (
+        entry,
+      ): entry is Exclude<
+        QuerySubState<Definitions[QueryName]>,
+        { status: QueryStatus.uninitialized }
+      > =>
+        entry?.endpointName === queryName &&
+        entry.status !== STATUS_UNINITIALIZED,
+      (entry) => entry.originalArgs,
+    )
   }
 
   function getHasNextPage(

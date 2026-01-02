@@ -26,7 +26,13 @@ import type {
   InfiniteQuerySubState,
   InfiniteQueryDirection,
 } from './apiState'
-import { QueryStatus } from './apiState'
+import {
+  STATUS_FULFILLED,
+  STATUS_PENDING,
+  QueryStatus,
+  STATUS_REJECTED,
+  STATUS_UNINITIALIZED,
+} from './apiState'
 import type {
   AllQueryKeys,
   QueryArgFromAnyQueryDefinition,
@@ -38,6 +44,7 @@ import type {
 } from './buildThunks'
 import { calculateProvidedByThunk } from './buildThunks'
 import {
+  ENDPOINT_QUERY,
   isInfiniteQueryDefinition,
   type AssertTagTypes,
   type EndpointDefinitions,
@@ -45,8 +52,7 @@ import {
   type QueryDefinition,
 } from '../endpointDefinitions'
 import type { Patch } from 'immer'
-import { isDraft } from 'immer'
-import { applyPatches, original } from 'immer'
+import { applyPatches, original, isDraft } from '../utils/immerImports'
 import { onFocus, onFocusLost, onOffline, onOnline } from './setupListeners'
 import {
   isDocumentVisible,
@@ -57,6 +63,7 @@ import type { ApiContext } from '../apiTypes'
 import { isUpsertQuery } from './buildInitiate'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import type { UnwrapPromise } from '../tsHelpers'
+import { getCurrent } from '../utils/getCurrent'
 
 /**
  * A typesafe single entry to be upserted into the cache
@@ -188,12 +195,12 @@ export function buildSlice({
     } & { startedTimeStamp: number },
   ) {
     draft[arg.queryCacheKey] ??= {
-      status: QueryStatus.uninitialized,
+      status: STATUS_UNINITIALIZED,
       endpointName: arg.endpointName,
     }
 
     updateQuerySubstateIfExists(draft, arg.queryCacheKey, (substate) => {
-      substate.status = QueryStatus.pending
+      substate.status = STATUS_PENDING
 
       substate.requestId =
         upserting && substate.requestId
@@ -232,7 +239,7 @@ export function buildSlice({
         any,
         any
       >
-      substate.status = QueryStatus.fulfilled
+      substate.status = STATUS_FULFILLED
 
       if (merge) {
         if (substate.data !== undefined) {
@@ -325,8 +332,8 @@ export function buildSlice({
               const { endpointName, arg, value } = entry
               const endpointDefinition = definitions[endpointName]
               const queryDescription: QueryThunkArg = {
-                type: 'query',
-                endpointName: endpointName,
+                type: ENDPOINT_QUERY as 'query',
+                endpointName,
                 originalArgs: entry.arg,
                 queryCacheKey: serializeQueryArgs({
                   queryArgs: arg,
@@ -389,7 +396,7 @@ export function buildSlice({
                 } else {
                   // request failed
                   if (substate.requestId !== requestId) return
-                  substate.status = QueryStatus.rejected
+                  substate.status = STATUS_REJECTED
                   substate.error = (payload ?? error) as any
                 }
               },
@@ -401,8 +408,8 @@ export function buildSlice({
           for (const [key, entry] of Object.entries(queries)) {
             if (
               // do not rehydrate entries that were currently in flight.
-              entry?.status === QueryStatus.fulfilled ||
-              entry?.status === QueryStatus.rejected
+              entry?.status === STATUS_FULFILLED ||
+              entry?.status === STATUS_REJECTED
             ) {
               draft[key] = entry
             }
@@ -433,7 +440,7 @@ export function buildSlice({
 
             draft[getMutationCacheKey(meta)] = {
               requestId,
-              status: QueryStatus.pending,
+              status: STATUS_PENDING,
               endpointName: arg.endpointName,
               startedTimeStamp,
             }
@@ -444,7 +451,7 @@ export function buildSlice({
 
           updateMutationSubstateIfExists(draft, meta, (substate) => {
             if (substate.requestId !== meta.requestId) return
-            substate.status = QueryStatus.fulfilled
+            substate.status = STATUS_FULFILLED
             substate.data = payload
             substate.fulfilledTimeStamp = meta.fulfilledTimeStamp
           })
@@ -455,7 +462,7 @@ export function buildSlice({
           updateMutationSubstateIfExists(draft, meta, (substate) => {
             if (substate.requestId !== meta.requestId) return
 
-            substate.status = QueryStatus.rejected
+            substate.status = STATUS_REJECTED
             substate.error = (payload ?? error) as any
           })
         })
@@ -464,8 +471,8 @@ export function buildSlice({
           for (const [key, entry] of Object.entries(mutations)) {
             if (
               // do not rehydrate entries that were currently in flight.
-              (entry?.status === QueryStatus.fulfilled ||
-                entry?.status === QueryStatus.rejected) &&
+              (entry?.status === STATUS_FULFILLED ||
+                entry?.status === STATUS_REJECTED) &&
               // only rehydrate endpoints that were persisted using a `fixedCacheKey`
               key !== entry?.requestId
             ) {
@@ -519,13 +526,12 @@ export function buildSlice({
               providedTags as FullTagDescription<string>[]
           }
         },
-        prepare:
-          prepareAutoBatched<
-            Array<{
-              queryCacheKey: QueryCacheKey
-              providedTags: readonly FullTagDescription<string>[]
-            }>
-          >(),
+        prepare: prepareAutoBatched<
+          Array<{
+            queryCacheKey: QueryCacheKey
+            providedTags: readonly FullTagDescription<string>[]
+          }>
+        >(),
       },
     },
     extraReducers(builder) {
@@ -538,7 +544,9 @@ export function buildSlice({
         )
         .addMatcher(hasRehydrationInfo, (draft, action) => {
           const { provided } = extractRehydrationInfo(action)!
-          for (const [type, incomingTags] of Object.entries(provided)) {
+          for (const [type, incomingTags] of Object.entries(
+            provided.tags ?? {},
+          )) {
             for (const [id, cacheKeys] of Object.entries(incomingTags)) {
               const subscribedQueries = ((draft.tags[type] ??= {})[
                 id || '__internal_without_id'
@@ -549,6 +557,7 @@ export function buildSlice({
                 if (!alreadySubscribed) {
                   subscribedQueries.push(queryCacheKey)
                 }
+                draft.keys[queryCacheKey] = provided.keys[queryCacheKey]
               }
             }
           }
@@ -585,7 +594,7 @@ export function buildSlice({
     draft: InvalidationState<any>,
     queryCacheKey: QueryCacheKey,
   ) {
-    const existingTags = draft.keys[queryCacheKey] ?? []
+    const existingTags = getCurrent(draft.keys[queryCacheKey] ?? [])
 
     // Delete this cache key from any existing tags that may have provided it
     for (const tag of existingTags) {
@@ -594,7 +603,7 @@ export function buildSlice({
       const tagSubscriptions = draft.tags[tagType]?.[tagId]
 
       if (tagSubscriptions) {
-        draft.tags[tagType][tagId] = tagSubscriptions.filter(
+        draft.tags[tagType][tagId] = getCurrent(tagSubscriptions).filter(
           (qc) => qc !== queryCacheKey,
         )
       }

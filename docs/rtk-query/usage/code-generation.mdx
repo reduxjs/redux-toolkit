@@ -67,9 +67,12 @@ npx @rtk-query/codegen-openapi openapi-config.ts
 If your OpenAPI specification uses [tags](https://swagger.io/docs/specification/grouping-operations-with-tags/), you can specify the `tag` option to the codegen.
 That will result in all generated endpoints having `providesTags`/`invalidatesTags` declarations for the `tags` of their respective operation definition.
 
-Note that this will only result in string tags with no ids, so it might lead to scenarios where too much is invalidated and unneccessary requests are made on mutation.
+Note that this will only result in string tags with no ids, so it might lead to scenarios where too much is invalidated and unnecessary requests are made on mutation.
 
-In that case it is still recommended to manually specify tags by using [`enhanceEndpoints`](../api/created-api/code-splitting.mdx) on top of the generated api and manually declare `providesTags`/`invalidatesTags`.
+In that case you have two options:
+
+1. Use [`endpointOverrides`](#overriding-tags) to customize tags for specific endpoints during code generation
+2. Use [`enhanceEndpoints`](../api/created-api/code-splitting.mdx) after generation to manually add more specific `providesTags`/`invalidatesTags` with IDs
 
 ### Programmatic usage
 
@@ -82,6 +85,17 @@ const api = await generateEndpoints({
   filterEndpoints: ['getPetById', 'addPet'],
   hooks: true,
 })
+```
+
+#### With Node.js Child process
+
+```ts no-transpile title="bin/openapi-codegen.ts"
+import { exec } from 'node:child_process'
+
+const cliPath = require.resolve('@rtk-query/codegen-openapi/cli')
+
+// you can also use esbuild-runner (esr) or ts-node instead of tsx
+exec(`tsx ${cliPath} config.ts`)
 ```
 
 ### Config file options
@@ -109,7 +123,18 @@ interface SimpleUsage {
     | Array<string | RegExp | EndpointMatcherFunction>
   endpointOverrides?: EndpointOverrides[]
   flattenArg?: boolean
+}
+
+export type EndpointOverrides = {
+  pattern: EndpointMatcher
+} & AtLeastOneOf<{
+  type: 'mutation' | 'query'
+  parameterFilter: ParameterMatcher
+  providesTags: string[]
+  invalidatesTags: string[]
+}>
   useEnumType?: boolean
+  outputRegexConstants?: boolean
   httpResolverOptions?: SwaggerParser.HTTPResolverOptions
 }
 
@@ -177,9 +202,97 @@ const withOverride: ConfigFile = {
 }
 ```
 
+#### Overriding tags
+
+You can override the `providesTags` and `invalidatesTags` generated for any endpoint, regardless of whether the global `tag` option is enabled:
+
+```ts no-transpile title="openapi-config.ts"
+const withTagOverrides: ConfigFile = {
+  // ...
+  tag: true, // or false - overrides work either way
+  endpointOverrides: [
+    {
+      // Override the tags for a specific query
+      pattern: 'getPetById',
+      providesTags: ['SinglePet', 'PetDetails'],
+    },
+    {
+      // Remove auto-generated tags by providing an empty array
+      pattern: 'deletePet',
+      invalidatesTags: [],
+    },
+    {
+      // Add both providesTags AND invalidatesTags to any endpoint
+      pattern: 'updatePet',
+      providesTags: ['LastUpdatedPet'],
+      invalidatesTags: ['Pet', 'PetList'],
+    },
+  ],
+}
+```
+
+**Key behaviors:**
+
+- Tag overrides take precedence over auto-generated tags from the OpenAPI `tags` field
+- You can use an empty array (`[]`) to explicitly remove tags from an endpoint
+- Both `providesTags` and `invalidatesTags` can be set on any endpoint type (query or mutation)
+- Overrides work regardless of whether the global `tag: true` option is set
+
+This is useful when:
+
+- The OpenAPI tags don't match your caching strategy
+- You need more specific cache invalidation than the default tag generation provides
+- A mutation should also provide tags (e.g., login returning user data)
+- A query should also invalidate tags (e.g., polling that triggers cache updates)
+
+:::note
+When using tag overrides with `tag: false`, the overridden tags will be emitted in the generated code, but they won't be automatically added to `addTagTypes`. You may need to manually add your custom tags to the base API's `tagTypes` array.
+:::
+
 #### Generating hooks
 
 Setting `hooks: true` will generate `useQuery` and `useMutation` hook exports. If you also want `useLazyQuery` hooks generated or more granular control, you can also pass an object in the shape of: `{ queries: boolean; lazyQueries: boolean; mutations: boolean }`.
+
+#### Generating regex constants for schema patterns
+
+If your OpenAPI schema uses the [`pattern` keyword](https://swagger.io/docs/specification/data-models/data-types/#pattern) to specify regex validation on string properties, you can export these patterns as JavaScript regex constants by setting `outputRegexConstants: true`.
+
+```ts no-transpile title="openapi-config.ts"
+const config: ConfigFile = {
+  schemaFile: 'https://petstore3.swagger.io/api/v3/openapi.json',
+  apiFile: './src/store/emptyApi.ts',
+  outputFile: './src/store/petApi.ts',
+  outputRegexConstants: true,
+}
+```
+
+For a schema with pattern-validated properties like:
+
+```yaml
+User:
+  type: object
+  properties:
+    email:
+      type: string
+      pattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    phone:
+      type: string
+      pattern: '^\+?[1-9]\d{1,14}$'
+```
+
+The codegen will generate:
+
+```ts no-transpile title="Generated output"
+export const userEmailPattern =
+  /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+export const userPhonePattern = /^\+?[1-9]\d{1,14}$/
+```
+
+These constants can be used for client-side validation to ensure consistency with API expectations.
+
+:::note
+Only string-type properties with non-empty `pattern` values will generate constants. The constant name follows the format `{typeName}{propertyName}Pattern` in camelCase.
+:::
 
 #### Multiple output files
 

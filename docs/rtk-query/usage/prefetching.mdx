@@ -19,6 +19,25 @@ There are a handful of situations that you may want to do this, but some very co
 3. User hovers over a next pagination button
 4. User navigates to a page and you know that some components down the tree will require said data. This way, you can prevent fetching waterfalls.
 
+## Prefetching vs Subscriptions
+
+Prefetching is designed as a "fire and forget" operation that loads data into the cache without creating an ongoing subscription. This means:
+
+- **No automatic refetching**: Prefetched data will not automatically refetch when tags are invalidated
+- **No subscription management**: You don't need to (and can't) manually unsubscribe from prefetched data
+- **Cache cleanup**: Prefetched data without active subscriptions may be removed during normal cache cleanup
+- **Returns void**: The prefetch trigger function doesn't return a promise or subscription handle
+
+If you need data that automatically refetches on invalidation or stays in the cache as long as a component is mounted, use a query hook like `useQuery` or `useQuerySubscription` instead. Prefetch is ideal for warming the cache before a user action, while query hooks are for ongoing data needs.
+
+:::tip When to use prefetch vs query hooks
+
+- **Use prefetch** when you want to load data ahead of time (e.g., on hover) but don't need it to stay fresh
+- **Use query hooks** when you need data that automatically refetches on invalidation and stays in cache while the component is mounted
+- **Use both together**: Prefetch on hover, then let the query hook create a subscription when the user navigates
+
+:::
+
 ## Prefetching with React Hooks
 
 Similar to the [`useMutation`](./mutations) hook, the `usePrefetch` hook will not run automatically — it returns a "trigger function" that can be used to initiate the behavior.
@@ -111,11 +130,29 @@ store.dispatch(
 )
 ```
 
-You can also dispatch the query action, but you would be responsible for implementing any additional logic.
+### Prefetch vs `initiate()`
 
-```ts title="Alternate method of manual prefetching" no-transpile
-dispatch(api.endpoints[endpointName].initiate(arg, { forceRefetch: true }))
+While you can also use `initiate()` directly, there are important differences:
+
+```ts title="Using initiate() directly" no-transpile
+// This creates a subscription that must be manually cleaned up
+const promise = dispatch(
+  api.endpoints[endpointName].initiate(arg, {
+    subscribe: true, // Creates a subscription (default)
+    forceRefetch: true,
+  }),
+)
+
+// You must manually unsubscribe to prevent memory leaks
+promise.unsubscribe()
 ```
+
+**Key differences:**
+
+- **`api.util.prefetch()`**: Automatically uses `subscribe: false`, no cleanup needed
+- **`endpoint.initiate()`**: Defaults to `subscribe: true`, requires manual `unsubscribe()` call
+
+Use `prefetch()` for simple "load and forget" scenarios. Use `initiate()` directly only when you need fine-grained control over subscriptions and are prepared to manage the subscription lifecycle yourself.
 
 ## Prefetching Examples
 

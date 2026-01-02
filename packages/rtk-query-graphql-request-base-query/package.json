@@ -1,6 +1,6 @@
 {
   "name": "@rtk-query/graphql-request-base-query",
-  "version": "2.3.1",
+  "version": "2.3.2",
   "author": {
     "name": "Lenz Weber",
     "email": "mail@phryneas.de",
@@ -21,10 +21,11 @@
     "build": "microbundle",
     "prepack": "rimraf dist/*; yarn build",
     "dev": "microbundle watch",
-    "test": "true"
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
-    "graphql-request": "^4.0.0 || ^5.0.0 || ^6.0.0"
+    "graphql-request": "^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0"
   },
   "peerDependencies": {
     "@reduxjs/toolkit": "^1.7.1 || ^2.0.0",
@@ -32,10 +33,12 @@
   },
   "devDependencies": {
     "@reduxjs/toolkit": "^1.6.0 || ^2.0.0",
+    "@types/node": "^20.11.0",
     "graphql": "^16.5.0",
     "microbundle": "^0.13.3",
     "rimraf": "^3.0.2",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "vitest": "^4"
   },
   "publishConfig": {
     "access": "public"

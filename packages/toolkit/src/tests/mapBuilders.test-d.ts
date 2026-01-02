@@ -128,20 +128,41 @@ describe('type tests', () => {
           expectTypeOf(action).toMatchTypeOf<UnknownAction>()
         })
 
-      test('addMatcher() should prevent further calls to addCase()', () => {
-        const b = builder.addMatcher(increment.match, () => {})
+      test('addAsyncThunk() should prevent further calls to addCase() ', () => {
+        const asyncThunk = createAsyncThunk('test', () => {})
+        const b = builder.addAsyncThunk(asyncThunk, {
+          pending: () => {},
+          rejected: () => {},
+          fulfilled: () => {},
+          settled: () => {},
+        })
 
         expectTypeOf(b).not.toHaveProperty('addCase')
+
+        expectTypeOf(b.addAsyncThunk).toBeFunction()
 
         expectTypeOf(b.addMatcher).toBeCallableWith(increment.match, () => {})
 
         expectTypeOf(b.addDefaultCase).toBeCallableWith(() => {})
       })
 
-      test('addDefaultCase() should prevent further calls to addCase(), addMatcher() and addDefaultCase', () => {
+      test('addMatcher() should prevent further calls to addCase() and addAsyncThunk()', () => {
+        const b = builder.addMatcher(increment.match, () => {})
+
+        expectTypeOf(b).not.toHaveProperty('addCase')
+        expectTypeOf(b).not.toHaveProperty('addAsyncThunk')
+
+        expectTypeOf(b.addMatcher).toBeCallableWith(increment.match, () => {})
+
+        expectTypeOf(b.addDefaultCase).toBeCallableWith(() => {})
+      })
+
+      test('addDefaultCase() should prevent further calls to addCase(), addAsyncThunk(), addMatcher() and addDefaultCase', () => {
         const b = builder.addDefaultCase(() => {})
 
         expectTypeOf(b).not.toHaveProperty('addCase')
+
+        expectTypeOf(b).not.toHaveProperty('addAsyncThunk')
 
         expectTypeOf(b).not.toHaveProperty('addMatcher')
 
@@ -188,79 +209,206 @@ describe('type tests', () => {
               }
             }>()
           })
-        })
-      })
 
-      test('case 2: `createAsyncThunk` with `meta`', () => {
-        const thunk = createAsyncThunk<
-          'ret',
-          void,
-          {
-            pendingMeta: { startedTimeStamp: number }
-            fulfilledMeta: {
-              fulfilledTimeStamp: number
-              baseQueryMeta: 'meta!'
-            }
-            rejectedMeta: {
-              baseQueryMeta: 'meta!'
-            }
-          }
-        >(
-          'test',
-          (_, api) => {
-            return api.fulfillWithValue('ret' as const, {
-              fulfilledTimeStamp: 5,
-              baseQueryMeta: 'meta!',
-            })
-          },
-          {
-            getPendingMeta() {
-              return { startedTimeStamp: 0 }
+          builder.addAsyncThunk(thunk, {
+            pending(_, action) {
+              expectTypeOf(action).toMatchTypeOf<{
+                payload: undefined
+                meta: {
+                  arg: void
+                  requestId: string
+                  requestStatus: 'pending'
+                }
+              }>()
             },
-          },
-        )
-
-        builder.addCase(thunk.pending, (_, action) => {
-          expectTypeOf(action).toMatchTypeOf<{
-            payload: undefined
-            meta: {
-              arg: void
-              requestId: string
-              requestStatus: 'pending'
-              startedTimeStamp: number
-            }
-          }>()
+            rejected(_, action) {
+              expectTypeOf(action).toMatchTypeOf<{
+                payload: unknown
+                error: SerializedError
+                meta: {
+                  arg: void
+                  requestId: string
+                  requestStatus: 'rejected'
+                  aborted: boolean
+                  condition: boolean
+                  rejectedWithValue: boolean
+                }
+              }>()
+            },
+            fulfilled(_, action) {
+              expectTypeOf(action).toMatchTypeOf<{
+                payload: 'ret'
+                meta: {
+                  arg: void
+                  requestId: string
+                  requestStatus: 'fulfilled'
+                }
+              }>()
+            },
+            settled(_, action) {
+              expectTypeOf(action).toMatchTypeOf<
+                | {
+                    payload: 'ret'
+                    meta: {
+                      arg: void
+                      requestId: string
+                      requestStatus: 'fulfilled'
+                    }
+                  }
+                | {
+                    payload: unknown
+                    error: SerializedError
+                    meta: {
+                      arg: void
+                      requestId: string
+                      requestStatus: 'rejected'
+                      aborted: boolean
+                      condition: boolean
+                      rejectedWithValue: boolean
+                    }
+                  }
+              >()
+            },
+          })
         })
 
-        builder.addCase(thunk.rejected, (_, action) => {
-          expectTypeOf(action).toMatchTypeOf<{
-            payload: unknown
-            error: SerializedError
-            meta: {
-              arg: void
-              requestId: string
-              requestStatus: 'rejected'
-              aborted: boolean
-              condition: boolean
-              rejectedWithValue: boolean
-              baseQueryMeta?: 'meta!'
+        test('case 2: `createAsyncThunk` with `meta`', () => {
+          const thunk = createAsyncThunk<
+            'ret',
+            void,
+            {
+              pendingMeta: { startedTimeStamp: number }
+              fulfilledMeta: {
+                fulfilledTimeStamp: number
+                baseQueryMeta: 'meta!'
+              }
+              rejectedMeta: {
+                baseQueryMeta: 'meta!'
+              }
             }
-          }>()
+          >(
+            'test',
+            (_, api) => {
+              return api.fulfillWithValue('ret' as const, {
+                fulfilledTimeStamp: 5,
+                baseQueryMeta: 'meta!',
+              })
+            },
+            {
+              getPendingMeta() {
+                return { startedTimeStamp: 0 }
+              },
+            },
+          )
 
-          if (action.meta.rejectedWithValue) {
-            expectTypeOf(action.meta.baseQueryMeta).toEqualTypeOf<'meta!'>()
-          }
-        })
-        builder.addCase(thunk.fulfilled, (_, action) => {
-          expectTypeOf(action).toMatchTypeOf<{
-            payload: 'ret'
-            meta: {
-              arg: void
-              requestId: string
-              requestStatus: 'fulfilled'
-              baseQueryMeta: 'meta!'
+          builder.addCase(thunk.pending, (_, action) => {
+            expectTypeOf(action).toMatchTypeOf<{
+              payload: undefined
+              meta: {
+                arg: void
+                requestId: string
+                requestStatus: 'pending'
+                startedTimeStamp: number
+              }
+            }>()
+          })
+
+          builder.addCase(thunk.rejected, (_, action) => {
+            expectTypeOf(action).toMatchTypeOf<{
+              payload: unknown
+              error: SerializedError
+              meta: {
+                arg: void
+                requestId: string
+                requestStatus: 'rejected'
+                aborted: boolean
+                condition: boolean
+                rejectedWithValue: boolean
+                baseQueryMeta?: 'meta!'
+              }
+            }>()
+
+            if (action.meta.rejectedWithValue) {
+              expectTypeOf(action.meta.baseQueryMeta).toEqualTypeOf<'meta!'>()
             }
-          }>()
+          })
+          builder.addCase(thunk.fulfilled, (_, action) => {
+            expectTypeOf(action).toMatchTypeOf<{
+              payload: 'ret'
+              meta: {
+                arg: void
+                requestId: string
+                requestStatus: 'fulfilled'
+                baseQueryMeta: 'meta!'
+              }
+            }>()
+          })
+
+          builder.addAsyncThunk(thunk, {
+            pending(_, action) {
+              expectTypeOf(action).toMatchTypeOf<{
+                payload: undefined
+                meta: {
+                  arg: void
+                  requestId: string
+                  requestStatus: 'pending'
+                  startedTimeStamp: number
+                }
+              }>()
+            },
+            rejected(_, action) {
+              expectTypeOf(action).toMatchTypeOf<{
+                payload: unknown
+                error: SerializedError
+                meta: {
+                  arg: void
+                  requestId: string
+                  requestStatus: 'rejected'
+                  aborted: boolean
+                  condition: boolean
+                  rejectedWithValue: boolean
+                  baseQueryMeta?: 'meta!'
+                }
+              }>()
+            },
+            fulfilled(_, action) {
+              expectTypeOf(action).toMatchTypeOf<{
+                payload: 'ret'
+                meta: {
+                  arg: void
+                  requestId: string
+                  requestStatus: 'fulfilled'
+                  baseQueryMeta: 'meta!'
+                }
+              }>()
+            },
+            settled(_, action) {
+              expectTypeOf(action).toMatchTypeOf<
+                | {
+                    payload: 'ret'
+                    meta: {
+                      arg: void
+                      requestId: string
+                      requestStatus: 'fulfilled'
+                      baseQueryMeta: 'meta!'
+                    }
+                  }
+                | {
+                    payload: unknown
+                    error: SerializedError
+                    meta: {
+                      arg: void
+                      requestId: string
+                      requestStatus: 'rejected'
+                      aborted: boolean
+                      condition: boolean
+                      rejectedWithValue: boolean
+                      baseQueryMeta?: 'meta!'
+                    }
+                  }
+              >()
+            },
+          })
         })
       })
     })

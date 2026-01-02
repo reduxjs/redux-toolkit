@@ -6,6 +6,7 @@
     "tagName": "v${version}"
   },
   "npm": {
+    "publish": false,
     "versionArgs": ["--workspaces-update=false"]
   }
 }

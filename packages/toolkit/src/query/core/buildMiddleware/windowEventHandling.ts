@@ -1,4 +1,4 @@
-import { QueryStatus } from '../apiState'
+import { QueryStatus, STATUS_UNINITIALIZED } from '../apiState'
 import type { QueryCacheKey } from '../apiState'
 import { onFocus, onOnline } from '../setupListeners'
 import type {
@@ -6,7 +6,6 @@ import type {
   InternalHandlerBuilder,
   SubMiddlewareApi,
 } from './types'
-import { countObjectKeys } from '../../utils/countObjectKeys'
 
 export const buildWindowEventHandler: InternalHandlerBuilder = ({
   reducerPath,
@@ -35,29 +34,25 @@ export const buildWindowEventHandler: InternalHandlerBuilder = ({
     const subscriptions = internalState.currentSubscriptions
 
     context.batch(() => {
-      for (const queryCacheKey of Object.keys(subscriptions)) {
+      for (const queryCacheKey of subscriptions.keys()) {
         const querySubState = queries[queryCacheKey]
-        const subscriptionSubState = subscriptions[queryCacheKey]
+        const subscriptionSubState = subscriptions.get(queryCacheKey)
 
         if (!subscriptionSubState || !querySubState) continue
 
+        const values = [...subscriptionSubState.values()]
         const shouldRefetch =
-          Object.values(subscriptionSubState).some(
-            (sub) => sub[type] === true,
-          ) ||
-          (Object.values(subscriptionSubState).every(
-            (sub) => sub[type] === undefined,
-          ) &&
-            state.config[type])
+          values.some((sub) => sub[type] === true) ||
+          (values.every((sub) => sub[type] === undefined) && state.config[type])
 
         if (shouldRefetch) {
-          if (countObjectKeys(subscriptionSubState) === 0) {
+          if (subscriptionSubState.size === 0) {
             api.dispatch(
               removeQueryResult({
                 queryCacheKey: queryCacheKey as QueryCacheKey,
               }),
             )
-          } else if (querySubState.status !== QueryStatus.uninitialized) {
+          } else if (querySubState.status !== STATUS_UNINITIALIZED) {
             api.dispatch(refetchQuery(querySubState))
           }
         }

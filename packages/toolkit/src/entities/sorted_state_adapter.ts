@@ -70,9 +70,14 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
     newEntities = ensureEntitiesArray(newEntities)
 
     const existingKeys = new Set<Id>(existingIds ?? getCurrent(state.ids))
-
+    const addedKeys = new Set<Id>();
     const models = newEntities.filter(
-      (model) => !existingKeys.has(selectIdValue(model, selectId)),
+      (model) => {
+          const modelId = selectIdValue(model, selectId);
+          const notAdded = !addedKeys.has(modelId);
+          if (notAdded) addedKeys.add(modelId);
+          return !existingKeys.has(modelId) && notAdded;
+      }
     )
 
     if (models.length !== 0) {
@@ -88,11 +93,16 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
     newEntities: readonly T[] | Record<Id, T>,
     state: R,
   ): void {
+    let deduplicatedEntities = {} as Record<Id, T>;
     newEntities = ensureEntitiesArray(newEntities)
     if (newEntities.length !== 0) {
       for (const item of newEntities) {
-        delete (state.entities as Record<Id, T>)[selectId(item)]
+        const entityId = selectId(item);
+        // For multiple items with the same ID, we should keep the last one.
+        deduplicatedEntities[entityId] = item;
+        delete (state.entities as Record<Id, T>)[entityId]
       }
+      newEntities = ensureEntitiesArray(deduplicatedEntities);
       mergeFunction(state, newEntities)
     }
   }

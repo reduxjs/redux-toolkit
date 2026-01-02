@@ -322,37 +322,6 @@ describe('type tests', () => {
       SelectedResult
     > = (state) => ({ posts: state.data?.posts ?? EMPTY_ARRAY })
 
-    expectTypeOf<
-      TypedQueryStateSelector<
-        PostsApiResponse,
-        QueryArgument,
-        BaseQueryFunction,
-        SelectedResult
-      >
-    >().toEqualTypeOf<
-      QueryStateSelector<
-        SelectedResult,
-        QueryDefinition<
-          QueryArgument,
-          BaseQueryFunction,
-          string,
-          PostsApiResponse
-        >
-      >
-    >()
-
-    expectTypeOf(typedSelectFromResult).toEqualTypeOf<
-      QueryStateSelector<
-        SelectedResult,
-        QueryDefinition<
-          QueryArgument,
-          BaseQueryFunction,
-          string,
-          PostsApiResponse
-        >
-      >
-    >()
-
     function PostsList() {
       const { posts } = useGetPostsQuery(undefined, {
         selectFromResult: typedSelectFromResult,

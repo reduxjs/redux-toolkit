@@ -12,8 +12,8 @@ jobs:
     env:
       CI_JOB_NUMBER: 1
     steps:
-      - uses: actions/checkout@v4
-      - uses: EskiMojo14/size-limit-action@v2
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: EskiMojo14/size-limit-action@af0584be5b6cc2d056bd31a314fc2ce9c9c1a929 # v2
         with:
           directory: packages/toolkit
           github_token: ${{ secrets.GITHUB_TOKEN }}

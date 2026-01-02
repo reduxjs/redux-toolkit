@@ -172,6 +172,118 @@ describe('endpoint overrides', () => {
     expect(api).not.toMatch(/headers: {/);
     expect(api).toMatchSnapshot('should remove all parameters except for findPetsByStatus');
   });
+
+  it('should override generated tags', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      tag: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      filterEndpoints: ['getPetById', 'deletePet'],
+      endpointOverrides: [
+        {
+          pattern: 'getPetById',
+          providesTags: ['CustomQueryTag'],
+        },
+        {
+          pattern: 'deletePet',
+          invalidatesTags: [],
+        },
+      ],
+    });
+
+    expect(api).toMatch(/getPetById: build\.query[\s\S]*providesTags: \["CustomQueryTag"\]/);
+    expect(api).not.toMatch(/getPetById: build\.query[\s\S]*providesTags: \["pet"\]/);
+    expect(api).toMatch(/deletePet: build\.mutation[\s\S]*invalidatesTags: \[\]/);
+    expect(api).not.toMatch(/deletePet: build\.mutation[\s\S]*invalidatesTags: \["pet"\]/);
+  });
+
+  it('should allow tag overrides when tag generation is disabled', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      filterEndpoints: ['getPetById', 'deletePet'],
+      endpointOverrides: [
+        {
+          pattern: 'getPetById',
+          providesTags: ['ManualProvides'],
+        },
+        {
+          pattern: 'deletePet',
+          invalidatesTags: ['ManualInvalidates'],
+        },
+      ],
+    });
+
+    expect(api).toMatch(/getPetById: build\.query[\s\S]*providesTags: \["ManualProvides"\]/);
+    expect(api).toMatch(/deletePet: build\.mutation[\s\S]*invalidatesTags: \["ManualInvalidates"\]/);
+    expect(api).not.toMatch(/providesTags: \[\]/);
+    expect(api).not.toMatch(/invalidatesTags: \[\]/);
+  });
+
+  it('allows overriding tags regardless of inferred endpoint type', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      filterEndpoints: 'loginUser',
+      endpointOverrides: [
+        {
+          pattern: 'loginUser',
+          type: 'mutation',
+          providesTags: ['LoginStatus'],
+        },
+      ],
+    });
+
+    expect(api).toMatch(/loginUser: build\.mutation/);
+    expect(api).toMatch(/providesTags: \["LoginStatus"\]/);
+    expect(api).not.toMatch(/invalidatesTags:/);
+  });
+
+  it('allows overriding both providesTags and invalidatesTags simultaneously', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      tag: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      filterEndpoints: 'findPetsByStatus',
+      endpointOverrides: [
+        {
+          pattern: 'findPetsByStatus',
+          providesTags: ['CustomProvide'],
+          invalidatesTags: ['CustomInvalidate'],
+        },
+      ],
+    });
+
+    expect(api).toMatch(/findPetsByStatus: build\.query/);
+    expect(api).toMatch(/providesTags: \["CustomProvide"\]/);
+    expect(api).toMatch(/invalidatesTags: \["CustomInvalidate"\]/);
+    expect(api).not.toMatch(/providesTags: \["pet"\]/);
+    expect(api).not.toMatch(/invalidatesTags: \["pet"\]/);
+  });
+
+  it('does not add override tags to addTagTypes when tag generation is disabled', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      filterEndpoints: 'getPetById',
+      endpointOverrides: [
+        {
+          pattern: 'getPetById',
+          providesTags: ['CustomTag'],
+        },
+      ],
+    });
+
+    // The providesTags override should be present in the generated code
+    expect(api).toMatch(/providesTags: \["CustomTag"\]/);
+    // But addTagTypes should not be generated when tag: false (default)
+    expect(api).not.toContain('addTagTypes');
+  });
 });
 
 describe('option encodePathParams', () => {
@@ -242,7 +354,7 @@ describe('option encodeQueryParams', () => {
     });
 
     expect(api).toMatch(
-      /params:\s*{\s*\n\s*status:\s*queryArg\.status\s*\?\s*encodeURIComponent\(\s*String\(queryArg\.status\)\s*\)\s*:\s*undefined\s*,?\s*\n\s*}/s
+      /params:\s*{\s*\n\s*status:\s*queryArg\.status\s*!=\s*null\s*\?\s*encodeURIComponent\(\s*String\(queryArg\.status\)\s*\)\s*:\s*undefined\s*,?\s*\n\s*}/s
     );
   });
 
@@ -345,6 +457,22 @@ test('hooks generation', async () => {
   expect(api).toContain('useAddPetMutation');
   expect(api).toMatchSnapshot(
     'should generate an `useGetPetByIdQuery` query hook and an `useAddPetMutation` mutation hook'
+  );
+});
+
+test('hooks generation with operationNameSuffix', async () => {
+  const api = await generateEndpoints({
+    unionUndefined: true,
+    apiFile: './fixtures/emptyApi.ts',
+    schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+    filterEndpoints: ['getPetById', 'addPet'],
+    hooks: true,
+    operationNameSuffix: 'MySuffix',
+  });
+  expect(api).toContain('useGetPetByIdMySuffixQuery');
+  expect(api).toContain('useAddPetMySuffixMutation');
+  expect(api).toMatchSnapshot(
+    'should generate an `useGetPetByIdMySuffixQuery` query hook and an `useAddPetMySuffixMutation` mutation hook'
   );
 });
 
@@ -597,6 +725,24 @@ describe('tests from issues', () => {
     });
     expect(result).toMatchSnapshot();
   });
+
+  it('issue #3369: discriminated unions should use enum values, not schema names', async () => {
+    const result = await generateEndpoints({
+      apiFile: './tmp/emptyApi.ts',
+      schemaFile: './test/fixtures/issue-3369-discriminator-enum.json',
+    });
+
+    // The discriminator value should be 'engineering' and 'standard' (from enum)
+    // NOT 'EngineeringAllowance' and 'StandardAllowance' (schema names)
+    expect(result).toContain('allowance_type: "engineering"');
+    expect(result).toContain('allowance_type: "standard"');
+
+    // Should NOT use schema names as discriminator values
+    expect(result).not.toContain('allowance_type: "EngineeringAllowance"');
+    expect(result).not.toContain('allowance_type: "StandardAllowance"');
+
+    expect(result).toMatchSnapshot();
+  });
 });
 
 describe('openapi spec', () => {
@@ -629,5 +775,161 @@ describe('query parameters', () => {
       apiFile: './fixtures/emptyApi.ts',
     });
     expect(api).toMatchSnapshot();
+  });
+});
+
+describe('regex constants', () => {
+  it('should export regex constants for patterns', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      outputRegexConstants: true,
+    });
+
+    expect(api).toContain(String.raw`export const tagNamePattern = /^\S+$/`);
+    expect(api).toContain(String.raw`export const userEmailPattern`);
+    expect(api).toContain(String.raw`/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/`);
+    expect(api).toContain(String.raw`export const userPhonePattern = /^\+?[1-9]\d{1,14}$/`);
+  });
+
+  it('should not export constants for invalid patterns', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      outputRegexConstants: true,
+    });
+
+    // Empty pattern should not generate a constant
+    expect(api).not.toContain('userPasswordPattern');
+    expect(api).not.toContain('passwordPattern');
+
+    // Pattern on non-string property (integer) should not generate a constant
+    expect(api).not.toContain('userUserStatusPattern');
+    expect(api).not.toContain('userStatusPattern');
+  });
+
+  it('should export regex constants for patterns from YAML file', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.yaml'),
+      outputRegexConstants: true,
+    });
+
+    expect(api).toContain(String.raw`export const tagNamePattern = /^\S+$/`);
+    expect(api).toContain(String.raw`export const userEmailPattern`);
+    expect(api).toContain(String.raw`/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/`);
+    expect(api).toContain(String.raw`export const userPhonePattern = /^\+?[1-9]\d{1,14}$/`);
+  });
+
+  it('should not export regex constants when outputRegexConstants is false', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      outputRegexConstants: false,
+    });
+
+    expect(api).not.toContain('Pattern = /');
+    expect(api).not.toContain('tagNamePattern');
+    expect(api).not.toContain('userEmailPattern');
+    expect(api).not.toContain('userPhonePattern');
+  });
+
+  it('should properly escape forward slashes in patterns', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      outputRegexConstants: true,
+    });
+
+    // The userWebsitePattern should have escaped forward slashes
+    expect(api).toContain(String.raw`export const userWebsitePattern = /^https?:\/\/[^\s]+$/`);
+  });
+});
+
+describe('esmExtensions option', () => {
+  beforeAll(async () => {
+    if (!(await isDir(tmpDir))) {
+      await fs.mkdir(tmpDir, { recursive: true });
+    }
+  });
+
+  afterEach(async () => {
+    await rimraf(`${tmpDir}/*.ts`, { glob: true });
+  });
+
+  test('should convert .ts to .js when esmExtensions is true', async () => {
+    await generateEndpoints({
+      apiFile: './fixtures/emptyApi.ts',
+      outputFile: './test/tmp/out.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      filterEndpoints: [],
+      esmExtensions: true,
+    });
+    const content = await fs.readFile('./test/tmp/out.ts', 'utf8');
+    expect(content).toContain("import { api } from '../../fixtures/emptyApi.js'");
+  });
+
+  test('should convert .mts to .mjs when esmExtensions is true', async () => {
+    await generateEndpoints({
+      apiFile: './fixtures/emptyApi.mts',
+      outputFile: './test/tmp/out.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      filterEndpoints: [],
+      esmExtensions: true,
+    });
+    const content = await fs.readFile('./test/tmp/out.ts', 'utf8');
+    expect(content).toContain("import { api } from '../../fixtures/emptyApi.mjs'");
+  });
+
+  test('should preserve .jsx when esmExtensions is true', async () => {
+    await generateEndpoints({
+      apiFile: './fixtures/emptyApi.jsx',
+      outputFile: './test/tmp/out.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      filterEndpoints: [],
+      esmExtensions: true,
+    });
+    const content = await fs.readFile('./test/tmp/out.ts', 'utf8');
+    expect(content).toContain("import { api } from '../../fixtures/emptyApi.jsx'");
+  });
+
+  test('should convert .tsx to .jsx when esmExtensions is true', async () => {
+    await generateEndpoints({
+      apiFile: './fixtures/emptyApi.tsx',
+      outputFile: './test/tmp/out.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      filterEndpoints: [],
+      esmExtensions: true,
+    });
+    const content = await fs.readFile('./test/tmp/out.ts', 'utf8');
+    expect(content).toContain("import { api } from '../../fixtures/emptyApi.jsx'");
+  });
+
+  test('should strip extensions when esmExtensions is false', async () => {
+    await generateEndpoints({
+      apiFile: './fixtures/emptyApi.ts',
+      outputFile: './test/tmp/out.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      filterEndpoints: [],
+      esmExtensions: false,
+    });
+    const content = await fs.readFile('./test/tmp/out.ts', 'utf8');
+    expect(content).toContain("import { api } from '../../fixtures/emptyApi'");
+  });
+
+  test('should strip extensions when esmExtensions is undefined (default)', async () => {
+    await generateEndpoints({
+      apiFile: './fixtures/emptyApi.ts',
+      outputFile: './test/tmp/out.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      filterEndpoints: [],
+    });
+    const content = await fs.readFile('./test/tmp/out.ts', 'utf8');
+    expect(content).toContain("import { api } from '../../fixtures/emptyApi'");
   });
 });

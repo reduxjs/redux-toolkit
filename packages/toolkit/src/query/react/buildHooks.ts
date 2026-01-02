@@ -39,11 +39,7 @@ import type {
   TSHelpersNoInfer,
   TSHelpersOverride,
 } from '@reduxjs/toolkit/query'
-import {
-  defaultSerializeQueryArgs,
-  QueryStatus,
-  skipToken,
-} from '@reduxjs/toolkit/query'
+import { QueryStatus, skipToken } from './rtkqImports'
 import type { DependencyList } from 'react'
 import {
   useCallback,
@@ -53,8 +49,8 @@ import {
   useMemo,
   useRef,
   useState,
-} from 'react'
-import { shallowEqual } from 'react-redux'
+} from './reactImports'
+import { shallowEqual } from './reactReduxImports'
 
 import type { SubscriptionSelectors } from '../core/buildMiddleware/index'
 import type { InfiniteData, InfiniteQueryConfigOptions } from '../core/index'
@@ -722,39 +718,58 @@ type UseQueryStateBaseResult<D extends QueryDefinition<any, any, any, any>> =
     isError: false
   }
 
+type UseQueryStateUninitialized<D extends QueryDefinition<any, any, any, any>> =
+  TSHelpersOverride<
+    Extract<UseQueryStateBaseResult<D>, { status: QueryStatus.uninitialized }>,
+    { isUninitialized: true }
+  >
+
+type UseQueryStateLoading<D extends QueryDefinition<any, any, any, any>> =
+  TSHelpersOverride<
+    UseQueryStateBaseResult<D>,
+    { isLoading: true; isFetching: boolean; data: undefined }
+  >
+
+type UseQueryStateSuccessFetching<
+  D extends QueryDefinition<any, any, any, any>,
+> = TSHelpersOverride<
+  UseQueryStateBaseResult<D>,
+  {
+    isSuccess: true
+    isFetching: true
+    error: undefined
+  } & {
+    data: ResultTypeFrom<D>
+  } & Required<Pick<UseQueryStateBaseResult<D>, 'fulfilledTimeStamp'>>
+>
+
+type UseQueryStateSuccessNotFetching<
+  D extends QueryDefinition<any, any, any, any>,
+> = TSHelpersOverride<
+  UseQueryStateBaseResult<D>,
+  {
+    isSuccess: true
+    isFetching: false
+    error: undefined
+  } & {
+    data: ResultTypeFrom<D>
+    currentData: ResultTypeFrom<D>
+  } & Required<Pick<UseQueryStateBaseResult<D>, 'fulfilledTimeStamp'>>
+>
+
+type UseQueryStateError<D extends QueryDefinition<any, any, any, any>> =
+  TSHelpersOverride<
+    UseQueryStateBaseResult<D>,
+    { isError: true } & Required<Pick<UseQueryStateBaseResult<D>, 'error'>>
+  >
+
 type UseQueryStateDefaultResult<D extends QueryDefinition<any, any, any, any>> =
   TSHelpersId<
-    | TSHelpersOverride<
-        Extract<
-          UseQueryStateBaseResult<D>,
-          { status: QueryStatus.uninitialized }
-        >,
-        { isUninitialized: true }
-      >
-    | TSHelpersOverride<
-        UseQueryStateBaseResult<D>,
-        | { isLoading: true; isFetching: boolean; data: undefined }
-        | ({
-            isSuccess: true
-            isFetching: true
-            error: undefined
-          } & Required<
-            Pick<UseQueryStateBaseResult<D>, 'data' | 'fulfilledTimeStamp'>
-          >)
-        | ({
-            isSuccess: true
-            isFetching: false
-            error: undefined
-          } & Required<
-            Pick<
-              UseQueryStateBaseResult<D>,
-              'data' | 'fulfilledTimeStamp' | 'currentData'
-            >
-          >)
-        | ({ isError: true } & Required<
-            Pick<UseQueryStateBaseResult<D>, 'error'>
-          >)
-      >
+    | UseQueryStateUninitialized<D>
+    | UseQueryStateLoading<D>
+    | UseQueryStateSuccessFetching<D>
+    | UseQueryStateSuccessNotFetching<D>
+    | UseQueryStateError<D>
   > & {
     /**
      * @deprecated Included for completeness, but discouraged.
@@ -855,6 +870,16 @@ export type UseInfiniteQuerySubscriptionOptions<
    */
   refetchOnMountOrArgChange?: boolean | number
   initialPageParam?: PageParamFrom<D>
+  /**
+   * Defaults to `true`. When this is `true` and an infinite query endpoint is refetched
+   * (due to tag invalidation, polling, arg change configuration, or manual refetching),
+   * RTK Query will try to sequentially refetch all pages currently in the cache.
+   * When `false` only the first page will be refetched.
+   *
+   * This option applies to all automatic refetches for this subscription (polling, tag invalidation, etc.).
+   * It can be overridden on a per-call basis using the `refetch()` method.
+   */
+  refetchCachedPages?: boolean
 }
 
 export type TypedUseInfiniteQuerySubscription<
@@ -875,7 +900,13 @@ export type TypedUseInfiniteQuerySubscription<
 
 export type UseInfiniteQuerySubscriptionResult<
   D extends InfiniteQueryDefinition<any, any, any, any, any>,
-> = Pick<InfiniteQueryActionCreatorResult<D>, 'refetch'> & {
+> = {
+  refetch: (
+    options?: Pick<
+      UseInfiniteQuerySubscriptionOptions<D>,
+      'refetchCachedPages'
+    >,
+  ) => InfiniteQueryActionCreatorResult<D>
   trigger: LazyInfiniteQueryTrigger<D>
   fetchNextPage: () => InfiniteQueryActionCreatorResult<D>
   fetchPreviousPage: () => InfiniteQueryActionCreatorResult<D>
@@ -1047,7 +1078,10 @@ export type UseInfiniteQueryHookResult<
   D extends InfiniteQueryDefinition<any, any, any, any, any>,
   R = UseInfiniteQueryStateDefaultResult<D>,
 > = UseInfiniteQueryStateResult<D, R> &
-  Pick<UseInfiniteQuerySubscriptionResult<D>, 'refetch'>
+  Pick<
+    UseInfiniteQuerySubscriptionResult<D>,
+    'refetch' | 'fetchNextPage' | 'fetchPreviousPage'
+  >
 
 export type TypedUseInfiniteQueryHookResult<
   ResultType,
@@ -1238,10 +1272,10 @@ type UseInfiniteQueryStateBaseResult<
    * Query is currently in "error" state.
    */
   isError: false
-  hasNextPage: false
-  hasPreviousPage: false
-  isFetchingNextPage: false
-  isFetchingPreviousPage: false
+  hasNextPage: boolean
+  hasPreviousPage: boolean
+  isFetchingNextPage: boolean
+  isFetchingPreviousPage: boolean
 }
 
 type UseInfiniteQueryStateDefaultResult<
@@ -1399,6 +1433,8 @@ const noPendingQueryStateSelector: QueryStateSelector<any, any> = (
       isUninitialized: false,
       isFetching: true,
       isLoading: selected.data !== undefined ? false : true,
+      // This is the one place where we still have to use `QueryStatus` as an enum,
+      // since it's the only reference in the React package and not in the core.
       status: QueryStatus.pending,
     } as any
   }
@@ -1457,6 +1493,15 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     deps?: DependencyList,
   ) => void = unstable__sideEffectsInRender ? (cb) => cb() : useEffect
 
+  type UnsubscribePromiseRef = React.RefObject<
+    { unsubscribe?: () => void } | undefined
+  >
+
+  const unsubscribePromiseRef = (ref: UnsubscribePromiseRef) =>
+    ref.current?.unsubscribe?.()
+
+  const endpointDefinitions = context.endpointDefinitions
+
   return {
     buildQueryHooks,
     buildInfiniteQueryHooks,
@@ -1474,7 +1519,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     // in this case, reset the hook
     if (lastResult?.endpointName && currentState.isUninitialized) {
       const { endpointName } = lastResult
-      const endpointDefinition = context.endpointDefinitions[endpointName]
+      const endpointDefinition = endpointDefinitions[endpointName]
       if (
         queryArgs !== skipToken &&
         serializeQueryArgs({
@@ -1534,7 +1579,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     // in this case, reset the hook
     if (lastResult?.endpointName && currentState.isUninitialized) {
       const { endpointName } = lastResult
-      const endpointDefinition = context.endpointDefinitions[endpointName]
+      const endpointDefinition = endpointDefinitions[endpointName]
       if (
         queryArgs !== skipToken &&
         serializeQueryArgs({
@@ -1644,17 +1689,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       subscriptionSelectorsRef.current =
         returnedValue as unknown as SubscriptionSelectors
     }
-    const stableArg = useStableQueryArgs(
-      skip ? skipToken : arg,
-      // Even if the user provided a per-endpoint `serializeQueryArgs` with
-      // a consistent return value, _here_ we want to use the default behavior
-      // so we can tell if _anything_ actually changed. Otherwise, we can end up
-      // with a case where the query args did change but the serialization doesn't,
-      // and then we never try to initiate a refetch.
-      defaultSerializeQueryArgs,
-      context.endpointDefinitions[endpointName],
-      endpointName,
-    )
+    const stableArg = useStableQueryArgs(skip ? skipToken : arg)
     const stableSubscriptionOptions = useShallowStableValue({
       refetchOnReconnect,
       refetchOnFocus,
@@ -1665,6 +1700,11 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     const initialPageParam = (rest as UseInfiniteQuerySubscriptionOptions<any>)
       .initialPageParam
     const stableInitialPageParam = useShallowStableValue(initialPageParam)
+
+    const refetchCachedPages = (
+      rest as UseInfiniteQuerySubscriptionOptions<any>
+    ).refetchCachedPages
+    const stableRefetchCachedPages = useShallowStableValue(refetchCachedPages)
 
     /**
      * @todo Change this to `useRef<QueryActionCreatorResult<any>>(undefined)` after upgrading to React 19.
@@ -1717,11 +1757,10 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           initiate(stableArg, {
             subscriptionOptions: stableSubscriptionOptions,
             forceRefetch: refetchOnMountOrArgChange,
-            ...(isInfiniteQueryDefinition(
-              context.endpointDefinitions[endpointName],
-            )
+            ...(isInfiniteQueryDefinition(endpointDefinitions[endpointName])
               ? {
                   initialPageParam: stableInitialPageParam,
+                  refetchCachedPages: stableRefetchCachedPages,
                 }
               : {}),
           }),
@@ -1739,6 +1778,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       stableSubscriptionOptions,
       subscriptionRemoved,
       stableInitialPageParam,
+      stableRefetchCachedPages,
       endpointName,
     ])
 
@@ -1764,12 +1804,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         QueryDefinition<any, any, any, any, any>,
         Definitions
       >
-      const stableArg = useStableQueryArgs(
-        skip ? skipToken : arg,
-        serializeQueryArgs,
-        context.endpointDefinitions[endpointName],
-        endpointName,
-      )
+      const stableArg = useStableQueryArgs(skip ? skipToken : arg)
 
       type ApiRootState = Parameters<ReturnType<typeof select>>[0]
 
@@ -1830,11 +1865,11 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
   }
 
   function usePromiseRefUnsubscribeOnUnmount(
-    promiseRef: React.RefObject<{ unsubscribe?: () => void } | undefined>,
+    promiseRef: UnsubscribePromiseRef,
   ) {
     useEffect(() => {
       return () => {
-        promiseRef.current?.unsubscribe?.()
+        unsubscribePromiseRef(promiseRef)
         // eslint-disable-next-line react-hooks/exhaustive-deps
         ;(promiseRef.current as any) = undefined
       }
@@ -1922,7 +1957,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           let promise: QueryActionCreatorResult<any>
 
           batch(() => {
-            promiseRef.current?.unsubscribe()
+            unsubscribePromiseRef(promiseRef)
 
             promiseRef.current = promise = dispatch(
               initiate(arg, {
@@ -1952,7 +1987,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       /* cleanup on unmount */
       useEffect(() => {
         return () => {
-          promiseRef?.current?.unsubscribe()
+          unsubscribePromiseRef(promiseRef)
         }
       }, [])
 
@@ -2031,12 +2066,20 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         subscriptionOptionsRef.current = stableSubscriptionOptions
       }, [stableSubscriptionOptions])
 
+      // Extract and stabilize the hook-level refetchCachedPages option
+      const hookRefetchCachedPages = (
+        options as UseInfiniteQuerySubscriptionOptions<any>
+      ).refetchCachedPages
+      const stableHookRefetchCachedPages = useShallowStableValue(
+        hookRefetchCachedPages,
+      )
+
       const trigger: LazyInfiniteQueryTrigger<any> = useCallback(
         function (arg: unknown, direction: 'forward' | 'backward') {
           let promise: InfiniteQueryActionCreatorResult<any>
 
           batch(() => {
-            promiseRef.current?.unsubscribe()
+            unsubscribePromiseRef(promiseRef)
 
             promiseRef.current = promise = dispatch(
               (initiate as StartInfiniteQueryActionCreator<any>)(arg, {
@@ -2053,21 +2096,27 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
       usePromiseRefUnsubscribeOnUnmount(promiseRef)
 
-      const stableArg = useStableQueryArgs(
-        options.skip ? skipToken : arg,
-        // Even if the user provided a per-endpoint `serializeQueryArgs` with
-        // a consistent return value, _here_ we want to use the default behavior
-        // so we can tell if _anything_ actually changed. Otherwise, we can end up
-        // with a case where the query args did change but the serialization doesn't,
-        // and then we never try to initiate a refetch.
-        defaultSerializeQueryArgs,
-        context.endpointDefinitions[endpointName],
-        endpointName,
-      )
+      const stableArg = useStableQueryArgs(options.skip ? skipToken : arg)
 
       const refetch = useCallback(
-        () => refetchOrErrorIfUnmounted(promiseRef),
-        [promiseRef],
+        (
+          options?: Pick<
+            UseInfiniteQuerySubscriptionOptions<any>,
+            'refetchCachedPages'
+          >,
+        ) => {
+          if (!promiseRef.current)
+            throw new Error(
+              'Cannot refetch a query that has not been started yet.',
+            )
+          // Merge per-call options with hook-level default
+          const mergedOptions = {
+            refetchCachedPages:
+              options?.refetchCachedPages ?? stableHookRefetchCachedPages,
+          }
+          return promiseRef.current.refetch(mergedOptions)
+        },
+        [promiseRef, stableHookRefetchCachedPages],
       )
 
       return useMemo(() => {

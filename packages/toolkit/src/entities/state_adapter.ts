@@ -1,4 +1,4 @@
-import { produce as createNextState, isDraft } from 'immer'
+import { createNextState, isDraft } from '../immerImports'
 import type { Draft } from 'immer'
 import type { EntityId, DraftableEntityState, PreventAny } from './models'
 import type { PayloadAction } from '../createAction'

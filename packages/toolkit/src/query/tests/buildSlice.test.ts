@@ -1,9 +1,14 @@
-import { createSlice } from '@reduxjs/toolkit'
+import { createSlice, createAction } from '@reduxjs/toolkit'
+import type { CombinedState } from '@reduxjs/toolkit/query'
 import { createApi } from '@reduxjs/toolkit/query'
 import { delay } from 'msw'
 import { setupApiStore } from '../../tests/utils/helpers'
 
 let shouldApiResponseSuccess = true
+
+const rehydrateAction = createAction<{ api: CombinedState<any, any, any> }>(
+  'persist/REHYDRATE',
+)
 
 const baseQuery = (args?: any) => ({ data: args })
 const api = createApi({
@@ -17,6 +22,12 @@ const api = createApi({
       providesTags: (result) => (result?.success ? ['SUCCEED'] : ['FAILED']),
     }),
   }),
+  extractRehydrationInfo(action, { reducerPath }) {
+    if (rehydrateAction.match(action)) {
+      return action.payload?.[reducerPath]
+    }
+    return undefined
+  },
 })
 const { getUser } = api.endpoints
 
@@ -113,6 +124,20 @@ describe('buildSlice', () => {
     expect(
       api.util.selectInvalidatedBy(storeRef.store.getState(), ['FAILED']),
     ).toHaveLength(1)
+  })
+
+  it('handles extractRehydrationInfo correctly', async () => {
+    await storeRef.store.dispatch(getUser.initiate(1))
+    await storeRef.store.dispatch(getUser.initiate(2))
+
+    const stateWithUser = storeRef.store.getState()
+
+    storeRef.store.dispatch(api.util.resetApiState())
+
+    storeRef.store.dispatch(rehydrateAction({ api: stateWithUser.api }))
+
+    const rehydratedState = storeRef.store.getState()
+    expect(rehydratedState).toEqual(stateWithUser)
   })
 })
 

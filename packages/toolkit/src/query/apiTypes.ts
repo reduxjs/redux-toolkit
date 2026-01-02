@@ -1,6 +1,6 @@
 import type { UnknownAction } from '@reduxjs/toolkit'
 import type { BaseQueryFn } from './baseQueryTypes'
-import type { CombinedState, CoreModule } from './core'
+import type { CombinedState, CoreModule, QueryKeys } from './core'
 import type { ApiModules } from './core/module'
 import type { CreateApiOptions } from './createApi'
 import type {
@@ -55,6 +55,14 @@ export interface ApiContext<Definitions extends EndpointDefinitions> {
   ) => CombinedState<any, any, any> | undefined
   hasRehydrationInfo: (action: UnknownAction) => boolean
 }
+
+export const getEndpointDefinition = <
+  Definitions extends EndpointDefinitions,
+  EndpointName extends keyof Definitions,
+>(
+  context: ApiContext<Definitions>,
+  endpointName: EndpointName,
+) => context.endpointDefinitions[endpointName]
 
 export type Api<
   BaseQuery extends BaseQueryFn,

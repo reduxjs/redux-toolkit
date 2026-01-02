@@ -156,6 +156,50 @@ describe(`query: await cleanup, keepUnusedDataFor set`, () => {
   })
 })
 
+describe('resetApiState cleanup', () => {
+  test('resetApiState aborts multiple running queries and mutations', async () => {
+    const { store, api } = storeForApi(
+      createApi({
+        baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
+        endpoints: (build) => ({
+          query1: build.query<unknown, string>({
+            query: () => '/success',
+          }),
+          query2: build.query<unknown, string>({
+            query: () => '/success',
+          }),
+          mutation: build.mutation<unknown, string>({
+            query: () => ({
+              url: '/success',
+              method: 'POST',
+            }),
+          }),
+        }),
+      }),
+    )
+
+    // Start multiple queries and a mutation
+    const queryPromise1 = store.dispatch(api.endpoints.query1.initiate('arg1'))
+    const queryPromise2 = store.dispatch(api.endpoints.query2.initiate('arg2'))
+    const mutationPromise = store.dispatch(
+      api.endpoints.mutation.initiate('arg'),
+    )
+
+    // Spy on abort methods
+    queryPromise1.abort = vi.fn(queryPromise1.abort)
+    queryPromise2.abort = vi.fn(queryPromise2.abort)
+    mutationPromise.abort = vi.fn(mutationPromise.abort)
+
+    // Dispatch resetApiState
+    store.dispatch(api.util.resetApiState())
+
+    // Verify all aborts were called
+    expect(queryPromise1.abort).toHaveBeenCalled()
+    expect(queryPromise2.abort).toHaveBeenCalled()
+    expect(mutationPromise.abort).toHaveBeenCalled()
+  })
+})
+
 function storeForApi<
   A extends {
     reducerPath: 'api'

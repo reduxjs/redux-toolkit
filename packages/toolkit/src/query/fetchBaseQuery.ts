@@ -2,6 +2,7 @@ import { joinUrls } from './utils'
 import { isPlainObject } from './core/rtkImports'
 import type { BaseQueryApi, BaseQueryFn } from './baseQueryTypes'
 import type { MaybePromise, Override } from './tsHelpers'
+import { anySignal, timeoutSignal } from './utils/signals'
 
 export type ResponseHandler =
   | 'content-type'
@@ -104,6 +105,13 @@ function stripUndefined(obj: any) {
   }
   return copy
 }
+
+// Only set the content-type to json if appropriate. Will not be true for FormData, ArrayBuffer, Blob, etc.
+const isJsonifiable = (body: any) =>
+  typeof body === 'object' &&
+  (isPlainObject(body) ||
+    Array.isArray(body) ||
+    typeof body.toJSON === 'function')
 
 export type FetchBaseQueryArgs = {
   baseUrl?: string
@@ -226,17 +234,11 @@ export function fetchBaseQuery({
       ...rest
     } = typeof arg == 'string' ? { url: arg } : arg
 
-    let abortController: AbortController | undefined,
-      signal = api.signal
-    if (timeout) {
-      abortController = new AbortController()
-      api.signal.addEventListener('abort', abortController.abort)
-      signal = abortController.signal
-    }
-
     let config: RequestInit = {
       ...baseFetchOptions,
-      signal,
+      signal: timeout
+        ? anySignal(api.signal, timeoutSignal(timeout))
+        : api.signal,
       ...rest,
     }
 
@@ -252,19 +254,34 @@ export function fetchBaseQuery({
         extraOptions,
       })) || headers
 
-    // Only set the content-type to json if appropriate. Will not be true for FormData, ArrayBuffer, Blob, etc.
-    const isJsonifiable = (body: any) =>
-      typeof body === 'object' &&
-      (isPlainObject(body) ||
-        Array.isArray(body) ||
-        typeof body.toJSON === 'function')
+    const bodyIsJsonifiable = isJsonifiable(config.body)
 
-    if (!config.headers.has('content-type') && isJsonifiable(config.body)) {
+    // Remove content-type for non-jsonifiable bodies to let the browser set it automatically
+    // Exception: keep content-type for string bodies as they might be intentional (text/plain, text/html, etc.)
+    if (
+      config.body != null &&
+      !bodyIsJsonifiable &&
+      typeof config.body !== 'string'
+    ) {
+      config.headers.delete('content-type')
+    }
+
+    if (!config.headers.has('content-type') && bodyIsJsonifiable) {
       config.headers.set('content-type', jsonContentType)
     }
 
-    if (isJsonifiable(config.body) && isJsonContentType(config.headers)) {
+    if (bodyIsJsonifiable && isJsonContentType(config.headers)) {
       config.body = JSON.stringify(config.body, jsonReplacer)
+    }
+
+    // Set Accept header based on responseHandler if not already set
+    if (!config.headers.has('accept')) {
+      if (responseHandler === 'json') {
+        config.headers.set('accept', 'application/json')
+      } else if (responseHandler === 'text') {
+        config.headers.set('accept', 'text/plain, text/html, */*')
+      }
+      // For 'content-type' responseHandler, don't set Accept (let server decide)
     }
 
     if (params) {
@@ -281,30 +298,23 @@ export function fetchBaseQuery({
     const requestClone = new Request(url, config)
     meta = { request: requestClone }
 
-    let response,
-      timedOut = false,
-      timeoutId =
-        abortController &&
-        setTimeout(() => {
-          timedOut = true
-          abortController!.abort()
-        }, timeout)
+    let response
     try {
       response = await fetchFn(request)
     } catch (e) {
       return {
         error: {
-          status: timedOut ? 'TIMEOUT_ERROR' : 'FETCH_ERROR',
+          status:
+            (e instanceof Error ||
+              (typeof DOMException !== 'undefined' &&
+                e instanceof DOMException)) &&
+            e.name === 'TimeoutError'
+              ? 'TIMEOUT_ERROR'
+              : 'FETCH_ERROR',
           error: String(e),
         },
         meta,
       }
-    } finally {
-      if (timeoutId) clearTimeout(timeoutId)
-      abortController?.signal.removeEventListener(
-        'abort',
-        abortController.abort,
-      )
     }
     const responseClone = response.clone()
 

@@ -12,6 +12,7 @@ import type {
   FetchBaseQueryMeta,
   OverrideResultType,
   SchemaFailureConverter,
+  SchemaType,
   SerializeQueryArgs,
   TagTypesFromApi,
 } from '@reduxjs/toolkit/query'
@@ -711,6 +712,7 @@ describe('additional transformResponse behaviors', () => {
       meta: {
         request: {
           headers: {
+            accept: 'application/json',
             'content-type': 'application/json',
           },
         },
@@ -732,7 +734,9 @@ describe('additional transformResponse behaviors', () => {
       value: 'success',
       meta: {
         request: {
-          headers: {},
+          headers: {
+            accept: 'application/json',
+          },
         },
         response: {
           headers: {
@@ -1193,7 +1197,7 @@ describe('timeout behavior', () => {
 
     expect(result?.error).toEqual({
       status: 'TIMEOUT_ERROR',
-      error: expect.stringMatching(/^AbortError:/),
+      error: expect.stringMatching(/^TimeoutError/),
     })
   })
 })
@@ -1215,8 +1219,8 @@ describe('endpoint schemas', () => {
     stack: expect.any(String),
   } satisfies SerializedError
 
-  const onSchemaFailureGlobal = vi.fn<Parameters<SchemaFailureHandler>>()
-  const onSchemaFailureEndpoint = vi.fn<Parameters<SchemaFailureHandler>>()
+  const onSchemaFailureGlobal = vi.fn<SchemaFailureHandler>()
+  const onSchemaFailureEndpoint = vi.fn<SchemaFailureHandler>()
   afterEach(() => {
     onSchemaFailureGlobal.mockClear()
     onSchemaFailureEndpoint.mockClear()
@@ -1227,7 +1231,7 @@ describe('endpoint schemas', () => {
     value,
     arg,
   }: {
-    schemaName: string
+    schemaName: `${SchemaType}Schema`
     value: unknown
     arg: unknown
   }) {
@@ -1244,30 +1248,49 @@ describe('endpoint schemas', () => {
     }
   }
 
+  interface SkipApiOptions {
+    globalSkip?: boolean
+    endpointSkip?: boolean
+    useArray?: boolean
+    globalCatch?: boolean
+    endpointCatch?: boolean
+  }
+
+  const apiOptions = (
+    type: SchemaType,
+    { useArray, globalSkip, globalCatch }: SkipApiOptions = {},
+  ) => ({
+    onSchemaFailure: onSchemaFailureGlobal,
+    skipSchemaValidation: useArray ? globalSkip && [type] : globalSkip,
+    catchSchemaFailure: globalCatch ? schemaConverter : undefined,
+  })
+
+  const endpointOptions = (
+    type: SchemaType,
+    { useArray, endpointSkip, endpointCatch }: SkipApiOptions = {},
+  ) => ({
+    onSchemaFailure: onSchemaFailureEndpoint,
+    skipSchemaValidation: useArray ? endpointSkip && [type] : endpointSkip,
+    catchSchemaFailure: endpointCatch ? schemaConverter : undefined,
+  })
+
+  const skipCases: [string, SkipApiOptions][] = [
+    ['globally', { globalSkip: true }],
+    ['on the endpoint', { endpointSkip: true }],
+    ['globally (array)', { globalSkip: true, useArray: true }],
+    ['on the endpoint (array)', { endpointSkip: true, useArray: true }],
+  ]
+
   describe('argSchema', () => {
-    const makeApi = ({
-      globalSkip,
-      endpointSkip,
-      globalCatch,
-      endpointCatch,
-    }: {
-      globalSkip?: boolean
-      endpointSkip?: boolean
-      globalCatch?: boolean
-      endpointCatch?: boolean
-    } = {}) =>
+    const makeApi = (opts?: SkipApiOptions) =>
       createApi({
         baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
-        onSchemaFailure: onSchemaFailureGlobal,
-        skipSchemaValidation: globalSkip,
-        catchSchemaFailure: globalCatch ? schemaConverter : undefined,
+        ...apiOptions('arg', opts),
         endpoints: (build) => ({
           query: build.query<unknown, { id: number }>({
             query: ({ id }) => `/post/${id}`,
             argSchema: v.object({ id: v.number() }),
-            onSchemaFailure: onSchemaFailureEndpoint,
-            skipSchemaValidation: endpointSkip,
-            catchSchemaFailure: endpointCatch ? schemaConverter : undefined,
+            ...endpointOptions('arg', opts),
           }),
         }),
       })
@@ -1296,22 +1319,9 @@ describe('endpoint schemas', () => {
         arg: { id: '1' },
       })
     })
-    test('can be skipped globally', async () => {
-      const api = makeApi({ globalSkip: true })
 
-      const storeRef = setupApiStore(api, undefined, {
-        withoutTestLifecycles: true,
-      })
-
-      const result = await storeRef.store.dispatch(
-        // @ts-expect-error
-        api.endpoints.query.initiate({ id: '1' }),
-      )
-
-      expect(result?.error).toBeUndefined()
-    })
-    test('can be skipped on the endpoint', async () => {
-      const api = makeApi({ endpointSkip: true })
+    test.each(skipCases)('can be skipped %s', async (_, arg) => {
+      const api = makeApi(arg)
 
       const storeRef = setupApiStore(api, undefined, {
         withoutTestLifecycles: true,
@@ -1387,29 +1397,15 @@ describe('endpoint schemas', () => {
     })
   })
   describe('rawResponseSchema', () => {
-    const makeApi = ({
-      globalSkip,
-      endpointSkip,
-      globalCatch,
-      endpointCatch,
-    }: {
-      globalSkip?: boolean
-      endpointSkip?: boolean
-      globalCatch?: boolean
-      endpointCatch?: boolean
-    } = {}) =>
+    const makeApi = (opts?: SkipApiOptions) =>
       createApi({
         baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
-        onSchemaFailure: onSchemaFailureGlobal,
-        catchSchemaFailure: globalCatch ? schemaConverter : undefined,
-        skipSchemaValidation: globalSkip,
+        ...apiOptions('rawResponse', opts),
         endpoints: (build) => ({
           query: build.query<{ success: boolean }, void>({
             query: () => '/success',
             rawResponseSchema: v.object({ value: v.literal('success!') }),
-            onSchemaFailure: onSchemaFailureEndpoint,
-            catchSchemaFailure: endpointCatch ? schemaConverter : undefined,
-            skipSchemaValidation: endpointSkip,
+            ...endpointOptions('rawResponse', opts),
           }),
         }),
       })
@@ -1428,8 +1424,8 @@ describe('endpoint schemas', () => {
         arg: undefined,
       })
     })
-    test('can be skipped globally', async () => {
-      const api = makeApi({ globalSkip: true })
+    test.each(skipCases)('can be skipped %s', async (_, arg) => {
+      const api = makeApi(arg)
       const storeRef = setupApiStore(api, undefined, {
         withoutTestLifecycles: true,
       })
@@ -1488,30 +1484,16 @@ describe('endpoint schemas', () => {
     })
   })
   describe('responseSchema', () => {
-    const makeApi = ({
-      globalSkip,
-      endpointSkip,
-      globalCatch,
-      endpointCatch,
-    }: {
-      globalSkip?: boolean
-      endpointSkip?: boolean
-      globalCatch?: boolean
-      endpointCatch?: boolean
-    } = {}) =>
+    const makeApi = (opts?: SkipApiOptions) =>
       createApi({
         baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
-        onSchemaFailure: onSchemaFailureGlobal,
-        catchSchemaFailure: globalCatch ? schemaConverter : undefined,
-        skipSchemaValidation: globalSkip,
+        ...apiOptions('response', opts),
         endpoints: (build) => ({
           query: build.query<{ success: boolean }, void>({
             query: () => '/success',
             transformResponse: () => ({ success: false }),
             responseSchema: v.object({ success: v.literal(true) }),
-            onSchemaFailure: onSchemaFailureEndpoint,
-            catchSchemaFailure: endpointCatch ? schemaConverter : undefined,
-            skipSchemaValidation: endpointSkip,
+            ...endpointOptions('response', opts),
           }),
         }),
       })
@@ -1531,18 +1513,8 @@ describe('endpoint schemas', () => {
         arg: undefined,
       })
     })
-    test('can be skipped globally', async () => {
-      const api = makeApi({ globalSkip: true })
-      const storeRef = setupApiStore(api, undefined, {
-        withoutTestLifecycles: true,
-      })
-      const result = await storeRef.store.dispatch(
-        api.endpoints.query.initiate(),
-      )
-      expect(result?.error).toBeUndefined()
-    })
-    test('can be skipped on the endpoint', async () => {
-      const api = makeApi({ endpointSkip: true })
+    test.each(skipCases)('can be skipped %s', async (_, arg) => {
+      const api = makeApi(arg)
       const storeRef = setupApiStore(api, undefined, {
         withoutTestLifecycles: true,
       })
@@ -1591,22 +1563,10 @@ describe('endpoint schemas', () => {
     })
   })
   describe('rawErrorResponseSchema', () => {
-    const makeApi = ({
-      globalSkip,
-      endpointSkip,
-      globalCatch,
-      endpointCatch,
-    }: {
-      globalSkip?: boolean
-      endpointSkip?: boolean
-      globalCatch?: boolean
-      endpointCatch?: boolean
-    } = {}) =>
+    const makeApi = (opts?: SkipApiOptions) =>
       createApi({
         baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
-        onSchemaFailure: onSchemaFailureGlobal,
-        catchSchemaFailure: globalCatch ? schemaConverter : undefined,
-        skipSchemaValidation: globalSkip,
+        ...apiOptions('rawErrorResponse', opts),
         endpoints: (build) => ({
           query: build.query<{ success: boolean }, void>({
             query: () => '/error',
@@ -1614,9 +1574,7 @@ describe('endpoint schemas', () => {
               status: v.pipe(v.number(), v.minValue(400), v.maxValue(499)),
               data: v.unknown(),
             }),
-            onSchemaFailure: onSchemaFailureEndpoint,
-            catchSchemaFailure: endpointCatch ? schemaConverter : undefined,
-            skipSchemaValidation: endpointSkip,
+            ...endpointOptions('rawErrorResponse', opts),
           }),
         }),
       })
@@ -1635,18 +1593,8 @@ describe('endpoint schemas', () => {
         arg: undefined,
       })
     })
-    test('can be skipped globally', async () => {
-      const api = makeApi({ globalSkip: true })
-      const storeRef = setupApiStore(api, undefined, {
-        withoutTestLifecycles: true,
-      })
-      const result = await storeRef.store.dispatch(
-        api.endpoints.query.initiate(),
-      )
-      expect(result?.error).not.toEqual(serializedSchemaError)
-    })
-    test('can be skipped on the endpoint', async () => {
-      const api = makeApi({ endpointSkip: true })
+    test.each(skipCases)('can be skipped %s', async (_, arg) => {
+      const api = makeApi(arg)
       const storeRef = setupApiStore(api, undefined, {
         withoutTestLifecycles: true,
       })
@@ -1695,22 +1643,10 @@ describe('endpoint schemas', () => {
     })
   })
   describe('errorResponseSchema', () => {
-    const makeApi = ({
-      globalSkip,
-      endpointSkip,
-      globalCatch,
-      endpointCatch,
-    }: {
-      globalSkip?: boolean
-      endpointSkip?: boolean
-      globalCatch?: boolean
-      endpointCatch?: boolean
-    } = {}) =>
+    const makeApi = (opts?: SkipApiOptions) =>
       createApi({
         baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
-        onSchemaFailure: onSchemaFailureGlobal,
-        catchSchemaFailure: globalCatch ? schemaConverter : undefined,
-        skipSchemaValidation: globalSkip,
+        ...apiOptions('errorResponse', opts),
         endpoints: (build) => ({
           query: build.query<{ success: boolean }, void>({
             query: () => '/error',
@@ -1724,9 +1660,7 @@ describe('endpoint schemas', () => {
               error: v.literal('oh no'),
               data: v.unknown(),
             }),
-            onSchemaFailure: onSchemaFailureEndpoint,
-            catchSchemaFailure: endpointCatch ? schemaConverter : undefined,
-            skipSchemaValidation: endpointSkip,
+            ...endpointOptions('errorResponse', opts),
           }),
         }),
       })
@@ -1749,18 +1683,8 @@ describe('endpoint schemas', () => {
         arg: undefined,
       })
     })
-    test('can be skipped globally', async () => {
-      const api = makeApi({ globalSkip: true })
-      const storeRef = setupApiStore(api, undefined, {
-        withoutTestLifecycles: true,
-      })
-      const result = await storeRef.store.dispatch(
-        api.endpoints.query.initiate(),
-      )
-      expect(result?.error).not.toEqual(serializedSchemaError)
-    })
-    test('can be skipped on the endpoint', async () => {
-      const api = makeApi({ endpointSkip: true })
+    test.each(skipCases)('can be skipped %s', async (_, arg) => {
+      const api = makeApi(arg)
       const storeRef = setupApiStore(api, undefined, {
         withoutTestLifecycles: true,
       })
@@ -1817,22 +1741,10 @@ describe('endpoint schemas', () => {
     })
   })
   describe('metaSchema', () => {
-    const makeApi = ({
-      globalSkip,
-      endpointSkip,
-      globalCatch,
-      endpointCatch,
-    }: {
-      globalSkip?: boolean
-      endpointSkip?: boolean
-      globalCatch?: boolean
-      endpointCatch?: boolean
-    } = {}) =>
+    const makeApi = (opts?: SkipApiOptions) =>
       createApi({
         baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
-        onSchemaFailure: onSchemaFailureGlobal,
-        catchSchemaFailure: globalCatch ? schemaConverter : undefined,
-        skipSchemaValidation: globalSkip,
+        ...apiOptions('meta', opts),
         endpoints: (build) => ({
           query: build.query<{ success: boolean }, void>({
             query: () => '/success',
@@ -1841,9 +1753,7 @@ describe('endpoint schemas', () => {
               response: v.instance(Response),
               timestamp: v.number(),
             }),
-            onSchemaFailure: onSchemaFailureEndpoint,
-            catchSchemaFailure: endpointCatch ? schemaConverter : undefined,
-            skipSchemaValidation: endpointSkip,
+            ...endpointOptions('meta', opts),
           }),
         }),
       })
@@ -1865,18 +1775,8 @@ describe('endpoint schemas', () => {
         arg: undefined,
       })
     })
-    test('can be skipped globally', async () => {
-      const api = makeApi({ globalSkip: true })
-      const storeRef = setupApiStore(api, undefined, {
-        withoutTestLifecycles: true,
-      })
-      const result = await storeRef.store.dispatch(
-        api.endpoints.query.initiate(),
-      )
-      expect(result?.error).toBeUndefined()
-    })
-    test('can be skipped on the endpoint', async () => {
-      const api = makeApi({ endpointSkip: true })
+    test.each(skipCases)('can be skipped %s', async (_, arg) => {
+      const api = makeApi(arg)
       const storeRef = setupApiStore(api, undefined, {
         withoutTestLifecycles: true,
       })

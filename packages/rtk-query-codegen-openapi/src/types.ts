@@ -115,6 +115,25 @@ export interface CommonOptions {
    * TODO: Fill out this JSDoc
    */
   exactOperationIds?: boolean;
+   * Determines the fallback type for empty schemas.
+   *
+   * If set to **`true`**, **`unknown`** will be used
+   * instead of **`any`** when a schema is empty.
+   *
+   * @default false
+   * @since 2.1.0
+   */
+  useUnknown?: boolean;
+  /**
+   * @default false
+   * Will generate imports with file extension matching the expected compiled output of the api file
+   */
+  esmExtensions?: boolean;
+  /**
+   * @default false
+   * Will generate regex constants for pattern keywords in the schema
+   */
+  outputRegexConstants?: boolean;
 }
 
 export type TextMatcher = string | RegExp | (string | RegExp)[];
@@ -138,11 +157,34 @@ export interface OutputFileOptions extends Partial<CommonOptions> {
   useEnumType?: boolean;
 }
 
+/**
+ * Configuration for overriding specific endpoint behaviors during code generation.
+ * At least one override option (besides `pattern`) must be specified.
+ */
 export type EndpointOverrides = {
+  /** Pattern to match endpoint names. Can be a string, RegExp, or matcher function. */
   pattern: EndpointMatcher;
 } & AtLeastOneKey<{
+  /** Override the endpoint type (query vs mutation) when the inferred type is incorrect. */
   type: 'mutation' | 'query';
+  /** Filter which parameters are included in the generated endpoint. Path parameters cannot be filtered. */
   parameterFilter: ParameterMatcher;
+  /**
+   * Override providesTags for this endpoint.
+   * Takes precedence over auto-generated tags from OpenAPI spec.
+   * Use an empty array to explicitly omit providesTags.
+   * Works regardless of the global `tag` setting and endpoint type.
+   * @example ['Pet', 'SinglePet']
+   */
+  providesTags: string[];
+  /**
+   * Override invalidatesTags for this endpoint.
+   * Takes precedence over auto-generated tags from OpenAPI spec.
+   * Use an empty array to explicitly omit invalidatesTags.
+   * Works regardless of the global `tag` setting and endpoint type.
+   * @example ['Pet', 'PetList']
+   */
+  invalidatesTags: string[];
 }>;
 
 export type ConfigFile =

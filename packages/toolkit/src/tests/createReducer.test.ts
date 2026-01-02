@@ -7,10 +7,12 @@ import type {
 } from '@reduxjs/toolkit'
 import {
   createAction,
+  createAsyncThunk,
   createNextState,
   createReducer,
   isPlainObject,
 } from '@reduxjs/toolkit'
+import { waitMs } from './utils/helpers'
 
 interface Todo {
   text: string
@@ -38,6 +40,8 @@ type ToggleTodoReducer = CaseReducer<
 >
 
 type CreateReducer = typeof createReducer
+
+const addTodoThunk = createAsyncThunk('todos/add', (todo: Todo) => todo)
 
 describe('createReducer', () => {
   describe('given impure reducers with immer', () => {
@@ -341,24 +345,24 @@ describe('createReducer', () => {
       expect(reducer(5, decrement(5))).toBe(0)
     })
     test('will throw if the same type is used twice', () => {
-      expect(() =>
-        createReducer(0, (builder) =>
+      expect(() => {
+        createReducer(0, (builder) => {
           builder
             .addCase(increment, (state, action) => state + action.payload)
             .addCase(increment, (state, action) => state + action.payload)
-            .addCase(decrement, (state, action) => state - action.payload),
-        ),
-      ).toThrowErrorMatchingInlineSnapshot(
+            .addCase(decrement, (state, action) => state - action.payload)
+        })
+      }).toThrowErrorMatchingInlineSnapshot(
         `[Error: \`builder.addCase\` cannot be called with two reducers for the same action type 'increment']`,
       )
-      expect(() =>
-        createReducer(0, (builder) =>
+      expect(() => {
+        createReducer(0, (builder) => {
           builder
             .addCase(increment, (state, action) => state + action.payload)
             .addCase('increment', (state) => state + 1)
-            .addCase(decrement, (state, action) => state - action.payload),
-        ),
-      ).toThrowErrorMatchingInlineSnapshot(
+            .addCase(decrement, (state, action) => state - action.payload)
+        })
+      }).toThrowErrorMatchingInlineSnapshot(
         `[Error: \`builder.addCase\` cannot be called with two reducers for the same action type 'increment']`,
       )
     })
@@ -369,14 +373,14 @@ describe('createReducer', () => {
         payload,
       })
       customActionCreator.type = ''
-      expect(() =>
-        createReducer(0, (builder) =>
+      expect(() => {
+        createReducer(0, (builder) => {
           builder.addCase(
             customActionCreator,
             (state, action) => state + action.payload,
-          ),
-        ),
-      ).toThrowErrorMatchingInlineSnapshot(
+          )
+        })
+      }).toThrowErrorMatchingInlineSnapshot(
         `[Error: \`builder.addCase\` cannot be called with an empty action type]`,
       )
     })
@@ -526,6 +530,56 @@ describe('createReducer', () => {
         ),
       ).toThrowErrorMatchingInlineSnapshot(
         `[Error: \`builder.addDefaultCase\` can only be called once]`,
+      )
+    })
+  })
+  describe('builder "addAsyncThunk" method', () => {
+    const initialState = { todos: [] as Todo[], loading: false, errored: false }
+    test('uses the matching reducer for each action type', () => {
+      const reducer = createReducer(initialState, (builder) =>
+        builder.addAsyncThunk(addTodoThunk, {
+          pending(state) {
+            state.loading = true
+          },
+          fulfilled(state, action) {
+            state.todos.push(action.payload)
+          },
+          rejected(state) {
+            state.errored = true
+          },
+          settled(state) {
+            state.loading = false
+          },
+        }),
+      )
+      const todo: Todo = { text: 'test' }
+      expect(reducer(undefined, addTodoThunk.pending('test', todo))).toEqual({
+        todos: [],
+        loading: true,
+        errored: false,
+      })
+      expect(
+        reducer(undefined, addTodoThunk.fulfilled(todo, 'test', todo)),
+      ).toEqual({
+        todos: [todo],
+        loading: false,
+        errored: false,
+      })
+      expect(
+        reducer(undefined, addTodoThunk.rejected(new Error(), 'test', todo)),
+      ).toEqual({
+        todos: [],
+        loading: false,
+        errored: true,
+      })
+    })
+    test('calling addAsyncThunk after addDefaultCase should result in an error in development mode', () => {
+      expect(() =>
+        createReducer(initialState, (builder: any) =>
+          builder.addDefaultCase(() => {}).addAsyncThunk(addTodoThunk, {}),
+        ),
+      ).toThrowErrorMatchingInlineSnapshot(
+        `[Error: \`builder.addAsyncThunk\` should only be called before calling \`builder.addDefaultCase\`]`,
       )
     })
   })

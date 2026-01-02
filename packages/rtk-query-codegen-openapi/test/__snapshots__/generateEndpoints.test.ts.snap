@@ -241,6 +241,7 @@ export type User = {
   email?: string;
   password?: string;
   phone?: string;
+  website?: string;
   /** User Status */
   userStatus?: number;
 };
@@ -488,6 +489,7 @@ export type User = {
   email?: string;
   password?: string;
   phone?: string;
+  website?: string;
   /** User Status */
   userStatus?: number;
 };
@@ -791,6 +793,7 @@ export type User = {
   email?: string | undefined;
   password?: string | undefined;
   phone?: string | undefined;
+  website?: string | undefined;
   /** User Status */
   userStatus?: number | undefined;
 };
@@ -1196,6 +1199,7 @@ export type User = {
   email?: string | undefined;
   password?: string | undefined;
   phone?: string | undefined;
+  website?: string | undefined;
   /** User Status */
   userStatus?: number | undefined;
 };
@@ -1477,6 +1481,7 @@ export type User = {
   email?: string | undefined;
   password?: string | undefined;
   phone?: string | undefined;
+  website?: string | undefined;
   /** User Status */
   userStatus?: number | undefined;
 };
@@ -1776,6 +1781,7 @@ export type User = {
   email?: string | undefined;
   password?: string | undefined;
   phone?: string | undefined;
+  website?: string | undefined;
   /** User Status */
   userStatus?: number | undefined;
 };
@@ -2057,6 +2063,7 @@ export type User = {
   email?: string | undefined;
   password?: string | undefined;
   phone?: string | undefined;
+  website?: string | undefined;
   /** User Status */
   userStatus?: number | undefined;
 };
@@ -2329,6 +2336,7 @@ export type User = {
   email?: string | undefined;
   password?: string | undefined;
   phone?: string | undefined;
+  website?: string | undefined;
   /** User Status */
   userStatus?: number | undefined;
 };
@@ -2445,6 +2453,64 @@ export type LoginUserApiArg = {
   password?: string;
 };
 export const { useLoginUserMutation } = injectedRtkApi;
+"
+`;
+
+exports[`hooks generation with operationNameSuffix > should generate an \`useGetPetByIdMySuffixQuery\` query hook and an \`useAddPetMySuffixMutation\` mutation hook 1`] = `
+"import { api } from "./fixtures/emptyApi";
+const injectedRtkApi = api.injectEndpoints({
+  endpoints: (build) => ({
+    AddPetMySuffix: build.mutation<
+      AddPetMySuffixApiResponse,
+      AddPetMySuffixApiArg
+    >({
+      query: (queryArg) => ({
+        url: \`/pet\`,
+        method: "POST",
+        body: queryArg.pet,
+      }),
+    }),
+    GetPetByIdMySuffix: build.query<
+      GetPetByIdMySuffixApiResponse,
+      GetPetByIdMySuffixApiArg
+    >({
+      query: (queryArg) => ({ url: \`/pet/\${queryArg.petId}\` }),
+    }),
+  }),
+  overrideExisting: false,
+});
+export { injectedRtkApi as enhancedApi };
+export type AddPetMySuffixApiResponse =
+  /** status 200 Successful operation */ Pet;
+export type AddPetMySuffixApiArg = {
+  /** Create a new pet in the store */
+  pet: Pet;
+};
+export type GetPetByIdMySuffixApiResponse =
+  /** status 200 successful operation */ Pet;
+export type GetPetByIdMySuffixApiArg = {
+  /** ID of pet to return */
+  petId: number;
+};
+export type Category = {
+  id?: number | undefined;
+  name?: string | undefined;
+};
+export type Tag = {
+  id?: number | undefined;
+  name?: string | undefined;
+};
+export type Pet = {
+  id?: number | undefined;
+  name: string;
+  category?: Category | undefined;
+  photoUrls: string[];
+  tags?: Tag[] | undefined;
+  /** pet status in the store */
+  status?: ("available" | "pending" | "sold") | undefined;
+};
+export const { useAddPetMySuffixMutation, useGetPetByIdMySuffixQuery } =
+  injectedRtkApi;
 "
 `;
 
@@ -2828,6 +2894,7 @@ export type User = {
   email?: string | undefined;
   password?: string | undefined;
   phone?: string | undefined;
+  website?: string | undefined;
   /** User Status */
   userStatus?: number | undefined;
 };
@@ -3135,6 +3202,57 @@ export type Cat = {
     catUniqueProp?: string | null;
   };
 export const { useGetApiV1AnimalsQuery } = injectedRtkApi;
+"
+`;
+
+exports[`tests from issues > issue #3369: discriminated unions should use enum values, not schema names 1`] = `
+"import { api } from "./tmp/emptyApi";
+const injectedRtkApi = api.injectEndpoints({
+  endpoints: (build) => ({
+    getAllowances: build.query<GetAllowancesApiResponse, GetAllowancesApiArg>({
+      query: () => ({ url: \`/api/allowances\` }),
+    }),
+    createAllowance: build.mutation<
+      CreateAllowanceApiResponse,
+      CreateAllowanceApiArg
+    >({
+      query: (queryArg) => ({
+        url: \`/api/allowances/\${queryArg.id}\`,
+        method: "POST",
+        body: queryArg.allowance,
+      }),
+    }),
+  }),
+  overrideExisting: false,
+});
+export { injectedRtkApi as enhancedApi };
+export type GetAllowancesApiResponse = /** status 200 Success */ Allowance[];
+export type GetAllowancesApiArg = void;
+export type CreateAllowanceApiResponse = /** status 201 Created */ Allowance;
+export type CreateAllowanceApiArg = {
+  id: string;
+  allowance: Allowance;
+};
+export type EngineeringAllowance = {
+  allowance_type?: "engineering";
+  distribution?: "MARECO" | "LINEAR";
+  capacity_speed_limit?: number;
+};
+export type StandardAllowance = {
+  allowance_type?: "standard";
+  default_value?: number;
+  ranges?: {
+    min?: number;
+    max?: number;
+  }[];
+};
+export type Allowance =
+  | ({
+      allowance_type: "engineering";
+    } & EngineeringAllowance)
+  | ({
+      allowance_type: "standard";
+    } & StandardAllowance);
 "
 `;
 
@@ -3455,6 +3573,7 @@ export type User = {
   email?: string | undefined;
   password?: string | undefined;
   phone?: string | undefined;
+  website?: string | undefined;
   /** User Status */
   userStatus?: number | undefined;
 };

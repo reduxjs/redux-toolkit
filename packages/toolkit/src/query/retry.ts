@@ -23,13 +23,34 @@ import { HandledError } from './HandledError'
  * @param attempt - Current attempt
  * @param maxRetries - Maximum number of retries
  */
-async function defaultBackoff(attempt: number = 0, maxRetries: number = 5) {
+async function defaultBackoff(
+  attempt: number = 0,
+  maxRetries: number = 5,
+  signal?: AbortSignal,
+) {
   const attempts = Math.min(attempt, maxRetries)
 
   const timeout = ~~((Math.random() + 0.4) * (300 << attempts)) // Force a positive int in the case we make this an option
-  await new Promise((resolve) =>
-    setTimeout((res: any) => resolve(res), timeout),
-  )
+
+  await new Promise<void>((resolve, reject) => {
+    const timeoutId = setTimeout(() => resolve(), timeout)
+
+    // If signal is provided and gets aborted, clear timeout and reject
+    if (signal) {
+      const abortHandler = () => {
+        clearTimeout(timeoutId)
+        reject(new Error('Aborted'))
+      }
+
+      // Check if already aborted
+      if (signal.aborted) {
+        clearTimeout(timeoutId)
+        reject(new Error('Aborted'))
+      } else {
+        signal.addEventListener('abort', abortHandler, { once: true })
+      }
+    }
+  })
 }
 
 type RetryConditionFunction = (
@@ -46,7 +67,11 @@ export type RetryOptions = {
   /**
    * Function used to determine delay between retries
    */
-  backoff?: (attempt: number, maxRetries: number) => Promise<void>
+  backoff?: (
+    attempt: number,
+    maxRetries: number,
+    signal?: AbortSignal,
+  ) => Promise<void>
 } & (
   | {
       /**
@@ -72,6 +97,16 @@ function fail<BaseQuery extends BaseQueryFn = BaseQueryFn>(
   throw Object.assign(new HandledError({ error, meta }), {
     throwImmediately: true,
   })
+}
+
+/**
+ * Checks if the abort signal is aborted and fails immediately if so.
+ * Used to exit retry loops cleanly when a request is aborted.
+ */
+function failIfAborted(signal: AbortSignal): void {
+  if (signal.aborted) {
+    fail({ status: 'CUSTOM_ERROR', error: 'Aborted' })
+  }
 }
 
 const EMPTY_OPTIONS = {}
@@ -108,6 +143,9 @@ const retryWithBackoff: BaseQueryEnhancer<
   let retry = 0
 
   while (true) {
+    // Check if aborted before each attempt
+    failIfAborted(api.signal)
+
     try {
       const result = await baseQuery(args, api, extraOptions)
       // baseQueries _should_ return an error property, so we should check for that and throw it to continue retrying
@@ -127,17 +165,35 @@ const retryWithBackoff: BaseQueryEnhancer<
         throw e
       }
 
-      if (
-        e instanceof HandledError &&
-        !options.retryCondition(e.value.error as FetchBaseQueryError, args, {
-          attempt: retry,
-          baseQueryApi: api,
-          extraOptions,
-        })
-      ) {
-        return e.value
+      if (e instanceof HandledError) {
+        if (
+          !options.retryCondition(e.value.error as FetchBaseQueryError, args, {
+            attempt: retry,
+            baseQueryApi: api,
+            extraOptions,
+          })
+        ) {
+          return e.value // Max retries for expected error
+        }
+      } else {
+        // For unexpected errors, respect maxRetries
+        if (retry > options.maxRetries) {
+          // Return the error as a proper error response instead of throwing
+          return { error: e }
+        }
       }
-      await options.backoff(retry, options.maxRetries)
+
+      // Check if aborted before backoff
+      failIfAborted(api.signal)
+
+      try {
+        await options.backoff(retry, options.maxRetries, api.signal)
+      } catch (backoffError) {
+        // If backoff was aborted, exit the retry loop
+        failIfAborted(api.signal)
+        // Otherwise, rethrow the backoff error
+        throw backoffError
+      }
     }
   }
 }

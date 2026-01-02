@@ -1,6 +1,6 @@
 {
   "name": "@reduxjs/toolkit",
-  "version": "2.8.2",
+  "version": "2.11.2",
   "description": "The official, opinionated, batteries-included toolset for efficient Redux development",
   "author": "Mark Erikson <mark@isquaredsoftware.com>",
   "license": "MIT",
@@ -235,7 +235,7 @@
     "typescript": "^5.8.2",
     "valibot": "^1.0.0",
     "vite-tsconfig-paths": "^4.3.1",
-    "vitest": "^1.6.0",
+    "vitest": "^4",
     "yargs": "^15.3.1"
   },
   "scripts": {
@@ -261,7 +261,7 @@
   "dependencies": {
     "@standard-schema/spec": "^1.0.0",
     "@standard-schema/utils": "^0.3.0",
-    "immer": "^10.0.3",
+    "immer": "^11.0.0",
     "redux": "^5.0.1",
     "redux-thunk": "^3.1.0",
     "reselect": "^5.1.0"

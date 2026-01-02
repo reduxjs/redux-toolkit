@@ -1,5 +1,5 @@
 import type { Dispatch, Middleware, UnknownAction } from 'redux'
-import { compose } from 'redux'
+import { compose } from '../reduxImports'
 import { createAction } from '../createAction'
 import { isAllOf } from '../matchers'
 import { nanoid } from '../nanoid'
