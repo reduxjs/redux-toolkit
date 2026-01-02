@@ -11,36 +11,45 @@ type GetReactHookNameParams = {
   operationDefinition: OperationDefinition;
   endpointOverrides: EndpointOverrides[] | undefined;
   config: HooksConfigOptions;
+  exactOperationIds: boolean;
 };
 
 type CreateBindingParams = {
   operationDefinition: OperationDefinition;
   overrides?: EndpointOverrides;
   isLazy?: boolean;
+  exactOperationIds: boolean;
 };
 
 const createBinding = ({
   operationDefinition: { verb, path, operation },
   overrides,
   isLazy = false,
+  exactOperationIds,
 }: CreateBindingParams) =>
   factory.createBindingElement(
     undefined,
     undefined,
     factory.createIdentifier(
-      `use${isLazy ? 'Lazy' : ''}${capitalize(getOperationName(verb, path, operation.operationId))}${
+      `use${isLazy ? 'Lazy' : ''}${capitalize(exactOperationIds ? operation.operationId! : getOperationName(verb, path, operation.operationId))}${
         isQuery(verb, overrides) ? 'Query' : 'Mutation'
       }`
     ),
     undefined
   );
 
-const getReactHookName = ({ operationDefinition, endpointOverrides, config }: GetReactHookNameParams) => {
-  const overrides = getOverrides(operationDefinition, endpointOverrides);
+const getReactHookName = ({
+  operationDefinition,
+  endpointOverrides,
+  config,
+  exactOperationIds,
+}: GetReactHookNameParams) => {
+  const overrides = getOverrides(operationDefinition, endpointOverrides, exactOperationIds);
 
   const baseParams = {
     operationDefinition,
     overrides,
+    exactOperationIds,
   };
 
   const _isQuery = isQuery(operationDefinition.verb, overrides);
@@ -66,12 +75,14 @@ type GenerateReactHooksParams = {
   operationDefinitions: OperationDefinition[];
   endpointOverrides: EndpointOverrides[] | undefined;
   config: HooksConfigOptions;
+  exactOperationIds: boolean;
 };
 export const generateReactHooks = ({
   exportName,
   operationDefinitions,
   endpointOverrides,
   config,
+  exactOperationIds,
 }: GenerateReactHooksParams) =>
   factory.createVariableStatement(
     [factory.createModifier(ts.SyntaxKind.ExportKeyword)],
@@ -80,7 +91,9 @@ export const generateReactHooks = ({
         factory.createVariableDeclaration(
           factory.createObjectBindingPattern(
             operationDefinitions
-              .map((operationDefinition) => getReactHookName({ operationDefinition, endpointOverrides, config }))
+              .map((operationDefinition) =>
+                getReactHookName({ operationDefinition, endpointOverrides, config, exactOperationIds })
+              )
               .flat()
           ),
           undefined,
