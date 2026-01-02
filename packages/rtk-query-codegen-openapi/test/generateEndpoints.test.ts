@@ -933,3 +933,19 @@ describe('esmExtensions option', () => {
     expect(content).toContain("import { api } from '../../fixtures/emptyApi'");
   });
 });
+
+describe('exactOperationIds option', () => {
+  test('regular camelCase operation IDs are kept the same', async () => {});
+
+  test('operations missing operation ID should not be allowed', async () => {});
+
+  test('duplicate operation IDs should not be allowed', async () => {});
+
+  describe('operation IDs with subsequent uppercase characters', () => {
+    test('should not be changed in endpoint definition key', async () => {});
+
+    test('should not be changed in exported hook name', async () => {});
+
+    test('should not be changed in generated type names', async () => {});
+  });
+});
