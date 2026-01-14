@@ -39,5 +39,6 @@ export type {
   TypedUseInfiniteQueryState,
   TypedLazyInfiniteQueryTrigger,
 } from './buildHooks'
+export type { Typed } from './typedNamespace'
 export { UNINITIALIZED_VALUE } from './constants'
 export { createApi, reactHooksModule, reactHooksModuleName }
