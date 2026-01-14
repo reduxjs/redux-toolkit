@@ -704,6 +704,196 @@ function AddPost() {
 }
 ```
 
+## Typing Hook Results with `TypedUse*` Helpers
+
+RTK Query exports several `TypedUse*` helper types that let you create strongly-typed versions of the auto-generated hooks. These are useful when you need to define hook wrappers, type function parameters, or create reusable utility functions that work with specific endpoints.
+
+### Available Helper Types
+
+The following helper types are exported from `@reduxjs/toolkit/query/react`:
+
+#### Standard Query Hooks
+
+| Type                              | Purpose                                       |
+| --------------------------------- | --------------------------------------------- |
+| `TypedUseQuery`                   | Type for the `useQuery` hook                  |
+| `TypedUseQueryHookResult`         | Type for the result of `useQuery`             |
+| `TypedUseQueryState`              | Type for the `useQueryState` hook             |
+| `TypedUseQueryStateResult`        | Type for the result of `useQueryState`        |
+| `TypedUseQueryStateOptions`       | Type for options passed to `useQueryState`    |
+| `TypedUseQuerySubscription`       | Type for the `useQuerySubscription` hook      |
+| `TypedUseQuerySubscriptionResult` | Type for the result of `useQuerySubscription` |
+| `TypedQueryStateSelector`         | Type for `selectFromResult` callbacks         |
+
+#### Lazy Query Hooks
+
+| Type                            | Purpose                                         |
+| ------------------------------- | ----------------------------------------------- |
+| `TypedUseLazyQuery`             | Type for the `useLazyQuery` hook                |
+| `TypedUseLazyQueryStateResult`  | Type for the result state of `useLazyQuery`     |
+| `TypedUseLazyQuerySubscription` | Type for the `useLazyQuerySubscription` hook    |
+| `TypedLazyQueryTrigger`         | Type for the trigger function from lazy queries |
+
+#### Mutation Hooks
+
+| Type                     | Purpose                                      |
+| ------------------------ | -------------------------------------------- |
+| `TypedUseMutation`       | Type for the `useMutation` hook              |
+| `TypedUseMutationResult` | Type for the result of `useMutation`         |
+| `TypedMutationTrigger`   | Type for the trigger function from mutations |
+
+#### Infinite Query Hooks
+
+| Type                                      | Purpose                                              |
+| ----------------------------------------- | ---------------------------------------------------- |
+| `TypedUseInfiniteQuery`                   | Type for the `useInfiniteQuery` hook                 |
+| `TypedUseInfiniteQueryHookResult`         | Type for the result of `useInfiniteQuery`            |
+| `TypedUseInfiniteQueryState`              | Type for the `useInfiniteQueryState` hook            |
+| `TypedUseInfiniteQueryStateResult`        | Type for the result of `useInfiniteQueryState`       |
+| `TypedUseInfiniteQueryStateOptions`       | Type for options passed to infinite query state      |
+| `TypedUseInfiniteQuerySubscription`       | Type for the `useInfiniteQuerySubscription` hook     |
+| `TypedUseInfiniteQuerySubscriptionResult` | Type for the result of infinite query subscription   |
+| `TypedInfiniteQueryStateSelector`         | Type for infinite query `selectFromResult` callbacks |
+| `TypedLazyInfiniteQueryTrigger`           | Type for lazy infinite query triggers                |
+
+Each helper type takes three required generic parameters:
+
+- `ResultType`: The type of data returned by the endpoint
+- `QueryArg`: The type of argument passed to the query/mutation
+- `BaseQuery`: The type of your base query function (typically `typeof fetchBaseQuery` or your custom base query)
+
+### Basic Usage
+
+```ts title="Using TypedUseQueryHookResult to type a function parameter"
+import type { TypedUseQueryHookResult } from '@reduxjs/toolkit/query/react'
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+
+interface Post {
+  id: number
+  title: string
+}
+
+type PostsBaseQuery = ReturnType<typeof fetchBaseQuery>
+
+const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  endpoints: (build) => ({
+    getPosts: build.query<Post[], void>({
+      query: () => 'posts',
+    }),
+  }),
+})
+
+// Use the helper to type a function that accepts hook results
+function processPostsResult(
+  result: TypedUseQueryHookResult<Post[], void, PostsBaseQuery>,
+) {
+  if (result.isSuccess) {
+    console.log('Posts loaded:', result.data.length)
+  }
+}
+```
+
+### Creating Pre-Typed Hook Wrappers
+
+A common use case is creating wrapper functions around hooks with default options. The `TypedUseQueryStateOptions` helper is useful for typing the options parameter:
+
+```ts title="Creating a useQuery wrapper with default options"
+import type {
+  SubscriptionOptions,
+  TypedUseQueryStateOptions,
+} from '@reduxjs/toolkit/query/react'
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+
+interface Post {
+  id: number
+  title: string
+}
+
+const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  endpoints: (build) => ({
+    getPosts: build.query<Post[], void>({
+      query: () => 'posts',
+    }),
+  }),
+})
+
+const { useGetPostsQuery } = api
+
+// Create a wrapper hook with default options
+export const useGetPostsQueryWithDefaults = <
+  SelectedResult extends Record<string, any>,
+>(
+  overrideOptions?: TypedUseQueryStateOptions<
+    Post[],
+    void,
+    ReturnType<typeof fetchBaseQuery>,
+    SelectedResult
+  > &
+    SubscriptionOptions,
+) =>
+  useGetPostsQuery(undefined, {
+    // Set default options
+    refetchOnMountOrArgChange: true,
+    refetchOnFocus: true,
+    ...overrideOptions,
+  })
+```
+
+### Typing `selectFromResult` Functions
+
+When defining `selectFromResult` callbacks separately from the hook call, you can use `TypedUseQueryStateResult` or `TypedUseMutationResult` to type the input parameter:
+
+```ts title="Typing a selectFromResult function"
+import type { TypedUseQueryStateResult } from '@reduxjs/toolkit/query/react'
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+
+interface Post {
+  id: number
+  title: string
+}
+
+type PostsApiBaseQuery = ReturnType<typeof fetchBaseQuery>
+
+const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  endpoints: (build) => ({
+    getPosts: build.query<Post[], void>({
+      query: () => 'posts',
+    }),
+  }),
+})
+
+const { useGetPostsQuery } = api
+
+// Define selectFromResult separately with proper typing
+const selectPostById = (id: number) => {
+  return (result: TypedUseQueryStateResult<Post[], void, PostsApiBaseQuery>) => ({
+    post: result.data?.find((post) => post.id === id),
+  })
+}
+
+function PostById({ id }: { id: number }) {
+  const { post } = useGetPostsQuery(undefined, {
+    selectFromResult: selectPostById(id),
+  })
+
+  return <div>{post?.title}</div>
+}
+```
+
+### When to Use These Types
+
+Use these helper types when you need to:
+
+- **Type function parameters**: When writing utility functions that accept hook results as arguments
+- **Create hook wrappers**: When building wrapper hooks with default options or additional logic
+- **Define `selectFromResult` callbacks separately**: When extracting selector functions for reuse
+- **Type external state**: When storing hook results in external state management
+
+For most typical usage of RTK Query hooks, you won't need these types - the auto-generated hooks are already fully typed. These helpers are primarily useful for advanced patterns involving hook composition or when building abstractions on top of RTK Query.
+
 ## Schema Validation
 
 Endpoints can have schemas for runtime validation of query args, responses, and errors. Any [Standard Schema](https://standardschema.dev/) compliant library can be used. See [API reference](./api/createApi.mdx#schema-validation) for full list of available schemas.
