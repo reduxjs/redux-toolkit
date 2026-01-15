@@ -894,6 +894,52 @@ Use these helper types when you need to:
 
 For most typical usage of RTK Query hooks, you won't need these types - the auto-generated hooks are already fully typed. These helpers are primarily useful for advanced patterns involving hook composition or when building abstractions on top of RTK Query.
 
+### Using the `Typed` Namespace (Recommended)
+
+RTK Query also exports a `Typed` namespace that provides the same helper types with better discoverability. Instead of importing individual `TypedUse*` types, you can import the `Typed` namespace and access all related types through nested namespaces:
+
+```ts title="Using the Typed namespace"
+import type { Typed } from '@reduxjs/toolkit/query/react'
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+
+interface Post {
+  id: number
+  title: string
+}
+
+type MyBaseQuery = ReturnType<typeof fetchBaseQuery>
+
+// Instead of importing TypedUseQueryHookResult directly:
+type PostsResult = Typed.UseQuery.Result<Post[], void, MyBaseQuery>
+
+// Type a selectFromResult callback:
+type PostsStateResult = Typed.UseQuery.StateResult<Post[], void, MyBaseQuery>
+
+// Type a lazy query trigger:
+type PostsTrigger = Typed.UseLazyQuery.Trigger<Post[], void, MyBaseQuery>
+
+// Type a mutation result:
+type AddPostResult = Typed.UseMutation.Result<Post, string, MyBaseQuery>
+```
+
+The namespace approach makes it easier to discover available types through IDE autocomplete - just type `Typed.` and your editor will show all available hook namespaces (`UseQuery`, `UseLazyQuery`, `UseMutation`, etc.), then type `.` again to see available types within that namespace.
+
+#### Namespace Reference
+
+| Namespace                            | Available Types                                                                         |
+| ------------------------------------ | --------------------------------------------------------------------------------------- |
+| `Typed.UseQuery`                     | `Hook`, `Result`, `StateResult`, `SubscriptionResult`, `Options`, `Selector`            |
+| `Typed.UseQueryState`                | `Hook`, `Result`, `Options`                                                             |
+| `Typed.UseQuerySubscription`         | `Hook`, `Result`                                                                        |
+| `Typed.UseLazyQuery`                 | `Hook`, `Result`, `Trigger`                                                             |
+| `Typed.UseLazyQuerySubscription`     | `Hook`                                                                                  |
+| `Typed.UseInfiniteQuery`             | `Hook`, `Result`, `StateResult`, `SubscriptionResult`, `Options`, `Selector`, `Trigger` |
+| `Typed.UseInfiniteQueryState`        | `Hook`, `Result`                                                                        |
+| `Typed.UseInfiniteQuerySubscription` | `Hook`, `Result`                                                                        |
+| `Typed.UseMutation`                  | `Hook`, `Result`, `Trigger`                                                             |
+
+Both the flat `TypedUse*` exports and the `Typed.*` namespace are available and will continue to be supported. The namespace approach is recommended for better discoverability.
+
 ## Schema Validation
 
 Endpoints can have schemas for runtime validation of query args, responses, and errors. Any [Standard Schema](https://standardschema.dev/) compliant library can be used. See [API reference](./api/createApi.mdx#schema-validation) for full list of available schemas.
