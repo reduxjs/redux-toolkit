@@ -253,7 +253,6 @@ describe('Infinite queries', () => {
 
     checkEntryFlags('fire', {
       hasNextPage: true,
-      isFetchingPreviousPage: true,
     })
 
     const entry1PrevPageMissing = await res3
@@ -938,6 +937,48 @@ describe('Infinite queries', () => {
         response: expect.anything(),
       }),
     })
+  })
+
+  test('fetchNextPage does not trigger onQueryStarted when hasNextPage is false', async () => {
+    let onQueryStartedCallCount = 0
+
+    const api = createApi({
+      baseQuery: fakeBaseQuery(),
+      endpoints: (build) => ({
+        list: build.infiniteQuery<string, void, number>({
+          infiniteQueryOptions: {
+            initialPageParam: 0,
+            getNextPageParam: (lastPage, allPages) => {
+              return allPages.length < 3 ? allPages.length : undefined
+            },
+          },
+          queryFn: async ({ pageParam }) => ({ data: `page-${pageParam}` }),
+          onQueryStarted: async () => {
+            onQueryStartedCallCount++
+          },
+        }),
+      }),
+    })
+
+    const storeRef = setupApiStore(api, undefined, {
+      withoutTestLifecycles: true,
+    })
+
+    await storeRef.store.dispatch(api.endpoints.list.initiate())
+    await storeRef.store.dispatch(
+      api.endpoints.list.initiate(undefined, { direction: 'forward' }),
+    )
+    await storeRef.store.dispatch(
+      api.endpoints.list.initiate(undefined, { direction: 'forward' }),
+    )
+
+    expect(onQueryStartedCallCount).toBe(3)
+
+    await storeRef.store.dispatch(
+      api.endpoints.list.initiate(undefined, { direction: 'forward' }),
+    )
+
+    expect(onQueryStartedCallCount).toBe(3)
   })
 
   test('Can use transformResponse', async () => {
