@@ -31,7 +31,7 @@ import type {
   QueryResultSelectorResult,
   QuerySubState,
   ResultTypeFrom,
-  RootState,
+  ApiRootState,
   SerializeQueryArgs,
   SkipToken,
   SubscriptionOptions,
@@ -1847,11 +1847,11 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       >
       const stableArg = useStableQueryArgs(skip ? skipToken : arg)
 
-      type ApiRootState = Parameters<ReturnType<typeof select>>[0]
+      type RootStateType = Parameters<ReturnType<typeof select>>[0]
 
       const lastValue = useRef<any>(undefined)
 
-      const selectDefaultResult: Selector<ApiRootState, any, [any]> = useMemo(
+      const selectDefaultResult: Selector<RootStateType, any, [any]> = useMemo(
         () =>
           // Normally ts-ignores are bad and should be avoided, but we're
           // already casting this selector to be `Selector<any>` anyway,
@@ -1861,8 +1861,8 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
             [
               // @ts-ignore
               select(stableArg),
-              (_: ApiRootState, lastResult: any) => lastResult,
-              (_: ApiRootState) => stableArg,
+              (_: RootStateType, lastResult: any) => lastResult,
+              (_: RootStateType) => stableArg,
             ],
             preSelector,
             {
@@ -1874,7 +1874,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         [select, stableArg],
       )
 
-      const querySelector: Selector<ApiRootState, any, [any]> = useMemo(
+      const querySelector: Selector<RootStateType, any, [any]> = useMemo(
         () =>
           selectFromResult
             ? createSelector([selectDefaultResult], selectFromResult, {
@@ -1885,12 +1885,12 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       )
 
       const currentState = useSelector(
-        (state: RootState<Definitions, any, any>) =>
+        (state: ApiRootState<Definitions, any, any>) =>
           querySelector(state, lastValue.current),
         shallowEqual,
       )
 
-      const store = useStore<RootState<Definitions, any, any>>()
+      const store = useStore<ApiRootState<Definitions, any, any>>()
       const newLastValue = selectDefaultResult(
         store.getState(),
         lastValue.current,
@@ -2252,7 +2252,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         [fixedCacheKey, promise, select],
       )
       const mutationSelector = useMemo(
-        (): Selector<RootState<Definitions, any, any>, any> =>
+        (): Selector<ApiRootState<Definitions, any, any>, any> =>
           selectFromResult
             ? createSelector([selectDefaultResult], selectFromResult)
             : selectDefaultResult,
