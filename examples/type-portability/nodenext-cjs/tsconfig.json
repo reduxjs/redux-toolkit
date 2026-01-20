@@ -17,6 +17,7 @@
     "noFallthroughCasesInSwitch": true,
     "outDir": "./dist",
     "resolveJsonModule": true,
+    "rootDir": "./src",
     "skipLibCheck": true,
     "strict": true,
     "target": "ESNext",

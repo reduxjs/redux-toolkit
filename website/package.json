@@ -19,7 +19,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-lite-youtube-embed": "^2.0.3",
-    "typescript": "^5.8.2"
+    "typescript": "^5.9.3"
   },
   "browserslist": {
     "production": [
