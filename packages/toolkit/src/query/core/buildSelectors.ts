@@ -23,7 +23,7 @@ import type {
   QueryState,
   QuerySubState,
   RequestStatusFlags,
-  RootState as _RootState,
+  ApiRootState as _RootState,
   QueryStatus,
 } from './apiState'
 import { STATUS_UNINITIALIZED, getRequestStatusFlags } from './apiState'
