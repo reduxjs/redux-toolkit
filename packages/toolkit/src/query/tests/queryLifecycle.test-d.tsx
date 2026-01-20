@@ -1,9 +1,9 @@
 import type { PatchCollection, Recipe } from '@internal/query/core/buildThunks'
 import type { ThunkDispatch, UnknownAction } from '@reduxjs/toolkit'
 import type {
+  ApiRootState,
   FetchBaseQueryError,
   FetchBaseQueryMeta,
-  RootState,
   TypedMutationOnQueryStarted,
   TypedQueryOnQueryStarted,
 } from '@reduxjs/toolkit/query'
@@ -213,7 +213,7 @@ describe('type tests', () => {
         expectTypeOf(extra).toBeUnknown()
 
         expectTypeOf(getState).toEqualTypeOf<
-          () => RootState<any, any, 'postsApi'>
+          () => ApiRootState<any, any, 'postsApi'>
         >()
 
         expectTypeOf(requestId).toBeString()
@@ -325,7 +325,7 @@ describe('type tests', () => {
         expectTypeOf(extra).toBeUnknown()
 
         expectTypeOf(getState).toEqualTypeOf<
-          () => RootState<any, any, 'postsApi'>
+          () => ApiRootState<any, any, 'postsApi'>
         >()
 
         expectTypeOf(requestId).toBeString()

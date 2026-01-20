@@ -42,7 +42,7 @@ import {
 import { HandledError } from '../HandledError'
 import type { UnwrapPromise } from '../tsHelpers'
 import type {
-  RootState,
+  ApiRootState,
   QueryKeys,
   QuerySubstateIdentifier,
   InfiniteData,
@@ -355,7 +355,7 @@ export function buildThunks<
   catchSchemaFailure: SchemaFailureConverter<BaseQuery> | undefined
   skipSchemaValidation: boolean | SchemaType[] | undefined
 }) {
-  type State = RootState<any, string, ReducerPath>
+  type State = ApiRootState<any, string, ReducerPath>
 
   const patchQueryData: PatchQueryDataThunk<EndpointDefinitions, State> =
     (endpointName, arg, patches, updateProvided) => (dispatch, getState) => {
@@ -377,7 +377,7 @@ export function buildThunks<
 
       const newValue = api.endpoints[endpointName].select(arg)(
         // Work around TS 4.1 mismatch
-        getState() as RootState<any, any, any>,
+        getState() as ApiRootState<any, any, any>,
       )
 
       const providedTags = calculateProvidedBy(
@@ -411,7 +411,7 @@ export function buildThunks<
 
       const currentState = endpointDefinition.select(arg)(
         // Work around TS 4.1 mismatch
-        getState() as RootState<any, any, any>,
+        getState() as ApiRootState<any, any, any>,
       )
 
       const ret: PatchCollection = {
@@ -494,7 +494,7 @@ export function buildThunks<
   const executeEndpoint: AsyncThunkPayloadCreator<
     ThunkResult,
     QueryThunkArg | MutationThunkArg | InfiniteQueryThunkArg<any>,
-    ThunkApiMetaConfig & { state: RootState<any, string, ReducerPath> }
+    ThunkApiMetaConfig & { state: ApiRootState<any, string, ReducerPath> }
   > = async (
     arg,
     {
@@ -884,7 +884,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
 
   function isForcedQuery(
     arg: QueryThunkArg,
-    state: RootState<any, string, ReducerPath>,
+    state: ApiRootState<any, string, ReducerPath>,
   ) {
     const requestState = selectors.selectQueryEntry(state, arg.queryCacheKey)
     const baseFetchOnMountOrArgChange =
@@ -910,7 +910,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
     const generatedQueryThunk = createAsyncThunk<
       ThunkResult,
       ThunkArgType,
-      ThunkApiMetaConfig & { state: RootState<any, string, ReducerPath> }
+      ThunkApiMetaConfig & { state: ApiRootState<any, string, ReducerPath> }
     >(`${reducerPath}/executeQuery`, executeEndpoint, {
       getPendingMeta({ arg }) {
         const endpointDefinition = endpointDefinitions[arg.endpointName]
@@ -984,7 +984,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
   const mutationThunk = createAsyncThunk<
     ThunkResult,
     MutationThunkArg,
-    ThunkApiMetaConfig & { state: RootState<any, string, ReducerPath> }
+    ThunkApiMetaConfig & { state: ApiRootState<any, string, ReducerPath> }
   >(`${reducerPath}/executeMutation`, executeEndpoint, {
     getPendingMeta() {
       return addShouldAutoBatch({ startedTimeStamp: Date.now() })
