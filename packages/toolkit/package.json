@@ -183,7 +183,7 @@
     }
   },
   "devDependencies": {
-    "@arethetypeswrong/cli": "^0.13.5",
+    "@arethetypeswrong/cli": "^0.18.2",
     "@babel/core": "^7.24.8",
     "@babel/helper-module-imports": "^7.24.7",
     "@microsoft/api-extractor": "^7.13.2",
