@@ -370,7 +370,7 @@ jobs:
         run: ls -l .
 
       - name: Run are-the-types-wrong
-        run: yarn attw ./package.tgz --format table --ignore-rules false-cjs
+        run: yarn attw ./package.tgz --format table
 
   test-type-portability:
     name: 'Test Type Portability: TS ${{ matrix.ts }} + Node ${{ matrix.node }}'
