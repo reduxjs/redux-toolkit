@@ -1,36 +1,36 @@
-import { retry, type RetryOptions } from '@internal/query/retry'
-import {
-  fetchBaseQuery,
-  type FetchBaseQueryError,
-  type FetchBaseQueryMeta,
-} from '@internal/query/fetchBaseQuery'
+import type {
+  FetchBaseQueryError,
+  FetchBaseQueryMeta,
+  RetryOptions,
+} from '@reduxjs/toolkit/query/react'
+import { fetchBaseQuery, retry } from '@reduxjs/toolkit/query/react'
 
 describe('type tests', () => {
   test('RetryOptions only accepts one of maxRetries or retryCondition', () => {
     // Should not complain if only `maxRetries` exists
-    expectTypeOf({ maxRetries: 5 }).toMatchTypeOf<RetryOptions>()
+    expectTypeOf({ maxRetries: 5 }).toExtend<RetryOptions>()
 
     // Should not complain if only `retryCondition` exists
-    expectTypeOf({ retryCondition: () => false }).toMatchTypeOf<RetryOptions>()
+    expectTypeOf({ retryCondition: () => false }).toExtend<RetryOptions>()
 
     // Should complain if both `maxRetries` and `retryCondition` exist at once
     expectTypeOf({
       maxRetries: 5,
       retryCondition: () => false,
-    }).not.toMatchTypeOf<RetryOptions>()
+    }).not.toExtend<RetryOptions>()
   })
   test('fail can be pretyped to only accept correct error and meta', () => {
-    expectTypeOf(retry.fail).parameter(0).toEqualTypeOf<unknown>()
+    expectTypeOf(retry.fail).parameter(0).toBeUnknown()
     expectTypeOf(retry.fail).parameter(1).toEqualTypeOf<{} | undefined>()
     expectTypeOf(retry.fail).toBeCallableWith('Literally anything', {})
 
     const myBaseQuery = fetchBaseQuery()
     const typedFail = retry.fail<typeof myBaseQuery>
 
-    expectTypeOf(typedFail).parameter(0).toMatchTypeOf<FetchBaseQueryError>()
+    expectTypeOf(typedFail).parameter(0).toExtend<FetchBaseQueryError>()
     expectTypeOf(typedFail)
       .parameter(1)
-      .toMatchTypeOf<FetchBaseQueryMeta | undefined>()
+      .toExtend<FetchBaseQueryMeta | undefined>()
 
     expectTypeOf(typedFail).toBeCallableWith(
       {
@@ -40,7 +40,7 @@ describe('type tests', () => {
       { request: new Request('http://localhost') },
     )
 
-    expectTypeOf(typedFail).parameter(0).not.toMatchTypeOf<string>()
-    expectTypeOf(typedFail).parameter(1).not.toMatchTypeOf<{}>()
+    expectTypeOf(typedFail).parameter(0).not.toBeString()
+    expectTypeOf(typedFail).parameter(1).not.toExtend<{}>()
   })
 })

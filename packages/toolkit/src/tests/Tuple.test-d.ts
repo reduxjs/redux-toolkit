@@ -6,13 +6,13 @@ describe('type tests', () => {
 
     expectTypeOf(stringTuple).toEqualTypeOf<Tuple<[string]>>()
 
-    expectTypeOf(stringTuple).toMatchTypeOf<Tuple<string[]>>()
+    expectTypeOf(stringTuple).toExtend<Tuple<string[]>>()
 
-    expectTypeOf(stringTuple).not.toMatchTypeOf<Tuple<[string, string]>>()
+    expectTypeOf(stringTuple).not.toExtend<Tuple<[string, string]>>()
 
     const numberTuple = new Tuple(0, 1)
 
-    expectTypeOf(numberTuple).not.toMatchTypeOf<Tuple<string[]>>()
+    expectTypeOf(numberTuple).not.toExtend<Tuple<string[]>>()
   })
 
   test('concat is inferred properly', () => {
@@ -24,7 +24,7 @@ describe('type tests', () => {
       Tuple<[string, string]>
     >()
 
-    expectTypeOf(singleString.concat([''] as const)).toMatchTypeOf<
+    expectTypeOf(singleString.concat([''] as const)).toExtend<
       Tuple<[string, string]>
     >()
   })
@@ -38,7 +38,7 @@ describe('type tests', () => {
       Tuple<[string, string]>
     >()
 
-    expectTypeOf(singleString.prepend([''] as const)).toMatchTypeOf<
+    expectTypeOf(singleString.prepend([''] as const)).toExtend<
       Tuple<[string, string]>
     >()
   })
@@ -72,11 +72,11 @@ describe('type tests', () => {
       Tuple<[string, number, number]>
     >()
 
-    expectTypeOf(stringTuple.prepend(numberTuple)).not.toMatchTypeOf<
+    expectTypeOf(stringTuple.prepend(numberTuple)).not.toExtend<
       Tuple<[string, number, number]>
     >()
 
-    expectTypeOf(stringTuple.concat(numberTuple)).not.toMatchTypeOf<
+    expectTypeOf(stringTuple.concat(numberTuple)).not.toExtend<
       Tuple<[number, number, string]>
     >()
   })

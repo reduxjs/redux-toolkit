@@ -1,7 +1,6 @@
-import type { SerializedError } from '@internal/createAsyncThunk'
 import { createAsyncThunk } from '@internal/createAsyncThunk'
 import { executeReducerBuilderCallback } from '@internal/mapBuilders'
-import type { UnknownAction } from '@reduxjs/toolkit'
+import type { SerializedError, UnknownAction } from '@reduxjs/toolkit'
 import { createAction } from '@reduxjs/toolkit'
 
 describe('type tests', () => {
@@ -21,12 +20,12 @@ describe('type tests', () => {
 
         expectTypeOf(state).not.toBeString()
 
-        expectTypeOf(action).not.toMatchTypeOf<{
+        expectTypeOf(action).not.toExtend<{
           type: 'increment'
           payload: string
         }>()
 
-        expectTypeOf(action).not.toMatchTypeOf<{
+        expectTypeOf(action).not.toExtend<{
           type: 'decrement'
           payload: number
         }>()
@@ -39,10 +38,10 @@ describe('type tests', () => {
 
         expectTypeOf(state).not.toBeString()
 
-        expectTypeOf(action).not.toMatchTypeOf<{ type: 'decrement' }>()
+        expectTypeOf(action).not.toExtend<{ type: 'decrement' }>()
 
         // this cannot be inferred and has to be manually specified
-        expectTypeOf(action).not.toMatchTypeOf<{
+        expectTypeOf(action).not.toExtend<{
           type: 'increment'
           payload: number
         }>()
@@ -83,9 +82,11 @@ describe('type tests', () => {
         builder.addMatcher(
           (action): action is PredicateWithoutTypeProperty => true,
           (state, action) => {
-            expectTypeOf(action).toMatchTypeOf<PredicateWithoutTypeProperty>()
+            expectTypeOf(
+              action,
+            ).toMatchObjectType<PredicateWithoutTypeProperty>()
 
-            expectTypeOf(action).toMatchTypeOf<UnknownAction>()
+            expectTypeOf(action).toExtend<UnknownAction>()
           },
         )
       })
@@ -94,7 +95,7 @@ describe('type tests', () => {
       builder.addMatcher(
         () => true,
         (state, action) => {
-          expectTypeOf(action).toMatchTypeOf<UnknownAction>()
+          expectTypeOf(action).toExtend<UnknownAction>()
         },
       )
 
@@ -102,9 +103,9 @@ describe('type tests', () => {
       builder.addMatcher<{ foo: boolean }>(
         () => true,
         (state, action) => {
-          expectTypeOf(action).toMatchTypeOf<{ foo: boolean }>()
+          expectTypeOf(action).toMatchObjectType<{ foo: boolean }>()
 
-          expectTypeOf(action).toMatchTypeOf<UnknownAction>()
+          expectTypeOf(action).toExtend<UnknownAction>()
         },
       )
 
@@ -125,7 +126,7 @@ describe('type tests', () => {
           (state, action: ReturnType<typeof increment>) => state,
         )
         .addDefaultCase((state, action) => {
-          expectTypeOf(action).toMatchTypeOf<UnknownAction>()
+          expectTypeOf(action).toExtend<UnknownAction>()
         })
 
       test('addAsyncThunk() should prevent further calls to addCase() ', () => {
@@ -175,7 +176,7 @@ describe('type tests', () => {
             return 'ret' as const
           })
           builder.addCase(thunk.pending, (_, action) => {
-            expectTypeOf(action).toMatchTypeOf<{
+            expectTypeOf(action).toMatchObjectType<{
               payload: undefined
               meta: {
                 arg: void
@@ -186,7 +187,7 @@ describe('type tests', () => {
           })
 
           builder.addCase(thunk.rejected, (_, action) => {
-            expectTypeOf(action).toMatchTypeOf<{
+            expectTypeOf(action).toExtend<{
               payload: unknown
               error: SerializedError
               meta: {
@@ -200,7 +201,7 @@ describe('type tests', () => {
             }>()
           })
           builder.addCase(thunk.fulfilled, (_, action) => {
-            expectTypeOf(action).toMatchTypeOf<{
+            expectTypeOf(action).toMatchObjectType<{
               payload: 'ret'
               meta: {
                 arg: void
@@ -212,7 +213,7 @@ describe('type tests', () => {
 
           builder.addAsyncThunk(thunk, {
             pending(_, action) {
-              expectTypeOf(action).toMatchTypeOf<{
+              expectTypeOf(action).toMatchObjectType<{
                 payload: undefined
                 meta: {
                   arg: void
@@ -222,7 +223,7 @@ describe('type tests', () => {
               }>()
             },
             rejected(_, action) {
-              expectTypeOf(action).toMatchTypeOf<{
+              expectTypeOf(action).toExtend<{
                 payload: unknown
                 error: SerializedError
                 meta: {
@@ -236,7 +237,7 @@ describe('type tests', () => {
               }>()
             },
             fulfilled(_, action) {
-              expectTypeOf(action).toMatchTypeOf<{
+              expectTypeOf(action).toMatchObjectType<{
                 payload: 'ret'
                 meta: {
                   arg: void
@@ -246,7 +247,7 @@ describe('type tests', () => {
               }>()
             },
             settled(_, action) {
-              expectTypeOf(action).toMatchTypeOf<
+              expectTypeOf(action).toExtend<
                 | {
                     payload: 'ret'
                     meta: {
@@ -302,7 +303,7 @@ describe('type tests', () => {
           )
 
           builder.addCase(thunk.pending, (_, action) => {
-            expectTypeOf(action).toMatchTypeOf<{
+            expectTypeOf(action).toMatchObjectType<{
               payload: undefined
               meta: {
                 arg: void
@@ -314,7 +315,7 @@ describe('type tests', () => {
           })
 
           builder.addCase(thunk.rejected, (_, action) => {
-            expectTypeOf(action).toMatchTypeOf<{
+            expectTypeOf(action).toExtend<{
               payload: unknown
               error: SerializedError
               meta: {
@@ -333,7 +334,7 @@ describe('type tests', () => {
             }
           })
           builder.addCase(thunk.fulfilled, (_, action) => {
-            expectTypeOf(action).toMatchTypeOf<{
+            expectTypeOf(action).toMatchObjectType<{
               payload: 'ret'
               meta: {
                 arg: void
@@ -346,7 +347,7 @@ describe('type tests', () => {
 
           builder.addAsyncThunk(thunk, {
             pending(_, action) {
-              expectTypeOf(action).toMatchTypeOf<{
+              expectTypeOf(action).toMatchObjectType<{
                 payload: undefined
                 meta: {
                   arg: void
@@ -357,7 +358,7 @@ describe('type tests', () => {
               }>()
             },
             rejected(_, action) {
-              expectTypeOf(action).toMatchTypeOf<{
+              expectTypeOf(action).toExtend<{
                 payload: unknown
                 error: SerializedError
                 meta: {
@@ -372,7 +373,7 @@ describe('type tests', () => {
               }>()
             },
             fulfilled(_, action) {
-              expectTypeOf(action).toMatchTypeOf<{
+              expectTypeOf(action).toMatchObjectType<{
                 payload: 'ret'
                 meta: {
                   arg: void
@@ -383,7 +384,7 @@ describe('type tests', () => {
               }>()
             },
             settled(_, action) {
-              expectTypeOf(action).toMatchTypeOf<
+              expectTypeOf(action).toExtend<
                 | {
                     payload: 'ret'
                     meta: {

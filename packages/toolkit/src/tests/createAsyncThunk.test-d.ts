@@ -1,5 +1,7 @@
+import type { TSVersion } from '@phryneas/ts-version'
 import type {
   AsyncThunk,
+  AsyncThunkDispatchConfig,
   SerializedError,
   ThunkDispatch,
   UnknownAction,
@@ -11,11 +13,8 @@ import {
   createSlice,
   unwrapResult,
 } from '@reduxjs/toolkit'
-
-import type { TSVersion } from '@phryneas/ts-version'
 import type { AxiosError } from 'axios'
 import apiRequest from 'axios'
-import type { AsyncThunkDispatchConfig } from '@internal/createAsyncThunk'
 
 const defaultDispatch = (() => {}) as ThunkDispatch<{}, any, UnknownAction>
 const unknownAction = { type: 'foo' } as UnknownAction
@@ -47,7 +46,7 @@ describe('type tests', () => {
             ReturnType<(typeof asyncThunk)['rejected']>
           >()
 
-          expectTypeOf(action.error).toMatchTypeOf<Partial<Error> | undefined>()
+          expectTypeOf(action.error).toExtend<Partial<Error> | undefined>()
         }),
     )
 
@@ -76,7 +75,7 @@ describe('type tests', () => {
       .then((result) => {
         expectTypeOf(result).toBeNumber()
 
-        expectTypeOf(result).not.toMatchTypeOf<Error>()
+        expectTypeOf(result).not.toExtend<Error>()
       })
       .catch((error) => {
         // catch is always any-typed, nothing we can do here
@@ -156,7 +155,7 @@ describe('type tests', () => {
 
     expectTypeOf(unwrapResult(returned)).toEqualTypeOf<ReturnValue>()
 
-    expectTypeOf(unwrapResult(returned)).not.toMatchTypeOf<RejectValue>()
+    expectTypeOf(unwrapResult(returned)).not.toExtend<RejectValue>()
   })
 
   test('regression #1156: union return values fall back to allowing only single member', () => {
@@ -259,7 +258,9 @@ describe('type tests', () => {
         .then((unwrapped) => {
           expectTypeOf(unwrapped).toEqualTypeOf<Item[]>()
 
-          expectTypeOf(unwrapResult).parameter(0).not.toMatchTypeOf(unwrapped)
+          expectTypeOf(unwrapResult)
+            .parameter(0)
+            .not.toExtend<typeof unwrapped>()
         })
     })
   })
@@ -268,7 +269,7 @@ describe('type tests', () => {
     test('asyncThunk has no argument', () => {
       const asyncThunk = createAsyncThunk('test', () => 0)
 
-      expectTypeOf(asyncThunk).toMatchTypeOf<() => any>()
+      expectTypeOf(asyncThunk).toExtend<() => any>()
 
       expectTypeOf(asyncThunk).parameters.toEqualTypeOf<
         [undefined?, AsyncThunkDispatchConfig?]
@@ -280,7 +281,7 @@ describe('type tests', () => {
     test('one argument, specified as undefined: asyncThunk has no argument', () => {
       const asyncThunk = createAsyncThunk('test', (arg: undefined) => 0)
 
-      expectTypeOf(asyncThunk).toMatchTypeOf<() => any>()
+      expectTypeOf(asyncThunk).toExtend<() => any>()
 
       expectTypeOf(asyncThunk).parameters.toEqualTypeOf<
         [undefined?, AsyncThunkDispatchConfig?]
@@ -290,7 +291,7 @@ describe('type tests', () => {
     test('one argument, specified as void: asyncThunk has no argument', () => {
       const asyncThunk = createAsyncThunk('test', (arg: void) => 0)
 
-      expectTypeOf(asyncThunk).toMatchTypeOf<() => any>()
+      expectTypeOf(asyncThunk).toExtend<() => any>()
     })
 
     test('one argument, specified as optional number: asyncThunk has optional number argument', () => {
@@ -310,14 +311,14 @@ describe('type tests', () => {
         ? (arg: number) => any
         : (arg?: number) => any
 
-      expectTypeOf(asyncThunk).toMatchTypeOf<expectedType>()
+      expectTypeOf(asyncThunk).toExtend<expectedType>()
 
       // We _should_ be able to call this with no arguments, but we run into that error in 5.1 and 5.2.
       // Disabling this for now.
       // asyncThunk()
       expectTypeOf(asyncThunk).toBeCallableWith(5)
 
-      expectTypeOf(asyncThunk).parameters.not.toMatchTypeOf<[string]>()
+      expectTypeOf(asyncThunk).parameters.not.toExtend<[string]>()
     })
 
     test('one argument, specified as number|undefined: asyncThunk has optional number argument', () => {
@@ -328,7 +329,7 @@ describe('type tests', () => {
         (arg: number | undefined) => 0,
       )
 
-      expectTypeOf(asyncThunk).toMatchTypeOf<(arg?: number) => any>()
+      expectTypeOf(asyncThunk).toExtend<(arg?: number) => any>()
 
       expectTypeOf(asyncThunk).toBeCallableWith()
 
@@ -336,13 +337,13 @@ describe('type tests', () => {
 
       expectTypeOf(asyncThunk).toBeCallableWith(5)
 
-      expectTypeOf(asyncThunk).parameters.not.toMatchTypeOf<[string]>()
+      expectTypeOf(asyncThunk).parameters.not.toExtend<[string]>()
     })
 
     test('one argument, specified as number|void: asyncThunk has optional number argument', () => {
       const asyncThunk = createAsyncThunk('test', (arg: number | void) => 0)
 
-      expectTypeOf(asyncThunk).toMatchTypeOf<(arg?: number) => any>()
+      expectTypeOf(asyncThunk).toExtend<(arg?: number) => any>()
 
       expectTypeOf(asyncThunk).toBeCallableWith()
 
@@ -350,7 +351,7 @@ describe('type tests', () => {
 
       expectTypeOf(asyncThunk).toBeCallableWith(5)
 
-      expectTypeOf(asyncThunk).parameters.not.toMatchTypeOf<[string]>()
+      expectTypeOf(asyncThunk).parameters.not.toExtend<[string]>()
     })
 
     test('one argument, specified as any: asyncThunk has required any argument', () => {
@@ -360,7 +361,7 @@ describe('type tests', () => {
 
       expectTypeOf(asyncThunk).toBeCallableWith(5)
 
-      expectTypeOf(asyncThunk).parameters.not.toMatchTypeOf<[]>()
+      expectTypeOf(asyncThunk).parameters.not.toExtend<[]>()
     })
 
     test('one argument, specified as unknown: asyncThunk has required unknown argument', () => {
@@ -370,17 +371,17 @@ describe('type tests', () => {
 
       expectTypeOf(asyncThunk).toBeCallableWith(5)
 
-      expectTypeOf(asyncThunk).parameters.not.toMatchTypeOf<[]>()
+      expectTypeOf(asyncThunk).parameters.not.toExtend<[]>()
     })
 
     test('one argument, specified as number: asyncThunk has required number argument', () => {
       const asyncThunk = createAsyncThunk('test', (arg: number) => 0)
 
-      expectTypeOf(asyncThunk).toMatchTypeOf<(arg: number) => any>()
+      expectTypeOf(asyncThunk).toExtend<(arg: number) => any>()
 
       expectTypeOf(asyncThunk).toBeCallableWith(5)
 
-      expectTypeOf(asyncThunk).parameters.not.toMatchTypeOf<[]>()
+      expectTypeOf(asyncThunk).parameters.not.toExtend<[]>()
     })
 
     test('two arguments, first specified as undefined: asyncThunk has no argument', () => {
@@ -389,7 +390,7 @@ describe('type tests', () => {
         (arg: undefined, thunkApi) => 0,
       )
 
-      expectTypeOf(asyncThunk).toMatchTypeOf<() => any>()
+      expectTypeOf(asyncThunk).toExtend<() => any>()
 
       expectTypeOf(asyncThunk).toBeCallableWith()
 
@@ -406,7 +407,7 @@ describe('type tests', () => {
     test('two arguments, first specified as void: asyncThunk has no argument', () => {
       const asyncThunk = createAsyncThunk('test', (arg: void, thunkApi) => 0)
 
-      expectTypeOf(asyncThunk).toMatchTypeOf<() => any>()
+      expectTypeOf(asyncThunk).toExtend<() => any>()
 
       expectTypeOf(asyncThunk).toBeCallableWith()
 
@@ -428,7 +429,7 @@ describe('type tests', () => {
         (arg: number | undefined, thunkApi) => 0,
       )
 
-      expectTypeOf(asyncThunk).toMatchTypeOf<(arg?: number) => any>()
+      expectTypeOf(asyncThunk).toExtend<(arg?: number) => any>()
 
       expectTypeOf(asyncThunk).toBeCallableWith()
 
@@ -445,7 +446,7 @@ describe('type tests', () => {
         (arg: number | void, thunkApi) => 0,
       )
 
-      expectTypeOf(asyncThunk).toMatchTypeOf<(arg?: number) => any>()
+      expectTypeOf(asyncThunk).toExtend<(arg?: number) => any>()
 
       expectTypeOf(asyncThunk).toBeCallableWith()
 
@@ -463,7 +464,7 @@ describe('type tests', () => {
 
       expectTypeOf(asyncThunk).toBeCallableWith(5)
 
-      expectTypeOf(asyncThunk).parameters.not.toMatchTypeOf<[]>()
+      expectTypeOf(asyncThunk).parameters.not.toExtend<[]>()
     })
 
     test('two arguments, first specified as unknown: asyncThunk has required unknown argument', () => {
@@ -473,19 +474,19 @@ describe('type tests', () => {
 
       expectTypeOf(asyncThunk).toBeCallableWith(5)
 
-      expectTypeOf(asyncThunk).parameters.not.toMatchTypeOf<[]>()
+      expectTypeOf(asyncThunk).parameters.not.toExtend<[]>()
     })
 
     test('two arguments, first specified as number: asyncThunk has required number argument', () => {
       const asyncThunk = createAsyncThunk('test', (arg: number, thunkApi) => 0)
 
-      expectTypeOf(asyncThunk).toMatchTypeOf<(arg: number) => any>()
+      expectTypeOf(asyncThunk).toExtend<(arg: number) => any>()
 
       expectTypeOf(asyncThunk).parameter(0).toBeNumber()
 
       expectTypeOf(asyncThunk).toBeCallableWith(5)
 
-      expectTypeOf(asyncThunk).parameters.not.toMatchTypeOf<[]>()
+      expectTypeOf(asyncThunk).parameters.not.toExtend<[]>()
     })
   })
 
