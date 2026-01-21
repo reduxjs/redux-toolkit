@@ -25,7 +25,7 @@ import type {
   InfiniteData,
   InfiniteQueryConfigOptions,
   QuerySubState,
-  RootState,
+  ApiRootState,
 } from './core/index'
 import type { SerializeQueryArgs } from './defaultSerializeQueryArgs'
 import type { NEVER } from './fakeBaseQuery'
@@ -809,7 +809,7 @@ export interface QueryExtraOptions<
   forceRefetch?(params: {
     currentArg: QueryArg | undefined
     previousArg: QueryArg | undefined
-    state: RootState<any, any, string>
+    state: ApiRootState<any, any, string>
     endpointState?: QuerySubState<any>
   }): boolean
 
@@ -913,18 +913,18 @@ export interface InfiniteQueryExtraOptions<
    * `initialPageParam` may be specified when using the
    * endpoint, to override the default value.
    * `maxPages` and `getPreviousPageParam` are both optional.
-   * 
+   *
    * @example
-   * 
+   *
    * ```ts
    * // codeblock-meta title="infiniteQueryOptions example"
    * import { createApi, fetchBaseQuery, defaultSerializeQueryArgs } from '@reduxjs/toolkit/query/react'
-   * 
+   *
    * type Pokemon = {
    *   id: string
    *   name: string
    * }
-   * 
+   *
    * const pokemonApi = createApi({
    *   baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
    *   endpoints: (build) => ({
@@ -949,7 +949,7 @@ export interface InfiniteQueryExtraOptions<
    *     }),
    *   }),
    * })
-   
+
    * ```
    */
   infiniteQueryOptions: InfiniteQueryConfigOptions<
