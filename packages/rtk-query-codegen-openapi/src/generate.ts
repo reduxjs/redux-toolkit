@@ -1,6 +1,6 @@
 import { getReferenceName, isReference, resolve, resolveArray } from '@oazapfts/resolve';
 import camelCase from 'lodash.camelcase';
-import path from 'node:path';
+import * as path from 'node:path';
 import { UNSTABLE_cg as cg } from 'oazapfts';
 import type { OazapftsContext } from 'oazapfts/context';
 import { createContext, withMode } from 'oazapfts/context';
@@ -27,10 +27,16 @@ import type {
   ParameterMatcher,
   TextMatcher,
 } from './types';
-import { factory } from './utils/factory';
-import { capitalize, getOperationDefinitions, getV3Doc, removeUndefined, isQuery as testIsQuery } from './utils/index';
+import {
+  capitalize,
+  factory,
+  getOperationDefinitions,
+  getV3Doc,
+  removeUndefined,
+  isQuery as testIsQuery,
+} from './utils/index';
 
-const { createPropertyAssignment, createQuestionToken, keywordType, isValidIdentifier } = cg;
+const { createPropertyAssignment, createQuestionToken, isValidIdentifier, keywordType } = cg;
 
 const generatedApiName = 'injectedRtkApi';
 const v3DocCache: Record<string, OpenAPIV3.Document> = {};
@@ -63,7 +69,7 @@ function supportDeepObjects(params: OpenAPIV3.ParameterObject[]): OpenAPIV3.Para
   return res;
 }
 
-function defaultIsDataResponse(code: string, includeDefault: boolean) {
+function defaultIsDataResponse(code: string, includeDefault: boolean): boolean {
   if (includeDefault && code === 'default') {
     return true;
   }
@@ -122,9 +128,9 @@ function getTags({ verb, pathItem }: Pick<OperationDefinition, 'verb' | 'pathIte
   return verb ? pathItem[verb]?.tags || [] : [];
 }
 
-function patternMatches(pattern?: TextMatcher) {
+function patternMatches(pattern?: TextMatcher): (operationName: string) => boolean {
   const filters = Array.isArray(pattern) ? pattern : [pattern];
-  return function matcher(operationName: string) {
+  return function matcher(operationName: string): boolean {
     if (!pattern) return true;
     return filters.some((filter) =>
       typeof filter === 'string' ? filter === operationName : filter?.test(operationName)
@@ -134,16 +140,16 @@ function patternMatches(pattern?: TextMatcher) {
 
 function operationMatches(pattern?: EndpointMatcher, operationIdTransformer: OperationIdTransformer = 'camelCase') {
   const checkMatch = typeof pattern === 'function' ? pattern : patternMatches(pattern);
-  return function matcher(operationDefinition: OperationDefinition) {
+  return function matcher(operationDefinition: OperationDefinition): boolean {
     if (!pattern) return true;
     const operationName = resolveOperationName(operationDefinition, operationIdTransformer);
     return checkMatch(operationName, operationDefinition);
   };
 }
 
-function argumentMatches(pattern?: ParameterMatcher) {
+function argumentMatches(pattern?: ParameterMatcher): (argumentDefinition: ParameterDefinition) => boolean {
   const checkMatch = typeof pattern === 'function' ? pattern : patternMatches(pattern);
-  return function matcher(argumentDefinition: ParameterDefinition) {
+  return function matcher(argumentDefinition: ParameterDefinition): boolean {
     if (!pattern || argumentDefinition.in === 'path') return true;
     const argumentName = argumentDefinition.name;
     return checkMatch(argumentName, argumentDefinition);
@@ -168,9 +174,8 @@ function getPatternFromProperty(
   ctx: OazapftsContext
 ): string | null {
   const resolved = resolve(property, ctx);
-  if (!resolved || typeof resolved !== 'object' || !('pattern' in resolved)) return null;
-  if (resolved.type !== 'string') return null;
-  const pattern = resolved.pattern;
+  if (!resolved || typeof resolved !== 'object' || !('pattern' in resolved) || resolved.type !== 'string') return null;
+  const { pattern } = resolved;
   return typeof pattern === 'string' && pattern.length > 0 ? pattern : null;
 }
 
@@ -236,7 +241,7 @@ export async function generateApi(
     isDataResponse = defaultIsDataResponse,
     filterEndpoints,
     endpointOverrides,
-    unionUndefined,
+    unionUndefined = false,
     encodePathParams = false,
     encodeQueryParams = false,
     flattenArg = false,
@@ -251,7 +256,7 @@ export async function generateApi(
     operationIdTransformer = 'camelCase',
     exportAllSchemas = false,
   }: GenerationOptions
-) {
+): Promise<string> {
   const v3Doc = (v3DocCache[spec] ??= await getV3Doc(spec, httpResolverOptions));
 
   const ctx = createContext(v3Doc, {
@@ -277,7 +282,9 @@ export async function generateApi(
   const printer = ts.createPrinter({ newLine: ts.NewLineKind.LineFeed });
 
   const interfaces: Record<string, ts.InterfaceDeclaration | ts.TypeAliasDeclaration> = {};
-  function registerInterface(declaration: ts.InterfaceDeclaration | ts.TypeAliasDeclaration) {
+  function registerInterface(
+    declaration: ts.InterfaceDeclaration | ts.TypeAliasDeclaration
+  ): ts.TypeAliasDeclaration | ts.InterfaceDeclaration {
     const name = declaration.name.escapedText.toString();
     if (name in interfaces) {
       throw new Error(`interface/type alias ${name} already registered`);
@@ -369,7 +376,7 @@ export async function generateApi(
     resultFile
   );
 
-  function extractAllTagTypes({ operationDefinitions }: { operationDefinitions: OperationDefinition[] }) {
+  function extractAllTagTypes({ operationDefinitions }: { operationDefinitions: OperationDefinition[] }): string[] {
     const allTagTypes = new Set<string>();
 
     for (const operationDefinition of operationDefinitions) {
@@ -387,7 +394,7 @@ export async function generateApi(
   }: {
     operationDefinition: OperationDefinition;
     overrides?: EndpointOverrides;
-  }) {
+  }): ts.PropertyAssignment {
     const {
       verb,
       path,
@@ -593,18 +600,21 @@ export async function generateApi(
     isQuery: boolean;
     encodePathParams: boolean;
     encodeQueryParams: boolean;
-  }) {
+  }): ts.ArrowFunction {
     const { path, verb } = operationDefinition;
 
     const bodyParameter = Object.values(queryArg).find((def) => def.origin === 'body');
 
     const rootObject = factory.createIdentifier('queryArg');
 
-    function pickParams(paramIn: string) {
+    function pickParams(paramIn: string): QueryArgDefinition[] {
       return Object.values(queryArg).filter((def) => def.origin === 'param' && def.param.in === paramIn);
     }
 
-    function createObjectLiteralProperty(parameters: QueryArgDefinition[], propertyName: string) {
+    function createObjectLiteralProperty(
+      parameters: QueryArgDefinition[],
+      propertyName: string
+    ): ts.PropertyAssignment | undefined {
       if (parameters.length === 0) return undefined;
 
       const properties = parameters.map((param) => {
@@ -707,7 +717,10 @@ export async function generateApi(
   }
 }
 
-function accessProperty(rootObject: ts.Identifier, propertyName: string) {
+function accessProperty(
+  rootObject: ts.Identifier,
+  propertyName: string
+): ts.PropertyAccessExpression | ts.ElementAccessExpression {
   return isValidIdentifier(propertyName)
     ? factory.createPropertyAccessExpression(rootObject, factory.createIdentifier(propertyName))
     : factory.createElementAccessExpression(rootObject, factory.createStringLiteral(propertyName));
@@ -719,7 +732,7 @@ function generatePathExpression(
   rootObject: ts.Identifier,
   isFlatArg: boolean,
   encodePathParams: boolean
-) {
+): ts.NoSubstitutionTemplateLiteral | ts.TemplateExpression {
   const expressions: Array<[string, string]> = [];
 
   const head = path.replace(/\{(.*?)}(.*?)(?=\{|$)/g, (_, expression, literal) => {

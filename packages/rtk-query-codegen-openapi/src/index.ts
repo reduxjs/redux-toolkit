@@ -1,9 +1,9 @@
-import fs from 'node:fs';
+import * as fs from 'node:fs';
 import { createRequire } from 'node:module';
-import path from 'node:path';
+import * as path from 'node:path';
 import { generateApi } from './generate';
 import type { CommonOptions, ConfigFile, GenerationOptions, OutputFileOptions } from './types';
-import { isValidUrl, prettify } from './utils';
+import { isValidUrl, prettify } from './utils/index';
 export type { ConfigFile } from './types';
 
 const require = createRequire(__filename);
@@ -37,7 +37,7 @@ export async function generateEndpoints(options: GenerationOptions): Promise<str
   }
 }
 
-export function parseConfig(fullConfig: ConfigFile) {
+export function parseConfig(fullConfig: ConfigFile): (CommonOptions & OutputFileOptions)[] {
   const outFiles: (CommonOptions & OutputFileOptions)[] = [];
 
   if ('outputFiles' in fullConfig) {
@@ -52,7 +52,7 @@ export function parseConfig(fullConfig: ConfigFile) {
   } else {
     outFiles.push(fullConfig);
   }
-  return outFiles;
+  return outFiles satisfies (CommonOptions & OutputFileOptions)[];
 }
 
 /**
@@ -73,4 +73,8 @@ function enforceOazapftsTsVersion<T>(cb: () => T): T {
       delete require.cache[ozTsPath];
     }
   }
+}
+
+export function defineConfig(config: ConfigFile): ConfigFile {
+  return config;
 }

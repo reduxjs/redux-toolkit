@@ -1,8 +1,8 @@
-import path from 'node:path';
-import prettier from 'prettier';
+import * as path from 'node:path';
 import type { BuiltInParserName } from 'prettier';
+import prettier from 'prettier';
 
-const EXTENSION_TO_PARSER: Record<string, BuiltInParserName> = {
+const EXTENSION_TO_PARSER = {
   ts: 'typescript',
   tsx: 'typescript',
   js: 'babel',
@@ -18,11 +18,11 @@ const EXTENSION_TO_PARSER: Record<string, BuiltInParserName> = {
   markdown: 'markdown',
   md: 'markdown',
   json: 'json',
-};
+} as const satisfies Record<string, BuiltInParserName> as Record<string, BuiltInParserName>;
 
 export async function prettify(filePath: string | null, content: string, prettierConfigFile?: string): Promise<string> {
-  let config = null;
-  let parser = 'typescript';
+  let config: Awaited<ReturnType<typeof prettier.resolveConfig>> = null;
+  let parser = 'typescript' satisfies BuiltInParserName as BuiltInParserName;
 
   if (filePath) {
     const fileExtension = path.extname(filePath).slice(1);

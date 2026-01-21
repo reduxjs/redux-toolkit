@@ -14,11 +14,11 @@ const cli = async (args: string[]) => {
 
 const tmpDir = path.resolve(__dirname, 'tmp');
 
-export const removeTempDir = async () => {
+export const removeTempDir = async (): Promise<void> => {
   await rimraf(tmpDir);
 };
 
-export const isDir = async (filePath: string) => {
+export const isDir = async (filePath: string): Promise<boolean> => {
   try {
     const stat = await fs.lstat(filePath);
     return stat.isDirectory();

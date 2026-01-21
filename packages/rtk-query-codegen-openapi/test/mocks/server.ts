@@ -1,12 +1,13 @@
 import { headersToObject } from 'headers-polyfill';
 import { http, HttpResponse } from 'msw';
+import type { SetupServer } from 'msw/node';
 import { setupServer } from 'msw/node';
 import petstoreJSON from '../fixtures/petstore.json';
 import petstoreYAML from '../fixtures/petstore.yaml.mock';
 
 // This configures a request mocking server with the given request handlers.
 
-export const server = setupServer(
+export const server: SetupServer = setupServer(
   http.get('https://example.com/echo', async ({ request, params, cookies, requestId }) =>
     HttpResponse.json({
       ...request,

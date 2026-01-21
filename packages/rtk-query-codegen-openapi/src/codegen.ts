@@ -1,20 +1,24 @@
-import { factory } from './utils/factory';
 import ts from 'typescript';
+import { factory } from './utils/index';
 
 const defaultEndpointBuilder = factory.createIdentifier('build');
 
 export type ObjectPropertyDefinitions = Record<string, ts.Expression | undefined>;
-export function generateObjectProperties(obj: ObjectPropertyDefinitions) {
+export function generateObjectProperties(obj: ObjectPropertyDefinitions): ts.PropertyAssignment[] {
   return Object.entries(obj)
-    .filter(([_, v]) => v)
-    .map(([k, v]) => factory.createPropertyAssignment(factory.createIdentifier(k), v as ts.Expression));
+    .filter((entry): entry is [string, ts.Expression] => entry[1] != null)
+    .map(([k, v]) => factory.createPropertyAssignment(factory.createIdentifier(k), v));
 }
 
-export function generateImportNode(pkg: string, namedImports: Record<string, string>, defaultImportName?: string) {
+export function generateImportNode(
+  pkg: string,
+  namedImports: Record<string, string>,
+  defaultImportName?: string
+): ts.ImportDeclaration {
   return factory.createImportDeclaration(
     undefined,
     factory.createImportClause(
-      false,
+      undefined,
       defaultImportName !== undefined ? factory.createIdentifier(defaultImportName) : undefined,
       factory.createNamedImports(
         Object.entries(namedImports).map(([propertyName, name]) =>
@@ -37,7 +41,7 @@ export function generateCreateApiCall({
   endpointBuilder?: ts.Identifier;
   endpointDefinitions: ts.ObjectLiteralExpression;
   tag: boolean;
-}) {
+}): ts.VariableStatement {
   const injectEndpointsObjectLiteralExpression = factory.createObjectLiteralExpression(
     generateObjectProperties({
       endpoints: factory.createArrowFunction(
@@ -130,14 +134,10 @@ export function generateEndpointDefinition({
   extraEndpointsProps: ObjectPropertyDefinitions;
   tags?: string[];
   tagOverrides?: { providesTags?: string[]; invalidatesTags?: string[] };
-}) {
+}): ts.PropertyAssignment {
   const objectProperties = generateObjectProperties({ query: queryFn, ...extraEndpointsProps });
   const providesTags =
-    tagOverrides && 'providesTags' in tagOverrides
-      ? tagOverrides.providesTags
-      : type === 'query'
-        ? tags
-        : undefined;
+    tagOverrides && 'providesTags' in tagOverrides ? tagOverrides.providesTags : type === 'query' ? tags : undefined;
   const invalidatesTags =
     tagOverrides && 'invalidatesTags' in tagOverrides
       ? tagOverrides.invalidatesTags
@@ -149,7 +149,10 @@ export function generateEndpointDefinition({
     objectProperties.push(
       factory.createPropertyAssignment(
         factory.createIdentifier('providesTags'),
-        factory.createArrayLiteralExpression(providesTags.map((tag) => factory.createStringLiteral(tag)), false)
+        factory.createArrayLiteralExpression(
+          providesTags.map((tag) => factory.createStringLiteral(tag)),
+          false
+        )
       )
     );
   }
@@ -158,7 +161,10 @@ export function generateEndpointDefinition({
     objectProperties.push(
       factory.createPropertyAssignment(
         factory.createIdentifier('invalidatesTags'),
-        factory.createArrayLiteralExpression(invalidatesTags.map((tag) => factory.createStringLiteral(tag)), false)
+        factory.createArrayLiteralExpression(
+          invalidatesTags.map((tag) => factory.createStringLiteral(tag)),
+          false
+        )
       )
     );
   }
@@ -173,7 +179,7 @@ export function generateEndpointDefinition({
   );
 }
 
-export function generateTagTypes({ addTagTypes }: { addTagTypes: string[] }) {
+export function generateTagTypes({ addTagTypes }: { addTagTypes: string[] }): ts.VariableStatement {
   return factory.createVariableStatement(
     [factory.createModifier(ts.SyntaxKind.ExportKeyword)],
     factory.createVariableDeclarationList(

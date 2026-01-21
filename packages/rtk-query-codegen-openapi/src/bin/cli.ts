@@ -48,7 +48,7 @@ if (program.args.length === 0 || !/\.([mc]?(jsx?|tsx?)|jsonc?)?$/.test(configFil
   run(resolve(process.cwd(), configFile));
 }
 
-async function run(configFile: string) {
+async function run(configFile: string): Promise<void> {
   process.chdir(dirname(configFile));
 
   const unparsedConfig = require(configFile);

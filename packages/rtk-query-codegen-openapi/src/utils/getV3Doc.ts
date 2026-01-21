@@ -1,7 +1,6 @@
 import SwaggerParser from '@apidevtools/swagger-parser';
-import type { OpenAPIV3 } from 'openapi-types';
-// @ts-ignore
-import converter from 'swagger2openapi';
+import type { OpenAPIV2, OpenAPIV3 } from 'openapi-types';
+import { convertObj } from 'swagger2openapi';
 
 export async function getV3Doc(
   spec: string,
@@ -18,7 +17,7 @@ export async function getV3Doc(
   if (isOpenApiV3) {
     return doc as OpenAPIV3.Document;
   } else {
-    const result = await converter.convertObj(doc, {});
-    return result.openapi as OpenAPIV3.Document;
+    const result = await convertObj(doc as OpenAPIV2.Document, {});
+    return result.openapi satisfies OpenAPIV3.Document;
   }
 }

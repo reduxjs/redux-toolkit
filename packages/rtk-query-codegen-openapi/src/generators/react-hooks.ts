@@ -1,25 +1,26 @@
 import ts from 'typescript';
 import { getOverrides, resolveOperationName } from '../generate';
-import type { ConfigFile, EndpointOverrides, OperationDefinition, OperationIdTransformer } from '../types';
-import { capitalize, isQuery } from '../utils';
-import { factory } from '../utils/factory';
+import type { ConfigFile, EndpointOverrides, OperationDefinition } from '../types';
+import { capitalize, factory, isQuery } from '../utils/index';
 
 type HooksConfigOptions = NonNullable<ConfigFile['hooks']>;
 
-type GetReactHookNameParams = {
+type GetReactHookNameParams = Omit<GenerateReactHooksParams, 'exportName' | 'operationDefinitions'> & {
   operationDefinition: OperationDefinition;
-  endpointOverrides: EndpointOverrides[] | undefined;
-  config: HooksConfigOptions;
-  operationNameSuffix?: string;
-  operationIdTransformer?: OperationIdTransformer;
 };
 
-type CreateBindingParams = {
-  operationDefinition: OperationDefinition;
+type CreateBindingParams = Pick<
+  GetReactHookNameParams,
+  'operationDefinition' | 'operationNameSuffix' | 'operationIdTransformer'
+> & {
   overrides?: EndpointOverrides;
+
+  /**
+   * Indicates whether to generate a lazy query hook.
+   *
+   * @default false
+   */
   isLazy?: boolean;
-  operationNameSuffix?: string;
-  operationIdTransformer?: OperationIdTransformer;
 };
 
 const createBinding = ({
@@ -28,7 +29,7 @@ const createBinding = ({
   isLazy = false,
   operationNameSuffix,
   operationIdTransformer,
-}: CreateBindingParams) =>
+}: CreateBindingParams): ts.BindingElement =>
   factory.createBindingElement(
     undefined,
     undefined,
@@ -46,7 +47,7 @@ const getReactHookName = ({
   config,
   operationNameSuffix,
   operationIdTransformer,
-}: GetReactHookNameParams) => {
+}: GetReactHookNameParams): ts.BindingElement | ts.BindingElement[] => {
   const overrides = getOverrides(operationDefinition, endpointOverrides, operationIdTransformer);
 
   const baseParams = {
@@ -54,7 +55,7 @@ const getReactHookName = ({
     overrides,
     operationNameSuffix,
     operationIdTransformer,
-  };
+  } satisfies CreateBindingParams;
 
   const _isQuery = isQuery(operationDefinition.verb, overrides);
 
@@ -74,13 +75,16 @@ const getReactHookName = ({
   return config.mutations ? createBinding(baseParams) : [];
 };
 
-type GenerateReactHooksParams = {
+type GenerateReactHooksParams = Pick<ConfigFile, 'operationNameSuffix' | 'exportName' | 'operationIdTransformer'> & {
+  /**
+   * The name of the exported variable containing the generated hooks.
+   *
+   * @default "injectedRtkApi"
+   */
   exportName: string;
   operationDefinitions: OperationDefinition[];
   endpointOverrides: EndpointOverrides[] | undefined;
   config: HooksConfigOptions;
-  operationNameSuffix?: string;
-  operationIdTransformer?: OperationIdTransformer;
 };
 export const generateReactHooks = ({
   exportName,
@@ -89,7 +93,7 @@ export const generateReactHooks = ({
   config,
   operationNameSuffix,
   operationIdTransformer,
-}: GenerateReactHooksParams) =>
+}: GenerateReactHooksParams): ts.VariableStatement =>
   factory.createVariableStatement(
     [factory.createModifier(ts.SyntaxKind.ExportKeyword)],
     factory.createVariableDeclarationList(
