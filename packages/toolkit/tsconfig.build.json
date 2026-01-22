@@ -2,7 +2,7 @@
   // For building the library.
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "dist"
+    "noEmit": false
   },
   "include": ["src"],
   "exclude": [

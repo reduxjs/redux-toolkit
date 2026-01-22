@@ -4,8 +4,8 @@
   // we are using during development.
   "extends": "./tsconfig.test.json",
   "compilerOptions": {
-    "skipLibCheck": true,
-    "rootDir": "."
+    "rootDir": "./"
   },
-  "include": ["."]
+  "include": ["."],
+  "exclude": ["dist", "scripts/issue-triage"]
 }
