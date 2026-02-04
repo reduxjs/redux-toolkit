@@ -23,7 +23,10 @@ import type {
   ReducerWithInitialState,
 } from './createReducer'
 import { createReducer } from './createReducer'
-import type { MergeWithAutoActions, AutoActions } from './createAutoReducers'
+import type {
+  MergeWithAutoActions,
+  AutoActionCreators,
+} from './createAutoReducers'
 import { createAutoReducers } from './createAutoReducers'
 import type {
   ActionReducerMapBuilder,
@@ -81,7 +84,7 @@ export interface Slice<
    */
   actions: MergeWithAutoActions<
     CaseReducerActions<CaseReducers, Name>,
-    AutoActions<State, Name>
+    AutoActionCreators<State, Name>
   >
 
   /**

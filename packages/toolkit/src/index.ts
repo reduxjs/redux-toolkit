@@ -73,7 +73,7 @@ export type {
 } from './createSlice'
 export type {
   // types
-  AutoActions,
+  AutoActionCreators,
   AutoReducers,
 } from './createAutoReducers'
 export type { ActionCreatorInvariantMiddlewareOptions } from './actionCreatorInvariantMiddleware'
