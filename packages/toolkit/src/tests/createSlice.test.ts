@@ -984,4 +984,434 @@ describe('createSlice', () => {
       )
     })
   })
+
+  describe('createSlice with auto-generated actions', () => {
+    describe('basic auto-generation functionality', () => {
+      it('should generate automatic actions for each state field', () => {
+        const slice = createSlice({
+          name: 'user',
+          initialState: {
+            name: '',
+            sessionId: 0,
+            user: {
+              userId: 0,
+              name: 'User',
+            },
+            isActive: false,
+          },
+          reducers: {
+            setUser: (
+              state,
+              action: PayloadAction<{ userId: number; name: string }>,
+            ) => {
+              state.user = action.payload
+            },
+          },
+        })
+
+        const { actions, reducer } = slice
+
+        expect(actions).toHaveProperty('setName')
+        expect(actions).toHaveProperty('setSessionId')
+        expect(actions).toHaveProperty('setUser') // This user override
+        expect(actions).toHaveProperty('setIsActive')
+
+        expect(actions.setName.type).toBe('user/setName')
+        expect(actions.setSessionId.type).toBe('user/setSessionId')
+        expect(actions.setUser.type).toBe('user/setUser')
+        expect(actions.setIsActive.type).toBe('user/setIsActive')
+      })
+
+      it('should generate reducers for auto actions', () => {
+        const slice = createSlice({
+          name: 'test',
+          initialState: {
+            count: 0,
+            text: 'hello',
+          },
+          reducers: {},
+        })
+
+        const { actions, reducer } = slice
+
+        let state = { count: 0, text: 'hello' }
+
+        state = reducer(state, actions.setText('world'))
+        expect(state).toEqual({ count: 0, text: 'world' })
+
+        state = reducer(state, actions.setCount(42))
+        expect(state).toEqual({ count: 42, text: 'world' })
+      })
+    })
+
+    describe('override functionality', () => {
+      it('should allow manual reducers to override auto-generated ones', () => {
+        const slice = createSlice({
+          name: 'test',
+          initialState: {
+            value: 0,
+            name: '',
+          },
+          reducers: {
+            // Overriding auto-generated setValue
+            setValue: (state, action: PayloadAction<number>) => {
+              state.value = action.payload * 2
+            },
+            // Overriding the auto-generated setName with additional logic
+            setName: (state, action: PayloadAction<string>) => {
+              state.name = action.payload.trim().toUpperCase()
+            },
+          },
+        })
+
+        const { actions, reducer } = slice
+        let state = { value: 0, name: '' }
+
+        state = reducer(state, actions.setValue(5))
+        expect(state.value).toBe(10)
+
+        state = reducer(state, actions.setName('  john  '))
+        expect(state.name).toBe('JOHN')
+      })
+
+      it('should preserve all user-defined reducers alongside auto-generated ones', () => {
+        const slice = createSlice({
+          name: 'app',
+          initialState: {
+            count: 0,
+            loading: false,
+            data: null as string | null,
+          },
+          reducers: {
+            // A custom reducer that doesn't override auto-action
+            increment: (state) => {
+              state.count += 1
+            },
+            //A custom reducer that doesn't override auto-action
+            decrement: (state) => {
+              state.count -= 1
+            },
+            // Override auto-generated setLoading
+            setLoading: (state, action: PayloadAction<boolean>) => {
+              state.loading = action.payload
+              if (action.payload) {
+                state.data = null // Additional logic
+              }
+            },
+          },
+        })
+
+        const { actions } = slice
+
+        expect(actions).toHaveProperty('increment')
+        expect(actions).toHaveProperty('decrement')
+        expect(actions).toHaveProperty('setCount') // auto-generated
+        expect(actions).toHaveProperty('setLoading') // redefined
+        expect(actions).toHaveProperty('setData') // auto-generated
+
+        expect(actions.increment.type).toBe('app/increment')
+        expect(actions.decrement.type).toBe('app/decrement')
+        expect(actions.setCount.type).toBe('app/setCount')
+        expect(actions.setLoading.type).toBe('app/setLoading')
+        expect(actions.setData.type).toBe('app/setData')
+      })
+    })
+
+    describe('complex state structures', () => {
+      it('should handle nested objects in state', () => {
+        const slice = createSlice({
+          name: 'nested',
+          initialState: {
+            user: {
+              id: 0,
+              name: '',
+              profile: {
+                age: 0,
+                email: '',
+              },
+            },
+            settings: {
+              theme: 'light',
+              notifications: true,
+            },
+          },
+          reducers: {},
+        })
+
+        const { actions, reducer } = slice
+
+        //For nested objects, actions are generated for the entire object
+        expect(actions).toHaveProperty('setUser')
+        expect(actions).toHaveProperty('setSettings')
+
+        // Does not generate actions for deeply nested fields
+        expect(actions).not.toHaveProperty('setUserId')
+        expect(actions).not.toHaveProperty('setUserName')
+        expect(actions).not.toHaveProperty('setUserProfile')
+        expect(actions).not.toHaveProperty('setSettingsTheme')
+
+        let state = slice.getInitialState()
+
+        const newUser = {
+          id: 1,
+          name: 'John',
+          profile: {
+            age: 30,
+            email: 'john@example.com',
+          },
+        }
+
+        state = reducer(state, actions.setUser(newUser))
+        expect(state.user).toEqual(newUser)
+      })
+
+      it('should handle arrays in state', () => {
+        const slice = createSlice({
+          name: 'array',
+          initialState: {
+            items: ['a', 'b', 'c'],
+            numbers: [1, 2, 3],
+          },
+          reducers: {
+            setItems: (state, action: PayloadAction<string[]>) => {
+              state.items = action.payload.filter((item) => item.trim() !== '')
+            },
+          },
+        })
+
+        const { actions, reducer } = slice
+        let state = slice.getInitialState()
+
+        state = reducer(state, actions.setItems(['x', '', 'y', '']))
+        expect(state.items).toEqual(['x', 'y'])
+
+        state = reducer(state, actions.setNumbers([4, 5, 6]))
+        expect(state.numbers).toEqual([4, 5, 6])
+      })
+    })
+
+    describe('type safety and TypeScript integration', () => {
+      it('should maintain correct TypeScript types for auto-generated actions', () => {
+        interface UserState {
+          id: number
+          name: string
+          email?: string
+        }
+
+        const slice = createSlice({
+          name: 'typed',
+          initialState: {
+            user: null as UserState | null,
+            count: 0,
+            tags: [] as string[],
+          },
+          reducers: {
+            addTag: (state, action: PayloadAction<string>) => {
+              state.tags.push(action.payload)
+            },
+          },
+        })
+
+        const { actions } = slice
+
+        const userAction = actions.setUser({ id: 1, name: 'John' })
+        expect(userAction.payload).toEqual({ id: 1, name: 'John' })
+
+        const countAction = actions.setCount(42)
+        expect(countAction.payload).toBe(42)
+
+        const tagsAction = actions.setTags(['a', 'b'])
+        expect(tagsAction.payload).toEqual(['a', 'b'])
+
+        const addTagAction = actions.addTag('new')
+        expect(addTagAction.payload).toBe('new')
+      })
+
+      it('should handle optional/readonly properties correctly', () => {
+        const slice = createSlice({
+          name: 'optional',
+          initialState: {
+            required: '',
+            optional: undefined as number | undefined,
+            readOnly: false,
+            array: [] as readonly string[],
+          },
+          reducers: {},
+        })
+
+        const { actions, reducer } = slice
+
+        expect(actions).toHaveProperty('setRequired')
+        expect(actions).toHaveProperty('setOptional')
+        expect(actions).toHaveProperty('setReadOnly')
+        expect(actions).toHaveProperty('setArray')
+
+        let state = slice.getInitialState()
+        state = reducer(state, actions.setOptional(42))
+        expect(state.optional).toBe(42)
+
+        state = reducer(state, actions.setReadOnly(true))
+        expect(state.readOnly).toBe(true)
+
+        state = reducer(state, actions.setArray(['a', 'b']))
+        expect(state.array).toEqual(['a', 'b'])
+      })
+    })
+
+    describe('edge cases and error handling', () => {
+      it('should handle empty state object', () => {
+        const slice = createSlice({
+          name: 'empty',
+          initialState: {},
+          reducers: {
+            customAction: (state) => state,
+          },
+        })
+
+        const { actions } = slice
+
+        // There should be no auto actions
+        expect(Object.keys(actions)).toHaveLength(1)
+        expect(actions).toHaveProperty('customAction')
+        expect(actions).not.toHaveProperty('setAnything')
+      })
+
+      it('should work with initialState factory function', () => {
+        const slice = createSlice({
+          name: 'factory',
+          initialState: () => ({
+            count: 0,
+            name: 'default',
+            initialized: true,
+          }),
+          reducers: {
+            reset: (state) => {
+              state.count = 0
+              state.name = 'default'
+            },
+          },
+        })
+
+        const { actions, reducer, getInitialState } = slice
+
+        expect(actions).toHaveProperty('setCount')
+        expect(actions).toHaveProperty('setName')
+        expect(actions).toHaveProperty('setInitialized')
+        expect(actions).toHaveProperty('reset')
+
+        let state = getInitialState()
+        expect(state.initialized).toBe(true)
+
+        state = reducer(state, actions.setCount(5))
+        expect(state.count).toBe(5)
+
+        state = reducer(state, actions.reset())
+        expect(state.count).toBe(0)
+        expect(state.name).toBe('default')
+      })
+
+      it('should handle state with Symbol keys', () => {
+        const sym = Symbol('test')
+
+        const slice = createSlice({
+          name: 'symbol',
+          initialState: {
+            [sym]: 'symbol value',
+            regular: 'regular value',
+          } as any,
+          reducers: {},
+        })
+
+        const { actions } = slice
+
+        expect(Object.keys(actions)).toHaveLength(1)
+        expect(actions).toHaveProperty('setRegular')
+        expect(actions).not.toHaveProperty('setSymbol')
+      })
+    })
+
+    describe('integration with Redux store', () => {
+      it('should work correctly when used with configureStore', () => {
+        const { configureStore } = require('@reduxjs/toolkit')
+
+        const slice = createSlice({
+          name: 'counter',
+          initialState: {
+            value: 0,
+            history: [] as number[],
+          },
+          reducers: {
+            setValue: (state, action: PayloadAction<number>) => {
+              state.value = action.payload
+              state.history.push(action.payload)
+            },
+            clearHistory: (state) => {
+              state.history = []
+            },
+          },
+        })
+
+        const store = configureStore({
+          reducer: slice.reducer,
+        })
+
+        store.dispatch(slice.actions.setHistory([1, 2, 3]))
+        expect(store.getState().history).toEqual([1, 2, 3])
+
+        store.dispatch(slice.actions.setValue(5))
+        expect(store.getState().value).toBe(5)
+        expect(store.getState().history).toEqual([1, 2, 3, 5])
+
+        store.dispatch(slice.actions.clearHistory())
+        expect(store.getState().history).toEqual([])
+      })
+
+      it('should work with multiple slices in store', () => {
+        const { configureStore, combineReducers } = require('@reduxjs/toolkit')
+
+        const userSlice = createSlice({
+          name: 'user',
+          initialState: {
+            name: '',
+            age: 0,
+          },
+          reducers: {
+            setAge: (state, action: PayloadAction<number>) => {
+              state.age = Math.max(0, action.payload)
+            },
+          },
+        })
+
+        const postsSlice = createSlice({
+          name: 'posts',
+          initialState: {
+            items: [] as string[],
+            loading: false,
+          },
+          reducers: {},
+        })
+
+        const rootReducer = combineReducers({
+          user: userSlice.reducer,
+          posts: postsSlice.reducer,
+        })
+
+        const store = configureStore({
+          reducer: rootReducer,
+        })
+
+        store.dispatch(userSlice.actions.setName('Alice'))
+        store.dispatch(userSlice.actions.setAge(-5))
+
+        store.dispatch(postsSlice.actions.setItems(['post1', 'post2']))
+        store.dispatch(postsSlice.actions.setLoading(true))
+
+        const state = store.getState()
+        expect(state.user.name).toBe('Alice')
+        expect(state.user.age).toBe(0)
+        expect(state.posts.items).toEqual(['post1', 'post2'])
+        expect(state.posts.loading).toBe(true)
+      })
+    })
+  })
 })
