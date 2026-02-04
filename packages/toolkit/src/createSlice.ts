@@ -23,6 +23,8 @@ import type {
   ReducerWithInitialState,
 } from './createReducer'
 import { createReducer } from './createReducer'
+import type { MergeWithAutoActions, AutoActions } from './createAutoReducers'
+import { createAutoReducers } from './createAutoReducers'
 import type {
   ActionReducerMapBuilder,
   AsyncThunkReducers,
@@ -77,7 +79,10 @@ export interface Slice<
    * Action creators for the types of actions that are handled by the slice
    * reducer.
    */
-  actions: CaseReducerActions<CaseReducers, Name>
+  actions: MergeWithAutoActions<
+    CaseReducerActions<CaseReducers, Name>,
+    AutoActions<State, Name>
+  >
 
   /**
    * The individual case reducer functions that were passed in the `reducers` parameter.
@@ -596,10 +601,14 @@ export function buildCreateSlice({ creators }: BuildCreateSliceConfig = {}) {
       }
     }
 
-    const reducers =
-      (typeof options.reducers === 'function'
+    const autoReducers = createAutoReducers(options.initialState)
+
+    const reducers = {
+      ...autoReducers,
+      ...((typeof options.reducers === 'function'
         ? options.reducers(buildReducerCreators<State>())
-        : options.reducers) || {}
+        : options.reducers) || {}),
+    }
 
     const reducerNames = Object.keys(reducers)
 
