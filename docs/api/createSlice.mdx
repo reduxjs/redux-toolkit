@@ -351,6 +351,214 @@ reducers: (create) => {
 
 :::
 
+### Automatically Generated Reducers
+
+`createSlice` automatically generates a reducer for each property in your slice's state.
+This also gives you an automatically generated action creator for each property in your slice's state.
+
+```typescript
+import { createSlice } from '@reduxjs/toolkit'
+
+const counterSlice = createSlice({
+  name: 'counter',
+  initialState: {
+    value: 0,
+    name: 'Counter',
+    active: false,
+  },
+  reducers: {
+    // Custom reducer that overrides auto-generated setValue
+    setValue: (state, action) => {
+      // Custom logic here
+      state.value = action.payload * 2
+    },
+    // Additional custom reducers work alongside auto-generated ones
+    increment: (state) => {
+      state.value += 1
+    },
+  },
+})
+
+// Auto-generated action creators are available alongside custom ones
+const { setValue, setName, setActive, increment } = counterSlice.actions
+
+// Usage in components
+dispatch(setName('Enhanced Counter'))
+dispatch(setActive(true))
+dispatch(increment())
+```
+
+#### Generated Action Creators
+
+For a state with properties:
+
+- `name: string`
+- `count: number`
+- `isLoading: boolean`
+
+The following actions are automatically generated:
+
+- `setName(payload: string)`
+- `setCount(payload: number)`
+- `setIsLoading(payload: boolean)`
+
+#### Overriding Auto-Generated Action Creators
+
+You can override any auto-generated action creator by defining a reducer with the same name:
+
+```typescript
+const userSlice = createSlice({
+  name: 'user',
+  initialState: {
+    name: '',
+    age: 0,
+    email: '',
+  },
+  reducers: {
+    // Override auto-generated setName with custom validation
+    setName: (state, action) => {
+      if (action.payload.length > 0) {
+        state.name = action.payload.trim()
+      }
+    },
+    // Override auto-generated setAge with range checking
+    setAge: (state, action) => {
+      if (action.payload >= 0 && action.payload <= 150) {
+        state.age = action.payload
+      }
+    },
+    // Auto-generated setEmail remains as-is
+  },
+})
+```
+
+#### Complex State Structures
+
+#### Nested Objects
+
+```typescript
+const appSlice = createSlice({
+  name: 'app',
+  initialState: {
+    user: {
+      id: 0,
+      name: '',
+    },
+    settings: {
+      theme: 'light',
+      notifications: true,
+    },
+  },
+  reducers: {},
+})
+
+// Generated action creators:
+// - setUser(payload: { id: number; name: string })
+// - setSettings(payload: { theme: string; notifications: boolean })
+```
+
+#### Arrays
+
+```typescript
+const todoSlice = createSlice({
+  name: 'todos',
+  initialState: {
+    items: [] as string[],
+    filter: 'all',
+  },
+  reducers: {},
+})
+
+// Generated action creators:
+// - setItems(payload: string[])
+// - setFilter(payload: string)
+```
+
+#### TypeScript Support
+
+Full TypeScript support is included out of the box:
+
+```typescript
+interface UserState {
+  id: number
+  name: string
+  email?: string
+}
+
+const userSlice = createSlice({
+  name: 'user',
+  initialState: {
+    id: 0,
+    name: '',
+    email: undefined,
+  } as UserState,
+  reducers: {},
+})
+
+// TypeScript knows the payload types:
+// setId(payload: number)
+// setName(payload: string)
+// setEmail(payload: string | undefined)
+```
+
+#### Migration from Existing Code
+
+If you're migrating existing code, the feature is opt-in and backward compatible:
+
+```typescript
+// Before
+const slice = createSlice({
+  name: 'example',
+  initialState: { count: 0, name: '' },
+  reducers: {
+    setCount: (state, action) => {
+      state.count = action.payload
+    },
+    setName: (state, action) => {
+      state.name = action.payload
+    },
+    reset: (state) => {
+      state.count = 0
+      state.name = ''
+    },
+  },
+})
+
+// After - less boilerplate
+const slice = createSlice({
+  name: 'example',
+  initialState: { count: 0, name: '' },
+  reducers: {
+    reset: (state) => {
+      state.count = 0
+      state.name = ''
+    },
+    // setCount and setName are auto-generated
+  },
+})
+```
+
+#### Best Practices
+
+1. **Use for Simple Setters:** Auto-generated actions work best for simple property updates
+2. **Override for Complex Logic:** Define custom reducers when you need validation, transformation, or side effects
+3. **Combine Approaches:** Mix auto-generated actions with custom business logic reducers
+4. **Naming Consistency:** Follow the `setPropertyName` convention for consistency
+
+#### Limitations
+
+- Only top-level properties generate action creators (nested properties use object-level setters)
+- Property names starting with non-alphabetical characters may not work correctly
+- Symbol keys are ignored
+
+#### Generated Action Creators
+
+Auto-generated action creators have:
+
+- Type: `sliceName/setPropertyName`
+- Payload: The value to set
+- No additional metadata
+
 ### `extraReducers`
 
 Conceptually, each slice reducer "owns" its slice of state. There's also a natural correspondence between the update logic defined inside `reducers`, and the action types that are generated based on those.
