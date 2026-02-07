@@ -2,12 +2,7 @@
   // For runtime and type tests during CI.
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "emitDeclarationOnly": false,
-    "noEmit": true,
-    "rootDir": "./src",
-    "jsx": "react-jsx",
-    "skipLibCheck": true,
-    "noImplicitReturns": false
+    "jsx": "react-jsx"
   },
   "exclude": ["dist"],
   "include": [
