@@ -55,6 +55,7 @@ namespace counterModule {
   export const { decrementCount, getCount, incrementCount } = endpoints
 
   export const {
+    cacheEntriesUpserted,
     internal_getRTKQSubscriptions,
     middlewareRegistered,
     onFocus,
@@ -71,11 +72,13 @@ namespace counterModule {
     updateSubscriptionOptions,
   } = internalActions
 
-  export const { match, type } = updateSubscriptionOptions
+  export const { match, type } = cacheEntriesUpserted
+
+  export const { match: _match, type: _type } = updateSubscriptionOptions
 
   export const {
-    getRunningMutationThunk,
     getRunningMutationsThunk,
+    getRunningMutationThunk,
     getRunningQueriesThunk,
     getRunningQueryThunk,
     invalidateTags,
@@ -86,9 +89,12 @@ namespace counterModule {
     selectInvalidatedBy,
     updateQueryData,
     upsertQueryData,
+    upsertQueryEntries,
   } = util
 
-  export const { match: _match, type: _type } = invalidateTags
+  export const { match: __match, type: __type } = invalidateTags
+
+  export const { match: ___match } = upsertQueryEntries
 }
 
 export = counterModule

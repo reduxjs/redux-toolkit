@@ -172,7 +172,7 @@ export const {
   useQuerySubscription: ___useQuerySubscription,
 } = getPost
 
-const {
+export const {
   Types: ____Types,
   initiate: ____initiate,
   matchFulfilled: ____matchFulfilled,
@@ -208,6 +208,7 @@ export const {
 } = getInfinitePosts
 
 export const {
+  cacheEntriesUpserted,
   internal_getRTKQSubscriptions,
   middlewareRegistered,
   onFocus,
@@ -225,8 +226,8 @@ export const {
 } = internalActions
 
 export const {
-  getRunningMutationThunk,
   getRunningMutationsThunk,
+  getRunningMutationThunk,
   getRunningQueriesThunk,
   getRunningQueryThunk,
   invalidateTags,
@@ -237,4 +238,5 @@ export const {
   selectInvalidatedBy,
   updateQueryData,
   upsertQueryData,
+  upsertQueryEntries,
 } = util

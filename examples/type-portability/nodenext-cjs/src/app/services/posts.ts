@@ -213,6 +213,7 @@ namespace postsModule {
   } = getInfinitePosts
 
   export const {
+    cacheEntriesUpserted,
     internal_getRTKQSubscriptions,
     middlewareRegistered,
     onFocus,
@@ -230,8 +231,8 @@ namespace postsModule {
   } = internalActions
 
   export const {
-    getRunningMutationThunk,
     getRunningMutationsThunk,
+    getRunningMutationThunk,
     getRunningQueriesThunk,
     getRunningQueryThunk,
     invalidateTags,
@@ -242,6 +243,7 @@ namespace postsModule {
     selectInvalidatedBy,
     updateQueryData,
     upsertQueryData,
+    upsertQueryEntries,
   } = util
 }
 
