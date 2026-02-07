@@ -1,4 +1,4 @@
-import type { ChangeEvent, FormEventHandler } from 'react'
+import type { ChangeEvent, SubmitEventHandler } from 'react'
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAppSelector } from '../../app/hooks'
@@ -25,7 +25,7 @@ export const EditablePostName = ({
   const handleChange = ({ target: { value } }: ChangeEvent<HTMLInputElement>) =>
     setName(value)
 
-  const handleSubmit: FormEventHandler<HTMLFormElement> = (e) => {
+  const handleSubmit: SubmitEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault()
     onUpdate(name)
   }

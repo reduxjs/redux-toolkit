@@ -4,7 +4,7 @@ import hooksModule = require('../../app/hooks.js')
 import postsModule = require('../../app/services/posts.js')
 import pollingSliceModule = require('../polling/pollingSlice.js')
 
-import type { ChangeEvent, FormEventHandler } from 'react'
+import type { ChangeEvent, SubmitEventHandler } from 'react'
 
 import useState = React.useState
 import useNavigate = ReactRouterDom.useNavigate
@@ -31,7 +31,7 @@ const EditablePostName = ({
   const handleChange = ({ target: { value } }: ChangeEvent<HTMLInputElement>) =>
     setName(value)
 
-  const handleSubmit: FormEventHandler<HTMLFormElement> = (e) => {
+  const handleSubmit: SubmitEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault()
     onUpdate(name)
   }

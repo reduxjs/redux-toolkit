@@ -5,7 +5,7 @@ import postsModule = require('../../app/services/posts.js')
 import authSliceModule = require('../auth/authSlice.js')
 import PostDetailModule = require('./PostDetail.js')
 
-import type { ChangeEvent, FormEventHandler } from 'react'
+import type { ChangeEvent, SubmitEventHandler } from 'react'
 import type { Post } from '../../app/services/posts.js'
 
 import useState = React.useState
@@ -36,7 +36,7 @@ const AddPost = () => {
     }))
   }
 
-  const handleSubmit: FormEventHandler<HTMLFormElement> = async (e) => {
+  const handleSubmit: SubmitEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault()
     await addPost(post)
     setPost(initialValue)
