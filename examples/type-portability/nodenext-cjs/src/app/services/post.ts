@@ -52,7 +52,12 @@ namespace postModule {
     middleware,
     reducer,
     reducerPath,
+    useAddPostMutation,
+    useDeletePostMutation,
+    useGetPostQuery,
+    useLazyGetPostQuery,
     usePrefetch,
+    useUpdatePostMutation,
     util,
   } = postApi
 
@@ -73,29 +78,40 @@ namespace postModule {
     BaseQuery,
     MutationDefinition,
     QueryArg,
+    RawResultType,
     ReducerPath,
     ResultType,
     TagTypes,
   } = Types
 
   export const {
-    type: __type,
-    Types: _Types,
+    argSchema,
+    catchSchemaFailure,
+    errorResponseSchema,
     extraOptions,
     invalidatesTags,
+    metaSchema,
     onCacheEntryAdded,
     onQueryStarted,
+    onSchemaFailure,
     providesTags,
     query,
     queryFn,
+    rawErrorResponseSchema,
+    rawResponseSchema,
+    responseSchema,
+    skipSchemaValidation,
     structuralSharing,
     transformErrorResponse,
     transformResponse,
+    type: __type,
+    Types: _Types,
   } = MutationDefinition
 
   export const { fetched_at, id, name: _name } = QueryArg
 
   export const {
+    cacheEntriesUpserted,
     internal_getRTKQSubscriptions,
     middlewareRegistered,
     onFocus,
@@ -112,11 +128,13 @@ namespace postModule {
     updateSubscriptionOptions,
   } = internalActions
 
-  export const { match, type } = updateSubscriptionOptions
+  export const { match, type } = cacheEntriesUpserted
+
+  export const { match: _match, type: _type } = updateSubscriptionOptions
 
   export const {
-    getRunningMutationThunk,
     getRunningMutationsThunk,
+    getRunningMutationThunk,
     getRunningQueriesThunk,
     getRunningQueryThunk,
     invalidateTags,
@@ -127,9 +145,12 @@ namespace postModule {
     selectInvalidatedBy,
     updateQueryData,
     upsertQueryData,
+    upsertQueryEntries,
   } = util
 
-  export const { match: _match, type: _type } = invalidateTags
+  export const { match: __match } = upsertQueryEntries
+
+  export const { match: ___match, type: ___type } = invalidateTags
 }
 
 export = postModule

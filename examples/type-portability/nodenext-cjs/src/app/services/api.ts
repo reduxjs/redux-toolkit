@@ -66,6 +66,7 @@ namespace apiModule {
   } = enhancedApi
 
   export const {
+    cacheEntriesUpserted,
     internal_getRTKQSubscriptions,
     middlewareRegistered,
     onFocus,
@@ -85,8 +86,8 @@ namespace apiModule {
   export const { match, type } = updateSubscriptionOptions
 
   export const {
-    getRunningMutationThunk,
     getRunningMutationsThunk,
+    getRunningMutationThunk,
     getRunningQueriesThunk,
     getRunningQueryThunk,
     invalidateTags,
@@ -97,9 +98,12 @@ namespace apiModule {
     selectInvalidatedBy,
     updateQueryData,
     upsertQueryData,
+    upsertQueryEntries,
   } = util
 
   export const { match: _match, type: _type } = invalidateTags
+
+  export const { match: __match } = upsertQueryEntries
 }
 
 export = apiModule

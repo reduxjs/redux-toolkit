@@ -52,6 +52,7 @@ export const {
 export const { decrementCount, getCount, incrementCount } = endpoints
 
 export const {
+  cacheEntriesUpserted,
   internal_getRTKQSubscriptions,
   middlewareRegistered,
   onFocus,
@@ -68,11 +69,13 @@ export const {
   updateSubscriptionOptions,
 } = internalActions
 
-export const { match, type } = updateSubscriptionOptions
+export const { match, type } = cacheEntriesUpserted
+
+export const { match: _match, type: _type } = updateSubscriptionOptions
 
 export const {
-  getRunningMutationThunk,
   getRunningMutationsThunk,
+  getRunningMutationThunk,
   getRunningQueriesThunk,
   getRunningQueryThunk,
   invalidateTags,
@@ -83,6 +86,9 @@ export const {
   selectInvalidatedBy,
   updateQueryData,
   upsertQueryData,
+  upsertQueryEntries,
 } = util
 
-export const { match: _match, type: _type } = invalidateTags
+export const { match: __match, type: __type } = invalidateTags
+
+export const { match: ___match } = upsertQueryEntries

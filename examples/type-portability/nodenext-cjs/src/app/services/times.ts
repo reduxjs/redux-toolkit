@@ -48,6 +48,7 @@ namespace timesModule {
   } = getTime
 
   export const {
+    cacheEntriesUpserted,
     internal_getRTKQSubscriptions,
     middlewareRegistered,
     onFocus,
@@ -65,8 +66,8 @@ namespace timesModule {
   } = internalActions
 
   export const {
-    getRunningMutationThunk,
     getRunningMutationsThunk,
+    getRunningMutationThunk,
     getRunningQueriesThunk,
     getRunningQueryThunk,
     invalidateTags,
@@ -77,6 +78,7 @@ namespace timesModule {
     selectInvalidatedBy,
     updateQueryData,
     upsertQueryData,
+    upsertQueryEntries,
   } = util
 }
 

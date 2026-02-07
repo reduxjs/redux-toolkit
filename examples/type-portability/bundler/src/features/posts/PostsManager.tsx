@@ -1,4 +1,4 @@
-import type { ChangeEvent, FormEventHandler } from 'react'
+import type { ChangeEvent, SubmitEventHandler } from 'react'
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Route, Routes, useNavigate } from 'react-router-dom'
@@ -6,9 +6,9 @@ import type { Post } from '../../app/services/posts'
 import {
   useAddPostMutation,
   useGetErrorProneQuery,
+  useGetInfinitePostsInfiniteQuery,
   useGetPostsQuery,
   useLoginMutation,
-  useGetInfinitePostsInfiniteQuery,
 } from '../../app/services/posts'
 import { logout, selectIsAuthenticated } from '../auth/authSlice'
 import { PostDetail } from './PostDetail'
@@ -25,7 +25,7 @@ export const AddPost = () => {
     }))
   }
 
-  const handleSubmit: FormEventHandler<HTMLFormElement> = async (e) => {
+  const handleSubmit: SubmitEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault()
     await addPost(post)
     setPost(initialValue)
