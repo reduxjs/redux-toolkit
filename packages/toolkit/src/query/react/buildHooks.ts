@@ -203,6 +203,19 @@ export type UseQuerySubscriptionOptions = SubscriptionOptions & {
 }
 
 /**
+ * Provides a way to reference the options accepted by the `useQuerySubscription`
+ * hook in userland code.
+ *
+ * Unlike other `Typed*` wrappers, this type has no generic parameters since
+ * {@linkcode UseQuerySubscriptionOptions} does not depend on a specific query
+ * definition.
+ *
+ * @since 2.2.8
+ * @public
+ */
+export type TypedUseQuerySubscriptionOptions = UseQuerySubscriptionOptions
+
+/**
  * A React hook that automatically triggers fetches of data from an endpoint, and 'subscribes' the component to the cached data.
  *
  * The query arg is used as a cache key. Changing the query arg will tell the hook to re-fetch the data if it does not exist in the cache already.
@@ -525,7 +538,7 @@ export type TypedUseQueryState<
 >
 
 /**
- * @internal
+ * @public
  */
 export type UseQueryStateOptions<
   D extends QueryDefinition<any, any, any, any>,
@@ -1336,6 +1349,30 @@ export type UseMutationStateOptions<
   selectFromResult?: MutationStateSelector<R, D>
   fixedCacheKey?: string
 }
+
+/**
+ * Provides a way to define a "pre-typed" version of
+ * {@linkcode UseMutationStateOptions} with specific options for a given mutation.
+ *
+ * @template ResultType - The type of the result `data` returned by the mutation.
+ * @template QueryArg - The type of the argument passed into the mutation.
+ * @template BaseQuery - The type of the base query function being used.
+ * @template SelectedResult - The type of the selected result returned by the __`selectFromResult`__ function.
+ *
+ * @since 2.2.8
+ * @public
+ */
+export type TypedUseMutationStateOptions<
+  ResultType,
+  QueryArg,
+  BaseQuery extends BaseQueryFn,
+  SelectedResult extends Record<string, any> = MutationResultSelectorResult<
+    MutationDefinition<QueryArg, BaseQuery, string, ResultType, string>
+  >,
+> = UseMutationStateOptions<
+  MutationDefinition<QueryArg, BaseQuery, string, ResultType, string>,
+  SelectedResult
+>
 
 export type UseMutationStateResult<
   D extends MutationDefinition<any, any, any, any>,
