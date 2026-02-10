@@ -538,7 +538,7 @@ export type TypedUseQueryState<
 >
 
 /**
- * @public
+ * @internal
  */
 export type UseQueryStateOptions<
   D extends QueryDefinition<any, any, any, any>,
