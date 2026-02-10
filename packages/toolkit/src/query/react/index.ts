@@ -38,6 +38,8 @@ export type {
   TypedUseInfiniteQuerySubscription,
   TypedUseInfiniteQueryState,
   TypedLazyInfiniteQueryTrigger,
+  TypedUseQuerySubscriptionOptions,
+  TypedUseMutationStateOptions,
 } from './buildHooks'
 export { UNINITIALIZED_VALUE } from './constants'
 export { createApi, reactHooksModule, reactHooksModuleName }
