@@ -123,3 +123,201 @@ const enhancedApi = api.enhanceEndpoints({
   },
 })
 ```
+
+## Sharing Endpoint Definitions Across Apps (Monorepos)
+
+In a monorepo setup, you may want to define reusable endpoint definitions in a shared package that multiple apps can use. For example, you might have a `@myorg/auth` package containing authentication-related endpoints that are used by several different applications.
+
+The challenge is that the shared package doesn't have direct access to each app's API instance. The solution is to **export a callback function** from the shared package that the consuming app can call with its own API instance.
+
+This pattern is similar to the approach used for [organizing listener middleware callbacks](../../api/createListenerMiddleware.mdx#organizing-listeners-in-files), and avoids circular import issues since the shared package doesn't need to import the app's API.
+
+### Exporting an Injection Callback
+
+The recommended approach is to export a function that accepts an API instance, calls `injectEndpoints`, and returns the result:
+
+```ts title="packages/auth/src/authEndpoints.ts"
+import type { Api } from '@reduxjs/toolkit/query/react'
+
+export interface AuthUser {
+  id: string
+  name: string
+  email: string
+}
+
+export interface LoginRequest {
+  username: string
+  password: string
+}
+
+export interface LoginResponse {
+  user: AuthUser
+  token: string
+}
+
+// Export a callback that accepts the app's API instance
+// and injects the auth-related endpoints
+export const injectAuthEndpoints = <A extends Api<any, {}, any, any, any>>(
+  api: A,
+) => {
+  return api.injectEndpoints({
+    endpoints: (build) => ({
+      login: build.mutation<LoginResponse, LoginRequest>({
+        query: (credentials) => ({
+          url: 'auth/login',
+          method: 'POST',
+          body: credentials,
+        }),
+      }),
+      getMe: build.query<AuthUser, void>({
+        query: () => 'auth/me',
+      }),
+    }),
+  })
+}
+```
+
+Then, in the consuming app, import the callback, call it with your API instance, and export the hooks:
+
+```ts title="apps/my-app/src/store/authApi.ts"
+import { injectAuthEndpoints } from '@myorg/auth'
+import { api } from './api'
+
+// Call the injection function with your app's API instance
+const authApi = injectAuthEndpoints(api)
+
+// Export the generated hooks for use in components
+export const { useLoginMutation, useGetMeQuery } = authApi
+```
+
+Note that **hooks must be exported from the app-side file**, not from the shared package. This is because the hooks are generated based on the specific API instance, and the shared package doesn't have access to that instance until the callback is called.
+
+### Alternative: Exporting Endpoint Definitions Directly
+
+Instead of calling `injectEndpoints` inside the callback, you can export just the endpoint definitions and let the app spread them into its `createApi` call or `injectEndpoints` call:
+
+```ts title="packages/auth/src/authEndpoints.ts"
+import type { EndpointBuilder } from '@reduxjs/toolkit/query/react'
+
+export interface AuthUser {
+  id: string
+  name: string
+  email: string
+}
+
+// Export a callback that returns endpoint definitions
+// Using `any` for the builder generics allows this to work with any API configuration
+export const authEndpoints = (build: EndpointBuilder<any, any, any>) => ({
+  login: build.mutation<LoginResponse, LoginRequest>({
+    query: (credentials) => ({
+      url: 'auth/login',
+      method: 'POST',
+      body: credentials,
+    }),
+  }),
+  getMe: build.query<AuthUser, void>({
+    query: () => 'auth/me',
+  }),
+})
+```
+
+```ts title="apps/my-app/src/store/api.ts"
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { authEndpoints } from '@myorg/auth'
+
+export const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
+  endpoints: (build) => ({
+    // Spread in the shared endpoints
+    ...authEndpoints(build),
+    // Add app-specific endpoints
+    getAppConfig: build.query<AppConfig, void>({
+      query: () => 'config',
+    }),
+  }),
+})
+
+export const { useLoginMutation, useGetMeQuery, useGetAppConfigQuery } = api
+```
+
+Both approaches achieve the same result. The first approach (injection callback) is more natural if you're working with an existing empty API and using `injectEndpoints` elsewhere. The second approach (endpoint definitions) works well when you want to compose all endpoints at `createApi` time.
+
+### Handling Tag Types
+
+If your shared endpoints need to provide or invalidate cache tags, you have a couple options:
+
+1. **Define shared tag types in the base API**: If the tag types are known upfront, define them in the app's `createApi` call:
+
+```ts title="apps/my-app/src/store/api.ts"
+export const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
+  tagTypes: ['Auth', 'User'], // Define tags that shared endpoints will use
+  endpoints: () => ({}),
+})
+```
+
+2. **Use `enhanceEndpoints` to add tag types**: If different shared packages need different tags, use `enhanceEndpoints` after injection:
+
+```ts title="apps/my-app/src/store/authApi.ts"
+import { injectAuthEndpoints } from '@myorg/auth'
+import { api } from './api'
+
+const injectedApi = injectAuthEndpoints(api)
+
+// Add tag types and configure caching behavior
+const authApi = injectedApi.enhanceEndpoints({
+  addTagTypes: ['Auth'],
+  endpoints: {
+    getMe: {
+      providesTags: ['Auth'],
+    },
+  },
+})
+
+export const { useLoginMutation, useGetMeQuery } = authApi
+```
+
+### Shared Selectors with Partial State Types
+
+When sharing Redux slice code across apps, selectors face a similar challenge: they don't know the app's full `RootState` type. The solution is to define a minimal interface describing just the slice of state the selector needs:
+
+```ts title="packages/auth/src/authSlice.ts"
+import { createSlice } from '@reduxjs/toolkit'
+
+export interface AuthState {
+  isAuthenticated: boolean
+  user: AuthUser | null
+}
+
+const initialState: AuthState = {
+  isAuthenticated: false,
+  user: null,
+}
+
+export const authSlice = createSlice({
+  name: 'auth',
+  initialState,
+  reducers: {
+    setUser(state, action) {
+      state.user = action.payload
+      state.isAuthenticated = true
+    },
+    logout(state) {
+      state.user = null
+      state.isAuthenticated = false
+    },
+  },
+})
+
+// Define a minimal interface for the state shape this selector expects
+interface AuthRootState {
+  auth: AuthState
+}
+
+// Selector works with any RootState that has `auth` at the right key
+export const selectCurrentUser = (state: AuthRootState) => state.auth.user
+export const selectIsAuthenticated = (state: AuthRootState) =>
+  state.auth.isAuthenticated
+```
+
+This approach allows the selectors to be used in any app that mounts the auth slice at the `auth` key, regardless of what other slices exist in that app's store.
