@@ -259,7 +259,7 @@ const api = createApi({
       providesTags: (result) => {
         if (!result) return []
 
-        return result.map(post => ({ type: 'Post', id: post.id }))
+        return result.pages.flatMap(page => page.map(post => ({ type: 'Post', id: post.id })))
       },
       // highlight-end
       infiniteQueryOptions: {
