@@ -253,7 +253,7 @@ const api = createApi({
       providesTags: (result) => result ? [{ type: 'Post', id: result.id }] : [],
       // highlight-end
     }),
-    getPosts: builder.infiniteQuery<Post[], void, number>({
+    getPosts: build.infiniteQuery<Post[], void, number>({
       query: ({ pageParam }) => `posts/${pageParam}`,
       // highlight-start
       providesTags: (result) => {
