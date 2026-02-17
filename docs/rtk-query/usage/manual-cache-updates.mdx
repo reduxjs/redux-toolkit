@@ -250,13 +250,13 @@ const api = createApi({
     getPost: build.query<Post, number>({
       query: (id) => `post/${id}`,
       // highlight-start
-      providesTags: (result: Post) => result ? [{ type: 'Post', id: result.id }] : [],
+      providesTags: (result) => result ? [{ type: 'Post', id: result.id }] : [],
       // highlight-end
     }),
     getPosts: builder.infiniteQuery<Post[], void, number>({
       query: ({ pageParam }) => `posts/${pageParam}`,
       // highlight-start
-      providesTags: (result: Post[]) => {
+      providesTags: (result) => {
         if (!result) return []
 
         return result.map(post => ({ type: 'Post', id: post.id }))
