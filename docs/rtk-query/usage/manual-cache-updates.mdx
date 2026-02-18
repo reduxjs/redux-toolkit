@@ -228,7 +228,7 @@ const api = createApi({
 
 The entity you want to update might be present in multiple differently shaped queries, such as
 (infinite) lists, or even inside another entity. If you don't want to invalidate those instead,
-you can avoid manually looping through every single cache entry by using [selectByInvalidatedBy](https://redux-toolkit.js.org/rtk-query/api/created-api/api-slice-utils#selectinvalidatedby):
+you can avoid manually looping through every single cache entry by using [selectInvalidatedBy](https://redux-toolkit.js.org/rtk-query/api/created-api/api-slice-utils#selectinvalidatedby):
 
 ```ts title="Optimistic update mutation example (promise.catch, across queries)"
 // file: types.ts noEmit
