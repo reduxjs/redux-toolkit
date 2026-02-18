@@ -913,18 +913,18 @@ export interface InfiniteQueryExtraOptions<
    * `initialPageParam` may be specified when using the
    * endpoint, to override the default value.
    * `maxPages` and `getPreviousPageParam` are both optional.
-   * 
+   *
    * @example
-   * 
+   *
    * ```ts
    * // codeblock-meta title="infiniteQueryOptions example"
-   * import { createApi, fetchBaseQuery, defaultSerializeQueryArgs } from '@reduxjs/toolkit/query/react'
-   * 
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+   *
    * type Pokemon = {
-   *   id: string
-   *   name: string
-   * }
-   * 
+   *   id: string;
+   *   name: string;
+   * };
+   *
    * const pokemonApi = createApi({
    *   baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
    *   endpoints: (build) => ({
@@ -940,16 +940,15 @@ export interface InfiniteQueryExtraOptions<
    *           firstPageParam,
    *           allPageParams,
    *         ) => {
-   *           return firstPageParam > 0 ? firstPageParam - 1 : undefined
+   *           return firstPageParam > 0 ? firstPageParam - 1 : undefined;
    *         },
    *       },
-   *       query({pageParam}) {
-   *         return `https://example.com/listItems?page=${pageParam}`
+   *       query({ pageParam }) {
+   *         return `https://example.com/listItems?page=${pageParam}`;
    *       },
    *     }),
    *   }),
-   * })
-   
+   * });
    * ```
    */
   infiniteQueryOptions: InfiniteQueryConfigOptions<

@@ -210,7 +210,7 @@ export type UseQuerySubscriptionOptions = SubscriptionOptions & {
  * {@linkcode UseQuerySubscriptionOptions} does not depend on a specific query
  * definition.
  *
- * @since 2.2.8
+ * @since 2.11.3
  * @public
  */
 export type TypedUseQuerySubscriptionOptions = UseQuerySubscriptionOptions
@@ -561,7 +561,7 @@ export type UseQueryStateOptions<
    *   * The query will not automatically run when additional components with the same query are added that do run
    *
    * @example
-   * ```ts
+   * ```tsx
    * // codeblock-meta title="Skip example"
    * const Pokemon = ({ name, skip }: { name: string; skip: boolean }) => {
    *   const { data, error, status } = useGetPokemonByNameQuery(name, {
@@ -583,7 +583,7 @@ export type UseQueryStateOptions<
    * If the selected item is one element in a larger collection, it will disregard changes to elements in the same collection.
    *
    * @example
-   * ```ts
+   * ```tsx
    * // codeblock-meta title="Using selectFromResult to extract a single result"
    * function PostsList() {
    *   const { data: posts } = api.useGetPostsQuery();
@@ -600,7 +600,9 @@ export type UseQueryStateOptions<
    * function PostById({ id }: { id: number }) {
    *   // Will select the post with the given id, and will only rerender if the given posts data changes
    *   const { post } = api.useGetPostsQuery(undefined, {
-   *     selectFromResult: ({ data }) => ({ post: data?.find((post) => post.id === id) }),
+   *     selectFromResult: ({ data }) => ({
+   *       post: data?.find((post) => post.id === id),
+   *     }),
    *   });
    *
    *   return <li>{post?.name}</li>;
@@ -1144,7 +1146,7 @@ export type UseInfiniteQueryStateOptions<
    *   * The query will not automatically run when additional components with the same query are added that do run
    *
    * @example
-   * ```ts
+   * ```tsx
    * // codeblock-meta title="Skip example"
    * const Pokemon = ({ name, skip }: { name: string; skip: boolean }) => {
    *   const { data, error, status } = useGetPokemonByNameQuery(name, {
@@ -1167,7 +1169,7 @@ export type UseInfiniteQueryStateOptions<
    * Note that this should always return an object (not a primitive), as RTKQ adds fields to the return value.
    *
    * @example
-   * ```ts
+   * ```tsx
    * // codeblock-meta title="Using selectFromResult to extract a single result"
    * function PostsList() {
    *   const { data: posts } = api.useGetPostsQuery();
@@ -1184,7 +1186,9 @@ export type UseInfiniteQueryStateOptions<
    * function PostById({ id }: { id: number }) {
    *   // Will select the post with the given id, and will only rerender if the given posts data changes
    *   const { post } = api.useGetPostsQuery(undefined, {
-   *     selectFromResult: ({ data }) => ({ post: data?.find((post) => post.id === id) }),
+   *     selectFromResult: ({ data }) => ({
+   *       post: data?.find((post) => post.id === id),
+   *     }),
    *   });
    *
    *   return <li>{post?.name}</li>;
@@ -1359,7 +1363,7 @@ export type UseMutationStateOptions<
  * @template BaseQuery - The type of the base query function being used.
  * @template SelectedResult - The type of the selected result returned by the __`selectFromResult`__ function.
  *
- * @since 2.2.8
+ * @since 2.11.3
  * @public
  */
 export type TypedUseMutationStateOptions<

@@ -110,11 +110,11 @@ export interface ForkedTask<T> {
    *
    * ### Example
    * ```ts
-   * const result = await fork(async (forkApi) => Promise.resolve(4)).result
+   * const result = await fork(async (forkApi) => Promise.resolve(4)).result;
    *
-   * if(result.status === 'ok') {
-   *   console.log(result.value) // logs 4
-   * }}
+   * if (result.status === 'ok') {
+   *   console.log(result.value); // logs 4
+   * }
    * ```
    */
   result: Promise<TaskResult<T>>
