@@ -310,7 +310,7 @@ const api = createApi({
                 ),
               )
             default:
-              // either throw an error or ignore silently providing an empty undo?
+              throw new Error(`Unknown endpoint (${entry.endpointName}) in updatePost's optimistic update`)
           }
         })
 
