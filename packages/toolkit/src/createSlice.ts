@@ -907,11 +907,13 @@ interface ReducerHandlingContextMethods<State> {
    * @param name The key to be exposed as.
    * @param actionCreator The action to expose.
    * @example
-   * context.exposeAction("addPost", createAction<Post>("addPost"));
+   * ```ts
+   * context.exposeAction('addPost', createAction<Post>('addPost'));
    *
-   * export const { addPost } = slice.actions
+   * export const { addPost } = slice.actions;
    *
-   * dispatch(addPost(post))
+   * dispatch(addPost(post));
+   * ```
    */
   exposeAction(
     name: string,
@@ -922,11 +924,13 @@ interface ReducerHandlingContextMethods<State> {
    * @param name The key to be exposed as.
    * @param reducer The reducer to expose.
    * @example
-   * context.exposeCaseReducer("addPost", (state, action: PayloadAction<Post>) => {
-   *   state.push(action.payload)
-   * })
+   * ```ts
+   * context.exposeCaseReducer('addPost', (state, action: PayloadAction<Post>) => {
+   *   state.push(action.payload);
+   * });
    *
-   * slice.caseReducers.addPost([], addPost(post))
+   * slice.caseReducers.addPost([], addPost(post));
+   * ```
    */
   exposeCaseReducer(
     name: string,
