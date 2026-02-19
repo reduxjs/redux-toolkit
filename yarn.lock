@@ -7824,7 +7824,7 @@ __metadata:
     lodash.camelcase: "npm:^4.3.0"
     msw: "npm:^2.1.5"
     node-fetch: "npm:^3.3.2"
-    oazapfts: "npm:^7.3.0"
+    oazapfts: "npm:^7.0.0"
     openapi-types: "npm:^9.1.0"
     prettier: "npm:^3.2.5"
     pretty-quick: "npm:^4.0.0"
@@ -23733,9 +23733,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oazapfts@npm:^7.3.0":
-  version: 7.3.0
-  resolution: "oazapfts@npm:7.3.0"
+"oazapfts@npm:^7.0.0":
+  version: 7.4.0
+  resolution: "oazapfts@npm:7.4.0"
   dependencies:
     "@apidevtools/swagger-parser": "npm:^12.1.0"
     lodash: "npm:^4.17.23"
@@ -23746,7 +23746,7 @@ __metadata:
     "@oazapfts/runtime": "*"
   bin:
     oazapfts: dist/cli.js
-  checksum: 10/a174f0ea118a6ed5b8a29d30d093b11a8a775cecabefcf95e31aca3219780864cc5a76cb749ec9d352bf778c7f84d789a16443ba19aac4fe2bd4031ca6cab0ef
+  checksum: 10/354a38ce64f26936d7053e1b9c9a2a373d1ca21187c5e683e578c8be558ea391c6b9f1c390af54930120e19376fb58fdd3000036b02342aa0d747e6047c05a79
   languageName: node
   linkType: hard
 

@@ -78,7 +78,7 @@
     "@apidevtools/swagger-parser": "^10.1.1",
     "commander": "^6.2.0",
     "lodash.camelcase": "^4.3.0",
-    "oazapfts": "^7.3.0",
+    "oazapfts": "^7.0.0",
     "prettier": "^3.2.5",
     "semver": "^7.3.5",
     "swagger2openapi": "^7.0.4",
