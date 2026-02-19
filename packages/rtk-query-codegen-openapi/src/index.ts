@@ -50,10 +50,23 @@ export function parseConfig(fullConfig: ConfigFile) {
 /**
  * Enforces `oazapfts` to use the same TypeScript version as this module itself uses.
  * That should prevent enums from running out of sync if both libraries use different TS versions.
+ *
+ * In oazapfts v7, TypeScript is a peerDependency so this is typically a no-op,
+ * but we keep it for safety in environments with complex dependency resolution.
  */
 function enforceOazapftsTsVersion<T>(cb: () => T): T {
-  const ozTsPath = require.resolve('typescript', { paths: [require.resolve('oazapfts')] });
+  let ozTsPath: string;
+  try {
+    ozTsPath = require.resolve('typescript', { paths: [require.resolve('oazapfts')] });
+  } catch {
+    // In oazapfts v7+, TypeScript is a peerDependency and may resolve to the
+    // same path. If resolution fails, just run the callback directly.
+    return cb();
+  }
   const tsPath = require.resolve('typescript');
+  if (ozTsPath === tsPath) {
+    return cb();
+  }
   const originalEntry = require.cache[ozTsPath];
   try {
     require.cache[ozTsPath] = require.cache[tsPath];

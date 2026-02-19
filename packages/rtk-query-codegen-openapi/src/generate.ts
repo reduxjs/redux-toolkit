@@ -1,20 +1,22 @@
 import camelCase from 'lodash.camelcase';
 import path from 'node:path';
-import ApiGenerator, {
-  getOperationName as _getOperationName,
-  createPropertyAssignment,
-  createQuestionToken,
-  getReferenceName,
-  isReference,
-  isValidIdentifier,
-  keywordType,
-  supportDeepObjects,
-} from 'oazapfts/generate';
 import type { OpenAPIV3 } from 'openapi-types';
 import ts from 'typescript';
 import type { ObjectPropertyDefinitions } from './codegen';
 import { generateCreateApiCall, generateEndpointDefinition, generateImportNode, generateTagTypes } from './codegen';
 import { generateReactHooks } from './generators/react-hooks';
+import {
+  OazapftsAdapter,
+  createPropertyAssignment,
+  createQuestionToken,
+  getOperationName as _getOperationName,
+  getReferenceName,
+  getSchemaFromContent,
+  isReference,
+  isValidIdentifier,
+  keywordType,
+  supportDeepObjects,
+} from './oazapfts-compat';
 import type {
   EndpointMatcher,
   EndpointOverrides,
@@ -89,7 +91,7 @@ function withQueryComment<T extends ts.Node>(node: T, def: QueryArgDefinition, h
 
 function getPatternFromProperty(
   property: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject,
-  apiGen: ApiGenerator
+  apiGen: OazapftsAdapter
 ): string | null {
   const resolved = apiGen.resolve(property);
   if (!resolved || typeof resolved !== 'object' || !('pattern' in resolved)) return null;
@@ -101,7 +103,7 @@ function getPatternFromProperty(
 function generateRegexConstantsForType(
   typeName: string,
   schema: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject,
-  apiGen: ApiGenerator
+  apiGen: OazapftsAdapter
 ): ts.VariableStatement[] {
   const resolvedSchema = apiGen.resolve(schema);
   if (!resolvedSchema || !('properties' in resolvedSchema) || !resolvedSchema.properties) return [];
@@ -165,6 +167,7 @@ export async function generateApi(
     flattenArg = false,
     includeDefault = false,
     useEnumType = false,
+    enumStyle,
     mergeReadWriteOnly = false,
     httpResolverOptions,
     useUnknown = false,
@@ -174,17 +177,15 @@ export async function generateApi(
 ) {
   const v3Doc = (v3DocCache[spec] ??= await getV3Doc(spec, httpResolverOptions));
 
-  const apiGen = new ApiGenerator(v3Doc, {
-    unionUndefined,
+  const apiGen = new OazapftsAdapter(v3Doc, {
+    enumStyle,
     useEnumType,
+    unionUndefined,
     mergeReadWriteOnly,
     useUnknown,
   });
 
-  // temporary workaround for https://github.com/oazapfts/oazapfts/issues/491
-  if (apiGen.spec.components?.schemas) {
-    apiGen.preprocessComponents(apiGen.spec.components.schemas);
-  }
+  await apiGen.init();
 
   const operationDefinitions = getOperationDefinitions(v3Doc).filter(operationMatches(filterEndpoints));
 
@@ -403,7 +404,7 @@ export async function generateApi(
 
     if (requestBody) {
       const body = apiGen.resolve(requestBody);
-      const schema = apiGen.getSchemaFromContent(body.content);
+      const schema = getSchemaFromContent(body.content);
       const type = apiGen.getTypeFromSchema(schema);
       const schemaName = camelCase(
         (type as any).name ||

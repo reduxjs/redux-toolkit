@@ -3234,12 +3234,12 @@ export type CreateAllowanceApiArg = {
   allowance: Allowance;
 };
 export type EngineeringAllowance = {
-  allowance_type?: "engineering";
+  allowance_type: "engineering";
   distribution?: "MARECO" | "LINEAR";
   capacity_speed_limit?: number;
 };
 export type StandardAllowance = {
-  allowance_type?: "standard";
+  allowance_type: "standard";
   default_value?: number;
   ranges?: {
     min?: number;

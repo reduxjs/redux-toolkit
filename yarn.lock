@@ -7824,7 +7824,7 @@ __metadata:
     lodash.camelcase: "npm:^4.3.0"
     msw: "npm:^2.1.5"
     node-fetch: "npm:^3.3.2"
-    oazapfts: "npm:^6.4.0"
+    oazapfts: "npm:^7.3.0"
     openapi-types: "npm:^9.1.0"
     prettier: "npm:^3.2.5"
     pretty-quick: "npm:^4.0.0"
@@ -21296,6 +21296,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lodash@npm:^4.17.23":
+  version: 4.17.23
+  resolution: "lodash@npm:4.17.23"
+  checksum: 10/82504c88250f58da7a5a4289f57a4f759c44946c005dd232821c7688b5fcfbf4a6268f6a6cdde4b792c91edd2f3b5398c1d2a0998274432cff76def48735e233
+  languageName: node
+  linkType: hard
+
 "log-symbols@npm:^1.0.2":
   version: 1.0.2
   resolution: "log-symbols@npm:1.0.2"
@@ -23726,21 +23733,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oazapfts@npm:^6.4.0":
-  version: 6.4.0
-  resolution: "oazapfts@npm:6.4.0"
+"oazapfts@npm:^7.3.0":
+  version: 7.3.0
+  resolution: "oazapfts@npm:7.3.0"
   dependencies:
     "@apidevtools/swagger-parser": "npm:^12.1.0"
-    lodash: "npm:^4.17.21"
+    lodash: "npm:^4.17.23"
     minimist: "npm:^1.2.8"
-    swagger2openapi: "npm:^7.0.8"
     tapable: "npm:^2.3.0"
     typescript: "npm:^5.9.3"
   peerDependencies:
     "@oazapfts/runtime": "*"
   bin:
-    oazapfts: cli.js
-  checksum: 10/c52d1a8d786e41b5c228d6e2a52923ac58fde86eef44c1fb31dc65171788ae7c36d6b23ab53acea91fcc20a3b6121051bc7e90a6ebb633db54380562a8a16664
+    oazapfts: dist/cli.js
+  checksum: 10/a174f0ea118a6ed5b8a29d30d093b11a8a775cecabefcf95e31aca3219780864cc5a76cb749ec9d352bf778c7f84d789a16443ba19aac4fe2bd4031ca6cab0ef
   languageName: node
   linkType: hard
 
@@ -30499,7 +30505,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"swagger2openapi@npm:^7.0.4, swagger2openapi@npm:^7.0.8":
+"swagger2openapi@npm:^7.0.4":
   version: 7.0.8
   resolution: "swagger2openapi@npm:7.0.8"
   dependencies:
