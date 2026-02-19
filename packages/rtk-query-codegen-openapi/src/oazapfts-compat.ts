@@ -132,32 +132,20 @@ function toIdentifier(s: string, isTypeName = false): string {
 
 type OnlyMode = 'readOnly' | 'writeOnly';
 
-type EnumStyle = 'union' | 'enum' | 'as-const';
-
 export interface OazapftsAdapterOptions {
-  enumStyle?: EnumStyle;
   useEnumType?: boolean;
   unionUndefined?: boolean;
   mergeReadWriteOnly?: boolean;
   useUnknown?: boolean;
 }
 
-function resolveEnumStyle(opts: OazapftsAdapterOptions): EnumStyle {
-  if (opts.enumStyle !== undefined) return opts.enumStyle;
-  if (opts.useEnumType) return 'enum';
-  return 'union';
-}
-
 export class OazapftsAdapter {
   public ctx: OazapftsContext;
   private opts: OazapftsAdapterOptions;
-  private effectiveEnumStyle: EnumStyle;
 
   constructor(doc: OpenAPIV3.Document, opts: OazapftsAdapterOptions) {
     this.opts = opts;
-    this.effectiveEnumStyle = resolveEnumStyle(opts);
     this.ctx = createContext(doc as any, {
-      enumStyle: this.effectiveEnumStyle,
       useEnumType: opts.useEnumType,
       unionUndefined: opts.unionUndefined,
       mergeReadWriteOnly: opts.mergeReadWriteOnly,
@@ -332,27 +320,6 @@ export class OazapftsAdapter {
         $ref.split('/').pop()!;
       const identifier = toIdentifier(name, true);
 
-      if (
-        this.effectiveEnumStyle !== 'union' &&
-        this.isNamedEnumSchema(schema)
-      ) {
-        if (this.effectiveEnumStyle === 'enum') {
-          this.generateTrueEnum(schema, identifier);
-        } else if (this.effectiveEnumStyle === 'as-const') {
-          this.generateAsConstEnum(schema, identifier);
-        }
-        const typeRef = factory.createTypeReferenceNode(
-          this.getUniqueAlias(identifier),
-          undefined
-        );
-        this.ctx.refs[$ref] = {
-          base: typeRef,
-          readOnly: undefined,
-          writeOnly: undefined,
-        };
-        return typeRef;
-      }
-
       const isDiscriminating = this.ctx.discriminatingSchemas.has(schema as any);
       const alias = this.getUniqueAlias(
         isDiscriminating ? identifier + 'Base' : identifier
@@ -429,106 +396,6 @@ export class OazapftsAdapter {
 
     const entry = this.ctx.refs[$ref];
     return entry[onlyMode || 'base'] ?? entry.base;
-  }
-
-  private isNamedEnumSchema(schema: OpenAPIV3.SchemaObject): boolean {
-    if (typeof schema !== 'object') return false;
-    if (schema.enum && schema.enum.length > 0) return true;
-    if (schema.type === 'array' && schema.items && !isReference(schema.items) && schema.items.enum) return true;
-    return false;
-  }
-
-  private generateTrueEnum(
-    schema: OpenAPIV3.SchemaObject,
-    name: string
-  ): void {
-    const values = schema.enum || (schema.items && !isReference(schema.items) ? schema.items.enum : undefined);
-    if (!values) return;
-
-    const customNames = this.getCustomNames(schema);
-    const alias = this.getUniqueAlias(name);
-
-    const members = values.map((value: any, index: number) => {
-      const memberName = customNames?.[index] ?? String(value);
-      return factory.createEnumMember(
-        isValidIdentifier(memberName)
-          ? factory.createIdentifier(memberName)
-          : factory.createStringLiteral(memberName),
-        typeof value === 'string'
-          ? factory.createStringLiteral(value)
-          : factory.createNumericLiteral(String(value))
-      );
-    });
-
-    this.ctx.enumAliases.push(
-      factory.createEnumDeclaration(
-        [factory.createModifier(ts.SyntaxKind.ExportKeyword)],
-        alias,
-        members
-      )
-    );
-  }
-
-  private generateAsConstEnum(
-    schema: OpenAPIV3.SchemaObject,
-    name: string
-  ): void {
-    const values = schema.enum || (schema.items && !isReference(schema.items) ? schema.items.enum : undefined);
-    if (!values) return;
-
-    const customNames = this.getCustomNames(schema);
-    const alias = this.getUniqueAlias(name);
-
-    // Generate: export const Foo = { Bar: 'bar', Baz: 'baz' } as const;
-    const properties = values.map((value: any, index: number) => {
-      const memberName = customNames?.[index] ?? toIdentifier(String(value), true);
-      const memberKey = isValidIdentifier(memberName)
-        ? factory.createIdentifier(memberName)
-        : factory.createStringLiteral(memberName);
-      const memberValue =
-        typeof value === 'string'
-          ? factory.createStringLiteral(value)
-          : factory.createNumericLiteral(String(value));
-      return factory.createPropertyAssignment(memberKey, memberValue);
-    });
-
-    const objectLiteral = factory.createObjectLiteralExpression(properties, true);
-    const asConst = factory.createAsExpression(
-      objectLiteral,
-      factory.createTypeReferenceNode('const')
-    );
-
-    this.ctx.enumAliases.push(
-      factory.createVariableStatement(
-        [factory.createModifier(ts.SyntaxKind.ExportKeyword)],
-        factory.createVariableDeclarationList(
-          [factory.createVariableDeclaration(alias, undefined, undefined, asConst)],
-          ts.NodeFlags.Const
-        )
-      )
-    );
-
-    // Generate: export type Foo = typeof Foo[keyof typeof Foo];
-    const typeofExpr = factory.createTypeQueryNode(factory.createIdentifier(alias));
-    const keyofTypeof = factory.createTypeOperatorNode(
-      ts.SyntaxKind.KeyofKeyword,
-      typeofExpr
-    );
-    const indexedAccess = factory.createIndexedAccessTypeNode(typeofExpr, keyofTypeof);
-
-    this.ctx.enumAliases.push(
-      factory.createTypeAliasDeclaration(
-        [factory.createModifier(ts.SyntaxKind.ExportKeyword)],
-        alias,
-        undefined,
-        indexedAccess
-      )
-    );
-  }
-
-  private getCustomNames(schema: OpenAPIV3.SchemaObject): string[] | undefined {
-    const ext = schema as any;
-    return ext['x-enumNames'] || ext['x-enum-varnames'] || undefined;
   }
 
   private getUniqueAlias(name: string): string {

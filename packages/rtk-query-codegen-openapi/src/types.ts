@@ -150,18 +150,8 @@ export interface OutputFileOptions extends Partial<CommonOptions> {
   /**
    * If passed as true it will generate TS enums instead of union of strings
    * @default false
-   * @deprecated Use `enumStyle: "enum"` instead.
    */
   useEnumType?: boolean;
-  /**
-   * Controls how enums are generated in TypeScript.
-   * Takes precedence over `useEnumType` if both are specified.
-   * - `'union'` (default): Union types, e.g. `type Status = 'active' | 'inactive'`
-   * - `'enum'`: TypeScript enums, e.g. `enum Status { Active = 'active' }`
-   * - `'as-const'`: Const objects with companion types, e.g. `const Status = { ... } as const`
-   * @default 'union'
-   */
-  enumStyle?: 'union' | 'enum' | 'as-const';
 }
 
 /**
