@@ -1,5 +1,5 @@
 import { noop } from '@internal/listenerMiddleware/utils'
-import { configureStore } from '@internal/configureStore'
+import { configureStore } from '@reduxjs/toolkit'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 
 const api = createApi({

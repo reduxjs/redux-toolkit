@@ -1,3 +1,4 @@
+import { buildGetDefaultMiddleware } from '@internal/getDefaultMiddleware'
 import { Tuple } from '@internal/utils'
 import type {
   Action,
@@ -8,8 +9,6 @@ import type {
 import { configureStore } from '@reduxjs/toolkit'
 import { thunk } from 'redux-thunk'
 import { vi } from 'vitest'
-
-import { buildGetDefaultMiddleware } from '@internal/getDefaultMiddleware'
 
 const getDefaultMiddleware = buildGetDefaultMiddleware()
 
@@ -27,9 +26,8 @@ describe('getDefaultMiddleware', () => {
       vi.stubEnv('NODE_ENV', 'production')
 
       const { thunk } = await import('redux-thunk')
-      const { buildGetDefaultMiddleware } = await import(
-        '@internal/getDefaultMiddleware'
-      )
+      const { buildGetDefaultMiddleware } =
+        await import('@internal/getDefaultMiddleware')
 
       const middleware = buildGetDefaultMiddleware()()
       expect(middleware).toContain(thunk)

@@ -1,12 +1,11 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+import type { Middleware, Reducer } from '@reduxjs/toolkit'
 import { configureStore } from '@reduxjs/toolkit'
-import { vi } from 'vitest'
-import type { Middleware, Reducer } from 'redux'
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 import {
   THIRTY_TWO_BIT_MAX_INT,
   THIRTY_TWO_BIT_MAX_TIMER_SECONDS,
 } from '../core/buildMiddleware/cacheCollection'
-import { countObjectKeys } from '../utils/countObjectKeys'
+import { countObjectKeys } from '../utils/index'
 
 beforeAll(() => {
   vi.useFakeTimers()
@@ -87,8 +86,8 @@ test(`query: handles large keepUnuseDataFor values over 32-bit ms`, async () => 
   expect(onCleanup).not.toHaveBeenCalled()
 
   // _Should_ be called _wayyyy_ in the future (like 24.8 days from now)
-  vi.advanceTimersByTime(THIRTY_TWO_BIT_MAX_TIMER_SECONDS * 1000),
-    expect(onCleanup).toHaveBeenCalled()
+  vi.advanceTimersByTime(THIRTY_TWO_BIT_MAX_TIMER_SECONDS * 1000)
+  expect(onCleanup).toHaveBeenCalled()
 })
 
 describe(`query: await cleanup, keepUnusedDataFor set`, () => {
