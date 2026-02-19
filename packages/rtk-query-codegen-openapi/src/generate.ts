@@ -167,7 +167,6 @@ export async function generateApi(
     flattenArg = false,
     includeDefault = false,
     useEnumType = false,
-    enumStyle,
     mergeReadWriteOnly = false,
     httpResolverOptions,
     useUnknown = false,
@@ -178,7 +177,6 @@ export async function generateApi(
   const v3Doc = (v3DocCache[spec] ??= await getV3Doc(spec, httpResolverOptions));
 
   const apiGen = new OazapftsAdapter(v3Doc, {
-    enumStyle,
     useEnumType,
     unionUndefined,
     mergeReadWriteOnly,
