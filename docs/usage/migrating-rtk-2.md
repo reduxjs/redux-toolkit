@@ -50,7 +50,7 @@ We've updated the build output in several ways:
 
 - **Build output is no longer transpiled!** Instead we target modern JS syntax (ES2020)
 - Moved all build artifacts to live under `./dist/`, instead of separate top-level folders
-- The lowest Typescript version we test against is now **TS 4.7**.
+- The lowest TypeScript version we test against is now **TS 4.7**.
 
 #### Dropping UMD builds
 
@@ -92,7 +92,7 @@ To fix this, there are three options:
 
 <div class="typescript-only">
 
-#### Typescript rewrite
+#### TypeScript rewrite
 
 In 2019, we began a community-powered conversion of the Redux codebase to TypeScript. The original effort was discussed in [#3500: Port to TypeScript](https://github.com/reduxjs/redux/issues/3500), and the work was integrated in PR [#3536: Convert to TypeScript](https://github.com/reduxjs/redux/issues/3536).
 
@@ -102,7 +102,7 @@ Redux core v5 is now built from that TS-converted source code. In theory, this s
 
 Please report any unexpected compatibility issues on [Github](https://github.com/reduxjs/redux/issues)!
 
-#### `AnyAction` deprecated in favour of `UnknownAction`
+#### `AnyAction` deprecated in favor of `UnknownAction`
 
 The Redux TS types have always exported an `AnyAction` type, which is defined to have `{type: string}` and treat any other field as `any`. This makes it easy to write uses like `console.log(action.whatever)`, but unfortunately does not provide any meaningful type safety.
 
@@ -136,7 +136,7 @@ In order to safely interact with values or access fields inside of the `action` 
 
 This new type is incompatible with the v4 `Middleware` type, so if a package's middleware is saying it's incompatible, check which version of Redux it's getting its types from! (See [overriding dependencies](#overriding-dependencies) later in this page.)
 
-#### `PreloadedState` type removed in favour of `Reducer` generic
+#### `PreloadedState` type removed in favor of `Reducer` generic
 
 We've made tweaks to the TS types to improve type safety and behavior.
 
@@ -839,14 +839,14 @@ createReducer(initialState, {
 })
 ```
 
-While this was convenient (and other libraries in the Redux ecosystem such as `redux-saga` and `redux-observable` have supported this to various capacities), it didn't play well with Typescript and was generally a bit too "magic".
+While this was convenient (and other libraries in the Redux ecosystem such as `redux-saga` and `redux-observable` have supported this to various capacities), it didn't play well with TypeScript and was generally a bit too "magic".
 
 ```ts
 const test = todoAdded.toString()
 //    ^? typed as string, rather than specific action type
 ```
 
-Over time, the action creator also gained a static `type` property and `match` method which were more explicit and worked better with Typescript.
+Over time, the action creator also gained a static `type` property and `match` method which were more explicit and worked better with TypeScript.
 
 ```ts
 const test = todoAdded.type
