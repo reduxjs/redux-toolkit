@@ -1,16 +1,11 @@
+import type { PayloadAction } from '@reduxjs/toolkit'
 import {
   configureStore,
   createAction,
+  createListenerMiddleware,
   createSlice,
-  isAnyOf,
+  TaskAbortError,
 } from '@reduxjs/toolkit'
-
-import type { PayloadAction } from '@reduxjs/toolkit'
-
-import { createListenerMiddleware } from '../index'
-
-import type { TypedAddListener } from '../index'
-import { TaskAbortError } from '../exceptions'
 
 interface CounterState {
   value: number

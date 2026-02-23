@@ -1,8 +1,7 @@
 import { setupApiStore } from '@internal/tests/utils/helpers'
-import { createApi } from '../core'
-import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
-import { fakeBaseQuery } from '../fakeBaseQuery'
 import { delay } from '@internal/utils'
+import { createApi, fakeBaseQuery } from '@reduxjs/toolkit/query'
+import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
 
 let calls = 0
 const api = createApi({

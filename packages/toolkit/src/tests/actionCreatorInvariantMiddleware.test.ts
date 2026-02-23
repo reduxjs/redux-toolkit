@@ -1,8 +1,12 @@
-import type { ActionCreatorInvariantMiddlewareOptions } from '@internal/actionCreatorInvariantMiddleware'
 import { getMessage } from '@internal/actionCreatorInvariantMiddleware'
-import { createActionCreatorInvariantMiddleware } from '@internal/actionCreatorInvariantMiddleware'
-import type { MiddlewareAPI } from '@reduxjs/toolkit'
-import { createAction } from '@reduxjs/toolkit'
+import type {
+  ActionCreatorInvariantMiddlewareOptions,
+  MiddlewareAPI,
+} from '@reduxjs/toolkit'
+import {
+  createAction,
+  createActionCreatorInvariantMiddleware,
+} from '@reduxjs/toolkit'
 
 describe('createActionCreatorInvariantMiddleware', () => {
   const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})

@@ -133,8 +133,8 @@ describe('refetchOnFocus tests', () => {
 
     function UserWithRefetchTrue() {
       ;({ data, isFetching, isLoading } =
-      defaultApi.endpoints.getIncrementedAmount.useQuery(undefined, {
-        refetchOnFocus: true,
+        defaultApi.endpoints.getIncrementedAmount.useQuery(undefined, {
+          refetchOnFocus: true,
         }))
       return <div />
     }

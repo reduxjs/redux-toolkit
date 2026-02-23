@@ -12,7 +12,6 @@ import {
   createReducer,
   isPlainObject,
 } from '@reduxjs/toolkit'
-import { waitMs } from './utils/helpers'
 
 interface Todo {
   text: string

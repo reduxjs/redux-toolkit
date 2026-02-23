@@ -1,8 +1,9 @@
-import type { EntityAdapter } from '../index'
-import { createEntityAdapter } from '../index'
-import type { PayloadAction } from '../../createAction'
-import { configureStore } from '../../configureStore'
-import { createSlice } from '../../createSlice'
+import type { EntityAdapter, PayloadAction } from '@reduxjs/toolkit'
+import {
+  configureStore,
+  createEntityAdapter,
+  createSlice,
+} from '@reduxjs/toolkit'
 import type { BookModel } from './fixtures/book'
 
 describe('createStateOperator', () => {
