@@ -110,11 +110,11 @@ export interface ForkedTask<T> {
    *
    * ### Example
    * ```ts
-   * const result = await fork(async (forkApi) => Promise.resolve(4)).result
+   * const result = await fork(async (forkApi) => Promise.resolve(4)).result;
    *
-   * if(result.status === 'ok') {
-   *   console.log(result.value) // logs 4
-   * }}
+   * if (result.status === 'ok') {
+   *   console.log(result.value); // logs 4
+   * }
    * ```
    */
   result: Promise<TaskResult<T>>
@@ -151,17 +151,17 @@ export interface ListenerEffectAPI<
    *
    * ```ts
    * middleware.startListening({
-   *  predicate: () => true,
-   *  async effect(_, { getOriginalState }) {
-   *    getOriginalState(); // sync: OK!
+   *   predicate: () => true,
+   *   async effect(_, { getOriginalState }) {
+   *     getOriginalState(); // sync: OK!
    *
-   *    setTimeout(getOriginalState, 0); // async: throws Error
+   *     setTimeout(getOriginalState, 0); // async: throws Error
    *
-   *    await Promise().resolve();
+   *     await Promise().resolve();
    *
-   *    getOriginalState() // async: throws Error
-   *  }
-   * })
+   *     getOriginalState(); // async: throws Error
+   *   },
+   * });
    * ```
    */
   getOriginalState: () => State
@@ -184,17 +184,19 @@ export interface ListenerEffectAPI<
    * ### Example
    *
    * ```ts
+   * import { createAction } from '@reduxjs/toolkit';
+   *
    * const updateBy = createAction<number>('counter/updateBy');
    *
    * middleware.startListening({
-   *  actionCreator: updateBy,
-   *  async effect(_, { condition }) {
-   *    // wait at most 3s for `updateBy` actions.
-   *    if(await condition(updateBy.match, 3_000)) {
-   *      // `updateBy` has been dispatched twice in less than 3s.
-   *    }
-   *  }
-   * })
+   *   actionCreator: updateBy,
+   *   async effect(_, { condition }) {
+   *     // wait at most 3s for `updateBy` actions.
+   *     if (await condition(updateBy.match, 3_000)) {
+   *       // `updateBy` has been dispatched twice in less than 3s.
+   *     }
+   *   },
+   * });
    * ```
    */
   condition: ConditionFunction<State>
@@ -273,8 +275,8 @@ export type ListenerEffect<
 ) => void | Promise<void>
 
 /**
- * @public
  * Additional infos regarding the error raised.
+ * @public
  */
 export interface ListenerErrorInfo {
   /**
@@ -284,10 +286,10 @@ export interface ListenerErrorInfo {
 }
 
 /**
- * @public
  * Gets notified with synchronous and asynchronous errors raised by `listeners` or `predicates`.
  * @param error The thrown error.
  * @param errorInfo Additional information regarding the thrown error.
+ * @public
  */
 export interface ListenerErrorHandler {
   (error: unknown, errorInfo: ListenerErrorInfo): void
@@ -396,8 +398,11 @@ export type UnsubscribeListener = (
 ) => void
 
 /**
+ * The possible overloads and options for defining a listener.
+ * The return type of each function is specified as a generic arg,
+ * so the overloads can be reused for multiple different functions.
+ *
  * @public
- * The possible overloads and options for defining a listener. The return type of each function is specified as a generic arg, so the overloads can be reused for multiple different functions
  */
 export type AddListenerOverloads<
   Return,
@@ -555,9 +560,13 @@ export type TypedAddListener<
      *
      * @example
      * ```ts
-     * import { addListener } from '@reduxjs/toolkit'
+     * import { addListener } from '@reduxjs/toolkit';
      *
-     * export const addAppListener = addListener.withTypes<RootState, AppDispatch, ExtraArguments>()
+     * export const addAppListener = addListener.withTypes<
+     *   RootState,
+     *   AppDispatch,
+     *   ExtraArguments
+     * >();
      * ```
      *
      * @template OverrideStateType - The specific type of state the middleware listener operates on.
@@ -667,12 +676,13 @@ export type TypedStartListening<
 > & {
   /**
    * Creates a "pre-typed" version of
-   * {@linkcode ListenerMiddlewareInstance.startListening startListening}
+   * {@linkcode ListenerMiddlewareInstance.startListening | startListening}
    * where the `state`, `dispatch` and `extra` types are predefined.
    *
    * This allows you to set the `state`, `dispatch` and `extra` types once,
    * eliminating the need to specify them with every
-   * {@linkcode ListenerMiddlewareInstance.startListening startListening} call.
+   * {@linkcode ListenerMiddlewareInstance.startListening | startListening}
+   * call.
    *
    * @returns A pre-typed `startListening` with the state, dispatch and extra types already defined.
    *
@@ -726,12 +736,12 @@ export type TypedStopListening<
 > = RemoveListenerOverloads<StateType, DispatchType, ExtraArgument> & {
   /**
    * Creates a "pre-typed" version of
-   * {@linkcode ListenerMiddlewareInstance.stopListening stopListening}
+   * {@linkcode ListenerMiddlewareInstance.stopListening | stopListening}
    * where the `state`, `dispatch` and `extra` types are predefined.
    *
    * This allows you to set the `state`, `dispatch` and `extra` types once,
    * eliminating the need to specify them with every
-   * {@linkcode ListenerMiddlewareInstance.stopListening stopListening} call.
+   * {@linkcode ListenerMiddlewareInstance.stopListening | stopListening} call.
    *
    * @returns A pre-typed `stopListening` with the state, dispatch and extra types already defined.
    *
@@ -834,7 +844,11 @@ export type TypedCreateListenerEntry<
  * Internal Types
  */
 
-/** @internal An single listener entry */
+/**
+ * An single listener entry
+ *
+ * @internal
+ */
 export type ListenerEntry<
   State = unknown,
   DispatchType extends Dispatch = Dispatch,
@@ -848,8 +862,8 @@ export type ListenerEntry<
 }
 
 /**
- * @internal
  * A shorthand form of the accepted args, solely so that `createListenerEntry` has validly-typed conditional logic when checking the options contents
+ * @internal
  */
 export type FallbackAddListenerOptions = {
   actionCreator?: TypedActionCreatorWithMatchFunction<string>

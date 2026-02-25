@@ -210,7 +210,7 @@ export type UseQuerySubscriptionOptions = SubscriptionOptions & {
  * {@linkcode UseQuerySubscriptionOptions} does not depend on a specific query
  * definition.
  *
- * @since 2.2.8
+ * @since 2.11.3
  * @public
  */
 export type TypedUseQuerySubscriptionOptions = UseQuerySubscriptionOptions
@@ -342,7 +342,7 @@ export type LazyQueryTrigger<D extends QueryDefinition<any, any, any, any>> = {
    * // codeblock-meta title="Using .unwrap with async await"
    * try {
    *   const payload = await getUserById(1).unwrap();
-   *   console.log('fulfilled', payload)
+   *   console.log('fulfilled', payload);
    * } catch (error) {
    *   console.error('rejected', error);
    * }
@@ -410,26 +410,26 @@ export type QueryStateSelector<
  * <caption>#### __Create a strongly-typed `selectFromResult` selector function__</caption>
  *
  * ```tsx
- * import type { TypedQueryStateSelector } from '@reduxjs/toolkit/query/react'
- * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+ * import type { TypedQueryStateSelector } from '@reduxjs/toolkit/query/react';
+ * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
  *
  * type Post = {
- *   id: number
- *   title: string
- * }
+ *   id: number;
+ *   title: string;
+ * };
  *
  * type PostsApiResponse = {
- *   posts: Post[]
- *   total: number
- *   skip: number
- *   limit: number
- * }
+ *   posts: Post[];
+ *   total: number;
+ *   skip: number;
+ *   limit: number;
+ * };
  *
- * type QueryArgument = number | undefined
+ * type QueryArgument = number | undefined;
  *
- * type BaseQueryFunction = ReturnType<typeof fetchBaseQuery>
+ * type BaseQueryFunction = ReturnType<typeof fetchBaseQuery>;
  *
- * type SelectedResult = Pick<PostsApiResponse, 'posts'>
+ * type SelectedResult = Pick<PostsApiResponse, 'posts'>;
  *
  * const postsApiSlice = createApi({
  *   baseQuery: fetchBaseQuery({ baseUrl: 'https://dummyjson.com/posts' }),
@@ -440,33 +440,33 @@ export type QueryStateSelector<
  *       query: (limit = 5) => `?limit=${limit}&select=title`,
  *     }),
  *   }),
- * })
+ * });
  *
- * const { useGetPostsQuery } = postsApiSlice
+ * const { useGetPostsQuery } = postsApiSlice;
  *
  * function PostById({ id }: { id: number }) {
  *   const { post } = useGetPostsQuery(undefined, {
  *     selectFromResult: (state) => ({
  *       post: state.data?.posts.find((post) => post.id === id),
  *     }),
- *   })
+ *   });
  *
- *   return <li>{post?.title}</li>
+ *   return <li>{post?.title}</li>;
  * }
  *
- * const EMPTY_ARRAY: Post[] = []
+ * const EMPTY_ARRAY: Post[] = [];
  *
  * const typedSelectFromResult: TypedQueryStateSelector<
  *   PostsApiResponse,
  *   QueryArgument,
  *   BaseQueryFunction,
  *   SelectedResult
- * > = (state) => ({ posts: state.data?.posts ?? EMPTY_ARRAY })
+ * > = (state) => ({ posts: state.data?.posts ?? EMPTY_ARRAY });
  *
  * function PostsList() {
  *   const { posts } = useGetPostsQuery(undefined, {
  *     selectFromResult: typedSelectFromResult,
- *   })
+ *   });
  *
  *   return (
  *     <div>
@@ -476,7 +476,7 @@ export type QueryStateSelector<
  *         ))}
  *       </ul>
  *     </div>
- *   )
+ *   );
  * }
  * ```
  *
@@ -561,7 +561,7 @@ export type UseQueryStateOptions<
    *   * The query will not automatically run when additional components with the same query are added that do run
    *
    * @example
-   * ```ts
+   * ```tsx
    * // codeblock-meta title="Skip example"
    * const Pokemon = ({ name, skip }: { name: string; skip: boolean }) => {
    *   const { data, error, status } = useGetPokemonByNameQuery(name, {
@@ -583,7 +583,7 @@ export type UseQueryStateOptions<
    * If the selected item is one element in a larger collection, it will disregard changes to elements in the same collection.
    *
    * @example
-   * ```ts
+   * ```tsx
    * // codeblock-meta title="Using selectFromResult to extract a single result"
    * function PostsList() {
    *   const { data: posts } = api.useGetPostsQuery();
@@ -600,7 +600,9 @@ export type UseQueryStateOptions<
    * function PostById({ id }: { id: number }) {
    *   // Will select the post with the given id, and will only rerender if the given posts data changes
    *   const { post } = api.useGetPostsQuery(undefined, {
-   *     selectFromResult: ({ data }) => ({ post: data?.find((post) => post.id === id) }),
+   *     selectFromResult: ({ data }) => ({
+   *       post: data?.find((post) => post.id === id),
+   *     }),
    *   });
    *
    *   return <li>{post?.name}</li>;
@@ -623,13 +625,13 @@ export type UseQueryStateOptions<
  * import type {
  *   SubscriptionOptions,
  *   TypedUseQueryStateOptions,
- * } from '@reduxjs/toolkit/query/react'
- * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+ * } from '@reduxjs/toolkit/query/react';
+ * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
  *
  * type Post = {
- *   id: number
- *   name: string
- * }
+ *   id: number;
+ *   name: string;
+ * };
  *
  * const api = createApi({
  *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
@@ -639,9 +641,9 @@ export type UseQueryStateOptions<
  *       query: () => 'posts',
  *     }),
  *   }),
- * })
+ * });
  *
- * const { useGetPostsQuery } = api
+ * const { useGetPostsQuery } = api;
  *
  * export const useGetPostsQueryWithDefaults = <
  *   SelectedResult extends Record<string, any>,
@@ -660,7 +662,7 @@ export type UseQueryStateOptions<
  *     refetchOnMountOrArgChange: true,
  *     refetchOnFocus: true,
  *     ...overrideOptions,
- *   })
+ *   });
  * ```
  *
  * @template ResultType - The type of the result `data` returned by the query.
@@ -809,7 +811,7 @@ export type LazyInfiniteQueryTrigger<
    * // codeblock-meta title="Using .unwrap with async await"
    * try {
    *   const payload = await getUserById(1).unwrap();
-   *   console.log('fulfilled', payload)
+   *   console.log('fulfilled', payload);
    * } catch (error) {
    *   console.error('rejected', error);
    * }
@@ -1144,7 +1146,7 @@ export type UseInfiniteQueryStateOptions<
    *   * The query will not automatically run when additional components with the same query are added that do run
    *
    * @example
-   * ```ts
+   * ```tsx
    * // codeblock-meta title="Skip example"
    * const Pokemon = ({ name, skip }: { name: string; skip: boolean }) => {
    *   const { data, error, status } = useGetPokemonByNameQuery(name, {
@@ -1167,7 +1169,7 @@ export type UseInfiniteQueryStateOptions<
    * Note that this should always return an object (not a primitive), as RTKQ adds fields to the return value.
    *
    * @example
-   * ```ts
+   * ```tsx
    * // codeblock-meta title="Using selectFromResult to extract a single result"
    * function PostsList() {
    *   const { data: posts } = api.useGetPostsQuery();
@@ -1184,7 +1186,9 @@ export type UseInfiniteQueryStateOptions<
    * function PostById({ id }: { id: number }) {
    *   // Will select the post with the given id, and will only rerender if the given posts data changes
    *   const { post } = api.useGetPostsQuery(undefined, {
-   *     selectFromResult: ({ data }) => ({ post: data?.find((post) => post.id === id) }),
+   *     selectFromResult: ({ data }) => ({
+   *       post: data?.find((post) => post.id === id),
+   *     }),
    *   });
    *
    *   return <li>{post?.name}</li>;
@@ -1359,7 +1363,7 @@ export type UseMutationStateOptions<
  * @template BaseQuery - The type of the base query function being used.
  * @template SelectedResult - The type of the selected result returned by the __`selectFromResult`__ function.
  *
- * @since 2.2.8
+ * @since 2.11.3
  * @public
  */
 export type TypedUseMutationStateOptions<
@@ -1438,7 +1442,7 @@ export type MutationTrigger<D extends MutationDefinition<any, any, any, any>> =
      * // codeblock-meta title="Using .unwrap with async await"
      * try {
      *   const payload = await addPost({ id: 1, name: 'Example' }).unwrap();
-     *   console.log('fulfilled', payload)
+     *   console.log('fulfilled', payload);
      * } catch (error) {
      *   console.error('rejected', error);
      * }
