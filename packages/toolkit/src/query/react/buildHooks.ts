@@ -342,7 +342,7 @@ export type LazyQueryTrigger<D extends QueryDefinition<any, any, any, any>> = {
    * // codeblock-meta title="Using .unwrap with async await"
    * try {
    *   const payload = await getUserById(1).unwrap();
-   *   console.log('fulfilled', payload)
+   *   console.log('fulfilled', payload);
    * } catch (error) {
    *   console.error('rejected', error);
    * }
@@ -410,26 +410,26 @@ export type QueryStateSelector<
  * <caption>#### __Create a strongly-typed `selectFromResult` selector function__</caption>
  *
  * ```tsx
- * import type { TypedQueryStateSelector } from '@reduxjs/toolkit/query/react'
- * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+ * import type { TypedQueryStateSelector } from '@reduxjs/toolkit/query/react';
+ * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
  *
  * type Post = {
- *   id: number
- *   title: string
- * }
+ *   id: number;
+ *   title: string;
+ * };
  *
  * type PostsApiResponse = {
- *   posts: Post[]
- *   total: number
- *   skip: number
- *   limit: number
- * }
+ *   posts: Post[];
+ *   total: number;
+ *   skip: number;
+ *   limit: number;
+ * };
  *
- * type QueryArgument = number | undefined
+ * type QueryArgument = number | undefined;
  *
- * type BaseQueryFunction = ReturnType<typeof fetchBaseQuery>
+ * type BaseQueryFunction = ReturnType<typeof fetchBaseQuery>;
  *
- * type SelectedResult = Pick<PostsApiResponse, 'posts'>
+ * type SelectedResult = Pick<PostsApiResponse, 'posts'>;
  *
  * const postsApiSlice = createApi({
  *   baseQuery: fetchBaseQuery({ baseUrl: 'https://dummyjson.com/posts' }),
@@ -440,33 +440,33 @@ export type QueryStateSelector<
  *       query: (limit = 5) => `?limit=${limit}&select=title`,
  *     }),
  *   }),
- * })
+ * });
  *
- * const { useGetPostsQuery } = postsApiSlice
+ * const { useGetPostsQuery } = postsApiSlice;
  *
  * function PostById({ id }: { id: number }) {
  *   const { post } = useGetPostsQuery(undefined, {
  *     selectFromResult: (state) => ({
  *       post: state.data?.posts.find((post) => post.id === id),
  *     }),
- *   })
+ *   });
  *
- *   return <li>{post?.title}</li>
+ *   return <li>{post?.title}</li>;
  * }
  *
- * const EMPTY_ARRAY: Post[] = []
+ * const EMPTY_ARRAY: Post[] = [];
  *
  * const typedSelectFromResult: TypedQueryStateSelector<
  *   PostsApiResponse,
  *   QueryArgument,
  *   BaseQueryFunction,
  *   SelectedResult
- * > = (state) => ({ posts: state.data?.posts ?? EMPTY_ARRAY })
+ * > = (state) => ({ posts: state.data?.posts ?? EMPTY_ARRAY });
  *
  * function PostsList() {
  *   const { posts } = useGetPostsQuery(undefined, {
  *     selectFromResult: typedSelectFromResult,
- *   })
+ *   });
  *
  *   return (
  *     <div>
@@ -476,7 +476,7 @@ export type QueryStateSelector<
  *         ))}
  *       </ul>
  *     </div>
- *   )
+ *   );
  * }
  * ```
  *
@@ -625,13 +625,13 @@ export type UseQueryStateOptions<
  * import type {
  *   SubscriptionOptions,
  *   TypedUseQueryStateOptions,
- * } from '@reduxjs/toolkit/query/react'
- * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+ * } from '@reduxjs/toolkit/query/react';
+ * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
  *
  * type Post = {
- *   id: number
- *   name: string
- * }
+ *   id: number;
+ *   name: string;
+ * };
  *
  * const api = createApi({
  *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
@@ -641,9 +641,9 @@ export type UseQueryStateOptions<
  *       query: () => 'posts',
  *     }),
  *   }),
- * })
+ * });
  *
- * const { useGetPostsQuery } = api
+ * const { useGetPostsQuery } = api;
  *
  * export const useGetPostsQueryWithDefaults = <
  *   SelectedResult extends Record<string, any>,
@@ -662,7 +662,7 @@ export type UseQueryStateOptions<
  *     refetchOnMountOrArgChange: true,
  *     refetchOnFocus: true,
  *     ...overrideOptions,
- *   })
+ *   });
  * ```
  *
  * @template ResultType - The type of the result `data` returned by the query.
@@ -811,7 +811,7 @@ export type LazyInfiniteQueryTrigger<
    * // codeblock-meta title="Using .unwrap with async await"
    * try {
    *   const payload = await getUserById(1).unwrap();
-   *   console.log('fulfilled', payload)
+   *   console.log('fulfilled', payload);
    * } catch (error) {
    *   console.error('rejected', error);
    * }
@@ -1442,7 +1442,7 @@ export type MutationTrigger<D extends MutationDefinition<any, any, any, any>> =
      * // codeblock-meta title="Using .unwrap with async await"
      * try {
      *   const payload = await addPost({ id: 1, name: 'Example' }).unwrap();
-     *   console.log('fulfilled', payload)
+     *   console.log('fulfilled', payload);
      * } catch (error) {
      *   console.error('rejected', error);
      * }
