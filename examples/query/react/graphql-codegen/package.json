@@ -34,6 +34,7 @@
     "@graphql-codegen/typescript-rtk-query": "^1.1.0",
     "@graphql-typed-document-node/core": "^3.1.0",
     "@types/faker": "^5.5.5",
+    "@types/node": "^25.3.0",
     "@types/react": "^19.0.1",
     "@types/react-dom": "^19.0.1",
     "@types/webpack-env": "^1.16.0",
