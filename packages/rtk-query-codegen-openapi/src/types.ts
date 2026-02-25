@@ -121,16 +121,25 @@ export interface CommonOptions {
    * @since 2.1.0
    */
   useUnknown?: boolean;
+
   /**
    * @default false
    * Will generate imports with file extension matching the expected compiled output of the api file
    */
   esmExtensions?: boolean;
+
   /**
    * @default false
    * Will generate regex constants for pattern keywords in the schema
    */
   outputRegexConstants?: boolean;
+
+  /**
+   * @default false
+   * Will use the original operation IDs from the schema instead of converting them to camel case.
+   * May cause issues if you have duplicate/missing operation IDs
+   */
+  exactOperationIds?: boolean;
 }
 
 export type TextMatcher = string | RegExp | (string | RegExp)[];

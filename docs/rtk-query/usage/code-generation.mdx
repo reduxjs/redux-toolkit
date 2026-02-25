@@ -158,6 +158,13 @@ const filteredConfig: ConfigFile = {
 }
 ```
 
+:::note
+You can avoid transforming endpoint names to camel case by passing `exactOperationIds: true` to `generateEndpoints`. However, you will have to ensure the following:
+- All endpoints in use have an operation ID
+- You have no duplicate operation IDs
+- None of your operation IDs include whitespace
+:::
+
 #### Endpoint overrides
 
 If an endpoint is generated as a mutation instead of a query or the other way round, you can override that:
