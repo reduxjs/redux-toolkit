@@ -58,6 +58,15 @@ export interface CommonOptions {
    */
   operationNameSuffix?: string;
   /**
+   * Controls how OpenAPI **`operationId`** values are transformed into
+   * endpoint names.
+   * @see {@linkcode OperationIdTransformer} for details.
+   *
+   * @default "camelCase"
+   * @since 2.3.0
+   */
+  operationIdTransformer?: OperationIdTransformer;
+  /**
    * `true` will generate hooks for queries and mutations, but no lazyQueries
    * @default false
    */
@@ -132,6 +141,37 @@ export interface CommonOptions {
    */
   outputRegexConstants?: boolean;
 }
+
+/**
+ * Controls how OpenAPI **`operationId`** values are transformed
+ * into endpoint names.
+ *
+ * - **`"camelCase"`** *(default)* — applies lodash **`camelCase`** via **`oazapfts`** (current behavior)
+ * - **`"none"`** — uses the raw **`operationId`** string verbatim with no transformation
+ * - **`(operationId: string) => string`** — applies a custom function to each **`operationId`**
+ *
+ * When using **`"none"`** or a custom function every operation **must**
+ * have an **`operationId`** defined in the OpenAPI schema, otherwise
+ * an {@linkcode Error | Error} is thrown during generation.
+ *
+ * @example
+ * <caption>Preserve exact casing (e.g. `fetchMyJWTPlease` stays `fetchMyJWTPlease`)</caption>
+ *
+ * ```ts
+ * operationIdTransformer: 'none'
+ * ```
+ *
+ * @example
+ * <caption>Custom transformer</caption>
+ *
+ * ```ts
+ * operationIdTransformer: (id) => id.replace(/^get/, 'fetch')
+ * ```
+ *
+ * @since 2.3.0
+ * @public
+ */
+export type OperationIdTransformer = 'camelCase' | 'none' | ((operationId: string) => string);
 
 export type TextMatcher = string | RegExp | (string | RegExp)[];
 
