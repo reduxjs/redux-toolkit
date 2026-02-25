@@ -8,6 +8,14 @@ export type { ConfigFile } from './types';
 
 const require = createRequire(__filename);
 
+export async function generateEndpoints(
+  options: Omit<GenerationOptions, 'outputFile'> & { outputFile?: never }
+): Promise<string>;
+
+export async function generateEndpoints(
+  options: Omit<GenerationOptions, 'outputFile'> & Required<Pick<GenerationOptions, 'outputFile'>>
+): Promise<void>;
+
 export async function generateEndpoints(options: GenerationOptions): Promise<string | void> {
   const schemaLocation = options.schemaFile;
 
