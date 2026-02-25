@@ -51,12 +51,12 @@ export interface QueryBaseLifecycleApi<
   updateCachedData(updateRecipe: Recipe<ResultType>): PatchCollection
 }
 
-export type MutationBaseLifecycleApi<
-  QueryArg,
-  BaseQuery extends BaseQueryFn,
-  ResultType,
-  ReducerPath extends string = string,
-> = LifecycleApi<ReducerPath> & {
+export interface MutationBaseLifecycleApi<
+  in QueryArg,
+  in BaseQuery extends BaseQueryFn,
+  in ResultType,
+  in ReducerPath extends string = string,
+> extends LifecycleApi<ReducerPath> {
   /**
    * Gets the current value of this cache entry.
    */
@@ -70,7 +70,7 @@ export type MutationBaseLifecycleApi<
   >
 }
 
-type LifecycleApi<ReducerPath extends string = string> = {
+type LifecycleApi<in ReducerPath extends string = string> = {
   /**
    * The dispatch method for the store
    */
@@ -89,7 +89,10 @@ type LifecycleApi<ReducerPath extends string = string> = {
   requestId: string
 }
 
-type CacheLifecyclePromises<ResultType = unknown, MetaType = unknown> = {
+type CacheLifecyclePromises<
+  out ResultType = unknown,
+  out MetaType = unknown,
+> = {
   /**
    * Promise that will resolve with the first value for this cache key.
    * This allows you to `await` until an actual value is in cache.
@@ -125,20 +128,21 @@ type CacheLifecyclePromises<ResultType = unknown, MetaType = unknown> = {
 }
 
 export interface QueryCacheLifecycleApi<
-  QueryArg,
-  BaseQuery extends BaseQueryFn,
-  ResultType,
-  ReducerPath extends string = string,
+  in QueryArg,
+  in BaseQuery extends BaseQueryFn,
+  out ResultType,
+  in ReducerPath extends string = string,
 > extends QueryBaseLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
     CacheLifecyclePromises<ResultType, BaseQueryMeta<BaseQuery>> {}
 
-export type MutationCacheLifecycleApi<
-  QueryArg,
-  BaseQuery extends BaseQueryFn,
-  ResultType,
-  ReducerPath extends string = string,
-> = MutationBaseLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath> &
+export interface MutationCacheLifecycleApi<
+  in QueryArg,
+  in BaseQuery extends BaseQueryFn,
+  out ResultType,
+  in ReducerPath extends string = string,
+> extends MutationBaseLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
   CacheLifecyclePromises<ResultType, BaseQueryMeta<BaseQuery>>
+  {}
 
 export type CacheLifecycleQueryExtraOptions<
   ResultType,

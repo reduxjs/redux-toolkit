@@ -201,20 +201,20 @@ export type QueryLifecycleMutationExtraOptions<
 }
 
 export interface QueryLifecycleApi<
-  QueryArg,
-  BaseQuery extends BaseQueryFn,
-  ResultType,
-  ReducerPath extends string = string,
+  in QueryArg,
+  in BaseQuery extends BaseQueryFn,
+  out ResultType,
+  in ReducerPath extends string = string,
 > extends QueryBaseLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
     QueryLifecyclePromises<ResultType, BaseQuery> {}
 
-export type MutationLifecycleApi<
-  QueryArg,
-  BaseQuery extends BaseQueryFn,
-  ResultType,
-  ReducerPath extends string = string,
-> = MutationBaseLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath> &
-  QueryLifecyclePromises<ResultType, BaseQuery>
+export interface MutationLifecycleApi<
+  in QueryArg,
+  in BaseQuery extends BaseQueryFn,
+  out ResultType,
+  in ReducerPath extends string = string,
+> extends MutationBaseLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
+  QueryLifecyclePromises<ResultType, BaseQuery> {}
 
 /**
  * Provides a way to define a strongly-typed version of
