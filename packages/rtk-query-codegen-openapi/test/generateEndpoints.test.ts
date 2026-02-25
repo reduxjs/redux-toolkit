@@ -933,3 +933,26 @@ describe('esmExtensions option', () => {
     expect(content).toContain("import { api } from '../../fixtures/emptyApi'");
   });
 });
+
+describe('generateEndpoints return type narrowing', () => {
+  const schemaFile = resolve(__dirname, 'fixtures', 'petstore.json');
+
+  test('returns a string when outputFile is omitted', async () => {
+    const result = await generateEndpoints({
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile,
+    });
+
+    expect(result).toBeTypeOf('string');
+  });
+
+  test('returns void when outputFile is provided', async () => {
+    const result = await generateEndpoints({
+      apiFile: './fixtures/emptyApi.ts',
+      outputFile: './test/tmp/out.ts',
+      schemaFile,
+    });
+
+    expect(result).toBeUndefined();
+  });
+});
