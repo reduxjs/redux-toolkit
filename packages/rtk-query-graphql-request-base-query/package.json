@@ -33,7 +33,7 @@
   },
   "devDependencies": {
     "@reduxjs/toolkit": "^1.6.0 || ^2.0.0",
-    "@types/node": "^20.11.0",
+    "@types/node": "^25.3.0",
     "graphql": "^16.5.0",
     "microbundle": "^0.13.3",
     "rimraf": "^3.0.2",

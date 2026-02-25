@@ -4499,7 +4499,7 @@ __metadata:
   resolution: "@examples-action-listener/counter@workspace:examples/action-listener/counter"
   dependencies:
     "@reduxjs/toolkit": "npm:^1.8.0"
-    "@types/node": "npm:^12.0.0"
+    "@types/node": "npm:^25.3.0"
     "@types/react": "npm:^19.0.1"
     "@types/react-dom": "npm:^19.0.1"
     clsx: "npm:1.1.1"
@@ -4640,6 +4640,7 @@ __metadata:
     "@reduxjs/toolkit": "npm:^1.6.0"
     "@rtk-query/graphql-request-base-query": "npm:^2.0.0"
     "@types/faker": "npm:^5.5.5"
+    "@types/node": "npm:^25.3.0"
     "@types/react": "npm:^19.0.1"
     "@types/react-dom": "npm:^19.0.1"
     "@types/webpack-env": "npm:^1.16.0"
@@ -4726,7 +4727,7 @@ __metadata:
     "@testing-library/jest-dom": "npm:^5.11.5"
     "@testing-library/react": "npm:^16.1.0"
     "@types/jest": "npm:^26.0.23"
-    "@types/node": "npm:^14.14.6"
+    "@types/node": "npm:^25.3.0"
     "@types/react": "npm:^19.0.1"
     "@types/react-dom": "npm:^19.0.1"
     msw: "npm:^0.40.2"
@@ -4922,7 +4923,7 @@ __metadata:
   resolution: "@examples-type-portability/bundler@workspace:examples/type-portability/bundler"
   dependencies:
     "@reduxjs/toolkit": "workspace:^"
-    "@types/node": "npm:^25.2.1"
+    "@types/node": "npm:^25.3.0"
     "@types/react": "npm:^19.2.13"
     "@types/react-dom": "npm:^19.2.3"
     react: "npm:^19.2.4"
@@ -4939,7 +4940,7 @@ __metadata:
   resolution: "@examples-type-portability/nodenext-cjs@workspace:examples/type-portability/nodenext-cjs"
   dependencies:
     "@reduxjs/toolkit": "workspace:^"
-    "@types/node": "npm:^25.2.1"
+    "@types/node": "npm:^25.3.0"
     "@types/react": "npm:^19.2.13"
     "@types/react-dom": "npm:^19.2.3"
     react: "npm:^19.2.4"
@@ -4956,7 +4957,7 @@ __metadata:
   resolution: "@examples-type-portability/nodenext-esm@workspace:examples/type-portability/nodenext-esm"
   dependencies:
     "@reduxjs/toolkit": "workspace:^"
-    "@types/node": "npm:^25.2.1"
+    "@types/node": "npm:^25.3.0"
     "@types/react": "npm:^19.2.13"
     "@types/react-dom": "npm:^19.2.3"
     react: "npm:^19.2.4"
@@ -7125,6 +7126,7 @@ __metadata:
   resolution: "@reduxjs/rtk-codemods@workspace:packages/rtk-codemods"
   dependencies:
     "@types/jscodeshift": "npm:^0.11.11"
+    "@types/node": "npm:^25.3.0"
     "@typescript-eslint/parser": "npm:^6.19.1"
     eslint: "npm:^8.56.0"
     eslint-config-prettier: "npm:^9.1.0"
@@ -7225,7 +7227,7 @@ __metadata:
     "@types/babel__helper-module-imports": "npm:^7.18.3"
     "@types/json-stringify-safe": "npm:^5.0.0"
     "@types/nanoid": "npm:^2.1.0"
-    "@types/node": "npm:^20.11.0"
+    "@types/node": "npm:^25.3.0"
     "@types/query-string": "npm:^6.3.0"
     "@types/react": "npm:^19.0.1"
     "@types/react-dom": "npm:^19.0.1"
@@ -7813,7 +7815,7 @@ __metadata:
     "@types/commander": "npm:^2.12.2"
     "@types/glob-to-regexp": "npm:^0.4.0"
     "@types/lodash.camelcase": "npm:^4.3.9"
-    "@types/node": "npm:^20.11.10"
+    "@types/node": "npm:^25.3.0"
     "@types/semver": "npm:^7.3.9"
     chalk: "npm:^4.1.0"
     commander: "npm:^6.2.0"
@@ -7859,7 +7861,7 @@ __metadata:
   resolution: "@rtk-query/graphql-request-base-query@workspace:packages/rtk-query-graphql-request-base-query"
   dependencies:
     "@reduxjs/toolkit": "npm:^1.6.0 || ^2.0.0"
-    "@types/node": "npm:^20.11.0"
+    "@types/node": "npm:^25.3.0"
     graphql: "npm:^16.5.0"
     graphql-request: "npm:^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0"
     microbundle: "npm:^0.13.3"
@@ -9389,26 +9391,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*":
-  version: 22.15.3
-  resolution: "@types/node@npm:22.15.3"
+"@types/node@npm:*, @types/node@npm:^25.3.0":
+  version: 25.3.0
+  resolution: "@types/node@npm:25.3.0"
   dependencies:
-    undici-types: "npm:~6.21.0"
-  checksum: 10/6b4ff03c36598432b419980f828281aa16383e2de6eb61f73275495ef8d2cbf8cb5607659b4cae5ff8b2b2ff69913ea07ffcc0be029e4280b6e8bc138dc6629b
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:^12.0.0":
-  version: 12.20.55
-  resolution: "@types/node@npm:12.20.55"
-  checksum: 10/1f916a06fff02faadb09a16ed6e31820ce170798b202ef0b14fc244bfbd721938c54a3a99836e185e4414ca461fe96c5bb5c67c3d248f153555b7e6347f061dd
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:^14.14.6":
-  version: 14.18.63
-  resolution: "@types/node@npm:14.18.63"
-  checksum: 10/82a7775898c2ea6db0b610a463512206fb2c7adc1af482c7eb44b99d94375fff51c74f67ae75a63c5532971159f30c866a4d308000624ef02fd9a7175e277019
+    undici-types: "npm:~7.18.0"
+  checksum: 10/061b00c8de070a606a052afaa4c45dca5f8d6a8e7e39c0c3e196bb650ee37e986bbb161991ea39076a05aada102f36b13c974528448a09efd8d36bdfee75de4b
   languageName: node
   linkType: hard
 
@@ -9416,24 +9404,6 @@ __metadata:
   version: 17.0.45
   resolution: "@types/node@npm:17.0.45"
   checksum: 10/b45fff7270b5e81be19ef91a66b764a8b21473a97a8d211218a52e3426b79ad48f371819ab9153370756b33ba284e5c875463de4d2cf48a472e9098d7f09e8a2
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:^20.11.0, @types/node@npm:^20.11.10":
-  version: 20.17.32
-  resolution: "@types/node@npm:20.17.32"
-  dependencies:
-    undici-types: "npm:~6.19.2"
-  checksum: 10/ac19a4af175eeb9fa89503c6acf01eeea86cf82675e4af091b3e18902cc3ae752b5e686f1eade9db551c318313dd597e1c65d3fb7a569c3a0f63e8424a6ead2e
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:^25.2.1":
-  version: 25.2.1
-  resolution: "@types/node@npm:25.2.1"
-  dependencies:
-    undici-types: "npm:~7.16.0"
-  checksum: 10/aab73de56dbb674a173a49618b9f9b4aff3ed5815c47104a8fcaa8ca0728effced8d6ed941aa342b7d1f9dfcd641513250a178f4a656067f461dd793ab422911
   languageName: node
   linkType: hard
 
@@ -28739,7 +28709,6 @@ __metadata:
     react-redux: "npm:^9.1.2"
     release-it: "npm:^14.12.5"
     serve: "npm:^14.2.0"
-    ts-node: "npm:^10.9.2"
     typescript: "npm:^5.9.3"
   languageName: unknown
   linkType: soft
@@ -31554,24 +31523,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"undici-types@npm:~6.19.2":
-  version: 6.19.8
-  resolution: "undici-types@npm:6.19.8"
-  checksum: 10/cf0b48ed4fc99baf56584afa91aaffa5010c268b8842f62e02f752df209e3dea138b372a60a963b3b2576ed932f32329ce7ddb9cb5f27a6c83040d8cd74b7a70
-  languageName: node
-  linkType: hard
-
-"undici-types@npm:~6.21.0":
-  version: 6.21.0
-  resolution: "undici-types@npm:6.21.0"
-  checksum: 10/ec8f41aa4359d50f9b59fa61fe3efce3477cc681908c8f84354d8567bb3701fafdddf36ef6bff307024d3feb42c837cf6f670314ba37fc8145e219560e473d14
-  languageName: node
-  linkType: hard
-
-"undici-types@npm:~7.16.0":
-  version: 7.16.0
-  resolution: "undici-types@npm:7.16.0"
-  checksum: 10/db43439f69c2d94cc29f75cbfe9de86df87061d6b0c577ebe9bb3255f49b22c50162a7d7eb413b0458b6510b8ca299ac7cff38c3a29fbd31af9f504bcf7fbc0d
+"undici-types@npm:~7.18.0":
+  version: 7.18.2
+  resolution: "undici-types@npm:7.18.2"
+  checksum: 10/e61a5918f624d68420c3ca9d301e9f15b61cba6e97be39fe2ce266dd6151e4afe424d679372638826cb506be33952774e0424141200111a9857e464216c009af
   languageName: node
   linkType: hard
 

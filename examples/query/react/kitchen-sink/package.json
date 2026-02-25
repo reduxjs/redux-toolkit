@@ -19,7 +19,7 @@
     "@testing-library/jest-dom": "^5.11.5",
     "@testing-library/react": "^16.1.0",
     "@types/jest": "^26.0.23",
-    "@types/node": "^14.14.6",
+    "@types/node": "^25.3.0",
     "@types/react": "^19.0.1",
     "@types/react-dom": "^19.0.1",
     "typescript": "^5.9.3",

@@ -56,7 +56,7 @@
     "@types/commander": "^2.12.2",
     "@types/glob-to-regexp": "^0.4.0",
     "@types/lodash.camelcase": "^4.3.9",
-    "@types/node": "^20.11.10",
+    "@types/node": "^25.3.0",
     "@types/semver": "^7.3.9",
     "chalk": "^4.1.0",
     "del": "^6.0.0",
