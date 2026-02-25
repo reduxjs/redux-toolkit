@@ -507,7 +507,7 @@ const baseQueryWithReauth: BaseQueryFn<
   let result = await baseQuery(args, api, extraOptions)
   if (result.error && result.error.status === 401) {
     // try to get a new token
-    const refreshResult = await baseQuery('/refreshToken', api, extraOptions)
+    const refreshResult = await baseQuery({ url: '/refreshToken', method: 'POST', body: { refresh_token: "exampleRefreshToken" } }, api, extraOptions)
     if (refreshResult.data) {
       // store the new token
       api.dispatch(tokenReceived(refreshResult.data))
@@ -566,7 +566,7 @@ const baseQueryWithReauth: BaseQueryFn<
       // highlight-end
       try {
         const refreshResult = await baseQuery(
-          '/refreshToken',
+          { url: '/refreshToken', method: 'POST', body: { refresh_token: "exampleRefreshToken" } },
           api,
           extraOptions,
         )
