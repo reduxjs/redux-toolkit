@@ -110,6 +110,7 @@ interface SimpleUsage {
   exportName?: string
   argSuffix?: string
   operationNameSuffix?: string
+  operationIdTransformer?: 'camelCase' | 'none' | ((operationId: string) => string)
   responseSuffix?: string
   hooks?:
     | boolean
@@ -147,8 +148,8 @@ export type EndpointMatcherFunction = (
 #### Filtering endpoints
 
 If you only want to include a few endpoints, you can use the `filterEndpoints` config option to filter your endpoints.
-Note that endpoints are transformed to camel case. For example, `login_user` will become `loginUser`.
-`filterEndpoints` will be checked against this camel case version of the endpoint.
+Note that endpoints are transformed to camelCase by default. For example, `login_user` will become `loginUser`.
+`filterEndpoints` is checked against the transformed endpoint name (after applying [`operationIdTransformer`](#customizing-endpoint-name-generation)).
 
 ```ts no-transpile title="openapi-config.ts"
 const filteredConfig: ConfigFile = {
@@ -157,6 +158,48 @@ const filteredConfig: ConfigFile = {
   filterEndpoints: ['loginUser', /Order/],
 }
 ```
+
+#### Customizing endpoint name generation
+
+By default, each operation's `operationId` is converted to camelCase using lodash `camelCase` (via `oazapfts`). This means consecutive uppercase letters are lowercased — for example, `fetchMyJWTPlease` becomes `fetchMyJwtPlease`.
+
+Use the `operationIdTransformer` option to control this behavior:
+
+- **`"camelCase"`** _(default)_ — applies lodash `camelCase`, matching prior behavior
+- **`"none"`** — uses the raw `operationId` string verbatim, preserving casing exactly as written in the schema
+- **`(operationId: string) => string`** — applies a custom function for full control
+
+```ts no-transpile title="openapi-config.ts"
+import type { ConfigFile } from '@rtk-query/codegen-openapi'
+
+const config = {
+  // ...
+  // Preserve the exact operationId casing from the schema.
+  // fetchMyJWTPlease stays fetchMyJWTPlease instead of becoming fetchMyJwtPlease.
+  operationIdTransformer: 'none',
+} satisfies ConfigFile
+
+export default config
+```
+
+```ts no-transpile title="openapi-config.ts"
+import type { ConfigFile } from '@rtk-query/codegen-openapi'
+
+const config = {
+  // ...
+  // Custom transformer — capitalize the first letter only
+  operationIdTransformer: (operationId) =>
+    operationId.charAt(0).toUpperCase() + operationId.slice(1),
+} satisfies ConfigFile
+
+export default config
+```
+
+:::note
+When `operationIdTransformer` is `"none"` or a custom function, **every operation in the schema must have an `operationId`**. The codegen will throw an error if any operation is missing one.
+
+When using `filterEndpoints` together with `operationIdTransformer`, the filter is matched against the **transformed** name.
+:::
 
 #### Endpoint overrides
 

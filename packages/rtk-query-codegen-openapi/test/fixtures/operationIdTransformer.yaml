@@ -1,0 +1,73 @@
+openapi: 3.0.2
+info:
+  title: operationIdTransformer fixture
+  description: >
+    Fixture for testing the `operationIdTransformer` option.
+    Includes operationIds with consecutive uppercase letters
+    (e.g. `fetchMyJWTPlease`, `updatePETScan`) to verify that
+    transformers like `"none"` preserve them verbatim while the
+    default `"camelCase"` normalizes them to `fetchMyJwtPlease`
+    and `updatePetScan`.
+  version: 1.0.0
+paths:
+  /pet:
+    post:
+      operationId: addPet
+      summary: Add a new pet
+      description: Regular camelCase operationId — should be unaffected by any transformer.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Pet added successfully
+  /jwt:
+    get:
+      operationId: fetchMyJWTPlease
+      summary: Fetch a JWT token
+      description: >
+        operationId contains consecutive uppercase letters (`JWT`).
+        With `"camelCase"` this becomes `fetchMyJwtPlease`;
+        with `"none"` it stays `fetchMyJWTPlease`.
+      responses:
+        '200':
+          description: JWT token string
+          content:
+            application/json:
+              schema:
+                type: string
+    put:
+      operationId: updateMyJWTPlease
+      summary: Replace a JWT token
+      description: >
+        operationId contains consecutive uppercase letters (`JWT`).
+        Used to verify that mutations are also renamed consistently.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: string
+      responses:
+        '200':
+          description: JWT token updated successfully
+  /scan:
+    put:
+      operationId: updatePETScan
+      summary: Update a PET scan record
+      description: >
+        operationId contains a different consecutive-uppercase sequence (`PET`).
+        Used alongside `fetchMyJWTPlease` to confirm the transformer is applied
+        uniformly across all operations.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: PET scan record updated successfully
