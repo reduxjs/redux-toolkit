@@ -77,3 +77,62 @@ If you notice, `onFocus`, `onFocusLost`, `onOffline`, `onOnline` are all actions
 ```ts title="Manual onFocus event" no-transpile
 dispatch(api.internalActions.onFocus())
 ```
+
+
+# `setupListeners` for `react-native`
+
+Uses `@react-native-community/netinfo` for offline detection.
+
+
+```ts title="setupListeners example for react-native" no-transpile
+export function setupListenersReactNative(
+  dispatch: ThunkDispatch<any, any, any>,
+  customHandler?: (
+    dispatch: ThunkDispatch<any, any, any>,
+    actions: {
+      onFocus: typeof onFocus;
+      onFocusLost: typeof onFocusLost;
+      onOnline: typeof onOnline;
+      onOffline: typeof onOffline;
+    }
+  ) => () => void
+) {
+  function defaultHandler() {
+    let unsubscribeOnChange: NativeEventSubscription | undefined;
+    let unsubscribeOnNetworkStatusChange: NetInfoSubscription | undefined;
+
+    if (!initialized) {
+      // Handle focus events
+      unsubscribeOnChange = AppState.addEventListener("change", (state) => {
+        if (state === "active") {
+          dispatch(onFocus());
+        } else if (state === "background") {
+          dispatch(onFocusLost());
+        }
+      });
+
+      // Handle connection events
+      unsubscribeOnNetworkStatusChange = NetInfo.addEventListener((state) => {
+        if (state.isConnected) {
+          dispatch(onOnline());
+        } else {
+          dispatch(onOffline());
+        }
+      });
+      initialized = true;
+    }
+
+    const unsubscribe = () => {
+      unsubscribeOnChange?.remove();
+      unsubscribeOnNetworkStatusChange?.();
+      initialized = false;
+    };
+    return unsubscribe;
+  }
+
+  return customHandler
+    ? customHandler(dispatch, { onFocus, onFocusLost, onOffline, onOnline })
+    : defaultHandler();
+}
+
+```
