@@ -104,33 +104,6 @@ function preprocessComponents(ctx: OazapftsContext): void {
   }
 }
 
-function makeDiscriminatorPropertiesRequired(ctx: OazapftsContext): void {
-  const schemas = (ctx.spec as any).components?.schemas;
-  if (!schemas) return;
-
-  for (const name of Object.keys(schemas)) {
-    const schema = schemas[name];
-    if (isReference(schema) || typeof schema === 'boolean') continue;
-    if (!schema.discriminator) continue;
-
-    const propName = schema.discriminator.propertyName;
-    const refs = schema.oneOf || schema.anyOf || [];
-
-    for (const ref of refs) {
-      if (!isReference(ref)) continue;
-      const childName = ref.$ref.split('/').pop();
-      if (!childName) continue;
-      const childSchema = schemas[childName];
-      if (!childSchema || isReference(childSchema) || typeof childSchema === 'boolean') continue;
-
-      if (!childSchema.required) childSchema.required = [];
-      if (!childSchema.required.includes(propName)) {
-        childSchema.required.push(propName);
-      }
-    }
-  }
-}
-
 function getTypeFromResponse(
   ctx: OazapftsContext,
   response: OpenAPIV3.ResponseObject | OpenAPIV3.ReferenceObject,
@@ -294,7 +267,6 @@ export async function generateApi(
   });
 
   preprocessComponents(ctx);
-  makeDiscriminatorPropertiesRequired(ctx);
 
   const operationDefinitions = getOperationDefinitions(v3Doc).filter(operationMatches(filterEndpoints));
 

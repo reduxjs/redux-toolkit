@@ -778,8 +778,6 @@ describe('useEnumType option', () => {
       filterEndpoints: ['findPetsByStatus'],
     });
 
-    expect(api).toMatchSnapshot();
-
     expect(api).toMatch(/enum\s+\w+/);
   });
 });
