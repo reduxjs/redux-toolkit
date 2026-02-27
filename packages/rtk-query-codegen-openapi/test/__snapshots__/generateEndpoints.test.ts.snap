@@ -3234,12 +3234,12 @@ export type CreateAllowanceApiArg = {
   allowance: Allowance;
 };
 export type EngineeringAllowance = {
-  allowance_type: "engineering";
+  allowance_type?: "engineering";
   distribution?: "MARECO" | "LINEAR";
   capacity_speed_limit?: number;
 };
 export type StandardAllowance = {
-  allowance_type: "standard";
+  allowance_type?: "standard";
   default_value?: number;
   ranges?: {
     min?: number;
@@ -3253,56 +3253,6 @@ export type Allowance =
   | ({
       allowance_type: "standard";
     } & StandardAllowance);
-"
-`;
-
-exports[`useEnumType option > generates TypeScript enums when useEnumType is true 1`] = `
-"import { api } from "./fixtures/emptyApi";
-const injectedRtkApi = api.injectEndpoints({
-  endpoints: (build) => ({
-    findPetsByStatus: build.query<
-      FindPetsByStatusApiResponse,
-      FindPetsByStatusApiArg
-    >({
-      query: (queryArg) => ({
-        url: \`/pet/findByStatus\`,
-        params: {
-          status: queryArg.status,
-        },
-      }),
-    }),
-  }),
-  overrideExisting: false,
-});
-export { injectedRtkApi as enhancedApi };
-export type FindPetsByStatusApiResponse =
-  /** status 200 successful operation */ Pet[];
-export type FindPetsByStatusApiArg = {
-  /** Status values that need to be considered for filter */
-  status?: "available" | "pending" | "sold";
-};
-export type Category = {
-  id?: number | undefined;
-  name?: string | undefined;
-};
-export type Tag = {
-  id?: number | undefined;
-  name?: string | undefined;
-};
-export type Pet = {
-  id?: number | undefined;
-  name: string;
-  category?: Category | undefined;
-  photoUrls: string[];
-  tags?: Tag[] | undefined;
-  /** pet status in the store */
-  status?: Status | undefined;
-};
-export enum Status {
-  Available = "available",
-  Pending = "pending",
-  Sold = "sold",
-}
 "
 `;
 
