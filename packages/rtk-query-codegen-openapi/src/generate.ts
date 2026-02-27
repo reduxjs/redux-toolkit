@@ -107,15 +107,13 @@ function preprocessComponents(ctx: OazapftsContext): void {
 function makeDiscriminatorPropertiesRequired(ctx: OazapftsContext): void {
   const schemas = (ctx.spec as any).components?.schemas;
   if (!schemas) return;
-  const prefix = '#/components/schemas/';
 
   for (const name of Object.keys(schemas)) {
     const schema = schemas[name];
     if (isReference(schema) || typeof schema === 'boolean') continue;
     if (!schema.discriminator) continue;
 
-    const discriminator = schema.discriminator;
-    const propName = discriminator.propertyName;
+    const propName = schema.discriminator.propertyName;
     const refs = schema.oneOf || schema.anyOf || [];
 
     for (const ref of refs) {
@@ -128,26 +126,6 @@ function makeDiscriminatorPropertiesRequired(ctx: OazapftsContext): void {
       if (!childSchema.required) childSchema.required = [];
       if (!childSchema.required.includes(propName)) {
         childSchema.required.push(propName);
-      }
-
-      if (!discriminator.mapping) {
-        discriminator.mapping = {};
-      }
-      const alreadyMapped = Object.values(discriminator.mapping).some(
-        (v) => (v as string).split('/').pop() === childName
-      );
-      if (!alreadyMapped) {
-        const discProp = childSchema.properties?.[propName];
-        if (
-          discProp &&
-          !isReference(discProp) &&
-          discProp.enum?.length === 1
-        ) {
-          discriminator.mapping[String(discProp.enum[0])] =
-            prefix + childName;
-        } else {
-          discriminator.mapping[childName] = prefix + childName;
-        }
       }
     }
   }
