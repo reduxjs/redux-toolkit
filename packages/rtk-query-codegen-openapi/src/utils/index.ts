@@ -1,5 +1,6 @@
 export * from './capitalize';
 export * from './getOperationDefinitions';
+export * from './getOperationName';
 export * from './getV3Doc';
 export * from './isQuery';
 export * from './isValidUrl';

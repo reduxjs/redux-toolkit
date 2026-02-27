@@ -768,6 +768,22 @@ describe('openapi spec', () => {
   });
 });
 
+describe('useEnumType option', () => {
+  it('generates TypeScript enums when useEnumType is true', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      apiFile: './fixtures/emptyApi.ts',
+      useEnumType: true,
+      filterEndpoints: ['findPetsByStatus'],
+    });
+
+    expect(api).toMatchSnapshot();
+
+    expect(api).toMatch(/enum\s+\w+/);
+  });
+});
+
 describe('query parameters', () => {
   it('parameters overridden in swagger should also be overridden in the code', async () => {
     const api = await generateEndpoints({

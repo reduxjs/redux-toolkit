@@ -2,21 +2,13 @@ import camelCase from 'lodash.camelcase';
 import path from 'node:path';
 import type { OpenAPIV3 } from 'openapi-types';
 import ts from 'typescript';
+import { UNSTABLE_cg as cg } from 'oazapfts';
+import { createContext, withMode, type OazapftsContext, type OnlyMode } from 'oazapfts/context';
+import { getTypeFromSchema, getResponseType, getSchemaFromContent } from 'oazapfts/generate';
+import { resolve, resolveArray, isReference, getReferenceName } from '@oazapfts/resolve';
 import type { ObjectPropertyDefinitions } from './codegen';
 import { generateCreateApiCall, generateEndpointDefinition, generateImportNode, generateTagTypes } from './codegen';
 import { generateReactHooks } from './generators/react-hooks';
-import {
-  OazapftsAdapter,
-  createPropertyAssignment,
-  createQuestionToken,
-  getOperationName as _getOperationName,
-  getReferenceName,
-  getSchemaFromContent,
-  isReference,
-  isValidIdentifier,
-  keywordType,
-  supportDeepObjects,
-} from './oazapfts-compat';
 import type {
   EndpointMatcher,
   EndpointOverrides,
@@ -26,11 +18,151 @@ import type {
   ParameterMatcher,
   TextMatcher,
 } from './types';
-import { capitalize, getOperationDefinitions, getV3Doc, removeUndefined, isQuery as testIsQuery } from './utils';
+import {
+  capitalize,
+  getOperationDefinitions,
+  getOperationName as _getOperationName,
+  getV3Doc,
+  removeUndefined,
+  isQuery as testIsQuery,
+} from './utils';
 import { factory } from './utils/factory';
+
+const { createPropertyAssignment, createQuestionToken, keywordType, isValidIdentifier } = cg;
 
 const generatedApiName = 'injectedRtkApi';
 const v3DocCache: Record<string, OpenAPIV3.Document> = {};
+
+function supportDeepObjects(
+  params: OpenAPIV3.ParameterObject[]
+): OpenAPIV3.ParameterObject[] {
+  const res: OpenAPIV3.ParameterObject[] = [];
+  const merged: Record<string, any> = {};
+  for (const p of params) {
+    const m = /^(.+?)\[(.*?)\]/.exec(p.name);
+    if (!m) {
+      res.push(p);
+      continue;
+    }
+    const [, name, prop] = m;
+    let obj = merged[name];
+    if (!obj) {
+      obj = merged[name] = {
+        name,
+        in: p.in,
+        style: 'deepObject',
+        schema: {
+          type: 'object',
+          properties: {} as Record<string, any>,
+        },
+      };
+      res.push(obj);
+    }
+    obj.schema.properties[prop] = p.schema;
+  }
+  return res;
+}
+
+function preprocessComponents(ctx: OazapftsContext): void {
+  const schemas = (ctx.spec as any).components?.schemas;
+  if (!schemas) return;
+
+  const prefix = '#/components/schemas/';
+
+  for (const name of Object.keys(schemas)) {
+    const schema = schemas[name];
+    if (isReference(schema) || typeof schema === 'boolean') continue;
+    if (schema.discriminator && !schema.oneOf && !schema.anyOf) {
+      ctx.discriminatingSchemas.add(schema);
+    }
+  }
+
+  for (const name of Object.keys(schemas)) {
+    const schema = schemas[name];
+    if (isReference(schema) || typeof schema === 'boolean' || !schema.allOf) continue;
+
+    for (const childSchema of schema.allOf) {
+      if (!isReference(childSchema)) continue;
+      const resolved = resolve<OpenAPIV3.SchemaObject>(childSchema, ctx);
+      if (!ctx.discriminatingSchemas.has(resolved as any)) continue;
+
+      const refBasename = childSchema.$ref.split('/').pop()!;
+      const discriminatingSchema = schemas[refBasename];
+      if (isReference(discriminatingSchema)) continue;
+
+      const discriminator = discriminatingSchema.discriminator;
+      if (!discriminator) continue;
+
+      const refs = Object.values(discriminator.mapping || {});
+      if (refs.includes(prefix + name)) continue;
+
+      if (!discriminator.mapping) {
+        discriminator.mapping = {};
+      }
+      discriminator.mapping[name] = prefix + name;
+    }
+  }
+}
+
+function makeDiscriminatorPropertiesRequired(ctx: OazapftsContext): void {
+  const schemas = (ctx.spec as any).components?.schemas;
+  if (!schemas) return;
+  const prefix = '#/components/schemas/';
+
+  for (const name of Object.keys(schemas)) {
+    const schema = schemas[name];
+    if (isReference(schema) || typeof schema === 'boolean') continue;
+    if (!schema.discriminator) continue;
+
+    const discriminator = schema.discriminator;
+    const propName = discriminator.propertyName;
+    const refs = schema.oneOf || schema.anyOf || [];
+
+    for (const ref of refs) {
+      if (!isReference(ref)) continue;
+      const childName = ref.$ref.split('/').pop();
+      if (!childName) continue;
+      const childSchema = schemas[childName];
+      if (!childSchema || isReference(childSchema) || typeof childSchema === 'boolean') continue;
+
+      if (!childSchema.required) childSchema.required = [];
+      if (!childSchema.required.includes(propName)) {
+        childSchema.required.push(propName);
+      }
+
+      if (!discriminator.mapping) {
+        discriminator.mapping = {};
+      }
+      const alreadyMapped = Object.values(discriminator.mapping).some(
+        (v) => (v as string).split('/').pop() === childName
+      );
+      if (!alreadyMapped) {
+        const discProp = childSchema.properties?.[propName];
+        if (
+          discProp &&
+          !isReference(discProp) &&
+          discProp.enum?.length === 1
+        ) {
+          discriminator.mapping[String(discProp.enum[0])] =
+            prefix + childName;
+        } else {
+          discriminator.mapping[childName] = prefix + childName;
+        }
+      }
+    }
+  }
+}
+
+function getTypeFromResponse(
+  ctx: OazapftsContext,
+  response: OpenAPIV3.ResponseObject | OpenAPIV3.ReferenceObject,
+  onlyMode?: OnlyMode
+): ts.TypeNode {
+  const resolved = resolve(response, ctx);
+  if (!resolved.content) return keywordType.void;
+  const schema = getSchemaFromContent(resolved.content);
+  return getTypeFromSchema(onlyMode ? withMode(ctx, onlyMode) : ctx, schema);
+}
 
 function defaultIsDataResponse(code: string, includeDefault: boolean) {
   if (includeDefault && code === 'default') {
@@ -91,9 +223,9 @@ function withQueryComment<T extends ts.Node>(node: T, def: QueryArgDefinition, h
 
 function getPatternFromProperty(
   property: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject,
-  apiGen: OazapftsAdapter
+  ctx: OazapftsContext
 ): string | null {
-  const resolved = apiGen.resolve(property);
+  const resolved = resolve(property, ctx);
   if (!resolved || typeof resolved !== 'object' || !('pattern' in resolved)) return null;
   if (resolved.type !== 'string') return null;
   const pattern = resolved.pattern;
@@ -103,15 +235,15 @@ function getPatternFromProperty(
 function generateRegexConstantsForType(
   typeName: string,
   schema: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject,
-  apiGen: OazapftsAdapter
+  ctx: OazapftsContext
 ): ts.VariableStatement[] {
-  const resolvedSchema = apiGen.resolve(schema);
+  const resolvedSchema = resolve(schema, ctx);
   if (!resolvedSchema || !('properties' in resolvedSchema) || !resolvedSchema.properties) return [];
 
   const constants: ts.VariableStatement[] = [];
 
   for (const [propertyName, property] of Object.entries(resolvedSchema.properties)) {
-    const pattern = getPatternFromProperty(property, apiGen);
+    const pattern = getPatternFromProperty(property, ctx);
     if (!pattern) continue;
 
     const constantName = camelCase(`${typeName} ${propertyName} Pattern`);
@@ -176,14 +308,15 @@ export async function generateApi(
 ) {
   const v3Doc = (v3DocCache[spec] ??= await getV3Doc(spec, httpResolverOptions));
 
-  const apiGen = new OazapftsAdapter(v3Doc, {
+  const ctx = createContext(v3Doc as any, {
     useEnumType,
     unionUndefined,
     mergeReadWriteOnly,
     useUnknown,
   });
 
-  await apiGen.init();
+  preprocessComponents(ctx);
+  makeDiscriminatorPropertiesRequired(ctx);
 
   const operationDefinitions = getOperationDefinitions(v3Doc).filter(operationMatches(filterEndpoints));
 
@@ -257,18 +390,18 @@ export async function generateApi(
         ),
         ...Object.values(interfaces),
         ...(outputRegexConstants
-          ? apiGen.aliases.flatMap((alias) => {
+          ? ctx.aliases.flatMap((alias) => {
               if (!ts.isInterfaceDeclaration(alias) && !ts.isTypeAliasDeclaration(alias)) return [alias];
 
               const typeName = alias.name.escapedText.toString();
               const schema = v3Doc.components?.schemas?.[typeName];
               if (!schema) return [alias];
 
-              const regexConstants = generateRegexConstantsForType(typeName, schema, apiGen);
+              const regexConstants = generateRegexConstantsForType(typeName, schema, ctx);
               return regexConstants.length > 0 ? [alias, ...regexConstants] : [alias];
             })
-          : apiGen.aliases),
-        ...apiGen.enumAliases,
+          : ctx.aliases),
+        ...ctx.enumAliases,
         ...(hooks
           ? [
               generateReactHooks({
@@ -317,7 +450,7 @@ export async function generateApi(
     const tags = tag ? getTags({ verb, pathItem }) : undefined;
     const isQuery = testIsQuery(verb, overrides);
 
-    const returnsJson = apiGen.getResponseType(responses) === 'json';
+    const returnsJson = getResponseType(ctx, responses) === 'json';
     let ResponseType: ts.TypeNode = factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword);
     if (returnsJson) {
       const returnTypes = Object.entries(responses || {})
@@ -325,13 +458,13 @@ export async function generateApi(
           ([code, response]) =>
             [
               code,
-              apiGen.resolve(response),
-              apiGen.getTypeFromResponse(response, 'readOnly') ||
+              resolve(response, ctx),
+              getTypeFromResponse(ctx, response, 'readOnly') ||
                 factory.createKeywordTypeNode(ts.SyntaxKind.UndefinedKeyword),
             ] as const
         )
         .filter(([status, response]) =>
-          isDataResponse(status, includeDefault, apiGen.resolve(response), responses || {})
+          isDataResponse(status, includeDefault, resolve(response, ctx), responses || {})
         )
         .filter(([_1, _2, type]) => type !== keywordType.void)
         .map(([code, response, type]) =>
@@ -358,9 +491,8 @@ export async function generateApi(
       ).name
     );
 
-    const operationParameters = apiGen.resolveArray(operation.parameters);
-    const pathItemParameters = apiGen
-      .resolveArray(pathItem.parameters)
+    const operationParameters = resolveArray(ctx, operation.parameters);
+    const pathItemParameters = resolveArray(ctx, pathItem.parameters)
       .filter((pp) => !operationParameters.some((op) => op.name === pp.name && op.in === pp.in));
 
     const parameters = supportDeepObjects([...pathItemParameters, ...operationParameters]).filter(
@@ -394,16 +526,16 @@ export async function generateApi(
         origin: 'param',
         name,
         originalName: param.name,
-        type: apiGen.getTypeFromSchema(isReference(param) ? param : param.schema, undefined, 'writeOnly'),
+        type: getTypeFromSchema(withMode(ctx, 'writeOnly'), isReference(param) ? param : param.schema),
         required: param.required,
         param,
       };
     }
 
     if (requestBody) {
-      const body = apiGen.resolve(requestBody);
+      const body = resolve(requestBody, ctx);
       const schema = getSchemaFromContent(body.content);
-      const type = apiGen.getTypeFromSchema(schema);
+      const type = getTypeFromSchema(ctx, schema);
       const schemaName = camelCase(
         (type as any).name ||
           getReferenceName(schema) ||
@@ -416,7 +548,7 @@ export async function generateApi(
         origin: 'body',
         name,
         originalName: schemaName,
-        type: apiGen.getTypeFromSchema(schema, undefined, 'writeOnly'),
+        type: getTypeFromSchema(withMode(ctx, 'writeOnly'), schema),
         required: true,
         body,
       };
