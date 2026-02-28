@@ -1,17 +1,11 @@
 import camelCase from 'lodash.camelcase';
 import path from 'node:path';
-import ApiGenerator, {
-  getOperationName as _getOperationName,
-  createPropertyAssignment,
-  createQuestionToken,
-  getReferenceName,
-  isReference,
-  isValidIdentifier,
-  keywordType,
-  supportDeepObjects,
-} from 'oazapfts/generate';
 import type { OpenAPIV3 } from 'openapi-types';
 import ts from 'typescript';
+import { UNSTABLE_cg as cg } from 'oazapfts';
+import { createContext, withMode, type OazapftsContext, type OnlyMode } from 'oazapfts/context';
+import { getTypeFromSchema, getTypeFromResponse, getResponseType, getSchemaFromContent, getOperationName as _getOperationName } from 'oazapfts/generate';
+import { resolve, resolveArray, isReference, getReferenceName } from '@oazapfts/resolve';
 import type { ObjectPropertyDefinitions } from './codegen';
 import { generateCreateApiCall, generateEndpointDefinition, generateImportNode, generateTagTypes } from './codegen';
 import { generateReactHooks } from './generators/react-hooks';
@@ -24,11 +18,49 @@ import type {
   ParameterMatcher,
   TextMatcher,
 } from './types';
-import { capitalize, getOperationDefinitions, getV3Doc, removeUndefined, isQuery as testIsQuery } from './utils';
+import {
+  capitalize,
+  getOperationDefinitions,
+  getV3Doc,
+  removeUndefined,
+  isQuery as testIsQuery,
+} from './utils';
 import { factory } from './utils/factory';
+
+const { createPropertyAssignment, createQuestionToken, keywordType, isValidIdentifier } = cg;
 
 const generatedApiName = 'injectedRtkApi';
 const v3DocCache: Record<string, OpenAPIV3.Document> = {};
+
+function supportDeepObjects(
+  params: OpenAPIV3.ParameterObject[]
+): OpenAPIV3.ParameterObject[] {
+  const res: OpenAPIV3.ParameterObject[] = [];
+  const merged: Record<string, any> = {};
+  for (const p of params) {
+    const m = /^(.+?)\[(.*?)\]/.exec(p.name);
+    if (!m) {
+      res.push(p);
+      continue;
+    }
+    const [, name, prop] = m;
+    let obj = merged[name];
+    if (!obj) {
+      obj = merged[name] = {
+        name,
+        in: p.in,
+        style: 'deepObject',
+        schema: {
+          type: 'object',
+          properties: {} as Record<string, any>,
+        },
+      };
+      res.push(obj);
+    }
+    obj.schema.properties[prop] = p.schema;
+  }
+  return res;
+}
 
 function defaultIsDataResponse(code: string, includeDefault: boolean) {
   if (includeDefault && code === 'default') {
@@ -89,9 +121,9 @@ function withQueryComment<T extends ts.Node>(node: T, def: QueryArgDefinition, h
 
 function getPatternFromProperty(
   property: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject,
-  apiGen: ApiGenerator
+  ctx: OazapftsContext
 ): string | null {
-  const resolved = apiGen.resolve(property);
+  const resolved = resolve(property, ctx);
   if (!resolved || typeof resolved !== 'object' || !('pattern' in resolved)) return null;
   if (resolved.type !== 'string') return null;
   const pattern = resolved.pattern;
@@ -101,15 +133,15 @@ function getPatternFromProperty(
 function generateRegexConstantsForType(
   typeName: string,
   schema: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject,
-  apiGen: ApiGenerator
+  ctx: OazapftsContext
 ): ts.VariableStatement[] {
-  const resolvedSchema = apiGen.resolve(schema);
+  const resolvedSchema = resolve(schema, ctx);
   if (!resolvedSchema || !('properties' in resolvedSchema) || !resolvedSchema.properties) return [];
 
   const constants: ts.VariableStatement[] = [];
 
   for (const [propertyName, property] of Object.entries(resolvedSchema.properties)) {
-    const pattern = getPatternFromProperty(property, apiGen);
+    const pattern = getPatternFromProperty(property, ctx);
     if (!pattern) continue;
 
     const constantName = camelCase(`${typeName} ${propertyName} Pattern`);
@@ -174,17 +206,12 @@ export async function generateApi(
 ) {
   const v3Doc = (v3DocCache[spec] ??= await getV3Doc(spec, httpResolverOptions));
 
-  const apiGen = new ApiGenerator(v3Doc, {
+  const ctx = createContext(v3Doc, {
     unionUndefined,
     useEnumType,
     mergeReadWriteOnly,
     useUnknown,
   });
-
-  // temporary workaround for https://github.com/oazapfts/oazapfts/issues/491
-  if (apiGen.spec.components?.schemas) {
-    apiGen.preprocessComponents(apiGen.spec.components.schemas);
-  }
 
   const operationDefinitions = getOperationDefinitions(v3Doc).filter(operationMatches(filterEndpoints));
 
@@ -258,18 +285,18 @@ export async function generateApi(
         ),
         ...Object.values(interfaces),
         ...(outputRegexConstants
-          ? apiGen.aliases.flatMap((alias) => {
+          ? ctx.aliases.flatMap((alias) => {
               if (!ts.isInterfaceDeclaration(alias) && !ts.isTypeAliasDeclaration(alias)) return [alias];
 
               const typeName = alias.name.escapedText.toString();
               const schema = v3Doc.components?.schemas?.[typeName];
               if (!schema) return [alias];
 
-              const regexConstants = generateRegexConstantsForType(typeName, schema, apiGen);
+              const regexConstants = generateRegexConstantsForType(typeName, schema, ctx);
               return regexConstants.length > 0 ? [alias, ...regexConstants] : [alias];
             })
-          : apiGen.aliases),
-        ...apiGen.enumAliases,
+          : ctx.aliases),
+        ...ctx.enumAliases,
         ...(hooks
           ? [
               generateReactHooks({
@@ -318,7 +345,7 @@ export async function generateApi(
     const tags = tag ? getTags({ verb, pathItem }) : undefined;
     const isQuery = testIsQuery(verb, overrides);
 
-    const returnsJson = apiGen.getResponseType(responses) === 'json';
+    const returnsJson = getResponseType(ctx, responses) === 'json';
     let ResponseType: ts.TypeNode = factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword);
     if (returnsJson) {
       const returnTypes = Object.entries(responses || {})
@@ -326,13 +353,13 @@ export async function generateApi(
           ([code, response]) =>
             [
               code,
-              apiGen.resolve(response),
-              apiGen.getTypeFromResponse(response, 'readOnly') ||
+              resolve(response, ctx),
+              getTypeFromResponse(response, withMode(ctx, 'readOnly')) ||
                 factory.createKeywordTypeNode(ts.SyntaxKind.UndefinedKeyword),
             ] as const
         )
         .filter(([status, response]) =>
-          isDataResponse(status, includeDefault, apiGen.resolve(response), responses || {})
+          isDataResponse(status, includeDefault, resolve(response, ctx), responses || {})
         )
         .filter(([_1, _2, type]) => type !== keywordType.void)
         .map(([code, response, type]) =>
@@ -359,9 +386,8 @@ export async function generateApi(
       ).name
     );
 
-    const operationParameters = apiGen.resolveArray(operation.parameters);
-    const pathItemParameters = apiGen
-      .resolveArray(pathItem.parameters)
+    const operationParameters = resolveArray(ctx, operation.parameters);
+    const pathItemParameters = resolveArray(ctx, pathItem.parameters)
       .filter((pp) => !operationParameters.some((op) => op.name === pp.name && op.in === pp.in));
 
     const parameters = supportDeepObjects([...pathItemParameters, ...operationParameters]).filter(
@@ -395,16 +421,16 @@ export async function generateApi(
         origin: 'param',
         name,
         originalName: param.name,
-        type: apiGen.getTypeFromSchema(isReference(param) ? param : param.schema, undefined, 'writeOnly'),
+        type: getTypeFromSchema(withMode(ctx, 'writeOnly'), isReference(param) ? param : param.schema),
         required: param.required,
         param,
       };
     }
 
     if (requestBody) {
-      const body = apiGen.resolve(requestBody);
-      const schema = apiGen.getSchemaFromContent(body.content);
-      const type = apiGen.getTypeFromSchema(schema);
+      const body = resolve(requestBody, ctx);
+      const schema = getSchemaFromContent(body.content);
+      const type = getTypeFromSchema(ctx, schema);
       const schemaName = camelCase(
         (type as any).name ||
           getReferenceName(schema) ||
@@ -417,7 +443,7 @@ export async function generateApi(
         origin: 'body',
         name,
         originalName: schemaName,
-        type: apiGen.getTypeFromSchema(schema, undefined, 'writeOnly'),
+        type: getTypeFromSchema(withMode(ctx, 'writeOnly'), schema),
         required: true,
         body,
       };
