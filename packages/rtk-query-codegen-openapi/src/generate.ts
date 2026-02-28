@@ -206,9 +206,9 @@ export async function generateApi(
 ) {
   const v3Doc = (v3DocCache[spec] ??= await getV3Doc(spec, httpResolverOptions));
 
-  const ctx = createContext(v3Doc as any, {
-    useEnumType,
+  const ctx = createContext(v3Doc, {
     unionUndefined,
+    useEnumType,
     mergeReadWriteOnly,
     useUnknown,
   });
