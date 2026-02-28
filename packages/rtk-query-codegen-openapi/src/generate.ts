@@ -4,7 +4,7 @@ import type { OpenAPIV3 } from 'openapi-types';
 import ts from 'typescript';
 import { UNSTABLE_cg as cg } from 'oazapfts';
 import { createContext, withMode, type OazapftsContext, type OnlyMode } from 'oazapfts/context';
-import { getTypeFromSchema, getResponseType, getSchemaFromContent } from 'oazapfts/generate';
+import { getTypeFromSchema, getTypeFromResponse, getResponseType, getSchemaFromContent } from 'oazapfts/generate';
 import { resolve, resolveArray, isReference, getReferenceName } from '@oazapfts/resolve';
 import type { ObjectPropertyDefinitions } from './codegen';
 import { generateCreateApiCall, generateEndpointDefinition, generateImportNode, generateTagTypes } from './codegen';
@@ -61,58 +61,6 @@ function supportDeepObjects(
     obj.schema.properties[prop] = p.schema;
   }
   return res;
-}
-
-function preprocessComponents(ctx: OazapftsContext): void {
-  const schemas = (ctx.spec as any).components?.schemas;
-  if (!schemas) return;
-
-  const prefix = '#/components/schemas/';
-
-  for (const name of Object.keys(schemas)) {
-    const schema = schemas[name];
-    if (isReference(schema) || typeof schema === 'boolean') continue;
-    if (schema.discriminator && !schema.oneOf && !schema.anyOf) {
-      ctx.discriminatingSchemas.add(schema);
-    }
-  }
-
-  for (const name of Object.keys(schemas)) {
-    const schema = schemas[name];
-    if (isReference(schema) || typeof schema === 'boolean' || !schema.allOf) continue;
-
-    for (const childSchema of schema.allOf) {
-      if (!isReference(childSchema)) continue;
-      const resolved = resolve<OpenAPIV3.SchemaObject>(childSchema, ctx);
-      if (!ctx.discriminatingSchemas.has(resolved as any)) continue;
-
-      const refBasename = childSchema.$ref.split('/').pop()!;
-      const discriminatingSchema = schemas[refBasename];
-      if (isReference(discriminatingSchema)) continue;
-
-      const discriminator = discriminatingSchema.discriminator;
-      if (!discriminator) continue;
-
-      const refs = Object.values(discriminator.mapping || {});
-      if (refs.includes(prefix + name)) continue;
-
-      if (!discriminator.mapping) {
-        discriminator.mapping = {};
-      }
-      discriminator.mapping[name] = prefix + name;
-    }
-  }
-}
-
-function getTypeFromResponse(
-  ctx: OazapftsContext,
-  response: OpenAPIV3.ResponseObject | OpenAPIV3.ReferenceObject,
-  onlyMode?: OnlyMode
-): ts.TypeNode {
-  const resolved = resolve(response, ctx);
-  if (!resolved.content) return keywordType.void;
-  const schema = getSchemaFromContent(resolved.content);
-  return getTypeFromSchema(onlyMode ? withMode(ctx, onlyMode) : ctx, schema);
 }
 
 function defaultIsDataResponse(code: string, includeDefault: boolean) {
@@ -266,8 +214,6 @@ export async function generateApi(
     useUnknown,
   });
 
-  preprocessComponents(ctx);
-
   const operationDefinitions = getOperationDefinitions(v3Doc).filter(operationMatches(filterEndpoints));
 
   const resultFile = ts.createSourceFile(
@@ -409,7 +355,7 @@ export async function generateApi(
             [
               code,
               resolve(response, ctx),
-              getTypeFromResponse(ctx, response, 'readOnly') ||
+              getTypeFromResponse(response, withMode(ctx, 'readOnly')) ||
                 factory.createKeywordTypeNode(ts.SyntaxKind.UndefinedKeyword),
             ] as const
         )
