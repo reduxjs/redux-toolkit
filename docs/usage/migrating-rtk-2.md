@@ -136,7 +136,7 @@ In order to safely interact with values or access fields inside of the `action` 
 
 This new type is incompatible with the v4 `Middleware` type, so if a package's middleware is saying it's incompatible, check which version of Redux it's getting its types from! (See [overriding dependencies](#overriding-dependencies) later in this page.)
 
-#### `PreloadedState` type removed in favor of `Reducer` generic
+#### `PreloadedState` type removed in favour of `Reducer` generic
 
 We've made tweaks to the TS types to improve type safety and behavior.
 
