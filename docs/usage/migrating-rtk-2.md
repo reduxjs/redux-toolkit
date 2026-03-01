@@ -102,7 +102,7 @@ Redux core v5 is now built from that TS-converted source code. In theory, this s
 
 Please report any unexpected compatibility issues on [Github](https://github.com/reduxjs/redux/issues)!
 
-#### `AnyAction` deprecated in favor of `UnknownAction`
+#### `AnyAction` deprecated in favour of `UnknownAction`
 
 The Redux TS types have always exported an `AnyAction` type, which is defined to have `{type: string}` and treat any other field as `any`. This makes it easy to write uses like `console.log(action.whatever)`, but unfortunately does not provide any meaningful type safety.
 
