@@ -182,7 +182,7 @@ Where you wish to add onto or customize the default enhancers, you may pass a ca
 Example: `enhancers: (defaultEnhancers) => defaultEnhancers.prepend(offline)` will result in a final setup
 of `[offline, applyMiddleware, devToolsExtension]`.
 
-For more details on how the `enhancer` parameter works and the list of enhancers that are added by default, see the [`getDefaultEnhancers` docs page](./getDefaultEnhancers).
+For more details on how the `enhancers` parameter works and the list of enhancers that are added by default, see the [`getDefaultEnhancers` docs page](./getDefaultEnhancers).
 
 :::caution Middleware
 
@@ -194,7 +194,7 @@ If you don't use `getDefaultEnhancers` and instead return an array, the `applyMi
 // warns - middleware customised but not included in final enhancers
 configureStore({
   reducer,
-  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(logger)
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(logger),
   enhancers: [offline(offlineConfig)],
 })
 
