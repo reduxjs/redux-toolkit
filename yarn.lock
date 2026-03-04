@@ -6692,6 +6692,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@oazapfts/resolve@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@oazapfts/resolve@npm:1.0.0"
+  dependencies:
+    openapi-types: "npm:^12.1.3"
+  checksum: 10/2dfc1af464172fa3b987ed83cbd33159638bc219f6fa96e017c9c007ca02c9ce861a048475353e5bb62166074994934c519b493959b1b18f8fe49c6d5a012d4c
+  languageName: node
+  linkType: hard
+
 "@oazapfts/runtime@npm:^1.0.3":
   version: 1.0.4
   resolution: "@oazapfts/runtime@npm:1.0.4"
@@ -7808,6 +7817,7 @@ __metadata:
     "@babel/core": "npm:^7.12.10"
     "@babel/preset-env": "npm:^7.12.11"
     "@babel/preset-typescript": "npm:^7.12.7"
+    "@oazapfts/resolve": "npm:^1.0.0"
     "@oazapfts/runtime": "npm:^1.0.3"
     "@reduxjs/toolkit": "npm:^1.6.0"
     "@types/commander": "npm:^2.12.2"
@@ -7824,7 +7834,7 @@ __metadata:
     lodash.camelcase: "npm:^4.3.0"
     msw: "npm:^2.1.5"
     node-fetch: "npm:^3.3.2"
-    oazapfts: "npm:^6.4.0"
+    oazapfts: "npm:7.5.0-alpha.5"
     openapi-types: "npm:^9.1.0"
     prettier: "npm:^3.2.5"
     pretty-quick: "npm:^4.0.0"
@@ -21296,6 +21306,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lodash@npm:^4.17.23":
+  version: 4.17.23
+  resolution: "lodash@npm:4.17.23"
+  checksum: 10/82504c88250f58da7a5a4289f57a4f759c44946c005dd232821c7688b5fcfbf4a6268f6a6cdde4b792c91edd2f3b5398c1d2a0998274432cff76def48735e233
+  languageName: node
+  linkType: hard
+
 "log-symbols@npm:^1.0.2":
   version: 1.0.2
   resolution: "log-symbols@npm:1.0.2"
@@ -23726,21 +23743,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oazapfts@npm:^6.4.0":
-  version: 6.4.0
-  resolution: "oazapfts@npm:6.4.0"
+"oazapfts@npm:7.5.0-alpha.5":
+  version: 7.5.0-alpha.5
+  resolution: "oazapfts@npm:7.5.0-alpha.5"
   dependencies:
     "@apidevtools/swagger-parser": "npm:^12.1.0"
-    lodash: "npm:^4.17.21"
+    "@oazapfts/resolve": "npm:^1.0.0"
+    lodash: "npm:^4.17.23"
     minimist: "npm:^1.2.8"
-    swagger2openapi: "npm:^7.0.8"
     tapable: "npm:^2.3.0"
     typescript: "npm:^5.9.3"
   peerDependencies:
-    "@oazapfts/runtime": "*"
+    "@oazapfts/runtime": ^1.2.0
   bin:
-    oazapfts: cli.js
-  checksum: 10/c52d1a8d786e41b5c228d6e2a52923ac58fde86eef44c1fb31dc65171788ae7c36d6b23ab53acea91fcc20a3b6121051bc7e90a6ebb633db54380562a8a16664
+    oazapfts: dist/cli.js
+  checksum: 10/3a05040038b0f137d3ecda9323824f9a5bfcf73260305d5d8d2a3434ccc08c049c7be70f6db1ccacad2f924d4c8410ea6d942947ff30e7844bcac575e5d5f167
   languageName: node
   linkType: hard
 
@@ -23953,6 +23970,13 @@ __metadata:
     is-docker: "npm:^2.1.1"
     is-wsl: "npm:^2.2.0"
   checksum: 10/acd81a1d19879c818acb3af2d2e8e9d81d17b5367561e623248133deb7dd3aefaed527531df2677d3e6aaf0199f84df57b6b2262babff8bf46ea0029aac536c9
+  languageName: node
+  linkType: hard
+
+"openapi-types@npm:^12.1.3":
+  version: 12.1.3
+  resolution: "openapi-types@npm:12.1.3"
+  checksum: 10/9d1d7ed848622b63d0a4c3f881689161b99427133054e46b8e3241e137f1c78bb0031c5d80b420ee79ac2e91d2e727ffd6fc13c553d1b0488ddc8ad389dcbef8
   languageName: node
   linkType: hard
 
@@ -30499,7 +30523,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"swagger2openapi@npm:^7.0.4, swagger2openapi@npm:^7.0.8":
+"swagger2openapi@npm:^7.0.4":
   version: 7.0.8
   resolution: "swagger2openapi@npm:7.0.8"
   dependencies:
