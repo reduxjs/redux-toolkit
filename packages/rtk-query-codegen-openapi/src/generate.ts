@@ -56,11 +56,17 @@ function patternMatches(pattern?: TextMatcher) {
   };
 }
 
-function operationMatches(pattern?: EndpointMatcher) {
+function operationMatches(pattern: EndpointMatcher | undefined, exactOperationIds: boolean) {
   const checkMatch = typeof pattern === 'function' ? pattern : patternMatches(pattern);
   return function matcher(operationDefinition: OperationDefinition) {
     if (!pattern) return true;
-    const operationName = getOperationName(operationDefinition);
+    if (exactOperationIds && operationDefinition.operation.operationId === undefined) {
+      // TODO: More descriptive error message with traceable information
+      throw new Error('exactOperationIds specified, but found operation missing operationId');
+    }
+    const operationName = exactOperationIds
+      ? operationDefinition.operation.operationId!
+      : getOperationName(operationDefinition);
     return checkMatch(operationName, operationDefinition);
   };
 }
@@ -139,9 +145,10 @@ function generateRegexConstantsForType(
 
 export function getOverrides(
   operation: OperationDefinition,
-  endpointOverrides?: EndpointOverrides[]
+  endpointOverrides?: EndpointOverrides[],
+  exactOperationIds: boolean = false
 ): EndpointOverrides | undefined {
-  return endpointOverrides?.find((override) => operationMatches(override.pattern)(operation));
+  return endpointOverrides?.find((override) => operationMatches(override.pattern, exactOperationIds)(operation));
 }
 
 export async function generateApi(
@@ -170,6 +177,7 @@ export async function generateApi(
     useUnknown = false,
     esmExtensions = false,
     outputRegexConstants = false,
+    exactOperationIds = false,
   }: GenerationOptions
 ) {
   const v3Doc = (v3DocCache[spec] ??= await getV3Doc(spec, httpResolverOptions));
@@ -186,7 +194,20 @@ export async function generateApi(
     apiGen.preprocessComponents(apiGen.spec.components.schemas);
   }
 
-  const operationDefinitions = getOperationDefinitions(v3Doc).filter(operationMatches(filterEndpoints));
+  const operationDefinitions = getOperationDefinitions(v3Doc).filter(
+    operationMatches(filterEndpoints, exactOperationIds)
+  );
+
+  if (exactOperationIds) {
+    const allOperationIds = operationDefinitions.map((o) => o.operation.operationId!);
+    const duplicateOperationIds = allOperationIds.filter(
+      (operationId, index) => allOperationIds.findIndex((id) => id === operationId) !== index
+    );
+    if (duplicateOperationIds.length > 0) {
+      // TODO: More descriptive error message with traceable information
+      throw new Error('Duplicate operation IDs not allowed when using exactOperationIds');
+    }
+  }
 
   const resultFile = ts.createSourceFile(
     'someFileName.ts',
@@ -239,7 +260,8 @@ export async function generateApi(
             operationDefinitions.map((operationDefinition) =>
               generateEndpoint({
                 operationDefinition,
-                overrides: getOverrides(operationDefinition, endpointOverrides),
+                overrides: getOverrides(operationDefinition, endpointOverrides, exactOperationIds),
+                exactOperationIds,
               })
             ),
             true
@@ -278,6 +300,7 @@ export async function generateApi(
                 endpointOverrides,
                 config: hooks,
                 operationNameSuffix,
+                exactOperationIds,
               }),
             ]
           : []),
@@ -303,9 +326,11 @@ export async function generateApi(
   function generateEndpoint({
     operationDefinition,
     overrides,
+    exactOperationIds,
   }: {
     operationDefinition: OperationDefinition;
     overrides?: EndpointOverrides;
+    exactOperationIds: boolean;
   }) {
     const {
       verb,
@@ -314,7 +339,9 @@ export async function generateApi(
       operation,
       operation: { responses, requestBody },
     } = operationDefinition;
-    const operationName = getOperationName({ verb, path, operation });
+    const operationName = exactOperationIds
+      ? operation.operationId! // This is a safe operation when using exactOperationIds, as all operation IDs have already been confirmed to exist
+      : getOperationName({ verb, path, operation });
     const tags = tag ? getTags({ verb, pathItem }) : undefined;
     const isQuery = testIsQuery(verb, overrides);
 
