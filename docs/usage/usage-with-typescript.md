@@ -742,7 +742,7 @@ Import and use that pre-typed `createAppAsyncThunk` instead of the original, and
 
 ## `createEntityAdapter`
 
-Usage of `createEntityAdapter` with Typescript varies based on whether your entities are normalized by an `id` property, or whether a custom `selectId` is needed.
+Usage of `createEntityAdapter` with TypeScript varies based on whether your entities are normalized by an `id` property, or whether a custom `selectId` is needed.
 
 If your entities are normalized by an `id` property, `createEntityAdapter` only requires you to specify the entity type as the single generic argument. For example:
 

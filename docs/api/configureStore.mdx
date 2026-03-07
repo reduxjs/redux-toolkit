@@ -122,7 +122,7 @@ For more details on how the `middleware` parameter works and the list of middlew
 [`getDefaultMiddleware` docs page](./getDefaultMiddleware.mdx).
 
 :::note Tuple
-Typescript users are required to use a `Tuple` instance (if not using a `getDefaultMiddleware` result, which is already a `Tuple`), for better inference.
+TypeScript users are required to use a `Tuple` instance (if not using a `getDefaultMiddleware` result, which is already a `Tuple`), for better inference.
 
 ```ts no-transpile
 import { configureStore, Tuple } from '@reduxjs/toolkit'
@@ -212,12 +212,12 @@ configureStore({
 })
 ```
 
-Note that if using Typescript, the `middleware` option is required to be provided _before_ the enhancer option, as the type of `getDefaultEnhancers` depends on its result.
+Note that if using TypeScript, the `middleware` option is required to be provided _before_ the enhancer option, as the type of `getDefaultEnhancers` depends on its result.
 
 :::
 
 :::note Tuple
-Typescript users are required to use a `Tuple` instance (if not using a `getDefaultEnhancer` result, which is already a `Tuple`), for better inference.
+TypeScript users are required to use a `Tuple` instance (if not using a `getDefaultEnhancer` result, which is already a `Tuple`), for better inference.
 
 ```ts no-transpile
 import { configureStore, Tuple } from '@reduxjs/toolkit'
