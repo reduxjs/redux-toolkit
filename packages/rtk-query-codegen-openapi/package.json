@@ -76,9 +76,10 @@
   },
   "dependencies": {
     "@apidevtools/swagger-parser": "^10.1.1",
+    "@oazapfts/resolve": "^1.0.0",
     "commander": "^6.2.0",
     "lodash.camelcase": "^4.3.0",
-    "oazapfts": "^6.4.0",
+    "oazapfts": "7.5.0-alpha.5",
     "prettier": "^3.2.5",
     "semver": "^7.3.5",
     "swagger2openapi": "^7.0.4",
