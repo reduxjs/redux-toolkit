@@ -2,7 +2,7 @@
 
 Rewrites uses of Redux Toolkit's `createSlice` API to use the "builder callback" syntax for the `reducers` field, to make it easier to add prepared reducers and thunks inside of `createSlice`.
 
-Note that unlike the `createReducerBuilder` and `createSliceBuilder` transforms (which both were fixes for deprecated/removed overloads), this is entirely optional. You do not _need_ to apply this to an entire codebase unless you specifically want to. Otherwise, feel free to apply to to specific slice files as needed.
+Note that unlike the `createReducerBuilder` and `createSliceBuilder` transforms (which both were fixes for deprecated/removed overloads), this is entirely optional. You do not _need_ to apply this to an entire codebase unless you specifically want to. Otherwise, feel free to apply to specific slice files as needed.
 
 Should work with both JS and TS files.
 
