@@ -7217,6 +7217,7 @@ __metadata:
     "@size-limit/webpack": "npm:^11.0.1"
     "@standard-schema/spec": "npm:^1.0.0"
     "@standard-schema/utils": "npm:^0.3.0"
+    "@tanstack/intent": "npm:^0.0.19"
     "@testing-library/dom": "npm:^10.4.0"
     "@testing-library/react": "npm:^16.0.1"
     "@testing-library/react-render-stream": "npm:^1.0.3"
@@ -7276,6 +7277,8 @@ __metadata:
       optional: true
     react-redux:
       optional: true
+  bin:
+    intent: ./bin/intent.mjs
   languageName: unknown
   linkType: soft
 
@@ -7810,6 +7813,7 @@ __metadata:
     "@babel/preset-typescript": "npm:^7.12.7"
     "@oazapfts/runtime": "npm:^1.0.3"
     "@reduxjs/toolkit": "npm:^1.6.0"
+    "@tanstack/intent": "npm:^0.0.19"
     "@types/commander": "npm:^2.12.2"
     "@types/glob-to-regexp": "npm:^0.4.0"
     "@types/lodash.camelcase": "npm:^4.3.9"
@@ -7838,6 +7842,7 @@ __metadata:
     vitest: "npm:^4"
     yalc: "npm:^1.0.0-pre.47"
   bin:
+    intent: ./bin/intent.mjs
     rtk-query-codegen-openapi: lib/bin/cli.mjs
   languageName: unknown
   linkType: soft
@@ -8661,6 +8666,18 @@ __metadata:
   dependencies:
     defer-to-connect: "npm:^2.0.1"
   checksum: 10/fc9cb993e808806692e4a3337c90ece0ec00c89f4b67e3652a356b89730da98bc824273a6d67ca84d5f33cd85f317dcd5ce39d8cc0a2f060145a608a7cb8ce92
+  languageName: node
+  linkType: hard
+
+"@tanstack/intent@npm:^0.0.19":
+  version: 0.0.19
+  resolution: "@tanstack/intent@npm:0.0.19"
+  dependencies:
+    yaml: "npm:^2.7.0"
+  bin:
+    intent: dist/cli.mjs
+    intent-library: dist/intent-library.mjs
+  checksum: 10/4063e3cff4c5d69171a9ec85cc61bb11df321c668b34b7b1704b001f7fb5bc73c12f28f7746b9a9e4b7f31677ae68d1f70d1dae0da4cac580039b12c6f20ade5
   languageName: node
   linkType: hard
 
@@ -33418,6 +33435,15 @@ __metadata:
   bin:
     yaml: bin.mjs
   checksum: 10/af57658d37c5efae4bac7204589b742ae01878a278554d632f01012868cf7fa66cba09b39140f12e7f6ceecc693ae52bcfb737596c4827e6e233338cb3a9528e
+  languageName: node
+  linkType: hard
+
+"yaml@npm:^2.7.0":
+  version: 2.8.2
+  resolution: "yaml@npm:2.8.2"
+  bin:
+    yaml: bin.mjs
+  checksum: 10/4eab0074da6bc5a5bffd25b9b359cf7061b771b95d1b3b571852098380db3b1b8f96e0f1f354b56cc7216aa97cea25163377ccbc33a2e9ce00316fe8d02f4539
   languageName: node
   linkType: hard
 

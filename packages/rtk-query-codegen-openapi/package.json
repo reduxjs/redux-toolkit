@@ -30,8 +30,8 @@
   },
   "homepage": "https://redux-toolkit.js.org",
   "bin": {
-    "rtk-query-codegen-openapi": "lib/bin/cli.mjs",
-    "intent": "./bin/intent.mjs"
+    "intent": "./bin/intent.mjs",
+    "rtk-query-codegen-openapi": "lib/bin/cli.mjs"
   },
   "scripts": {
     "build": "yarn clean && tsup && chmod +x lib/bin/cli.mjs",
@@ -52,12 +52,12 @@
     "!skills/_artifacts"
   ],
   "devDependencies": {
-    "@tanstack/intent": "^0.0.19",
     "@babel/core": "^7.12.10",
     "@babel/preset-env": "^7.12.11",
     "@babel/preset-typescript": "^7.12.7",
     "@oazapfts/runtime": "^1.0.3",
     "@reduxjs/toolkit": "^1.6.0",
+    "@tanstack/intent": "^0.0.19",
     "@types/commander": "^2.12.2",
     "@types/glob-to-regexp": "^0.4.0",
     "@types/lodash.camelcase": "^4.3.9",
