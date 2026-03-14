@@ -17,7 +17,8 @@
     "slice",
     "immer",
     "immutable",
-    "redux-toolkit"
+    "redux-toolkit",
+    "tanstack-intent"
   ],
   "publishConfig": {
     "access": "public"
@@ -183,6 +184,7 @@
     }
   },
   "devDependencies": {
+    "@tanstack/intent": "^0.0.19",
     "@arethetypeswrong/cli": "^0.18.2",
     "@babel/core": "^7.24.8",
     "@babel/helper-module-imports": "^7.24.7",
@@ -256,7 +258,10 @@
     "dist/",
     "src/",
     "query",
-    "react"
+    "react",
+    "skills",
+    "bin",
+    "!skills/_artifacts"
   ],
   "dependencies": {
     "@standard-schema/spec": "^1.0.0",
@@ -282,5 +287,8 @@
   "bugs": {
     "url": "https://github.com/reduxjs/redux-toolkit/issues"
   },
-  "homepage": "https://redux-toolkit.js.org"
+  "homepage": "https://redux-toolkit.js.org",
+  "bin": {
+    "intent": "./bin/intent.mjs"
+  }
 }
