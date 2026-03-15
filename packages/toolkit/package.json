@@ -260,7 +260,6 @@
     "query",
     "react",
     "skills",
-    "bin",
     "!skills/_artifacts"
   ],
   "dependencies": {
@@ -287,8 +286,5 @@
   "bugs": {
     "url": "https://github.com/reduxjs/redux-toolkit/issues"
   },
-  "homepage": "https://redux-toolkit.js.org",
-  "bin": {
-    "intent": "./bin/intent.mjs"
-  }
+  "homepage": "https://redux-toolkit.js.org"
 }

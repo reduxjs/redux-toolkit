@@ -30,7 +30,6 @@
   },
   "homepage": "https://redux-toolkit.js.org",
   "bin": {
-    "intent": "./bin/intent.mjs",
     "rtk-query-codegen-openapi": "lib/bin/cli.mjs"
   },
   "scripts": {
@@ -48,7 +47,6 @@
     "lib",
     "src",
     "skills",
-    "bin",
     "!skills/_artifacts"
   ],
   "devDependencies": {
