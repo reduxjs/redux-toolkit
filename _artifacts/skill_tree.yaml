@@ -1,0 +1,157 @@
+# skill_tree.yaml
+library:
+  name: '@reduxjs/toolkit'
+  version: 'workspace snapshot (toolkit 2.11.2)'
+  repository: 'https://github.com/reduxjs/redux-toolkit'
+  description: 'Monorepo for Redux Toolkit, RTK Query, and companion codegen and codemod packages.'
+generated_from:
+  domain_map: '_artifacts/domain_map.yaml'
+  skill_spec: '_artifacts/skill_spec.md'
+generated_at: '2026-03-14T19:25:20+01:00'
+
+skills:
+  - name: 'Modern Redux'
+    slug: 'modern-redux'
+    type: 'lifecycle'
+    domain: 'build-modern-redux-apps'
+    path: 'packages/toolkit/skills/build-modern-redux-apps/modern-redux/SKILL.md'
+    package: 'packages/toolkit'
+    description: 'Set up modern Redux with Redux Toolkit and React-Redux, including the correct store lifetime for SPA and SSR-heavy React environments.'
+    requires:
+      - 'redux-dataflow'
+    sources:
+      - 'reduxjs/redux-toolkit:docs/tutorials/quick-start.mdx'
+      - 'reduxjs/redux-toolkit:docs/tutorials/typescript.md'
+      - 'reduxjs/redux-toolkit:docs/usage/migrating-to-modern-redux.mdx'
+      - 'reduxjs/redux-toolkit:docs/usage/nextjs.mdx'
+      - 'reduxjs/redux:docs/style-guide/style-guide.md'
+    references:
+      - 'references/store-lifetime.md'
+
+  - name: 'Redux Dataflow'
+    slug: 'redux-dataflow'
+    type: 'core'
+    domain: 'build-modern-redux-apps'
+    path: 'packages/toolkit/skills/build-modern-redux-apps/redux-dataflow/SKILL.md'
+    package: 'packages/toolkit'
+    description: 'Explain the Redux event-to-reducer-to-selector-to-render loop so agents can author and debug Redux Toolkit code without fighting the architecture.'
+    sources:
+      - 'reduxjs/redux:docs/tutorials/fundamentals/part-2-concepts-data-flow.md'
+      - 'reduxjs/redux:docs/tutorials/essentials/part-3-data-flow.md'
+      - 'reduxjs/redux:docs/style-guide/style-guide.md'
+
+  - name: 'Design State Ownership'
+    slug: 'design-state-ownership'
+    type: 'core'
+    domain: 'model-redux-state'
+    path: 'packages/toolkit/skills/model-redux-state/design-state-ownership/SKILL.md'
+    package: 'packages/toolkit'
+    description: 'Decide what belongs in Redux, what should stay local or external, and when slice boundaries should be resized as the app evolves.'
+    sources:
+      - 'reduxjs/redux:docs/style-guide/style-guide.md'
+      - 'reduxjs/redux:docs/tutorials/essentials/part-2-app-structure.md'
+      - 'reduxjs/redux:docs/tutorials/essentials/part-4-using-data.md'
+    references:
+      - 'references/state-ownership.md'
+
+  - name: 'Build Slices And Selectors'
+    slug: 'build-slices-and-selectors'
+    type: 'core'
+    domain: 'model-redux-state'
+    path: 'packages/toolkit/skills/model-redux-state/build-slices-and-selectors/SKILL.md'
+    package: 'packages/toolkit'
+    description: 'Author slices, selectors, entity adapters, and lazy-injected reducers with current RTK patterns such as slice selectors and create.asyncThunk.'
+    requires:
+      - 'design-state-ownership'
+    sources:
+      - 'reduxjs/redux-toolkit:docs/api/createSlice.mdx'
+      - 'reduxjs/redux-toolkit:docs/api/combineSlices.mdx'
+      - 'reduxjs/redux-toolkit:docs/api/createEntityAdapter.mdx'
+      - 'reduxjs/redux-toolkit:docs/usage/immer-reducers.md'
+      - 'reduxjs/redux-toolkit:docs/usage/migrating-rtk-2.md'
+      - 'reduxjs/redux:docs/style-guide/style-guide.md'
+    references:
+      - 'references/slice-patterns.md'
+
+  - name: 'Handle Side Effects'
+    slug: 'handle-side-effects'
+    type: 'core'
+    domain: 'orchestrate-side-effects'
+    path: 'packages/toolkit/skills/orchestrate-side-effects/handle-side-effects/SKILL.md'
+    package: 'packages/toolkit'
+    description: 'Choose correctly between RTK Query, thunks, and listener middleware, then implement imperative or reactive workflows without leaking logic into reducers.'
+    requires:
+      - 'redux-dataflow'
+    sources:
+      - 'reduxjs/redux-toolkit:docs/api/createAsyncThunk.mdx'
+      - 'reduxjs/redux-toolkit:docs/api/createListenerMiddleware.mdx'
+      - 'reduxjs/redux:docs/style-guide/style-guide.md'
+      - 'reduxjs/redux:docs/tutorials/essentials/part-5-async-logic.md'
+    references:
+      - 'references/listener-workflows.md'
+
+  - name: 'Adopt RTK Query'
+    slug: 'adopt-rtk-query'
+    type: 'lifecycle'
+    domain: 'manage-server-data'
+    path: 'packages/toolkit/skills/manage-server-data/adopt-rtk-query/SKILL.md'
+    package: 'packages/toolkit'
+    description: 'Introduce RTK Query as the default server-data layer, including API slice setup, invalidation behavior, cache lifecycles, and React usage.'
+    requires:
+      - 'modern-redux'
+    sources:
+      - 'reduxjs/redux-toolkit:docs/rtk-query/api/createApi.mdx'
+      - 'reduxjs/redux-toolkit:docs/rtk-query/usage/automated-refetching.mdx'
+      - 'reduxjs/redux-toolkit:docs/rtk-query/usage/manual-cache-updates.mdx'
+      - 'reduxjs/redux-toolkit:docs/rtk-query/usage/persistence-and-rehydration.mdx'
+      - 'reduxjs/redux-toolkit:docs/tutorials/rtk-query.mdx'
+      - 'reduxjs/redux:docs/style-guide/style-guide.md'
+    references:
+      - 'references/endpoint-lifecycle.md'
+
+  - name: 'Generate RTK Query From OpenAPI'
+    slug: 'generate-rtk-query-from-openapi'
+    type: 'composition'
+    domain: 'manage-server-data'
+    path: 'packages/rtk-query-codegen-openapi/skills/manage-server-data/generate-rtk-query-from-openapi/SKILL.md'
+    package: 'packages/rtk-query-codegen-openapi'
+    description: 'Generate RTK Query endpoints from OpenAPI schemas, then review endpoint overrides, tags, and output shape so the generated API still fits a single RTK Query architecture.'
+    requires:
+      - 'adopt-rtk-query'
+    sources:
+      - 'reduxjs/redux-toolkit:docs/rtk-query/usage/code-generation.mdx'
+      - 'reduxjs/redux-toolkit:packages/rtk-query-codegen-openapi/src/types.ts'
+      - 'reduxjs/redux-toolkit:packages/rtk-query-codegen-openapi/src/generate.ts'
+      - 'reduxjs/redux-toolkit:packages/rtk-query-codegen-openapi/README.md'
+    references:
+      - 'references/codegen-overrides.md'
+
+  - name: 'Migrate To Modern Redux'
+    slug: 'migrate-to-modern-redux'
+    type: 'lifecycle'
+    domain: 'evolve-and-diagnose-redux-apps'
+    path: 'packages/toolkit/skills/evolve-and-diagnose-redux-apps/migrate-to-modern-redux/SKILL.md'
+    package: 'packages/toolkit'
+    description: 'Incrementally replace legacy Redux patterns with configureStore, createSlice, hooks, RTK Query, and codemod-assisted upgrades without reintroducing legacy code.'
+    requires:
+      - 'modern-redux'
+    sources:
+      - 'reduxjs/redux-toolkit:docs/usage/migrating-to-modern-redux.mdx'
+      - 'reduxjs/redux-toolkit:docs/usage/migrating-rtk-2.md'
+      - 'reduxjs/redux-toolkit:packages/rtk-codemods/README.md'
+      - 'reduxjs/redux:docs/style-guide/style-guide.md'
+
+  - name: 'Debug Redux Toolkit Apps'
+    slug: 'debug-redux-toolkit-apps'
+    type: 'lifecycle'
+    domain: 'evolve-and-diagnose-redux-apps'
+    path: 'packages/toolkit/skills/evolve-and-diagnose-redux-apps/debug-redux-toolkit-apps/SKILL.md'
+    package: 'packages/toolkit'
+    description: 'Trace duplicate requests, stale cache behavior, broad subscriptions, selector churn, and serializability issues back to the underlying RTK or RTK Query mechanism.'
+    requires:
+      - 'redux-dataflow'
+    sources:
+      - 'reduxjs/redux:docs/style-guide/style-guide.md'
+      - 'reduxjs/redux:docs/tutorials/essentials/part-5-async-logic.md'
+      - 'reduxjs/redux:docs/tutorials/essentials/part-8-rtk-query-advanced.md'
+      - 'reduxjs/redux-toolkit:docs/usage/usage-guide.md'

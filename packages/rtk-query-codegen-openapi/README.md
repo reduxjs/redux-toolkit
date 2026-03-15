@@ -18,3 +18,5 @@ This is a utility library meant to be used with [RTK Query](https://redux-toolki
 ### Documentation
 
 [View the RTK Query Code Generation docs](https://redux-toolkit.js.org/rtk-query/usage/code-generation)
+
+If you use an AI agent, run `npx @tanstack/intent@latest install`.
