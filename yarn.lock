@@ -7277,8 +7277,6 @@ __metadata:
       optional: true
     react-redux:
       optional: true
-  bin:
-    intent: ./bin/intent.mjs
   languageName: unknown
   linkType: soft
 
@@ -7842,7 +7840,6 @@ __metadata:
     vitest: "npm:^4"
     yalc: "npm:^1.0.0-pre.47"
   bin:
-    intent: ./bin/intent.mjs
     rtk-query-codegen-openapi: lib/bin/cli.mjs
   languageName: unknown
   linkType: soft
