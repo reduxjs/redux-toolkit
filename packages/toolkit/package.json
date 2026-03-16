@@ -17,7 +17,8 @@
     "slice",
     "immer",
     "immutable",
-    "redux-toolkit"
+    "redux-toolkit",
+    "tanstack-intent"
   ],
   "publishConfig": {
     "access": "public"
@@ -190,6 +191,7 @@
     "@phryneas/ts-version": "^1.0.2",
     "@size-limit/file": "^11.0.1",
     "@size-limit/webpack": "^11.0.1",
+    "@tanstack/intent": "^0.0.19",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "^16.0.1",
     "@testing-library/react-render-stream": "^1.0.3",
@@ -256,7 +258,9 @@
     "dist/",
     "src/",
     "query",
-    "react"
+    "react",
+    "skills",
+    "!skills/_artifacts"
   ],
   "dependencies": {
     "@standard-schema/spec": "^1.0.0",
