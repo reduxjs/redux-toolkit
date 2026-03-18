@@ -497,57 +497,65 @@ describe('createReducer', () => {
         stringActions: 0,
       })
     })
-    test('calling addCase, addAsyncThunk, addMatcher and addDefaultCase in a nonsensical order should result in an error in development mode', () => {
-      expect(() =>
-        createReducer(initialState, (builder: any) =>
-          builder
-            .addAsyncThunk(addTodoThunk, {})
-            .addCase(incrementBy, () => {}),
-        ),
-      ).toThrowErrorMatchingInlineSnapshot(
-        `[Error: \`builder.addCase\` should only be called before calling \`builder.addAsyncThunk\`]`,
-      )
-      expect(() =>
-        createReducer(initialState, (builder: any) =>
-          builder
-            .addMatcher(numberActionMatcher, () => {})
-            .addAsyncThunk(addTodoThunk, {}),
-        ),
-      ).toThrowErrorMatchingInlineSnapshot(
-        `[Error: \`builder.addAsyncThunk\` should only be called before calling \`builder.addMatcher\`]`,
-      )
-      expect(() =>
-        createReducer(initialState, (builder: any) =>
-          builder
-            .addMatcher(numberActionMatcher, () => {})
-            .addCase(incrementBy, () => {}),
-        ),
-      ).toThrowErrorMatchingInlineSnapshot(
-        `[Error: \`builder.addCase\` should only be called before calling \`builder.addMatcher\`]`,
-      )
-      expect(() =>
-        createReducer(initialState, (builder: any) =>
-          builder.addDefaultCase(() => {}).addCase(incrementBy, () => {}),
-        ),
-      ).toThrowErrorMatchingInlineSnapshot(
-        `[Error: \`builder.addCase\` should only be called before calling \`builder.addDefaultCase\`]`,
-      )
-      expect(() =>
-        createReducer(initialState, (builder: any) =>
-          builder
-            .addDefaultCase(() => {})
-            .addMatcher(numberActionMatcher, () => {}),
-        ),
-      ).toThrowErrorMatchingInlineSnapshot(
-        `[Error: \`builder.addMatcher\` should only be called before calling \`builder.addDefaultCase\`]`,
-      )
-      expect(() =>
-        createReducer(initialState, (builder: any) =>
-          builder.addDefaultCase(() => {}).addDefaultCase(() => {}),
-        ),
-      ).toThrowErrorMatchingInlineSnapshot(
-        `[Error: \`builder.addDefaultCase\` can only be called once]`,
-      )
+    describe('in development mode', () => {
+      beforeEach(() => {
+        vi.stubEnv('NODE_ENV', 'development')
+      })
+      afterEach(() => {
+        vi.unstubAllEnvs()
+      })
+      test('calling addCase, addAsyncThunk, addMatcher and addDefaultCase in a nonsensical order should result in an error', () => {
+        expect(() =>
+          createReducer(initialState, (builder: any) =>
+            builder
+              .addAsyncThunk(addTodoThunk, {})
+              .addCase(incrementBy, () => {}),
+          ),
+        ).toThrowErrorMatchingInlineSnapshot(
+          `[Error: \`builder.addCase\` should only be called before calling \`builder.addAsyncThunk\`]`,
+        )
+        expect(() =>
+          createReducer(initialState, (builder: any) =>
+            builder
+              .addMatcher(numberActionMatcher, () => {})
+              .addAsyncThunk(addTodoThunk, {}),
+          ),
+        ).toThrowErrorMatchingInlineSnapshot(
+          `[Error: \`builder.addAsyncThunk\` should only be called before calling \`builder.addMatcher\`]`,
+        )
+        expect(() =>
+          createReducer(initialState, (builder: any) =>
+            builder
+              .addMatcher(numberActionMatcher, () => {})
+              .addCase(incrementBy, () => {}),
+          ),
+        ).toThrowErrorMatchingInlineSnapshot(
+          `[Error: \`builder.addCase\` should only be called before calling \`builder.addMatcher\`]`,
+        )
+        expect(() =>
+          createReducer(initialState, (builder: any) =>
+            builder.addDefaultCase(() => {}).addCase(incrementBy, () => {}),
+          ),
+        ).toThrowErrorMatchingInlineSnapshot(
+          `[Error: \`builder.addCase\` should only be called before calling \`builder.addDefaultCase\`]`,
+        )
+        expect(() =>
+          createReducer(initialState, (builder: any) =>
+            builder
+              .addDefaultCase(() => {})
+              .addMatcher(numberActionMatcher, () => {}),
+          ),
+        ).toThrowErrorMatchingInlineSnapshot(
+          `[Error: \`builder.addMatcher\` should only be called before calling \`builder.addDefaultCase\`]`,
+        )
+        expect(() =>
+          createReducer(initialState, (builder: any) =>
+            builder.addDefaultCase(() => {}).addDefaultCase(() => {}),
+          ),
+        ).toThrowErrorMatchingInlineSnapshot(
+          `[Error: \`builder.addDefaultCase\` can only be called once]`,
+        )
+      })
     })
   })
   describe('builder "addAsyncThunk" method', () => {
@@ -609,7 +617,9 @@ describe('createReducer', () => {
             )
             .addAsyncThunk(addTodoThunk, {}),
         ),
-      ).toThrowErrorMatchingInlineSnapshot(`[Error: \`builder.addAsyncThunk\` should only be called before calling \`builder.addMatcher\`]`)
+      ).toThrowErrorMatchingInlineSnapshot(
+        `[Error: \`builder.addAsyncThunk\` should only be called before calling \`builder.addMatcher\`]`,
+      )
     })
     test('calling addAsyncThunk for an action already covered by addCase should result in an error in development mode', () => {
       expect(() =>
@@ -618,7 +628,9 @@ describe('createReducer', () => {
             .addCase(addTodoThunk.pending, () => {})
             .addAsyncThunk(addTodoThunk, { pending() {} }),
         ),
-      ).toThrowErrorMatchingInlineSnapshot(`[Error: A reducer already exists for the action type 'todos/add/pending']`)
+      ).toThrowErrorMatchingInlineSnapshot(
+        `[Error: A reducer already exists for the action type 'todos/add/pending']`,
+      )
     })
   })
 })
