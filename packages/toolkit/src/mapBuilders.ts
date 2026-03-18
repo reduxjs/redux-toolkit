@@ -42,11 +42,8 @@ interface InternalMapBuilder<State> {
   addCase(
     typeOrActionCreator: string | TypedActionCreator<any>,
     reducer: CaseReducer<State, any>,
-  ): InternalMapBuilder<State>
-  addMatcher(
-    matcher: TypeGuard<any>,
-    reducer: CaseReducer<State, any>,
-  ): InternalMapBuilder<State>
+  ): void
+  addMatcher(matcher: TypeGuard<any>, reducer: CaseReducer<State, any>): void
 }
 
 /**
@@ -255,11 +252,9 @@ export function executeReducerBuilderCallback<S>(
         )
       }
       actionsMap[type] = reducer
-      return rawBuilder
     },
     addMatcher(matcher: TypeGuard<any>, reducer) {
       actionMatchers.push({ matcher, reducer })
-      return rawBuilder
     },
   }
   const builder: ActionReducerMapBuilder<S> = {
