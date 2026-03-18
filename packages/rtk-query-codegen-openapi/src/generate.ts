@@ -20,6 +20,7 @@ import type {
   EndpointOverrides,
   GenerationOptions,
   OperationDefinition,
+  OperationIdTransformer,
   ParameterDefinition,
   ParameterMatcher,
   TextMatcher,
@@ -38,8 +39,47 @@ function defaultIsDataResponse(code: string, includeDefault: boolean) {
   return !Number.isNaN(parsedCode) && parsedCode >= 200 && parsedCode < 300;
 }
 
-function getOperationName({ verb, path, operation }: Pick<OperationDefinition, 'verb' | 'path' | 'operation'>) {
-  return _getOperationName(verb, path, operation.operationId);
+/**
+ * Resolves the generated endpoint name for an operation by applying the
+ * configured {@linkcode OperationIdTransformer}.
+ *
+ * - `"camelCase"` *(default)* — delegates to `oazapfts` `getOperationName`,
+ *   which applies lodash `camelCase` and falls back to a verb+path derived
+ *   name when `operationId` is absent.
+ * - `"none"` — returns `operation.operationId` verbatim.
+ * - `(operationId: string) => string` — calls the provided function with `operation.operationId`.
+ *
+ * For `"none"` and function transformers, a missing `operationId` throws an
+ * {@linkcode Error} with the offending HTTP method and path in the message.
+ *
+ * @param operationDefinition - The operation to resolve a name for.
+ * @param operationIdTransformer - How to transform the `operationId`.
+ * @returns The resolved endpoint name string.
+ * @throws An {@linkcode Error} When `operationId` is `undefined` and transformer is not `"camelCase"`.
+ *
+ * @since 2.3.0
+ */
+export function resolveOperationName(
+  operationDefinition: Pick<OperationDefinition, 'verb' | 'path' | 'operation'>,
+  operationIdTransformer: OperationIdTransformer = 'camelCase'
+): string {
+  const { verb, path, operation } = operationDefinition;
+
+  if (operationIdTransformer === 'camelCase') {
+    return _getOperationName(verb, path, operation.operationId);
+  }
+
+  if (operation.operationId === undefined) {
+    throw new Error(
+      `operationIdTransformer: "${typeof operationIdTransformer === 'function' ? 'function' : operationIdTransformer}" requires all operations to have an operationId, but found a missing operationId at ${verb.toUpperCase()} ${path}`
+    );
+  }
+
+  if (operationIdTransformer === 'none') {
+    return operation.operationId;
+  }
+
+  return operationIdTransformer(operation.operationId);
 }
 
 function getTags({ verb, pathItem }: Pick<OperationDefinition, 'verb' | 'pathItem'>): string[] {
@@ -56,11 +96,11 @@ function patternMatches(pattern?: TextMatcher) {
   };
 }
 
-function operationMatches(pattern?: EndpointMatcher) {
+function operationMatches(pattern?: EndpointMatcher, operationIdTransformer: OperationIdTransformer = 'camelCase') {
   const checkMatch = typeof pattern === 'function' ? pattern : patternMatches(pattern);
   return function matcher(operationDefinition: OperationDefinition) {
     if (!pattern) return true;
-    const operationName = getOperationName(operationDefinition);
+    const operationName = resolveOperationName(operationDefinition, operationIdTransformer);
     return checkMatch(operationName, operationDefinition);
   };
 }
@@ -139,9 +179,10 @@ function generateRegexConstantsForType(
 
 export function getOverrides(
   operation: OperationDefinition,
-  endpointOverrides?: EndpointOverrides[]
+  endpointOverrides?: EndpointOverrides[],
+  operationIdTransformer: OperationIdTransformer = 'camelCase'
 ): EndpointOverrides | undefined {
-  return endpointOverrides?.find((override) => operationMatches(override.pattern)(operation));
+  return endpointOverrides?.find((override) => operationMatches(override.pattern, operationIdTransformer)(operation));
 }
 
 export async function generateApi(
@@ -170,6 +211,7 @@ export async function generateApi(
     useUnknown = false,
     esmExtensions = false,
     outputRegexConstants = false,
+    operationIdTransformer = 'camelCase',
   }: GenerationOptions
 ) {
   const v3Doc = (v3DocCache[spec] ??= await getV3Doc(spec, httpResolverOptions));
@@ -186,7 +228,9 @@ export async function generateApi(
     apiGen.preprocessComponents(apiGen.spec.components.schemas);
   }
 
-  const operationDefinitions = getOperationDefinitions(v3Doc).filter(operationMatches(filterEndpoints));
+  const operationDefinitions = getOperationDefinitions(v3Doc).filter(
+    operationMatches(filterEndpoints, operationIdTransformer)
+  );
 
   const resultFile = ts.createSourceFile(
     'someFileName.ts',
@@ -239,7 +283,7 @@ export async function generateApi(
             operationDefinitions.map((operationDefinition) =>
               generateEndpoint({
                 operationDefinition,
-                overrides: getOverrides(operationDefinition, endpointOverrides),
+                overrides: getOverrides(operationDefinition, endpointOverrides, operationIdTransformer),
               })
             ),
             true
@@ -278,6 +322,7 @@ export async function generateApi(
                 endpointOverrides,
                 config: hooks,
                 operationNameSuffix,
+                operationIdTransformer,
               }),
             ]
           : []),
@@ -314,7 +359,7 @@ export async function generateApi(
       operation,
       operation: { responses, requestBody },
     } = operationDefinition;
-    const operationName = getOperationName({ verb, path, operation });
+    const operationName = resolveOperationName({ verb, path, operation }, operationIdTransformer);
     const tags = tag ? getTags({ verb, pathItem }) : undefined;
     const isQuery = testIsQuery(verb, overrides);
 
