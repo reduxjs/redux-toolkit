@@ -3,8 +3,8 @@ import path from 'node:path';
 import type { OpenAPIV3 } from 'openapi-types';
 import ts from 'typescript';
 import { UNSTABLE_cg as cg } from 'oazapfts';
-import { createContext, withMode, type OazapftsContext, type OnlyMode } from 'oazapfts/context';
-import { getTypeFromSchema, getTypeFromResponse, getResponseType, getSchemaFromContent, getOperationName as _getOperationName } from 'oazapfts/generate';
+import { createContext, withMode, type OazapftsContext } from 'oazapfts/context';
+import { getTypeFromSchema, getTypeFromResponse, getResponseType, getSchemaFromContent, getOperationName as _getOperationName, preprocessComponents } from 'oazapfts/generate';
 import { resolve, resolveArray, isReference, getReferenceName } from '@oazapfts/resolve';
 import type { ObjectPropertyDefinitions } from './codegen';
 import { generateCreateApiCall, generateEndpointDefinition, generateImportNode, generateTagTypes } from './codegen';
@@ -212,6 +212,7 @@ export async function generateApi(
     mergeReadWriteOnly,
     useUnknown,
   });
+  preprocessComponents(ctx);
 
   const operationDefinitions = getOperationDefinitions(v3Doc).filter(operationMatches(filterEndpoints));
 
