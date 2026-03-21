@@ -798,19 +798,19 @@ export type LazyInfiniteQueryTrigger<
   D extends InfiniteQueryDefinition<any, any, any, any, any>,
 > = {
   /**
-   * Triggers a lazy query.
+   * Triggers an infinite query fetch in the given direction.
    *
-   * By default, this will start a new request even if there is already a value in the cache.
-   * If you want to use the cache value and only start a request if there is no cache value, set the second argument to `true`.
+   * Pass the endpoint argument as the first parameter and either `'forward'` or `'backward'`
+   * as the second parameter to fetch the next or previous page from the current cache entry.
    *
    * @remarks
-   * If you need to access the error or success payload immediately after a lazy query, you can chain .unwrap().
+   * If you need to access the error or success payload immediately after triggering the request, you can chain `.unwrap()`.
    *
    * @example
    * ```ts
    * // codeblock-meta title="Using .unwrap with async await"
    * try {
-   *   const payload = await getUserById(1).unwrap();
+   *   const payload = await triggerPosts('fire', 'forward').unwrap();
    *   console.log('fulfilled', payload);
    * } catch (error) {
    *   console.error('rejected', error);
