@@ -802,6 +802,43 @@ const useInfiniteQuerySubscriptionResult =
 
 [summary](docblock://query/react/buildHooks.ts?token=UseInfiniteQuerySubscription)
 
+##### `useInfiniteQuerySubscription` Signature
+
+```ts no-transpile
+type UseInfiniteQuerySubscription = (
+  arg: any | SkipToken,
+  options?: UseInfiniteQuerySubscriptionOptions,
+) => UseInfiniteQuerySubscriptionResult
+
+type UseInfiniteQuerySubscriptionOptions = {
+  skip?: boolean
+  refetchOnMountOrArgChange?: boolean | number
+  pollingInterval?: number
+  skipPollingIfUnfocused?: boolean
+  refetchOnReconnect?: boolean
+  refetchOnFocus?: boolean
+  initialPageParam?: PageParam
+  refetchCachedPages?: boolean
+}
+
+type UseInfiniteQuerySubscriptionResult = {
+  trigger: (arg: any, direction: 'forward' | 'backward') => InfiniteQueryActionCreatorResult
+  refetch: (options?: { refetchCachedPages?: boolean }) => InfiniteQueryActionCreatorResult
+  fetchNextPage: () => InfiniteQueryActionCreatorResult
+  fetchPreviousPage: () => InfiniteQueryActionCreatorResult
+}
+```
+
+- **Parameters**
+  - `arg`: The query argument passed to the infinite query endpoint.
+  - `options`: A set of options that control the fetching behavior of the hook.
+- **Returns**
+  - An object containing:
+  - `trigger`: manually fetches a page in the given direction for the current cache entry
+  - `refetch`: refetches the infinite query
+  - `fetchNextPage`: fetches the next page
+  - `fetchPreviousPage`: fetches the previous page
+
 ### `useLazyQuerySubscription`
 
 ```ts title="Accessing a useLazyQuerySubscription hook" no-transpile
