@@ -13,6 +13,7 @@ import {
   createAction,
   createListenerMiddleware,
   createSlice,
+  isAnyOf,
   isFluxStandardAction,
 } from '@reduxjs/toolkit'
 
@@ -305,6 +306,27 @@ describe('type tests', () => {
         },
       }),
     )
+  })
+
+  test('matcher works with interface-based custom type guards', () => {
+    interface ExtraAction extends Action {
+      payload: number
+    }
+
+    function isExtraAction(action: any): action is ExtraAction {
+      return (
+        isFluxStandardAction(action) && typeof action.payload === 'number'
+      )
+    }
+
+    const matcher = isAnyOf(isExtraAction)
+
+    startListening({
+      matcher,
+      effect: (action, listenerApi) => {
+        expectTypeOf(action).toMatchTypeOf<ExtraAction>()
+      },
+    })
   })
 
   test('Can create a pre-typed middleware', () => {
