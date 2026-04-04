@@ -577,7 +577,7 @@ const lastReturnedAction = await store.dispatch(fetchUserById(3))
 
 ### Handling responses from async thunks
 
-The preferred approach to handling responses from thunks is via the `unwrap` method (see [Unwrapping Result Actions](../api/createAsyncThunk.mdx/#unwrapping-result-actions).
+The preferred approach to handling responses from thunks is via the `unwrap` method (see [Unwrapping Result Actions](../api/createAsyncThunk.mdx#unwrapping-result-actions)).
 
 ```ts
 const handleClick = async (userData) => {
