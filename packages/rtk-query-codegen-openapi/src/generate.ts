@@ -1,11 +1,19 @@
+import { getReferenceName, isReference, resolve, resolveArray } from '@oazapfts/resolve';
 import camelCase from 'lodash.camelcase';
 import path from 'node:path';
+import { UNSTABLE_cg as cg } from 'oazapfts';
+import type { OazapftsContext } from 'oazapfts/context';
+import { createContext, withMode } from 'oazapfts/context';
+import {
+  getOperationName as _getOperationName,
+  getResponseType,
+  getSchemaFromContent,
+  getTypeFromResponse,
+  getTypeFromSchema,
+  preprocessComponents,
+} from 'oazapfts/generate';
 import type { OpenAPIV3 } from 'openapi-types';
 import ts from 'typescript';
-import { UNSTABLE_cg as cg } from 'oazapfts';
-import { createContext, withMode, type OazapftsContext } from 'oazapfts/context';
-import { getTypeFromSchema, getTypeFromResponse, getResponseType, getSchemaFromContent, getOperationName as _getOperationName, preprocessComponents } from 'oazapfts/generate';
-import { resolve, resolveArray, isReference, getReferenceName } from '@oazapfts/resolve';
 import type { ObjectPropertyDefinitions } from './codegen';
 import { generateCreateApiCall, generateEndpointDefinition, generateImportNode, generateTagTypes } from './codegen';
 import { generateReactHooks } from './generators/react-hooks';
@@ -18,23 +26,15 @@ import type {
   ParameterMatcher,
   TextMatcher,
 } from './types';
-import {
-  capitalize,
-  getOperationDefinitions,
-  getV3Doc,
-  removeUndefined,
-  isQuery as testIsQuery,
-} from './utils';
 import { factory } from './utils/factory';
+import { capitalize, getOperationDefinitions, getV3Doc, removeUndefined, isQuery as testIsQuery } from './utils/index';
 
 const { createPropertyAssignment, createQuestionToken, keywordType, isValidIdentifier } = cg;
 
 const generatedApiName = 'injectedRtkApi';
 const v3DocCache: Record<string, OpenAPIV3.Document> = {};
 
-function supportDeepObjects(
-  params: OpenAPIV3.ParameterObject[]
-): OpenAPIV3.ParameterObject[] {
+function supportDeepObjects(params: OpenAPIV3.ParameterObject[]): OpenAPIV3.ParameterObject[] {
   const res: OpenAPIV3.ParameterObject[] = [];
   const merged: Record<string, any> = {};
   for (const p of params) {
@@ -359,9 +359,7 @@ export async function generateApi(
                 factory.createKeywordTypeNode(ts.SyntaxKind.UndefinedKeyword),
             ] as const
         )
-        .filter(([status, response]) =>
-          isDataResponse(status, includeDefault, resolve(response, ctx), responses || {})
-        )
+        .filter(([status, response]) => isDataResponse(status, includeDefault, resolve(response, ctx), responses || {}))
         .filter(([_1, _2, type]) => type !== keywordType.void)
         .map(([code, response, type]) =>
           ts.addSyntheticLeadingComment(
@@ -388,8 +386,9 @@ export async function generateApi(
     );
 
     const operationParameters = resolveArray(ctx, operation.parameters);
-    const pathItemParameters = resolveArray(ctx, pathItem.parameters)
-      .filter((pp) => !operationParameters.some((op) => op.name === pp.name && op.in === pp.in));
+    const pathItemParameters = resolveArray(ctx, pathItem.parameters).filter(
+      (pp) => !operationParameters.some((op) => op.name === pp.name && op.in === pp.in)
+    );
 
     const parameters = supportDeepObjects([...pathItemParameters, ...operationParameters]).filter(
       argumentMatches(overrides?.parameterFilter)
