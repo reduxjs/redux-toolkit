@@ -2441,6 +2441,62 @@ describe('hooks tests', () => {
       expect(numRequests).toBe(1)
     })
 
+    test('`isSuccess` does not flash false on subsequent infinite queries', async () => {
+      const storeRef = setupApiStore(pokemonApi, undefined, {
+        withoutTestLifecycles: true,
+      })
+
+      type LoadingState = {
+        arg: string
+        isFetching: boolean
+        isSuccess: boolean
+      }
+      const loadingHistory: LoadingState[] = []
+
+      function PokemonList({ arg }: { arg: string }) {
+        const queryRes = pokemonApi.useGetInfinitePokemonInfiniteQuery(arg)
+
+        useEffect(() => {
+          const { isFetching, isSuccess } = queryRes
+          loadingHistory.push({ arg, isFetching, isSuccess })
+        }, [arg, queryRes])
+
+        return (
+          <div data-testid="data">
+            {queryRes.status === QueryStatus.fulfilled && arg}
+          </div>
+        )
+      }
+
+      let { rerender } = render(<PokemonList arg="fire" />, {
+        wrapper: storeRef.wrapper,
+      })
+
+      await waitFor(() =>
+        expect(screen.getByTestId('data').textContent).toBe('fire'),
+      )
+
+      rerender(<PokemonList arg="water" />)
+
+      await waitFor(() =>
+        expect(screen.getByTestId('data').textContent).toBe('water'),
+      )
+
+      expect(loadingHistory).toEqual([
+        // Initial render(s)
+        { arg: 'fire', isFetching: true, isSuccess: false },
+        { arg: 'fire', isFetching: true, isSuccess: false },
+        // Data returned
+        { arg: 'fire', isFetching: false, isSuccess: true },
+        // Arg changed, there's an uninitialized cache entry.
+        // IMPORTANT: `isSuccess` should not be false here.
+        // We have valid data already for the old item.
+        { arg: 'water', isFetching: true, isSuccess: true },
+        { arg: 'water', isFetching: true, isSuccess: true },
+        { arg: 'water', isFetching: false, isSuccess: true },
+      ])
+    })
+
     test.each([
       ['skip token', true],
       ['skip option', false],

@@ -465,7 +465,7 @@ export type AddListenerOverloads<
   ): Return
 
   /** Accepts an RTK matcher function, such as `incrementByAmount.match` */
-  <MatchFunctionType extends MatchFunction<UnknownAction>>(
+  <MatchFunctionType extends MatchFunction<Action>>(
     options: {
       actionCreator?: never
       type?: never

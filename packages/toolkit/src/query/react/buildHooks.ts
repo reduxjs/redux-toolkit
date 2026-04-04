@@ -1650,8 +1650,13 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       (!lastResult || lastResult.isLoading || lastResult.isUninitialized) &&
       !hasData &&
       isFetching
-    // isSuccess = true when data is present
-    const isSuccess = currentState.isSuccess || (isFetching && hasData)
+    // isSuccess = true when data is present and we're not refetching after an error.
+    // That includes cases where the _current_ item is either actively
+    // fetching or about to fetch due to an uninitialized entry.
+    const isSuccess =
+      currentState.isSuccess ||
+      (hasData &&
+        ((isFetching && !lastResult?.isError) || currentState.isUninitialized))
 
     return {
       ...currentState,
