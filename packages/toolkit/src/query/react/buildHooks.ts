@@ -706,7 +706,7 @@ export type TypedUseQueryStateResult<
 type UseQueryStateBaseResult<D extends QueryDefinition<any, any, any, any>> =
   QuerySubState<D> & {
     /**
-     * Where `data` tries to hold data as much as possible, also re-using
+     * Where `data` tries to hold data as much as possible, also reusing
      * data from the last arguments passed into the hook, this property
      * will always contain the received data from the query, for the current query arguments.
      */
@@ -1264,7 +1264,7 @@ type UseInfiniteQueryStateBaseResult<
   D extends InfiniteQueryDefinition<any, any, any, any, any>,
 > = InfiniteQuerySubState<D> & {
   /**
-   * Where `data` tries to hold data as much as possible, also re-using
+   * Where `data` tries to hold data as much as possible, also reusing
    * data from the last arguments passed into the hook, this property
    * will always contain the received data from the query, for the current query arguments.
    */
