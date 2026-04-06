@@ -100,7 +100,7 @@ However, the TS-converted code sat around in the repo for several years, unused 
 
 Redux core v5 is now built from that TS-converted source code. In theory, this should be almost identical in both runtime behavior and types to the 4.x build, but it's very likely that some of the changes may cause types issues.
 
-Please report any unexpected compatibility issues on [Github](https://github.com/reduxjs/redux/issues)!
+Please report any unexpected compatibility issues on [GitHub](https://github.com/reduxjs/redux/issues)!
 
 #### `AnyAction` deprecated in favour of `UnknownAction`
 
@@ -955,7 +955,7 @@ const createSlice = buildCreateSlice({
 })
 ```
 
-We're not sure how many people/libraries would actually make use of this though, so any feedback over on the [Github issue](https://github.com/reduxjs/redux-toolkit/issues/3837) is welcome!
+We're not sure how many people/libraries would actually make use of this though, so any feedback over on the [GitHub issue](https://github.com/reduxjs/redux-toolkit/issues/3837) is welcome!
 
 ### `createSlice.selector` selector factories
 
@@ -998,7 +998,7 @@ function AuthorTodos({ author }: { author: string }) {
 
 Of course, with `createSlice.selectors` this is no longer possible, as you need the selector instance when creating your slice.
 
-In 2.0.0 we have no set solution for this - a few APIs have been floated ([PR 1](https://github.com/reduxjs/redux-toolkit/pull/3671), [PR 2](https://github.com/reduxjs/redux-toolkit/pull/3836)) but nothing was decided upon. If this is something you'd like to see supported, consider providing feedback in the [Github discussion](https://github.com/reduxjs/redux-toolkit/discussions/3387)!
+In 2.0.0 we have no set solution for this - a few APIs have been floated ([PR 1](https://github.com/reduxjs/redux-toolkit/pull/3671), [PR 2](https://github.com/reduxjs/redux-toolkit/pull/3836)) but nothing was decided upon. If this is something you'd like to see supported, consider providing feedback in the [GitHub discussion](https://github.com/reduxjs/redux-toolkit/discussions/3387)!
 
 ### 3.0 - RTK Query
 
