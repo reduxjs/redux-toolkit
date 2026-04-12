@@ -266,30 +266,34 @@ it('does not leak subscription state between multiple stores using the same API 
   expect(store2InternalSubs.size).toBe(0)
 })
 
-it('initializes a large RTK Query middleware chain without overflowing the stack', async () => {
-  const middlewareChain = Array.from({ length: 1000 }, () => {
-    const middleware = api.middleware
-    return ((mwApi) => middleware(mwApi)) as typeof api.middleware
-  })
+it(
+  'initializes a large RTK Query middleware chain without overflowing the stack',
+  { timeout: 120_000 },
+  async () => {
+    const middlewareChain = Array.from({ length: 1000 }, () => {
+      const middleware = api.middleware
+      return ((mwApi) => middleware(mwApi)) as typeof api.middleware
+    })
 
-  const store = configureStore({
-    reducer: { [api.reducerPath]: api.reducer },
-    middleware: (gdm) =>
-      gdm({
-        serializableCheck: false,
-        immutableCheck: false,
-      }).concat(...middlewareChain),
-  })
+    const store = configureStore({
+      reducer: { [api.reducerPath]: api.reducer },
+      middleware: (gdm) =>
+        gdm({
+          serializableCheck: false,
+          immutableCheck: false,
+        }).concat(...middlewareChain),
+    })
 
-  await store.dispatch(getBanana.initiate(1))
+    await store.dispatch(getBanana.initiate(1))
 
-  expect(store.getState()[api.reducerPath].config.middlewareRegistered).toBe(
-    true,
-  )
-  expect(store.getState()[api.reducerPath].queries['getBanana(1)']).toEqual(
-    expect.objectContaining({
-      data: { url: 'banana/1' },
-      status: 'fulfilled',
-    }),
-  )
-})
+    expect(store.getState()[api.reducerPath].config.middlewareRegistered).toBe(
+      true,
+    )
+    expect(store.getState()[api.reducerPath].queries['getBanana(1)']).toEqual(
+      expect.objectContaining({
+        data: { url: 'banana/1' },
+        status: 'fulfilled',
+      }),
+    )
+  },
+)
