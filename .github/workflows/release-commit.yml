@@ -1,0 +1,43 @@
+name: Release Commit
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  pull-requests: write
+
+jobs:
+  release:
+    name: Release Commit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+
+      - run: corepack enable
+
+      - name: Setup Node
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          cache: 'yarn'
+          check-latest: true
+          node-version: '24.x'
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Build
+        run: yarn run build:packages
+
+      - name: Publish
+        id: publish
+        run: >
+          yarn dlx pkg-pr-new publish
+          ./packages/toolkit
+          ./packages/rtk-query-graphql-request-base-query
+          ./packages/rtk-query-codegen-openapi
+          ./packages/rtk-codemods
+          --yarn --packageManager="npm,yarn,pnpm,bun" --commentWithDev
