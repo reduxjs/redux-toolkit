@@ -4,6 +4,8 @@
     "dev": "docusaurus start",
     "start": "docusaurus start",
     "build": "docusaurus build",
+    "clear": "docusaurus clear",
+    "serve": "docusaurus serve",
     "netlify-build": "yarn install && yarn build",
     "swizzle": "docusaurus swizzle",
     "publish-gh-pages": "docusaurus deploy",
@@ -11,10 +13,11 @@
   },
   "dependencies": {
     "@dipakparmar/docusaurus-plugin-umami": "^2.0.6",
-    "@docusaurus/core": "3.6.3",
-    "@docusaurus/preset-classic": "3.6.3",
+    "@docusaurus/core": "^3.9.2",
+    "@docusaurus/preset-classic": "^3.9.2",
     "@getcanary/docusaurus-theme-search-pagefind": "^1.0.2",
     "@getcanary/web": "^1.0.12",
+    "@mdx-js/react": "^3.1.1",
     "classnames": "^2.2.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -34,7 +37,10 @@
     ]
   },
   "devDependencies": {
-    "@docusaurus/faster": "^3.6.3",
+    "@docusaurus/faster": "^3.9.2",
+    "@docusaurus/types": "^3.9.2",
+    "@types/node": "^25.5.0",
+    "@types/react": "^19.2.14",
     "netlify-plugin-cache": "^1.0.3",
     "prettier": "^3.2.5",
     "remark-typescript-tools": "2.0.0-alpha.1"

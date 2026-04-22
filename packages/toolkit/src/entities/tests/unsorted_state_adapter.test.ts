@@ -1,13 +1,12 @@
-import type { EntityAdapter, EntityState } from '../models'
-import { createEntityAdapter } from '../create_adapter'
+import type { EntityAdapter, EntityState } from '@reduxjs/toolkit'
+import { createEntityAdapter, createNextState } from '@reduxjs/toolkit'
 import type { BookModel } from './fixtures/book'
 import {
-  TheGreatGatsby,
   AClockworkOrange,
   AnimalFarm,
+  TheGreatGatsby,
   TheHobbit,
 } from './fixtures/book'
-import { createNextState } from '../..'
 
 describe('Unsorted State Adapter', () => {
   let adapter: EntityAdapter<BookModel, string>
@@ -90,11 +89,12 @@ describe('Unsorted State Adapter', () => {
   })
 
   it('should let you add the only first occurrence for duplicate ids', () => {
-    const firstEntry = {id: AClockworkOrange.id, author: TheHobbit.author }
-    const secondEntry = {id: AClockworkOrange.id, title: 'Zack' }
+    const firstEntry = { id: AClockworkOrange.id, author: TheHobbit.author }
+    const secondEntry = { id: AClockworkOrange.id, title: 'Zack' }
     const withOne = adapter.setAll(state, [TheGreatGatsby])
     const withMany = adapter.addMany(withOne, [
-      { ...AClockworkOrange, ...firstEntry }, {...AClockworkOrange, ...secondEntry}
+      { ...AClockworkOrange, ...firstEntry },
+      { ...AClockworkOrange, ...secondEntry },
     ])
 
     expect(withMany).toEqual({
@@ -292,9 +292,9 @@ describe('Unsorted State Adapter', () => {
         entities: { b: { id: 'b', title: 'First' }, c: { id: 'c' } }
       }
       We now expect that only 'c' will be left:
-      { 
-        ids: [ 'c' ], 
-        entities: { c: { id: 'c', title: 'First' } } 
+      {
+        ids: [ 'c' ],
+        entities: { c: { id: 'c', title: 'First' } }
       }
     */
     expect(ids.length).toBe(1)
@@ -381,7 +381,9 @@ describe('Unsorted State Adapter', () => {
     const withMany = adapter.setAll(state, [TheGreatGatsby])
 
     const withUpserts = adapter.upsertMany(withMany, [
-      {...AClockworkOrange}, { ...AClockworkOrange, ...firstChange }, {...AClockworkOrange, ...secondChange}
+      { ...AClockworkOrange },
+      { ...AClockworkOrange, ...firstChange },
+      { ...AClockworkOrange, ...secondChange },
     ])
 
     expect(withUpserts).toEqual({

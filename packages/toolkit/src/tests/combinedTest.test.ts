@@ -1,13 +1,12 @@
-import type { PayloadAction } from '@reduxjs/toolkit'
-import {
-  createAsyncThunk,
-  createAction,
-  createSlice,
-  configureStore,
-  createEntityAdapter,
-} from '@reduxjs/toolkit'
-import type { EntityAdapter } from '@internal/entities/models'
 import type { BookModel } from '@internal/entities/tests/fixtures/book'
+import type { EntityAdapter, PayloadAction } from '@reduxjs/toolkit'
+import {
+  configureStore,
+  createAction,
+  createAsyncThunk,
+  createEntityAdapter,
+  createSlice,
+} from '@reduxjs/toolkit'
 
 describe('Combined entity slice', () => {
   let adapter: EntityAdapter<BookModel, string>

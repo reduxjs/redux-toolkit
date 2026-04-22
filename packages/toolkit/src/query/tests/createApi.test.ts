@@ -12,6 +12,7 @@ import type {
   FetchBaseQueryMeta,
   OverrideResultType,
   SchemaFailureConverter,
+  SchemaFailureHandler,
   SchemaType,
   SerializeQueryArgs,
   TagTypesFromApi,
@@ -21,10 +22,9 @@ import {
   fetchBaseQuery,
   NamedSchemaError,
 } from '@reduxjs/toolkit/query'
-import { HttpResponse, delay, http } from 'msw'
+import { delay, http, HttpResponse } from 'msw'
 import nodeFetch from 'node-fetch'
 import * as v from 'valibot'
-import type { SchemaFailureHandler } from '../endpointDefinitions'
 
 beforeAll(() => {
   vi.stubEnv('NODE_ENV', 'development')

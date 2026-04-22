@@ -122,7 +122,7 @@ For more details on how the `middleware` parameter works and the list of middlew
 [`getDefaultMiddleware` docs page](./getDefaultMiddleware.mdx).
 
 :::note Tuple
-Typescript users are required to use a `Tuple` instance (if not using a `getDefaultMiddleware` result, which is already a `Tuple`), for better inference.
+TypeScript users are required to use a `Tuple` instance (if not using a `getDefaultMiddleware` result, which is already a `Tuple`), for better inference.
 
 ```ts no-transpile
 import { configureStore, Tuple } from '@reduxjs/toolkit'
@@ -182,7 +182,7 @@ Where you wish to add onto or customize the default enhancers, you may pass a ca
 Example: `enhancers: (defaultEnhancers) => defaultEnhancers.prepend(offline)` will result in a final setup
 of `[offline, applyMiddleware, devToolsExtension]`.
 
-For more details on how the `enhancer` parameter works and the list of enhancers that are added by default, see the [`getDefaultEnhancers` docs page](./getDefaultEnhancers).
+For more details on how the `enhancers` parameter works and the list of enhancers that are added by default, see the [`getDefaultEnhancers` docs page](./getDefaultEnhancers).
 
 :::caution Middleware
 
@@ -194,7 +194,7 @@ If you don't use `getDefaultEnhancers` and instead return an array, the `applyMi
 // warns - middleware customised but not included in final enhancers
 configureStore({
   reducer,
-  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(logger)
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(logger),
   enhancers: [offline(offlineConfig)],
 })
 
@@ -212,12 +212,12 @@ configureStore({
 })
 ```
 
-Note that if using Typescript, the `middleware` option is required to be provided _before_ the enhancer option, as the type of `getDefaultEnhancers` depends on its result.
+Note that if using TypeScript, the `middleware` option is required to be provided _before_ the enhancer option, as the type of `getDefaultEnhancers` depends on its result.
 
 :::
 
 :::note Tuple
-Typescript users are required to use a `Tuple` instance (if not using a `getDefaultEnhancer` result, which is already a `Tuple`), for better inference.
+TypeScript users are required to use a `Tuple` instance (if not using a `getDefaultEnhancers` result, which is already a `Tuple`), for better inference.
 
 ```ts no-transpile
 import { configureStore, Tuple } from '@reduxjs/toolkit'

@@ -100,46 +100,42 @@ export type ReducerWithInitialState<S extends NotFunction<any>> = Reducer<S> & {
  * @param builderCallback - `(builder: Builder) => void` A callback that receives a *builder* object to define
  *   case reducers via calls to `builder.addCase(actionCreatorOrType, reducer)`.
  * @example
-```ts
-import {
-  createAction,
-  createReducer,
-  UnknownAction,
-  PayloadAction,
-} from "@reduxjs/toolkit";
-
-const increment = createAction<number>("increment");
-const decrement = createAction<number>("decrement");
-
-function isActionWithNumberPayload(
-  action: UnknownAction
-): action is PayloadAction<number> {
-  return typeof action.payload === "number";
-}
-
-const reducer = createReducer(
-  {
-    counter: 0,
-    sumOfNumberPayloads: 0,
-    unhandledActions: 0,
-  },
-  (builder) => {
-    builder
-      .addCase(increment, (state, action) => {
-        // action is inferred correctly here
-        state.counter += action.payload;
-      })
-      // You can chain calls, or have separate `builder.addCase()` lines each time
-      .addCase(decrement, (state, action) => {
-        state.counter -= action.payload;
-      })
-      // You can apply a "matcher function" to incoming actions
-      .addMatcher(isActionWithNumberPayload, (state, action) => {})
-      // and provide a default case if no other handlers matched
-      .addDefaultCase((state, action) => {});
-  }
-);
-```
+ * ```ts
+ * import type { PayloadAction, UnknownAction } from '@reduxjs/toolkit';
+ * import { createAction, createReducer } from '@reduxjs/toolkit';
+ *
+ * const increment = createAction<number>('increment');
+ * const decrement = createAction<number>('decrement');
+ *
+ * function isActionWithNumberPayload(
+ *   action: UnknownAction,
+ * ): action is PayloadAction<number> {
+ *   return typeof action.payload === 'number';
+ * }
+ *
+ * const reducer = createReducer(
+ *   {
+ *     counter: 0,
+ *     sumOfNumberPayloads: 0,
+ *     unhandledActions: 0,
+ *   },
+ *   (builder) => {
+ *     builder
+ *       .addCase(increment, (state, action) => {
+ *         // action is inferred correctly here
+ *         state.counter += action.payload;
+ *       })
+ *       // You can chain calls, or have separate `builder.addCase()` lines each time
+ *       .addCase(decrement, (state, action) => {
+ *         state.counter -= action.payload;
+ *       })
+ *       // You can apply a "matcher function" to incoming actions
+ *       .addMatcher(isActionWithNumberPayload, (state, action) => {})
+ *       // and provide a default case if no other handlers matched
+ *       .addDefaultCase((state, action) => {});
+ *   },
+ * );
+ * ```
  * @public
  */
 export function createReducer<S extends NotFunction<any>>(

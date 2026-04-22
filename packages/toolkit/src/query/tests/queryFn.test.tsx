@@ -1,11 +1,14 @@
 import { noop } from '@internal/listenerMiddleware/utils'
-import type { QuerySubState } from '@internal/query/core/apiState'
 import type { Post } from '@internal/query/tests/mocks/handlers'
 import { posts } from '@internal/query/tests/mocks/handlers'
 import { actionsReducer, setupApiStore } from '@internal/tests/utils/helpers'
 import type { SerializedError } from '@reduxjs/toolkit'
 import { configureStore } from '@reduxjs/toolkit'
-import type { BaseQueryFn, FetchBaseQueryError } from '@reduxjs/toolkit/query'
+import type {
+  BaseQueryFn,
+  FetchBaseQueryError,
+  QuerySubState,
+} from '@reduxjs/toolkit/query'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 
 describe('queryFn base implementation tests', () => {

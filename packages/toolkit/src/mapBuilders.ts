@@ -74,30 +74,31 @@ export interface ActionReducerMapBuilder<State> {
    * @param asyncThunk - The async thunk action creator itself.
    * @param reducers - A mapping from each of the `AsyncThunk` action types to the case reducer that should handle those actions.
    * @example
-```ts no-transpile
-import { createAsyncThunk, createReducer } from '@reduxjs/toolkit'
-
-const fetchUserById = createAsyncThunk('users/fetchUser', async (id) => {
-  const response = await fetch(`https://reqres.in/api/users/${id}`)
-  return (await response.json()).data
-})
-
-const reducer = createReducer(initialState, (builder) => {
-  builder.addAsyncThunk(fetchUserById, {
-    pending: (state, action) => {
-      state.fetchUserById.loading = 'pending'
-    },
-    fulfilled: (state, action) => {
-      state.fetchUserById.data = action.payload
-    },
-    rejected: (state, action) => {
-      state.fetchUserById.error = action.error
-    },
-    settled: (state, action) => {
-      state.fetchUserById.loading = action.meta.requestStatus
-    },
-  })
-})
+   * ```ts no-transpile
+   * import { createAsyncThunk, createReducer } from '@reduxjs/toolkit';
+   *
+   * const fetchUserById = createAsyncThunk('users/fetchUser', async (id) => {
+   *   const response = await fetch(`https://reqres.in/api/users/${id}`);
+   *   return (await response.json()).data;
+   * });
+   *
+   * const reducer = createReducer(initialState, (builder) => {
+   *   builder.addAsyncThunk(fetchUserById, {
+   *     pending: (state, action) => {
+   *       state.fetchUserById.loading = 'pending';
+   *     },
+   *     fulfilled: (state, action) => {
+   *       state.fetchUserById.data = action.payload;
+   *     },
+   *     rejected: (state, action) => {
+   *       state.fetchUserById.error = action.error;
+   *     },
+   *     settled: (state, action) => {
+   *       state.fetchUserById.loading = action.meta.requestStatus;
+   *     },
+   *   });
+   * });
+   * ```
    */
   addAsyncThunk<
     Returned,
@@ -119,50 +120,46 @@ const reducer = createReducer(initialState, (builder) => {
    * @param reducer - The actual case reducer function.
    *
    * @example
-```ts
-import {
-  createAction,
-  createReducer,
-  AsyncThunk,
-  UnknownAction,
-} from "@reduxjs/toolkit";
-
-type GenericAsyncThunk = AsyncThunk<unknown, unknown, any>;
-
-type PendingAction = ReturnType<GenericAsyncThunk["pending"]>;
-type RejectedAction = ReturnType<GenericAsyncThunk["rejected"]>;
-type FulfilledAction = ReturnType<GenericAsyncThunk["fulfilled"]>;
-
-const initialState: Record<string, string> = {};
-const resetAction = createAction("reset-tracked-loading-state");
-
-function isPendingAction(action: UnknownAction): action is PendingAction {
-  return typeof action.type === "string" && action.type.endsWith("/pending");
-}
-
-const reducer = createReducer(initialState, (builder) => {
-  builder
-    .addCase(resetAction, () => initialState)
-    // matcher can be defined outside as a type predicate function
-    .addMatcher(isPendingAction, (state, action) => {
-      state[action.meta.requestId] = "pending";
-    })
-    .addMatcher(
-      // matcher can be defined inline as a type predicate function
-      (action): action is RejectedAction => action.type.endsWith("/rejected"),
-      (state, action) => {
-        state[action.meta.requestId] = "rejected";
-      }
-    )
-    // matcher can just return boolean and the matcher can receive a generic argument
-    .addMatcher<FulfilledAction>(
-      (action) => action.type.endsWith("/fulfilled"),
-      (state, action) => {
-        state[action.meta.requestId] = "fulfilled";
-      }
-    );
-});
-```
+   * ```ts
+   * import type { AsyncThunk, UnknownAction } from '@reduxjs/toolkit';
+   * import { createAction, createReducer } from '@reduxjs/toolkit';
+   *
+   * type GenericAsyncThunk = AsyncThunk<unknown, unknown, any>;
+   *
+   * type PendingAction = ReturnType<GenericAsyncThunk['pending']>;
+   * type RejectedAction = ReturnType<GenericAsyncThunk['rejected']>;
+   * type FulfilledAction = ReturnType<GenericAsyncThunk['fulfilled']>;
+   *
+   * const initialState: Record<string, string> = {};
+   * const resetAction = createAction('reset-tracked-loading-state');
+   *
+   * function isPendingAction(action: UnknownAction): action is PendingAction {
+   *   return typeof action.type === 'string' && action.type.endsWith('/pending');
+   * }
+   *
+   * const reducer = createReducer(initialState, (builder) => {
+   *   builder
+   *     .addCase(resetAction, () => initialState)
+   *     // matcher can be defined outside as a type predicate function
+   *     .addMatcher(isPendingAction, (state, action) => {
+   *       state[action.meta.requestId] = 'pending';
+   *     })
+   *     .addMatcher(
+   *       // matcher can be defined inline as a type predicate function
+   *       (action): action is RejectedAction => action.type.endsWith('/rejected'),
+   *       (state, action) => {
+   *         state[action.meta.requestId] = 'rejected';
+   *       },
+   *     )
+   *     // matcher can just return boolean and the matcher can receive a generic argument
+   *     .addMatcher<FulfilledAction>(
+   *       (action) => action.type.endsWith('/fulfilled'),
+   *       (state, action) => {
+   *         state[action.meta.requestId] = 'fulfilled';
+   *       },
+   *     );
+   * });
+   * ```
    */
   addMatcher<A>(
     matcher: TypeGuard<A> | ((action: any) => boolean),
@@ -175,18 +172,20 @@ const reducer = createReducer(initialState, (builder) => {
    * @param reducer - The fallback "default case" reducer function.
    *
    * @example
-```ts
-import { createReducer } from '@reduxjs/toolkit'
-const initialState = { otherActions: 0 }
-const reducer = createReducer(initialState, builder => {
-  builder
-    // .addCase(...)
-    // .addMatcher(...)
-    .addDefaultCase((state, action) => {
-      state.otherActions++
-    })
-})
-```
+   * ```ts
+   * import { createReducer } from '@reduxjs/toolkit';
+   *
+   * const initialState = { otherActions: 0 };
+   *
+   * const reducer = createReducer(initialState, (builder) => {
+   *   builder
+   *     // .addCase(...)
+   *     // .addMatcher(...)
+   *     .addDefaultCase((state, action) => {
+   *       state.otherActions++;
+   *     });
+   * });
+   * ```
    */
   addDefaultCase(reducer: CaseReducer<State, Action>): {}
 }

@@ -1,4 +1,4 @@
-import { defaultSerializeQueryArgs } from '@internal/query/defaultSerializeQueryArgs'
+import { defaultSerializeQueryArgs } from '@reduxjs/toolkit/query'
 
 const endpointDefinition: any = {}
 const endpointName = 'test'

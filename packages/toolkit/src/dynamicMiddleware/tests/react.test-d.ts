@@ -3,7 +3,7 @@ import type {
   Middleware,
   ThunkDispatch,
   UnknownAction,
-} from '@reduxjs/toolkit'
+} from '@reduxjs/toolkit/react'
 import { createDynamicMiddleware } from '@reduxjs/toolkit/react'
 import type { Context } from 'react'
 import type { ReactReduxContextValue } from 'react-redux'

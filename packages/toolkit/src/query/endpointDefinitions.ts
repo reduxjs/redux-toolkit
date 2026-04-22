@@ -29,6 +29,7 @@ import type {
 } from './core/index'
 import type { SerializeQueryArgs } from './defaultSerializeQueryArgs'
 import type { NEVER } from './fakeBaseQuery'
+import type { NamedSchemaError } from './standardSchema'
 import type {
   CastAny,
   HasRequiredProps,
@@ -38,7 +39,6 @@ import type {
   UnwrapPromise,
 } from './tsHelpers'
 import { isNotNullish } from './utils'
-import type { NamedSchemaError } from './standardSchema'
 import { filterMap } from './utils/filterMap'
 
 const rawResultType = /* @__PURE__ */ Symbol()
@@ -76,12 +76,14 @@ export type EndpointDefinitionWithQuery<
    * ```ts
    * // codeblock-meta title="query example"
    *
-   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+   *
    * interface Post {
-   *   id: number
-   *   name: string
+   *   id: number;
+   *   name: string;
    * }
-   * type PostsResponse = Post[]
+   *
+   * type PostsResponse = Post[];
    *
    * const api = createApi({
    *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
@@ -93,17 +95,17 @@ export type EndpointDefinitionWithQuery<
    *       // highlight-end
    *     }),
    *     addPost: build.mutation<Post, Partial<Post>>({
-   *      // highlight-start
-   *      query: (body) => ({
-   *        url: `posts`,
-   *        method: 'POST',
-   *        body,
-   *      }),
-   *      // highlight-end
-   *      invalidatesTags: [{ type: 'Post', id: 'LIST' }],
-   *    }),
-   *   })
-   * })
+   *       // highlight-start
+   *       query: (body) => ({
+   *         url: `posts`,
+   *         method: 'POST',
+   *         body,
+   *       }),
+   *       // highlight-end
+   *       invalidatesTags: [{ type: 'Post', id: 'LIST' }],
+   *     }),
+   *   }),
+   * });
    * ```
    */
   query(arg: QueryArg): BaseQueryArg<BaseQuery>
@@ -131,11 +133,11 @@ export type EndpointDefinitionWithQuery<
    * @example
    * ```ts
    * // codeblock-meta no-transpile
-   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-   * import * as v from "valibot"
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+   * import * as v from 'valibot';
    *
-   * const postSchema = v.object({ id: v.number(), name: v.string() })
-   * type Post = v.InferOutput<typeof postSchema>
+   * const postSchema = v.object({ id: v.number(), name: v.string() });
+   * type Post = v.InferOutput<typeof postSchema>;
    *
    * const api = createApi({
    *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
@@ -145,8 +147,8 @@ export type EndpointDefinitionWithQuery<
    *       rawResponseSchema: postSchema,
    *       transformResponse: (post) => post.name,
    *     }),
-   *   })
-   * })
+   *   }),
+   * });
    * ```
    */
   rawResponseSchema?: StandardSchemaV1<RawResultType>
@@ -157,9 +159,13 @@ export type EndpointDefinitionWithQuery<
    * @example
    * ```ts
    * // codeblock-meta no-transpile
-   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-   * import * as v from "valibot"
-   * import {customBaseQuery, baseQueryErrorSchema} from "./customBaseQuery"
+   * import { createApi } from '@reduxjs/toolkit/query/react';
+   * import { baseQueryErrorSchema, customBaseQuery } from './customBaseQuery';
+   *
+   * interface Post {
+   *   id: number;
+   *   name: string;
+   * }
    *
    * const api = createApi({
    *   baseQuery: customBaseQuery,
@@ -169,8 +175,8 @@ export type EndpointDefinitionWithQuery<
    *       rawErrorResponseSchema: baseQueryErrorSchema,
    *       transformErrorResponse: (error) => error.data,
    *     }),
-   *   })
-   * })
+   *   }),
+   * });
    * ```
    */
   rawErrorResponseSchema?: StandardSchemaV1<BaseQueryError<BaseQuery>>
@@ -188,12 +194,14 @@ export type EndpointDefinitionWithQueryFn<
    * ```ts
    * // codeblock-meta title="Basic queryFn example"
    *
-   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+   *
    * interface Post {
-   *   id: number
-   *   name: string
+   *   id: number;
+   *   name: string;
    * }
-   * type PostsResponse = Post[]
+   *
+   * type PostsResponse = Post[];
    *
    * const api = createApi({
    *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
@@ -204,19 +212,25 @@ export type EndpointDefinitionWithQueryFn<
    *     flipCoin: build.query<'heads' | 'tails', void>({
    *       // highlight-start
    *       queryFn(arg, queryApi, extraOptions, baseQuery) {
-   *         const randomVal = Math.random()
+   *         const randomVal = Math.random();
    *         if (randomVal < 0.45) {
-   *           return { data: 'heads' }
+   *           return { data: 'heads' };
    *         }
    *         if (randomVal < 0.9) {
-   *           return { data: 'tails' }
+   *           return { data: 'tails' };
    *         }
-   *         return { error: { status: 500, statusText: 'Internal Server Error', data: "Coin landed on its edge!" } }
-   *       }
+   *         return {
+   *           error: {
+   *             status: 500,
+   *             statusText: 'Internal Server Error',
+   *             data: 'Coin landed on its edge!',
+   *           },
+   *         };
+   *       },
    *       // highlight-end
-   *     })
-   *   })
-   * })
+   *     }),
+   *   }),
+   * });
    * ```
    */
   queryFn(
@@ -269,8 +283,13 @@ interface CommonEndpointDefinition<
    * @example
    * ```ts
    * // codeblock-meta no-transpile
-   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-   * import * as v from "valibot"
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+   * import * as v from 'valibot';
+   *
+   * interface Post {
+   *   id: number;
+   *   name: string;
+   * }
    *
    * const api = createApi({
    *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
@@ -279,8 +298,8 @@ interface CommonEndpointDefinition<
    *       query: ({ id }) => `/post/${id}`,
    *       argSchema: v.object({ id: v.number() }),
    *     }),
-   *   })
-   * })
+   *   }),
+   * });
    * ```
    */
   argSchema?: StandardSchemaV1<QueryArg>
@@ -291,11 +310,11 @@ interface CommonEndpointDefinition<
    * @example
    * ```ts
    * // codeblock-meta no-transpile
-   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-   * import * as v from "valibot"
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+   * import * as v from 'valibot';
    *
-   * const postSchema = v.object({ id: v.number(), name: v.string() })
-   * type Post = v.InferOutput<typeof postSchema>
+   * const postSchema = v.object({ id: v.number(), name: v.string() });
+   * type Post = v.InferOutput<typeof postSchema>;
    *
    * const api = createApi({
    *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
@@ -304,8 +323,8 @@ interface CommonEndpointDefinition<
    *       query: ({ id }) => `/post/${id}`,
    *       responseSchema: postSchema,
    *     }),
-   *   })
-   * })
+   *   }),
+   * });
    * ```
    */
   responseSchema?: StandardSchemaV1<ResultType>
@@ -316,9 +335,13 @@ interface CommonEndpointDefinition<
    * @example
    * ```ts
    * // codeblock-meta no-transpile
-   * import { createApi } from '@reduxjs/toolkit/query/react'
-   * import * as v from "valibot"
-   * import { customBaseQuery, baseQueryErrorSchema } from "./customBaseQuery"
+   * import { createApi } from '@reduxjs/toolkit/query/react';
+   * import { baseQueryErrorSchema, customBaseQuery } from './customBaseQuery';
+   *
+   * interface Post {
+   *   id: number;
+   *   name: string;
+   * }
    *
    * const api = createApi({
    *   baseQuery: customBaseQuery,
@@ -327,8 +350,8 @@ interface CommonEndpointDefinition<
    *       query: ({ id }) => `/post/${id}`,
    *       errorResponseSchema: baseQueryErrorSchema,
    *     }),
-   *   })
-   * })
+   *   }),
+   * });
    * ```
    */
   errorResponseSchema?: StandardSchemaV1<BaseQueryError<BaseQuery>>
@@ -339,9 +362,13 @@ interface CommonEndpointDefinition<
    * @example
    * ```ts
    * // codeblock-meta no-transpile
-   * import { createApi } from '@reduxjs/toolkit/query/react'
-   * import * as v from "valibot"
-   * import { customBaseQuery, baseQueryMetaSchema } from "./customBaseQuery"
+   * import { createApi } from '@reduxjs/toolkit/query/react';
+   * import { baseQueryMetaSchema, customBaseQuery } from './customBaseQuery';
+   *
+   * interface Post {
+   *   id: number;
+   *   name: string;
+   * }
    *
    * const api = createApi({
    *   baseQuery: customBaseQuery,
@@ -350,21 +377,21 @@ interface CommonEndpointDefinition<
    *       query: ({ id }) => `/post/${id}`,
    *       metaSchema: baseQueryMetaSchema,
    *     }),
-   *   })
-   * })
+   *   }),
+   * });
    * ```
    */
   metaSchema?: StandardSchemaV1<BaseQueryMeta<BaseQuery>>
 
   /**
-   * Defaults to `true`.
-   *
    * Most apps should leave this setting on. The only time it can be a performance issue
    * is if an API returns extremely large amounts of data (e.g. 10,000 rows per request) and
    * you're unable to paginate it.
    *
    * For details of how this works, please see the below. When it is set to `false`,
    * every request will cause subscribed components to rerender, even when the data has not changed.
+   *
+   * @default true
    *
    * @see https://redux-toolkit.js.org/api/other-exports#copywithstructuralsharing
    */
@@ -383,8 +410,12 @@ interface CommonEndpointDefinition<
    * @example
    * ```ts
    * // codeblock-meta no-transpile
-   * import { createApi } from '@reduxjs/toolkit/query/react'
-   * import * as v from "valibot"
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+   *
+   * interface Post {
+   *   id: number;
+   *   name: string;
+   * }
    *
    * const api = createApi({
    *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
@@ -392,11 +423,11 @@ interface CommonEndpointDefinition<
    *     getPost: build.query<Post, { id: number }>({
    *       query: ({ id }) => `/post/${id}`,
    *       onSchemaFailure: (error, info) => {
-   *         console.error(error, info)
+   *         console.error(error, info);
    *       },
    *     }),
-   *   })
-   * })
+   *   }),
+   * });
    * ```
    */
   onSchemaFailure?: SchemaFailureHandler
@@ -409,8 +440,13 @@ interface CommonEndpointDefinition<
    * @example
    * ```ts
    * // codeblock-meta no-transpile
-   * import { createApi } from '@reduxjs/toolkit/query/react'
-   * import * as v from "valibot"
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+   * import * as v from 'valibot';
+   *
+   * interface Post {
+   *   id: number;
+   *   name: string;
+   * }
    *
    * const api = createApi({
    *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
@@ -419,20 +455,18 @@ interface CommonEndpointDefinition<
    *       query: ({ id }) => `/post/${id}`,
    *       responseSchema: v.object({ id: v.number(), name: v.string() }),
    *       catchSchemaFailure: (error, info) => ({
-   *         status: "CUSTOM_ERROR",
-   *         error: error.schemaName + " failed validation",
+   *         status: 'CUSTOM_ERROR',
+   *         error: `${error.schemaName} failed validation`,
    *         data: error.issues,
    *       }),
    *     }),
    *   }),
-   * })
+   * });
    * ```
    */
   catchSchemaFailure?: SchemaFailureConverter<BaseQuery>
 
   /**
-   * Defaults to `false`.
-   *
    * If set to `true`, will skip schema validation for this endpoint.
    * Overrides the global setting.
    *
@@ -441,8 +475,13 @@ interface CommonEndpointDefinition<
    * @example
    * ```ts
    * // codeblock-meta no-transpile
-   * import { createApi } from '@reduxjs/toolkit/query/react'
-   * import * as v from "valibot"
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+   * import * as v from 'valibot';
+   *
+   * interface Post {
+   *   id: number;
+   *   name: string;
+   * }
    *
    * const api = createApi({
    *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
@@ -450,11 +489,14 @@ interface CommonEndpointDefinition<
    *     getPost: build.query<Post, { id: number }>({
    *       query: ({ id }) => `/post/${id}`,
    *       responseSchema: v.object({ id: v.number(), name: v.string() }),
-   *       skipSchemaValidation: process.env.NODE_ENV === "test" ? ["response"] : false, // skip schema validation for response in tests, since we'll be mocking the response
+   *       skipSchemaValidation:
+   *         process.env.NODE_ENV === 'test' ? ['response'] : false, // skip schema validation for response in tests, since we'll be mocking the response
    *     }),
-   *   })
-   * })
+   *   }),
+   * });
    * ```
+   *
+   * @default false
    */
   skipSchemaValidation?: boolean | SchemaType[]
 }
@@ -602,12 +644,14 @@ export interface QueryExtraOptions<
    * ```ts
    * // codeblock-meta title="providesTags example"
    *
-   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+   *
    * interface Post {
-   *   id: number
-   *   name: string
+   *   id: number;
+   *   name: string;
    * }
-   * type PostsResponse = Post[]
+   *
+   * type PostsResponse = Post[];
    *
    * const api = createApi({
    *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
@@ -624,9 +668,9 @@ export interface QueryExtraOptions<
    *             ]
    *           : [{ type: 'Posts', id: 'LIST' }],
    *       // highlight-end
-   *     })
-   *   })
-   * })
+   *     }),
+   *   }),
+   * });
    * ```
    */
   providesTags?: ResultDescription<
@@ -654,47 +698,48 @@ export interface QueryExtraOptions<
    * ```ts
    * // codeblock-meta title="serializeQueryArgs : exclude value"
    *
-   * import { createApi, fetchBaseQuery, defaultSerializeQueryArgs } from '@reduxjs/toolkit/query/react'
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+   *
    * interface Post {
-   *   id: number
-   *   name: string
+   *   id: number;
+   *   name: string;
    * }
    *
    * interface MyApiClient {
-   *   fetchPost: (id: string) => Promise<Post>
+   *   fetchPost: (id: string) => Promise<Post>;
    * }
    *
    * createApi({
-   *  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
-   *  endpoints: (build) => ({
-   *    // Example: an endpoint with an API client passed in as an argument,
-   *    // but only the item ID should be used as the cache key
-   *    getPost: build.query<Post, { id: string; client: MyApiClient }>({
-   *      queryFn: async ({ id, client }) => {
-   *        const post = await client.fetchPost(id)
-   *        return { data: post }
-   *      },
-   *      // highlight-start
-   *      serializeQueryArgs: ({ queryArgs, endpointDefinition, endpointName }) => {
-   *        const { id } = queryArgs
-   *        // This can return a string, an object, a number, or a boolean.
-   *        // If it returns an object, number or boolean, that value
-   *        // will be serialized automatically via `defaultSerializeQueryArgs`
-   *        return { id } // omit `client` from the cache key
+   *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+   *   endpoints: (build) => ({
+   *     // Example: an endpoint with an API client passed in as an argument,
+   *     // but only the item ID should be used as the cache key
+   *     getPost: build.query<Post, { id: string; client: MyApiClient }>({
+   *       queryFn: async ({ id, client }) => {
+   *         const post = await client.fetchPost(id);
+   *         return { data: post };
+   *       },
+   *       // highlight-start
+   *       serializeQueryArgs: ({ queryArgs, endpointDefinition, endpointName }) => {
+   *         const { id } = queryArgs;
+   *         // This can return a string, an object, a number, or a boolean.
+   *         // If it returns an object, number or boolean, that value
+   *         // will be serialized automatically via `defaultSerializeQueryArgs`
+   *         return { id }; // omit `client` from the cache key
    *
-   *        // Alternately, you can use `defaultSerializeQueryArgs` yourself:
-   *        // return defaultSerializeQueryArgs({
-   *        //   endpointName,
-   *        //   queryArgs: { id },
-   *        //   endpointDefinition
-   *        // })
-   *        // Or  create and return a string yourself:
-   *        // return `getPost(${id})`
-   *      },
-   *      // highlight-end
-   *    }),
-   *  }),
-   *})
+   *         // Alternately, you can use `defaultSerializeQueryArgs` yourself:
+   *         // return defaultSerializeQueryArgs({
+   *         //   endpointName,
+   *         //   queryArgs: { id },
+   *         //   endpointDefinition
+   *         // })
+   *         // Or  create and return a string yourself:
+   *         // return `getPost(${id})`
+   *       },
+   *       // highlight-end
+   *     }),
+   *   }),
+   * });
    * ```
    */
   serializeQueryArgs?: SerializeQueryArgs<
@@ -727,32 +772,33 @@ export interface QueryExtraOptions<
    * ```ts
    * // codeblock-meta title="merge: pagination"
    *
-   * import { createApi, fetchBaseQuery, defaultSerializeQueryArgs } from '@reduxjs/toolkit/query/react'
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+   *
    * interface Post {
-   *   id: number
-   *   name: string
+   *   id: number;
+   *   name: string;
    * }
    *
    * createApi({
-   *  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
-   *  endpoints: (build) => ({
-   *    listItems: build.query<string[], number>({
-   *      query: (pageNumber) => `/listItems?page=${pageNumber}`,
-   *     // Only have one cache entry because the arg always maps to one string
-   *     serializeQueryArgs: ({ endpointName }) => {
-   *       return endpointName
-   *      },
-   *      // Always merge incoming data to the cache entry
-   *      merge: (currentCache, newItems) => {
-   *        currentCache.push(...newItems)
-   *      },
-   *      // Refetch when the page arg changes
-   *      forceRefetch({ currentArg, previousArg }) {
-   *        return currentArg !== previousArg
-   *      },
-   *    }),
-   *  }),
-   *})
+   *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+   *   endpoints: (build) => ({
+   *     listItems: build.query<string[], number>({
+   *       query: (pageNumber) => `/listItems?page=${pageNumber}`,
+   *       // Only have one cache entry because the arg always maps to one string
+   *       serializeQueryArgs: ({ endpointName }) => {
+   *         return endpointName;
+   *       },
+   *       // Always merge incoming data to the cache entry
+   *       merge: (currentCache, newItems) => {
+   *         currentCache.push(...newItems);
+   *       },
+   *       // Refetch when the page arg changes
+   *       forceRefetch({ currentArg, previousArg }) {
+   *         return currentArg !== previousArg;
+   *       },
+   *     }),
+   *   }),
+   * });
    * ```
    */
   merge?(
@@ -777,33 +823,33 @@ export interface QueryExtraOptions<
    *
    * ```ts
    * // codeblock-meta title="forceRefresh: pagination"
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
    *
-   * import { createApi, fetchBaseQuery, defaultSerializeQueryArgs } from '@reduxjs/toolkit/query/react'
    * interface Post {
-   *   id: number
-   *   name: string
+   *   id: number;
+   *   name: string;
    * }
    *
    * createApi({
-   *  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
-   *  endpoints: (build) => ({
-   *    listItems: build.query<string[], number>({
-   *      query: (pageNumber) => `/listItems?page=${pageNumber}`,
-   *     // Only have one cache entry because the arg always maps to one string
-   *     serializeQueryArgs: ({ endpointName }) => {
-   *       return endpointName
-   *      },
-   *      // Always merge incoming data to the cache entry
-   *      merge: (currentCache, newItems) => {
-   *        currentCache.push(...newItems)
-   *      },
-   *      // Refetch when the page arg changes
-   *      forceRefetch({ currentArg, previousArg }) {
-   *        return currentArg !== previousArg
-   *      },
-   *    }),
-   *  }),
-   *})
+   *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+   *   endpoints: (build) => ({
+   *     listItems: build.query<string[], number>({
+   *       query: (pageNumber) => `/listItems?page=${pageNumber}`,
+   *       // Only have one cache entry because the arg always maps to one string
+   *       serializeQueryArgs: ({ endpointName }) => {
+   *         return endpointName;
+   *       },
+   *       // Always merge incoming data to the cache entry
+   *       merge: (currentCache, newItems) => {
+   *         currentCache.push(...newItems);
+   *       },
+   *       // Refetch when the page arg changes
+   *       forceRefetch({ currentArg, previousArg }) {
+   *         return currentArg !== previousArg;
+   *       },
+   *     }),
+   *   }),
+   * });
    * ```
    */
   forceRefetch?(params: {
@@ -856,7 +902,7 @@ export type InfiniteQueryTypes<
    * The endpoint definition type. To be used with some internal generic types.
    * @example
    * ```ts
-   * const useMyWrappedHook: UseQuery<typeof api.endpoints.query.Types.QueryDefinition> = ...
+   * const useMyWrappedHook: UseInfiniteQuery<typeof api.endpoints.query.Types.InfiniteQueryDefinition> = ...
    * ```
    */
   InfiniteQueryDefinition: InfiniteQueryDefinition<
@@ -913,18 +959,18 @@ export interface InfiniteQueryExtraOptions<
    * `initialPageParam` may be specified when using the
    * endpoint, to override the default value.
    * `maxPages` and `getPreviousPageParam` are both optional.
-   * 
+   *
    * @example
-   * 
+   *
    * ```ts
    * // codeblock-meta title="infiniteQueryOptions example"
-   * import { createApi, fetchBaseQuery, defaultSerializeQueryArgs } from '@reduxjs/toolkit/query/react'
-   * 
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+   *
    * type Pokemon = {
-   *   id: string
-   *   name: string
-   * }
-   * 
+   *   id: string;
+   *   name: string;
+   * };
+   *
    * const pokemonApi = createApi({
    *   baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
    *   endpoints: (build) => ({
@@ -940,16 +986,15 @@ export interface InfiniteQueryExtraOptions<
    *           firstPageParam,
    *           allPageParams,
    *         ) => {
-   *           return firstPageParam > 0 ? firstPageParam - 1 : undefined
+   *           return firstPageParam > 0 ? firstPageParam - 1 : undefined;
    *         },
    *       },
-   *       query({pageParam}) {
-   *         return `https://example.com/listItems?page=${pageParam}`
+   *       query({ pageParam }) {
+   *         return `https://example.com/listItems?page=${pageParam}`;
    *       },
    *     }),
    *   }),
-   * })
-   
+   * });
    * ```
    */
   infiniteQueryOptions: InfiniteQueryConfigOptions<
@@ -970,48 +1015,48 @@ export interface InfiniteQueryExtraOptions<
    *
    * ```ts
    * // codeblock-meta title="serializeQueryArgs : exclude value"
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
    *
-   * import { createApi, fetchBaseQuery, defaultSerializeQueryArgs } from '@reduxjs/toolkit/query/react'
    * interface Post {
-   *   id: number
-   *   name: string
+   *   id: number;
+   *   name: string;
    * }
    *
    * interface MyApiClient {
-   *   fetchPost: (id: string) => Promise<Post>
+   *   fetchPost: (id: string) => Promise<Post>;
    * }
    *
    * createApi({
-   *  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
-   *  endpoints: (build) => ({
-   *    // Example: an endpoint with an API client passed in as an argument,
-   *    // but only the item ID should be used as the cache key
-   *    getPost: build.query<Post, { id: string; client: MyApiClient }>({
-   *      queryFn: async ({ id, client }) => {
-   *        const post = await client.fetchPost(id)
-   *        return { data: post }
-   *      },
-   *      // highlight-start
-   *      serializeQueryArgs: ({ queryArgs, endpointDefinition, endpointName }) => {
-   *        const { id } = queryArgs
-   *        // This can return a string, an object, a number, or a boolean.
-   *        // If it returns an object, number or boolean, that value
-   *        // will be serialized automatically via `defaultSerializeQueryArgs`
-   *        return { id } // omit `client` from the cache key
+   *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+   *   endpoints: (build) => ({
+   *     // Example: an endpoint with an API client passed in as an argument,
+   *     // but only the item ID should be used as the cache key
+   *     getPost: build.query<Post, { id: string; client: MyApiClient }>({
+   *       queryFn: async ({ id, client }) => {
+   *         const post = await client.fetchPost(id);
+   *         return { data: post };
+   *       },
+   *       // highlight-start
+   *       serializeQueryArgs: ({ queryArgs, endpointDefinition, endpointName }) => {
+   *         const { id } = queryArgs;
+   *         // This can return a string, an object, a number, or a boolean.
+   *         // If it returns an object, number or boolean, that value
+   *         // will be serialized automatically via `defaultSerializeQueryArgs`
+   *         return { id }; // omit `client` from the cache key
    *
-   *        // Alternately, you can use `defaultSerializeQueryArgs` yourself:
-   *        // return defaultSerializeQueryArgs({
-   *        //   endpointName,
-   *        //   queryArgs: { id },
-   *        //   endpointDefinition
-   *        // })
-   *        // Or  create and return a string yourself:
-   *        // return `getPost(${id})`
-   *      },
-   *      // highlight-end
-   *    }),
-   *  }),
-   *})
+   *         // Alternately, you can use `defaultSerializeQueryArgs` yourself:
+   *         // return defaultSerializeQueryArgs({
+   *         //   endpointName,
+   *         //   queryArgs: { id },
+   *         //   endpointDefinition
+   *         // })
+   *         // Or  create and return a string yourself:
+   *         // return `getPost(${id})`
+   *       },
+   *       // highlight-end
+   *     }),
+   *   }),
+   * });
    * ```
    */
   serializeQueryArgs?: SerializeQueryArgs<
@@ -1117,12 +1162,14 @@ export interface MutationExtraOptions<
    *
    * ```ts
    * // codeblock-meta title="invalidatesTags example"
-   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+   *
    * interface Post {
-   *   id: number
-   *   name: string
+   *   id: number;
+   *   name: string;
    * }
-   * type PostsResponse = Post[]
+   *
+   * type PostsResponse = Post[];
    *
    * const api = createApi({
    *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
@@ -1144,14 +1191,14 @@ export interface MutationExtraOptions<
    *           url: `posts`,
    *           method: 'POST',
    *           body,
-   *         }
+   *         };
    *       },
    *       // highlight-start
    *       invalidatesTags: [{ type: 'Posts', id: 'LIST' }],
    *       // highlight-end
    *     }),
-   *   })
-   * })
+   *   }),
+   * });
    * ```
    */
   invalidatesTags?: ResultDescription<
@@ -1271,27 +1318,62 @@ export type EndpointBuilder<
    * An endpoint definition that retrieves data, and may provide tags to the cache.
    *
    * @example
-   * ```js
+   * ```ts
    * // codeblock-meta title="Example of all query endpoint options"
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+   *
+   * interface Post {
+   *   id: number;
+   *   name: string;
+   * }
+   *
+   * interface PostsResponse {
+   *   data: Post[];
+   * }
+   *
    * const api = createApi({
-   *  baseQuery,
-   *  endpoints: (build) => ({
-   *    getPost: build.query({
-   *      query: (id) => ({ url: `post/${id}` }),
-   *      // Pick out data and prevent nested properties in a hook or selector
-   *      transformResponse: (response) => response.data,
-   *      // Pick out error and prevent nested properties in a hook or selector
-   *      transformErrorResponse: (response) => response.error,
-   *      // `result` is the server response
-   *      providesTags: (result, error, id) => [{ type: 'Post', id }],
-   *      // trigger side effects or optimistic updates
-   *      onQueryStarted(id, { dispatch, getState, extra, requestId, queryFulfilled, getCacheEntry, updateCachedData }) {},
-   *      // handle subscriptions etc
-   *      onCacheEntryAdded(id, { dispatch, getState, extra, requestId, cacheEntryRemoved, cacheDataLoaded, getCacheEntry, updateCachedData }) {},
-   *    }),
-   *  }),
-   *});
-   *```
+   *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+   *   tagTypes: ['Post'],
+   *   endpoints: (build) => ({
+   *     getPost: build.query<Post[], number, PostsResponse>({
+   *       query: (id) => ({ url: `post/${id}` }),
+   *       // Pick out data and prevent nested properties in a hook or selector
+   *       transformResponse: (response) => response.data,
+   *       // Pick out error and prevent nested properties in a hook or selector
+   *       transformErrorResponse: (response) => response.status,
+   *       // `result` is the server response
+   *       providesTags: (result, error, id) => [{ type: 'Post', id }],
+   *       // trigger side effects or optimistic updates
+   *       onQueryStarted(
+   *         id,
+   *         {
+   *           dispatch,
+   *           getState,
+   *           extra,
+   *           requestId,
+   *           queryFulfilled,
+   *           getCacheEntry,
+   *           updateCachedData,
+   *         },
+   *       ) {},
+   *       // handle subscriptions etc
+   *       onCacheEntryAdded(
+   *         id,
+   *         {
+   *           dispatch,
+   *           getState,
+   *           extra,
+   *           requestId,
+   *           cacheEntryRemoved,
+   *           cacheDataLoaded,
+   *           getCacheEntry,
+   *           updateCachedData,
+   *         },
+   *       ) {},
+   *     }),
+   *   }),
+   * });
+   * ```
    */
   query<
     ResultType,
@@ -1323,23 +1405,53 @@ export type EndpointBuilder<
    * An endpoint definition that alters data on the server or will possibly invalidate the cache.
    *
    * @example
-   * ```js
+   * ```ts
    * // codeblock-meta title="Example of all mutation endpoint options"
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+   *
+   * interface Post {
+   *   id: number;
+   *   name: string;
+   * }
+   *
+   * interface PostsResponse {
+   *   data: Post[];
+   * }
+   *
    * const api = createApi({
-   *   baseQuery,
+   *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+   *   tagTypes: ['Post'],
    *   endpoints: (build) => ({
-   *     updatePost: build.mutation({
-   *       query: ({ id, ...patch }) => ({ url: `post/${id}`, method: 'PATCH', body: patch }),
+   *     updatePost: build.mutation<Post[], Partial<Post>, PostsResponse>({
+   *       query: ({ id, ...patch }) => ({
+   *         url: `post/${id}`,
+   *         method: 'PATCH',
+   *         body: patch,
+   *       }),
    *       // Pick out data and prevent nested properties in a hook or selector
    *       transformResponse: (response) => response.data,
    *       // Pick out error and prevent nested properties in a hook or selector
-   *       transformErrorResponse: (response) => response.error,
+   *       transformErrorResponse: (response) => response.status,
    *       // `result` is the server response
-   *       invalidatesTags: (result, error, id) => [{ type: 'Post', id }],
-   *      // trigger side effects or optimistic updates
-   *      onQueryStarted(id, { dispatch, getState, extra, requestId, queryFulfilled, getCacheEntry }) {},
-   *      // handle subscriptions etc
-   *      onCacheEntryAdded(id, { dispatch, getState, extra, requestId, cacheEntryRemoved, cacheDataLoaded, getCacheEntry }) {},
+   *       invalidatesTags: (result, error, { id }) => [{ type: 'Post', id }],
+   *       // trigger side effects or optimistic updates
+   *       onQueryStarted(
+   *         { id },
+   *         { dispatch, getState, extra, requestId, queryFulfilled, getCacheEntry },
+   *       ) {},
+   *       // handle subscriptions etc
+   *       onCacheEntryAdded(
+   *         { id },
+   *         {
+   *           dispatch,
+   *           getState,
+   *           extra,
+   *           requestId,
+   *           cacheEntryRemoved,
+   *           cacheDataLoaded,
+   *           getCacheEntry,
+   *         },
+   *       ) {},
    *     }),
    *   }),
    * });

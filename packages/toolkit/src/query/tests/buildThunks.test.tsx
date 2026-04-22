@@ -1,4 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit'
+import type { BaseQueryApi } from '@reduxjs/toolkit/query/react'
 import { createApi } from '@reduxjs/toolkit/query/react'
 import { renderHook, waitFor } from '@testing-library/react'
 import {
@@ -6,7 +7,6 @@ import {
   setupApiStore,
   withProvider,
 } from '../../tests/utils/helpers'
-import type { BaseQueryApi } from '../baseQueryTypes'
 
 describe('baseline thunk behavior', () => {
   test('handles a non-async baseQuery without error', async () => {

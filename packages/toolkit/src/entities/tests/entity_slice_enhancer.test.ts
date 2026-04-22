@@ -1,11 +1,13 @@
-import { createEntityAdapter, createSlice } from '../..'
 import type {
+  EntityId,
+  EntityState,
+  IdSelector,
   PayloadAction,
   Slice,
   SliceCaseReducers,
   UnknownAction,
-} from '../..'
-import type { EntityId, EntityState, IdSelector } from '../models'
+} from '@reduxjs/toolkit'
+import { createEntityAdapter, createSlice } from '@reduxjs/toolkit'
 import type { BookModel } from './fixtures/book'
 
 describe('Entity Slice Enhancer', () => {

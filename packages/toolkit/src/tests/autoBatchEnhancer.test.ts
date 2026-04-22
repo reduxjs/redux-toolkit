@@ -1,9 +1,11 @@
-import { configureStore } from '../configureStore'
-import { createSlice } from '../createSlice'
-import type { AutoBatchOptions } from '../autoBatchEnhancer'
-import { autoBatchEnhancer, prepareAutoBatched } from '../autoBatchEnhancer'
-import { delay } from '../utils'
+import type { AutoBatchOptions } from '@reduxjs/toolkit'
+import {
+  configureStore,
+  createSlice,
+  prepareAutoBatched,
+} from '@reduxjs/toolkit'
 import { debounce } from 'lodash'
+import { delay } from '../utils'
 
 interface CounterState {
   value: number
@@ -206,3 +208,58 @@ describe.each(cases)(
     })
   },
 )
+
+describe('autoBatchEnhancer raf with background tab fallback', () => {
+  const rafCallbacks: FrameRequestCallback[] = []
+
+  beforeAll(() => {
+    vitest.useFakeTimers({ toFake: ['setTimeout'] })
+    vitest.stubGlobal(
+      'requestAnimationFrame',
+      vitest.fn((cb: FrameRequestCallback) => {
+        rafCallbacks.push(cb)
+        return rafCallbacks.length
+      }),
+    )
+    vitest.stubGlobal('cancelAnimationFrame', vitest.fn())
+  })
+
+  afterAll(() => {
+    vitest.useRealTimers()
+    vitest.unstubAllGlobals()
+  })
+
+  beforeEach(() => {
+    subscriptionNotifications = 0
+    rafCallbacks.length = 0
+    store = makeStore({ type: 'raf' })
+    store.subscribe(() => {
+      subscriptionNotifications++
+    })
+  })
+
+  test('Notifies subscribers via setTimeout fallback when requestAnimationFrame does not fire', () => {
+    store.dispatch(incrementBatched())
+    store.dispatch(incrementBatched())
+    store.dispatch(incrementBatched())
+
+    expect(rafCallbacks.length).toBe(1)
+    expect(subscriptionNotifications).toBe(0)
+
+    vitest.advanceTimersByTime(100)
+
+    expect(subscriptionNotifications).toBe(1)
+    expect(store.getState().value).toBe(3)
+  })
+
+  test('Does not double-notify if both raf and setTimeout would fire', () => {
+    store.dispatch(incrementBatched())
+    expect(subscriptionNotifications).toBe(0)
+
+    rafCallbacks[0](performance.now())
+    expect(subscriptionNotifications).toBe(1)
+
+    vitest.advanceTimersByTime(100)
+    expect(subscriptionNotifications).toBe(1)
+  })
+})

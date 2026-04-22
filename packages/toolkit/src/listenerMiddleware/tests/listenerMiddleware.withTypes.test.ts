@@ -1,10 +1,12 @@
-import type { Action } from 'redux'
-import type { ThunkAction } from 'redux-thunk'
-import { describe, expect, test } from 'vitest'
-import { configureStore } from '../../configureStore'
-import { createAsyncThunk } from '../../createAsyncThunk'
-import { createSlice } from '../../createSlice'
-import { addListener, createListenerMiddleware, removeListener } from '../index'
+import type { Action, ThunkAction } from '@reduxjs/toolkit'
+import {
+  addListener,
+  configureStore,
+  createAsyncThunk,
+  createListenerMiddleware,
+  createSlice,
+  removeListener,
+} from '@reduxjs/toolkit'
 
 export interface CounterState {
   counter: number
@@ -71,9 +73,17 @@ const stopAppListening = listenerMiddleware.stopListening.withTypes<
   ExtraArgument
 >()
 
-const addAppListener = addListener.withTypes<RootState, AppDispatch, ExtraArgument>()
+const addAppListener = addListener.withTypes<
+  RootState,
+  AppDispatch,
+  ExtraArgument
+>()
 
-const removeAppListener = removeListener.withTypes<RootState, AppDispatch, ExtraArgument>()
+const removeAppListener = removeListener.withTypes<
+  RootState,
+  AppDispatch,
+  ExtraArgument
+>()
 
 describe('startAppListening.withTypes', () => {
   test('should return startListening', () => {

@@ -1,5 +1,8 @@
-import { createDraftSafeSelector, createSelector } from '@reduxjs/toolkit'
-import { produce } from 'immer'
+import {
+  createDraftSafeSelector,
+  createSelector,
+  createNextState as produce,
+} from '@reduxjs/toolkit'
 
 type State = { value: number }
 const selectSelf = (state: State) => state

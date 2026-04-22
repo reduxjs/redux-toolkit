@@ -80,11 +80,12 @@ export type QueryLifecycleQueryExtraOptions<
    *
    * @example
    * ```ts
-   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
-   * import { messageCreated } from './notificationsSlice
+   * import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query';
+   * import { messageCreated } from './notificationsSlice';
+   *
    * export interface Post {
-   *   id: number
-   *   name: string
+   *   id: number;
+   *   name: string;
    * }
    *
    * const api = createApi({
@@ -96,19 +97,19 @@ export type QueryLifecycleQueryExtraOptions<
    *       query: (id) => `post/${id}`,
    *       async onQueryStarted(id, { dispatch, queryFulfilled }) {
    *         // `onStart` side-effect
-   *         dispatch(messageCreated('Fetching posts...'))
+   *         dispatch(messageCreated('Fetching posts...'));
    *         try {
-   *           const { data } = await queryFulfilled
+   *           const { data } = await queryFulfilled;
    *           // `onSuccess` side-effect
-   *           dispatch(messageCreated('Posts received!'))
+   *           dispatch(messageCreated('Posts received!'));
    *         } catch (err) {
    *           // `onError` side-effect
-   *           dispatch(messageCreated('Error fetching posts!'))
+   *           dispatch(messageCreated('Error fetching posts!'));
    *         }
-   *       }
+   *       },
    *     }),
    *   }),
-   * })
+   * });
    * ```
    */
   onQueryStarted?(

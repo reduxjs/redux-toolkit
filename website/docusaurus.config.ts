@@ -1,14 +1,20 @@
 // site configuration options.
-import { resolve } from 'path'
-import { linkDocblocks, transpileCodeblocks } from 'remark-typescript-tools'
+import type { Options as UmamiOptions } from '@dipakparmar/docusaurus-plugin-umami'
 import type { Options, ThemeConfig } from '@docusaurus/preset-classic'
 import type { Config } from '@docusaurus/types'
-import type { Options as UmamiOptions } from '@dipakparmar/docusaurus-plugin-umami'
-import type { Options as RSDoctorOptions } from '@docusaurus/plugin-rsdoctor'
+import { resolve } from 'node:path'
+import type {
+  LinkDocblocksSettings,
+  TranspileCodeblocksSettings,
+} from 'remark-typescript-tools'
+import { linkDocblocks, transpileCodeblocks } from 'remark-typescript-tools'
 
 const config: Config = {
   future: {
-    experimental_faster: true,
+    experimental_faster: {
+      ssgWorkerThreads: true,
+    },
+    v4: true,
   },
   presets: [
     [
@@ -16,7 +22,7 @@ const config: Config = {
       {
         docs: {
           path: '../docs',
-          sidebarPath: require.resolve('./sidebars'),
+          sidebarPath: './sidebars.ts',
           showLastUpdateTime: true,
           routeBasePath: '/',
           editUrl: 'https://github.com/reduxjs/redux-toolkit/blob/master/docs/',
@@ -40,7 +46,7 @@ const config: Config = {
                     'query/core/buildMiddleware/cacheCollection.ts',
                   ],
                 },
-              },
+              } satisfies LinkDocblocksSettings,
             ],
             // Only transpile codeblocks in CI, as it's slow
             process.env.CI
@@ -51,13 +57,13 @@ const config: Config = {
                       tsconfig: resolve(__dirname, '../docs/tsconfig.json'),
                       externalResolutions: {},
                     },
-                  },
+                  } satisfies TranspileCodeblocksSettings,
                 ]
               : null,
           ].filter(Boolean),
         },
         theme: {
-          customCss: require.resolve('./src/css/custom.css'),
+          customCss: './src/css/custom.css',
         },
       } satisfies Options,
     ],
@@ -191,7 +197,6 @@ const config: Config = {
         dataCache: true,
       } satisfies UmamiOptions,
     ],
-    process.env.RSDOCTOR === 'true' && ['rsdoctor', {}],
   ],
 }
 
