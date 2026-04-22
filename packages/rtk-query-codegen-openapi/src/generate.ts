@@ -372,7 +372,7 @@ export async function generateApi(
     const queryArg: QueryArgDefinitions = {};
     function generateName(name: string, potentialPrefix: string) {
       const isPureSnakeCase = /^[a-zA-Z][a-zA-Z0-9_]*$/.test(name);
-      // prefix with `query`, `path` or `body` if there are multiple paramters with the same name
+      // prefix with `query`, `path` or `body` if there are multiple parameters with the same name
       const hasNamingConflict = allNames.filter((n) => n === name).length > 1;
       if (hasNamingConflict) {
         name = `${potentialPrefix}_${name}`;

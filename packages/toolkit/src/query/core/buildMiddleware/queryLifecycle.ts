@@ -205,7 +205,9 @@ export interface QueryLifecycleApi<
   BaseQuery extends BaseQueryFn,
   ResultType,
   ReducerPath extends string = string,
-> extends QueryBaseLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
+>
+  extends
+    QueryBaseLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
     QueryLifecyclePromises<ResultType, BaseQuery> {}
 
 export type MutationLifecycleApi<
@@ -430,7 +432,7 @@ export const buildQueryLifecycleHandler: InternalHandlerBuilder = ({
 }) => {
   const isPendingThunk = isPending(queryThunk, mutationThunk)
   const isRejectedThunk = isRejected(queryThunk, mutationThunk)
-  const isFullfilledThunk = isFulfilled(queryThunk, mutationThunk)
+  const isFulfilledThunk = isFulfilled(queryThunk, mutationThunk)
 
   type CacheLifecycle = {
     resolve(value: { data: unknown; meta: unknown }): unknown
@@ -484,7 +486,7 @@ export const buildQueryLifecycleHandler: InternalHandlerBuilder = ({
         }
         onQueryStarted(originalArgs, lifecycleApi as any)
       }
-    } else if (isFullfilledThunk(action)) {
+    } else if (isFulfilledThunk(action)) {
       const { requestId, baseQueryMeta } = action.meta
       lifecycleMap[requestId]?.resolve({
         data: action.payload,

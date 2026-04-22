@@ -1,4 +1,4 @@
-import { BrowserRouter, Link, Route, Routes, useLocation } from "react-router"
+import { BrowserRouter, Link, Route, Routes } from "react-router"
 import "./App.css"
 
 import { Outlet } from "react-router"
@@ -30,7 +30,7 @@ const Menu = () => {
           </Link>
         </li>
         <li>
-          <Link to="/examples/bidirectional-cursor-infinte-scroll">
+          <Link to="/examples/bidirectional-cursor-infinite-scroll">
             Bidirectional Cursor-Based Infinite Scroll
           </Link>
         </li>
@@ -80,7 +80,7 @@ const App = () => {
               element={<InfiniteScrollMaxPagesExample />}
             />
             <Route
-              path="bidirectional-cursor-infinte-scroll"
+              path="bidirectional-cursor-infinite-scroll"
               element={<BidirectionalCursorInfScroll />}
             />
             <Route path="limit-offset" element={<LimitOffsetExample />} />

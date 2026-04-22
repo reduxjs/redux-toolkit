@@ -173,7 +173,7 @@ export interface DevToolsEnhancerOptions {
      */
     import?: boolean | 'custom'
     /**
-     * jump back and forth (time travelling)
+     * jump back and forth (time traveling)
      */
     jump?: boolean
     /**

@@ -42,7 +42,7 @@ beforeEach(() => {
   ) as unknown as SubscriptionSelectors)
 })
 
-test('multiple synchonrous initiate calls with pre-existing cache entry', async () => {
+test('multiple synchronous initiate calls with pre-existing cache entry', async () => {
   const { store, api } = storeRef
   // seed the store
   const firstValue = await store.dispatch(api.endpoints.increment.initiate())
