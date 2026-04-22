@@ -83,14 +83,14 @@ describe('fork', () => {
   })
 
   it('runs executors in the next microtask', async () => {
-    let hasRunSyncExector = false
+    let hasRunSyncExecutor = false
     let hasRunAsyncExecutor = false
 
     startListening({
       actionCreator: increment,
       effect: async (_, listenerApi) => {
         listenerApi.fork(() => {
-          hasRunSyncExector = true
+          hasRunSyncExecutor = true
         })
 
         listenerApi.fork(async () => {
@@ -101,12 +101,12 @@ describe('fork', () => {
 
     store.dispatch(increment())
 
-    expect(hasRunSyncExector).toBe(false)
+    expect(hasRunSyncExecutor).toBe(false)
     expect(hasRunAsyncExecutor).toBe(false)
 
     await Promise.resolve()
 
-    expect(hasRunSyncExector).toBe(true)
+    expect(hasRunSyncExecutor).toBe(true)
     expect(hasRunAsyncExecutor).toBe(true)
   })
 

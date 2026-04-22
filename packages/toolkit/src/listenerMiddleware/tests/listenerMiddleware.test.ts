@@ -568,7 +568,7 @@ describe('createListenerMiddleware', () => {
       },
     )
 
-    const unforwardedActions: [string, UnknownAction][] = [
+    const unForwardedActions: [string, UnknownAction][] = [
       [
         'addListener',
         addListener({ actionCreator: testAction1, effect: noop }),
@@ -578,7 +578,7 @@ describe('createListenerMiddleware', () => {
         removeListener({ actionCreator: testAction1, effect: noop }),
       ],
     ]
-    test.each(unforwardedActions)(
+    test.each(unForwardedActions)(
       '"%s" is not forwarded to the reducer',
       (_, action) => {
         reducer.mockClear()
@@ -959,7 +959,7 @@ describe('createListenerMiddleware', () => {
       expect(reducer.mock.calls).toEqual([[{}, testAction1('a')]])
     })
 
-    test('listenerApi.delay does not trigger unhandledRejections for completed or cancelled listners', async () => {
+    test('listenerApi.delay does not trigger unhandledRejections for completed or cancelled listeners', async () => {
       const deferredCompletedEvt = deferred()
       const deferredCancelledEvt = deferred()
       const godotPauseTrigger = deferred()
@@ -1344,7 +1344,7 @@ describe('createListenerMiddleware', () => {
           if (jobsStarted < 3) {
             try {
               await listenerApi.condition(decrement.match)
-              // Cancelation _should_ cause `condition()` to throw so we never
+              // Cancellation _should_ cause `condition()` to throw so we never
               // end up hitting this next line
               jobsContinued++
             } catch (err) {

@@ -23,7 +23,7 @@ test('number arg', () => {
   ).toMatchInlineSnapshot(`"test(5)"`)
 })
 
-test('bigint arg has non-default serialization (intead of throwing)', () => {
+test('bigint arg has non-default serialization (instead of throwing)', () => {
   expect(
     defaultSerializeQueryArgs({
       endpointDefinition,

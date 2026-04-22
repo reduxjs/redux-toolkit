@@ -118,7 +118,7 @@ describe('Saga-style Effects Scenarios', () => {
           pollingTaskStarted = true
           try {
             while (true) {
-              // Cancelation-aware pause for a new server message
+              // Cancellation-aware pause for a new server message
               const serverEvent = await forkApi.pause(pollForEvent())
               // Process the message. In this case, just count the times we've seen this message.
               if (serverEvent.type in receivedMessages) {
@@ -155,15 +155,15 @@ describe('Saga-style Effects Scenarios', () => {
 
     store.dispatch(eventPollingStopped())
 
-    // Have to break out of the event loop to let the cancelation promise
+    // Have to break out of the event loop to let the cancellation promise
     // kick in - emitting before this would still resolve pollForEvent()
     await delay(1)
     emitter.emit('serverEvent', 'c')
 
     // A and B were processed earlier. The first C was processed because the
     // emitter synchronously resolved the `pollForEvents` promise before
-    // the cancelation took effect, but after another pause, the
-    // cancelation kicked in and the second C is ignored.
+    // the cancellation took effect, but after another pause, the
+    // cancellation kicked in and the second C is ignored.
     expect(receivedMessages).toEqual({ a: 1, b: 1, c: 0 })
     expect(pollingTaskCanceled).toBe(true)
   })
