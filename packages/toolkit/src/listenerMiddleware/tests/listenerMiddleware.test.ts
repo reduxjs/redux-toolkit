@@ -568,7 +568,7 @@ describe('createListenerMiddleware', () => {
       },
     )
 
-    const unForwardedActions: [string, UnknownAction][] = [
+    const unforwardedActions: [string, UnknownAction][] = [
       [
         'addListener',
         addListener({ actionCreator: testAction1, effect: noop }),
@@ -578,7 +578,7 @@ describe('createListenerMiddleware', () => {
         removeListener({ actionCreator: testAction1, effect: noop }),
       ],
     ]
-    test.each(unForwardedActions)(
+    test.each(unforwardedActions)(
       '"%s" is not forwarded to the reducer',
       (_, action) => {
         reducer.mockClear()
