@@ -686,6 +686,18 @@ export interface QueryExtraOptions<
   invalidatesTags?: never
 
   /**
+   * Can be provided to skip the query if the condition is met.
+   *
+   * It's the equivalent of the `skip` option on the query hook but for the endpoint definition.
+   *
+   * @example
+   * ```ts
+   * skipCondition: (state) => state.user.isLoggedIn === false
+   * ```
+   */
+  skipCondition?: (state: RootState<any, string, ReducerPath>) => boolean
+
+  /**
    * Can be provided to return a custom cache key value based on the query arguments.
    *
    * This is primarily intended for cases where a non-serializable value is passed as part of the query arg object and should be excluded from the cache key.  It may also be used for cases where an endpoint should only have a single cache entry, such as an infinite loading / pagination implementation.
