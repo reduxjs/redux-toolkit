@@ -1,12 +1,10 @@
-import {
-  getEndpointDefinition,
-  type Api,
-  type ApiContext,
-  type Module,
-  type ModuleName,
-} from './apiTypes'
-import type { CombinedState } from './core/apiState'
-import type { BaseQueryArg, BaseQueryFn } from './baseQueryTypes'
+import type { UnknownAction } from '@reduxjs/toolkit'
+import { weakMapMemoize } from 'reselect'
+import type { Api, ApiContext, Module, ModuleName } from './apiTypes'
+import { getEndpointDefinition } from './apiTypes'
+import type { BaseQueryFn } from './baseQueryTypes'
+import type { CombinedState } from './core/index'
+import { nanoid } from './core/rtkImports'
 import type { SerializeQueryArgs } from './defaultSerializeQueryArgs'
 import { defaultSerializeQueryArgs } from './defaultSerializeQueryArgs'
 import type {
@@ -17,17 +15,11 @@ import type {
   SchemaType,
 } from './endpointDefinitions'
 import {
-  DefinitionType,
   ENDPOINT_INFINITEQUERY,
   ENDPOINT_MUTATION,
   ENDPOINT_QUERY,
   isInfiniteQueryDefinition,
-  isQueryDefinition,
 } from './endpointDefinitions'
-import { nanoid } from './core/rtkImports'
-import type { UnknownAction } from '@reduxjs/toolkit'
-import type { NoInfer } from './tsHelpers'
-import { weakMapMemoize } from 'reselect'
 
 export interface CreateApiOptions<
   BaseQuery extends BaseQueryFn,
