@@ -7,7 +7,6 @@ import type {
 import type {
   Api,
   ApiContext,
-  ApiEndpointInfiniteQuery,
   ApiEndpointMutation,
   ApiEndpointQuery,
   BaseQueryFn,
@@ -36,11 +35,17 @@ import type {
   SkipToken,
   SubscriptionOptions,
   TSHelpersId,
-  TSHelpersNoInfer,
   TSHelpersOverride,
 } from '@reduxjs/toolkit/query'
-import { QueryStatus, skipToken } from './rtkqImports'
 import type { DependencyList } from 'react'
+import type { InfiniteQueryDirection } from '../core/apiState'
+import type { StartInfiniteQueryActionCreator } from '../core/buildInitiate'
+import type { SubscriptionSelectors } from '../core/buildMiddleware/index'
+import type { InfiniteData } from '../core/index'
+import { isInfiniteQueryDefinition } from '../endpointDefinitions'
+import type { UninitializedValue } from './constants'
+import { UNINITIALIZED_VALUE } from './constants'
+import type { ReactHooksModuleOptions } from './module'
 import {
   useCallback,
   useDebugValue,
@@ -51,17 +56,9 @@ import {
   useState,
 } from './reactImports'
 import { shallowEqual } from './reactReduxImports'
-
-import type { SubscriptionSelectors } from '../core/buildMiddleware/index'
-import type { InfiniteData, InfiniteQueryConfigOptions } from '../core/index'
-import type { UninitializedValue } from './constants'
-import { UNINITIALIZED_VALUE } from './constants'
-import type { ReactHooksModuleOptions } from './module'
+import { QueryStatus, skipToken } from './rtkqImports'
 import { useStableQueryArgs } from './useSerializedStableValue'
 import { useShallowStableValue } from './useShallowStableValue'
-import type { InfiniteQueryDirection } from '../core/apiState'
-import { isInfiniteQueryDefinition } from '../endpointDefinitions'
-import type { StartInfiniteQueryActionCreator } from '../core/buildInitiate'
 
 // Copy-pasted from React-Redux
 const canUseDOM = () =>
@@ -688,7 +685,7 @@ export type TypedUseQueryStateOptions<
 export type UseQueryStateResult<
   _ extends QueryDefinition<any, any, any, any>,
   R,
-> = TSHelpersNoInfer<R>
+> = R
 
 /**
  * Helper type to manually type the result
@@ -701,7 +698,7 @@ export type TypedUseQueryStateResult<
   R = UseQueryStateDefaultResult<
     QueryDefinition<QueryArg, BaseQuery, string, ResultType, string>
   >,
-> = TSHelpersNoInfer<R>
+> = R
 
 type UseQueryStateBaseResult<D extends QueryDefinition<any, any, any, any>> =
   QuerySubState<D> & {
@@ -957,19 +954,17 @@ export type TypedInfiniteQueryStateSelector<
   QueryArg,
   PageParam,
   BaseQuery extends BaseQueryFn,
-  SelectedResult extends Record<
-    string,
-    any
-  > = UseInfiniteQueryStateDefaultResult<
-    InfiniteQueryDefinition<
-      QueryArg,
-      PageParam,
-      BaseQuery,
-      string,
-      ResultType,
-      string
-    >
-  >,
+  SelectedResult extends Record<string, any> =
+    UseInfiniteQueryStateDefaultResult<
+      InfiniteQueryDefinition<
+        QueryArg,
+        PageParam,
+        BaseQuery,
+        string,
+        ResultType,
+        string
+      >
+    >,
 > = InfiniteQueryStateSelector<
   SelectedResult,
   InfiniteQueryDefinition<
@@ -1203,19 +1198,17 @@ export type TypedUseInfiniteQueryStateOptions<
   QueryArg,
   PageParam,
   BaseQuery extends BaseQueryFn,
-  SelectedResult extends Record<
-    string,
-    any
-  > = UseInfiniteQueryStateDefaultResult<
-    InfiniteQueryDefinition<
-      QueryArg,
-      PageParam,
-      BaseQuery,
-      string,
-      ResultType,
-      string
-    >
-  >,
+  SelectedResult extends Record<string, any> =
+    UseInfiniteQueryStateDefaultResult<
+      InfiniteQueryDefinition<
+        QueryArg,
+        PageParam,
+        BaseQuery,
+        string,
+        ResultType,
+        string
+      >
+    >,
 > = UseInfiniteQueryStateOptions<
   InfiniteQueryDefinition<
     QueryArg,
@@ -1231,7 +1224,7 @@ export type TypedUseInfiniteQueryStateOptions<
 export type UseInfiniteQueryStateResult<
   D extends InfiniteQueryDefinition<any, any, any, any, any>,
   R = UseInfiniteQueryStateDefaultResult<D>,
-> = TSHelpersNoInfer<R>
+> = R
 
 export type TypedUseInfiniteQueryStateResult<
   ResultType,
@@ -1381,7 +1374,7 @@ export type TypedUseMutationStateOptions<
 export type UseMutationStateResult<
   D extends MutationDefinition<any, any, any, any>,
   R,
-> = TSHelpersNoInfer<R> & {
+> = R & {
   originalArgs?: QueryArgFrom<D>
   /**
    * Resets the hook state to its initial `uninitialized` state.

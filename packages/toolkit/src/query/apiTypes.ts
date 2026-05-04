@@ -1,6 +1,6 @@
 import type { UnknownAction } from '@reduxjs/toolkit'
 import type { BaseQueryFn } from './baseQueryTypes'
-import type { CombinedState, CoreModule, QueryKeys } from './core'
+import type { CombinedState, CoreModule } from './core/index'
 import type { ApiModules } from './core/module'
 import type { CreateApiOptions } from './createApi'
 import type {
@@ -9,11 +9,7 @@ import type {
   EndpointDefinitions,
   UpdateDefinitions,
 } from './endpointDefinitions'
-import type {
-  NoInfer,
-  UnionToIntersection,
-  WithRequiredProp,
-} from './tsHelpers'
+import type { UnionToIntersection, WithRequiredProp } from './tsHelpers'
 
 export type ModuleName = keyof ApiModules<any, any, any, any>
 
