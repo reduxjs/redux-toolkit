@@ -250,6 +250,8 @@
   "files": [
     "dist/",
     "src/",
+    "!src/**/tests/**",
+    "!src/**/*.{test,spec}(-d)?.(c|m)[tj]sx?",
     "query",
     "react",
     "skills",
