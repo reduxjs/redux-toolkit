@@ -16,7 +16,7 @@ jobs:
       codegen: ${{ steps.filter.outputs.codegen }}
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
-      - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3
+      - uses: dorny/paths-filter@d1c1ffe0248fe513906c8e24db8ea791d46f8590 # v3.0.3
         id: filter
         with:
           filters: |
@@ -147,4 +147,4 @@ jobs:
           name: package
 
       - name: Run are-the-types-wrong
-        run: yarn dlx @arethetypeswrong/cli@latest ./package.tgz --format table --exclude-entrypoints cli
+        run: yarn dlx @arethetypeswrong/cli@0.18.2 ./package.tgz --format table --exclude-entrypoints cli
