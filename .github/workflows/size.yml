@@ -1,22 +1,42 @@
-name: size
-on:
-  pull_request:
-    branches:
-      - master
-      - 'feature/infinite-query-integration'
-permissions:
-  pull-requests: write
+name: Check Bundle-Size
+
+on: [push, pull_request, workflow_dispatch]
+
 jobs:
   size:
     runs-on: ubuntu-latest
+    name: Check Bundle-Size
+
+    strategy:
+      matrix:
+        node: ['24.x']
+
     env:
       CI_JOB_NUMBER: 1
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
-      - uses: EskiMojo14/size-limit-action@af0584be5b6cc2d056bd31a314fc2ce9c9c1a929 # v2
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+      - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f #v6
+        with:
+          node-version: ${{ matrix.node }}
+          cache: 'yarn'
+          check-latest: true
+
+      - run: yarn install
+
+      - uses: EskiMojo14/size-limit-action@5ff03b55dbf25851dde7b2a6ad1758b1dddc0637 # v2
+        id: size
+        continue-on-error: true
+
         with:
           directory: packages/toolkit
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          build_script: build-only
+          build_script: build
           package_manager: yarn
           size_margin: non-zero
+
+      - name: Run size-limit locally
+        if: ${{ success() && steps.size.outcome == 'failure' }}
+        working-directory: packages/toolkit
+        run: |
+          yarn run build
+          yarn run size

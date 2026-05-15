@@ -7755,8 +7755,8 @@ __metadata:
     "@babel/helper-module-imports": "npm:^7.24.7"
     "@microsoft/api-extractor": "npm:^7.13.2"
     "@phryneas/ts-version": "npm:^1.0.2"
-    "@size-limit/file": "npm:^11.0.1"
-    "@size-limit/webpack": "npm:^11.0.1"
+    "@size-limit/file": "npm:^12.1.0"
+    "@size-limit/webpack": "npm:^12.1.0"
     "@standard-schema/spec": "npm:^1.0.0"
     "@standard-schema/utils": "npm:^0.3.0"
     "@tanstack/intent": "npm:^0.0.19"
@@ -7785,6 +7785,7 @@ __metadata:
     eslint-plugin-react: "npm:^7.23.2"
     eslint-plugin-react-hooks: "npm:^4.2.0"
     immer: "npm:^11.0.0"
+    jiti: "npm:^2.6.1"
     jsdom: "npm:^25.0.1"
     msw: "npm:^2.1.4"
     node-fetch: "npm:^3.3.2"
@@ -7797,7 +7798,7 @@ __metadata:
     redux-thunk: "npm:^3.1.0"
     reselect: "npm:^5.1.0"
     rimraf: "npm:^6.1.3"
-    size-limit: "npm:^11.0.1"
+    size-limit: "npm:^12.1.0"
     tsup: "npm:^8.4.0"
     tsx: "npm:^4.19.0"
     typescript: "npm:^5.9.3"
@@ -8636,24 +8637,24 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@size-limit/file@npm:^11.0.1":
-  version: 11.2.0
-  resolution: "@size-limit/file@npm:11.2.0"
+"@size-limit/file@npm:^12.1.0":
+  version: 12.1.0
+  resolution: "@size-limit/file@npm:12.1.0"
   peerDependencies:
-    size-limit: 11.2.0
-  checksum: 10/0802fddafe68c29268feb683a0b9d41dabe29d39278ddf704674d62485e1ea23743e88a435517dea6553da148e559d2537f3c459f9f7c92fd838563b2e97b3cf
+    size-limit: 12.1.0
+  checksum: 10/66e2c937ff363ae5b91a055bebd8ddb658fa44f3184ebbe13d6eb76014d96da758d93cc4e69b1d34e5ce589dc5e0016f758ec0864e8fdfb4cdc353d5891b2a44
   languageName: node
   linkType: hard
 
-"@size-limit/webpack@npm:^11.0.1":
-  version: 11.2.0
-  resolution: "@size-limit/webpack@npm:11.2.0"
+"@size-limit/webpack@npm:^12.1.0":
+  version: 12.1.0
+  resolution: "@size-limit/webpack@npm:12.1.0"
   dependencies:
-    nanoid: "npm:^5.1.0"
-    webpack: "npm:^5.98.0"
+    nanoid: "npm:^5.1.7"
+    webpack: "npm:^5.106.1"
   peerDependencies:
-    size-limit: 11.2.0
-  checksum: 10/7c7e25ffbdf097973c1fb7f50a706a8fb3e407223eb6e35caa36b90d2057ccb17a9269243ea46b0bd9db0183a4f9cc194849f5facd19701437b24fdf101a6573
+    size-limit: 12.1.0
+  checksum: 10/b8a79507d1fed49f023035afa317cab32a7e626d334227df3653dadfbaa3395f571f6bfaaa1d8e385f1205329f232bcede9ebbe3ecfdaceae2eb23857c71a92a
   languageName: node
   linkType: hard
 
@@ -21029,7 +21030,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jiti@npm:^2.4.2":
+"jiti@npm:^2.6.1":
   version: 2.6.1
   resolution: "jiti@npm:2.6.1"
   bin:
@@ -24045,12 +24046,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nanoid@npm:^5.1.0":
-  version: 5.1.7
-  resolution: "nanoid@npm:5.1.7"
+"nanoid@npm:^5.1.7":
+  version: 5.1.9
+  resolution: "nanoid@npm:5.1.9"
   bin:
     nanoid: bin/nanoid.js
-  checksum: 10/9ca13b1e87c61b21afaa578f40afbb6488fbc24609c34bba744941f9f56feb5b416ea7dfcc1ec4927a8c0f52e5ea755633662dbd58b9e87fd7899c1d7b242ed6
+  checksum: 10/a8cc355ed2176165a0fb5e0dbbac0b72f05d9ac08af50bf652ace22252d7a1455ef307b54681e39baf609a4da84600cad843bf01d9bd1cc1440f6fd166e19589
   languageName: node
   linkType: hard
 
@@ -30259,20 +30260,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"size-limit@npm:^11.0.1":
-  version: 11.2.0
-  resolution: "size-limit@npm:11.2.0"
+"size-limit@npm:^12.1.0":
+  version: 12.1.0
+  resolution: "size-limit@npm:12.1.0"
   dependencies:
     bytes-iec: "npm:^3.1.1"
-    chokidar: "npm:^4.0.3"
-    jiti: "npm:^2.4.2"
     lilconfig: "npm:^3.1.3"
     nanospinner: "npm:^1.2.2"
     picocolors: "npm:^1.1.1"
-    tinyglobby: "npm:^0.2.11"
+    tinyglobby: "npm:^0.2.16"
+  peerDependencies:
+    jiti: ^2.0.0
+  peerDependenciesMeta:
+    jiti:
+      optional: true
   bin:
     size-limit: bin.js
-  checksum: 10/76c81693783a51621bca7a359777f8028f21ee1b77be8008768757d3f40bd8b6d173206b9c003d47e73b326090af9c05022d74004651f4a8e0895b3001c242e2
+  checksum: 10/57a2454517850e9188cced7d1e9063ca7576510e162a371bef06b29a5492ca943fcca6a8351f00c2b80356ea9379927a793d4500bc85e61254bf59909b1d22a6
   languageName: node
   linkType: hard
 
@@ -31574,6 +31578,16 @@ __metadata:
     fdir: "npm:^6.5.0"
     picomatch: "npm:^4.0.3"
   checksum: 10/d72bd826a8b0fa5fa3929e7fe5ba48fceb2ae495df3a231b6c5408cd7d8c00b58ab5a9c2a76ba56a62ee9b5e083626f1f33599734bed1ffc4b792406408f0ca2
+  languageName: node
+  linkType: hard
+
+"tinyglobby@npm:^0.2.16":
+  version: 0.2.16
+  resolution: "tinyglobby@npm:0.2.16"
+  dependencies:
+    fdir: "npm:^6.5.0"
+    picomatch: "npm:^4.0.4"
+  checksum: 10/5c2c41b572ada38449e7c86a5fe034f204a1dbba577225a761a14f29f48dc3f2fc0d81a6c56fcc67c5a742cc3aa9fb5e2ca18dbf22b610b0bc0e549b34d5a0f8
   languageName: node
   linkType: hard
 
@@ -33400,7 +33414,44 @@ __metadata:
   languageName: node
   linkType: hard
 
-"webpack@npm:^5.64.4, webpack@npm:^5.88.1, webpack@npm:^5.95.0, webpack@npm:^5.98.0":
+"webpack@npm:^5.106.1":
+  version: 5.106.2
+  resolution: "webpack@npm:5.106.2"
+  dependencies:
+    "@types/eslint-scope": "npm:^3.7.7"
+    "@types/estree": "npm:^1.0.8"
+    "@types/json-schema": "npm:^7.0.15"
+    "@webassemblyjs/ast": "npm:^1.14.1"
+    "@webassemblyjs/wasm-edit": "npm:^1.14.1"
+    "@webassemblyjs/wasm-parser": "npm:^1.14.1"
+    acorn: "npm:^8.16.0"
+    acorn-import-phases: "npm:^1.0.3"
+    browserslist: "npm:^4.28.1"
+    chrome-trace-event: "npm:^1.0.2"
+    enhanced-resolve: "npm:^5.20.0"
+    es-module-lexer: "npm:^2.0.0"
+    eslint-scope: "npm:5.1.1"
+    events: "npm:^3.2.0"
+    glob-to-regexp: "npm:^0.4.1"
+    graceful-fs: "npm:^4.2.11"
+    loader-runner: "npm:^4.3.1"
+    mime-db: "npm:^1.54.0"
+    neo-async: "npm:^2.6.2"
+    schema-utils: "npm:^4.3.3"
+    tapable: "npm:^2.3.0"
+    terser-webpack-plugin: "npm:^5.3.17"
+    watchpack: "npm:^2.5.1"
+    webpack-sources: "npm:^3.3.4"
+  peerDependenciesMeta:
+    webpack-cli:
+      optional: true
+  bin:
+    webpack: bin/webpack.js
+  checksum: 10/524dcd7f07dfa993ab46c5ae2e302aeaa98bed760e40644f61544c1db67e5cd7be24016c8ee245895eda024020cfa58a953f1771a21028ac5d040adc92240e0f
+  languageName: node
+  linkType: hard
+
+"webpack@npm:^5.64.4, webpack@npm:^5.88.1, webpack@npm:^5.95.0":
   version: 5.105.4
   resolution: "webpack@npm:5.105.4"
   dependencies:
