@@ -186,6 +186,7 @@ const config: Config = {
     // },
   } satisfies ThemeConfig,
   plugins: [
+    'docusaurus-plugin-copy-page-button',
     [
       '@dipakparmar/docusaurus-plugin-umami',
       {
