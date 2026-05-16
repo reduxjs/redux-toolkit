@@ -18,6 +18,7 @@ import { buildDevCheckHandler } from './devMiddleware'
 import { buildInvalidationByTagsHandler } from './invalidationByTags'
 import { buildPollingHandler } from './polling'
 import { buildQueryLifecycleHandler } from './queryLifecycle'
+import { registerMiddleware } from './registration'
 import type {
   BuildMiddlewareInput,
   InternalHandlerBuilder,
@@ -97,13 +98,13 @@ export function buildMiddleware<
         if (!isAction(action)) {
           return next(action)
         }
-        if (!initialized) {
-          initialized = true
-          // dispatch before any other action
-          mwApi.dispatch(api.internalActions.middlewareRegistered(apiUid))
-        }
 
         const mwApiWithNext = { ...mwApi, next }
+
+        if (!initialized) {
+          initialized = true
+          registerMiddleware(api, mwApiWithNext, apiUid, reducerPath)
+        }
 
         const stateBefore = mwApi.getState()
 
