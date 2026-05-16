@@ -938,6 +938,15 @@ _(optional, not applicable with `queryFn`)_
 
 [summary](docblock://query/endpointDefinitions.ts?token=EndpointDefinitionWithQuery.rawErrorResponseSchema)
 
+Use `rawErrorResponseSchema` to validate the error value returned by your `baseQuery` **before** `transformErrorResponse` runs.
+
+This is the error-side equivalent of `rawResponseSchema`. If you want to validate the final value that your endpoint exposes after `transformErrorResponse`, use [`errorResponseSchema`](#errorresponseschema) instead.
+
+In practice:
+
+- `rawErrorResponseSchema` validates the original error shape returned from the server or `baseQuery`
+- `errorResponseSchema` validates the transformed error shape that ends up in RTK Query's cache and hooks
+
 [examples](docblock://query/endpointDefinitions.ts?token=EndpointDefinitionWithQuery.rawErrorResponseSchema)
 
 #### `metaSchema`
