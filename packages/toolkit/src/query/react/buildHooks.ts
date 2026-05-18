@@ -1895,6 +1895,8 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
                   return state[api.reducerPath]?.queries?.[queryCacheKey]
                 }
+
+                return undefined
               },
             ],
             preSelector,
