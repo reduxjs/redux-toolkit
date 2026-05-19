@@ -773,7 +773,15 @@ export function unwrapResult<R extends UnwrappableAction>(
     throw action.payload
   }
   if (action.error) {
-    throw action.error
+    const errorInstance: any = new Error(action.error.message || action.error.name || 'Thunk Error')
+
+    for (const prop in action.error) {
+      if (!errorInstance[prop]) {
+        errorInstance[prop] = action.error[prop]
+      }
+    }
+
+    throw errorInstance
   }
   return action.payload
 }
