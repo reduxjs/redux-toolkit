@@ -4203,4 +4203,68 @@ describe('skip behavior', () => {
       currentData: undefined,
     })
   })
+
+  test('unskipping a removed query cache entry restarts as an initial load', async () => {
+    const queryCacheKey = 'getIncrementedAmount(undefined)'
+    const { result, rerender } = renderHook(
+      (skip: boolean) =>
+        api.endpoints.getIncrementedAmount.useQuery(undefined, { skip }),
+      {
+        wrapper: storeRef.wrapper,
+        initialProps: false,
+      },
+    )
+
+    await act(async () => {
+      await waitForFakeTimer(150)
+    })
+
+    expect(result.current).toMatchObject({
+      isLoading: false,
+      isSuccess: true,
+      data: { amount: 1 },
+    })
+    expect(storeRef.store.getState().api.queries[queryCacheKey]).toMatchObject({
+      status: QueryStatus.fulfilled,
+      data: { amount: 1 },
+    })
+
+    rerender(true)
+    await waitMs(1)
+
+    expect(result.current).toMatchObject({
+      status: QueryStatus.uninitialized,
+      isSuccess: true,
+      data: { amount: 1 },
+      currentData: undefined,
+    })
+
+    await act(async () => {
+      await storeRef.store.dispatch(
+        api.endpoints.triggerUpdatedAmount.initiate(),
+      )
+    })
+
+    expect(storeRef.store.getState().api.queries[queryCacheKey]).toBeUndefined()
+
+    rerender(false)
+
+    expect(result.current).toMatchObject({
+      isLoading: true,
+      isFetching: true,
+      isSuccess: false,
+      data: undefined,
+      currentData: undefined,
+    })
+
+    await act(async () => {
+      await waitForFakeTimer(150)
+    })
+
+    expect(result.current).toMatchObject({
+      isLoading: false,
+      isSuccess: true,
+      data: { amount: 2 },
+    })
+  })
 })
