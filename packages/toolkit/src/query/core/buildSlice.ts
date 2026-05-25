@@ -291,7 +291,14 @@ export function buildSlice({
             payload: { queryCacheKey },
           }: PayloadAction<QuerySubstateIdentifier>,
         ) {
-          delete draft[queryCacheKey]
+          const entry = draft[queryCacheKey];
+          if (entry) {
+            entry.status = STATUS_UNINITIALIZED;
+            delete entry.data;
+            delete entry.error;
+            delete entry.fulfilledTimeStamp;
+            delete entry.startedTimeStamp;
+          }
         },
         prepare: prepareAutoBatched<QuerySubstateIdentifier>(),
       },
