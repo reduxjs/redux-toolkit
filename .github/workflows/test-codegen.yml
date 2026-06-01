@@ -147,4 +147,4 @@ jobs:
           name: package
 
       - name: Run are-the-types-wrong
-        run: yarn dlx @arethetypeswrong/cli@0.18.2 ./package.tgz --format table --exclude-entrypoints cli
+        run: yarn attw ./package.tgz --format table --exclude-entrypoints cli
