@@ -15179,13 +15179,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"docusaurus-plugin-copy-page-button@npm:^0.5.1":
-  version: 0.5.1
-  resolution: "docusaurus-plugin-copy-page-button@npm:0.5.1"
+"docusaurus-plugin-copy-page-button@npm:^0.8.0":
+  version: 0.8.0
+  resolution: "docusaurus-plugin-copy-page-button@npm:0.8.0"
   peerDependencies:
     "@docusaurus/core": ^3.0.0
     react: ^18.0.0 || ^19.0.0
-  checksum: 10/efab016c1513019376ee866bc4c2db2b97b12138c5d209b3feaf635d98830a20d3956e00a5a7a611aa0b76de8e96dfd1e194c074b81e456585a2fea6aca06ab3
+  checksum: 10/b99e445c942ec29ee2d9458c601c2ec91411dc5b21990ad7e32c9d2cb388a1b1849d162008b053b16d109d856241b486525555bb1bddc94065fb83e0546b50e6
   languageName: node
   linkType: hard
 
@@ -33482,7 +33482,7 @@ __metadata:
     "@types/node": "npm:^25.5.0"
     "@types/react": "npm:^19.2.14"
     classnames: "npm:^2.2.6"
-    docusaurus-plugin-copy-page-button: "npm:^0.5.1"
+    docusaurus-plugin-copy-page-button: "npm:^0.8.0"
     netlify-plugin-cache: "npm:^1.0.3"
     prettier: "npm:^3.2.5"
     react: "npm:^19.0.0"
