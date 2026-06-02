@@ -336,6 +336,10 @@ jobs:
           NODE_OPTIONS: --openssl-legacy-provider
         run: yarn build
 
+      - name: playwright install
+        if: matrix.example == 'next' || matrix.example == 'vite' || matrix.example == 'cra4' || matrix.example == 'cra5'
+        run: yarn exec playwright install --with-deps chromium
+
       - name: Run test step
         run: yarn test
 
