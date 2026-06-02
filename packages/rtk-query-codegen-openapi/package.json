@@ -50,6 +50,7 @@
     "!skills/_artifacts"
   ],
   "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.3",
     "@babel/core": "^7.12.10",
     "@babel/preset-env": "^7.12.11",
     "@babel/preset-typescript": "^7.12.7",
