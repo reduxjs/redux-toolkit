@@ -33,3 +33,5 @@ typesversions
 !.yarn/versions
 .pnp.*
 *.tgz
+
+/test-results/
