@@ -1,6 +1,6 @@
 import { rest } from 'msw'
 import { createEntityAdapter } from '@reduxjs/toolkit'
-import { Post } from '../app/services/post'
+import type { Post } from '../app/services/post'
 
 // We're just going to use a simple in-memory store for both the counter and posts
 // The entity adapter will handle modifications when triggered by the MSW handlers

@@ -35,7 +35,7 @@
     "jsdom": "^23.2.0",
     "msw": "^2.6.6",
     "prettier": "^3.2.1",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.3",
     "vite": "^7",
     "vitest": "^4"
   },
