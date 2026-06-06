@@ -18,9 +18,10 @@
   "unpkg": "./dist/index.umd.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "microbundle",
-    "prepack": "rimraf dist/*; yarn build",
-    "dev": "microbundle watch",
+    "build": "microbundle build --tsconfig tsconfig.build.json",
+    "clean": "rimraf dist/",
+    "prepack": "yarn clean && yarn build",
+    "dev": "microbundle watch --tsconfig tsconfig.build.json",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -37,7 +38,7 @@
     "graphql": "^16.5.0",
     "microbundle": "^0.13.3",
     "rimraf": "^6.1.3",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.3",
     "vitest": "^4"
   },
   "publishConfig": {
