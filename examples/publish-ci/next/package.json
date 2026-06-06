@@ -24,7 +24,7 @@
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "prettier": "^3.2.5",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.3"
   },
   "msw": {
     "workerDirectory": "public"

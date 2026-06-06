@@ -258,7 +258,8 @@ function someFunction(action: PayloadAction<Data>) {
 ```ts title="Using isAnyOf as a type guard"
 import { isAnyOf } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
-import { Data, isSpecial, isInteresting } from '@virtual/matchers' // this is a fake pkg that provides the types shown above
+import type { Data } from '@virtual/matchers' // this is a fake pkg that provides the types shown above
+import { isSpecial, isInteresting } from '@virtual/matchers' // this is a fake pkg that provides the types shown above
 
 const isSpecialOrInteresting = isAnyOf(isSpecial, isInteresting)
 

@@ -45,7 +45,7 @@ As a result, it's better to use the `withTypes` helper attached to `addMiddlewar
 
 ```ts no-transpile
 import { createDynamicMiddleware } from '@reduxjs/toolkit/react'
-import type { RootState, AppDispatch } from './store'
+import type { AppDispatch, RootState } from './store'
 
 const dynamicMiddleware = createDynamicMiddleware()
 

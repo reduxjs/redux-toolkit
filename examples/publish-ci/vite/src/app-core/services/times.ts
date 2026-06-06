@@ -1,6 +1,6 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 
-interface TimeResponse {
+export interface TimeResponse {
   time: string
 }
 

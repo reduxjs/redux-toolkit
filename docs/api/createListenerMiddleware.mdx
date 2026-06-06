@@ -486,7 +486,7 @@ To fix this, the middleware provides types for defining "pre-typed" versions of 
 ```ts no-transpile
 // listenerMiddleware.ts
 import { createListenerMiddleware, addListener } from '@reduxjs/toolkit'
-import type { RootState, AppDispatch } from './store'
+import type { AppDispatch, RootState } from './store'
 
 declare type ExtraArgument = { foo: string }
 
