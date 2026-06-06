@@ -4353,7 +4353,7 @@ __metadata:
     react-dom: "npm:^19.0.0"
     react-redux: "npm:^9.1.2"
     react-scripts: "npm:5.0.1"
-    typescript: "npm:^5.9.3"
+    typescript: "npm:^6.0.3"
   languageName: unknown
   linkType: soft
 
@@ -4368,7 +4368,7 @@ __metadata:
     react-dom: "npm:^19.0.0"
     react-redux: "npm:^9.1.2"
     react-scripts: "npm:5.0.1"
-    typescript: "npm:^5.9.3"
+    typescript: "npm:^6.0.3"
   languageName: unknown
   linkType: soft
 
@@ -4391,7 +4391,7 @@ __metadata:
     react-router-dom: "npm:6.3.0"
     react-scripts: "npm:5.0.1"
     rimraf: "npm:^6.1.3"
-    typescript: "npm:^5.9.3"
+    typescript: "npm:^6.0.3"
   languageName: unknown
   linkType: soft
 
@@ -4414,7 +4414,7 @@ __metadata:
     react-router-dom: "npm:6.3.0"
     react-scripts: "npm:5.0.1"
     rimraf: "npm:^6.1.3"
-    typescript: "npm:^5.9.3"
+    typescript: "npm:^6.0.3"
   languageName: unknown
   linkType: soft
 
@@ -4433,7 +4433,7 @@ __metadata:
     react-dom: "npm:^19.0.0"
     react-redux: "npm:^9.1.2"
     react-scripts: "npm:5.0.1"
-    typescript: "npm:^5.9.3"
+    typescript: "npm:^6.0.3"
   languageName: unknown
   linkType: soft
 
@@ -4448,7 +4448,7 @@ __metadata:
     react-dom: "npm:^19.0.0"
     react-redux: "npm:^9.1.2"
     react-scripts: "npm:5.0.1"
-    typescript: "npm:^5.9.3"
+    typescript: "npm:^6.0.3"
   languageName: unknown
   linkType: soft
 
@@ -4463,7 +4463,7 @@ __metadata:
     react-dom: "npm:^19.0.0"
     react-redux: "npm:^9.1.2"
     react-scripts: "npm:5.0.1"
-    typescript: "npm:^5.9.3"
+    typescript: "npm:^6.0.3"
   languageName: unknown
   linkType: soft
 
@@ -4506,7 +4506,7 @@ __metadata:
     react-scripts: "npm:5.0.1"
     rimraf: "npm:^6.1.3"
     ts-node: "npm:^10.0.0"
-    typescript: "npm:^5.9.3"
+    typescript: "npm:^6.0.3"
   languageName: unknown
   linkType: soft
 
@@ -4535,7 +4535,7 @@ __metadata:
     react-router-dom: "npm:6.3.0"
     react-scripts: "npm:5.0.1"
     rimraf: "npm:^6.1.3"
-    typescript: "npm:^5.9.3"
+    typescript: "npm:^6.0.3"
   languageName: unknown
   linkType: soft
 
@@ -4561,7 +4561,7 @@ __metadata:
     react-native-web: "npm:^0.19.13"
     react-redux: "npm:^9.1.0"
     react-router: "npm:^7.0.1"
-    typescript: "npm:^5.9.3"
+    typescript: "npm:^6.0.3"
     vite: "npm:^7"
     vitest: "npm:^4"
   languageName: unknown
@@ -4585,7 +4585,7 @@ __metadata:
     react-redux: "npm:^9.1.2"
     react-router-dom: "npm:6.3.0"
     react-scripts: "npm:5.0.1"
-    typescript: "npm:^5.9.3"
+    typescript: "npm:^6.0.3"
     whatwg-fetch: "npm:^3.4.1"
   languageName: unknown
   linkType: soft
@@ -4610,7 +4610,7 @@ __metadata:
     react-router-dom: "npm:6.3.0"
     react-scripts: "npm:5.0.1"
     rimraf: "npm:^6.1.3"
-    typescript: "npm:^5.9.3"
+    typescript: "npm:^6.0.3"
   languageName: unknown
   linkType: soft
 
@@ -4634,7 +4634,7 @@ __metadata:
     react-router-dom: "npm:6.3.0"
     react-scripts: "npm:5.0.1"
     rimraf: "npm:^6.1.3"
-    typescript: "npm:^5.9.3"
+    typescript: "npm:^6.0.3"
     uuid: "npm:^8.3.2"
     whatwg-fetch: "npm:^3.4.1"
   languageName: unknown
@@ -4661,7 +4661,7 @@ __metadata:
     react-redux: "npm:^9.1.2"
     react-scripts: "npm:5.0.1"
     rimraf: "npm:^6.1.3"
-    typescript: "npm:^5.9.3"
+    typescript: "npm:^6.0.3"
   languageName: unknown
   linkType: soft
 
@@ -4676,7 +4676,7 @@ __metadata:
     react-dom: "npm:^19.0.0"
     react-redux: "npm:^9.1.2"
     react-scripts: "npm:5.0.1"
-    typescript: "npm:^5.9.3"
+    typescript: "npm:^6.0.3"
   languageName: unknown
   linkType: soft
 
@@ -4702,7 +4702,7 @@ __metadata:
     react-router-dom: "npm:6.3.0"
     react-scripts: "npm:5.0.1"
     rimraf: "npm:^6.1.3"
-    typescript: "npm:^5.9.3"
+    typescript: "npm:^6.0.3"
   languageName: unknown
   linkType: soft
 
@@ -4728,7 +4728,7 @@ __metadata:
     react-router-dom: "npm:6.3.0"
     react-scripts: "npm:5.0.1"
     rimraf: "npm:^6.1.3"
-    typescript: "npm:^5.9.3"
+    typescript: "npm:^6.0.3"
   languageName: unknown
   linkType: soft
 
@@ -4754,7 +4754,7 @@ __metadata:
     react-router-dom: "npm:6.3.0"
     react-scripts: "npm:5.0.1"
     rimraf: "npm:^6.1.3"
-    typescript: "npm:^5.9.3"
+    typescript: "npm:^6.0.3"
   languageName: unknown
   linkType: soft
 
@@ -4769,7 +4769,7 @@ __metadata:
     react-dom: "npm:^19.0.0"
     react-redux: "npm:^9.1.2"
     react-scripts: "npm:5.0.1"
-    typescript: "npm:^5.9.3"
+    typescript: "npm:^6.0.3"
   languageName: unknown
   linkType: soft
 
@@ -4786,7 +4786,7 @@ __metadata:
     react-redux: "npm:^9.2.0"
     react-router-dom: "npm:^7.13.0"
     rimraf: "npm:^6.1.3"
-    typescript: "npm:^5.9.3"
+    typescript: "npm:^6.0.3"
     vite: "npm:^7.3.1"
   languageName: unknown
   linkType: soft
@@ -4804,7 +4804,7 @@ __metadata:
     react-redux: "npm:^9.2.0"
     react-router-dom: "npm:^7.13.0"
     rimraf: "npm:^6.1.3"
-    typescript: "npm:^5.9.3"
+    typescript: "npm:^6.0.3"
     vite: "npm:^7.3.1"
   languageName: unknown
   linkType: soft
@@ -4822,7 +4822,7 @@ __metadata:
     react-redux: "npm:^9.2.0"
     react-router-dom: "npm:^7.13.0"
     rimraf: "npm:^6.1.3"
-    typescript: "npm:^5.9.3"
+    typescript: "npm:^6.0.3"
     vite: "npm:^7.3.1"
   languageName: unknown
   linkType: soft
@@ -7665,6 +7665,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@reduxjs/rtk-codemods@workspace:packages/rtk-codemods"
   dependencies:
+    "@reduxjs/toolkit": "workspace:^"
     "@types/jscodeshift": "npm:^0.11.11"
     "@types/node": "npm:^25.5.0"
     "@typescript-eslint/parser": "npm:^6.19.1"
@@ -7677,7 +7678,7 @@ __metadata:
     jscodeshift: "npm:^0.15.1"
     prettier: "npm:^3.2.5"
     ts-node: "npm:^10.9.2"
-    typescript: "npm:^5.9.3"
+    typescript: "npm:^6.0.3"
     vitest: "npm:^4"
   bin:
     rtk-codemods: ./bin/cli.mjs
@@ -7798,9 +7799,9 @@ __metadata:
     reselect: "npm:^5.1.0"
     rimraf: "npm:^6.1.3"
     size-limit: "npm:^11.0.1"
-    tsup: "npm:^8.4.0"
+    tsup: "npm:^8.5.1"
     tsx: "npm:^4.19.0"
-    typescript: "npm:^5.9.3"
+    typescript: "npm:^6.0.3"
     valibot: "npm:^1.0.0"
     vite-tsconfig-paths: "npm:^4.3.1"
     vitest: "npm:^4"
@@ -8390,8 +8391,8 @@ __metadata:
     semver: "npm:^7.3.5"
     swagger2openapi: "npm:^7.0.4"
     ts-node: "npm:^10.9.2"
-    tsup: "npm:^8.4.0"
-    typescript: "npm:^5.9.3"
+    tsup: "npm:^8.5.1"
+    typescript: "npm:^6.0.3"
     vite-tsconfig-paths: "npm:^5.0.1"
     vitest: "npm:^4"
     yalc: "npm:^1.0.0-pre.47"
@@ -8422,7 +8423,7 @@ __metadata:
     graphql-request: "npm:^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0"
     microbundle: "npm:^0.13.3"
     rimraf: "npm:^6.1.3"
-    typescript: "npm:^5.9.3"
+    typescript: "npm:^6.0.3"
     vitest: "npm:^4"
   peerDependencies:
     "@reduxjs/toolkit": ^1.7.1 || ^2.0.0
@@ -15147,7 +15148,9 @@ __metadata:
   resolution: "docs@workspace:docs"
   dependencies:
     "@manaflair/redux-batch": "npm:^1.0.0"
+    "@reduxjs/toolkit": "workspace:^"
     "@types/nanoid": "npm:^2.1.0"
+    "@types/node": "npm:^25.5.0"
     "@types/react": "npm:^19.0.1"
     async-mutex: "npm:^0.3.2"
     axios: "npm:^0.20.0"
@@ -15158,6 +15161,7 @@ __metadata:
     next-redux-wrapper: "npm:^7.0.5"
     redux-persist: "npm:^6.0.0"
     rxjs: "npm:^6.6.2"
+    typescript: "npm:^6.0.3"
   languageName: unknown
   linkType: soft
 
@@ -29492,7 +29496,7 @@ __metadata:
     react-redux: "npm:^9.1.2"
     release-it: "npm:^14.12.5"
     serve: "npm:^14.2.0"
-    typescript: "npm:^5.9.3"
+    typescript: "npm:^6.0.3"
   languageName: unknown
   linkType: soft
 
@@ -31971,7 +31975,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tsup@npm:^8.4.0":
+"tsup@npm:^8.5.1":
   version: 8.5.1
   resolution: "tsup@npm:8.5.1"
   dependencies:
@@ -32232,6 +32236,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"typescript@npm:^6.0.3":
+  version: 6.0.3
+  resolution: "typescript@npm:6.0.3"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: 10/0ef2357a4cffd916b52b683a021cdab0f81eea4e9aa35f2d254581c9a5106da02224e3392e1b0ed42b7a48f80c966e5f52b8e1a27941fa0523c1705a9c2e0330
+  languageName: node
+  linkType: hard
+
 "typescript@patch:typescript@npm%3A5.6.1-rc#optional!builtin<compat/typescript>":
   version: 5.6.1-rc
   resolution: "typescript@patch:typescript@npm%3A5.6.1-rc#optional!builtin<compat/typescript>::version=5.6.1-rc&hash=8c6c40"
@@ -32259,6 +32273,16 @@ __metadata:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: 10/5659316360b5cc2d6f5931b346401fa534107b68b60179cf14970e27978f0936c1d5c46f4b5b8175f8cba0430f522b3ce355b4b724c0ea36ce6c0347fab25afd
+  languageName: node
+  linkType: hard
+
+"typescript@patch:typescript@npm%3A^6.0.3#optional!builtin<compat/typescript>":
+  version: 6.0.3
+  resolution: "typescript@patch:typescript@npm%3A6.0.3#optional!builtin<compat/typescript>::version=6.0.3&hash=8c6c40"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: 10/a7487148ae5bae463e49e22f885e77e53a45bab250f02140dad35d4850d0afa422af5a5e69fd5102dc771421eaf8dc5507b35a55cb3e0422cde72ad47765206b
   languageName: node
   linkType: hard
 
@@ -33499,7 +33523,7 @@ __metadata:
     react-dom: "npm:^19.0.0"
     react-lite-youtube-embed: "npm:^2.0.3"
     remark-typescript-tools: "npm:2.0.0-alpha.1"
-    typescript: "npm:^5.9.3"
+    typescript: "npm:^6.0.3"
   languageName: unknown
   linkType: soft
 
