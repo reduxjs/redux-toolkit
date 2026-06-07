@@ -55,7 +55,19 @@ const config: Config = {
                   {
                     compilerSettings: {
                       tsconfig: resolve(__dirname, '../docs/tsconfig.json'),
-                      externalResolutions: {},
+                      externalResolutions: {
+                        '@virtual/matchers': {
+                          resolvedPath: resolve(
+                            __dirname,
+                            '../docs/virtual/matchers',
+                          ),
+                          packageId: {
+                            name: '@virtual/matchers',
+                            subModuleName: 'index.ts',
+                            version: '1.0',
+                          },
+                        },
+                      },
                     },
                   } satisfies TranspileCodeblocksSettings,
                 ]
