@@ -30,6 +30,7 @@
       "redux-logger": ["./virtual/redux-logger/index.ts"],
       "petstore-api.generated": ["./virtual/petstore-api.generated/index.ts"]
     },
-    "types": ["node"]
+    "types": ["node"],
+    "noUncheckedSideEffectImports": false
   }
 }
