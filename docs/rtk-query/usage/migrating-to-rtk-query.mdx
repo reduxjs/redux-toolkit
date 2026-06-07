@@ -197,8 +197,8 @@ Below we create a hook to manage sending our request at the appropriate time, as
 
 ```ts title="src/hooks.ts"
 // file: src/services/pokemonSlice.ts noEmit
-import { AsyncThunkAction } from '@reduxjs/toolkit'
-import { RootState } from '../store'
+import type { AsyncThunkAction } from '@reduxjs/toolkit'
+import type { RootState } from '../store'
 interface Pokemon {}
 export declare const fetchPokemonByName: (
   arg: string,
@@ -211,7 +211,7 @@ export const selectDataByName = (state: RootState, name: string) =>
 
 // file: src/store.ts noEmit
 import { useDispatch } from 'react-redux'
-import { EnhancedStore } from '@reduxjs/toolkit'
+import type { EnhancedStore } from '@reduxjs/toolkit'
 interface Pokemon {}
 type RequestState = 'pending' | 'fulfilled' | 'rejected'
 
