@@ -1,45 +1,38 @@
 {
   "compilerOptions": {
-    "allowJs": true,
     "allowSyntheticDefaultImports": true,
-    "allowUnusedLabels": true,
-    "checkJs": true,
     "esModuleInterop": true,
-    "explainFiles": false,
-    "forceConsistentCasingInFileNames": true,
-    "isolatedModules": true,
-    "jsx": "preserve",
-    "module": "esnext",
-    "moduleDetection": "force",
-    "moduleResolution": "bundler",
-    "noEmit": true,
-    "noEmitOnError": false,
-    "noErrorTruncation": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": false,
+    "moduleResolution": "node",
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "paths": {
-      "react": ["./node_modules/@types/react"],
-      "react-dom": ["./node_modules/@types/react-dom"],
-      "@reduxjs/toolkit": ["../packages/toolkit/dist/index.d.ts"],
-      "@reduxjs/toolkit/query": ["../packages/toolkit/dist/query/index.d.ts"],
-      "@reduxjs/toolkit/query/react": [
-        "../packages/toolkit/dist/query/react/index.d.ts"
-      ],
-      "@virtual/matchers": ["./virtual/matchers/index.ts"],
-      "your-cool-library": ["./virtual/your-cool-library/index.ts"],
-      "redux-logger": ["./virtual/redux-logger/index.ts"],
-      "petstore-api.generated": ["./virtual/petstore-api.generated/index.ts"]
-    },
-    "removeComments": false,
+    "allowUnusedLabels": true,
     "skipLibCheck": true,
+    "noEmitOnError": false,
     "strict": true,
-    "target": "esnext",
+    "removeComments": false,
+    "module": "ES2020",
+    "target": "ES2020",
+    "allowJs": true,
+    "checkJs": true,
+    "alwaysStrict": false,
+    "baseUrl": "..",
+    "jsx": "preserve",
     "traceResolution": false,
-    "types": [],
-    "useDefineForClassFields": true,
-    "useUnknownInCatchVariables": true,
-    "verbatimModuleSyntax": true
+    "explainFiles": false,
+    "paths": {
+      "react": ["docs/node_modules/@types/react"],
+      "react-dom": ["docs/node_modules/@types/react-dom"],
+      "@reduxjs/toolkit": ["packages/toolkit/dist/index.d.ts"],
+      "@reduxjs/toolkit/query": ["packages/toolkit/dist/query/index.d.ts"],
+      "@reduxjs/toolkit/query/react": [
+        "packages/toolkit/dist/query/react/index.d.ts"
+      ],
+      "@virtual/*": ["docs/virtual/*"],
+      "your-cool-library": ["docs/virtual/your-cool-library/index.ts"],
+      "redux-logger": ["docs/virtual/redux-logger/index.ts"],
+      "petstore-api.generated": ["docs/virtual/petstore-api.generated/index.ts"]
+    },
+    "ignoreDeprecations": "6.0",
+    "noUncheckedSideEffectImports": false
   }
 }
