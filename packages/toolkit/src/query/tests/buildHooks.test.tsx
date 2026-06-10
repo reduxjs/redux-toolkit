@@ -903,6 +903,40 @@ describe('hooks tests', () => {
         })
       })
 
+      test('clears retained data when resetApiState is dispatched while skipped', async () => {
+        const { result, rerender } = renderHook(
+          ([arg, skip]: [number, boolean]) =>
+            api.endpoints.getUser.useQuery(arg, { skip }),
+          {
+            wrapper: storeRef.wrapper,
+            initialProps: [5, false] as [number, boolean],
+          },
+        )
+
+        await waitFor(() => expect(result.current.isSuccess).toBe(true))
+        expect(result.current.data).toEqual({ name: 'Timmy' })
+
+        rerender([5, true])
+
+        expect(result.current).toMatchObject({
+          status: QueryStatus.uninitialized,
+          isSuccess: true,
+          data: { name: 'Timmy' },
+          currentData: undefined,
+        })
+
+        act(() => void storeRef.store.dispatch(api.util.resetApiState()))
+
+        await waitFor(() => {
+          expect(result.current).toMatchObject({
+            status: QueryStatus.uninitialized,
+            isSuccess: false,
+            data: undefined,
+            currentData: undefined,
+          })
+        })
+      })
+
       test('hook should not be stuck loading post resetApiState after re-render', async () => {
         const user = userEvent.setup()
 
