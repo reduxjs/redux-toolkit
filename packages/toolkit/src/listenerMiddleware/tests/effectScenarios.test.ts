@@ -325,13 +325,13 @@ describe('Saga-style Effects Scenarios', () => {
           try {
             await listenerApi.delay(10)
           } catch (err) {
-            // Can check cancelation based on the exception and its reason
+            // Can check cancellation based on the exception and its reason
             if (err instanceof TaskAbortError) {
               canceledAndCaught = true
             }
           }
         } else if (incrementByAmount.match(action)) {
-          // do a non-cancelation-aware wait
+          // do a non-cancellation-aware wait
           await delay(15)
           if (listenerApi.signal.aborted) {
             canceledCheck = true

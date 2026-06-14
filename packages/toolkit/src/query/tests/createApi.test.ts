@@ -467,7 +467,7 @@ describe('endpoint definition typings', () => {
         enhanced.enhanceEndpoints({
           endpoints: {
             query1: {
-              // returned `enhanced` api contains "new" enitityType
+              // returned `enhanced` api contains "new" entityType
               providesTags: ['new'],
             },
             query2: {
@@ -560,12 +560,15 @@ describe('endpoint definition typings', () => {
         Transformed
       >
 
-      type UpdatedDefitions = Omit<Definitions, 'query1' | 'mutation1'> & {
+      type UpdatedDefinitions = Omit<Definitions, 'query1' | 'mutation1'> & {
         query1: Q1Definition
         mutation1: M1Definition
       }
 
-      const enhancedApi = baseApi.enhanceEndpoints<TagTypes, UpdatedDefitions>({
+      const enhancedApi = baseApi.enhanceEndpoints<
+        TagTypes,
+        UpdatedDefinitions
+      >({
         endpoints: {
           query1: {
             transformResponse: (a, b, c) => ({

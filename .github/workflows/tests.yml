@@ -15,7 +15,7 @@ jobs:
       toolkit: ${{ steps.filter.outputs.toolkit }}
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
-      - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3
+      - uses: dorny/paths-filter@d1c1ffe0248fe513906c8e24db8ea791d46f8590 # v3.0.3
         id: filter
         with:
           filters: |
@@ -335,6 +335,10 @@ jobs:
         env:
           NODE_OPTIONS: --openssl-legacy-provider
         run: yarn build
+
+      - name: playwright install
+        if: matrix.example == 'next' || matrix.example == 'vite' || matrix.example == 'cra4' || matrix.example == 'cra5'
+        run: yarn exec playwright install --with-deps chromium
 
       - name: Run test step
         run: yarn test

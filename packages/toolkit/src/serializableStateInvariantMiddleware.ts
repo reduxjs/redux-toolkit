@@ -28,7 +28,7 @@ interface NonSerializableValue {
   value: unknown
 }
 
-export type IgnorePaths = readonly (string | RegExp)[]
+export type IgnoredPaths = readonly (string | RegExp)[]
 
 /**
  * @public
@@ -38,7 +38,7 @@ export function findNonSerializableValue(
   path: string = '',
   isSerializable: (value: unknown) => boolean = isPlain,
   getEntries?: (value: unknown) => [string, any][],
-  ignoredPaths: IgnorePaths = [],
+  ignoredPaths: IgnoredPaths = [],
   cache?: WeakSet<object>,
 ): NonSerializableValue | false {
   let foundNestedSerializable: NonSerializableValue | false

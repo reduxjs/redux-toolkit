@@ -1,5 +1,5 @@
 import type { Middleware } from 'redux'
-import type { IgnorePaths } from './serializableStateInvariantMiddleware'
+import type { IgnoredPaths } from './serializableStateInvariantMiddleware'
 import { getTimeMeasureUtils } from './utils'
 
 type EntryProcessor = (key: string, value: any) => any
@@ -15,7 +15,7 @@ export function isImmutableDefault(value: unknown): boolean {
 
 export function trackForMutations(
   isImmutable: IsImmutableFunc,
-  ignoredPaths: IgnorePaths | undefined,
+  ignoredPaths: IgnoredPaths | undefined,
   obj: any,
 ) {
   const trackedProperties = trackProperties(isImmutable, ignoredPaths, obj)
@@ -33,7 +33,7 @@ interface TrackedProperty {
 
 function trackProperties(
   isImmutable: IsImmutableFunc,
-  ignoredPaths: IgnorePaths = [],
+  ignoredPaths: IgnoredPaths = [],
   obj: Record<string, any>,
   path: string = '',
   checkedObjects: Set<Record<string, any>> = new Set(),
@@ -74,7 +74,7 @@ function trackProperties(
 
 function detectMutations(
   isImmutable: IsImmutableFunc,
-  ignoredPaths: IgnorePaths = [],
+  ignoredPaths: IgnoredPaths = [],
   trackedProperty: TrackedProperty,
   obj: any,
   sameParentRef: boolean = false,
@@ -154,7 +154,7 @@ export interface ImmutableStateInvariantMiddlewareOptions {
     the root state to ignore when checking for immutability.
     Defaults to undefined
    */
-  ignoredPaths?: IgnorePaths
+  ignoredPaths?: IgnoredPaths
   /** Print a warning if checks take longer than N ms. Default: 32ms */
   warnAfter?: number
 }

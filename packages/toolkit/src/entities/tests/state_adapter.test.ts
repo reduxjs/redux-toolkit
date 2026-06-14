@@ -23,7 +23,7 @@ describe('createStateOperator', () => {
         addOne(state, action: PayloadAction<BookModel>) {
           // Originally, having nested `produce` calls don't mutate `state` here as I would have expected.
           // (note that `state` here is actually an Immer Draft<S>, from `createReducer`)
-          // One woarkound was to return the new plain result value instead
+          // One workaround was to return the new plain result value instead
           // See https://github.com/immerjs/immer/issues/533
           // However, after tweaking `createStateOperator` to check if the argument is a draft,
           // we can just treat the operator as strictly mutating, without returning a result,

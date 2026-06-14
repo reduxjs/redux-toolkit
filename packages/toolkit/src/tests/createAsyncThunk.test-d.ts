@@ -588,7 +588,7 @@ describe('type tests', () => {
     const shouldFailWrongArgs = createAsyncThunk('foo', (arg: string) => {}, { idGenerator: returnsStrWithNumberArg })
 
     const returnsStrWithStringArg = (foo: string) => 'foo'
-    const shoulducceedCorrectArgs = createAsyncThunk(
+    const shouldSucceedCorrectArgs = createAsyncThunk(
       'foo',
       (arg: string) => {},
       {

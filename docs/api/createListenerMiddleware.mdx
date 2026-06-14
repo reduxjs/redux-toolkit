@@ -410,7 +410,7 @@ These can be divided into several categories.
 
 - `unsubscribe: () => void`: removes the listener entry from the middleware, and prevent future instances of the listener from running. (This does _not_ cancel any active instances.)
 - `subscribe: () => void`: will re-subscribe the listener entry if it was previously removed, or no-op if currently subscribed
-- `cancelActiveListeners: () => void`: cancels all other running instances of this same listener _except_ for the one that made this call. (The cancellation will only have a meaningful effect if the other instances are paused using one of the cancellation-aware APIs like `take/cancel/pause/delay` - see "Cancelation and Task Management" in the "Usage" section for more details)
+- `cancelActiveListeners: () => void`: cancels all other running instances of this same listener _except_ for the one that made this call. (The cancellation will only have a meaningful effect if the other instances are paused using one of the cancellation-aware APIs like `take/cancel/pause/delay` - see "Cancellation and Task Management" in the "Usage" section for more details)
 - `cancel: () => void`: cancels the instance of this listener that made this call.
 - `throwIfCancelled: () => void`: throws a `TaskAbortError` if the current listener instance was cancelled.
 - `signal: AbortSignal`: An [`AbortSignal`](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal) whose `aborted` property will be set to `true` if the listener execution is aborted or completed.
@@ -481,14 +481,14 @@ export interface ForkedTask<T> {
 
 The middleware code is fully TS-typed. However, the `startListening` and `addListener` functions do not know what the store's `RootState` type looks like by default, so `getState()` will return `unknown`.
 
-To fix this, the middleware provides types for defining "pre-typed" versions of those methods, similar to the pattern used for defing pre-typed React-Redux hooks. We specifically recommend creating the middleware instance in a separate file from the actual `configureStore()` call:
+To fix this, the middleware provides types for defining "pre-typed" versions of those methods, similar to the pattern used for defining pre-typed React-Redux hooks. We specifically recommend creating the middleware instance in a separate file from the actual `configureStore()` call:
 
 ```ts no-transpile
 // listenerMiddleware.ts
 import { createListenerMiddleware, addListener } from '@reduxjs/toolkit'
 import type { RootState, AppDispatch } from './store'
 
-declare type ExtraArgument = {foo: string};
+declare type ExtraArgument = { foo: string }
 
 export const listenerMiddleware = createListenerMiddleware()
 
@@ -827,7 +827,7 @@ useEffect(() => {
 }, [])
 ```
 
-While this pattern is _possible_, **we do not necessarily _recommend_ doing this!** The React and Redux communities have always tried to emphasize basing behavior on _state_ as much as possible. Having React components directly tie into the Redux action dispatch pipeline could potentialy lead to codebases that are more difficult to maintain.
+While this pattern is _possible_, **we do not necessarily _recommend_ doing this!** The React and Redux communities have always tried to emphasize basing behavior on _state_ as much as possible. Having React components directly tie into the Redux action dispatch pipeline could potentially lead to codebases that are more difficult to maintain.
 
 At the same time, this _is_ a valid technique, both in terms of API behavior and potential use cases. It's been common to lazy-load sagas as part of a code-split app, and that has often required some complex additional setup work to "inject" sagas. In contrast, `dispatch(addListener())` fits naturally into a React component's lifecycle.
 

@@ -60,7 +60,7 @@ test(`query: await cleanup, keepUnusedDataFor set`, async () => {
   expect(onCleanup).toHaveBeenCalled()
 })
 
-test(`query: handles large keepUnuseDataFor values over 32-bit ms`, async () => {
+test(`query: handles large keepUnusedDataFor values over 32-bit ms`, async () => {
   const { store, api } = storeForApi(
     createApi({
       baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),

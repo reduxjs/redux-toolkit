@@ -9,7 +9,7 @@ generates:
     plugins:
       - typescript
     config:
-      maybeValue: T # normally, this would be T | null, but our msw mock returns everything as nullable, so we want to force these as non-nullalbe
+      maybeValue: T # normally, this would be T | null, but our msw mock returns everything as nullable, so we want to force these as non-nullable
   src/:
     preset: near-operation-file
     presetConfig:
@@ -36,7 +36,7 @@ generates:
           exportHooks: true
           overrideExisting: 'module.hot?.status() === "apply"'
     config:
-      maybeValue: T # normally, this would be T | null, but our msw mock returns everything as nullable, so we want to force these as non-nullalbe
+      maybeValue: T # normally, this would be T | null, but our msw mock returns everything as nullable, so we want to force these as non-nullable
   .introspection.json:
     plugins:
       - introspection

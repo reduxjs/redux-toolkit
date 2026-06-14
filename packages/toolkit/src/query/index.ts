@@ -99,7 +99,6 @@ export type { SerializeQueryArgs } from './defaultSerializeQueryArgs'
 
 export type {
   Id as TSHelpersId,
-  NoInfer as TSHelpersNoInfer,
   Override as TSHelpersOverride,
 } from './tsHelpers'
 

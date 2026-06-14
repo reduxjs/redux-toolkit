@@ -1,6 +1,6 @@
 {
   "name": "@reduxjs/toolkit",
-  "version": "2.11.2",
+  "version": "2.12.0",
   "description": "The official, opinionated, batteries-included toolset for efficient Redux development",
   "author": "Mark Erikson <mark@isquaredsoftware.com>",
   "license": "MIT",
@@ -184,7 +184,7 @@
     }
   },
   "devDependencies": {
-    "@arethetypeswrong/cli": "^0.18.2",
+    "@arethetypeswrong/cli": "^0.18.3",
     "@babel/core": "^7.24.8",
     "@babel/helper-module-imports": "^7.24.7",
     "@microsoft/api-extractor": "^7.13.2",
@@ -250,6 +250,8 @@
   "files": [
     "dist/",
     "src/",
+    "!src/**/tests/**",
+    "!src/**/*.{test,spec}(-d)?.(c|m)[tj]sx?",
     "query",
     "react",
     "skills",

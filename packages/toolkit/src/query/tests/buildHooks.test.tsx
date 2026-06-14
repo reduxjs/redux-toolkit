@@ -759,7 +759,7 @@ describe('hooks tests', () => {
       expect(screen.getByTestId('isFetching').textContent).toBe('false')
       expect(screen.getByTestId('amount').textContent).toBe('undefined')
 
-      // toggle skip -> true... won't refetch as the time critera is not met, and just loads the cached values
+      // toggle skip -> true... won't refetch as the time criteria is not met, and just loads the cached values
       fireEvent.click(screen.getByText('change skip'))
       expect(screen.getByTestId('isFetching').textContent).toBe('false')
       expect(screen.getByTestId('amount').textContent).toBe('1')
@@ -3806,7 +3806,9 @@ describe('hooks with createApi defaults set', () => {
 
         return (
           <div>
-            {posts?.map((post) => <div key={post.id}>{post.name}</div>)}
+            {posts?.map((post) => (
+              <div key={post.id}>{post.name}</div>
+            ))}
           </div>
         )
       }

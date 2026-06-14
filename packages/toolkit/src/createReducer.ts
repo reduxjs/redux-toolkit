@@ -1,14 +1,9 @@
 import type { Draft } from 'immer'
-import {
-  createNextState,
-  isDraft,
-  isDraftable,
-  setUseStrictIteration,
-} from './immerImports'
 import type { Action, Reducer, UnknownAction } from 'redux'
+import { createNextState, isDraft, isDraftable } from './immerImports'
 import type { ActionReducerMapBuilder } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
-import type { NoInfer, TypeGuard } from './tsHelpers'
+import type { TypeGuard } from './tsHelpers'
 import { freezeDraftable } from './utils'
 
 /**

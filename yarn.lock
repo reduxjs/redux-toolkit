@@ -355,11 +355,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@arethetypeswrong/cli@npm:^0.18.2":
-  version: 0.18.2
-  resolution: "@arethetypeswrong/cli@npm:0.18.2"
+"@arethetypeswrong/cli@npm:^0.18.3":
+  version: 0.18.3
+  resolution: "@arethetypeswrong/cli@npm:0.18.3"
   dependencies:
-    "@arethetypeswrong/core": "npm:0.18.2"
+    "@arethetypeswrong/core": "npm:0.18.3"
     chalk: "npm:^4.1.2"
     cli-table3: "npm:^0.6.3"
     commander: "npm:^10.0.1"
@@ -367,24 +367,24 @@ __metadata:
     marked-terminal: "npm:^7.1.0"
     semver: "npm:^7.5.4"
   bin:
-    attw: dist/index.js
-  checksum: 10/8b4506edeb37d58f15e347302df68981c5aefecce973e746026d46370bb560c1ebc05ef8a38eba3102881df4cd3c901961186e3df41077efca4e58adffd455a1
+    attw: ./dist/index.js
+  checksum: 10/37cc112b31b3467df5156f02f689cacb82db21549aafb6ee8fa9802c9ab9904d0e21924d445713b49423b0d696a933e7a4fe30962e48eb20e952f1b039136b99
   languageName: node
   linkType: hard
 
-"@arethetypeswrong/core@npm:0.18.2":
-  version: 0.18.2
-  resolution: "@arethetypeswrong/core@npm:0.18.2"
+"@arethetypeswrong/core@npm:0.18.3":
+  version: 0.18.3
+  resolution: "@arethetypeswrong/core@npm:0.18.3"
   dependencies:
     "@andrewbranch/untar.js": "npm:^1.0.3"
     "@loaderkit/resolve": "npm:^1.0.2"
     cjs-module-lexer: "npm:^1.2.3"
-    fflate: "npm:^0.8.2"
+    fflate: "npm:^0.8.3"
     lru-cache: "npm:^11.0.1"
     semver: "npm:^7.5.4"
     typescript: "npm:5.6.1-rc"
     validate-npm-package-name: "npm:^5.0.0"
-  checksum: 10/9c3edeb8e09e572682e37f55bd523d0dad45388232d31fa1d8875f7f5c414a184070c2bb6d0c8f254dfce4ed9248da373d549ecdeaa571a0cfff04c387c94cf1
+  checksum: 10/7ae9b9c63fa12c4608f7ba737783fc0504346c27f86bb08b6aff10a02d81bbb2bff68d942a668e8d7595a76aa78cc3ad2d9b8d156e524092483266be560aa0fc
   languageName: node
   linkType: hard
 
@@ -7759,7 +7759,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@reduxjs/toolkit@workspace:packages/toolkit"
   dependencies:
-    "@arethetypeswrong/cli": "npm:^0.18.2"
+    "@arethetypeswrong/cli": "npm:^0.18.3"
     "@babel/core": "npm:^7.24.8"
     "@babel/helper-module-imports": "npm:^7.24.7"
     "@microsoft/api-extractor": "npm:^7.13.2"
@@ -8370,6 +8370,7 @@ __metadata:
   resolution: "@rtk-query/codegen-openapi@workspace:packages/rtk-query-codegen-openapi"
   dependencies:
     "@apidevtools/swagger-parser": "npm:^10.1.1"
+    "@arethetypeswrong/cli": "npm:^0.18.3"
     "@babel/core": "npm:^7.12.10"
     "@babel/preset-env": "npm:^7.12.11"
     "@babel/preset-typescript": "npm:^7.12.7"
@@ -15188,6 +15189,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"docusaurus-plugin-copy-page-button@npm:^0.8.0":
+  version: 0.8.0
+  resolution: "docusaurus-plugin-copy-page-button@npm:0.8.0"
+  peerDependencies:
+    "@docusaurus/core": ^3.0.0
+    react: ^18.0.0 || ^19.0.0
+  checksum: 10/b99e445c942ec29ee2d9458c601c2ec91411dc5b21990ad7e32c9d2cb388a1b1849d162008b053b16d109d856241b486525555bb1bddc94065fb83e0546b50e6
+  languageName: node
+  linkType: hard
+
 "dom-accessibility-api@npm:^0.5.6, dom-accessibility-api@npm:^0.5.9":
   version: 0.5.16
   resolution: "dom-accessibility-api@npm:0.5.16"
@@ -17109,10 +17120,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fflate@npm:^0.8.2":
-  version: 0.8.2
-  resolution: "fflate@npm:0.8.2"
-  checksum: 10/2bd26ba6d235d428de793c6a0cd1aaa96a06269ebd4e21b46c8fd1bd136abc631acf27e188d47c3936db090bf3e1ede11d15ce9eae9bffdc4bfe1b9dc66ca9cb
+"fflate@npm:^0.8.3":
+  version: 0.8.3
+  resolution: "fflate@npm:0.8.3"
+  checksum: 10/6ebf528dc9c56e78e715eac615b009b25dc33e15c1920b11ebba44e6d76181c647756a81a23e19247907496b93aa99928514c53090579a65109e026ac2824aa7
   languageName: node
   linkType: hard
 
@@ -25501,6 +25512,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"pkg-pr-new@npm:^0.0.75":
+  version: 0.0.75
+  resolution: "pkg-pr-new@npm:0.0.75"
+  bin:
+    pkg-pr-new: bin/cli.js
+  checksum: 10/5160a67a955a50a5842cc43a5143e16f15e48bd5beaf6368ee4f3c532fd79e8ba703ffffd9479945b7ed52f65ce11990e2e24c96b6efd7dd30a326236721bd90
+  languageName: node
+  linkType: hard
+
 "pkg-types@npm:^1.3.1":
   version: 1.3.1
   resolution: "pkg-types@npm:1.3.1"
@@ -29482,6 +29502,7 @@ __metadata:
     eslint-plugin-react: "npm:^7.23.2"
     eslint-plugin-react-hooks: "npm:^4.2.0"
     netlify-plugin-cache: "npm:^1.0.3"
+    pkg-pr-new: "npm:^0.0.75"
     prettier: "npm:^3.2.5"
     react: "npm:^19.0.0"
     react-dom: "npm:^19.0.0"
@@ -33488,6 +33509,7 @@ __metadata:
     "@types/node": "npm:^25.5.0"
     "@types/react": "npm:^19.2.14"
     classnames: "npm:^2.2.6"
+    docusaurus-plugin-copy-page-button: "npm:^0.8.0"
     netlify-plugin-cache: "npm:^1.0.3"
     prettier: "npm:^3.2.5"
     react: "npm:^19.0.0"

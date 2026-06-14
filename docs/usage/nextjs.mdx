@@ -372,7 +372,7 @@ export default function ProductName({ product }: { product: Product }) {
 }
 ```
 
-Here we are using the same intialization pattern as before, of dispatching actions to the store, to set the route-specific data. The `initialized` ref is used to ensure that the store is only initialized once per route change.
+Here we are using the same initialization pattern as before, of dispatching actions to the store, to set the route-specific data. The `initialized` ref is used to ensure that the store is only initialized once per route change.
 
 It is worth noting that initializing the store with a `useEffect` would not work because `useEffect` only runs on the client. This would result in hydration errors or flicker because the result from a server side render would not match the result from the client side render.
 
@@ -408,7 +408,7 @@ There are three key areas that you should check to ensure that you have set up R
 
 ## Overall Recommendations
 
-The App Router presents a dramatically different archtecture for React applications from either the Pages Router or a SPA application. We recommend rethinking your approach to state management in the light of this new architecture. In SPA applications it's not unusual to have a large store that contains all the data, both mutable and immutable, required to drive the application. For App Router applications we recommend that you should:
+The App Router presents a dramatically different architecture for React applications from either the Pages Router or a SPA application. We recommend rethinking your approach to state management in the light of this new architecture. In SPA applications it's not unusual to have a large store that contains all the data, both mutable and immutable, required to drive the application. For App Router applications we recommend that you should:
 
 - **only use Redux for globally shared, mutable data**
 - use a combination of Next.js state (search params, route parameters, form state, etc.), React context and React hooks for all other state management.
