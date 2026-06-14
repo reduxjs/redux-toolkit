@@ -1548,26 +1548,8 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     lastResult: UseQueryStateDefaultResult<any> | undefined,
     queryArgs: any,
   ): UseQueryStateDefaultResult<any> {
-    // if we had a last result and the current result is uninitialized,
-    // we might have called `api.util.resetApiState`
-    // in this case, reset the hook
-    if (lastResult?.endpointName && currentState.isUninitialized) {
-      const { endpointName } = lastResult
-      const endpointDefinition = endpointDefinitions[endpointName]
-      if (
-        queryArgs !== skipToken &&
-        serializeQueryArgs({
-          queryArgs: lastResult.originalArgs,
-          endpointDefinition,
-          endpointName,
-        }) ===
-          serializeQueryArgs({
-            queryArgs,
-            endpointDefinition,
-            endpointName,
-          })
-      )
-        lastResult = undefined
+    if (shouldResetHookLastResult(currentState, lastResult, queryArgs)) {
+      lastResult = undefined
     }
 
     // data is the last known good request result we have tracked - or if none has been tracked yet the last good result for the current args
@@ -1608,26 +1590,8 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     lastResult: UseInfiniteQueryStateDefaultResult<any> | undefined,
     queryArgs: any,
   ): UseInfiniteQueryStateDefaultResult<any> {
-    // if we had a last result and the current result is uninitialized,
-    // we might have called `api.util.resetApiState`
-    // in this case, reset the hook
-    if (lastResult?.endpointName && currentState.isUninitialized) {
-      const { endpointName } = lastResult
-      const endpointDefinition = endpointDefinitions[endpointName]
-      if (
-        queryArgs !== skipToken &&
-        serializeQueryArgs({
-          queryArgs: lastResult.originalArgs,
-          endpointDefinition,
-          endpointName,
-        }) ===
-          serializeQueryArgs({
-            queryArgs,
-            endpointDefinition,
-            endpointName,
-          })
-      )
-        lastResult = undefined
+    if (shouldResetHookLastResult(currentState, lastResult, queryArgs)) {
+      lastResult = undefined
     }
 
     // data is the last known good request result we have tracked - or if none has been tracked yet the last good result for the current args
@@ -1659,6 +1623,44 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       isLoading,
       isSuccess,
     } as UseInfiniteQueryStateDefaultResult<any>
+  }
+
+  function shouldResetHookLastResult(
+    currentState: { isUninitialized: boolean },
+    lastResult:
+      | {
+          endpointName?: string
+          isUninitialized: boolean
+          originalArgs?: any
+        }
+      | undefined,
+    queryArgs: any,
+  ) {
+    if (!currentState.isUninitialized || queryArgs === skipToken || !lastResult)
+      return false
+
+    // If we had a last result and the current result is uninitialized,
+    // we might have called `api.util.resetApiState`, or the query cache entry
+    // might have been removed while a hook instance was skipped.
+    // In this case, reset the hook.
+    if (!lastResult.endpointName) {
+      return lastResult.isUninitialized
+    }
+
+    const { endpointName } = lastResult
+    const endpointDefinition = endpointDefinitions[endpointName]
+    return (
+      serializeQueryArgs({
+        queryArgs: lastResult.originalArgs,
+        endpointDefinition,
+        endpointName,
+      }) ===
+      serializeQueryArgs({
+        queryArgs,
+        endpointDefinition,
+        endpointName,
+      })
+    )
   }
 
   function usePrefetch<EndpointName extends QueryKeys<Definitions>>(
