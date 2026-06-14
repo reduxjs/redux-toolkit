@@ -35,9 +35,9 @@ jobs:
       - name: Publish
         id: publish
         run: >
-          yarn dlx pkg-pr-new publish
+          yarn run --binaries-only --top-level pkg-pr-new publish
           ./packages/toolkit
           ./packages/rtk-query-graphql-request-base-query
           ./packages/rtk-query-codegen-openapi
           ./packages/rtk-codemods
-          --yarn --packageManager="npm,yarn,pnpm,bun" --commentWithDev
+          --yarn --packageManager="npm,yarn,pnpm,bun" --commentWithDev --commentWithSha
