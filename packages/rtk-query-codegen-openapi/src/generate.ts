@@ -543,7 +543,7 @@ export async function generateApi(
               )
             : value;
 
-        return createPropertyAssignment(param.originalName, encodedValue);
+        return createPropertyAssignment(param.originalName, encodedValue as never);
       });
 
       return factory.createPropertyAssignment(

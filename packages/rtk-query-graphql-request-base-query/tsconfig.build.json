@@ -1,11 +1,10 @@
 {
   "compilerOptions": {
-    "allowJs": false,
-    "checkJs": false,
     "ignoreDeprecations": "6.0",
     "noEmit": false,
     "rootDir": "./src"
   },
+  "exclude": ["dist", "**/*.test.*", "**/*.spec.*"],
   "extends": "./tsconfig.json",
-  "include": ["src"]
+  "include": ["src/**/*"]
 }
