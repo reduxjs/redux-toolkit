@@ -131,6 +131,12 @@ export interface CommonOptions {
    * Will generate regex constants for pattern keywords in the schema
    */
   outputRegexConstants?: boolean;
+  /**
+   * @default false
+   * If set to `true`, all schemas from the OpenAPI document will be exported, regardless of whether they are referenced by any
+   * endpoint definitions.
+   */
+  exportAllSchemas?: boolean;
 }
 
 export type TextMatcher = string | RegExp | (string | RegExp)[];

@@ -170,6 +170,7 @@ export async function generateApi(
     useUnknown = false,
     esmExtensions = false,
     outputRegexConstants = false,
+    exportAllSchemas = false,
   }: GenerationOptions
 ) {
   const v3Doc = (v3DocCache[spec] ??= await getV3Doc(spec, httpResolverOptions));
@@ -269,6 +270,9 @@ export async function generateApi(
               return regexConstants.length > 0 ? [alias, ...regexConstants] : [alias];
             })
           : apiGen.aliases),
+        ...(exportAllSchemas && v3Doc.components?.schemas
+          ? generateAllSchemaTypes(v3Doc.components.schemas, apiGen)
+          : []),
         ...apiGen.enumAliases,
         ...(hooks
           ? [
@@ -589,6 +593,31 @@ export async function generateApi(
         )
       )
     );
+  }
+
+  function generateAllSchemaTypes(
+    schemas: Record<string, OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject>,
+    apiGen: ApiGenerator
+  ): (ts.InterfaceDeclaration | ts.TypeAliasDeclaration)[] {
+    const types: (ts.InterfaceDeclaration | ts.TypeAliasDeclaration)[] = [];
+
+    for (const [schemaName, schema] of Object.entries(schemas)) {
+      if (apiGen.aliases.some((alias) => alias.name.escapedText === schemaName)) {
+        continue;
+      }
+
+      const typeNode = apiGen.getTypeFromSchema(schema, schemaName);
+      const typeAlias = factory.createTypeAliasDeclaration(
+        [factory.createModifier(ts.SyntaxKind.ExportKeyword)],
+        schemaName,
+        undefined,
+        typeNode
+      );
+
+      types.push(typeAlias);
+    }
+
+    return types;
   }
 
   // eslint-disable-next-line no-empty-pattern

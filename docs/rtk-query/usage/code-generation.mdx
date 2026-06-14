@@ -316,7 +316,7 @@ const config: ConfigFile = {
 
 #### Custom HTTP resolver options
 
-If you need to customize the HTTP request issued to your server, you user the `httpResolverOptions` option. This object is passed directly to the `SwaggerParser` instance that fetches the OpenAPI schema.
+If you need to customize the HTTP request issued to your server, you can use the `httpResolverOptions` option. This object is passed directly to the `SwaggerParser` instance that fetches the OpenAPI schema.
 
 For example, you can pass custom headers or set a custom request timeout.
 
@@ -334,3 +334,36 @@ const config: ConfigFile = {
   },
 }
 ```
+
+#### Additional Schemas
+
+By default, the only schemas that are exported are those that are referenced in endpoint definitions. Take the following NestJS example:
+
+```ts no-transpile title="user.controller.ts"
+class User {
+  id: string;
+  name: string;
+}
+
+class LogoutMessage {
+  reason: string;
+}
+
+@ApiExtraModels(LogoutMessage)
+@Controller('user')
+class UserController {
+  getUsers(): User[] {
+    return this.getUsers();
+  }
+}
+```
+
+In this case, only the `User` schema would be exported even though we've added `LogoutMessage` as an extra model that will appear in the OpenAPI spec. Setting `exportAllSchemas: true` will export all available schemas, whether they're referenced in endpoint definitions or not.
+
+```ts no-transpile title="openapi-config.ts"
+const config: ConfigFile = {
+  schemaFile: 'https://petstore3.swagger.io/api/v3/openapi.json',
+  apiFile: './src/store/emptyApi.ts',
+  outputFile: './src/store/petApi.ts',
+  exportAllSchemas: true,
+}
