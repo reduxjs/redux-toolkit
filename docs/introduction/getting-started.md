@@ -83,6 +83,19 @@ yarn add react-redux
 ```
 
   </TabItem>
+  <TabItem value="deno" label="deno">
+
+```bash
+deno add @reduxjs/toolkit
+```
+
+If you need React bindings:
+
+```bash
+deno add react-redux
+```
+
+  </TabItem>
 </Tabs>
 
 The package includes a precompiled ESM build that can be used as a [`<script type="module">` tag](https://unpkg.com/@reduxjs/toolkit/dist/redux-toolkit.browser.mjs) directly in the browser.
