@@ -212,4 +212,38 @@ describe('combineSlices', () => {
       expect(counter2).toBe(selectCounter(beforeInject))
     })
   })
+  it('uses separate proxy caches for separate combineSlices instances', () => {
+    // Two independent combineSlices() with no initial slices both use the
+    // module-level noopReducer, which returns the same `emptyObject` reference
+    // as their initial state. If stateProxyMap were module-level (shared), the
+    // second instance's selector would get the first instance's proxy and
+    // return the wrong initial value for its injected reducer.
+    const xReducer1 = createReducer('from-reducer1', () => {})
+    const xReducer2 = createReducer('from-reducer2', () => {})
+
+    const reducer1 = combineSlices()
+    const reducer2 = combineSlices()
+
+    // Capture the pre-injection state (emptyObject from noopReducer).
+    // Both empty instances share the same emptyObject reference.
+    const preInjectionState = reducer1(undefined, dummyAction())
+
+    const injected1 = reducer1.inject({
+      reducerPath: 'x' as const,
+      reducer: xReducer1,
+    })
+    const injected2 = reducer2.inject({
+      reducerPath: 'x' as const,
+      reducer: xReducer2,
+    })
+
+    const select1x = injected1.selector((state) => state.x)
+    const select2x = injected2.selector((state) => state.x)
+
+    // preInjectionState lacks 'x', so the selector must fall back to the
+    // injected reducer's initial state. Each instance should use its own
+    // reducerMap, not the other instance's.
+    expect(select1x(preInjectionState)).toBe('from-reducer1')
+    expect(select2x(preInjectionState)).toBe('from-reducer2')
+  })
 })
