@@ -62,9 +62,8 @@ export type InjectConfig = {
 export interface CombinedSliceReducer<
   InitialState,
   DeclaredState extends InitialState = InitialState,
-  PreloadedState extends Partial<
-    Record<keyof PreloadedState, any>
-  > = Partial<DeclaredState>,
+  PreloadedState extends Partial<Record<keyof PreloadedState, any>> =
+    Partial<DeclaredState>,
 > extends Reducer<DeclaredState, UnknownAction, PreloadedState> {
   /**
    * Provide a type for slices that will be injected lazily.
@@ -354,9 +353,8 @@ const ORIGINAL_STATE = Symbol.for('rtk-state-proxy-original')
 
 const isStateProxy = (value: any) => !!value && !!value[ORIGINAL_STATE]
 
-const stateProxyMap = new WeakMap<object, object>()
-
 const createStateProxy = <State extends object>(
+  stateProxyMap: WeakMap<object, object>,
   state: State,
   reducerMap: Partial<Record<PropertyKey, Reducer>>,
   initialStateCache: Record<PropertyKey, unknown>,
@@ -411,6 +409,7 @@ export function combineSlices<Slices extends Array<AnySliceLike | ReducerMap>>(
   Id<InitialState<Slices>>,
   Partial<Id<InitialPreloadedState<Slices>>>
 > {
+  const stateProxyMap = new WeakMap<object, object>()
   const reducerMap = Object.fromEntries(getReducers(slices))
 
   const getReducer = () =>
@@ -472,6 +471,7 @@ export function combineSlices<Slices extends Array<AnySliceLike | ReducerMap>>(
       return function selector(state: State, ...args: Args) {
         return selectorFn(
           createStateProxy(
+            stateProxyMap,
             selectState ? selectState(state as any, ...args) : state,
             reducerMap,
             initialStateCache,
