@@ -70,7 +70,7 @@ export function createUnsortedStateAdapter<T, Id extends EntityId>(
     state.ids = []
     state.entities = {} as Record<Id, T>
 
-    addManyMutably(newEntities, state)
+    setManyMutably(newEntities, state)
   }
 
   function removeOneMutably(key: Id, state: R): void {

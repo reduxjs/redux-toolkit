@@ -115,7 +115,7 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
     state.entities = {} as Record<Id, T>
     state.ids = []
 
-    addManyMutably(newEntities, state, [])
+    setManyMutably(newEntities, state)
   }
 
   function updateOneMutably(update: Update<T, Id>, state: R): void {
