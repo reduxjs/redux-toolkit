@@ -414,6 +414,29 @@ describe('Sorted State Adapter', () => {
       },
     })
   })
+  it("doesn't break when multiple renames of one item occur (consistent with unsorted adapter)", () => {
+    const withA = adapter.addOne(state, { id: 'a', title: 'First' })
+
+    const withUpdates = adapter.updateMany(withA, [
+      { id: 'a', changes: { id: 'b' } },
+      { id: 'a', changes: { id: 'c' } },
+    ])
+
+    const { ids, entities } = withUpdates
+
+    /*
+      The sorted adapter must behave identically to the unsorted adapter for
+      multiple renames of the same entity in one updateMany call.
+      The last-applied change wins; all intermediate IDs must be absent.
+    */
+    expect(ids.length).toBe(1)
+    expect(ids).toEqual(['c'])
+    expect(entities.a).toBeFalsy()
+    expect(entities.b).toBeFalsy()
+    expect(entities.c).toBeTruthy()
+    expect(entities.c).toEqual({ id: 'c', title: 'First' })
+  })
+
 
   it('should let you add one entity to the state with upsert()', () => {
     const withOneEntity = adapter.upsertOne(state, TheGreatGatsby)

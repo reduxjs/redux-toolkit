@@ -129,7 +129,27 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
     let appliedUpdates = false
     let replacedIds = false
 
-    for (let update of updates) {
+    // Pre-merge all updates that target the same entity ID so that later
+    // changes always win for every field—including `id`.  Without this step,
+    // the first rename moves the entity to a new key; a subsequent update that
+    // still targets the original key finds nothing and is silently dropped,
+    // producing results inconsistent with the unsorted adapter.
+    const updatesPerEntity: { [id: string]: Update<T, Id> } = {}
+    for (const update of updates) {
+      // Only collect updates for entities that currently exist (same guard
+      // used by the unsorted adapter).
+      if (update.id in (state.entities as Record<Id, T>)) {
+        updatesPerEntity[update.id] = {
+          id: update.id,
+          changes: {
+            ...updatesPerEntity[update.id]?.changes,
+            ...update.changes,
+          },
+        }
+      }
+    }
+
+    for (const update of Object.values(updatesPerEntity) as Update<T, Id>[]) {
       const entity: T | undefined = (state.entities as Record<Id, T>)[update.id]
       if (!entity) {
         continue
