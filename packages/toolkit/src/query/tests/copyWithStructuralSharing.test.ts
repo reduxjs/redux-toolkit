@@ -86,3 +86,13 @@ test('equal object from JSON Array', () => {
   expect(newCopy[2]).not.toBe(objB[2])
   expect(newCopy[2]).toStrictEqual(objB[2])
 })
+
+test('sparse arrays with changed length return the new array', () => {
+  const objA = Array(3)
+  const objB = Array(2)
+
+  const newCopy = copyWithStructuralSharing(objA, objB)
+
+  expect(newCopy).not.toBe(objA)
+  expect(newCopy).toStrictEqual(objB)
+})

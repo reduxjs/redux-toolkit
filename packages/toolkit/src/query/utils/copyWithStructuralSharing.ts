@@ -18,7 +18,10 @@ export function copyWithStructuralSharing(oldObj: any, newObj: any): any {
   const oldKeys = Object.keys(oldObj)
 
   let isSameObject = newKeys.length === oldKeys.length
-  const mergeObj: any = Array.isArray(newObj) ? [] : {}
+  if (Array.isArray(newObj) && oldObj.length !== newObj.length) {
+    isSameObject = false
+  }
+  const mergeObj: any = Array.isArray(newObj) ? new Array(newObj.length) : {}
   for (const key of newKeys) {
     mergeObj[key] = copyWithStructuralSharing(oldObj[key], newObj[key])
     if (isSameObject) isSameObject = oldObj[key] === mergeObj[key]
