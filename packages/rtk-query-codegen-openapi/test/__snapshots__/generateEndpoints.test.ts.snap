@@ -147,7 +147,7 @@ export type UploadFileApiArg = {
   petId: number;
   /** Additional Metadata */
   additionalMetadata?: string;
-  body: Blob;
+  body?: Blob;
 };
 export type GetInventoryApiResponse = /** status 200 successful operation */ {
   [key: string]: number;
@@ -155,7 +155,7 @@ export type GetInventoryApiResponse = /** status 200 successful operation */ {
 export type GetInventoryApiArg = void;
 export type PlaceOrderApiResponse = /** status 200 successful operation */ Order;
 export type PlaceOrderApiArg = {
-  order: Order;
+  order?: Order;
 };
 export type GetOrderByIdApiResponse = /** status 200 successful operation */ Order;
 export type GetOrderByIdApiArg = {
@@ -170,11 +170,11 @@ export type DeleteOrderApiArg = {
 export type CreateUserApiResponse = unknown;
 export type CreateUserApiArg = {
   /** Created user object */
-  user: User;
+  user?: User;
 };
 export type CreateUsersWithListInputApiResponse = /** status 200 Successful operation */ User;
 export type CreateUsersWithListInputApiArg = {
-  body: User[];
+  body?: User[];
 };
 export type LoginUserApiResponse = /** status 200 successful operation */ string;
 export type LoginUserApiArg = {
@@ -195,7 +195,7 @@ export type UpdateUserApiArg = {
   /** name that need to be deleted */
   username: string;
   /** Update an existent user in the store */
-  user: User;
+  user?: User;
 };
 export type DeleteUserApiResponse = unknown;
 export type DeleteUserApiArg = {
@@ -395,7 +395,7 @@ export type UploadFileApiArg = {
   petId: number;
   /** Additional Metadata */
   additionalMetadata?: string;
-  body: Blob;
+  body?: Blob;
 };
 export type GetInventoryApiResponse = /** status 200 successful operation */ {
   [key: string]: number;
@@ -403,7 +403,7 @@ export type GetInventoryApiResponse = /** status 200 successful operation */ {
 export type GetInventoryApiArg = void;
 export type PlaceOrderApiResponse = /** status 200 successful operation */ Order;
 export type PlaceOrderApiArg = {
-  order: Order;
+  order?: Order;
 };
 export type GetOrderByIdApiResponse = /** status 200 successful operation */ Order;
 export type GetOrderByIdApiArg = {
@@ -418,11 +418,11 @@ export type DeleteOrderApiArg = {
 export type CreateUserApiResponse = unknown;
 export type CreateUserApiArg = {
   /** Created user object */
-  user: User;
+  user?: User;
 };
 export type CreateUsersWithListInputApiResponse = /** status 200 Successful operation */ User;
 export type CreateUsersWithListInputApiArg = {
-  body: User[];
+  body?: User[];
 };
 export type LoginUserApiResponse = /** status 200 successful operation */ string;
 export type LoginUserApiArg = {
@@ -443,7 +443,7 @@ export type UpdateUserApiArg = {
   /** name that need to be deleted */
   username: string;
   /** Update an existent user in the store */
-  user: User;
+  user?: User;
 };
 export type DeleteUserApiResponse = unknown;
 export type DeleteUserApiArg = {
@@ -694,7 +694,7 @@ export type UploadFileApiArg = {
   petId: number;
   /** Additional Metadata */
   additionalMetadata?: string;
-  body: Blob;
+  body?: Blob;
 };
 export type GetInventoryApiResponse = /** status 200 successful operation */ {
   [key: string]: number;
@@ -703,7 +703,7 @@ export type GetInventoryApiArg = void;
 export type PlaceOrderApiResponse =
   /** status 200 successful operation */ Order;
 export type PlaceOrderApiArg = {
-  order: Order;
+  order?: Order;
 };
 export type GetOrderByIdApiResponse =
   /** status 200 successful operation */ Order;
@@ -719,12 +719,12 @@ export type DeleteOrderApiArg = {
 export type CreateUserApiResponse = unknown;
 export type CreateUserApiArg = {
   /** Created user object */
-  user: User;
+  user?: User;
 };
 export type CreateUsersWithListInputApiResponse =
   /** status 200 Successful operation */ User;
 export type CreateUsersWithListInputApiArg = {
-  body: User[];
+  body?: User[];
 };
 export type LoginUserApiResponse =
   /** status 200 successful operation */ string;
@@ -747,7 +747,7 @@ export type UpdateUserApiArg = {
   /** name that need to be deleted */
   username: string;
   /** Update an existent user in the store */
-  user: User;
+  user?: User;
 };
 export type DeleteUserApiResponse = unknown;
 export type DeleteUserApiArg = {
@@ -879,7 +879,7 @@ export { injectedRtkApi as enhancedApi };
 export type PlaceOrderApiResponse =
   /** status 200 successful operation */ Order;
 export type PlaceOrderApiArg = {
-  order: Order;
+  order?: Order;
 };
 export type GetOrderByIdApiResponse =
   /** status 200 successful operation */ Order;
@@ -1105,7 +1105,7 @@ export type UploadFileApiResponse =
 export type UploadFileApiArg = {
   /** ID of pet to update */
   petId: number;
-  body: Blob;
+  body?: Blob;
 };
 export type GetInventoryApiResponse = /** status 200 successful operation */ {
   [key: string]: number;
@@ -1114,7 +1114,7 @@ export type GetInventoryApiArg = void;
 export type PlaceOrderApiResponse =
   /** status 200 successful operation */ Order;
 export type PlaceOrderApiArg = {
-  order: Order;
+  order?: Order;
 };
 export type GetOrderByIdApiResponse =
   /** status 200 successful operation */ Order;
@@ -1130,12 +1130,12 @@ export type DeleteOrderApiArg = {
 export type CreateUserApiResponse = unknown;
 export type CreateUserApiArg = {
   /** Created user object */
-  user: User;
+  user?: User;
 };
 export type CreateUsersWithListInputApiResponse =
   /** status 200 Successful operation */ User;
 export type CreateUsersWithListInputApiArg = {
-  body: User[];
+  body?: User[];
 };
 export type LoginUserApiResponse =
   /** status 200 successful operation */ string;
@@ -1153,7 +1153,7 @@ export type UpdateUserApiArg = {
   /** name that need to be deleted */
   username: string;
   /** Update an existent user in the store */
-  user: User;
+  user?: User;
 };
 export type DeleteUserApiResponse = unknown;
 export type DeleteUserApiArg = {
@@ -1384,7 +1384,7 @@ export type UploadFileApiArg = {
   petId: number;
   /** Additional Metadata */
   additionalMetadata?: string;
-  body: Blob;
+  body?: Blob;
 };
 export type GetInventoryApiResponse = /** status 200 successful operation */ {
   [key: string]: number;
@@ -1393,7 +1393,7 @@ export type GetInventoryApiArg = void;
 export type PlaceOrderApiResponse =
   /** status 200 successful operation */ Order;
 export type PlaceOrderApiArg = {
-  order: Order;
+  order?: Order;
 };
 export type GetOrderByIdApiResponse =
   /** status 200 successful operation */ Order;
@@ -1409,12 +1409,12 @@ export type DeleteOrderApiArg = {
 export type CreateUserApiResponse = unknown;
 export type CreateUserApiArg = {
   /** Created user object */
-  user: User;
+  user?: User;
 };
 export type CreateUsersWithListInputApiResponse =
   /** status 200 Successful operation */ User;
 export type CreateUsersWithListInputApiArg = {
-  body: User[];
+  body?: User[];
 };
 export type LoginUserApiResponse =
   /** status 200 successful operation */ string;
@@ -1435,7 +1435,7 @@ export type UpdateUserApiArg = {
   /** name that need to be deleted */
   username: string;
   /** Update an existent user in the store */
-  user: User;
+  user?: User;
 };
 export type DeleteUserApiResponse = unknown;
 export type DeleteUserApiArg = {
@@ -1682,7 +1682,7 @@ export type UploadFileApiArg = {
   petId: number;
   /** Additional Metadata */
   additionalMetadata?: string;
-  body: Blob;
+  body?: Blob;
 };
 export type GetInventoryApiResponse = /** status 200 successful operation */ {
   [key: string]: number;
@@ -1691,7 +1691,7 @@ export type GetInventoryApiArg = void;
 export type PlaceOrderApiResponse =
   /** status 200 successful operation */ Order;
 export type PlaceOrderApiArg = {
-  order: Order;
+  order?: Order;
 };
 export type GetOrderByIdApiResponse =
   /** status 200 successful operation */ Order;
@@ -1707,12 +1707,12 @@ export type DeleteOrderApiArg = {
 export type CreateUserApiResponse = unknown;
 export type CreateUserApiArg = {
   /** Created user object */
-  user: User;
+  user?: User;
 };
 export type CreateUsersWithListInputApiResponse =
   /** status 200 Successful operation */ User;
 export type CreateUsersWithListInputApiArg = {
-  body: User[];
+  body?: User[];
 };
 export type LoginUserApiResponse =
   /** status 200 successful operation */ string;
@@ -1735,7 +1735,7 @@ export type UpdateUserApiArg = {
   /** name that need to be deleted */
   username: string;
   /** Update an existent user in the store */
-  user: User;
+  user?: User;
 };
 export type DeleteUserApiResponse = unknown;
 export type DeleteUserApiArg = {
@@ -1966,7 +1966,7 @@ export type UploadFileApiArg = {
   petId: number;
   /** Additional Metadata */
   additionalMetadata?: string;
-  body: Blob;
+  body?: Blob;
 };
 export type GetInventoryApiResponse = /** status 200 successful operation */ {
   [key: string]: number;
@@ -1975,7 +1975,7 @@ export type GetInventoryApiArg = void;
 export type PlaceOrderApiResponse =
   /** status 200 successful operation */ Order;
 export type PlaceOrderApiArg = {
-  order: Order;
+  order?: Order;
 };
 export type GetOrderByIdApiResponse =
   /** status 200 successful operation */ Order;
@@ -1991,12 +1991,12 @@ export type DeleteOrderApiArg = {
 export type CreateUserApiResponse = unknown;
 export type CreateUserApiArg = {
   /** Created user object */
-  user: User;
+  user?: User;
 };
 export type CreateUsersWithListInputApiResponse =
   /** status 200 Successful operation */ User;
 export type CreateUsersWithListInputApiArg = {
-  body: User[];
+  body?: User[];
 };
 export type LoginUserApiResponse =
   /** status 200 successful operation */ string;
@@ -2017,7 +2017,7 @@ export type UpdateUserApiArg = {
   /** name that need to be deleted */
   username: string;
   /** Update an existent user in the store */
-  user: User;
+  user?: User;
 };
 export type DeleteUserApiResponse = unknown;
 export type DeleteUserApiArg = {
@@ -2242,7 +2242,7 @@ export type UploadFileApiResponse =
 export type UploadFileApiArg = {
   /** ID of pet to update */
   petId: number;
-  body: Blob;
+  body?: Blob;
 };
 export type GetInventoryApiResponse = /** status 200 successful operation */ {
   [key: string]: number;
@@ -2251,7 +2251,7 @@ export type GetInventoryApiArg = void;
 export type PlaceOrderApiResponse =
   /** status 200 successful operation */ Order;
 export type PlaceOrderApiArg = {
-  order: Order;
+  order?: Order;
 };
 export type GetOrderByIdApiResponse =
   /** status 200 successful operation */ Order;
@@ -2267,12 +2267,12 @@ export type DeleteOrderApiArg = {
 export type CreateUserApiResponse = unknown;
 export type CreateUserApiArg = {
   /** Created user object */
-  user: User;
+  user?: User;
 };
 export type CreateUsersWithListInputApiResponse =
   /** status 200 Successful operation */ User;
 export type CreateUsersWithListInputApiArg = {
-  body: User[];
+  body?: User[];
 };
 export type LoginUserApiResponse =
   /** status 200 successful operation */ string;
@@ -2290,7 +2290,7 @@ export type UpdateUserApiArg = {
   /** name that need to be deleted */
   username: string;
   /** Update an existent user in the store */
-  user: User;
+  user?: User;
 };
 export type DeleteUserApiResponse = unknown;
 export type DeleteUserApiArg = {
@@ -2367,11 +2367,11 @@ const injectedRtkApi = api.injectEndpoints({
 export { injectedRtkApi as enhancedApi };
 export type PostV1ExportApiResponse = unknown;
 export type PostV1ExportApiArg = {
-  exportedEntityIds: IdList;
+  exportedEntityIds?: IdList;
 };
 export type PostV1ImportApiResponse = unknown;
 export type PostV1ImportApiArg = {
-  rawData: string;
+  rawData?: string;
 };
 export type IdList = number[];
 "
@@ -2795,7 +2795,7 @@ export type UploadFileV2ApiArg = {
   petId: number;
   /** Additional Metadata */
   additionalMetadata?: string;
-  body: Blob;
+  body?: Blob;
 };
 export type GetInventoryV2ApiResponse = /** status 200 successful operation */ {
   [key: string]: number;
@@ -2804,7 +2804,7 @@ export type GetInventoryV2ApiArg = void;
 export type PlaceOrderV2ApiResponse =
   /** status 200 successful operation */ Order;
 export type PlaceOrderV2ApiArg = {
-  order: Order;
+  order?: Order;
 };
 export type GetOrderByIdV2ApiResponse =
   /** status 200 successful operation */ Order;
@@ -2820,12 +2820,12 @@ export type DeleteOrderV2ApiArg = {
 export type CreateUserV2ApiResponse = unknown;
 export type CreateUserV2ApiArg = {
   /** Created user object */
-  user: User;
+  user?: User;
 };
 export type CreateUsersWithListInputV2ApiResponse =
   /** status 200 Successful operation */ User;
 export type CreateUsersWithListInputV2ApiArg = {
-  body: User[];
+  body?: User[];
 };
 export type LoginUserV2ApiResponse =
   /** status 200 successful operation */ string;
@@ -2848,7 +2848,7 @@ export type UpdateUserV2ApiArg = {
   /** name that need to be deleted */
   username: string;
   /** Update an existent user in the store */
-  user: User;
+  user?: User;
 };
 export type DeleteUserV2ApiResponse = unknown;
 export type DeleteUserV2ApiArg = {
@@ -3474,7 +3474,7 @@ export type UploadFileApiArg = {
   petId: number;
   /** Additional Metadata */
   additionalMetadata?: string;
-  body: Blob;
+  body?: Blob;
 };
 export type GetInventoryApiResponse = /** status 200 successful operation */ {
   [key: string]: number;
@@ -3483,7 +3483,7 @@ export type GetInventoryApiArg = void;
 export type PlaceOrderApiResponse =
   /** status 200 successful operation */ Order;
 export type PlaceOrderApiArg = {
-  order: Order;
+  order?: Order;
 };
 export type GetOrderByIdApiResponse =
   /** status 200 successful operation */ Order;
@@ -3499,12 +3499,12 @@ export type DeleteOrderApiArg = {
 export type CreateUserApiResponse = unknown;
 export type CreateUserApiArg = {
   /** Created user object */
-  user: User;
+  user?: User;
 };
 export type CreateUsersWithListInputApiResponse =
   /** status 200 Successful operation */ User;
 export type CreateUsersWithListInputApiArg = {
-  body: User[];
+  body?: User[];
 };
 export type LoginUserApiResponse =
   /** status 200 successful operation */ string;
@@ -3527,7 +3527,7 @@ export type UpdateUserApiArg = {
   /** name that need to be deleted */
   username: string;
   /** Update an existent user in the store */
-  user: User;
+  user?: User;
 };
 export type DeleteUserApiResponse = unknown;
 export type DeleteUserApiArg = {
@@ -3876,7 +3876,7 @@ export type UploadFileApiArg = {
   petId: number;
   /** Additional Metadata */
   additionalMetadata?: string;
-  body: Blob;
+  body?: Blob;
 };
 export type GetInventoryApiResponse = /** status 200 successful operation */ {
   [key: string]: number;
@@ -3885,7 +3885,7 @@ export type GetInventoryApiArg = void;
 export type PlaceOrderApiResponse =
   /** status 200 successful operation */ Order;
 export type PlaceOrderApiArg = {
-  order: Order;
+  order?: Order;
 };
 export type GetOrderByIdApiResponse =
   /** status 200 successful operation */ Order;
@@ -3901,12 +3901,12 @@ export type DeleteOrderApiArg = {
 export type CreateUserApiResponse = unknown;
 export type CreateUserApiArg = {
   /** Created user object */
-  user: User;
+  user?: User;
 };
 export type CreateUsersWithListInputApiResponse =
   /** status 200 Successful operation */ User;
 export type CreateUsersWithListInputApiArg = {
-  body: User[];
+  body?: User[];
 };
 export type LoginUserApiResponse =
   /** status 200 successful operation */ string;
@@ -3929,7 +3929,7 @@ export type UpdateUserApiArg = {
   /** name that need to be deleted */
   username: string;
   /** Update an existent user in the store */
-  user: User;
+  user?: User;
 };
 export type DeleteUserApiResponse = unknown;
 export type DeleteUserApiArg = {
