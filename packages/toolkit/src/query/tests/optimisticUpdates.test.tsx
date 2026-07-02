@@ -192,6 +192,59 @@ describe('updateQueryData', () => {
     expect(result.current.data).toEqual(dataBefore)
   })
 
+  test('updates hook data while a refetch is in flight', async () => {
+    let resolveRefetch!: (value: Post) => void
+    const refetchPromise = new Promise<Post>((resolve) => {
+      resolveRefetch = resolve
+    })
+
+    baseQuery
+      .mockResolvedValueOnce({
+        id: '3',
+        title: 'All about cheese.',
+        contents: 'TODO',
+      })
+      .mockReturnValueOnce(refetchPromise)
+
+    const { result } = renderHook(() => api.endpoints.post.useQuery('3'), {
+      wrapper: storeRef.wrapper,
+    })
+    await hookWaitFor(() => expect(result.current.isSuccess).toBeTruthy())
+
+    act(() => {
+      void result.current.refetch()
+    })
+    await hookWaitFor(() => expect(result.current.isFetching).toBe(true))
+
+    act(() => {
+      storeRef.store.dispatch(
+        api.util.updateQueryData('post', '3', (draft) => {
+          draft.contents = 'I love cheese!'
+        }),
+      )
+    })
+
+    expect(result.current.currentData).toEqual({
+      id: '3',
+      title: 'All about cheese.',
+      contents: 'I love cheese!',
+    })
+    expect(result.current.data).toEqual({
+      id: '3',
+      title: 'All about cheese.',
+      contents: 'I love cheese!',
+    })
+
+    await act(async () => {
+      resolveRefetch({
+        id: '3',
+        title: 'All about cheese.',
+        contents: 'Refetched',
+      })
+      await refetchPromise
+    })
+  })
+
   test('updates (list) cache values including provided tags, undos that', async () => {
     baseQuery
       .mockResolvedValueOnce([
