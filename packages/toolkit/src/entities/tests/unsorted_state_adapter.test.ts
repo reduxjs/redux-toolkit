@@ -473,6 +473,33 @@ describe('Unsorted State Adapter', () => {
     expect(withUpdate.entities['b']!.title).toBe(book1.title)
   })
 
+  it('setMany keeps LAST occurrence of duplicate ids', () => {
+    const adapter = createEntityAdapter<{ id: string; title: string }>()
+    const state = adapter.getInitialState()
+
+    const result = adapter.setMany(state, [
+      { id: 'a', title: 'first' },
+      { id: 'a', title: 'second' },
+    ])
+
+    expect(result.ids).toEqual(['a'])
+    expect(result.entities['a']?.title).toBe('second') // last wins
+  })
+
+  it('setAll should keep LAST occurrence of duplicate ids (consistent with setMany)', () => {
+    const adapter = createEntityAdapter<{ id: string; title: string }>()
+    const state = adapter.getInitialState()
+
+    const result = adapter.setAll(state, [
+      { id: 'a', title: 'first' },
+      { id: 'a', title: 'second' },
+    ])
+
+    expect(result.ids).toEqual(['a']) // no duplicate ids
+    // BUG: currently returns 'first' (first wins), should return 'second' (last wins)
+    expect(result.entities['a']?.title).toBe('second') // should be last wins
+  })
+
   describe('can be used mutably when wrapped in createNextState', () => {
     test('removeAll', () => {
       const withTwo = adapter.addMany(state, [TheGreatGatsby, AnimalFarm])
