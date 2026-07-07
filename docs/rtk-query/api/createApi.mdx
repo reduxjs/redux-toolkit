@@ -938,6 +938,46 @@ _(optional, not applicable with `queryFn`)_
 
 [summary](docblock://query/endpointDefinitions.ts?token=EndpointDefinitionWithQuery.rawErrorResponseSchema)
 
+A [Standard Schema](https://standardschema.dev/) compliant schema that validates the error response returned by your `baseQuery` **before** it is passed to [`transformErrorResponse`](#transformerrorresponse). This lets you catch unexpected error shapes from the server early, before any transformation logic runs.
+
+This is the error-side counterpart to [`rawResponseSchema`](#rawresponseschema), which does the same for successful responses.
+
+:::info How `rawErrorResponseSchema` differs from `errorResponseSchema`
+
+- **`rawErrorResponseSchema`** — validates the _raw_ error value straight from `baseQuery`, _before_ `transformErrorResponse` runs. Use this when you want to ensure the server's error response matches the shape your `transformErrorResponse` function expects as input.
+- **`errorResponseSchema`** — validates the error value _after_ `transformErrorResponse` has run (or the raw value if no transform is provided). Use this when you want to guarantee the final error shape that your UI components will consume.
+
+You can use both on the same endpoint to validate at each stage of the pipeline.
+
+:::
+
+```ts title="rawErrorResponseSchema usage" no-transpile
+import { createApi } from '@reduxjs/toolkit/query/react'
+import * as v from 'valibot'
+
+// Schema matching the raw error shape returned by your baseQuery
+const rawApiErrorSchema = v.object({
+  status: v.number(),
+  data: v.object({
+    code: v.string(),
+    message: v.string(),
+  }),
+})
+
+const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
+  endpoints: (build) => ({
+    getPost: build.query<Post, number>({
+      query: (id) => `posts/${id}`,
+      // Validates the raw error from baseQuery BEFORE transformErrorResponse
+      rawErrorResponseSchema: rawApiErrorSchema,
+      // Extracts just the nested error data
+      transformErrorResponse: (raw) => raw.data,
+    }),
+  }),
+})
+```
+
 [examples](docblock://query/endpointDefinitions.ts?token=EndpointDefinitionWithQuery.rawErrorResponseSchema)
 
 #### `metaSchema`
