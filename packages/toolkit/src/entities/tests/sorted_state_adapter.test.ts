@@ -925,6 +925,37 @@ describe('Sorted State Adapter', () => {
     )
   })
 
+  it('setMany keeps LAST occurrence of duplicate ids', () => {
+    const adapter = createEntityAdapter<{ id: string; title: string }>({
+      sortComparer: (a, b) => a.title.localeCompare(b.title),
+    })
+    const state = adapter.getInitialState()
+
+    const result = adapter.setMany(state, [
+      { id: 'a', title: 'first' },
+      { id: 'a', title: 'second' },
+    ])
+
+    expect(result.ids).toEqual(['a'])
+    expect(result.entities['a']?.title).toBe('second') // last wins
+  })
+
+  it('setAll keeps LAST occurrence of duplicate ids', () => {
+    const adapter = createEntityAdapter<{ id: string; title: string }>({
+      sortComparer: (a, b) => a.title.localeCompare(b.title),
+    })
+    const state = adapter.getInitialState()
+
+    const result = adapter.setAll(state, [
+      { id: 'a', title: 'First' },
+      { id: 'a', title: 'Second' },
+    ])
+
+    expect(result.ids).toEqual(['a']) // no duplicate ids
+    // BUG: currently returns 'First' (first wins), should return 'Second' (last wins)
+    expect(result.entities['a']?.title).toBe('Second')
+  })
+
   describe('can be used mutably when wrapped in createNextState', () => {
     test('removeAll', () => {
       const withTwo = adapter.addMany(state, [TheGreatGatsby, AnimalFarm])
