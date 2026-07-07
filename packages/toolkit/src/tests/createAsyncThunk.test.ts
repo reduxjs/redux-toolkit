@@ -620,19 +620,30 @@ describe('conditional skipping of asyncThunks', () => {
     )
   })
 
-  test('async condition with AbortController signal first', async () => {
+  test('aborting during an async condition dispatches a rejected action with an AbortError', async () => {
     const condition = async () => {
       await delay(25)
       return true
     }
     const asyncThunk = createAsyncThunk('test', payloadCreator, { condition })
 
+    let result: any
     try {
       const thunkPromise = asyncThunk(arg)(dispatch, getState, extra)
-      thunkPromise.abort()
-      await thunkPromise
+      thunkPromise.abort('TEST_ABORT')
+      result = await thunkPromise
     } catch (err) {}
-    expect(dispatch).not.toHaveBeenCalled()
+    // The payload creator should never run, since the abort happened
+    // before the `condition` resolved.
+    expect(payloadCreator).not.toHaveBeenCalled()
+    // Aborting a running thunk should dispatch a `rejected` action with an
+    // `AbortError`, not be silently swallowed as a condition rejection.
+    expect(dispatch).toHaveBeenCalledOnce()
+    expect(asyncThunk.rejected.match(result)).toBe(true)
+    expect(result.error.name).toBe('AbortError')
+    expect(result.error.message).toBe('TEST_ABORT')
+    expect(result.meta.aborted).toBe(true)
+    expect(result.meta.condition).toBe(false)
   })
 
   test('rejected action is not dispatched by default', async () => {
@@ -1028,18 +1039,59 @@ describe('dispatch config', () => {
       'External signal was aborted',
     )
   })
+  test('an already-aborted external signal is not silently swallowed when options are provided', async () => {
+    const dispatched: any[] = []
+    const dispatch = vi.fn((action: any) => {
+      dispatched.push(action)
+      return action
+    })
+    const payloadCreator = vi.fn(async () => 42)
+    // Providing any options object (here, a `condition`) used to cause the
+    // abort to be reported as a `ConditionError`, which is then skipped by
+    // default - so the abort was silently swallowed with no action dispatched.
+    const asyncThunk = createAsyncThunk('test', payloadCreator, {
+      condition: () => true,
+    })
+
+    const signal = AbortSignal.abort()
+    const result: any = await asyncThunk(undefined, { signal })(
+      dispatch,
+      () => ({}),
+      undefined,
+    )
+
+    expect(payloadCreator).not.toHaveBeenCalled()
+    expect(asyncThunk.rejected.match(result)).toBe(true)
+    expect(result.error.name).toBe('AbortError')
+    expect(result.error.message).toBe('External signal was aborted')
+    expect(result.meta.aborted).toBe(true)
+    expect(result.meta.condition).toBe(false)
+    // The `rejected` action must actually be dispatched, not swallowed.
+    expect(dispatched).toHaveLength(1)
+    expect(asyncThunk.rejected.match(dispatched[0])).toBe(true)
+  })
   test('handles already aborted external signal', async () => {
-    const asyncThunk = createAsyncThunk('test', async (_: void, { signal }) => {
+    const payloadCreator = vi.fn(async (_: void, { signal }) => {
       signal.throwIfAborted()
       const { promise, reject } = promiseWithResolvers<never>()
       signal.addEventListener('abort', () => reject(signal.reason))
       return promise
     })
+    const asyncThunk = createAsyncThunk('test', payloadCreator)
 
     const signal = AbortSignal.abort()
     const promise = store.dispatch(asyncThunk(undefined, { signal }))
+    // An already-aborted external signal should be treated the same as
+    // aborting the signal while the thunk is running: a `rejected` action
+    // with an `AbortError`, not a `ConditionError` that gets swallowed.
     await expect(promise.unwrap()).rejects.toThrow(
-      'Aborted due to condition callback returning false.',
+      'External signal was aborted',
     )
+    const result = await promise
+    expect(payloadCreator).not.toHaveBeenCalled()
+    expect(asyncThunk.rejected.match(result)).toBe(true)
+    expect((result as any).error.name).toBe('AbortError')
+    expect((result as any).meta.aborted).toBe(true)
+    expect((result as any).meta.condition).toBe(false)
   })
 })
