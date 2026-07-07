@@ -798,7 +798,7 @@ export type LazyInfiniteQueryTrigger<
   D extends InfiniteQueryDefinition<any, any, any, any, any>,
 > = {
   /**
-   * Triggers an infinite query fetch in the given direction.
+   * Triggers fetching the next or previous page of an infinite query.
    *
    * Pass the endpoint argument as the first parameter and either `'forward'` or `'backward'`
    * as the second parameter to fetch the next or previous page from the current cache entry.
