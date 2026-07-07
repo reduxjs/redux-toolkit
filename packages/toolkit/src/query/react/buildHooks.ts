@@ -1570,9 +1570,9 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         lastResult = undefined
     }
 
-    // data is the last known good request result we have tracked - or if none has been tracked yet the last good result for the current args
-    let data = currentState.isSuccess ? currentState.data : lastResult?.data
-    if (data === undefined) data = currentState.data
+    // data is the latest available cache entry, or the last known good request result we have tracked
+    let data = currentState.data
+    if (data === undefined) data = lastResult?.data
 
     const hasData = data !== undefined
 
@@ -1630,9 +1630,9 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         lastResult = undefined
     }
 
-    // data is the last known good request result we have tracked - or if none has been tracked yet the last good result for the current args
-    let data = currentState.isSuccess ? currentState.data : lastResult?.data
-    if (data === undefined) data = currentState.data
+    // data is the latest available cache entry, or the last known good request result we have tracked
+    let data = currentState.data
+    if (data === undefined) data = lastResult?.data
 
     const hasData = data !== undefined
 
