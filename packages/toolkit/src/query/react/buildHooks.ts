@@ -1703,10 +1703,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     >
     const dispatch = useDispatch<ThunkDispatch<any, any, UnknownAction>>()
 
-    // TODO: Change this to `useRef<SubscriptionSelectors>(undefined)` after upgrading to React 19.
-    const subscriptionSelectorsRef = useRef<SubscriptionSelectors | undefined>(
-      undefined,
-    )
+    const subscriptionSelectorsRef = useRef<SubscriptionSelectors>(undefined)
 
     if (!subscriptionSelectorsRef.current) {
       const returnedValue = dispatch(
@@ -1745,10 +1742,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     ).refetchCachedPages
     const stableRefetchCachedPages = useShallowStableValue(refetchCachedPages)
 
-    /**
-     * @todo Change this to `useRef<QueryActionCreatorResult<any>>(undefined)` after upgrading to React 19.
-     */
-    const promiseRef = useRef<T | undefined>(undefined)
+    const promiseRef = useRef<T>(undefined)
 
     let { queryCacheKey, requestId } = promiseRef.current || {}
 
@@ -1961,13 +1955,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
       const [arg, setArg] = useState<any>(UNINITIALIZED_VALUE)
 
-      // TODO: Change this to `useRef<QueryActionCreatorResult<any>>(undefined)` after upgrading to React 19.
-      /**
-       * @todo Change this to `useRef<QueryActionCreatorResult<any>>(undefined)` after upgrading to React 19.
-       */
-      const promiseRef = useRef<QueryActionCreatorResult<any> | undefined>(
-        undefined,
-      )
+      const promiseRef = useRef<QueryActionCreatorResult<any>>(undefined)
 
       const stableSubscriptionOptions = useShallowStableValue({
         refetchOnReconnect,
