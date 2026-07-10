@@ -132,7 +132,7 @@ export type FetchBaseQueryArgs = {
    * in a predicate function for your given api to get the same automatic stringifying behavior
    * @example
    * ```ts
-   * const isJsonContentType = (headers: Headers) => ["application/vnd.api+json", "application/json", "application/vnd.hal+json"].includes(headers.get("content-type")?.trim());
+   * const isJsonContentType = (headers: Headers) => ["application/vnd.api+json", "application/json", "application/vnd.hal+json"].includes((headers.get("content-type") ?? "").trim());
    * ```
    */
   isJsonContentType?: (headers: Headers) => boolean
