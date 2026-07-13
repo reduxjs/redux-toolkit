@@ -2543,6 +2543,50 @@ describe('hooks tests', () => {
       },
     )
 
+    test.each([
+      ['skip token', skipToken, undefined],
+      ['skip option', 'fire', true],
+    ])(
+      'useInfiniteQuery does not fetch when `fetchNextPage`/`fetchPreviousPage` are called while skipped via %s',
+      async (_, arg, skip) => {
+        const storeRef = setupApiStore(pokemonApi, undefined, {
+          withoutTestLifecycles: true,
+        })
+
+        function Pokemon() {
+          const { isFetching, fetchNextPage, fetchPreviousPage } =
+            pokemonApi.useGetInfinitePokemonInfiniteQuery(arg, { skip })
+
+          return (
+            <div>
+              <div data-testid="isFetching">{String(isFetching)}</div>
+              <button onClick={() => fetchNextPage()}>next</button>
+              <button onClick={() => fetchPreviousPage()}>previous</button>
+            </div>
+          )
+        }
+
+        render(<Pokemon />, { wrapper: storeRef.wrapper })
+
+        expect(screen.getByTestId('isFetching').textContent).toBe('false')
+
+        fireEvent.click(screen.getByText('next'))
+        fireEvent.click(screen.getByText('previous'))
+
+        // Give any (incorrectly) dispatched request a chance to start
+        await act(async () => {
+          await delay(10)
+        })
+
+        // A skipped infinite query must not fetch, so no cache entry
+        // should have been created and `isFetching` should stay `false`.
+        expect(
+          Object.keys(storeRef.store.getState().api.queries),
+        ).toHaveLength(0)
+        expect(screen.getByTestId('isFetching').textContent).toBe('false')
+      },
+    )
+
     test('useInfiniteQuery hook option refetchCachedPages: false only refetches first page', async () => {
       const storeRef = setupApiStore(pokemonApi, undefined, {
         withoutTestLifecycles: true,

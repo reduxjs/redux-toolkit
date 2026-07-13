@@ -2103,6 +2103,16 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
       const trigger: LazyInfiniteQueryTrigger<any> = useCallback(
         function (arg: unknown, direction: 'forward' | 'backward') {
+          // If the query is skipped (`arg` is `skipToken`), we must not start a
+          // request. Unsubscribe from any previous promise and bail out, so that
+          // e.g. calling `fetchNextPage()` on a skipped hook is a no-op instead
+          // of firing a request with `skipToken` as the query arg.
+          if (arg === skipToken) {
+            unsubscribePromiseRef(promiseRef)
+            promiseRef.current = undefined
+            return promiseRef.current as unknown as InfiniteQueryActionCreatorResult<any>
+          }
+
           let promise: InfiniteQueryActionCreatorResult<any>
 
           batch(() => {
