@@ -587,7 +587,7 @@ export type UseQueryStateOptions<
    *
    *   return (
    *     <ul>
-   *       {posts?.data?.map((post) => (
+   *       {posts?.map((post) => (
    *         <PostById key={post.id} id={post.id} />
    *       ))}
    *     </ul>
@@ -1171,7 +1171,7 @@ export type UseInfiniteQueryStateOptions<
    *
    *   return (
    *     <ul>
-   *       {posts?.data?.map((post) => (
+   *       {posts?.map((post) => (
    *         <PostById key={post.id} id={post.id} />
    *       ))}
    *     </ul>
