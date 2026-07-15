@@ -16,7 +16,10 @@ import {
   createListenerMiddleware,
   createSlice,
 } from '@reduxjs/toolkit'
-import type { SubscriptionOptions } from '@reduxjs/toolkit/query/react'
+import type {
+  SkipToken,
+  SubscriptionOptions,
+} from '@reduxjs/toolkit/query/react'
 import {
   QueryStatus,
   createApi,
@@ -2543,7 +2546,7 @@ describe('hooks tests', () => {
       },
     )
 
-    test.each([
+    test.each<[string, string | SkipToken, boolean | undefined]>([
       ['skip token', skipToken, undefined],
       ['skip option', 'fire', true],
     ])(
