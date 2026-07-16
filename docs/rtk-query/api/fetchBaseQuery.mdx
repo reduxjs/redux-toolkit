@@ -287,6 +287,27 @@ By default, `fetchBaseQuery` assumes that every request you make will be `json`,
     }),
 ```
 
+#### FormData
+
+To send `multipart/form-data` requests, such as file uploads, pass a [`FormData`](https://developer.mozilla.org/en-US/docs/Web/API/FormData) instance directly as the `body`. No dedicated option is needed (there is no `formData` flag) &mdash; `fetchBaseQuery` passes the `FormData` through to `fetch` as-is and ensures no `Content-Type` header is set, so that `fetch` can generate the `multipart/form-data` content type with the correct boundary automatically. There is no need to set the `Content-Type` header manually for these requests &mdash; a manually set value would be missing the boundary, so `fetchBaseQuery` removes it for `FormData` bodies.
+
+```ts no-transpile
+ // omitted
+  endpoints: (build) => ({
+    uploadFile: build.mutation({
+      query: (file: File) => {
+        const formData = new FormData()
+        formData.append('file', file)
+        return {
+          url: `files`,
+          method: 'POST',
+          // Sent as multipart/form-data; fetch sets the Content-Type (including the boundary)
+          body: formData,
+        }
+      },
+    }),
+```
+
 ### Setting the query string
 
 `fetchBaseQuery` provides a simple mechanism that converts an `object` to a serialized query string by passing the object to `new URLSearchParams()`. If this doesn't suit your needs, you have two options:
