@@ -86,3 +86,22 @@ test('equal object from JSON Array', () => {
   expect(newCopy[2]).not.toBe(objB[2])
   expect(newCopy[2]).toStrictEqual(objB[2])
 })
+
+test('equal objects containing NaN preserve identity', () => {
+  const objA = { a: NaN, b: { c: NaN, d: 1 } }
+  const objB = { a: NaN, b: { c: NaN, d: 1 } }
+
+  const newCopy = copyWithStructuralSharing(objA, objB)
+  expect(newCopy).toBe(objA)
+})
+
+test('unequal objects containing NaN still share unchanged branches', () => {
+  const objA = { a: { b: NaN }, c: 1 }
+  const objB = { a: { b: NaN }, c: 2 }
+
+  const newCopy = copyWithStructuralSharing(objA, objB)
+  expect(newCopy).not.toBe(objA)
+  expect(newCopy).not.toBe(objB)
+  expect(newCopy.c).toBe(2)
+  expect(newCopy.a).toBe(objA.a)
+})
