@@ -397,6 +397,95 @@ describe('updateQueryData', () => {
   })
 })
 
+describe('pessimistic updates', () => {
+  // regression test for https://github.com/reduxjs/redux-toolkit/issues/5093
+  test('mutation hook reports isSuccess with pessimistic update and tag invalidation', async () => {
+    const extendedApi = api.injectEndpoints({
+      endpoints: (build) => ({
+        updatePostPessimistic: build.mutation<
+          Post,
+          Pick<Post, 'id'> & Partial<Post>
+        >({
+          query: ({ id, ...patch }) => ({
+            url: `post/${id}`,
+            method: 'PUT',
+            body: patch,
+          }),
+          async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
+            const { data } = await queryFulfilled
+            dispatch(
+              api.util.updateQueryData('post', id, (draft) => {
+                Object.assign(draft, data)
+              }),
+            )
+          },
+          invalidatesTags: ['Post'],
+        }),
+      }),
+      overrideExisting: true,
+    })
+
+    baseQuery
+      // initial query
+      .mockResolvedValueOnce({
+        id: '3',
+        title: 'All about cheese.',
+        contents: 'TODO',
+      })
+      // mutation response
+      .mockResolvedValueOnce({
+        id: '3',
+        title: 'All about cheese.',
+        contents: 'Delicious cheese!',
+      })
+      // refetch triggered by invalidatesTags
+      .mockResolvedValueOnce({
+        id: '3',
+        title: 'All about cheese.',
+        contents: 'Delicious cheese!',
+      })
+      .mockResolvedValueOnce(42)
+
+    const { result } = renderHook(
+      () => ({
+        query: api.endpoints.post.useQuery('3'),
+        mutation: extendedApi.endpoints.updatePostPessimistic.useMutation(),
+      }),
+      { wrapper: storeRef.wrapper },
+    )
+    await hookWaitFor(() => expect(result.current.query.isSuccess).toBeTruthy())
+
+    act(() => {
+      void result.current.mutation[0]({
+        id: '3',
+        contents: 'Delicious cheese!',
+      })
+    })
+
+    await hookWaitFor(() =>
+      expect(result.current.mutation[1].isSuccess).toBe(true),
+    )
+    expect(result.current.mutation[1].data).toEqual({
+      id: '3',
+      title: 'All about cheese.',
+      contents: 'Delicious cheese!',
+    })
+
+    // the pessimistic update was applied to the cache
+    await hookWaitFor(() =>
+      expect(result.current.query.data).toEqual({
+        id: '3',
+        title: 'All about cheese.',
+        contents: 'Delicious cheese!',
+      }),
+    )
+
+    // isSuccess stays true after the invalidation refetch settles
+    await hookWaitFor(() => expect(result.current.query.isFetching).toBe(false))
+    expect(result.current.mutation[1].isSuccess).toBe(true)
+  })
+})
+
 describe('full integration', () => {
   test('success case', async () => {
     baseQuery
