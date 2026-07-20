@@ -2,7 +2,6 @@ import type {
   Reducer,
   ReducersMapObject,
   Middleware,
-  Action,
   StoreEnhancer,
   Store,
   UnknownAction,
@@ -39,7 +38,6 @@ import { buildGetDefaultEnhancers } from './getDefaultEnhancers'
  */
 export interface ConfigureStoreOptions<
   S = any,
-  A extends Action = UnknownAction,
   M extends Tuple<Middlewares<S>> = Tuple<Middlewares<S>>,
   E extends Tuple<Enhancers> = Tuple<Enhancers>,
   P = S,
@@ -47,8 +45,13 @@ export interface ConfigureStoreOptions<
   /**
    * A single reducer function that will be used as the root reducer, or an
    * object of slice reducers that will be passed to `combineReducers()`.
+   *
+   * The reducer must handle `UnknownAction`, matching the store's dispatch
+   * type. A root reducer is always called with actions it doesn't recognise
+   * (`@@INIT`, replaced-reducer actions, thunk-dispatched actions, ...), so
+   * its `action` parameter cannot be narrowed to a specific action type.
    */
-  reducer: Reducer<S, A, P> | ReducersMapObject<S, A, P>
+  reducer: Reducer<S, UnknownAction, P> | ReducersMapObject<S, UnknownAction, P>
 
   /**
    * An array of Redux middleware to install, or a callback receiving `getDefaultMiddleware` and returning a Tuple of middleware.
@@ -105,10 +108,9 @@ type Enhancers = ReadonlyArray<StoreEnhancer>
  */
 export type EnhancedStore<
   S = any,
-  A extends Action = UnknownAction,
   E extends Enhancers = Enhancers,
 > = ExtractStoreExtensions<E> &
-  Store<S, A, UnknownIfNonSpecific<ExtractStateExtensions<E>>>
+  Store<S, UnknownAction, UnknownIfNonSpecific<ExtractStateExtensions<E>>>
 
 /**
  * A friendly abstraction over the standard Redux `createStore()` function.
@@ -120,13 +122,12 @@ export type EnhancedStore<
  */
 export function configureStore<
   S = any,
-  A extends Action = UnknownAction,
   M extends Tuple<Middlewares<S>> = Tuple<[ThunkMiddlewareFor<S>]>,
   E extends Tuple<Enhancers> = Tuple<
     [StoreEnhancer<{ dispatch: ExtractDispatchExtensions<M> }>, StoreEnhancer]
   >,
   P = S,
->(options: ConfigureStoreOptions<S, A, M, E, P>): EnhancedStore<S, A, E> {
+>(options: ConfigureStoreOptions<S, M, E, P>): EnhancedStore<S, E> {
   const getDefaultMiddleware = buildGetDefaultMiddleware<S>()
 
   const {
@@ -138,12 +139,16 @@ export function configureStore<
     enhancers = undefined,
   } = options || {}
 
-  let rootReducer: Reducer<S, A, P>
+  let rootReducer: Reducer<S, UnknownAction, P>
 
   if (typeof reducer === 'function') {
     rootReducer = reducer
   } else if (isPlainObject(reducer)) {
-    rootReducer = combineReducers(reducer) as unknown as Reducer<S, A, P>
+    rootReducer = combineReducers(reducer) as unknown as Reducer<
+      S,
+      UnknownAction,
+      P
+    >
   } else {
     throw new Error(
       '`reducer` is a required argument, and must be a function or an object of functions that can be passed to combineReducers',
