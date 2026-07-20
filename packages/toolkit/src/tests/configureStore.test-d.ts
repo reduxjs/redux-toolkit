@@ -56,14 +56,43 @@ describe('type tests', () => {
     expectTypeOf(store).not.toExtend<Store<string, UnknownAction>>()
   })
 
-  test('configureStore() infers the store action type.', () => {
-    const reducer: Reducer<number, PayloadAction<number>> = () => 0
+  test('configureStore() always types the store action as `UnknownAction`.', () => {
+    // `configureStore` no longer accepts/infers a store-wide action type - the
+    // store always dispatches `UnknownAction`, matching the root reducer, which
+    // is always called with actions it doesn't recognise.
+    // See https://github.com/reduxjs/redux-toolkit/issues/5317
+    const reducer: Reducer<number, UnknownAction> = () => 0
 
     const store = configureStore({ reducer })
 
-    expectTypeOf(store).toExtend<Store<number, PayloadAction<number>>>()
+    expectTypeOf(store).toExtend<Store<number, UnknownAction>>()
 
-    expectTypeOf(store).not.toExtend<Store<number, PayloadAction<string>>>()
+    expectTypeOf(store).not.toExtend<Store<number, PayloadAction<number>>>()
+  })
+
+  test('configureStore() rejects a reducer narrowed to a specific action.', () => {
+    // A root reducer is always called with `@@INIT`, replaced-reducer actions,
+    // thunk-dispatched actions, etc. - narrowing its `action` parameter below
+    // `UnknownAction` is unsound, so the `reducer` option rejects it.
+    const specificReducer: Reducer<number, PayloadAction<number>> = () => 0
+
+    // @ts-expect-error the reducer must handle `UnknownAction`
+    configureStore({ reducer: specificReducer })
+
+    // slice reducers and `combineReducers()` output handle `UnknownAction`, so
+    // they remain accepted.
+    const slice = createSlice({
+      name: 'counter',
+      initialState: 0,
+      reducers: {
+        increment: (state, action: PayloadAction<number>) =>
+          state + action.payload,
+      },
+    })
+
+    configureStore({ reducer: slice.reducer })
+
+    configureStore({ reducer: combineReducers({ counter: slice.reducer }) })
   })
 
   test('configureStore() accepts Tuple for middleware, but not plain array.', () => {
