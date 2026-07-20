@@ -262,7 +262,7 @@ describe('createSlice', () => {
           })
           slice.reducer(undefined, { type: 'unrelated' })
         }).toThrowErrorMatchingInlineSnapshot(
-          `[Error: \`builder.addCase\` cannot be called with two reducers for the same action type 'increment']`,
+          `[Error: A reducer already exists for the action type 'increment']`,
         )
       })
 
