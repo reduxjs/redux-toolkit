@@ -52,22 +52,20 @@ describe('type tests', () => {
         (state, action: ReturnType<typeof increment>) => state,
       )
 
-      // @ts-expect-error
-      builder.addCase(
-        increment,
-        (state, action: ReturnType<typeof decrement>) => state,
-      )
+      // @ts-expect-error `increment` and `decrement` action types are incompatible.
+      // The call is kept on a single line so `tsc` and `tsgo` attribute the error to the same line.
+      // prettier-ignore
+      builder.addCase(increment, (state, action: ReturnType<typeof decrement>) => state)
 
       builder.addCase(
         'increment',
         (state, action: ReturnType<typeof increment>) => state,
       )
 
-      // @ts-expect-error
-      builder.addCase(
-        'decrement',
-        (state, action: ReturnType<typeof increment>) => state,
-      )
+      // @ts-expect-error The reducer is typed for `increment`, but the case is `'decrement'`.
+      // The call is kept on a single line so `tsc` and `tsgo` attribute the error to the same line.
+      // prettier-ignore
+      builder.addCase('decrement', (state, action: ReturnType<typeof increment>) => state)
 
       // action type is inferred
       builder.addMatcher(increment.match, (state, action) => {
