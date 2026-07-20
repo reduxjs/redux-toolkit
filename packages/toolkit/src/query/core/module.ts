@@ -34,7 +34,7 @@ import type {
   CombinedState,
   MutationKeys,
   QueryKeys,
-  RootState,
+  ApiRootState,
 } from './apiState'
 import type {
   BuildInitiateApiEndpointMutation,
@@ -157,7 +157,7 @@ export interface ApiModules<
      */
     middleware: Middleware<
       {},
-      RootState<Definitions, string, ReducerPath>,
+      ApiRootState<Definitions, string, ReducerPath>,
       ThunkDispatch<any, any, UnknownAction>
     >
     /**
@@ -274,7 +274,7 @@ export interface ApiModules<
        */
       updateQueryData: UpdateQueryDataThunk<
         Definitions,
-        RootState<Definitions, string, ReducerPath>
+        ApiRootState<Definitions, string, ReducerPath>
       >
 
       /**
@@ -298,7 +298,7 @@ export interface ApiModules<
        */
       upsertQueryData: UpsertQueryDataThunk<
         Definitions,
-        RootState<Definitions, string, ReducerPath>
+        ApiRootState<Definitions, string, ReducerPath>
       >
       /**
        * A Redux thunk that applies a JSON diff/patch array to the cached data for a given query result. This immediately updates the Redux state with those changes.
@@ -328,7 +328,7 @@ export interface ApiModules<
        */
       patchQueryData: PatchQueryDataThunk<
         Definitions,
-        RootState<Definitions, string, ReducerPath>
+        ApiRootState<Definitions, string, ReducerPath>
       >
 
       /**
@@ -381,7 +381,7 @@ export interface ApiModules<
        * Can be used for mutations that want to do optimistic updates instead of invalidating a set of tags, but don't know exactly what they need to update.
        */
       selectInvalidatedBy: (
-        state: RootState<Definitions, string, ReducerPath>,
+        state: ApiRootState<Definitions, string, ReducerPath>,
         tags: ReadonlyArray<TagDescription<TagTypes> | null | undefined>,
       ) => Array<{
         endpointName: string
@@ -395,7 +395,7 @@ export interface ApiModules<
        * Can be used for mutations that want to do optimistic updates instead of invalidating a set of tags, but don't know exactly what they need to update.
        */
       selectCachedArgsForQuery: <QueryName extends AllQueryKeys<Definitions>>(
-        state: RootState<Definitions, string, ReducerPath>,
+        state: ApiRootState<Definitions, string, ReducerPath>,
         queryName: QueryName,
       ) => Array<QueryArgFromAnyQuery<Definitions[QueryName]>>
     }
