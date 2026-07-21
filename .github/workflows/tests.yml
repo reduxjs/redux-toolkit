@@ -138,14 +138,6 @@ jobs:
         include:
           # React 19 × all TS versions
           - node: '24.x'
-            ts: '5.4'
-            react:
-              {
-                version: '^19',
-                types: '^19',
-                react-dom: { version: '^19', types: '^19' },
-              }
-          - node: '24.x'
             ts: '5.5'
             react:
               {
@@ -186,6 +178,14 @@ jobs:
                 react-dom: { version: '^19', types: '^19' },
               }
           - node: '24.x'
+            ts: '6.0'
+            react:
+              {
+                version: '^19',
+                types: '^19',
+                react-dom: { version: '^19', types: '^19' },
+              }
+          - node: '24.x'
             ts: 'next'
             react:
               {
@@ -193,9 +193,9 @@ jobs:
                 types: '^19',
                 react-dom: { version: '^19', types: '^19' },
               }
-          # React 18 × boundary TS versions only (5.4, 5.9, next)
+          # React 18 × boundary TS versions only (5.5, 6.0, next)
           - node: '24.x'
-            ts: '5.4'
+            ts: '5.5'
             react:
               {
                 version: '^18',
@@ -203,7 +203,7 @@ jobs:
                 react-dom: { version: '^18', types: '^18' },
               }
           - node: '24.x'
-            ts: '5.9'
+            ts: '6.0'
             react:
               {
                 version: '^18',
@@ -387,9 +387,6 @@ jobs:
         include:
           # bundler × all TS versions
           - node: '24.x'
-            ts: '5.4'
-            example: { name: 'bundler', moduleResolution: 'Bundler' }
-          - node: '24.x'
             ts: '5.5'
             example: { name: 'bundler', moduleResolution: 'Bundler' }
           - node: '24.x'
@@ -405,24 +402,27 @@ jobs:
             ts: '5.9'
             example: { name: 'bundler', moduleResolution: 'Bundler' }
           - node: '24.x'
+            ts: '6.0'
+            example: { name: 'bundler', moduleResolution: 'Bundler' }
+          - node: '24.x'
             ts: 'next'
             example: { name: 'bundler', moduleResolution: 'Bundler' }
-          # nodenext-cjs × boundary TS versions only (5.4, 5.9, next)
+          # nodenext-cjs × boundary TS versions only (5.5, 6.0, next)
           - node: '24.x'
-            ts: '5.4'
+            ts: '5.5'
             example: { name: 'nodenext-cjs', moduleResolution: 'NodeNext' }
           - node: '24.x'
-            ts: '5.9'
+            ts: '6.0'
             example: { name: 'nodenext-cjs', moduleResolution: 'NodeNext' }
           - node: '24.x'
             ts: 'next'
             example: { name: 'nodenext-cjs', moduleResolution: 'NodeNext' }
-          # nodenext-esm × boundary TS versions only (5.4, 5.9, next)
+          # nodenext-esm × boundary TS versions only (5.5, 6.0, next)
           - node: '24.x'
-            ts: '5.4'
+            ts: '5.5'
             example: { name: 'nodenext-esm', moduleResolution: 'NodeNext' }
           - node: '24.x'
-            ts: '5.9'
+            ts: '6.0'
             example: { name: 'nodenext-esm', moduleResolution: 'NodeNext' }
           - node: '24.x'
             ts: 'next'

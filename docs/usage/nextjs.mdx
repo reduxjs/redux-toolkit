@@ -149,7 +149,7 @@ export const useAppStore = useStore.withTypes<AppStore>()
 
 To use this new `makeStore` function we need to create a new "client" component that will create the store and share it using the React-Redux `Provider` component.
 
-```ts title="app/StoreProvider.tsx"
+```tsx title="app/StoreProvider.tsx"
 // file: lib/store.ts noEmit
 import { configureStore } from '@reduxjs/toolkit'
 
@@ -172,7 +172,8 @@ export type AppDispatch = AppStore['dispatch']
 import { useRef } from 'react'
 import { Provider } from 'react-redux'
 // highlight-start
-import { makeStore, AppStore } from '../lib/store'
+import type { AppStore } from '../lib/store'
+import { makeStore } from '../lib/store'
 // highlight-end
 
 export default function StoreProvider({
@@ -206,7 +207,7 @@ The next step is to **include the `StoreProvider` anywhere in the tree above whe
 
 If you need to initialize the store with data from the parent component, then define that data as a prop on the client `StoreProvider` component and use a Redux action on the slice to set the data in the store as shown below.
 
-```ts title="src/app/StoreProvider.tsx"
+```tsx title="src/app/StoreProvider.tsx"
 // file: lib/features/counter/counterSlice.ts noEmit
 import { createSlice } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
@@ -250,7 +251,8 @@ export type AppDispatch = AppStore['dispatch']
 'use client'
 import { useRef } from 'react'
 import { Provider } from 'react-redux'
-import { makeStore, AppStore } from '../lib/store'
+import type { AppStore } from '../lib/store'
+import { makeStore } from '../lib/store'
 // highlight-start
 import { initializeCount } from '../lib/features/counter/counterSlice'
 // highlight-end
@@ -282,7 +284,7 @@ If you use Next.js's support for client side SPA-style navigation by using `next
 
 Shown below is a `ProductName` example component that uses the Redux store to manage the mutable name of a product. The `ProductName` component is part of a product detail route. In order to ensure that we have the correct name in the store we need to set the value in the store any time the `ProductName` component is initially rendered, which happens on any route change to the product detail route.
 
-```ts title="app/ProductName.tsx"
+```tsx title="app/ProductName.tsx"
 // file: lib/features/product/productSlice.ts noEmit
 import { createSlice } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
@@ -344,10 +346,10 @@ export const useAppStore = useStore.withTypes<AppStore>()
 'use client'
 import { useRef } from 'react'
 import { useAppSelector, useAppDispatch, useAppStore } from '../lib/hooks'
+import type { Product } from '../lib/features/product/productSlice'
 import {
   initializeProduct,
   setProductName,
-  Product,
 } from '../lib/features/product/productSlice'
 
 export default function ProductName({ product }: { product: Product }) {

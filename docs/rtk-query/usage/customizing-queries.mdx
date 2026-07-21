@@ -844,7 +844,7 @@ export const { useGetPostsQuery } = api
 
 ```ts title="GraphQL transformation example"
 // file: graphqlBaseQuery.ts noEmit
-import { BaseQueryFn } from '@reduxjs/toolkit/query'
+import type { BaseQueryFn } from '@reduxjs/toolkit/query'
 declare const graphqlBaseQuery: (args: { baseUrl: string }) => BaseQueryFn
 declare const gql: (literals: TemplateStringsArray) => void
 export { graphqlBaseQuery, gql }
