@@ -444,7 +444,8 @@ export async function generateApi(
         name,
         originalName: schemaName,
         type: getTypeFromSchema(withMode(ctx, 'writeOnly'), schema),
-        required: true,
+        // A request body is optional unless the spec explicitly marks it required (OpenAPI defaults `required` to `false`).
+        required: body.required ?? false,
         body,
       };
     }
