@@ -16,7 +16,10 @@ import {
   createListenerMiddleware,
   createSlice,
 } from '@reduxjs/toolkit'
-import type { SubscriptionOptions } from '@reduxjs/toolkit/query/react'
+import type {
+  BaseQueryFn,
+  SubscriptionOptions,
+} from '@reduxjs/toolkit/query/react'
 import {
   QueryStatus,
   createApi,
@@ -1269,6 +1272,79 @@ describe('hooks tests', () => {
 
       // The abort signal should now be aborted
       expect(abortSignalFromQueryFn!.aborted).toBe(true)
+    })
+
+    // NaN !== NaN, so structural sharing of query args must compare values
+    // with Object.is. Otherwise an arg object containing NaN gets a new
+    // identity on every render, and when the query also errors, each
+    // rejection triggers a rerender which dispatches a new request,
+    // producing an infinite refetch loop.
+    test('query args containing NaN do not cause an infinite refetch loop on error', async () => {
+      let baseQueryCalls = 0
+      const failingBaseQuery: BaseQueryFn = async () => {
+        baseQueryCalls += 1
+        await delay(5)
+        return { error: { status: 400, data: null } }
+      }
+      const nanApi = createApi({
+        baseQuery: failingBaseQuery,
+        endpoints: (build) => ({
+          getUser: build.query<unknown, { id: number }>({
+            query: (arg: { id: number }) => arg,
+          }),
+        }),
+      })
+      const storeRef = setupApiStore(nanApi, undefined, {
+        withoutTestLifecycles: true,
+      })
+
+      function User() {
+        nanApi.endpoints.getUser.useQuery({ id: NaN })
+        return null
+      }
+
+      render(<User />, { wrapper: storeRef.wrapper })
+
+      await waitFor(() => expect(baseQueryCalls).toBeGreaterThan(0))
+      await act(async () => {
+        await delay(150)
+      })
+
+      expect(baseQueryCalls).toBe(1)
+    })
+
+    test('a bare NaN query arg does not cause an infinite refetch loop on error', async () => {
+      let baseQueryCalls = 0
+      const failingBaseQuery: BaseQueryFn = async () => {
+        baseQueryCalls += 1
+        await delay(5)
+        return { error: { status: 400, data: null } }
+      }
+      const nanApi = createApi({
+        baseQuery: failingBaseQuery,
+        endpoints: (build) => ({
+          getUser: build.query<unknown, number>({
+            query: (arg: number) => arg,
+          }),
+        }),
+      })
+      const storeRef = setupApiStore(nanApi, undefined, {
+        withoutTestLifecycles: true,
+      })
+
+      function User() {
+        nanApi.endpoints.getUser.useQuery(NaN)
+        return null
+      }
+
+      render(<User />, { wrapper: storeRef.wrapper })
+
+      await waitFor(() => expect(baseQueryCalls).toBeGreaterThan(0))
+      await act(async () => {
+        await delay(150)
+      })
+
+      expect(baseQueryCalls).toBe(1)
     })
 
     describe('Hook middleware requirements', () => {
