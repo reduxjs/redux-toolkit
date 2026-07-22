@@ -122,11 +122,47 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
 
         if (querySubState) {
           if (subscriptionSubState.size === 0) {
-            mwApi.dispatch(
-              removeQueryResult({
-                queryCacheKey: queryCacheKey as QueryCacheKey,
-              }),
-            )
+            const runningQuery = internalState.runningQueries.get(queryCacheKey)
+
+            if (runningQuery) {
+              const requestId = querySubState.requestId
+
+              void runningQuery.then(() => {
+                const currentState = mwApi.getState()[reducerPath]
+                const currentQuerySubState = currentState.queries[queryCacheKey]
+
+                if (
+                  !currentQuerySubState ||
+                  currentQuerySubState.requestId !== requestId
+                ) {
+                  return
+                }
+
+                const currentSubscriptionSubState = getOrInsertComputed(
+                  internalState.currentSubscriptions,
+                  queryCacheKey,
+                  createNewMap,
+                )
+
+                if (currentSubscriptionSubState.size === 0) {
+                  mwApi.dispatch(
+                    removeQueryResult({
+                      queryCacheKey: queryCacheKey as QueryCacheKey,
+                    }),
+                  )
+                } else if (
+                  currentQuerySubState.status !== STATUS_UNINITIALIZED
+                ) {
+                  mwApi.dispatch(refetchQuery(currentQuerySubState))
+                }
+              })
+            } else {
+              mwApi.dispatch(
+                removeQueryResult({
+                  queryCacheKey: queryCacheKey as QueryCacheKey,
+                }),
+              )
+            }
           } else if (querySubState.status !== STATUS_UNINITIALIZED) {
             mwApi.dispatch(refetchQuery(querySubState))
           }
