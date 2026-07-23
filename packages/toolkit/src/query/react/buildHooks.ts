@@ -271,11 +271,13 @@ export type UseLazyQueryLastPromiseInfo<
  *
  * - Manual control over firing a request to retrieve data
  * - 'Subscribes' the component to keep cached data in the store, and 'unsubscribes' when the component unmounts
- * - Returns the latest request status and cached data from the Redux store
+ * - After `trigger` is called, returns the latest request status and cached data from the Redux store for that request
  * - Re-renders as the request status changes and data becomes available
  * - Accepts polling/re-fetching options to trigger automatic re-fetches when the corresponding criteria is met and the fetch has been manually called at least once
  *
  * #### Note
+ *
+ * Until you call the trigger function, the result stays `uninitialized` and `data` is `undefined`, even if matching data already exists in the cache.
  *
  * When the trigger function returned from a LazyQuery is called, it always initiates a new request to the server even if there is cached data. Set `preferCacheValue`(the second argument to the function) as `true` if you want it to immediately return a cached value if one exists.
  */
