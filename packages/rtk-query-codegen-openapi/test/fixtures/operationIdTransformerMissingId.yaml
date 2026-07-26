@@ -1,0 +1,22 @@
+openapi: 3.0.2
+info:
+  title: operationIdTransformer missing operationId fixture
+  description: >
+    Fixture for testing that `operationIdTransformer: "none"` and custom
+    transformer functions throw an informative error when an operation is
+    missing its `operationId`. The single `GET /pet` endpoint intentionally
+    omits `operationId` to trigger this error path. The `"camelCase"` default
+    should handle this gracefully by deriving a name from the HTTP verb and
+    path instead.
+  version: 1.0.0
+paths:
+  /pet:
+    get:
+      # intentionally no operationId
+      responses:
+        '200':
+          description: Pet retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
