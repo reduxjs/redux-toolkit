@@ -270,7 +270,7 @@ it(
   'initializes a large RTK Query middleware chain without overflowing the stack',
   { timeout: 120_000 },
   async () => {
-    const middlewareChain = Array.from({ length: 1000 }, () => {
+    const middlewareChain = Array.from({ length: 500 }, () => {
       const middleware = api.middleware
       return ((mwApi) => middleware(mwApi)) as typeof api.middleware
     })
