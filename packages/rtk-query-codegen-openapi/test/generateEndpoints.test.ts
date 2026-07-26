@@ -743,6 +743,20 @@ describe('tests from issues', () => {
 
     expect(result).toMatchSnapshot();
   });
+
+  it('issue #4824: an optional request body should generate an optional arg', async () => {
+    const result = await generateEndpoints({
+      apiFile: './test/fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/issue-4824.json'),
+    });
+
+    // `deleteFoo` has a request body without `required: true`, so the generated arg must be optional.
+    expect(result).toMatch(/export type DeleteFooApiArg = \{\s*body\?:/);
+
+    // `createBar` explicitly sets `required: true`, so its body arg must stay required.
+    expect(result).toMatch(/export type CreateBarApiArg = \{\s*body:/);
+    expect(result).not.toMatch(/export type CreateBarApiArg = \{\s*body\?:/);
+  });
 });
 
 describe('openapi spec', () => {
