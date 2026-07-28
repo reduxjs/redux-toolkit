@@ -354,7 +354,7 @@ export type SubscriptionState = {
   [queryCacheKey: string]: Subscribers | undefined
 }
 
-export type ConfigState<ReducerPath> = RefetchConfigOptions & {
+export type ConfigState<ReducerPath> = {
   reducerPath: ReducerPath
   online: boolean
   focused: boolean

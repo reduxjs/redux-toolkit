@@ -37,7 +37,6 @@ export type ListenerPredicate<ActionType extends Action, State> = (
 /** @public */
 export interface ConditionFunction<State> {
   (predicate: AnyListenerPredicate<State>, timeout?: number): Promise<boolean>
-  (predicate: AnyListenerPredicate<State>, timeout?: number): Promise<boolean>
   (predicate: () => boolean, timeout?: number): Promise<boolean>
 }
 
@@ -833,7 +832,7 @@ export type TypedCreateListenerEntry<
       UnknownAction
     >,
     OverrideExtraArgument = unknown,
-  >() => TypedStopListening<
+  >() => TypedCreateListenerEntry<
     OverrideStateType,
     OverrideDispatchType,
     OverrideExtraArgument
@@ -870,7 +869,8 @@ export type FallbackAddListenerOptions = {
   type?: string
   matcher?: MatchFunction<any>
   predicate?: ListenerPredicate<any, any>
-} & { effect: ListenerEffect<any, any, any> }
+  effect: ListenerEffect<any, any, any>
+}
 
 /**
  * Utility Types

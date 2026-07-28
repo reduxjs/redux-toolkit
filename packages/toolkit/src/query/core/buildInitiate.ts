@@ -13,7 +13,6 @@ import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import {
   ENDPOINT_QUERY,
   isQueryDefinition,
-  type EndpointDefinition,
   type EndpointDefinitions,
   type InfiniteQueryArgFrom,
   type InfiniteQueryDefinition,
@@ -96,7 +95,7 @@ export type StartInfiniteQueryActionCreatorOptions<
     >
   >
 
-type AnyQueryActionCreator<D extends EndpointDefinition<any, any, any, any>> = (
+type AnyQueryActionCreator = (
   arg: any,
   options?: StartQueryActionCreatorOptions,
 ) => ThunkAction<AnyActionCreatorResult, any, any, UnknownAction>
@@ -381,7 +380,7 @@ You must add the middleware for RTK-Query to function correctly!`,
       | QueryDefinition<any, any, any, any>
       | InfiniteQueryDefinition<any, any, any, any, any>,
   ) {
-    const queryAction: AnyQueryActionCreator<any> =
+    const queryAction: AnyQueryActionCreator =
       (
         arg,
         {
