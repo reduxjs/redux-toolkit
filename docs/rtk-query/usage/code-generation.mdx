@@ -135,6 +135,7 @@ export type EndpointOverrides = {
   invalidatesTags: string[]
 }>
   useEnumType?: boolean
+  enumStyle?: 'union' | 'enum' | 'as-const'
   outputRegexConstants?: boolean
   httpResolverOptions?: SwaggerParser.HTTPResolverOptions
 }
@@ -295,6 +296,24 @@ When using tag overrides with `tag: false`, the overridden tags will be emitted 
 #### Generating hooks
 
 Setting `hooks: true` will generate `useQuery` and `useMutation` hook exports. If you also want `useLazyQuery` hooks generated or more granular control, you can also pass an object in the shape of: `{ queries: boolean; lazyQueries: boolean; mutations: boolean }`.
+
+#### Controlling enum generation
+
+By default, OpenAPI `enum` definitions are generated as unions of string literals. Use the `enumStyle` option to control this behavior:
+
+- **`"union"`** _(default)_ - a union of string literals: `type Status = 'available' | 'pending'`
+- **`"enum"`** - a TypeScript enum: `enum Status { Available = 'available' }`
+- **`"as-const"`** - a const object with a companion type, which provides runtime values like an enum while remaining tree-shakeable and compatible with `isolatedModules`:
+
+```ts no-transpile
+export const Status = {
+  Available: 'available',
+  Pending: 'pending',
+} as const
+export type Status = (typeof Status)[keyof typeof Status]
+```
+
+`useEnumType: true` is equivalent to `enumStyle: 'enum'`. If both options are specified, `enumStyle` takes precedence.
 
 #### Generating regex constants for schema patterns
 

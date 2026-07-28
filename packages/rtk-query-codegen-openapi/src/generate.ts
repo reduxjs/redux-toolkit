@@ -242,6 +242,7 @@ export async function generateApi(
     flattenArg = false,
     includeDefault = false,
     useEnumType = false,
+    enumStyle,
     mergeReadWriteOnly = false,
     httpResolverOptions,
     useUnknown = false,
@@ -255,6 +256,7 @@ export async function generateApi(
   const ctx = createContext(v3Doc, {
     unionUndefined,
     useEnumType,
+    enumStyle,
     mergeReadWriteOnly,
     useUnknown,
   });
