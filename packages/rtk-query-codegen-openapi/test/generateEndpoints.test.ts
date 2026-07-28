@@ -796,6 +796,64 @@ describe('useEnumType option', () => {
   });
 });
 
+describe('enumStyle option', () => {
+  it('generates union types when enumStyle is "union"', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      apiFile: './fixtures/emptyApi.ts',
+      enumStyle: 'union',
+      filterEndpoints: ['findPetsByStatus'],
+    });
+
+    expect(api).toContain('status?: "available" | "pending" | "sold"');
+    expect(api).not.toMatch(/enum\s+\w+/);
+    expect(api).not.toContain('as const');
+  });
+
+  it('generates TypeScript enums when enumStyle is "enum"', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      apiFile: './fixtures/emptyApi.ts',
+      enumStyle: 'enum',
+      filterEndpoints: ['findPetsByStatus'],
+    });
+
+    expect(api).toMatch(/enum\s+\w+/);
+    expect(api).toContain('Available = "available"');
+  });
+
+  it('generates const objects with companion types when enumStyle is "as-const"', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      apiFile: './fixtures/emptyApi.ts',
+      enumStyle: 'as-const',
+      filterEndpoints: ['findPetsByStatus'],
+    });
+
+    expect(api).toContain('Available: "available"');
+    expect(api).toContain('} as const;');
+    expect(api).toContain('export type Status = (typeof Status)[keyof typeof Status];');
+    expect(api).not.toMatch(/enum\s+\w+/);
+  });
+
+  it('takes precedence over useEnumType when both are specified', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      apiFile: './fixtures/emptyApi.ts',
+      useEnumType: true,
+      enumStyle: 'as-const',
+      filterEndpoints: ['findPetsByStatus'],
+    });
+
+    expect(api).toContain('} as const;');
+    expect(api).not.toMatch(/enum\s+\w+/);
+  });
+});
+
 describe('query parameters', () => {
   it('parameters overridden in swagger should also be overridden in the code', async () => {
     const api = await generateEndpoints({
