@@ -277,7 +277,7 @@ export type UseLazyQueryLastPromiseInfo<
  *
  * #### Note
  *
- * Until you call the trigger function, the result stays `uninitialized` and `data` is `undefined`, even if matching data already exists in the cache.
+ * Until you call the trigger function, the result stays `uninitialized` and `data` is `undefined`.
  *
  * When the trigger function returned from a LazyQuery is called, it always initiates a new request to the server even if there is cached data. Set `preferCacheValue`(the second argument to the function) as `true` if you want it to immediately return a cached value if one exists.
  */
