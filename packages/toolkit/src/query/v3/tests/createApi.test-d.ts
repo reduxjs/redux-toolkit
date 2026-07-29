@@ -294,3 +294,78 @@ describe('v3 createApi negative cases', () => {
     })
   })
 })
+
+describe('v3 enhanceEndpoints types', () => {
+  test('partial cell merge is typed against the endpoint definition', () => {
+    api.enhanceEndpoints({
+      endpoints: {
+        getTodoById: {
+          providesTags: (result, error, id) => {
+            expectTypeOf(result).toEqualTypeOf<Todo | undefined>()
+            expectTypeOf(id).toEqualTypeOf<string>()
+            return [{ type: 'Todo' as const, id }]
+          },
+        },
+      },
+    })
+
+    api.enhanceEndpoints({
+      endpoints: {
+        getTodoById: {
+          // @ts-expect-error unknown tag type
+          providesTags: ['Nope'],
+        },
+      },
+    })
+  })
+
+  test('recipe form receives the typed definition', () => {
+    api.enhanceEndpoints({
+      endpoints: {
+        getTodoById: (definition) => {
+          definition.transformResponse = (raw, meta, arg) => {
+            expectTypeOf(meta).toEqualTypeOf<
+              FetchBaseQueryMeta | undefined
+            >()
+            expectTypeOf(arg).toEqualTypeOf<string>()
+            return raw as Todo
+          }
+        },
+      },
+    })
+  })
+
+  test('addTagTypes widens the returned api tag union, not the original', () => {
+    const enhanced = api.enhanceEndpoints({
+      addTagTypes: ['Stats'] as const,
+      endpoints: {
+        getTodos: {
+          providesTags: ['Stats'],
+        },
+      },
+    })
+
+    // the enhanced api accepts the new tag in later enhancements
+    enhanced.enhanceEndpoints({
+      endpoints: {
+        getTodoById: {
+          providesTags: ['Stats'],
+        },
+      },
+    })
+
+    enhanced.util.invalidateTags(['Stats'])
+
+    api.enhanceEndpoints({
+      endpoints: {
+        getTodoById: {
+          // @ts-expect-error original api does not know the new tag
+          providesTags: ['Stats'],
+        },
+      },
+    })
+
+    // @ts-expect-error original api util does not know the new tag
+    api.util.invalidateTags(['Stats'])
+  })
+})

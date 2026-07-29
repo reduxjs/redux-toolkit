@@ -25,6 +25,7 @@ export type {
   CreateApiV3Options,
   EndpointCellBody,
   EndpointCells,
+  EnhanceEndpointsCells,
   QueryDefKeys,
   ToDefinitions,
   UpsertEntryFor,

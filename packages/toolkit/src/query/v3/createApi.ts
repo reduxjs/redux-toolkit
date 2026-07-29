@@ -11,7 +11,8 @@
  *   (construction context + options + initialized-module list) stored on the
  *   api object under a non-exported symbol, so they can register themselves
  *   and replay already-injected endpoints.
- * - `enhanceEndpoints` is intentionally omitted from the prototype.
+ * - `enhanceEndpoints` keeps the current merge/recipe runtime semantics but
+ *   drops the result-type-rewriting type machinery (`UpdateDefinitions`).
  * - The `context.batch` plugin seam is gone: `context.batch` stays the plain
  *   pass-through. (React 18+ batches by default.)
  */
@@ -121,6 +122,7 @@ export function createApi<
 
   const api: any = {
     injectEndpoints,
+    enhanceEndpoints,
     [apiPlumbing]: plumbing,
     // Phantom type bag; carries no runtime information.
     $types: null,
@@ -173,6 +175,42 @@ export function createApi<
       }
       return result
     }
+  }
+
+  // Same semantics as the current API's `enhanceEndpoints`: definitions are
+  // mutated in place, which is already visible to every closure the modules
+  // created at inject time (thunks read endpoint options at execution time),
+  // so no module re-notification is needed for merge/recipe semantics.
+  // Unknown endpoint names are silently ignored, matching current behavior.
+  function enhanceEndpoints({
+    addTagTypes,
+    endpoints,
+  }: {
+    addTagTypes?: readonly string[]
+    endpoints?: Record<string, object | ((definition: any) => void)>
+  }) {
+    if (addTagTypes) {
+      for (const tag of addTagTypes) {
+        if (!optionsWithDefaults.tagTypes.includes(tag as any)) {
+          ;(optionsWithDefaults.tagTypes as string[]).push(tag)
+        }
+      }
+    }
+    if (endpoints) {
+      for (const [endpointName, partialDefinition] of Object.entries(
+        endpoints,
+      )) {
+        const definition = context.endpointDefinitions[endpointName]
+        if (typeof partialDefinition === 'function') {
+          if (definition) {
+            partialDefinition(definition)
+          }
+        } else {
+          Object.assign(definition || {}, partialDefinition)
+        }
+      }
+    }
+    return api
   }
 
   function injectEndpoints(inject: {

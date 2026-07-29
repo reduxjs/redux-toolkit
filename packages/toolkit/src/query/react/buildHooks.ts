@@ -41,6 +41,8 @@ import type { DependencyList } from 'react'
 import type { InfiniteQueryDirection } from '../core/apiState'
 import type { StartInfiniteQueryActionCreator } from '../core/buildInitiate'
 import type { SubscriptionSelectors } from '../core/buildMiddleware/index'
+import type { GetSubscriptionSelectors } from '../core/module'
+import { internalSubscriptionsAccessor } from '../core/module'
 import type { InfiniteData } from '../core/index'
 import { isInfiniteQueryDefinition } from '../endpointDefinitions'
 import type { UninitializedValue } from './constants'
@@ -1706,24 +1708,14 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     const subscriptionSelectorsRef = useRef<SubscriptionSelectors>(undefined)
 
     if (!subscriptionSelectorsRef.current) {
-      const returnedValue = dispatch(
-        api.internalActions.internal_getRTKQSubscriptions(),
-      )
-
-      if (process.env.NODE_ENV !== 'production') {
-        if (
-          typeof returnedValue !== 'object' ||
-          typeof returnedValue?.type === 'string'
-        ) {
-          throw new Error(
-            `Warning: Middleware for RTK-Query API at reducerPath "${api.reducerPath}" has not been added to the store.
-    You must add the middleware for RTK-Query to function correctly!`,
-          )
-        }
-      }
-
-      subscriptionSelectorsRef.current =
-        returnedValue as unknown as SubscriptionSelectors
+      // Use the sanctioned accessor on the api object: it probes the
+      // middleware at most once per store (not once per hook instance) and
+      // throws the "middleware has not been added" error in development.
+      subscriptionSelectorsRef.current = (
+        (api as any)[
+          internalSubscriptionsAccessor
+        ] as GetSubscriptionSelectors
+      )(dispatch)
     }
     const stableArg = useStableQueryArgs(skip ? skipToken : arg)
     const stableSubscriptionOptions = useShallowStableValue({

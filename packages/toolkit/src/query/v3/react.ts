@@ -40,6 +40,7 @@ import { reactHooksModule } from '../react/module'
 import type { HooksWithUniqueNames } from '../react/namedHooks'
 import type {
   ApiV3Base,
+  EnhanceEndpointsCells,
   InjectEndpointsArg,
   ToDefinitions,
 } from './apiTypes'
@@ -99,6 +100,15 @@ export type ReactifiedApi<
         Defs & NewDefs
       >,
     ): ReactifiedApi<BaseQuery, Defs & NewDefs, ReducerPath, TagTypes>
+    enhanceEndpoints<NewTagTypes extends string = never>(_: {
+      addTagTypes?: readonly NewTagTypes[]
+      endpoints?: EnhanceEndpointsCells<
+        Defs,
+        BaseQuery,
+        TagTypes | NoInfer<NewTagTypes>,
+        ReducerPath
+      >
+    }): ReactifiedApi<BaseQuery, Defs, ReducerPath, TagTypes | NewTagTypes>
   }
 
 /**

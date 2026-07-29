@@ -49,6 +49,7 @@ import type {
   ReferenceCacheCollection,
   ReferenceCacheLifecycle,
   ReferenceQueryLifecycle,
+  SubscriptionSelectors,
 } from './buildMiddleware'
 import { buildMiddleware } from './buildMiddleware'
 import type {
@@ -91,6 +92,28 @@ export type PrefetchOptions =
   | { force?: boolean }
 
 export const coreModuleName = /* @__PURE__ */ Symbol()
+
+/**
+ * Internal: key under which the sanctioned subscription-selectors accessor is
+ * stored on every api object.
+ *
+ * The middleware keeps subscription state in a per-store `Map` outside Redux
+ * (for perf). The only guaranteed channel from a consumer to a specific
+ * store's middleware instance is dispatching an action through that store —
+ * `store.dispatch`, `mwApi.dispatch`, and `store.getState` can all differ in
+ * identity once devtools or other enhancers wrap them, so identity-keyed
+ * lookups from the outside are not reliable. The accessor therefore probes
+ * via a dispatched internal action, but does so at most once per store
+ * (cached per dispatch reference) instead of once per hook instance, and is
+ * the single sanctioned entry point for bindings (React hooks etc.).
+ */
+export const internalSubscriptionsAccessor = /* @__PURE__ */ Symbol(
+  'rtkq-subscription-selectors-accessor',
+)
+
+export type GetSubscriptionSelectors = (
+  dispatch: Dispatch,
+) => SubscriptionSelectors
 export type CoreModule =
   | typeof coreModuleName
   | ReferenceCacheLifecycle
@@ -675,6 +698,35 @@ export const coreModule = ({
     safeAssign(api.util, middlewareActions)
 
     safeAssign(api, { reducer: reducer as any, middleware })
+
+    // The sanctioned subscription-selectors accessor: probes the middleware
+    // via the internal action at most once per store, then serves the cached
+    // selectors. See the doc comment on `internalSubscriptionsAccessor`.
+    const subscriptionSelectorsCache = new WeakMap<
+      Dispatch,
+      SubscriptionSelectors
+    >()
+    const getSubscriptionSelectors: GetSubscriptionSelectors = (dispatch) =>
+      getOrInsertComputed(subscriptionSelectorsCache, dispatch, () => {
+        const returnedValue = dispatch(
+          api.internalActions.internal_getRTKQSubscriptions(),
+        )
+
+        if (process.env.NODE_ENV !== 'production') {
+          if (
+            typeof returnedValue !== 'object' ||
+            typeof (returnedValue as any)?.type === 'string'
+          ) {
+            throw new Error(
+              `Warning: Middleware for RTK-Query API at reducerPath "${reducerPath}" has not been added to the store.
+    You must add the middleware for RTK-Query to function correctly!`,
+            )
+          }
+        }
+
+        return returnedValue as unknown as SubscriptionSelectors
+      })
+    ;(api as any)[internalSubscriptionsAccessor] = getSubscriptionSelectors
 
     return {
       name: coreModuleName,

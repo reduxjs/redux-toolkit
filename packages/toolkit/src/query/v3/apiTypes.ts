@@ -278,6 +278,37 @@ export type InjectEndpointsArg<
   overrideExisting?: boolean | 'throw'
 }
 
+/**
+ * The `endpoints` map accepted by the v3 `enhanceEndpoints`: per endpoint,
+ * either a partial definition merged over the existing one, or a recipe
+ * function that mutates it in place.
+ *
+ * Unlike the current API's `enhanceEndpoints`, there is no result-type
+ * rewriting (`UpdateDefinitions`/`TransformedResponse`): the v3 way to change
+ * an endpoint's result type is `injectEndpoints` with `overrideExisting`, or
+ * composing cell objects before `createApi`.
+ */
+export type EnhanceEndpointsCells<
+  Defs extends DefsShape,
+  BaseQuery extends BaseQueryFn,
+  TagTypes extends string,
+  ReducerPath extends string,
+> = {
+  [K in keyof Defs]?:
+    | Partial<
+        EndpointCellBody<Defs[K], BaseQuery, TagTypes, Defs, ReducerPath>
+      >
+    | ((
+        definition: EndpointCellBody<
+          Defs[K],
+          BaseQuery,
+          TagTypes,
+          Defs,
+          ReducerPath
+        >,
+      ) => void)
+}
+
 /** The framework-agnostic v3 api object type. */
 export type ApiV3<
   BaseQuery extends BaseQueryFn,
@@ -294,6 +325,15 @@ export type ApiV3<
       Defs & NewDefs
     >,
   ): ApiV3<BaseQuery, Defs & NewDefs, ReducerPath, TagTypes>
+  enhanceEndpoints<NewTagTypes extends string = never>(_: {
+    addTagTypes?: readonly NewTagTypes[]
+    endpoints?: EnhanceEndpointsCells<
+      Defs,
+      BaseQuery,
+      TagTypes | NoInfer<NewTagTypes>,
+      ReducerPath
+    >
+  }): ApiV3<BaseQuery, Defs, ReducerPath, TagTypes | NewTagTypes>
 }
 
 /** Options accepted by the v3 `createApi`. */
