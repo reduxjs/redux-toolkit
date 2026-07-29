@@ -41,10 +41,12 @@ function setup(maxPages?: number) {
           ...(maxPages
             ? {
                 maxPages,
+                // Annotated: contextual typing does not flow into a
+                // conditionally-spread object literal
                 getPreviousPageParam: (
-                  firstPage,
-                  allPages,
-                  firstPageParam,
+                  firstPage: Pokemon[],
+                  allPages: Pokemon[][],
+                  firstPageParam: number,
                 ) => (firstPageParam > 0 ? firstPageParam - 1 : undefined),
               }
             : {}),
@@ -148,8 +150,11 @@ describe('v3 infinite queries: core', () => {
             infiniteQueryOptions: {
               initialPageParam: 0,
               maxPages: 3,
-              getNextPageParam: (lastPage, allPages, lastPageParam) =>
-                lastPageParam + 1,
+              getNextPageParam: (
+                lastPage: string,
+                allPages: string[],
+                lastPageParam: number,
+              ) => lastPageParam + 1,
             } as any,
             query: ({ queryArg }) => queryArg,
           },

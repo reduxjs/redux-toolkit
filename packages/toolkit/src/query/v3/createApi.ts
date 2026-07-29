@@ -23,7 +23,10 @@ import { coreModule } from '../core/module'
 import { nanoid } from '../core/rtkImports'
 import { defaultSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import type { EndpointDefinitions } from '../endpointDefinitions'
-import { isInfiniteQueryDefinition } from '../endpointDefinitions'
+import {
+  ENDPOINT_QUERY,
+  isInfiniteQueryDefinition,
+} from '../endpointDefinitions'
 import type {
   ApiPlumbing,
   ApiV3,
@@ -126,6 +129,51 @@ export function createApi<
   plumbing.initializedModules.push(
     coreModule().init(api, optionsWithDefaults as any, context),
   )
+
+  // Wrap the core middleware so the typed cross-endpoint `upsert` option
+  // runs after every fulfilled query fetch. The upsert transform derives
+  // descriptors from the endpoint's (post-transformResponse) result, and the
+  // entries are written through the existing `upsertQueryEntries` path.
+  //
+  // Notes:
+  // - `executeQuery/fulfilled` is shared by queries and infinite queries;
+  //   the definition-kind guard limits upserts to plain queries (matching
+  //   the type level, where only query cells accept `upsert`).
+  // - Upserts are one level deep by construction: `upsertQueryEntries`
+  //   writes cache entries via a reducer, so no further `executeQuery`
+  //   actions (and therefore no chained upserts) are triggered.
+  // - Definitions are read from `context.endpointDefinitions` at dispatch
+  //   time, so late-injected endpoints with `upsert` work automatically.
+  const coreMiddleware = api.middleware
+  const fulfilledQueryType = `${optionsWithDefaults.reducerPath}/executeQuery/fulfilled`
+  api.middleware = (mwApi: any) => (next: any) => {
+    const handleAction = coreMiddleware(mwApi)(next)
+    return (action: any) => {
+      const result = handleAction(action)
+      if (action?.type === fulfilledQueryType && action.meta?.arg) {
+        const { endpointName, originalArgs } = action.meta.arg
+        const definition = context.endpointDefinitions[endpointName] as any
+        if (
+          definition?.type === ENDPOINT_QUERY &&
+          typeof definition.upsert === 'function'
+        ) {
+          const entries = definition.upsert(action.payload, originalArgs)
+          if (entries?.length) {
+            mwApi.dispatch(
+              api.util.upsertQueryEntries(
+                entries.map((entry: any) => ({
+                  endpointName: entry.endpoint,
+                  arg: entry.arg,
+                  value: entry.value,
+                })),
+              ),
+            )
+          }
+        }
+      }
+      return result
+    }
+  }
 
   function injectEndpoints(inject: {
     endpoints: Record<string, any>

@@ -214,37 +214,6 @@ describe('v3 createApi runtime', () => {
     expect(todo.data).toEqual({ id: '2', title: 'two', completed: true })
   })
 
-  test('upsert option is accepted but inert in M1 (runtime lands in M4)', async () => {
-    const { api: _api, store, baseQuery } = setup()
-    // Note: this test exists to pin that specifying `upsert` does not break
-    // anything before the M4 runtime exists.
-    const api = createApi({
-      baseQuery: async (arg: string) => ({ data: { id: arg, title: 't', completed: false } as Todo }),
-      reducerPath: 'upsertApi',
-      endpoints: {
-        getTodoById: {
-          ...query<Todo, string>(),
-          query: (id) => `/todos/${id}`,
-        },
-        getTodos: {
-          ...query<Todo[], void>(),
-          queryFn: async () => ({
-            data: [{ id: '9', title: 'nine', completed: false }],
-          }),
-          upsert: (todos) =>
-            todos.map((t) => ({
-              endpoint: 'getTodoById' as const,
-              arg: t.id,
-              value: t,
-            })),
-        },
-      },
-    })
-    const upsertStore = configureStore({
-      reducer: { [api.reducerPath]: api.reducer },
-      middleware: (gDM) => gDM().concat(api.middleware),
-    })
-    const result = await upsertStore.dispatch(api.endpoints.getTodos.initiate())
-    expect(result.status).toBe('fulfilled')
-  })
 })
+
+// The cross-endpoint `upsert` option runtime is covered in ./upsert.test.ts
