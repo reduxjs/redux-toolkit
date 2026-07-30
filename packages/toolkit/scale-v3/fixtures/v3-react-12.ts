@@ -21,12 +21,12 @@ const api = createApi({
   endpoints: {
     getThing0: {
       ...query<Thing0, string>(),
-      query: (id) => `/thing0/${id}`,
+      request: (id) => `/thing0/${id}`,
       providesTags: (result, error, id) => [{ type: 'TagA' as const, id }],
     },
     getThing0List: {
       ...query<Thing0[], void, Raw0>(),
-      query: () => '/thing0',
+      request: () => '/thing0',
       transformResponse: (raw) => raw.data,
       providesTags: ['TagB'],
       upsert: (things) =>
@@ -38,17 +38,17 @@ const api = createApi({
     },
     updateThing0: {
       ...mutation<Thing0, Partial<Thing0> & { id: string }>(),
-      query: (patch) => ({ url: `/thing0/${patch.id}`, method: 'PATCH', body: patch }),
+      request: (patch) => ({ url: `/thing0/${patch.id}`, method: 'PATCH', body: patch }),
       invalidatesTags: (result, error, arg) => [{ type: 'TagA' as const, id: arg.id }, 'TagB'],
     },
     getThing1: {
       ...query<Thing1, string>(),
-      query: (id) => `/thing1/${id}`,
+      request: (id) => `/thing1/${id}`,
       providesTags: (result, error, id) => [{ type: 'TagA' as const, id }],
     },
     getThing1List: {
       ...query<Thing1[], void, Raw1>(),
-      query: () => '/thing1',
+      request: () => '/thing1',
       transformResponse: (raw) => raw.data,
       providesTags: ['TagB'],
       upsert: (things) =>
@@ -60,17 +60,17 @@ const api = createApi({
     },
     updateThing1: {
       ...mutation<Thing1, Partial<Thing1> & { id: string }>(),
-      query: (patch) => ({ url: `/thing1/${patch.id}`, method: 'PATCH', body: patch }),
+      request: (patch) => ({ url: `/thing1/${patch.id}`, method: 'PATCH', body: patch }),
       invalidatesTags: (result, error, arg) => [{ type: 'TagA' as const, id: arg.id }, 'TagB'],
     },
     getThing2: {
       ...query<Thing2, string>(),
-      query: (id) => `/thing2/${id}`,
+      request: (id) => `/thing2/${id}`,
       providesTags: (result, error, id) => [{ type: 'TagA' as const, id }],
     },
     getThing2List: {
       ...query<Thing2[], void, Raw2>(),
-      query: () => '/thing2',
+      request: () => '/thing2',
       transformResponse: (raw) => raw.data,
       providesTags: ['TagB'],
       upsert: (things) =>
@@ -82,17 +82,17 @@ const api = createApi({
     },
     updateThing2: {
       ...mutation<Thing2, Partial<Thing2> & { id: string }>(),
-      query: (patch) => ({ url: `/thing2/${patch.id}`, method: 'PATCH', body: patch }),
+      request: (patch) => ({ url: `/thing2/${patch.id}`, method: 'PATCH', body: patch }),
       invalidatesTags: (result, error, arg) => [{ type: 'TagA' as const, id: arg.id }, 'TagB'],
     },
     getThing3: {
       ...query<Thing3, string>(),
-      query: (id) => `/thing3/${id}`,
+      request: (id) => `/thing3/${id}`,
       providesTags: (result, error, id) => [{ type: 'TagA' as const, id }],
     },
     getThing3List: {
       ...query<Thing3[], void, Raw3>(),
-      query: () => '/thing3',
+      request: () => '/thing3',
       transformResponse: (raw) => raw.data,
       providesTags: ['TagB'],
       upsert: (things) =>
@@ -104,7 +104,7 @@ const api = createApi({
     },
     updateThing3: {
       ...mutation<Thing3, Partial<Thing3> & { id: string }>(),
-      query: (patch) => ({ url: `/thing3/${patch.id}`, method: 'PATCH', body: patch }),
+      request: (patch) => ({ url: `/thing3/${patch.id}`, method: 'PATCH', body: patch }),
       invalidatesTags: (result, error, arg) => [{ type: 'TagA' as const, id: arg.id }, 'TagB'],
     },
   },

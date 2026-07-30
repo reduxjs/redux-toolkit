@@ -12,7 +12,7 @@
  * endpoints: {
  *   getTodos: {
  *     ...query<Todo[], void>(),
- *     query: () => '/todos',
+ *     request: () => '/todos',
  *   },
  * }
  * ```
@@ -20,7 +20,7 @@
  * The `$meta` member sits in plain (non-context-sensitive) position inside the
  * endpoint literal, so `createApi` can infer the whole endpoint map from the
  * stamps in inference pass one, then contextually type every callback
- * (`query`, `transformResponse`, `onQueryStarted`, `upsert`, ...) in pass two.
+ * (`request`, `transformResponse`, `onQueryStarted`, `upsert`, ...) in pass two.
  *
  * NOTE: `$meta` is declared as a required property but does not exist at
  * runtime. It is purely an inference vehicle, like the existing `Types` field
@@ -35,7 +35,7 @@ import {
 } from '../endpointDefinitions'
 
 /**
- * How the endpoint fetches: via the declarative `query` option (`'query'`) or
+ * How the endpoint fetches: via the declarative `request` option (`'query'`) or
  * via a hand-written `queryFn` (`'queryFn'`). Carried as a type-level
  * discriminant on the meta record so that each endpoint literal is checked
  * against a single interface instead of a two-variant union — measured to be
@@ -167,15 +167,15 @@ type SchemaOutputOr<S, Fallback> = S extends StandardSchemaV1
 
 export interface QueryCreator {
   /**
-   * Declares a query endpoint fetched via the declarative `query` option.
+   * Declares a query endpoint fetched via the declarative `request` option.
    * Spread the result into the endpoint definition literal:
-   * `{ ...query<Todo[], void>(), query: () => '/todos' }`.
+   * `{ ...query<Todo[], void>(), request: () => '/todos' }`.
    */
   <Result, Arg, Raw = unknown>(): QueryEndpointStamp<Result, Arg, Raw>
   /**
    * Declares a query endpoint, inferring its types from Standard Schemas with
    * no explicit generics:
-   * `{ ...query({ argSchema, responseSchema }), query: (arg) => ... }`.
+   * `{ ...query({ argSchema, responseSchema }), request: (arg) => ... }`.
    */
   <S extends EndpointCreatorSchemas>(
     schemas: S,
@@ -187,7 +187,7 @@ export interface QueryCreator {
     S
   /**
    * Declares a query endpoint implemented with a hand-written `queryFn`
-   * instead of the declarative `query` option:
+   * instead of the declarative `request` option:
    * `{ ...query.fn<Session, void>(), queryFn: async () => ({ data: ... }) }`.
    *
    * This is a separate creator flavor (rather than a union on the definition
@@ -221,13 +221,13 @@ export interface MutationCreator {
   /**
    * Declares a mutation endpoint. Spread the result into the endpoint
    * definition literal:
-   * `{ ...mutation<Todo, Partial<Todo>>(), query: (patch) => ({...}) }`.
+   * `{ ...mutation<Todo, Partial<Todo>>(), request: (patch) => ({...}) }`.
    */
   <Result, Arg, Raw = unknown>(): MutationEndpointStamp<Result, Arg, Raw>
   /**
    * Declares a mutation endpoint, inferring its types from Standard Schemas
    * with no explicit generics:
-   * `{ ...mutation({ argSchema, responseSchema }), query: (arg) => ... }`.
+   * `{ ...mutation({ argSchema, responseSchema }), request: (arg) => ... }`.
    */
   <S extends EndpointCreatorSchemas>(
     schemas: S,
@@ -271,7 +271,7 @@ export const mutation: MutationCreator = /* @__PURE__ */ Object.assign(
  * {
  *   ...infiniteQuery<Pokemon[], string, number>(),
  *   infiniteQueryOptions: { initialPageParam: 0, getNextPageParam: (...) => ... },
- *   query: ({ queryArg, pageParam }) => `pokemon/${queryArg}?page=${pageParam}`,
+ *   request: ({ queryArg, pageParam }) => `pokemon/${queryArg}?page=${pageParam}`,
  * }
  * ```
  */
@@ -284,7 +284,7 @@ export interface InfiniteQueryCreator {
   >
   /**
    * Declares an infinite query endpoint implemented with a hand-written
-   * `queryFn` instead of the declarative `query` option.
+   * `queryFn` instead of the declarative `request` option.
    */
   fn: {
     <Result, Arg, PageParam>(): InfiniteQueryEndpointStamp<

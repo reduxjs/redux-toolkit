@@ -264,6 +264,17 @@ export function createApi<
         }
       }
 
+      // v3 renames the 2.x `query` field to `request` to avoid colliding
+      // with the `query()` endpoint creator. The core runtime (buildThunks)
+      // still reads `definition.query`, so alias it via a getter (a getter,
+      // not a copy, so `enhanceEndpoints` recipes that replace `request`
+      // stay in sync).
+      if ('request' in definition && !('query' in definition)) {
+        Object.defineProperty(definition, 'query', {
+          get: () => definition.request,
+        })
+      }
+
       context.endpointDefinitions[endpointName] = definition
       for (const m of plumbing.initializedModules) {
         m.injectEndpoint(endpointName, definition)

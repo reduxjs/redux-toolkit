@@ -51,17 +51,17 @@ function setup() {
     endpoints: {
       getTodoById: {
         ...query<Todo, string>(),
-        query: (id) => `/todos/${id}`,
+        request: (id) => `/todos/${id}`,
         providesTags: (result, error, id) => [{ type: 'Todo' as const, id }],
       },
       getTodos: {
         ...query<Todo[], void>(),
-        query: () => '/todos',
+        request: () => '/todos',
         providesTags: ['Todo'],
       },
       updateTodo: {
         ...mutation<Todo, { id: string } & Partial<Todo>>(),
-        query: ({ id, ...patch }) => ({
+        request: ({ id, ...patch }) => ({
           url: `/todos/${id}`,
           method: 'PATCH',
           body: patch,
@@ -189,7 +189,7 @@ describe('reactify runtime', () => {
       endpoints: {
         getA: {
           ...query<string, string>(),
-          query: (arg) => arg,
+          request: (arg) => arg,
         },
       },
     })
@@ -199,7 +199,7 @@ describe('reactify runtime', () => {
       endpoints: {
         getB: {
           ...query<string, string>(),
-          query: (arg) => `b/${arg}`,
+          request: (arg) => `b/${arg}`,
         },
       },
     })

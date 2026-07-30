@@ -39,11 +39,11 @@ function setup() {
     endpoints: {
       getTodoById: {
         ...query<Todo, string>(),
-        query: (id) => `/todos/${id}`,
+        request: (id) => `/todos/${id}`,
       },
       getTodos: {
         ...query<Todo[], void>(),
-        query: () => '/todos',
+        request: () => '/todos',
         upsert: (result) =>
           result.map((todo) => ({
             endpoint: 'getTodoById' as const,

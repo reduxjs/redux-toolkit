@@ -48,7 +48,7 @@ const api = createApi({
   endpoints: {
     getTodoById: {
       ...query<Todo, string>(),
-      query: (id) => {
+      request: (id) => {
         expectTypeOf(id).toEqualTypeOf<string>()
         return `/todos/${id}`
       },
@@ -62,7 +62,7 @@ const api = createApi({
     getTodos: {
       // Third generic = raw (pre-transformResponse) response type
       ...query<Todo[], void, TodoListResponse>(),
-      query: () => '/todos',
+      request: () => '/todos',
       transformResponse: (raw, meta, arg) => {
         expectTypeOf(raw).toEqualTypeOf<TodoListResponse>()
         expectTypeOf(meta).toEqualTypeOf<FetchBaseQueryMeta | undefined>()
@@ -106,7 +106,7 @@ const api = createApi({
     },
     updateTodo: {
       ...mutation<Todo, { id: string } & Partial<Todo>>(),
-      query: (patch) => {
+      request: (patch) => {
         expectTypeOf(patch.id).toEqualTypeOf<string>()
         return { url: `/todos/${patch.id}`, method: 'PATCH', body: patch }
       },
@@ -126,7 +126,7 @@ const api = createApi({
           return lastPageParam + 1
         },
       },
-      query: ({ queryArg, pageParam }) => {
+      request: ({ queryArg, pageParam }) => {
         expectTypeOf(queryArg).toEqualTypeOf<string>()
         expectTypeOf(pageParam).toEqualTypeOf<number>()
         return `/pokemon/${queryArg}?page=${pageParam}`
@@ -183,7 +183,7 @@ describe('v3 createApi type inference', () => {
       endpoints: {
         getUser: {
           ...query<User, number>(),
-          query: (id) => `/users/${id}`,
+          request: (id) => `/users/${id}`,
           providesTags: (result, error, id) => [
             { type: 'User' as const, id },
           ],
@@ -215,7 +215,7 @@ describe('v3 createApi negative cases', () => {
       endpoints: {
         getTodos: {
           ...query<Todo[], void>(),
-          query: () => '/todos',
+          request: () => '/todos',
           // @ts-expect-error typo'd tag name is not assignable
           providesTags: ['Twdo'],
         },
@@ -230,7 +230,7 @@ describe('v3 createApi negative cases', () => {
         getTodos: {
           ...query<Todo[], void>(),
           // @ts-expect-error 42 is not string | FetchArgs
-          query: () => 42,
+          request: () => 42,
         },
       },
     })
@@ -242,11 +242,11 @@ describe('v3 createApi negative cases', () => {
       endpoints: {
         getTodoById: {
           ...query<Todo, string>(),
-          query: (id) => `/todos/${id}`,
+          request: (id) => `/todos/${id}`,
         },
         getTodos: {
           ...query<Todo[], void>(),
-          query: () => '/todos',
+          request: () => '/todos',
           // @ts-expect-error value must be a Todo, not a string
           upsert: (todos) =>
             todos.map((t) => ({
@@ -263,11 +263,11 @@ describe('v3 createApi negative cases', () => {
       endpoints: {
         getTodoById: {
           ...query<Todo, string>(),
-          query: (id) => `/todos/${id}`,
+          request: (id) => `/todos/${id}`,
         },
         getTodos: {
           ...query<Todo[], void>(),
-          query: () => '/todos',
+          request: () => '/todos',
           // @ts-expect-error nonexistent endpoint name
           upsert: (todos) =>
             todos.map((t) => ({
@@ -286,7 +286,7 @@ describe('v3 createApi negative cases', () => {
       endpoints: {
         getTodos: {
           ...query<Todo[], void, TodoListResponse>(),
-          query: () => '/todos',
+          request: () => '/todos',
           // @ts-expect-error returns the wrong type
           transformResponse: (raw) => raw.total,
         },

@@ -53,7 +53,7 @@ function setup(maxPages?: number) {
           getNextPageParam: (lastPage, allPages, lastPageParam) =>
             lastPageParam + 1,
         },
-        query: ({ queryArg, pageParam }) =>
+        request: ({ queryArg, pageParam }) =>
           `/pokemon/${queryArg}?page=${pageParam}`,
       },
       // A plain query alongside, to pin that both kinds coexist
@@ -156,7 +156,7 @@ describe('v3 infinite queries: core', () => {
                 lastPageParam: number,
               ) => lastPageParam + 1,
             } as any,
-            query: ({ queryArg }) => queryArg,
+            request: ({ queryArg }) => queryArg,
           },
         },
       }),

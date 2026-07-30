@@ -37,11 +37,11 @@ function setup() {
     endpoints: {
       getPost: {
         ...query({ argSchema: postArgSchema, responseSchema: postSchema }),
-        query: (arg) => `/posts/${arg.id}`,
+        request: (arg) => `/posts/${arg.id}`,
       },
       getBadShape: {
         ...query({ responseSchema: postSchema }),
-        query: () => '/posts/bad-shape',
+        request: () => '/posts/bad-shape',
       },
     },
   })

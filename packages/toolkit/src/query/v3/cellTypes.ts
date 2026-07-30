@@ -74,13 +74,13 @@ export interface CellCommonOptions<
   ResultType,
   BaseQuery extends BaseQueryFn,
 > {
-  /** A schema for the arguments to be passed to the `query` or `queryFn`. */
+  /** A schema for the arguments to be passed to the `request` or `queryFn`. */
   argSchema?: StandardSchemaV1<QueryArg>
   /** A schema for the result (including `transformResponse` if provided). */
   responseSchema?: StandardSchemaV1<ResultType>
   /** A schema for the error object (including `transformErrorResponse` if provided). */
   errorResponseSchema?: StandardSchemaV1<BaseQueryError<BaseQuery>>
-  /** A schema for the `meta` property returned by the `query` or `queryFn`. */
+  /** A schema for the `meta` property returned by the `request` or `queryFn`. */
   metaSchema?: StandardSchemaV1<BaseQueryMeta<BaseQuery>>
   /** Defaults to `true`. Set to `false` to disable structural sharing on cache updates. */
   structuralSharing?: boolean
@@ -101,7 +101,12 @@ export interface CellWithQuery<
   RawResultType,
   BaseQuery extends BaseQueryFn,
 > {
-  query(arg: QueryArg): BaseQueryArg<BaseQuery>
+  /**
+   * A function that builds the base query argument (e.g. a URL string or
+   * `FetchArgs` object) for this endpoint. Named `query` in RTK Query 2.x;
+   * renamed to avoid colliding with the `query()` endpoint creator.
+   */
+  request(arg: QueryArg): BaseQueryArg<BaseQuery>
   queryFn?: never
   /** A function to manipulate the data returned by a query or mutation. */
   transformResponse?(
@@ -139,7 +144,7 @@ export interface CellWithQueryFn<
       BaseQueryMeta<BaseQuery>
     >
   >
-  query?: never
+  request?: never
   transformResponse?: never
   transformErrorResponse?: never
   rawResponseSchema?: never

@@ -54,12 +54,12 @@ function setup() {
     endpoints: {
       getTodos: {
         ...query<Todo[], void>(),
-        query: () => '/todos',
+        request: () => '/todos',
         // Deliberately no providesTags: added later via enhanceEndpoints
       },
       updateTodo: {
         ...mutation<Todo, { id: string; patch: Partial<Todo> }>(),
-        query: ({ id, patch }) => ({
+        request: ({ id, patch }) => ({
           url: `/todos/${id}`,
           method: 'PATCH',
           body: patch,

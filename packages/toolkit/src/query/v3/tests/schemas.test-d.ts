@@ -6,7 +6,7 @@
  * 'schemas as a source of inference'). In v3, the creators accept the
  * inference-bearing schema slots directly:
  *
- *   { ...query({ argSchema, responseSchema }), query: (arg) => ... }
+ *   { ...query({ argSchema, responseSchema }), request: (arg) => ... }
  *
  * The creator stamps `$meta` with the schema output types AND returns the
  * schemas at runtime, so the spread lands them on the endpoint definition
@@ -44,7 +44,7 @@ describe('v3 schemas as a source of inference', () => {
       endpoints: {
         getPost: {
           ...query({ argSchema: postArgSchema, responseSchema: postSchema }),
-          query: (arg) => {
+          request: (arg) => {
             // the query callback arg is contextually typed from argSchema
             expectTypeOf(arg).toEqualTypeOf<PostArg>()
             return `/post/${arg.id}`
@@ -78,7 +78,7 @@ describe('v3 schemas as a source of inference', () => {
             rawResponseSchema: v.array(postSchema),
             responseSchema: postSchema,
           }),
-          query: (arg) => `/posts/${arg.id}/first`,
+          request: (arg) => `/posts/${arg.id}/first`,
           transformResponse: (raw) => {
             expectTypeOf(raw).toEqualTypeOf<Post[]>()
             return raw[0]
@@ -99,7 +99,7 @@ describe('v3 schemas as a source of inference', () => {
       endpoints: {
         getFirstPost: {
           ...query({ rawResponseSchema: v.array(postSchema) }),
-          query: () => '/posts',
+          request: () => '/posts',
           transformResponse: (raw) => raw[0],
         },
       },
@@ -114,7 +114,7 @@ describe('v3 schemas as a source of inference', () => {
       endpoints: {
         updatePost: {
           ...mutation({ argSchema: postSchema, responseSchema: postSchema }),
-          query: (post) => {
+          request: (post) => {
             expectTypeOf(post).toEqualTypeOf<Post>()
             return { url: `/post/${post.id}`, method: 'PATCH', body: post }
           },

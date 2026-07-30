@@ -51,12 +51,12 @@ function setup() {
     endpoints: {
       getTodoById: {
         ...query<Todo, string>(),
-        query: (id) => `/todos/${id}`,
+        request: (id) => `/todos/${id}`,
         providesTags: (result, error, id) => [{ type: 'Todo' as const, id }],
       },
       getTodos: {
         ...query<Todo[], void, { todos: Todo[]; total: number }>(),
-        query: () => '/todos',
+        request: () => '/todos',
         transformResponse: (raw) => raw.todos,
         providesTags: ['Todo'],
       },
@@ -68,7 +68,7 @@ function setup() {
       },
       updateTodo: {
         ...mutation<Todo, { id: string } & Partial<Todo>>(),
-        query: ({ id, ...patch }) => ({
+        request: ({ id, ...patch }) => ({
           url: `/todos/${id}`,
           method: 'PATCH',
           body: patch,

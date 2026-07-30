@@ -24,15 +24,15 @@ const coreApi = createApi({
   endpoints: {
     getTodoById: {
       ...query<Todo, string>(),
-      query: (id) => `/todos/${id}`,
+      request: (id) => `/todos/${id}`,
     },
     getTodos: {
       ...query<Todo[], void>(),
-      query: () => '/todos',
+      request: () => '/todos',
     },
     updateTodo: {
       ...mutation<Todo, { id: string } & Partial<Todo>>(),
-      query: (patch) => ({ url: `/todos/${patch.id}`, body: patch }),
+      request: (patch) => ({ url: `/todos/${patch.id}`, body: patch }),
     },
   },
 })
@@ -90,7 +90,7 @@ describe('reactify types', () => {
       endpoints: {
         getUser: {
           ...query<User, number>(),
-          query: (id) => `/users/${id}`,
+          request: (id) => `/users/${id}`,
         },
       },
     })
@@ -110,7 +110,7 @@ describe('reactify types', () => {
       endpoints: {
         getUser: {
           ...query<User, number>(),
-          query: (id) => `/users/${id}`,
+          request: (id) => `/users/${id}`,
         },
       },
     })
