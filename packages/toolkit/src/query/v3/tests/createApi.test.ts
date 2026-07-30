@@ -61,7 +61,7 @@ function setup() {
         providesTags: ['Todo'],
       },
       getViaQueryFn: {
-        ...query<string, number>(),
+        ...query.fn<string, number>(),
         queryFn: async (arg) => {
           return { data: `computed-${arg}` }
         },
@@ -196,7 +196,7 @@ describe('v3 createApi runtime', () => {
     const extended = api.injectEndpoints({
       endpoints: {
         getTodoTitle: {
-          ...query<string, string>(),
+          ...query.fn<string, string>(),
           queryFn: async (id) => ({ data: `title-of-${id}` }),
         },
       },

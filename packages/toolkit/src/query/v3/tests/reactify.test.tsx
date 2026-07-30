@@ -156,7 +156,7 @@ describe('reactify runtime', () => {
     const extended = api.injectEndpoints({
       endpoints: {
         getGreeting: {
-          ...query<string, string>(),
+          ...query.fn<string, string>(),
           queryFn: async (name) => ({ data: `hello ${name}` }),
         },
       },

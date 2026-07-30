@@ -58,7 +58,7 @@ function setup(maxPages?: number) {
       },
       // A plain query alongside, to pin that both kinds coexist
       getPokemonNames: {
-        ...query<string[], void>(),
+        ...query.fn<string[], void>(),
         queryFn: async () => ({ data: ['bulbasaur'] }),
       },
     },

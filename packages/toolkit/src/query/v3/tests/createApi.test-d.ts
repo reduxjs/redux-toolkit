@@ -92,8 +92,8 @@ const api = createApi({
       },
     },
     getSession: {
-      // queryFn variant: exercises the WithQuery | WithQueryFn union
-      ...query<User, void>(),
+      // queryFn flavor: uses the dedicated `query.fn` creator
+      ...query.fn<User, void>(),
       queryFn: async (arg, queryApi, extraOptions, baseQuery) => {
         expectTypeOf(arg).toEqualTypeOf<void>()
         const res = await baseQuery('/session')

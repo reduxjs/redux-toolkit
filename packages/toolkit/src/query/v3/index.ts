@@ -9,7 +9,13 @@ export { createApi } from './createApi'
 export { query, mutation, infiniteQuery } from './endpointCreators'
 export type {
   AnyMetaRecord,
+  EndpointCreatorFnSchemas,
+  EndpointFlavor,
+  InfiniteQueryCreator,
+  MutationCreator,
+  QueryCreator,
   DefsShape,
+  EndpointCreatorSchemas,
   InfiniteQueryEndpointStamp,
   InfiniteQueryMetaRecord,
   MutationEndpointStamp,

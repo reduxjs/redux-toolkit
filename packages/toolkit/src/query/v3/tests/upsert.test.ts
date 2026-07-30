@@ -112,7 +112,7 @@ describe('v3 upsert option', () => {
     const extended = api.injectEndpoints({
       endpoints: {
         searchTodos: {
-          ...query<Todo[], string>(),
+          ...query.fn<Todo[], string>(),
           queryFn: async (term) => ({
             data: [{ id: `search-${term}`, title: term, completed: false }],
           }),

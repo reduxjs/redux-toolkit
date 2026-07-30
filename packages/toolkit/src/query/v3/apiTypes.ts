@@ -41,6 +41,14 @@ import type { ApiModules } from '../core/module'
 import { coreModuleName } from '../core/module'
 import type { SerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import type {
+  InfiniteQueryCellVariantWithQuery,
+  InfiniteQueryCellVariantWithQueryFn,
+  MutationCellVariantWithQuery,
+  MutationCellVariantWithQueryFn,
+  QueryCellVariantWithQuery,
+  QueryCellVariantWithQueryFn,
+} from './cellTypes'
+import type {
   AnyMetaRecord,
   DefsShape,
   InfiniteQueryMetaRecord,
@@ -107,28 +115,56 @@ export type QueryEndpointCellBody<
   TagTypes extends string,
   Defs extends DefsShape,
   ReducerPath extends string,
-> = QueryDefinition<
+> = QueryCellVariantWithQuery<
   M['arg'],
+  M['result'],
+  RawResultFor<M, BaseQuery>,
   BaseQuery,
   TagTypes,
-  M['result'],
   ReducerPath,
-  RawResultFor<M, BaseQuery>
-> &
-  UpsertOption<Defs, M>
+  UpsertEntryFor<Defs>
+>
+
+export type QueryFnEndpointCellBody<
+  M extends AnyMetaRecord,
+  BaseQuery extends BaseQueryFn,
+  TagTypes extends string,
+  Defs extends DefsShape,
+  ReducerPath extends string,
+> = QueryCellVariantWithQueryFn<
+  M['arg'],
+  M['result'],
+  BaseQuery,
+  TagTypes,
+  ReducerPath,
+  UpsertEntryFor<Defs>
+>
 
 export type MutationEndpointCellBody<
   M extends AnyMetaRecord,
   BaseQuery extends BaseQueryFn,
   TagTypes extends string,
   ReducerPath extends string,
-> = MutationDefinition<
+> = MutationCellVariantWithQuery<
   M['arg'],
+  M['result'],
+  RawResultFor<M, BaseQuery>,
   BaseQuery,
   TagTypes,
+  ReducerPath
+>
+
+export type MutationFnEndpointCellBody<
+  M extends AnyMetaRecord,
+  BaseQuery extends BaseQueryFn,
+  TagTypes extends string,
+  ReducerPath extends string,
+> = MutationCellVariantWithQueryFn<
+  M['arg'],
   M['result'],
-  ReducerPath,
-  RawResultFor<M, BaseQuery>
+  BaseQuery,
+  TagTypes,
+  ReducerPath
 >
 
 export type InfiniteQueryEndpointCellBody<
@@ -136,14 +172,28 @@ export type InfiniteQueryEndpointCellBody<
   BaseQuery extends BaseQueryFn,
   TagTypes extends string,
   ReducerPath extends string,
-> = InfiniteQueryDefinition<
+> = InfiniteQueryCellVariantWithQuery<
   M['arg'],
   PageParamOf<M>,
+  M['result'],
+  RawResultFor<M, BaseQuery>,
   BaseQuery,
   TagTypes,
+  ReducerPath
+>
+
+export type InfiniteQueryFnEndpointCellBody<
+  M extends AnyMetaRecord,
+  BaseQuery extends BaseQueryFn,
+  TagTypes extends string,
+  ReducerPath extends string,
+> = InfiniteQueryCellVariantWithQueryFn<
+  M['arg'],
+  PageParamOf<M>,
   M['result'],
-  ReducerPath,
-  RawResultFor<M, BaseQuery>
+  BaseQuery,
+  TagTypes,
+  ReducerPath
 >
 
 /**
@@ -151,6 +201,11 @@ export type InfiniteQueryEndpointCellBody<
  * `$meta`, which must stay a plain member of the mapped type below so it can
  * serve as the reverse-inference source — inference cannot flow into a
  * conditional type).
+ *
+ * The `flavor` discriminant (from the `query()` vs `query.fn()` creators)
+ * selects a single variant interface per endpoint instead of a
+ * `WithQuery | WithQueryFn` union — checking each literal against one
+ * interface instead of a two-variant union is a measured ~27% slope saving.
  */
 export type EndpointCellBody<
   M extends AnyMetaRecord,
@@ -159,11 +214,17 @@ export type EndpointCellBody<
   Defs extends DefsShape,
   ReducerPath extends string,
 > = M extends { type: DefinitionType.query }
-  ? QueryEndpointCellBody<M, BaseQuery, TagTypes, Defs, ReducerPath>
+  ? M extends { flavor: 'queryFn' }
+    ? QueryFnEndpointCellBody<M, BaseQuery, TagTypes, Defs, ReducerPath>
+    : QueryEndpointCellBody<M, BaseQuery, TagTypes, Defs, ReducerPath>
   : M extends { type: DefinitionType.mutation }
-    ? MutationEndpointCellBody<M, BaseQuery, TagTypes, ReducerPath>
+    ? M extends { flavor: 'queryFn' }
+      ? MutationFnEndpointCellBody<M, BaseQuery, TagTypes, ReducerPath>
+      : MutationEndpointCellBody<M, BaseQuery, TagTypes, ReducerPath>
     : M extends { type: DefinitionType.infinitequery }
-      ? InfiniteQueryEndpointCellBody<M, BaseQuery, TagTypes, ReducerPath>
+      ? M extends { flavor: 'queryFn' }
+        ? InfiniteQueryFnEndpointCellBody<M, BaseQuery, TagTypes, ReducerPath>
+        : InfiniteQueryEndpointCellBody<M, BaseQuery, TagTypes, ReducerPath>
       : never
 
 export type EndpointCells<
@@ -198,15 +259,17 @@ export type ToDefinitions<
   [K in keyof Defs]: Defs[K] extends QueryMetaRecord<
     infer Result,
     infer Arg,
+    any,
     any
   >
     ? QueryDefinition<Arg, BaseQuery, TagTypes, Result, ReducerPath>
-    : Defs[K] extends MutationMetaRecord<infer Result, infer Arg, any>
+    : Defs[K] extends MutationMetaRecord<infer Result, infer Arg, any, any>
       ? MutationDefinition<Arg, BaseQuery, TagTypes, Result, ReducerPath>
       : Defs[K] extends InfiniteQueryMetaRecord<
             infer Result,
             infer Arg,
             infer PageParam,
+            any,
             any
           >
         ? InfiniteQueryDefinition<
