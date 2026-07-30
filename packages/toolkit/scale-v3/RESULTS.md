@@ -104,3 +104,45 @@ endpoints the upsert term is ~7% of the fixture total.
   encoding's own machinery; the real-surface port multiplies that by the cost of the
   real `QueryDefinition`/hook types. Both were expected; this table is the number
   that matters.
+
+## Addendum 2026-07-29 (M7): flavored creators cut the slope 30%
+
+The cost investigation continued past M5/M6 with two more encodings:
+
+1. **Flattened v3-owned cell input types** (`v3/cellTypes.ts`, replacing the reused
+   `QueryDefinition`/`MutationDefinition`/`InfiniteQueryDefinition` tower on the
+   *input* side): **perf-neutral** (758,373 vs 759,555 at noupsert-201, −0.2%).
+   The overhead is not intersection re-normalization; interface instantiation
+   caching does not help because the ~3 reverse-mapped checking passes instantiate
+   with different (unresolved vs resolved) type args. Kept anyway: v3 gets its own
+   input surface, decoupled from the legacy tower.
+2. **De-unioning the `WithQuery | WithQueryFn` variants** is a real win. Checking
+   each endpoint literal against a two-variant union forces cross-constituent
+   property resolution on every pass. Replacing the union with a flavor
+   discriminant on the meta record — `query()` vs `query.fn()` creators (ditto
+   `mutation.fn`, `infiniteQuery.fn`), dispatched by a conditional in
+   `EndpointCellBody` — keeps full `queryFn` support and drops:
+
+| fixture @201 | M5 baseline | M7 flavored | Δ |
+|---|---|---|---|
+| v3-core-noupsert | 759,555 | 619,536 | −18.4% |
+| v3-core-upsert | 815,637 | 671,826 | −17.6% |
+| v3-react | 1,033,883 | 891,081 | −13.8% |
+
+Full noupsert curve after M7: 312,663 / 375,986 / 458,793 / 619,536 at
+12/51/102/201. **Slope: 1,624 inst/endpoint (was 2,323; current builder: 995)** —
+v3 is now 1.63× current instead of 2.34×. The flavor conditional itself costs
+nothing measurable (the dispatch resolves once per endpoint from the literal
+flavor on the stamp).
+
+API consequence: `queryFn`-based endpoints spread `query.fn<R, A>()` instead of
+`query<R, A>()`. The codemod gains one rule: `build.query({ queryFn` maps to the
+`.fn` flavor. Schema-based inference (`query({ argSchema, responseSchema })`,
+recovering the current "schemas as a source of inference" path with zero explicit
+generics) also landed in M7; `rawResponseSchema` participates for `query`/`mutation`
+but is excluded from `.fn` flavors (no raw response exists there).
+
+Not recoverable in the spread encoding, documented for the proposal: inferring
+QueryArg from an annotated `query:` callback parameter, and inferring ResultType
+from `transformResponse`'s return type. Inference flows only out of the creator
+stamp (generics or schema args), never out of cell-body callbacks.
