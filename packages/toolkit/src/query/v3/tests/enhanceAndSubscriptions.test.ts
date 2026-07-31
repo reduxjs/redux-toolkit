@@ -144,6 +144,56 @@ describe('enhanceEndpoints (v3)', () => {
     expect(result.data?.map((t) => t.title)).toEqual(['ONE', 'TWO'])
   })
 
+  test('recipe can replace request; the internal query alias stays in sync', async () => {
+    const { api, store, baseQuery } = setup()
+
+    api.enhanceEndpoints({
+      endpoints: {
+        getTodos: (definition) => {
+          // Replace the request builder entirely. The core runtime reads
+          // the definition via the `query` getter alias, which must pick up
+          // the replaced `request`, not a stale copy.
+          definition.request = () => '/todos/1'
+        },
+      },
+    })
+
+    const result = await store.dispatch(api.endpoints.getTodos.initiate())
+    expect(baseQuery).toHaveBeenCalledTimes(1)
+    expect(baseQuery.mock.calls[0][0]).toBe('/todos/1')
+    // Runtime returns the single todo (the endpoint type still says Todo[])
+    expect(result.data).toEqual({ id: '1', title: 'one', completed: false })
+  })
+
+  test('enhanceEndpoints applies to late-injected endpoints', async () => {
+    const { api, build, store, baseQuery } = setup()
+
+    const extended = api.injectEndpoints({
+      endpoints: {
+        getTodosAgain: {
+          kind: build.query<Todo[], void>({
+            request: () => '/todos',
+          }),
+        },
+      },
+    })
+
+    extended.enhanceEndpoints({
+      endpoints: {
+        getTodosAgain: (definition) => {
+          definition.transformResponse = (todos: Todo[]) =>
+            todos.map((t) => ({ ...t, title: t.title.toUpperCase() }))
+        },
+      },
+    })
+
+    const result = await store.dispatch(
+      extended.endpoints.getTodosAgain.initiate(),
+    )
+    expect(baseQuery).toHaveBeenCalledTimes(1)
+    expect(result.data?.map((t) => t.title)).toEqual(['ONE', 'TWO'])
+  })
+
   test('addTagTypes registers new tags; unknown endpoint names are ignored', async () => {
     const { api, store, baseQuery } = setup()
 

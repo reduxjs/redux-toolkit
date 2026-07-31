@@ -223,6 +223,83 @@ describe('v3 createApi runtime', () => {
     expect(todo.data).toEqual({ id: '2', title: 'two', completed: true })
   })
 
+  test('injectEndpoints skips colliding endpoints by default and warns in dev', async () => {
+    const { api, build, store, baseQuery } = setup()
+
+    vi.stubEnv('NODE_ENV', 'development')
+    const consoleError = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => {})
+    try {
+      api.injectEndpoints({
+        endpoints: {
+          getTodoById: {
+            kind: build.query.fn<Todo, string>({
+              queryFn: async (id) => ({
+                data: { id, title: 'replaced', completed: true },
+              }),
+            }),
+          },
+        },
+      })
+      expect(consoleError).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'already-existing endpointName getTodoById',
+        ),
+      )
+    } finally {
+      consoleError.mockRestore()
+      vi.unstubAllEnvs()
+    }
+
+    // Original definition still in effect: fetches through baseQuery
+    const result = await store.dispatch(
+      api.endpoints.getTodoById.initiate('1'),
+    )
+    expect(result.data).toEqual({ id: '1', title: 'one', completed: false })
+    expect(baseQuery).toHaveBeenCalledTimes(1)
+  })
+
+  test('injectEndpoints overrideExisting: true replaces the endpoint definition', async () => {
+    const { api, build, store, baseQuery } = setup()
+
+    api.injectEndpoints({
+      endpoints: {
+        getTodoById: {
+          kind: build.query.fn<Todo, string>({
+            queryFn: async (id) => ({
+              data: { id, title: 'replaced', completed: true },
+            }),
+          }),
+        },
+      },
+      overrideExisting: true,
+    })
+
+    const result = await store.dispatch(
+      api.endpoints.getTodoById.initiate('1'),
+    )
+    expect(result.data).toEqual({ id: '1', title: 'replaced', completed: true })
+    // The replacement is a queryFn endpoint — baseQuery must not be hit
+    expect(baseQuery).not.toHaveBeenCalled()
+  })
+
+  test("injectEndpoints overrideExisting: 'throw' throws on collision", () => {
+    const { api, build } = setup()
+
+    expect(() =>
+      api.injectEndpoints({
+        endpoints: {
+          getTodoById: {
+            kind: build.query<Todo, string>({
+              request: (id) => `/todos/${id}`,
+            }),
+          },
+        },
+        overrideExisting: 'throw',
+      }),
+    ).toThrowError(/already-existing endpointName getTodoById/)
+  })
 })
 
 // The cross-endpoint `upsert` option runtime is covered in ./upsert.test.ts

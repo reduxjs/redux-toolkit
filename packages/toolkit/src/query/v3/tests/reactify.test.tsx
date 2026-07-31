@@ -255,6 +255,25 @@ describe('reactify runtime', () => {
     expect(baseQuery).toHaveBeenCalledTimes(1)
   })
 
+  test('enhanceEndpoints on a reactified api flows through to hook results', async () => {
+    const { api, wrapper, baseQuery } = setup()
+
+    api.enhanceEndpoints({
+      endpoints: {
+        getTodos: (definition) => {
+          definition.transformResponse = (todos: Todo[]) =>
+            todos.map((t) => ({ ...t, title: t.title.toUpperCase() }))
+        },
+      },
+    })
+
+    const { result } = renderHook(() => api.useGetTodosQuery(), { wrapper })
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(result.current.data?.map((t) => t.title)).toEqual(['ONE', 'TWO'])
+    expect(baseQuery).toHaveBeenCalledTimes(1)
+  })
+
   test('react createApiBuilder returns an api with hooks already attached', async () => {
     const rbuild = createReactApiBuilder({
       baseQuery: async (arg: string) => ({ data: `r:${arg}` }),
