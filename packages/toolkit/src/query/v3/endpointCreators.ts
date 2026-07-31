@@ -1,45 +1,47 @@
 /**
- * RTK Query v3 prototype: standalone endpoint creators.
+ * RTK Query v3 prototype: endpoint stamps and type-level meta records.
  *
- * These replace the `build.query()` / `build.mutation()` / `build.infiniteQuery()`
- * builder methods. Each creator is a zero-argument "phantom stamp": at runtime it
- * returns only the `type` discriminator that the existing RTKQ runtime already
- * dispatches on; at the type level it additionally carries a `$meta` record
- * declaring the endpoint's Result/Arg (and PageParam) types.
+ * Endpoint definitions are produced by the *bound* creators returned from
+ * `createApiBuilder` (see ./builder.ts):
  *
- * Usage — the stamp is assigned to the endpoint's `kind` property:
  * ```ts
- * endpoints: {
- *   getTodos: {
- *     kind: query<Todo[], void>(),
- *     request: () => '/todos',
+ * const build = createApiBuilder({ baseQuery, tagTypes: ['Todo'] })
+ *
+ * const api = build.createApi({
+ *   endpoints: {
+ *     getTodos: {
+ *       kind: build.query<Todo[], void>({
+ *         request: () => '/todos',
+ *       }),
+ *     },
  *   },
- * }
+ * })
  * ```
- * (`injectEndpoints` merges the stamp's runtime members back over the cell,
- * so the stored definition has the same `type: 'query'` shape as 2.x.)
+ *
+ * Each creator returns the full endpoint definition at runtime (the body plus
+ * the `type` discriminator string the existing RTKQ runtime dispatches on).
+ * At the type level the return is a "stamp": the `type` discriminator plus a
+ * `$meta` record declaring the endpoint's Result/Arg (and PageParam) types.
  *
  * The `$meta` member sits in plain (non-context-sensitive) position inside the
- * endpoint literal, so `createApi` can infer the whole endpoint map from the
- * stamps in inference pass one, then contextually type every callback
- * (`request`, `transformResponse`, `onQueryStarted`, `upsert`, ...) in pass two.
+ * endpoint literal (under the `kind` property), so `build.createApi` can infer
+ * the whole endpoint map from the stamps in inference pass one, then
+ * contextually type the cross-endpoint options (`upsert`) in pass two. The
+ * endpoint *bodies* are typed by ordinary forward inference inside each
+ * creator call — which is what restores 2.x inference behaviors like
+ * "Arg from an annotated `request` callback parameter" and "Result from the
+ * `transformResponse` return type".
  *
  * NOTE: `$meta` is declared as a required property but does not exist at
  * runtime. It is purely an inference vehicle, like the existing `Types` field
  * on endpoint definitions.
  */
-import type { StandardSchemaV1 } from '@standard-schema/spec'
-import {
-  DefinitionType,
-  ENDPOINT_INFINITEQUERY,
-  ENDPOINT_MUTATION,
-  ENDPOINT_QUERY,
-} from '../endpointDefinitions'
+import type { DefinitionType } from '../endpointDefinitions'
 
 /**
  * How the endpoint fetches: via the declarative `request` option (`'query'`) or
  * via a hand-written `queryFn` (`'queryFn'`). Carried as a type-level
- * discriminant on the meta record so that each endpoint literal is checked
+ * discriminant on the meta record so that each endpoint body is checked
  * against a single interface instead of a two-variant union — measured to be
  * a significant instantiation-count saving at scale.
  */
@@ -47,8 +49,7 @@ export type EndpointFlavor = 'query' | 'queryFn'
 
 /**
  * The type-level record carried by a query stamp. `raw` is the raw base query
- * response type used by `transformResponse`; when left as `unknown` it
- * defaults to `BaseQueryResult<BaseQuery>` at the `createApi` boundary.
+ * response type used by `transformResponse`.
  */
 export interface QueryMetaRecord<
   Result,
@@ -129,179 +130,3 @@ export type InfiniteQueryEndpointStamp<
   type: DefinitionType.infinitequery
   $meta: InfiniteQueryMetaRecord<Result, Arg, PageParam, Raw, Flavor>
 }
-
-/**
- * The Standard Schema slots that participate in endpoint *type inference*.
- * These can be passed to the `query()` / `mutation()` creators so that the
- * endpoint's Arg/Result/Raw types are inferred from the schemas with no
- * explicit generics — matching the current builder's "schemas as a source of
- * inference" behavior. The creator returns the schemas at runtime, so
- * `injectEndpoints`' stamp merge lands them on the endpoint definition where
- * the existing runtime validation (`executeEndpoint`) already reads them.
- *
- * The remaining schema slots (`errorResponseSchema`, `metaSchema`,
- * `rawErrorResponseSchema`) depend on the base query's types, which are not
- * known at the creator call site; they stay in the endpoint literal itself and
- * are validated against the base query there.
- *
- * Like the current API, schemas must have matching input and output types
- * (no transforms) for the definition slots (`StandardSchemaV1<T>`) to accept
- * them.
- */
-export interface EndpointCreatorSchemas {
-  argSchema?: StandardSchemaV1
-  responseSchema?: StandardSchemaV1
-  rawResponseSchema?: StandardSchemaV1
-}
-
-/**
- * The schema slots accepted by the `.fn` creator flavors. `rawResponseSchema`
- * is excluded: `queryFn` endpoints have no raw response.
- */
-export type EndpointCreatorFnSchemas = Omit<
-  EndpointCreatorSchemas,
-  'rawResponseSchema'
->
-
-type SchemaOutputOr<S, Fallback> = S extends StandardSchemaV1
-  ? StandardSchemaV1.InferOutput<S>
-  : Fallback
-
-export interface QueryCreator {
-  /**
-   * Declares a query endpoint fetched via the declarative `request` option.
-   * Assign the result to the endpoint's `kind` property:
-   * `{ kind: query<Todo[], void>(), request: () => '/todos' }`.
-   */
-  <Result, Arg, Raw = unknown>(): QueryEndpointStamp<Result, Arg, Raw>
-  /**
-   * Declares a query endpoint, inferring its types from Standard Schemas with
-   * no explicit generics:
-   * `{ kind: query({ argSchema, responseSchema }), request: (arg) => ... }`.
-   */
-  <S extends EndpointCreatorSchemas>(
-    schemas: S,
-  ): QueryEndpointStamp<
-    SchemaOutputOr<S['responseSchema'], unknown>,
-    SchemaOutputOr<S['argSchema'], unknown>,
-    SchemaOutputOr<S['rawResponseSchema'], unknown>
-  > &
-    S
-  /**
-   * Declares a query endpoint implemented with a hand-written `queryFn`
-   * instead of the declarative `request` option:
-   * `{ kind: query.fn<Session, void>(), queryFn: async () => ({ data: ... }) }`.
-   *
-   * This is a separate creator flavor (rather than a union on the definition
-   * type) so each endpoint literal is checked against a single interface —
-   * a measured compile-time saving at scale.
-   */
-  fn: {
-    <Result, Arg>(): QueryEndpointStamp<Result, Arg, unknown, 'queryFn'>
-    <S extends EndpointCreatorFnSchemas>(
-      schemas: S,
-    ): QueryEndpointStamp<
-      SchemaOutputOr<S['responseSchema'], unknown>,
-      SchemaOutputOr<S['argSchema'], unknown>,
-      unknown,
-      'queryFn'
-    > &
-      S
-  }
-}
-
-export const query: QueryCreator = /* @__PURE__ */ Object.assign(
-  (schemas?: EndpointCreatorSchemas) =>
-    ({ type: ENDPOINT_QUERY, ...schemas }) as any,
-  {
-    fn: (schemas?: EndpointCreatorFnSchemas) =>
-      ({ type: ENDPOINT_QUERY, ...schemas }) as any,
-  },
-)
-
-export interface MutationCreator {
-  /**
-   * Declares a mutation endpoint. Assign the result to the endpoint's
-   * `kind` property:
-   * `{ kind: mutation<Todo, Partial<Todo>>(), request: (patch) => ({...}) }`.
-   */
-  <Result, Arg, Raw = unknown>(): MutationEndpointStamp<Result, Arg, Raw>
-  /**
-   * Declares a mutation endpoint, inferring its types from Standard Schemas
-   * with no explicit generics:
-   * `{ kind: mutation({ argSchema, responseSchema }), request: (arg) => ... }`.
-   */
-  <S extends EndpointCreatorSchemas>(
-    schemas: S,
-  ): MutationEndpointStamp<
-    SchemaOutputOr<S['responseSchema'], unknown>,
-    SchemaOutputOr<S['argSchema'], unknown>,
-    SchemaOutputOr<S['rawResponseSchema'], unknown>
-  > &
-    S
-  /**
-   * Declares a mutation endpoint implemented with a hand-written `queryFn`:
-   * `{ kind: mutation.fn<Todo, Partial<Todo>>(), queryFn: async (patch) => ({ data: ... }) }`.
-   */
-  fn: {
-    <Result, Arg>(): MutationEndpointStamp<Result, Arg, unknown, 'queryFn'>
-    <S extends EndpointCreatorFnSchemas>(
-      schemas: S,
-    ): MutationEndpointStamp<
-      SchemaOutputOr<S['responseSchema'], unknown>,
-      SchemaOutputOr<S['argSchema'], unknown>,
-      unknown,
-      'queryFn'
-    > &
-      S
-  }
-}
-
-export const mutation: MutationCreator = /* @__PURE__ */ Object.assign(
-  (schemas?: EndpointCreatorSchemas) =>
-    ({ type: ENDPOINT_MUTATION, ...schemas }) as any,
-  {
-    fn: (schemas?: EndpointCreatorFnSchemas) =>
-      ({ type: ENDPOINT_MUTATION, ...schemas }) as any,
-  },
-)
-
-/**
- * Declares an infinite query endpoint. Assign the result to the endpoint's
- * `kind` property alongside `infiniteQueryOptions`:
- * ```ts
- * {
- *   kind: infiniteQuery<Pokemon[], string, number>(),
- *   infiniteQueryOptions: { initialPageParam: 0, getNextPageParam: (...) => ... },
- *   request: ({ queryArg, pageParam }) => `pokemon/${queryArg}?page=${pageParam}`,
- * }
- * ```
- */
-export interface InfiniteQueryCreator {
-  <Result, Arg, PageParam, Raw = unknown>(): InfiniteQueryEndpointStamp<
-    Result,
-    Arg,
-    PageParam,
-    Raw
-  >
-  /**
-   * Declares an infinite query endpoint implemented with a hand-written
-   * `queryFn` instead of the declarative `request` option.
-   */
-  fn: {
-    <Result, Arg, PageParam>(): InfiniteQueryEndpointStamp<
-      Result,
-      Arg,
-      PageParam,
-      unknown,
-      'queryFn'
-    >
-  }
-}
-
-export const infiniteQuery: InfiniteQueryCreator = /* @__PURE__ */ Object.assign(
-  () => ({ type: ENDPOINT_INFINITEQUERY }) as any,
-  {
-    fn: () => ({ type: ENDPOINT_INFINITEQUERY }) as any,
-  },
-)

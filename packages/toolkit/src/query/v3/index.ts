@@ -1,21 +1,23 @@
 /**
  * RTK Query v3 prototype entry point (framework-agnostic core).
  *
- * React bindings are attached separately via `reactify` (./reactify.tsx),
- * which is exported from the v3 react entry rather than here so the core
- * entry never imports React.
+ * The primary export is `createApiBuilder`. React bindings are attached
+ * either via the react entry's own `createApiBuilder` (hooks pre-wired) or
+ * by calling `reactify(api)` on a core api; both live in ./react.ts so the
+ * core entry never imports React.
  */
-export { createApi } from './createApi'
-export { query, mutation, infiniteQuery } from './endpointCreators'
+export { createApiBuilder } from './builder'
+export type {
+  ApiBuilder,
+  ApiBuilderConfig,
+  BoundInfiniteQueryCreator,
+  BoundMutationCreator,
+  BoundQueryCreator,
+} from './builder'
 export type {
   AnyMetaRecord,
-  EndpointCreatorFnSchemas,
-  EndpointFlavor,
-  InfiniteQueryCreator,
-  MutationCreator,
-  QueryCreator,
   DefsShape,
-  EndpointCreatorSchemas,
+  EndpointFlavor,
   InfiniteQueryEndpointStamp,
   InfiniteQueryMetaRecord,
   MutationEndpointStamp,
@@ -27,6 +29,7 @@ export type {
   ApiTypesBag,
   ApiV3,
   ApiV3Base,
+  BoundCreateApiOptions,
   CoreApiSurface,
   CreateApiV3Options,
   EndpointCellBody,
@@ -35,5 +38,4 @@ export type {
   QueryDefKeys,
   ToDefinitions,
   UpsertEntryFor,
-  UpsertOption,
 } from './apiTypes'

@@ -1,14 +1,15 @@
 /**
- * RTK Query v3 prototype: runtime tests for schema validation via the
- * creator's schema overload. The creator returns the schemas at runtime, so
- * spreading it into the endpoint literal lands them on the definition where
- * the existing `executeEndpoint` validation reads them.
+ * RTK Query v3 prototype: runtime tests for schema validation via schema
+ * slots in the creator body. The creator returns the full body (plus the
+ * kind discriminator) at runtime, and `injectEndpoints` merges it onto the
+ * endpoint definition where the existing `executeEndpoint` validation
+ * reads the schemas.
  */
 import { configureStore } from '@reduxjs/toolkit'
 import { describe, expect, test, vi } from 'vitest'
 import * as v from 'valibot'
 import type { BaseQueryFn } from '@internal/query/baseQueryTypes'
-import { createApi, query } from '@internal/query/v3/index'
+import { createApiBuilder } from '@internal/query/v3/index'
 
 const postSchema = v.object({
   id: v.number(),
@@ -31,17 +32,25 @@ function setup() {
     return { error: { status: 404 } }
   }) satisfies BaseQueryFn
 
-  const api = createApi({
+  const build = createApiBuilder({
     baseQuery,
     reducerPath: 'v3Api',
+  })
+
+  const api = build.createApi({
     endpoints: {
       getPost: {
-        kind: query({ argSchema: postArgSchema, responseSchema: postSchema }),
-        request: (arg) => `/posts/${arg.id}`,
+        kind: build.query({
+          argSchema: postArgSchema,
+          responseSchema: postSchema,
+          request: (arg) => `/posts/${arg.id}`,
+        }),
       },
       getBadShape: {
-        kind: query({ responseSchema: postSchema }),
-        request: () => '/posts/bad-shape',
+        kind: build.query({
+          responseSchema: postSchema,
+          request: () => '/posts/bad-shape',
+        }),
       },
     },
   })

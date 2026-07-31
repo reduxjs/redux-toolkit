@@ -6,10 +6,12 @@
  * A query endpoint declares a sync transform from its own result into
  * `{ endpoint, arg, value }` descriptors targeting other query endpoints;
  * after each fulfilled fetch the descriptors are written through the
- * existing `api.util.upsertQueryEntries` path.
+ * existing `api.util.upsertQueryEntries` path. The `upsert` option lives
+ * in the endpoint shell next to `kind` — it is the one option typed
+ * against ALL endpoints, so it stays in the reverse-mapped outer layer.
  */
 import { configureStore } from '@reduxjs/toolkit'
-import { createApi, query } from '@internal/query/v3/index'
+import { createApiBuilder } from '@internal/query/v3/index'
 import { describe, expect, test, vi } from 'vitest'
 
 interface Todo {
@@ -33,17 +35,22 @@ function setup() {
     return found ? { data: { ...found } } : { error: { status: 404 as const } }
   })
 
-  const api = createApi({
+  const build = createApiBuilder({
     baseQuery,
     reducerPath: 'upsertApi',
+  })
+
+  const api = build.createApi({
     endpoints: {
       getTodoById: {
-        kind: query<Todo, string>(),
-        request: (id) => `/todos/${id}`,
+        kind: build.query<Todo, string>({
+          request: (id) => `/todos/${id}`,
+        }),
       },
       getTodos: {
-        kind: query<Todo[], void>(),
-        request: () => '/todos',
+        kind: build.query<Todo[], void>({
+          request: () => '/todos',
+        }),
         upsert: (result) =>
           result.map((todo) => ({
             endpoint: 'getTodoById' as const,
@@ -59,7 +66,7 @@ function setup() {
     middleware: (gDM) => gDM().concat(api.middleware),
   })
 
-  return { api, store, baseQuery, todos }
+  return { api, build, store, baseQuery, todos }
 }
 
 describe('v3 upsert option', () => {
@@ -107,14 +114,15 @@ describe('v3 upsert option', () => {
   })
 
   test('upsert works on endpoints injected at runtime', async () => {
-    const { api, store, baseQuery } = setup()
+    const { api, build, store, baseQuery } = setup()
 
     const extended = api.injectEndpoints({
       endpoints: {
         searchTodos: {
-          kind: query.fn<Todo[], string>(),
-          queryFn: async (term) => ({
-            data: [{ id: `search-${term}`, title: term, completed: false }],
+          kind: build.query.fn<Todo[], string>({
+            queryFn: async (term) => ({
+              data: [{ id: `search-${term}`, title: term, completed: false }],
+            }),
           }),
           upsert: (result) =>
             result.map((todo) => ({

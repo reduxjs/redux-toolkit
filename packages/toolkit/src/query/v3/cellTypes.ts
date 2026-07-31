@@ -33,7 +33,6 @@ import type {
   BaseQueryExtraOptions,
   BaseQueryFn,
   BaseQueryMeta,
-  BaseQueryResult,
   QueryReturnValue,
 } from '../baseQueryTypes'
 import type { CacheCollectionQueryExtraOptions } from '../core/buildMiddleware/cacheCollection'
@@ -61,8 +60,7 @@ import type {
   SchemaFailureHandler,
   SchemaType,
 } from '../endpointDefinitions'
-import type { NEVER } from '../fakeBaseQuery'
-import type { CastAny, MaybePromise } from '../tsHelpers'
+import type { MaybePromise } from '../tsHelpers'
 
 /**
  * The options shared by all endpoint kinds (mirrors
@@ -150,14 +148,13 @@ export interface CellWithQueryFn<
   rawErrorResponseSchema?: never
 }
 
-/** Query-kind options (mirrors `QueryExtraOptions` plus the v3 `upsert`). */
+/** Query-kind options (mirrors `QueryExtraOptions`). */
 export interface QueryCellOptions<
   QueryArg,
   ResultType,
   BaseQuery extends BaseQueryFn,
   TagTypes extends string,
   ReducerPath extends string,
-  UpsertEntry,
 > extends CellCommonOptions<QueryArg, ResultType, BaseQuery>,
     CacheCollectionQueryExtraOptions,
     CacheLifecycleQueryExtraOptions<
@@ -205,15 +202,6 @@ export interface QueryCellOptions<
     state: RootState<any, any, string>
     endpointState?: QuerySubState<any>
   }): boolean
-  /**
-   * Derives cache upserts for other query endpoints from this endpoint's
-   * result. Runs after a fulfilled fetch; the returned entries are written
-   * via `api.util.upsertQueryEntries`.
-   */
-  upsert?(
-    result: ResultType,
-    arg: QueryArg,
-  ): ReadonlyArray<UpsertEntry>
 }
 
 export interface QueryCellVariantWithQuery<
@@ -223,15 +211,13 @@ export interface QueryCellVariantWithQuery<
   BaseQuery extends BaseQueryFn,
   TagTypes extends string,
   ReducerPath extends string,
-  UpsertEntry,
 > extends CellWithQuery<QueryArg, ResultType, RawResultType, BaseQuery>,
     QueryCellOptions<
       QueryArg,
       ResultType,
       BaseQuery,
       TagTypes,
-      ReducerPath,
-      UpsertEntry
+      ReducerPath
     > {}
 
 export interface QueryCellVariantWithQueryFn<
@@ -240,45 +226,14 @@ export interface QueryCellVariantWithQueryFn<
   BaseQuery extends BaseQueryFn,
   TagTypes extends string,
   ReducerPath extends string,
-  UpsertEntry,
 > extends CellWithQueryFn<QueryArg, ResultType, BaseQuery>,
     QueryCellOptions<
       QueryArg,
       ResultType,
       BaseQuery,
       TagTypes,
-      ReducerPath,
-      UpsertEntry
+      ReducerPath
     > {}
-
-export type QueryCell<
-  QueryArg,
-  ResultType,
-  RawResultType,
-  BaseQuery extends BaseQueryFn,
-  TagTypes extends string,
-  ReducerPath extends string,
-  UpsertEntry,
-> =
-  | ([CastAny<BaseQueryResult<BaseQuery>, {}>] extends [NEVER]
-      ? never
-      : QueryCellVariantWithQuery<
-          QueryArg,
-          ResultType,
-          RawResultType,
-          BaseQuery,
-          TagTypes,
-          ReducerPath,
-          UpsertEntry
-        >)
-  | QueryCellVariantWithQueryFn<
-      QueryArg,
-      ResultType,
-      BaseQuery,
-      TagTypes,
-      ReducerPath,
-      UpsertEntry
-    >
 
 /** Mutation-kind options (mirrors `MutationExtraOptions`). */
 export interface MutationCellOptions<
@@ -342,32 +297,6 @@ export interface MutationCellVariantWithQueryFn<
       TagTypes,
       ReducerPath
     > {}
-
-export type MutationCell<
-  QueryArg,
-  ResultType,
-  RawResultType,
-  BaseQuery extends BaseQueryFn,
-  TagTypes extends string,
-  ReducerPath extends string,
-> =
-  | ([CastAny<BaseQueryResult<BaseQuery>, {}>] extends [NEVER]
-      ? never
-      : MutationCellVariantWithQuery<
-          QueryArg,
-          ResultType,
-          RawResultType,
-          BaseQuery,
-          TagTypes,
-          ReducerPath
-        >)
-  | MutationCellVariantWithQueryFn<
-      QueryArg,
-      ResultType,
-      BaseQuery,
-      TagTypes,
-      ReducerPath
-    >
 
 /** Infinite-query-kind options (mirrors `InfiniteQueryExtraOptions`). */
 export interface InfiniteQueryCellOptions<
@@ -461,31 +390,4 @@ export interface InfiniteQueryCellVariantWithQueryFn<
       ReducerPath
     > {}
 
-export type InfiniteQueryCell<
-  QueryArg,
-  PageParam,
-  ResultType,
-  RawResultType,
-  BaseQuery extends BaseQueryFn,
-  TagTypes extends string,
-  ReducerPath extends string,
-> =
-  | ([CastAny<BaseQueryResult<BaseQuery>, {}>] extends [NEVER]
-      ? never
-      : InfiniteQueryCellVariantWithQuery<
-          QueryArg,
-          PageParam,
-          ResultType,
-          RawResultType,
-          BaseQuery,
-          TagTypes,
-          ReducerPath
-        >)
-  | InfiniteQueryCellVariantWithQueryFn<
-      QueryArg,
-      PageParam,
-      ResultType,
-      BaseQuery,
-      TagTypes,
-      ReducerPath
-    >
+

@@ -1,12 +1,13 @@
 /**
- * Generates instantiation-cost scale fixtures for the v3 (spread-phantom)
+ * Generates instantiation-cost scale fixtures for the v3 (builder-based)
  * API against the REAL RTKQ type surface, plus current builder-API
  * baselines compiled in the same source mode so the comparison is
  * apples-to-apples.
  *
- * Per entity e: getThing{e} (byId query, transformResponse + providesTags),
- * getThing{e}List (list query; upsert -> byId in the upsert variants),
- * updateThing{e} (mutation, invalidatesTags). 3 endpoints per entity.
+ * Per entity e: getThing{e} (byId query, providesTags),
+ * getThing{e}List (list query, transformResponse; upsert -> byId in the
+ * upsert variants), updateThing{e} (mutation, invalidatesTags).
+ * 3 endpoints per entity.
  *
  * Run: bun gen-scale.mts
  */
@@ -42,15 +43,17 @@ function v3Endpoints(entities: number, withUpsert: boolean) {
   let out = ''
   for (let e = 0; e < entities; e++) {
     out += `    getThing${e}: {
-      kind: query<Thing${e}, string>(),
-      request: (id) => \`/thing${e}/\${id}\`,
-      providesTags: (result, error, id) => [{ type: 'TagA' as const, id }],
+      kind: build.query<Thing${e}, string>({
+        request: (id) => \`/thing${e}/\${id}\`,
+        providesTags: (result, error, id) => [{ type: 'TagA' as const, id }],
+      }),
     },
     getThing${e}List: {
-      kind: query<Thing${e}[], void, Raw${e}>(),
-      request: () => '/thing${e}',
-      transformResponse: (raw) => raw.data,
-      providesTags: ['TagB'],${
+      kind: build.query<Thing${e}[], void, Raw${e}>({
+        request: () => '/thing${e}',
+        transformResponse: (raw) => raw.data,
+        providesTags: ['TagB'],
+      }),${
         withUpsert
           ? `
       upsert: (things) =>
@@ -63,9 +66,10 @@ function v3Endpoints(entities: number, withUpsert: boolean) {
       }
     },
     updateThing${e}: {
-      kind: mutation<Thing${e}, Partial<Thing${e}> & { id: string }>(),
-      request: (patch) => ({ url: \`/thing${e}/\${patch.id}\`, method: 'PATCH', body: patch }),
-      invalidatesTags: (result, error, arg) => [{ type: 'TagA' as const, id: arg.id }, 'TagB'],
+      kind: build.mutation<Thing${e}, Partial<Thing${e}> & { id: string }>({
+        request: (patch) => ({ url: \`/thing${e}/\${patch.id}\`, method: 'PATCH', body: patch }),
+        invalidatesTags: (result, error, arg) => [{ type: 'TagA' as const, id: arg.id }, 'TagB'],
+      }),
     },
 `
   }
@@ -120,14 +124,17 @@ for (const { entities, endpoints } of sizes) {
   writeFileSync(
     join(outDir, `v3-core-upsert-${endpoints}.ts`),
     header(`v3 core, ${endpoints} endpoints, with upsert`) +
-      `import { createApi, query, mutation } from '../../src/query/v3'
+      `import { createApiBuilder } from '../../src/query/v3'
 import { fetchBaseQuery } from '../../src/query'
 
 ${domainTypes(entities)}
-const api = createApi({
+const build = createApiBuilder({
   baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
   tagTypes: ${tagTypes},
   reducerPath: 'scaleApi',
+})
+
+const api = build.createApi({
   endpoints: {
 ${v3Endpoints(entities, true)}  },
 })
@@ -141,14 +148,17 @@ export { api }
   writeFileSync(
     join(outDir, `v3-core-noupsert-${endpoints}.ts`),
     header(`v3 core, ${endpoints} endpoints, no upsert`) +
-      `import { createApi, query, mutation } from '../../src/query/v3'
+      `import { createApiBuilder } from '../../src/query/v3'
 import { fetchBaseQuery } from '../../src/query'
 
 ${domainTypes(entities)}
-const api = createApi({
+const build = createApiBuilder({
   baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
   tagTypes: ${tagTypes},
   reducerPath: 'scaleApi',
+})
+
+const api = build.createApi({
   endpoints: {
 ${v3Endpoints(entities, false)}  },
 })
@@ -158,24 +168,24 @@ export { api }
 `,
   )
 
-  // v3 reactified (with upsert), every hook referenced once
+  // v3 react builder (with upsert), every hook referenced once
   writeFileSync(
     join(outDir, `v3-react-${endpoints}.ts`),
-    header(`v3 reactify, ${endpoints} endpoints, with upsert, all hooks referenced`) +
-      `import { createApi, query, mutation } from '../../src/query/v3'
-import { reactify } from '../../src/query/v3/react'
+    header(`v3 react builder, ${endpoints} endpoints, with upsert, all hooks referenced`) +
+      `import { createApiBuilder } from '../../src/query/v3/react'
 import { fetchBaseQuery } from '../../src/query'
 
 ${domainTypes(entities)}
-const api = createApi({
+const build = createApiBuilder({
   baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
   tagTypes: ${tagTypes},
   reducerPath: 'scaleApi',
+})
+
+const rapi = build.createApi({
   endpoints: {
 ${v3Endpoints(entities, true)}  },
 })
-
-const rapi = reactify(api)
 
 ${hookRefs(entities, 'rapi')}
 export { rapi }

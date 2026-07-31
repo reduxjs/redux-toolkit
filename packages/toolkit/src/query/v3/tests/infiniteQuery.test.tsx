@@ -1,14 +1,14 @@
 /**
  * RTK Query v3 prototype: infinite query parity tests.
  *
- * The v3 `infiniteQuery` creator stamps `type: 'infinitequery'`, so the
+ * The v3 `build.infiniteQuery` creator stamps `type: 'infinitequery'`, so the
  * existing core machinery (pagination inside `executeEndpoint`, page-param
  * accumulation, maxPages, direction-aware condition gate) is exercised
- * unchanged. These tests pin that the spread-phantom definition shape drives
- * that machinery correctly, at both the core and hooks levels.
+ * unchanged. These tests pin that the builder-produced definition shape
+ * drives that machinery correctly, at both the core and hooks levels.
  */
 import { configureStore } from '@reduxjs/toolkit'
-import { createApi, infiniteQuery, query } from '@internal/query/v3/index'
+import { createApiBuilder } from '@internal/query/v3/index'
 import { reactify } from '@internal/query/v3/react'
 import { act, renderHook, waitFor } from '@testing-library/react'
 import * as React from 'react'
@@ -30,36 +30,41 @@ function setup(maxPages?: number) {
     }
   })
 
-  const coreApi = createApi({
+  const build = createApiBuilder({
     baseQuery,
     reducerPath: 'pokemonApi',
+  })
+
+  const coreApi = build.createApi({
     endpoints: {
       getInfinitePokemon: {
-        kind: infiniteQuery<Pokemon[], string, number>(),
-        infiniteQueryOptions: {
-          initialPageParam: 0,
-          ...(maxPages
-            ? {
-                maxPages,
-                // Annotated: contextual typing does not flow into a
-                // conditionally-spread object literal
-                getPreviousPageParam: (
-                  firstPage: Pokemon[],
-                  allPages: Pokemon[][],
-                  firstPageParam: number,
-                ) => (firstPageParam > 0 ? firstPageParam - 1 : undefined),
-              }
-            : {}),
-          getNextPageParam: (lastPage, allPages, lastPageParam) =>
-            lastPageParam + 1,
-        },
-        request: ({ queryArg, pageParam }) =>
-          `/pokemon/${queryArg}?page=${pageParam}`,
+        kind: build.infiniteQuery<Pokemon[], string, number>({
+          infiniteQueryOptions: {
+            initialPageParam: 0,
+            ...(maxPages
+              ? {
+                  maxPages,
+                  // Annotated: contextual typing does not flow into a
+                  // conditionally-spread object literal
+                  getPreviousPageParam: (
+                    firstPage: Pokemon[],
+                    allPages: Pokemon[][],
+                    firstPageParam: number,
+                  ) => (firstPageParam > 0 ? firstPageParam - 1 : undefined),
+                }
+              : {}),
+            getNextPageParam: (lastPage, allPages, lastPageParam) =>
+              lastPageParam + 1,
+          },
+          request: ({ queryArg, pageParam }) =>
+            `/pokemon/${queryArg}?page=${pageParam}`,
+        }),
       },
       // A plain query alongside, to pin that both kinds coexist
       getPokemonNames: {
-        kind: query.fn<string[], void>(),
-        queryFn: async () => ({ data: ['bulbasaur'] }),
+        kind: build.query.fn<string[], void>({
+          queryFn: async () => ({ data: ['bulbasaur'] }),
+        }),
       },
     },
   })
@@ -116,9 +121,7 @@ describe('v3 infinite queries: core', () => {
   test('maxPages caps accumulated pages', async () => {
     const { api, store } = setup(2)
 
-    await store.dispatch(
-      api.endpoints.getInfinitePokemon.initiate('fire', {}),
-    )
+    await store.dispatch(api.endpoints.getInfinitePokemon.initiate('fire', {}))
     await store.dispatch(
       api.endpoints.getInfinitePokemon.initiate('fire', {
         direction: 'forward',
@@ -141,22 +144,25 @@ describe('v3 infinite queries: core', () => {
 
   test('dev-mode validation still applies: maxPages requires getPreviousPageParam', () => {
     vi.stubEnv('NODE_ENV', 'development')
+    const build = createApiBuilder({
+      baseQuery: async (arg: string) => ({ data: arg }),
+    })
     expect(() =>
-      createApi({
-        baseQuery: async (arg: string) => ({ data: arg }),
+      build.createApi({
         endpoints: {
           broken: {
-            kind: infiniteQuery<string, string, number>(),
-            infiniteQueryOptions: {
-              initialPageParam: 0,
-              maxPages: 3,
-              getNextPageParam: (
-                lastPage: string,
-                allPages: string[],
-                lastPageParam: number,
-              ) => lastPageParam + 1,
-            } as any,
-            request: ({ queryArg }) => queryArg,
+            kind: build.infiniteQuery<string, string, number>({
+              infiniteQueryOptions: {
+                initialPageParam: 0,
+                maxPages: 3,
+                getNextPageParam: (
+                  lastPage: string,
+                  allPages: string[],
+                  lastPageParam: number,
+                ) => lastPageParam + 1,
+              } as any,
+              request: ({ queryArg }) => queryArg,
+            }),
           },
         },
       }),

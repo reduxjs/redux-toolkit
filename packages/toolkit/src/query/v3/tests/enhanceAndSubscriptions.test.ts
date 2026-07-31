@@ -8,7 +8,7 @@ import { configureStore } from '@reduxjs/toolkit'
 import type { BaseQueryFn } from '@internal/query/baseQueryTypes'
 import type { GetSubscriptionSelectors } from '@internal/query/core/module'
 import { internalSubscriptionsAccessor } from '@internal/query/core/module'
-import { createApi, mutation, query } from '@internal/query/v3/index'
+import { createApiBuilder } from '@internal/query/v3/index'
 import { describe, expect, test, vi } from 'vitest'
 
 interface Todo {
@@ -47,24 +47,29 @@ function setup() {
     },
   ) satisfies BaseQueryFn
 
-  const api = createApi({
+  const build = createApiBuilder({
     baseQuery,
     reducerPath: 'v3Api',
     tagTypes: ['Todo'],
+  })
+
+  const api = build.createApi({
     endpoints: {
       getTodos: {
-        kind: query<Todo[], void>(),
-        request: () => '/todos',
-        // Deliberately no providesTags: added later via enhanceEndpoints
+        kind: build.query<Todo[], void>({
+          request: () => '/todos',
+          // Deliberately no providesTags: added later via enhanceEndpoints
+        }),
       },
       updateTodo: {
-        kind: mutation<Todo, { id: string; patch: Partial<Todo> }>(),
-        request: ({ id, patch }) => ({
-          url: `/todos/${id}`,
-          method: 'PATCH',
-          body: patch,
+        kind: build.mutation<Todo, { id: string; patch: Partial<Todo> }>({
+          request: ({ id, patch }) => ({
+            url: `/todos/${id}`,
+            method: 'PATCH',
+            body: patch,
+          }),
+          invalidatesTags: ['Todo'],
         }),
-        invalidatesTags: ['Todo'],
       },
     },
   })
@@ -74,7 +79,7 @@ function setup() {
     middleware: (gDM) => gDM().concat(api.middleware),
   })
 
-  return { api, store, baseQuery, todos }
+  return { api, build, store, baseQuery, todos }
 }
 
 describe('enhanceEndpoints (v3)', () => {
@@ -165,9 +170,7 @@ describe('enhanceEndpoints (v3)', () => {
     await sub
     expect(baseQuery).toHaveBeenCalledTimes(1)
 
-    store.dispatch(
-      enhanced.util.invalidateTags(['Stats' as unknown as 'Todo']),
-    )
+    store.dispatch(enhanced.util.invalidateTags(['Stats' as unknown as 'Todo']))
     await delay(10)
     expect(baseQuery).toHaveBeenCalledTimes(2)
 

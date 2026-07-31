@@ -3,8 +3,11 @@
  * layer attached to a core api instance as a plain function call.
  */
 import { configureStore } from '@reduxjs/toolkit'
-import { createApi, query, mutation } from '@internal/query/v3/index'
-import { reactify } from '@internal/query/v3/react'
+import { createApiBuilder } from '@internal/query/v3/index'
+import {
+  createApiBuilder as createReactApiBuilder,
+  reactify,
+} from '@internal/query/v3/react'
 import { act, renderHook, waitFor } from '@testing-library/react'
 import * as React from 'react'
 import { Provider } from 'react-redux'
@@ -44,29 +47,35 @@ function setup() {
     },
   )
 
-  const coreApi = createApi({
+  const build = createApiBuilder({
     baseQuery,
     reducerPath: 'v3Api',
     tagTypes: ['Todo'],
+  })
+
+  const coreApi = build.createApi({
     endpoints: {
       getTodoById: {
-        kind: query<Todo, string>(),
-        request: (id) => `/todos/${id}`,
-        providesTags: (result, error, id) => [{ type: 'Todo' as const, id }],
+        kind: build.query<Todo, string>({
+          request: (id) => `/todos/${id}`,
+          providesTags: (result, error, id) => [{ type: 'Todo' as const, id }],
+        }),
       },
       getTodos: {
-        kind: query<Todo[], void>(),
-        request: () => '/todos',
-        providesTags: ['Todo'],
+        kind: build.query<Todo[], void>({
+          request: () => '/todos',
+          providesTags: ['Todo'],
+        }),
       },
       updateTodo: {
-        kind: mutation<Todo, { id: string } & Partial<Todo>>(),
-        request: ({ id, ...patch }) => ({
-          url: `/todos/${id}`,
-          method: 'PATCH',
-          body: patch,
+        kind: build.mutation<Todo, { id: string } & Partial<Todo>>({
+          request: ({ id, ...patch }) => ({
+            url: `/todos/${id}`,
+            method: 'PATCH',
+            body: patch,
+          }),
+          invalidatesTags: ['Todo'],
         }),
-        invalidatesTags: ['Todo'],
       },
     },
   })
@@ -82,7 +91,7 @@ function setup() {
     <Provider store={store}>{children}</Provider>
   )
 
-  return { api, coreApi, store, baseQuery, wrapper }
+  return { api, coreApi, build, store, baseQuery, wrapper }
 }
 
 describe('reactify runtime', () => {
@@ -151,13 +160,14 @@ describe('reactify runtime', () => {
   })
 
   test('hooks work for endpoints injected after reactification', async () => {
-    const { api, wrapper } = setup()
+    const { api, build, wrapper } = setup()
 
     const extended = api.injectEndpoints({
       endpoints: {
         getGreeting: {
-          kind: query.fn<string, string>(),
-          queryFn: async (name) => ({ data: `hello ${name}` }),
+          kind: build.query.fn<string, string>({
+            queryFn: async (name) => ({ data: `hello ${name}` }),
+          }),
         },
       },
     })
@@ -183,13 +193,17 @@ describe('reactify runtime', () => {
   })
 
   test('endpoints injected before reactification get hooks via replay', async () => {
-    const coreApi = createApi({
+    const build = createApiBuilder({
       baseQuery: async (arg: string) => ({ data: `fetched:${arg}` }),
       reducerPath: 'replayApi',
+    })
+
+    const coreApi = build.createApi({
       endpoints: {
         getA: {
-          kind: query<string, string>(),
-          request: (arg) => arg,
+          kind: build.query<string, string>({
+            request: (arg) => arg,
+          }),
         },
       },
     })
@@ -198,8 +212,9 @@ describe('reactify runtime', () => {
     const extendedCore = coreApi.injectEndpoints({
       endpoints: {
         getB: {
-          kind: query<string, string>(),
-          request: (arg) => `b/${arg}`,
+          kind: build.query<string, string>({
+            request: (arg) => `b/${arg}`,
+          }),
         },
       },
     })
@@ -238,5 +253,38 @@ describe('reactify runtime', () => {
       expect(selected.isSuccess).toBe(true)
     })
     expect(baseQuery).toHaveBeenCalledTimes(1)
+  })
+
+  test('react createApiBuilder returns an api with hooks already attached', async () => {
+    const rbuild = createReactApiBuilder({
+      baseQuery: async (arg: string) => ({ data: `r:${arg}` }),
+      reducerPath: 'reactBuilderApi',
+    })
+
+    const api = rbuild.createApi({
+      endpoints: {
+        getValue: {
+          kind: rbuild.query<string, string>({
+            request: (arg) => arg,
+          }),
+        },
+      },
+    })
+
+    expect(typeof api.useGetValueQuery).toBe('function')
+
+    const store = configureStore({
+      reducer: { [api.reducerPath]: api.reducer },
+      middleware: (gDM) => gDM().concat(api.middleware),
+    })
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <Provider store={store}>{children}</Provider>
+    )
+
+    const { result } = renderHook(() => api.useGetValueQuery('abc'), {
+      wrapper,
+    })
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(result.current.data).toBe('r:abc')
   })
 })

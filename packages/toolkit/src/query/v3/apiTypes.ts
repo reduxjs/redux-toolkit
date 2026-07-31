@@ -92,28 +92,10 @@ export type UpsertEntryFor<Defs extends DefsShape> = {
   }
 }[QueryDefKeys<Defs>]
 
-/**
- * The v3-only `upsert` endpoint option: a sync transform from an endpoint's
- * (post-`transformResponse`) result into upsert descriptors for *other* query
- * endpoints' cache entries.
- */
-export type UpsertOption<Defs extends DefsShape, M extends AnyMetaRecord> = {
-  /**
-   * Derives cache upserts for other query endpoints from this endpoint's
-   * result. Runs after a fulfilled fetch; the returned entries are written
-   * via `api.util.upsertQueryEntries`.
-   */
-  upsert?: (
-    result: M['result'],
-    arg: M['arg'],
-  ) => ReadonlyArray<UpsertEntryFor<Defs>>
-}
-
 export type QueryEndpointCellBody<
   M extends AnyMetaRecord,
   BaseQuery extends BaseQueryFn,
   TagTypes extends string,
-  Defs extends DefsShape,
   ReducerPath extends string,
 > = QueryCellVariantWithQuery<
   M['arg'],
@@ -121,23 +103,20 @@ export type QueryEndpointCellBody<
   RawResultFor<M, BaseQuery>,
   BaseQuery,
   TagTypes,
-  ReducerPath,
-  UpsertEntryFor<Defs>
+  ReducerPath
 >
 
 export type QueryFnEndpointCellBody<
   M extends AnyMetaRecord,
   BaseQuery extends BaseQueryFn,
   TagTypes extends string,
-  Defs extends DefsShape,
   ReducerPath extends string,
 > = QueryCellVariantWithQueryFn<
   M['arg'],
   M['result'],
   BaseQuery,
   TagTypes,
-  ReducerPath,
-  UpsertEntryFor<Defs>
+  ReducerPath
 >
 
 export type MutationEndpointCellBody<
@@ -197,26 +176,24 @@ export type InfiniteQueryFnEndpointCellBody<
 >
 
 /**
- * Maps a meta record to the endpoint definition body (everything except the
- * `kind` stamp property, which must stay a plain member of the mapped type
- * below so it can serve as the reverse-inference source — inference cannot
- * flow into a conditional type).
+ * Maps a meta record to the full endpoint definition body (as produced by the
+ * bound creators — `build.query({...})` etc.). Used by `enhanceEndpoints`,
+ * which operates on the stored, post-merge definitions.
  *
- * The `flavor` discriminant (from the `query()` vs `query.fn()` creators)
- * selects a single variant interface per endpoint instead of a
- * `WithQuery | WithQueryFn` union — checking each literal against one
- * interface instead of a two-variant union is a measured ~27% slope saving.
+ * The `flavor` discriminant (from the `build.query()` vs `build.query.fn()`
+ * creators) selects a single variant interface per endpoint instead of a
+ * `WithQuery | WithQueryFn` union — checking each body against one interface
+ * instead of a two-variant union is a measured ~27% slope saving.
  */
 export type EndpointCellBody<
   M extends AnyMetaRecord,
   BaseQuery extends BaseQueryFn,
   TagTypes extends string,
-  Defs extends DefsShape,
   ReducerPath extends string,
 > = M extends { type: DefinitionType.query }
   ? M extends { flavor: 'queryFn' }
-    ? QueryFnEndpointCellBody<M, BaseQuery, TagTypes, Defs, ReducerPath>
-    : QueryEndpointCellBody<M, BaseQuery, TagTypes, Defs, ReducerPath>
+    ? QueryFnEndpointCellBody<M, BaseQuery, TagTypes, ReducerPath>
+    : QueryEndpointCellBody<M, BaseQuery, TagTypes, ReducerPath>
   : M extends { type: DefinitionType.mutation }
     ? M extends { flavor: 'queryFn' }
       ? MutationFnEndpointCellBody<M, BaseQuery, TagTypes, ReducerPath>
@@ -227,35 +204,54 @@ export type EndpointCellBody<
         : InfiniteQueryEndpointCellBody<M, BaseQuery, TagTypes, ReducerPath>
       : never
 
+/**
+ * The `endpoints` map accepted by `build.createApi` / `injectEndpoints`:
+ * a thin shell per endpoint. The endpoint *body* lives inside the bound
+ * creator call (a small, single-pass forward-inference site); the shell
+ * carries only:
+ *
+ * - `kind`: the creator's return value. Its `$meta` member is the
+ *   reverse-inference source for `Defs[K]`.
+ * - `upsert` (query kinds only): the one option typed against the whole
+ *   endpoint map, which is why it must live out here in the reverse-mapped
+ *   layer rather than inside the creator call.
+ */
 export type EndpointCells<
   Defs extends DefsShape,
-  BaseQuery extends BaseQueryFn,
-  TagTypes extends string,
-  ReducerPath extends string,
   // Upsert targets may span a wider map than the cells being defined
   // (e.g. `injectEndpoints` cells may target original endpoints).
   UpsertTargets extends DefsShape = Defs,
 > = {
   [K in keyof Defs]: {
     /**
-     * The endpoint's kind + inference stamp, produced by the `query()`,
-     * `mutation()`, or `infiniteQuery()` creators. This nested property is
-     * the reverse-inference source for `Defs[K]` — measurably cheaper than
-     * the earlier "spread the stamp into the literal" encoding, because the
-     * stamp is checked as a small standalone property instead of dragging
-     * the whole endpoint literal through stamp-member assignability.
+     * The endpoint definition, produced by the builder's `query()`,
+     * `mutation()`, or `infiniteQuery()` creators (or their `.fn` flavors).
      */
     kind: { $meta: Defs[K] }
-  } & NoInfer<
-    Omit<
-      // `Omit<..., never>` looks like a no-op, but it flattens the resolved
-      // variant interface (and its `extends` chain) into a single plain object
-      // type. Measured: ~-4% instantiations at 201 endpoints vs intersecting
-      // the interface directly.
-      EndpointCellBody<Defs[K], BaseQuery, TagTypes, UpsertTargets, ReducerPath>,
-      never
-    >
-  >
+  }
+} & {
+  // The v3-only `upsert` option: a sync transform from a query endpoint's
+  // (post-`transformResponse`) result into upsert descriptors for *other*
+  // query endpoints' cache entries, written via `api.util.upsertQueryEntries`.
+  // It lives here in the shell (next to `kind`), not in the creator body,
+  // because it is the one option typed against the whole endpoint map — which
+  // only exists at the `createApi` call.
+  //
+  // Encoding note: this second mapped type over the pre-filtered
+  // `QueryDefKeys<Defs>` replaces a per-key `M extends { type: query } ? ...`
+  // conditional. The filter runs once for the whole map instead of once per
+  // key per checking pass — measured ~57K fewer instantiations at 201
+  // endpoints with upserts, ~7K fewer without.
+  [K in QueryDefKeys<Defs>]: {
+    /**
+     * Derives cache upserts for other query endpoints from this endpoint's
+     * result. Runs after a fulfilled fetch.
+     */
+    upsert?: (
+      result: Defs[K]['result'],
+      arg: Defs[K]['arg'],
+    ) => ReadonlyArray<UpsertEntryFor<UpsertTargets>>
+  }
 }
 
 /**
@@ -339,18 +335,9 @@ export type ApiV3Base<
 
 export type InjectEndpointsArg<
   NewDefs extends DefsShape,
-  BaseQuery extends BaseQueryFn,
-  TagTypes extends string,
-  ReducerPath extends string,
   UpsertTargets extends DefsShape,
 > = {
-  endpoints: EndpointCells<
-    NewDefs,
-    BaseQuery,
-    TagTypes,
-    ReducerPath,
-    UpsertTargets
-  >
+  endpoints: EndpointCells<NewDefs, UpsertTargets>
   overrideExisting?: boolean | 'throw'
 }
 
@@ -371,15 +358,12 @@ export type EnhanceEndpointsCells<
   ReducerPath extends string,
 > = {
   [K in keyof Defs]?:
-    | Partial<
-        EndpointCellBody<Defs[K], BaseQuery, TagTypes, Defs, ReducerPath>
-      >
+    | Partial<EndpointCellBody<Defs[K], BaseQuery, TagTypes, ReducerPath>>
     | ((
         definition: EndpointCellBody<
           Defs[K],
           BaseQuery,
           TagTypes,
-          Defs,
           ReducerPath
         >,
       ) => void)
@@ -393,13 +377,7 @@ export type ApiV3<
   TagTypes extends string,
 > = ApiV3Base<BaseQuery, Defs, ReducerPath, TagTypes> & {
   injectEndpoints<NewDefs extends DefsShape>(
-    _: InjectEndpointsArg<
-      NewDefs,
-      BaseQuery,
-      TagTypes,
-      ReducerPath,
-      Defs & NewDefs
-    >,
+    _: InjectEndpointsArg<NewDefs, Defs & NewDefs>,
   ): ApiV3<BaseQuery, Defs & NewDefs, ReducerPath, TagTypes>
   enhanceEndpoints<NewTagTypes extends string = never>(_: {
     addTagTypes?: readonly NewTagTypes[]
@@ -412,17 +390,19 @@ export type ApiV3<
   }): ApiV3<BaseQuery, Defs, ReducerPath, TagTypes | NewTagTypes>
 }
 
-/** Options accepted by the v3 `createApi`. */
-export type CreateApiV3Options<
+/**
+ * Options accepted by `build.createApi`. The type-bearing trio
+ * (`baseQuery`, `tagTypes`, `reducerPath`) is NOT here — it was already
+ * given to `createApiBuilder`, which is what lets the bound creators type
+ * every endpoint body against the base query.
+ */
+export type BoundCreateApiOptions<
   BaseQuery extends BaseQueryFn,
   Defs extends DefsShape,
   ReducerPath extends string,
   TagTypes extends string,
 > = {
-  baseQuery: BaseQuery
-  endpoints: EndpointCells<Defs, BaseQuery, TagTypes, ReducerPath>
-  tagTypes?: readonly TagTypes[]
-  reducerPath?: ReducerPath
+  endpoints: EndpointCells<Defs>
   serializeQueryArgs?: SerializeQueryArgs<unknown>
   keepUnusedDataFor?: number
   refetchOnMountOrArgChange?: boolean | number
@@ -442,6 +422,21 @@ export type CreateApiV3Options<
   onSchemaFailure?: SchemaFailureHandler
   catchSchemaFailure?: SchemaFailureConverter<BaseQuery>
   skipSchemaValidation?: boolean | SchemaType[]
+}
+
+/**
+ * Internal: the combined options object the v3 runtime `createApi` receives
+ * (the builder config merged with the `build.createApi` options).
+ */
+export type CreateApiV3Options<
+  BaseQuery extends BaseQueryFn,
+  Defs extends DefsShape,
+  ReducerPath extends string,
+  TagTypes extends string,
+> = BoundCreateApiOptions<BaseQuery, Defs, ReducerPath, TagTypes> & {
+  baseQuery: BaseQuery
+  tagTypes?: readonly TagTypes[]
+  reducerPath?: ReducerPath
 }
 
 /**

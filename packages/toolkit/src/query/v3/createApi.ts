@@ -4,8 +4,10 @@
  * Mirrors the existing `buildCreateApi`/`baseCreateApi` assembly
  * (../createApi.ts) with these differences:
  *
- * - `endpoints` is a plain object of pre-stamped endpoint definitions
- *   (see ./endpointCreators.ts), not a callback receiving a builder.
+ * - `endpoints` is a plain object of thin cells: each cell's `kind` property
+ *   carries the full definition produced by the bound creators
+ *   (see ./builder.ts), plus an optional cross-endpoint `upsert` next to it.
+ *   There is no builder *callback*.
  * - There is no module registry. The core module is initialized directly;
  *   enhancers like `reactify` receive a sanctioned plumbing handle
  *   (construction context + options + initialized-module list) stored on the
@@ -218,12 +220,12 @@ export function createApi<
     overrideExisting?: boolean | 'throw'
   }) {
     for (const [endpointName, cell] of Object.entries(inject.endpoints)) {
-      // Each cell carries its creator stamp under the `kind` property
-      // (`kind: query<Result, Arg>()`). The stamp's runtime members are the
-      // `type` discriminator string plus any creator-supplied schemas, so
-      // merging the stamp back over the cell (and dropping the `kind`
-      // property itself) yields exactly the 2.x definition shape the core
-      // runtime dispatches on.
+      // Each cell carries its full definition under the `kind` property
+      // (`kind: build.query({...})` — the endpoint body plus the `type`
+      // discriminator string). The cell itself carries at most the
+      // cross-endpoint `upsert` option. Merging `kind` over the rest (and
+      // dropping the `kind` property itself) yields exactly the 2.x
+      // definition shape the core runtime dispatches on.
       const { kind, ...rest } = cell as Record<string, any>
       const definition: any = rest
       if (kind && typeof kind === 'object') {

@@ -1,11 +1,12 @@
 /**
  * RTK Query v3 prototype: runtime behavior tests for the core (non-React)
- * createApi. Parity checks against existing RTKQ behavior: fetching, caching,
- * dedup, transformResponse, queryFn, tag invalidation, injectEndpoints.
+ * builder + createApi. Parity checks against existing RTKQ behavior:
+ * fetching, caching, dedup, transformResponse, queryFn, tag invalidation,
+ * injectEndpoints.
  */
 import { configureStore } from '@reduxjs/toolkit'
 import type { BaseQueryFn } from '@internal/query/baseQueryTypes'
-import { createApi, mutation, query } from '@internal/query/v3/index'
+import { createApiBuilder } from '@internal/query/v3/index'
 import { describe, expect, test, vi } from 'vitest'
 
 interface Todo {
@@ -44,39 +45,46 @@ function setup() {
     },
   ) satisfies BaseQueryFn
 
-  const api = createApi({
+  const build = createApiBuilder({
     baseQuery,
     reducerPath: 'v3Api',
     tagTypes: ['Todo'],
+  })
+
+  const api = build.createApi({
     endpoints: {
       getTodoById: {
-        kind: query<Todo, string>(),
-        request: (id) => `/todos/${id}`,
-        providesTags: (result, error, id) => [{ type: 'Todo' as const, id }],
+        kind: build.query<Todo, string>({
+          request: (id) => `/todos/${id}`,
+          providesTags: (result, error, id) => [{ type: 'Todo' as const, id }],
+        }),
       },
       getTodos: {
-        kind: query<Todo[], void, { todos: Todo[]; total: number }>(),
-        request: () => '/todos',
-        transformResponse: (raw) => raw.todos,
-        providesTags: ['Todo'],
+        kind: build.query<Todo[], void, { todos: Todo[]; total: number }>({
+          request: () => '/todos',
+          transformResponse: (raw) => raw.todos,
+          providesTags: ['Todo'],
+        }),
       },
       getViaQueryFn: {
-        kind: query.fn<string, number>(),
-        queryFn: async (arg) => {
-          return { data: `computed-${arg}` }
-        },
+        kind: build.query.fn<string, number>({
+          queryFn: async (arg) => {
+            return { data: `computed-${arg}` }
+          },
+        }),
       },
       updateTodo: {
-        kind: mutation<Todo, { id: string } & Partial<Todo>>(),
-        request: ({ id, ...patch }) => ({
-          url: `/todos/${id}`,
-          method: 'PATCH',
-          body: patch,
+        kind: build.mutation<Todo, { id: string } & Partial<Todo>>({
+          request: ({ id, ...patch }) => ({
+            url: `/todos/${id}`,
+            method: 'PATCH',
+            body: patch,
+          }),
+          invalidatesTags: (result, error, { id }) => [
+            { type: 'Todo' as const, id },
+            'Todo',
+          ],
         }),
-        invalidatesTags: (result, error, { id }) => [
-          { type: 'Todo' as const, id },
-          'Todo',
-        ],
       },
     },
   })
@@ -86,7 +94,7 @@ function setup() {
     middleware: (gDM) => gDM().concat(api.middleware),
   })
 
-  return { api, store, baseQuery, todos }
+  return { api, build, store, baseQuery, todos }
 }
 
 describe('v3 createApi runtime', () => {
@@ -191,13 +199,14 @@ describe('v3 createApi runtime', () => {
   })
 
   test('injectEndpoints adds working endpoints at runtime', async () => {
-    const { api, store } = setup()
+    const { api, build, store } = setup()
 
     const extended = api.injectEndpoints({
       endpoints: {
         getTodoTitle: {
-          kind: query.fn<string, string>(),
-          queryFn: async (id) => ({ data: `title-of-${id}` }),
+          kind: build.query.fn<string, string>({
+            queryFn: async (id) => ({ data: `title-of-${id}` }),
+          }),
         },
       },
     })

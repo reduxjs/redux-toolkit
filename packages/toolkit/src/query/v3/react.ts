@@ -40,10 +40,13 @@ import { reactHooksModule } from '../react/module'
 import type { HooksWithUniqueNames } from '../react/namedHooks'
 import type {
   ApiV3Base,
+  BoundCreateApiOptions,
   EnhanceEndpointsCells,
   InjectEndpointsArg,
   ToDefinitions,
 } from './apiTypes'
+import type { ApiBuilder, ApiBuilderConfig } from './builder'
+import { createApiBuilder as coreCreateApiBuilder } from './builder'
 import { getApiPlumbing } from './createApi'
 import type { DefsShape } from './endpointCreators'
 
@@ -92,13 +95,7 @@ export type ReactifiedApi<
 > = ApiV3Base<BaseQuery, Defs, ReducerPath, TagTypes> &
   HooksSurface<ToDefinitions<Defs, BaseQuery, TagTypes, ReducerPath>> & {
     injectEndpoints<NewDefs extends DefsShape>(
-      _: InjectEndpointsArg<
-        NewDefs,
-        BaseQuery,
-        TagTypes,
-        ReducerPath,
-        Defs & NewDefs
-      >,
+      _: InjectEndpointsArg<NewDefs, Defs & NewDefs>,
     ): ReactifiedApi<BaseQuery, Defs & NewDefs, ReducerPath, TagTypes>
     enhanceEndpoints<NewTagTypes extends string = never>(_: {
       addTagTypes?: readonly NewTagTypes[]
@@ -151,4 +148,46 @@ export function reactify<
   }
 
   return api as any
+}
+
+/**
+ * The React flavor of the api builder: identical creators, but `createApi`
+ * returns an api with hooks already attached.
+ */
+export interface ReactApiBuilder<
+  BaseQuery extends BaseQueryFn,
+  TagTypes extends string,
+  ReducerPath extends string,
+> extends Omit<ApiBuilder<BaseQuery, TagTypes, ReducerPath>, 'createApi'> {
+  createApi<Defs extends DefsShape>(
+    options: BoundCreateApiOptions<BaseQuery, Defs, ReducerPath, TagTypes>,
+  ): ReactifiedApi<BaseQuery, Defs, ReducerPath, TagTypes>
+}
+
+/**
+ * The React entry's `createApiBuilder`: the convenience-already-hooked-up
+ * flavor. `build.createApi(...)` returns a reactified api directly.
+ *
+ * ```ts
+ * import { createApiBuilder } from '@reduxjs/toolkit/query/v3/react'
+ *
+ * const build = createApiBuilder({ baseQuery, tagTypes: ['Todo'] })
+ * export const api = build.createApi({ endpoints: { ... } })
+ * // api.useGetTodosQuery, ...
+ * ```
+ */
+export function createApiBuilder<
+  BaseQuery extends BaseQueryFn,
+  const TagTypes extends string = never,
+  ReducerPath extends string = 'api',
+>(
+  config: ApiBuilderConfig<BaseQuery, TagTypes, ReducerPath>,
+  hooksOptions?: ReactHooksModuleOptions,
+): ReactApiBuilder<BaseQuery, TagTypes, ReducerPath> {
+  const coreBuilder = coreCreateApiBuilder(config)
+  return {
+    ...coreBuilder,
+    createApi: (options: any) =>
+      reactify(coreBuilder.createApi(options), hooksOptions) as any,
+  } as ReactApiBuilder<BaseQuery, TagTypes, ReducerPath>
 }
