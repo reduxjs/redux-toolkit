@@ -36,11 +36,11 @@ function setup() {
     reducerPath: 'v3Api',
     endpoints: {
       getPost: {
-        ...query({ argSchema: postArgSchema, responseSchema: postSchema }),
+        kind: query({ argSchema: postArgSchema, responseSchema: postSchema }),
         request: (arg) => `/posts/${arg.id}`,
       },
       getBadShape: {
-        ...query({ responseSchema: postSchema }),
+        kind: query({ responseSchema: postSchema }),
         request: () => '/posts/bad-shape',
       },
     },

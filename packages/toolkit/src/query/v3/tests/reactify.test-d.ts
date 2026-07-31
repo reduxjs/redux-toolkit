@@ -23,15 +23,15 @@ const coreApi = createApi({
   tagTypes: ['Todo'],
   endpoints: {
     getTodoById: {
-      ...query<Todo, string>(),
+      kind: query<Todo, string>(),
       request: (id) => `/todos/${id}`,
     },
     getTodos: {
-      ...query<Todo[], void>(),
+      kind: query<Todo[], void>(),
       request: () => '/todos',
     },
     updateTodo: {
-      ...mutation<Todo, { id: string } & Partial<Todo>>(),
+      kind: mutation<Todo, { id: string } & Partial<Todo>>(),
       request: (patch) => ({ url: `/todos/${patch.id}`, body: patch }),
     },
   },
@@ -89,7 +89,7 @@ describe('reactify types', () => {
     const extended = api.injectEndpoints({
       endpoints: {
         getUser: {
-          ...query<User, number>(),
+          kind: query<User, number>(),
           request: (id) => `/users/${id}`,
         },
       },
@@ -109,7 +109,7 @@ describe('reactify types', () => {
     const extendedCore = coreApi.injectEndpoints({
       endpoints: {
         getUser: {
-          ...query<User, number>(),
+          kind: query<User, number>(),
           request: (id) => `/users/${id}`,
         },
       },

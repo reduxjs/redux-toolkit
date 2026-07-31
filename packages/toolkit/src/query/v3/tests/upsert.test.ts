@@ -38,11 +38,11 @@ function setup() {
     reducerPath: 'upsertApi',
     endpoints: {
       getTodoById: {
-        ...query<Todo, string>(),
+        kind: query<Todo, string>(),
         request: (id) => `/todos/${id}`,
       },
       getTodos: {
-        ...query<Todo[], void>(),
+        kind: query<Todo[], void>(),
         request: () => '/todos',
         upsert: (result) =>
           result.map((todo) => ({
@@ -112,7 +112,7 @@ describe('v3 upsert option', () => {
     const extended = api.injectEndpoints({
       endpoints: {
         searchTodos: {
-          ...query.fn<Todo[], string>(),
+          kind: query.fn<Todo[], string>(),
           queryFn: async (term) => ({
             data: [{ id: `search-${term}`, title: term, completed: false }],
           }),

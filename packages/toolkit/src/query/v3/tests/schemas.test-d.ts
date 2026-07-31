@@ -6,7 +6,7 @@
  * 'schemas as a source of inference'). In v3, the creators accept the
  * inference-bearing schema slots directly:
  *
- *   { ...query({ argSchema, responseSchema }), request: (arg) => ... }
+ *   { kind: query({ argSchema, responseSchema }), request: (arg) => ... }
  *
  * The creator stamps `$meta` with the schema output types AND returns the
  * schemas at runtime, so the spread lands them on the endpoint definition
@@ -43,7 +43,7 @@ describe('v3 schemas as a source of inference', () => {
       baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
       endpoints: {
         getPost: {
-          ...query({ argSchema: postArgSchema, responseSchema: postSchema }),
+          kind: query({ argSchema: postArgSchema, responseSchema: postSchema }),
           request: (arg) => {
             // the query callback arg is contextually typed from argSchema
             expectTypeOf(arg).toEqualTypeOf<PostArg>()
@@ -73,7 +73,7 @@ describe('v3 schemas as a source of inference', () => {
       baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
       endpoints: {
         getPosts: {
-          ...query({
+          kind: query({
             argSchema: postArgSchema,
             rawResponseSchema: v.array(postSchema),
             responseSchema: postSchema,
@@ -98,7 +98,7 @@ describe('v3 schemas as a source of inference', () => {
       baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
       endpoints: {
         getFirstPost: {
-          ...query({ rawResponseSchema: v.array(postSchema) }),
+          kind: query({ rawResponseSchema: v.array(postSchema) }),
           request: () => '/posts',
           transformResponse: (raw) => raw[0],
         },
@@ -113,7 +113,7 @@ describe('v3 schemas as a source of inference', () => {
       baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
       endpoints: {
         updatePost: {
-          ...mutation({ argSchema: postSchema, responseSchema: postSchema }),
+          kind: mutation({ argSchema: postSchema, responseSchema: postSchema }),
           request: (post) => {
             expectTypeOf(post).toEqualTypeOf<Post>()
             return { url: `/post/${post.id}`, method: 'PATCH', body: post }

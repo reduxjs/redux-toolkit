@@ -50,24 +50,24 @@ function setup() {
     tagTypes: ['Todo'],
     endpoints: {
       getTodoById: {
-        ...query<Todo, string>(),
+        kind: query<Todo, string>(),
         request: (id) => `/todos/${id}`,
         providesTags: (result, error, id) => [{ type: 'Todo' as const, id }],
       },
       getTodos: {
-        ...query<Todo[], void, { todos: Todo[]; total: number }>(),
+        kind: query<Todo[], void, { todos: Todo[]; total: number }>(),
         request: () => '/todos',
         transformResponse: (raw) => raw.todos,
         providesTags: ['Todo'],
       },
       getViaQueryFn: {
-        ...query.fn<string, number>(),
+        kind: query.fn<string, number>(),
         queryFn: async (arg) => {
           return { data: `computed-${arg}` }
         },
       },
       updateTodo: {
-        ...mutation<Todo, { id: string } & Partial<Todo>>(),
+        kind: mutation<Todo, { id: string } & Partial<Todo>>(),
         request: ({ id, ...patch }) => ({
           url: `/todos/${id}`,
           method: 'PATCH',
@@ -196,7 +196,7 @@ describe('v3 createApi runtime', () => {
     const extended = api.injectEndpoints({
       endpoints: {
         getTodoTitle: {
-          ...query.fn<string, string>(),
+          kind: query.fn<string, string>(),
           queryFn: async (id) => ({ data: `title-of-${id}` }),
         },
       },

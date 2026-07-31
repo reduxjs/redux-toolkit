@@ -50,17 +50,17 @@ function setup() {
     tagTypes: ['Todo'],
     endpoints: {
       getTodoById: {
-        ...query<Todo, string>(),
+        kind: query<Todo, string>(),
         request: (id) => `/todos/${id}`,
         providesTags: (result, error, id) => [{ type: 'Todo' as const, id }],
       },
       getTodos: {
-        ...query<Todo[], void>(),
+        kind: query<Todo[], void>(),
         request: () => '/todos',
         providesTags: ['Todo'],
       },
       updateTodo: {
-        ...mutation<Todo, { id: string } & Partial<Todo>>(),
+        kind: mutation<Todo, { id: string } & Partial<Todo>>(),
         request: ({ id, ...patch }) => ({
           url: `/todos/${id}`,
           method: 'PATCH',
@@ -156,7 +156,7 @@ describe('reactify runtime', () => {
     const extended = api.injectEndpoints({
       endpoints: {
         getGreeting: {
-          ...query.fn<string, string>(),
+          kind: query.fn<string, string>(),
           queryFn: async (name) => ({ data: `hello ${name}` }),
         },
       },
@@ -188,7 +188,7 @@ describe('reactify runtime', () => {
       reducerPath: 'replayApi',
       endpoints: {
         getA: {
-          ...query<string, string>(),
+          kind: query<string, string>(),
           request: (arg) => arg,
         },
       },
@@ -198,7 +198,7 @@ describe('reactify runtime', () => {
     const extendedCore = coreApi.injectEndpoints({
       endpoints: {
         getB: {
-          ...query<string, string>(),
+          kind: query<string, string>(),
           request: (arg) => `b/${arg}`,
         },
       },

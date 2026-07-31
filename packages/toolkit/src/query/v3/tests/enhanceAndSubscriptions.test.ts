@@ -53,12 +53,12 @@ function setup() {
     tagTypes: ['Todo'],
     endpoints: {
       getTodos: {
-        ...query<Todo[], void>(),
+        kind: query<Todo[], void>(),
         request: () => '/todos',
         // Deliberately no providesTags: added later via enhanceEndpoints
       },
       updateTodo: {
-        ...mutation<Todo, { id: string; patch: Partial<Todo> }>(),
+        kind: mutation<Todo, { id: string; patch: Partial<Todo> }>(),
         request: ({ id, patch }) => ({
           url: `/todos/${id}`,
           method: 'PATCH',

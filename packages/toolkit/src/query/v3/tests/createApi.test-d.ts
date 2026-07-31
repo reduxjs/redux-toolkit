@@ -47,7 +47,7 @@ const api = createApi({
   tagTypes: ['Todo', 'User'],
   endpoints: {
     getTodoById: {
-      ...query<Todo, string>(),
+      kind: query<Todo, string>(),
       request: (id) => {
         expectTypeOf(id).toEqualTypeOf<string>()
         return `/todos/${id}`
@@ -61,7 +61,7 @@ const api = createApi({
     },
     getTodos: {
       // Third generic = raw (pre-transformResponse) response type
-      ...query<Todo[], void, TodoListResponse>(),
+      kind: query<Todo[], void, TodoListResponse>(),
       request: () => '/todos',
       transformResponse: (raw, meta, arg) => {
         expectTypeOf(raw).toEqualTypeOf<TodoListResponse>()
@@ -93,7 +93,7 @@ const api = createApi({
     },
     getSession: {
       // queryFn flavor: uses the dedicated `query.fn` creator
-      ...query.fn<User, void>(),
+      kind: query.fn<User, void>(),
       queryFn: async (arg, queryApi, extraOptions, baseQuery) => {
         expectTypeOf(arg).toEqualTypeOf<void>()
         const res = await baseQuery('/session')
@@ -105,7 +105,7 @@ const api = createApi({
       },
     },
     updateTodo: {
-      ...mutation<Todo, { id: string } & Partial<Todo>>(),
+      kind: mutation<Todo, { id: string } & Partial<Todo>>(),
       request: (patch) => {
         expectTypeOf(patch.id).toEqualTypeOf<string>()
         return { url: `/todos/${patch.id}`, method: 'PATCH', body: patch }
@@ -116,7 +116,7 @@ const api = createApi({
       },
     },
     getPokemon: {
-      ...infiniteQuery<PokemonPage, string, number>(),
+      kind: infiniteQuery<PokemonPage, string, number>(),
       infiniteQueryOptions: {
         initialPageParam: 0,
         getNextPageParam: (lastPage, allPages, lastPageParam) => {
@@ -182,7 +182,7 @@ describe('v3 createApi type inference', () => {
     const extended = api.injectEndpoints({
       endpoints: {
         getUser: {
-          ...query<User, number>(),
+          kind: query<User, number>(),
           request: (id) => `/users/${id}`,
           providesTags: (result, error, id) => [
             { type: 'User' as const, id },
@@ -214,7 +214,7 @@ describe('v3 createApi negative cases', () => {
       tagTypes: ['Todo'],
       endpoints: {
         getTodos: {
-          ...query<Todo[], void>(),
+          kind: query<Todo[], void>(),
           request: () => '/todos',
           // @ts-expect-error typo'd tag name is not assignable
           providesTags: ['Twdo'],
@@ -228,7 +228,7 @@ describe('v3 createApi negative cases', () => {
       baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
       endpoints: {
         getTodos: {
-          ...query<Todo[], void>(),
+          kind: query<Todo[], void>(),
           // @ts-expect-error 42 is not string | FetchArgs
           request: () => 42,
         },
@@ -241,11 +241,11 @@ describe('v3 createApi negative cases', () => {
       baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
       endpoints: {
         getTodoById: {
-          ...query<Todo, string>(),
+          kind: query<Todo, string>(),
           request: (id) => `/todos/${id}`,
         },
         getTodos: {
-          ...query<Todo[], void>(),
+          kind: query<Todo[], void>(),
           request: () => '/todos',
           // @ts-expect-error value must be a Todo, not a string
           upsert: (todos) =>
@@ -262,11 +262,11 @@ describe('v3 createApi negative cases', () => {
       baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
       endpoints: {
         getTodoById: {
-          ...query<Todo, string>(),
+          kind: query<Todo, string>(),
           request: (id) => `/todos/${id}`,
         },
         getTodos: {
-          ...query<Todo[], void>(),
+          kind: query<Todo[], void>(),
           request: () => '/todos',
           // @ts-expect-error nonexistent endpoint name
           upsert: (todos) =>
@@ -285,7 +285,7 @@ describe('v3 createApi negative cases', () => {
       baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
       endpoints: {
         getTodos: {
-          ...query<Todo[], void, TodoListResponse>(),
+          kind: query<Todo[], void, TodoListResponse>(),
           request: () => '/todos',
           // @ts-expect-error returns the wrong type
           transformResponse: (raw) => raw.total,

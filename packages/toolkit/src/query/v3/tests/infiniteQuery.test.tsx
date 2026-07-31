@@ -35,7 +35,7 @@ function setup(maxPages?: number) {
     reducerPath: 'pokemonApi',
     endpoints: {
       getInfinitePokemon: {
-        ...infiniteQuery<Pokemon[], string, number>(),
+        kind: infiniteQuery<Pokemon[], string, number>(),
         infiniteQueryOptions: {
           initialPageParam: 0,
           ...(maxPages
@@ -58,7 +58,7 @@ function setup(maxPages?: number) {
       },
       // A plain query alongside, to pin that both kinds coexist
       getPokemonNames: {
-        ...query.fn<string[], void>(),
+        kind: query.fn<string[], void>(),
         queryFn: async () => ({ data: ['bulbasaur'] }),
       },
     },
@@ -146,7 +146,7 @@ describe('v3 infinite queries: core', () => {
         baseQuery: async (arg: string) => ({ data: arg }),
         endpoints: {
           broken: {
-            ...infiniteQuery<string, string, number>(),
+            kind: infiniteQuery<string, string, number>(),
             infiniteQueryOptions: {
               initialPageParam: 0,
               maxPages: 3,

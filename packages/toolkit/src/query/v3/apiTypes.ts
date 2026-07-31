@@ -197,10 +197,10 @@ export type InfiniteQueryFnEndpointCellBody<
 >
 
 /**
- * Maps a meta record to the endpoint definition body (everything except
- * `$meta`, which must stay a plain member of the mapped type below so it can
- * serve as the reverse-inference source — inference cannot flow into a
- * conditional type).
+ * Maps a meta record to the endpoint definition body (everything except the
+ * `kind` stamp property, which must stay a plain member of the mapped type
+ * below so it can serve as the reverse-inference source — inference cannot
+ * flow into a conditional type).
  *
  * The `flavor` discriminant (from the `query()` vs `query.fn()` creators)
  * selects a single variant interface per endpoint instead of a
@@ -236,12 +236,25 @@ export type EndpointCells<
   // (e.g. `injectEndpoints` cells may target original endpoints).
   UpsertTargets extends DefsShape = Defs,
 > = {
-  [K in keyof Defs]: { $meta: Defs[K] } & EndpointCellBody<
-    Defs[K],
-    BaseQuery,
-    TagTypes,
-    UpsertTargets,
-    ReducerPath
+  [K in keyof Defs]: {
+    /**
+     * The endpoint's kind + inference stamp, produced by the `query()`,
+     * `mutation()`, or `infiniteQuery()` creators. This nested property is
+     * the reverse-inference source for `Defs[K]` — measurably cheaper than
+     * the earlier "spread the stamp into the literal" encoding, because the
+     * stamp is checked as a small standalone property instead of dragging
+     * the whole endpoint literal through stamp-member assignability.
+     */
+    kind: { $meta: Defs[K] }
+  } & NoInfer<
+    Omit<
+      // `Omit<..., never>` looks like a no-op, but it flattens the resolved
+      // variant interface (and its `extends` chain) into a single plain object
+      // type. Measured: ~-4% instantiations at 201 endpoints vs intersecting
+      // the interface directly.
+      EndpointCellBody<Defs[K], BaseQuery, TagTypes, UpsertTargets, ReducerPath>,
+      never
+    >
   >
 }
 

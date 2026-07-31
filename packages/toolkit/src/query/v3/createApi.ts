@@ -217,9 +217,19 @@ export function createApi<
     endpoints: Record<string, any>
     overrideExisting?: boolean | 'throw'
   }) {
-    for (const [endpointName, definition] of Object.entries(
-      inject.endpoints,
-    )) {
+    for (const [endpointName, cell] of Object.entries(inject.endpoints)) {
+      // Each cell carries its creator stamp under the `kind` property
+      // (`kind: query<Result, Arg>()`). The stamp's runtime members are the
+      // `type` discriminator string plus any creator-supplied schemas, so
+      // merging the stamp back over the cell (and dropping the `kind`
+      // property itself) yields exactly the 2.x definition shape the core
+      // runtime dispatches on.
+      const { kind, ...rest } = cell as Record<string, any>
+      const definition: any = rest
+      if (kind && typeof kind === 'object') {
+        Object.assign(definition, kind)
+      }
+
       if (
         inject.overrideExisting !== true &&
         endpointName in context.endpointDefinitions

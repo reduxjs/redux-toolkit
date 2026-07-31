@@ -42,12 +42,12 @@ function v3Endpoints(entities: number, withUpsert: boolean) {
   let out = ''
   for (let e = 0; e < entities; e++) {
     out += `    getThing${e}: {
-      ...query<Thing${e}, string>(),
+      kind: query<Thing${e}, string>(),
       request: (id) => \`/thing${e}/\${id}\`,
       providesTags: (result, error, id) => [{ type: 'TagA' as const, id }],
     },
     getThing${e}List: {
-      ...query<Thing${e}[], void, Raw${e}>(),
+      kind: query<Thing${e}[], void, Raw${e}>(),
       request: () => '/thing${e}',
       transformResponse: (raw) => raw.data,
       providesTags: ['TagB'],${
@@ -63,7 +63,7 @@ function v3Endpoints(entities: number, withUpsert: boolean) {
       }
     },
     updateThing${e}: {
-      ...mutation<Thing${e}, Partial<Thing${e}> & { id: string }>(),
+      kind: mutation<Thing${e}, Partial<Thing${e}> & { id: string }>(),
       request: (patch) => ({ url: \`/thing${e}/\${patch.id}\`, method: 'PATCH', body: patch }),
       invalidatesTags: (result, error, arg) => [{ type: 'TagA' as const, id: arg.id }, 'TagB'],
     },

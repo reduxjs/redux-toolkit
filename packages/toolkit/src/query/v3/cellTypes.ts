@@ -55,7 +55,6 @@ import type {
 } from '../core/index'
 import type { SerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import type {
-  DefinitionType,
   InfiniteQueryCombinedArg,
   ResultDescription,
   SchemaFailureConverter,
@@ -173,7 +172,6 @@ export interface QueryCellOptions<
       BaseQuery,
       ReducerPath
     > {
-  type: DefinitionType.query
   /** Determines which 'tag' is attached to the cached data returned by the query. */
   providesTags?: ResultDescription<
     TagTypes,
@@ -302,7 +300,6 @@ export interface MutationCellOptions<
       BaseQuery,
       ReducerPath
     > {
-  type: DefinitionType.mutation
   /** Determines which cached data should be either re-fetched or removed from the cache. */
   invalidatesTags?: ResultDescription<
     TagTypes,
@@ -398,7 +395,6 @@ export interface InfiniteQueryCellOptions<
       BaseQuery,
       ReducerPath
     > {
-  type: DefinitionType.infinitequery
   providesTags?: ResultDescription<
     TagTypes,
     InfiniteData<ResultType, PageParam>,
