@@ -1,6 +1,7 @@
 /**
  * RTK Query v3 prototype: runtime tests for
- * - `enhanceEndpoints` (merge + recipe semantics, addTagTypes)
+ * - `addTagTypes` / `enhanceEndpoint` (split enhance methods adopted from
+ *   PR #3485: merge + recipe semantics, chainability, post-hoc upserts)
  * - the sanctioned subscription-selectors accessor (replaces the per-hook
  *   render-phase `internal_getRTKQSubscriptions` dispatch)
  */
@@ -55,10 +56,15 @@ function setup() {
 
   const api = build.createApi({
     endpoints: {
+      getTodoById: {
+        kind: build.query<Todo, string>({
+          request: (id) => `/todos/${id}`,
+        }),
+      },
       getTodos: {
         kind: build.query<Todo[], void>({
           request: () => '/todos',
-          // Deliberately no providesTags: added later via enhanceEndpoints
+          // Deliberately no providesTags: added later via enhanceEndpoint
         }),
       },
       updateTodo: {
@@ -82,7 +88,7 @@ function setup() {
   return { api, build, store, baseQuery, todos }
 }
 
-describe('enhanceEndpoints (v3)', () => {
+describe('addTagTypes / enhanceEndpoint (v3)', () => {
   test('partial merge adds providesTags, observed by tag invalidation', async () => {
     const { api, store, baseQuery } = setup()
 
@@ -104,12 +110,8 @@ describe('enhanceEndpoints (v3)', () => {
     // NOTE (parity with current API): the provided-tag index is written at
     // fulfillment time, so the enhancement applies to future fulfillments —
     // the entry must be refetched once before invalidation can match it.
-    api.enhanceEndpoints({
-      endpoints: {
-        getTodos: {
-          providesTags: ['Todo'],
-        },
-      },
+    api.enhanceEndpoint('getTodos', {
+      providesTags: ['Todo'],
     })
     await sub.refetch()
     expect(baseQuery).toHaveBeenCalledTimes(3)
@@ -130,13 +132,9 @@ describe('enhanceEndpoints (v3)', () => {
   test('recipe form mutates the definition in place', async () => {
     const { api, store, baseQuery } = setup()
 
-    api.enhanceEndpoints({
-      endpoints: {
-        getTodos: (definition) => {
-          definition.transformResponse = (todos: Todo[]) =>
-            todos.map((t) => ({ ...t, title: t.title.toUpperCase() }))
-        },
-      },
+    api.enhanceEndpoint('getTodos', (definition) => {
+      definition.transformResponse = (todos: Todo[]) =>
+        todos.map((t) => ({ ...t, title: t.title.toUpperCase() }))
     })
 
     const result = await store.dispatch(api.endpoints.getTodos.initiate())
@@ -147,15 +145,11 @@ describe('enhanceEndpoints (v3)', () => {
   test('recipe can replace request; the internal query alias stays in sync', async () => {
     const { api, store, baseQuery } = setup()
 
-    api.enhanceEndpoints({
-      endpoints: {
-        getTodos: (definition) => {
-          // Replace the request builder entirely. The core runtime reads
-          // the definition via the `query` getter alias, which must pick up
-          // the replaced `request`, not a stale copy.
-          definition.request = () => '/todos/1'
-        },
-      },
+    api.enhanceEndpoint('getTodos', (definition) => {
+      // Replace the request builder entirely. The core runtime reads
+      // the definition via the `query` getter alias, which must pick up
+      // the replaced `request`, not a stale copy.
+      definition.request = () => '/todos/1'
     })
 
     const result = await store.dispatch(api.endpoints.getTodos.initiate())
@@ -165,7 +159,7 @@ describe('enhanceEndpoints (v3)', () => {
     expect(result.data).toEqual({ id: '1', title: 'one', completed: false })
   })
 
-  test('enhanceEndpoints applies to late-injected endpoints', async () => {
+  test('enhanceEndpoint applies to late-injected endpoints', async () => {
     const { api, build, store, baseQuery } = setup()
 
     const extended = api.injectEndpoints({
@@ -178,13 +172,9 @@ describe('enhanceEndpoints (v3)', () => {
       },
     })
 
-    extended.enhanceEndpoints({
-      endpoints: {
-        getTodosAgain: (definition) => {
-          definition.transformResponse = (todos: Todo[]) =>
-            todos.map((t) => ({ ...t, title: t.title.toUpperCase() }))
-        },
-      },
+    extended.enhanceEndpoint('getTodosAgain', (definition) => {
+      definition.transformResponse = (todos: Todo[]) =>
+        todos.map((t) => ({ ...t, title: t.title.toUpperCase() }))
     })
 
     const result = await store.dispatch(
@@ -198,33 +188,50 @@ describe('enhanceEndpoints (v3)', () => {
     const { api, store, baseQuery } = setup()
 
     expect(() =>
-      api.enhanceEndpoints({
-        addTagTypes: ['Stats'],
-        endpoints: {
-          // @ts-expect-error unknown endpoint name — runtime must ignore it
-          nonexistentEndpoint: { providesTags: ['Stats'] },
-        },
+      (api.enhanceEndpoint as any)('nonexistentEndpoint', {
+        providesTags: ['Stats'],
       }),
     ).not.toThrow()
 
-    // New tag is usable: enhance getTodos to provide it, inject an endpoint
-    // whose fetch invalidates it, and observe the refetch.
-    const enhanced = api.enhanceEndpoints({ addTagTypes: ['Stats'] })
-    enhanced.enhanceEndpoints({
-      endpoints: {
-        getTodos: { providesTags: ['Stats'] },
-      },
-    })
+    // New tag is usable: widen the api's tags, enhance getTodos to provide
+    // the new tag, and observe an invalidation-driven refetch.
+    const enhanced = api
+      .addTagTypes('Stats')
+      .enhanceEndpoint('getTodos', { providesTags: ['Stats'] })
 
     const sub = store.dispatch(api.endpoints.getTodos.initiate())
     await sub
     expect(baseQuery).toHaveBeenCalledTimes(1)
 
-    store.dispatch(enhanced.util.invalidateTags(['Stats' as unknown as 'Todo']))
+    // The returned api's tag union includes 'Stats' — no cast needed.
+    store.dispatch(enhanced.util.invalidateTags(['Stats']))
     await delay(10)
     expect(baseQuery).toHaveBeenCalledTimes(2)
 
     sub.unsubscribe()
+  })
+
+  test('enhanceEndpoint can add a cross-endpoint upsert post-hoc', async () => {
+    const { api, store, baseQuery } = setup()
+
+    api.enhanceEndpoint('getTodos', {
+      upsert: (todos) =>
+        todos.map((t) => ({
+          endpoint: 'getTodoById' as const,
+          arg: t.id,
+          value: t,
+        })),
+    })
+
+    await store.dispatch(api.endpoints.getTodos.initiate())
+    expect(baseQuery).toHaveBeenCalledTimes(1)
+
+    // The list fetch seeded the byId entries: served from cache, no fetch.
+    const byId = store.dispatch(api.endpoints.getTodoById.initiate('1'))
+    const result = await byId
+    expect(baseQuery).toHaveBeenCalledTimes(1)
+    expect(result.data).toEqual({ id: '1', title: 'one', completed: false })
+    byId.unsubscribe()
   })
 })
 

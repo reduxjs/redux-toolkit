@@ -13,8 +13,11 @@
  *   (construction context + options + initialized-module list) stored on the
  *   api object under a non-exported symbol, so they can register themselves
  *   and replay already-injected endpoints.
- * - `enhanceEndpoints` keeps the current merge/recipe runtime semantics but
- *   drops the result-type-rewriting type machinery (`UpdateDefinitions`).
+ * - The combined `enhanceEndpoints` is replaced by the chainable
+ *   `addTagTypes(...tags)` and `enhanceEndpoint(name, enhancement)` methods
+ *   (adopting PR #3485 / issue #2730). The object form of `enhanceEndpoint`
+ *   can rewrite an endpoint's result/arg types; the runtime is the same
+ *   merge/recipe mutation as the 2.x `enhanceEndpoints`.
  * - The `context.batch` plugin seam is gone: `context.batch` stays the plain
  *   pass-through. (React 18+ batches by default.)
  */
@@ -124,7 +127,8 @@ export function createApi<
 
   const api: any = {
     injectEndpoints,
-    enhanceEndpoints,
+    addTagTypes,
+    enhanceEndpoint,
     [apiPlumbing]: plumbing,
     // Phantom type bag; carries no runtime information.
     $types: null,
@@ -179,38 +183,33 @@ export function createApi<
     }
   }
 
-  // Same semantics as the current API's `enhanceEndpoints`: definitions are
-  // mutated in place, which is already visible to every closure the modules
-  // created at inject time (thunks read endpoint options at execution time),
-  // so no module re-notification is needed for merge/recipe semantics.
-  // Unknown endpoint names are silently ignored, matching current behavior.
-  function enhanceEndpoints({
-    addTagTypes,
-    endpoints,
-  }: {
-    addTagTypes?: readonly string[]
-    endpoints?: Record<string, object | ((definition: any) => void)>
-  }) {
-    if (addTagTypes) {
-      for (const tag of addTagTypes) {
-        if (!optionsWithDefaults.tagTypes.includes(tag as any)) {
-          ;(optionsWithDefaults.tagTypes as string[]).push(tag)
-        }
+  // Chainable; registers additional tag types (adopted from PR #3485).
+  function addTagTypes(...tags: string[]) {
+    for (const tag of tags) {
+      if (!optionsWithDefaults.tagTypes.includes(tag as any)) {
+        ;(optionsWithDefaults.tagTypes as string[]).push(tag)
       }
     }
-    if (endpoints) {
-      for (const [endpointName, partialDefinition] of Object.entries(
-        endpoints,
-      )) {
-        const definition = context.endpointDefinitions[endpointName]
-        if (typeof partialDefinition === 'function') {
-          if (definition) {
-            partialDefinition(definition)
-          }
-        } else {
-          Object.assign(definition || {}, partialDefinition)
-        }
+    return api
+  }
+
+  // Chainable; modifies one endpoint in place (adopted from PR #3485).
+  // Definitions are mutated in place, which is already visible to every
+  // closure the modules created at inject time (thunks read endpoint options
+  // at execution time), so no module re-notification is needed.
+  // Unknown endpoint names are silently ignored at runtime (they are a type
+  // error), matching the current API's behavior.
+  function enhanceEndpoint(
+    endpointName: string,
+    enhancement: object | ((definition: any) => void),
+  ) {
+    const definition = context.endpointDefinitions[endpointName]
+    if (typeof enhancement === 'function') {
+      if (definition) {
+        enhancement(definition)
       }
+    } else {
+      Object.assign(definition || {}, enhancement)
     }
     return api
   }
@@ -279,7 +278,7 @@ export function createApi<
       // v3 renames the 2.x `query` field to `request` to avoid colliding
       // with the `query()` endpoint creator. The core runtime (buildThunks)
       // still reads `definition.query`, so alias it via a getter (a getter,
-      // not a copy, so `enhanceEndpoints` recipes that replace `request`
+      // not a copy, so `enhanceEndpoint` recipes that replace `request`
       // stay in sync).
       if ('request' in definition && !('query' in definition)) {
         Object.defineProperty(definition, 'query', {

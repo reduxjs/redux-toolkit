@@ -309,74 +309,114 @@ describe('v3 createApi negative cases', () => {
   })
 })
 
-describe('v3 enhanceEndpoints types', () => {
-  test('partial cell merge is typed against the endpoint definition', () => {
-    api.enhanceEndpoints({
-      endpoints: {
-        getTodoById: {
-          providesTags: (result, error, id) => {
-            expectTypeOf(result).toEqualTypeOf<Todo | undefined>()
-            expectTypeOf(id).toEqualTypeOf<string>()
-            return [{ type: 'Todo' as const, id }]
-          },
-        },
+describe('v3 addTagTypes / enhanceEndpoint types', () => {
+  test('partial enhancement is typed against the endpoint definition', () => {
+    api.enhanceEndpoint('getTodoById', {
+      providesTags: (result, error, id) => {
+        expectTypeOf(result).toEqualTypeOf<Todo | undefined>()
+        expectTypeOf(id).toEqualTypeOf<string>()
+        return [{ type: 'Todo' as const, id }]
       },
     })
 
-    api.enhanceEndpoints({
-      endpoints: {
-        getTodoById: {
-          // @ts-expect-error unknown tag type
-          providesTags: ['Nope'],
-        },
-      },
+    // @ts-expect-error unknown tag type
+    api.enhanceEndpoint('getTodoById', {
+      providesTags: ['Nope'],
     })
+
+    // @ts-expect-error unknown endpoint name
+    api.enhanceEndpoint('nonexistentEndpoint', {})
   })
 
   test('recipe form receives the typed definition', () => {
-    api.enhanceEndpoints({
-      endpoints: {
-        getTodoById: (definition) => {
-          definition.transformResponse = (raw, meta, arg) => {
-            expectTypeOf(meta).toEqualTypeOf<
-              FetchBaseQueryMeta | undefined
-            >()
-            expectTypeOf(arg).toEqualTypeOf<string>()
-            return raw as Todo
-          }
-        },
+    api.enhanceEndpoint('getTodoById', (definition) => {
+      definition.transformResponse = (raw, meta, arg) => {
+        expectTypeOf(meta).toEqualTypeOf<FetchBaseQueryMeta | undefined>()
+        expectTypeOf(arg).toEqualTypeOf<string>()
+        return raw as Todo
+      }
+    })
+  })
+
+  test('object form rewrites the result type from transformResponse', () => {
+    const enhanced = api.enhanceEndpoint('getTodoById', {
+      transformResponse: (raw: Todo) => raw.title,
+    })
+
+    // the enhanced api's endpoint now yields string, not Todo
+    expectTypeOf(
+      enhanced.$types.defs.getTodoById.result,
+    ).toEqualTypeOf<string>()
+    // other endpoints are untouched
+    expectTypeOf(enhanced.$types.defs.getTodos.result).toEqualTypeOf<Todo[]>()
+    // the original api keeps the original result type
+    expectTypeOf(api.$types.defs.getTodoById.result).toEqualTypeOf<Todo>()
+  })
+
+  test('recipe form rewrites result/arg via explicit generics', () => {
+    const enhanced = api.enhanceEndpoint<'getTodoById', string, number>(
+      'getTodoById',
+      (definition) => {
+        definition.transformResponse = (raw, meta, arg) => {
+          expectTypeOf(arg).toEqualTypeOf<number>()
+          return String(raw)
+        }
       },
+    )
+
+    expectTypeOf(
+      enhanced.$types.defs.getTodoById.result,
+    ).toEqualTypeOf<string>()
+    expectTypeOf(enhanced.$types.defs.getTodoById.arg).toEqualTypeOf<number>()
+  })
+
+  test('mutation overload is typed against the mutation definition', () => {
+    api.enhanceEndpoint('updateTodo', {
+      invalidatesTags: (result, error, arg) => {
+        expectTypeOf(result).toEqualTypeOf<Todo | undefined>()
+        return [{ type: 'Todo' as const, id: arg.id }]
+      },
+    })
+
+    // @ts-expect-error mutations cannot provide tags
+    api.enhanceEndpoint('updateTodo', {
+      providesTags: ['Todo'],
+    })
+  })
+
+  test('enhancement can add a typed upsert', () => {
+    api.enhanceEndpoint('getTodos', {
+      upsert: (todos) =>
+        todos.map((t) => {
+          expectTypeOf(t).toEqualTypeOf<Todo>()
+          return { endpoint: 'getTodoById' as const, arg: t.id, value: t }
+        }),
+    })
+
+    // @ts-expect-error unknown endpoint name in the upsert descriptor
+    api.enhanceEndpoint('getTodos', {
+      upsert: (todos) =>
+        todos.map((t) => ({
+          endpoint: 'notARealEndpoint' as const,
+          arg: t.id,
+          value: t,
+        })),
     })
   })
 
   test('addTagTypes widens the returned api tag union, not the original', () => {
-    const enhanced = api.enhanceEndpoints({
-      addTagTypes: ['Stats'] as const,
-      endpoints: {
-        getTodos: {
-          providesTags: ['Stats'],
-        },
-      },
-    })
+    const enhanced = api.addTagTypes('Stats')
 
     // the enhanced api accepts the new tag in later enhancements
-    enhanced.enhanceEndpoints({
-      endpoints: {
-        getTodoById: {
-          providesTags: ['Stats'],
-        },
-      },
+    enhanced.enhanceEndpoint('getTodoById', {
+      providesTags: ['Stats'],
     })
 
     enhanced.util.invalidateTags(['Stats'])
 
-    api.enhanceEndpoints({
-      endpoints: {
-        getTodoById: {
-          // @ts-expect-error original api does not know the new tag
-          providesTags: ['Stats'],
-        },
-      },
+    // @ts-expect-error original api does not know the new tag
+    api.enhanceEndpoint('getTodoById', {
+      providesTags: ['Stats'],
     })
 
     // @ts-expect-error original api util does not know the new tag

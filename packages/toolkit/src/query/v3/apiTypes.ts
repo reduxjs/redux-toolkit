@@ -40,6 +40,7 @@ import type { CombinedState } from '../core/apiState'
 import type { ApiModules } from '../core/module'
 import { coreModuleName } from '../core/module'
 import type { SerializeQueryArgs } from '../defaultSerializeQueryArgs'
+import type { Id } from '../../tsHelpers'
 import type {
   InfiniteQueryCellVariantWithQuery,
   InfiniteQueryCellVariantWithQueryFn,
@@ -79,6 +80,76 @@ export type QueryDefKeys<Defs extends DefsShape> = {
 }[keyof Defs] &
   string
 
+/** Endpoint names in `Defs` whose kind is `mutation`. */
+export type MutationDefKeys<Defs extends DefsShape> = {
+  [K in keyof Defs]: Defs[K] extends { type: DefinitionType.mutation }
+    ? K
+    : never
+}[keyof Defs] &
+  string
+
+/** Endpoint names in `Defs` whose kind is `infiniteQuery`. */
+export type InfiniteQueryDefKeys<Defs extends DefsShape> = {
+  [K in keyof Defs]: Defs[K] extends { type: DefinitionType.infinitequery }
+    ? K
+    : never
+}[keyof Defs] &
+  string
+
+/**
+ * Replaces one endpoint's meta record in the `Defs` map. This is the whole
+ * type-level mechanism behind `enhanceEndpoint`'s arg/result rewriting: the
+ * v3 `Defs` map is lightweight meta records, so swapping one entry is a
+ * plain `Omit & Record` with no definition-type inference involved.
+ */
+type SwapDef<
+  Defs extends DefsShape,
+  Name extends keyof Defs,
+  NewM extends AnyMetaRecord,
+> = Id<Omit<Defs, Name> & Record<Name, NewM>>
+
+/** The `Defs` map after `enhanceEndpoint` rewrites a query endpoint. */
+export type EnhancedQueryDefs<
+  Defs extends DefsShape,
+  Name extends QueryDefKeys<Defs>,
+  NewResult,
+  NewArg,
+> = SwapDef<
+  Defs,
+  Name,
+  QueryMetaRecord<NewResult, NewArg, Defs[Name]['raw'], Defs[Name]['flavor']>
+>
+
+/** The `Defs` map after `enhanceEndpoint` rewrites a mutation endpoint. */
+export type EnhancedMutationDefs<
+  Defs extends DefsShape,
+  Name extends MutationDefKeys<Defs>,
+  NewResult,
+  NewArg,
+> = SwapDef<
+  Defs,
+  Name,
+  MutationMetaRecord<NewResult, NewArg, Defs[Name]['raw'], Defs[Name]['flavor']>
+>
+
+/** The `Defs` map after `enhanceEndpoint` rewrites an infinite query endpoint. */
+export type EnhancedInfiniteQueryDefs<
+  Defs extends DefsShape,
+  Name extends InfiniteQueryDefKeys<Defs>,
+  NewResult,
+  NewArg,
+> = SwapDef<
+  Defs,
+  Name,
+  InfiniteQueryMetaRecord<
+    NewResult,
+    NewArg,
+    PageParamOf<Defs[Name]>,
+    Defs[Name]['raw'],
+    Defs[Name]['flavor']
+  >
+>
+
 /**
  * The typed cross-endpoint upsert descriptor: a discriminated union over all
  * query endpoints in the api. `arg` and `value` narrow from the `endpoint`
@@ -91,6 +162,12 @@ export type UpsertEntryFor<Defs extends DefsShape> = {
     value: Defs[K]['result']
   }
 }[QueryDefKeys<Defs>]
+
+/** The signature of the cross-endpoint `upsert` option. */
+export type UpsertTransform<Result, Arg, Targets extends DefsShape> = (
+  result: Result,
+  arg: Arg,
+) => ReadonlyArray<UpsertEntryFor<Targets>>
 
 export type QueryEndpointCellBody<
   M extends AnyMetaRecord,
@@ -342,32 +419,142 @@ export type InjectEndpointsArg<
 }
 
 /**
- * The `endpoints` map accepted by the v3 `enhanceEndpoints`: per endpoint,
- * either a partial definition merged over the existing one, or a recipe
- * function that mutates it in place.
+ * The enhancement accepted by `enhanceEndpoint` for a query endpoint:
+ * either a partial definition merged over the existing one (the object form
+ * infers `NewResult`/`NewArg`, e.g. from a `transformResponse` return type),
+ * or a recipe function that mutates the definition in place (rewriting types
+ * with the recipe form requires explicit generics — no inference source).
  *
- * Unlike the current API's `enhanceEndpoints`, there is no result-type
- * rewriting (`UpdateDefinitions`/`TransformedResponse`): the v3 way to change
- * an endpoint's result type is `injectEndpoints` with `overrideExisting`, or
- * composing cell objects before `createApi`.
+ * The partial may also carry the cross-endpoint `upsert` option, typed
+ * against the full endpoint map — so upserts can be added to an existing api
+ * (something the `endpoints` map's shell also allows at `createApi` time).
+ *
+ * Both flavor variants (`request`-based and `queryFn`-based) are accepted;
+ * contextual typing selects the matching one. This is the same looseness the
+ * current API's `QueryDefinition` union has.
  */
-export type EnhanceEndpointsCells<
+export type QueryEndpointEnhancement<
+  NewArg,
+  NewResult,
+  M extends AnyMetaRecord,
   Defs extends DefsShape,
   BaseQuery extends BaseQueryFn,
   TagTypes extends string,
   ReducerPath extends string,
-> = {
-  [K in keyof Defs]?:
-    | Partial<EndpointCellBody<Defs[K], BaseQuery, TagTypes, ReducerPath>>
-    | ((
-        definition: EndpointCellBody<
-          Defs[K],
-          BaseQuery,
-          TagTypes,
-          ReducerPath
+> =
+  | (Partial<
+      QueryCellVariantWithQuery<
+        NewArg,
+        NewResult,
+        RawResultFor<M, BaseQuery>,
+        BaseQuery,
+        TagTypes,
+        ReducerPath
+      >
+    > & { upsert?: UpsertTransform<NewResult, NewArg, Defs> })
+  | (Partial<
+      QueryCellVariantWithQueryFn<
+        NewArg,
+        NewResult,
+        BaseQuery,
+        TagTypes,
+        ReducerPath
+      >
+    > & { upsert?: UpsertTransform<NewResult, NewArg, Defs> })
+  | ((
+      definition: EndpointCellBody<
+        QueryMetaRecord<NewResult, NewArg, M['raw'], M['flavor']>,
+        BaseQuery,
+        TagTypes,
+        ReducerPath
+      > & { upsert?: UpsertTransform<NewResult, NewArg, Defs> },
+    ) => void)
+
+/** The enhancement accepted by `enhanceEndpoint` for a mutation endpoint. */
+export type MutationEndpointEnhancement<
+  NewArg,
+  NewResult,
+  M extends AnyMetaRecord,
+  BaseQuery extends BaseQueryFn,
+  TagTypes extends string,
+  ReducerPath extends string,
+> =
+  | Partial<
+      MutationCellVariantWithQuery<
+        NewArg,
+        NewResult,
+        RawResultFor<M, BaseQuery>,
+        BaseQuery,
+        TagTypes,
+        ReducerPath
+      >
+    >
+  | Partial<
+      MutationCellVariantWithQueryFn<
+        NewArg,
+        NewResult,
+        BaseQuery,
+        TagTypes,
+        ReducerPath
+      >
+    >
+  | ((
+      definition: EndpointCellBody<
+        MutationMetaRecord<NewResult, NewArg, M['raw'], M['flavor']>,
+        BaseQuery,
+        TagTypes,
+        ReducerPath
+      >,
+    ) => void)
+
+/**
+ * The enhancement accepted by `enhanceEndpoint` for an infinite query
+ * endpoint. `NewResult` is the per-page result type; the page param is
+ * preserved from the original definition.
+ */
+export type InfiniteQueryEndpointEnhancement<
+  NewArg,
+  NewResult,
+  M extends AnyMetaRecord,
+  BaseQuery extends BaseQueryFn,
+  TagTypes extends string,
+  ReducerPath extends string,
+> =
+  | Partial<
+      InfiniteQueryCellVariantWithQuery<
+        NewArg,
+        PageParamOf<M>,
+        NewResult,
+        RawResultFor<M, BaseQuery>,
+        BaseQuery,
+        TagTypes,
+        ReducerPath
+      >
+    >
+  | Partial<
+      InfiniteQueryCellVariantWithQueryFn<
+        NewArg,
+        PageParamOf<M>,
+        NewResult,
+        BaseQuery,
+        TagTypes,
+        ReducerPath
+      >
+    >
+  | ((
+      definition: EndpointCellBody<
+        InfiniteQueryMetaRecord<
+          NewResult,
+          NewArg,
+          PageParamOf<M>,
+          M['raw'],
+          M['flavor']
         >,
-      ) => void)
-}
+        BaseQuery,
+        TagTypes,
+        ReducerPath
+      >,
+    ) => void)
 
 /** The framework-agnostic v3 api object type. */
 export type ApiV3<
@@ -379,15 +566,83 @@ export type ApiV3<
   injectEndpoints<NewDefs extends DefsShape>(
     _: InjectEndpointsArg<NewDefs, Defs & NewDefs>,
   ): ApiV3<BaseQuery, Defs & NewDefs, ReducerPath, TagTypes>
-  enhanceEndpoints<NewTagTypes extends string = never>(_: {
-    addTagTypes?: readonly NewTagTypes[]
-    endpoints?: EnhanceEndpointsCells<
+  /**
+   * Registers additional tag types, widening the api's tag union. Chainable.
+   * (Adopted from PR #3485 / issue #2730. Cheaper here than in the 2.x
+   * design: v3 `Defs` records don't carry tag types, so this only widens a
+   * type parameter — no re-mapping of every definition.)
+   */
+  addTagTypes<NewTagTypes extends string = never>(
+    ...tags: NewTagTypes[]
+  ): ApiV3<BaseQuery, Defs, ReducerPath, TagTypes | NewTagTypes>
+  /**
+   * Modifies one endpoint in place, optionally rewriting its result and/or
+   * arg type. The object form merges a partial definition and infers
+   * `NewResult`/`NewArg` (e.g. from a `transformResponse` return type); the
+   * recipe form mutates the definition and requires explicit generics to
+   * rewrite types. Chainable. (Adopted from PR #3485 / issue #2730.)
+   */
+  enhanceEndpoint<
+    Name extends QueryDefKeys<Defs>,
+    NewResult = Defs[Name]['result'],
+    NewArg = Defs[Name]['arg'],
+  >(
+    name: Name,
+    enhancement: QueryEndpointEnhancement<
+      NewArg,
+      NewResult,
+      Defs[Name],
       Defs,
       BaseQuery,
-      TagTypes | NoInfer<NewTagTypes>,
+      TagTypes,
       ReducerPath
-    >
-  }): ApiV3<BaseQuery, Defs, ReducerPath, TagTypes | NewTagTypes>
+    >,
+  ): ApiV3<
+    BaseQuery,
+    EnhancedQueryDefs<Defs, Name, NewResult, NewArg>,
+    ReducerPath,
+    TagTypes
+  >
+  enhanceEndpoint<
+    Name extends MutationDefKeys<Defs>,
+    NewResult = Defs[Name]['result'],
+    NewArg = Defs[Name]['arg'],
+  >(
+    name: Name,
+    enhancement: MutationEndpointEnhancement<
+      NewArg,
+      NewResult,
+      Defs[Name],
+      BaseQuery,
+      TagTypes,
+      ReducerPath
+    >,
+  ): ApiV3<
+    BaseQuery,
+    EnhancedMutationDefs<Defs, Name, NewResult, NewArg>,
+    ReducerPath,
+    TagTypes
+  >
+  enhanceEndpoint<
+    Name extends InfiniteQueryDefKeys<Defs>,
+    NewResult = Defs[Name]['result'],
+    NewArg = Defs[Name]['arg'],
+  >(
+    name: Name,
+    enhancement: InfiniteQueryEndpointEnhancement<
+      NewArg,
+      NewResult,
+      Defs[Name],
+      BaseQuery,
+      TagTypes,
+      ReducerPath
+    >,
+  ): ApiV3<
+    BaseQuery,
+    EnhancedInfiniteQueryDefs<Defs, Name, NewResult, NewArg>,
+    ReducerPath,
+    TagTypes
+  >
 }
 
 /**

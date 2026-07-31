@@ -41,8 +41,16 @@ import type { HooksWithUniqueNames } from '../react/namedHooks'
 import type {
   ApiV3Base,
   BoundCreateApiOptions,
-  EnhanceEndpointsCells,
+  EnhancedInfiniteQueryDefs,
+  EnhancedMutationDefs,
+  EnhancedQueryDefs,
+  InfiniteQueryDefKeys,
+  InfiniteQueryEndpointEnhancement,
   InjectEndpointsArg,
+  MutationDefKeys,
+  MutationEndpointEnhancement,
+  QueryDefKeys,
+  QueryEndpointEnhancement,
   ToDefinitions,
 } from './apiTypes'
 import type { ApiBuilder, ApiBuilderConfig } from './builder'
@@ -97,15 +105,70 @@ export type ReactifiedApi<
     injectEndpoints<NewDefs extends DefsShape>(
       _: InjectEndpointsArg<NewDefs, Defs & NewDefs>,
     ): ReactifiedApi<BaseQuery, Defs & NewDefs, ReducerPath, TagTypes>
-    enhanceEndpoints<NewTagTypes extends string = never>(_: {
-      addTagTypes?: readonly NewTagTypes[]
-      endpoints?: EnhanceEndpointsCells<
+    addTagTypes<NewTagTypes extends string = never>(
+      ...tags: NewTagTypes[]
+    ): ReactifiedApi<BaseQuery, Defs, ReducerPath, TagTypes | NewTagTypes>
+    enhanceEndpoint<
+      Name extends QueryDefKeys<Defs>,
+      NewResult = Defs[Name]['result'],
+      NewArg = Defs[Name]['arg'],
+    >(
+      name: Name,
+      enhancement: QueryEndpointEnhancement<
+        NewArg,
+        NewResult,
+        Defs[Name],
         Defs,
         BaseQuery,
-        TagTypes | NoInfer<NewTagTypes>,
+        TagTypes,
         ReducerPath
-      >
-    }): ReactifiedApi<BaseQuery, Defs, ReducerPath, TagTypes | NewTagTypes>
+      >,
+    ): ReactifiedApi<
+      BaseQuery,
+      EnhancedQueryDefs<Defs, Name, NewResult, NewArg>,
+      ReducerPath,
+      TagTypes
+    >
+    enhanceEndpoint<
+      Name extends MutationDefKeys<Defs>,
+      NewResult = Defs[Name]['result'],
+      NewArg = Defs[Name]['arg'],
+    >(
+      name: Name,
+      enhancement: MutationEndpointEnhancement<
+        NewArg,
+        NewResult,
+        Defs[Name],
+        BaseQuery,
+        TagTypes,
+        ReducerPath
+      >,
+    ): ReactifiedApi<
+      BaseQuery,
+      EnhancedMutationDefs<Defs, Name, NewResult, NewArg>,
+      ReducerPath,
+      TagTypes
+    >
+    enhanceEndpoint<
+      Name extends InfiniteQueryDefKeys<Defs>,
+      NewResult = Defs[Name]['result'],
+      NewArg = Defs[Name]['arg'],
+    >(
+      name: Name,
+      enhancement: InfiniteQueryEndpointEnhancement<
+        NewArg,
+        NewResult,
+        Defs[Name],
+        BaseQuery,
+        TagTypes,
+        ReducerPath
+      >,
+    ): ReactifiedApi<
+      BaseQuery,
+      EnhancedInfiniteQueryDefs<Defs, Name, NewResult, NewArg>,
+      ReducerPath,
+      TagTypes
+    >
   }
 
 /**

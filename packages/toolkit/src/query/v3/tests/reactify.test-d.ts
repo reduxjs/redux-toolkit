@@ -160,4 +160,27 @@ describe('reactify types', () => {
       .parameter(0)
       .toEqualTypeOf<number>()
   })
+
+  test('addTagTypes / enhanceEndpoint on a reactified api return a reactified api', () => {
+    const enhanced = api
+      .addTagTypes('Stats')
+      .enhanceEndpoint('getTodoById', {
+        providesTags: ['Stats'],
+        transformResponse: (raw: Todo) => raw.title,
+      })
+
+    // still reactified: hooks exist and carry the rewritten result type
+    const result = enhanced.useGetTodoByIdQuery('1')
+    expectTypeOf(result.data).toEqualTypeOf<string | undefined>()
+
+    // other endpoints' hooks are preserved unchanged
+    const todos = enhanced.useGetTodosQuery()
+    expectTypeOf(todos.data).toEqualTypeOf<Todo[] | undefined>()
+
+    // widened tag union is usable
+    enhanced.util.invalidateTags(['Stats'])
+
+    // @ts-expect-error original api does not know the new tag
+    api.util.invalidateTags(['Stats'])
+  })
 })

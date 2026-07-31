@@ -255,16 +255,12 @@ describe('reactify runtime', () => {
     expect(baseQuery).toHaveBeenCalledTimes(1)
   })
 
-  test('enhanceEndpoints on a reactified api flows through to hook results', async () => {
+  test('enhanceEndpoint on a reactified api flows through to hook results', async () => {
     const { api, wrapper, baseQuery } = setup()
 
-    api.enhanceEndpoints({
-      endpoints: {
-        getTodos: (definition) => {
-          definition.transformResponse = (todos: Todo[]) =>
-            todos.map((t) => ({ ...t, title: t.title.toUpperCase() }))
-        },
-      },
+    api.enhanceEndpoint('getTodos', (definition) => {
+      definition.transformResponse = (todos: Todo[]) =>
+        todos.map((t) => ({ ...t, title: t.title.toUpperCase() }))
     })
 
     const { result } = renderHook(() => api.useGetTodosQuery(), { wrapper })
