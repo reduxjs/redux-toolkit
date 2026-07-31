@@ -42,4 +42,9 @@ const enhanced = api
 const sel = enhanced.endpoints.getThing10List.select
 const ini = enhanced.endpoints.getThing0.initiate
 
-export { enhanced, sel, ini }
+// Deliberately NOT exported: exporting forces declaration-naming checks
+// (TS4023) against the fixture's non-exported domain interfaces under
+// declaration-aware tsconfigs (e.g. vitest --typecheck).
+void enhanced
+void sel
+void ini

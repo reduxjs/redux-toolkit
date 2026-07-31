@@ -223,6 +223,43 @@ describe('v3 createApi runtime', () => {
     expect(todo.data).toEqual({ id: '2', title: 'two', completed: true })
   })
 
+  test('bare-form cells work end to end (no { kind } shell)', async () => {
+    const { build, store, baseQuery } = setup()
+
+    const bareApi = build.createApi({
+      endpoints: {
+        // bare form: the creator result assigned directly
+        getTodoDirect: build.query<Todo, string>({
+          request: (id) => `/todos/${id}`,
+        }),
+        // wrapped form in the same map
+        getGreeting: {
+          kind: build.query.fn<string, string>({
+            queryFn: async (name) => ({ data: `hello ${name}` }),
+          }),
+        },
+      },
+    })
+    // note: bareApi shares the builder's reducerPath with `api` from setup();
+    // only bareApi's middleware/reducer are mounted here
+    const bareStore = configureStore({
+      reducer: { [bareApi.reducerPath]: bareApi.reducer },
+      middleware: (gDM) => gDM().concat(bareApi.middleware),
+    })
+
+    const todo = await bareStore.dispatch(
+      bareApi.endpoints.getTodoDirect.initiate('1'),
+    )
+    expect(todo.data).toEqual({ id: '1', title: 'one', completed: false })
+    expect(baseQuery).toHaveBeenCalledTimes(1)
+
+    const greeting = await bareStore.dispatch(
+      bareApi.endpoints.getGreeting.initiate('tim'),
+    )
+    expect(greeting.data).toBe('hello tim')
+    void store
+  })
+
   test('injectEndpoints skips colliding endpoints by default and warns in dev', async () => {
     const { api, build, store, baseQuery } = setup()
 

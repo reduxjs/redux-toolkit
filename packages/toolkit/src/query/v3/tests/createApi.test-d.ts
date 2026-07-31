@@ -165,6 +165,41 @@ describe('v3 createApi type inference', () => {
     expectTypeOf(stamp.$meta.raw).toEqualTypeOf<TodoListResponse>()
   })
 
+  test('bare-form cells: creator results can be assigned without the { kind } shell', () => {
+    const bareApi = build.createApi({
+      endpoints: {
+        // bare form — no shell, no upsert possible
+        getTodoById: build.query<Todo, string>({
+          request: (id) => `/todos/${id}`,
+          providesTags: (result, error, id) => [{ type: 'Todo' as const, id }],
+        }),
+        // mixed with the wrapped form (needed for upsert)
+        getTodos: {
+          kind: build.query<Todo[], void>({
+            request: () => '/todos',
+          }),
+          upsert: (todos) =>
+            todos.map((t) => ({
+              endpoint: 'getTodoById' as const,
+              arg: t.id,
+              value: t,
+            })),
+        },
+        updateTodo: build.mutation<Todo, { id: string } & Partial<Todo>>({
+          request: (patch) => ({ url: `/todos/${patch.id}`, method: 'PATCH' }),
+          invalidatesTags: ['Todo'],
+        }),
+      },
+    })
+    expectTypeOf(bareApi.$types.defs.getTodoById.arg).toEqualTypeOf<string>()
+    expectTypeOf(bareApi.$types.defs.getTodoById.result).toEqualTypeOf<Todo>()
+    expectTypeOf(bareApi.$types.defs.getTodos.result).toEqualTypeOf<Todo[]>()
+    expectTypeOf(bareApi.$types.defs.updateTodo.result).toEqualTypeOf<Todo>()
+    expectTypeOf(
+      bareApi.endpoints.getTodoById.select('1'),
+    ).returns.toHaveProperty('data')
+  })
+
   test('core endpoint surface is fully typed', () => {
     expectTypeOf(api.reducerPath).toEqualTypeOf<'v3Api'>()
 

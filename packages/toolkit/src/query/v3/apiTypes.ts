@@ -299,13 +299,23 @@ export type EndpointCells<
   // (e.g. `injectEndpoints` cells may target original endpoints).
   UpsertTargets extends DefsShape = Defs,
 > = {
-  [K in keyof Defs]: {
-    /**
-     * The endpoint definition, produced by the builder's `query()`,
-     * `mutation()`, or `infiniteQuery()` creators (or their `.fn` flavors).
-     */
-    kind: { $meta: Defs[K] }
-  }
+  // Each endpoint accepts either the creator's return value directly
+  // (`getTodos: build.query({...})`) or the detailed shell
+  // (`getTodos: { kind: build.query({...}), upsert }`). The bare form covers
+  // the common case; the shell is only needed for options typed against the
+  // whole endpoint map (currently just `upsert`). Both union constituents
+  // carry `$meta` at a known path, so reverse-mapped inference of `Defs[K]`
+  // gets exactly one candidate from whichever form is used.
+  [K in keyof Defs]:
+    | { $meta: Defs[K] }
+    | {
+        /**
+         * The endpoint definition, produced by the builder's `query()`,
+         * `mutation()`, or `infiniteQuery()` creators (or their `.fn`
+         * flavors).
+         */
+        kind: { $meta: Defs[K] }
+      }
 } & {
   // The v3-only `upsert` option: a sync transform from a query endpoint's
   // (post-`transformResponse`) result into upsert descriptors for *other*
