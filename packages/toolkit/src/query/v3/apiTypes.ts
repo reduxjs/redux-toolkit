@@ -56,6 +56,7 @@ import type {
   MutationMetaRecord,
   QueryMetaRecord,
 } from './endpointCreators'
+import type { EndpointCreators } from './creators'
 
 /**
  * Resolves the `Raw` slot of a meta record against the base query.
@@ -423,8 +424,23 @@ export type ApiV3Base<
 export type InjectEndpointsArg<
   NewDefs extends DefsShape,
   UpsertTargets extends DefsShape,
+  BaseQuery extends BaseQueryFn,
+  TagTypes extends string,
+  ReducerPath extends string,
 > = {
-  endpoints: EndpointCells<NewDefs, UpsertTargets>
+  /**
+   * The endpoints to add: either a plain object map built with the api's
+   * bound creators (`{ getTodos: api.query({...}) }`), or a callback that
+   * receives the creators and returns the map
+   * (`(build) => ({ getTodos: build.query({...}) })`) — the same two forms
+   * `createApi` supports, so injected files can use whichever style the rest
+   * of the app uses.
+   */
+  endpoints:
+    | EndpointCells<NewDefs, UpsertTargets>
+    | ((
+        build: EndpointCreators<BaseQuery, TagTypes, ReducerPath>,
+      ) => EndpointCells<NewDefs, UpsertTargets>)
   overrideExisting?: boolean | 'throw'
 }
 
@@ -566,15 +582,30 @@ export type InfiniteQueryEndpointEnhancement<
       >,
     ) => void)
 
-/** The framework-agnostic v3 api object type. */
+/**
+ * The framework-agnostic v3 api object type.
+ *
+ * Every api carries its bound endpoint creators (`api.query`,
+ * `api.mutation`, `api.infiniteQuery`), so an api created with no endpoints
+ * is a fully usable "base api" that endpoints are injected into — there is
+ * no separate builder/factory object to hold onto (or to misuse as a
+ * many-api factory).
+ */
 export type ApiV3<
   BaseQuery extends BaseQueryFn,
   Defs extends DefsShape,
   ReducerPath extends string,
   TagTypes extends string,
-> = ApiV3Base<BaseQuery, Defs, ReducerPath, TagTypes> & {
+> = ApiV3Base<BaseQuery, Defs, ReducerPath, TagTypes> &
+  EndpointCreators<BaseQuery, TagTypes, ReducerPath> & {
   injectEndpoints<NewDefs extends DefsShape>(
-    _: InjectEndpointsArg<NewDefs, Defs & NewDefs>,
+    _: InjectEndpointsArg<
+      NewDefs,
+      Defs & NewDefs,
+      BaseQuery,
+      TagTypes,
+      ReducerPath
+    >,
   ): ApiV3<BaseQuery, Defs & NewDefs, ReducerPath, TagTypes>
   /**
    * Registers additional tag types, widening the api's tag union. Chainable.
@@ -656,18 +687,35 @@ export type ApiV3<
 }
 
 /**
- * Options accepted by `build.createApi`. The type-bearing trio
- * (`baseQuery`, `tagTypes`, `reducerPath`) is NOT here — it was already
- * given to `createApiBuilder`, which is what lets the bound creators type
- * every endpoint body against the base query.
+ * Options accepted by `createApi`.
+ *
+ * `endpoints` is optional and callback-only: the callback receives the bound
+ * creators, which cannot exist before the api's `baseQuery`/`tagTypes`/
+ * `reducerPath` are known — they are what type every endpoint body. Direct
+ * object maps (built with `api.query(...)` etc.) go through
+ * `injectEndpoints` on the returned api instead.
  */
-export type BoundCreateApiOptions<
+export type CreateApiV3Options<
   BaseQuery extends BaseQueryFn,
   Defs extends DefsShape,
   ReducerPath extends string,
   TagTypes extends string,
 > = {
-  endpoints: EndpointCells<Defs>
+  baseQuery: BaseQuery
+  tagTypes?: readonly TagTypes[]
+  reducerPath?: ReducerPath
+  /**
+   * Optional one-call endpoint declaration, mirroring the 2.x shape:
+   * a callback receiving the bound creators. Equivalent to calling
+   * `injectEndpoints` on the returned api. Note: `upsert` callbacks written
+   * inside this callback form must annotate their parameters (an
+   * unannotated arrow is context-sensitive and collapses inference through
+   * the callback return); the `injectEndpoints` object form does not need
+   * the annotation.
+   */
+  endpoints?: (
+    build: EndpointCreators<BaseQuery, TagTypes, ReducerPath>,
+  ) => EndpointCells<Defs>
   serializeQueryArgs?: SerializeQueryArgs<unknown>
   keepUnusedDataFor?: number
   refetchOnMountOrArgChange?: boolean | number
@@ -687,21 +735,6 @@ export type BoundCreateApiOptions<
   onSchemaFailure?: SchemaFailureHandler
   catchSchemaFailure?: SchemaFailureConverter<BaseQuery>
   skipSchemaValidation?: boolean | SchemaType[]
-}
-
-/**
- * Internal: the combined options object the v3 runtime `createApi` receives
- * (the builder config merged with the `build.createApi` options).
- */
-export type CreateApiV3Options<
-  BaseQuery extends BaseQueryFn,
-  Defs extends DefsShape,
-  ReducerPath extends string,
-  TagTypes extends string,
-> = BoundCreateApiOptions<BaseQuery, Defs, ReducerPath, TagTypes> & {
-  baseQuery: BaseQuery
-  tagTypes?: readonly TagTypes[]
-  reducerPath?: ReducerPath
 }
 
 /**

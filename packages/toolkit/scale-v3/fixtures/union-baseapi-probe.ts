@@ -98,7 +98,8 @@ type _q1a = Expect<Equal<BaseQueryArg<UnionBQ>, ArgsA | ArgsB>>
 // Result / error / meta also distribute -> unions (fine for receive slots)
 type _q1b = Expect<Equal<BaseQueryResult<UnionBQ>, ResA | ResB>>
 type _q1c = Expect<Equal<BaseQueryError<UnionBQ>, ErrA | ErrB>>
-type _q1d = Expect<Equal<BaseQueryMeta<UnionBQ>, MetaA | MetaB>>
+// `meta` is optional in QueryReturnValue, so BaseQueryMeta includes undefined
+type _q1d = Expect<Equal<BaseQueryMeta<UnionBQ>, MetaA | MetaB | undefined>>
 
 // ---------------------------------------------------------------------------
 // Q2: corrected encodings
@@ -128,15 +129,11 @@ type SharedError<A extends BaseApiLike> = A extends BaseApiLike
   : never
 
 // Verify the computed slot types
-// intersection of (string | {url}) and (string | {docId; op})
-//   = string | ({url; method?} & {docId; op})
-type _q2a = Expect<
-  Equal<
-    SharedRequestReturn<Apis>,
-    | string
-    | ({ url: string; method?: string } & { docId: number; op: 'get' | 'list' })
-  >
->
+// TS keeps the boxed contravariant inference result as the UN-DISTRIBUTED
+// intersection of the two arg unions (ArgsA & ArgsB); it does not normalize to
+// the hand-distributed form. Assignability is equivalent; the behavioral
+// negatives below are what guard soundness.
+type _q2a = Expect<Equal<SharedRequestReturn<Apis>, ArgsA & ArgsB>>
 // intersection of ('Todo'|'User') and ('User'|'Doc') = 'User'
 type _q2b = Expect<Equal<SharedTags<Apis>, 'User'>>
 type _q2c = Expect<Equal<SharedRaw<Apis>, ResA | ResB>>

@@ -2,9 +2,9 @@
  * RTK Query v3 prototype: type-level tests for `reactify`.
  */
 import { fetchBaseQuery } from '@internal/query/fetchBaseQuery'
-import { createApiBuilder } from '@internal/query/v3/index'
+import { createApi } from '@internal/query/v3/index'
 import {
-  createApiBuilder as createReactApiBuilder,
+  createApi as createReactApi,
   reactify,
 } from '@internal/query/v3/react'
 import { describe, expectTypeOf, test } from 'vitest'
@@ -20,29 +20,23 @@ interface User {
   name: string
 }
 
-const build = createApiBuilder({
+const baseApi = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
   reducerPath: 'v3Api',
   tagTypes: ['Todo'],
 })
 
-const coreApi = build.createApi({
+const coreApi = baseApi.injectEndpoints({
   endpoints: {
-    getTodoById: {
-      kind: build.query<Todo, string>({
-        request: (id) => `/todos/${id}`,
-      }),
-    },
-    getTodos: {
-      kind: build.query<Todo[], void>({
-        request: () => '/todos',
-      }),
-    },
-    updateTodo: {
-      kind: build.mutation<Todo, { id: string } & Partial<Todo>>({
-        request: (patch) => ({ url: `/todos/${patch.id}`, body: patch }),
-      }),
-    },
+    getTodoById: baseApi.query<Todo, string>({
+      request: (id) => `/todos/${id}`,
+    }),
+    getTodos: baseApi.query<Todo[], void>({
+      request: () => '/todos',
+    }),
+    updateTodo: baseApi.mutation<Todo, { id: string } & Partial<Todo>>({
+      request: (patch) => ({ url: `/todos/${patch.id}`, body: patch }),
+    }),
   },
 })
 
@@ -97,11 +91,9 @@ describe('reactify types', () => {
   test('injectEndpoints after reactify generates hooks for new endpoints', () => {
     const extended = api.injectEndpoints({
       endpoints: {
-        getUser: {
-          kind: build.query<User, number>({
-            request: (id) => `/users/${id}`,
-          }),
-        },
+        getUser: api.query<User, number>({
+          request: (id) => `/users/${id}`,
+        }),
       },
     })
 
@@ -118,11 +110,9 @@ describe('reactify types', () => {
   test('inject on a non-reactified api does not produce hooks', () => {
     const extendedCore = coreApi.injectEndpoints({
       endpoints: {
-        getUser: {
-          kind: build.query<User, number>({
-            request: (id) => `/users/${id}`,
-          }),
-        },
+        getUser: coreApi.query<User, number>({
+          request: (id) => `/users/${id}`,
+        }),
       },
     })
     expectTypeOf(extendedCore.endpoints.getUser.initiate)
@@ -132,24 +122,17 @@ describe('reactify types', () => {
     extendedCore.useGetUserQuery
   })
 
-  test('react createApiBuilder produces a reactified api directly', () => {
-    const rbuild = createReactApiBuilder({
+  test('react-entry createApi produces a reactified api directly', () => {
+    const reactApi = createReactApi({
       baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
       reducerPath: 'reactApi',
       tagTypes: ['User'],
-    })
-
-    const reactApi = rbuild.createApi({
-      endpoints: {
-        getUser: {
-          kind: rbuild.query<User, number>({
-            request: (id) => `/users/${id}`,
-            providesTags: (result, error, id) => [
-              { type: 'User' as const, id },
-            ],
-          }),
-        },
-      },
+      endpoints: (build) => ({
+        getUser: build.query<User, number>({
+          request: (id) => `/users/${id}`,
+          providesTags: (result, error, id) => [{ type: 'User' as const, id }],
+        }),
+      }),
     })
 
     const result = reactApi.useGetUserQuery(1)
@@ -159,6 +142,8 @@ describe('reactify types', () => {
     expectTypeOf(reactApi.endpoints.getUser.initiate)
       .parameter(0)
       .toEqualTypeOf<number>()
+    // Bound creators are present on the reactified api as well
+    expectTypeOf(reactApi.query).toBeFunction()
   })
 
   test('addTagTypes / enhanceEndpoint on a reactified api return a reactified api', () => {

@@ -3,9 +3,9 @@
  * layer attached to a core api instance as a plain function call.
  */
 import { configureStore } from '@reduxjs/toolkit'
-import { createApiBuilder } from '@internal/query/v3/index'
+import { createApi } from '@internal/query/v3/index'
 import {
-  createApiBuilder as createReactApiBuilder,
+  createApi as createReactApi,
   reactify,
 } from '@internal/query/v3/react'
 import { act, renderHook, waitFor } from '@testing-library/react'
@@ -47,36 +47,30 @@ function setup() {
     },
   )
 
-  const build = createApiBuilder({
+  const baseApi = createApi({
     baseQuery,
     reducerPath: 'v3Api',
     tagTypes: ['Todo'],
   })
 
-  const coreApi = build.createApi({
+  const coreApi = baseApi.injectEndpoints({
     endpoints: {
-      getTodoById: {
-        kind: build.query<Todo, string>({
-          request: (id) => `/todos/${id}`,
-          providesTags: (result, error, id) => [{ type: 'Todo' as const, id }],
+      getTodoById: baseApi.query<Todo, string>({
+        request: (id) => `/todos/${id}`,
+        providesTags: (result, error, id) => [{ type: 'Todo' as const, id }],
+      }),
+      getTodos: baseApi.query<Todo[], void>({
+        request: () => '/todos',
+        providesTags: ['Todo'],
+      }),
+      updateTodo: baseApi.mutation<Todo, { id: string } & Partial<Todo>>({
+        request: ({ id, ...patch }) => ({
+          url: `/todos/${id}`,
+          method: 'PATCH',
+          body: patch,
         }),
-      },
-      getTodos: {
-        kind: build.query<Todo[], void>({
-          request: () => '/todos',
-          providesTags: ['Todo'],
-        }),
-      },
-      updateTodo: {
-        kind: build.mutation<Todo, { id: string } & Partial<Todo>>({
-          request: ({ id, ...patch }) => ({
-            url: `/todos/${id}`,
-            method: 'PATCH',
-            body: patch,
-          }),
-          invalidatesTags: ['Todo'],
-        }),
-      },
+        invalidatesTags: ['Todo'],
+      }),
     },
   })
 
@@ -91,7 +85,7 @@ function setup() {
     <Provider store={store}>{children}</Provider>
   )
 
-  return { api, coreApi, build, store, baseQuery, wrapper }
+  return { api, coreApi, baseApi, store, baseQuery, wrapper }
 }
 
 describe('reactify runtime', () => {
@@ -160,15 +154,13 @@ describe('reactify runtime', () => {
   })
 
   test('hooks work for endpoints injected after reactification', async () => {
-    const { api, build, wrapper } = setup()
+    const { api, wrapper } = setup()
 
     const extended = api.injectEndpoints({
       endpoints: {
-        getGreeting: {
-          kind: build.query.fn<string, string>({
-            queryFn: async (name) => ({ data: `hello ${name}` }),
-          }),
-        },
+        getGreeting: api.query.fn<string, string>({
+          queryFn: async (name) => ({ data: `hello ${name}` }),
+        }),
       },
     })
 
@@ -193,29 +185,25 @@ describe('reactify runtime', () => {
   })
 
   test('endpoints injected before reactification get hooks via replay', async () => {
-    const build = createApiBuilder({
+    const baseApi = createApi({
       baseQuery: async (arg: string) => ({ data: `fetched:${arg}` }),
       reducerPath: 'replayApi',
     })
 
-    const coreApi = build.createApi({
+    const coreApi = baseApi.injectEndpoints({
       endpoints: {
-        getA: {
-          kind: build.query<string, string>({
-            request: (arg) => arg,
-          }),
-        },
+        getA: baseApi.query<string, string>({
+          request: (arg) => arg,
+        }),
       },
     })
 
     // Inject BEFORE reactify — reactify must replay existing endpoints
     const extendedCore = coreApi.injectEndpoints({
       endpoints: {
-        getB: {
-          kind: build.query<string, string>({
-            request: (arg) => `b/${arg}`,
-          }),
-        },
+        getB: coreApi.query<string, string>({
+          request: (arg) => `b/${arg}`,
+        }),
       },
     })
 
@@ -270,20 +258,15 @@ describe('reactify runtime', () => {
     expect(baseQuery).toHaveBeenCalledTimes(1)
   })
 
-  test('react createApiBuilder returns an api with hooks already attached', async () => {
-    const rbuild = createReactApiBuilder({
+  test('react-entry createApi returns an api with hooks already attached', async () => {
+    const api = createReactApi({
       baseQuery: async (arg: string) => ({ data: `r:${arg}` }),
-      reducerPath: 'reactBuilderApi',
-    })
-
-    const api = rbuild.createApi({
-      endpoints: {
-        getValue: {
-          kind: rbuild.query<string, string>({
-            request: (arg) => arg,
-          }),
-        },
-      },
+      reducerPath: 'reactEntryApi',
+      endpoints: (build) => ({
+        getValue: build.query<string, string>({
+          request: (arg) => arg,
+        }),
+      }),
     })
 
     expect(typeof api.useGetValueQuery).toBe('function')

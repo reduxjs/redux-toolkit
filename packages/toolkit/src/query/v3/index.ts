@@ -1,19 +1,22 @@
 /**
  * RTK Query v3 prototype entry point (framework-agnostic core).
  *
- * The primary export is `createApiBuilder`. React bindings are attached
- * either via the react entry's own `createApiBuilder` (hooks pre-wired) or
- * by calling `reactify(api)` on a core api; both live in ./react.ts so the
- * core entry never imports React.
+ * The primary export is `createApi`. It returns the api instance itself,
+ * which carries the bound endpoint creators (`api.query`, `api.mutation`,
+ * `api.infiniteQuery`); endpoints attach either via the optional
+ * `endpoints` callback on the options or via `injectEndpoints`.
+ *
+ * React bindings are attached either via the react entry's own `createApi`
+ * (hooks pre-wired) or by calling `reactify(api)` on a core api; both live
+ * in ./react.ts so the core entry never imports React.
  */
-export { createApiBuilder } from './builder'
+export { createApi } from './createApi'
 export type {
-  ApiBuilder,
-  ApiBuilderConfig,
   BoundInfiniteQueryCreator,
   BoundMutationCreator,
   BoundQueryCreator,
-} from './builder'
+  EndpointCreators,
+} from './creators'
 export type {
   AnyMetaRecord,
   DefsShape,
@@ -29,7 +32,6 @@ export type {
   ApiTypesBag,
   ApiV3,
   ApiV3Base,
-  BoundCreateApiOptions,
   CoreApiSurface,
   CreateApiV3Options,
   EndpointCellBody,
@@ -39,6 +41,7 @@ export type {
   EnhancedQueryDefs,
   InfiniteQueryDefKeys,
   InfiniteQueryEndpointEnhancement,
+  InjectEndpointsArg,
   MutationDefKeys,
   MutationEndpointEnhancement,
   QueryDefKeys,

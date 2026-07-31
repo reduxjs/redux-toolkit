@@ -4,10 +4,17 @@
  * Mirrors the existing `buildCreateApi`/`baseCreateApi` assembly
  * (../createApi.ts) with these differences:
  *
- * - `endpoints` is a plain object of thin cells: each cell's `kind` property
- *   carries the full definition produced by the bound creators
- *   (see ./builder.ts), plus an optional cross-endpoint `upsert` next to it.
- *   There is no builder *callback*.
+ * - The returned api object carries its bound endpoint creators
+ *   (`api.query`, `api.mutation`, `api.infiniteQuery` — see ./creators.ts),
+ *   so an api created with no endpoints is a fully usable base api that
+ *   endpoints are injected into. The optional `endpoints` option on
+ *   `createApi` is a callback receiving the same creators (the one-call
+ *   form), and `injectEndpoints` accepts either a plain object map built
+ *   with the api's creators or that same callback shape.
+ * - Each endpoint is either the creator's return value directly (the bare
+ *   form) or a thin `{ kind, upsert? }` shell; the cross-endpoint `upsert`
+ *   option lives in the shell because it is typed against the whole
+ *   endpoint map.
  * - There is no module registry. The core module is initialized directly;
  *   enhancers like `reactify` receive a sanctioned plumbing handle
  *   (construction context + options + initialized-module list) stored on the
@@ -38,6 +45,7 @@ import type {
   ApiV3,
   CreateApiV3Options,
 } from './apiTypes'
+import { makeEndpointCreators } from './creators'
 import type { DefsShape } from './endpointCreators'
 
 /**
@@ -59,7 +67,7 @@ export function getApiPlumbing(api: unknown): ApiPlumbing {
 
 export function createApi<
   BaseQuery extends BaseQueryFn,
-  Defs extends DefsShape,
+  Defs extends DefsShape = {},
   ReducerPath extends string = 'api',
   const TagTypes extends string = never,
 >(
@@ -125,7 +133,13 @@ export function createApi<
     initializedModules: [],
   }
 
+  // The bound endpoint creators: attached to the api object itself, and
+  // passed to `endpoints` callbacks. The "binding" to the base query is
+  // type-level only; the runtime creators are static.
+  const creators = makeEndpointCreators()
+
   const api: any = {
+    ...creators,
     injectEndpoints,
     addTagTypes,
     enhanceEndpoint,
@@ -215,10 +229,18 @@ export function createApi<
   }
 
   function injectEndpoints(inject: {
-    endpoints: Record<string, any>
+    endpoints:
+      | Record<string, any>
+      | ((build: Record<string, any>) => Record<string, any>)
     overrideExisting?: boolean | 'throw'
   }) {
-    for (const [endpointName, cell] of Object.entries(inject.endpoints)) {
+    // The callback form receives the same bound creators the api carries.
+    const endpointMap =
+      typeof inject.endpoints === 'function'
+        ? inject.endpoints(creators)
+        : inject.endpoints
+
+    for (const [endpointName, cell] of Object.entries(endpointMap)) {
       // Each cell carries its full definition under the `kind` property
       // (`kind: build.query({...})` — the endpoint body plus the `type`
       // discriminator string). The cell itself carries at most the
@@ -295,5 +317,8 @@ export function createApi<
     return api
   }
 
-  return api.injectEndpoints({ endpoints: options.endpoints })
+  // The optional one-call `endpoints` callback is just an inject.
+  return options.endpoints
+    ? api.injectEndpoints({ endpoints: options.endpoints })
+    : api
 }

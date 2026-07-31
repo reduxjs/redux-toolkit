@@ -9,7 +9,7 @@ import { configureStore } from '@reduxjs/toolkit'
 import { describe, expect, test, vi } from 'vitest'
 import * as v from 'valibot'
 import type { BaseQueryFn } from '@internal/query/baseQueryTypes'
-import { createApiBuilder } from '@internal/query/v3/index'
+import { createApi } from '@internal/query/v3/index'
 
 const postSchema = v.object({
   id: v.number(),
@@ -32,26 +32,22 @@ function setup() {
     return { error: { status: 404 } }
   }) satisfies BaseQueryFn
 
-  const build = createApiBuilder({
+  const baseApi = createApi({
     baseQuery,
     reducerPath: 'v3Api',
   })
 
-  const api = build.createApi({
+  const api = baseApi.injectEndpoints({
     endpoints: {
-      getPost: {
-        kind: build.query({
-          argSchema: postArgSchema,
-          responseSchema: postSchema,
-          request: (arg) => `/posts/${arg.id}`,
-        }),
-      },
-      getBadShape: {
-        kind: build.query({
-          responseSchema: postSchema,
-          request: () => '/posts/bad-shape',
-        }),
-      },
+      getPost: baseApi.query({
+        argSchema: postArgSchema,
+        responseSchema: postSchema,
+        request: (arg) => `/posts/${arg.id}`,
+      }),
+      getBadShape: baseApi.query({
+        responseSchema: postSchema,
+        request: () => '/posts/bad-shape',
+      }),
     },
   })
 
@@ -60,7 +56,7 @@ function setup() {
     middleware: (gDM) => gDM().concat(api.middleware),
   })
 
-  return { api, store, baseQuery }
+  return { api, baseApi, store, baseQuery }
 }
 
 describe('v3 schema runtime validation', () => {

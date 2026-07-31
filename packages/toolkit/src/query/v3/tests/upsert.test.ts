@@ -11,7 +11,7 @@
  * against ALL endpoints, so it stays in the reverse-mapped outer layer.
  */
 import { configureStore } from '@reduxjs/toolkit'
-import { createApiBuilder } from '@internal/query/v3/index'
+import { createApi } from '@internal/query/v3/index'
 import { describe, expect, test, vi } from 'vitest'
 
 interface Todo {
@@ -35,20 +35,18 @@ function setup() {
     return found ? { data: { ...found } } : { error: { status: 404 as const } }
   })
 
-  const build = createApiBuilder({
+  const baseApi = createApi({
     baseQuery,
     reducerPath: 'upsertApi',
   })
 
-  const api = build.createApi({
+  const api = baseApi.injectEndpoints({
     endpoints: {
-      getTodoById: {
-        kind: build.query<Todo, string>({
-          request: (id) => `/todos/${id}`,
-        }),
-      },
+      getTodoById: baseApi.query<Todo, string>({
+        request: (id) => `/todos/${id}`,
+      }),
       getTodos: {
-        kind: build.query<Todo[], void>({
+        kind: baseApi.query<Todo[], void>({
           request: () => '/todos',
         }),
         upsert: (result) =>
@@ -66,7 +64,7 @@ function setup() {
     middleware: (gDM) => gDM().concat(api.middleware),
   })
 
-  return { api, build, store, baseQuery, todos }
+  return { api, baseApi, store, baseQuery, todos }
 }
 
 describe('v3 upsert option', () => {
@@ -114,12 +112,12 @@ describe('v3 upsert option', () => {
   })
 
   test('upsert works on endpoints injected at runtime', async () => {
-    const { api, build, store, baseQuery } = setup()
+    const { api, store, baseQuery } = setup()
 
     const extended = api.injectEndpoints({
       endpoints: {
         searchTodos: {
-          kind: build.query.fn<Todo[], string>({
+          kind: api.query.fn<Todo[], string>({
             queryFn: async (term) => ({
               data: [{ id: `search-${term}`, title: term, completed: false }],
             }),

@@ -1,12 +1,17 @@
 /**
  * RTK Query v3 prototype: runtime behavior tests for the core (non-React)
- * builder + createApi. Parity checks against existing RTKQ behavior:
- * fetching, caching, dedup, transformResponse, queryFn, tag invalidation,
+ * createApi. Parity checks against existing RTKQ behavior: fetching,
+ * caching, dedup, transformResponse, queryFn, tag invalidation,
  * injectEndpoints.
+ *
+ * The api instance itself carries the bound endpoint creators
+ * (`api.query`, `api.mutation`, `api.infiniteQuery`); endpoints attach via
+ * the optional `endpoints` callback on createApi or via `injectEndpoints`
+ * (which accepts an object map or a callback).
  */
 import { configureStore } from '@reduxjs/toolkit'
 import type { BaseQueryFn } from '@internal/query/baseQueryTypes'
-import { createApiBuilder } from '@internal/query/v3/index'
+import { createApi } from '@internal/query/v3/index'
 import { describe, expect, test, vi } from 'vitest'
 
 interface Todo {
@@ -45,47 +50,40 @@ function setup() {
     },
   ) satisfies BaseQueryFn
 
-  const build = createApiBuilder({
+  const baseApi = createApi({
     baseQuery,
     reducerPath: 'v3Api',
     tagTypes: ['Todo'],
   })
 
-  const api = build.createApi({
+  const api = baseApi.injectEndpoints({
     endpoints: {
-      getTodoById: {
-        kind: build.query<Todo, string>({
-          request: (id) => `/todos/${id}`,
-          providesTags: (result, error, id) => [{ type: 'Todo' as const, id }],
+      // bare form: creator results assigned directly
+      getTodoById: baseApi.query<Todo, string>({
+        request: (id) => `/todos/${id}`,
+        providesTags: (result, error, id) => [{ type: 'Todo' as const, id }],
+      }),
+      getTodos: baseApi.query<Todo[], void, { todos: Todo[]; total: number }>({
+        request: () => '/todos',
+        transformResponse: (raw) => raw.todos,
+        providesTags: ['Todo'],
+      }),
+      getViaQueryFn: baseApi.query.fn<string, number>({
+        queryFn: async (arg) => {
+          return { data: `computed-${arg}` }
+        },
+      }),
+      updateTodo: baseApi.mutation<Todo, { id: string } & Partial<Todo>>({
+        request: ({ id, ...patch }) => ({
+          url: `/todos/${id}`,
+          method: 'PATCH',
+          body: patch,
         }),
-      },
-      getTodos: {
-        kind: build.query<Todo[], void, { todos: Todo[]; total: number }>({
-          request: () => '/todos',
-          transformResponse: (raw) => raw.todos,
-          providesTags: ['Todo'],
-        }),
-      },
-      getViaQueryFn: {
-        kind: build.query.fn<string, number>({
-          queryFn: async (arg) => {
-            return { data: `computed-${arg}` }
-          },
-        }),
-      },
-      updateTodo: {
-        kind: build.mutation<Todo, { id: string } & Partial<Todo>>({
-          request: ({ id, ...patch }) => ({
-            url: `/todos/${id}`,
-            method: 'PATCH',
-            body: patch,
-          }),
-          invalidatesTags: (result, error, { id }) => [
-            { type: 'Todo' as const, id },
-            'Todo',
-          ],
-        }),
-      },
+        invalidatesTags: (result, error, { id }) => [
+          { type: 'Todo' as const, id },
+          'Todo',
+        ],
+      }),
     },
   })
 
@@ -94,17 +92,22 @@ function setup() {
     middleware: (gDM) => gDM().concat(api.middleware),
   })
 
-  return { api, build, store, baseQuery, todos }
+  return { api, baseApi, store, baseQuery, todos }
 }
 
 describe('v3 createApi runtime', () => {
-  test('api object has the core surface and null $types', () => {
+  test('api object has the core surface, bound creators, and null $types', () => {
     const { api } = setup()
     expect(api.reducerPath).toBe('v3Api')
     expect(typeof api.reducer).toBe('function')
     expect(typeof api.middleware).toBe('function')
     expect(typeof api.util.invalidateTags).toBe('function')
     expect(typeof api.endpoints.getTodos.initiate).toBe('function')
+    // Bound creators live on the api instance
+    expect(typeof api.query).toBe('function')
+    expect(typeof api.query.fn).toBe('function')
+    expect(typeof api.mutation).toBe('function')
+    expect(typeof api.infiniteQuery).toBe('function')
     expect(api.$types).toBeNull()
   })
 
@@ -199,15 +202,13 @@ describe('v3 createApi runtime', () => {
   })
 
   test('injectEndpoints adds working endpoints at runtime', async () => {
-    const { api, build, store } = setup()
+    const { api, store } = setup()
 
     const extended = api.injectEndpoints({
       endpoints: {
-        getTodoTitle: {
-          kind: build.query.fn<string, string>({
-            queryFn: async (id) => ({ data: `title-of-${id}` }),
-          }),
-        },
+        getTodoTitle: api.query.fn<string, string>({
+          queryFn: async (id) => ({ data: `title-of-${id}` }),
+        }),
       },
     })
 
@@ -223,12 +224,32 @@ describe('v3 createApi runtime', () => {
     expect(todo.data).toEqual({ id: '2', title: 'two', completed: true })
   })
 
-  test('bare-form cells work end to end (no { kind } shell)', async () => {
-    const { build, store, baseQuery } = setup()
+  test('injectEndpoints accepts a callback form', async () => {
+    const { api, store } = setup()
 
-    const bareApi = build.createApi({
-      endpoints: {
-        // bare form: the creator result assigned directly
+    const extended = api.injectEndpoints({
+      endpoints: (build) => ({
+        getViaCallback: build.query.fn<string, number>({
+          queryFn: async (n) => ({ data: `cb-${n}` }),
+        }),
+      }),
+    })
+
+    const result = await store.dispatch(
+      extended.endpoints.getViaCallback.initiate(3),
+    )
+    expect(result.data).toBe('cb-3')
+  })
+
+  test('createApi accepts an endpoints callback (one-call form)', async () => {
+    const { baseQuery } = setup()
+
+    const cbApi = createApi({
+      baseQuery,
+      reducerPath: 'cbApi',
+      tagTypes: ['Todo'],
+      endpoints: (build) => ({
+        // bare form
         getTodoDirect: build.query<Todo, string>({
           request: (id) => `/todos/${id}`,
         }),
@@ -238,30 +259,28 @@ describe('v3 createApi runtime', () => {
             queryFn: async (name) => ({ data: `hello ${name}` }),
           }),
         },
-      },
-    })
-    // note: bareApi shares the builder's reducerPath with `api` from setup();
-    // only bareApi's middleware/reducer are mounted here
-    const bareStore = configureStore({
-      reducer: { [bareApi.reducerPath]: bareApi.reducer },
-      middleware: (gDM) => gDM().concat(bareApi.middleware),
+      }),
     })
 
-    const todo = await bareStore.dispatch(
-      bareApi.endpoints.getTodoDirect.initiate('1'),
+    const store = configureStore({
+      reducer: { [cbApi.reducerPath]: cbApi.reducer },
+      middleware: (gDM) => gDM().concat(cbApi.middleware),
+    })
+
+    const todo = await store.dispatch(
+      cbApi.endpoints.getTodoDirect.initiate('1'),
     )
     expect(todo.data).toEqual({ id: '1', title: 'one', completed: false })
     expect(baseQuery).toHaveBeenCalledTimes(1)
 
-    const greeting = await bareStore.dispatch(
-      bareApi.endpoints.getGreeting.initiate('tim'),
+    const greeting = await store.dispatch(
+      cbApi.endpoints.getGreeting.initiate('tim'),
     )
     expect(greeting.data).toBe('hello tim')
-    void store
   })
 
   test('injectEndpoints skips colliding endpoints by default and warns in dev', async () => {
-    const { api, build, store, baseQuery } = setup()
+    const { api, store, baseQuery } = setup()
 
     vi.stubEnv('NODE_ENV', 'development')
     const consoleError = vi
@@ -270,13 +289,11 @@ describe('v3 createApi runtime', () => {
     try {
       api.injectEndpoints({
         endpoints: {
-          getTodoById: {
-            kind: build.query.fn<Todo, string>({
-              queryFn: async (id) => ({
-                data: { id, title: 'replaced', completed: true },
-              }),
+          getTodoById: api.query.fn<Todo, string>({
+            queryFn: async (id) => ({
+              data: { id, title: 'replaced', completed: true },
             }),
-          },
+          }),
         },
       })
       expect(consoleError).toHaveBeenCalledWith(
@@ -298,17 +315,15 @@ describe('v3 createApi runtime', () => {
   })
 
   test('injectEndpoints overrideExisting: true replaces the endpoint definition', async () => {
-    const { api, build, store, baseQuery } = setup()
+    const { api, store, baseQuery } = setup()
 
     api.injectEndpoints({
       endpoints: {
-        getTodoById: {
-          kind: build.query.fn<Todo, string>({
-            queryFn: async (id) => ({
-              data: { id, title: 'replaced', completed: true },
-            }),
+        getTodoById: api.query.fn<Todo, string>({
+          queryFn: async (id) => ({
+            data: { id, title: 'replaced', completed: true },
           }),
-        },
+        }),
       },
       overrideExisting: true,
     })
@@ -322,16 +337,14 @@ describe('v3 createApi runtime', () => {
   })
 
   test("injectEndpoints overrideExisting: 'throw' throws on collision", () => {
-    const { api, build } = setup()
+    const { api } = setup()
 
     expect(() =>
       api.injectEndpoints({
         endpoints: {
-          getTodoById: {
-            kind: build.query<Todo, string>({
-              request: (id) => `/todos/${id}`,
-            }),
-          },
+          getTodoById: api.query<Todo, string>({
+            request: (id) => `/todos/${id}`,
+          }),
         },
         overrideExisting: 'throw',
       }),

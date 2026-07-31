@@ -9,7 +9,7 @@ import { configureStore } from '@reduxjs/toolkit'
 import type { BaseQueryFn } from '@internal/query/baseQueryTypes'
 import type { GetSubscriptionSelectors } from '@internal/query/core/module'
 import { internalSubscriptionsAccessor } from '@internal/query/core/module'
-import { createApiBuilder } from '@internal/query/v3/index'
+import { createApi } from '@internal/query/v3/index'
 import { describe, expect, test, vi } from 'vitest'
 
 interface Todo {
@@ -48,35 +48,29 @@ function setup() {
     },
   ) satisfies BaseQueryFn
 
-  const build = createApiBuilder({
+  const baseApi = createApi({
     baseQuery,
     reducerPath: 'v3Api',
     tagTypes: ['Todo'],
   })
 
-  const api = build.createApi({
+  const api = baseApi.injectEndpoints({
     endpoints: {
-      getTodoById: {
-        kind: build.query<Todo, string>({
-          request: (id) => `/todos/${id}`,
+      getTodoById: baseApi.query<Todo, string>({
+        request: (id) => `/todos/${id}`,
+      }),
+      getTodos: baseApi.query<Todo[], void>({
+        request: () => '/todos',
+        // Deliberately no providesTags: added later via enhanceEndpoint
+      }),
+      updateTodo: baseApi.mutation<Todo, { id: string; patch: Partial<Todo> }>({
+        request: ({ id, patch }) => ({
+          url: `/todos/${id}`,
+          method: 'PATCH',
+          body: patch,
         }),
-      },
-      getTodos: {
-        kind: build.query<Todo[], void>({
-          request: () => '/todos',
-          // Deliberately no providesTags: added later via enhanceEndpoint
-        }),
-      },
-      updateTodo: {
-        kind: build.mutation<Todo, { id: string; patch: Partial<Todo> }>({
-          request: ({ id, patch }) => ({
-            url: `/todos/${id}`,
-            method: 'PATCH',
-            body: patch,
-          }),
-          invalidatesTags: ['Todo'],
-        }),
-      },
+        invalidatesTags: ['Todo'],
+      }),
     },
   })
 
@@ -85,7 +79,7 @@ function setup() {
     middleware: (gDM) => gDM().concat(api.middleware),
   })
 
-  return { api, build, store, baseQuery, todos }
+  return { api, baseApi, store, baseQuery, todos }
 }
 
 describe('addTagTypes / enhanceEndpoint (v3)', () => {
@@ -160,15 +154,13 @@ describe('addTagTypes / enhanceEndpoint (v3)', () => {
   })
 
   test('enhanceEndpoint applies to late-injected endpoints', async () => {
-    const { api, build, store, baseQuery } = setup()
+    const { api, store, baseQuery } = setup()
 
     const extended = api.injectEndpoints({
       endpoints: {
-        getTodosAgain: {
-          kind: build.query<Todo[], void>({
-            request: () => '/todos',
-          }),
-        },
+        getTodosAgain: api.query<Todo[], void>({
+          request: () => '/todos',
+        }),
       },
     })
 

@@ -1,10 +1,13 @@
 /**
- * RTK Query v3 prototype: type-level tests for the builder-based `createApi`.
+ * RTK Query v3 prototype: type-level tests for `createApi`.
  *
  * These mirror the spike checklist (D:/Projects/redux/temp/rtk3-spikes) but
  * run against the real RTKQ type surface: real `fetchBaseQuery`, real
  * `QueryDefinition`/`MutationDefinition`/`InfiniteQueryDefinition`, real core
  * api surface via `ApiModules[coreModuleName]`.
+ *
+ * The api instance carries the bound endpoint creators; endpoints attach via
+ * the optional `endpoints` callback on createApi or via `injectEndpoints`.
  */
 import { configureStore } from '@reduxjs/toolkit'
 import { describe, expectTypeOf, test } from 'vitest'
@@ -13,7 +16,7 @@ import type {
   FetchBaseQueryMeta,
 } from '@internal/query/fetchBaseQuery'
 import { fetchBaseQuery } from '@internal/query/fetchBaseQuery'
-import { createApiBuilder } from '@internal/query/v3/index'
+import { createApi } from '@internal/query/v3/index'
 
 interface Todo {
   id: string
@@ -35,31 +38,30 @@ interface PokemonPage {
   results: { name: string }[]
 }
 
-const build = createApiBuilder({
+const baseApi = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
   reducerPath: 'v3Api',
   tagTypes: ['Todo', 'User'],
 })
 
-const api = build.createApi({
+const api = baseApi.injectEndpoints({
   endpoints: {
-    getTodoById: {
-      kind: build.query<Todo, string>({
-        request: (id) => {
-          expectTypeOf(id).toEqualTypeOf<string>()
-          return `/todos/${id}`
-        },
-        providesTags: (result, error, id) => {
-          expectTypeOf(result).toEqualTypeOf<Todo | undefined>()
-          expectTypeOf(error).toEqualTypeOf<FetchBaseQueryError | undefined>()
-          expectTypeOf(id).toEqualTypeOf<string>()
-          return [{ type: 'Todo' as const, id }]
-        },
-      }),
-    },
+    // bare form: creator result assigned directly
+    getTodoById: baseApi.query<Todo, string>({
+      request: (id) => {
+        expectTypeOf(id).toEqualTypeOf<string>()
+        return `/todos/${id}`
+      },
+      providesTags: (result, error, id) => {
+        expectTypeOf(result).toEqualTypeOf<Todo | undefined>()
+        expectTypeOf(error).toEqualTypeOf<FetchBaseQueryError | undefined>()
+        expectTypeOf(id).toEqualTypeOf<string>()
+        return [{ type: 'Todo' as const, id }]
+      },
+    }),
     getTodos: {
       // Third generic = raw (pre-transformResponse) response type
-      kind: build.query<Todo[], void, TodoListResponse>({
+      kind: baseApi.query<Todo[], void, TodoListResponse>({
         request: () => '/todos',
         transformResponse: (raw, meta, arg) => {
           expectTypeOf(raw).toEqualTypeOf<TodoListResponse>()
@@ -90,52 +92,46 @@ const api = build.createApi({
         }))
       },
     },
-    getSession: {
-      // queryFn flavor: uses the dedicated `query.fn` creator
-      kind: build.query.fn<User, void>({
-        queryFn: async (arg, queryApi, extraOptions, baseQuery) => {
-          expectTypeOf(arg).toEqualTypeOf<void>()
-          const res = await baseQuery('/session')
-          expectTypeOf(res.error).toEqualTypeOf<
-            FetchBaseQueryError | undefined
-          >()
-          if (res.error) {
-            return { error: res.error }
-          }
-          return { data: res.data as User }
+    // queryFn flavor: uses the dedicated `query.fn` creator
+    getSession: baseApi.query.fn<User, void>({
+      queryFn: async (arg, queryApi, extraOptions, baseQuery) => {
+        expectTypeOf(arg).toEqualTypeOf<void>()
+        const res = await baseQuery('/session')
+        expectTypeOf(res.error).toEqualTypeOf<
+          FetchBaseQueryError | undefined
+        >()
+        if (res.error) {
+          return { error: res.error }
+        }
+        return { data: res.data as User }
+      },
+    }),
+    updateTodo: baseApi.mutation<Todo, { id: string } & Partial<Todo>>({
+      request: (patch) => {
+        expectTypeOf(patch.id).toEqualTypeOf<string>()
+        return { url: `/todos/${patch.id}`, method: 'PATCH', body: patch }
+      },
+      invalidatesTags: (result, error, arg) => {
+        expectTypeOf(result).toEqualTypeOf<Todo | undefined>()
+        return [{ type: 'Todo' as const, id: arg.id }]
+      },
+    }),
+    getPokemon: baseApi.infiniteQuery<PokemonPage, string, number>({
+      infiniteQueryOptions: {
+        initialPageParam: 0,
+        getNextPageParam: (lastPage, allPages, lastPageParam) => {
+          expectTypeOf(lastPage).toEqualTypeOf<PokemonPage>()
+          expectTypeOf(allPages).toEqualTypeOf<PokemonPage[]>()
+          expectTypeOf(lastPageParam).toEqualTypeOf<number>()
+          return lastPageParam + 1
         },
-      }),
-    },
-    updateTodo: {
-      kind: build.mutation<Todo, { id: string } & Partial<Todo>>({
-        request: (patch) => {
-          expectTypeOf(patch.id).toEqualTypeOf<string>()
-          return { url: `/todos/${patch.id}`, method: 'PATCH', body: patch }
-        },
-        invalidatesTags: (result, error, arg) => {
-          expectTypeOf(result).toEqualTypeOf<Todo | undefined>()
-          return [{ type: 'Todo' as const, id: arg.id }]
-        },
-      }),
-    },
-    getPokemon: {
-      kind: build.infiniteQuery<PokemonPage, string, number>({
-        infiniteQueryOptions: {
-          initialPageParam: 0,
-          getNextPageParam: (lastPage, allPages, lastPageParam) => {
-            expectTypeOf(lastPage).toEqualTypeOf<PokemonPage>()
-            expectTypeOf(allPages).toEqualTypeOf<PokemonPage[]>()
-            expectTypeOf(lastPageParam).toEqualTypeOf<number>()
-            return lastPageParam + 1
-          },
-        },
-        request: ({ queryArg, pageParam }) => {
-          expectTypeOf(queryArg).toEqualTypeOf<string>()
-          expectTypeOf(pageParam).toEqualTypeOf<number>()
-          return `/pokemon/${queryArg}?page=${pageParam}`
-        },
-      }),
-    },
+      },
+      request: ({ queryArg, pageParam }) => {
+        expectTypeOf(queryArg).toEqualTypeOf<string>()
+        expectTypeOf(pageParam).toEqualTypeOf<number>()
+        return `/pokemon/${queryArg}?page=${pageParam}`
+      },
+    }),
   },
 })
 
@@ -156,7 +152,7 @@ describe('v3 createApi type inference', () => {
     // Arg from an annotated `request` parameter; Result from the
     // `transformResponse` return type; Raw from the annotated
     // `transformResponse` parameter.
-    const stamp = build.query({
+    const stamp = baseApi.query({
       request: (id: string) => `/todos/${id}`,
       transformResponse: (raw: TodoListResponse) => raw.todos,
     })
@@ -165,20 +161,26 @@ describe('v3 createApi type inference', () => {
     expectTypeOf(stamp.$meta.raw).toEqualTypeOf<TodoListResponse>()
   })
 
-  test('bare-form cells: creator results can be assigned without the { kind } shell', () => {
-    const bareApi = build.createApi({
-      endpoints: {
-        // bare form — no shell, no upsert possible
+  test('createApi accepts an endpoints callback (one-call form)', () => {
+    const cbApi = createApi({
+      baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
+      reducerPath: 'cbApi',
+      tagTypes: ['Todo'],
+      endpoints: (build) => ({
+        // bare form
         getTodoById: build.query<Todo, string>({
           request: (id) => `/todos/${id}`,
           providesTags: (result, error, id) => [{ type: 'Todo' as const, id }],
         }),
-        // mixed with the wrapped form (needed for upsert)
+        // wrapped form with upsert. NOTE: in callback form the upsert
+        // callback parameter must be annotated (an unannotated arrow is
+        // context-sensitive and collapses Defs inference through the
+        // callback return).
         getTodos: {
           kind: build.query<Todo[], void>({
             request: () => '/todos',
           }),
-          upsert: (todos) =>
+          upsert: (todos: Todo[]) =>
             todos.map((t) => ({
               endpoint: 'getTodoById' as const,
               arg: t.id,
@@ -189,15 +191,30 @@ describe('v3 createApi type inference', () => {
           request: (patch) => ({ url: `/todos/${patch.id}`, method: 'PATCH' }),
           invalidatesTags: ['Todo'],
         }),
-      },
+      }),
     })
-    expectTypeOf(bareApi.$types.defs.getTodoById.arg).toEqualTypeOf<string>()
-    expectTypeOf(bareApi.$types.defs.getTodoById.result).toEqualTypeOf<Todo>()
-    expectTypeOf(bareApi.$types.defs.getTodos.result).toEqualTypeOf<Todo[]>()
-    expectTypeOf(bareApi.$types.defs.updateTodo.result).toEqualTypeOf<Todo>()
+
+    expectTypeOf(cbApi.$types.reducerPath).toEqualTypeOf<'cbApi'>()
+    expectTypeOf(cbApi.$types.defs.getTodoById.arg).toEqualTypeOf<string>()
+    expectTypeOf(cbApi.$types.defs.getTodoById.result).toEqualTypeOf<Todo>()
+    expectTypeOf(cbApi.$types.defs.getTodos.result).toEqualTypeOf<Todo[]>()
+    expectTypeOf(cbApi.$types.defs.updateTodo.result).toEqualTypeOf<Todo>()
     expectTypeOf(
-      bareApi.endpoints.getTodoById.select('1'),
+      cbApi.endpoints.getTodoById.select('1'),
     ).returns.toHaveProperty('data')
+  })
+
+  test('base api without endpoints carries creators and empty defs', () => {
+    const empty = createApi({
+      baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
+      tagTypes: ['Todo'],
+    })
+    expectTypeOf(empty.$types.reducerPath).toEqualTypeOf<'api'>()
+    expectTypeOf(empty.$types.tagTypes).toEqualTypeOf<'Todo'>()
+    // creators are on the instance
+    expectTypeOf(empty.query).toBeFunction()
+    expectTypeOf(empty.mutation).toBeFunction()
+    expectTypeOf(empty.infiniteQuery).toBeFunction()
   })
 
   test('core endpoint surface is fully typed', () => {
@@ -234,7 +251,7 @@ describe('v3 createApi type inference', () => {
     const extended = api.injectEndpoints({
       endpoints: {
         getUser: {
-          kind: build.query<User, number>({
+          kind: api.query<User, number>({
             request: (id) => `/users/${id}`,
             providesTags: (result, error, id) => [
               { type: 'User' as const, id },
@@ -258,11 +275,30 @@ describe('v3 createApi type inference', () => {
     expectTypeOf(extended.$types.defs).toHaveProperty('getUser')
     expectTypeOf(extended.$types.defs).toHaveProperty('getTodos')
   })
+
+  test('injectEndpoints accepts a callback form', () => {
+    const extended = api.injectEndpoints({
+      endpoints: (build) => ({
+        getUserViaCallback: build.query<User, number>({
+          request: (id) => `/users/${id}`,
+        }),
+      }),
+    })
+
+    expectTypeOf(extended.endpoints.getUserViaCallback.initiate)
+      .parameter(0)
+      .toEqualTypeOf<number>()
+    expectTypeOf(
+      extended.$types.defs.getUserViaCallback.result,
+    ).toEqualTypeOf<User>()
+    // Original endpoints still present
+    expectTypeOf(extended.$types.defs).toHaveProperty('getTodos')
+  })
 })
 
 describe('v3 createApi negative cases', () => {
   test('wrong tag types are rejected', () => {
-    const b = createApiBuilder({
+    const b = createApi({
       baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
       tagTypes: ['Todo'],
     })
@@ -274,7 +310,7 @@ describe('v3 createApi negative cases', () => {
   })
 
   test('query return type is validated against the base query arg type', () => {
-    const b = createApiBuilder({
+    const b = createApi({
       baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
     })
     b.query<Todo[], void>({
@@ -284,16 +320,14 @@ describe('v3 createApi negative cases', () => {
   })
 
   test('upsert descriptors are validated against the target endpoint', () => {
-    const b = createApiBuilder({
+    const b = createApi({
       baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
     })
-    b.createApi({
+    b.injectEndpoints({
       endpoints: {
-        getTodoById: {
-          kind: b.query<Todo, string>({
-            request: (id) => `/todos/${id}`,
-          }),
-        },
+        getTodoById: b.query<Todo, string>({
+          request: (id) => `/todos/${id}`,
+        }),
         getTodos: {
           kind: b.query<Todo[], void>({
             request: () => '/todos',
@@ -309,13 +343,11 @@ describe('v3 createApi negative cases', () => {
       },
     })
 
-    b.createApi({
+    b.injectEndpoints({
       endpoints: {
-        getTodoById: {
-          kind: b.query<Todo, string>({
-            request: (id) => `/todos/${id}`,
-          }),
-        },
+        getTodoById: b.query<Todo, string>({
+          request: (id) => `/todos/${id}`,
+        }),
         getTodos: {
           kind: b.query<Todo[], void>({
             request: () => '/todos',
@@ -333,7 +365,7 @@ describe('v3 createApi negative cases', () => {
   })
 
   test('transformResponse return must match the declared result type', () => {
-    const b = createApiBuilder({
+    const b = createApi({
       baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
     })
     b.query<Todo[], void, TodoListResponse>({
