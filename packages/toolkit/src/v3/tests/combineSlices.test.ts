@@ -3,7 +3,7 @@ import { combineSlices as combineSlices2x } from '../../combineSlices'
 import { configureStore } from '../../configureStore'
 import { combineSlices } from '../combineSlices'
 import type { WithSlice } from '../combineSlices'
-import { createSlice } from '../createSlice'
+import { createSlice } from '../index'
 
 interface CounterState {
   value: number

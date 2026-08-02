@@ -2,7 +2,7 @@ import { configureStore } from '../../configureStore'
 import { createAction } from '../../createAction'
 import type { PayloadAction } from '../../createAction'
 import { asyncThunkCreator, resetCreator } from '../creators'
-import { createSlice } from '../createSlice'
+import { createSlice } from '../index'
 
 interface Todo {
   id: number

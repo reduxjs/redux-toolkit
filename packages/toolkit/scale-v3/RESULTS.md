@@ -182,3 +182,35 @@ Follow-up after adding selector injection (`injectInto`, `InjectedSlice`, v3
 `combineSlices` with the getInitialState-preferring state proxy): v3 slopes
 moved from 273 to 276 (object) and 740 to 743 (callback) instantiations per
 slice — the injection typing costs 3 inst/slice and stays exactly linear.
+
+## createSlice v3 immutability adapters (2026-08-01)
+
+Refactored the v3 spike so all Immer coupling flows through an
+`ImmutabilityAdapter` interface (`isDraft`/`isDraftable`/`produce`/
+`freezeDraftable`): `buildCreateSlice({ immutability })` binds a default
+adapter, a per-slice `immutability` option overrides it, and the exported
+`createSlice` is `/* @__PURE__ */ buildCreateSlice({ immutability: immerAdapter })`.
+The `Draft` type is vendored (verbatim copy of Immer's, equality-tested
+against `immer`'s `Draft` in `immutability.test-d.ts`). Adapters written:
+immer, mutative (1.3.0), noop.
+
+TS scale after the refactor: unchanged. v3-obj 276 inst/slice, v3-cb 743
+inst/slice, both exactly linear at 10/50/100/200 — the `CreateSlice`
+interface-with-call-signatures encoding and the adapter option cost nothing
+measurable.
+
+Bundle experiment (temp folder, esbuild 6234-byte min bundle, rollup, both
+with `immer` marked external): a fixture importing only `buildCreateSlice` +
+`noopAdapter` from `src/v3/index` drops the `immer` import under **both**
+esbuild and rollup; the default-`createSlice` fixture keeps it. So the
+PURE-annotated static binding avoids the 2.x computed-key pathology
+(INV-CS-084) — esbuild included.
+
+Runtime findings: mutative's "please use rawReturn()" warning is unconditional
+(not NODE_ENV-gated) and fires for object-returning case reducers; blanket
+`rawReturn()` wrapping is wrong because it would skip nested-draft
+finalization (revoked-proxy leaks — the 2023 failure class). The adapter
+passes recipe results through unchanged and documents `rawReturn()` as the
+user-side silencer. The noop adapter turns mutate-without-return into the
+existing "case reducer on a non-draftable value must not return undefined"
+throw, and skips freezing entirely.

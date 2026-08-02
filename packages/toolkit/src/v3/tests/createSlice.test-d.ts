@@ -5,9 +5,9 @@ import type {
   PayloadAction,
 } from '../../createAction'
 import type { AsyncThunk } from '../../createAsyncThunk'
-import type { CaseReducer } from '../../createReducer'
+import type { CaseReducer } from '../createReducer'
 import { asyncThunkCreator, resetCreator } from '../creators'
-import { createSlice } from '../createSlice'
+import { createSlice } from '../index'
 
 interface Todo {
   id: number

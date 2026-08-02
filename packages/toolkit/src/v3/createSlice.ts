@@ -6,10 +6,14 @@ import type {
   _ActionCreatorWithPreparedPayload,
 } from '../createAction'
 import { createAction } from '../createAction'
-import type { CaseReducer, ReducerWithInitialState } from '../createReducer'
-import { createReducer } from '../createReducer'
-import type { ActionReducerMapBuilder } from '../mapBuilders'
+import type {
+  ActionReducerMapBuilder,
+  CaseReducer,
+  ReducerWithInitialState,
+} from './createReducer'
+import { createReducerImpl } from './createReducer'
 import { executeReducerBuilderCallback } from '../mapBuilders'
+import type { ImmutabilityAdapter } from './immutability'
 import type {
   AnyExposure,
   BuiltinSliceCreators,
@@ -23,7 +27,7 @@ import type {
 } from './creators'
 import { buildBuiltinCreators, isReducerDefinition } from './creators'
 import type { InjectConfig } from './combineSlices'
-import { getOrInsertComputed } from '../utils'
+import { getOrInsertComputed } from './utils'
 
 /**
  * RTK 3.0 createSlice prototype.
@@ -47,8 +51,13 @@ import { getOrInsertComputed } from '../utils'
  *   instead fall back to `getInitialState()`, with stable identity — that
  *   tolerance is the point of injection.
  *
- * Deliberately out of scope for this spike: immutability adapters (Immer is
- * used directly via createReducer), selector memoization,
+ * - Immutability is provided by an `ImmutabilityAdapter` (see
+ *   `./immutability.ts`). `createSlice` itself is produced by
+ *   `buildCreateSlice({ immutability })`; the main entry exports one
+ *   prebuilt with the Immer adapter behind a `@__PURE__` annotation. A
+ *   per-slice `immutability` option overrides the builder default.
+ *
+ * Deliberately out of scope for this spike: selector memoization,
  * `asyncThunk.withTypes`.
  */
 
@@ -247,6 +256,11 @@ interface CommonSliceOptions<
   reducerPath?: ReducerPath
   selectors?: Selectors
   /**
+   * Overrides the immutability adapter this `createSlice` was built with,
+   * for this slice only.
+   */
+  immutability?: ImmutabilityAdapter
+  /**
    * Registers case reducers for actions defined outside this slice
    * (other slices' actions, thunk lifecycle actions, matchers).
    *
@@ -282,50 +296,93 @@ export interface CreateSliceCallbackOptions<
   reducers: (create: BuiltinSliceCreators<State> & CustomCreators) => Defs
 }
 
-export function createSlice<
-  State,
-  Name extends string,
-  CRs extends SliceCaseReducers<State>,
-  ReducerPath extends string = Name,
-  Selectors extends SliceSelectors<State> = SliceSelectors<State>,
->(
-  options: CreateSliceObjectOptions<State, Name, CRs, ReducerPath, Selectors>,
-): Slice<
-  State,
-  Name,
-  ObjectSliceActions<Name, CRs>,
-  ObjectSliceCaseReducers<CRs>,
-  ReducerPath,
-  Selectors
->
-
-export function createSlice<
-  State,
-  Name extends string,
-  CustomCreators extends CreatorsMap = {},
-  Defs extends DefinitionsShape = DefinitionsShape,
-  ReducerPath extends string = Name,
-  Selectors extends SliceSelectors<State> = SliceSelectors<State>,
->(
-  options: CreateSliceCallbackOptions<
+/**
+ * The `createSlice` function type: one call signature per declaration form
+ * (object form first, callback form second — the order matters for overload
+ * resolution).
+ */
+export interface CreateSlice {
+  <
+    State,
+    Name extends string,
+    CRs extends SliceCaseReducers<State>,
+    ReducerPath extends string = Name,
+    Selectors extends SliceSelectors<State> = SliceSelectors<State>,
+  >(
+    options: CreateSliceObjectOptions<
+      State,
+      Name,
+      CRs,
+      ReducerPath,
+      Selectors
+    >,
+  ): Slice<
     State,
     Name,
-    CustomCreators,
-    Defs,
+    ObjectSliceActions<Name, CRs>,
+    ObjectSliceCaseReducers<CRs>,
     ReducerPath,
     Selectors
-  >,
-): Slice<
-  State,
-  Name,
-  DefinitionSliceActions<Name, Defs>,
-  DefinitionSliceCaseReducers<State, Defs>,
-  ReducerPath,
-  Selectors
->
+  >
 
-export function createSlice(options: any): any {
+  <
+    State,
+    Name extends string,
+    CustomCreators extends CreatorsMap = {},
+    Defs extends DefinitionsShape = DefinitionsShape,
+    ReducerPath extends string = Name,
+    Selectors extends SliceSelectors<State> = SliceSelectors<State>,
+  >(
+    options: CreateSliceCallbackOptions<
+      State,
+      Name,
+      CustomCreators,
+      Defs,
+      ReducerPath,
+      Selectors
+    >,
+  ): Slice<
+    State,
+    Name,
+    DefinitionSliceActions<Name, Defs>,
+    DefinitionSliceCaseReducers<State, Defs>,
+    ReducerPath,
+    Selectors
+  >
+}
+
+export interface BuildCreateSliceConfig {
+  /**
+   * The immutability adapter every slice from this `createSlice` uses,
+   * unless overridden per slice via the `immutability` option.
+   */
+  immutability: ImmutabilityAdapter
+}
+
+/**
+ * Builds a `createSlice` bound to an immutability adapter. Unlike the 2.x
+ * `buildCreateSlice` (which existed to smuggle `createAsyncThunk` past the
+ * bundler via the `creators` option), this one exists because the adapter
+ * is a bundle-size decision: the main entry's prebuilt `createSlice` binds
+ * the Immer adapter behind a `@__PURE__` annotation, so building your own
+ * with `noopAdapter` (or the Mutative adapter) should let bundlers drop
+ * Immer.
+ */
+export function buildCreateSlice(config: BuildCreateSliceConfig): CreateSlice {
+  const { immutability: defaultAdapter } = config
+  if (!defaultAdapter) {
+    throw new Error(
+      'buildCreateSlice requires an `immutability` adapter. Use `immerAdapter` for 2.x-equivalent behavior.',
+    )
+  }
+
+  return ((options: any) =>
+    createSliceImpl(options, defaultAdapter)) as CreateSlice
+}
+
+function createSliceImpl(options: any, defaultAdapter: ImmutabilityAdapter): any {
   const { name, reducerPath = name } = options
+  const adapter: ImmutabilityAdapter = options.immutability ?? defaultAdapter
 
   // Eager validation: everything below reads only `options` and runs
   // unconditionally, in development and production alike.
@@ -468,7 +525,7 @@ export function createSlice(options: any): any {
       }
     }
 
-    return createReducer(options.initialState, (builder) => {
+    return createReducerImpl(options.initialState, (builder) => {
       for (const { type, reducer } of typedCases) {
         builder.addCase(type, reducer)
       }
@@ -484,7 +541,7 @@ export function createSlice(options: any): any {
       if (defaultCaseReducer) {
         builder.addDefaultCase(defaultCaseReducer)
       }
-    })
+    }, adapter)
   }
 
   function ensureReducer() {

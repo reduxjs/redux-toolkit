@@ -8,7 +8,7 @@ import type {
   UnionToIntersection,
   WithOptionalProp,
 } from '../tsHelpers'
-import { getOrInsertComputed } from '../utils'
+import { getOrInsertComputed } from './utils'
 
 /**
  * RTK 3.0 combineSlices prototype.

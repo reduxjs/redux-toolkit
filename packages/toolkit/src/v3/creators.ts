@@ -7,8 +7,11 @@ import type {
 } from '../createAsyncThunk'
 import type { PayloadAction, PrepareAction } from '../createAction'
 import { createAction } from '../createAction'
-import type { CaseReducer } from '../createReducer'
-import type { AsyncThunkReducers, TypedActionCreator } from '../mapBuilders'
+import type {
+  AsyncThunkReducers,
+  CaseReducer,
+  TypedActionCreator,
+} from './createReducer'
 import { isAnyOf } from '../matchers'
 import type { TypeGuard } from '../tsHelpers'
 

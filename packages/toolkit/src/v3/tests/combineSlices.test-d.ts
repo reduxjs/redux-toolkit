@@ -1,7 +1,7 @@
 import type { Reducer } from 'redux'
 import { combineSlices } from '../combineSlices'
 import type { WithSlice } from '../combineSlices'
-import { createSlice } from '../createSlice'
+import { createSlice } from '../index'
 
 interface CounterState {
   value: number
