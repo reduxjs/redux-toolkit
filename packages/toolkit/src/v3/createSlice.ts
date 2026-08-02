@@ -22,6 +22,8 @@ import type {
   ValueExposure,
 } from './creators'
 import { buildBuiltinCreators, isReducerDefinition } from './creators'
+import type { InjectConfig } from './combineSlices'
+import { getOrInsertComputed } from '../utils'
 
 /**
  * RTK 3.0 createSlice prototype.
@@ -41,11 +43,13 @@ import { buildBuiltinCreators, isReducerDefinition } from './creators'
  * - `slice.caseReducers` holds the user's exact functions in every
  *   declaration form (2.x wrapped them in the callback form).
  * - `selectSlice` / wrapped selectors throw on missing state in prod too
- *   (2.x returned `undefined` in prod).
+ *   (2.x returned `undefined` in prod). Injected slices (via `injectInto`)
+ *   instead fall back to `getInitialState()`, with stable identity — that
+ *   tolerance is the point of injection.
  *
  * Deliberately out of scope for this spike: immutability adapters (Immer is
- * used directly via createReducer), `injectInto`/`combineSlices` integration,
- * selector memoization, `asyncThunk.withTypes`.
+ * used directly via createReducer), selector memoization,
+ * `asyncThunk.withTypes`.
  */
 
 export type SliceCaseReducers<State> = Record<
@@ -139,18 +143,63 @@ export type DefinitionSliceCaseReducers<
 
 export type WrappedSliceSelectors<
   State,
-  ReducerPath extends string,
+  RootState,
   Selectors extends SliceSelectors<State>,
 > = {
   [K in keyof Selectors]: Selectors[K] extends (
     sliceState: State,
     ...args: infer Args
   ) => infer Result
-    ? ((
-        rootState: { [P in ReducerPath]: State },
-        ...args: Args
-      ) => Result) & { unwrapped: Selectors[K] }
+    ? ((rootState: RootState, ...args: Args) => Result) & {
+        unwrapped: Selectors[K]
+      }
     : never
+}
+
+export interface InjectIntoConfig<NewReducerPath extends string>
+  extends InjectConfig {
+  reducerPath?: NewReducerPath
+}
+
+/**
+ * Anything a slice can be injected into: a v3 or 2.x `combineSlices`
+ * reducer, or any other object following the same `inject` protocol.
+ */
+export interface Injectable {
+  inject(
+    slice: { reducerPath: string; reducer: Reducer },
+    config?: InjectConfig,
+  ): unknown
+}
+
+/**
+ * The slice returned by `injectInto`: identical to the original, except its
+ * selectors tolerate the slice state being absent from the root state and
+ * fall back to `getInitialState()` (with stable identity per selector fn).
+ */
+export type InjectedSlice<
+  State,
+  Name extends string,
+  Actions,
+  CaseReducersOut,
+  ReducerPath extends string,
+  Selectors extends SliceSelectors<State>,
+> = Omit<
+  Slice<State, Name, Actions, CaseReducersOut, ReducerPath, Selectors>,
+  'selectSlice' | 'selectors' | 'getSelectors'
+> & {
+  selectSlice(rootState: { [P in ReducerPath]?: State }): State
+  selectors: WrappedSliceSelectors<
+    State,
+    { [P in ReducerPath]?: State },
+    Selectors
+  >
+  getSelectors(): {
+    [K in keyof Selectors]: Selectors[K]
+  }
+  getSelectors<RootState>(
+    selectState: (rootState: RootState) => State | undefined,
+  ): WrappedSliceSelectors<State, RootState, Selectors>
 }
 
 export interface Slice<
@@ -168,22 +217,23 @@ export interface Slice<
   caseReducers: CaseReducersOut
   getInitialState(): State
   selectSlice(rootState: { [P in ReducerPath]: State }): State
-  selectors: WrappedSliceSelectors<State, ReducerPath, Selectors>
+  selectors: WrappedSliceSelectors<State, { [P in ReducerPath]: State }, Selectors>
   getSelectors(): {
     [K in keyof Selectors]: Selectors[K]
   }
   getSelectors<RootState>(
     selectState: (rootState: RootState) => State,
-  ): {
-    [K in keyof Selectors]: Selectors[K] extends (
-      sliceState: State,
-      ...args: infer Args
-    ) => infer Result
-      ? ((rootState: RootState, ...args: Args) => Result) & {
-          unwrapped: Selectors[K]
-        }
-      : never
-  }
+  ): WrappedSliceSelectors<State, RootState, Selectors>
+  /**
+   * Registers this slice's reducer with an injectable combined reducer and
+   * returns a version of the slice whose selectors fall back to
+   * `getInitialState()` when the slice state is missing from the root
+   * state (instead of throwing, as the uninjected slice's selectors do).
+   */
+  injectInto<NewReducerPath extends string = ReducerPath>(
+    injectable: Injectable,
+    config?: InjectIntoConfig<NewReducerPath>,
+  ): InjectedSlice<State, Name, Actions, CaseReducersOut, NewReducerPath, Selectors>
 }
 
 interface CommonSliceOptions<
@@ -453,50 +503,107 @@ export function createSlice(options: any): any {
     },
   )
 
-  function selectSlice(rootState: Record<string, unknown>) {
-    const sliceState = rootState[reducerPath]
-    if (typeof sliceState === 'undefined') {
-      throw new Error(
-        `[slice ${name}] selectSlice: root state does not contain a "${reducerPath}" key. Is the slice reducer included in the store?`,
-      )
-    }
-    return sliceState
-  }
+  const selectSelf = (state: unknown) => state
 
-  function getSelectors(
-    selectState: (rootState: any) => unknown = selectSlice,
-  ) {
-    const wrapped: Record<string, unknown> = {}
-    for (const [key, selector] of Object.entries(
-      (options.selectors ?? {}) as SliceSelectors<any>,
-    )) {
-      wrapped[key] = Object.assign(
-        (rootState: unknown, ...args: unknown[]) =>
-          selector(selectState(rootState), ...args),
+  // Stable fallback state per selectState function, so that repeated
+  // pre-injection selector calls return the same object identity.
+  const injectedStateCache = new WeakMap<
+    (rootState: any) => unknown,
+    unknown
+  >()
+
+  function makeSelectorProps(currentReducerPath: string, injected = false) {
+    function selectSlice(rootState: Record<string, unknown>) {
+      let sliceState = rootState[currentReducerPath]
+      if (typeof sliceState === 'undefined') {
+        if (injected) {
+          sliceState = getOrInsertComputed(injectedStateCache, selectSlice, () =>
+            reducer.getInitialState(),
+          )
+        } else {
+          throw new Error(
+            `[slice ${name}] selectSlice: root state does not contain a "${currentReducerPath}" key. Is the slice reducer included in the store?`,
+          )
+        }
+      }
+      return sliceState
+    }
+
+    function wrapSelector(
+      selector: (sliceState: any, ...args: any[]) => unknown,
+      selectState: (rootState: any) => unknown,
+    ) {
+      return Object.assign(
+        (rootState: unknown, ...args: unknown[]) => {
+          let sliceState = selectState(rootState)
+          if (typeof sliceState === 'undefined') {
+            if (injected) {
+              sliceState = getOrInsertComputed(
+                injectedStateCache,
+                selectState,
+                () => reducer.getInitialState(),
+              )
+            } else {
+              throw new Error(
+                `[slice ${name}] selector: selectState returned undefined for an uninjected slice. Is the slice reducer included in the store?`,
+              )
+            }
+          }
+          return selector(sliceState, ...args)
+        },
         { unwrapped: selector },
       )
     }
-    return wrapped
+
+    const selectorCache = new WeakMap<
+      (rootState: any) => unknown,
+      Record<string, unknown>
+    >()
+
+    function getSelectors(
+      selectState: (rootState: any) => unknown = selectSelf,
+    ) {
+      return getOrInsertComputed(selectorCache, selectState, () => {
+        const wrapped: Record<string, unknown> = {}
+        for (const [key, selector] of Object.entries(
+          (options.selectors ?? {}) as SliceSelectors<any>,
+        )) {
+          wrapped[key] = wrapSelector(selector, selectState)
+        }
+        return wrapped
+      })
+    }
+
+    return {
+      reducerPath: currentReducerPath,
+      selectSlice,
+      getSelectors,
+      get selectors() {
+        return getSelectors(selectSlice)
+      },
+    }
   }
 
-  let _selectors: Record<string, unknown> | undefined
-
-  return {
+  const slice = {
     name,
-    reducerPath,
     reducer,
     actions,
     caseReducers,
     getInitialState: () => ensureReducer().getInitialState(),
-    selectSlice,
-    getSelectors,
-    get selectors() {
-      if (!_selectors) {
-        _selectors = getSelectors()
+    ...makeSelectorProps(reducerPath),
+    injectInto(
+      injectable: { inject: (slice: unknown, config?: unknown) => unknown },
+      { reducerPath: pathOpt, ...config }: Record<string, unknown> = {},
+    ) {
+      const newReducerPath = (pathOpt as string) ?? reducerPath
+      injectable.inject({ reducerPath: newReducerPath, reducer }, config)
+      return {
+        ...slice,
+        ...makeSelectorProps(newReducerPath, true),
       }
-      return _selectors
     },
   }
+  return slice
 }
 
 /**

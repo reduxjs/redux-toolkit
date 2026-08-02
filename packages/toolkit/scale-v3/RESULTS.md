@@ -177,3 +177,8 @@ exposure-driven `actions`/`caseReducers` mapped types replacing 2.x's
 form matches the 2.x slope (slightly better) while dropping the
 `buildCreateSlice` ritual — the per-call `creators` callback costs nothing
 measurable at scale. No superlinear behavior anywhere.
+
+Follow-up after adding selector injection (`injectInto`, `InjectedSlice`, v3
+`combineSlices` with the getInitialState-preferring state proxy): v3 slopes
+moved from 273 to 276 (object) and 740 to 743 (callback) instantiations per
+slice — the injection typing costs 3 inst/slice and stays exactly linear.

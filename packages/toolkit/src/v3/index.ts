@@ -7,6 +7,9 @@ export type {
   DefinitionsShape,
   DefinitionSliceActions,
   DefinitionSliceCaseReducers,
+  InjectedSlice,
+  Injectable,
+  InjectIntoConfig,
   ObjectSliceActions,
   ObjectSliceCaseReducers,
   Slice,
@@ -14,6 +17,14 @@ export type {
   SliceSelectors,
   WrappedSliceSelectors,
 } from './createSlice'
+
+export { combineSlices } from './combineSlices'
+export type {
+  CombinedSliceReducer,
+  InjectConfig,
+  SliceLike,
+  WithSlice,
+} from './combineSlices'
 
 export {
   asyncThunkCreator,
