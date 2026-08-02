@@ -1,0 +1,14 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": [
+      "node"
+    ],
+    "rootDir": ".."
+  },
+  "files": [
+    "fixtures/slice-v3-obj-200.ts"
+  ],
+  "include": []
+}
