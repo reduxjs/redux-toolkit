@@ -7796,6 +7796,7 @@ __metadata:
     immer: "npm:^11.0.0"
     jsdom: "npm:^25.0.1"
     msw: "npm:^2.1.4"
+    mutative: "npm:^1.3.0"
     node-fetch: "npm:^3.3.2"
     prettier: "npm:^3.2.5"
     query-string: "npm:^7.0.1"
@@ -24029,6 +24030,13 @@ __metadata:
   bin:
     multicast-dns: cli.js
   checksum: 10/e9add8035fb7049ccbc87b1b069f05bb3b31e04fe057bf7d0116739d81295165afc2568291a4a962bee01a5074e475996816eed0f50c8110d652af5abb74f95a
+  languageName: node
+  linkType: hard
+
+"mutative@npm:^1.3.0":
+  version: 1.3.0
+  resolution: "mutative@npm:1.3.0"
+  checksum: 10/1e38ea5212f3410e2e62fb71ab5ff9c9efb9327b8e62aa77ca5faf8cea8304ddb7c21d2e586323ac7e5048c8c8eebb8187b2e9347e348e60d6841cfe14ed05a0
   languageName: node
   linkType: hard
 
