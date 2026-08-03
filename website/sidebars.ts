@@ -69,6 +69,7 @@ const sidebars: SidebarsConfig = {
             'api/createAction',
             'api/createSlice',
             'api/createAsyncThunk',
+            'api/createAsyncThunkWithProgress',
             'api/createEntityAdapter',
             'api/combineSlices',
           ],
