@@ -10,7 +10,7 @@ import type {
   ThunkDispatch,
   UnknownAction,
 } from '@reduxjs/toolkit'
-import { enablePatches } from '../utils/immerImports'
+import { immerAdapterWithPatches } from '../../v3'
 import type { Api, Module } from '../apiTypes'
 import type { BaseQueryFn } from '../baseQueryTypes'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
@@ -546,10 +546,17 @@ export const coreModule = ({
       onSchemaFailure,
       catchSchemaFailure,
       skipSchemaValidation,
+      immutability = immerAdapterWithPatches,
     },
     context,
   ) {
-    enablePatches()
+    if (!immutability.patches) {
+      throw new Error(
+        'RTK Query requires an immutability adapter with `patches` support. ' +
+          'Provide an adapter that implements `produceWithPatches` and `applyPatches`, ' +
+          'such as `immerAdapterWithPatches`.',
+      )
+    }
 
     assertCast<InternalSerializeQueryArgs>(serializeQueryArgs)
 
@@ -615,6 +622,7 @@ export const coreModule = ({
       onSchemaFailure,
       catchSchemaFailure,
       skipSchemaValidation,
+      immutability,
     })
 
     const { reducer, actions: sliceActions } = buildSlice({
@@ -625,6 +633,7 @@ export const coreModule = ({
       serializeQueryArgs,
       reducerPath,
       assertTagType,
+      immutability,
       config: {
         refetchOnFocus,
         refetchOnReconnect,
@@ -694,6 +703,7 @@ export const coreModule = ({
       selectors,
       getRunningQueryThunk,
       getInternalState,
+      immutability,
     })
     safeAssign(api.util, middlewareActions)
 

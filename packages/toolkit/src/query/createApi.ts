@@ -3,6 +3,7 @@ import { weakMapMemoize } from 'reselect'
 import type { Api, ApiContext, Module, ModuleName } from './apiTypes'
 import { getEndpointDefinition } from './apiTypes'
 import type { BaseQueryFn } from './baseQueryTypes'
+import type { ImmutabilityAdapter } from '../v3'
 import type { CombinedState } from './core/index'
 import { nanoid } from './core/rtkImports'
 import type { SerializeQueryArgs } from './defaultSerializeQueryArgs'
@@ -46,6 +47,17 @@ export interface CreateApiOptions<
    * ```
    */
   baseQuery: BaseQuery
+  /**
+   * SPIKE (v3 immutability adapters): the immutability adapter used for all of
+   * this api's internal reducers and patch-based utilities
+   * (`updateQueryData`, subscription syncing, structural sharing).
+   *
+   * RTK Query requires an adapter with `patches` support - passing an adapter
+   * without `patches` throws at `createApi` call time.
+   *
+   * Defaults to `immerAdapterWithPatches` (2.x-equivalent behavior).
+   */
+  immutability?: ImmutabilityAdapter
   /**
    * An array of string tag type names. Specifying tag types is optional, but you should define them so that they can be used for caching and invalidation. When defining a tag type, you will be able to [provide](../../rtk-query/usage/automated-refetching#providing-tags) them with `providesTags` and [invalidate](../../rtk-query/usage/automated-refetching#invalidating-tags) them with `invalidatesTags` when configuring [endpoints](#endpoints).
    *

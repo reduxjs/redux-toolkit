@@ -29,7 +29,6 @@ import type {
 import { STATUS_UNINITIALIZED, getRequestStatusFlags } from './apiState'
 import { getMutationCacheKey } from './buildSlice'
 import type { createSelector as _createSelector } from './rtkImports'
-import { createNextState } from './rtkImports'
 import {
   type AllQueryKeys,
   getNextPageParam,
@@ -154,14 +153,12 @@ const initialSubState: QuerySubState<any> = {
   status: STATUS_UNINITIALIZED,
 }
 
-// abuse immer to freeze default states
-const defaultQuerySubState = /* @__PURE__ */ createNextState(
-  initialSubState,
-  () => {},
-)
-const defaultMutationSubState = /* @__PURE__ */ createNextState(
+// SPIKE (v3 immutability adapters): these were previously frozen by abusing
+// immer's `createNextState` - a plain `Object.freeze` does the same thing
+// without an immer dependency (the objects have no nested structure).
+const defaultQuerySubState = /* @__PURE__ */ Object.freeze(initialSubState)
+const defaultMutationSubState = /* @__PURE__ */ Object.freeze(
   initialSubState as MutationSubState<any>,
-  () => {},
 )
 
 export type AllSelectors = ReturnType<typeof buildSelectors>

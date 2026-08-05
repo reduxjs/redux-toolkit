@@ -214,3 +214,140 @@ passes recipe results through unchanged and documents `rawReturn()` as the
 user-side silencer. The noop adapter turns mutate-without-return into the
 existing "case reducer on a non-draftable value must not return undefined"
 throw, and skips freezing entirely.
+
+## createSlice v3 opaque patches (2026-08-02)
+
+Question (Mark): what would it take for RTK Query to run on a swapped
+immutability library, given RTKQ's Immer usage goes beyond what
+`createReducer` needs?
+
+RTKQ's full Immer surface, verified in 2.x source: `produceWithPatches`
+(buildThunks.ts:436 optimistic updates, batchActions.ts:179 subscription
+diffs with a *returning* recipe), `applyPatches` on drafts inside case
+reducers (buildSlice.ts:369, :669), `isDraft` + `original` for structural
+sharing (buildSlice.ts:270-271), `isDraft` + `current` (utils/getCurrent.ts),
+`enablePatches()` once at module init (module.ts:552), and the public
+`Patch` type in `PatchCollection` (buildThunks.ts:304-312).
+
+### Design
+
+`ImmutabilityAdapter` gained guarded `current`/`original` (identity on
+non-drafts; both libs' own helpers throw there) and an *optional* `patches`
+member (`ImmutabilityPatchSupport`): `produceWithPatches` returning
+`[next, Patches, Patches]` and `applyPatches(base | draft, Patches)`. The
+`Patches` type is branded and opaque — the contract is only that production
+and application are reciprocal within one adapter, per Mark's framing. The
+patch *format* is never exposed (2.x RTKQ exposes Immer's `Patch` type
+publicly, so this is a deliberate public break for patch inspectors).
+
+Patch support ships as separate composed exports (`immerAdapterWithPatches`,
+`mutativeAdapterWithPatches`, `noopAdapterWithPatches`) so the default
+`createSlice` path never references Immer's patch plugin.
+
+### Probe findings (mutative 1.3.0, immer 10.x)
+
+- Mutative patches: JSON-Patch-style `{op, path[], value}`, `apply` works on
+  plain values, frozen values, and drafts (mutates in place); reciprocal in
+  both directions, including with `enableAutoFreeze`.
+- Both libs natively handle non-draftable bases and returning recipes in
+  patch production (root-replace patches) — RTKQ's manual `isDraftable`
+  fallback branch in buildThunks.ts:434-451 is unnecessary at this level.
+- Both libs' `current`/`original` throw on non-drafts, hence the guarded
+  adapter contract.
+- The noop adapter implements patches as whole-value snapshots, which
+  trivially satisfies reciprocity — existence proof that any strategy fits
+  behind the opaque type.
+
+### Bundle results (esbuild, minified; fixture D = patches used)
+
+| fixture | immer external | immer bundled |
+|---|---|---|
+| A: default `createSlice` | 6,375 B | 15,011 B |
+| B: `buildCreateSlice` + noop | 6,230 B (immer dropped, esbuild AND rollup) | 6,230 B (zero immer) |
+| D: `immerAdapterWithPatches` used | 6,655 B | 18,576 B |
+
+Immer's patch plugin costs **~3,565 B minified**, paid only when
+`immerAdapterWithPatches` is actually imported. One trap found and fixed:
+the `WithPatches` adapters were first written as top-level
+`{...baseAdapter, patches: {...}}` literals, and a top-level object
+**spread** is not provably side-effect-free — both esbuild and Rollup
+retained the patch adapters (and the plugin) in bundles that never used
+them. Wrapping in a `@__PURE__` IIFE (the 2.x `createAsyncThunk` pattern)
+fixed both bundlers.
+
+### What this proves / doesn't
+
+Proves: the entire RTKQ Immer surface fits behind the adapter, patch
+opacity works end-to-end (produce outside the store, dispatch, apply to a
+draft in a case reducer, undo via inverse patches — the
+updateQueryData/queryResultPatched cycle, tested against immer, mutative,
+and noop), and the plugin cost stays out of non-RTKQ bundles.
+
+Doesn't: actually thread an `immutability` option through `createApi` —
+query/v3 has no slice layer yet. Open questions for that step: whether
+RTKQ 3.0 requires `adapter.patches` (runtime guard) or degrades, and
+whether `PatchCollection`'s public patch arrays survive as opaque handles
+(mutating `ret.patches.push(...)` composition in buildThunks would need
+restructuring either way).
+
+## RTKQ on immutability adapters (2026-08-02)
+
+The "does the rest of it work" experiment: thread the v3 `ImmutabilityAdapter`
+through the real 2.x RTK Query core and run the existing suite. This is the
+re-derivation of PR #3074's RTKQ half, minus its non-breaking constraint.
+
+### What changed (7 files in `src/query`)
+
+- `createApi.ts`: new `immutability?: ImmutabilityAdapter` option, default
+  `immerAdapterWithPatches`. `module.ts` throws at `createApi` time if the
+  adapter lacks `patches` support (the "RTKQ requires patches" policy).
+- `core/buildSlice.ts`: all six internal slices now built from
+  `buildCreateSlice({ immutability })` (v3), `extraReducers` -> `respondTo`.
+  Immer call sites became adapter calls: `applyPatches` x2 (queryResultPatched,
+  subscriptionsUpdated), `isDraft`+`original` -> guarded `adapter.original`
+  (structural sharing), `createNextState` -> `adapter.produce` (the `merge`
+  path, produce-on-draft), `getCurrent` x2 -> guarded `adapter.current`.
+- `core/buildThunks.ts`: `updateQueryData`'s manual `isDraftable` fallback
+  collapsed into one `adapter.patches.produceWithPatches` call (both libs
+  natively emit root-replace patches for non-draftable bases and returning
+  recipes). Behavior divergence: a recipe returning nothing for non-draftable
+  data is now a no-op instead of replacing the cache entry with `undefined`.
+- `core/buildMiddleware/{types,batchActions}.ts`: adapter threaded into the
+  middleware input; subscription diff uses `adapter.patches.produceWithPatches`.
+- `core/buildSelectors.ts`: the module-level "abuse immer to freeze" defaults
+  became plain `Object.freeze` (no nested structure, identical semantics).
+- `core/module.ts`: `enablePatches()` removed (the immer adapter enables
+  lazily on first patch use).
+
+`utils/immerImports.ts` and `utils/getCurrent.ts` are now unreferenced by the
+core module. `Patch` remains in public types (`PatchCollection`,
+`subscriptionsUpdated` payload) with casts at the adapter boundary - making
+those opaque `Patches` is the remaining public-API decision.
+
+### Results
+
+- Typecheck (`src/query/index.ts` + `src/query/react/index.ts` + `src/v3/index.ts`): clean.
+  The v3 object-form inference handled all six RTKQ slices as-is, including
+  prepared reducers, `caseReducers.updateProvidedBy` called directly with a
+  draft, and the `SliceActions` type flowing into `api.internalActions`.
+- Full RTKQ suite on the Immer default: 31 files, 537 passed, 1 todo, 0 failed.
+  Zero test changes needed.
+- New `tests/mutativeAdapter.test.ts` (7 tests): a real api on
+  `mutativeAdapterWithPatches` - fetch + frozen cache data, structural sharing
+  identity on refetch, `updateQueryData` + undo reciprocity, `merge`
+  (nested produce-on-draft: verified mutative supports `create(draft, recipe)`
+  inside another `create`), subscription sync through the middleware patch
+  diff, `resetApiState`, and the adapter-without-patches rejection.
+- v3 suite still 97 tests, no type errors.
+
+### Caveats
+
+- Mutative's unconditional "use rawReturn()" console warning fires for the
+  subscription-sync diff (a returning recipe) roughly once per 500ms sync
+  under mutative. Cosmetic, but would need upstream gating or `rawReturn`
+  threading for a polished mutative story.
+- The `immutability` option is per-api. Two apis with different adapters in
+  one store work fine; mixing adapters within one api's cache is not a thing.
+- Public `Patch`-typed surfaces still claim immer's format; under mutative the
+  runtime contents are mutative patches (coincidentally the same JSON-Patch
+  shape today, but that is not contractual).

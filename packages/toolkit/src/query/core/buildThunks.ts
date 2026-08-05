@@ -7,7 +7,7 @@ import type {
   UnknownAction,
 } from '@reduxjs/toolkit'
 import type { Patch } from 'immer'
-import { isDraftable, produceWithPatches } from '../utils/immerImports'
+import type { ImmutabilityAdapter } from '../../v3'
 import type { Api, ApiContext } from '../apiTypes'
 import type {
   BaseQueryError,
@@ -343,6 +343,7 @@ export function buildThunks<
   onSchemaFailure,
   catchSchemaFailure: globalCatchSchemaFailure,
   skipSchemaValidation: globalSkipSchemaValidation,
+  immutability,
 }: {
   baseQuery: BaseQuery
   reducerPath: ReducerPath
@@ -354,6 +355,7 @@ export function buildThunks<
   onSchemaFailure: SchemaFailureHandler | undefined
   catchSchemaFailure: SchemaFailureConverter<BaseQuery> | undefined
   skipSchemaValidation: boolean | SchemaType[] | undefined
+  immutability: ImmutabilityAdapter
 }) {
   type State = RootState<any, string, ReducerPath>
 
@@ -432,23 +434,20 @@ export function buildThunks<
       }
       let newValue
       if ('data' in currentState) {
-        if (isDraftable(currentState.data)) {
-          const [value, patches, inversePatches] = produceWithPatches(
+        // SPIKE (v3 immutability adapters): both Immer and Mutative natively
+        // handle non-draftable bases and returning recipes by generating
+        // root-replace patches, so the old manual `isDraftable` fallback
+        // collapsed into a single adapter call. Behavior difference: a recipe
+        // that returns nothing for a non-draftable base is now a no-op instead
+        // of replacing the data with `undefined`.
+        const [value, patches, inversePatches] =
+          immutability.patches!.produceWithPatches(
             currentState.data,
-            updateRecipe,
+            updateRecipe as any,
           )
-          ret.patches.push(...patches)
-          ret.inversePatches.push(...inversePatches)
-          newValue = value
-        } else {
-          newValue = updateRecipe(currentState.data)
-          ret.patches.push({ op: 'replace', path: [], value: newValue })
-          ret.inversePatches.push({
-            op: 'replace',
-            path: [],
-            value: currentState.data,
-          })
-        }
+        ret.patches.push(...(patches as unknown as Patch[]))
+        ret.inversePatches.push(...(inversePatches as unknown as Patch[]))
+        newValue = value
       }
 
       if (ret.patches.length === 0) {

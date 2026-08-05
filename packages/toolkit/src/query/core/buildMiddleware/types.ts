@@ -9,6 +9,7 @@ import type {
   UnknownAction,
 } from '@reduxjs/toolkit'
 import type { Api, ApiContext } from '../../apiTypes'
+import type { ImmutabilityAdapter } from '../../../v3'
 import type {
   AssertTagTypes,
   EndpointDefinitions,
@@ -79,6 +80,7 @@ export interface BuildMiddlewareInput<
     queryArgs: any,
   ) => (dispatch: Dispatch) => QueryActionCreatorResult<any> | undefined
   getInternalState: (dispatch: Dispatch) => InternalMiddlewareState
+  immutability: ImmutabilityAdapter
 }
 
 export type SubMiddlewareApi = MiddlewareAPI<

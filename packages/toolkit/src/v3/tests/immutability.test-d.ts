@@ -3,7 +3,12 @@ import type { PayloadAction } from '../../createAction'
 import type { ActionCreatorWithPayload } from '../../createAction'
 import { buildCreateSlice, createSlice } from '../index'
 import { noopAdapter } from '../immutability'
-import type { Draft } from '../immutability'
+import { immerAdapterWithPatches } from '../immerAdapter'
+import type {
+  Draft,
+  ImmutabilityPatchSupport,
+  Patches,
+} from '../immutability'
 
 describe('vendored Draft type matches Immer Draft', () => {
   it('agrees for primitives and atomic objects', () => {
@@ -108,6 +113,41 @@ describe('createSlice typing with immutability options', () => {
     })
     expectTypeOf(callbackSlice.actions.set).toEqualTypeOf<
       ActionCreatorWithPayload<number, 'cb/set'>
+    >()
+  })
+})
+
+describe('opaque Patches type', () => {
+  it('cannot be constructed or inspected without a cast', () => {
+    const support = immerAdapterWithPatches.patches!
+
+    // @ts-expect-error native patch arrays are not assignable to Patches
+    const fabricated: Patches = [{ op: 'replace', path: [], value: 1 }]
+
+    const [next, patches, inversePatches] = support.produceWithPatches(
+      { a: 1 },
+      (draft) => {
+        draft.a = 2
+      },
+    )
+    expectTypeOf(next).toEqualTypeOf<{ a: number }>()
+    expectTypeOf(patches).toEqualTypeOf<Patches>()
+    expectTypeOf(inversePatches).toEqualTypeOf<Patches>()
+
+    // @ts-expect-error opaque: no array access
+    patches.length
+    // @ts-expect-error opaque: no indexing
+    patches[0]
+
+    // round-tripping preserves the base type
+    expectTypeOf(support.applyPatches({ a: 1 }, patches)).toEqualTypeOf<{
+      a: number
+    }>()
+  })
+
+  it('patch support is optional on the adapter contract', () => {
+    expectTypeOf(noopAdapter.patches).toEqualTypeOf<
+      ImmutabilityPatchSupport | undefined
     >()
   })
 })

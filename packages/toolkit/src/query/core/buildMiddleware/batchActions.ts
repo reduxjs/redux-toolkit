@@ -1,12 +1,11 @@
 import type { InternalHandlerBuilder, SubscriptionSelectors } from './types'
 import type { SubscriptionInternalState, SubscriptionState } from '../apiState'
-import { produceWithPatches } from '../../utils/immerImports'
 import type { Action } from '@reduxjs/toolkit'
 import { getOrInsertComputed, createNewMap } from '../../utils/getOrInsert'
 
 export const buildBatchedActionsHandler: InternalHandlerBuilder<
   [actionShouldContinue: boolean, returnValue: SubscriptionSelectors | boolean]
-> = ({ api, queryThunk, internalState, mwApi }) => {
+> = ({ api, queryThunk, internalState, mwApi, immutability }) => {
   const subscriptionsPrefix = `${api.reducerPath}/subscriptions`
 
   let previousSubscriptions: SubscriptionState =
@@ -176,13 +175,13 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
             internalState.currentSubscriptions,
           )
           // Figure out a smaller diff between original and current
-          const [, patches] = produceWithPatches(
+          const [, patches] = immutability.patches!.produceWithPatches(
             previousSubscriptions,
             () => newSubscriptions,
           )
 
           // Sync the store state for visibility
-          mwApi.next(api.internalActions.subscriptionsUpdated(patches))
+          mwApi.next(api.internalActions.subscriptionsUpdated(patches as any))
           // Save the cloned state for later reference
           previousSubscriptions = newSubscriptions
           updateSyncTimer = null

@@ -1,5 +1,12 @@
-import { create, isDraft, isDraftable } from 'mutative'
-import type { ImmutabilityAdapter } from './immutability'
+import {
+  apply,
+  create,
+  current,
+  isDraft,
+  isDraftable,
+  original,
+} from 'mutative'
+import type { ImmutabilityAdapter, Patches } from './immutability'
 
 /**
  * Immutability adapter backed by Mutative.
@@ -58,4 +65,43 @@ export const mutativeAdapter: ImmutabilityAdapter = {
     if (isDraftable(value)) deepFreeze(value)
     return value
   },
+  current: (value) => (isDraft(value) ? current(value as any) : value) as any,
+  original: (value) =>
+    (isDraft(value) ? original(value as any) : value) as any,
 }
+
+/**
+ * Patch support via Mutative's `enablePatches` create option and `apply`.
+ * Verified against mutative 1.3.0:
+ * - patch format is JSON-Patch-style `{op, path, value}` with array paths
+ *   (coincidentally the same shape as Immer's — the opaque `Patches` type
+ *   does not rely on that)
+ * - `apply` works on plain values (returns next), frozen values, and drafts
+ *   (mutates in place and returns the draft)
+ * - non-draftable bases and returning recipes both produce a root-replace
+ *   patch, same as Immer
+ * - the unconditional `rawReturn()` console warning fires for
+ *   object-returning recipes here too, same caveat as `produce`
+ */
+export const mutativeAdapterWithPatches: ImmutabilityAdapter =
+  /* @__PURE__ */ ((): ImmutabilityAdapter => ({
+    ...mutativeAdapter,
+    patches: {
+      produceWithPatches: (base, recipe) => {
+        const [next, patches, inversePatches] = create(
+          base as any,
+          recipe as any,
+          {
+            enablePatches: true,
+            enableAutoFreeze: true,
+          },
+        )
+        return [
+          next as typeof base,
+          patches as unknown as Patches,
+          inversePatches as unknown as Patches,
+        ]
+      },
+      applyPatches: (base, patches) => apply(base as any, patches as any),
+    },
+  }))()

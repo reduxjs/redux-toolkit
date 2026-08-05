@@ -79,6 +79,57 @@ export type Draft<T> = T extends PrimitiveType
             : T
 
 /* ---------------------------------------------------------------------------
+ * Opaque patches
+ * ------------------------------------------------------------------------ */
+
+declare const patchesBrand: unique symbol
+
+/**
+ * An opaque handle for a set of recorded changes, produced by
+ * `produceWithPatches` and consumed by `applyPatches` *of the same adapter*.
+ *
+ * RTK Query's optimistic-update machinery needs to record the changes a
+ * recipe made (as patches plus inverse patches), ship them through a
+ * dispatched action, apply them inside a case reducer, and later apply the
+ * inverse set to undo. None of that requires RTK to understand the patch
+ * format — only that production and application are reciprocal. So the type
+ * is branded and opaque: consumers can store patches and hand them back,
+ * but cannot construct or inspect them without an unsafe cast. Immer and
+ * Mutative both happen to use JSON-Patch-style `{op, path, value}` arrays,
+ * but that is an implementation detail the contract deliberately does not
+ * expose.
+ *
+ * The cost of opacity: 2.x RTKQ exposes Immer's `Patch` type in its public
+ * `PatchCollection` API, so this design is a public break for anyone who
+ * inspects or fabricates patches (rather than just passing them to `undo`).
+ */
+export interface Patches {
+  readonly [patchesBrand]: 'rtk-immutability-patches'
+}
+
+/**
+ * Optional patch recording/replay support for an adapter.
+ *
+ * - `produceWithPatches`: like `produce`, but also returns the recorded
+ *   changes and their inverse. Must handle non-draftable bases (both Immer
+ *   and Mutative natively emit a root-replace patch for those, so RTKQ's
+ *   manual `isDraftable` fallback branch is unnecessary at this level).
+ * - `applyPatches`: apply recorded changes to a base. When `base` is a
+ *   draft (inside `produce`), the adapter mutates it in place and returns
+ *   it; when `base` is a plain value, the adapter returns the next value.
+ *   Reciprocity is the contract: `applyPatches(base, patches)` must equal
+ *   the `next` that `produceWithPatches` returned, and
+ *   `applyPatches(next, inversePatches)` must equal `base`.
+ */
+export interface ImmutabilityPatchSupport {
+  produceWithPatches<T>(
+    base: T,
+    recipe: (draft: Draft<T>) => T | Draft<T> | void,
+  ): readonly [next: T, patches: Patches, inversePatches: Patches]
+  applyPatches<T>(base: T | Draft<T>, patches: Patches): T
+}
+
+/* ---------------------------------------------------------------------------
  * The runtime adapter contract
  * ------------------------------------------------------------------------ */
 
@@ -96,12 +147,29 @@ export type Draft<T> = T extends PrimitiveType
  * - `freezeDraftable`: deep-freeze a draftable value (used on initial
  *   state), returning it. Adapters that do not freeze may make this an
  *   identity function.
+ * - `current`: draft-safe snapshot. Given a draft, return a plain finalized
+ *   copy of its current value; given anything else, return it unchanged.
+ *   (Immer's and Mutative's own `current` throw on non-drafts; the adapter
+ *   contract bakes in the `isDraft` guard that RTK Query's `getCurrent`
+ *   helper adds today.)
+ * - `original`: given a draft, return the original value it was created
+ *   from (RTKQ uses this for structural sharing against the pre-update
+ *   cache entry); given anything else, return it unchanged. Same guarded
+ *   contract as `current`.
+ * - `patches`: optional patch recording/replay support. Only needed by
+ *   consumers that do optimistic updates (RTK Query). Kept optional so the
+ *   default `createSlice`/`createReducer` path never references it — with
+ *   Immer, merely referencing `enablePatches` pulls the patch plugin into
+ *   the bundle.
  */
 export interface ImmutabilityAdapter {
   isDraft(value: unknown): boolean
   isDraftable(value: unknown): boolean
   produce<T>(base: T, recipe: (draft: Draft<T>) => T | Draft<T> | void): T
   freezeDraftable<T>(value: T): T
+  current<T>(value: T | Draft<T>): T
+  original<T>(value: T | Draft<T>): T
+  patches?: ImmutabilityPatchSupport
 }
 
 /* ---------------------------------------------------------------------------
@@ -124,4 +192,36 @@ export const noopAdapter: ImmutabilityAdapter = {
     return result === undefined ? base : (result as typeof base)
   },
   freezeDraftable: (value) => value,
+  current: (value) => value as any,
+  original: (value) => value as any,
+}
+
+/**
+ * The no-op adapter with whole-value snapshot patches. There is no draft
+ * tracking, so "patches" are just the full next (or previous) value:
+ * `produceWithPatches` runs the recipe directly and records snapshots of
+ * the result and the base; `applyPatches` ignores the base and returns the
+ * snapshot. That trivially satisfies the reciprocity contract — and is the
+ * existence proof that *any* immutable-update strategy can implement patch
+ * support behind the opaque type, at the cost of shipping whole values
+ * where Immer/Mutative ship granular diffs.
+ */
+export const noopAdapterWithPatches: ImmutabilityAdapter =
+  /* @__PURE__ */ ((): ImmutabilityAdapter => ({
+    ...noopAdapter,
+    patches: {
+      produceWithPatches: (base, recipe) => {
+        const result = recipe(base as Draft<typeof base>)
+        const next = (result === undefined ? base : result) as typeof base
+        return [next, snapshotPatch(next), snapshotPatch(base)]
+      },
+      applyPatches: (base, patches) =>
+        (patches as unknown as SnapshotPatch).value as any,
+    },
+  }))()
+
+type SnapshotPatch = { value: unknown }
+
+function snapshotPatch(value: unknown): Patches {
+  return { value } as unknown as Patches
 }

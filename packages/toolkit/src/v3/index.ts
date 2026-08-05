@@ -25,11 +25,13 @@ export const createReducer: CreateReducer = /* @__PURE__ */ buildCreateReducer(
 )
 
 export { buildCreateSlice } from './createSlice'
-export { immerAdapter } from './immerAdapter'
-export { noopAdapter } from './immutability'
+export { immerAdapter, immerAdapterWithPatches } from './immerAdapter'
+export { noopAdapter, noopAdapterWithPatches } from './immutability'
 export type {
   Draft,
   ImmutabilityAdapter,
+  ImmutabilityPatchSupport,
+  Patches,
   WritableDraft,
 } from './immutability'
 export { buildCreateReducer } from './createReducer'

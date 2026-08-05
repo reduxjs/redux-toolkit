@@ -2,15 +2,15 @@ import type { PayloadAction } from '@reduxjs/toolkit'
 import {
   combineReducers,
   createAction,
-  createSlice,
   isAnyOf,
   isFulfilled,
   isRejectedWithValue,
-  createNextState,
   prepareAutoBatched,
   SHOULD_AUTOBATCH,
   nanoid,
 } from './rtkImports'
+import { buildCreateSlice } from '../../v3'
+import type { ImmutabilityAdapter, Patches } from '../../v3'
 import type {
   QuerySubstateIdentifier,
   QuerySubState,
@@ -52,7 +52,6 @@ import {
   type QueryDefinition,
 } from '../endpointDefinitions'
 import type { Patch } from 'immer'
-import { applyPatches, original, isDraft } from '../utils/immerImports'
 import { onFocus, onFocusLost, onOffline, onOnline } from './setupListeners'
 import {
   isDocumentVisible,
@@ -63,7 +62,6 @@ import type { ApiContext } from '../apiTypes'
 import { isUpsertQuery } from './buildInitiate'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import type { UnwrapPromise } from '../tsHelpers'
-import { getCurrent } from '../utils/getCurrent'
 
 /**
  * A typesafe single entry to be upserted into the cache
@@ -169,6 +167,7 @@ export function buildSlice({
   },
   assertTagType,
   config,
+  immutability,
 }: {
   reducerPath: string
   queryThunk: QueryThunk
@@ -181,7 +180,13 @@ export function buildSlice({
     ConfigState<string>,
     'online' | 'focused' | 'middlewareRegistered'
   >
+  immutability: ImmutabilityAdapter
 }) {
+  // SPIKE (v3 immutability adapters): all of this api's internal slices are
+  // built against the provided adapter instead of the Immer-bound 2.x createSlice.
+  const createSlice = buildCreateSlice({ immutability })
+  const patchSupport = immutability.patches!
+
   const resetApiState = createAction(`${reducerPath}/resetApiState`)
 
   function writePendingCacheEntry(
@@ -245,10 +250,10 @@ export function buildSlice({
         if (substate.data !== undefined) {
           const { fulfilledTimeStamp, arg, baseQueryMeta, requestId } = meta
           // There's existing cache data. Let the user merge it in themselves.
-          // We're already inside an Immer-powered reducer, and the user could just mutate `substate.data`
+          // We're already inside a draft-powered reducer, and the user could just mutate `substate.data`
           // themselves inside of `merge()`. But, they might also want to return a new value.
-          // Try to let Immer figure that part out, save the result, and assign it to `substate.data`.
-          let newData = createNextState(substate.data, (draftSubstateData) => {
+          // Try to let the adapter figure that part out, save the result, and assign it to `substate.data`.
+          let newData = immutability.produce(substate.data, (draftSubstateData: any) => {
             // As usual with Immer, you can mutate _or_ return inside here, but not both
             return merge(draftSubstateData, payload, {
               arg: arg.originalArgs,
@@ -267,9 +272,8 @@ export function buildSlice({
         substate.data =
           (definitions[meta.arg.endpointName].structuralSharing ?? true)
             ? copyWithStructuralSharing(
-                isDraft(substate.data)
-                  ? original(substate.data)
-                  : substate.data,
+                // `original` is guarded: identity for non-draft values
+                immutability.original(substate.data),
                 payload,
               )
             : payload
@@ -366,7 +370,10 @@ export function buildSlice({
           >,
         ) {
           updateQuerySubstateIfExists(draft, queryCacheKey, (substate) => {
-            substate.data = applyPatches(substate.data as any, patches.concat())
+            substate.data = patchSupport.applyPatches(
+              substate.data as any,
+              patches as unknown as Patches,
+            )
           })
         },
         prepare: prepareAutoBatched<
@@ -374,7 +381,7 @@ export function buildSlice({
         >(),
       },
     },
-    extraReducers(builder) {
+    respondTo(builder) {
       builder
         .addCase(queryThunk.pending, (draft, { meta, meta: { arg } }) => {
           const upserting = isUpsertQuery(arg)
@@ -431,7 +438,7 @@ export function buildSlice({
         prepare: prepareAutoBatched<MutationSubstateIdentifier>(),
       },
     },
-    extraReducers(builder) {
+    respondTo(builder) {
       builder
         .addCase(
           mutationThunk.pending,
@@ -534,7 +541,7 @@ export function buildSlice({
         >(),
       },
     },
-    extraReducers(builder) {
+    respondTo(builder) {
       builder
         .addCase(
           querySlice.actions.removeQueryResult,
@@ -594,7 +601,7 @@ export function buildSlice({
     draft: InvalidationState<any>,
     queryCacheKey: QueryCacheKey,
   ) {
-    const existingTags = getCurrent(draft.keys[queryCacheKey] ?? [])
+    const existingTags = immutability.current(draft.keys[queryCacheKey] ?? [])
 
     // Delete this cache key from any existing tags that may have provided it
     for (const tag of existingTags) {
@@ -603,7 +610,7 @@ export function buildSlice({
       const tagSubscriptions = draft.tags[tagType]?.[tagId]
 
       if (tagSubscriptions) {
-        draft.tags[tagType][tagId] = getCurrent(tagSubscriptions).filter(
+        draft.tags[tagType][tagId] = immutability.current(tagSubscriptions).filter(
           (qc) => qc !== queryCacheKey,
         )
       }
@@ -666,7 +673,10 @@ export function buildSlice({
     reducers: {
       subscriptionsUpdated: {
         reducer(state, action: PayloadAction<Patch[]>) {
-          return applyPatches(state, action.payload)
+          return patchSupport.applyPatches(
+            state,
+            action.payload as unknown as Patches,
+          )
         },
         prepare: prepareAutoBatched<Patch[]>(),
       },
@@ -689,7 +699,7 @@ export function buildSlice({
             : true
       },
     },
-    extraReducers: (builder) => {
+    respondTo: (builder) => {
       builder
         .addCase(onOnline, (state) => {
           state.online = true
