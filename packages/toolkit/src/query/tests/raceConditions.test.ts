@@ -107,3 +107,26 @@ it('invalidates a query whose corresponding mutation finished while the query wa
   expect(getQueryState()?.status).toBe(QueryStatus.fulfilled)
   expect(getQueryState()?.data).toBe(1)
 })
+
+it('returns an unsubscribed query result when a concurrent mutation invalidates it', async () => {
+  eatenBananas = 0
+
+  const query = storeRef.store.dispatch(
+    getEatenBananas.initiate(undefined, { subscribe: false }),
+  )
+  const mutation = storeRef.store.dispatch(eatBanana.initiate())
+
+  eatBananaPromises.resolveOldest()
+  await mutation
+
+  getEatenBananaPromises.resolveOldest()
+
+  await expect(query).resolves.toMatchObject({
+    data: 0,
+    status: QueryStatus.fulfilled,
+  })
+  await expect(query.unwrap()).resolves.toBe(0)
+  expect(
+    storeRef.store.getState().api.queries[query.queryCacheKey],
+  ).toBeUndefined()
+})
