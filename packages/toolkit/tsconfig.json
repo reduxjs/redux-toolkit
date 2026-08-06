@@ -6,6 +6,6 @@
   "compilerOptions": {
     "rootDir": "./"
   },
-  "include": ["."],
+  "include": ["**/*.*"],
   "exclude": ["dist", "scripts/issue-triage"]
 }

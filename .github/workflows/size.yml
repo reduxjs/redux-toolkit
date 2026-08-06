@@ -1,13 +1,15 @@
 name: size
+
 on:
+  push:
   pull_request:
-    branches:
-      - master
-      - 'feature/infinite-query-integration'
+  workflow_dispatch:
+
 permissions:
   pull-requests: write
 jobs:
   size:
+    name: Check Bundle-Size
     runs-on: ubuntu-latest
     env:
       CI_JOB_NUMBER: 1
@@ -15,10 +17,26 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          cache: 'yarn'
+          check-latest: true
+          node-version: '24.x'
+
+      - name: Install dependencies
+        run: yarn install
+
       - uses: EskiMojo14/size-limit-action@af0584be5b6cc2d056bd31a314fc2ce9c9c1a929 # v2
+        id: size
+        continue-on-error: true
         with:
           directory: packages/toolkit
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          build_script: build-only
+          build_script: build
           package_manager: yarn
           size_margin: non-zero
+
+      - name: Run size-limit locally
+        if: ${{ success() && steps.size.outcome == 'failure' }}
+        working-directory: packages/toolkit
+        run: yarn run size
