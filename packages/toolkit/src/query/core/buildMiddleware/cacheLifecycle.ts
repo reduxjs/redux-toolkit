@@ -1,4 +1,5 @@
 import type { ThunkDispatch, UnknownAction } from '@reduxjs/toolkit'
+import { getEndpointDefinition } from '../../apiTypes'
 import type {
   BaseQueryFn,
   BaseQueryMeta,
@@ -23,7 +24,6 @@ import type {
   PromiseWithKnownReason,
   SubMiddlewareApi,
 } from './types'
-import { getEndpointDefinition } from '@internal/query/apiTypes'
 
 export type ReferenceCacheLifecycle = never
 

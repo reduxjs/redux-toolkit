@@ -1,5 +1,3 @@
-import React from 'react'
-
 // import the file that injects "post" to make sure it has been loaded
 import { useGetPostQuery } from '../../app/services/post'
 

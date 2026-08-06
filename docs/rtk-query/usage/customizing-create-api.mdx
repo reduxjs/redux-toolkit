@@ -23,11 +23,11 @@ If you want the hooks to use different versions of `useSelector`, `useDispatch` 
 
 ```ts
 import * as React from 'react'
+import type { ReactReduxContextValue } from 'react-redux'
 import {
   createDispatchHook,
   createSelectorHook,
   createStoreHook,
-  ReactReduxContextValue,
 } from 'react-redux'
 import {
   buildCreateApi,
@@ -76,15 +76,14 @@ If you want to create your own module, you should review [the react-hooks module
 Here is a very stripped down version:
 
 ```ts no-transpile
-import {
+import type {
+  Api,
   BaseQueryFn,
   CoreModule,
   EndpointDefinitions,
-  Api,
   Module,
-  buildCreateApi,
-  coreModule,
 } from '@reduxjs/toolkit/query'
+import { buildCreateApi, coreModule } from '@reduxjs/toolkit/query'
 
 export const customModuleName = Symbol()
 export type CustomModule = typeof customModuleName

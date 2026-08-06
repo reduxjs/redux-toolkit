@@ -201,7 +201,8 @@ configureStore({
 // fine - default enhancers included
 configureStore({
   reducer,
-  enhancers: (getDefaultEnhancers) => getDefaultEnhancers().concat(offline(offlineConfig)),
+  enhancers: (getDefaultEnhancers) =>
+    getDefaultEnhancers().concat(offline(offlineConfig)),
 })
 
 // also allowed

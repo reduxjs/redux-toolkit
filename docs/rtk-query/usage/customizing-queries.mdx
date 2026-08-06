@@ -284,7 +284,8 @@ A `queryFn` can be thought of as an inline `baseQuery`. It will be called with t
 
 ```ts title="Basic queryFn example" no-transpile
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
-import { userAPI, User } from './userAPI'
+import type { User } from './userAPI'
+import { userAPI } from './userAPI'
 
 const api = createApi({
   baseQuery: fetchBaseQuery({ url: '/' }),
@@ -844,7 +845,7 @@ export const { useGetPostsQuery } = api
 
 ```ts title="GraphQL transformation example"
 // file: graphqlBaseQuery.ts noEmit
-import { BaseQueryFn } from '@reduxjs/toolkit/query'
+import type { BaseQueryFn } from '@reduxjs/toolkit/query'
 declare const graphqlBaseQuery: (args: { baseUrl: string }) => BaseQueryFn
 declare const gql: (literals: TemplateStringsArray) => void
 export { graphqlBaseQuery, gql }
