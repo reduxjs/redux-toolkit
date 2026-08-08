@@ -1172,3 +1172,33 @@ describe('generateEndpoints return type narrowing', () => {
     expect(result).toBeUndefined();
   });
 });
+
+describe('exportAllSchemas options', () => {
+  test.each(['fixtures/petstore.json', 'fixtures/petstore.yaml'])(
+    'does not expose models not attached to any endpoint when exportAllSchemas is false',
+    async () => {
+      const api = await generateEndpoints({
+        unionUndefined: true,
+        apiFile: './fixtures/emptyApi.ts',
+        schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+        exportAllSchemas: false,
+      });
+
+      expect(api).not.toContain('ExtraModel');
+    }
+  );
+
+  test.each(['fixtures/petstore.json', 'fixtures/petstore.yaml'])(
+    'exposes models not attached to any endpoint when exportAllSchemas is true',
+    async () => {
+      const api = await generateEndpoints({
+        unionUndefined: true,
+        apiFile: './fixtures/emptyApi.ts',
+        schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+        exportAllSchemas: true,
+      });
+
+      expect(api).toContain('ExtraModel');
+    }
+  );
+});
