@@ -44,6 +44,7 @@
     "eslint-plugin-react": "^7.23.2",
     "eslint-plugin-react-hooks": "^4.2.0",
     "netlify-plugin-cache": "^1.0.3",
+    "pkg-pr-new": "^0.0.75",
     "prettier": "^3.2.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
