@@ -636,11 +636,23 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
               conditionResult = await conditionResult
             }
 
-            if (conditionResult === false || abortController.signal.aborted) {
+            if (conditionResult === false) {
               // eslint-disable-next-line no-throw-literal
               throw {
                 name: 'ConditionError',
                 message: 'Aborted due to condition callback returning false.',
+              }
+            }
+            if (abortController.signal.aborted) {
+              // The request was aborted (e.g. via an already-aborted external
+              // signal, or `abort()` called during an async `condition`) before
+              // the `pending` action was dispatched. Treat this as an abort
+              // rather than a condition rejection, so the reason is preserved
+              // and the `rejected` action is not silently swallowed.
+              // eslint-disable-next-line no-throw-literal
+              throw {
+                name: 'AbortError',
+                message: abortReason || 'Aborted',
               }
             }
 

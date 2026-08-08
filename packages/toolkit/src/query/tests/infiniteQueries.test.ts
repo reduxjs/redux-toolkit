@@ -253,7 +253,6 @@ describe('Infinite queries', () => {
 
     checkEntryFlags('fire', {
       hasNextPage: true,
-      isFetchingPreviousPage: true,
     })
 
     const entry1PrevPageMissing = await res3
@@ -938,6 +937,187 @@ describe('Infinite queries', () => {
         response: expect.anything(),
       }),
     })
+  })
+
+  test('fetchNextPage does not trigger onQueryStarted when hasNextPage is false', async () => {
+    let onQueryStartedCallCount = 0
+
+    const api = createApi({
+      baseQuery: fakeBaseQuery(),
+      endpoints: (build) => ({
+        list: build.infiniteQuery<string, void, number>({
+          infiniteQueryOptions: {
+            initialPageParam: 0,
+            getNextPageParam: (lastPage, allPages) => {
+              return allPages.length < 3 ? allPages.length : undefined
+            },
+          },
+          queryFn: async ({ pageParam }) => ({ data: `page-${pageParam}` }),
+          onQueryStarted: async () => {
+            onQueryStartedCallCount++
+          },
+        }),
+      }),
+    })
+
+    const storeRef = setupApiStore(api, undefined, {
+      withoutTestLifecycles: true,
+    })
+
+    await storeRef.store.dispatch(api.endpoints.list.initiate())
+    await storeRef.store.dispatch(
+      api.endpoints.list.initiate(undefined, { direction: 'forward' }),
+    )
+    await storeRef.store.dispatch(
+      api.endpoints.list.initiate(undefined, { direction: 'forward' }),
+    )
+
+    expect(onQueryStartedCallCount).toBe(3)
+
+    await storeRef.store.dispatch(
+      api.endpoints.list.initiate(undefined, { direction: 'forward' }),
+    )
+
+    expect(onQueryStartedCallCount).toBe(3)
+  })
+
+  test('fetchPreviousPage does not trigger onQueryStarted when hasPreviousPage is false', async () => {
+    let onQueryStartedCallCount = 0
+
+    const api = createApi({
+      baseQuery: fakeBaseQuery(),
+      endpoints: (build) => ({
+        list: build.infiniteQuery<string, void, number>({
+          infiniteQueryOptions: {
+            initialPageParam: 0,
+            getNextPageParam: (lastPage, allPages) => allPages.length,
+            getPreviousPageParam: () => undefined,
+          },
+          queryFn: async ({ pageParam }) => ({ data: `page-${pageParam}` }),
+          onQueryStarted: async () => {
+            onQueryStartedCallCount++
+          },
+        }),
+      }),
+    })
+
+    const storeRef = setupApiStore(api, undefined, {
+      withoutTestLifecycles: true,
+    })
+
+    await storeRef.store.dispatch(api.endpoints.list.initiate())
+    expect(onQueryStartedCallCount).toBe(1)
+
+    await storeRef.store.dispatch(
+      api.endpoints.list.initiate(undefined, { direction: 'backward' }),
+    )
+    expect(onQueryStartedCallCount).toBe(1)
+  })
+
+  test('end-of-list skip does not set error state', async () => {
+    const api = createApi({
+      baseQuery: fakeBaseQuery(),
+      endpoints: (build) => ({
+        list: build.infiniteQuery<string, void, number>({
+          infiniteQueryOptions: {
+            initialPageParam: 0,
+            getNextPageParam: (lastPage, allPages) =>
+              allPages.length < 2 ? allPages.length : undefined,
+          },
+          queryFn: async ({ pageParam }) => ({ data: `page-${pageParam}` }),
+        }),
+      }),
+    })
+
+    const storeRef = setupApiStore(api, undefined, {
+      withoutTestLifecycles: true,
+    })
+
+    await storeRef.store.dispatch(api.endpoints.list.initiate())
+    await storeRef.store.dispatch(
+      api.endpoints.list.initiate(undefined, { direction: 'forward' }),
+    )
+
+    await storeRef.store.dispatch(
+      api.endpoints.list.initiate(undefined, { direction: 'forward' }),
+    )
+
+    const selector = api.endpoints.list.select()(storeRef.store.getState())
+
+    expect(selector.isFetchingNextPage).toBe(false)
+    expect(selector.isError).toBe(false)
+    expect(selector.error).toBeUndefined()
+    expect(selector.data?.pages).toHaveLength(2)
+  })
+
+  test('fetchNextPage skips when getNextPageParam returns null', async () => {
+    let onQueryStartedCallCount = 0
+
+    const api = createApi({
+      baseQuery: fakeBaseQuery(),
+      endpoints: (build) => ({
+        list: build.infiniteQuery<string, void, number>({
+          infiniteQueryOptions: {
+            initialPageParam: 0,
+            getNextPageParam: () => null as number | null | undefined,
+          },
+          queryFn: async ({ pageParam }) => ({ data: `page-${pageParam}` }),
+          onQueryStarted: async () => {
+            onQueryStartedCallCount++
+          },
+        }),
+      }),
+    })
+
+    const storeRef = setupApiStore(api, undefined, {
+      withoutTestLifecycles: true,
+    })
+
+    await storeRef.store.dispatch(api.endpoints.list.initiate())
+    expect(onQueryStartedCallCount).toBe(1)
+
+    await storeRef.store.dispatch(
+      api.endpoints.list.initiate(undefined, { direction: 'forward' }),
+    )
+    expect(onQueryStartedCallCount).toBe(1)
+  })
+
+  test('fetchNextPage works with falsy but valid pageParam', async () => {
+    let fetchCount = 0
+
+    const api = createApi({
+      baseQuery: fakeBaseQuery(),
+      endpoints: (build) => ({
+        list: build.infiniteQuery<string, void, number>({
+          infiniteQueryOptions: {
+            initialPageParam: 1,
+            getNextPageParam: (lastPage, allPages, lastPageParam) =>
+              lastPageParam > 0 ? lastPageParam - 1 : undefined,
+          },
+          queryFn: async ({ pageParam }) => {
+            fetchCount++
+            return { data: `page-${pageParam}` }
+          },
+        }),
+      }),
+    })
+
+    const storeRef = setupApiStore(api, undefined, {
+      withoutTestLifecycles: true,
+    })
+
+    await storeRef.store.dispatch(api.endpoints.list.initiate())
+    expect(fetchCount).toBe(1)
+
+    await storeRef.store.dispatch(
+      api.endpoints.list.initiate(undefined, { direction: 'forward' }),
+    )
+    expect(fetchCount).toBe(2)
+
+    await storeRef.store.dispatch(
+      api.endpoints.list.initiate(undefined, { direction: 'forward' }),
+    )
+    expect(fetchCount).toBe(2)
   })
 
   test('Can use transformResponse', async () => {

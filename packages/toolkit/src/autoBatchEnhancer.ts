@@ -52,7 +52,7 @@ export type AutoBatchOptions =
  * This can be added to `action.meta` manually, or by using the
  * `prepareAutoBatched` helper.
  *
- * By default, it will queue a notification for the end of the event loop tick.
+ * By default, it will queue a notification using `requestAnimationFrame`.
  * However, you can pass several other options to configure the behavior:
  * - `{type: 'tick'}`: queues using `queueMicrotask`
  * - `{type: 'timer', timeout: number}`: queues using `setTimeout`

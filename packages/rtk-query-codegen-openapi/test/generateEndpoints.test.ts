@@ -743,6 +743,20 @@ describe('tests from issues', () => {
 
     expect(result).toMatchSnapshot();
   });
+
+  it('issue #4824: an optional request body should generate an optional arg', async () => {
+    const result = await generateEndpoints({
+      apiFile: './test/fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/issue-4824.json'),
+    });
+
+    // `deleteFoo` has a request body without `required: true`, so the generated arg must be optional.
+    expect(result).toMatch(/export type DeleteFooApiArg = \{\s*body\?:/);
+
+    // `createBar` explicitly sets `required: true`, so its body arg must stay required.
+    expect(result).toMatch(/export type CreateBarApiArg = \{\s*body:/);
+    expect(result).not.toMatch(/export type CreateBarApiArg = \{\s*body\?:/);
+  });
 });
 
 describe('openapi spec', () => {
@@ -945,6 +959,194 @@ describe('esmExtensions option', () => {
     });
     const content = await fs.readFile('./test/tmp/out.ts', 'utf8');
     expect(content).toContain("import { api } from '../../fixtures/emptyApi'");
+  });
+});
+
+describe('operationIdTransformer option', () => {
+  const schemaFile = resolve(__dirname, 'fixtures', 'operationIdTransformer.yaml');
+  const missingIdSchemaFile = resolve(__dirname, 'fixtures', 'operationIdTransformerMissingId.yaml');
+
+  const baseConfig = {
+    apiFile: './fixtures/emptyApi.ts',
+    hooks: true,
+    schemaFile,
+  };
+
+  const noneConfig = {
+    ...baseConfig,
+    operationIdTransformer: 'none' as const,
+  };
+
+  const prefixTransformer = <OperationIdType extends string>(operationId: OperationIdType) =>
+    `custom_${operationId}` as const;
+
+  describe('"camelCase" (default)', () => {
+    test('transforms consecutive uppercase letters', async () => {
+      const api = await generateEndpoints({
+        ...baseConfig,
+        filterEndpoints: ['fetchMyJwtPlease'],
+      });
+
+      expect.assert.isOk(api);
+
+      expect(api).toContain('fetchMyJwtPlease:');
+      expect(api).toContain('type FetchMyJwtPleaseApiResponse');
+      expect(api).toContain('type FetchMyJwtPleaseApiArg');
+      expect(api).toContain('useFetchMyJwtPleaseQuery');
+    });
+
+    test('does not change already-correct camelCase operationIds', async () => {
+      const api = await generateEndpoints({
+        ...baseConfig,
+        filterEndpoints: ['addPet'],
+      });
+
+      expect.assert.isOk(api);
+
+      expect(api).toContain('addPet:');
+      expect(api).toContain('type AddPetApiResponse');
+      expect(api).toContain('type AddPetApiArg');
+      expect(api).toContain('useAddPetMutation');
+    });
+
+    test('does not throw when operationId is missing (backward compat)', async () => {
+      await expect(
+        generateEndpoints({
+          apiFile: './fixtures/emptyApi.ts',
+          schemaFile: missingIdSchemaFile,
+        })
+      ).resolves.toBeTruthy();
+    });
+  });
+
+  describe('"none"', () => {
+    test('preserves consecutive uppercase letters in endpoint key', async () => {
+      const api = await generateEndpoints({
+        ...noneConfig,
+        filterEndpoints: ['fetchMyJWTPlease'],
+      });
+
+      expect.assert.isOk(api);
+
+      expect(api).toContain('fetchMyJWTPlease:');
+    });
+
+    test('preserves consecutive uppercase letters in type names', async () => {
+      const api = await generateEndpoints({
+        ...noneConfig,
+        filterEndpoints: ['fetchMyJWTPlease'],
+      });
+
+      expect.assert.isOk(api);
+
+      expect(api).toContain('type FetchMyJWTPleaseApiResponse');
+      expect(api).toContain('type FetchMyJWTPleaseApiArg');
+    });
+
+    test('preserves consecutive uppercase letters in hook name', async () => {
+      const api = await generateEndpoints({
+        ...noneConfig,
+        filterEndpoints: ['fetchMyJWTPlease'],
+      });
+
+      expect.assert.isOk(api);
+
+      expect(api).toContain('useFetchMyJWTPleaseQuery');
+    });
+
+    test('does not change already-correct camelCase operationIds', async () => {
+      const api = await generateEndpoints({
+        ...noneConfig,
+        filterEndpoints: ['addPet'],
+      });
+
+      expect.assert.isOk(api);
+
+      expect(api).toContain('addPet:');
+      expect(api).toContain('useAddPetMutation');
+    });
+
+    test('filterEndpoints matches against the raw operationId', async () => {
+      // 'fetchMyJWTPlease' should NOT match when filtering for the camelCased form
+      const apiNoMatch = await generateEndpoints({
+        ...noneConfig,
+        filterEndpoints: ['fetchMyJwtPlease'],
+      });
+
+      expect.assert.isOk(apiNoMatch);
+
+      expect(apiNoMatch).not.toContain('fetchMyJWTPlease:');
+
+      // 'fetchMyJWTPlease' SHOULD match when filtering for the exact operationId
+      const apiMatch = await generateEndpoints({
+        ...noneConfig,
+        filterEndpoints: ['fetchMyJWTPlease'],
+      });
+
+      expect.assert.isOk(apiMatch);
+
+      expect(apiMatch).toContain('fetchMyJWTPlease:');
+    });
+
+    test('throws when an operation is missing an operationId', async () => {
+      await expect(
+        generateEndpoints({
+          apiFile: './fixtures/emptyApi.ts',
+          operationIdTransformer: 'none',
+          schemaFile: missingIdSchemaFile,
+        })
+      ).rejects.toThrow(/operationIdTransformer.*none.*missing operationId.*GET.*\/pet/i);
+    });
+  });
+
+  describe('custom function transformer', () => {
+    test('applies the function to each operationId', async () => {
+      const api = await generateEndpoints({
+        ...baseConfig,
+        filterEndpoints: ['custom_fetchMyJWTPlease', 'custom_addPet'],
+        operationIdTransformer: prefixTransformer,
+      });
+
+      expect.assert.isOk(api);
+
+      expect(api).toContain('custom_fetchMyJWTPlease:');
+      expect(api).toContain('custom_addPet:');
+    });
+
+    test('uses the transformed name in type aliases', async () => {
+      const api = await generateEndpoints({
+        ...baseConfig,
+        filterEndpoints: ['custom_fetchMyJWTPlease'],
+        operationIdTransformer: prefixTransformer,
+      });
+
+      expect.assert.isOk(api);
+
+      expect(api).toContain('type Custom_fetchMyJWTPleaseApiResponse');
+      expect(api).toContain('type Custom_fetchMyJWTPleaseApiArg');
+    });
+
+    test('uses the transformed name in hook names', async () => {
+      const api = await generateEndpoints({
+        ...baseConfig,
+        filterEndpoints: ['custom_fetchMyJWTPlease'],
+        operationIdTransformer: prefixTransformer,
+      });
+
+      expect.assert.isOk(api);
+
+      expect(api).toContain('useCustom_fetchMyJWTPleaseQuery');
+    });
+
+    test('throws when an operation is missing an operationId', async () => {
+      await expect(
+        generateEndpoints({
+          apiFile: './fixtures/emptyApi.ts',
+          operationIdTransformer: (operationId) => operationId,
+          schemaFile: missingIdSchemaFile,
+        })
+      ).rejects.toThrow(/operationIdTransformer.*function.*missing operationId.*GET.*\/pet/i);
+    });
   });
 });
 

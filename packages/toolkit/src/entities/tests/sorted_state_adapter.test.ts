@@ -414,6 +414,29 @@ describe('Sorted State Adapter', () => {
       },
     })
   })
+  it("doesn't break when multiple renames of one item occur (consistent with unsorted adapter)", () => {
+    const withA = adapter.addOne(state, { id: 'a', title: 'First' })
+
+    const withUpdates = adapter.updateMany(withA, [
+      { id: 'a', changes: { id: 'b' } },
+      { id: 'a', changes: { id: 'c' } },
+    ])
+
+    const { ids, entities } = withUpdates
+
+    /*
+      The sorted adapter must behave identically to the unsorted adapter for
+      multiple renames of the same entity in one updateMany call.
+      The last-applied change wins; all intermediate IDs must be absent.
+    */
+    expect(ids.length).toBe(1)
+    expect(ids).toEqual(['c'])
+    expect(entities.a).toBeFalsy()
+    expect(entities.b).toBeFalsy()
+    expect(entities.c).toBeTruthy()
+    expect(entities.c).toEqual({ id: 'c', title: 'First' })
+  })
+
 
   it('should let you add one entity to the state with upsert()', () => {
     const withOneEntity = adapter.upsertOne(state, TheGreatGatsby)
@@ -900,6 +923,37 @@ describe('Sorted State Adapter', () => {
       initialState,
       booksSlice.actions.testCurrentBehavior(book1),
     )
+  })
+
+  it('setMany keeps LAST occurrence of duplicate ids', () => {
+    const adapter = createEntityAdapter<{ id: string; title: string }>({
+      sortComparer: (a, b) => a.title.localeCompare(b.title),
+    })
+    const state = adapter.getInitialState()
+
+    const result = adapter.setMany(state, [
+      { id: 'a', title: 'first' },
+      { id: 'a', title: 'second' },
+    ])
+
+    expect(result.ids).toEqual(['a'])
+    expect(result.entities['a']?.title).toBe('second') // last wins
+  })
+
+  it('setAll keeps LAST occurrence of duplicate ids', () => {
+    const adapter = createEntityAdapter<{ id: string; title: string }>({
+      sortComparer: (a, b) => a.title.localeCompare(b.title),
+    })
+    const state = adapter.getInitialState()
+
+    const result = adapter.setAll(state, [
+      { id: 'a', title: 'First' },
+      { id: 'a', title: 'Second' },
+    ])
+
+    expect(result.ids).toEqual(['a']) // no duplicate ids
+    // BUG: currently returns 'First' (first wins), should return 'Second' (last wins)
+    expect(result.entities['a']?.title).toBe('Second')
   })
 
   describe('can be used mutably when wrapped in createNextState', () => {

@@ -587,7 +587,7 @@ export type UseQueryStateOptions<
    *
    *   return (
    *     <ul>
-   *       {posts?.data?.map((post) => (
+   *       {posts?.map((post) => (
    *         <PostById key={post.id} id={post.id} />
    *       ))}
    *     </ul>
@@ -1171,7 +1171,7 @@ export type UseInfiniteQueryStateOptions<
    *
    *   return (
    *     <ul>
-   *       {posts?.data?.map((post) => (
+   *       {posts?.map((post) => (
    *         <PostById key={post.id} id={post.id} />
    *       ))}
    *     </ul>
@@ -1570,9 +1570,9 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         lastResult = undefined
     }
 
-    // data is the last known good request result we have tracked - or if none has been tracked yet the last good result for the current args
-    let data = currentState.isSuccess ? currentState.data : lastResult?.data
-    if (data === undefined) data = currentState.data
+    // data is the latest available cache entry, or the last known good request result we have tracked
+    let data = currentState.data
+    if (data === undefined) data = lastResult?.data
 
     const hasData = data !== undefined
 
@@ -1630,9 +1630,9 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         lastResult = undefined
     }
 
-    // data is the last known good request result we have tracked - or if none has been tracked yet the last good result for the current args
-    let data = currentState.isSuccess ? currentState.data : lastResult?.data
-    if (data === undefined) data = currentState.data
+    // data is the latest available cache entry, or the last known good request result we have tracked
+    let data = currentState.data
+    if (data === undefined) data = lastResult?.data
 
     const hasData = data !== undefined
 
@@ -1703,10 +1703,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     >
     const dispatch = useDispatch<ThunkDispatch<any, any, UnknownAction>>()
 
-    // TODO: Change this to `useRef<SubscriptionSelectors>(undefined)` after upgrading to React 19.
-    const subscriptionSelectorsRef = useRef<SubscriptionSelectors | undefined>(
-      undefined,
-    )
+    const subscriptionSelectorsRef = useRef<SubscriptionSelectors>(undefined)
 
     if (!subscriptionSelectorsRef.current) {
       const returnedValue = dispatch(
@@ -1745,10 +1742,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     ).refetchCachedPages
     const stableRefetchCachedPages = useShallowStableValue(refetchCachedPages)
 
-    /**
-     * @todo Change this to `useRef<QueryActionCreatorResult<any>>(undefined)` after upgrading to React 19.
-     */
-    const promiseRef = useRef<T | undefined>(undefined)
+    const promiseRef = useRef<T>(undefined)
 
     let { queryCacheKey, requestId } = promiseRef.current || {}
 
@@ -1862,6 +1856,11 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
               (_: ApiRootState, lastResult: any) => lastResult,
               (_: ApiRootState) => stableArg,
             ],
+            // `preSelector` is a union of the standard/infinite query pre-selectors.
+            // `tsc` attributes the resulting overload error to the `createSelector` call
+            // (suppressed above), but `tsgo` attributes it to this argument line, so it
+            // needs its own directive.
+            // @ts-ignore
             preSelector,
             {
               memoizeOptions: {
@@ -1961,13 +1960,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
       const [arg, setArg] = useState<any>(UNINITIALIZED_VALUE)
 
-      // TODO: Change this to `useRef<QueryActionCreatorResult<any>>(undefined)` after upgrading to React 19.
-      /**
-       * @todo Change this to `useRef<QueryActionCreatorResult<any>>(undefined)` after upgrading to React 19.
-       */
-      const promiseRef = useRef<QueryActionCreatorResult<any> | undefined>(
-        undefined,
-      )
+      const promiseRef = useRef<QueryActionCreatorResult<any>>(undefined)
 
       const stableSubscriptionOptions = useShallowStableValue({
         refetchOnReconnect,

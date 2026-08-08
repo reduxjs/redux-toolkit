@@ -971,6 +971,25 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
           return false
         }
 
+        if (direction && isInfiniteQueryDefinition(endpointDefinition)) {
+          const cachedData = requestState?.data as
+            | InfiniteData<unknown, unknown>
+            | undefined
+          if (cachedData?.pages.length) {
+            const { infiniteQueryOptions } = endpointDefinition
+            const pageParamFn =
+              direction === 'forward' ? getNextPageParam : getPreviousPageParam
+            const nextParam = pageParamFn(
+              infiniteQueryOptions,
+              cachedData,
+              currentArg,
+            )
+            if (nextParam == null) {
+              return false
+            }
+          }
+        }
+
         return true
       },
       dispatchConditionRejection: true,

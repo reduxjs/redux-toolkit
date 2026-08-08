@@ -6,7 +6,7 @@ We are open to, and grateful for, any contributions made by the community. By co
 
 Before opening an issue, please search the [issue tracker](https://github.com/reduxjs/redux-toolkit/issues) to make sure your issue hasn't already been reported.
 
-Please ask any general and implementation specific questions on [Stack Overflow with a Redux Toolkit tag](http://stackoverflow.com/questions/tagged/redux-toolkit?sort=votes&pageSize=50) for support.
+Please ask any general and implementation specific questions on [Stack Overflow with a Redux Toolkit tag](https://stackoverflow.com/questions/tagged/redux-toolkit?sort=votes&pageSize=50) for support.
 
 We ask you to do this because StackOverflow has a much better job at keeping popular questions visible. Unfortunately good answers get lost and outdated on GitHub.
 

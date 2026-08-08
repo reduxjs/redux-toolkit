@@ -157,7 +157,7 @@ export interface ListenerEffectAPI<
    *
    *     setTimeout(getOriginalState, 0); // async: throws Error
    *
-   *     await Promise().resolve();
+   *     await Promise.resolve();
    *
    *     getOriginalState(); // async: throws Error
    *   },
