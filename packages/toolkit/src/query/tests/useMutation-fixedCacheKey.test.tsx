@@ -75,6 +75,9 @@ describe('fixedCacheKey', () => {
     expect(getByTestId(c2, 'status').textContent).toBe('uninitialized')
   })
 
+  // INV-M-003: the mutation cache key is `fixedCacheKey ?? requestId`, computed in one place
+  // INV-M-010: `reset()` removes the mutation entry synchronously, with no grace period
+  // INV-M-011: `reset()` on a shared `fixedCacheKey` resets every consumer, regardless of who triggered
   test('two mutations with the same `fixedCacheKey` do influence each other', async () => {
     render(
       <>
@@ -111,6 +114,7 @@ describe('fixedCacheKey', () => {
     })
   })
 
+  // INV-M-011: `reset()` on a shared `fixedCacheKey` resets every consumer, regardless of who triggered
   test('resetting from the component that triggered the mutation resets for each shared result', async () => {
     render(
       <>
@@ -302,6 +306,8 @@ describe('fixedCacheKey', () => {
     expect(getByTestId(c1, 'originalArgs').textContent).toBe('undefined')
   })
 
+  // INV-M-004: a second mutation with the same `fixedCacheKey` wholesale-overwrites the first's cache entry
+  // INV-M-005: a displaced mutation's `fulfilled`/`rejected` result is silently discarded by a requestId guard
   test('using `fixedCacheKey` will always use the latest dispatched thunk, prevent races', async () => {
     let resolve1: (str: string) => void, resolve2: (str: string) => void
     const p1 = new Promise<string>((resolve) => {

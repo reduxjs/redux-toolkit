@@ -74,6 +74,7 @@ test('sensible defaults', () => {
   expect(api.endpoints.updateUser.name).toBe('updateUser')
 })
 
+// INV-M-032: assertTagType runs on every expanded tag, in dev, for both provides and invalidates
 describe('wrong tagTypes log errors', () => {
   const baseQuery = vi.fn()
   const api = createApi({
@@ -347,6 +348,7 @@ describe('endpoint definition typings', () => {
       api = getNewApi()
     })
 
+    // INV-M-020: mutations receive `forced: undefined` and `queryCacheKey: undefined` in `baseQueryApi`
     test('pre-modification behavior', async () => {
       const storeRef = setupApiStore(api, undefined, {
         withoutTestLifecycles: true,
@@ -479,6 +481,7 @@ describe('endpoint definition typings', () => {
       }
     })
 
+    // INV-M-020: mutations receive `forced: undefined` and `queryCacheKey: undefined` in `baseQueryApi`
     test('modify', () => {
       const storeRef = setupApiStore(api, undefined, {
         withoutTestLifecycles: true,
@@ -824,6 +827,8 @@ describe('query endpoint lifecycles - onStart, onSuccess, onError', () => {
     expect(storeRef.store.getState().testReducer.count).toBe(1)
   })
 
+  // INV-M-001: dispatching a mutation initiator synchronously dispatches `mutationThunk.pending` before returning
+  // INV-M-014: the promise returned from a mutation initiator settles strictly later than `queryFulfilled`
   test('mutation lifecycle events fire properly', async () => {
     // We intentionally fail the first request so we can test all lifecycles
     server.use(
@@ -851,6 +856,7 @@ describe('query endpoint lifecycles - onStart, onSuccess, onError', () => {
   })
 })
 
+// INV-M-028: `providesTags` / `invalidatesTags` functions receive `(result, error, queryArg, meta)`
 test('providesTags and invalidatesTags can use baseQueryMeta', async () => {
   let _meta: FetchBaseQueryMeta | undefined
 

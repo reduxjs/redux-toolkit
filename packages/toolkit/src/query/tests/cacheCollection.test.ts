@@ -17,6 +17,7 @@ beforeEach(() => {
   onCleanup.mockClear()
 })
 
+// INV-Q-065: GC is armed when the subscriber count hits zero; the timer is keepUnusedDataFor seconds, default 60
 test(`query: await cleanup, defaults`, async () => {
   const { store, api } = storeForApi(
     createApi({
@@ -60,6 +61,7 @@ test(`query: await cleanup, keepUnusedDataFor set`, async () => {
   expect(onCleanup).toHaveBeenCalled()
 })
 
+// INV-Q-068: finite keepUnusedDataFor values are clamped to the 32-bit setTimeout ceiling, not treated as Infinity
 test(`query: handles large keepUnusedDataFor values over 32-bit ms`, async () => {
   const { store, api } = storeForApi(
     createApi({
@@ -115,6 +117,7 @@ describe(`query: await cleanup, keepUnusedDataFor set`, () => {
     }),
   )
 
+  // INV-Q-065: the GC timer length comes from keepUnusedDataFor, in seconds
   test('global keepUnusedDataFor', async () => {
     const promise = store.dispatch(api.endpoints.query.initiate('arg'))
     await promise
@@ -125,6 +128,8 @@ describe(`query: await cleanup, keepUnusedDataFor set`, () => {
     expect(onCleanup).toHaveBeenCalled()
   })
 
+  // INV-Q-065: the GC timer length comes from keepUnusedDataFor, in seconds
+  // INV-Q-066: endpoint-level keepUnusedDataFor overrides the global value
   test('endpoint keepUnusedDataFor', async () => {
     const promise = store.dispatch(api.endpoints.query2.initiate('arg'))
     await promise
@@ -136,6 +141,7 @@ describe(`query: await cleanup, keepUnusedDataFor set`, () => {
     expect(onCleanup).toHaveBeenCalled()
   })
 
+  // INV-Q-066: `??` merging means an explicit endpoint-level 0 wins over a nonzero global
   test('endpoint keepUnusedDataFor: 0 ', async () => {
     expect(onCleanup).not.toHaveBeenCalled()
     const promise = store.dispatch(api.endpoints.query3.initiate('arg'))
@@ -146,6 +152,8 @@ describe(`query: await cleanup, keepUnusedDataFor set`, () => {
     expect(onCleanup).toHaveBeenCalled()
   })
 
+  // INV-Q-066: endpoint-level keepUnusedDataFor overrides the global value
+  // INV-Q-067: keepUnusedDataFor: Infinity disables GC entirely — no timer is created
   test('endpoint keepUnusedDataFor: Infinity', async () => {
     expect(onCleanup).not.toHaveBeenCalled()
     store.dispatch(api.endpoints.query4.initiate('arg')).unsubscribe()
@@ -156,6 +164,8 @@ describe(`query: await cleanup, keepUnusedDataFor set`, () => {
 })
 
 describe('resetApiState cleanup', () => {
+  // INV-Q-071: resetApiState clears pending removal timers and aborts every running query and mutation
+  // INV-Q-115 (partial): `.abort()` is createAsyncThunk's abort, exercised here indirectly
   test('resetApiState aborts multiple running queries and mutations', async () => {
     const { store, api } = storeForApi(
       createApi({

@@ -138,6 +138,7 @@ test('data stays in store when one component requiring the data stays in the sto
   expect(getSubStateB()).toEqual(statusB)
 })
 
+// INV-R-015: N components on one cache key produce exactly one request and a bounded number of reducer-visible actions.
 test('Minimizes the number of subscription dispatches when multiple components ask for the same data', async () => {
   const listenerMiddleware = createListenerMiddleware()
   const storeRef = setupApiStore(api, undefined, {

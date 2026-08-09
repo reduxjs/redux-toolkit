@@ -16,6 +16,8 @@ const loopTimers = async (max: number = 12) => {
 }
 
 describe('configuration', () => {
+  // INV-Q-106: retries are invisible to the store — N network attempts, one pending and one settle
+  // INV-Q-107: default maxRetries: 5 means six total attempts
   test('retrying without any config options', async () => {
     const baseBaseQuery = vi.fn<BaseQueryFn>()
     baseBaseQuery.mockResolvedValue({ error: 'rejected' })
@@ -40,6 +42,7 @@ describe('configuration', () => {
     expect(baseBaseQuery).toHaveBeenCalledTimes(6)
   })
 
+  // INV-Q-107: maxRetries counts retries, not attempts — 5 means six total calls
   test('retrying with baseQuery config that overrides default behavior (maxRetries: 5)', async () => {
     const baseBaseQuery = vi.fn<BaseQueryFn>()
     baseBaseQuery.mockResolvedValue({ error: 'rejected' })
@@ -64,6 +67,7 @@ describe('configuration', () => {
     expect(baseBaseQuery).toHaveBeenCalledTimes(4)
   })
 
+  // INV-Q-109: endpoint `extraOptions` override baseQuery-level retry config
   test('retrying with endpoint config that overrides baseQuery config', async () => {
     const baseBaseQuery = vi.fn<BaseQueryFn>()
     baseBaseQuery.mockResolvedValue({ error: 'rejected' })
@@ -100,6 +104,7 @@ describe('configuration', () => {
     expect(baseBaseQuery).toHaveBeenCalledTimes(9)
   })
 
+  // INV-Q-106: the retry loop lives inside baseQuery, so the store sees one pending and one settle
   test('stops retrying a query after a success', async () => {
     const baseBaseQuery = vi.fn<BaseQueryFn>()
     baseBaseQuery
@@ -179,6 +184,7 @@ describe('configuration', () => {
 
     expect(baseBaseQuery).toHaveBeenCalledTimes(3)
   })
+  // INV-Q-112: a successful result (no `error` key) never retries
   test('non-error-cases should **not** retry', async () => {
     const baseBaseQuery = vi.fn<BaseQueryFn>()
     baseBaseQuery.mockResolvedValue({ data: { success: true } })
@@ -203,6 +209,8 @@ describe('configuration', () => {
 
     expect(baseBaseQuery).toHaveBeenCalledOnce()
   })
+  // INV-Q-111: retry.fail(error) aborts the retry loop immediately via `throwImmediately`,
+  //            with one network call, no backoff, and the supplied error surfaced unchanged
   test('calling retry.fail(error) will skip retrying and expose the error directly', async () => {
     const error = { message: 'banana' }
 
@@ -246,6 +254,7 @@ describe('configuration', () => {
     })
   })
 
+  // INV-Q-110: nested retry() wrappers multiply rather than compose — 4 inner × 4 outer = 16 calls
   test('wrapping retry(retry(..., { maxRetries: 3 }), { maxRetries: 3 }) should retry 16 times', async () => {
     /**
      * Note:
@@ -277,6 +286,7 @@ describe('configuration', () => {
     expect(baseBaseQuery).toHaveBeenCalledTimes(16)
   })
 
+  // INV-Q-108: the default backoff is jittered exponential; a custom `backoff` replaces it entirely
   test('accepts a custom backoff fn', async () => {
     const baseBaseQuery = vi.fn<BaseQueryFn>()
     baseBaseQuery.mockResolvedValue({ error: 'rejected' })
@@ -338,6 +348,7 @@ describe('configuration', () => {
     expect(baseBaseQuery).toHaveBeenCalledTimes(overrideMaxRetries + 1)
   })
 
+  // INV-Q-109: endpoint `extraOptions` override baseQuery-level retry config, retryCondition included
   test('retryCondition with endpoint config that overrides baseQuery config', async () => {
     const baseBaseQuery = vi.fn<BaseQueryFn>()
     baseBaseQuery.mockResolvedValue({ error: 'rejected' })
@@ -367,6 +378,7 @@ describe('configuration', () => {
     expect(baseBaseQuery).toHaveBeenCalledTimes(6)
   })
 
+  // INV-Q-109: endpoint-level retry config overrides apply to mutations too
   test('retryCondition also works with mutations', async () => {
     const baseBaseQuery = vi.fn<BaseQueryFn>()
 
@@ -400,6 +412,7 @@ describe('configuration', () => {
     expect(baseBaseQuery).toHaveBeenCalledTimes(4)
   })
 
+  // INV-Q-107: maxRetries: 0 yields exactly one call
   test('Specifying maxRetries as 0 in RetryOptions prevents retries', async () => {
     const baseBaseQuery = vi.fn<BaseQueryFn>()
     baseBaseQuery.mockResolvedValue({ error: 'rejected' })
@@ -424,6 +437,8 @@ describe('configuration', () => {
     expect(baseBaseQuery).toHaveBeenCalledOnce()
   })
 
+  // INV-Q-070: GC aborts the in-flight request for the key before removing the entry
+  // INV-Q-114: that abort propagates through createAsyncThunk's signal into retryCondition
   test('retryCondition receives abort signal and stops retrying when cache entry is removed', async () => {
     let capturedSignal: AbortSignal | undefined
     let retryAttempts = 0
@@ -505,6 +520,7 @@ describe('configuration', () => {
   })
 
   // Tests for issue #4079: Thrown errors should respect maxRetries
+  // INV-Q-112: a thrown error also retries, counts against maxRetries, and yields `{ error: e }` at exhaustion
   test('thrown errors (not HandledError) should respect maxRetries', async () => {
     const baseBaseQuery = vi.fn<BaseQueryFn>()
     // Simulate network error that keeps throwing
@@ -533,6 +549,7 @@ describe('configuration', () => {
     expect(baseBaseQuery).toHaveBeenCalledTimes(4)
   })
 
+  // INV-Q-112: arbitrary thrown values retry and are normalized to a returned `{ error }` at exhaustion
   test('graphql-style thrown errors should respect maxRetries', async () => {
     class ClientError extends Error {
       constructor(message: string) {
@@ -570,6 +587,7 @@ describe('configuration', () => {
     expect(baseBaseQuery).toHaveBeenCalledTimes(3)
   })
 
+  // INV-Q-112: returned `{ error }` and thrown errors both count against the same maxRetries budget
   test('handles mix of returned errors and thrown errors', async () => {
     const baseBaseQuery = vi.fn<BaseQueryFn>()
     baseBaseQuery
@@ -629,7 +647,10 @@ describe('configuration', () => {
   })
 
   // These tests validate the abort signal handling implementation
+  // INV-Q-016: `.abort()` is createAsyncThunk's abort and aborts the shared request
+  // INV-Q-113: the abort signal is checked before every attempt and before every backoff sleep
   describe('abort signal handling', () => {
+    // INV-Q-113: `failIfAborted(signal)` runs before each attempt, so the loop exits without another call
     test('retry loop exits immediately when signal is aborted before retry', async () => {
       const baseBaseQuery = vi.fn<BaseQueryFn>()
       baseBaseQuery.mockResolvedValue({ error: 'network error' })
@@ -661,6 +682,7 @@ describe('configuration', () => {
       expect(baseBaseQuery).toHaveBeenCalledTimes(1)
     })
 
+    // INV-Q-113: the loop cannot interrupt an in-flight baseQuery, but it will not start another attempt
     test('abort during active request prevents retry', async () => {
       let requestInProgress = false
       const baseBaseQuery = vi.fn<BaseQueryFn>()
@@ -699,6 +721,7 @@ describe('configuration', () => {
       expect(baseBaseQuery).toHaveBeenCalledTimes(1)
     })
 
+    // INV-Q-113: the abort check lives outside `backoff`, so a custom backoff ignoring the signal still works
     test('custom backoff without signal parameter still works', async () => {
       const baseBaseQuery = vi.fn<BaseQueryFn>()
       baseBaseQuery.mockResolvedValue({ error: 'network error' })
@@ -731,6 +754,7 @@ describe('configuration', () => {
       expect(baseBaseQuery).toHaveBeenCalledTimes(4)
     })
 
+    // INV-Q-113: the abort signal is checked before every attempt and before every backoff sleep
     test('abort signal is checked before each retry attempt', async () => {
       const attemptNumbers: number[] = []
       const baseBaseQuery = vi.fn<BaseQueryFn>()
@@ -797,6 +821,7 @@ describe('configuration', () => {
       expect(baseBaseQuery).toHaveBeenCalledTimes(1)
     })
 
+    // INV-Q-113: once the loop has returned a success, a later abort cannot change the result
     test('abort after successful retry does not affect result', async () => {
       const baseBaseQuery = vi.fn<BaseQueryFn>()
       baseBaseQuery
@@ -830,6 +855,7 @@ describe('configuration', () => {
       expect(result.data).toEqual({ success: true })
     })
 
+    // INV-Q-113: repeated aborts are idempotent for the retry loop
     test('multiple aborts are handled gracefully', async () => {
       const baseBaseQuery = vi.fn<BaseQueryFn>()
       baseBaseQuery.mockResolvedValue({ error: 'network error' })
@@ -860,6 +886,8 @@ describe('configuration', () => {
       expect(baseBaseQuery).toHaveBeenCalledTimes(1)
     })
 
+    // INV-Q-113: the retry loop checks `extraOptions.signal.aborted` before scheduling
+    // each retry, so an already-aborted signal prevents any further attempts.
     test('abort signal already aborted before retry starts', async () => {
       const baseBaseQuery = vi.fn<BaseQueryFn>()
       baseBaseQuery.mockResolvedValue({ error: 'network error' })
@@ -887,6 +915,9 @@ describe('configuration', () => {
       expect(baseBaseQuery.mock.calls.length).toBeLessThanOrEqual(1)
     })
 
+    // INV-Q-071: `resetApiState` aborts every in-flight query thunk.
+    // INV-Q-114: aborting propagates into the retry wrapper's signal, ending the
+    // retry chain instead of leaving orphaned timers running.
     test('resetApiState aborts retrying queries', async () => {
       const baseBaseQuery = vi.fn<BaseQueryFn>()
       baseBaseQuery.mockResolvedValue({ error: 'network error' })

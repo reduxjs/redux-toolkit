@@ -3,6 +3,7 @@ import { defaultSerializeQueryArgs } from '@reduxjs/toolkit/query'
 const endpointDefinition: any = {}
 const endpointName = 'test'
 
+// INV-Q-044: the default cache key is `${endpointName}(${JSON.stringify(sortedArgs)})`
 test('string arg', () => {
   expect(
     defaultSerializeQueryArgs({
@@ -13,6 +14,7 @@ test('string arg', () => {
   ).toMatchInlineSnapshot(`"test("arg")"`)
 })
 
+// INV-Q-044: the default cache key is `${endpointName}(${JSON.stringify(sortedArgs)})`
 test('number arg', () => {
   expect(
     defaultSerializeQueryArgs({
@@ -23,6 +25,7 @@ test('number arg', () => {
   ).toMatchInlineSnapshot(`"test(5)"`)
 })
 
+// INV-Q-046: BigInt args serialize to `{ $bigint: "..." }` rather than throwing
 test('bigint arg has non-default serialization (instead of throwing)', () => {
   expect(
     defaultSerializeQueryArgs({
@@ -33,6 +36,8 @@ test('bigint arg has non-default serialization (instead of throwing)', () => {
   ).toMatchInlineSnapshot(`"test({"$bigint":"10"})"`)
 })
 
+// INV-Q-044: the default cache key is `${endpointName}(${JSON.stringify(sortedArgs)})`
+// INV-Q-045: object arg keys are sorted before stringification, so key order does not affect cache identity
 test('simple object arg is sorted', () => {
   expect(
     defaultSerializeQueryArgs({
@@ -43,6 +48,7 @@ test('simple object arg is sorted', () => {
   ).toMatchInlineSnapshot(`"test({"age":5,"name":"arg"})"`)
 })
 
+// INV-Q-045: object arg keys are sorted recursively, so key order does not affect cache identity
 test('nested object arg is sorted recursively', () => {
   expect(
     defaultSerializeQueryArgs({
@@ -55,6 +61,7 @@ test('nested object arg is sorted recursively', () => {
   )
 })
 
+// INV-Q-045: object arg keys are sorted recursively, so key order does not affect cache identity
 test('Fully serializes a deeply nested object', () => {
   const nestedObj = {
     a: {
@@ -84,6 +91,7 @@ test('Fully serializes a deeply nested object', () => {
   )
 })
 
+// INV-Q-047: the serialization WeakMap caches only plain objects, by reference identity
 test('Caches results for plain objects', () => {
   const testData = Array.from({ length: 10000 }).map((_, i) => {
     return {

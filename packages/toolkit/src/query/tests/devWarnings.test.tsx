@@ -87,6 +87,7 @@ describe('missing middleware', () => {
     expect(consoleWarnSpy).not.toHaveBeenCalled()
   })
 
+  // INV-R-114: the core-side `middlewareWarning` guard fires only once per process, unlike the React-side render throw.
   test('warns only once per api', () => {
     const store = configureStore({
       reducer: { [api1.reducerPath]: api1.reducer },
@@ -99,6 +100,7 @@ describe('missing middleware', () => {
     expect(doDispatch).not.toThrowError()
   })
 
+  // INV-R-114: the once-per-process guard is keyed per api, so a second api still warns.
   test('warns multiple times for multiple apis', () => {
     const store = configureStore({
       reducer: {

@@ -80,6 +80,7 @@ it('invalidates the specified tags', async () => {
   )
 })
 
+// INV-M-030: nullish entries in a tag array are filtered out, not treated as wildcards
 it('invalidates tags correctly when null or undefined are provided as tags', async () => {
   await storeRef.store.dispatch(getBanana.initiate(1))
   await storeRef.store.dispatch(
@@ -215,6 +216,7 @@ it('correctly stringifies subscription state and dispatches subscriptionsUpdated
   ).toEqual({})
 })
 
+// INV-M-019: `internalState` (including `runningMutations`) is per-store, keyed by `dispatch` in a `WeakMap`
 it('does not leak subscription state between multiple stores using the same API instance (SSR scenario)', async () => {
   vi.useFakeTimers()
   // Simulate SSR: create API once at module level

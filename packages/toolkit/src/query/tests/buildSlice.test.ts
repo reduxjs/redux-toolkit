@@ -50,6 +50,7 @@ describe('buildSlice', () => {
     shouldApiResponseSuccess = true
   })
 
+  // INV-Q-071: resetApiState resets every api slice and leaves non-api state untouched
   it('only resets the api state when resetApiState is dispatched', async () => {
     storeRef.store.dispatch({ type: 'unrelated' }) // trigger "registered middleware" into place
     const initialState = storeRef.store.getState()
@@ -102,6 +103,8 @@ describe('buildSlice', () => {
     expect(storeRef.store.getState()).toEqual(initialState)
   })
 
+  // INV-Q-042: provided tags are written on fulfilled and on rejectedWithValue
+  // INV-Q-043: provided tags are replaced, not merged, on each successful result
   it('replaces previous tags with new provided tags', async () => {
     await storeRef.store.dispatch(getUser.initiate(1))
 
@@ -126,6 +129,7 @@ describe('buildSlice', () => {
     ).toHaveLength(1)
   })
 
+  // INV-Q-040: rehydration restores only `fulfilled` and `rejected` entries; `pending` entries are dropped
   it('handles extractRehydrationInfo correctly', async () => {
     await storeRef.store.dispatch(getUser.initiate(1))
     await storeRef.store.dispatch(getUser.initiate(2))
@@ -149,6 +153,7 @@ describe('`merge` callback', () => {
     text: string
   }
 
+  // INV-Q-033: `merge` runs only when the entry already has data; the first response bypasses it
   it('Calls `merge` once there is existing data, and allows mutations of cache state', async () => {
     let mergeCalled = false
     let queryFnCalls = 0
@@ -195,6 +200,7 @@ describe('`merge` callback', () => {
     ])
   })
 
+  // INV-Q-033: `merge` may mutate the Immer draft or return a replacement value
   it('Allows returning a different value from `merge`', async () => {
     let firstQueryFnCall = true
 

@@ -192,6 +192,7 @@ let getRenderCount: () => number = () => 0
 
 describe('hooks tests', () => {
   describe('useQuery', () => {
+    // INV-R-001: subscription `initiate` is dispatched from a post-commit effect, so mount costs 2 commits, not 1.
     test('useQuery hook basic render count assumptions', async () => {
       function User() {
         const { isFetching } = api.endpoints.getUser.useQuery(1)
@@ -215,6 +216,7 @@ describe('hooks tests', () => {
       expect(getRenderCount()).toBe(3)
     })
 
+    // INV-R-085: `isFetching` is core `isLoading` passed through unsmoothed, so it flips true for every request.
     test('useQuery hook sets isFetching=true whenever a request is in flight', async () => {
       function User() {
         const [value, setValue] = useState(0)
@@ -255,6 +257,7 @@ describe('hooks tests', () => {
       expect(getRenderCount()).toBe(5) // even though there was no request, the button click updates the state so this is an expected render
     })
 
+    // INV-R-084: React `isLoading` is monotonic per hook instance - once false it never returns to true.
     test('useQuery hook sets isLoading=true only on initial request', async () => {
       let refetch: any, isLoading: boolean, isFetching: boolean
       function User() {
@@ -304,6 +307,7 @@ describe('hooks tests', () => {
       expect(screen.getByTestId('isLoading').textContent).toBe('false')
     })
 
+    // INV-R-083: a non-skipped `useQuery` mount never lets the component observe `isUninitialized: true`.
     test('useQuery hook sets isLoading and isFetching to the correct states', async () => {
       let refetchMe: () => void = () => {}
       function User() {
@@ -365,6 +369,10 @@ describe('hooks tests', () => {
       expect(getRenderCount()).toBe(7)
     })
 
+    // INV-R-026: React `isFetching` IS core `isLoading`; React `isLoading` is synthesized from `lastResult`.
+    // INV-R-081: `lastResult` is the previous *committed* value, advanced in a layout effect.
+    // INV-R-084: `isLoading` transitions at most once per hook instance.
+    // INV-R-085: `isFetching` is non-monotonic and flips true on every request.
     test('`isLoading` does not jump back to true, while `isFetching` does', async () => {
       const loadingHist: boolean[] = [],
         fetchingHist: boolean[] = []
@@ -401,6 +409,10 @@ describe('hooks tests', () => {
       expect(fetchingHist).toEqual([true, false, true, false])
     })
 
+    // INV-R-023: the first render reports the fabricated pending state, never `uninitialized`.
+    // INV-R-081: flag smoothing is driven by the commit-scoped `lastValue` ref.
+    // INV-R-083: no uninitialized entry is ever recorded for a non-skipped mount.
+    // INV-R-086: `isSuccess` stays true across an arg change while stale `data` is still shown.
     test('`isSuccess` does not jump back false on subsequent queries', async () => {
       type LoadingState = {
         id: number
@@ -449,6 +461,8 @@ describe('hooks tests', () => {
       ])
     })
 
+    // INV-R-087: after a failed refetch `isSuccess` stays false even once the next refetch starts.
+    // INV-R-088: `isError`/`error` are core pass-throughs with no React-side smoothing.
     test('isSuccess stays consistent if there is an error while refetching', async () => {
       type LoadingState = {
         id: number
@@ -527,6 +541,7 @@ describe('hooks tests', () => {
       ])
     })
 
+    // INV-R-032: `refetchOnMountOrArgChange: true` becomes `forceRefetch`, so a remount refetches without `isLoading` going true.
     test('useQuery hook respects refetchOnMountOrArgChange: true', async () => {
       let data, isLoading, isFetching
       function User() {
@@ -573,6 +588,7 @@ describe('hooks tests', () => {
       )
     })
 
+    // INV-R-033: the NUMBER staleness check runs in core; when it fails the component never sees `isFetching: true`.
     test('useQuery does not refetch when refetchOnMountOrArgChange: NUMBER condition is not met', async () => {
       let data, isLoading, isFetching
       function User() {
@@ -613,6 +629,7 @@ describe('hooks tests', () => {
       )
     })
 
+    // INV-R-033: the NUMBER staleness check runs in core against `fulfilledTimeStamp`, not in the React layer.
     test('useQuery refetches when refetchOnMountOrArgChange: NUMBER condition is met', async () => {
       let data, isLoading, isFetching
       function User() {
@@ -661,6 +678,7 @@ describe('hooks tests', () => {
       )
     })
 
+    // INV-R-034: while skipped, `forceRefetch` is never consumed; the condition is evaluated at the unskip render.
     test('refetchOnMountOrArgChange works as expected when changing skip from false->true', async () => {
       let data, isLoading, isFetching
       function User() {
@@ -703,6 +721,7 @@ describe('hooks tests', () => {
       )
     })
 
+    // INV-R-034: the staleness clock starts at the unskip, not at mount, because skipped renders dispatch no `initiate`.
     test('refetchOnMountOrArgChange works as expected when changing skip from false->true with a cached query', async () => {
       // 1. we need to mount a skipped query, then toggle skip to generate a cached result
       // 2. we need to mount a skipped component after that, then toggle skip as well. should pull from the cache.
@@ -786,6 +805,7 @@ describe('hooks tests', () => {
       )
     })
 
+    // INV-R-039: the subscribe effect keys off original arg identity, not `queryCacheKey`, so `merge` endpoints refetch.
     test(`useQuery refetches when query args object changes even if serialized args don't change`, async () => {
       const user = userEvent.setup()
 
@@ -817,6 +837,7 @@ describe('hooks tests', () => {
       await screen.findByText('ID: 3')
     })
 
+    // INV-R-010: `serializeQueryArgs` is never invoked for a skipped query - skip is substituted before serialization.
     test(`useQuery shouldn't call args serialization if request skipped`, async () => {
       expect(() =>
         renderHook(() => api.endpoints.queryWithDeepArg.useQuery(skipToken), {
@@ -857,6 +878,9 @@ describe('hooks tests', () => {
     })
 
     describe('api.util.resetApiState resets hook', () => {
+      // INV-R-023: the pending fiction applies, so the post-reset render reports `isFetching`/`isLoading` true.
+      // INV-R-037: `resetApiState` drops the hook's `lastResult`, so `isLoading` can become true again.
+      // INV-R-092: after `resetApiState` a mounted default `useQuery` reports fabricated pending, not uninitialized.
       test('without `selectFromResult`', async () => {
         const { result } = renderHook(() => api.endpoints.getUser.useQuery(5), {
           wrapper: storeRef.wrapper,
@@ -878,6 +902,10 @@ describe('hooks tests', () => {
           }),
         )
       })
+      // INV-R-025: a user `selectFromResult` displaces `noPendingQueryStateSelector` by spread order.
+      // INV-R-038: so the user callback sees the raw `uninitialized` state, the opposite of INV-R-037.
+      // INV-R-077: `selectFromResult` receives the derived React-shaped result, never the core cache entry.
+      // INV-R-078: the first-render pending fiction is silently discarded when `selectFromResult` is supplied.
       test('with `selectFromResult`', async () => {
         const selectFromResult = vi.fn((x) => x)
         const { result } = renderHook(
@@ -903,6 +931,8 @@ describe('hooks tests', () => {
         })
       })
 
+      // INV-R-037: the `lastResult` reset must not leave the hook permanently loading.
+      // INV-R-092: a reset looks exactly like a fresh mount to the component.
       test('hook should not be stuck loading post resetApiState after re-render', async () => {
         const user = userEvent.setup()
 
@@ -969,6 +999,7 @@ describe('hooks tests', () => {
       })
     })
 
+    // INV-R-036: `refetch()` resolves with the selected post-refetch store state, not the raw base-query response.
     test('useQuery refetch method returns a promise that resolves with the result', async () => {
       const { result } = renderHook(
         () => api.endpoints.getIncrementedAmount.useQuery(),
@@ -992,6 +1023,7 @@ describe('hooks tests', () => {
     })
 
     // See https://github.com/reduxjs/redux-toolkit/issues/4267 - Memory leak in useQuery rapid query arg changes
+    // INV-R-014: an arg change unsubscribes the old cache key before subscribing to the new one (issue #4267).
     test('Hook subscriptions are properly cleaned up when query is fulfilled/rejected', async () => {
       // This is imported already, but it seems to be causing issues with the test on certain matrixes
 
@@ -1051,6 +1083,10 @@ describe('hooks tests', () => {
     })
 
     // See https://github.com/reduxjs/redux-toolkit/issues/3182
+    // INV-R-003: unmount unsubscription runs in a passive effect cleanup, so counts settle after a tick.
+    // INV-R-004: every render reads live middleware `isRequestSubscribed` to detect externally-removed subscriptions.
+    // INV-R-006: a re-render with an unchanged arg must NOT clear the promise ref.
+    // INV-R-007: changing cache key and un-skipping in one render yields exactly one subscription (issue #3182).
     test('Hook subscriptions are properly cleaned up when changing skip back and forth', async () => {
       const pokemonApi = createApi({
         baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
@@ -1131,6 +1167,7 @@ describe('hooks tests', () => {
       }
     })
 
+    // INV-R-091: a sibling mounting on the same cache key cannot perturb another instance's `isLoading`.
     test('Hook subscription failures do not reset isLoading state', async () => {
       const states: boolean[] = []
 
@@ -1190,6 +1227,7 @@ describe('hooks tests', () => {
       ).toBe(-1)
     })
 
+    // INV-R-019: the queryFn `signal` fires at cache-collection time, not at unmount time.
     test('query thunk should be aborted when component unmounts and cache entry is removed', async () => {
       let abortSignalFromQueryFn: AbortSignal | undefined
 
@@ -1284,6 +1322,8 @@ describe('hooks tests', () => {
         consoleErrorSpy.mockRestore()
       })
 
+      // INV-R-020: the middleware-presence probe throws synchronously during render, from the render-phase dispatch.
+      // INV-R-114: it throws before any effect can run, so it surfaces via an error boundary.
       test('Throws error if middleware is not added to the store', async () => {
         const store = configureStore({
           reducer: {
@@ -1312,6 +1352,8 @@ describe('hooks tests', () => {
     })
 
     let getRenderCount: () => number = () => 0
+    // INV-R-041: a lazy hook mounts with zero subscriptions, zero dispatches, and exactly one commit.
+    // INV-R-042: the trigger dispatches `initiate` synchronously inside the caller's stack, batched with `setArg`.
     test('useLazyQuery does not automatically fetch when mounted and has undefined data', async () => {
       function User() {
         const [fetchUser, { data: hookData, isFetching, isUninitialized }] =
@@ -1360,6 +1402,9 @@ describe('hooks tests', () => {
       expect(getRenderCount()).toBe(5)
     })
 
+    // INV-R-012: subscription options are shallow-stabilized; an identical value dispatches nothing.
+    // INV-R-013: when only the options changed, the existing promise is updated instead of re-initiated.
+    // INV-R-055: `useLazyQuerySubscription` takes no `skip`/`refetchOnMountOrArgChange`, only the four subscription options.
     test('useLazyQuery accepts updated subscription options and only dispatches updateSubscriptionOptions when values are updated', async () => {
       let interval = 1000
       function User() {
@@ -1442,6 +1487,9 @@ describe('hooks tests', () => {
       ).toHaveLength(1)
     })
 
+    // INV-R-014: unsubscribe-then-subscribe ordering within one trigger call.
+    // INV-R-044: every trigger unsubscribes the previous promise first, even for the same arg.
+    // INV-R-046: the lazy unmount cleanup unsubscribes but leaves `promiseRef.current` populated.
     test('useLazyQuery accepts updated args and unsubscribes the original query', async () => {
       function User() {
         const [fetchUser, { data: hookData, isFetching, isUninitialized }] =
@@ -1518,6 +1566,7 @@ describe('hooks tests', () => {
       ).toHaveLength(4)
     })
 
+    // INV-R-053: `arg`, `requestId`, `abort`, `unwrap`, `refetch`, `unsubscribe`, `updateSubscriptionOptions` live on the promise object.
     test('useLazyQuery hook callback returns various properties to handle the result', async () => {
       const user = userEvent.setup()
 
@@ -1587,6 +1636,7 @@ describe('hooks tests', () => {
     })
 
     // Based on issue #5079, which I couldn't reproduce but we might as well capture
+    // INV-R-054: `abort()` is idempotent, including on already-settled trigger promises (issue #5079).
     test('useLazyQuery calling abort() multiple times does not throw an error', async () => {
       const user = userEvent.setup()
 
@@ -1659,6 +1709,7 @@ describe('hooks tests', () => {
       expect(screen.getByTestId('error').textContent).toBe('')
     })
 
+    // INV-R-052: a deduped trigger resolves with the real aggregate result, never the internal `ConditionError`.
     test('unwrapping the useLazyQuery trigger result does not throw on ConditionError and instead returns the aggregate error', async () => {
       function User() {
         const [getUser, { data, error }] =
@@ -1713,6 +1764,7 @@ describe('hooks tests', () => {
       expect(screen.getByTestId('result').textContent).toBe('')
     })
 
+    // INV-R-052: success twin of the above - the deduped promise awaits the in-flight request and re-selects.
     test('useLazyQuery does not throw on ConditionError and instead returns the aggregate result', async () => {
       function User() {
         const [getUser, { data, error }] = api.endpoints.getUser.useLazyQuery()
@@ -1764,6 +1816,7 @@ describe('hooks tests', () => {
       expect(screen.getByTestId('error').textContent).toBe('')
     })
 
+    // INV-R-051: the query-family promise resolves from a store selector read, so it agrees with what the hook renders (PR #4651).
     test('useLazyQuery trigger promise returns the correctly updated data', async () => {
       const consoleErrorSpy = vi
         .spyOn(console, 'error')
@@ -1861,6 +1914,7 @@ describe('hooks tests', () => {
       consoleErrorSpy.mockRestore()
     })
 
+    // INV-R-048: lazy `reset()` removes the cache entry but does not unsubscribe and does not clear `arg`.
     test('`reset` sets state back to original state', async () => {
       const user = userEvent.setup()
 
@@ -2043,6 +2097,8 @@ describe('hooks tests', () => {
       )
     })
 
+    // INV-R-094: `useInfiniteQuery` performs one extra, unexplained render when fetching an uninitialized entry.
+    // INV-R-096: `fetchNextPage`/`fetchPreviousPage` dispatch synchronously; direction flags are readable before any await.
     test.each([
       ['no refetch', pokemonApi],
       ['with refetch', pokemonApiWithRefetch],
@@ -2196,6 +2252,8 @@ describe('hooks tests', () => {
       })
     })
 
+    // INV-R-011: query args are structurally shared, so a new-but-deep-equal object does not re-subscribe.
+    // INV-R-095: `initialPageParam` is shallow-stabilized, so an inline object literal cannot cause a refetch loop.
     test('Object page params does not keep forcing refetching', async () => {
       type Project = {
         id: number
@@ -2441,6 +2499,7 @@ describe('hooks tests', () => {
       expect(numRequests).toBe(1)
     })
 
+    // INV-R-101: `infiniteQueryStatePreSelector` reproduces the plain-query `isSuccess` no-flash smoothing.
     test('`isSuccess` does not flash false on subsequent infinite queries', async () => {
       const storeRef = setupApiStore(pokemonApi, undefined, {
         withoutTestLifecycles: true,
@@ -2497,6 +2556,8 @@ describe('hooks tests', () => {
       ])
     })
 
+    // INV-R-009: `skip: true` and `skipToken` collapse to the same internal value before arg stabilization.
+    // INV-R-102: so the two spellings are observationally identical for infinite queries.
     test.each([
       ['skip token', true],
       ['skip option', false],
@@ -2543,6 +2604,7 @@ describe('hooks tests', () => {
       },
     )
 
+    // INV-R-098: hook-level `refetchCachedPages` is shallow-stabilized and threaded into `initiate`.
     test('useInfiniteQuery hook option refetchCachedPages: false only refetches first page', async () => {
       const storeRef = setupApiStore(pokemonApi, undefined, {
         withoutTestLifecycles: true,
@@ -2610,6 +2672,7 @@ describe('hooks tests', () => {
       expect(pages).toHaveLength(1)
     })
 
+    // INV-R-099: a per-call `refetch({ refetchCachedPages })` overrides the hook-level option.
     test('useInfiniteQuery refetch() method option refetchCachedPages: false only refetches first page', async () => {
       const storeRef = setupApiStore(pokemonApi, undefined, {
         withoutTestLifecycles: true,
@@ -2677,6 +2740,7 @@ describe('hooks tests', () => {
   })
 
   describe('useMutation', () => {
+    // INV-R-068: the pending render is driven by the trigger's `setPromise`, not by the store subscription.
     test('useMutation hook sets and unsets the isLoading flag when running', async () => {
       function User() {
         const [updateUser, { isLoading }] =
@@ -2706,6 +2770,7 @@ describe('hooks tests', () => {
       )
     })
 
+    // INV-R-068: `data` only appears on a later, store-driven render after the thunk fulfills.
     test('useMutation hook sets data to the resolved response on success', async () => {
       const result = { name: 'Banana' }
 
@@ -2732,6 +2797,8 @@ describe('hooks tests', () => {
       )
     })
 
+    // INV-R-062: the mutation-family promise resolves with `{data}`/`{error}` from the thunk and never rejects.
+    // INV-R-063: its `.unwrap()` is the raw createAsyncThunk unwrap and DOES reject, with `AbortError` after `abort()`.
     test('useMutation hook callback returns various properties to handle the result', async () => {
       const user = userEvent.setup()
 
@@ -2784,6 +2851,7 @@ describe('hooks tests', () => {
       screen.getByText('Request was aborted')
     })
 
+    // INV-R-061: without `fixedCacheKey`, `originalArgs` is the referentially identical object passed to the trigger.
     test('useMutation return value contains originalArgs', async () => {
       const { result } = renderHook(
         () => api.endpoints.updateUser.useMutation(),
@@ -2803,6 +2871,7 @@ describe('hooks tests', () => {
       expect(secondRenderResult[1].originalArgs).toBe(arg)
     })
 
+    // INV-R-064: mutation `reset()` batches `setPromise(undefined)` with a `removeMutationResult` dispatch only when `fixedCacheKey` is set.
     test('`reset` sets state back to original state', async () => {
       const user = userEvent.setup()
 
@@ -2844,6 +2913,7 @@ describe('hooks tests', () => {
   })
 
   describe('usePrefetch', () => {
+    // INV-R-106: per-call prefetch options override the hook-level defaults.
     test('usePrefetch respects force arg', async () => {
       const user = userEvent.setup()
 
@@ -2913,6 +2983,7 @@ describe('hooks tests', () => {
       })
     })
 
+    // INV-R-106: `force: false` with a warm cache entry dispatches nothing.
     test('usePrefetch does not make an additional request if already in the cache and force=false', async () => {
       const user = userEvent.setup()
 
@@ -2981,6 +3052,7 @@ describe('hooks tests', () => {
       })
     })
 
+    // INV-R-106: `ifOlderThan` is evaluated in core against the entry timestamp.
     test('usePrefetch respects ifOlderThan when it evaluates to true', async () => {
       const user = userEvent.setup()
 
@@ -3054,6 +3126,7 @@ describe('hooks tests', () => {
       })
     })
 
+    // INV-R-106: a fresh entry short-circuits the prefetch.
     test('usePrefetch returns the last success result when ifOlderThan evaluates to false', async () => {
       const user = userEvent.setup()
 
@@ -3098,6 +3171,7 @@ describe('hooks tests', () => {
       ).toEqual(latestQueryData)
     })
 
+    // INV-R-106: an empty cache always dispatches, regardless of `force`/`ifOlderThan`.
     test('usePrefetch executes a query even if conditions fail when the cache is empty', async () => {
       const user = userEvent.setup()
 
@@ -3138,6 +3212,8 @@ describe('hooks tests', () => {
       })
     })
 
+    // INV-R-016: a prefetched entry carries zero subscriptions until a hook mounts.
+    // INV-R-105: `usePrefetch` never subscribes and can never re-render its caller.
     it('should create subscription when hook mounts after prefetch', async () => {
       const api = createApi({
         baseQuery: async () => ({ data: 'test data' }),
@@ -3317,6 +3393,7 @@ describe('hooks with createApi defaults set', () => {
   })
 
   const storeRef = setupApiStore(defaultApi)
+  // INV-R-035: the createApi-level default applies when the hook passes no override.
   test('useQuery hook respects refetchOnMountOrArgChange: true when set in createApi options', async () => {
     let data, isLoading, isFetching
 
@@ -3373,6 +3450,7 @@ describe('hooks with createApi defaults set', () => {
     )
   })
 
+  // INV-R-035: a hook-level option overrides the createApi default, including overriding `true` back to `false`.
   test('useQuery hook overrides default refetchOnMountOrArgChange: false that was set by createApi', async () => {
     let data, isLoading, isFetching
 
@@ -3536,6 +3614,9 @@ describe('hooks with createApi defaults set', () => {
       counter: counterSlice.reducer,
     })
 
+    // INV-R-072: `selectDefaultResult` uses `resultEqualityCheck: shallowEqual`, so an unchanged slice keeps its identity.
+    // INV-R-074: selecting only `data` suppresses status-flag renders.
+    // INV-R-080: baseline for "the subscription half of useQuery adds zero commits" - compare the useQuery twin below.
     test('useQueryState serves a deeply memoized value and does not rerender unnecessarily', async () => {
       function Posts() {
         const { data: posts } = api.endpoints.getPosts.useQuery()
@@ -3600,6 +3681,7 @@ describe('hooks with createApi defaults set', () => {
      * will still cause rerenders for the query. This should show that if you're using selectFromResult,
      * the 'performance' value comes with selecting _only_ the data.
      */
+    // INV-R-074: destructuring the status flags reinstates full default-`useQuery` render behavior.
     test('useQuery with selectFromResult with all flags destructured rerenders like the default useQuery behavior', async () => {
       function Posts() {
         const { data: posts } = api.endpoints.getPosts.useQuery()
@@ -3666,6 +3748,9 @@ describe('hooks with createApi defaults set', () => {
       await waitFor(() => expect(getRenderCount()).toBe(7))
     })
 
+    // INV-R-072: the inner `resultEqualityCheck: shallowEqual` gate absorbs new-but-shallow-equal state objects.
+    // INV-R-074: data-only selection stays at 2 commits across three refetch cycles.
+    // INV-R-080: render counts are byte-identical to the `useQueryState`-only twin, so the subscription half adds nothing.
     test('useQuery with selectFromResult option serves a deeply memoized value and does not rerender unnecessarily', async () => {
       function Posts() {
         const { data: posts } = api.endpoints.getPosts.useQuery()
@@ -3718,6 +3803,7 @@ describe('hooks with createApi defaults set', () => {
       await waitFor(() => expect(getRenderCount()).toBe(2))
     })
 
+    // INV-R-075: selecting one record re-renders only when that record changes, not when siblings are added.
     test('useQuery with selectFromResult option serves a deeply memoized value, then ONLY updates when the underlying data changes', async () => {
       let expectablePost: Post | undefined
       function Posts() {
@@ -3793,6 +3879,8 @@ describe('hooks with createApi defaults set', () => {
       await waitFor(() => expect(getRenderCount()).toBe(3))
     })
 
+    // INV-R-029: two independent equality gates - `resultEqualityCheck: shallowEqual` inside, `shallowEqual` at `useSelector`.
+    // INV-R-071: the `createSelector` wrapper means an unrelated dispatch does not even re-run the user selector.
     test('useQuery with selectFromResult option does not update when unrelated data in the store changes', async () => {
       function Posts() {
         const { posts } = api.endpoints.getPosts.useQuery(undefined, {
@@ -3896,6 +3984,9 @@ describe('hooks with createApi defaults set', () => {
       ...actionsReducer,
     })
 
+    // INV-R-057: without `fixedCacheKey`, a promise change runs a cleanup that dispatches `removeMutationResult` for the previous promise.
+    // INV-R-066: the mutation selector wrapper gets no `identityFunctionCheck: never`, unlike the query side.
+    // INV-R-073: `shallowEqual` at `useSelector` is the only suppression layer on the mutation hook.
     it('causes no more than one rerender when using selectFromResult with an empty object', async () => {
       function Counter() {
         const [increment] = api.endpoints.increment.useMutation({
@@ -3937,6 +4028,7 @@ describe('hooks with createApi defaults set', () => {
       )
     })
 
+    // INV-R-066: selecting `data` restores the 2-commits-per-mutation-cycle cost.
     it('causes rerenders when only selected data changes', async () => {
       function Counter() {
         const [increment, { data }] = api.endpoints.increment.useMutation({
@@ -3976,6 +4068,7 @@ describe('hooks with createApi defaults set', () => {
       expect(getRenderCount()).toBe(5)
     })
 
+    // INV-R-056: the mutation trigger dispatches and calls `setPromise` OUTSIDE any `batch()`, yet still commits once in the handler.
     it('causes the expected # of rerenders when NOT using selectFromResult', async () => {
       function Counter() {
         const [increment, data] = api.endpoints.increment.useMutation()
@@ -4052,6 +4145,10 @@ describe('skip behavior', () => {
     isUninitialized: true,
   }
 
+  // INV-R-008: `skip` unsubscribes and clears the promise ref but leaves the cache entry alone.
+  // INV-R-024: the pending fiction is disabled while skipped, so the genuine uninitialized shape is reported.
+  // INV-R-028: the skip transition is observed synchronously in the same render; only unsubscription waits for the effect.
+  // INV-R-089: `status` flips to `uninitialized` immediately on the rerender.
   test('normal skip', async () => {
     const { result, rerender } = renderHook(
       ([arg, options]: Parameters<typeof api.endpoints.getUser.useQuery>) =>
@@ -4088,6 +4185,8 @@ describe('skip behavior', () => {
     expect(getSubscriptionCount('getUser(1)')).toBe(0)
   })
 
+  // INV-R-008: `skipToken` takes the same early-return branch and does not remove the cache entry.
+  // INV-R-024: a skipped query reports the genuine uninitialized state.
   test('skipToken', async () => {
     const { result, rerender } = renderHook(
       ([arg, options]: Parameters<typeof api.endpoints.getUser.useQuery>) =>
@@ -4128,6 +4227,7 @@ describe('skip behavior', () => {
     expect(getSubscriptionCount('getUser(1)')).toBe(0)
   })
 
+  // INV-R-010: a serializer that would throw on the sentinel is never called for a skipped query.
   test('skipToken does not break serializeQueryArgs', async () => {
     const { result, rerender } = renderHook(
       ([arg, options]: Parameters<
@@ -4170,6 +4270,11 @@ describe('skip behavior', () => {
     expect(getSubscriptionCount('nestedValue')).toBe(0)
   })
 
+  // INV-R-027: `data` falls back to the previous hook result; `currentData` never does.
+  // INV-R-028: the state half flips in the render pass, the subscription teardown in the effect.
+  // INV-R-089: `data` retained and `currentData` cleared, observed with no await.
+  // INV-R-090: a skipped hook over a populated cache entry still reports `status: uninitialized`.
+  // INV-R-093: the `data`/`currentData` split is the only signal distinguishing stale from fresh.
   test('skipping a previously fetched query retains the existing value as `data`, but clears `currentData`', async () => {
     const { result, rerender } = renderHook(
       ([arg, options]: Parameters<typeof api.endpoints.getUser.useQuery>) =>

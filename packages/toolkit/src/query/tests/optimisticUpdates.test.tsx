@@ -138,6 +138,7 @@ describe('basic lifecycle', () => {
 })
 
 describe('updateQueryData', () => {
+  // INV-M-055: `updateQueryData` is fully synchronous and returns before its dispatch is observable to async code
   test('updates cache values, can apply inverse patch', async () => {
     baseQuery
       .mockResolvedValueOnce({
@@ -245,6 +246,8 @@ describe('updateQueryData', () => {
     })
   })
 
+  // INV-M-059: `undo()` reads `ret.inversePatches` at call time, by reference
+  // INV-M-061: `updateQueryData` recalculates provided tags by default; `patchQueryData` does not
   test('updates (list) cache values including provided tags, undos that', async () => {
     baseQuery
       .mockResolvedValueOnce([
@@ -302,6 +305,7 @@ describe('updateQueryData', () => {
     expect(provided4Next).toEqual([])
   })
 
+  // INV-M-061: `updateQueryData` recalculates provided tags by default; `patchQueryData` does not
   test('updates (list) cache values excluding provided tags, undoes that', async () => {
     baseQuery
       .mockResolvedValueOnce([
@@ -357,6 +361,7 @@ describe('updateQueryData', () => {
     expect(provided4Next).toEqual(undefined)
   })
 
+  // INV-M-056: `updateQueryData` on a nonexistent/uninitialized entry is a complete no-op
   test('does not update non-existing values', async () => {
     baseQuery
       .mockImplementationOnce(async () => ({
@@ -450,6 +455,7 @@ describe('full integration', () => {
     )
   })
 
+  // INV-M-060: `undo()` applies inverse patches blindly against whatever the entry currently holds
   test('error case', async () => {
     baseQuery
       .mockResolvedValueOnce({

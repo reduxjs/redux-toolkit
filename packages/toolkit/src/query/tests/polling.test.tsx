@@ -43,6 +43,7 @@ const createSubscriptionGetter = (queryCacheKey: string) => () =>
   getSubscribersForQueryCacheKey(queryCacheKey)
 
 describe('polling tests', () => {
+  // INV-Q-071: resetApiState clears every poll timer along with GC timers and lifecycles
   it('clears intervals when seeing a resetApiState action', async () => {
     await storeRef.store.dispatch(
       getPosts.initiate(1, {
@@ -60,6 +61,9 @@ describe('polling tests', () => {
     expect(mockBaseQuery).toHaveBeenCalledOnce()
   })
 
+  // INV-Q-012: updateSubscriptionOptions mutates the promise object synchronously and also dispatches
+  // INV-Q-073: the next poll is scheduled when a request settles, not when the previous timer fires
+  // INV-Q-077: interval updates only ever accelerate an existing poll, never extend it
   it('replaces polling interval when the subscription options are updated', async () => {
     const { requestId, queryCacheKey, ...subscription } =
       storeRef.store.dispatch(
@@ -82,6 +86,8 @@ describe('polling tests', () => {
     expect(getSubs()?.get(requestId)?.pollingInterval).toBe(20)
   })
 
+  // INV-Q-076: a non-finite lowest interval means "no polling" and clears any existing timer
+  // INV-Q-077: a later next-poll timestamp does not replace an already-sooner scheduled timer
   it(`doesn't replace the interval when removing a shared query instance with a poll `, async () => {
     const subscriptionOne = storeRef.store.dispatch(
       getPosts.initiate(1, {
@@ -109,6 +115,7 @@ describe('polling tests', () => {
     expect(getSubs().size).toBe(1)
   })
 
+  // INV-Q-075: the effective polling interval is the minimum across all subscribers of the cache key
   it('uses lowest specified interval when two components are mounted', async () => {
     storeRef.store.dispatch(
       getPosts.initiate(1, {
@@ -129,6 +136,8 @@ describe('polling tests', () => {
     expect(mockBaseQuery.mock.calls.length).toBeGreaterThanOrEqual(2)
   })
 
+  // INV-Q-078: skipPollingIfUnfocused is OR'd across subscribers
+  // INV-Q-079: while unfocused the timer keeps firing and rescheduling but dispatches nothing
   it('respects skipPollingIfUnfocused', async () => {
     mockBaseQuery.mockClear()
     storeRef.store.dispatch(
@@ -166,6 +175,7 @@ describe('polling tests', () => {
     storeRef.store.dispatch(api.util.resetApiState())
   })
 
+  // INV-Q-078: any subscriber opting into skipPollingIfUnfocused disables polling for all of them while unfocused
   it('respects skipPollingIfUnfocused if at least one subscription has it', async () => {
     storeRef.store.dispatch(
       getPosts.initiate(3, {
@@ -209,6 +219,8 @@ describe('polling tests', () => {
     expect(callsWithSkip).toBe(callsWithoutSkip + 1)
   })
 
+  // INV-Q-012: updateSubscriptionOptions mutates the promise object synchronously and also dispatches
+  // INV-Q-078: skipPollingIfUnfocused is OR'd across subscribers, and re-derived when options change
   it('replaces skipPollingIfUnfocused when the subscription options are updated', async () => {
     const { requestId, queryCacheKey, ...subscription } =
       storeRef.store.dispatch(
@@ -237,6 +249,8 @@ describe('polling tests', () => {
     expect(getSubs().get(requestId)?.skipPollingIfUnfocused).toBe(true)
   })
 
+  // INV-Q-072: polling interval recalculation is deferred to a macrotask and coalesced,
+  //            so N subscribers mounting in one tick produce one recalculation
   it('should minimize polling recalculations when adding multiple subscribers', async () => {
     // Reset any existing state
     const storeRef = setupApiStore(api, undefined, {

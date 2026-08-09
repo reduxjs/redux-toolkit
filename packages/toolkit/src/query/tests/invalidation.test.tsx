@@ -25,11 +25,14 @@ const caseMatrix: [ProvidedTags, InvalidatesTags, boolean][] = [
   // string
   [['apple'], ['apple'], true],
   [['apple'], ['pear'], false],
+  // INV-M-029: a string tag expands to `{ type }` with `id === undefined`
   // string and type only behave identical
   [[{ type: 'apple' }], ['apple'], true],
   [[{ type: 'apple' }], ['pear'], false],
   [['apple'], [{ type: 'apple' }], true],
   [['apple'], [{ type: 'pear' }], false],
+  // INV-M-033: invalidating by bare type matches entries that provided that type with any id,
+  // but invalidating by `{ type, id }` does NOT match entries that provided the bare type
   // type only invalidates type + id
   [[{ type: 'apple', id: 1 }], [{ type: 'apple' }], true],
   [[{ type: 'pear', id: 1 }], ['apple'], false],
@@ -39,6 +42,7 @@ const caseMatrix: [ProvidedTags, InvalidatesTags, boolean][] = [
   // type + id invalidates type + id
   [[{ type: 'apple', id: 1 }], [{ type: 'apple', id: 1 }], true],
   [[{ type: 'apple', id: 1 }], [{ type: 'apple', id: 2 }], false],
+  // INV-M-030: nullish entries in a tag array are filtered out, not treated as wildcards
   // null and undefined
   [['apple'], [null], false],
   [['apple'], [undefined], false],
@@ -70,6 +74,9 @@ const caseMatrix: [ProvidedTags, InvalidatesTags, boolean][] = [
   ],
 ]
 
+// INV-M-029: a string tag expands to `{ type }` with `id === undefined`
+// INV-M-030: nullish entries in a tag array are filtered out, not treated as wildcards
+// INV-M-033: bare type matches any id; `{ type, id }` does not match a bare-type provider
 test.each(caseMatrix)(
   '\tprovidesTags: %O,\n\tinvalidatesTags: %O,\n\tshould invalidate: %s',
   async (providesTags, invalidatesTags, shouldInvalidate) => {

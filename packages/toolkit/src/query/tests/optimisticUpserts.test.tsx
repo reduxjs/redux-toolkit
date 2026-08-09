@@ -146,6 +146,7 @@ describe('basic lifecycle', () => {
     onSuccess.mockReset()
   })
 
+  // INV-M-063: `upsertQueryData` runs the full query thunk pipeline with a synthetic `queryFn`
   test('Does basic inserts and upserts', async () => {
     const newPost: Post = {
       id: '3',
@@ -229,6 +230,7 @@ describe('basic lifecycle', () => {
 })
 
 describe('upsertQueryData', () => {
+  // INV-M-063: `upsertQueryData` runs the full query thunk pipeline with a synthetic `queryFn`
   test('inserts cache entry', async () => {
     baseQuery
       .mockResolvedValueOnce({
@@ -270,6 +272,7 @@ describe('upsertQueryData', () => {
     })
   })
 
+  // INV-M-063: `upsertQueryData` runs the full query thunk pipeline with a synthetic `queryFn`
   test('does update non-existing values', async () => {
     baseQuery
       // throw an error to make sure there is no cached data
@@ -312,6 +315,7 @@ describe('upsertQueryData', () => {
     })
   })
 
+  // INV-M-064: `upsertQueryData` bypasses both the in-flight `condition` bail-out and the stale-response guard
   test('upsert while a normal query is running (success)', async () => {
     const fetchedData = {
       id: '3',
@@ -339,6 +343,7 @@ describe('upsertQueryData', () => {
     state = selector(storeRef.store.getState())
     expect(state.data).toEqual(fetchedData)
   })
+  // INV-M-064: `upsertQueryData` bypasses both the in-flight `condition` bail-out and the stale-response guard
   test('upsert while a normal query is running (rejected)', async () => {
     baseQuery.mockImplementationOnce(async () => {
       await delay(20)
@@ -385,6 +390,7 @@ describe('upsertQueryEntries', () => {
     })),
   ])
 
+  // INV-M-066: `upsertQueryEntries` writes many entries in one action and computes tags from synthetic fulfilled actions
   test('Upserts many entries at once', async () => {
     storeRef.store.dispatch(entriesAction)
 
@@ -404,6 +410,7 @@ describe('upsertQueryEntries', () => {
     }
   })
 
+  // INV-M-066: `upsertQueryEntries` writes many entries in one action and computes tags from synthetic fulfilled actions
   test('Triggers cache lifecycles and side effects', async () => {
     storeRef.store.dispatch(entriesAction)
 
@@ -444,6 +451,7 @@ describe('upsertQueryEntries', () => {
     )
   })
 
+  // INV-M-066: `upsertQueryEntries` writes many entries in one action and computes tags from synthetic fulfilled actions
   test('Handles repeated upserts and async lifecycles', async () => {
     const StateForUpsertFolder = ({ folderId }: { folderId: number }) => {
       const { status } = api.useGetFolderQuery(folderId)
@@ -620,6 +628,7 @@ describe('full integration', () => {
     )
   })
 
+  // INV-M-064: `upsertQueryData` bypasses both the in-flight `condition` bail-out and the stale-response guard
   test('Interop with in-flight requests', async () => {
     await act(async () => {
       const fetchRes = storeRef.store.dispatch(

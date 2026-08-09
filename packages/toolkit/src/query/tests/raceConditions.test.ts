@@ -52,6 +52,7 @@ const storeRef = setupApiStore(api, {
   ...actionsReducer,
 })
 
+// INV-M-048: refetch is `initiate(originalArgs, { subscribe: false, forceRefetch: true })`
 it('invalidates a query after a corresponding mutation', async () => {
   eatenBananas = 0
 
@@ -81,6 +82,10 @@ it('invalidates a query after a corresponding mutation', async () => {
   expect(getQueryState()?.status).toBe(QueryStatus.fulfilled)
 })
 
+// INV-M-040: deferral is gated on a counter of in-flight query AND mutation thunks,
+// incremented on pending and decremented on settle
+// INV-M-041: tags are queued before the deferral check, so a deferred mutation's tags are never lost
+// INV-M-042: any query or mutation settling flushes the pending invalidation queue
 it('invalidates a query whose corresponding mutation finished while the query was in flight', async () => {
   eatenBananas = 0
 

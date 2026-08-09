@@ -19,6 +19,7 @@ import { setupApiStore, useRenderCounter } from '../../tests/utils/helpers'
 const MyContext = React.createContext<ReactReduxContextValue | null>(null)
 
 describe('buildCreateApi', () => {
+  // INV-R-125: `reactHooksModule` validates the three injected hooks eagerly, at module-construction time.
   test('Works with all hooks provided', async () => {
     const customCreateApi = buildCreateApi(
       coreModule(),
@@ -83,6 +84,7 @@ describe('buildCreateApi', () => {
     expect(getRenderCount()).toBe(3)
   })
 
+  // INV-R-125: all three of useDispatch/useSelector/useStore must be supplied together, or construction throws.
   test("Throws an error if you don't provide all hooks", async () => {
     const callBuildCreateApi = () => {
       const customCreateApi = buildCreateApi(
@@ -104,6 +106,7 @@ describe('buildCreateApi', () => {
     `,
     )
   })
+  // INV-R-126: a custom `createSelector` instance is threaded into both the default result selector and the `selectFromResult` wrapper.
   test('allows passing createSelector instance', async () => {
     const memoize = vi.fn(lruMemoize)
     const createSelector = createSelectorCreator(memoize)

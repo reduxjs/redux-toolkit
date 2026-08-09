@@ -245,6 +245,7 @@ describe('mutation error handling', () => {
     )
   })
 
+  // INV-M-026: `error` on a rejected mutation is `payload ?? error` — the `rejectWithValue` payload wins
   test('error', async () => {
     server.use(
       http.post('https://example.com/mutation', () =>
@@ -563,6 +564,8 @@ describe('error handling in a component', () => {
   })
 
   for (const track of [true, false]) {
+    // INV-M-007: `track: false` suppresses all mutation state writes and the cache lifecycle,
+    // but not execution, promises, or invalidation
     test(`an un-subscribed mutation will still return something useful (success case, track: ${track})`, async () => {
       const hook = renderHook(useDispatch, { wrapper: storeRef.wrapper })
 
@@ -585,6 +588,9 @@ describe('error handling in a component', () => {
       })
     })
 
+    // INV-M-007: `track: false` suppresses all mutation state writes and the cache lifecycle,
+    // but not execution, promises, or invalidation
+    // INV-M-016: the returned mutation promise never rejects
     test(`an un-subscribed mutation will still return something useful (error case, track: ${track})`, async () => {
       const hook = renderHook(useDispatch, { wrapper: storeRef.wrapper })
 
@@ -631,6 +637,7 @@ describe('error handling in a component', () => {
       })
     })
 
+    // INV-M-015: `.unwrap()` on the result is the raw asyncThunk unwrap, not derived from the returned promise
     test(`an un-subscribed mutation will still be unwrappable (error case, track: ${track})`, async () => {
       const hook = renderHook(useDispatch, { wrapper: storeRef.wrapper })
 

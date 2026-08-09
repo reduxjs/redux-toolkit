@@ -24,6 +24,8 @@ beforeEach(() => {
 describe.each([['query'], ['mutation']] as const)(
   'generic cases: %s',
   (type) => {
+    // INV-Q-059: `onQueryStarted` runs once per request, synchronously while the
+    // pending action is being processed by the middleware.
     test(`${type}: onStart only`, async () => {
       const extended = api.injectEndpoints({
         overrideExisting: true,
@@ -40,6 +42,9 @@ describe.each([['query'], ['mutation']] as const)(
       expect(onStart).toHaveBeenCalledWith('arg')
     })
 
+    // INV-Q-059: `onQueryStarted` runs once per request, keyed by `requestId`.
+    // INV-Q-060: `queryFulfilled` resolves from the middleware handler for the
+    // matching `requestId`, after the reducer has written the result.
     test(`${type}: onStart and onSuccess`, async () => {
       const extended = api.injectEndpoints({
         overrideExisting: true,
@@ -69,6 +74,9 @@ describe.each([['query'], ['mutation']] as const)(
       })
     })
 
+    // INV-Q-059: `onQueryStarted` runs once per request, keyed by `requestId`.
+    // INV-Q-060: `queryFulfilled` rejects from the middleware handler on the
+    // rejected action, after the reducer has written the error.
     test(`${type}: onStart and onError`, async () => {
       const extended = api.injectEndpoints({
         overrideExisting: true,
@@ -107,6 +115,8 @@ describe.each([['query'], ['mutation']] as const)(
   },
 )
 
+// INV-Q-060: by the time `queryFulfilled` resolves, the reducer has already written
+// the fulfilled result, so `getCacheEntry()` observes the settled data.
 test('query: getCacheEntry (success)', async () => {
   const snapshot = vi.fn()
   const extended = api.injectEndpoints({
@@ -168,6 +178,8 @@ test('query: getCacheEntry (success)', async () => {
   })
 })
 
+// INV-Q-060: by the time `queryFulfilled` rejects, the reducer has already written
+// the error state, so `getCacheEntry()` observes it.
 test('query: getCacheEntry (error)', async () => {
   const snapshot = vi.fn()
   const extended = api.injectEndpoints({
@@ -521,6 +533,8 @@ test('infinite query: updateCachedData', async () => {
   onSuccess.mockClear()
 })
 
+// INV-Q-059: a condition-rejected dispatch never emits a pending action, so
+// `onQueryStarted` does not run for it.
 test('query: will only start lifecycle if query is not skipped due to `condition`', async () => {
   const extended = api.injectEndpoints({
     overrideExisting: true,

@@ -42,6 +42,9 @@ beforeEach(() => {
   ) as unknown as SubscriptionSelectors)
 })
 
+// Promise table row 7 / cross-cutting fact 5: a synchronously-skipped `initiate` resolves on the next microtask
+// with stale-but-current data, reusing the *previous* `requestId` — so `requestId` cannot detect "did my call run".
+// React-side coverage: invariants-react-timing.test.tsx.
 test('multiple synchronous initiate calls with pre-existing cache entry', async () => {
   const { store, api } = storeRef
   // seed the store
@@ -77,6 +80,9 @@ test('multiple synchronous initiate calls with pre-existing cache entry', async 
   })
 })
 
+// Promise table row 8 / cross-cutting fact 4: `subscribe: false` does not change promise timing or the resolved
+// value — it only neuters `unsubscribe()`. Same resolution branch, same store-selector read. This is why the
+// promise returned by `refetch()` (which passes `subscribe: false` internally) has a no-op `unsubscribe()`.
 describe('calling initiate without a cache entry, with subscribe: false still returns correct values', () => {
   test('successful query', async () => {
     const { store, api } = storeRef
@@ -178,6 +184,8 @@ describe('calling initiate should have resulting queryCacheKey match baseQuery q
 })
 
 describe('getRunningQueryThunk with multiple stores', () => {
+  // INV-R-021 (core-side counterpart): running-query tracking is keyed per store instance. The React-side
+  // staleness after a store swap (`subscriptionSelectorsRef` captured once per hook) is not covered here.
   test('should isolate running queries between different store instances using the same API', async () => {
     // Create a shared API instance
     const sharedApi = createApi({

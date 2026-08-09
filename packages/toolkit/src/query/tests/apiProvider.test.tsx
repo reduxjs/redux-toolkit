@@ -37,6 +37,7 @@ afterEach(() => {
 })
 
 describe('ApiProvider', () => {
+  // INV-R-113: `ApiProvider` creates its store lazily in `useState`, so it survives re-renders.
   test('ApiProvider allows a user to make queries without a traditional Redux setup', async () => {
     function User() {
       const [value, setValue] = React.useState(0)
@@ -75,6 +76,7 @@ describe('ApiProvider', () => {
     // Being that nothing has changed in the args, this should never fire.
     expect(getByTestId('isFetching').textContent).toBe('false')
   })
+  // INV-R-113: the nested-context check reads `useContext` during render and throws synchronously in the render phase.
   test('ApiProvider throws if nested inside a Redux context', () => {
     // Intentionally swallow the "unhandled error" message
     vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -88,6 +90,7 @@ describe('ApiProvider', () => {
       `[Error: Existing Redux context detected. If you already have a store set up, please use the traditional Redux setup.]`,
     )
   })
+  // INV-R-113: `ApiProvider` honors a custom React-Redux context for its internally created store.
   test('ApiProvider allows a custom context', async () => {
     const customContext = React.createContext<ReactReduxContextValue | null>(
       null,

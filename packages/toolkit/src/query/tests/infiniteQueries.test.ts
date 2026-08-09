@@ -183,6 +183,10 @@ describe('Infinite queries', () => {
     }
   }
 
+  // INV-Q-096: a direction fetch dispatched with no cached pages falls through to
+  // the plain initial fetch of `initialPageParam`.
+  // INV-Q-104: `hasNextPage`/`hasPreviousPage` are computed at select time from the
+  // current pages/pageParams, not stored in the cache entry.
   test('Basic infinite query behavior', async () => {
     const checkFlags = (
       value: unknown,
@@ -401,6 +405,11 @@ describe('Infinite queries', () => {
     )
   })
 
+  // INV-Q-010: `refetch()` re-issues the request with `forceRefetch: true` (partial).
+  // INV-Q-095: forced && no `direction` means "refetch the whole list", so the thunk
+  // rebuilds from blank data rather than appending to the existing pages.
+  // INV-Q-097: the refetch starts from `cachedPageParams[0] ?? initialPageParam`.
+  // INV-Q-098: all cached pages are refetched sequentially inside one thunk execution.
   test('refetches all existing pages', async () => {
     const checkResultData = (
       result: InfiniteQueryResult,
@@ -532,6 +541,8 @@ describe('Infinite queries', () => {
     ])
   })
 
+  // INV-Q-081: automatic refetches (polling here) are dispatched with
+  // `subscribe: false, forceRefetch: true`, so they never add subscriptions.
   test('Refetches on polling', async () => {
     const countersApi = createCountersApi()
     const checkResultData = (
@@ -607,6 +618,8 @@ describe('Infinite queries', () => {
     ])
   })
 
+  // INV-Q-022: an in-flight request cannot be preempted by any non-upsert dispatch,
+  // so overlapping `fetchNextPage` calls dedupe onto the running one.
   test('Handles multiple next page fetches at once', async () => {
     const initialEntry = await storeRef.store.dispatch(
       pokemonApi.endpoints.getInfinitePokemon.initiate('fire', {}),
@@ -676,6 +689,8 @@ describe('Infinite queries', () => {
     ])
   })
 
+  // INV-Q-023: `refetchOnMountOrArgChange` is implemented as `forceRefetch` and is
+  // gated on `arg.subscribe`, so page fetches are not turned into full refetches.
   test('can fetch pages with refetchOnMountOrArgChange active', async () => {
     const pokemonApiWithRefetch = createApi({
       baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
@@ -773,6 +788,8 @@ describe('Infinite queries', () => {
     expect(queryCounter).toBe(6)
   })
 
+  // INV-Q-105: `upsertQueryData` into an infinite query goes through the in-source
+  // HACK that wraps the value as a single page and then un-nests it.
   test('Works with cache manipulation utils', async () => {
     const res1 = storeRef.store.dispatch(
       pokemonApi.endpoints.getInfinitePokemon.initiate('fire', {}),
@@ -939,6 +956,8 @@ describe('Infinite queries', () => {
     })
   })
 
+  // INV-Q-102: an end-of-list page fetch is rejected by `condition`, so no pending
+  // action is dispatched and `onQueryStarted` never runs.
   test('fetchNextPage does not trigger onQueryStarted when hasNextPage is false', async () => {
     let onQueryStartedCallCount = 0
 
@@ -981,6 +1000,10 @@ describe('Infinite queries', () => {
     expect(onQueryStartedCallCount).toBe(3)
   })
 
+  // INV-Q-102: an end-of-list page fetch is condition-rejected, so `onQueryStarted`
+  // never runs.
+  // INV-Q-103: `getPreviousPageParam` is optional; when omitted `hasPreviousPage` is
+  // permanently false.
   test('fetchPreviousPage does not trigger onQueryStarted when hasPreviousPage is false', async () => {
     let onQueryStartedCallCount = 0
 
@@ -1014,6 +1037,9 @@ describe('Infinite queries', () => {
     expect(onQueryStartedCallCount).toBe(1)
   })
 
+  // INV-Q-028: a condition rejection is a real `rejected` action that the reducers
+  // deliberately ignore, so no error state is written.
+  // INV-Q-102: the end-of-list skip leaves the cache entry fulfilled.
   test('end-of-list skip does not set error state', async () => {
     const api = createApi({
       baseQuery: fakeBaseQuery(),
@@ -1050,6 +1076,8 @@ describe('Infinite queries', () => {
     expect(selector.data?.pages).toHaveLength(2)
   })
 
+  // INV-Q-101: `fetchPage` no-ops when the computed page param is `== null` and pages
+  // already exist.
   test('fetchNextPage skips when getNextPageParam returns null', async () => {
     let onQueryStartedCallCount = 0
 
@@ -1082,6 +1110,8 @@ describe('Infinite queries', () => {
     expect(onQueryStartedCallCount).toBe(1)
   })
 
+  // INV-Q-097: page-param resolution uses `??` rather than `||`, so falsy-but-valid
+  // params like `0` or `''` are preserved.
   test('fetchNextPage works with falsy but valid pageParam', async () => {
     let fetchCount = 0
 
@@ -1194,6 +1224,7 @@ describe('Infinite queries', () => {
   })
 
   describe('refetchCachedPages option', () => {
+    // INV-Q-098: the default refetches every cached page sequentially in one thunk.
     test('refetches all pages by default (refetchCachedPages: true)', async () => {
       let hitCounter = 0
 
@@ -1268,6 +1299,7 @@ describe('Infinite queries', () => {
       expect(refetchRes.data!.pages).toHaveLength(3)
     })
 
+    // INV-Q-098: explicit `refetchCachedPages: true` matches the default behavior.
     test('refetches all pages when refetchCachedPages is explicitly true', async () => {
       let hitCounter = 0
 
@@ -1336,6 +1368,8 @@ describe('Infinite queries', () => {
       )
     })
 
+    // INV-Q-100: `refetchCachedPages: false` fetches only the first page and truncates
+    // the cache to that single page.
     test('refetches only first page when refetchCachedPages is false', async () => {
       let hitCounter = 0
 
@@ -1407,6 +1441,7 @@ describe('Infinite queries', () => {
       expect(refetchRes.data!.pageParams).toEqual([0])
     })
 
+    // INV-Q-100: the single-page truncation applies to tag-invalidation refetches too.
     test('refetches only first page on tag invalidation when refetchCachedPages is false', async () => {
       let hitCounter = 0
 
@@ -1484,6 +1519,7 @@ describe('Infinite queries', () => {
       expect((finalRes as any).data.pages).toEqual([{ page: 0, hitCounter: 4 }])
     })
 
+    // INV-Q-100: the single-page truncation applies to polling refetches too.
     test('refetches only first page during polling when refetchCachedPages is false', async () => {
       let hitCounter = 0
 
@@ -1554,6 +1590,7 @@ describe('Infinite queries', () => {
       expect(entry.data?.pages).toEqual([{ page: 0, hitCounter: 4 }])
     })
 
+    // INV-Q-100: single-page truncation composes with `maxPages`.
     test('refetchCachedPages: false works with maxPages', async () => {
       let hitCounter = 0
 
@@ -1632,6 +1669,7 @@ describe('Infinite queries', () => {
       expect(refetchRes.data!.pages[0].page).toBe(2)
     })
 
+    // INV-Q-100: after truncation the cursor chain still works, so paging can resume.
     test('can fetch next page after refetch with refetchCachedPages: false', async () => {
       let hitCounter = 0
 
@@ -1709,6 +1747,7 @@ describe('Infinite queries', () => {
     })
 
     describe('per-call refetchCachedPages override', () => {
+      // INV-Q-099: a per-call `refetchCachedPages` wins over the endpoint-level option.
       test('per-call false overrides endpoint true', async () => {
         let hitCounter = 0
 
@@ -1784,6 +1823,7 @@ describe('Infinite queries', () => {
         expect(refetchRes.data!.pageParams).toEqual([0])
       })
 
+      // INV-Q-099: the per-call override works in both directions.
       test('per-call true overrides endpoint false', async () => {
         let hitCounter = 0
 
@@ -1859,6 +1899,7 @@ describe('Infinite queries', () => {
         expect(refetchRes.data!.pages).toHaveLength(3)
       })
 
+      // INV-Q-099: with no per-call value the endpoint-level option applies.
       test('uses endpoint config when no per-call override', async () => {
         let hitCounter = 0
 
@@ -1923,6 +1964,7 @@ describe('Infinite queries', () => {
         expect(refetchRes.data!.pages).toEqual([{ page: 0, hitCounter: 4 }])
       })
 
+      // INV-Q-099: with no value at any level the resolved default is `true`.
       test('defaults to true when no config at any level', async () => {
         let hitCounter = 0
 

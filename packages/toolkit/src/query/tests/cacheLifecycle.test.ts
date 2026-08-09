@@ -31,6 +31,8 @@ beforeEach(() => {
 describe.each([['query'], ['mutation']] as const)(
   'generic cases: %s',
   (type) => {
+    // INV-Q-049: onCacheEntryAdded runs synchronously in the middleware, after reducers
+    //            processed the pending action, so getCacheEntry() already sees status 'pending'
     test(`${type}: new cache entry only`, async () => {
       const extended = api.injectEndpoints({
         overrideExisting: true,
@@ -47,6 +49,7 @@ describe.each([['query'], ['mutation']] as const)(
       expect(onNewCacheEntry).toHaveBeenCalledWith('arg')
     })
 
+    // INV-Q-058: cacheEntryRemoved resolves after the removal reducer has run
     test(`${type}: await cacheEntryRemoved`, async () => {
       const extended = api.injectEndpoints({
         overrideExisting: true,
@@ -88,6 +91,7 @@ describe.each([['query'], ['mutation']] as const)(
       expect(onCleanup).toHaveBeenCalled()
     })
 
+    // INV-Q-052: cacheDataLoaded is a race between the first fulfillment and cacheEntryRemoved
     test(`${type}: await cacheDataLoaded, await cacheEntryRemoved (success)`, async () => {
       const extended = api.injectEndpoints({
         overrideExisting: true,
@@ -143,6 +147,8 @@ describe.each([['query'], ['mutation']] as const)(
       expect(onCleanup).toHaveBeenCalled()
     })
 
+    // INV-Q-052: if the entry is removed before any fulfillment, cacheDataLoaded rejects with neverResolvedError
+    // INV-Q-053: an unhandled neverResolvedError escaping the handler is swallowed by identity check
     test(`${type}: await cacheDataLoaded, await cacheEntryRemoved (cacheDataLoaded never resolves)`, async () => {
       const extended = api.injectEndpoints({
         overrideExisting: true,
@@ -183,6 +189,8 @@ describe.each([['query'], ['mutation']] as const)(
       expect(onCleanup).not.toHaveBeenCalled()
     })
 
+    // INV-Q-052: cacheDataLoaded rejects with neverResolvedError when the entry is removed first
+    // INV-Q-053: neverResolvedError is suppressed internally; other errors are re-thrown
     test(`${type}: try { await cacheDataLoaded }, await cacheEntryRemoved (cacheDataLoaded never resolves)`, async () => {
       const extended = api.injectEndpoints({
         overrideExisting: true,
@@ -234,6 +242,7 @@ describe.each([['query'], ['mutation']] as const)(
       })
     })
 
+    // INV-Q-052: cacheDataLoaded rejects with neverResolvedError when the entry is removed first
     test(`${type}: try { await cacheDataLoaded, await cacheEntryRemoved } (cacheDataLoaded never resolves)`, async () => {
       const extended = api.injectEndpoints({
         overrideExisting: true,
@@ -285,6 +294,7 @@ describe.each([['query'], ['mutation']] as const)(
       })
     })
 
+    // INV-Q-052: cacheDataLoaded rejects with neverResolvedError when the entry is removed first
     test(`${type}: try { await cacheDataLoaded } finally { await cacheEntryRemoved } (cacheDataLoaded never resolves)`, async () => {
       const extended = api.injectEndpoints({
         overrideExisting: true,
@@ -338,6 +348,7 @@ describe.each([['query'], ['mutation']] as const)(
   },
 )
 
+// INV-Q-058: after cacheEntryRemoved resolves, getCacheEntry() reports `uninitialized`
 test(`query: getCacheEntry`, async () => {
   const snapshot = vi.fn()
   const extended = api.injectEndpoints({
@@ -480,6 +491,7 @@ test(`mutation: getCacheEntry`, async () => {
   })
 })
 
+// INV-Q-057: updateCachedData silently no-ops on an entry with no data (here: after cacheEntryRemoved)
 test('query: updateCachedData', async () => {
   const trackCalls = vi.fn()
 
@@ -551,6 +563,7 @@ test('query: updateCachedData', async () => {
   })
 })
 
+// INV-Q-057: updateCachedData silently no-ops on an entry with no data (here: after cacheEntryRemoved)
 test('updateCachedData - infinite query', async () => {
   const trackCalls = vi.fn()
 
@@ -640,6 +653,8 @@ test('updateCachedData - infinite query', async () => {
   })
 })
 
+// INV-Q-050: onCacheEntryAdded fires once per cache key, not per request
+// INV-Q-054: cacheDataLoaded resolves at most once, on the first fulfillment for the key
 test('dispatching further actions does not trigger another lifecycle', async () => {
   const extended = api.injectEndpoints({
     overrideExisting: true,
@@ -664,6 +679,9 @@ test('dispatching further actions does not trigger another lifecycle', async () 
   expect(onNewCacheEntry).toHaveBeenCalledOnce()
 })
 
+// INV-Q-017: subscribe: false still runs the whole pipeline — cache entry, reducers, lifecycle callbacks
+// INV-Q-050: a second dispatch to an existing key does not re-trigger onCacheEntryAdded
+// INV-Q-051: lifecycle start is keyed on cache-entry creation, not on subscription
 test('dispatching a query initializer with `subscribe: false` does also start a lifecycle', async () => {
   const extended = api.injectEndpoints({
     overrideExisting: true,

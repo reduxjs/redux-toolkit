@@ -44,6 +44,7 @@ afterEach(() => {
 })
 
 describe('refetchOnFocus tests', () => {
+  // INV-Q-082: focus refetches iterate the middleware's live subscription map and are dispatched in one batch
   test('useQuery hook respects refetchOnFocus: true when set in createApi options', async () => {
     let data, isLoading, isFetching
 
@@ -78,6 +79,8 @@ describe('refetchOnFocus tests', () => {
     )
   })
 
+  // INV-Q-083: an explicit `false` from a subscriber suppresses the global default,
+  //            because `values.every(sub => sub[type] === undefined)` becomes false
   test('useQuery hook respects refetchOnFocus: false from a hook and overrides createApi defaults', async () => {
     let data, isLoading, isFetching
 
@@ -114,6 +117,7 @@ describe('refetchOnFocus tests', () => {
     )
   })
 
+  // INV-Q-083: precedence is any `true` > any `false` > global config
   test('useQuery hook prefers refetchOnFocus: true when multiple components have different configurations', async () => {
     let data, isLoading, isFetching
 
@@ -170,6 +174,8 @@ describe('refetchOnFocus tests', () => {
     )
   })
 
+  // INV-Q-084: orphaned (zero-subscriber) cache entries are removed on focus, not refetched
+  // INV-Q-085: an orphaned entry is removed; a subscribed entry is refetched — the two branches are exclusive
   test('useQuery hook cleans data if refetch without active subscribers', async () => {
     let data, isLoading, isFetching
 
@@ -211,6 +217,7 @@ describe('refetchOnFocus tests', () => {
 })
 
 describe('refetchOnReconnect tests', () => {
+  // INV-Q-082: reconnect refetches use the same live-subscription-map iteration as focus refetches
   test('useQuery hook respects refetchOnReconnect: true when set in createApi options', async () => {
     let data, isLoading, isFetching
 
@@ -254,6 +261,7 @@ describe('refetchOnReconnect tests', () => {
     )
   })
 
+  // INV-Q-083: an explicit `false` from a subscriber suppresses the global default
   test('useQuery hook should not refetch when refetchOnReconnect: false from a hook and overrides createApi defaults', async () => {
     let data, isLoading, isFetching
 
@@ -293,6 +301,7 @@ describe('refetchOnReconnect tests', () => {
     )
   })
 
+  // INV-Q-083: precedence is any `true` > any `false` > global config
   test('useQuery hook prefers refetchOnReconnect: true when multiple components have different configurations', async () => {
     let data, isLoading, isFetching
 

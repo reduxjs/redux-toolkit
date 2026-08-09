@@ -225,6 +225,8 @@ describe('re-triggering behavior on arg change', () => {
     }
   })
 
+  // INV-Q-045: object arg keys are sorted before stringification, so key order does not affect
+  //            cache identity and a reordered arg does not trigger a refetch
   test('do not re-trigger if the order of keys change while maintaining the same values', async () => {
     const { result, rerender } = renderHook(
       (props) => getUser.useQuery(props),
@@ -300,6 +302,7 @@ describe('prefetch', () => {
   })
 
   describe('subscription behavior', () => {
+    // INV-Q-090: prefetch always dispatches with `subscribe: false`, so it never registers a subscriber
     it('prefetch should NOT create a subscription', async () => {
       const queryCacheKey = 'getUser(1)'
 
@@ -315,6 +318,8 @@ describe('prefetch', () => {
       expect(getSubscriptionCount(queryCacheKey)).toBe(0)
     })
 
+    // INV-Q-065: queryThunk.fulfilled with zero subscribers arms the GC timer
+    // INV-Q-090: because prefetch never subscribes, prefetched data is immediately GC-eligible
     it('prefetch allows cache cleanup after keepUnusedDataFor', async () => {
       const queryCacheKey = 'getUser(1)'
 
@@ -336,6 +341,7 @@ describe('prefetch', () => {
       expect(state.data).toBeUndefined()
     })
 
+    // INV-Q-090: prefetched entries have no subscribers, so tag invalidation never refetches them
     it('prefetch does NOT trigger refetch on tag invalidation', async () => {
       // Prefetch user 1
       storeRef.store.dispatch(api.util.prefetch('getUser', 1, {}))
@@ -363,6 +369,7 @@ describe('prefetch', () => {
       expect(state.data).toBeUndefined()
     })
 
+    // INV-Q-090: every prefetch shape passes `subscribe: false`, so repeats cannot accumulate subscribers
     it('multiple prefetches do not accumulate subscriptions', async () => {
       const queryCacheKey = 'getUser(1)'
 
@@ -392,6 +399,8 @@ describe('prefetch', () => {
       expect(getSubscriptionCount(queryCacheKey)).toBe(0)
     })
 
+    // INV-Q-090: a prefetch with no options dispatches `forceRefetch: false` and lets the
+    //            normal condition gate decide, so a later subscribed query reuses the entry
     it('prefetch followed by regular query should work correctly', async () => {
       const queryCacheKey = 'getUser(1)'
 
