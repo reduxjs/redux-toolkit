@@ -1,0 +1,9 @@
+@reduxjs/toolkit/dist/query/react/rtk-query-react.legacy-esm.js
+@reduxjs/toolkit/dist/query/rtk-query.legacy-esm.js
+@reduxjs/toolkit/dist/redux-toolkit.modern.mjs
+@standard-schema/utils/dist/index.js
+immer/dist/immer.legacy-esm.js
+react-redux/dist/react-redux.legacy-esm.js
+redux-thunk/dist/redux-thunk.mjs
+redux/dist/redux.mjs
+reselect/dist/reselect.mjs

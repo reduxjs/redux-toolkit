@@ -1,29 +1,39 @@
-# Redux Toolkit TypeScript Example
+# Redux Toolkit + Next.js App Router CI example
 
-This example shows how to integrate Next.js with [Redux Toolkit](https://redux-toolkit.js.org).
+This is a CI fixture, not a starter template. It exists so that RTK's
+`test-published-artifact` job can install a freshly packed `@reduxjs/toolkit`
+tarball into a real Next.js app, build it, and run a Playwright test against it.
 
-The **Redux Toolkit** is a standardized way to write Redux logic (create actions and reducers, setup the store with some default middlewares like redux devtools extension). This example demonstrates each of these features with Next.js
+## What it covers
 
-## Deploy your own
+- Next 16 with the **App Router** and Turbopack, on React 19.
+- The client half of the app resolves RTK through Next's bundler, which picks
+  the `module-sync` / `module` condition and lands on
+  `dist/redux-toolkit.modern.mjs`.
+- `src/app/ServerApiInfo.tsx` is a **Server Component** that imports the core
+  RTK Query entry point (`@reduxjs/toolkit/query`, not `/query/react`) and
+  builds a store on the server. This is the only place in the RTK repo that
+  exercises RTK inside the React Server Components graph. If RTK ever needs a
+  `react-server` export condition, this is where it should show up first.
+- `src/app/StoreProvider.tsx` creates the store per client instance with a lazy
+  `useState` initializer, matching the pattern in RTK's
+  [Next.js setup docs](https://redux-toolkit.js.org/usage/nextjs).
 
-Deploy the example using [Vercel](https://vercel.com?utm_source=github&utm_medium=readme&utm_campaign=next-example):
+## Layout
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/git/external?repository-url=https://github.com/vercel/next.js/tree/canary/examples/with-redux&project-name=with-redux&repository-name=with-redux)
+| Path                | What it is                                             |
+| ------------------- | ------------------------------------------------------ |
+| `src/app/`          | App Router entry points and the client/server boundary |
+| `src/app-core/`     | Store, typed hooks, and RTK Query API definitions      |
+| `src/features/`     | Shared app code, kept in sync with the `vite` example  |
+| `src/mocks/`        | MSW handlers and browser worker                        |
+| `tests/playwright/` | The single end-to-end test CI runs                     |
 
-## How to use
-
-Execute [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app) with [npm](https://docs.npmjs.com/cli/init), [Yarn](https://yarnpkg.com/lang/en/docs/cli/create/), or [pnpm](https://pnpm.io) to bootstrap the example:
+## Scripts
 
 ```bash
-npx create-next-app --example with-redux with-redux-app
+yarn dev         # next dev
+yarn build       # next build
+yarn type-check  # tsc
+yarn test        # build must have run first; starts the server and runs Playwright
 ```
-
-```bash
-yarn create next-app --example with-redux with-redux-app
-```
-
-```bash
-pnpm create next-app --example with-redux with-redux-app
-```
-
-Deploy it to the cloud with [Vercel](https://vercel.com/new?utm_source=github&utm_medium=readme&utm_campaign=next-example) ([Documentation](https://nextjs.org/docs/deployment)).

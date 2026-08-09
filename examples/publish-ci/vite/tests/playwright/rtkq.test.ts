@@ -1,18 +1,20 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
 test('RTK / RTKQ Interactions', async ({ page }) => {
   page.on('console', (msg) => console.log('Console message: ', msg.text()))
   await page.goto('http://localhost:3000')
 
   const counterValue = page.getByTestId('counter-value')
-  const counterText = await counterValue.innerText({ timeout: 0 })
-  expect(counterText).toBe('0')
+  await expect(counterValue).toHaveText('0')
 
-  const increment = page.getByRole('button', { name: 'Increment value' })
-  await increment.click()
+  await page.getByRole('button', { name: 'Increment value' }).click()
+  await expect(counterValue).toHaveText('1')
 
-  const counterText2 = await counterValue.innerText({ timeout: 0 })
-  expect(counterText2).toBe('1')
+  const counterStatus = page.getByTestId('counter-status')
+  await page.getByRole('button', { name: 'Increment async' }).click()
+  await expect(counterStatus).toHaveText('loading')
+  await expect(counterValue).toHaveText('3', { timeout: 10000 })
+  await expect(counterStatus).toHaveText('idle')
 
   const timeValue = page.getByTestId('time-value')
   const postValue = page.getByTestId('post-value')
