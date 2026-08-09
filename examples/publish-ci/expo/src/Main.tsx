@@ -57,10 +57,7 @@ export const Main = (): JSX.Element => {
 
   return (
     <SafeAreaView style={[backgroundStyle, styles.safeAreaView]}>
-      <StatusBar
-        style={isDarkMode ? 'light' : 'dark'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
+      <StatusBar style={isDarkMode ? 'light' : 'dark'} />
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         style={backgroundStyle}

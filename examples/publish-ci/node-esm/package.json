@@ -8,10 +8,10 @@
     "test": "node --no-experimental-require-module test-cjs.cjs && node test-esm.mjs"
   },
   "dependencies": {
-    "@reduxjs/toolkit": "^2.0.0-rc.3",
+    "@reduxjs/toolkit": "^2.12.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-redux": "^9.0.0-rc.0"
+    "react-redux": "^9.3.0"
   },
   "devDependencies": {
     "resolve-esm": "^1.4.0"

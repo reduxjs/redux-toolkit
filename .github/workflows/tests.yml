@@ -22,6 +22,7 @@ jobs:
             toolkit:
               - 'packages/toolkit/**'
               - 'examples/publish-ci/**'
+              - 'examples/type-portability/**'
               - '.github/workflows/tests.yml'
               - 'yarn.lock'
 
@@ -279,8 +280,6 @@ jobs:
         node: ['24.x']
         example:
           [
-            'cra4',
-            'cra5',
             'next',
             'vite',
             'node-standard',
@@ -332,12 +331,10 @@ jobs:
           cache: 'gradle'
 
       - name: Build example
-        env:
-          NODE_OPTIONS: --openssl-legacy-provider
         run: yarn build
 
       - name: playwright install
-        if: matrix.example == 'next' || matrix.example == 'vite' || matrix.example == 'cra4' || matrix.example == 'cra5'
+        if: matrix.example == 'next' || matrix.example == 'vite'
         run: yarn exec playwright install --with-deps chromium
 
       - name: Run test step

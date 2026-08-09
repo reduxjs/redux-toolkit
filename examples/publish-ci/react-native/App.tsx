@@ -8,12 +8,6 @@ import {
   View,
   useColorScheme,
 } from 'react-native'
-import {
-  DebugInstructions,
-  HermesBadge,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen'
 import { Header } from './src/components/Header'
 import { LearnReduxLinks } from './src/components/LearnReduxLinks'
 import { Section } from './src/components/Section'
@@ -39,7 +33,6 @@ export const App = (): JSX.Element => {
         style={backgroundStyle}
       >
         <Header />
-        <HermesBadge />
         <View
           style={{
             backgroundColor: isDarkMode ? TypedColors.black : TypedColors.white,
@@ -51,20 +44,10 @@ export const App = (): JSX.Element => {
             Edit <Text style={styles.highlight}>App.tsx</Text> to change this
             screen and then come back to see your edits.
           </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
           <Section title="Learn More Redux">
             Discover what to do next with Redux:
           </Section>
           <LearnReduxLinks />
-          <Section title="Learn More React Native">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
         </View>
       </ScrollView>
     </SafeAreaView>
