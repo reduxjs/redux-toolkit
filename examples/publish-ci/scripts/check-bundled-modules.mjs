@@ -63,6 +63,16 @@ function findSourcemaps(dir) {
  * `/node_modules/...` from Expo. Everything after the final `node_modules/`
  * segment is stable across all of them.
  *
+ * Files inside a `cjs/` directory collapse to `cjs/*`. A package's CJS build
+ * may be one file or an `index.js` that branches on `NODE_ENV` between a
+ * development and a production file, and packages change between those two
+ * layouts in minor releases. That layout is the dependency's own packaging
+ * choice, not a resolution outcome, and CI re-resolves every transitive
+ * dependency when it installs the freshly built RTK tarball. Recording exact
+ * CJS filenames therefore fails unrelated PRs whenever a dependency ships a
+ * minor. The modern / legacy-esm / browser filenames stay exact, since those
+ * are the resolution outcomes this check exists to pin down.
+ *
  * @param {string} source
  * @returns {string | null}
  */
@@ -74,7 +84,8 @@ function toPackagePath(source) {
   const isTracked = TRACKED_PACKAGES.some(
     (name) => packagePath === name || packagePath.startsWith(`${name}/`),
   )
-  return isTracked ? packagePath : null
+  if (!isTracked) return null
+  return packagePath.replace(/\/cjs\/.+$/, '/cjs/*')
 }
 
 /** @param {string[]} dirs @returns {{ modules: string[], mapCount: number }} */

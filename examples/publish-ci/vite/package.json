@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "serve-app": "yarn serve -s dist",
-    "test": "yarn playwright test",
+    "check-bundle": "node ../scripts/check-bundled-modules.mjs dist",
+    "test": "yarn check-bundle && yarn playwright test",
     "format": "prettier --write \"./src/**/*.{ts,tsx}\" \"**/*.md\""
   },
   "dependencies": {

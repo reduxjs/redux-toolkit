@@ -4,14 +4,15 @@
   "main": "index.ts",
   "scripts": {
     "android": "expo run:android",
-    "build": "expo export --platform android --output-dir build",
+    "build": "expo export --platform android --output-dir build --source-maps",
+    "check-bundle": "node ../scripts/check-bundled-modules.mjs build",
     "format:check": "prettier --check .",
     "format": "prettier --write .",
     "ios": "expo run:ios",
     "lint:fix": "eslint --fix .",
     "lint": "eslint .",
     "start": "expo start",
-    "test": "jest",
+    "test": "yarn check-bundle && jest",
     "type-check": "tsc --noEmit",
     "web": "expo start --web"
   },

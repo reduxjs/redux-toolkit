@@ -4,14 +4,15 @@
   "private": true,
   "scripts": {
     "android": "react-native run-android",
-    "build": "react-native bundle --entry-file index.js --bundle-output build/bundle.js --platform android --assets-dest build/assets",
+    "build": "react-native bundle --entry-file index.js --bundle-output build/bundle.js --sourcemap-output build/bundle.js.map --platform android --assets-dest build/assets",
+    "check-bundle": "node ../scripts/check-bundled-modules.mjs build",
     "format:check": "prettier --check .",
     "format": "prettier --write .",
     "ios": "react-native run-ios",
     "lint:fix": "eslint --fix .",
     "lint": "eslint .",
     "start": "react-native start",
-    "test": "jest",
+    "test": "yarn check-bundle && jest",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {

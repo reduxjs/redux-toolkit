@@ -6,7 +6,8 @@
     "start": "next start",
     "type-check": "tsc",
     "serve-app": "yarn start",
-    "test": "yarn playwright test",
+    "check-bundle": "node ../scripts/check-bundled-modules.mjs .next/static",
+    "test": "yarn check-bundle && yarn playwright test",
     "format": "prettier --write \"./src/**/*.{ts,tsx}\" \"**/*.md\""
   },
   "dependencies": {
