@@ -224,6 +224,104 @@ const api = createApi({
 })
 ```
 
+### Updates Across Queries
+
+The entity you want to update might be present in multiple differently shaped queries, such as
+(infinite) lists, or even inside another entity. If you don't want to invalidate those instead,
+you can avoid manually looping through every single cache entry by using [selectInvalidatedBy](https://redux-toolkit.js.org/rtk-query/api/created-api/api-slice-utils#selectinvalidatedby):
+
+```ts title="Optimistic update mutation example (promise.catch, across queries)"
+// file: types.ts noEmit
+export interface Post {
+  id: number
+  name: string
+}
+
+// file: api.ts
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+import type { Post } from './types'
+
+const api = createApi({
+  baseQuery: fetchBaseQuery({
+    baseUrl: '/',
+  }),
+  tagTypes: ['Post'],
+  endpoints: (build) => ({
+    getPost: build.query<Post, number>({
+      query: (id) => `post/${id}`,
+      // highlight-start
+      providesTags: (result) => result ? [{ type: 'Post', id: result.id }] : [],
+      // highlight-end
+    }),
+    getPosts: build.infiniteQuery<Post[], void, number>({
+      query: ({ pageParam }) => `posts/${pageParam}`,
+      // highlight-start
+      providesTags: (result) => {
+        if (!result) return []
+
+        return result.pages.flatMap(page => page.map(post => ({ type: 'Post', id: post.id })))
+      },
+      // highlight-end
+      infiniteQueryOptions: {
+        initialPageParam: 1,
+        getNextPageParam: (lastPage, _, lastPageParam) =>
+          lastPage.length < 20 ? undefined : lastPageParam + 1,
+      },
+    }),
+    updatePost: build.mutation<void, Pick<Post, 'id'> & Partial<Post>>({
+      query: ({ id, ...patch }) => ({
+        url: `post/${id}`,
+        method: 'PATCH',
+        body: patch,
+      }),
+      // highlight-start
+      onQueryStarted({ id, ...patch }, { dispatch, queryFulfilled, getState }) {
+        const entries = api.util.selectInvalidatedBy(getState(), [{ type: 'Post', id }])
+
+        // the structure is somewhat questionable but it allows to add similar queries
+        // much easier, for example adding 'getUserPosts', 'getLikedPosts' would be just
+        // + case 'getUserPosts':
+        // as it's likely to also be an infinite query with the same response schema
+
+        const patches = entries.map(entry => {
+          switch (entry.endpointName) {
+            case 'getPost':
+              return dispatch(
+                api.util.updateQueryData(
+                  entry.endpointName,
+                  entry.originalArgs,
+                  (draft) => {
+                    Object.assign(draft, patch)
+                  },
+                ),
+              )
+            case 'getPosts':
+              return dispatch(
+                api.util.updateQueryData(
+                  entry.endpointName,
+                  entry.originalArgs,
+                  (draft) => {
+                    draft.pages.forEach(page => {
+                      page.forEach(entity => {
+                        if (entity.id === id) Object.assign(entity, patch)
+                      })
+                    })
+                  },
+                ),
+              )
+            default:
+              throw new Error(`Unknown endpoint (${entry.endpointName}) in updatePost's optimistic update`)
+          }
+        })
+
+        queryFulfilled.catch(() => patches.forEach(patch => patch.undo()))
+      },
+      // highlight-end
+    }),
+  }),
+})
+```
+
 ### General Updates
 
 If you find yourself wanting to update cache data elsewhere in your application, you can do so
