@@ -90,6 +90,38 @@ test(`query: handles large keepUnusedDataFor values over 32-bit ms`, async () =>
   expect(onCleanup).toHaveBeenCalled()
 })
 
+test(`query: repeated \`initiate\` with \`subscribe: false\` does not reset the removal timer (#4480)`, async () => {
+  const { store, api } = storeForApi(
+    createApi({
+      baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
+      endpoints: (build) => ({
+        query: build.query<unknown, string>({
+          query: () => '/success',
+        }),
+      }),
+    }),
+  )
+
+  // First unsubscribed request fetches and schedules removal 60s from now.
+  await store.dispatch(api.endpoints.query.initiate('arg', { subscribe: false }))
+
+  vi.advanceTimersByTime(30000)
+  expect(onCleanup).not.toHaveBeenCalled()
+
+  // Second unsubscribed request hits the fresh cache and is rejected by the
+  // thunk `condition`. This must NOT restart the `keepUnusedDataFor` timer.
+  await store.dispatch(api.endpoints.query.initiate('arg', { subscribe: false }))
+
+  // Still not cleaned right before the original 60s deadline...
+  vi.advanceTimersByTime(29000)
+  expect(onCleanup).not.toHaveBeenCalled()
+
+  // ...but cleaned once the original deadline passes (would still be pending if
+  // the second call had reset the timer to fire at 90s).
+  vi.advanceTimersByTime(2000)
+  expect(onCleanup).toHaveBeenCalled()
+})
+
 describe(`query: await cleanup, keepUnusedDataFor set`, () => {
   const { store, api } = storeForApi(
     createApi({
