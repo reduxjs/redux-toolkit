@@ -181,10 +181,7 @@ export function setupApiStore<
     } & {
       [K in keyof R]: ReturnType<R[K]>
     },
-    UnknownAction,
-    ReturnType<typeof getStore> extends EnhancedStore<any, any, infer M>
-      ? M
-      : never
+    ReturnType<typeof getStore> extends EnhancedStore<any, infer M> ? M : never
   >
 
   const initialStore = getStore() as StoreType
