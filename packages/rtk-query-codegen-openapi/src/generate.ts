@@ -27,8 +27,14 @@ import type {
   ParameterMatcher,
   TextMatcher,
 } from './types';
-import { factory } from './utils/factory';
-import { capitalize, getOperationDefinitions, getV3Doc, removeUndefined, isQuery as testIsQuery } from './utils/index';
+import {
+  capitalize,
+  factory,
+  getOperationDefinitions,
+  getV3Doc,
+  removeUndefined,
+  isQuery as testIsQuery,
+} from './utils/index';
 
 const { createPropertyAssignment, createQuestionToken, keywordType, isValidIdentifier } = cg;
 

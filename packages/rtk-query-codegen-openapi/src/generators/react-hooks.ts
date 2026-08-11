@@ -1,8 +1,7 @@
 import ts from 'typescript';
 import { getOverrides, resolveOperationName } from '../generate';
 import type { ConfigFile, EndpointOverrides, OperationDefinition, OperationIdTransformer } from '../types';
-import { capitalize, isQuery } from '../utils';
-import { factory } from '../utils/factory';
+import { capitalize, factory, isQuery } from '../utils/index';
 
 type HooksConfigOptions = NonNullable<ConfigFile['hooks']>;
 

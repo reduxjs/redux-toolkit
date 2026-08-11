@@ -3,7 +3,7 @@ import { createRequire } from 'node:module';
 import path from 'node:path';
 import { generateApi } from './generate';
 import type { CommonOptions, ConfigFile, GenerationOptions, OutputFileOptions } from './types';
-import { isValidUrl, prettify } from './utils';
+import { isValidUrl, prettify } from './utils/index';
 export type { ConfigFile } from './types';
 
 const require = createRequire(__filename);

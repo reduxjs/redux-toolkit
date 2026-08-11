@@ -1,5 +1,5 @@
-import { factory } from './utils/factory';
 import ts from 'typescript';
+import { factory } from './utils/index';
 
 const defaultEndpointBuilder = factory.createIdentifier('build');
 
@@ -133,11 +133,7 @@ export function generateEndpointDefinition({
 }) {
   const objectProperties = generateObjectProperties({ query: queryFn, ...extraEndpointsProps });
   const providesTags =
-    tagOverrides && 'providesTags' in tagOverrides
-      ? tagOverrides.providesTags
-      : type === 'query'
-        ? tags
-        : undefined;
+    tagOverrides && 'providesTags' in tagOverrides ? tagOverrides.providesTags : type === 'query' ? tags : undefined;
   const invalidatesTags =
     tagOverrides && 'invalidatesTags' in tagOverrides
       ? tagOverrides.invalidatesTags
@@ -149,7 +145,10 @@ export function generateEndpointDefinition({
     objectProperties.push(
       factory.createPropertyAssignment(
         factory.createIdentifier('providesTags'),
-        factory.createArrayLiteralExpression(providesTags.map((tag) => factory.createStringLiteral(tag)), false)
+        factory.createArrayLiteralExpression(
+          providesTags.map((tag) => factory.createStringLiteral(tag)),
+          false
+        )
       )
     );
   }
@@ -158,7 +157,10 @@ export function generateEndpointDefinition({
     objectProperties.push(
       factory.createPropertyAssignment(
         factory.createIdentifier('invalidatesTags'),
-        factory.createArrayLiteralExpression(invalidatesTags.map((tag) => factory.createStringLiteral(tag)), false)
+        factory.createArrayLiteralExpression(
+          invalidatesTags.map((tag) => factory.createStringLiteral(tag)),
+          false
+        )
       )
     );
   }
