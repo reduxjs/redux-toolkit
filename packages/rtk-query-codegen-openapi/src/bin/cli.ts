@@ -5,8 +5,20 @@ import program from 'commander';
 import { createRequire } from 'node:module';
 import { dirname, resolve } from 'node:path';
 
+/**
+ * A CommonJS `require` bound to this file, used to resolve optional
+ * TypeScript runtimes and the config file itself.
+ *
+ * @internal
+ */
 const require = createRequire(__filename);
 
+/**
+ * Whether a runtime capable of loading a TypeScript config file was
+ * successfully registered.
+ *
+ * @internal
+ */
 let ts = false;
 try {
   if (require.resolve('esbuild') && require.resolve('esbuild-runner')) {
@@ -32,10 +44,21 @@ try {
 } catch {}
 
 // tslint:disable-next-line
+/**
+ * This package's `package.json`, read for the version reported by
+ * `--version`.
+ *
+ * @internal
+ */
 const meta = require('../../package.json');
 
 program.version(meta.version).usage('</path/to/config.js>').parse(process.argv);
 
+/**
+ * The config file path given on the command line.
+ *
+ * @internal
+ */
 const configFile = program.args[0];
 
 if (program.args.length === 0 || !/\.([mc]?(jsx?|tsx?)|jsonc?)?$/.test(configFile)) {
@@ -48,6 +71,18 @@ if (program.args.length === 0 || !/\.([mc]?(jsx?|tsx?)|jsonc?)?$/.test(configFil
   run(resolve(process.cwd(), configFile));
 }
 
+/**
+ * Loads a config file and generates every output file it declares.
+ *
+ * Changes the working directory to the config file's own directory first,
+ * so relative paths in the config resolve against it rather than against
+ * the directory the command was run from.
+ *
+ * @param configFile - The absolute path of the config file to run.
+ * @returns A {@linkcode Promise | promise} resolving once every output file has been generated.
+ *
+ * @internal
+ */
 async function run(configFile: string) {
   process.chdir(dirname(configFile));
 
