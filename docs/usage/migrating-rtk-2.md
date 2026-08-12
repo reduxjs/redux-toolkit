@@ -58,7 +58,7 @@ Redux has always shipped with UMD build artifacts. These are primarily meant for
 
 For now, we're dropping those build artifacts from the published package, on the grounds that the use cases seem pretty rare today.
 
-We do have a browser-ready ESM build artifact included at `dist/$PACKAGE_NAME.browser.mjs`, which can be loaded via a script tag that points to that file on Unpkg.
+We do have a browser-ready ESM build artifact included at `dist/$PACKAGE_NAME.browser.mjs`, which can be loaded via a `<script type="module">` tag. Since the browser build still imports dependencies by package name, no-bundler usage also needs an import map that maps those package names to browser-loadable ESM files.
 
 If you have strong use cases for us continuing to include UMD build artifacts, please let us know!
 
