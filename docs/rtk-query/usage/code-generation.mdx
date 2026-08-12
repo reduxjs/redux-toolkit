@@ -62,10 +62,16 @@ and then call the code generator:
 npx @rtk-query/codegen-openapi openapi-config.ts
 ```
 
+:::note
+Relative paths in the config are resolved against the **config file's own directory**, not the directory you run the command from. The CLI changes into that directory before generating, so `openapi-config.ts` produces the same output no matter where it is invoked from.
+
+The config file may be `.js`, `.cjs`, `.mjs`, `.ts`, `.cts`, `.mts`, `.jsx`, `.tsx`, `.json` or `.jsonc`. A TypeScript config requires either `esbuild` + `esbuild-runner` or `typescript` + `ts-node` to be installed.
+:::
+
 #### Generating tags
 
 If your OpenAPI specification uses [tags](https://swagger.io/docs/specification/grouping-operations-with-tags/), you can specify the `tag` option to the codegen.
-That will result in all generated endpoints having `providesTags`/`invalidatesTags` declarations for the `tags` of their respective operation definition.
+That will result in all generated endpoints having `providesTags`/`invalidatesTags` declarations for the `tags` of their respective operation definition - `providesTags` on queries and `invalidatesTags` on mutations.
 
 Note that this will only result in string tags with no ids, so it might lead to scenarios where too much is invalidated and unnecessary requests are made on mutation.
 
@@ -110,25 +116,57 @@ interface SimpleUsage {
   exportName?: string
   argSuffix?: string
   operationNameSuffix?: string
-  operationIdTransformer?: 'camelCase' | 'none' | ((operationId: string) => string)
+  operationIdTransformer?: OperationIdTransformer
   responseSuffix?: string
   hooks?:
     | boolean
     | { queries: boolean; lazyQueries: boolean; mutations: boolean }
   tag?: boolean
   outputFile: string
-  filterEndpoints?:
-    | string
-    | RegExp
-    | EndpointMatcherFunction
-    | Array<string | RegExp>
+  filterEndpoints?: EndpointMatcher
   endpointOverrides?: EndpointOverrides[]
   flattenArg?: boolean
+  unionUndefined?: boolean
+  encodePathParams?: boolean
+  encodeQueryParams?: boolean
+  includeDefault?: boolean
+  mergeReadWriteOnly?: boolean
+  useUnknown?: boolean
+  esmExtensions?: boolean
+  exportAllSchemas?: boolean
+  prettierConfigFile?: string
   useEnumType?: boolean
-  enumStyle?: 'union' | 'enum' | 'as-const'
+  enumStyle?: EnumStyle
   outputRegexConstants?: boolean
   httpResolverOptions?: SwaggerParser.HTTPResolverOptions
 }
+```
+
+The supporting types referenced above:
+
+```ts no-transpile
+export type OperationIdTransformer =
+  | 'camelCase'
+  | 'none'
+  | ((operationId: string) => string)
+
+export type EnumStyle = 'union' | 'enum' | 'as-const'
+
+export type TextMatcher = string | RegExp | (string | RegExp)[]
+
+export type EndpointMatcherFunction = (
+  operationName: string,
+  operationDefinition: OperationDefinition,
+) => boolean
+
+export type EndpointMatcher = TextMatcher | EndpointMatcherFunction
+
+export type ParameterMatcherFunction = (
+  parameterName: string,
+  parameterDefinition: ParameterDefinition,
+) => boolean
+
+export type ParameterMatcher = TextMatcher | ParameterMatcherFunction
 
 export type EndpointOverrides = {
   pattern: EndpointMatcher
@@ -138,12 +176,9 @@ export type EndpointOverrides = {
   providesTags: string[]
   invalidatesTags: string[]
 }>
-
-export type EndpointMatcherFunction = (
-  operationName: string,
-  operationDefinition: OperationDefinition,
-) => boolean
 ```
+
+To generate more than one file from a single schema, replace `outputFile` with [`outputFiles`](#multiple-output-files).
 
 #### Filtering endpoints
 
@@ -161,7 +196,7 @@ const filteredConfig: ConfigFile = {
 
 #### Customizing endpoint name generation
 
-By default, each operation's `operationId` is converted to camelCase using lodash `camelCase` (via `oazapfts`). This means consecutive uppercase letters are lowercased — for example, `fetchMyJWTPlease` becomes `fetchMyJwtPlease`.
+By default, each operation's `operationId` is converted to camelCase using lodash `camelCase` (via `oazapfts`). This means consecutive uppercase letters are lowercased - for example, `fetchMyJWTPlease` becomes `fetchMyJwtPlease`.
 
 Use the `operationIdTransformer` option to control this behavior:
 
@@ -402,19 +437,19 @@ By default, the only schemas that are exported are those that are referenced in 
 
 ```ts no-transpile title="user.controller.ts"
 class User {
-  id: string;
-  name: string;
+  id: string
+  name: string
 }
 
 class LogoutMessage {
-  reason: string;
+  reason: string
 }
 
 @ApiExtraModels(LogoutMessage)
 @Controller('user')
 class UserController {
   getUsers(): User[] {
-    return this.getUsers();
+    return this.getUsers()
   }
 }
 ```
