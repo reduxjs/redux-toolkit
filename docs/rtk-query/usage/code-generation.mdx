@@ -121,24 +121,23 @@ interface SimpleUsage {
     | string
     | RegExp
     | EndpointMatcherFunction
-    | Array<string | RegExp | EndpointMatcherFunction>
+    | Array<string | RegExp>
   endpointOverrides?: EndpointOverrides[]
   flattenArg?: boolean
-}
-
-export type EndpointOverrides = {
-  pattern: EndpointMatcher
-} & AtLeastOneOf<{
-  type: 'mutation' | 'query'
-  parameterFilter: ParameterMatcher
-  providesTags: string[]
-  invalidatesTags: string[]
-}>
   useEnumType?: boolean
   enumStyle?: 'union' | 'enum' | 'as-const'
   outputRegexConstants?: boolean
   httpResolverOptions?: SwaggerParser.HTTPResolverOptions
 }
+
+export type EndpointOverrides = {
+  pattern: EndpointMatcher
+} & AtLeastOneKey<{
+  type: 'mutation' | 'query'
+  parameterFilter: ParameterMatcher
+  providesTags: string[]
+  invalidatesTags: string[]
+}>
 
 export type EndpointMatcherFunction = (
   operationName: string,
@@ -429,3 +428,4 @@ const config: ConfigFile = {
   outputFile: './src/store/petApi.ts',
   exportAllSchemas: true,
 }
+```
