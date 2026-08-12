@@ -1,11 +1,11 @@
 import { useAppDispatch, useAppSelector } from '../../app-core/hooks'
+import styles from './Counter.module.css'
 import {
   increment,
   incrementAsync,
   selectCount,
   selectStatus,
 } from './counterSlice'
-import styles from './Counter.module.css'
 
 export function Counter() {
   const count = useAppSelector(selectCount)

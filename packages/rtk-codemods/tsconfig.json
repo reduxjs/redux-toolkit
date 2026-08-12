@@ -1,28 +1,36 @@
 {
   "compilerOptions": {
-    "allowSyntheticDefaultImports": true,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "isolatedModules": true,
-    "checkJs": true,
-    "baseUrl": ".",
-    "noEmit": true,
-    "strict": true,
-    "target": "ESNext",
-    "module": "ESNext",
-    "moduleResolution": "Node",
-    "esModuleInterop": true,
-    "skipLibCheck": true,
     "allowJs": true,
-    "jsx": "preserve",
-    "noErrorTruncation": true,
+    "allowSyntheticDefaultImports": true,
+    "checkJs": true,
+    "declaration": true,
+    "declarationMap": true,
+    "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "paths": {
-      "@reduxjs/toolkit": ["../toolkit/src/index.ts"], // @remap-prod-remove-line
-      "@reduxjs/toolkit/query": ["../toolkit/src/query/index.ts"], // @remap-prod-remove-line
-      "@reduxjs/toolkit/react": ["../toolkit/src/react/index.ts"], // @remap-prod-remove-line
-      "@reduxjs/toolkit/query/react": ["../toolkit/src/query/react/index.ts"] // @remap-prod-remove-line
-    }
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "module": "esnext",
+    "moduleDetection": "force",
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "noEmitOnError": true,
+    "noErrorTruncation": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "outDir": "./dist",
+    "rootDir": "./",
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "strict": true,
+    "target": "esnext",
+    "types": ["node", "vitest/globals", "vitest/importMeta"],
+    "useDefineForClassFields": true,
+    "useUnknownInCatchVariables": true,
+    "verbatimModuleSyntax": true
   },
-  "include": ["**/*.ts", "**/*.tsx", "bin/cli.mjs"]
+  "exclude": ["./dist", "./transforms/*/__testfixtures__/*.ts"],
+  "include": ["**/*.ts", "**/*.tsx", "**/*.mts", "./bin/cli.mjs"]
 }
