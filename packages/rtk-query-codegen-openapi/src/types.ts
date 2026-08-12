@@ -1,40 +1,105 @@
 import type SwaggerParser from '@apidevtools/swagger-parser';
 import type { OpenAPIV3 } from 'openapi-types';
 
+/**
+ * A single OpenAPI operation, paired with the path and HTTP verb it was
+ * found under.
+ *
+ * @since 1.0.0
+ * @public
+ */
 export type OperationDefinition = {
   /**
-   * The path of the API endpoint (e.g., "/users/{id}").
+   * The path of the API endpoint (e.g. `/users/{id}`).
    */
   path: string;
 
   /**
-   * The HTTP verb/method used for the operation
-   * (e.g., "get", "post").
+   * The HTTP verb/method used for the operation (e.g. `get`, `post`).
    */
   verb: (typeof operationKeys)[number];
 
   /**
-   * The OpenAPI `PathItemObject` associated with the operation.
+   * The OpenAPI {@linkcode OpenAPIV3.PathItemObject | PathItemObject}
+   * associated with the operation.
    */
   pathItem: OpenAPIV3.PathItemObject;
 
   /**
-   * The OpenAPI `OperationObject` defining the operation.
+   * The OpenAPI {@linkcode OpenAPIV3.OperationObject | OperationObject}
+   * defining the operation.
    */
   operation: OpenAPIV3.OperationObject;
 };
 
+/**
+ * A single parameter of an OpenAPI operation.
+ *
+ * @since 2.0.0
+ * @public
+ */
 export type ParameterDefinition = OpenAPIV3.ParameterObject;
 
+/**
+ * Makes the keys `K` of `T` required and non-nullable, leaving the rest
+ * of `T` untouched.
+ *
+ * @template T - The object type to modify.
+ * @template K - The keys of `T` to make required.
+ *
+ * @internal
+ */
 type Require<T, K extends keyof T> = { [k in K]-?: NonNullable<T[k]> } & Omit<T, K>;
+
+/**
+ * Makes the keys `K` of `T` optional and non-nullable, leaving the rest
+ * of `T` untouched.
+ *
+ * @template T - The object type to modify.
+ * @template K - The keys of `T` to make optional.
+ *
+ * @internal
+ */
 type Optional<T, K extends keyof T> = { [k in K]?: NonNullable<T[k]> } & Omit<T, K>;
+
+/**
+ * Flattens an intersection into a single object type so editors display it
+ * as one set of properties rather than as `A & B`.
+ *
+ * @template T - The type to flatten.
+ *
+ * @internal
+ */
 type Id<T> = { [K in keyof T]: T[K] } & {};
+
+/**
+ * Produces a union in which at least one key of `T` is required, while all
+ * remaining keys stay optional.
+ *
+ * @template T - The object type at least one key of which must be provided.
+ *
+ * @internal
+ */
 type AtLeastOneKey<T> = {
   [K in keyof T]-?: Pick<T, K> & Partial<T>;
 }[keyof T];
 
+/**
+ * The HTTP verbs that are read off an OpenAPI
+ * {@linkcode OpenAPIV3.PathItemObject | PathItemObject} when collecting
+ * operations.
+ *
+ * @since 1.0.0
+ * @public
+ */
 export const operationKeys = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'] as const;
 
+/**
+ * The fully resolved options for generating a single output file.
+ *
+ * @since 1.0.0
+ * @public
+ */
 export type GenerationOptions = Id<
   CommonOptions &
     Optional<OutputFileOptions, 'outputFile'> & {
@@ -56,9 +121,16 @@ export type GenerationOptions = Id<
     }
 >;
 
+/**
+ * The options that can be set once and shared by every generated output
+ * file.
+ *
+ * @since 1.0.0
+ * @public
+ */
 export interface CommonOptions {
   /**
-   * filename of the api file to import base api from.
+   * The filename of the api file to import the base api from.
    */
   apiFile: string;
 
@@ -105,6 +177,7 @@ export interface CommonOptions {
   /**
    * Controls how OpenAPI **`operationId`** values are transformed into
    * endpoint names.
+   *
    * @see {@linkcode OperationIdTransformer} for details.
    *
    * @default "camelCase"
@@ -141,6 +214,7 @@ export interface CommonOptions {
    * `{ id?: string | undefined }` instead of `{ id?: string }`
    *
    * @example
+   * <caption>The effect on a generated property</caption>
    *
    * ```diff
    * {
@@ -165,7 +239,7 @@ export interface CommonOptions {
   tag?: boolean;
 
   /**
-   * `true` will add {@linkcode encodeURIComponent} to the generated
+   * `true` will add {@linkcode encodeURIComponent()} to the generated
    * {@linkcode OpenAPIV3.PathItemObject.parameters | Path parameters}.
    *
    * @default false
@@ -173,7 +247,7 @@ export interface CommonOptions {
   encodePathParams?: boolean;
 
   /**
-   * `true` will add {@linkcode encodeURIComponent} to the generated
+   * `true` will add {@linkcode encodeURIComponent()} to the generated
    * {@linkcode OpenAPIV3.OperationObject.parameters | query parameters}.
    *
    * @default false
@@ -185,6 +259,7 @@ export interface CommonOptions {
    * `useGetEntityById(1)` instead of `useGetEntityById({ entityId: 1 })`.
    *
    * @example
+   * <caption>The effect on a generated hook call</caption>
    *
    * ```diff
    * - useGetEntityById({ entityId: 1 })
@@ -214,15 +289,14 @@ export interface CommonOptions {
 
   /**
    * {@linkcode SwaggerParser.HTTPResolverOptions | HTTPResolverOptions}
-   * object that is passed to the
-   * {@linkcode SwaggerParser.bundle | SwaggerParser bundle} function.
+   * object that is passed to the {@linkcode SwaggerParser.bundle()} function.
    */
   httpResolverOptions?: SwaggerParser.HTTPResolverOptions;
 
   /**
-   * If present the given file will be used as prettier config when formatting
-   * the generated code. If `undefined` the default prettier config resolution
-   * mechanism will be used.
+   * If present the given file will be used as the Prettier config when
+   * formatting the generated code. If `undefined` the default Prettier
+   * config resolution mechanism will be used.
    *
    * @default undefined
    */
@@ -241,7 +315,7 @@ export interface CommonOptions {
 
   /**
    * Will generate imports with file extension matching the expected compiled
-   * output of the {@linkcode  CommonOptions.apiFile | api file}.
+   * output of the {@linkcode CommonOptions.apiFile | apiFile}.
    *
    * @default false
    */
@@ -296,14 +370,57 @@ export interface CommonOptions {
  */
 export type OperationIdTransformer = 'camelCase' | 'none' | ((operationId: string) => string);
 
+/**
+ * A name to match against, given either as an exact `string`, as a
+ * {@linkcode RegExp}, or as an array of either.
+ *
+ * @since 1.0.0
+ * @public
+ */
 export type TextMatcher = string | RegExp | (string | RegExp)[];
 
+/**
+ * Decides whether an endpoint should be matched, based on its generated
+ * name and the operation it came from.
+ *
+ * @param operationName - The generated name of the endpoint.
+ * @param operationDefinition - The {@linkcode OperationDefinition} the endpoint was generated from.
+ * @returns `true` if the endpoint matches, `false` otherwise.
+ *
+ * @since 1.0.0
+ * @public
+ */
 export type EndpointMatcherFunction = (operationName: string, operationDefinition: OperationDefinition) => boolean;
 
+/**
+ * Selects endpoints either by name via a {@linkcode TextMatcher}, or by
+ * arbitrary logic via an {@linkcode EndpointMatcherFunction}.
+ *
+ * @since 1.0.0
+ * @public
+ */
 export type EndpointMatcher = TextMatcher | EndpointMatcherFunction;
 
+/**
+ * Decides whether a parameter should be matched, based on its name and
+ * its definition.
+ *
+ * @param parameterName - The name of the parameter.
+ * @param parameterDefinition - The {@linkcode ParameterDefinition} of the parameter.
+ * @returns `true` if the parameter matches, `false` otherwise.
+ *
+ * @since 2.0.0
+ * @public
+ */
 export type ParameterMatcherFunction = (parameterName: string, parameterDefinition: ParameterDefinition) => boolean;
 
+/**
+ * Selects parameters either by name via a {@linkcode TextMatcher}, or by
+ * arbitrary logic via a {@linkcode ParameterMatcherFunction}.
+ *
+ * @since 2.0.0
+ * @public
+ */
 export type ParameterMatcher = TextMatcher | ParameterMatcherFunction;
 
 /**
@@ -311,14 +428,20 @@ export type ParameterMatcher = TextMatcher | ParameterMatcherFunction;
  *
  * - **`"union"`** *(default)* - a union of string literals: `type Status = "available" | "pending"`
  * - **`"enum"`** - a TypeScript enum: `enum Status { Available = "available" }`
- * - **`"as-const"`** - a const object with a companion type:
- *   `const Status = { Available: "available" } as const; type Status = (typeof Status)[keyof typeof Status];`
+ * - **`"as-const"`** - a const object with a companion type: `const Status = { Available: "available" } as const; type Status = (typeof Status)[keyof typeof Status];`
  *
  * @since 2.3.0
  * @public
  */
 export type EnumStyle = 'union' | 'enum' | 'as-const';
 
+/**
+ * The options that apply to one generated output file, on top of the
+ * {@linkcode CommonOptions} shared by every output file.
+ *
+ * @since 1.0.0
+ * @public
+ */
 export interface OutputFileOptions extends Partial<CommonOptions> {
   /**
    * The output file path for the generated code.
@@ -349,7 +472,10 @@ export interface OutputFileOptions extends Partial<CommonOptions> {
 
   /**
    * Controls how enums are generated in TypeScript.
-   * Takes precedence over `useEnumType` if both are specified.
+   * Takes precedence over
+   * {@linkcode OutputFileOptions.useEnumType | useEnumType} if both are
+   * specified.
+   *
    * @see {@linkcode EnumStyle} for details.
    *
    * @default "union"
@@ -362,6 +488,9 @@ export interface OutputFileOptions extends Partial<CommonOptions> {
  * Configuration for overriding specific endpoint behaviors during
  * code generation. At least one override option
  * (besides {@linkcode EndpointOverrides.pattern | pattern}) must be specified.
+ *
+ * @since 1.0.0
+ * @public
  */
 export type EndpointOverrides = {
   /**
@@ -388,12 +517,14 @@ export type EndpointOverrides = {
    * Override `providesTags` for this endpoint.
    * Takes precedence over auto-generated tags from OpenAPI spec.
    * Use an empty array to explicitly omit `providesTags`.
-   * Works regardless of the global `tag` setting and endpoint `type`.
+   * Works regardless of the global {@linkcode CommonOptions.tag | tag}
+   * setting and endpoint {@linkcode EndpointOverrides.type | type}.
    *
    * @example
+   * <caption>Tagging an endpoint that returns a single pet</caption>
    *
    * ```ts
-   * ['Pet', 'SinglePet']
+   * ['Pet', 'SinglePet'];
    * ```
    */
   providesTags: string[];
@@ -402,17 +533,27 @@ export type EndpointOverrides = {
    * Override `invalidatesTags` for this endpoint.
    * Takes precedence over auto-generated tags from OpenAPI spec.
    * Use an empty array to explicitly omit `invalidatesTags`.
-   * Works regardless of the global `tag` setting and endpoint `type`.
+   * Works regardless of the global {@linkcode CommonOptions.tag | tag}
+   * setting and endpoint {@linkcode EndpointOverrides.type | type}.
    *
    * @example
+   * <caption>Invalidating both a pet and the pet list</caption>
    *
    * ```ts
-   * ['Pet', 'PetList']
+   * ['Pet', 'PetList'];
    * ```
    */
   invalidatesTags: string[];
 }>;
 
+/**
+ * The shape of the config file passed to the CLI. Either a single output
+ * file described inline, or a set of output files keyed by path under
+ * `outputFiles`.
+ *
+ * @since 1.0.0
+ * @public
+ */
 export type ConfigFile =
   | Id<Require<CommonOptions & OutputFileOptions, 'outputFile'>>
   | Id<
