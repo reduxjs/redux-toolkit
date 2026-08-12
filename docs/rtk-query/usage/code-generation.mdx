@@ -196,6 +196,10 @@ const filteredConfig: ConfigFile = {
 
 #### Customizing endpoint name generation
 
+:::info
+`operationIdTransformer` requires `@rtk-query/codegen-openapi` 2.3.0 or later.
+:::
+
 By default, each operation's `operationId` is converted to camelCase using lodash `camelCase` (via `oazapfts`). This means consecutive uppercase letters are lowercased - for example, `fetchMyJWTPlease` becomes `fetchMyJwtPlease`.
 
 Use the `operationIdTransformer` option to control this behavior:
@@ -333,6 +337,10 @@ Setting `hooks: true` will generate `useQuery` and `useMutation` hook exports. I
 
 #### Controlling enum generation
 
+:::info
+`enumStyle` requires `@rtk-query/codegen-openapi` 2.3.0 or later. `useEnumType` is available in earlier versions.
+:::
+
 By default, OpenAPI `enum` definitions are generated as unions of string literals. Use the `enumStyle` option to control this behavior:
 
 - **`"union"`** _(default)_ - a union of string literals: `type Status = 'available' | 'pending'`
@@ -432,6 +440,10 @@ const config: ConfigFile = {
 ```
 
 #### Additional Schemas
+
+:::info
+`exportAllSchemas` requires `@rtk-query/codegen-openapi` 2.3.0 or later.
+:::
 
 By default, the only schemas that are exported are those that are referenced in endpoint definitions. Take the following NestJS example:
 
