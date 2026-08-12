@@ -25,7 +25,7 @@ import type {
   InfiniteData,
   InfiniteQueryConfigOptions,
   QuerySubState,
-  RootState,
+  ApiRootState,
 } from './core/index'
 import type { SerializeQueryArgs } from './defaultSerializeQueryArgs'
 import type { NEVER } from './fakeBaseQuery'
@@ -855,7 +855,7 @@ export interface QueryExtraOptions<
   forceRefetch?(params: {
     currentArg: QueryArg | undefined
     previousArg: QueryArg | undefined
-    state: RootState<any, any, string>
+    state: ApiRootState<any, any, string>
     endpointState?: QuerySubState<any>
   }): boolean
 
