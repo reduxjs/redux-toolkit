@@ -108,7 +108,7 @@ export default defineConfig((overrideOptions): TsdownOptions[] => {
   const commonOptions = {
     sourcemap: true,
     tsconfig: path.join(import.meta.dirname, 'tsconfig.build.json'),
-    external: externalDependencies,
+    deps: { neverBundle: externalDependencies },
     plugins: [mangleErrorsTransform],
     target: ['esnext'],
     hash: false,
@@ -127,7 +127,9 @@ export default defineConfig((overrideOptions): TsdownOptions[] => {
     // esbuild treats subpaths of an external package as external too, but
     // Rolldown does not, so `@reduxjs/toolkit/query` etc. must be matched
     // explicitly or the nested entries inline the packages they depend on.
-    external: [...externalDependencies, /^@reduxjs\/toolkit(\/.*)?$/],
+    deps: {
+      neverBundle: [...externalDependencies, /^@reduxjs\/toolkit(\/.*)?$/],
+    },
   } satisfies TsdownOptions
 
   return [
@@ -238,7 +240,7 @@ export default defineConfig((overrideOptions): TsdownOptions[] => {
       sourcemap: false,
       dts: { emitDtsOnly: true, sourcemap: false },
       outExtensions: () => ({ dts: '.d.ts' }),
-      external: [/uncheckedindexed/],
+      deps: { neverBundle: [/uncheckedindexed/] },
     },
     {
       ...commonOptions,
@@ -249,7 +251,7 @@ export default defineConfig((overrideOptions): TsdownOptions[] => {
       sourcemap: false,
       dts: { emitDtsOnly: true, sourcemap: false },
       outExtensions: () => ({ dts: '.d.ts' }),
-      external: ['@reduxjs/toolkit', /uncheckedindexed/],
+      deps: { neverBundle: ['@reduxjs/toolkit', /uncheckedindexed/] },
     },
     {
       ...commonOptions,
@@ -260,11 +262,13 @@ export default defineConfig((overrideOptions): TsdownOptions[] => {
       sourcemap: false,
       dts: { emitDtsOnly: true, sourcemap: false },
       outExtensions: () => ({ dts: '.d.ts' }),
-      external: [
-        '@reduxjs/toolkit',
-        '@reduxjs/toolkit/react',
-        /uncheckedindexed/,
-      ],
+      deps: {
+        neverBundle: [
+          '@reduxjs/toolkit',
+          '@reduxjs/toolkit/react',
+          /uncheckedindexed/,
+        ],
+      },
     },
     {
       ...commonOptions,
@@ -275,12 +279,14 @@ export default defineConfig((overrideOptions): TsdownOptions[] => {
       sourcemap: false,
       dts: { emitDtsOnly: true, sourcemap: false },
       outExtensions: () => ({ dts: '.d.ts' }),
-      external: [
-        '@reduxjs/toolkit',
-        '@reduxjs/toolkit/react',
-        '@reduxjs/toolkit/query',
-        /uncheckedindexed/,
-      ],
+      deps: {
+        neverBundle: [
+          '@reduxjs/toolkit',
+          '@reduxjs/toolkit/react',
+          '@reduxjs/toolkit/query',
+          /uncheckedindexed/,
+        ],
+      },
     },
   ]
 })
