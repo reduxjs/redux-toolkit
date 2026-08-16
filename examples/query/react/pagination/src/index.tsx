@@ -13,7 +13,7 @@ worker.start({ quiet: true }).then(() =>
     <React.StrictMode>
       <ApiProvider api={api}>
         <ChakraProvider>
-            <App />
+          <App />
         </ChakraProvider>
       </ApiProvider>
     </React.StrictMode>,

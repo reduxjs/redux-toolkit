@@ -78,7 +78,13 @@ export const intervalOptions = [
   { label: '1m', value: 60_000 },
 ]
 
-export const TimeDisplay = ({ offset, label }: { offset: string; label: string }) => {
+export const TimeDisplay = ({
+  offset,
+  label,
+}: {
+  offset: string
+  label: string
+}) => {
   const globalPolling = useAppSelector(selectGlobalPollingEnabled)
   const { enabled: timesPolling } = useAppSelector((state) =>
     selectPollingConfigByApp(state, 'times'),

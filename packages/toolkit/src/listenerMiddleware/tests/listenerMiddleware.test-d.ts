@@ -314,9 +314,7 @@ describe('type tests', () => {
     }
 
     function isExtraAction(action: any): action is ExtraAction {
-      return (
-        isFluxStandardAction(action) && typeof action.payload === 'number'
-      )
+      return isFluxStandardAction(action) && typeof action.payload === 'number'
     }
 
     const matcher = isAnyOf(isExtraAction)

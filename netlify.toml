@@ -1,8 +1,8 @@
 [build]
-  base    = "website"
-  publish = "build"
-  command = "pushd ../packages/toolkit && yarn build && popd && yarn run netlify-build && ls  && cp _redirects ./build"
-  ignore = "git diff --quiet HEAD^ HEAD docs website"
+base = "website"
+publish = "build"
+command = "pushd ../packages/toolkit && yarn build && popd && yarn run netlify-build && ls  && cp _redirects ./build"
+ignore = "git diff --quiet HEAD^ HEAD docs website"
 
 [build.environment]
 NODE_VERSION = "20"
@@ -11,10 +11,6 @@ NETLIFY_USE_YARN = "true"
 YARN_VERSION = "1.22.10"
 
 [[plugins]]
-  package = "netlify-plugin-cache"
-  [plugins.inputs]
-    paths = [
-      "node_modules/.cache",
-      "website/node_modules/.cache",
-      ".yarn/.cache"
-    ]
+package = "netlify-plugin-cache"
+[plugins.inputs]
+paths = ["node_modules/.cache", "website/node_modules/.cache", ".yarn/.cache"]

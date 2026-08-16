@@ -240,10 +240,7 @@ interface FetchArgs extends RequestInit {
   params?: Record<string, any>
   body?: any
   responseHandler?:
-    | 'json'
-    | 'text'
-    | `content-type`
-    | ((response: Response) => Promise<any>)
+    'json' | 'text' | `content-type` | ((response: Response) => Promise<any>)
   validateStatus?: (response: Response, body: any) => boolean
   timeout?: number
 }
@@ -315,10 +312,7 @@ The `responseHandler` field can be either:
 
 ```ts
 type ResponseHandler =
-  | 'content-type'
-  | 'json'
-  | 'text'
-  | ((response: Response) => Promise<any>)
+  'content-type' | 'json' | 'text' | ((response: Response) => Promise<any>)
 ```
 
 The `"json"` and `"text"` values instruct `fetchBaseQuery` to the corresponding fetch response methods for reading the body. `content-type` will check the header field to first determine if this appears to be JSON, and then use one of those two methods. The callback allows you to process the body yourself.

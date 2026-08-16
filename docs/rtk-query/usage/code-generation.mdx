@@ -403,19 +403,19 @@ By default, the only schemas that are exported are those that are referenced in 
 
 ```ts no-transpile title="user.controller.ts"
 class User {
-  id: string;
-  name: string;
+  id: string
+  name: string
 }
 
 class LogoutMessage {
-  reason: string;
+  reason: string
 }
 
 @ApiExtraModels(LogoutMessage)
 @Controller('user')
 class UserController {
   getUsers(): User[] {
-    return this.getUsers();
+    return this.getUsers()
   }
 }
 ```
@@ -429,3 +429,4 @@ const config: ConfigFile = {
   outputFile: './src/store/petApi.ts',
   exportAllSchemas: true,
 }
+```

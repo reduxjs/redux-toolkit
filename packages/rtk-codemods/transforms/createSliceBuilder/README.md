@@ -27,6 +27,7 @@ node ./bin/cli.mjs createSliceBuilder path/of/files/ or/some**/*glob.js
 
 - [basic-ts](#basic-ts)
 - [basic](#basic)
+
 <!--FIXTURES_TOC_END-->
 
 ## <!--FIXTURES_CONTENT_START-->
