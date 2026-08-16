@@ -8021,6 +8021,7 @@ __metadata:
     tsup: "npm:^8.4.0"
     tsx: "npm:^4.19.0"
     typescript: "npm:^5.9.3"
+    unrun: "npm:^0.3.1"
     valibot: "npm:^1.0.0"
     vite-tsconfig-paths: "npm:^4.3.1"
     vitest: "npm:^4"
@@ -29685,7 +29686,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rolldown@npm:~1.2.0":
+"rolldown@npm:^1.0.0, rolldown@npm:~1.2.0":
   version: 1.2.4
   resolution: "rolldown@npm:1.2.4"
   dependencies:
@@ -33022,6 +33023,22 @@ __metadata:
   version: 1.1.1
   resolution: "unquote@npm:1.1.1"
   checksum: 10/71745867d09cba44ba2d26cb71d6dda7045a98b14f7405df4faaf2b0c90d24703ad027a9d90ba9a6e0d096de2c8d56f864fd03f1c0498c0b7a3990f73b4c8f5f
+  languageName: node
+  linkType: hard
+
+"unrun@npm:^0.3.1":
+  version: 0.3.1
+  resolution: "unrun@npm:0.3.1"
+  dependencies:
+    rolldown: "npm:^1.0.0"
+  peerDependencies:
+    synckit: ^0.11.11
+  peerDependenciesMeta:
+    synckit:
+      optional: true
+  bin:
+    unrun: ./dist/cli.mjs
+  checksum: 10/c2a64bc189745eb6ab75344031aab922457fcc6d2479ef50a8dee1aeab2c8bfa9a2208abcf3ef2e05bb1da054a9bebaf85edda0f636942138d365afd2edc36a2
   languageName: node
   linkType: hard
 
