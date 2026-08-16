@@ -95,18 +95,20 @@ const nestedEntryPoints = [
   },
 ]
 
+const externalDependencies = [
+  'redux',
+  'react',
+  'react-redux',
+  'immer',
+  'redux-thunk',
+  'reselect',
+]
+
 export default defineConfig((overrideOptions): TsdownOptions[] => {
   const commonOptions = {
     sourcemap: true,
     tsconfig: path.join(import.meta.dirname, 'tsconfig.build.json'),
-    external: [
-      'redux',
-      'react',
-      'react-redux',
-      'immer',
-      'redux-thunk',
-      'reselect',
-    ],
+    external: externalDependencies,
     plugins: [mangleErrorsTransform],
     target: ['esnext'],
     hash: false,
@@ -125,7 +127,7 @@ export default defineConfig((overrideOptions): TsdownOptions[] => {
     // esbuild treats subpaths of an external package as external too, but
     // Rolldown does not, so `@reduxjs/toolkit/query` etc. must be matched
     // explicitly or the nested entries inline the packages they depend on.
-    external: [...commonOptions.external, /^@reduxjs\/toolkit(\/.*)?$/],
+    external: [...externalDependencies, /^@reduxjs\/toolkit(\/.*)?$/],
   } satisfies TsdownOptions
 
   return [
