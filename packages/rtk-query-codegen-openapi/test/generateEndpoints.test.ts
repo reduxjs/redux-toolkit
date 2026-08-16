@@ -641,7 +641,7 @@ describe('import paths', () => {
       hooks: true,
       tag: true,
     });
-    expect(await fs.readFile('./test/tmp/out.ts', 'utf8')).toContain("import { api } from '../../fixtures/emptyApi'");
+    expect(await fs.readFile('./test/tmp/out.ts', 'utf8')).toContain('import { api } from "../../fixtures/emptyApi";');
   });
 
   test('should create paths relative to `outFile` when `apiFile` is relative (same folder)', async () => {
@@ -656,7 +656,7 @@ describe('import paths', () => {
       hooks: true,
       tag: true,
     });
-    expect(await fs.readFile('./test/tmp/out.ts', 'utf8')).toContain("import { api } from './emptyApi'");
+    expect(await fs.readFile('./test/tmp/out.ts', 'utf8')).toContain('import { api } from "./emptyApi";');
   });
 });
 
@@ -957,7 +957,7 @@ describe('esmExtensions option', () => {
       esmExtensions: true,
     });
     const content = await fs.readFile('./test/tmp/out.ts', 'utf8');
-    expect(content).toContain("import { api } from '../../fixtures/emptyApi.js'");
+    expect(content).toContain('import { api } from "../../fixtures/emptyApi.js";');
   });
 
   test('should convert .mts to .mjs when esmExtensions is true', async () => {
@@ -969,7 +969,7 @@ describe('esmExtensions option', () => {
       esmExtensions: true,
     });
     const content = await fs.readFile('./test/tmp/out.ts', 'utf8');
-    expect(content).toContain("import { api } from '../../fixtures/emptyApi.mjs'");
+    expect(content).toContain('import { api } from "../../fixtures/emptyApi.mjs";');
   });
 
   test('should preserve .jsx when esmExtensions is true', async () => {
@@ -981,7 +981,7 @@ describe('esmExtensions option', () => {
       esmExtensions: true,
     });
     const content = await fs.readFile('./test/tmp/out.ts', 'utf8');
-    expect(content).toContain("import { api } from '../../fixtures/emptyApi.jsx'");
+    expect(content).toContain('import { api } from "../../fixtures/emptyApi.jsx";');
   });
 
   test('should convert .tsx to .jsx when esmExtensions is true', async () => {
@@ -993,7 +993,7 @@ describe('esmExtensions option', () => {
       esmExtensions: true,
     });
     const content = await fs.readFile('./test/tmp/out.ts', 'utf8');
-    expect(content).toContain("import { api } from '../../fixtures/emptyApi.jsx'");
+    expect(content).toContain('import { api } from "../../fixtures/emptyApi.jsx";');
   });
 
   test('should strip extensions when esmExtensions is false', async () => {
@@ -1005,7 +1005,7 @@ describe('esmExtensions option', () => {
       esmExtensions: false,
     });
     const content = await fs.readFile('./test/tmp/out.ts', 'utf8');
-    expect(content).toContain("import { api } from '../../fixtures/emptyApi'");
+    expect(content).toContain('import { api } from "../../fixtures/emptyApi";');
   });
 
   test('should strip extensions when esmExtensions is undefined (default)', async () => {
@@ -1016,7 +1016,7 @@ describe('esmExtensions option', () => {
       filterEndpoints: [],
     });
     const content = await fs.readFile('./test/tmp/out.ts', 'utf8');
-    expect(content).toContain("import { api } from '../../fixtures/emptyApi'");
+    expect(content).toContain('import { api } from "../../fixtures/emptyApi";');
   });
 });
 

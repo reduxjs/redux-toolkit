@@ -36,7 +36,7 @@
     "build": "yarn clean && tsup && chmod +x lib/bin/cli.mjs",
     "clean": "rimraf lib",
     "prepack": "yarn build && chmod +x lib/bin/cli.mjs",
-    "format": "prettier --write \"src/**/*.ts\"",
+    "format": "oxfmt \"src/**/*.ts\"",
     "test:update": "vitest --run --update",
     "test:update:enum": "lib/bin/cli.mjs test/config.example.enum.ts",
     "test": "vitest --run --typecheck",
