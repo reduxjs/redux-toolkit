@@ -40,8 +40,15 @@ const main = async () => {
       return
     }
 
-    const allNamedExports = lines
-      .at(-2)
+    // Locate the named export statement by searching rather than by fixed
+    // offset. tsup emitted a trailing newline, tsdown does not, so a
+    // hardcoded `lines.at(-2)` silently misses it and leaves the unique
+    // symbols unexported.
+    const namedExportsLineIndex = lines.findLastIndex((line) =>
+      /^export \{ (.*) \};$/.test(line),
+    )
+
+    const allNamedExports = lines[namedExportsLineIndex]
       ?.match(/^export \{ (.*) \};$/)?.[1]
       .split(', ')
 
@@ -59,7 +66,7 @@ const main = async () => {
       return
     }
 
-    let newContent = `${lines.slice(0, -2).join('\n')}\nexport { ${allNamedExports?.filter((namedExport) => !exportedUniqueSymbols.has(namedExport)).join(', ')} };\n`
+    let newContent = `${lines.slice(0, namedExportsLineIndex).join('\n')}\nexport { ${allNamedExports?.filter((namedExport) => !exportedUniqueSymbols.has(namedExport)).join(', ')} };\n`
 
     exportedUniqueSymbols.forEach((uniqueSymbol) => {
       console.log(`Exporting \`${uniqueSymbol}\` from ${filePath}`)
