@@ -167,7 +167,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
     let lowestPollingInterval = Number.POSITIVE_INFINITY
 
     for (const entry of subscribers.values()) {
-      if (!!entry.pollingInterval) {
+      if (entry.pollingInterval) {
         lowestPollingInterval = Math.min(
           entry.pollingInterval!,
           lowestPollingInterval,
