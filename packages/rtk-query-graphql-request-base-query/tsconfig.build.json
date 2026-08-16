@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "ignoreDeprecations": "6.0",
+    "noEmit": false,
+    "rootDir": "./src"
+  },
+  "exclude": ["dist", "**/*.test.*", "**/*.spec.*"],
+  "extends": "./tsconfig.json",
+  "include": ["src/**/*"]
+}

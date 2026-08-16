@@ -18,9 +18,10 @@
   "unpkg": "./dist/index.umd.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "microbundle",
-    "prepack": "rimraf dist/*; yarn build",
-    "dev": "microbundle watch",
+    "build": "microbundle build --tsconfig tsconfig.build.json",
+    "clean": "rimraf dist/",
+    "prepack": "yarn clean && yarn build",
+    "dev": "microbundle watch --tsconfig tsconfig.build.json",
     "test": "vitest run",
     "test:watch": "vitest"
   },
