@@ -211,16 +211,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ampproject/remapping@npm:^2.2.1":
-  version: 2.3.0
-  resolution: "@ampproject/remapping@npm:2.3.0"
-  dependencies:
-    "@jridgewell/gen-mapping": "npm:^0.3.5"
-    "@jridgewell/trace-mapping": "npm:^0.3.24"
-  checksum: 10/f3451525379c68a73eb0a1e65247fbf28c0cccd126d93af21c75fceff77773d43c0d4a2d51978fb131aff25b5f2cb41a9fe48cc296e61ae65e679c4f6918b0ab
-  languageName: node
-  linkType: hard
-
 "@andrewbranch/untar.js@npm:^1.0.3":
   version: 1.0.3
   resolution: "@andrewbranch/untar.js@npm:1.0.3"
@@ -8003,7 +7993,6 @@ __metadata:
     "@types/react-dom": "npm:^19.0.1"
     axios: "npm:^0.19.2"
     esbuild: "npm:^0.25.1"
-    esbuild-extra: "npm:^0.4.0"
     immer: "npm:^11.0.0"
     jsdom: "npm:^25.0.1"
     msw: "npm:^2.1.4"
@@ -8018,7 +8007,6 @@ __metadata:
     rimraf: "npm:^6.1.3"
     size-limit: "npm:^11.0.1"
     tsdown: "npm:^0.22.14"
-    tsup: "npm:^8.4.0"
     tsx: "npm:^4.19.0"
     typescript: "npm:^5.9.3"
     unrun: "npm:^0.3.1"
@@ -15865,7 +15853,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"enhanced-resolve@npm:^5.15.0, enhanced-resolve@npm:^5.20.0":
+"enhanced-resolve@npm:^5.20.0":
   version: 5.20.1
   resolution: "enhanced-resolve@npm:5.20.1"
   dependencies:
@@ -16129,20 +16117,6 @@ __metadata:
     esast-util-from-estree: "npm:^2.0.0"
     vfile-message: "npm:^4.0.0"
   checksum: 10/ad3ff18de45d981a19ae35ecd7f47a2954399c2d901f3d9f22ab58309c327215b6e2e39f9c0a8ff58d3fd0435fe81a3ff4257754e1a12bdc590a0b68c9d6e085
-  languageName: node
-  linkType: hard
-
-"esbuild-extra@npm:^0.4.0":
-  version: 0.4.2
-  resolution: "esbuild-extra@npm:0.4.2"
-  dependencies:
-    "@ampproject/remapping": "npm:^2.2.1"
-    convert-source-map: "npm:^2.0.0"
-    enhanced-resolve: "npm:^5.15.0"
-    tsconfck: "npm:^2.1.1"
-  peerDependencies:
-    esbuild: ">=0.15"
-  checksum: 10/16300a42233fa30bbabdcae4e389c302b4a03461677a2639c6857dfb28ab6369c09a4dfcc0225e534616f26019ec9e5510e799c32923d141c4bb8ce5b7a290d2
   languageName: node
   linkType: hard
 
@@ -32330,20 +32304,6 @@ __metadata:
     ts-node-transpile-only: dist/bin-transpile.js
     ts-script: dist/bin-script-deprecated.js
   checksum: 10/7fd8da71dd528f0490daf771a185572b485cb7f6be354c4d675011aee63bdb291f919e68c340cc92863c450e685b7f7300bd81ec158c3881a8c3f0e2f1cc10fe
-  languageName: node
-  linkType: hard
-
-"tsconfck@npm:^2.1.1":
-  version: 2.1.2
-  resolution: "tsconfck@npm:2.1.2"
-  peerDependencies:
-    typescript: ^4.3.5 || ^5.0.0
-  peerDependenciesMeta:
-    typescript:
-      optional: true
-  bin:
-    tsconfck: bin/tsconfck.js
-  checksum: 10/61df3b03b334a25eabb0a52e67a0c8d85770c631f2739db7703af8fdd102a2ebd598f1c851cc5fc6d6a59f2497a26c845be71c934ea16d838a3ff95a885034fb
   languageName: node
   linkType: hard
 
