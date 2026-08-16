@@ -240,7 +240,7 @@
     "build-only": "yarn clean && yarn run-build",
     "format": "prettier --write \"(src|examples)/**/*.{ts,tsx}\" \"**/*.md\"",
     "format:check": "prettier --list-different \"(src|examples)/**/*.{ts,tsx}\" \"docs/*/**.md\"",
-    "lint": "eslint src examples",
+    "lint": "DISABLE_V8_COMPILE_CACHE=1 eslint src",
     "test": "vitest --typecheck --run ",
     "test:watch": "vitest --watch",
     "type-tests": "yarn tsc -p tsconfig.test.json --noEmit",
