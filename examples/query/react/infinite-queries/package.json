@@ -34,7 +34,7 @@
     "@vitejs/plugin-react": "^5",
     "jsdom": "^23.2.0",
     "msw": "^2.6.6",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.3",
     "vite": "^7",
     "vitest": "^4"
   },
