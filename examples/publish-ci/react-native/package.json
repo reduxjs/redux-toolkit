@@ -12,7 +12,7 @@
     "lint:fix": "eslint --fix .",
     "lint": "eslint .",
     "start": "react-native start",
-    "test": "yarn check-bundle && jest",
+    "test": "pnpm check-bundle && jest",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
@@ -55,5 +55,6 @@
   },
   "engines": {
     "node": ">= 22.11.0"
-  }
+  },
+  "packageManager": "pnpm@11.22.0"
 }

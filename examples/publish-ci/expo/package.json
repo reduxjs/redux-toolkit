@@ -12,7 +12,7 @@
     "lint:fix": "eslint --fix .",
     "lint": "eslint .",
     "start": "expo start",
-    "test": "yarn check-bundle && jest",
+    "test": "pnpm check-bundle && jest",
     "type-check": "tsc --noEmit",
     "web": "expo start --web"
   },
@@ -51,5 +51,6 @@
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.31.1"
   },
-  "private": true
+  "private": true,
+  "packageManager": "pnpm@11.22.0"
 }
