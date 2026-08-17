@@ -15,13 +15,6 @@
   "directories": {
     "example": "example"
   },
-  "workspaces": [
-    "packages/*",
-    "docs",
-    "website",
-    "examples/query/react/infinite-queries",
-    "examples/type-portability/*"
-  ],
   "devDependencies": {
     "@babel/code-frame": "^7.24.2",
     "@babel/core": "^7.24.3",
@@ -54,5 +47,5 @@
     "test:packages": "yarn workspaces foreach -A --include '@reduxjs/*' --include '@rtk-query/*'  --include '@rtk-incubator/*' run test",
     "dev:docs": "yarn workspace website run start"
   },
-  "packageManager": "yarn@4.4.1"
+  "packageManager": "pnpm@11.22.0"
 }

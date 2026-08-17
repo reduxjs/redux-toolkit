@@ -21,13 +21,12 @@ coverage/
 
 typesversions
 .cache
+# The root is on pnpm. `.yarn/releases/yarn-4.4.1.cjs` is still tracked because
+# the `examples/publish-ci/*` projects are still Yarn 4 and point their
+# `yarnPath` at it.
 .yarnrc
 .yarn/*
-!.yarn/patches
 !.yarn/releases
-!.yarn/plugins
-!.yarn/sdks
-!.yarn/versions
 .pnp.*
 *.tgz
 
