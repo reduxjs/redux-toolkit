@@ -224,7 +224,7 @@
   "scripts": {
     "clean": "rimraf dist",
     "run-build": "tsdown --config=$INIT_CWD/tsdown.config.mts --config-loader unrun",
-    "build": "yarn clean && yarn run-build && tsx scripts/fixUniqueSymbolExports.mts",
+    "build": "yarn clean && yarn run-build && tsx scripts/fixUniqueSymbolExports.mts && tsx scripts/stripSourcemapFileField.mts",
     "build-only": "yarn clean && yarn run-build",
     "test": "vitest --typecheck --run ",
     "test:watch": "vitest --watch",
