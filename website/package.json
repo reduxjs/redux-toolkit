@@ -6,7 +6,7 @@
     "build": "docusaurus build",
     "clear": "docusaurus clear",
     "serve": "docusaurus serve",
-    "netlify-build": "yarn install && yarn build",
+    "netlify-build": "pnpm install && pnpm build",
     "swizzle": "docusaurus swizzle",
     "publish-gh-pages": "docusaurus deploy",
     "deploy": "docusaurus deploy"

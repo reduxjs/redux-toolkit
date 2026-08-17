@@ -33,9 +33,9 @@
     "rtk-query-codegen-openapi": "lib/bin/cli.mjs"
   },
   "scripts": {
-    "build": "yarn clean && tsdown && chmod +x lib/bin/cli.mjs",
+    "build": "pnpm clean && tsdown && chmod +x lib/bin/cli.mjs",
     "clean": "rimraf lib",
-    "prepack": "yarn build && chmod +x lib/bin/cli.mjs",
+    "prepack": "pnpm build && chmod +x lib/bin/cli.mjs",
     "format": "oxfmt \"src/**/*.ts\"",
     "test:update": "vitest --run --update",
     "test:update:enum": "lib/bin/cli.mjs test/config.example.enum.ts",
@@ -67,7 +67,7 @@
     "esbuild": "^0.25.1",
     "esbuild-runner": "^2.2.1",
     "husky": "^4.3.6",
-    "msw": "^2.1.5",
+    "msw": "2.1.5",
     "node-fetch": "^3.3.2",
     "openapi-types": "^9.1.0",
     "pretty-quick": "^4.0.0",
