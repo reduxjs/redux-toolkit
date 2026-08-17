@@ -50,15 +50,19 @@ git clone https://github.com/your-username/redux-toolkit.git
 
 ```bash
 $ cd redux-toolkit
-$ yarn
+$ pnpm install
 ```
+
+The repo pins its pnpm version in the root `package.json` `packageManager`
+field. Corepack (bundled with Node) reads it and uses the right version, so no
+global pnpm install is required.
 
 ### Build
 
 You can build the packages with the following command:
 
 ```
-yarn build
+pnpm build
 ```
 
 ### Tests
@@ -66,13 +70,13 @@ yarn build
 You can run tests for all packages with:
 
 ```
-yarn test
+pnpm test
 ```
 
 To continuously watch and run tests, run the following:
 
 ```
-yarn test --watch
+pnpm --filter @reduxjs/toolkit test:watch
 ```
 
 ## Git workflow / Submitting Changes
