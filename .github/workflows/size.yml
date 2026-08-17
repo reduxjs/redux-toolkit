@@ -15,10 +15,19 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      # The size-limit action installs dependencies and runs the build itself,
+      # so this job has no setup steps of its own. It only ever worked because
+      # yarn is preinstalled on GitHub runners; pnpm is not, so it has to be
+      # installed here. The version is pinned rather than read from
+      # package.json, because the action checks out the PR base commit to
+      # measure it and the base commit's package.json may still say yarn.
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+        with:
+          version: 11.22.0
       - uses: EskiMojo14/size-limit-action@af0584be5b6cc2d056bd31a314fc2ce9c9c1a929 # v2
         with:
           directory: packages/toolkit
           github_token: ${{ secrets.GITHUB_TOKEN }}
           build_script: build-only
-          package_manager: yarn
+          package_manager: pnpm
           size_margin: non-zero
