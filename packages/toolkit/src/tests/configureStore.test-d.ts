@@ -468,8 +468,8 @@ describe('type tests', () => {
 
       const dispatchResult = store.dispatch(action)
 
-      expectTypeOf(dispatchResult).toExtend<{
-        type: string
+      expectTypeOf(dispatchResult).toMatchObjectType<{
+        type: 'counter/incrementByAmount'
         payload: number
       }>()
 
@@ -493,8 +493,8 @@ describe('type tests', () => {
 
       const dispatchResult2 = store2.dispatch(action)
 
-      expectTypeOf(dispatchResult2).toExtend<{
-        type: string
+      expectTypeOf(dispatchResult2).toMatchObjectType<{
+        type: 'counter/incrementByAmount'
         payload: number
       }>()
     })
