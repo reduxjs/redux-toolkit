@@ -452,12 +452,18 @@ jobs:
           npm --workspace=@examples-type-portability/${{ matrix.example.name }} pkg set type=module
           yarn workspace @examples-type-portability/${{ matrix.example.name }} run test --module ESNext --moduleResolution Node10 --preserveSymLinks --verbatimModuleSyntax false
 
-  test-types-native-preview:
-    name: 'Test Types: TypeScript Native Preview'
+  # Advisory only. Reports how RTK's types behave under the next major TypeScript
+  # release without blocking any PR. `@typescript/native-preview` was the
+  # pre-release channel for the Go port and is deprecated now that TypeScript 7
+  # ships from the `typescript` package itself, so this job installs real
+  # `typescript@7` under an npm alias instead.
+  test-types-typescript-7:
+    name: 'Test Types: TypeScript 7 (advisory)'
     needs: [build]
     runs-on: ubuntu-latest
     continue-on-error: true
     strategy:
+      fail-fast: false
       matrix:
         node: ['24.x']
     steps:
@@ -473,8 +479,10 @@ jobs:
       - name: Install deps
         run: yarn install
 
-      - name: Install TypeScript Native Preview
-        run: yarn add @typescript/native-preview
+      # npm alias, so the repo's own `typescript` devDependency stays on 6.x and
+      # every other job keeps testing what it tested before.
+      - name: Install TypeScript 7
+        run: yarn add -D typescript-7@npm:typescript@7
 
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
@@ -490,18 +498,27 @@ jobs:
       - name: Erase path aliases
         run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json
 
-      - name: Test types with tsgo
+      # Invoked by path rather than through `yarn tsc`. The alias also claims the
+      # `tsc` bin, so `yarn tsc` happens to resolve to 7 today, but depending on
+      # that would let this job silently test the wrong compiler. `--version`
+      # must print 7.x for the run below to mean anything.
+      - name: Test types with TypeScript 7
         env:
           TEST_DIST: true
         run: |
-          yarn tsgo --version
-          yarn tsgo -p tsconfig.test.json --noEmit --moduleResolution Bundler
+          TSC7="$(ls -d ../../node_modules/typescript-7 node_modules/typescript-7 2>/dev/null | head -1)/bin/tsc"
+          node "$TSC7" --version
+          node "$TSC7" -p tsconfig.test.json --noEmit --moduleResolution Bundler
 
       - name: Install build artifact for type-portability example
         run: yarn workspace @examples-type-portability/bundler add $(pwd)/package.tgz
 
-      - name: Install TypeScript Native Preview for type-portability example
-        run: yarn workspace @examples-type-portability/bundler add -D @typescript/native-preview
+      - name: Install TypeScript 7 for type-portability example
+        run: yarn workspace @examples-type-portability/bundler add -D typescript-7@npm:typescript@7
 
-      - name: Test type portability with tsgo (bundler example)
-        run: yarn workspace @examples-type-portability/bundler exec tsgo --noEmit
+      - name: Test type portability with TypeScript 7 (bundler example)
+        working-directory: ./examples/type-portability/bundler
+        run: |
+          TSC7="$(ls -d ../../../node_modules/typescript-7 node_modules/typescript-7 2>/dev/null | head -1)/bin/tsc"
+          node "$TSC7" --version
+          node "$TSC7" --noEmit
