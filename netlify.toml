@@ -1,16 +1,22 @@
 [build]
 base = "website"
 publish = "build"
-command = "pushd ../packages/toolkit && yarn build && popd && yarn run netlify-build && ls  && cp _redirects ./build"
+command = "pushd ../packages/toolkit && pnpm build && popd && pnpm run netlify-build && ls  && cp _redirects ./build"
 ignore = "git diff --quiet HEAD^ HEAD docs website"
 
 [build.environment]
 NODE_VERSION = "24"
 NODE_OPTIONS = "--max_old_space_size=4096"
-NETLIFY_USE_YARN = "true"
-YARN_VERSION = "1.22.10"
+# Netlify detects pnpm from `pnpm-lock.yaml`; this makes the choice explicit.
+# There is no `PNPM_VERSION` counterpart to `YARN_VERSION` — Netlify's build
+# image runs Corepack, which reads the version from the root `packageManager`
+# field, so the version is pinned in `package.json` instead of here.
+NETLIFY_USE_PNPM = "true"
 
 [[plugins]]
 package = "netlify-plugin-cache"
 [plugins.inputs]
-paths = ["node_modules/.cache", "website/node_modules/.cache", ".yarn/.cache"]
+# `.yarn/.cache` is gone with Yarn. pnpm's content-addressable store lives
+# outside the repository (`~/.local/share/pnpm/store` on Linux), and this plugin
+# caches repo-relative paths, so there is nothing to put in its place.
+paths = ["node_modules/.cache", "website/node_modules/.cache"]

@@ -17,27 +17,34 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - run: corepack enable
+      # pnpm/action-setup has to run before setup-node, or setup-node's
+      # `cache: 'pnpm'` cannot find the pnpm store to cache. It also installs
+      # the version named in package.json's `packageManager`, so the previous
+      # `corepack enable` step is redundant and would fight with it.
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
 
       - name: Setup Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          cache: 'yarn'
+          cache: 'pnpm'
           check-latest: true
           node-version: '24.x'
 
       - name: Install dependencies
-        run: yarn install
+        run: pnpm install
 
       - name: Build
-        run: yarn run build:packages
+        run: pnpm run build:packages
 
+      # pkg-pr-new's `--pnpm` flag tells it which package manager built the
+      # workspace. The `--packageManager` list is unrelated: it only controls
+      # which install commands the PR comment offers to readers.
       - name: Publish
         id: publish
         run: >
-          yarn run --binaries-only --top-level pkg-pr-new publish
+          pnpm exec pkg-pr-new publish
           ./packages/toolkit
           ./packages/rtk-query-graphql-request-base-query
           ./packages/rtk-query-codegen-openapi
           ./packages/rtk-codemods
-          --yarn --packageManager="npm,yarn,pnpm,bun" --commentWithDev --commentWithSha
+          --pnpm --packageManager="npm,yarn,pnpm,bun" --commentWithDev --commentWithSha
