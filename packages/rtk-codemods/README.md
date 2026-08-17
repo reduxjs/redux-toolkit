@@ -37,12 +37,8 @@ node ./bin/cli.mjs <TRANSFORM NAME> path/of/files/ or/some**/*glob.js
 
 - clone the repo
 - change into the repo directory
-- `yarn`
+- `pnpm install`
 
 ### Running tests
 
-- `yarn test`
-
-### Update Documentation
-
-- `yarn update-docs`
+- `pnpm --filter @reduxjs/rtk-codemods test`
