@@ -205,7 +205,7 @@
     "axios": "^0.19.2",
     "esbuild": "^0.25.1",
     "jsdom": "^25.0.1",
-    "msw": "^2.1.4",
+    "msw": "2.1.5",
     "node-fetch": "^3.3.2",
     "query-string": "^7.0.1",
     "react": "^19.0.0",
@@ -223,13 +223,13 @@
   },
   "scripts": {
     "clean": "rimraf dist",
-    "run-build": "tsdown --config=$INIT_CWD/tsdown.config.mts --config-loader unrun",
-    "build": "yarn clean && yarn run-build && tsx scripts/fixUniqueSymbolExports.mts && tsx scripts/stripSourcemapFileField.mts",
-    "build-only": "yarn clean && yarn run-build",
+    "run-build": "tsdown --config=./tsdown.config.mts --config-loader unrun",
+    "build": "pnpm clean && pnpm run-build && tsx scripts/fixUniqueSymbolExports.mts && tsx scripts/stripSourcemapFileField.mts",
+    "build-only": "pnpm clean && pnpm run-build",
     "test": "vitest --typecheck --run ",
     "test:watch": "vitest --watch",
-    "type-tests": "yarn tsc -p tsconfig.test.json --noEmit",
-    "prepack": "yarn build",
+    "type-tests": "pnpm exec tsc -p tsconfig.test.json --noEmit",
+    "prepack": "pnpm build",
     "size": "size-limit"
   },
   "files": [

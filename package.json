@@ -36,16 +36,16 @@
     "typescript": "^6.0.3"
   },
   "scripts": {
-    "build": "yarn build:packages",
-    "test": "yarn test:packages",
+    "build": "pnpm build:packages",
+    "test": "pnpm test:packages",
     "lint": "oxlint packages/toolkit/src",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
-    "build:examples": "yarn workspaces foreach -A --include '@reduxjs/*' --include '@examples-query-react/*' -vtp run build",
-    "build:docs": "yarn workspace website run build",
-    "build:packages": "yarn workspaces foreach -A --include '@reduxjs/*' --include '@rtk-query/*' --topological-dev run build",
-    "test:packages": "yarn workspaces foreach -A --include '@reduxjs/*' --include '@rtk-query/*'  --include '@rtk-incubator/*' run test",
-    "dev:docs": "yarn workspace website run start"
+    "build:examples": "pnpm --recursive --filter \"@reduxjs/*\" --filter \"@examples-query-react/*\" run build",
+    "build:docs": "pnpm --filter website run build",
+    "build:packages": "pnpm --recursive --filter \"@reduxjs/*\" --filter \"@rtk-query/*\" run build",
+    "test:packages": "pnpm --recursive --filter \"@reduxjs/*\" --filter \"@rtk-query/*\" run test",
+    "dev:docs": "pnpm --filter website run start"
   },
   "packageManager": "pnpm@11.22.0"
 }

@@ -24,6 +24,6 @@
     "clean": "rimraf dist",
     "dev": "vite",
     "build": "vite build",
-    "test": "yarn clean && tsc -p tsconfig.json"
+    "test": "pnpm clean && tsc -p tsconfig.json"
   }
 }

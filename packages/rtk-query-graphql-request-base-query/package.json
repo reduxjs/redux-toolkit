@@ -20,7 +20,7 @@
   "scripts": {
     "build": "microbundle build --tsconfig tsconfig.build.json",
     "clean": "rimraf dist/",
-    "prepack": "yarn clean && yarn build",
+    "prepack": "pnpm clean && pnpm build",
     "dev": "microbundle watch --tsconfig tsconfig.build.json",
     "test": "vitest run",
     "test:watch": "vitest"
