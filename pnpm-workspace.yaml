@@ -1,0 +1,49 @@
+# pnpm workspace definition and settings.
+#
+# pnpm 11 no longer reads pnpm-specific settings from `.npmrc`, and no longer
+# reads the "pnpm" field in package.json. Both are ignored. Everything lives
+# here.
+#
+# The `examples/publish-ci/*` projects are deliberately absent. They are
+# independent Yarn 4 projects with their own lockfiles and their own
+# `.yarnrc.yml`, cloned and run by Reselect, React-Redux and Redux core CI.
+
+packages:
+  - 'packages/*'
+  - 'docs'
+  - 'website'
+  - 'examples/query/react/infinite-queries'
+  - 'examples/type-portability/*'
+
+# Translation of Yarn's `nodeLinker: node-modules`. Reproduces the flat layout
+# the repo already depended on. Tightening to pnpm's default isolated layout is
+# a separate change.
+nodeLinker: hoisted
+
+# Yarn 4 runs dependency install scripts by default. pnpm blocks them and needs
+# an explicit allowlist. In pnpm 11 the setting is `allowBuilds` (a map);
+# pnpm 10's `onlyBuiltDependencies` (a list) is ignored.
+#
+# The ones set true place platform binaries or git hooks and must run, matching
+# what Yarn did. core-js and core-js-pure are set false rather than omitted:
+# their postinstall only prints a funding banner, and an explicit false stops
+# pnpm re-adding them to this list on every install.
+allowBuilds:
+  '@swc/core': true
+  core-js: false
+  core-js-pure: false
+  esbuild: true
+  husky: true
+  msw: true
+
+# Yarn 4 does not install missing peer dependencies; pnpm does by default.
+# Leaving pnpm's default on pulled in a complete Next.js (via `docs` ->
+# next-redux-wrapper's unmet `next` peer) and Jest 30 (via
+# @testing-library/react-render-stream's unmet `jest` peer) - 54 packages the
+# repo never had. Turning it off reproduces Yarn's dependency set.
+autoInstallPeers: false
+
+# Translation of Yarn's `enableTransparentWorkspaces: false`.
+# `@rtk-query/codegen-openapi` devDepends on `@reduxjs/toolkit@^1.6.0` and must
+# get the published 1.x from the registry, not the local 2.x workspace.
+linkWorkspacePackages: false
