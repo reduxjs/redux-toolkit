@@ -322,7 +322,7 @@ describe('type tests', () => {
     startListening({
       matcher,
       effect: (action, listenerApi) => {
-        expectTypeOf(action).toMatchTypeOf<ExtraAction>()
+        expectTypeOf(action).toExtend<ExtraAction>()
       },
     })
   })

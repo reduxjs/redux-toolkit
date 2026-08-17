@@ -19,6 +19,9 @@ describe('type tests', () => {
           ) {
             const firstValue = await cacheDataLoaded
 
+            // `toExtend`, not `toMatchObjectType`: `toMatchObjectType` cannot
+            // handle an optional property whose type is an object type alias
+            // (`FetchBaseQueryMeta`). See the RTK-5 findings notes.
             expectTypeOf(firstValue).toExtend<{
               data: number
               meta?: FetchBaseQueryMeta
