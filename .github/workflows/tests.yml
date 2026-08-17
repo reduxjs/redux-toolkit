@@ -300,28 +300,32 @@ jobs:
     defaults:
       run:
         working-directory: ./examples/publish-ci/${{ matrix.example }}
-    env:
-      YARN_ENABLE_IMMUTABLE_INSTALLS: false
     steps:
       - name: Checkout repo
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      # Must run before `setup-node`, or `cache: 'pnpm'` cannot locate the store.
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+
       # No `cache:` here. `setup-node`'s cache input runs the package manager at
       # the *repository root* regardless of `defaults.run.working-directory`, and
-      # `cache-dependency-path` only picks which lockfile is hashed. The root is
-      # pnpm now, so `cache: 'yarn'` would run Yarn against a pnpm project and
-      # fail. These examples install with the repo-local Yarn 4 release named by
-      # their own `.yarnrc.yml`.
+      # `cache-dependency-path` only picks which lockfile is hashed. Each example
+      # is its own detached pnpm project with its own lockfile, so there is
+      # nothing useful for the root-level cache lookup to hash.
       - name: Use node ${{ matrix.node }}
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: ${{ matrix.node }}
 
+      # `--no-frozen-lockfile` is the counterpart of the old
+      # `YARN_ENABLE_IMMUTABLE_INSTALLS: false`: the steps below rewrite
+      # package.json to swap in the packed artifact, so the lockfile must be
+      # allowed to change.
       - name: Install deps
-        run: yarn install
+        run: pnpm install --no-frozen-lockfile
 
       - name: Remove existing RTK
-        run: yarn remove @reduxjs/toolkit
+        run: pnpm remove @reduxjs/toolkit
 
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
@@ -332,10 +336,10 @@ jobs:
         run: ls -l .
 
       - name: Install RTK build artifact
-        run: yarn add ./package.tgz
+        run: pnpm add ./package.tgz
 
       - name: Show installed RTK versions
-        run: yarn info @reduxjs/toolkit && yarn why @reduxjs/toolkit
+        run: pnpm list @reduxjs/toolkit && pnpm why @reduxjs/toolkit
 
       - name: Set up JDK 21 for React Native build
         if: matrix.example == 'react-native' || matrix.example == 'expo'
@@ -346,14 +350,14 @@ jobs:
           cache: 'gradle'
 
       - name: Build example
-        run: yarn build
+        run: pnpm build
 
       - name: playwright install
         if: matrix.example == 'next' || matrix.example == 'vite'
-        run: yarn exec playwright install --with-deps chromium
+        run: pnpm exec playwright install --with-deps chromium
 
       - name: Run test step
-        run: yarn test
+        run: pnpm test
 
   are-the-types-wrong:
     name: Check package config with are-the-types-wrong

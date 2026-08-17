@@ -45,7 +45,7 @@
     "typescript": "^6.0.3"
   },
   "scripts": {
-    "develop": "cross-env CHOKIDAR_USEPOLLING=true yarn start",
+    "develop": "cross-env CHOKIDAR_USEPOLLING=true pnpm start",
     "start": "concurrently --restart-tries 20 'npm:watch-*'",
     "watch-CRA": "react-scripts start",
     "watch-codegen": "graphql-codegen --config codegen.yml --watch 'src/**/*.graphql'",

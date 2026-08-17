@@ -1,0 +1,15 @@
+# This example is deliberately its own pnpm workspace root, not a member of the
+# repo's workspace. Without this file pnpm walks up to the root
+# `pnpm-workspace.yaml`, which would make `@reduxjs/toolkit` resolve to the
+# local `packages/toolkit` sources instead of the published/packed artifact this
+# example exists to test.
+packages: []
+
+# Matches the repo root: a flat `node_modules` tree, no symlinks.
+nodeLinker: hoisted
+
+# Yarn ran every install script. pnpm blocks them by default, so the ones this
+# example actually needs have to be named. msw's postinstall writes the service
+# worker into `public/`.
+allowBuilds:
+  msw: true
