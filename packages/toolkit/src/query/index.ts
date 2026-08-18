@@ -81,6 +81,7 @@ export type {
   InfiniteData,
   InfiniteQueryActionCreatorResult,
   InfiniteQueryConfigOptions,
+  InfiniteQueryRefetchBehavior,
   InfiniteQueryResultSelectorResult,
   InfiniteQuerySubState,
   TypedMutationOnQueryStarted,

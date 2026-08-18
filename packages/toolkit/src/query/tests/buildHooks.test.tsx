@@ -2610,6 +2610,90 @@ describe('hooks tests', () => {
       expect(pages).toHaveLength(1)
     })
 
+    test('useInfiniteQuery hook option refetchBehavior preserves remaining cached pages', async () => {
+      let requestCount = 0
+      server.use(
+        http.get('https://example.com/listItems', ({ request }) => {
+          const url = new URL(request.url)
+          const pageNum = Number(url.searchParams.get('page'))
+          requestCount++
+
+          return HttpResponse.json({
+            id: `${pageNum}`,
+            name: `Pokemon ${pageNum} request ${requestCount}`,
+          })
+        }),
+      )
+
+      const storeRef = setupApiStore(pokemonApi, undefined, {
+        withoutTestLifecycles: true,
+      })
+
+      function PokemonList() {
+        const { data, fetchNextPage, refetch } =
+          pokemonApi.useGetInfinitePokemonInfiniteQuery('fire', {
+            refetchBehavior: 'refetch-first-page-preserve-rest',
+          })
+
+        return (
+          <div>
+            <div data-testid="data">
+              {data?.pages.map((page, i) => (
+                <div key={i} data-testid={`page-${i}`}>
+                  {page.name}
+                </div>
+              ))}
+            </div>
+            <button data-testid="nextPage" onClick={() => fetchNextPage()}>
+              Next Page
+            </button>
+            <button data-testid="refetch" onClick={() => refetch()}>
+              Refetch
+            </button>
+          </div>
+        )
+      }
+
+      render(<PokemonList />, { wrapper: storeRef.wrapper })
+
+      await waitFor(() => {
+        expect(screen.getByTestId('page-0').textContent).toBe(
+          'Pokemon 0 request 1',
+        )
+      })
+
+      fireEvent.click(screen.getByTestId('nextPage'))
+      await waitFor(() => {
+        expect(screen.getByTestId('page-1').textContent).toBe(
+          'Pokemon 1 request 2',
+        )
+      })
+
+      fireEvent.click(screen.getByTestId('nextPage'))
+      await waitFor(() => {
+        expect(screen.getByTestId('page-2').textContent).toBe(
+          'Pokemon 2 request 3',
+        )
+      })
+
+      fireEvent.click(screen.getByTestId('refetch'))
+
+      await waitFor(() => {
+        expect(screen.getByTestId('page-0').textContent).toBe(
+          'Pokemon 0 request 4',
+        )
+        expect(screen.getByTestId('page-1').textContent).toBe(
+          'Pokemon 1 request 2',
+        )
+        expect(screen.getByTestId('page-2').textContent).toBe(
+          'Pokemon 2 request 3',
+        )
+      })
+
+      expect(screen.getAllByTestId(/^page-/)).toHaveLength(3)
+      expect(requestCount).toBe(4)
+    })
+
     test('useInfiniteQuery refetch() method option refetchCachedPages: false only refetches first page', async () => {
       const storeRef = setupApiStore(pokemonApi, undefined, {
         withoutTestLifecycles: true,
@@ -2673,6 +2757,66 @@ describe('hooks tests', () => {
       // Verify we only have 1 page (not refetched all)
       const pages = screen.getAllByTestId(/^page-/)
       expect(pages).toHaveLength(1)
+    })
+
+    test('useInfiniteQuery refetch() per-call legacy option overrides hook refetchBehavior', async () => {
+      const storeRef = setupApiStore(pokemonApi, undefined, {
+        withoutTestLifecycles: true,
+      })
+
+      function PokemonList() {
+        const { data, fetchNextPage, refetch } =
+          pokemonApi.useGetInfinitePokemonInfiniteQuery('fire', {
+            refetchBehavior: 'refetch-first-page-preserve-rest',
+          })
+
+        return (
+          <div>
+            <div data-testid="data">
+              {data?.pages.map((page, i) => (
+                <div key={i} data-testid={`page-${i}`}>
+                  {page.name}
+                </div>
+              ))}
+            </div>
+            <button data-testid="nextPage" onClick={() => fetchNextPage()}>
+              Next Page
+            </button>
+            <button
+              data-testid="refetch"
+              onClick={() => refetch({ refetchCachedPages: false })}
+            >
+              Refetch
+            </button>
+          </div>
+        )
+      }
+
+      render(<PokemonList />, { wrapper: storeRef.wrapper })
+
+      await waitFor(() => {
+        expect(screen.getByTestId('page-0').textContent).toBe('Pokemon 0')
+      })
+
+      fireEvent.click(screen.getByTestId('nextPage'))
+      await waitFor(() => {
+        expect(screen.getByTestId('page-1').textContent).toBe('Pokemon 1')
+      })
+
+      fireEvent.click(screen.getByTestId('nextPage'))
+      await waitFor(() => {
+        expect(screen.getByTestId('page-2').textContent).toBe('Pokemon 2')
+      })
+
+      fireEvent.click(screen.getByTestId('refetch'))
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('page-0')).toBeTruthy()
+        expect(screen.queryByTestId('page-1')).toBeNull()
+        expect(screen.queryByTestId('page-2')).toBeNull()
+      })
+
+      expect(screen.getAllByTestId(/^page-/)).toHaveLength(1)
     })
   })
 

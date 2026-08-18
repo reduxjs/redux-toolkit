@@ -1,5 +1,9 @@
 import { createSlice } from '@reduxjs/toolkit'
-import type { InfiniteData, skipToken } from '@reduxjs/toolkit/query/react'
+import type {
+  InfiniteData,
+  InfiniteQueryRefetchBehavior,
+  skipToken,
+} from '@reduxjs/toolkit/query/react'
 import {
   createApi,
   fetchBaseQuery,
@@ -9,6 +13,12 @@ import { setupApiStore } from '../../tests/utils/helpers'
 
 describe('Infinite queries', () => {
   test('Basic infinite query behavior', async () => {
+    expectTypeOf<InfiniteQueryRefetchBehavior>().toEqualTypeOf<
+      | 'refetch-all-pages'
+      | 'refetch-first-page-discard-rest'
+      | 'refetch-first-page-preserve-rest'
+    >()
+
     type Pokemon = {
       id: string
       name: string
@@ -20,6 +30,7 @@ describe('Infinite queries', () => {
         getInfinitePokemon: build.infiniteQuery<Pokemon[], string, number>({
           infiniteQueryOptions: {
             initialPageParam: 0,
+            refetchBehavior: 'refetch-first-page-preserve-rest',
             getNextPageParam: (
               lastPage,
               allPages,
@@ -127,6 +138,21 @@ describe('Infinite queries', () => {
       }),
     )
 
+    storeRef.store.dispatch(
+      pokemonApi.endpoints.getInfinitePokemon.initiate('fire', {
+        forceRefetch: true,
+        refetchBehavior: 'refetch-first-page-discard-rest',
+      }),
+    )
+
+    storeRef.store.dispatch(
+      pokemonApi.endpoints.getInfinitePokemon.initiate('fire', {
+        forceRefetch: true,
+        // @ts-expect-error invalid infinite query refetch behavior
+        refetchBehavior: 'refetch-first-page',
+      }),
+    )
+
     const useGetInfinitePokemonQuery =
       pokemonApi.endpoints.getInfinitePokemon.useInfiniteQuery
 
@@ -142,7 +168,15 @@ describe('Infinite queries', () => {
         isUninitialized,
         isSuccess,
         fetchNextPage,
-      } = useGetInfinitePokemonQuery('a')
+        refetch,
+      } = useGetInfinitePokemonQuery('a', {
+        refetchBehavior: 'refetch-all-pages',
+      })
+
+      useGetInfinitePokemonQuery('a', {
+        // @ts-expect-error invalid infinite query refetch behavior
+        refetchBehavior: 'refetch-first-page',
+      })
 
       expectTypeOf(data).toEqualTypeOf<
         InfiniteData<Pokemon[], number> | undefined
@@ -164,6 +198,20 @@ describe('Infinite queries', () => {
         if (res.status === QueryStatus.fulfilled) {
           expectTypeOf(res.data.pages).toEqualTypeOf<Pokemon[][]>()
           expectTypeOf(res.data.pageParams).toEqualTypeOf<number[]>()
+        }
+
+        const refetchRes = await refetch({
+          refetchBehavior: 'refetch-first-page-preserve-rest',
+        })
+
+        refetch({
+          // @ts-expect-error invalid infinite query refetch behavior
+          refetchBehavior: 'refetch-first-page',
+        })
+
+        if (refetchRes.status === QueryStatus.fulfilled) {
+          expectTypeOf(refetchRes.data.pages).toEqualTypeOf<Pokemon[][]>()
+          expectTypeOf(refetchRes.data.pageParams).toEqualTypeOf<number[]>()
         }
       }
     }

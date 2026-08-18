@@ -8,6 +8,7 @@ export type {
   CombinedState,
   InfiniteData,
   InfiniteQueryConfigOptions,
+  InfiniteQueryRefetchBehavior,
   InfiniteQuerySubState,
   MutationKeys,
   QueryCacheKey,
