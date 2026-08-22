@@ -10,6 +10,7 @@
     "**/temp/**",
     "**/__testfixtures__/**",
     "examples/publish-ci/**",
+    "website/plugins/**",
     ".yarn/**",
     "**/mockServiceWorker.js",
     "packages/rtk-query-codegen-openapi/test/fixtures/**"
