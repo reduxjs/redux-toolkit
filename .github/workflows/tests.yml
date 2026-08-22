@@ -89,9 +89,19 @@ jobs:
       matrix:
         node: ['24.x']
         react:
+          # The `@types/*` entries are pinned to exact versions on purpose.
+          # `pnpm update -r @types/react@^18` does not pick the highest version
+          # in the range the way `yarn up` did - it picks "the version preferred
+          # by your manifests and already installed dependencies", which here is
+          # 18.3.12. That version lacks the `useRef<T>(initialValue?: undefined)`
+          # overload added in 18.3.13, so RTK's React 19 style `useRef<T>(undefined)`
+          # calls in `query/react/buildHooks.ts` fail to compile. Neither
+          # `--resolution-mode=highest` nor a `pnpm-workspace.yaml` override
+          # changes the choice; an exact spec is the only thing that does.
+          # Bump these by hand when testing against newer React 18 typings.
           - version: '^18'
-            types: '^18'
-            react-dom: { version: '^18', types: '^18' }
+            types: '18.3.31'
+            react-dom: { version: '^18', types: '18.3.7' }
           - version: '^19'
             types: '^19'
             react-dom: { version: '^19', types: '^19' }
