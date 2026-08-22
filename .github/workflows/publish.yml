@@ -37,11 +37,14 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      # pnpm/action-setup has to run before setup-node, or setup-node's
+      # `cache: 'pnpm'` cannot find the pnpm store to cache.
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: '24.x'
           registry-url: 'https://registry.npmjs.org'
-          cache: 'yarn'
-      - run: yarn install --frozen-lockfile
-      - run: yarn workspace ${{ inputs.package }} test
-      - run: yarn workspace ${{ inputs.package }} exec npm publish --access public --provenance --tag ${{ inputs.tag }}
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter ${{ inputs.package }} test
+      - run: pnpm --filter ${{ inputs.package }} exec npm publish --access public --provenance --tag ${{ inputs.tag }}

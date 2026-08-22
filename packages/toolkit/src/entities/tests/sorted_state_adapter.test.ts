@@ -437,7 +437,6 @@ describe('Sorted State Adapter', () => {
     expect(entities.c).toEqual({ id: 'c', title: 'First' })
   })
 
-
   it('should let you add one entity to the state with upsert()', () => {
     const withOneEntity = adapter.upsertOne(state, TheGreatGatsby)
     expect(withOneEntity).toEqual({

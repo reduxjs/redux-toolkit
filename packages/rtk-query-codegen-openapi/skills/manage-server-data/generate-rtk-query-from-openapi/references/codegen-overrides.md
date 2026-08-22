@@ -2,16 +2,16 @@
 
 ## Common override targets
 
-| Need | Override |
-| --- | --- |
-| Query should really be a mutation | `type: 'mutation'` |
-| Header or optional parameters should be omitted | `parameterFilter` |
-| Generated tags are too coarse | `providesTags` / `invalidatesTags` |
+| Need                                            | Override                           |
+| ----------------------------------------------- | ---------------------------------- |
+| Query should really be a mutation               | `type: 'mutation'`                 |
+| Header or optional parameters should be omitted | `parameterFilter`                  |
+| Generated tags are too coarse                   | `providesTags` / `invalidatesTags` |
 
 ## Example: split one schema into multiple outputs
 
 ```ts
-import type { ConfigFile } from '@rtk-query/codegen-openapi'
+import type { ConfigFile } from '@rtk-query/codegen-openapi';
 
 const config: ConfigFile = {
   schemaFile: './openapi.json',
@@ -29,9 +29,9 @@ const config: ConfigFile = {
       hooks: true,
     },
   },
-}
+};
 
-export default config
+export default config;
 ```
 
 ## Review checklist

@@ -24,7 +24,9 @@ jobs:
               - 'examples/publish-ci/**'
               - 'examples/type-portability/**'
               - '.github/workflows/tests.yml'
-              - 'yarn.lock'
+              - '.oxlintrc.json'
+              - '.oxfmtrc.json'
+              - 'pnpm-lock.yaml'
 
   build:
     needs: changes
@@ -41,24 +43,37 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      # Must run before `setup-node`, or `cache: 'pnpm'` cannot locate the store.
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+
       - name: Use node ${{ matrix.node }}
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: ${{ matrix.node }}
-          cache: 'yarn'
+          cache: 'pnpm'
 
       - name: Install deps
-        run: yarn install
+        run: pnpm install
+
+      - name: Lint
+        working-directory: .
+        run: pnpm lint
+
+      - name: Format check
+        working-directory: .
+        run: pnpm format:check
 
       # Read existing version, reuse that, add a Git short hash
       - name: Set build version to Git commit
-        run: yarn tsx scripts/writeGitVersion.mts $(git rev-parse --short HEAD)
+        run: pnpm exec tsx scripts/writeGitVersion.mts $(git rev-parse --short HEAD)
 
       - name: Check updated version
         run: jq .version package.json
 
+      # pnpm names the tarball `<name>-<version>.tgz`; every consumer below
+      # expects `package.tgz`, so name it explicitly.
       - name: Pack
-        run: yarn pack
+        run: pnpm pack --out package.tgz
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -74,9 +89,19 @@ jobs:
       matrix:
         node: ['24.x']
         react:
+          # The `@types/*` entries are pinned to exact versions on purpose.
+          # `pnpm update -r @types/react@^18` does not pick the highest version
+          # in the range the way `yarn up` did - it picks "the version preferred
+          # by your manifests and already installed dependencies", which here is
+          # 18.3.12. That version lacks the `useRef<T>(initialValue?: undefined)`
+          # overload added in 18.3.13, so RTK's React 19 style `useRef<T>(undefined)`
+          # calls in `query/react/buildHooks.ts` fail to compile. Neither
+          # `--resolution-mode=highest` nor a `pnpm-workspace.yaml` override
+          # changes the choice; an exact spec is the only thing that does.
+          # Bump these by hand when testing against newer React 18 typings.
           - version: '^18'
-            types: '^18'
-            react-dom: { version: '^18', types: '^18' }
+            types: '18.3.31'
+            react-dom: { version: '^18', types: '18.3.7' }
           - version: '^19'
             types: '^19'
             react-dom: { version: '^19', types: '^19' }
@@ -85,14 +110,17 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      # Must run before `setup-node`, or `cache: 'pnpm'` cannot locate the store.
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+
       - name: Use node ${{ matrix.node }}
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: ${{ matrix.node }}
-          cache: 'yarn'
+          cache: 'pnpm'
 
       - name: Install deps
-        run: yarn install
+        run: pnpm install
 
       - name: Download build artifact
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
@@ -103,17 +131,20 @@ jobs:
       - name: Check folder contents
         run: ls -lah
 
+      # `pnpm update -r <pkg>@<range>` is the counterpart to `yarn up`: it
+      # rewrites the declared range in every workspace that already depends on
+      # the package. It will not add the dependency anywhere new.
       - name: Install React ${{ matrix.react.version }} and React-DOM ${{ matrix.react.react-dom.version }}
-        run: yarn up react@${{ matrix.react.version }} react-dom@${{ matrix.react.react-dom.version }} @types/react@${{ matrix.react.types }} @types/react-dom@${{ matrix.react.react-dom.types }}
+        run: pnpm update -r react@${{ matrix.react.version }} react-dom@${{ matrix.react.react-dom.version }} @types/react@${{ matrix.react.types }} @types/react-dom@${{ matrix.react.react-dom.types }}
 
       - name: Install build artifact
-        run: yarn workspace @reduxjs/toolkit add $(pwd)/package.tgz
+        run: pnpm --filter @reduxjs/toolkit add $(pwd)/package.tgz
 
       - name: Erase path aliases
         run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json
 
       - name: Run type tests with `moduleResolution Bundler`
-        run: rm -rf dist && yarn tsc -p . --moduleResolution Bundler --module ESNext --noEmit false --declaration --emitDeclarationOnly --outDir dist --target ESNext && rm -rf dist
+        run: rm -rf dist && pnpm exec tsc -p . --moduleResolution Bundler --module ESNext --noEmit false --declaration --emitDeclarationOnly --outDir dist --target ESNext && rm -rf dist
 
       - name: Ensure there's no dist folder
         run: rm -rf dist
@@ -139,22 +170,6 @@ jobs:
         include:
           # React 19 × all TS versions
           - node: '24.x'
-            ts: '5.4'
-            react:
-              {
-                version: '^19',
-                types: '^19',
-                react-dom: { version: '^19', types: '^19' },
-              }
-          - node: '24.x'
-            ts: '5.5'
-            react:
-              {
-                version: '^19',
-                types: '^19',
-                react-dom: { version: '^19', types: '^19' },
-              }
-          - node: '24.x'
             ts: '5.6'
             react:
               {
@@ -187,6 +202,14 @@ jobs:
                 react-dom: { version: '^19', types: '^19' },
               }
           - node: '24.x'
+            ts: '6.0'
+            react:
+              {
+                version: '^19',
+                types: '^19',
+                react-dom: { version: '^19', types: '^19' },
+              }
+          - node: '24.x'
             ts: 'next'
             react:
               {
@@ -194,9 +217,9 @@ jobs:
                 types: '^19',
                 react-dom: { version: '^19', types: '^19' },
               }
-          # React 18 × boundary TS versions only (5.4, 5.9, next)
+          # React 18 × boundary TS versions only (5.6, 6.0, next)
           - node: '24.x'
-            ts: '5.4'
+            ts: '5.6'
             react:
               {
                 version: '^18',
@@ -204,7 +227,7 @@ jobs:
                 react-dom: { version: '^18', types: '^18' },
               }
           - node: '24.x'
-            ts: '5.9'
+            ts: '6.0'
             react:
               {
                 version: '^18',
@@ -224,20 +247,23 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      # Must run before `setup-node`, or `cache: 'pnpm'` cannot locate the store.
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+
       - name: Use node ${{ matrix.node }}
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: ${{ matrix.node }}
-          cache: 'yarn'
+          cache: 'pnpm'
 
       - name: Install deps
-        run: yarn install
+        run: pnpm install
 
       - name: Install React ${{ matrix.react.version }} and React-DOM ${{ matrix.react.react-dom.version }}
-        run: yarn up react@${{ matrix.react.version }} react-dom@${{ matrix.react.react-dom.version }} @types/react@${{ matrix.react.types }} @types/react-dom@${{ matrix.react.react-dom.types }}
+        run: pnpm update -r react@${{ matrix.react.version }} react-dom@${{ matrix.react.react-dom.version }} @types/react@${{ matrix.react.types }} @types/react-dom@${{ matrix.react.react-dom.types }}
 
       - name: Install TypeScript ${{ matrix.ts }}
-        run: yarn add typescript@${{ matrix.ts }}
+        run: pnpm add typescript@${{ matrix.ts }}
 
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
@@ -245,10 +271,12 @@ jobs:
           path: packages/toolkit
 
       - name: Install build artifact
-        run: yarn add ./package.tgz
+        run: pnpm add ./package.tgz
 
+      # `pnpm info` is an alias for `pnpm view` and queries the registry;
+      # `pnpm list` is what reports the *installed* version, as `yarn info` did.
       - name: Show installed RTK versions
-        run: yarn info @reduxjs/toolkit
+        run: pnpm list @reduxjs/toolkit
 
       - name: Erase path aliases
         run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json
@@ -258,16 +286,16 @@ jobs:
         env:
           TEST_DIST: true
         run: |
-          yarn tsc --version
-          yarn type-tests
+          pnpm exec tsc --version
+          pnpm type-tests
 
       - name: Test types (TS 6.x/next)
         if: matrix.ts == 'next' || startsWith(matrix.ts, '6.')
         env:
           TEST_DIST: true
         run: |
-          yarn tsc --version
-          yarn tsc -p tsconfig.test.json --noEmit --ignoreDeprecations 6.0
+          pnpm exec tsc --version
+          pnpm exec tsc -p tsconfig.test.json --noEmit --ignoreDeprecations 6.0
 
   test-published-artifact:
     name: Test Published Artifact ${{ matrix.example }}
@@ -282,23 +310,32 @@ jobs:
     defaults:
       run:
         working-directory: ./examples/publish-ci/${{ matrix.example }}
-    env:
-      YARN_ENABLE_IMMUTABLE_INSTALLS: false
     steps:
       - name: Checkout repo
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      # Must run before `setup-node`, or `cache: 'pnpm'` cannot locate the store.
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+
+      # No `cache:` here. `setup-node`'s cache input runs the package manager at
+      # the *repository root* regardless of `defaults.run.working-directory`, and
+      # `cache-dependency-path` only picks which lockfile is hashed. Each example
+      # is its own detached pnpm project with its own lockfile, so there is
+      # nothing useful for the root-level cache lookup to hash.
       - name: Use node ${{ matrix.node }}
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: ${{ matrix.node }}
-          cache: 'yarn'
 
+      # `--no-frozen-lockfile` is the counterpart of the old
+      # `YARN_ENABLE_IMMUTABLE_INSTALLS: false`: the steps below rewrite
+      # package.json to swap in the packed artifact, so the lockfile must be
+      # allowed to change.
       - name: Install deps
-        run: yarn install
+        run: pnpm install --no-frozen-lockfile
 
       - name: Remove existing RTK
-        run: yarn remove @reduxjs/toolkit
+        run: pnpm remove @reduxjs/toolkit
 
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
@@ -309,10 +346,10 @@ jobs:
         run: ls -l .
 
       - name: Install RTK build artifact
-        run: yarn add ./package.tgz
+        run: pnpm add ./package.tgz
 
       - name: Show installed RTK versions
-        run: yarn info @reduxjs/toolkit && yarn why @reduxjs/toolkit
+        run: pnpm list @reduxjs/toolkit && pnpm why @reduxjs/toolkit
 
       - name: Set up JDK 21 for React Native build
         if: matrix.example == 'react-native' || matrix.example == 'expo'
@@ -323,14 +360,14 @@ jobs:
           cache: 'gradle'
 
       - name: Build example
-        run: yarn build
+        run: pnpm build
 
       - name: playwright install
         if: matrix.example == 'next' || matrix.example == 'vite'
-        run: yarn exec playwright install --with-deps chromium
+        run: pnpm exec playwright install --with-deps chromium
 
       - name: Run test step
-        run: yarn test
+        run: pnpm test
 
   are-the-types-wrong:
     name: Check package config with are-the-types-wrong
@@ -345,14 +382,17 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      # Must run before `setup-node`, or `cache: 'pnpm'` cannot locate the store.
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+
       - name: Use node ${{ matrix.node }}
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: ${{ matrix.node }}
-          cache: 'yarn'
+          cache: 'pnpm'
 
       - name: Install deps
-        run: yarn install
+        run: pnpm install
 
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
@@ -362,8 +402,10 @@ jobs:
       - name: show folder
         run: ls -l .
 
+      # `pnpm <binary>` has no `node_modules/.bin` fallback the way `yarn <binary>`
+      # does, so local binaries need `pnpm exec`.
       - name: Run are-the-types-wrong
-        run: yarn attw ./package.tgz --format table
+        run: pnpm exec attw ./package.tgz --format table
 
   test-type-portability:
     name: 'Test Type Portability: TS ${{ matrix.ts }} + Node ${{ matrix.node }}'
@@ -375,12 +417,6 @@ jobs:
         # Sparse matrix: All TS versions with bundler, boundary TS versions with nodenext
         include:
           # bundler × all TS versions
-          - node: '24.x'
-            ts: '5.4'
-            example: { name: 'bundler', moduleResolution: 'Bundler' }
-          - node: '24.x'
-            ts: '5.5'
-            example: { name: 'bundler', moduleResolution: 'Bundler' }
           - node: '24.x'
             ts: '5.6'
             example: { name: 'bundler', moduleResolution: 'Bundler' }
@@ -394,24 +430,27 @@ jobs:
             ts: '5.9'
             example: { name: 'bundler', moduleResolution: 'Bundler' }
           - node: '24.x'
+            ts: '6.0'
+            example: { name: 'bundler', moduleResolution: 'Bundler' }
+          - node: '24.x'
             ts: 'next'
             example: { name: 'bundler', moduleResolution: 'Bundler' }
-          # nodenext-cjs × boundary TS versions only (5.4, 5.9, next)
+          # nodenext-cjs × boundary TS versions only (5.6, 6.0, next)
           - node: '24.x'
-            ts: '5.4'
+            ts: '5.6'
             example: { name: 'nodenext-cjs', moduleResolution: 'NodeNext' }
           - node: '24.x'
-            ts: '5.9'
+            ts: '6.0'
             example: { name: 'nodenext-cjs', moduleResolution: 'NodeNext' }
           - node: '24.x'
             ts: 'next'
             example: { name: 'nodenext-cjs', moduleResolution: 'NodeNext' }
-          # nodenext-esm × boundary TS versions only (5.4, 5.9, next)
+          # nodenext-esm × boundary TS versions only (5.6, 6.0, next)
           - node: '24.x'
-            ts: '5.4'
+            ts: '5.6'
             example: { name: 'nodenext-esm', moduleResolution: 'NodeNext' }
           - node: '24.x'
-            ts: '5.9'
+            ts: '6.0'
             example: { name: 'nodenext-esm', moduleResolution: 'NodeNext' }
           - node: '24.x'
             ts: 'next'
@@ -420,62 +459,111 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      # Must run before `setup-node`, or `cache: 'pnpm'` cannot locate the store.
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+
       - name: Use node ${{ matrix.node }}
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: ${{ matrix.node }}
-          cache: 'yarn'
+          cache: 'pnpm'
 
       - name: Install deps
-        run: yarn install
+        run: pnpm install
 
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: package
           path: packages/toolkit
 
+      # Three flags here, none of them cosmetic.
+      #
+      # `--ignore-workspace`: pnpm resolves a dependency to a same-named
+      # workspace project whenever one exists, and that wins over a `file:`
+      # tarball specifier, over `linkWorkspacePackages: false`, and over a
+      # `pnpm-workspace.yaml` override. All three were tried and all three still
+      # produced `version: link:../../../packages/toolkit` in the lockfile - the
+      # job would have typechecked the unbuilt workspace sources instead of the
+      # published artifact. Detaching the example is the only thing that works.
+      #
+      # `--node-linker=hoisted`: a detached install does not inherit the root
+      # `pnpm-workspace.yaml`, so it falls back to pnpm's isolated layout, where
+      # immer lands at `node_modules/.pnpm/immer@11.1.17/node_modules/immer`.
+      # That path is not nameable, so every RTK Query util fails TS2883 ("cannot
+      # be named without a reference to 'Patch'"). Verified: hoisted passes,
+      # isolated produces 7 TS2883 errors.
+      #
+      # `--ignore-scripts`: a detached install does not inherit the root
+      # `allowBuilds` allowlist either and would fail on esbuild. This job only
+      # runs `tsc`, so no native binary is needed.
       - name: Install build artifact
-        run: yarn workspace @examples-type-portability/${{ matrix.example.name }} add $(pwd)/package.tgz
+        working-directory: ./examples/type-portability/${{ matrix.example.name }}
+        run: |
+          npm pkg delete dependencies.@reduxjs/toolkit
+          pnpm add --ignore-workspace --ignore-scripts --node-linker=hoisted "$GITHUB_WORKSPACE/packages/toolkit/package.tgz"
 
       - name: Install TypeScript ${{ matrix.ts }}
-        run: yarn workspace @examples-type-portability/${{ matrix.example.name }} add -D typescript@${{ matrix.ts }}
+        working-directory: ./examples/type-portability/${{ matrix.example.name }}
+        run: pnpm add --ignore-workspace --ignore-scripts --node-linker=hoisted -D typescript@${{ matrix.ts }}
 
+      # `tsc` is invoked directly rather than through the package's own `test`
+      # script. `pnpm run` performs an implicit workspace install when the
+      # manifest and lockfile disagree, which re-links `@reduxjs/toolkit` back to
+      # the workspace sources and undoes the step above. `--ignore-workspace` on
+      # `pnpm run` does not prevent it.
       - name: Test type portability with `moduleResolution ${{ matrix.example.moduleResolution }}`
-        run: yarn workspace @examples-type-portability/${{ matrix.example.name }} run test
+        working-directory: ./examples/type-portability/${{ matrix.example.name }}
+        run: rm -rf dist && node_modules/.bin/tsc -p tsconfig.json
 
       - name: Test type portability with `moduleResolution Node10`
         if: matrix.ts != 'next' && !startsWith(matrix.ts, '6.')
-        run: yarn workspace @examples-type-portability/${{ matrix.example.name }} run test --module CommonJS --moduleResolution Node10 --preserveSymLinks --verbatimModuleSyntax false
+        working-directory: ./examples/type-portability/${{ matrix.example.name }}
+        run: rm -rf dist && node_modules/.bin/tsc -p tsconfig.json --module CommonJS --moduleResolution Node10 --preserveSymLinks --verbatimModuleSyntax false
 
+      # `npm --workspace=<name> pkg set` needed the root `workspaces` field to
+      # resolve the name, and that field went away with Yarn. Run inside the
+      # package directory, `npm pkg set` needs no workspace resolution at all.
       - name: Test type portability with `moduleResolution Node10` and `type module` in `package.json`
         if: (matrix.example.name == 'nodenext-esm' || matrix.example.name == 'bundler') && matrix.ts != 'next' && !startsWith(matrix.ts, '6.')
+        working-directory: ./examples/type-portability/${{ matrix.example.name }}
         run: |
-          npm --workspace=@examples-type-portability/${{ matrix.example.name }} pkg set type=module
-          yarn workspace @examples-type-portability/${{ matrix.example.name }} run test --module ESNext --moduleResolution Node10 --preserveSymLinks --verbatimModuleSyntax false
+          npm pkg set type=module
+          rm -rf dist && node_modules/.bin/tsc -p tsconfig.json --module ESNext --moduleResolution Node10 --preserveSymLinks --verbatimModuleSyntax false
 
-  test-types-native-preview:
-    name: 'Test Types: TypeScript Native Preview'
+  # Advisory only. Reports how RTK's types behave under the next major TypeScript
+  # release without blocking any PR. `@typescript/native-preview` was the
+  # pre-release channel for the Go port and is deprecated now that TypeScript 7
+  # ships from the `typescript` package itself, so this job installs real
+  # `typescript@7` under an npm alias instead.
+  test-types-typescript-7:
+    name: 'Test Types: TypeScript 7 (advisory)'
     needs: [build]
     runs-on: ubuntu-latest
     continue-on-error: true
     strategy:
+      fail-fast: false
       matrix:
         node: ['24.x']
     steps:
       - name: Checkout repo
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      # Must run before `setup-node`, or `cache: 'pnpm'` cannot locate the store.
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+
       - name: Use node ${{ matrix.node }}
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: ${{ matrix.node }}
-          cache: 'yarn'
+          cache: 'pnpm'
 
       - name: Install deps
-        run: yarn install
+        run: pnpm install
 
-      - name: Install TypeScript Native Preview
-        run: yarn add @typescript/native-preview
+      # npm alias, so the repo's own `typescript` devDependency stays on 6.x and
+      # every other job keeps testing what it tested before.
+      - name: Install TypeScript 7
+        run: pnpm add -D typescript-7@npm:typescript@7
 
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
@@ -483,26 +571,41 @@ jobs:
           path: packages/toolkit
 
       - name: Install build artifact
-        run: yarn add ./package.tgz
+        run: pnpm add ./package.tgz
 
       - name: Show installed RTK versions
-        run: yarn info @reduxjs/toolkit
+        run: pnpm list @reduxjs/toolkit
 
       - name: Erase path aliases
         run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json
 
-      - name: Test types with tsgo
+      # Invoked by path rather than through `pnpm exec tsc`. The alias also claims
+      # the `tsc` bin, so `pnpm exec tsc` happens to resolve to 7 today, but
+      # depending on that would let this job silently test the wrong compiler.
+      # `--version` must print 7.x for the run below to mean anything.
+      - name: Test types with TypeScript 7
         env:
           TEST_DIST: true
         run: |
-          yarn tsgo --version
-          yarn tsgo -p tsconfig.test.json --noEmit --moduleResolution Bundler
+          TSC7="$(ls -d ../../node_modules/typescript-7 node_modules/typescript-7 2>/dev/null | head -1)/bin/tsc"
+          node "$TSC7" --version
+          node "$TSC7" -p tsconfig.test.json --noEmit --moduleResolution Bundler
 
+      # See the note in `test-type-portability`: without `--ignore-workspace`
+      # pnpm links `@reduxjs/toolkit` to the workspace sources instead of
+      # installing the tarball.
       - name: Install build artifact for type-portability example
-        run: yarn workspace @examples-type-portability/bundler add $(pwd)/package.tgz
+        working-directory: ./examples/type-portability/bundler
+        run: |
+          npm pkg delete dependencies.@reduxjs/toolkit
+          pnpm add --ignore-workspace --ignore-scripts --node-linker=hoisted "$GITHUB_WORKSPACE/packages/toolkit/package.tgz"
 
-      - name: Install TypeScript Native Preview for type-portability example
-        run: yarn workspace @examples-type-portability/bundler add -D @typescript/native-preview
+      - name: Install TypeScript 7 for type-portability example
+        working-directory: ./examples/type-portability/bundler
+        run: pnpm add --ignore-workspace --ignore-scripts --node-linker=hoisted -D typescript-7@npm:typescript@7
 
-      - name: Test type portability with tsgo (bundler example)
-        run: yarn workspace @examples-type-portability/bundler exec tsgo --noEmit
+      - name: Test type portability with TypeScript 7 (bundler example)
+        working-directory: ./examples/type-portability/bundler
+        run: |
+          node node_modules/typescript-7/bin/tsc --version
+          node node_modules/typescript-7/bin/tsc --noEmit

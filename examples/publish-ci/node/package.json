@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "build": "echo Done",
-    "test": "yarn test:esm && yarn test:require-esm && yarn test:require-cjs",
+    "test": "pnpm test:esm && pnpm test:require-esm && pnpm test:require-cjs",
     "test:esm": "node test-esm.mjs",
     "test:require-esm": "node test-require-esm.cjs",
     "test:require-cjs": "node --no-experimental-require-module test-require-cjs.cjs"
@@ -15,5 +15,6 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-redux": "^9.3.0"
-  }
+  },
+  "packageManager": "pnpm@11.22.0"
 }

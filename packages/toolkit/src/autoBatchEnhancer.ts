@@ -21,6 +21,8 @@ const createRafWithFallbackTimer = (
 ) => {
   return (notify: () => void) => {
     let called = false
+    let rafId: number
+    let timerId: ReturnType<typeof setTimeout>
     const callback = () => {
       if (called) return
       called = true
@@ -28,8 +30,8 @@ const createRafWithFallbackTimer = (
       clearTimeout(timerId)
       notify()
     }
-    const rafId = raf(callback)
-    const timerId = setTimeout(callback, timeout)
+    rafId = raf(callback)
+    timerId = setTimeout(callback, timeout)
   }
 }
 

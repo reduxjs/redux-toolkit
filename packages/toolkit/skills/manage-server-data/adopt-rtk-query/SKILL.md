@@ -5,17 +5,17 @@ description: >
   layer. Covers createApi, store integration, hooks, invalidation behavior,
   optimistic updates, and deciding when RTK Query is the right cache model.
 type: lifecycle
-library: "@reduxjs/toolkit"
-library_version: "2.11.2"
+library: '@reduxjs/toolkit'
+library_version: '2.11.2'
 requires:
   - build-modern-redux-apps/modern-redux
 sources:
-  - "reduxjs/redux-toolkit:docs/rtk-query/api/createApi.mdx"
-  - "reduxjs/redux-toolkit:docs/rtk-query/usage/automated-refetching.mdx"
-  - "reduxjs/redux-toolkit:docs/rtk-query/usage/manual-cache-updates.mdx"
-  - "reduxjs/redux-toolkit:docs/rtk-query/usage/persistence-and-rehydration.mdx"
-  - "reduxjs/redux-toolkit:docs/tutorials/rtk-query.mdx"
-  - "reduxjs/redux:docs/style-guide/style-guide.md"
+  - 'reduxjs/redux-toolkit:docs/rtk-query/api/createApi.mdx'
+  - 'reduxjs/redux-toolkit:docs/rtk-query/usage/automated-refetching.mdx'
+  - 'reduxjs/redux-toolkit:docs/rtk-query/usage/manual-cache-updates.mdx'
+  - 'reduxjs/redux-toolkit:docs/rtk-query/usage/persistence-and-rehydration.mdx'
+  - 'reduxjs/redux-toolkit:docs/tutorials/rtk-query.mdx'
+  - 'reduxjs/redux:docs/style-guide/style-guide.md'
 ---
 
 # Adopt RTK Query
@@ -315,9 +315,11 @@ import { useAppDispatch } from '../../app/hooks'
 const dispatch = useAppDispatch()
 
 useEffect(() => {
-  dispatch(api.util.updateQueryData('getPosts', undefined, (draft) => {
-    draft.push({ id: 'p3', title: 'Patched from component' })
-  }))
+  dispatch(
+    api.util.updateQueryData('getPosts', undefined, (draft) => {
+      draft.push({ id: 'p3', title: 'Patched from component' })
+    }),
+  )
 }, [dispatch])
 ```
 

@@ -2,12 +2,12 @@
 
 ## Choose the owner, then the tool
 
-| Kind of state | Default owner | Typical tool |
-| --- | --- | --- |
-| Editable form fields | Component | `useState` |
-| Shared mutable app data | Redux | Slice state |
-| Server cache | RTK Query | `createApi` |
-| URL, pathname, search params | Router | Router APIs plus selector inputs |
+| Kind of state                              | Default owner   | Typical tool                             |
+| ------------------------------------------ | --------------- | ---------------------------------------- |
+| Editable form fields                       | Component       | `useState`                               |
+| Shared mutable app data                    | Redux           | Slice state                              |
+| Server cache                               | RTK Query       | `createApi`                              |
+| URL, pathname, search params               | Router          | Router APIs plus selector inputs         |
 | Browser-only authority like `localStorage` | External source | Read at boundaries, then dispatch events |
 
 ## Good reasons to move data into Redux

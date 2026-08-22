@@ -361,5 +361,11 @@ export function isAsyncThunkAction<
     return isAsyncThunkAction()(asyncThunks[0])
   }
 
-  return isAnyOf(...asyncThunks.flatMap(asyncThunk => [asyncThunk.pending, asyncThunk.rejected, asyncThunk.fulfilled]))
+  return isAnyOf(
+    ...asyncThunks.flatMap((asyncThunk) => [
+      asyncThunk.pending,
+      asyncThunk.rejected,
+      asyncThunk.fulfilled,
+    ]),
+  )
 }

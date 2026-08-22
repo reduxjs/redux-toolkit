@@ -133,9 +133,7 @@ export type RootState = ReturnType<typeof rootReducer>
 import type { WithSlice } from '@reduxjs/toolkit'
 import { rootReducer } from '.'
 
-const lazySlice = createSlice({
-  /* ... */
-})
+const lazySlice = createSlice({/* ... */})
 
 declare module '.' {
   export interface LazyLoadedSlices extends WithSlice<typeof lazySlice> {}
@@ -156,9 +154,7 @@ The above example uses the `WithSlice` utility type for a slice mounted under it
 // file: slices/lazySlice.ts
 import { rootReducer } from '.'
 
-const lazySlice = createSlice({
-  /* ... */
-})
+const lazySlice = createSlice({/* ... */})
 
 declare module '.' {
   export interface LazyLoadedSlices {
@@ -252,9 +248,7 @@ declare module '.' {
 const counterSlice = createSlice({
   name: 'counter',
   initialState: { value: 0 },
-  reducers: {
-    /* ... */
-  },
+  reducers: {/* ... */},
 })
 
 const withCounter = rootReducer.inject(counterSlice)

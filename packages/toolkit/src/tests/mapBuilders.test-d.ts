@@ -185,6 +185,10 @@ describe('type tests', () => {
           })
 
           builder.addCase(thunk.rejected, (_, action) => {
+            // `toExtend`, not `toMatchObjectType`: the rejected action's `meta`
+            // is a union (`rejectedWithValue` true/false), and
+            // `toMatchObjectType` cannot deep-pick through a union in the
+            // actual type.
             expectTypeOf(action).toExtend<{
               payload: unknown
               error: SerializedError
@@ -221,6 +225,10 @@ describe('type tests', () => {
               }>()
             },
             rejected(_, action) {
+              // `toExtend`, not `toMatchObjectType`: the rejected action's
+              // `meta` is a union (`rejectedWithValue` true/false), and
+              // `toMatchObjectType` cannot deep-pick through a union in the
+              // actual type.
               expectTypeOf(action).toExtend<{
                 payload: unknown
                 error: SerializedError
@@ -313,6 +321,10 @@ describe('type tests', () => {
           })
 
           builder.addCase(thunk.rejected, (_, action) => {
+            // `toExtend`, not `toMatchObjectType`: the rejected action's `meta`
+            // is a union (`rejectedWithValue` true/false), and
+            // `toMatchObjectType` cannot deep-pick through a union in the
+            // actual type.
             expectTypeOf(action).toExtend<{
               payload: unknown
               error: SerializedError
@@ -356,6 +368,10 @@ describe('type tests', () => {
               }>()
             },
             rejected(_, action) {
+              // `toExtend`, not `toMatchObjectType`: the rejected action's
+              // `meta` is a union (`rejectedWithValue` true/false), and
+              // `toMatchObjectType` cannot deep-pick through a union in the
+              // actual type.
               expectTypeOf(action).toExtend<{
                 payload: unknown
                 error: SerializedError

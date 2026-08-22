@@ -23,4 +23,4 @@ Each mode covers all four entry points — `@reduxjs/toolkit`,
 and then runs a small behavior check, so a wrong-but-loadable build fails here
 rather than passing silently.
 
-`yarn test` runs all three.
+`pnpm test` runs all three.

@@ -2,11 +2,11 @@
 
 ## Decision table
 
-| Need | Reach for |
-| --- | --- |
-| Cached server data | RTK Query |
+| Need                                                       | Reach for                     |
+| ---------------------------------------------------------- | ----------------------------- |
+| Cached server data                                         | RTK Query                     |
 | One imperative async workflow with `dispatch` / `getState` | `createAsyncThunk` or a thunk |
-| React to later actions or state transitions | `createListenerMiddleware` |
+| React to later actions or state transitions                | `createListenerMiddleware`    |
 
 A good app often mixes imperative and reactive workflows. The split is by job, not by ideology.
 

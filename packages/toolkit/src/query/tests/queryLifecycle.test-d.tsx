@@ -26,6 +26,9 @@ describe('type tests', () => {
             // unfortunately we cannot test for that in jest.
             const result = await queryFulfilled
 
+            // `toExtend`, not `toMatchObjectType`: `toMatchObjectType` cannot
+            // handle an optional property whose type is an object type alias
+            // (`FetchBaseQueryMeta`). See the RTK-5 findings notes.
             expectTypeOf(result).toExtend<{
               data: number
               meta?: FetchBaseQueryMeta
@@ -45,6 +48,9 @@ describe('type tests', () => {
           async onQueryStarted(arg, { queryFulfilled }) {
             queryFulfilled.then(
               (result) => {
+                // `toExtend`, not `toMatchObjectType`: `toMatchObjectType`
+                // cannot handle an optional property whose type is an object
+                // type alias (`FetchBaseQueryMeta`). See the RTK-5 findings.
                 expectTypeOf(result).toExtend<{
                   data: number
                   meta?: FetchBaseQueryMeta
@@ -85,6 +91,9 @@ describe('type tests', () => {
 
             const result = await queryFulfilled
 
+            // `toExtend`, not `toMatchObjectType`: `toMatchObjectType` cannot
+            // handle an optional property whose type is an object type alias
+            // (`FetchBaseQueryMeta`). See the RTK-5 findings notes.
             expectTypeOf(result).toExtend<{
               data: number
               meta?: FetchBaseQueryMeta
@@ -104,6 +113,9 @@ describe('type tests', () => {
           async onQueryStarted(arg, { queryFulfilled }) {
             queryFulfilled.then(
               (result) => {
+                // `toExtend`, not `toMatchObjectType`: `toMatchObjectType`
+                // cannot handle an optional property whose type is an object
+                // type alias (`FetchBaseQueryMeta`). See the RTK-5 findings.
                 expectTypeOf(result).toExtend<{
                   data: number
                   meta?: FetchBaseQueryMeta
@@ -144,6 +156,9 @@ describe('type tests', () => {
 
             const result = await queryFulfilled
 
+            // `toExtend`, not `toMatchObjectType`: `toMatchObjectType` cannot
+            // handle an optional property whose type is an object type alias
+            // (`FetchBaseQueryMeta`). See the RTK-5 findings notes.
             expectTypeOf(result).toExtend<{
               data: number
               meta?: FetchBaseQueryMeta

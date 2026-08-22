@@ -582,7 +582,7 @@ The preferred approach to handling responses from thunks is via the `unwrap` met
 ```ts
 const handleClick = async (userData) => {
   try {
-    const result = await dispatch(updateUser(userData)).unwrap();
+    const result = await dispatch(updateUser(userData)).unwrap()
     showToast('success', `Updated ${result.name}`)
   } catch (error) {
     showToast('error', `Update failed: ${error.message}`)

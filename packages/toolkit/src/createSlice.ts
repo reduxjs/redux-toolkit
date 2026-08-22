@@ -298,7 +298,9 @@ export type CaseReducerWithPrepare<State, Action extends PayloadAction> = {
 export interface CaseReducerWithPrepareDefinition<
   State,
   Action extends PayloadAction,
-> extends CaseReducerWithPrepare<State, Action>,
+>
+  extends
+    CaseReducerWithPrepare<State, Action>,
     ReducerDefinition<ReducerType.reducerWithPrepare> {}
 
 type AsyncThunkSliceReducerConfig<
@@ -331,8 +333,8 @@ type PreventCircular<ThunkApiConfig> = {
 
 interface AsyncThunkCreator<
   State,
-  CurriedThunkApiConfig extends
-    PreventCircular<AsyncThunkConfig> = PreventCircular<AsyncThunkConfig>,
+  CurriedThunkApiConfig extends PreventCircular<AsyncThunkConfig> =
+    PreventCircular<AsyncThunkConfig>,
 > {
   <Returned, ThunkArg = void>(
     payloadCreator: AsyncThunkPayloadCreator<

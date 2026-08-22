@@ -1,0 +1,50 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "react", "jsx-a11y", "import"],
+  "categories": {
+    "correctness": "error"
+  },
+  "ignorePatterns": [
+    "**/dist/**",
+    "**/etc/**",
+    "**/temp/**",
+    "**/__testfixtures__/**",
+    "**/coverage/**"
+  ],
+  "rules": {
+    "react/react-in-jsx-scope": "off",
+    "no-unused-vars": "off",
+    "typescript/no-unused-vars": "off",
+    "no-redeclare": "off",
+    "typescript/no-redeclare": "off",
+    "no-use-before-define": ["error", { "functions": false }],
+    "typescript/consistent-type-imports": [
+      "error",
+      { "prefer": "type-imports", "disallowTypeAnnotations": false }
+    ],
+    "react/exhaustive-deps": [
+      "warn",
+      { "additionalHooks": "(usePossiblyImmediateEffect)" }
+    ]
+  },
+  "overrides": [
+    {
+      "files": [
+        "packages/toolkit/src/tests/*.ts",
+        "packages/toolkit/src/tests/*.tsx",
+        "packages/toolkit/src/**/tests/*.ts",
+        "packages/toolkit/src/**/tests/*.tsx"
+      ],
+      "rules": {
+        "no-unused-expressions": "off",
+        "no-lone-blocks": "off",
+        "no-sequences": "off",
+        "no-constant-condition": "off",
+        "no-constant-binary-expression": "off",
+        "jsx-a11y/click-events-have-key-events": "off",
+        "jsx-a11y/no-static-element-interactions": "off",
+        "jsx-a11y/control-has-associated-label": "off"
+      }
+    }
+  ]
+}
