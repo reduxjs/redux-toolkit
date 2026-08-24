@@ -7,27 +7,43 @@ import { dirname, resolve } from 'node:path';
 
 const require = createRequire(__filename);
 
+// Depending on the package manager, the CLI may be installed next to the project it
+// generates into or hoisted somewhere above it, so the optional TypeScript loaders are
+// not always reachable from `__filename`. Look for them from the project directory too.
+const requireFromCwd = createRequire(resolve(process.cwd(), 'noop.js'));
+
+function findLoader(...ids: string[]): NodeJS.Require | undefined {
+  for (const candidate of [requireFromCwd, require]) {
+    try {
+      for (const id of ids) candidate.resolve(id);
+      return candidate;
+    } catch {}
+  }
+  return undefined;
+}
+
 let ts = false;
 try {
-  if (require.resolve('esbuild') && require.resolve('esbuild-runner')) {
-    require('esbuild-runner/register');
+  const esbuildRequire = findLoader('esbuild', 'esbuild-runner');
+  if (esbuildRequire) {
+    esbuildRequire('esbuild-runner/register');
+    ts = true;
   }
-  ts = true;
 } catch {}
 
 try {
   if (!ts) {
-    if (require.resolve('typescript') && require.resolve('ts-node')) {
-      (require('ts-node') as typeof import('ts-node')).register({
+    const tsNodeRequire = findLoader('typescript', 'ts-node');
+    if (tsNodeRequire) {
+      (tsNodeRequire('ts-node') as typeof import('ts-node')).register({
         transpileOnly: true,
         compilerOptions: {
           target: 'es6',
           module: 'commonjs',
         },
       });
+      ts = true;
     }
-
-    ts = true;
   }
 } catch {}
 
