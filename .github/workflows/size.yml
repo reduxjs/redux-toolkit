@@ -23,7 +23,7 @@ jobs:
       # measure it and the base commit's package.json may still say yarn.
       - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
         with:
-          version: 11.22.0
+          version: 11.23.0
       - uses: EskiMojo14/size-limit-action@af0584be5b6cc2d056bd31a314fc2ce9c9c1a929 # v2
         with:
           directory: packages/toolkit

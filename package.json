@@ -48,5 +48,5 @@
     "test:packages": "pnpm --recursive --filter \"@reduxjs/*\" --filter \"@rtk-query/*\" run test",
     "dev:docs": "pnpm --filter website run start"
   },
-  "packageManager": "pnpm@11.22.0"
+  "packageManager": "pnpm@11.23.0"
 }

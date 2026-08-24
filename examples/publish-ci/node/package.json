@@ -16,5 +16,5 @@
     "react-dom": "^18.2.0",
     "react-redux": "^9.3.0"
   },
-  "packageManager": "pnpm@11.22.0"
+  "packageManager": "pnpm@11.23.0"
 }
