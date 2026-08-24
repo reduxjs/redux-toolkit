@@ -217,30 +217,36 @@ jobs:
                 types: '^19',
                 react-dom: { version: '^19', types: '^19' },
               }
-          # React 18 × boundary TS versions only (5.6, 6.0, next)
+          # React 18 × boundary TS versions only (5.6, 6.0, next).
+          # The `@types/*` entries are pinned to exact versions for the same
+          # reason as in `test-dist` above: `pnpm update -r @types/react@^18`
+          # resolves to 18.3.12, which lacks the
+          # `useRef<T>(initialValue?: undefined)` overload that
+          # `query/react/buildHooks.ts` needs. Keep these in step with the
+          # `test-dist` matrix.
           - node: '24.x'
             ts: '5.6'
             react:
               {
                 version: '^18',
-                types: '^18',
-                react-dom: { version: '^18', types: '^18' },
+                types: '18.3.31',
+                react-dom: { version: '^18', types: '18.3.7' },
               }
           - node: '24.x'
             ts: '6.0'
             react:
               {
                 version: '^18',
-                types: '^18',
-                react-dom: { version: '^18', types: '^18' },
+                types: '18.3.31',
+                react-dom: { version: '^18', types: '18.3.7' },
               }
           - node: '24.x'
             ts: 'next'
             react:
               {
                 version: '^18',
-                types: '^18',
-                react-dom: { version: '^18', types: '^18' },
+                types: '18.3.31',
+                react-dom: { version: '^18', types: '18.3.7' },
               }
 
     steps:
