@@ -597,6 +597,10 @@ jobs:
         working-directory: ./examples/type-portability/bundler
         run: pnpm add --ignore-workspace --ignore-scripts --node-linker=hoisted -D @typescript/native-preview
 
+      # Invoked by path. `pnpm exec` runs a dependency-status check first, which
+      # installs with `--frozen-lockfile` and fails here: the two steps above
+      # installed with `--ignore-workspace`, so the example's `package.json` no
+      # longer matches the root lockfile.
       - name: Test type portability with tsgo (bundler example)
         working-directory: ./examples/type-portability/bundler
-        run: pnpm exec tsgo --noEmit
+        run: node_modules/.bin/tsgo --noEmit
