@@ -22,6 +22,7 @@
     "@babel/helper-compilation-targets": "^7.23.6",
     "@babel/traverse": "^7.24.1",
     "@babel/types": "^7.24.0",
+    "@size-limit/webpack": "^11.0.1",
     "@types/react": "^19.0.1",
     "@types/react-dom": "^19.0.1",
     "netlify-plugin-cache": "^1.0.3",

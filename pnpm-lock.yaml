@@ -26,6 +26,9 @@ importers:
       '@babel/types':
         specifier: ^7.24.0
         version: 7.29.0
+      '@size-limit/webpack':
+        specifier: ^11.0.1
+        version: 11.2.0(@swc/core@1.15.24)(esbuild@0.27.7)(size-limit@11.2.0)
       '@types/react':
         specifier: ^19.0.1
         version: 19.2.14
@@ -14835,6 +14838,17 @@ snapshots:
       nanoid: 5.1.7
       size-limit: 11.2.0
       webpack: 5.105.4(@swc/core@1.15.24)(esbuild@0.25.12)
+    transitivePeerDependencies:
+      - '@swc/core'
+      - esbuild
+      - uglify-js
+      - webpack-cli
+
+  '@size-limit/webpack@11.2.0(@swc/core@1.15.24)(esbuild@0.27.7)(size-limit@11.2.0)':
+    dependencies:
+      nanoid: 5.1.7
+      size-limit: 11.2.0
+      webpack: 5.105.4(@swc/core@1.15.24)(esbuild@0.27.7)
     transitivePeerDependencies:
       - '@swc/core'
       - esbuild
