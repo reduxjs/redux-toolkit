@@ -21,9 +21,14 @@ jobs:
       # installed here. The version is pinned rather than read from
       # package.json, because the action checks out the PR base commit to
       # measure it and the base commit's package.json may still say yarn.
-      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+      # `install: false` matters more here than elsewhere: this job has no
+      # install step because the action does its own, and an install at setup
+      # time would run against the PR tree before the action resets to the base
+      # commit.
+      - uses: pnpm/setup@84cb39b217b10273981911c288cd62326dc7c6d2 # v2.0.2
         with:
           version: 11.23.0
+          install: false
       - uses: EskiMojo14/size-limit-action@af0584be5b6cc2d056bd31a314fc2ce9c9c1a929 # v2
         with:
           directory: packages/toolkit
