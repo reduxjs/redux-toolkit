@@ -237,3 +237,33 @@ describe('`merge` callback', () => {
     expect(todoEntry2.data).toEqual([{ id: '1', text: 'B' }])
   })
 })
+
+describe('provided tag cleanup', () => {
+  it('removes the cache key from tags with a falsy id', async () => {
+    const api = createApi({
+      baseQuery,
+      tagTypes: ['Post'],
+      endpoints: (build) => ({
+        getPost: build.query<unknown, void>({
+          query: () => '/post',
+          providesTags: [{ type: 'Post', id: 0 }],
+          keepUnusedDataFor: 0,
+        }),
+      }),
+    })
+
+    const storeRef = setupApiStore(api, undefined, {
+      withoutTestLifecycles: true,
+    })
+
+    const promise = storeRef.store.dispatch(api.endpoints.getPost.initiate())
+    await promise
+    promise.unsubscribe()
+
+    await delay(10)
+
+    const state = storeRef.store.getState().api
+    expect(state.queries).toEqual({})
+    expect(Object.values(state.provided.tags.Post ?? {}).flat()).toEqual([])
+  })
+})

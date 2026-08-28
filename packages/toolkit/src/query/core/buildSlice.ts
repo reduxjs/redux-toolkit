@@ -512,7 +512,7 @@ export function buildSlice({
 
             for (const { type, id } of providedTags) {
               const subscribedQueries = ((draft.tags[type] ??= {})[
-                id || '__internal_without_id'
+                id ?? '__internal_without_id'
               ] ??= [])
               const alreadySubscribed =
                 subscribedQueries.includes(queryCacheKey)
@@ -549,7 +549,7 @@ export function buildSlice({
           )) {
             for (const [id, cacheKeys] of Object.entries(incomingTags)) {
               const subscribedQueries = ((draft.tags[type] ??= {})[
-                id || '__internal_without_id'
+                id ?? '__internal_without_id'
               ] ??= [])
               for (const queryCacheKey of cacheKeys) {
                 const alreadySubscribed =
