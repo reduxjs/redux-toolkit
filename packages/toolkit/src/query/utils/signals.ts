@@ -1,7 +1,7 @@
 // AbortSignal.timeout() is currently baseline 2024
 export const timeoutSignal = (milliseconds: number) => {
   const abortController = new AbortController()
-  setTimeout(() => {
+  const timeoutId = setTimeout(() => {
     const message = 'signal timed out'
     const name = 'TimeoutError'
     abortController.abort(
@@ -11,23 +11,36 @@ export const timeoutSignal = (milliseconds: number) => {
         : Object.assign(new Error(message), { name }),
     )
   }, milliseconds)
-  return abortController.signal
+  return {
+    signal: abortController.signal,
+    cleanup: () => clearTimeout(timeoutId),
+  }
 }
 
 // AbortSignal.any() is currently baseline 2024
 export const anySignal = (...signals: AbortSignal[]) => {
   // if any are already aborted, return an already aborted signal
   for (const signal of signals)
-    if (signal.aborted) return AbortSignal.abort(signal.reason)
+    if (signal.aborted) {
+      return { signal: AbortSignal.abort(signal.reason), cleanup: () => {} }
+    }
 
   // otherwise, create a new signal that aborts when any of the given signals abort
   const abortController = new AbortController()
-  for (const signal of signals) {
-    signal.addEventListener(
-      'abort',
-      () => abortController.abort(signal.reason),
-      { signal: abortController.signal, once: true },
-    )
+  const listeners = new Map<AbortSignal, () => void>()
+  const cleanup = () => {
+    for (const [signal, listener] of listeners) {
+      signal.removeEventListener('abort', listener)
+    }
+    listeners.clear()
   }
-  return abortController.signal
+  for (const signal of signals) {
+    const listener = () => {
+      cleanup()
+      abortController.abort(signal.reason)
+    }
+    listeners.set(signal, listener)
+    signal.addEventListener('abort', listener, { once: true })
+  }
+  return { signal: abortController.signal, cleanup }
 }

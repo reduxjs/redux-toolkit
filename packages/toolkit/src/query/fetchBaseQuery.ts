@@ -234,133 +234,140 @@ export function fetchBaseQuery({
       ...rest
     } = typeof arg == 'string' ? { url: arg } : arg
 
+    const timeoutSignalResult = timeout ? timeoutSignal(timeout) : undefined
+    const combinedSignal = timeoutSignalResult
+      ? anySignal(api.signal, timeoutSignalResult.signal)
+      : undefined
     let config: RequestInit = {
       ...baseFetchOptions,
-      signal: timeout
-        ? anySignal(api.signal, timeoutSignal(timeout))
-        : api.signal,
+      signal: combinedSignal?.signal ?? api.signal,
       ...rest,
     }
 
-    headers = new Headers(stripUndefined(headers))
-    config.headers =
-      (await prepareHeaders(headers, {
-        getState,
-        arg,
-        extra,
-        endpoint,
-        forced,
-        type,
-        extraOptions,
-      })) || headers
-
-    const bodyIsJsonifiable = isJsonifiable(config.body)
-
-    // Remove content-type for non-jsonifiable bodies to let the browser set it automatically
-    // Exception: keep content-type for string bodies as they might be intentional (text/plain, text/html, etc.)
-    if (
-      config.body != null &&
-      !bodyIsJsonifiable &&
-      typeof config.body !== 'string'
-    ) {
-      config.headers.delete('content-type')
-    }
-
-    if (!config.headers.has('content-type') && bodyIsJsonifiable) {
-      config.headers.set('content-type', jsonContentType)
-    }
-
-    if (bodyIsJsonifiable && isJsonContentType(config.headers)) {
-      config.body = JSON.stringify(config.body, jsonReplacer)
-    }
-
-    // Set Accept header based on responseHandler if not already set
-    if (!config.headers.has('accept')) {
-      if (responseHandler === 'json') {
-        config.headers.set('accept', 'application/json')
-      } else if (responseHandler === 'text') {
-        config.headers.set('accept', 'text/plain, text/html, */*')
-      }
-      // For 'content-type' responseHandler, don't set Accept (let server decide)
-    }
-
-    if (params) {
-      const divider = ~url.indexOf('?') ? '&' : '?'
-      const query = paramsSerializer
-        ? paramsSerializer(params)
-        : new URLSearchParams(stripUndefined(params))
-      url += divider + query
-    }
-
-    url = joinUrls(baseUrl, url)
-
-    const request = new Request(url, config)
-    const requestClone = new Request(url, config)
-    meta = { request: requestClone }
-
-    let response
     try {
-      response = await fetchFn(request)
-    } catch (e) {
-      return {
-        error: {
-          status:
-            (e instanceof Error ||
-              (typeof DOMException !== 'undefined' &&
-                e instanceof DOMException)) &&
-            e.name === 'TimeoutError'
-              ? 'TIMEOUT_ERROR'
-              : 'FETCH_ERROR',
-          error: String(e),
-        },
-        meta,
+      headers = new Headers(stripUndefined(headers))
+      config.headers =
+        (await prepareHeaders(headers, {
+          getState,
+          arg,
+          extra,
+          endpoint,
+          forced,
+          type,
+          extraOptions,
+        })) || headers
+
+      const bodyIsJsonifiable = isJsonifiable(config.body)
+
+      // Remove content-type for non-jsonifiable bodies to let the browser set it automatically
+      // Exception: keep content-type for string bodies as they might be intentional (text/plain, text/html, etc.)
+      if (
+        config.body != null &&
+        !bodyIsJsonifiable &&
+        typeof config.body !== 'string'
+      ) {
+        config.headers.delete('content-type')
       }
-    }
-    const responseClone = response.clone()
 
-    meta.response = responseClone
-
-    let resultData: any
-    let responseText: string = ''
-    try {
-      let handleResponseError
-      await Promise.all([
-        handleResponse(response, responseHandler).then(
-          (r) => (resultData = r),
-          (e) => (handleResponseError = e),
-        ),
-        // see https://github.com/node-fetch/node-fetch/issues/665#issuecomment-538995182
-        // we *have* to "use up" both streams at the same time or they will stop running in node-fetch scenarios
-        responseClone.text().then(
-          (r) => (responseText = r),
-          () => {},
-        ),
-      ])
-      if (handleResponseError) throw handleResponseError
-    } catch (e) {
-      return {
-        error: {
-          status: 'PARSING_ERROR',
-          originalStatus: response.status,
-          data: responseText,
-          error: String(e),
-        },
-        meta,
+      if (!config.headers.has('content-type') && bodyIsJsonifiable) {
+        config.headers.set('content-type', jsonContentType)
       }
-    }
 
-    return validateStatus(response, resultData)
-      ? {
-          data: resultData,
-          meta,
+      if (bodyIsJsonifiable && isJsonContentType(config.headers)) {
+        config.body = JSON.stringify(config.body, jsonReplacer)
+      }
+
+      // Set Accept header based on responseHandler if not already set
+      if (!config.headers.has('accept')) {
+        if (responseHandler === 'json') {
+          config.headers.set('accept', 'application/json')
+        } else if (responseHandler === 'text') {
+          config.headers.set('accept', 'text/plain, text/html, */*')
         }
-      : {
+        // For 'content-type' responseHandler, don't set Accept (let server decide)
+      }
+
+      if (params) {
+        const divider = ~url.indexOf('?') ? '&' : '?'
+        const query = paramsSerializer
+          ? paramsSerializer(params)
+          : new URLSearchParams(stripUndefined(params))
+        url += divider + query
+      }
+
+      url = joinUrls(baseUrl, url)
+
+      const request = new Request(url, config)
+      const requestClone = new Request(url, config)
+      meta = { request: requestClone }
+
+      let response
+      try {
+        response = await fetchFn(request)
+      } catch (e) {
+        return {
           error: {
-            status: response.status,
-            data: resultData,
+            status:
+              (e instanceof Error ||
+                (typeof DOMException !== 'undefined' &&
+                  e instanceof DOMException)) &&
+              e.name === 'TimeoutError'
+                ? 'TIMEOUT_ERROR'
+                : 'FETCH_ERROR',
+            error: String(e),
           },
           meta,
         }
+      }
+      const responseClone = response.clone()
+
+      meta.response = responseClone
+
+      let resultData: any
+      let responseText: string = ''
+      try {
+        let handleResponseError
+        await Promise.all([
+          handleResponse(response, responseHandler).then(
+            (r) => (resultData = r),
+            (e) => (handleResponseError = e),
+          ),
+          // see https://github.com/node-fetch/node-fetch/issues/665#issuecomment-538995182
+          // we *have* to "use up" both streams at the same time or they will stop running in node-fetch scenarios
+          responseClone.text().then(
+            (r) => (responseText = r),
+            () => {},
+          ),
+        ])
+        if (handleResponseError) throw handleResponseError
+      } catch (e) {
+        return {
+          error: {
+            status: 'PARSING_ERROR',
+            originalStatus: response.status,
+            data: responseText,
+            error: String(e),
+          },
+          meta,
+        }
+      }
+
+      return validateStatus(response, resultData)
+        ? {
+            data: resultData,
+            meta,
+          }
+        : {
+            error: {
+              status: response.status,
+              data: resultData,
+            },
+            meta,
+          }
+    } finally {
+      combinedSignal?.cleanup()
+      timeoutSignalResult?.cleanup()
+    }
   }
 
   async function handleResponse(

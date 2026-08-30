@@ -1509,6 +1509,45 @@ describe('still throws on completely unexpected errors', () => {
 })
 
 describe('timeout', () => {
+  test('clears timeout resources after a request completes', async () => {
+    vi.useFakeTimers()
+    try {
+      const fetchFn = vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ value: 'success' }), {
+          headers: { 'content-type': 'application/json' },
+        }),
+      )
+      const addEventListener = vi.spyOn(
+        commonBaseQueryApi.signal,
+        'addEventListener',
+      )
+      const removeEventListener = vi.spyOn(
+        commonBaseQueryApi.signal,
+        'removeEventListener',
+      )
+
+      const result = await fetchBaseQuery({
+        baseUrl,
+        fetchFn,
+        timeout: 60_000,
+      })('/success', commonBaseQueryApi, {})
+
+      expect(result.data).toEqual({ value: 'success' })
+      expect(vi.getTimerCount()).toBe(0)
+      expect(addEventListener).toHaveBeenCalledWith(
+        'abort',
+        expect.any(Function),
+        { once: true },
+      )
+      expect(removeEventListener).toHaveBeenCalledWith(
+        'abort',
+        expect.any(Function),
+      )
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   test('throws a timeout error when a request takes longer than specified timeout duration', async () => {
     server.use(
       http.get(
