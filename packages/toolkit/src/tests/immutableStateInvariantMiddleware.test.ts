@@ -181,6 +181,28 @@ describe('createImmutableStateInvariantMiddleware', () => {
 })
 
 describe('trackForMutations', () => {
+  it.each([/^ignored/g, /^ignored/y])(
+    'matches stateful ignored-path expression %s independently',
+    (ignoredPath) => {
+      const state = {
+        ignoredA: { value: 1 },
+        ignoredB: { value: 1 },
+      }
+      ignoredPath.lastIndex = 2
+      const tracker = trackForMutations(
+        isImmutableDefault,
+        [ignoredPath],
+        state,
+      )
+
+      state.ignoredA.value = 2
+      state.ignoredB.value = 2
+
+      expect(tracker.detectMutations()).toEqual({ wasMutated: false })
+      expect(ignoredPath.lastIndex).toBe(2)
+    },
+  )
+
   function testCasesForMutation(spec: any) {
     it('returns true and the mutated path', () => {
       const state = spec.getState()

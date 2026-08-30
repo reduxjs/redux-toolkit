@@ -26,6 +26,29 @@ export function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
+export function isIgnoredPath(
+  path: string,
+  ignoredPaths: readonly (string | RegExp)[],
+): boolean {
+  return ignoredPaths.some((ignored) => {
+    if (ignored instanceof RegExp) {
+      if (!ignored.global && !ignored.sticky) {
+        return ignored.test(path)
+      }
+
+      const lastIndex = ignored.lastIndex
+      try {
+        ignored.lastIndex = 0
+        return ignored.test(path)
+      } finally {
+        ignored.lastIndex = lastIndex
+      }
+    }
+
+    return path === ignored
+  })
+}
+
 export class Tuple<Items extends ReadonlyArray<unknown> = []> extends Array<
   Items[number]
 > {

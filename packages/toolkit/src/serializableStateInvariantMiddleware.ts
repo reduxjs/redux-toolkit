@@ -1,6 +1,6 @@
 import type { Middleware } from 'redux'
 import { isAction, isPlainObject } from './reduxImports'
-import { getTimeMeasureUtils } from './utils'
+import { getTimeMeasureUtils, isIgnoredPath } from './utils'
 
 /**
  * Returns true if the passed value is "plain", i.e. a value that is either
@@ -64,13 +64,7 @@ export function findNonSerializableValue(
     const nestedPath = path ? path + '.' + key : key
 
     if (hasIgnoredPaths) {
-      const hasMatches = ignoredPaths.some((ignored) => {
-        if (ignored instanceof RegExp) {
-          return ignored.test(nestedPath)
-        }
-        return nestedPath === ignored
-      })
-      if (hasMatches) {
+      if (isIgnoredPath(nestedPath, ignoredPaths)) {
         continue
       }
     }

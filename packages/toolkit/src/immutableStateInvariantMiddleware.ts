@@ -1,6 +1,6 @@
 import type { Middleware } from 'redux'
 import type { IgnoredPaths } from './serializableStateInvariantMiddleware'
-import { getTimeMeasureUtils } from './utils'
+import { getTimeMeasureUtils, isIgnoredPath } from './utils'
 
 type EntryProcessor = (key: string, value: any) => any
 
@@ -50,13 +50,7 @@ function trackProperties(
       const nestedPath = path ? path + '.' + key : key
 
       if (hasIgnoredPaths) {
-        const hasMatches = ignoredPaths.some((ignored) => {
-          if (ignored instanceof RegExp) {
-            return ignored.test(nestedPath)
-          }
-          return nestedPath === ignored
-        })
-        if (hasMatches) {
+        if (isIgnoredPath(nestedPath, ignoredPaths)) {
           continue
         }
       }
@@ -107,13 +101,7 @@ function detectMutations(
     const nestedPath = path ? path + '.' + key : key
 
     if (hasIgnoredPaths) {
-      const hasMatches = ignoredPaths.some((ignored) => {
-        if (ignored instanceof RegExp) {
-          return ignored.test(nestedPath)
-        }
-        return nestedPath === ignored
-      })
-      if (hasMatches) {
+      if (isIgnoredPath(nestedPath, ignoredPaths)) {
         continue
       }
     }

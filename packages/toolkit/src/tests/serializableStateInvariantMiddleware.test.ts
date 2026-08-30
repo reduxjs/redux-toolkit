@@ -92,6 +92,27 @@ describe('findNonSerializableValue', () => {
 
     expect(result).toEqual(false)
   })
+
+  it.each([/^ignored/g, /^ignored/y])(
+    'matches stateful ignored-path expression %s independently',
+    (ignoredPath) => {
+      ignoredPath.lastIndex = 2
+
+      const result = findNonSerializableValue(
+        {
+          ignoredA: new Map(),
+          ignoredB: new Map(),
+        },
+        '',
+        undefined,
+        undefined,
+        [ignoredPath],
+      )
+
+      expect(result).toBe(false)
+      expect(ignoredPath.lastIndex).toBe(2)
+    },
+  )
 })
 
 describe('serializableStateInvariantMiddleware', () => {
