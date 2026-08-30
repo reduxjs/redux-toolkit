@@ -2007,10 +2007,10 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       )
 
       const reset = useCallback(() => {
-        if (promiseRef.current?.queryCacheKey) {
+        if (promiseRef.current?.queryCacheKey !== undefined) {
           dispatch(
             api.internalActions.removeQueryResult({
-              queryCacheKey: promiseRef.current?.queryCacheKey as QueryCacheKey,
+              queryCacheKey: promiseRef.current.queryCacheKey as QueryCacheKey,
             }),
           )
         }

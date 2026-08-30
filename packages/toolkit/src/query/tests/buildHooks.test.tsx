@@ -1906,6 +1906,40 @@ describe('hooks tests', () => {
       await screen.findByText(/isUninitialized/i)
       expect(countObjectKeys(storeRef.store.getState().api.queries)).toBe(0)
     })
+
+    test('`reset` removes an empty-string query cache key', async () => {
+      const emptyKeyApi = createApi({
+        baseQuery: async () => ({ data: 'result' }),
+        endpoints: (build) => ({
+          query: build.query<string, void>({
+            query: () => '',
+            serializeQueryArgs: () => '',
+          }),
+        }),
+      })
+      const emptyKeyStoreRef = setupApiStore(emptyKeyApi, undefined, {
+        withoutTestLifecycles: true,
+      })
+      let reset!: () => void
+
+      function User() {
+        const [trigger, result] = emptyKeyApi.endpoints.query.useLazyQuery()
+        reset = result.reset
+
+        return <button onClick={() => trigger()}>trigger</button>
+      }
+
+      render(<User />, { wrapper: emptyKeyStoreRef.wrapper })
+
+      await userEvent.click(screen.getByRole('button', { name: 'trigger' }))
+      await waitFor(() =>
+        expect(emptyKeyStoreRef.store.getState().api.queries['']).toBeDefined(),
+      )
+
+      act(() => reset())
+
+      expect(emptyKeyStoreRef.store.getState().api.queries['']).toBeUndefined()
+    })
   })
 
   describe('useInfiniteQuery', () => {
