@@ -78,9 +78,7 @@ export function setupListeners(
       }
     }
 
-    let unsubscribe = () => {
-      initialized = false
-    }
+    let unsubscribe = () => {}
 
     if (!initialized) {
       if (typeof window !== 'undefined' && window.addEventListener) {
