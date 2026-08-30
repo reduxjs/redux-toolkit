@@ -1,4 +1,5 @@
 import { createApi } from '@reduxjs/toolkit/query'
+import type { Middleware } from '@reduxjs/toolkit'
 import { delay } from 'msw'
 import { actionsReducer, setupApiStore } from '../../tests/utils/helpers'
 import { vi } from 'vitest'
@@ -213,6 +214,37 @@ it('correctly stringifies subscription state and dispatches subscriptionsUpdated
   expect(
     subscriptionState['getBananas(undefined)']?.[subscription3.requestId],
   ).toEqual({})
+})
+
+it('cancels a pending subscription sync when resetting API state', () => {
+  vi.useFakeTimers()
+
+  try {
+    let subscriptionUpdateCount = 0
+    const observeSubscriptionUpdates: Middleware = () => (next) => (action) => {
+      if (api.internalActions.subscriptionsUpdated.match(action)) {
+        subscriptionUpdateCount++
+      }
+      return next(action)
+    }
+    const testStoreRef = setupApiStore(
+      api,
+      { ...actionsReducer },
+      {
+        withoutListeners: true,
+        middleware: { concat: [observeSubscriptionUpdates] },
+      },
+    )
+
+    testStoreRef.store.dispatch(getBanana.initiate(3))
+    testStoreRef.store.dispatch(api.util.resetApiState())
+
+    expect(subscriptionUpdateCount).toBe(0)
+    vi.advanceTimersByTime(500)
+    expect(subscriptionUpdateCount).toBe(0)
+  } finally {
+    vi.useRealTimers()
+  }
 })
 
 it('does not leak subscription state between multiple stores using the same API instance (SSR scenario)', async () => {
