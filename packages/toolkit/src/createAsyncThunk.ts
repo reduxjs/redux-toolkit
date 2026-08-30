@@ -609,6 +609,7 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
 
         const abortController = new AbortController()
         let abortHandler: (() => void) | undefined
+        let externalAbortHandler: (() => void) | undefined
         let abortReason: string | undefined
 
         function abort(reason?: string) {
@@ -620,11 +621,10 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
           if (signal.aborted) {
             abort(externalAbortMessage)
           } else {
-            signal.addEventListener(
-              'abort',
-              () => abort(externalAbortMessage),
-              { once: true },
-            )
+            externalAbortHandler = () => abort(externalAbortMessage)
+            signal.addEventListener('abort', externalAbortHandler, {
+              once: true,
+            })
           }
         }
 
@@ -715,6 +715,9 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
           } finally {
             if (abortHandler) {
               abortController.signal.removeEventListener('abort', abortHandler)
+            }
+            if (externalAbortHandler) {
+              signal?.removeEventListener('abort', externalAbortHandler)
             }
           }
           // We dispatch the result action _after_ the catch, to avoid having any errors

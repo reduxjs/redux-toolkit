@@ -1039,6 +1039,31 @@ describe('dispatch config', () => {
       'External signal was aborted',
     )
   })
+  test('removes the external abort listener after completion', async () => {
+    const asyncThunk = createAsyncThunk('test', async () => 42)
+    const abortController = new AbortController()
+    const addEventListener = vi.spyOn(
+      abortController.signal,
+      'addEventListener',
+    )
+    const removeEventListener = vi.spyOn(
+      abortController.signal,
+      'removeEventListener',
+    )
+
+    await store.dispatch(
+      asyncThunk(undefined, { signal: abortController.signal }),
+    )
+
+    const externalAbortHandler = addEventListener.mock.calls.find(
+      ([type]) => type === 'abort',
+    )?.[1]
+    expect(externalAbortHandler).toEqual(expect.any(Function))
+    expect(removeEventListener).toHaveBeenCalledWith(
+      'abort',
+      externalAbortHandler,
+    )
+  })
   test('an already-aborted external signal is not silently swallowed when options are provided', async () => {
     const dispatched: any[] = []
     const dispatch = vi.fn((action: any) => {
