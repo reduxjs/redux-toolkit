@@ -41,6 +41,7 @@ export const createDynamicMiddleware = <
     Middleware<any, State, DispatchType>,
     MiddlewareEntry<State, DispatchType>
   >()
+  let middlewareVersion = 0
 
   const withMiddleware = Object.assign(
     createAction(
@@ -59,9 +60,13 @@ export const createDynamicMiddleware = <
     function addMiddleware(
       ...middlewares: Middleware<any, State, DispatchType>[]
     ) {
+      const previousSize = middlewareMap.size
       middlewares.forEach((middleware) => {
         getOrInsertComputed(middlewareMap, middleware, createMiddlewareEntry)
       })
+      if (middlewareMap.size !== previousSize) {
+        middlewareVersion++
+      }
     },
     { withTypes: () => addMiddleware },
   ) as AddMiddleware<State, DispatchType>
@@ -76,12 +81,23 @@ export const createDynamicMiddleware = <
   const isWithMiddleware = isAllOf(withMiddleware, matchInstance(instanceId))
 
   const middleware: DynamicMiddleware<State, DispatchType> =
-    (api) => (next) => (action) => {
-      if (isWithMiddleware(action)) {
-        addMiddleware(...action.payload)
-        return api.dispatch
+    (api) => (next) => {
+      let appliedVersion = -1
+      let dispatch = next
+
+      return (action) => {
+        if (isWithMiddleware(action)) {
+          addMiddleware(...action.payload)
+          return api.dispatch
+        }
+
+        if (appliedVersion !== middlewareVersion) {
+          dispatch = getFinalMiddleware(api)(next)
+          appliedVersion = middlewareVersion
+        }
+
+        return dispatch(action)
       }
-      return getFinalMiddleware(api)(next)(action)
     }
 
   return {
