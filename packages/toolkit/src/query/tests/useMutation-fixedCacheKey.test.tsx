@@ -111,6 +111,44 @@ describe('fixedCacheKey', () => {
     })
   })
 
+  test('an empty string is a shared, resettable, persistent fixedCacheKey', async () => {
+    const { rerender } = render(
+      <>
+        <Component name="C1" fixedCacheKey="" />
+        <Component name="C2" fixedCacheKey="" />
+      </>,
+      { wrapper: storeRef.wrapper },
+    )
+    const c1 = screen.getByTestId('C1')
+    const c2 = screen.getByTestId('C2')
+
+    act(() => {
+      getByTestId(c1, 'trigger').click()
+    })
+    await waitFor(() => {
+      expect(getByTestId(c1, 'data').textContent).toBe('C1')
+      expect(getByTestId(c2, 'data').textContent).toBe('C1')
+    })
+
+    act(() => {
+      getByTestId(c2, 'reset').click()
+    })
+    await waitFor(() => {
+      expect(getByTestId(c1, 'status').textContent).toBe('uninitialized')
+      expect(getByTestId(c2, 'status').textContent).toBe('uninitialized')
+    })
+
+    act(() => {
+      getByTestId(c1, 'trigger').click()
+    })
+    await waitFor(() => expect(getByTestId(c1, 'data').textContent).toBe('C1'))
+
+    rerender(<div />)
+    rerender(<Component name="C3" fixedCacheKey="" />)
+
+    expect(getByTestId(screen.getByTestId('C3'), 'data').textContent).toBe('C1')
+  })
+
   test('resetting from the component that triggered the mutation resets for each shared result', async () => {
     render(
       <>

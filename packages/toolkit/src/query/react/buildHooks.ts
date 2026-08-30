@@ -2221,7 +2221,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
       useEffect(
         () => () => {
-          if (!promise?.arg.fixedCacheKey) {
+          if (promise?.arg.fixedCacheKey == null) {
             promise?.reset()
           }
         },
@@ -2258,7 +2258,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           if (promise) {
             setPromise(undefined)
           }
-          if (fixedCacheKey) {
+          if (fixedCacheKey != null) {
             dispatch(
               api.internalActions.removeMutationResult({
                 requestId,

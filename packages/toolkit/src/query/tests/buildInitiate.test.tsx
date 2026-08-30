@@ -303,3 +303,32 @@ describe('getRunningQueryThunk with multiple stores', () => {
     await Promise.all([query1Promise, query2Promise])
   })
 })
+
+test('getRunningMutationThunk supports an empty fixedCacheKey', async () => {
+  let resolveMutation!: (value: { data: string }) => void
+  const mutationResult = new Promise<{ data: string }>((resolve) => {
+    resolveMutation = resolve
+  })
+  const mutationApi = createApi({
+    baseQuery: fakeBaseQuery(),
+    endpoints: (build) => ({
+      mutation: build.mutation<string, void>({
+        queryFn: () => mutationResult,
+      }),
+    }),
+  })
+  const store = setupApiStore(mutationApi, undefined, {
+    withoutTestLifecycles: true,
+  }).store
+
+  const promise = store.dispatch(
+    mutationApi.endpoints.mutation.initiate(undefined, { fixedCacheKey: '' }),
+  )
+
+  expect(
+    store.dispatch(mutationApi.util.getRunningMutationThunk('mutation', '')),
+  ).toBe(promise)
+
+  resolveMutation({ data: 'done' })
+  await promise
+})

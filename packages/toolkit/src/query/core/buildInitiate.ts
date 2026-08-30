@@ -580,7 +580,7 @@ You must add the middleware for RTK-Query to function correctly!`,
         ret.then(() => {
           runningMutations.delete(requestId)
         })
-        if (fixedCacheKey) {
+        if (fixedCacheKey != null) {
           runningMutations.set(fixedCacheKey, ret)
           ret.then(() => {
             if (runningMutations.get(fixedCacheKey) === ret) {
