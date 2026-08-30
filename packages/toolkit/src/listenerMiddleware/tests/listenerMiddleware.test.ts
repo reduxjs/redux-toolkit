@@ -999,6 +999,29 @@ describe('createListenerMiddleware', () => {
       expect(await deferredCompletedEvt).toBeDefined()
       expect(await deferredCancelledEvt).toBeDefined()
     })
+
+    test('listenerApi.delay clears its timer when the listener is cancelled', async () => {
+      vi.useFakeTimers()
+      const listenerStarted = deferred()
+
+      startListening({
+        actionCreator: increment,
+        effect: async (_, listenerApi) => {
+          listenerStarted.resolve()
+          await listenerApi.delay(60_000)
+        },
+      })
+
+      store.dispatch(increment())
+      await listenerStarted
+
+      expect(vi.getTimerCount()).toBe(1)
+      clearListeners()
+      await Promise.resolve()
+      expect(vi.getTimerCount()).toBe(0)
+
+      vi.useRealTimers()
+    })
   })
 
   describe('Error handling', () => {
@@ -1175,6 +1198,29 @@ describe('createListenerMiddleware', () => {
 
       await delay(25)
       expect(takeResult).toEqual([increment(), stateCurrent, stateBefore])
+    })
+
+    test('take clears its timeout when the predicate succeeds', async () => {
+      vi.useFakeTimers()
+      const takeCompleted = deferred()
+
+      startListening({
+        predicate: incrementByAmount.match,
+        effect: async (_, listenerApi) => {
+          await listenerApi.take(increment.match, 60_000)
+          takeCompleted.resolve()
+        },
+      })
+
+      store.dispatch(incrementByAmount(1))
+      await Promise.resolve()
+      expect(vi.getTimerCount()).toBe(1)
+
+      store.dispatch(increment())
+      await takeCompleted
+      expect(vi.getTimerCount()).toBe(0)
+
+      vi.useRealTimers()
     })
 
     test('take resolves to `[A, CurrentState, PreviousState] | null` if a possibly undefined timeout parameter is provided', async () => {

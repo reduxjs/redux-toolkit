@@ -93,8 +93,20 @@ export const createPause = <T>(signal: AbortSignal) => {
  * @returns
  */
 export const createDelay = (signal: AbortSignal) => {
-  const pause = createPause<void>(signal)
   return (timeoutMs: number): Promise<void> => {
-    return pause(new Promise<void>((resolve) => setTimeout(resolve, timeoutMs)))
+    validateActive(signal)
+
+    return catchRejection(
+      new Promise<void>((resolve, reject) => {
+        const timeoutId = setTimeout(() => {
+          cleanup()
+          resolve()
+        }, timeoutMs)
+        const cleanup = addAbortSignalListener(signal, () => {
+          clearTimeout(timeoutId)
+          reject(new TaskAbortError(signal.reason))
+        })
+      }),
+    )
   }
 }
