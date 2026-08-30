@@ -33,12 +33,19 @@ async function defaultBackoff(
   const timeout = ~~((Math.random() + 0.4) * (300 << attempts)) // Force a positive int in the case we make this an option
 
   await new Promise<void>((resolve, reject) => {
-    const timeoutId = setTimeout(() => resolve(), timeout)
+    let abortHandler: (() => void) | undefined
+    const timeoutId = setTimeout(() => {
+      if (signal && abortHandler) {
+        signal.removeEventListener('abort', abortHandler)
+      }
+      resolve()
+    }, timeout)
 
     // If signal is provided and gets aborted, clear timeout and reject
     if (signal) {
-      const abortHandler = () => {
+      abortHandler = () => {
         clearTimeout(timeoutId)
+        signal.removeEventListener('abort', abortHandler!)
         reject(new Error('Aborted'))
       }
 

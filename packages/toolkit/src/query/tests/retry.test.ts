@@ -830,6 +830,46 @@ describe('configuration', () => {
       expect(result.data).toEqual({ success: true })
     })
 
+    test('completed backoff removes its abort listener', async () => {
+      let addEventListenerSpy: ReturnType<typeof vi.spyOn> | undefined
+      let removeEventListenerSpy: ReturnType<typeof vi.spyOn> | undefined
+      let attempt = 0
+      const baseBaseQuery = vi.fn<BaseQueryFn>((_, api) => {
+        addEventListenerSpy ??= vi.spyOn(api.signal, 'addEventListener')
+        removeEventListenerSpy ??= vi.spyOn(api.signal, 'removeEventListener')
+
+        return Promise.resolve(
+          attempt++ === 0
+            ? { error: 'network error' }
+            : { data: { success: true } },
+        )
+      })
+
+      const baseQuery = retry(baseBaseQuery, { maxRetries: 1 })
+      const api = createApi({
+        baseQuery,
+        endpoints: (build) => ({
+          q1: build.query({ query: () => {} }),
+        }),
+      })
+      const storeRef = setupApiStore(api, undefined, {
+        withoutTestLifecycles: true,
+      })
+
+      const promise = storeRef.store.dispatch(api.endpoints.q1.initiate({}))
+      await loopTimers(2)
+      await promise
+
+      const backoffHandler = addEventListenerSpy!.mock.calls.find(
+        (call: any[]) => call[0] === 'abort',
+      )?.[1]
+      expect(backoffHandler).toEqual(expect.any(Function))
+      expect(removeEventListenerSpy).toHaveBeenCalledWith(
+        'abort',
+        backoffHandler,
+      )
+    })
+
     test('multiple aborts are handled gracefully', async () => {
       const baseBaseQuery = vi.fn<BaseQueryFn>()
       baseBaseQuery.mockResolvedValue({ error: 'network error' })
