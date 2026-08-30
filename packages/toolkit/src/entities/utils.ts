@@ -41,6 +41,29 @@ export function getCurrent<T>(value: T | Draft<T>): T {
   return (isDraft(value) ? current(value) : value) as T
 }
 
+export function hasEntity<T, Id extends EntityId>(
+  entities: Record<Id, T>,
+  id: Id,
+): boolean {
+  return Object.prototype.hasOwnProperty.call(entities, id)
+}
+
+export function setEntity<T, Id extends EntityId>(
+  state: DraftableEntityState<T, Id>,
+  id: Id,
+  entity: T,
+): void {
+  if (id === '__proto__') {
+    state.entities = {
+      ...getCurrent(state.entities),
+      [id]: entity,
+    } as DraftableEntityState<T, Id>['entities']
+    return
+  }
+
+  ;(state.entities as Record<Id, T>)[id] = entity
+}
+
 export function splitAddedUpdatedEntities<T, Id extends EntityId>(
   newEntities: readonly T[] | Record<Id, T>,
   selectId: IdSelector<T, Id>,

@@ -96,6 +96,31 @@ describe('Sorted State Adapter', () => {
     })
   })
 
+  it('supports entity IDs that match Object.prototype properties', () => {
+    const entities = [
+      { id: 'toString', title: 'First' },
+      { id: '__proto__', title: 'Second' },
+      { id: 'constructor', title: 'Third' },
+    ]
+
+    const withEntities = adapter.addMany(state, entities)
+    const selectors = adapter.getSelectors()
+
+    expect(withEntities.ids).toEqual(entities.map(({ id }) => id))
+    expect(selectors.selectAll(withEntities)).toEqual(entities)
+    expect(selectors.selectById(withEntities, '__proto__')).toBe(entities[1])
+    expect(selectors.selectById(withEntities, 'valueOf')).toBeUndefined()
+
+    const updated = adapter.updateOne(withEntities, {
+      id: '__proto__',
+      changes: { title: 'Updated' },
+    })
+    const removed = adapter.removeOne(updated, 'constructor')
+
+    expect(selectors.selectById(updated, '__proto__')?.title).toBe('Updated')
+    expect(selectors.selectById(removed, 'constructor')).toBeUndefined()
+  })
+
   it('should let you add many entities to the state from a dictionary', () => {
     const withOneEntity = adapter.addOne(state, TheGreatGatsby)
 

@@ -14,6 +14,8 @@ import {
   selectIdValue,
   ensureEntitiesArray,
   splitAddedUpdatedEntities,
+  hasEntity,
+  setEntity,
 } from './utils'
 
 export function createUnsortedStateAdapter<T, Id extends EntityId>(
@@ -24,12 +26,12 @@ export function createUnsortedStateAdapter<T, Id extends EntityId>(
   function addOneMutably(entity: T, state: R): void {
     const key = selectIdValue(entity, selectId)
 
-    if (key in state.entities) {
+    if (hasEntity(state.entities as Record<Id, T>, key)) {
       return
     }
 
     state.ids.push(key as Id & Draft<Id>)
-    ;(state.entities as Record<Id, T>)[key] = entity
+    setEntity(state, key, entity)
   }
 
   function addManyMutably(
@@ -45,10 +47,10 @@ export function createUnsortedStateAdapter<T, Id extends EntityId>(
 
   function setOneMutably(entity: T, state: R): void {
     const key = selectIdValue(entity, selectId)
-    if (!(key in state.entities)) {
+    if (!hasEntity(state.entities as Record<Id, T>, key)) {
       state.ids.push(key as Id & Draft<Id>)
     }
-    ;(state.entities as Record<Id, T>)[key] = entity
+    setEntity(state, key, entity)
   }
 
   function setManyMutably(
@@ -81,16 +83,16 @@ export function createUnsortedStateAdapter<T, Id extends EntityId>(
     let didMutate = false
 
     keys.forEach((key) => {
-      if (key in state.entities) {
+      if (hasEntity(state.entities as Record<Id, T>, key)) {
         delete (state.entities as Record<Id, T>)[key]
         didMutate = true
       }
     })
 
     if (didMutate) {
-      state.ids = (state.ids as Id[]).filter((id) => id in state.entities) as
-        | Id[]
-        | Draft<Id[]>
+      state.ids = (state.ids as Id[]).filter((id) =>
+        hasEntity(state.entities as Record<Id, T>, id),
+      ) as Id[] | Draft<Id[]>
     }
   }
 
@@ -119,7 +121,7 @@ export function createUnsortedStateAdapter<T, Id extends EntityId>(
       delete (state.entities as Record<Id, T>)[update.id]
     }
 
-    ;(state.entities as Record<Id, T>)[newKey] = updated
+    setEntity(state, newKey, updated)
 
     return hasNewKey
   }
@@ -132,13 +134,14 @@ export function createUnsortedStateAdapter<T, Id extends EntityId>(
     updates: ReadonlyArray<Update<T, Id>>,
     state: R,
   ): void {
-    const newKeys: { [id: string]: Id } = {}
+    const newKeys: { [id: string]: Id } = Object.create(null)
 
-    const updatesPerEntity: { [id: string]: Update<T, Id> } = {}
+    const updatesPerEntity: { [id: string]: Update<T, Id> } =
+      Object.create(null)
 
     updates.forEach((update) => {
       // Only apply updates to entities that currently exist
-      if (update.id in state.entities) {
+      if (hasEntity(state.entities as Record<Id, T>, update.id)) {
         // If there are multiple updates to one entity, merge them together
         updatesPerEntity[update.id] = {
           id: update.id,

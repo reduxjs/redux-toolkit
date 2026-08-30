@@ -13,6 +13,8 @@ import {
   ensureEntitiesArray,
   splitAddedUpdatedEntities,
   getCurrent,
+  hasEntity,
+  setEntity,
 } from './utils'
 
 // Borrowed from Replay
@@ -93,7 +95,7 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
     newEntities: readonly T[] | Record<Id, T>,
     state: R,
   ): void {
-    let deduplicatedEntities = {} as Record<Id, T>;
+    let deduplicatedEntities = Object.create(null) as Record<Id, T>;
     newEntities = ensureEntitiesArray(newEntities)
     if (newEntities.length !== 0) {
       for (const item of newEntities) {
@@ -134,11 +136,12 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
     // the first rename moves the entity to a new key; a subsequent update that
     // still targets the original key finds nothing and is silently dropped,
     // producing results inconsistent with the unsorted adapter.
-    const updatesPerEntity: { [id: string]: Update<T, Id> } = {}
+    const updatesPerEntity: { [id: string]: Update<T, Id> } =
+      Object.create(null)
     for (const update of updates) {
       // Only collect updates for entities that currently exist (same guard
       // used by the unsorted adapter).
-      if (update.id in (state.entities as Record<Id, T>)) {
+      if (hasEntity(state.entities as Record<Id, T>, update.id)) {
         updatesPerEntity[update.id] = {
           id: update.id,
           changes: {
@@ -167,7 +170,7 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
         delete (state.entities as Record<Id, T>)[update.id]
         const oldIndex = (state.ids as Id[]).indexOf(update.id)
         state.ids[oldIndex] = newId
-        ;(state.entities as Record<Id, T>)[newId] = entity
+        setEntity(state, newId, entity)
       }
     }
 
@@ -228,8 +231,6 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
     const currentEntities = getCurrent(state.entities)
     const currentIds = getCurrent(state.ids)
 
-    const stateEntities = state.entities as Record<Id, T>
-
     let ids: Iterable<Id> = currentIds
     if (replacedIds) {
       ids = new Set(currentIds)
@@ -238,7 +239,7 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
     let sortedEntities: T[] = []
     for (const id of ids) {
       const entity = currentEntities[id]
-      if (entity) {
+      if (entity !== undefined) {
         sortedEntities.push(entity)
       }
     }
@@ -246,7 +247,7 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
 
     // Insert/overwrite all new/updated
     for (const item of addedItems) {
-      stateEntities[selectId(item)] = item
+      setEntity(state, selectId(item), item)
 
       if (!wasPreviouslyEmpty) {
         // Binary search insertion generally requires fewer comparisons
