@@ -176,28 +176,34 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
       Math.min(keepUnusedDataFor, THIRTY_TWO_BIT_MAX_TIMER_SECONDS),
     )
 
-    if (!anySubscriptionsRemainingForKey(queryCacheKey)) {
-      const currentTimeout = currentRemovalTimeouts[queryCacheKey]
+    const currentTimeout = currentRemovalTimeouts[queryCacheKey]
+    if (anySubscriptionsRemainingForKey(queryCacheKey)) {
       if (currentTimeout) {
         clearTimeout(currentTimeout)
+        delete currentRemovalTimeouts[queryCacheKey]
       }
-
-      currentRemovalTimeouts[queryCacheKey] = setTimeout(() => {
-        if (!anySubscriptionsRemainingForKey(queryCacheKey)) {
-          // Try to abort any running query for this cache key
-          const entry = selectQueryEntry(api.getState(), queryCacheKey)
-
-          if (entry?.endpointName) {
-            const runningQuery = api.dispatch(
-              getRunningQueryThunk(entry.endpointName, entry.originalArgs),
-            )
-            runningQuery?.abort()
-          }
-          api.dispatch(removeQueryResult({ queryCacheKey }))
-        }
-        delete currentRemovalTimeouts![queryCacheKey]
-      }, finalKeepUnusedDataFor * 1000)
+      return
     }
+
+    if (currentTimeout) {
+      clearTimeout(currentTimeout)
+    }
+
+    currentRemovalTimeouts[queryCacheKey] = setTimeout(() => {
+      if (!anySubscriptionsRemainingForKey(queryCacheKey)) {
+        // Try to abort any running query for this cache key
+        const entry = selectQueryEntry(api.getState(), queryCacheKey)
+
+        if (entry?.endpointName) {
+          const runningQuery = api.dispatch(
+            getRunningQueryThunk(entry.endpointName, entry.originalArgs),
+          )
+          runningQuery?.abort()
+        }
+        api.dispatch(removeQueryResult({ queryCacheKey }))
+      }
+      delete currentRemovalTimeouts![queryCacheKey]
+    }, finalKeepUnusedDataFor * 1000)
   }
 
   return handler

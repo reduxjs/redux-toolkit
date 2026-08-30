@@ -60,6 +60,40 @@ test(`query: await cleanup, keepUnusedDataFor set`, async () => {
   expect(onCleanup).toHaveBeenCalled()
 })
 
+test('query: resubscription clears the pending cleanup timer', async () => {
+  const { store, api } = storeForApi(
+    createApi({
+      baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
+      endpoints: (build) => ({
+        query: build.query<unknown, string>({
+          query: () => '/success',
+        }),
+      }),
+    }),
+  )
+  const initialTimerCount = vi.getTimerCount()
+  let secondPromise: { unsubscribe(): void } | undefined
+
+  try {
+    const firstPromise = store.dispatch(api.endpoints.query.initiate('arg'))
+    await firstPromise
+    vi.advanceTimersByTime(500)
+
+    firstPromise.unsubscribe()
+    vi.advanceTimersByTime(500)
+    expect(vi.getTimerCount()).toBe(initialTimerCount + 1)
+
+    secondPromise = store.dispatch(api.endpoints.query.initiate('arg'))
+    await secondPromise
+    vi.advanceTimersByTime(500)
+    expect(vi.getTimerCount()).toBe(initialTimerCount)
+  } finally {
+    secondPromise?.unsubscribe()
+    store.dispatch(api.util.resetApiState())
+    vi.clearAllTimers()
+  }
+})
+
 test(`query: handles large keepUnusedDataFor values over 32-bit ms`, async () => {
   const { store, api } = storeForApi(
     createApi({
