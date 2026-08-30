@@ -35,6 +35,7 @@ import type { SyncScreen } from '@testing-library/react-render-stream/pure'
 import { createRenderStream } from '@testing-library/react-render-stream/pure'
 import { userEvent } from '@testing-library/user-event'
 import { HttpResponse, delay, http } from 'msw'
+import * as React from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { InfiniteQueryResultFlags } from '../core/buildSelectors'
 
@@ -1516,6 +1517,40 @@ describe('hooks tests', () => {
       expect(
         actions.filter(api.internalActions.unsubscribeQueryResult.match),
       ).toHaveLength(4)
+    })
+
+    test('useLazyQuery reinstates its subscription after preserved effects restart', async () => {
+      const Activity = (React as any).Activity
+      if (!Activity) return
+
+      function User() {
+        const [fetchUser] = api.endpoints.getUser.useLazyQuery()
+        return <button onClick={() => fetchUser(1)}>fetch</button>
+      }
+
+      function App() {
+        const [mode, setMode] = useState<'visible' | 'hidden'>('visible')
+        return (
+          <>
+            <button onClick={() => setMode('hidden')}>hide</button>
+            <button onClick={() => setMode('visible')}>show</button>
+            <Activity mode={mode}>
+              <User />
+            </Activity>
+          </>
+        )
+      }
+
+      render(<App />, { wrapper: storeRef.wrapper })
+
+      await userEvent.click(screen.getByRole('button', { name: 'fetch' }))
+      await waitFor(() => expect(getSubscriptionCount('getUser(1)')).toBe(1))
+
+      await userEvent.click(screen.getByRole('button', { name: 'hide' }))
+      await waitFor(() => expect(getSubscriptionCount('getUser(1)')).toBe(0))
+
+      await userEvent.click(screen.getByRole('button', { name: 'show' }))
+      await waitFor(() => expect(getSubscriptionCount('getUser(1)')).toBe(1))
     })
 
     test('useLazyQuery hook callback returns various properties to handle the result', async () => {
