@@ -122,7 +122,8 @@ function App() {
 ```tsx no-transpile title="initiate mutation example"
 import { useState } from 'react'
 import { useAppDispatch } from './store/hooks'
-import { api, Post } from './services/api'
+import type { Post } from './services/api'
+import { api } from './services/api'
 
 function App() {
   const dispatch = useAppDispatch()

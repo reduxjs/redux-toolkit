@@ -5,16 +5,17 @@
     "esModuleInterop": true,
     "lib": ["dom", "es2015"],
     "jsx": "react-jsx",
-    "target": "es5",
+    "target": "esnext",
     "allowJs": true,
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": true
+    "noEmit": true,
+    "types": ["node"]
   }
 }

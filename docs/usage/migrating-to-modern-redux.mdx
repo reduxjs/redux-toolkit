@@ -782,7 +782,8 @@ export const toggleTodo = (id: string): ToggleTodoAction => ({
 ```
 
 ```ts no-transpile title="src/reducers/todos.ts"
-import { ADD_TODO, TOGGLE_TODO, TodoActions } from '../constants/todos'
+import type { TodoActions } from '../constants/todos'
+import { ADD_TODO, TOGGLE_TODO } from '../constants/todos'
 
 interface Todo {
   id: string
@@ -807,12 +808,13 @@ export default function todosReducer(
 ```
 
 ```ts no-transpile title="src/app/store.ts"
-import { createStore, Dispatch } from 'redux'
+import type { Dispatch } from 'redux'
+import { createStore } from 'redux'
 
-import { TodoActions } from '../actions/todos'
-import { CounterActions } from '../actions/counter'
-import { TodosState } from '../reducers/todos'
-import { CounterState } from '../reducers/counter'
+import type { CounterActions } from '../actions/counter'
+import type { TodoActions } from '../actions/todos'
+import type { CounterState } from '../reducers/counter'
+import type { TodosState } from '../reducers/todos'
 
 // omit reducer setup
 
@@ -859,7 +861,8 @@ export type AppDispatch = typeof store.dispatch
 Each slice file should declare and export a type for its own slice state. Then, use the `PayloadAction` type to declare the type of any `action` argument inside of `createSlice.reducers`. The generated action creators will then _also_ have the correct type for the argument they accept, and the type of `action.payload` that they return.
 
 ```ts no-transpile title="src/features/todos/todosSlice.ts"
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import type { PayloadAction } from '@reduxjs/toolkit'
+import { createSlice } from '@reduxjs/toolkit'
 
 interface Todo {
   id: string
@@ -1012,12 +1015,12 @@ The community came up with multiple variations on how to handle this, with varyi
 
 ```ts no-transpile title="Simple connect TS example"
 import { connect } from 'react-redux'
-import { RootState } from '../../app/store'
+import type { RootState } from '../../app/store'
 import {
-  todoToggled,
-  todoDeleted,
-  selectTodoById,
   selectActiveTodoId,
+  selectTodoById,
+  todoDeleted,
+  todoToggled,
 } from './todosSlice'
 
 interface TodoListItemOwnProps {
@@ -1057,13 +1060,14 @@ Other community-created patterns required significantly more overhead, including
 One slightly-better alternative was the `ConnectedProps<T>` type that was added to `@types/react-redux` in v7.x, which enabled inferring the type of _all_ the props that would be passed to the component from `connect`. This did require splitting up the call to `connect` into two parts for the inference to work right:
 
 ```ts no-transpile title="ConnectedProps<T> TS example"
-import { connect, ConnectedProps } from 'react-redux'
-import { RootState } from '../../app/store'
+import type { ConnectedProps } from 'react-redux'
+import { connect } from 'react-redux'
+import type { RootState } from '../../app/store'
 import {
-  todoToggled,
-  todoDeleted,
-  selectTodoById,
   selectActiveTodoId,
+  selectTodoById,
+  todoDeleted,
+  todoToggled,
 } from './todosSlice'
 
 interface TodoListItemOwnProps {

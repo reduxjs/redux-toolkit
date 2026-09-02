@@ -1,4 +1,4 @@
-import { getEndpointDefinition } from '@internal/query/apiTypes'
+import { getEndpointDefinition } from '../../apiTypes'
 import type {
   BaseQueryError,
   BaseQueryFn,

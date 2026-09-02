@@ -446,13 +446,13 @@ React Redux supports creating `hooks` (and `connect`) with a [custom context](ht
 
 ```ts title="Pre-v9 custom context"
 import { createContext } from 'react'
+import type { ReactReduxContextValue } from 'react-redux'
 import {
-  ReactReduxContextValue,
   createDispatchHook,
   createSelectorHook,
   createStoreHook,
 } from 'react-redux'
-import { AppStore, RootState, AppDispatch } from './store'
+import type { AppDispatch, AppStore, RootState } from './store'
 
 // highlight-next-line
 const context = createContext<ReactReduxContextValue>(null as any)
@@ -468,13 +468,13 @@ The above example now becomes:
 
 ```ts title="v9+ custom context"
 import { createContext } from 'react'
+import type { ReactReduxContextValue } from 'react-redux'
 import {
-  ReactReduxContextValue,
   createDispatchHook,
   createSelectorHook,
   createStoreHook,
 } from 'react-redux'
-import { AppStore, RootState, AppDispatch } from './store'
+import type { AppDispatch, AppStore, RootState } from './store'
 
 // highlight-next-line
 const context = createContext<ReactReduxContextValue | null>(null)

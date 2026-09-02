@@ -1,8 +1,5 @@
-import {
-  createAsyncThunk,
-  createReducer,
-  PayloadAction,
-} from '@reduxjs/toolkit'
+import type { PayloadAction } from '@reduxjs/toolkit'
+import { createAsyncThunk, createReducer } from '@reduxjs/toolkit'
 
 export interface Data {
   isInteresting: boolean

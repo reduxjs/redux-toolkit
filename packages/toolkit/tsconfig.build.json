@@ -2,6 +2,7 @@
   // For building the library.
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
+    "ignoreDeprecations": "6.0",
     "noEmit": false
   },
   "include": ["src"],

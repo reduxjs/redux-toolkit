@@ -2,7 +2,7 @@
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "allowUnusedLabels": true,
@@ -14,7 +14,6 @@
     "target": "ES2020",
     "allowJs": true,
     "checkJs": true,
-    "alwaysStrict": false,
     "baseUrl": "..",
     "jsx": "preserve",
     "traceResolution": false,
@@ -31,6 +30,8 @@
       "your-cool-library": ["docs/virtual/your-cool-library/index.ts"],
       "redux-logger": ["docs/virtual/redux-logger/index.ts"],
       "petstore-api.generated": ["docs/virtual/petstore-api.generated/index.ts"]
-    }
+    },
+    "ignoreDeprecations": "6.0",
+    "noUncheckedSideEffectImports": false
   }
 }

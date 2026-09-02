@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useEffect } from 'react'
-import { timeApi } from '../../app-core/services/times'
 import { useAppDispatch } from '../../app-core/hooks'
+import { timeApi } from '../../app-core/services/times'
 
 export const TimeDisplay = ({
   offset,

@@ -562,7 +562,8 @@ test('this thunk should always be skipped', async () => {
 
 ```ts no-transpile
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
-import { userAPI, User } from './userAPI'
+import type { User } from './userAPI'
+import { userAPI } from './userAPI'
 
 const fetchUserById = createAsyncThunk<
   User,
