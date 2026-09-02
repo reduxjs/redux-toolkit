@@ -152,8 +152,7 @@ function App() {
 
 ```ts no-transpile
 type CreateCacheSelectorFactory =
-  | QueryResultSelectorFactory
-  | MutationResultSelectorFactory
+  QueryResultSelectorFactory | MutationResultSelectorFactory
 
 type QueryResultSelectorFactory = (
   queryArg: QueryArg | SkipToken,

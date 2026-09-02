@@ -22,7 +22,7 @@ jobs:
           filters: |
             codegen:
               - 'packages/rtk-query-codegen-openapi/**'
-              - 'yarn.lock'
+              - 'pnpm-lock.yaml'
               - '.github/workflows/test-codegen.yml'
 
   build:
@@ -46,17 +46,25 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      # pnpm/action-setup must run before setup-node, or setup-node's
+      # `cache: 'pnpm'` cannot find the store to cache.
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+
       - name: Setup Node ${{ matrix.node-version }}
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'yarn'
+          cache: 'pnpm'
 
+      # `pnpm install` from inside a workspace package still installs the whole
+      # workspace ("Scope: all 11 workspace projects"), the same as yarn did.
       - name: Install dependencies
-        run: yarn install
+        run: pnpm install
 
+      # pnpm names the tarball <name>-<version>.tgz where yarn named it
+      # package.tgz. --out keeps the name the artifact steps below expect.
       - name: Pack
-        run: yarn pack
+        run: pnpm pack --out package.tgz
 
       - name: Upload artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -86,11 +94,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+
       - name: Setup Node ${{ matrix.node-version }}
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'yarn'
+          cache: 'pnpm'
 
       - name: Download artifact
         id: download-artifact
@@ -100,16 +110,16 @@ jobs:
           name: package
 
       - name: Install dependencies
-        run: yarn install
+        run: pnpm install
 
       - name: Install build artifact
-        run: yarn add ./package.tgz
+        run: pnpm add ./package.tgz
 
       - name: Remove path alias
         run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.json
 
       - name: Run tests
-        run: yarn test
+        run: pnpm test
         env:
           TEST_DIST: true
 
@@ -130,14 +140,16 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+
       - name: Use node ${{ matrix.node-version }}
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'yarn'
+          cache: 'pnpm'
 
       - name: Install deps
-        run: yarn install
+        run: pnpm install
 
       - name: Download artifact
         id: download-artifact
@@ -147,4 +159,4 @@ jobs:
           name: package
 
       - name: Run are-the-types-wrong
-        run: yarn attw ./package.tgz --format table --exclude-entrypoints cli
+        run: pnpm exec attw ./package.tgz --format table --exclude-entrypoints cli

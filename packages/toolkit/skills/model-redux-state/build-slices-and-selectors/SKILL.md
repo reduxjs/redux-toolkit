@@ -6,17 +6,17 @@ description: >
   Immer-backed mutation syntax, slice selectors, getSelectors, injectInto,
   withLazyLoadedSlices, and current RTK 2 slice patterns.
 type: core
-library: "@reduxjs/toolkit"
-library_version: "2.11.2"
+library: '@reduxjs/toolkit'
+library_version: '2.11.2'
 requires:
   - model-redux-state/design-state-ownership
 sources:
-  - "reduxjs/redux-toolkit:docs/api/createSlice.mdx"
-  - "reduxjs/redux-toolkit:docs/api/combineSlices.mdx"
-  - "reduxjs/redux-toolkit:docs/api/createEntityAdapter.mdx"
-  - "reduxjs/redux-toolkit:docs/usage/immer-reducers.md"
-  - "reduxjs/redux-toolkit:docs/usage/migrating-rtk-2.md"
-  - "reduxjs/redux:docs/style-guide/style-guide.md"
+  - 'reduxjs/redux-toolkit:docs/api/createSlice.mdx'
+  - 'reduxjs/redux-toolkit:docs/api/combineSlices.mdx'
+  - 'reduxjs/redux-toolkit:docs/api/createEntityAdapter.mdx'
+  - 'reduxjs/redux-toolkit:docs/usage/immer-reducers.md'
+  - 'reduxjs/redux-toolkit:docs/usage/migrating-rtk-2.md'
+  - 'reduxjs/redux:docs/style-guide/style-guide.md'
 ---
 
 # Build Slices And Selectors
@@ -49,13 +49,19 @@ export const postsSlice = createAppSlice({
   name: 'posts',
   initialState,
   reducers: (create) => ({
-    postAdded: create.reducer<{ id: string; title: string }>((state, action) => {
-      state.items.push({ ...action.payload, published: false })
-    }),
+    postAdded: create.reducer<{ id: string; title: string }>(
+      (state, action) => {
+        state.items.push({ ...action.payload, published: false })
+      },
+    ),
     fetchPosts: create.asyncThunk(
       async () => {
         const response = await fetch('/api/posts')
-        return (await response.json()) as { id: string; title: string; published: boolean }[]
+        return (await response.json()) as {
+          id: string
+          title: string
+          published: boolean
+        }[]
       },
       {
         pending: (state) => {
@@ -145,7 +151,10 @@ const createAppSlice = buildCreateSlice({
 
 const usersSlice = createAppSlice({
   name: 'users',
-  initialState: { items: [] as { id: string; name: string }[], status: 'idle' as 'idle' | 'pending' | 'failed' },
+  initialState: {
+    items: [] as { id: string; name: string }[],
+    status: 'idle' as 'idle' | 'pending' | 'failed',
+  },
   reducers: (create) => ({
     fetchUsers: create.asyncThunk(
       async () => {
@@ -253,7 +262,10 @@ Source: reduxjs/redux-toolkit:docs/usage/immer-reducers.md
 Wrong:
 
 ```ts
-export default function todosReducer(state = initialState, action: { type: string; payload?: Todo }) {
+export default function todosReducer(
+  state = initialState,
+  action: { type: string; payload?: Todo },
+) {
   switch (action.type) {
     case 'todos/todoAdded':
       return state.concat(action.payload as Todo)

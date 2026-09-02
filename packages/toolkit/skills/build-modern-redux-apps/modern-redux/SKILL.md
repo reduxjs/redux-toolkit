@@ -6,16 +6,16 @@ description: >
   hooks-first React-Redux usage, feature folders, and the correct store lifetime
   for SPA and SSR-heavy React environments.
 type: lifecycle
-library: "@reduxjs/toolkit"
-library_version: "2.11.2"
+library: '@reduxjs/toolkit'
+library_version: '2.11.2'
 requires:
   - build-modern-redux-apps/redux-dataflow
 sources:
-  - "reduxjs/redux-toolkit:docs/tutorials/quick-start.mdx"
-  - "reduxjs/redux-toolkit:docs/tutorials/typescript.md"
-  - "reduxjs/redux-toolkit:docs/usage/migrating-to-modern-redux.mdx"
-  - "reduxjs/redux-toolkit:docs/usage/nextjs.mdx"
-  - "reduxjs/redux:docs/style-guide/style-guide.md"
+  - 'reduxjs/redux-toolkit:docs/tutorials/quick-start.mdx'
+  - 'reduxjs/redux-toolkit:docs/tutorials/typescript.md'
+  - 'reduxjs/redux-toolkit:docs/usage/migrating-to-modern-redux.mdx'
+  - 'reduxjs/redux-toolkit:docs/usage/nextjs.mdx'
+  - 'reduxjs/redux:docs/style-guide/style-guide.md'
 ---
 
 # Modern Redux
@@ -97,9 +97,7 @@ export function PostsList() {
 
   return (
     <button
-      onClick={() =>
-        dispatch(postAdded({ id: 'p2', title: 'Write docs' }))
-      }
+      onClick={() => dispatch(postAdded({ id: 'p2', title: 'Write docs' }))}
     >
       {posts.length}
     </button>
@@ -128,7 +126,7 @@ export type RootState = ReturnType<AppStore['getState']>
 export type AppDispatch = AppStore['dispatch']
 
 // file: src/app/StoreProvider.tsx
-'use client'
+;('use client')
 
 import { useState, type ReactNode } from 'react'
 import { Provider } from 'react-redux'
@@ -204,7 +202,10 @@ const mapState = (state: { counter: { value: number } }) => ({
 })
 const mapDispatch = { increment }
 
-function Counter({ value, increment }: ReturnType<typeof mapState> & typeof mapDispatch) {
+function Counter({
+  value,
+  increment,
+}: ReturnType<typeof mapState> & typeof mapDispatch) {
   return <button onClick={() => increment()}>{value}</button>
 }
 
@@ -239,7 +240,11 @@ Wrong:
 import { Provider } from 'react-redux'
 import { makeStore } from '../lib/store'
 
-export function StoreProvider({ children }: { children: import('react').ReactNode }) {
+export function StoreProvider({
+  children,
+}: {
+  children: import('react').ReactNode
+}) {
   const store = makeStore()
   return <Provider store={store}>{children}</Provider>
 }
@@ -254,7 +259,11 @@ import { useState } from 'react'
 import { Provider } from 'react-redux'
 import { makeStore } from '../lib/store'
 
-export function StoreProvider({ children }: { children: import('react').ReactNode }) {
+export function StoreProvider({
+  children,
+}: {
+  children: import('react').ReactNode
+}) {
   const [store] = useState(makeStore)
   return <Provider store={store}>{children}</Provider>
 }

@@ -6,15 +6,15 @@ description: >
   createSlice, codemod-assisted RTK 2 updates, and replacing server-data stacks
   with RTK Query instead of writing new legacy Redux code.
 type: lifecycle
-library: "@reduxjs/toolkit"
-library_version: "2.11.2"
+library: '@reduxjs/toolkit'
+library_version: '2.11.2'
 requires:
   - build-modern-redux-apps/modern-redux
 sources:
-  - "reduxjs/redux-toolkit:docs/usage/migrating-to-modern-redux.mdx"
-  - "reduxjs/redux-toolkit:docs/usage/migrating-rtk-2.md"
-  - "reduxjs/redux-toolkit:packages/rtk-codemods/README.md"
-  - "reduxjs/redux:docs/style-guide/style-guide.md"
+  - 'reduxjs/redux-toolkit:docs/usage/migrating-to-modern-redux.mdx'
+  - 'reduxjs/redux-toolkit:docs/usage/migrating-rtk-2.md'
+  - 'reduxjs/redux-toolkit:packages/rtk-codemods/README.md'
+  - 'reduxjs/redux:docs/style-guide/style-guide.md'
 ---
 
 # Migrate To Modern Redux
@@ -174,8 +174,7 @@ Correct:
 ```ts
 configureStore({
   reducer,
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(logger),
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(logger),
 })
 ```
 

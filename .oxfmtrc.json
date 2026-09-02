@@ -1,0 +1,45 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "semi": false,
+  "singleQuote": true,
+  "printWidth": 80,
+  "sortPackageJson": false,
+  "ignorePatterns": [
+    "**/dist/**",
+    "**/etc/**",
+    "**/temp/**",
+    "**/__testfixtures__/**",
+    "examples/publish-ci/**",
+    ".yarn/**",
+    "**/mockServiceWorker.js",
+    "packages/rtk-query-codegen-openapi/test/fixtures/**"
+  ],
+  "overrides": [
+    {
+      "files": ["packages/rtk-query-codegen-openapi/**"],
+      "options": {
+        "printWidth": 120,
+        "semi": true,
+        "singleQuote": true,
+        "trailingComma": "es5"
+      }
+    },
+    {
+      "files": ["packages/rtk-codemods/**"],
+      "options": {
+        "printWidth": 80,
+        "semi": false,
+        "singleQuote": true,
+        "trailingComma": "none"
+      }
+    },
+    {
+      "files": ["examples/query/react/infinite-queries/**"],
+      "options": {
+        "semi": false,
+        "singleQuote": false,
+        "arrowParens": "avoid"
+      }
+    }
+  ]
+}

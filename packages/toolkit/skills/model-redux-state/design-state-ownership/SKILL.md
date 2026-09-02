@@ -5,12 +5,12 @@ description: >
   state, or another external source. Covers state ownership, authority
   boundaries, slice sizing, and when to move or split data as the app evolves.
 type: core
-library: "@reduxjs/toolkit"
-library_version: "2.11.2"
+library: '@reduxjs/toolkit'
+library_version: '2.11.2'
 sources:
-  - "reduxjs/redux:docs/style-guide/style-guide.md"
-  - "reduxjs/redux:docs/tutorials/essentials/part-2-app-structure.md"
-  - "reduxjs/redux:docs/tutorials/essentials/part-4-using-data.md"
+  - 'reduxjs/redux:docs/style-guide/style-guide.md'
+  - 'reduxjs/redux:docs/tutorials/essentials/part-2-app-structure.md'
+  - 'reduxjs/redux:docs/tutorials/essentials/part-4-using-data.md'
 ---
 
 # Design State Ownership
@@ -110,9 +110,7 @@ const selectPosts = (state: RootState) => state.posts.items
 const selectVisiblePosts = createSelector(
   [selectPosts, (_state: RootState, filter: string) => filter],
   (posts, filter) =>
-    filter === 'published'
-      ? posts.filter((post) => post.published)
-      : posts,
+    filter === 'published' ? posts.filter((post) => post.published) : posts,
 )
 
 export function PostsList() {
@@ -160,7 +158,8 @@ Wrong:
 ```tsx
 import { useAppSelector } from '../../app/hooks'
 
-const selectDraftTitle = (state: { draft: { title: string } }) => state.draft.title
+const selectDraftTitle = (state: { draft: { title: string } }) =>
+  state.draft.title
 
 const title = useAppSelector(selectDraftTitle)
 ```
@@ -190,9 +189,9 @@ function PostsPage() {
   const [searchParams] = useSearchParams()
   const dispatch = useAppDispatch()
 
-useEffect(() => {
-  dispatch(filterChanged(searchParams.get('filter') ?? 'all'))
-}, [dispatch, searchParams])
+  useEffect(() => {
+    dispatch(filterChanged(searchParams.get('filter') ?? 'all'))
+  }, [dispatch, searchParams])
 
   return null
 }

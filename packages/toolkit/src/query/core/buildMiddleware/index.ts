@@ -118,7 +118,7 @@ export function buildMiddleware<
           res = internalProbeResult
         }
 
-        if (!!mwApi.getState()[reducerPath]) {
+        if (mwApi.getState()[reducerPath]) {
           // Only run these checks if the middleware is registered okay
 
           // This looks for actions that aren't specific to the API slice

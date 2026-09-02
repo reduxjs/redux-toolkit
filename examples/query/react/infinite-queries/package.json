@@ -9,7 +9,7 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "format": "prettier --write .",
+    "format": "oxfmt .",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
     "type-check": "tsc --noEmit"
@@ -34,8 +34,7 @@
     "@vitejs/plugin-react": "^5",
     "jsdom": "^23.2.0",
     "msw": "^2.6.6",
-    "prettier": "^3.2.1",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.3",
     "vite": "^7",
     "vitest": "^4"
   },

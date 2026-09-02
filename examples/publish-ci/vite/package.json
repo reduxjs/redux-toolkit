@@ -6,9 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "serve-app": "yarn serve -s dist",
+    "serve-app": "pnpm exec serve -s dist",
     "check-bundle": "node ../scripts/check-bundled-modules.mjs dist",
-    "test": "yarn check-bundle && yarn playwright test",
+    "test": "pnpm check-bundle && pnpm exec playwright test",
     "format": "prettier --write \"./src/**/*.{ts,tsx}\" \"**/*.md\""
   },
   "dependencies": {
@@ -35,5 +35,6 @@
   },
   "msw": {
     "workerDirectory": "public"
-  }
+  },
+  "packageManager": "pnpm@11.22.0"
 }

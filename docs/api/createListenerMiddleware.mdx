@@ -467,9 +467,7 @@ export type TaskCancelled = {
 }
 
 export type TaskResult<Value> =
-  | TaskResolved<Value>
-  | TaskRejected
-  | TaskCancelled
+  TaskResolved<Value> | TaskRejected | TaskCancelled
 
 export interface ForkedTask<T> {
   result: Promise<TaskResult<T>>
