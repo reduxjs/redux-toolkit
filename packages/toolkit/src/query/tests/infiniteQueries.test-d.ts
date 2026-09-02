@@ -139,10 +139,15 @@ describe('Infinite queries', () => {
         data,
         currentData,
         isFetching,
+        isFetchNextPageError,
+        isFetchPreviousPageError,
         isUninitialized,
         isSuccess,
         fetchNextPage,
       } = useGetInfinitePokemonQuery('a')
+
+      expectTypeOf(isFetchNextPageError).toBeBoolean()
+      expectTypeOf(isFetchPreviousPageError).toBeBoolean()
 
       expectTypeOf(data).toEqualTypeOf<
         InfiniteData<Pokemon[], number> | undefined
