@@ -1,0 +1,94 @@
+import type { Check, SizeLimitConfig } from 'size-limit'
+import type { Configuration } from 'webpack'
+import packageJson from './package.json' with { type: 'json' }
+
+/**
+ * An array of all possible Node environments.
+ */
+const allNodeEnvs = ['production'] as const
+
+const allPackageEntryPoints = [
+  './dist/redux-toolkit.modern.mjs',
+  './dist/react/redux-toolkit-react.modern.mjs',
+  './dist/query/rtk-query.modern.mjs',
+  './dist/query/react/rtk-query-react.modern.mjs',
+] as const satisfies string[]
+
+const peerAndProductionDependencies = Object.keys({
+  ...packageJson.dependencies,
+  ...packageJson.peerDependencies,
+} as const)
+
+/**
+ * The package's own entry points, which the built bundles import from each
+ * other. Ignoring them makes each entry point measure only its own code, and
+ * stops webpack resolving those specifiers back through the workspace into
+ * `src`, where it would try to bundle TypeScript source.
+ */
+const packageSelfReferences = Object.keys(packageJson.exports)
+  .filter((subpath) => subpath !== './package.json')
+  .map((subpath) => subpath.replace(/^\./, packageJson.name))
+
+const sizeLimitConfig: SizeLimitConfig = (
+  await Promise.all(
+    allNodeEnvs.flatMap((nodeEnv) => {
+      const modifyWebpackConfig = (<T extends Configuration>(config?: T): T =>
+        ({
+          ...(config ?? {}),
+          optimization: {
+            ...config?.optimization,
+            nodeEnv,
+          },
+        }) as T) satisfies Check['modifyWebpackConfig']
+
+      return allPackageEntryPoints.map(async (entryPoint, index) => {
+        const allNamedImports = Object.keys(await import(entryPoint)).filter(
+          (namedImport) => namedImport !== 'default',
+        )
+
+        const sizeLimitConfigWithDependencies = [
+          ...allNamedImports.map(
+            (namedImport, namedImportIndex) =>
+              ({
+                path: entryPoint,
+                name: `${(index + 1).toString()}-${(namedImportIndex + 1).toString()}. import { ${namedImport} } from '${entryPoint}' ('${nodeEnv}' mode)`,
+                import: `{ ${namedImport} }`,
+                modifyWebpackConfig,
+              }) as const satisfies Check,
+          ),
+          {
+            path: entryPoint,
+            name: `${(index + 1).toString()}-${(allNamedImports.length + 1).toString()}. import * from '${entryPoint}' ('${nodeEnv}' mode)`,
+            import: '*',
+            modifyWebpackConfig,
+          },
+          {
+            path: entryPoint,
+            name: `${(index + 1).toString()}-${(allNamedImports.length + 2).toString()}. import '${entryPoint}' ('${nodeEnv}' mode)`,
+            modifyWebpackConfig,
+          },
+        ] as const satisfies SizeLimitConfig
+
+        const sizeLimitConfigWithoutDependencies =
+          sizeLimitConfigWithDependencies.map(
+            (check) =>
+              ({
+                ...check,
+                name: `${check.name} (excluding dependencies)`,
+                ignore: [
+                  ...packageSelfReferences,
+                  ...peerAndProductionDependencies,
+                ],
+              }) as const satisfies Check,
+          )
+
+        return [
+          // ...sizeLimitConfigWithDependencies,
+          ...sizeLimitConfigWithoutDependencies,
+        ]
+      })
+    }),
+  )
+).flat()
+
+export default sizeLimitConfig
