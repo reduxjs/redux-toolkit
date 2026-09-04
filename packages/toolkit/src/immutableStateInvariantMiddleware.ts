@@ -36,13 +36,20 @@ function trackProperties(
   ignoredPaths: IgnoredPaths = [],
   obj: Record<string, any>,
   path: string = '',
-  checkedObjects: Set<Record<string, any>> = new Set(),
+  inProgress: Map<Record<string, any>, TrackedProperty> = new Map(),
 ) {
   const tracked: Partial<TrackedProperty> = { value: obj }
 
-  if (!isImmutable(obj) && !checkedObjects.has(obj)) {
-    checkedObjects.add(obj)
+  if (!isImmutable(obj)) {
+    // An object already being tracked further up the stack contains itself
+    const alreadyInProgress = inProgress.get(obj)
+    if (alreadyInProgress) {
+      return alreadyInProgress
+    }
+
     tracked.children = {}
+    // Registered before walking children, so a circular reference finds it
+    inProgress.set(obj, tracked as TrackedProperty)
 
     const hasIgnoredPaths = ignoredPaths.length > 0
 
@@ -66,8 +73,11 @@ function trackProperties(
         ignoredPaths,
         obj[key],
         nestedPath,
+        inProgress,
       )
     }
+
+    inProgress.delete(obj)
   }
   return tracked as TrackedProperty
 }
@@ -79,6 +89,7 @@ function detectMutations(
   obj: any,
   sameParentRef: boolean = false,
   path: string = '',
+  seen: Map<TrackedProperty, Set<unknown>> = new Map(),
 ): { wasMutated: boolean; path?: string } {
   const prevObj = trackedProperty ? trackedProperty.value : undefined
 
@@ -91,6 +102,18 @@ function detectMutations(
   if (isImmutable(prevObj) || isImmutable(obj)) {
     return { wasMutated: false }
   }
+
+  // Compare each (tracked node, value) pair once, so cycles terminate
+  let seenValues = seen.get(trackedProperty)
+
+  if (!seenValues) {
+    seenValues = new Set()
+    seen.set(trackedProperty, seenValues)
+  } else if (seenValues.has(obj)) {
+    return { wasMutated: false }
+  }
+
+  seenValues.add(obj)
 
   // Gather all keys from prev (tracked) and after objs
   const keysToDetect: Record<string, boolean> = {}
@@ -125,6 +148,7 @@ function detectMutations(
       obj[key],
       sameRef,
       nestedPath,
+      seen,
     )
 
     if (result.wasMutated) {
