@@ -142,11 +142,26 @@ describe('Infinite queries', () => {
         isUninitialized,
         isSuccess,
         fetchNextPage,
+        hasNextPage,
+        hasPreviousPage,
+        isFetchingNextPage,
+        isFetchingPreviousPage,
+        isFetchNextPageError,
+        isFetchPreviousPageError,
       } = useGetInfinitePokemonQuery('a')
 
       expectTypeOf(data).toEqualTypeOf<
         InfiniteData<Pokemon[], number> | undefined
       >()
+
+      // The hook result should expose the same infinite-query flags the
+      // core selector computes at runtime, including the error flags.
+      expectTypeOf(hasNextPage).toBeBoolean()
+      expectTypeOf(hasPreviousPage).toBeBoolean()
+      expectTypeOf(isFetchingNextPage).toBeBoolean()
+      expectTypeOf(isFetchingPreviousPage).toBeBoolean()
+      expectTypeOf(isFetchNextPageError).toBeBoolean()
+      expectTypeOf(isFetchPreviousPageError).toBeBoolean()
 
       if (isSuccess) {
         expectTypeOf(data.pages).toEqualTypeOf<Pokemon[][]>()
