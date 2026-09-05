@@ -15,12 +15,12 @@ import type {
 export type BaseThunkAPI<
   S,
   E,
-  D extends Dispatch = Dispatch,
+  DispatchType extends Dispatch = Dispatch,
   RejectedValue = unknown,
   RejectedMeta = unknown,
   FulfilledMeta = unknown,
 > = {
-  dispatch: D
+  dispatch: DispatchType
   getState: () => S
   extra: E
   requestId: string
@@ -118,19 +118,21 @@ export type AsyncThunkConfig = {
 }
 
 export type GetState<ThunkApiConfig> = ThunkApiConfig extends {
-  state: infer State
+  state: infer InferredStateType
 }
-  ? State
+  ? InferredStateType
   : unknown
 
-type GetExtra<ThunkApiConfig> = ThunkApiConfig extends { extra: infer Extra }
-  ? Extra
+type GetExtra<ThunkApiConfig> = ThunkApiConfig extends {
+  extra: infer InferredExtraType
+}
+  ? InferredExtraType
   : unknown
 type GetDispatch<ThunkApiConfig> = ThunkApiConfig extends {
-  dispatch: infer Dispatch
+  dispatch: infer InferredDispatchType
 }
   ? FallbackIfUnknown<
-      Dispatch,
+      InferredDispatchType,
       ThunkDispatch<
         GetState<ThunkApiConfig>,
         GetExtra<ThunkApiConfig>,
@@ -153,33 +155,33 @@ export type GetThunkAPI<ThunkApiConfig> = BaseThunkAPI<
 >
 
 type GetRejectValue<ThunkApiConfig> = ThunkApiConfig extends {
-  rejectValue: infer RejectValue
+  rejectValue: infer InferredRejectValueType
 }
-  ? RejectValue
+  ? InferredRejectValueType
   : unknown
 
 type GetPendingMeta<ThunkApiConfig> = ThunkApiConfig extends {
-  pendingMeta: infer PendingMeta
+  pendingMeta: infer InferredPendingMetaType
 }
-  ? PendingMeta
+  ? InferredPendingMetaType
   : unknown
 
 type GetFulfilledMeta<ThunkApiConfig> = ThunkApiConfig extends {
-  fulfilledMeta: infer FulfilledMeta
+  fulfilledMeta: infer InferredFulfilledMetaType
 }
-  ? FulfilledMeta
+  ? InferredFulfilledMetaType
   : unknown
 
 type GetRejectedMeta<ThunkApiConfig> = ThunkApiConfig extends {
-  rejectedMeta: infer RejectedMeta
+  rejectedMeta: infer InferredRejectedMetaType
 }
-  ? RejectedMeta
+  ? InferredRejectedMetaType
   : unknown
 
 type GetSerializedErrorType<ThunkApiConfig> = ThunkApiConfig extends {
-  serializedErrorType: infer GetSerializedErrorType
+  serializedErrorType: infer InferredSerializedErrorType
 }
-  ? GetSerializedErrorType
+  ? InferredSerializedErrorType
   : SerializedError
 
 type MaybePromise<T> = T | Promise<T> | (T extends any ? Promise<T> : never)

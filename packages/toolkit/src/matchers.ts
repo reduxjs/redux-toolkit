@@ -197,8 +197,12 @@ export type UnknownAsyncThunkRejectedWithValueAction = ReturnType<
 
 export type RejectedWithValueActionFromAsyncThunk<T extends AnyAsyncThunk> =
   ActionFromMatcher<T['rejected']> &
-    (T extends AsyncThunk<any, any, { rejectValue: infer RejectedValue }>
-      ? { payload: RejectedValue }
+    (T extends AsyncThunk<
+      any,
+      any,
+      { rejectValue: infer InferredRejectedValueType }
+    >
+      ? { payload: InferredRejectedValueType }
       : unknown)
 
 /**

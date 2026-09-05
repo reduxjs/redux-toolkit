@@ -53,7 +53,8 @@ type InjectIntoConfig<NewReducerPath extends string> = InjectConfig & {
  */
 export interface Slice<
   State = any,
-  CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
+  SliceCaseReducersType extends SliceCaseReducers<State> =
+    SliceCaseReducers<State>,
   Name extends string = string,
   ReducerPath extends string = Name,
   Selectors extends SliceSelectors<State> = SliceSelectors<State>,
@@ -77,13 +78,13 @@ export interface Slice<
    * Action creators for the types of actions that are handled by the slice
    * reducer.
    */
-  actions: CaseReducerActions<CaseReducers, Name>
+  actions: CaseReducerActions<SliceCaseReducersType, Name>
 
   /**
    * The individual case reducer functions that were passed in the `reducers` parameter.
    * This enables reuse and testing if they were defined inline when calling `createSlice`.
    */
-  caseReducers: SliceDefinedCaseReducers<CaseReducers>
+  caseReducers: SliceDefinedCaseReducers<SliceCaseReducersType>
 
   /**
    * Provides access to the initial state value given to the slice.
@@ -124,7 +125,13 @@ export interface Slice<
       ) => void
     },
     config?: InjectIntoConfig<NewReducerPath>,
-  ): InjectedSlice<State, CaseReducers, Name, NewReducerPath, Selectors>
+  ): InjectedSlice<
+    State,
+    SliceCaseReducersType,
+    Name,
+    NewReducerPath,
+    Selectors
+  >
 
   /**
    * Select the slice state, using the slice's current reducerPath.
@@ -141,12 +148,13 @@ export interface Slice<
  */
 type InjectedSlice<
   State = any,
-  CaseReducers extends SliceCaseReducers<State> = SliceCaseReducers<State>,
+  SliceCaseReducersType extends SliceCaseReducers<State> =
+    SliceCaseReducers<State>,
   Name extends string = string,
   ReducerPath extends string = Name,
   Selectors extends SliceSelectors<State> = SliceSelectors<State>,
 > = Omit<
-  Slice<State, CaseReducers, Name, ReducerPath, Selectors>,
+  Slice<State, SliceCaseReducersType, Name, ReducerPath, Selectors>,
   'getSelectors' | 'selectors'
 > & {
   /**
@@ -290,9 +298,12 @@ export type CaseReducerDefinition<
  *
  * @public
  */
-export type CaseReducerWithPrepare<State, Action extends PayloadAction> = {
-  reducer: CaseReducer<State, Action>
-  prepare: PrepareAction<Action['payload']>
+export type CaseReducerWithPrepare<
+  State,
+  PayloadActionType extends PayloadAction,
+> = {
+  reducer: CaseReducer<State, PayloadActionType>
+  prepare: PrepareAction<PayloadActionType['payload']>
 }
 
 export interface CaseReducerWithPrepareDefinition<
@@ -434,29 +445,33 @@ type SliceActionType<
  * @public
  */
 export type CaseReducerActions<
-  CaseReducers extends SliceCaseReducers<any>,
+  SliceCaseReducersType extends SliceCaseReducers<any>,
   SliceName extends string,
 > = {
-  [Type in keyof CaseReducers]: CaseReducers[Type] extends infer Definition
-    ? Definition extends { prepare: any }
+  [Type in keyof SliceCaseReducersType]: SliceCaseReducersType[Type] extends infer InferredDefinitionType
+    ? InferredDefinitionType extends { prepare: any }
       ? ActionCreatorForCaseReducerWithPrepare<
-          Definition,
+          InferredDefinitionType,
           SliceActionType<SliceName, Type>
         >
-      : Definition extends AsyncThunkSliceReducerDefinition<
+      : InferredDefinitionType extends AsyncThunkSliceReducerDefinition<
             any,
-            infer ThunkArg,
-            infer Returned,
-            infer ThunkApiConfig
+            infer InferredThunkArgType,
+            infer InferredReturnedType,
+            infer InferredThunkApiConfigType
           >
-        ? AsyncThunk<Returned, ThunkArg, ThunkApiConfig>
-        : Definition extends { reducer: any }
+        ? AsyncThunk<
+            InferredReturnedType,
+            InferredThunkArgType,
+            InferredThunkApiConfigType
+          >
+        : InferredDefinitionType extends { reducer: any }
           ? ActionCreatorForCaseReducer<
-              Definition['reducer'],
+              InferredDefinitionType['reducer'],
               SliceActionType<SliceName, Type>
             >
           : ActionCreatorForCaseReducer<
-              Definition,
+              InferredDefinitionType,
               SliceActionType<SliceName, Type>
             >
     : never
@@ -477,14 +492,14 @@ type ActionCreatorForCaseReducerWithPrepare<
  *
  * @internal
  */
-type ActionCreatorForCaseReducer<CR, Type extends string> = CR extends (
+type ActionCreatorForCaseReducer<CR, ActionType extends string> = CR extends (
   state: any,
-  action: infer Action,
+  action: infer InferredActionType,
 ) => any
-  ? Action extends { payload: infer P }
-    ? PayloadActionCreator<P, Type>
-    : ActionCreatorWithoutPayload<Type>
-  : ActionCreatorWithoutPayload<Type>
+  ? InferredActionType extends { payload: infer InferredPayloadType }
+    ? PayloadActionCreator<InferredPayloadType, ActionType>
+    : ActionCreatorWithoutPayload<ActionType>
+  : ActionCreatorWithoutPayload<ActionType>
 
 /**
  * Extracts the CaseReducers out of a `reducers` object, even if they are
@@ -492,26 +507,38 @@ type ActionCreatorForCaseReducer<CR, Type extends string> = CR extends (
  *
  * @internal
  */
-type SliceDefinedCaseReducers<CaseReducers extends SliceCaseReducers<any>> = {
-  [Type in keyof CaseReducers]: CaseReducers[Type] extends infer Definition
-    ? Definition extends AsyncThunkSliceReducerDefinition<any, any, any>
+type SliceDefinedCaseReducers<
+  SliceCaseReducersType extends SliceCaseReducers<any>,
+> = {
+  [SliceCaseReducersKeyType in keyof SliceCaseReducersType]: SliceCaseReducersType[SliceCaseReducersKeyType] extends infer InferredDefinitionType
+    ? InferredDefinitionType extends AsyncThunkSliceReducerDefinition<
+        any,
+        any,
+        any
+      >
       ? Id<
           Pick<
-            Required<Definition>,
+            Required<InferredDefinitionType>,
             'fulfilled' | 'rejected' | 'pending' | 'settled'
           >
         >
-      : Definition extends {
-            reducer: infer Reducer
+      : InferredDefinitionType extends {
+            reducer: infer InferredReducerType
           }
-        ? Reducer
-        : Definition
+        ? InferredReducerType
+        : InferredDefinitionType
     : never
 }
 
 type RemappedSelector<S extends Selector, NewState> =
-  S extends Selector<any, infer R, infer P>
-    ? Selector<NewState, R, P> & { unwrapped: S }
+  S extends Selector<
+    any,
+    infer InferredResultType,
+    infer InferredParametersType
+  >
+    ? Selector<NewState, InferredResultType, InferredParametersType> & {
+        unwrapped: S
+      }
     : never
 
 /**
@@ -520,13 +547,15 @@ type RemappedSelector<S extends Selector, NewState> =
  * Removes the `string` index signature from the default value.
  */
 type SliceDefinedSelectors<
-  State,
-  Selectors extends SliceSelectors<State>,
-  RootState,
+  StateType,
+  SliceSelectorsType extends SliceSelectors<StateType>,
+  RootStateType,
 > = {
-  [K in keyof Selectors as string extends K ? never : K]: RemappedSelector<
-    Selectors[K],
-    RootState
+  [SliceSelectorNameType in keyof SliceSelectorsType as string extends SliceSelectorNameType
+    ? never
+    : SliceSelectorNameType]: RemappedSelector<
+    SliceSelectorsType[SliceSelectorNameType],
+    RootStateType
   >
 }
 
@@ -543,14 +572,14 @@ type SliceDefinedSelectors<
  * @public
  */
 export type ValidateSliceCaseReducers<
-  S,
-  ACR extends SliceCaseReducers<S>,
+  StateType,
+  ACR extends SliceCaseReducers<StateType>,
 > = ACR & {
-  [T in keyof ACR]: ACR[T] extends {
-    reducer(s: S, action?: infer A): any
+  [SliceCaseReducersKeyType in keyof ACR]: ACR[SliceCaseReducersKeyType] extends {
+    reducer(s: StateType, action?: infer InferredActionType): any
   }
     ? {
-        prepare(...a: never[]): Omit<A, 'type'>
+        prepare(...a: never[]): Omit<InferredActionType, 'type'>
       }
     : {}
 }
@@ -569,19 +598,19 @@ export function buildCreateSlice({ creators }: BuildCreateSliceConfig = {}) {
   const cAT = creators?.asyncThunk?.[asyncThunkSymbol]
   return function createSlice<
     State,
-    CaseReducers extends SliceCaseReducers<State>,
+    SliceCaseReducersType extends SliceCaseReducers<State>,
     Name extends string,
     Selectors extends SliceSelectors<State>,
     ReducerPath extends string = Name,
   >(
     options: CreateSliceOptions<
       State,
-      CaseReducers,
+      SliceCaseReducersType,
       Name,
       ReducerPath,
       Selectors
     >,
-  ): Slice<State, CaseReducers, Name, ReducerPath, Selectors> {
+  ): Slice<State, SliceCaseReducersType, Name, ReducerPath, Selectors> {
     const { name, reducerPath = name as unknown as ReducerPath } = options
     if (!name) {
       throw new Error('`name` is a required option for createSlice')
@@ -740,7 +769,7 @@ export function buildCreateSlice({ creators }: BuildCreateSliceConfig = {}) {
       reducerPath: CurrentReducerPath,
       injected = false,
     ): Pick<
-      Slice<State, CaseReducers, Name, CurrentReducerPath, Selectors>,
+      Slice<State, SliceCaseReducersType, Name, CurrentReducerPath, Selectors>,
       'getSelectors' | 'selectors' | 'selectSlice' | 'reducerPath'
     > {
       function selectSlice(state: { [K in CurrentReducerPath]: State }) {
@@ -800,7 +829,13 @@ export function buildCreateSlice({ creators }: BuildCreateSliceConfig = {}) {
       }
     }
 
-    const slice: Slice<State, CaseReducers, Name, ReducerPath, Selectors> = {
+    const slice: Slice<
+      State,
+      SliceCaseReducersType,
+      Name,
+      ReducerPath,
+      Selectors
+    > = {
       name,
       reducer,
       actions: context.actionCreators as any,
@@ -873,17 +908,17 @@ interface ReducerHandlingContextMethods<State> {
    * @param actionCreator - Either a plain action type string, or an action creator generated by [`createAction`](./createAction) that can be used to determine the action type.
    * @param reducer - The actual case reducer function.
    */
-  addCase<ActionCreator extends TypedActionCreator<string>>(
-    actionCreator: ActionCreator,
-    reducer: CaseReducer<State, ReturnType<ActionCreator>>,
+  addCase<ActionCreatorType extends TypedActionCreator<string>>(
+    actionCreator: ActionCreatorType,
+    reducer: CaseReducer<State, ReturnType<ActionCreatorType>>,
   ): ReducerHandlingContextMethods<State>
   /**
    * Adds a case reducer to handle a single action type.
    * @param actionCreator - Either a plain action type string, or an action creator generated by [`createAction`](./createAction) that can be used to determine the action type.
    * @param reducer - The actual case reducer function.
    */
-  addCase<Type extends string, A extends Action<Type>>(
-    type: Type,
+  addCase<ActionType extends string, A extends Action<ActionType>>(
+    type: ActionType,
     reducer: CaseReducer<State, A>,
   ): ReducerHandlingContextMethods<State>
 

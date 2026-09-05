@@ -35,8 +35,10 @@ export type ThunkMiddlewareFor<
   thunk: false
 }
   ? never
-  : O extends { thunk: { extraArgument: infer E } }
-    ? ThunkMiddleware<S, UnknownAction, E>
+  : O extends {
+        thunk: { extraArgument: infer InferredExtraArgumentType }
+      }
+    ? ThunkMiddleware<S, UnknownAction, InferredExtraArgumentType>
     : ThunkMiddleware<S, UnknownAction>
 
 export type GetDefaultMiddleware<S = any> = <

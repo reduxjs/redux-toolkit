@@ -7,9 +7,9 @@ import type {
   Update,
 } from './models'
 
-export function selectIdValue<T, Id extends EntityId>(
+export function selectIdValue<T, EntityIdType extends EntityId>(
   entity: T,
-  selectId: IdSelector<T, Id>,
+  selectId: IdSelector<T, EntityIdType>,
 ) {
   const key = selectId(entity)
 

@@ -103,11 +103,11 @@ export type Api<
       Definitions,
       TagTypes | NoInfer<NewTagTypes>,
       NewDefinitions
-    > extends infer NewDefinitions
+    > extends infer InferredNewEndpointDefinitionsType
       ? {
-          [K in keyof NewDefinitions]?:
-            | Partial<NewDefinitions[K]>
-            | ((definition: NewDefinitions[K]) => void)
+          [K in keyof InferredNewEndpointDefinitionsType]?:
+            | Partial<InferredNewEndpointDefinitionsType[K]>
+            | ((definition: InferredNewEndpointDefinitionsType[K]) => void)
         }
       : never
   }): Api<

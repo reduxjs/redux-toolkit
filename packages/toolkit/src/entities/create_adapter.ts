@@ -19,13 +19,13 @@ export function createEntityAdapter<T extends { id: EntityId }>(
  *
  * @public
  */
-export function createEntityAdapter<T>(
-  options: EntityAdapterOptions<T, EntityId> = {},
-): EntityAdapter<T, EntityId> {
+export function createEntityAdapter<EntityType>(
+  options: EntityAdapterOptions<EntityType, EntityId> = {},
+): EntityAdapter<EntityType, EntityId> {
   const {
     selectId,
     sortComparer,
-  }: Required<EntityAdapterOptions<T, EntityId>> = {
+  }: Required<EntityAdapterOptions<EntityType, EntityId>> = {
     sortComparer: false,
     selectId: (instance: any) => instance.id,
     ...options,
@@ -35,7 +35,7 @@ export function createEntityAdapter<T>(
     ? createSortedStateAdapter(selectId, sortComparer)
     : createUnsortedStateAdapter(selectId)
   const stateFactory = createInitialStateFactory(stateAdapter)
-  const selectorsFactory = createSelectorsFactory<T, EntityId>()
+  const selectorsFactory = createSelectorsFactory<EntityType, EntityId>()
 
   return {
     selectId,

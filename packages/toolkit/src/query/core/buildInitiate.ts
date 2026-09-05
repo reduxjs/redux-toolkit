@@ -181,8 +181,13 @@ export type MutationActionCreatorResult<
       error:
         | Exclude<
             BaseQueryError<
-              D extends MutationDefinition<any, infer BaseQuery, any, any>
-                ? BaseQuery
+              D extends MutationDefinition<
+                any,
+                infer InferredBaseQueryFunctionType,
+                any,
+                any
+              >
+                ? InferredBaseQueryFunctionType
                 : never
             >,
             undefined

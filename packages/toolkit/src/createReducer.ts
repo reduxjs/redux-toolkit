@@ -60,7 +60,9 @@ export type CaseReducer<S = any, A extends Action = UnknownAction> = (
  * @public
  */
 export type CaseReducers<S, AS extends Actions> = {
-  [T in keyof AS]: AS[T] extends Action ? CaseReducer<S, AS[T]> : void
+  [ActionsKeyType in keyof AS]: AS[ActionsKeyType] extends Action
+    ? CaseReducer<S, AS[ActionsKeyType]>
+    : void
 }
 
 export type NotFunction<T> = T extends Function ? never : T

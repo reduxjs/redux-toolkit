@@ -119,9 +119,9 @@ export type ApiMiddlewareInternalHandler<Return = void> = (
   prevState: RootState<EndpointDefinitions, string, string>,
 ) => Return
 
-export type InternalHandlerBuilder<ReturnType = void> = (
+export type InternalHandlerBuilder<MiddlewareReturnType = void> = (
   input: BuildSubMiddlewareInput,
-) => ApiMiddlewareInternalHandler<ReturnType>
+) => ApiMiddlewareInternalHandler<MiddlewareReturnType>
 
 export interface PromiseConstructorWithKnownReason {
   /**

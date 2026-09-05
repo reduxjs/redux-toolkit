@@ -93,66 +93,89 @@ export type ExcludeFromTuple<T, E, Acc extends unknown[] = []> = T extends [
   : Acc
 
 type ExtractDispatchFromMiddlewareTuple<
-  MiddlewareTuple extends readonly any[],
+  MiddlewareTupleType extends readonly any[],
   Acc extends {},
-> = MiddlewareTuple extends [infer Head, ...infer Tail]
+> = MiddlewareTupleType extends [infer Head, ...infer Tail]
   ? ExtractDispatchFromMiddlewareTuple<
       Tail,
-      Acc & (Head extends Middleware<infer D> ? IsAny<D, {}, D> : {})
+      Acc &
+        (Head extends Middleware<infer InferredDispatchExtensionType>
+          ? IsAny<
+              InferredDispatchExtensionType,
+              {},
+              InferredDispatchExtensionType
+            >
+          : {})
     >
   : Acc
 
-export type ExtractDispatchExtensions<M> =
-  M extends Tuple<infer MiddlewareTuple>
-    ? ExtractDispatchFromMiddlewareTuple<MiddlewareTuple, {}>
-    : M extends ReadonlyArray<Middleware>
-      ? ExtractDispatchFromMiddlewareTuple<[...M], {}>
+export type ExtractDispatchExtensions<MiddlewareTupleType> =
+  MiddlewareTupleType extends Tuple<infer InferredMiddlewareTupleType>
+    ? ExtractDispatchFromMiddlewareTuple<InferredMiddlewareTupleType, {}>
+    : MiddlewareTupleType extends ReadonlyArray<Middleware>
+      ? ExtractDispatchFromMiddlewareTuple<[...MiddlewareTupleType], {}>
       : never
 
 type ExtractStoreExtensionsFromEnhancerTuple<
-  EnhancerTuple extends readonly any[],
+  EnhancerTupleType extends readonly any[],
   Acc extends {},
-> = EnhancerTuple extends [infer Head, ...infer Tail]
+> = EnhancerTupleType extends [infer Head, ...infer Tail]
   ? ExtractStoreExtensionsFromEnhancerTuple<
       Tail,
-      Acc & (Head extends StoreEnhancer<infer Ext> ? IsAny<Ext, {}, Ext> : {})
+      Acc &
+        (Head extends StoreEnhancer<infer InferredStoreExtensionType>
+          ? IsAny<InferredStoreExtensionType, {}, InferredStoreExtensionType>
+          : {})
     >
   : Acc
 
-export type ExtractStoreExtensions<E> =
-  E extends Tuple<infer EnhancerTuple>
-    ? ExtractStoreExtensionsFromEnhancerTuple<EnhancerTuple, {}>
-    : E extends ReadonlyArray<StoreEnhancer>
+export type ExtractStoreExtensions<EnhancerTupleType> =
+  EnhancerTupleType extends Tuple<infer InferredEnhancerTupleType>
+    ? ExtractStoreExtensionsFromEnhancerTuple<InferredEnhancerTupleType, {}>
+    : EnhancerTupleType extends ReadonlyArray<StoreEnhancer>
       ? UnionToIntersection<
-          E[number] extends StoreEnhancer<infer Ext>
-            ? Ext extends {}
-              ? IsAny<Ext, {}, Ext>
+          EnhancerTupleType[number] extends StoreEnhancer<
+            infer InferredStoreExtensionType
+          >
+            ? InferredStoreExtensionType extends {}
+              ? IsAny<
+                  InferredStoreExtensionType,
+                  {},
+                  InferredStoreExtensionType
+                >
               : {}
             : {}
         >
       : never
 
 type ExtractStateExtensionsFromEnhancerTuple<
-  EnhancerTuple extends readonly any[],
+  EnhancerTupleType extends readonly any[],
   Acc extends {},
-> = EnhancerTuple extends [infer Head, ...infer Tail]
+> = EnhancerTupleType extends [infer Head, ...infer Tail]
   ? ExtractStateExtensionsFromEnhancerTuple<
       Tail,
       Acc &
-        (Head extends StoreEnhancer<any, infer StateExt>
-          ? IsAny<StateExt, {}, StateExt>
+        (Head extends StoreEnhancer<any, infer InferredStateExtensionType>
+          ? IsAny<InferredStateExtensionType, {}, InferredStateExtensionType>
           : {})
     >
   : Acc
 
-export type ExtractStateExtensions<E> =
-  E extends Tuple<infer EnhancerTuple>
-    ? ExtractStateExtensionsFromEnhancerTuple<EnhancerTuple, {}>
-    : E extends ReadonlyArray<StoreEnhancer>
+export type ExtractStateExtensions<EnhancerTupleType> =
+  EnhancerTupleType extends Tuple<infer InferredEnhancerTupleType>
+    ? ExtractStateExtensionsFromEnhancerTuple<InferredEnhancerTupleType, {}>
+    : EnhancerTupleType extends ReadonlyArray<StoreEnhancer>
       ? UnionToIntersection<
-          E[number] extends StoreEnhancer<any, infer StateExt>
-            ? StateExt extends {}
-              ? IsAny<StateExt, {}, StateExt>
+          EnhancerTupleType[number] extends StoreEnhancer<
+            any,
+            infer InferredStateExtensionType
+          >
+            ? InferredStateExtensionType extends {}
+              ? IsAny<
+                  InferredStateExtensionType,
+                  {},
+                  InferredStateExtensionType
+                >
               : {}
             : {}
         >

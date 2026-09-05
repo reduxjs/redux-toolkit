@@ -1554,7 +1554,14 @@ export function expandTagDescription(
 }
 
 export type QueryArgFrom<D extends BaseEndpointDefinition<any, any, any, any>> =
-  D extends BaseEndpointDefinition<infer QA, any, any, any> ? QA : never
+  D extends BaseEndpointDefinition<
+    infer InferredQueryArgumentType,
+    any,
+    any,
+    any
+  >
+    ? InferredQueryArgumentType
+    : never
 
 // Just extracting `QueryArg` from `BaseEndpointDefinition`
 // doesn't sufficiently match here.
@@ -1562,8 +1569,16 @@ export type QueryArgFrom<D extends BaseEndpointDefinition<any, any, any, any>> =
 export type InfiniteQueryArgFrom<
   D extends BaseEndpointDefinition<any, any, any, any>,
 > =
-  D extends InfiniteQueryDefinition<infer QA, any, any, any, any, any, any>
-    ? QA
+  D extends InfiniteQueryDefinition<
+    infer InferredQueryArgumentType,
+    any,
+    any,
+    any,
+    any,
+    any,
+    any
+  >
+    ? InferredQueryArgumentType
     : never
 
 export type QueryArgFromAnyQuery<
@@ -1577,27 +1592,54 @@ export type QueryArgFromAnyQuery<
 
 export type ResultTypeFrom<
   D extends BaseEndpointDefinition<any, any, any, any>,
-> = D extends BaseEndpointDefinition<any, any, infer RT, any> ? RT : unknown
+> =
+  D extends BaseEndpointDefinition<any, any, infer InferredResultType, any>
+    ? InferredResultType
+    : unknown
 
 export type ReducerPathFrom<
   D extends EndpointDefinition<any, any, any, any, any, any, any>,
 > =
-  D extends EndpointDefinition<any, any, any, any, infer RP, any, any>
-    ? RP
+  D extends EndpointDefinition<
+    any,
+    any,
+    any,
+    any,
+    infer InferredReducerPathType,
+    any,
+    any
+  >
+    ? InferredReducerPathType
     : unknown
 
 export type TagTypesFrom<
   D extends EndpointDefinition<any, any, any, any, any, any, any>,
 > =
-  D extends EndpointDefinition<any, any, infer TT, any, any, any, any>
-    ? TT
+  D extends EndpointDefinition<
+    any,
+    any,
+    infer InferredTagType,
+    any,
+    any,
+    any,
+    any
+  >
+    ? InferredTagType
     : unknown
 
 export type PageParamFrom<
   D extends InfiniteQueryDefinition<any, any, any, any, any, any, any>,
 > =
-  D extends InfiniteQueryDefinition<any, infer PP, any, any, any, any, any>
-    ? PP
+  D extends InfiniteQueryDefinition<
+    any,
+    infer InferredPageParamType,
+    any,
+    any,
+    any,
+    any,
+    any
+  >
+    ? InferredPageParamType
     : unknown
 
 export type InfiniteQueryCombinedArg<QueryArg, PageParam> = {
@@ -1606,61 +1648,71 @@ export type InfiniteQueryCombinedArg<QueryArg, PageParam> = {
 }
 
 export type TagTypesFromApi<T> =
-  T extends Api<any, any, any, infer TagTypes> ? TagTypes : never
+  T extends Api<any, any, any, infer InferredTagType> ? InferredTagType : never
 
 export type DefinitionsFromApi<T> =
-  T extends Api<any, infer Definitions, any, any> ? Definitions : never
+  T extends Api<any, infer InferredEndpointDefinitionsType, any, any>
+    ? InferredEndpointDefinitionsType
+    : never
 
 export type TransformedResponse<
   NewDefinitions extends EndpointDefinitions,
-  K,
+  NewEndpointNameType,
   ResultType,
-> = K extends keyof NewDefinitions
-  ? NewDefinitions[K]['transformResponse'] extends undefined
+> = NewEndpointNameType extends keyof NewDefinitions
+  ? NewDefinitions[NewEndpointNameType]['transformResponse'] extends undefined
     ? ResultType
     : UnwrapPromise<
-        ReturnType<NonUndefined<NewDefinitions[K]['transformResponse']>>
+        ReturnType<
+          NonUndefined<NewDefinitions[NewEndpointNameType]['transformResponse']>
+        >
       >
   : ResultType
 
 export type OverrideResultType<Definition, NewResultType> =
   Definition extends QueryDefinition<
-    infer QueryArg,
-    infer BaseQuery,
-    infer TagTypes,
+    infer InferredQueryArgumentType,
+    infer InferredBaseQueryFunctionType,
+    infer InferredTagType,
     any,
-    infer ReducerPath
+    infer InferredReducerPathType
   >
-    ? QueryDefinition<QueryArg, BaseQuery, TagTypes, NewResultType, ReducerPath>
+    ? QueryDefinition<
+        InferredQueryArgumentType,
+        InferredBaseQueryFunctionType,
+        InferredTagType,
+        NewResultType,
+        InferredReducerPathType
+      >
     : Definition extends MutationDefinition<
-          infer QueryArg,
-          infer BaseQuery,
-          infer TagTypes,
+          infer InferredQueryArgumentType,
+          infer InferredBaseQueryFunctionType,
+          infer InferredTagType,
           any,
-          infer ReducerPath
+          infer InferredReducerPathType
         >
       ? MutationDefinition<
-          QueryArg,
-          BaseQuery,
-          TagTypes,
+          InferredQueryArgumentType,
+          InferredBaseQueryFunctionType,
+          InferredTagType,
           NewResultType,
-          ReducerPath
+          InferredReducerPathType
         >
       : Definition extends InfiniteQueryDefinition<
-            infer QueryArg,
-            infer PageParam,
-            infer BaseQuery,
-            infer TagTypes,
+            infer InferredQueryArgumentType,
+            infer InferredPageParamType,
+            infer InferredBaseQueryFunctionType,
+            infer InferredTagType,
             any,
-            infer ReducerPath
+            infer InferredReducerPathType
           >
         ? InfiniteQueryDefinition<
-            QueryArg,
-            PageParam,
-            BaseQuery,
-            TagTypes,
+            InferredQueryArgumentType,
+            InferredPageParamType,
+            InferredBaseQueryFunctionType,
+            InferredTagType,
             NewResultType,
-            ReducerPath
+            InferredReducerPathType
           >
         : never
 
@@ -1669,49 +1721,61 @@ export type UpdateDefinitions<
   NewTagTypes extends string,
   NewDefinitions extends EndpointDefinitions,
 > = {
-  [K in keyof Definitions]: Definitions[K] extends QueryDefinition<
-    infer QueryArg,
-    infer BaseQuery,
+  [EndpointNameType in keyof Definitions]: Definitions[EndpointNameType] extends QueryDefinition<
+    infer InferredQueryArgumentType,
+    infer InferredBaseQueryFunctionType,
     any,
-    infer ResultType,
-    infer ReducerPath
+    infer InferredResultType,
+    infer InferredReducerPathType
   >
     ? QueryDefinition<
-        QueryArg,
-        BaseQuery,
+        InferredQueryArgumentType,
+        InferredBaseQueryFunctionType,
         NewTagTypes,
-        TransformedResponse<NewDefinitions, K, ResultType>,
-        ReducerPath
+        TransformedResponse<
+          NewDefinitions,
+          EndpointNameType,
+          InferredResultType
+        >,
+        InferredReducerPathType
       >
-    : Definitions[K] extends MutationDefinition<
-          infer QueryArg,
-          infer BaseQuery,
+    : Definitions[EndpointNameType] extends MutationDefinition<
+          infer InferredQueryArgumentType,
+          infer InferredBaseQueryFunctionType,
           any,
-          infer ResultType,
-          infer ReducerPath
+          infer InferredResultType,
+          infer InferredReducerPathType
         >
       ? MutationDefinition<
-          QueryArg,
-          BaseQuery,
+          InferredQueryArgumentType,
+          InferredBaseQueryFunctionType,
           NewTagTypes,
-          TransformedResponse<NewDefinitions, K, ResultType>,
-          ReducerPath
+          TransformedResponse<
+            NewDefinitions,
+            EndpointNameType,
+            InferredResultType
+          >,
+          InferredReducerPathType
         >
-      : Definitions[K] extends InfiniteQueryDefinition<
-            infer QueryArg,
-            infer PageParam,
-            infer BaseQuery,
+      : Definitions[EndpointNameType] extends InfiniteQueryDefinition<
+            infer InferredQueryArgumentType,
+            infer InferredPageParamType,
+            infer InferredBaseQueryFunctionType,
             any,
-            infer ResultType,
-            infer ReducerPath
+            infer InferredResultType,
+            infer InferredReducerPathType
           >
         ? InfiniteQueryDefinition<
-            QueryArg,
-            PageParam,
-            BaseQuery,
+            InferredQueryArgumentType,
+            InferredPageParamType,
+            InferredBaseQueryFunctionType,
             NewTagTypes,
-            TransformedResponse<NewDefinitions, K, ResultType>,
-            ReducerPath
+            TransformedResponse<
+              NewDefinitions,
+              EndpointNameType,
+              InferredResultType
+            >,
+            InferredReducerPathType
           >
         : never
 }

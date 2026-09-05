@@ -59,20 +59,20 @@ export type _ActionCreatorWithPreparedPayload<
   PA extends PrepareAction<any> | void,
   T extends string = string,
 > =
-  PA extends PrepareAction<infer P>
+  PA extends PrepareAction<infer InferredPreparedPayloadType>
     ? ActionCreatorWithPreparedPayload<
         Parameters<PA>,
-        P,
+        InferredPreparedPayloadType,
         T,
         ReturnType<PA> extends {
-          error: infer E
+          error: infer InferredErrorType
         }
-          ? E
+          ? InferredErrorType
           : never,
         ReturnType<PA> extends {
-          meta: infer M
+          meta: infer InferredMetaType
         }
-          ? M
+          ? InferredMetaType
           : never
       >
     : void

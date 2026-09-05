@@ -93,30 +93,46 @@ type EndpointThunk<
   Definition extends EndpointDefinition<any, any, any, any>,
 > =
   Definition extends EndpointDefinition<
-    infer QueryArg,
-    infer BaseQueryFn,
+    infer InferredQueryArgumentType,
+    infer InferredBaseQueryFunctionType,
     any,
-    infer ResultType
+    infer InferredResultType
   >
-    ? Thunk extends AsyncThunk<unknown, infer ATArg, infer ATConfig>
+    ? Thunk extends AsyncThunk<
+        unknown,
+        infer InferredAsyncThunkArgumentType,
+        infer InferredAsyncThunkConfigType
+      >
       ? AsyncThunk<
-          ResultType,
-          ATArg & { originalArgs: QueryArg },
-          ATConfig & { rejectValue: BaseQueryError<BaseQueryFn> }
+          InferredResultType,
+          InferredAsyncThunkArgumentType & {
+            originalArgs: InferredQueryArgumentType
+          },
+          InferredAsyncThunkConfigType & {
+            rejectValue: BaseQueryError<InferredBaseQueryFunctionType>
+          }
         >
       : never
     : Definition extends InfiniteQueryDefinition<
-          infer QueryArg,
-          infer PageParam,
-          infer BaseQueryFn,
+          infer InferredQueryArgumentType,
+          infer InferredPageParamType,
+          infer InferredBaseQueryFunctionType,
           any,
-          infer ResultType
+          infer InferredResultType
         >
-      ? Thunk extends AsyncThunk<unknown, infer ATArg, infer ATConfig>
+      ? Thunk extends AsyncThunk<
+          unknown,
+          infer InferredAsyncThunkArgumentType,
+          infer InferredAsyncThunkConfigType
+        >
         ? AsyncThunk<
-            InfiniteData<ResultType, PageParam>,
-            ATArg & { originalArgs: QueryArg },
-            ATConfig & { rejectValue: BaseQueryError<BaseQueryFn> }
+            InfiniteData<InferredResultType, InferredPageParamType>,
+            InferredAsyncThunkArgumentType & {
+              originalArgs: InferredQueryArgumentType
+            },
+            InferredAsyncThunkConfigType & {
+              rejectValue: BaseQueryError<InferredBaseQueryFunctionType>
+            }
           >
         : never
       : never

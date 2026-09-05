@@ -49,11 +49,11 @@ export function insert<T>(
   return sortedItems
 }
 
-export function createSortedStateAdapter<T, Id extends EntityId>(
-  selectId: IdSelector<T, Id>,
+export function createSortedStateAdapter<T, EntityIdType extends EntityId>(
+  selectId: IdSelector<T, EntityIdType>,
   comparer: Comparer<T>,
-): EntityStateAdapter<T, Id> {
-  type R = DraftableEntityState<T, Id>
+): EntityStateAdapter<T, EntityIdType> {
+  type R = DraftableEntityState<T, EntityIdType>
 
   const { removeOne, removeMany, removeAll } =
     createUnsortedStateAdapter(selectId)
@@ -63,14 +63,16 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
   }
 
   function addManyMutably(
-    newEntities: readonly T[] | Record<Id, T>,
+    newEntities: readonly T[] | Record<EntityIdType, T>,
     state: R,
-    existingIds?: Id[],
+    existingIds?: EntityIdType[],
   ): void {
     newEntities = ensureEntitiesArray(newEntities)
 
-    const existingKeys = new Set<Id>(existingIds ?? getCurrent(state.ids))
-    const addedKeys = new Set<Id>();
+    const existingKeys = new Set<EntityIdType>(
+      existingIds ?? getCurrent(state.ids),
+    )
+    const addedKeys = new Set<EntityIdType>();
     const models = newEntities.filter(
       (model) => {
           const modelId = selectIdValue(model, selectId);
@@ -90,17 +92,17 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
   }
 
   function setManyMutably(
-    newEntities: readonly T[] | Record<Id, T>,
+    newEntities: readonly T[] | Record<EntityIdType, T>,
     state: R,
   ): void {
-    let deduplicatedEntities = {} as Record<Id, T>;
+    let deduplicatedEntities = {} as Record<EntityIdType, T>;
     newEntities = ensureEntitiesArray(newEntities)
     if (newEntities.length !== 0) {
       for (const item of newEntities) {
         const entityId = selectId(item);
         // For multiple items with the same ID, we should keep the last one.
         deduplicatedEntities[entityId] = item;
-        delete (state.entities as Record<Id, T>)[entityId]
+        delete (state.entities as Record<EntityIdType, T>)[entityId]
       }
       newEntities = ensureEntitiesArray(deduplicatedEntities);
       mergeFunction(state, newEntities)
@@ -108,22 +110,22 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
   }
 
   function setAllMutably(
-    newEntities: readonly T[] | Record<Id, T>,
+    newEntities: readonly T[] | Record<EntityIdType, T>,
     state: R,
   ): void {
     newEntities = ensureEntitiesArray(newEntities)
-    state.entities = {} as Record<Id, T>
+    state.entities = {} as Record<EntityIdType, T>
     state.ids = []
 
     setManyMutably(newEntities, state)
   }
 
-  function updateOneMutably(update: Update<T, Id>, state: R): void {
+  function updateOneMutably(update: Update<T, EntityIdType>, state: R): void {
     return updateManyMutably([update], state)
   }
 
   function updateManyMutably(
-    updates: ReadonlyArray<Update<T, Id>>,
+    updates: ReadonlyArray<Update<T, EntityIdType>>,
     state: R,
   ): void {
     let appliedUpdates = false
@@ -134,11 +136,11 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
     // the first rename moves the entity to a new key; a subsequent update that
     // still targets the original key finds nothing and is silently dropped,
     // producing results inconsistent with the unsorted adapter.
-    const updatesPerEntity: { [id: string]: Update<T, Id> } = {}
+    const updatesPerEntity: { [id: string]: Update<T, EntityIdType> } = {}
     for (const update of updates) {
       // Only collect updates for entities that currently exist (same guard
       // used by the unsorted adapter).
-      if (update.id in (state.entities as Record<Id, T>)) {
+      if (update.id in (state.entities as Record<EntityIdType, T>)) {
         updatesPerEntity[update.id] = {
           id: update.id,
           changes: {
@@ -149,8 +151,13 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
       }
     }
 
-    for (const update of Object.values(updatesPerEntity) as Update<T, Id>[]) {
-      const entity: T | undefined = (state.entities as Record<Id, T>)[update.id]
+    for (const update of Object.values(updatesPerEntity) as Update<
+      T,
+      EntityIdType
+    >[]) {
+      const entity: T | undefined = (state.entities as Record<EntityIdType, T>)[
+        update.id
+      ]
       if (!entity) {
         continue
       }
@@ -164,10 +171,10 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
         // We do support the case where updates can change an item's ID.
         // This makes things trickier - go ahead and swap the IDs in state now.
         replacedIds = true
-        delete (state.entities as Record<Id, T>)[update.id]
-        const oldIndex = (state.ids as Id[]).indexOf(update.id)
+        delete (state.entities as Record<EntityIdType, T>)[update.id]
+        const oldIndex = (state.ids as EntityIdType[]).indexOf(update.id)
         state.ids[oldIndex] = newId
-        ;(state.entities as Record<Id, T>)[newId] = entity
+        ;(state.entities as Record<EntityIdType, T>)[newId] = entity
       }
     }
 
@@ -181,14 +188,13 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
   }
 
   function upsertManyMutably(
-    newEntities: readonly T[] | Record<Id, T>,
+    newEntities: readonly T[] | Record<EntityIdType, T>,
     state: R,
   ): void {
-    const [added, updated, existingIdsArray] = splitAddedUpdatedEntities<T, Id>(
-      newEntities,
-      selectId,
-      state,
-    )
+    const [added, updated, existingIdsArray] = splitAddedUpdatedEntities<
+      T,
+      EntityIdType
+    >(newEntities, selectId, state)
 
     if (added.length) {
       addManyMutably(added, state, existingIdsArray)
@@ -228,9 +234,9 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
     const currentEntities = getCurrent(state.entities)
     const currentIds = getCurrent(state.ids)
 
-    const stateEntities = state.entities as Record<Id, T>
+    const stateEntities = state.entities as Record<EntityIdType, T>
 
-    let ids: Iterable<Id> = currentIds
+    let ids: Iterable<EntityIdType> = currentIds
     if (replacedIds) {
       ids = new Set(currentIds)
     }

@@ -21,7 +21,7 @@ export type UnionToIntersection<U> = (
   : never
 
 export type NonOptionalKeys<T> = {
-  [K in keyof T]-?: undefined extends T[K] ? never : K
+  [KeyType in keyof T]-?: undefined extends T[KeyType] ? never : KeyType
 }[keyof T]
 
 export type HasRequiredProps<T, True, False> =

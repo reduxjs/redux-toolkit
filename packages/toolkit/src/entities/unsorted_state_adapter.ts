@@ -16,10 +16,10 @@ import {
   splitAddedUpdatedEntities,
 } from './utils'
 
-export function createUnsortedStateAdapter<T, Id extends EntityId>(
-  selectId: IdSelector<T, Id>,
-): EntityStateAdapter<T, Id> {
-  type R = DraftableEntityState<T, Id>
+export function createUnsortedStateAdapter<T, EntityIdType extends EntityId>(
+  selectId: IdSelector<T, EntityIdType>,
+): EntityStateAdapter<T, EntityIdType> {
+  type R = DraftableEntityState<T, EntityIdType>
 
   function addOneMutably(entity: T, state: R): void {
     const key = selectIdValue(entity, selectId)
@@ -28,12 +28,12 @@ export function createUnsortedStateAdapter<T, Id extends EntityId>(
       return
     }
 
-    state.ids.push(key as Id & Draft<Id>)
-    ;(state.entities as Record<Id, T>)[key] = entity
+    state.ids.push(key as EntityIdType & Draft<EntityIdType>)
+    ;(state.entities as Record<EntityIdType, T>)[key] = entity
   }
 
   function addManyMutably(
-    newEntities: readonly T[] | Record<Id, T>,
+    newEntities: readonly T[] | Record<EntityIdType, T>,
     state: R,
   ): void {
     newEntities = ensureEntitiesArray(newEntities)
@@ -46,13 +46,13 @@ export function createUnsortedStateAdapter<T, Id extends EntityId>(
   function setOneMutably(entity: T, state: R): void {
     const key = selectIdValue(entity, selectId)
     if (!(key in state.entities)) {
-      state.ids.push(key as Id & Draft<Id>)
+      state.ids.push(key as EntityIdType & Draft<EntityIdType>)
     }
-    ;(state.entities as Record<Id, T>)[key] = entity
+    ;(state.entities as Record<EntityIdType, T>)[key] = entity
   }
 
   function setManyMutably(
-    newEntities: readonly T[] | Record<Id, T>,
+    newEntities: readonly T[] | Record<EntityIdType, T>,
     state: R,
   ): void {
     newEntities = ensureEntitiesArray(newEntities)
@@ -62,35 +62,35 @@ export function createUnsortedStateAdapter<T, Id extends EntityId>(
   }
 
   function setAllMutably(
-    newEntities: readonly T[] | Record<Id, T>,
+    newEntities: readonly T[] | Record<EntityIdType, T>,
     state: R,
   ): void {
     newEntities = ensureEntitiesArray(newEntities)
 
     state.ids = []
-    state.entities = {} as Record<Id, T>
+    state.entities = {} as Record<EntityIdType, T>
 
     setManyMutably(newEntities, state)
   }
 
-  function removeOneMutably(key: Id, state: R): void {
+  function removeOneMutably(key: EntityIdType, state: R): void {
     return removeManyMutably([key], state)
   }
 
-  function removeManyMutably(keys: readonly Id[], state: R): void {
+  function removeManyMutably(keys: readonly EntityIdType[], state: R): void {
     let didMutate = false
 
     keys.forEach((key) => {
       if (key in state.entities) {
-        delete (state.entities as Record<Id, T>)[key]
+        delete (state.entities as Record<EntityIdType, T>)[key]
         didMutate = true
       }
     })
 
     if (didMutate) {
-      state.ids = (state.ids as Id[]).filter((id) => id in state.entities) as
-        | Id[]
-        | Draft<Id[]>
+      state.ids = (state.ids as EntityIdType[]).filter(
+        (id) => id in state.entities,
+      ) as EntityIdType[] | Draft<EntityIdType[]>
     }
   }
 
@@ -102,11 +102,13 @@ export function createUnsortedStateAdapter<T, Id extends EntityId>(
   }
 
   function takeNewKey(
-    keys: { [id: string]: Id },
-    update: Update<T, Id>,
+    keys: { [id: string]: EntityIdType },
+    update: Update<T, EntityIdType>,
     state: R,
   ): boolean {
-    const original: T | undefined = (state.entities as Record<Id, T>)[update.id]
+    const original: T | undefined = (state.entities as Record<EntityIdType, T>)[
+      update.id
+    ]
     if (original === undefined) {
       return false
     }
@@ -116,25 +118,25 @@ export function createUnsortedStateAdapter<T, Id extends EntityId>(
 
     if (hasNewKey) {
       keys[update.id] = newKey
-      delete (state.entities as Record<Id, T>)[update.id]
+      delete (state.entities as Record<EntityIdType, T>)[update.id]
     }
 
-    ;(state.entities as Record<Id, T>)[newKey] = updated
+    ;(state.entities as Record<EntityIdType, T>)[newKey] = updated
 
     return hasNewKey
   }
 
-  function updateOneMutably(update: Update<T, Id>, state: R): void {
+  function updateOneMutably(update: Update<T, EntityIdType>, state: R): void {
     return updateManyMutably([update], state)
   }
 
   function updateManyMutably(
-    updates: ReadonlyArray<Update<T, Id>>,
+    updates: ReadonlyArray<Update<T, EntityIdType>>,
     state: R,
   ): void {
-    const newKeys: { [id: string]: Id } = {}
+    const newKeys: { [id: string]: EntityIdType } = {}
 
-    const updatesPerEntity: { [id: string]: Update<T, Id> } = {}
+    const updatesPerEntity: { [id: string]: Update<T, EntityIdType> } = {}
 
     updates.forEach((update) => {
       // Only apply updates to entities that currently exist
@@ -174,10 +176,10 @@ export function createUnsortedStateAdapter<T, Id extends EntityId>(
   }
 
   function upsertManyMutably(
-    newEntities: readonly T[] | Record<Id, T>,
+    newEntities: readonly T[] | Record<EntityIdType, T>,
     state: R,
   ): void {
-    const [added, updated] = splitAddedUpdatedEntities<T, Id>(
+    const [added, updated] = splitAddedUpdatedEntities<T, EntityIdType>(
       newEntities,
       selectId,
       state,
