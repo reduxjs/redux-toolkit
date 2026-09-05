@@ -514,7 +514,7 @@ export const coreModule = ({
     const assertTagType: AssertTagTypes = (tag) => {
       if (
         typeof process !== 'undefined' &&
-        process.env.NODE_ENV === 'development'
+        process.env.NODE_ENV !== 'production'
       ) {
         if (!tagTypes.includes(tag.type as any)) {
           console.error(

@@ -70,8 +70,6 @@ export type {
   UnsubscribeListenerOptions,
 } from './types'
 
-//Overly-aggressive byte-shaving
-const { assign } = Object
 /**
  * @internal
  */
@@ -212,7 +210,7 @@ const getListenerEntryPropsFrom = (options: FallbackAddListenerOptions) => {
 
 /** Accepts the possible options for creating a listener, and returns a formatted listener entry */
 export const createListenerEntry: TypedCreateListenerEntry<unknown> =
-  /* @__PURE__ */ assign(
+  /* @__PURE__ */ Object.assign(
     (options: FallbackAddListenerOptions) => {
       const { type, predicate, effect } = getListenerEntryPropsFrom(options)
 
@@ -294,7 +292,7 @@ const safelyNotifyError = (
 /**
  * @public
  */
-export const addListener = /* @__PURE__ */ assign(
+export const addListener = /* @__PURE__ */ Object.assign(
   /* @__PURE__ */ createAction(`${alm}/add`),
   {
     withTypes: () => addListener,
@@ -311,7 +309,7 @@ export const clearAllListeners = /* @__PURE__ */ createAction(
 /**
  * @public
  */
-export const removeListener = /* @__PURE__ */ assign(
+export const removeListener = /* @__PURE__ */ Object.assign(
   /* @__PURE__ */ createAction(`${alm}/remove`),
   {
     withTypes: () => removeListener,
@@ -370,36 +368,34 @@ export const createListenerMiddleware = <
     }
   }
 
-  const startListening = ((options: FallbackAddListenerOptions) => {
-    const entry =
-      findListenerEntry(listenerMap, options) ??
-      createListenerEntry(options as any)
+  const startListening = /* @__PURE__ */ Object.assign(
+    ((options: FallbackAddListenerOptions) => {
+      const entry =
+        findListenerEntry(listenerMap, options) ??
+        createListenerEntry(options as any)
 
-    return insertEntry(entry)
-  }) as AddListenerOverloads<any>
+      return insertEntry(entry)
+    }) as AddListenerOverloads<any, StateType, DispatchType, ExtraArgument>,
+    { withTypes: () => startListening },
+  )
 
-  assign(startListening, {
-    withTypes: () => startListening,
-  })
+  const stopListening = /* @__PURE__ */ Object.assign(
+    (
+      options: FallbackAddListenerOptions & UnsubscribeListenerOptions,
+    ): boolean => {
+      const entry = findListenerEntry(listenerMap, options)
 
-  const stopListening = (
-    options: FallbackAddListenerOptions & UnsubscribeListenerOptions,
-  ): boolean => {
-    const entry = findListenerEntry(listenerMap, options)
-
-    if (entry) {
-      entry.unsubscribe()
-      if (options.cancelActive) {
-        cancelActiveListeners(entry)
+      if (entry) {
+        entry.unsubscribe()
+        if (options.cancelActive) {
+          cancelActiveListeners(entry)
+        }
       }
-    }
 
-    return !!entry
-  }
-
-  assign(stopListening, {
-    withTypes: () => stopListening,
-  })
+      return !!entry
+    },
+    { withTypes: () => stopListening },
+  )
 
   const notifyListener = async (
     entry: ListenerEntry<unknown, Dispatch<UnknownAction>>,

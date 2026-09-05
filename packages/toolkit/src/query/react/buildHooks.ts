@@ -1769,13 +1769,6 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
     usePossiblyImmediateEffect((): void | undefined => {
       const lastPromise = promiseRef.current
-      if (
-        typeof process !== 'undefined' &&
-        process.env.NODE_ENV === 'removeMeOnCompilation'
-      ) {
-        // this is only present to enforce the rule of hooks to keep `isSubscribed` in the dependency array
-        console.log(subscriptionRemoved)
-      }
 
       if (stableArg === skipToken) {
         lastPromise?.unsubscribe()

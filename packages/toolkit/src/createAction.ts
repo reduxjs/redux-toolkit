@@ -122,8 +122,10 @@ export interface ActionCreatorWithPreparedPayload<
  *
  * @public
  */
-export interface ActionCreatorWithOptionalPayload<P, T extends string = string>
-  extends BaseActionCreator<P, T> {
+export interface ActionCreatorWithOptionalPayload<
+  P,
+  T extends string = string,
+> extends BaseActionCreator<P, T> {
   /**
    * Calling this {@link redux#ActionCreator} with an argument will
    * return a {@link PayloadAction} of type `T` with a payload of `P`.
@@ -139,8 +141,9 @@ export interface ActionCreatorWithOptionalPayload<P, T extends string = string>
  *
  * @public
  */
-export interface ActionCreatorWithoutPayload<T extends string = string>
-  extends BaseActionCreator<undefined, T> {
+export interface ActionCreatorWithoutPayload<
+  T extends string = string,
+> extends BaseActionCreator<undefined, T> {
   /**
    * Calling this {@link redux#ActionCreator} will
    * return a {@link PayloadAction} of type `T` with a payload of `undefined`
@@ -155,8 +158,10 @@ export interface ActionCreatorWithoutPayload<T extends string = string>
  *
  * @public
  */
-export interface ActionCreatorWithPayload<P, T extends string = string>
-  extends BaseActionCreator<P, T> {
+export interface ActionCreatorWithPayload<
+  P,
+  T extends string = string,
+> extends BaseActionCreator<P, T> {
   /**
    * Calling this {@link redux#ActionCreator} with an argument will
    * return a {@link PayloadAction} of type `T` with a payload of `P`

@@ -1850,6 +1850,13 @@ describe('hooks tests', () => {
       // If we mutate and then re-run the lazy trigger afterwards...
       await user.click(screen.getByText('Update Data'))
 
+      expect(consoleErrorSpy).toHaveBeenCalledExactlyOnceWith(
+        expect.stringMatching(
+          /^Error encountered handling the endpoint triggerUpdatedAmount\.\n/,
+        ),
+        { data: undefined },
+      )
+
       // We should see both sets of data agree (ie, the lazy trigger promise
       // should not return stale data or be out of sync with the hook).
       // Prior to PR #4651, this would fail because the trigger never updated properly.

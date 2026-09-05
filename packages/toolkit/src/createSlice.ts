@@ -620,7 +620,7 @@ export function buildCreateSlice({ creators }: BuildCreateSliceConfig = {}) {
 
     if (
       typeof process !== 'undefined' &&
-      process.env.NODE_ENV === 'development'
+      process.env.NODE_ENV !== 'production'
     ) {
       if (options.initialState === undefined) {
         console.error(

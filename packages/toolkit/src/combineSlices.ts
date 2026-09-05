@@ -365,7 +365,7 @@ const getReducers = (slices: Array<AnySliceLike | ReducerMap>) =>
       : Object.entries(sliceOrMap),
   )
 
-const ORIGINAL_STATE = Symbol.for('rtk-state-proxy-original')
+const ORIGINAL_STATE = /* @__PURE__ */ Symbol.for('rtk-state-proxy-original')
 
 const isStateProxy = (value: any) => !!value && !!value[ORIGINAL_STATE]
 
@@ -458,7 +458,7 @@ export function combineSlices<Slices extends Array<AnySliceLike | ReducerMap>>(
     ) {
       if (
         typeof process !== 'undefined' &&
-        process.env.NODE_ENV === 'development'
+        process.env.NODE_ENV !== 'production'
       ) {
         console.error(
           `called \`inject\` to override already-existing reducer ${reducerPath} without specifying \`overrideExisting: true\``,

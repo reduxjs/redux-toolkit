@@ -624,7 +624,7 @@ export function buildThunks<
 
         if (
           typeof process !== 'undefined' &&
-          process.env.NODE_ENV === 'development'
+          process.env.NODE_ENV !== 'production'
         ) {
           const what = endpointDefinition.query ? '`baseQuery`' : '`queryFn`'
           let err: undefined | string

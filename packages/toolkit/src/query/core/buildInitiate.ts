@@ -62,7 +62,7 @@ export type BuildInitiateApiEndpointMutation<
   initiate: StartMutationActionCreator<Definition>
 }
 
-export const forceQueryFnSymbol = Symbol('forceQueryFn')
+export const forceQueryFnSymbol = /* @__PURE__ */ Symbol('forceQueryFn')
 export const isUpsertQuery = (arg: QueryThunkArg) =>
   typeof arg[forceQueryFnSymbol] === 'function'
 
@@ -354,26 +354,28 @@ export function buildInitiate({
   }
 
   function middlewareWarning(dispatch: Dispatch) {
-    if (process.env.NODE_ENV !== 'production') {
-      if ((middlewareWarning as any).triggered) return
-      const returnedValue = dispatch(
-        api.internalActions.internal_getRTKQSubscriptions(),
-      )
+    if (process.env.NODE_ENV === 'production') {
+      return
+    }
 
-      ;(middlewareWarning as any).triggered = true
+    if ((middlewareWarning as any).triggered) return
+    const returnedValue = dispatch(
+      api.internalActions.internal_getRTKQSubscriptions(),
+    )
 
-      // The RTKQ middleware should return the internal state object,
-      // but it should _not_ be the action object.
-      if (
-        typeof returnedValue !== 'object' ||
-        typeof returnedValue?.type === 'string'
-      ) {
-        // Otherwise, must not have been added
-        throw new Error(
-          `Warning: Middleware for RTK-Query API at reducerPath "${api.reducerPath}" has not been added to the store.
+    ;(middlewareWarning as any).triggered = true
+
+    // The RTKQ middleware should return the internal state object,
+    // but it should _not_ be the action object.
+    if (
+      typeof returnedValue !== 'object' ||
+      typeof returnedValue?.type === 'string'
+    ) {
+      // Otherwise, must not have been added
+      throw new Error(
+        `Warning: Middleware for RTK-Query API at reducerPath "${api.reducerPath}" has not been added to the store.
 You must add the middleware for RTK-Query to function correctly!`,
-        )
-      }
+      )
     }
   }
 
