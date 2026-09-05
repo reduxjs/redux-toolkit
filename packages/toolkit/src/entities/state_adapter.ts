@@ -1,8 +1,8 @@
-import { createNextState, isDraft } from '../immerImports'
-import type { Draft } from '../immerImports'
-import type { EntityId, DraftableEntityState, PreventAny } from './models'
 import type { PayloadAction } from '../createAction'
 import { isFSA } from '../createAction'
+import type { Draft } from '../immerImports'
+import { createNextState, isDraft } from '../immerImports'
+import type { DraftableEntityState, EntityId, PreventAny } from './models'
 
 export const isDraftTyped = isDraft as <T>(
   value: T | Draft<T>,

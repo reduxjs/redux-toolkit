@@ -1,6 +1,6 @@
 import type {
+  ActionCreatorWithoutPayload,
   ThunkDispatch,
-  ActionCreatorWithoutPayload, // Workaround for API-Extractor
 } from '@reduxjs/toolkit'
 import { createAction } from './rtkImports'
 
@@ -12,25 +12,44 @@ const FOCUS = 'focus'
 const FOCUSED = 'focused'
 const VISIBILITYCHANGE = 'visibilitychange'
 
-export const onFocus = /* @__PURE__ */ createAction(
-  `${INTERNAL_PREFIX}${FOCUSED}`,
-)
-export const onFocusLost = /* @__PURE__ */ createAction(
-  `${INTERNAL_PREFIX}un${FOCUSED}`,
-)
-export const onOnline = /* @__PURE__ */ createAction(
-  `${INTERNAL_PREFIX}${ONLINE}`,
-)
-export const onOffline = /* @__PURE__ */ createAction(
-  `${INTERNAL_PREFIX}${OFFLINE}`,
-)
+export const onFocus: ActionCreatorWithoutPayload<'__rtkq/focused'> =
+  /* @__PURE__ */ createAction<void, '__rtkq/focused'>(
+    `${INTERNAL_PREFIX}${FOCUSED}`,
+  )
+export const onFocusLost: ActionCreatorWithoutPayload<'__rtkq/unfocused'> =
+  /* @__PURE__ */ createAction<void, '__rtkq/unfocused'>(
+    `${INTERNAL_PREFIX}un${FOCUSED}`,
+  )
+export const onOnline: ActionCreatorWithoutPayload<'__rtkq/online'> =
+  /* @__PURE__ */ createAction<void, '__rtkq/online'>(
+    `${INTERNAL_PREFIX}${ONLINE}`,
+  )
+export const onOffline: ActionCreatorWithoutPayload<'__rtkq/offline'> =
+  /* @__PURE__ */ createAction<void, '__rtkq/offline'>(
+    `${INTERNAL_PREFIX}${OFFLINE}`,
+  )
+
+export type ListenerActions = {
+  /**
+   * Will cause the RTK Query middleware to trigger any refetchOnReconnect-related behavior
+   * {@link https://redux-toolkit.js.org/rtk-query/api/setupListeners}
+   */
+  onOnline: ActionCreatorWithoutPayload<'__rtkq/online'>
+  onOffline: ActionCreatorWithoutPayload<'__rtkq/offline'>
+  /**
+   * Will cause the RTK Query middleware to trigger any refetchOnFocus-related behavior
+   * {@link https://redux-toolkit.js.org/rtk-query/api/setupListeners}
+   */
+  onFocus: ActionCreatorWithoutPayload<'__rtkq/focused'>
+  onFocusLost: ActionCreatorWithoutPayload<'__rtkq/unfocused'>
+}
 
 const actions = {
   onFocus,
   onFocusLost,
   onOnline,
   onOffline,
-}
+} satisfies ListenerActions
 
 let initialized = false
 
@@ -54,12 +73,7 @@ export function setupListeners(
   dispatch: ThunkDispatch<any, any, any>,
   customHandler?: (
     dispatch: ThunkDispatch<any, any, any>,
-    actions: {
-      onFocus: typeof onFocus
-      onFocusLost: typeof onFocusLost
-      onOnline: typeof onOnline
-      onOffline: typeof onOffline
-    },
+    actions: ListenerActions,
   ) => () => void,
 ) {
   function defaultHandler() {

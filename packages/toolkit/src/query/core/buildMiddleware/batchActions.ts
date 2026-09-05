@@ -1,8 +1,11 @@
-import type { InternalHandlerBuilder, SubscriptionSelectors } from './types'
-import type { SubscriptionInternalState, SubscriptionState } from '../apiState'
-import { produceWithPatches } from '../../utils/immerImports'
 import type { Action } from '@reduxjs/toolkit'
-import { getOrInsertComputed, createNewMap } from '../../utils/getOrInsert'
+import {
+  createNewMap,
+  getOrInsertComputed,
+  produceWithPatches,
+} from '../../utils/index'
+import type { SubscriptionInternalState, SubscriptionState } from '../apiState'
+import type { InternalHandlerBuilder, SubscriptionSelectors } from './types'
 
 export const buildBatchedActionsHandler: InternalHandlerBuilder<
   [actionShouldContinue: boolean, returnValue: SubscriptionSelectors | boolean]
@@ -61,7 +64,6 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
       }
       return true
     }
-    let mutated = false
 
     if (queryThunk.rejected.match(action)) {
       const {
@@ -78,11 +80,11 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
           arg.subscriptionOptions ?? substate.get(requestId) ?? {},
         )
 
-        mutated = true
+        return true
       }
     }
 
-    return mutated
+    return false
   }
 
   const getSubscriptions = () => internalState.currentSubscriptions

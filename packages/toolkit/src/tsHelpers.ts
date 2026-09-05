@@ -183,17 +183,21 @@ export type ExtractStateExtensions<EnhancerTupleType> =
 
 export type NonUndefined<T> = T extends undefined ? never : T
 
-export type WithRequiredProp<T, K extends keyof T> = Omit<T, K> &
-  Required<Pick<T, K>>
+export type WithRequiredProp<T, RequiredKeys extends keyof T> = Omit<
+  T,
+  RequiredKeys
+> &
+  Required<Pick<T, RequiredKeys>>
 
-export type WithOptionalProp<T, K extends keyof T> = Omit<T, K> &
-  Partial<Pick<T, K>>
+export type WithOptionalProp<T, OptionalKeys extends keyof T> = Omit<
+  T,
+  OptionalKeys
+> &
+  Partial<Pick<T, OptionalKeys>>
 
-export interface TypeGuard<T> {
-  (value: any): value is T
-}
+export type TypeGuard<T> = (value: any) => value is T
 
-export interface HasMatchFunction<T> {
+export type HasMatchFunction<T> = {
   match: TypeGuard<T>
 }
 
@@ -207,13 +211,18 @@ export const hasMatchFunction = <T>(
 export type Matcher<T> = HasMatchFunction<T> | TypeGuard<T>
 
 /** @public */
-export type ActionFromMatcher<M extends Matcher<any>> =
-  M extends Matcher<infer T> ? T : never
+export type ActionFromMatcher<MatcherType extends Matcher<any>> =
+  MatcherType extends Matcher<infer InferredMatchedActionType>
+    ? InferredMatchedActionType
+    : never
 
-export type Id<T> = { [K in keyof T]: T[K] } & {}
+export type Id<T> = { [KeyType in keyof T]: T[KeyType] } & {}
 
-export type Tail<T extends any[]> = T extends [any, ...infer Tail]
-  ? Tail
+export type Tail<ArrayType extends any[]> = ArrayType extends [
+  any,
+  ...infer InferredTailType,
+]
+  ? InferredTailType
   : never
 
 export type UnknownIfNonSpecific<T> = {} extends T ? unknown : T
@@ -224,14 +233,4 @@ export type UnknownIfNonSpecific<T> = {} extends T ? unknown : T
  */
 export type SafePromise<T> = Promise<T> & {
   __linterBrands: 'SafePromise'
-}
-
-/**
- * Properly wraps a Promise as a {@link SafePromise} with .catch(fallback).
- */
-export function asSafePromise<Resolved, Rejected>(
-  promise: Promise<Resolved>,
-  fallback: (error: unknown) => Rejected,
-) {
-  return promise.catch(fallback) as SafePromise<Resolved | Rejected>
 }

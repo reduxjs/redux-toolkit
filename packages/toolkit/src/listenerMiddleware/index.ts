@@ -1,9 +1,8 @@
 import type { Action, Dispatch, MiddlewareAPI, UnknownAction } from 'redux'
-import { isAction } from '../reduxImports'
-import type { ThunkDispatch } from '../reduxThunkImports'
 import { createAction } from '../createAction'
 import { nanoid } from '../nanoid'
-
+import { isAction } from '../reduxImports'
+import type { ThunkDispatch } from '../reduxThunkImports'
 import {
   TaskAbortError,
   listenerCancelled,
@@ -47,6 +46,7 @@ import {
 } from './utils'
 export { TaskAbortError } from './exceptions'
 export type {
+  AnyListenerPredicate,
   AsyncTaskExecutor,
   CreateListenerMiddlewareOptions,
   ForkedTask,
@@ -147,8 +147,8 @@ const createTakePattern = <S>(
 
     const tuplePromise = new Promise<[Action, S, S]>((resolve, reject) => {
       // Inside the Promise, we synchronously add the listener.
-      let stopListening = startListening({
-        predicate: predicate as any,
+      const stopListening = startListening({
+        predicate,
         effect: (action, listenerApi): void => {
           // One-shot listener that cleans up as soon as the predicate passes
           listenerApi.unsubscribe()
@@ -195,13 +195,11 @@ const getListenerEntryPropsFrom = (options: FallbackAddListenerOptions) => {
   if (type) {
     predicate = createAction(type).match
   } else if (actionCreator) {
-    type = actionCreator!.type
+    type = actionCreator.type
     predicate = actionCreator.match
   } else if (matcher) {
     predicate = matcher
-  } else if (predicate) {
-    // pass
-  } else {
+  } else if (!predicate) {
     throw new Error(
       'Creating or removing a listener requires one of the known fields for matching an action',
     )
@@ -411,7 +409,7 @@ export const createListenerMiddleware = <
   ) => {
     const internalTaskController = new AbortController()
     const take = createTakePattern(
-      startListening as AddListenerOverloads<any>,
+      startListening,
       internalTaskController.signal,
     )
     const autoJoinPromises: Promise<any>[] = []
@@ -422,8 +420,8 @@ export const createListenerMiddleware = <
       await Promise.resolve(
         entry.effect(
           action,
-          // Use assign() rather than ... to avoid extra helper functions added to bundle
-          assign({}, api, {
+          // Use Object.assign() rather than ... to avoid extra helper functions added to bundle
+          Object.assign({}, api, {
             getOriginalState,
             condition: (
               predicate: AnyListenerPredicate<any>,

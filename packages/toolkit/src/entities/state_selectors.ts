@@ -1,10 +1,13 @@
-import type { CreateSelectorFunction, Selector } from '../reselectImports'
 import { createDraftSafeSelector } from '../createDraftSafeSelector'
+import type { CreateSelectorFunction } from '../reselectImports'
 import type { EntityId, EntitySelectors, EntityState } from './models'
 
 type AnyCreateSelectorFunction = CreateSelectorFunction<any, any, any>
 
 export type GetSelectorsOptions = {
+  /**
+   * @default createDraftSafeSelector
+   */
   createSelector?: AnyCreateSelectorFunction
 }
 
@@ -28,9 +31,7 @@ export function createSelectorsFactory<
     selectState?: (state: StateType) => EntityState<EntityType, EntityIdType>,
     options: GetSelectorsOptions = {},
   ): EntitySelectors<EntityType, any, EntityIdType> {
-    const {
-      createSelector = createDraftSafeSelector as AnyCreateSelectorFunction,
-    } = options
+    const { createSelector = createDraftSafeSelector } = options
 
     const selectIds = (state: EntityState<EntityType, EntityIdType>) =>
       state.ids
@@ -41,10 +42,13 @@ export function createSelectorsFactory<
     const selectAll = createSelector(
       selectIds,
       selectEntities,
-      (ids, entities): EntityType[] => ids.map((id) => entities[id]!),
+      (ids, entities): EntityType[] => ids.map((id) => entities[id]),
     )
 
-    const selectId = (_: unknown, id: EntityIdType) => id
+    const selectId = (
+      _state: EntityState<EntityType, EntityIdType>,
+      id: EntityIdType,
+    ) => id
 
     const selectById = (
       entities: Record<EntityIdType, EntityType>,
@@ -63,10 +67,7 @@ export function createSelectorsFactory<
       }
     }
 
-    const selectGlobalizedEntities = createSelector(
-      selectState as Selector<StateType, EntityState<EntityType, EntityIdType>>,
-      selectEntities,
-    )
+    const selectGlobalizedEntities = createSelector(selectState, selectEntities)
 
     return {
       selectIds: createSelector(selectState, selectIds),

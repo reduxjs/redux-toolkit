@@ -9,7 +9,7 @@ import type {
   FullTagDescription,
 } from '../../endpointDefinitions'
 import type { QueryStatus, QuerySubState, RootState } from '../apiState'
-import type { QueryThunkArg } from '../buildThunks'
+import type { ApiEndpointQuery } from '../module'
 import { createAction, isAction } from '../rtkImports'
 import { buildBatchedActionsHandler } from './batchActions'
 import { buildCacheCollectionHandler } from './cacheCollection'
@@ -18,15 +18,16 @@ import { buildDevCheckHandler } from './devMiddleware'
 import { buildInvalidationByTagsHandler } from './invalidationByTags'
 import { buildPollingHandler } from './polling'
 import { buildQueryLifecycleHandler } from './queryLifecycle'
-import type {
-  BuildMiddlewareInput,
-  InternalHandlerBuilder,
-  InternalMiddlewareState,
-} from './types'
+import type { BuildMiddlewareInput, InternalHandlerBuilder } from './types'
 import { buildWindowEventHandler } from './windowEventHandling'
-import type { ApiEndpointQuery } from '../module'
-export type { ReferenceCacheCollection } from './cacheCollection'
 export type {
+  CacheCollectionQueryExtraOptions,
+  ReferenceCacheCollection,
+} from './cacheCollection'
+export type {
+  CacheLifecycleInfiniteQueryExtraOptions,
+  CacheLifecycleMutationExtraOptions,
+  CacheLifecycleQueryExtraOptions,
   MutationCacheLifecycleApi,
   QueryCacheLifecycleApi,
   ReferenceCacheLifecycle,
@@ -34,11 +35,14 @@ export type {
 export type {
   MutationLifecycleApi,
   QueryLifecycleApi,
+  QueryLifecycleInfiniteQueryExtraOptions,
+  QueryLifecycleMutationExtraOptions,
+  QueryLifecycleQueryExtraOptions,
   ReferenceQueryLifecycle,
   TypedMutationOnQueryStarted,
   TypedQueryOnQueryStarted,
 } from './queryLifecycle'
-export type { SubscriptionSelectors } from './types'
+export type { InternalMiddlewareState, SubscriptionSelectors } from './types'
 
 export function buildMiddleware<
   Definitions extends EndpointDefinitions,

@@ -1,9 +1,9 @@
 import type { Dispatch, UnknownAction } from 'redux'
-import type { ThunkDispatch } from './reduxThunkImports'
 import type { ActionCreatorWithPreparedPayload } from './createAction'
 import { createAction } from './createAction'
 import { isAnyOf } from './matchers'
 import { nanoid } from './nanoid'
+import type { ThunkDispatch } from './reduxThunkImports'
 import type {
   FallbackIfUnknown,
   Id,

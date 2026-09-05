@@ -1,5 +1,5 @@
-import type { Draft } from '../immerImports'
 import type { PayloadAction } from '../createAction'
+import type { Draft } from '../immerImports'
 import type { CastAny, Id } from '../tsHelpers'
 import type { UncheckedIndexedAccess } from '../uncheckedindexed.js'
 import type { GetSelectorsOptions } from './state_selectors'
@@ -24,7 +24,10 @@ export type IdSelector<EntityType, EntityIdType extends EntityId> = (
 /**
  * @public
  */
-export type Update<T, Id extends EntityId> = { id: Id; changes: Partial<T> }
+export type Update<EntityType, EntityIdType extends EntityId> = {
+  id: EntityIdType
+  changes: Partial<EntityType>
+}
 
 /**
  * @public

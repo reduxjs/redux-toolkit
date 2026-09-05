@@ -1,5 +1,4 @@
 import type { Action, Reducer, UnknownAction } from 'redux'
-import type { Selector } from './reselectImports'
 import type { InjectConfig } from './combineSlices'
 import type {
   ActionCreatorWithoutPayload,
@@ -29,8 +28,9 @@ import type {
   TypedActionCreator,
 } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
+import type { Selector } from './reselectImports'
 import type { Id, TypeGuard } from './tsHelpers'
-import { getOrInsertComputed } from './utils'
+import { getOrInsertComputed, noop } from './utils'
 
 const asyncThunkSymbol = /* @__PURE__ */ Symbol.for(
   'rtk-slice-createasyncthunk',
@@ -309,7 +309,9 @@ export type CaseReducerWithPrepare<
 export interface CaseReducerWithPrepareDefinition<
   State,
   Action extends PayloadAction,
-> extends CaseReducerWithPrepare<State, Action>,
+>
+  extends
+    CaseReducerWithPrepare<State, Action>,
     ReducerDefinition<ReducerType.reducerWithPrepare> {}
 
 type AsyncThunkSliceReducerConfig<
@@ -342,8 +344,8 @@ type PreventCircular<ThunkApiConfig> = {
 
 interface AsyncThunkCreator<
   State,
-  CurriedThunkApiConfig extends
-    PreventCircular<AsyncThunkConfig> = PreventCircular<AsyncThunkConfig>,
+  CurriedThunkApiConfig extends PreventCircular<AsyncThunkConfig> =
+    PreventCircular<AsyncThunkConfig>,
 > {
   <Returned, ThunkArg = void>(
     payloadCreator: AsyncThunkPayloadCreator<
@@ -484,8 +486,8 @@ export type CaseReducerActions<
  */
 type ActionCreatorForCaseReducerWithPrepare<
   CR extends { prepare: any },
-  Type extends string,
-> = _ActionCreatorWithPreparedPayload<CR['prepare'], Type>
+  ActionTypeKey extends string,
+> = _ActionCreatorWithPreparedPayload<CR['prepare'], ActionTypeKey>
 
 /**
  * Get a `PayloadActionCreator` type for a passed `CaseReducer`
@@ -724,13 +726,13 @@ export function buildCreateSlice({ creators }: BuildCreateSliceConfig = {}) {
       }
 
       return createReducer(options.initialState, (builder) => {
-        for (let key in finalCaseReducers) {
+        for (const key in finalCaseReducers) {
           builder.addCase(key, finalCaseReducers[key] as CaseReducer<any>)
         }
-        for (let sM of context.sliceMatchers) {
+        for (const sM of context.sliceMatchers) {
           builder.addMatcher(sM.matcher, sM.reducer)
         }
-        for (let m of actionMatchers) {
+        for (const m of actionMatchers) {
           builder.addMatcher(m.matcher, m.reducer)
         }
         if (defaultCaseReducer) {
@@ -1110,5 +1112,3 @@ function handleThunkCaseReducerDefinition<State>(
     settled: settled || noop,
   })
 }
-
-function noop() {}

@@ -1,5 +1,5 @@
-import type { Api } from '@reduxjs/toolkit/query'
 import type { StandardSchemaV1 } from '@standard-schema/spec'
+import type { Api } from './apiTypes'
 import type {
   BaseQueryApi,
   BaseQueryArg,
@@ -10,20 +10,16 @@ import type {
   BaseQueryResult,
   QueryReturnValue,
 } from './baseQueryTypes'
-import type { CacheCollectionQueryExtraOptions } from './core/buildMiddleware/cacheCollection'
 import type {
+  CacheCollectionQueryExtraOptions,
   CacheLifecycleInfiniteQueryExtraOptions,
   CacheLifecycleMutationExtraOptions,
   CacheLifecycleQueryExtraOptions,
-} from './core/buildMiddleware/cacheLifecycle'
-import type {
+  InfiniteData,
+  InfiniteQueryConfigOptions,
   QueryLifecycleInfiniteQueryExtraOptions,
   QueryLifecycleMutationExtraOptions,
   QueryLifecycleQueryExtraOptions,
-} from './core/buildMiddleware/queryLifecycle'
-import type {
-  InfiniteData,
-  InfiniteQueryConfigOptions,
   QuerySubState,
   RootState,
 } from './core/index'
@@ -38,8 +34,7 @@ import type {
   OmitFromUnion,
   UnwrapPromise,
 } from './tsHelpers'
-import { isNotNullish } from './utils'
-import { filterMap } from './utils/filterMap'
+import { filterMap, isNotNullish } from './utils/index'
 
 const rawResultType = /* @__PURE__ */ Symbol()
 const resultType = /* @__PURE__ */ Symbol()
@@ -237,7 +232,7 @@ export type EndpointDefinitionWithQueryFn<
     arg: QueryArg,
     api: BaseQueryApi,
     extraOptions: BaseQueryExtraOptions<BaseQuery>,
-    baseQuery: (arg: Parameters<BaseQuery>[0]) => ReturnType<BaseQuery>,
+    baseQueryFunction: (arg: Parameters<BaseQuery>[0]) => ReturnType<BaseQuery>,
   ): MaybePromise<
     QueryReturnValue<
       ResultType,
@@ -614,7 +609,9 @@ export interface QueryExtraOptions<
   BaseQuery extends BaseQueryFn,
   ReducerPath extends string = string,
   RawResultType extends BaseQueryResult<BaseQuery> = BaseQueryResult<BaseQuery>,
-> extends CacheLifecycleQueryExtraOptions<
+>
+  extends
+    CacheLifecycleQueryExtraOptions<
       ResultType,
       QueryArg,
       BaseQuery,
@@ -925,7 +922,9 @@ export interface InfiniteQueryExtraOptions<
   BaseQuery extends BaseQueryFn,
   ReducerPath extends string = string,
   RawResultType extends BaseQueryResult<BaseQuery> = BaseQueryResult<BaseQuery>,
-> extends CacheLifecycleInfiniteQueryExtraOptions<
+>
+  extends
+    CacheLifecycleInfiniteQueryExtraOptions<
       InfiniteData<ResultType, PageParam>,
       QueryArg,
       BaseQuery,
@@ -1140,7 +1139,9 @@ export interface MutationExtraOptions<
   BaseQuery extends BaseQueryFn,
   ReducerPath extends string = string,
   RawResultType extends BaseQueryResult<BaseQuery> = BaseQueryResult<BaseQuery>,
-> extends CacheLifecycleMutationExtraOptions<
+>
+  extends
+    CacheLifecycleMutationExtraOptions<
       ResultType,
       QueryArg,
       BaseQuery,
@@ -1378,8 +1379,8 @@ export type EndpointBuilder<
   query<
     ResultType,
     QueryArg,
-    RawResultType extends
-      BaseQueryResult<BaseQuery> = BaseQueryResult<BaseQuery>,
+    RawResultType extends BaseQueryResult<BaseQuery> =
+      BaseQueryResult<BaseQuery>,
   >(
     definition: OmitFromUnion<
       QueryDefinition<
@@ -1460,8 +1461,8 @@ export type EndpointBuilder<
   mutation<
     ResultType,
     QueryArg,
-    RawResultType extends
-      BaseQueryResult<BaseQuery> = BaseQueryResult<BaseQuery>,
+    RawResultType extends BaseQueryResult<BaseQuery> =
+      BaseQueryResult<BaseQuery>,
   >(
     definition: OmitFromUnion<
       MutationDefinition<
@@ -1487,8 +1488,8 @@ export type EndpointBuilder<
     ResultType,
     QueryArg,
     PageParam,
-    RawResultType extends
-      BaseQueryResult<BaseQuery> = BaseQueryResult<BaseQuery>,
+    RawResultType extends BaseQueryResult<BaseQuery> =
+      BaseQueryResult<BaseQuery>,
   >(
     definition: OmitFromUnion<
       InfiniteQueryDefinition<

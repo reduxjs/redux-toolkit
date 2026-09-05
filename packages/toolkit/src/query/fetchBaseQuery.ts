@@ -1,8 +1,7 @@
-import { joinUrls } from './utils'
-import { isPlainObject } from './core/rtkImports'
 import type { BaseQueryApi, BaseQueryFn } from './baseQueryTypes'
+import { isPlainObject } from './core/rtkImports'
 import type { MaybePromise, Override } from './tsHelpers'
-import { anySignal, timeoutSignal } from './utils/signals'
+import { anySignal, joinUrls, timeoutSignal } from './utils/index'
 
 export type ResponseHandler =
   | 'content-type'
@@ -234,7 +233,7 @@ export function fetchBaseQuery({
       ...rest
     } = typeof arg == 'string' ? { url: arg } : arg
 
-    let config: RequestInit = {
+    const config: RequestInit = {
       ...baseFetchOptions,
       signal: timeout
         ? anySignal(api.signal, timeoutSignal(timeout))
@@ -298,7 +297,7 @@ export function fetchBaseQuery({
     const requestClone = new Request(url, config)
     meta = { request: requestClone }
 
-    let response
+    let response: Response
     try {
       response = await fetchFn(request)
     } catch (e) {

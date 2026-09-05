@@ -1,8 +1,11 @@
 export { createEntityAdapter } from './create_adapter'
 export type {
-  EntityState,
-  EntityAdapter,
-  Update,
-  IdSelector,
   Comparer,
+  EntityAdapter,
+  EntityId,
+  EntitySelectors,
+  EntityState,
+  EntityStateAdapter,
+  IdSelector,
+  Update,
 } from './models'

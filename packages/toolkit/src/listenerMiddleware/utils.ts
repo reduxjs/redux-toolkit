@@ -1,3 +1,6 @@
+import { noop } from '../utils'
+export { noop }
+
 export const assertFunction: (
   func: unknown,
   expected: string,
@@ -9,8 +12,6 @@ export const assertFunction: (
     throw new TypeError(`${expected} is not a function`)
   }
 }
-
-export const noop = () => {}
 
 export const catchRejection = <T>(
   promise: Promise<T>,

@@ -1,7 +1,6 @@
 import type { UnknownAction } from '@reduxjs/toolkit'
 import type { BaseQueryFn } from './baseQueryTypes'
-import type { CombinedState, CoreModule } from './core/index'
-import type { ApiModules } from './core/module'
+import type { ApiModules, CombinedState, CoreModule } from './core/index'
 import type { CreateApiOptions } from './createApi'
 import type {
   EndpointBuilder,

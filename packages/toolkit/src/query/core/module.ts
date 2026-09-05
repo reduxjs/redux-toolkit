@@ -10,7 +10,7 @@ import type {
   ThunkDispatch,
   UnknownAction,
 } from '@reduxjs/toolkit'
-import { enablePatches } from '../utils/immerImports'
+import type { CreateSelectorFunction } from 'reselect'
 import type { Api, Module } from '../apiTypes'
 import type { BaseQueryFn } from '../baseQueryTypes'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
@@ -29,7 +29,8 @@ import {
   isMutationDefinition,
   isQueryDefinition,
 } from '../endpointDefinitions'
-import { assertCast, safeAssign } from '../tsHelpers'
+import { safeAssign } from '../tsHelpers'
+import { enablePatches, getOrInsertComputed } from '../utils/index'
 import type {
   CombinedState,
   MutationKeys,
@@ -37,20 +38,21 @@ import type {
   RootState,
 } from './apiState'
 import type {
+  BuildInitiateApiEndpointInfiniteQuery,
   BuildInitiateApiEndpointMutation,
   BuildInitiateApiEndpointQuery,
+  InfiniteQueryActionCreatorResult,
   MutationActionCreatorResult,
   QueryActionCreatorResult,
-  InfiniteQueryActionCreatorResult,
-  BuildInitiateApiEndpointInfiniteQuery,
 } from './buildInitiate'
 import { buildInitiate } from './buildInitiate'
 import type {
+  InternalMiddlewareState,
   ReferenceCacheCollection,
   ReferenceCacheLifecycle,
   ReferenceQueryLifecycle,
-} from './buildMiddleware'
-import { buildMiddleware } from './buildMiddleware'
+} from './buildMiddleware/index'
+import { buildMiddleware } from './buildMiddleware/index'
 import type {
   BuildSelectorsApiEndpointInfiniteQuery,
   BuildSelectorsApiEndpointMutation,
@@ -71,10 +73,8 @@ import type {
 } from './buildThunks'
 import { buildThunks } from './buildThunks'
 import { _createSelector } from './rtkImports'
+import type { ListenerActions } from './setupListeners'
 import { onFocus, onFocusLost, onOffline, onOnline } from './setupListeners'
-import type { InternalMiddlewareState } from './buildMiddleware/types'
-import { getOrInsertComputed } from '../utils'
-import type { CreateSelectorFunction } from 'reselect'
 
 /**
  * `ifOlderThan` - (default: `false` | `number`) - _number is value in seconds_
@@ -100,7 +100,6 @@ export type CoreModule =
 export type ThunkWithReturnValue<T> = ThunkAction<T, any, any, UnknownAction>
 
 export interface ApiModules<
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   BaseQuery extends BaseQueryFn,
   Definitions extends EndpointDefinitions,
   ReducerPath extends string,
@@ -427,11 +426,11 @@ export interface ApiModules<
 }
 
 export interface ApiEndpointQuery<
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Definition extends QueryDefinition<any, any, any, any, any>,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Definitions extends EndpointDefinitions,
-> extends BuildThunksApiEndpointQuery<Definition>,
+>
+  extends
+    BuildThunksApiEndpointQuery<Definition>,
     BuildInitiateApiEndpointQuery<Definition>,
     BuildSelectorsApiEndpointQuery<Definition, Definitions> {
   name: string
@@ -442,11 +441,11 @@ export interface ApiEndpointQuery<
 }
 
 export interface ApiEndpointInfiniteQuery<
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Definition extends InfiniteQueryDefinition<any, any, any, any, any>,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Definitions extends EndpointDefinitions,
-> extends BuildThunksApiEndpointInfiniteQuery<Definition>,
+>
+  extends
+    BuildThunksApiEndpointInfiniteQuery<Definition>,
     BuildInitiateApiEndpointInfiniteQuery<Definition>,
     BuildSelectorsApiEndpointInfiniteQuery<Definition, Definitions> {
   name: string
@@ -456,13 +455,12 @@ export interface ApiEndpointInfiniteQuery<
   Types: NonNullable<Definition['Types']>
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export interface ApiEndpointMutation<
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Definition extends MutationDefinition<any, any, any, any, any>,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Definitions extends EndpointDefinitions,
-> extends BuildThunksApiEndpointMutation<Definition>,
+>
+  extends
+    BuildThunksApiEndpointMutation<Definition>,
     BuildInitiateApiEndpointMutation<Definition>,
     BuildSelectorsApiEndpointMutation<Definition, Definitions> {
   name: string
@@ -470,21 +468,6 @@ export interface ApiEndpointMutation<
    * All of these are `undefined` at runtime, purely to be used in TypeScript declarations!
    */
   Types: NonNullable<Definition['Types']>
-}
-
-export type ListenerActions = {
-  /**
-   * Will cause the RTK Query middleware to trigger any refetchOnReconnect-related behavior
-   * @link https://redux-toolkit.js.org/rtk-query/api/setupListeners
-   */
-  onOnline: typeof onOnline
-  onOffline: typeof onOffline
-  /**
-   * Will cause the RTK Query middleware to trigger any refetchOnFocus-related behavior
-   * @link https://redux-toolkit.js.org/rtk-query/api/setupListeners
-   */
-  onFocus: typeof onFocus
-  onFocusLost: typeof onFocusLost
 }
 
 export type InternalActions = SliceActions & ListenerActions
@@ -511,7 +494,7 @@ export const coreModule = ({
   init(
     api,
     {
-      baseQuery,
+      baseQuery: baseQueryFunction,
       tagTypes,
       reducerPath,
       serializeQueryArgs,
@@ -527,8 +510,6 @@ export const coreModule = ({
     context,
   ) {
     enablePatches()
-
-    assertCast<InternalSerializeQueryArgs>(serializeQueryArgs)
 
     const assertTagType: AssertTagTypes = (tag) => {
       if (
@@ -557,7 +538,7 @@ export const coreModule = ({
     })
 
     const selectors = buildSelectors({
-      serializeQueryArgs: serializeQueryArgs as any,
+      serializeQueryArgs: serializeQueryArgs as InternalSerializeQueryArgs,
       reducerPath,
       createSelector,
     })
@@ -582,11 +563,11 @@ export const coreModule = ({
       prefetch,
       buildMatchThunkActions,
     } = buildThunks({
-      baseQuery,
+      baseQuery: baseQueryFunction,
       reducerPath,
       context,
       api,
-      serializeQueryArgs,
+      serializeQueryArgs: serializeQueryArgs as InternalSerializeQueryArgs,
       assertTagType,
       selectors,
       onSchemaFailure,
@@ -599,7 +580,7 @@ export const coreModule = ({
       queryThunk,
       infiniteQueryThunk,
       mutationThunk,
-      serializeQueryArgs,
+      serializeQueryArgs: serializeQueryArgs as InternalSerializeQueryArgs,
       reducerPath,
       assertTagType,
       config: {

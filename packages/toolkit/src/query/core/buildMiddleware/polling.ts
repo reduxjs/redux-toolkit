@@ -1,17 +1,9 @@
+import type { QuerySubstateIdentifier, SubscribersInternal } from '../apiState'
+import { STATUS_UNINITIALIZED } from '../apiState'
 import type {
-  QueryCacheKey,
-  QuerySubstateIdentifier,
-  Subscribers,
-  SubscribersInternal,
-} from '../apiState'
-import { QueryStatus, STATUS_UNINITIALIZED } from '../apiState'
-import type {
-  QueryStateMeta,
-  SubMiddlewareApi,
-  TimeoutId,
-  InternalHandlerBuilder,
   ApiMiddlewareInternalHandler,
-  InternalMiddlewareState,
+  InternalHandlerBuilder,
+  SubMiddlewareApi,
 } from './types'
 
 export const buildPollingHandler: InternalHandlerBuilder = ({
@@ -169,7 +161,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
     for (const entry of subscribers.values()) {
       if (!!entry.pollingInterval) {
         lowestPollingInterval = Math.min(
-          entry.pollingInterval!,
+          entry.pollingInterval,
           lowestPollingInterval,
         )
         skipPollingIfUnfocused =

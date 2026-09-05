@@ -27,33 +27,33 @@ export function selectIdValue<T, EntityIdType extends EntityId>(
   return key
 }
 
-export function ensureEntitiesArray<T, Id extends EntityId>(
-  entities: readonly T[] | Record<Id, T>,
+export function ensureEntitiesArray<T, EntityIdType extends EntityId>(
+  entities: readonly T[] | Record<EntityIdType, T>,
 ): readonly T[] {
   if (!Array.isArray(entities)) {
-    entities = Object.values(entities)
+    return Object.values(entities)
   }
 
   return entities
 }
 
 export function getCurrent<T>(value: T | Draft<T>): T {
-  return (isDraft(value) ? current(value) : value) as T
+  return (isDraft(value) ? current(value as Draft<T>) : value) as T
 }
 
-export function splitAddedUpdatedEntities<T, Id extends EntityId>(
-  newEntities: readonly T[] | Record<Id, T>,
-  selectId: IdSelector<T, Id>,
-  state: DraftableEntityState<T, Id>,
-): [T[], Update<T, Id>[], Id[]] {
+export function splitAddedUpdatedEntities<T, EntityIdType extends EntityId>(
+  newEntities: readonly T[] | Record<EntityIdType, T>,
+  selectId: IdSelector<T, EntityIdType>,
+  state: DraftableEntityState<T, EntityIdType>,
+): [T[], Update<T, EntityIdType>[], EntityIdType[]] {
   newEntities = ensureEntitiesArray(newEntities)
 
-  const existingIdsArray = getCurrent(state.ids)
-  const existingIds = new Set<Id>(existingIdsArray)
+  const existingIdsArray = getCurrent<EntityIdType[]>(state.ids)
+  const existingIds = new Set<EntityIdType>(existingIdsArray)
 
   const added: T[] = []
-  const addedIds = new Set<Id>([])
-  const updated: Update<T, Id>[] = []
+  const addedIds = new Set<EntityIdType>([])
+  const updated: Update<T, EntityIdType>[] = []
 
   for (const entity of newEntities) {
     const id = selectIdValue(entity, selectId)

@@ -1,5 +1,5 @@
-import type { Draft } from './immerImports'
 import type { Action, Reducer, UnknownAction } from 'redux'
+import type { Draft } from './immerImports'
 import { createNextState, isDraft, isDraftable } from './immerImports'
 import type { ActionReducerMapBuilder } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
@@ -147,7 +147,7 @@ export function createReducer<S extends NotFunction<any>>(
     }
   }
 
-  let [actionsMap, finalActionMatchers, finalDefaultCaseReducer] =
+  const [actionsMap, finalActionMatchers, finalDefaultCaseReducer] =
     executeReducerBuilderCallback(mapOrBuilderCallback)
 
   // Ensure the initial state gets frozen either way (if draftable)

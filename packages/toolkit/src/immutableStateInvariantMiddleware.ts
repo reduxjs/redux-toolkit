@@ -94,16 +94,16 @@ function detectMutations(
 
   // Gather all keys from prev (tracked) and after objs
   const keysToDetect: Record<string, boolean> = {}
-  for (let key in trackedProperty.children) {
+  for (const key in trackedProperty.children) {
     keysToDetect[key] = true
   }
-  for (let key in obj) {
+  for (const key in obj) {
     keysToDetect[key] = true
   }
 
   const hasIgnoredPaths = ignoredPaths.length > 0
 
-  for (let key in keysToDetect) {
+  for (const key in keysToDetect) {
     const nestedPath = path ? path + '.' + key : key
 
     if (hasIgnoredPaths) {
@@ -173,102 +173,102 @@ export function createImmutableStateInvariantMiddleware(
 ): Middleware {
   if (process.env.NODE_ENV === 'production') {
     return () => (next) => (action) => next(action)
-  } else {
-    function stringify(
-      obj: any,
-      serializer?: EntryProcessor,
-      indent?: string | number,
-      decycler?: EntryProcessor,
-    ): string {
-      return JSON.stringify(obj, getSerialize(serializer, decycler), indent)
+  }
+
+  function stringify(
+    obj: any,
+    serializer?: EntryProcessor,
+    indent?: string | number,
+    decycler?: EntryProcessor,
+  ): string {
+    return JSON.stringify(obj, getSerialize(serializer, decycler), indent)
+  }
+
+  function getSerialize(
+    serializer?: EntryProcessor,
+    decycler?: EntryProcessor,
+  ): EntryProcessor {
+    const stack: any[] = []
+    const keys: any[] = []
+
+    if (!decycler)
+      decycler = function (_: string, value: any) {
+        if (stack[0] === value) return '[Circular ~]'
+        return (
+          '[Circular ~.' + keys.slice(0, stack.indexOf(value)).join('.') + ']'
+        )
+      }
+
+    return function (this: any, key: string, value: any) {
+      if (stack.length > 0) {
+        const thisPos = stack.indexOf(this)
+        ~thisPos ? stack.splice(thisPos + 1) : stack.push(this)
+        ~thisPos ? keys.splice(thisPos, Infinity, key) : keys.push(key)
+        if (~stack.indexOf(value)) value = decycler.call(this, key, value)
+      } else stack.push(value)
+
+      return serializer == null ? value : serializer.call(this, key, value)
     }
+  }
 
-    function getSerialize(
-      serializer?: EntryProcessor,
-      decycler?: EntryProcessor,
-    ): EntryProcessor {
-      let stack: any[] = [],
-        keys: any[] = []
+  const {
+    isImmutable = isImmutableDefault,
+    ignoredPaths,
+    warnAfter = 32,
+  } = options
 
-      if (!decycler)
-        decycler = function (_: string, value: any) {
-          if (stack[0] === value) return '[Circular ~]'
-          return (
-            '[Circular ~.' + keys.slice(0, stack.indexOf(value)).join('.') + ']'
+  const track = trackForMutations.bind(null, isImmutable, ignoredPaths)
+
+  return ({ getState }) => {
+    let state = getState()
+    let tracker = track(state)
+
+    let result
+    return (next) => (action) => {
+      const measureUtils = getTimeMeasureUtils(
+        warnAfter,
+        'ImmutableStateInvariantMiddleware',
+      )
+
+      measureUtils.measureTime(() => {
+        state = getState()
+
+        result = tracker.detectMutations()
+        // Track before potentially not meeting the invariant
+        tracker = track(state)
+
+        if (result.wasMutated) {
+          throw new Error(
+            `A state mutation was detected between dispatches, in the path '${
+              result.path || ''
+            }'.  This may cause incorrect behavior. (https://redux.js.org/style-guide/style-guide#do-not-mutate-state)`,
           )
         }
+      })
 
-      return function (this: any, key: string, value: any) {
-        if (stack.length > 0) {
-          var thisPos = stack.indexOf(this)
-          ~thisPos ? stack.splice(thisPos + 1) : stack.push(this)
-          ~thisPos ? keys.splice(thisPos, Infinity, key) : keys.push(key)
-          if (~stack.indexOf(value)) value = decycler!.call(this, key, value)
-        } else stack.push(value)
+      const dispatchedAction = next(action)
 
-        return serializer == null ? value : serializer.call(this, key, value)
-      }
-    }
+      measureUtils.measureTime(() => {
+        state = getState()
 
-    let {
-      isImmutable = isImmutableDefault,
-      ignoredPaths,
-      warnAfter = 32,
-    } = options
+        result = tracker.detectMutations()
+        // Track before potentially not meeting the invariant
+        tracker = track(state)
 
-    const track = trackForMutations.bind(null, isImmutable, ignoredPaths)
+        if (result.wasMutated) {
+          throw new Error(
+            `A state mutation was detected inside a dispatch, in the path: ${
+              result.path || ''
+            }. Take a look at the reducer(s) handling the action ${stringify(
+              action,
+            )}. (https://redux.js.org/style-guide/style-guide#do-not-mutate-state)`,
+          )
+        }
+      })
 
-    return ({ getState }) => {
-      let state = getState()
-      let tracker = track(state)
+      measureUtils.warnIfExceeded()
 
-      let result
-      return (next) => (action) => {
-        const measureUtils = getTimeMeasureUtils(
-          warnAfter,
-          'ImmutableStateInvariantMiddleware',
-        )
-
-        measureUtils.measureTime(() => {
-          state = getState()
-
-          result = tracker.detectMutations()
-          // Track before potentially not meeting the invariant
-          tracker = track(state)
-
-          if (result.wasMutated) {
-            throw new Error(
-              `A state mutation was detected between dispatches, in the path '${
-                result.path || ''
-              }'.  This may cause incorrect behavior. (https://redux.js.org/style-guide/style-guide#do-not-mutate-state)`,
-            )
-          }
-        })
-
-        const dispatchedAction = next(action)
-
-        measureUtils.measureTime(() => {
-          state = getState()
-
-          result = tracker.detectMutations()
-          // Track before potentially not meeting the invariant
-          tracker = track(state)
-
-          if (result.wasMutated) {
-            throw new Error(
-              `A state mutation was detected inside a dispatch, in the path: ${
-                result.path || ''
-              }. Take a look at the reducer(s) handling the action ${stringify(
-                action,
-              )}. (https://redux.js.org/style-guide/style-guide#do-not-mutate-state)`,
-            )
-          }
-        })
-
-        measureUtils.warnIfExceeded()
-
-        return dispatchedAction
-      }
+      return dispatchedAction
     }
   }
 }

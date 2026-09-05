@@ -4,8 +4,8 @@ import type {
   StateFromReducersMapObject,
   UnknownAction,
 } from 'redux'
-import { combineReducers } from 'redux'
 import { nanoid } from './nanoid'
+import { combineReducers } from './reduxImports'
 import type {
   Id,
   NonUndefined,

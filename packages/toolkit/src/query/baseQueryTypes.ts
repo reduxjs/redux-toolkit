@@ -57,7 +57,7 @@ export type BaseQueryEnhancer<
   AdditionalDefinitionExtraOptions = unknown,
   Config = void,
 > = <BaseQuery extends BaseQueryFn>(
-  baseQuery: BaseQuery,
+  baseQueryFunction: BaseQuery,
   config: Config,
 ) => BaseQueryFn<
   BaseQueryArg<BaseQuery> & AdditionalArgs,
