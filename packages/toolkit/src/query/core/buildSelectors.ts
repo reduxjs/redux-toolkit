@@ -28,7 +28,7 @@ import type {
 } from './apiState'
 import { STATUS_UNINITIALIZED, getRequestStatusFlags } from './apiState'
 import { getMutationCacheKey } from './buildSlice'
-import type { createSelector as _createSelector } from './rtkImports'
+import type { _createSelector } from './rtkImports'
 import { createNextState } from './rtkImports'
 import {
   type AllQueryKeys,

@@ -1,9 +1,9 @@
 export {
-  current,
-  isDraft,
   applyPatches,
-  original,
-  isDraftable,
-  produceWithPatches,
+  current,
   enablePatches,
+  isDraft,
+  isDraftable,
+  original,
+  produceWithPatches,
 } from 'immer'

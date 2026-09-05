@@ -70,7 +70,7 @@ import type {
   UpsertQueryDataThunk,
 } from './buildThunks'
 import { buildThunks } from './buildThunks'
-import { createSelector as _createSelector } from './rtkImports'
+import { _createSelector } from './rtkImports'
 import { onFocus, onFocusLost, onOffline, onOnline } from './setupListeners'
 import type { InternalMiddlewareState } from './buildMiddleware/types'
 import { getOrInsertComputed } from '../utils'

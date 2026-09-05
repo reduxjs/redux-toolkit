@@ -23,7 +23,7 @@ import type {
   PromiseWithKnownReason,
   SubMiddlewareApi,
 } from './types'
-import { getEndpointDefinition } from '@internal/query/apiTypes'
+import { getEndpointDefinition } from '../../apiTypes'
 
 export type ReferenceCacheLifecycle = never
 

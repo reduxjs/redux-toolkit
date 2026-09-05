@@ -1,4 +1,4 @@
-import type { Draft } from 'immer'
+import type { Draft } from '../immerImports'
 import { current, isDraft } from '../immerImports'
 import type {
   DraftableEntityState,

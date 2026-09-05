@@ -3,17 +3,21 @@
 import { formatProdErrorMessage } from './formatProdErrorMessage'
 
 export * from 'redux'
-export { freeze, original } from 'immer'
+export { freeze, original } from './immerImports'
 export { createNextState, current, isDraft } from './immerImports'
-export type { Draft, WritableDraft } from 'immer'
-export { createSelector, lruMemoize } from 'reselect'
+export type { Draft, WritableDraft } from './immerImports'
+export { createSelector, lruMemoize } from './reselectImports'
 export { createSelectorCreator, weakMapMemoize } from './reselectImports'
-export type { Selector, OutputSelector } from 'reselect'
+export type { Selector, OutputSelector } from './reselectImports'
 export {
   createDraftSafeSelector,
   createDraftSafeSelectorCreator,
 } from './createDraftSafeSelector'
-export type { ThunkAction, ThunkDispatch, ThunkMiddleware } from 'redux-thunk'
+export type {
+  ThunkAction,
+  ThunkDispatch,
+  ThunkMiddleware,
+} from './reduxThunkImports'
 
 export {
   // js

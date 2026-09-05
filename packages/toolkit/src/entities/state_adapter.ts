@@ -1,5 +1,5 @@
 import { createNextState, isDraft } from '../immerImports'
-import type { Draft } from 'immer'
+import type { Draft } from '../immerImports'
 import type { EntityId, DraftableEntityState, PreventAny } from './models'
 import type { PayloadAction } from '../createAction'
 import { isFSA } from '../createAction'

@@ -1,5 +1,5 @@
 import type { Action, Reducer, UnknownAction } from 'redux'
-import type { Selector } from 'reselect'
+import type { Selector } from './reselectImports'
 import type { InjectConfig } from './combineSlices'
 import type {
   ActionCreatorWithoutPayload,

@@ -11,13 +11,13 @@ import type {
   QueryKeys,
 } from '@reduxjs/toolkit/query'
 import {
-  batch as rrBatch,
-  useDispatch as rrUseDispatch,
-  useSelector as rrUseSelector,
-  useStore as rrUseStore,
-} from 'react-redux'
+  rrBatch,
+  rrUseDispatch,
+  rrUseSelector,
+  rrUseStore,
+} from './reactReduxImports'
 import type { CreateSelectorFunction } from 'reselect'
-import { createSelector as _createSelector } from 'reselect'
+import { _createSelector } from '../core/rtkImports'
 import {
   isInfiniteQueryDefinition,
   isMutationDefinition,

@@ -1,5 +1,5 @@
 import type { Dispatch, UnknownAction } from 'redux'
-import type { ThunkDispatch } from 'redux-thunk'
+import type { ThunkDispatch } from './reduxThunkImports'
 import type { ActionCreatorWithPreparedPayload } from './createAction'
 import { createAction } from './createAction'
 import { isAnyOf } from './matchers'

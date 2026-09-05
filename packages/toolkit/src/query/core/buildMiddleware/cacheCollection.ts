@@ -1,4 +1,4 @@
-import { getEndpointDefinition } from '@internal/query/apiTypes'
+import { getEndpointDefinition } from '../../apiTypes'
 import type { QueryDefinition } from '../../endpointDefinitions'
 import type { ConfigState, QueryCacheKey, QuerySubState } from '../apiState'
 import { isAnyOf } from '../rtkImports'
