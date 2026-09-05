@@ -5,9 +5,10 @@ import type {
   MiddlewareAPI,
   UnknownAction,
 } from 'redux'
-import type { ThunkDispatch } from 'redux-thunk'
 import type { BaseActionCreator, PayloadAction } from '../createAction'
 import type { TypedActionCreator } from '../mapBuilders'
+import type { ThunkDispatch } from '../reduxThunkImports'
+import type { HasMatchFunction, TypeGuard } from '../tsHelpers'
 import type { TaskAbortError } from './exceptions'
 
 /**
@@ -15,10 +16,8 @@ import type { TaskAbortError } from './exceptions'
  */
 
 /** @internal */
-type TypedActionCreatorWithMatchFunction<Type extends string> =
-  TypedActionCreator<Type> & {
-    match: MatchFunction<any>
-  }
+type TypedActionCreatorWithMatchFunction<ActionType extends string> =
+  TypedActionCreator<ActionType> & HasMatchFunction<any>
 
 /** @internal */
 export type AnyListenerPredicate<State> = (
@@ -39,9 +38,6 @@ export interface ConditionFunction<State> {
   (predicate: AnyListenerPredicate<State>, timeout?: number): Promise<boolean>
   (predicate: () => boolean, timeout?: number): Promise<boolean>
 }
-
-/** @internal */
-export type MatchFunction<T> = (v: any) => v is T
 
 /** @public */
 export interface ForkedTaskAPI {
@@ -323,11 +319,8 @@ export type ListenerMiddleware<
 /** @public */
 export interface ListenerMiddlewareInstance<
   StateType = unknown,
-  DispatchType extends ThunkDispatch<
-    StateType,
-    unknown,
-    Action
-  > = ThunkDispatch<StateType, unknown, UnknownAction>,
+  DispatchType extends ThunkDispatch<StateType, unknown, Action> =
+    ThunkDispatch<StateType, unknown, UnknownAction>,
   ExtraArgument = unknown,
 > {
   middleware: ListenerMiddleware<StateType, DispatchType, ExtraArgument>
@@ -358,8 +351,8 @@ export type TakePatternOutputWithoutTimeout<
   State,
   Predicate extends AnyListenerPredicate<State>,
 > =
-  Predicate extends MatchFunction<infer ActionType>
-    ? Promise<[ActionType, State, State]>
+  Predicate extends TypeGuard<infer InferredActionType>
+    ? Promise<[InferredActionType, State, State]>
     : Promise<[UnknownAction, State, State]>
 
 /** @public */
@@ -367,23 +360,23 @@ export type TakePatternOutputWithTimeout<
   State,
   Predicate extends AnyListenerPredicate<State>,
 > =
-  Predicate extends MatchFunction<infer ActionType>
-    ? Promise<[ActionType, State, State] | null>
+  Predicate extends TypeGuard<infer InferredActionType>
+    ? Promise<[InferredActionType, State, State] | null>
     : Promise<[UnknownAction, State, State] | null>
 
 /** @public */
-export interface TakePattern<State> {
-  <Predicate extends AnyListenerPredicate<State>>(
+export interface TakePattern<StateType> {
+  <Predicate extends AnyListenerPredicate<StateType>>(
     predicate: Predicate,
-  ): TakePatternOutputWithoutTimeout<State, Predicate>
-  <Predicate extends AnyListenerPredicate<State>>(
+  ): TakePatternOutputWithoutTimeout<StateType, Predicate>
+  <Predicate extends AnyListenerPredicate<StateType>>(
     predicate: Predicate,
     timeout: number,
-  ): TakePatternOutputWithTimeout<State, Predicate>
-  <Predicate extends AnyListenerPredicate<State>>(
+  ): TakePatternOutputWithTimeout<StateType, Predicate>
+  <Predicate extends AnyListenerPredicate<StateType>>(
     predicate: Predicate,
     timeout?: number | undefined,
-  ): TakePatternOutputWithTimeout<State, Predicate>
+  ): TakePatternOutputWithTimeout<StateType, Predicate>
 }
 
 /** @public */
@@ -464,7 +457,7 @@ export type AddListenerOverloads<
   ): Return
 
   /** Accepts an RTK matcher function, such as `incrementByAmount.match` */
-  <MatchFunctionType extends MatchFunction<Action>>(
+  <MatchFunctionType extends TypeGuard<Action>>(
     options: {
       actionCreator?: never
       type?: never
@@ -867,7 +860,7 @@ export type ListenerEntry<
 export type FallbackAddListenerOptions = {
   actionCreator?: TypedActionCreatorWithMatchFunction<string>
   type?: string
-  matcher?: MatchFunction<any>
+  matcher?: TypeGuard<any>
   predicate?: ListenerPredicate<any, any>
   effect: ListenerEffect<any, any, any>
 }
@@ -877,10 +870,15 @@ export type FallbackAddListenerOptions = {
  */
 
 /** @public */
-export type GuardedType<T> = T extends (x: any, ...args: any[]) => x is infer T
-  ? T
+export type GuardedType<T> = T extends (
+  x: any,
+  ...args: any[]
+) => x is infer InferredPredicateType
+  ? InferredPredicateType
   : never
 
 /** @public */
 export type ListenerPredicateGuardedActionType<T> =
-  T extends ListenerPredicate<infer ActionType, any> ? ActionType : never
+  T extends ListenerPredicate<infer InferredActionType, any>
+    ? InferredActionType
+    : never

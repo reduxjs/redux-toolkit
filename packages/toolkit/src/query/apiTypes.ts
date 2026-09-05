@@ -1,7 +1,6 @@
 import type { UnknownAction } from '@reduxjs/toolkit'
 import type { BaseQueryFn } from './baseQueryTypes'
-import type { CombinedState, CoreModule } from './core/index'
-import type { ApiModules } from './core/module'
+import type { ApiModules, CombinedState, CoreModule } from './core/index'
 import type { CreateApiOptions } from './createApi'
 import type {
   EndpointBuilder,
@@ -103,11 +102,11 @@ export type Api<
       Definitions,
       TagTypes | NoInfer<NewTagTypes>,
       NewDefinitions
-    > extends infer NewDefinitions
+    > extends infer InferredNewEndpointDefinitionsType
       ? {
-          [K in keyof NewDefinitions]?:
-            | Partial<NewDefinitions[K]>
-            | ((definition: NewDefinitions[K]) => void)
+          [K in keyof InferredNewEndpointDefinitionsType]?:
+            | Partial<InferredNewEndpointDefinitionsType[K]>
+            | ((definition: InferredNewEndpointDefinitionsType[K]) => void)
         }
       : never
   }): Api<

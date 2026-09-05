@@ -1,13 +1,10 @@
 import type { Middleware, UnknownAction } from 'redux'
-import type { ThunkMiddleware } from 'redux-thunk'
-import { thunk as thunkMiddleware, withExtraArgument } from 'redux-thunk'
 import type { ActionCreatorInvariantMiddlewareOptions } from './actionCreatorInvariantMiddleware'
 import { createActionCreatorInvariantMiddleware } from './actionCreatorInvariantMiddleware'
 import type { ImmutableStateInvariantMiddlewareOptions } from './immutableStateInvariantMiddleware'
-/* PROD_START_REMOVE_UMD */
 import { createImmutableStateInvariantMiddleware } from './immutableStateInvariantMiddleware'
-/* PROD_STOP_REMOVE_UMD */
-
+import type { ThunkMiddleware } from './reduxThunkImports'
+import { thunkMiddleware, withExtraArgument } from './reduxThunkImports'
 import type { SerializableStateInvariantMiddlewareOptions } from './serializableStateInvariantMiddleware'
 import { createSerializableStateInvariantMiddleware } from './serializableStateInvariantMiddleware'
 import type { ExcludeFromTuple } from './tsHelpers'
@@ -35,8 +32,10 @@ export type ThunkMiddlewareFor<
   thunk: false
 }
   ? never
-  : O extends { thunk: { extraArgument: infer E } }
-    ? ThunkMiddleware<S, UnknownAction, E>
+  : O extends {
+        thunk: { extraArgument: infer InferredExtraArgumentType }
+      }
+    ? ThunkMiddleware<S, UnknownAction, InferredExtraArgumentType>
     : ThunkMiddleware<S, UnknownAction>
 
 export type GetDefaultMiddleware<S = any> = <
@@ -59,7 +58,7 @@ export const buildGetDefaultMiddleware = <S = any>(): GetDefaultMiddleware<S> =>
       actionCreatorCheck = true,
     } = options ?? {}
 
-    let middlewareArray = new Tuple<Middleware[]>()
+    const middlewareArray = new Tuple<Middleware[]>()
 
     if (thunk) {
       if (isBoolean(thunk)) {
@@ -71,7 +70,6 @@ export const buildGetDefaultMiddleware = <S = any>(): GetDefaultMiddleware<S> =>
 
     if (process.env.NODE_ENV !== 'production') {
       if (immutableCheck) {
-        /* PROD_START_REMOVE_UMD */
         let immutableOptions: ImmutableStateInvariantMiddlewareOptions = {}
 
         if (!isBoolean(immutableCheck)) {
@@ -81,7 +79,6 @@ export const buildGetDefaultMiddleware = <S = any>(): GetDefaultMiddleware<S> =>
         middlewareArray.unshift(
           createImmutableStateInvariantMiddleware(immutableOptions),
         )
-        /* PROD_STOP_REMOVE_UMD */
       }
 
       if (serializableCheck) {

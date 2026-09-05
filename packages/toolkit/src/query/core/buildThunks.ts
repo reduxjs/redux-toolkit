@@ -7,7 +7,6 @@ import type {
   UnknownAction,
 } from '@reduxjs/toolkit'
 import type { Patch } from 'immer'
-import { isDraftable, produceWithPatches } from '../utils/immerImports'
 import type { Api, ApiContext } from '../apiTypes'
 import type {
   BaseQueryError,
@@ -40,18 +39,23 @@ import {
   isQueryDefinition,
 } from '../endpointDefinitions'
 import { HandledError } from '../HandledError'
+import {
+  NamedSchemaError,
+  parseWithSchema,
+  shouldSkip,
+} from '../standardSchema'
 import type { UnwrapPromise } from '../tsHelpers'
+import { isDraftable, produceWithPatches } from '../utils/index'
 import type {
-  RootState,
-  QueryKeys,
-  QuerySubstateIdentifier,
   InfiniteData,
   InfiniteQueryConfigOptions,
-  QueryCacheKey,
   InfiniteQueryDirection,
   InfiniteQueryKeys,
+  QueryKeys,
+  QuerySubstateIdentifier,
+  RootState,
 } from './apiState'
-import { QueryStatus, STATUS_UNINITIALIZED } from './apiState'
+import { STATUS_UNINITIALIZED } from './apiState'
 import type {
   InfiniteQueryActionCreatorResult,
   QueryActionCreatorResult,
@@ -70,11 +74,6 @@ import {
   isRejectedWithValue,
   SHOULD_AUTOBATCH,
 } from './rtkImports'
-import {
-  parseWithSchema,
-  NamedSchemaError,
-  shouldSkip,
-} from '../standardSchema'
 
 export type BuildThunksApiEndpointQuery<
   Definition extends QueryDefinition<any, any, any, any, any>,
@@ -93,30 +92,46 @@ type EndpointThunk<
   Definition extends EndpointDefinition<any, any, any, any>,
 > =
   Definition extends EndpointDefinition<
-    infer QueryArg,
-    infer BaseQueryFn,
+    infer InferredQueryArgumentType,
+    infer InferredBaseQueryFunctionType,
     any,
-    infer ResultType
+    infer InferredResultType
   >
-    ? Thunk extends AsyncThunk<unknown, infer ATArg, infer ATConfig>
+    ? Thunk extends AsyncThunk<
+        unknown,
+        infer InferredAsyncThunkArgumentType,
+        infer InferredAsyncThunkConfigType
+      >
       ? AsyncThunk<
-          ResultType,
-          ATArg & { originalArgs: QueryArg },
-          ATConfig & { rejectValue: BaseQueryError<BaseQueryFn> }
+          InferredResultType,
+          InferredAsyncThunkArgumentType & {
+            originalArgs: InferredQueryArgumentType
+          },
+          InferredAsyncThunkConfigType & {
+            rejectValue: BaseQueryError<InferredBaseQueryFunctionType>
+          }
         >
       : never
     : Definition extends InfiniteQueryDefinition<
-          infer QueryArg,
-          infer PageParam,
-          infer BaseQueryFn,
+          infer InferredQueryArgumentType,
+          infer InferredPageParamType,
+          infer InferredBaseQueryFunctionType,
           any,
-          infer ResultType
+          infer InferredResultType
         >
-      ? Thunk extends AsyncThunk<unknown, infer ATArg, infer ATConfig>
+      ? Thunk extends AsyncThunk<
+          unknown,
+          infer InferredAsyncThunkArgumentType,
+          infer InferredAsyncThunkConfigType
+        >
         ? AsyncThunk<
-            InfiniteData<ResultType, PageParam>,
-            ATArg & { originalArgs: QueryArg },
-            ATConfig & { rejectValue: BaseQueryError<BaseQueryFn> }
+            InfiniteData<InferredResultType, InferredPageParamType>,
+            InferredAsyncThunkArgumentType & {
+              originalArgs: InferredQueryArgumentType
+            },
+            InferredAsyncThunkConfigType & {
+              rejectValue: BaseQueryError<InferredBaseQueryFunctionType>
+            }
           >
         : never
       : never
@@ -334,7 +349,7 @@ export function buildThunks<
   Definitions extends EndpointDefinitions,
 >({
   reducerPath,
-  baseQuery,
+  baseQuery: baseQueryFunction,
   context: { endpointDefinitions },
   serializeQueryArgs,
   api,
@@ -486,7 +501,7 @@ export function buildThunks<
     transformFieldName: 'transformResponse' | 'transformErrorResponse',
   ): TransformCallback => {
     return endpointDefinition.query && endpointDefinition[transformFieldName]
-      ? (endpointDefinition[transformFieldName]! as TransformCallback)
+      ? (endpointDefinition[transformFieldName] as TransformCallback)
       : defaultTransformResponse
   }
 
@@ -593,7 +608,7 @@ export function buildThunks<
             'transformResponse',
           )
 
-          result = await baseQuery(
+          result = await baseQueryFunction(
             endpointDefinition.query(finalQueryArg as any),
             baseQueryApi,
             extraOptions as any,
@@ -603,13 +618,13 @@ export function buildThunks<
             finalQueryArg as any,
             baseQueryApi,
             extraOptions as any,
-            (arg) => baseQuery(arg, baseQueryApi, extraOptions as any),
+            (arg) => baseQueryFunction(arg, baseQueryApi, extraOptions as any),
           )
         }
 
         if (
           typeof process !== 'undefined' &&
-          process.env.NODE_ENV === 'development'
+          process.env.NODE_ENV !== 'production'
         ) {
           const what = endpointDefinition.query ? '`baseQuery`' : '`queryFn`'
           let err: undefined | string
@@ -707,9 +722,8 @@ export function buildThunks<
         const isForcedQueryNeedingRefetch = // arg.forceRefetch
           isForcedQuery(arg, getState()) &&
           !(arg as InfiniteQueryThunkArg<any>).direction
-        const existingData = (
+        const existingData =
           isForcedQueryNeedingRefetch || !cachedData ? blankData : cachedData
-        ) as InfiniteData<unknown, unknown>
 
         // If the thunk specified a direction and we do have at least one page,
         // fetch the next or previous page
@@ -794,7 +808,7 @@ export function buildThunks<
     } catch (error) {
       let caughtError = error
       if (caughtError instanceof HandledError) {
-        let transformErrorResponse = getTransformCallbackForEndpoint(
+        const transformErrorResponse = getTransformCallbackForEndpoint(
           endpointDefinition,
           'transformErrorResponse',
         )
@@ -933,8 +947,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
         const previousArg = requestState?.originalArgs
         const endpointDefinition =
           endpointDefinitions[queryThunkArg.endpointName]
-        const direction = (queryThunkArg as InfiniteQueryThunkArg<any>)
-          .direction
+        const { direction } = queryThunkArg as InfiniteQueryThunkArg<any>
 
         // Order of these checks matters.
         // In order for `upsertQueryData` to successfully run while an existing request is in flight,

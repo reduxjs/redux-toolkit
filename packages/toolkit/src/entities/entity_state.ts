@@ -5,30 +5,30 @@ import type {
   EntityStateFactory,
 } from './models'
 
-export function getInitialEntityState<T, Id extends EntityId>(): EntityState<
+export function getInitialEntityState<
   T,
-  Id
-> {
+  EntityIdType extends EntityId,
+>(): EntityState<T, EntityIdType> {
   return {
     ids: [],
-    entities: {} as Record<Id, T>,
+    entities: {} as Record<EntityIdType, T>,
   }
 }
 
-export function createInitialStateFactory<T, Id extends EntityId>(
-  stateAdapter: EntityStateAdapter<T, Id>,
-): EntityStateFactory<T, Id> {
+export function createInitialStateFactory<T, EntityIdType extends EntityId>(
+  stateAdapter: EntityStateAdapter<T, EntityIdType>,
+): EntityStateFactory<T, EntityIdType> {
   function getInitialState(
     state?: undefined,
-    entities?: readonly T[] | Record<Id, T>,
-  ): EntityState<T, Id>
+    entities?: readonly T[] | Record<EntityIdType, T>,
+  ): EntityState<T, EntityIdType>
   function getInitialState<S extends object>(
     additionalState: S,
-    entities?: readonly T[] | Record<Id, T>,
-  ): EntityState<T, Id> & S
+    entities?: readonly T[] | Record<EntityIdType, T>,
+  ): EntityState<T, EntityIdType> & S
   function getInitialState(
     additionalState: any = {},
-    entities?: readonly T[] | Record<Id, T>,
+    entities?: readonly T[] | Record<EntityIdType, T>,
   ): any {
     const state = Object.assign(getInitialEntityState(), additionalState)
     return entities ? stateAdapter.setAll(state, entities) : state

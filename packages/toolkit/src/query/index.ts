@@ -1,18 +1,4 @@
-// This must remain here so that the `mangleErrors.cjs` build script
-// does not have to import this into each source file it rewrites.
-import { formatProdErrorMessage } from '@reduxjs/toolkit'
-
-export type {
-  CombinedState,
-  QueryCacheKey,
-  QueryKeys,
-  QuerySubState,
-  RootState,
-  SubscriptionOptions,
-} from './core/apiState'
-export { QueryStatus } from './core/apiState'
 export type { Api, ApiContext, Module } from './apiTypes'
-
 export type {
   BaseQueryApi,
   BaseQueryArg,
@@ -24,82 +10,85 @@ export type {
   BaseQueryResult,
   QueryReturnValue,
 } from './baseQueryTypes'
+export {
+  coreModule,
+  coreModuleName,
+  createApi,
+  QueryStatus,
+  setupListeners,
+  skipToken,
+} from './core/index'
 export type {
-  BaseEndpointDefinition,
-  EndpointDefinitions,
-  EndpointDefinition,
-  EndpointBuilder,
-  QueryDefinition,
-  MutationDefinition,
-  MutationExtraOptions,
-  InfiniteQueryArgFrom,
-  InfiniteQueryDefinition,
-  InfiniteQueryExtraOptions,
-  PageParamFrom,
-  TagDescription,
-  QueryArgFrom,
-  QueryExtraOptions,
-  ResultTypeFrom,
-  DefinitionType,
-  DefinitionsFromApi,
-  OverrideResultType,
-  ResultDescription,
-  TagTypesFromApi,
-  UpdateDefinitions,
-  SchemaFailureHandler,
-  SchemaFailureConverter,
-  SchemaFailureInfo,
-  SchemaType,
-} from './endpointDefinitions'
-export { fetchBaseQuery } from './fetchBaseQuery'
-export type {
-  FetchBaseQueryArgs,
-  FetchBaseQueryError,
-  FetchBaseQueryMeta,
-  FetchArgs,
-} from './fetchBaseQuery'
-export { retry } from './retry'
-export type { RetryOptions } from './retry'
-export { setupListeners } from './core/setupListeners'
-export { skipToken } from './core/buildSelectors'
-export type {
-  QueryResultSelectorResult,
-  MutationResultSelectorResult,
-  SkipToken,
-} from './core/buildSelectors'
-export type {
-  QueryActionCreatorResult,
-  MutationActionCreatorResult,
-  StartQueryActionCreatorOptions,
-} from './core/buildInitiate'
-export type { CreateApi, CreateApiOptions } from './createApi'
-export { buildCreateApi } from './createApi'
-export { _NEVER, fakeBaseQuery } from './fakeBaseQuery'
-export { copyWithStructuralSharing } from './utils/copyWithStructuralSharing'
-export { createApi, coreModule, coreModuleName } from './core/index'
-export type {
+  ApiEndpointInfiniteQuery,
+  ApiEndpointMutation,
+  ApiEndpointQuery,
+  ApiModules,
+  CombinedState,
+  CoreModule,
   InfiniteData,
   InfiniteQueryActionCreatorResult,
   InfiniteQueryConfigOptions,
   InfiniteQueryResultSelectorResult,
   InfiniteQuerySubState,
+  MutationActionCreatorResult,
+  MutationResultSelectorResult,
+  PrefetchOptions,
+  QueryActionCreatorResult,
+  QueryCacheKey,
+  QueryKeys,
+  QueryResultSelectorResult,
+  QuerySubState,
+  RootState,
+  SkipToken,
+  StartQueryActionCreatorOptions,
+  SubscriptionOptions,
   TypedMutationOnQueryStarted,
   TypedQueryOnQueryStarted,
 } from './core/index'
-export type {
-  ApiEndpointMutation,
-  ApiEndpointQuery,
-  ApiEndpointInfiniteQuery,
-  ApiModules,
-  CoreModule,
-  PrefetchOptions,
-} from './core/module'
+export { buildCreateApi } from './createApi'
+export type { CreateApi, CreateApiOptions } from './createApi'
 export { defaultSerializeQueryArgs } from './defaultSerializeQueryArgs'
 export type { SerializeQueryArgs } from './defaultSerializeQueryArgs'
-
+export type {
+  BaseEndpointDefinition,
+  DefinitionsFromApi,
+  DefinitionType,
+  EndpointBuilder,
+  EndpointDefinition,
+  EndpointDefinitions,
+  InfiniteQueryArgFrom,
+  InfiniteQueryDefinition,
+  InfiniteQueryExtraOptions,
+  MutationDefinition,
+  MutationExtraOptions,
+  OverrideResultType,
+  PageParamFrom,
+  QueryArgFrom,
+  QueryDefinition,
+  QueryExtraOptions,
+  ResultDescription,
+  ResultTypeFrom,
+  SchemaFailureConverter,
+  SchemaFailureHandler,
+  SchemaFailureInfo,
+  SchemaType,
+  TagDescription,
+  TagTypesFromApi,
+  UpdateDefinitions,
+} from './endpointDefinitions'
+export { _NEVER, fakeBaseQuery } from './fakeBaseQuery'
+export { fetchBaseQuery } from './fetchBaseQuery'
+export type {
+  FetchArgs,
+  FetchBaseQueryArgs,
+  FetchBaseQueryError,
+  FetchBaseQueryMeta,
+} from './fetchBaseQuery'
+export { retry } from './retry'
+export type { RetryOptions } from './retry'
+export { NamedSchemaError } from './standardSchema'
 export type {
   Id as TSHelpersId,
   Override as TSHelpersOverride,
 } from './tsHelpers'
-
-export { NamedSchemaError } from './standardSchema'
+export { copyWithStructuralSharing } from './utils/index'

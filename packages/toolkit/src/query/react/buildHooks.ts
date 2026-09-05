@@ -12,6 +12,7 @@ import type {
   BaseQueryFn,
   CoreModule,
   EndpointDefinitions,
+  InfiniteData,
   InfiniteQueryActionCreatorResult,
   InfiniteQueryArgFrom,
   InfiniteQueryDefinition,
@@ -37,15 +38,16 @@ import type {
   TSHelpersId,
   TSHelpersOverride,
 } from '@reduxjs/toolkit/query'
-import type { DependencyList } from 'react'
-import type { InfiniteQueryDirection } from '../core/apiState'
-import type { StartInfiniteQueryActionCreator } from '../core/buildInitiate'
-import type { SubscriptionSelectors } from '../core/buildMiddleware/index'
-import type { InfiniteData } from '../core/index'
+import type {
+  InfiniteQueryDirection,
+  StartInfiniteQueryActionCreator,
+  SubscriptionSelectors,
+} from '../core/index'
 import { isInfiniteQueryDefinition } from '../endpointDefinitions'
 import type { UninitializedValue } from './constants'
 import { UNINITIALIZED_VALUE } from './constants'
 import type { ReactHooksModuleOptions } from './module'
+import type { DependencyList, RefObject } from './reactImports'
 import {
   useCallback,
   useDebugValue,
@@ -1527,14 +1529,14 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     deps?: DependencyList,
   ) => void = unstable__sideEffectsInRender ? (cb) => cb() : useEffect
 
-  type UnsubscribePromiseRef = React.RefObject<
+  type UnsubscribePromiseRef = RefObject<
     { unsubscribe?: () => void } | undefined
   >
 
   const unsubscribePromiseRef = (ref: UnsubscribePromiseRef) =>
     ref.current?.unsubscribe?.()
 
-  const endpointDefinitions = context.endpointDefinitions
+  const { endpointDefinitions } = context
 
   return {
     buildQueryHooks,
@@ -1733,18 +1735,17 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       skipPollingIfUnfocused,
     })
 
-    const initialPageParam = (rest as UseInfiniteQuerySubscriptionOptions<any>)
-      .initialPageParam
+    const { initialPageParam } =
+      rest as UseInfiniteQuerySubscriptionOptions<any>
     const stableInitialPageParam = useShallowStableValue(initialPageParam)
 
-    const refetchCachedPages = (
+    const { refetchCachedPages } =
       rest as UseInfiniteQuerySubscriptionOptions<any>
-    ).refetchCachedPages
     const stableRefetchCachedPages = useShallowStableValue(refetchCachedPages)
 
     const promiseRef = useRef<T>(undefined)
 
-    let { queryCacheKey, requestId } = promiseRef.current || {}
+    const { queryCacheKey, requestId } = promiseRef.current || {}
 
     // HACK We've saved the middleware subscription lookup callbacks into a ref,
     // so we can directly check here if the subscription exists for this query.
@@ -1768,13 +1769,6 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
     usePossiblyImmediateEffect((): void | undefined => {
       const lastPromise = promiseRef.current
-      if (
-        typeof process !== 'undefined' &&
-        process.env.NODE_ENV === 'removeMeOnCompilation'
-      ) {
-        // this is only present to enforce the rule of hooks to keep `isSubscribed` in the dependency array
-        console.log(subscriptionRemoved)
-      }
 
       if (stableArg === skipToken) {
         lastPromise?.unsubscribe()
@@ -1851,7 +1845,6 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
           // @ts-ignore
           createSelector(
             [
-              // @ts-ignore
               select(stableArg),
               (_: ApiRootState, lastResult: any) => lastResult,
               (_: ApiRootState) => stableArg,
@@ -1918,7 +1911,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     T extends
       | QueryActionCreatorResult<any>
       | InfiniteQueryActionCreatorResult<any>,
-  >(promiseRef: React.RefObject<T | undefined>): T {
+  >(promiseRef: RefObject<T | undefined>): T {
     if (!promiseRef.current)
       throw new Error('Cannot refetch a query that has not been started yet.')
     return promiseRef.current.refetch() as T
@@ -2099,15 +2092,13 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       }, [stableSubscriptionOptions])
 
       // Extract and stabilize the hook-level refetchCachedPages option
-      const hookRefetchCachedPages = (
-        options as UseInfiniteQuerySubscriptionOptions<any>
-      ).refetchCachedPages
+      const hookRefetchCachedPages = options.refetchCachedPages
       const stableHookRefetchCachedPages = useShallowStableValue(
         hookRefetchCachedPages,
       )
 
       const trigger: LazyInfiniteQueryTrigger<any> = useCallback(
-        function (arg: unknown, direction: 'forward' | 'backward') {
+        function (arg: unknown, direction: InfiniteQueryDirection) {
           let promise: InfiniteQueryActionCreatorResult<any>
 
           batch(() => {

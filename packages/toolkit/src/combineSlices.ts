@@ -4,8 +4,8 @@ import type {
   StateFromReducersMapObject,
   UnknownAction,
 } from 'redux'
-import { combineReducers } from 'redux'
 import { nanoid } from './nanoid'
+import { combineReducers } from './reduxImports'
 import type {
   Id,
   NonUndefined,
@@ -23,13 +23,19 @@ type SliceLike<ReducerPath extends string, State, PreloadedState = State> = {
 type AnySliceLike = SliceLike<string, any>
 
 type SliceLikeReducerPath<A extends AnySliceLike> =
-  A extends SliceLike<infer ReducerPath, any> ? ReducerPath : never
+  A extends SliceLike<infer InferredReducerPathType, any>
+    ? InferredReducerPathType
+    : never
 
 type SliceLikeState<A extends AnySliceLike> =
-  A extends SliceLike<any, infer State, any> ? State : never
+  A extends SliceLike<any, infer InferredStateType, any>
+    ? InferredStateType
+    : never
 
 type SliceLikePreloadedState<A extends AnySliceLike> =
-  A extends SliceLike<any, any, infer PreloadedState> ? PreloadedState : never
+  A extends SliceLike<any, any, infer InferredPreloadedStateType>
+    ? InferredPreloadedStateType
+    : never
 
 export type WithSlice<A extends AnySliceLike> = {
   [Path in SliceLikeReducerPath<A>]: SliceLikeState<A>
@@ -42,10 +48,10 @@ export type WithSlicePreloadedState<A extends AnySliceLike> = {
 type ReducerMap = Record<string, Reducer>
 
 type ExistingSliceLike<DeclaredState, PreloadedState> = {
-  [ReducerPath in keyof DeclaredState]: SliceLike<
-    ReducerPath & string,
-    NonUndefined<DeclaredState[ReducerPath]>,
-    NonUndefined<PreloadedState[ReducerPath & keyof PreloadedState]>
+  [ReducerPathType in keyof DeclaredState]: SliceLike<
+    ReducerPathType & string,
+    NonUndefined<DeclaredState[ReducerPathType]>,
+    NonUndefined<PreloadedState[ReducerPathType & keyof PreloadedState]>
   >
 }[keyof DeclaredState]
 
@@ -60,8 +66,8 @@ export type InjectConfig = {
  * A reducer that allows for slices/reducers to be injected after initialisation.
  */
 export interface CombinedSliceReducer<
-  InitialState,
-  DeclaredState extends InitialState = InitialState,
+  InitialSliceStateType,
+  DeclaredState extends InitialSliceStateType = InitialSliceStateType,
   PreloadedState extends Partial<Record<keyof PreloadedState, any>> =
     Partial<DeclaredState>,
 > extends Reducer<DeclaredState, UnknownAction, PreloadedState> {
@@ -95,7 +101,7 @@ export interface CombinedSliceReducer<
    * ```
    */
   withLazyLoadedSlices<Lazy = {}, LazyPreloaded = Lazy>(): CombinedSliceReducer<
-    InitialState,
+    InitialSliceStateType,
     Id<DeclaredState & Partial<Lazy>>,
     Id<PreloadedState & Partial<LazyPreloaded>>
   >
@@ -116,7 +122,7 @@ export interface CombinedSliceReducer<
     slice: Sl,
     config?: InjectConfig,
   ): CombinedSliceReducer<
-    InitialState,
+    InitialSliceStateType,
     Id<DeclaredState & WithSlice<Sl>>,
     Id<PreloadedState & Partial<WithSlicePreloadedState<Sl>>>
   >
@@ -142,7 +148,7 @@ export interface CombinedSliceReducer<
     >,
     config?: InjectConfig,
   ): CombinedSliceReducer<
-    InitialState,
+    InitialSliceStateType,
     Id<DeclaredState & WithSlice<SliceLike<ReducerPath, State>>>,
     Id<
       PreloadedState &
@@ -229,15 +235,20 @@ export interface CombinedSliceReducer<
      * })
      * ```
      */
-    <Selector extends (state: DeclaredState, ...args: any[]) => unknown>(
-      selectorFn: Selector,
+    <
+      SelectorFunctionType extends (
+        state: DeclaredState,
+        ...args: any[]
+      ) => unknown,
+    >(
+      selectorFn: SelectorFunctionType,
     ): (
       state: WithOptionalProp<
-        Parameters<Selector>[0],
-        Exclude<keyof DeclaredState, keyof InitialState>
+        Parameters<SelectorFunctionType>[0],
+        Exclude<keyof DeclaredState, keyof InitialSliceStateType>
       >,
-      ...args: Tail<Parameters<Selector>>
-    ) => ReturnType<Selector>
+      ...args: Tail<Parameters<SelectorFunctionType>>
+    ) => ReturnType<SelectorFunctionType>
 
     /**
      * Create a selector that guarantees that the slices injected will have a defined value when selector is run.
@@ -293,46 +304,51 @@ export interface CombinedSliceReducer<
      * ```
      */
     <
-      Selector extends (state: DeclaredState, ...args: any[]) => unknown,
+      SelectorFunctionType extends (
+        state: DeclaredState,
+        ...args: any[]
+      ) => unknown,
       RootState,
     >(
-      selectorFn: Selector,
+      selectorFn: SelectorFunctionType,
       selectState: (
         rootState: RootState,
-        ...args: Tail<Parameters<Selector>>
+        ...args: Tail<Parameters<SelectorFunctionType>>
       ) => WithOptionalProp<
-        Parameters<Selector>[0],
-        Exclude<keyof DeclaredState, keyof InitialState>
+        Parameters<SelectorFunctionType>[0],
+        Exclude<keyof DeclaredState, keyof InitialSliceStateType>
       >,
     ): (
       state: RootState,
-      ...args: Tail<Parameters<Selector>>
-    ) => ReturnType<Selector>
+      ...args: Tail<Parameters<SelectorFunctionType>>
+    ) => ReturnType<SelectorFunctionType>
     /**
      * Returns the unproxied state. Useful for debugging.
      * @param state state Proxy, that ensures injected reducers have value
      * @returns original, unproxied state
      * @throws if value passed is not a state Proxy
      */
-    original: (state: DeclaredState) => InitialState & Partial<DeclaredState>
+    original: (
+      state: DeclaredState,
+    ) => InitialSliceStateType & Partial<DeclaredState>
   }
 }
 
 type InitialState<Slices extends Array<AnySliceLike | ReducerMap>> =
   UnionToIntersection<
-    Slices[number] extends infer Slice
-      ? Slice extends AnySliceLike
-        ? WithSlice<Slice>
-        : StateFromReducersMapObject<Slice>
+    Slices[number] extends infer InferredSliceType
+      ? InferredSliceType extends AnySliceLike
+        ? WithSlice<InferredSliceType>
+        : StateFromReducersMapObject<InferredSliceType>
       : never
   >
 
 type InitialPreloadedState<Slices extends Array<AnySliceLike | ReducerMap>> =
   UnionToIntersection<
-    Slices[number] extends infer Slice
-      ? Slice extends AnySliceLike
-        ? WithSlicePreloadedState<Slice>
-        : PreloadedStateShapeFromReducersMapObject<Slice>
+    Slices[number] extends infer InferredSliceType
+      ? InferredSliceType extends AnySliceLike
+        ? WithSlicePreloadedState<InferredSliceType>
+        : PreloadedStateShapeFromReducersMapObject<InferredSliceType>
       : never
   >
 
@@ -349,7 +365,7 @@ const getReducers = (slices: Array<AnySliceLike | ReducerMap>) =>
       : Object.entries(sliceOrMap),
   )
 
-const ORIGINAL_STATE = Symbol.for('rtk-state-proxy-original')
+const ORIGINAL_STATE = /* @__PURE__ */ Symbol.for('rtk-state-proxy-original')
 
 const isStateProxy = (value: any) => !!value && !!value[ORIGINAL_STATE]
 
@@ -442,7 +458,7 @@ export function combineSlices<Slices extends Array<AnySliceLike | ReducerMap>>(
     ) {
       if (
         typeof process !== 'undefined' &&
-        process.env.NODE_ENV === 'development'
+        process.env.NODE_ENV !== 'production'
       ) {
         console.error(
           `called \`inject\` to override already-existing reducer ${reducerPath} without specifying \`overrideExisting: true\``,

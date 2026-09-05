@@ -1,6 +1,6 @@
-import { getEndpointDefinition } from '@internal/query/apiTypes'
+import { getEndpointDefinition } from '../../apiTypes'
 import type { QueryDefinition } from '../../endpointDefinitions'
-import type { ConfigState, QueryCacheKey, QuerySubState } from '../apiState'
+import type { ConfigState, QueryCacheKey } from '../apiState'
 import { isAnyOf } from '../rtkImports'
 import type {
   ApiMiddlewareInternalHandler,
@@ -195,7 +195,7 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
           }
           api.dispatch(removeQueryResult({ queryCacheKey }))
         }
-        delete currentRemovalTimeouts![queryCacheKey]
+        delete currentRemovalTimeouts[queryCacheKey]
       }, finalKeepUnusedDataFor * 1000)
     }
   }

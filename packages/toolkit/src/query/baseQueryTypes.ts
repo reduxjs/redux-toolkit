@@ -24,36 +24,40 @@ export interface BaseQueryApi {
   queryCacheKey?: string
 }
 
-export type QueryReturnValue<T = unknown, E = unknown, M = unknown> =
+export type QueryReturnValue<
+  DataType = unknown,
+  ErrorType = unknown,
+  MetaType = unknown,
+> =
   | {
-      error: E
+      error: ErrorType
       data?: undefined
-      meta?: M
+      meta?: MetaType
     }
   | {
       error?: undefined
-      data: T
-      meta?: M
+      data: DataType
+      meta?: MetaType
     }
 
 export type BaseQueryFn<
   Args = any,
   Result = unknown,
-  Error = unknown,
+  ErrorType = unknown,
   DefinitionExtraOptions = {},
   Meta = {},
 > = (
   args: Args,
   api: BaseQueryApi,
   extraOptions: DefinitionExtraOptions,
-) => MaybePromise<QueryReturnValue<Result, Error, Meta>>
+) => MaybePromise<QueryReturnValue<Result, ErrorType, Meta>>
 
 export type BaseQueryEnhancer<
   AdditionalArgs = unknown,
   AdditionalDefinitionExtraOptions = unknown,
   Config = void,
 > = <BaseQuery extends BaseQueryFn>(
-  baseQuery: BaseQuery,
+  baseQueryFunction: BaseQuery,
   config: Config,
 ) => BaseQueryFn<
   BaseQueryArg<BaseQuery> & AdditionalArgs,
@@ -92,7 +96,9 @@ export type BaseQueryError<BaseQuery extends BaseQueryFn> = Exclude<
  * @public
  */
 export type BaseQueryArg<T extends (arg: any, ...args: any[]) => any> =
-  T extends (arg: infer A, ...args: any[]) => any ? A : any
+  T extends (arg: infer InferredFirstArgumentType, ...args: any[]) => any
+    ? InferredFirstArgumentType
+    : any
 
 /**
  * @public

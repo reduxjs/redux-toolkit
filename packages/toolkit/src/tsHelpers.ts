@@ -93,66 +93,89 @@ export type ExcludeFromTuple<T, E, Acc extends unknown[] = []> = T extends [
   : Acc
 
 type ExtractDispatchFromMiddlewareTuple<
-  MiddlewareTuple extends readonly any[],
+  MiddlewareTupleType extends readonly any[],
   Acc extends {},
-> = MiddlewareTuple extends [infer Head, ...infer Tail]
+> = MiddlewareTupleType extends [infer Head, ...infer Tail]
   ? ExtractDispatchFromMiddlewareTuple<
       Tail,
-      Acc & (Head extends Middleware<infer D> ? IsAny<D, {}, D> : {})
+      Acc &
+        (Head extends Middleware<infer InferredDispatchExtensionType>
+          ? IsAny<
+              InferredDispatchExtensionType,
+              {},
+              InferredDispatchExtensionType
+            >
+          : {})
     >
   : Acc
 
-export type ExtractDispatchExtensions<M> =
-  M extends Tuple<infer MiddlewareTuple>
-    ? ExtractDispatchFromMiddlewareTuple<MiddlewareTuple, {}>
-    : M extends ReadonlyArray<Middleware>
-      ? ExtractDispatchFromMiddlewareTuple<[...M], {}>
+export type ExtractDispatchExtensions<MiddlewareTupleType> =
+  MiddlewareTupleType extends Tuple<infer InferredMiddlewareTupleType>
+    ? ExtractDispatchFromMiddlewareTuple<InferredMiddlewareTupleType, {}>
+    : MiddlewareTupleType extends ReadonlyArray<Middleware>
+      ? ExtractDispatchFromMiddlewareTuple<[...MiddlewareTupleType], {}>
       : never
 
 type ExtractStoreExtensionsFromEnhancerTuple<
-  EnhancerTuple extends readonly any[],
+  EnhancerTupleType extends readonly any[],
   Acc extends {},
-> = EnhancerTuple extends [infer Head, ...infer Tail]
+> = EnhancerTupleType extends [infer Head, ...infer Tail]
   ? ExtractStoreExtensionsFromEnhancerTuple<
       Tail,
-      Acc & (Head extends StoreEnhancer<infer Ext> ? IsAny<Ext, {}, Ext> : {})
+      Acc &
+        (Head extends StoreEnhancer<infer InferredStoreExtensionType>
+          ? IsAny<InferredStoreExtensionType, {}, InferredStoreExtensionType>
+          : {})
     >
   : Acc
 
-export type ExtractStoreExtensions<E> =
-  E extends Tuple<infer EnhancerTuple>
-    ? ExtractStoreExtensionsFromEnhancerTuple<EnhancerTuple, {}>
-    : E extends ReadonlyArray<StoreEnhancer>
+export type ExtractStoreExtensions<EnhancerTupleType> =
+  EnhancerTupleType extends Tuple<infer InferredEnhancerTupleType>
+    ? ExtractStoreExtensionsFromEnhancerTuple<InferredEnhancerTupleType, {}>
+    : EnhancerTupleType extends ReadonlyArray<StoreEnhancer>
       ? UnionToIntersection<
-          E[number] extends StoreEnhancer<infer Ext>
-            ? Ext extends {}
-              ? IsAny<Ext, {}, Ext>
+          EnhancerTupleType[number] extends StoreEnhancer<
+            infer InferredStoreExtensionType
+          >
+            ? InferredStoreExtensionType extends {}
+              ? IsAny<
+                  InferredStoreExtensionType,
+                  {},
+                  InferredStoreExtensionType
+                >
               : {}
             : {}
         >
       : never
 
 type ExtractStateExtensionsFromEnhancerTuple<
-  EnhancerTuple extends readonly any[],
+  EnhancerTupleType extends readonly any[],
   Acc extends {},
-> = EnhancerTuple extends [infer Head, ...infer Tail]
+> = EnhancerTupleType extends [infer Head, ...infer Tail]
   ? ExtractStateExtensionsFromEnhancerTuple<
       Tail,
       Acc &
-        (Head extends StoreEnhancer<any, infer StateExt>
-          ? IsAny<StateExt, {}, StateExt>
+        (Head extends StoreEnhancer<any, infer InferredStateExtensionType>
+          ? IsAny<InferredStateExtensionType, {}, InferredStateExtensionType>
           : {})
     >
   : Acc
 
-export type ExtractStateExtensions<E> =
-  E extends Tuple<infer EnhancerTuple>
-    ? ExtractStateExtensionsFromEnhancerTuple<EnhancerTuple, {}>
-    : E extends ReadonlyArray<StoreEnhancer>
+export type ExtractStateExtensions<EnhancerTupleType> =
+  EnhancerTupleType extends Tuple<infer InferredEnhancerTupleType>
+    ? ExtractStateExtensionsFromEnhancerTuple<InferredEnhancerTupleType, {}>
+    : EnhancerTupleType extends ReadonlyArray<StoreEnhancer>
       ? UnionToIntersection<
-          E[number] extends StoreEnhancer<any, infer StateExt>
-            ? StateExt extends {}
-              ? IsAny<StateExt, {}, StateExt>
+          EnhancerTupleType[number] extends StoreEnhancer<
+            any,
+            infer InferredStateExtensionType
+          >
+            ? InferredStateExtensionType extends {}
+              ? IsAny<
+                  InferredStateExtensionType,
+                  {},
+                  InferredStateExtensionType
+                >
               : {}
             : {}
         >
@@ -160,17 +183,21 @@ export type ExtractStateExtensions<E> =
 
 export type NonUndefined<T> = T extends undefined ? never : T
 
-export type WithRequiredProp<T, K extends keyof T> = Omit<T, K> &
-  Required<Pick<T, K>>
+export type WithRequiredProp<T, RequiredKeys extends keyof T> = Omit<
+  T,
+  RequiredKeys
+> &
+  Required<Pick<T, RequiredKeys>>
 
-export type WithOptionalProp<T, K extends keyof T> = Omit<T, K> &
-  Partial<Pick<T, K>>
+export type WithOptionalProp<T, OptionalKeys extends keyof T> = Omit<
+  T,
+  OptionalKeys
+> &
+  Partial<Pick<T, OptionalKeys>>
 
-export interface TypeGuard<T> {
-  (value: any): value is T
-}
+export type TypeGuard<T> = (value: any) => value is T
 
-export interface HasMatchFunction<T> {
+export type HasMatchFunction<T> = {
   match: TypeGuard<T>
 }
 
@@ -184,13 +211,18 @@ export const hasMatchFunction = <T>(
 export type Matcher<T> = HasMatchFunction<T> | TypeGuard<T>
 
 /** @public */
-export type ActionFromMatcher<M extends Matcher<any>> =
-  M extends Matcher<infer T> ? T : never
+export type ActionFromMatcher<MatcherType extends Matcher<any>> =
+  MatcherType extends Matcher<infer InferredMatchedActionType>
+    ? InferredMatchedActionType
+    : never
 
-export type Id<T> = { [K in keyof T]: T[K] } & {}
+export type Id<T> = { [KeyType in keyof T]: T[KeyType] } & {}
 
-export type Tail<T extends any[]> = T extends [any, ...infer Tail]
-  ? Tail
+export type Tail<ArrayType extends any[]> = ArrayType extends [
+  any,
+  ...infer InferredTailType,
+]
+  ? InferredTailType
   : never
 
 export type UnknownIfNonSpecific<T> = {} extends T ? unknown : T
@@ -201,14 +233,4 @@ export type UnknownIfNonSpecific<T> = {} extends T ? unknown : T
  */
 export type SafePromise<T> = Promise<T> & {
   __linterBrands: 'SafePromise'
-}
-
-/**
- * Properly wraps a Promise as a {@link SafePromise} with .catch(fallback).
- */
-export function asSafePromise<Resolved, Rejected>(
-  promise: Promise<Resolved>,
-  fallback: (error: unknown) => Rejected,
-) {
-  return promise.catch(fallback) as SafePromise<Resolved | Rejected>
 }

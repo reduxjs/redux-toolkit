@@ -1,34 +1,35 @@
 import type {
   AsyncThunkAction,
+  Dispatch,
   SafePromise,
   SerializedError,
   ThunkAction,
   UnknownAction,
 } from '@reduxjs/toolkit'
-import type { Dispatch } from 'redux'
-import { asSafePromise } from '../../tsHelpers'
-import { getEndpointDefinition, type Api, type ApiContext } from '../apiTypes'
+import type { Api, ApiContext } from '../apiTypes'
+import { getEndpointDefinition } from '../apiTypes'
 import type { BaseQueryError, QueryReturnValue } from '../baseQueryTypes'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
-import {
-  ENDPOINT_QUERY,
-  isQueryDefinition,
-  type EndpointDefinitions,
-  type InfiniteQueryArgFrom,
-  type InfiniteQueryDefinition,
-  type MutationDefinition,
-  type PageParamFrom,
-  type QueryArgFrom,
-  type QueryDefinition,
-  type ResultTypeFrom,
+import type {
+  EndpointDefinitions,
+  InfiniteQueryArgFrom,
+  InfiniteQueryDefinition,
+  MutationDefinition,
+  PageParamFrom,
+  QueryArgFrom,
+  QueryDefinition,
+  ResultTypeFrom,
 } from '../endpointDefinitions'
-import { filterNullishValues } from '../utils'
+import { ENDPOINT_QUERY, isQueryDefinition } from '../endpointDefinitions'
+import { asSafePromise } from '../tsHelpers'
+import { filterNullishValues } from '../utils/index'
 import type {
   InfiniteData,
   InfiniteQueryConfigOptions,
   InfiniteQueryDirection,
   SubscriptionOptions,
 } from './apiState'
+import type { InternalMiddlewareState } from './buildMiddleware/index'
 import type {
   InfiniteQueryResultSelectorResult,
   QueryResultSelectorResult,
@@ -42,7 +43,6 @@ import type {
   ThunkApiMetaConfig,
 } from './buildThunks'
 import type { ApiEndpointQuery } from './module'
-import type { InternalMiddlewareState } from './buildMiddleware/types'
 
 export type BuildInitiateApiEndpointQuery<
   Definition extends QueryDefinition<any, any, any, any, any>,
@@ -62,7 +62,7 @@ export type BuildInitiateApiEndpointMutation<
   initiate: StartMutationActionCreator<Definition>
 }
 
-export const forceQueryFnSymbol = Symbol('forceQueryFn')
+export const forceQueryFnSymbol = /* @__PURE__ */ Symbol('forceQueryFn')
 export const isUpsertQuery = (arg: QueryThunkArg) =>
   typeof arg[forceQueryFnSymbol] === 'function'
 
@@ -84,12 +84,10 @@ export type StartInfiniteQueryActionCreatorOptions<
   param?: unknown
 } & Partial<
     Pick<
-      Partial<
-        InfiniteQueryConfigOptions<
-          ResultTypeFrom<D>,
-          PageParamFrom<D>,
-          InfiniteQueryArgFrom<D>
-        >
+      InfiniteQueryConfigOptions<
+        ResultTypeFrom<D>,
+        PageParamFrom<D>,
+        InfiniteQueryArgFrom<D>
       >,
       'initialPageParam' | 'refetchCachedPages'
     >
@@ -181,8 +179,13 @@ export type MutationActionCreatorResult<
       error:
         | Exclude<
             BaseQueryError<
-              D extends MutationDefinition<any, infer BaseQuery, any, any>
-                ? BaseQuery
+              D extends MutationDefinition<
+                any,
+                infer InferredBaseQueryFunctionType,
+                any,
+                any
+              >
+                ? InferredBaseQueryFunctionType
                 : never
             >,
             undefined
@@ -351,26 +354,28 @@ export function buildInitiate({
   }
 
   function middlewareWarning(dispatch: Dispatch) {
-    if (process.env.NODE_ENV !== 'production') {
-      if ((middlewareWarning as any).triggered) return
-      const returnedValue = dispatch(
-        api.internalActions.internal_getRTKQSubscriptions(),
-      )
+    if (process.env.NODE_ENV === 'production') {
+      return
+    }
 
-      ;(middlewareWarning as any).triggered = true
+    if ((middlewareWarning as any).triggered) return
+    const returnedValue = dispatch(
+      api.internalActions.internal_getRTKQSubscriptions(),
+    )
 
-      // The RTKQ middleware should return the internal state object,
-      // but it should _not_ be the action object.
-      if (
-        typeof returnedValue !== 'object' ||
-        typeof returnedValue?.type === 'string'
-      ) {
-        // Otherwise, must not have been added
-        throw new Error(
-          `Warning: Middleware for RTK-Query API at reducerPath "${api.reducerPath}" has not been added to the store.
+    ;(middlewareWarning as any).triggered = true
+
+    // The RTKQ middleware should return the internal state object,
+    // but it should _not_ be the action object.
+    if (
+      typeof returnedValue !== 'object' ||
+      typeof returnedValue?.type === 'string'
+    ) {
+      // Otherwise, must not have been added
+      throw new Error(
+        `Warning: Middleware for RTK-Query API at reducerPath "${api.reducerPath}" has not been added to the store.
 You must add the middleware for RTK-Query to function correctly!`,
-        )
-      }
+      )
     }
   }
 
@@ -404,7 +409,7 @@ You must add the middleware for RTK-Query to function correctly!`,
           ...rest,
           type: ENDPOINT_QUERY as 'query',
           subscribe,
-          forceRefetch: forceRefetch,
+          forceRefetch,
           subscriptionOptions,
           endpointName,
           originalArgs: arg,
@@ -507,7 +512,7 @@ You must add the middleware for RTK-Query to function correctly!`,
         )
 
         if (!runningQuery && !skippedSynchronously && !forceQueryFn) {
-          const runningQueries = getRunningQueries(dispatch)!
+          const runningQueries = getRunningQueries(dispatch)
           runningQueries.set(queryCacheKey, statePromise)
 
           statePromise.then(() => {
@@ -574,7 +579,7 @@ You must add the middleware for RTK-Query to function correctly!`,
           reset,
         })
 
-        const runningMutations = getRunningMutations(dispatch)!
+        const runningMutations = getRunningMutations(dispatch)
 
         runningMutations.set(requestId, ret)
         ret.then(() => {

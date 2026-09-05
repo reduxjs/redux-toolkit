@@ -1,8 +1,8 @@
 import type { Dispatch, Middleware, UnknownAction } from 'redux'
-import { compose } from '../reduxImports'
 import { createAction } from '../createAction'
 import { isAllOf } from '../matchers'
 import { nanoid } from '../nanoid'
+import { compose } from '../reduxImports'
 import { getOrInsertComputed } from '../utils'
 import type {
   AddMiddleware,
@@ -12,6 +12,8 @@ import type {
   WithMiddleware,
 } from './types'
 export type {
+  AddMiddleware,
+  DynamicDispatch,
   DynamicMiddlewareInstance,
   GetDispatchType as GetDispatch,
   MiddlewareApiConfig,

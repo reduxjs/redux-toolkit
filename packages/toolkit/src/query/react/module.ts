@@ -10,21 +10,15 @@ import type {
   QueryDefinition,
   QueryKeys,
 } from '@reduxjs/toolkit/query'
-import {
-  batch as rrBatch,
-  useDispatch as rrUseDispatch,
-  useSelector as rrUseSelector,
-  useStore as rrUseStore,
-} from 'react-redux'
 import type { CreateSelectorFunction } from 'reselect'
-import { createSelector as _createSelector } from 'reselect'
+import { _createSelector } from '../core/rtkImports'
 import {
   isInfiniteQueryDefinition,
   isMutationDefinition,
   isQueryDefinition,
 } from '../endpointDefinitions'
 import { safeAssign } from '../tsHelpers'
-import { capitalize, countObjectKeys } from '../utils'
+import { capitalize, countObjectKeys } from '../utils/index'
 import type {
   InfiniteQueryHooks,
   MutationHooks,
@@ -32,6 +26,12 @@ import type {
 } from './buildHooks'
 import { buildHooks } from './buildHooks'
 import type { HooksWithUniqueNames } from './namedHooks'
+import {
+  rrBatch,
+  rrUseDispatch,
+  rrUseSelector,
+  rrUseStore,
+} from './reactReduxImports'
 
 export const reactHooksModuleName = /* @__PURE__ */ Symbol()
 export type ReactHooksModule = typeof reactHooksModuleName
@@ -41,9 +41,7 @@ declare module '@reduxjs/toolkit/query' {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     BaseQuery extends BaseQueryFn,
     Definitions extends EndpointDefinitions,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     ReducerPath extends string,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     TagTypes extends string,
   > {
     [reactHooksModuleName]: {

@@ -13,7 +13,7 @@ export const buildDevCheckHandler: InternalHandlerBuilder = ({
 
     if (
       typeof process !== 'undefined' &&
-      process.env.NODE_ENV === 'development'
+      process.env.NODE_ENV !== 'production'
     ) {
       if (
         api.internalActions.middlewareRegistered.match(action) &&

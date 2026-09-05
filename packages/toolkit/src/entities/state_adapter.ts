@@ -1,31 +1,33 @@
-import { createNextState, isDraft } from '../immerImports'
-import type { Draft } from 'immer'
-import type { EntityId, DraftableEntityState, PreventAny } from './models'
 import type { PayloadAction } from '../createAction'
 import { isFSA } from '../createAction'
+import type { Draft } from '../immerImports'
+import { createNextState, isDraft } from '../immerImports'
+import type { DraftableEntityState, EntityId, PreventAny } from './models'
 
 export const isDraftTyped = isDraft as <T>(
   value: T | Draft<T>,
 ) => value is Draft<T>
 
-export function createSingleArgumentStateOperator<T, Id extends EntityId>(
-  mutator: (state: DraftableEntityState<T, Id>) => void,
-) {
+export function createSingleArgumentStateOperator<
+  T,
+  EntityIdType extends EntityId,
+>(mutator: (state: DraftableEntityState<T, EntityIdType>) => void) {
   const operator = createStateOperator(
-    (_: undefined, state: DraftableEntityState<T, Id>) => mutator(state),
+    (_: undefined, state: DraftableEntityState<T, EntityIdType>) =>
+      mutator(state),
   )
 
-  return function operation<S extends DraftableEntityState<T, Id>>(
-    state: PreventAny<S, T, Id>,
+  return function operation<S extends DraftableEntityState<T, EntityIdType>>(
+    state: PreventAny<S, T, EntityIdType>,
   ): S {
     return operator(state as S, undefined)
   }
 }
 
-export function createStateOperator<T, Id extends EntityId, R>(
-  mutator: (arg: R, state: DraftableEntityState<T, Id>) => void,
+export function createStateOperator<T, EntityIdType extends EntityId, R>(
+  mutator: (arg: R, state: DraftableEntityState<T, EntityIdType>) => void,
 ) {
-  return function operation<S extends DraftableEntityState<T, Id>>(
+  return function operation<S extends DraftableEntityState<T, EntityIdType>>(
     state: S,
     arg: R | PayloadAction<R>,
   ): S {
@@ -35,7 +37,7 @@ export function createStateOperator<T, Id extends EntityId, R>(
       return isFSA(arg)
     }
 
-    const runMutator = (draft: DraftableEntityState<T, Id>) => {
+    const runMutator = (draft: DraftableEntityState<T, EntityIdType>) => {
       if (isPayloadActionArgument(arg)) {
         mutator(arg.payload, draft)
       } else {
@@ -43,7 +45,7 @@ export function createStateOperator<T, Id extends EntityId, R>(
       }
     }
 
-    if (isDraftTyped<DraftableEntityState<T, Id>>(state)) {
+    if (isDraftTyped<DraftableEntityState<T, EntityIdType>>(state)) {
       // we must already be inside a `createNextState` call, likely because
       // this is being wrapped in `createReducer` or `createSlice`.
       // It's safe to just pass the draft to the mutator.

@@ -3,9 +3,9 @@ import type { BaseActionCreator, PayloadAction } from '../createAction'
 import type { GetState } from '../createAsyncThunk'
 import type { ExtractDispatchExtensions, FallbackIfUnknown } from '../tsHelpers'
 
-export type GetMiddlewareApi<MiddlewareApiConfig> = MiddlewareAPI<
-  GetDispatchType<MiddlewareApiConfig>,
-  GetState<MiddlewareApiConfig>
+export type GetMiddlewareApi<MiddlewareApiConfigType> = MiddlewareAPI<
+  GetDispatchType<MiddlewareApiConfigType>,
+  GetState<MiddlewareApiConfigType>
 >
 
 export type MiddlewareApiConfig = {
@@ -14,11 +14,12 @@ export type MiddlewareApiConfig = {
 }
 
 // TODO: consolidate with cAT helpers?
-export type GetDispatchType<MiddlewareApiConfig> = MiddlewareApiConfig extends {
-  dispatch: infer DispatchType
-}
-  ? FallbackIfUnknown<DispatchType, Dispatch>
-  : Dispatch
+export type GetDispatchType<MiddlewareApiConfigType> =
+  MiddlewareApiConfigType extends {
+    dispatch: infer InferredDispatchType
+  }
+    ? FallbackIfUnknown<InferredDispatchType, Dispatch>
+    : Dispatch
 
 export type AddMiddleware<
   State = any,
@@ -39,20 +40,24 @@ export type WithMiddleware<
   'dynamicMiddleware/add',
   { instanceId: string }
 > & {
-  <Middlewares extends Middleware<any, State, DispatchType>[]>(
-    ...middlewares: Middlewares
-  ): PayloadAction<Middlewares, 'dynamicMiddleware/add', { instanceId: string }>
-  withTypes<MiddlewareConfig extends MiddlewareApiConfig>(): WithMiddleware<
-    GetState<MiddlewareConfig>,
-    GetDispatchType<MiddlewareConfig>
+  <MiddlewaresArrayType extends Middleware<any, State, DispatchType>[]>(
+    ...middlewares: MiddlewaresArrayType
+  ): PayloadAction<
+    MiddlewaresArrayType,
+    'dynamicMiddleware/add',
+    { instanceId: string }
+  >
+  withTypes<MiddlewareConfigType extends MiddlewareApiConfig>(): WithMiddleware<
+    GetState<MiddlewareConfigType>,
+    GetDispatchType<MiddlewareConfigType>
   >
 }
 
 export interface DynamicDispatch {
   // return a version of dispatch that knows about middleware
-  <Middlewares extends Middleware<any>[]>(
-    action: PayloadAction<Middlewares, 'dynamicMiddleware/add'>,
-  ): ExtractDispatchExtensions<Middlewares> & this
+  <MiddlewaresArrayType extends Middleware<any>[]>(
+    action: PayloadAction<MiddlewaresArrayType, 'dynamicMiddleware/add'>,
+  ): ExtractDispatchExtensions<MiddlewaresArrayType> & this
 }
 
 export type MiddlewareEntry<

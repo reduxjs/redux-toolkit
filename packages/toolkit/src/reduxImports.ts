@@ -1,8 +1,8 @@
 export {
-  createStore,
-  combineReducers,
   applyMiddleware,
+  combineReducers,
   compose,
-  isPlainObject,
+  createStore,
   isAction,
+  isPlainObject,
 } from 'redux'

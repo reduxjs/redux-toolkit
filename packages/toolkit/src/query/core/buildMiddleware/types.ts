@@ -1,6 +1,5 @@
 import type {
   Action,
-  AsyncThunkAction,
   Dispatch,
   Middleware,
   MiddlewareAPI,
@@ -18,21 +17,18 @@ import type {
   QuerySubState,
   RootState,
   SubscriptionInternalState,
-  SubscriptionState,
 } from '../apiState'
-import type {
-  InfiniteQueryThunk,
-  MutationThunk,
-  QueryThunk,
-  QueryThunkArg,
-  ThunkResult,
-} from '../buildThunks'
 import type {
   InfiniteQueryActionCreatorResult,
   MutationActionCreatorResult,
   QueryActionCreatorResult,
 } from '../buildInitiate'
 import type { AllSelectors } from '../buildSelectors'
+import type {
+  InfiniteQueryThunk,
+  MutationThunk,
+  QueryThunk,
+} from '../buildThunks'
 
 export type QueryStateMeta<T> = Record<string, undefined | T>
 export type TimeoutId = ReturnType<typeof setTimeout>
@@ -86,8 +82,11 @@ export type SubMiddlewareApi = MiddlewareAPI<
   RootState<EndpointDefinitions, string, string>
 >
 
-export interface BuildSubMiddlewareInput
-  extends BuildMiddlewareInput<EndpointDefinitions, string, string> {
+export interface BuildSubMiddlewareInput extends BuildMiddlewareInput<
+  EndpointDefinitions,
+  string,
+  string
+> {
   internalState: InternalMiddlewareState
   refetchQuery(
     querySubState: Exclude<
@@ -119,9 +118,9 @@ export type ApiMiddlewareInternalHandler<Return = void> = (
   prevState: RootState<EndpointDefinitions, string, string>,
 ) => Return
 
-export type InternalHandlerBuilder<ReturnType = void> = (
+export type InternalHandlerBuilder<MiddlewareReturnType = void> = (
   input: BuildSubMiddlewareInput,
-) => ApiMiddlewareInternalHandler<ReturnType>
+) => ApiMiddlewareInternalHandler<MiddlewareReturnType>
 
 export interface PromiseConstructorWithKnownReason {
   /**

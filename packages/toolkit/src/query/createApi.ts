@@ -1,10 +1,9 @@
 import type { UnknownAction } from '@reduxjs/toolkit'
-import { weakMapMemoize } from 'reselect'
 import type { Api, ApiContext, Module, ModuleName } from './apiTypes'
 import { getEndpointDefinition } from './apiTypes'
 import type { BaseQueryFn } from './baseQueryTypes'
 import type { CombinedState } from './core/index'
-import { nanoid } from './core/rtkImports'
+import { nanoid, weakMapMemoize } from './core/rtkImports'
 import type { SerializeQueryArgs } from './defaultSerializeQueryArgs'
 import { defaultSerializeQueryArgs } from './defaultSerializeQueryArgs'
 import type {
@@ -458,7 +457,7 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
             )
           } else if (
             typeof process !== 'undefined' &&
-            process.env.NODE_ENV === 'development'
+            process.env.NODE_ENV !== 'production'
           ) {
             console.error(
               `called \`injectEndpoints\` to override already-existing endpointName ${endpointName} without specifying \`overrideExisting: true\``,
@@ -470,7 +469,7 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
 
         if (
           typeof process !== 'undefined' &&
-          process.env.NODE_ENV === 'development'
+          process.env.NODE_ENV !== 'production'
         ) {
           if (isInfiniteQueryDefinition(definition)) {
             const { infiniteQueryOptions } = definition

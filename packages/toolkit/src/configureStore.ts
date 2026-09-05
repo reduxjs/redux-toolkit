@@ -1,36 +1,35 @@
 import type {
+  Action,
+  Middleware,
   Reducer,
   ReducersMapObject,
-  Middleware,
-  Action,
-  StoreEnhancer,
   Store,
+  StoreEnhancer,
   UnknownAction,
 } from 'redux'
-import {
-  applyMiddleware,
-  createStore,
-  compose,
-  combineReducers,
-  isPlainObject,
-} from './reduxImports'
 import type { DevToolsEnhancerOptions as DevToolsOptions } from './devtoolsExtension'
 import { composeWithDevTools } from './devtoolsExtension'
-
+import type { GetDefaultEnhancers } from './getDefaultEnhancers'
+import { buildGetDefaultEnhancers } from './getDefaultEnhancers'
 import type {
-  ThunkMiddlewareFor,
   GetDefaultMiddleware,
+  ThunkMiddlewareFor,
 } from './getDefaultMiddleware'
 import { buildGetDefaultMiddleware } from './getDefaultMiddleware'
+import {
+  applyMiddleware,
+  combineReducers,
+  compose,
+  createStore,
+  isPlainObject,
+} from './reduxImports'
 import type {
   ExtractDispatchExtensions,
-  ExtractStoreExtensions,
   ExtractStateExtensions,
+  ExtractStoreExtensions,
   UnknownIfNonSpecific,
 } from './tsHelpers'
 import type { Tuple } from './utils'
-import type { GetDefaultEnhancers } from './getDefaultEnhancers'
-import { buildGetDefaultEnhancers } from './getDefaultEnhancers'
 
 /**
  * Options for `configureStore()`.
@@ -183,7 +182,7 @@ export function configureStore<
   }
 
   if (process.env.NODE_ENV !== 'production' && duplicateMiddlewareCheck) {
-    let middlewareReferences = new Set<Middleware<any, S>>()
+    const middlewareReferences = new Set<Middleware<any, S>>()
     finalMiddleware.forEach((middleware) => {
       if (middlewareReferences.has(middleware)) {
         throw new Error(
@@ -216,7 +215,7 @@ export function configureStore<
     throw new Error('`enhancers` field must be a callback')
   }
 
-  let storeEnhancers =
+  const storeEnhancers =
     typeof enhancers === 'function'
       ? enhancers(getDefaultEnhancers)
       : getDefaultEnhancers()

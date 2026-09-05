@@ -1,69 +1,72 @@
 import type { PayloadAction } from '@reduxjs/toolkit'
-import {
-  combineReducers,
-  createAction,
-  createSlice,
-  isAnyOf,
-  isFulfilled,
-  isRejectedWithValue,
-  createNextState,
-  prepareAutoBatched,
-  SHOULD_AUTOBATCH,
-  nanoid,
-} from './rtkImports'
+import type { Patch } from 'immer'
+import type { ApiContext } from '../apiTypes'
+import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import type {
-  QuerySubstateIdentifier,
-  QuerySubState,
-  MutationSubstateIdentifier,
-  MutationSubState,
-  MutationState,
-  QueryState,
-  InvalidationState,
-  Subscribers,
-  QueryCacheKey,
-  SubscriptionState,
+  AssertTagTypes,
+  EndpointDefinitions,
+  FullTagDescription,
+  QueryDefinition,
+} from '../endpointDefinitions'
+import {
+  ENDPOINT_QUERY,
+  isInfiniteQueryDefinition,
+} from '../endpointDefinitions'
+import type { UnwrapPromise } from '../tsHelpers'
+import {
+  applyPatches,
+  copyWithStructuralSharing,
+  getCurrent,
+  isDocumentVisible,
+  isDraft,
+  isOnline,
+  original,
+} from '../utils/index'
+import type {
   ConfigState,
-  InfiniteQuerySubState,
   InfiniteQueryDirection,
+  InfiniteQuerySubState,
+  InvalidationState,
+  MutationState,
+  MutationSubState,
+  MutationSubstateIdentifier,
+  QueryCacheKey,
+  QueryState,
+  QuerySubState,
+  QuerySubstateIdentifier,
+  Subscribers,
+  SubscriptionState,
 } from './apiState'
 import {
   STATUS_FULFILLED,
   STATUS_PENDING,
-  QueryStatus,
   STATUS_REJECTED,
   STATUS_UNINITIALIZED,
 } from './apiState'
+import { isUpsertQuery } from './buildInitiate'
 import type {
   AllQueryKeys,
-  QueryArgFromAnyQueryDefinition,
   DataFromAnyQueryDefinition,
   InfiniteQueryThunk,
   MutationThunk,
+  QueryArgFromAnyQueryDefinition,
   QueryThunk,
   QueryThunkArg,
 } from './buildThunks'
 import { calculateProvidedByThunk } from './buildThunks'
 import {
-  ENDPOINT_QUERY,
-  isInfiniteQueryDefinition,
-  type AssertTagTypes,
-  type EndpointDefinitions,
-  type FullTagDescription,
-  type QueryDefinition,
-} from '../endpointDefinitions'
-import type { Patch } from 'immer'
-import { applyPatches, original, isDraft } from '../utils/immerImports'
+  combineReducers,
+  createAction,
+  createNextState,
+  createSlice,
+  isAnyOf,
+  isFulfilled,
+  isRejectedWithValue,
+  nanoid,
+  prepareAutoBatched,
+  SHOULD_AUTOBATCH,
+} from './rtkImports'
 import { onFocus, onFocusLost, onOffline, onOnline } from './setupListeners'
-import {
-  isDocumentVisible,
-  isOnline,
-  copyWithStructuralSharing,
-} from '../utils'
-import type { ApiContext } from '../apiTypes'
-import { isUpsertQuery } from './buildInitiate'
-import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
-import type { UnwrapPromise } from '../tsHelpers'
-import { getCurrent } from '../utils/getCurrent'
 
 /**
  * A typesafe single entry to be upserted into the cache
@@ -248,15 +251,18 @@ export function buildSlice({
           // We're already inside an Immer-powered reducer, and the user could just mutate `substate.data`
           // themselves inside of `merge()`. But, they might also want to return a new value.
           // Try to let Immer figure that part out, save the result, and assign it to `substate.data`.
-          let newData = createNextState(substate.data, (draftSubstateData) => {
-            // As usual with Immer, you can mutate _or_ return inside here, but not both
-            return merge(draftSubstateData, payload, {
-              arg: arg.originalArgs,
-              baseQueryMeta,
-              fulfilledTimeStamp,
-              requestId,
-            })
-          })
+          const newData = createNextState(
+            substate.data,
+            (draftSubstateData) => {
+              // As usual with Immer, you can mutate _or_ return inside here, but not both
+              return merge(draftSubstateData, payload, {
+                arg: arg.originalArgs,
+                baseQueryMeta,
+                fulfilledTimeStamp,
+                requestId,
+              })
+            },
+          )
           substate.data = newData
         } else {
           // Presumably a fresh request. Just cache the response data.
@@ -392,13 +398,13 @@ export function buildSlice({
               arg.queryCacheKey,
               (substate) => {
                 if (condition) {
+                  return
                   // request was aborted due to condition (another query already running)
-                } else {
-                  // request failed
-                  if (substate.requestId !== requestId) return
-                  substate.status = STATUS_REJECTED
-                  substate.error = (payload ?? error) as any
                 }
+                // request failed
+                if (substate.requestId !== requestId) return
+                substate.status = STATUS_REJECTED
+                substate.error = (payload ?? error) as any
               },
             )
           },

@@ -1,8 +1,8 @@
 export {
   buildCreateApi,
-  coreModule,
   copyWithStructuralSharing,
-  setupListeners,
+  coreModule,
   QueryStatus,
+  setupListeners,
   skipToken,
 } from '@reduxjs/toolkit/query'

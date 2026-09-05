@@ -9,32 +9,32 @@ import type {
   QueryArgFromAnyQuery,
   QueryDefinition,
   ReducerPathFrom,
+  ResultTypeFrom,
   TagDescription,
   TagTypesFrom,
 } from '../endpointDefinitions'
 import { expandTagDescription } from '../endpointDefinitions'
-import { filterMap, isNotNullish } from '../utils'
+import { filterMap, isNotNullish } from '../utils/index'
 import type {
+  ConfigState,
   InfiniteData,
   InfiniteQueryConfigOptions,
   InfiniteQuerySubState,
+  MutationState,
   MutationSubState,
   QueryCacheKey,
   QueryState,
+  QueryStatus,
   QuerySubState,
   RequestStatusFlags,
   RootState as _RootState,
-  QueryStatus,
 } from './apiState'
 import { STATUS_UNINITIALIZED, getRequestStatusFlags } from './apiState'
 import { getMutationCacheKey } from './buildSlice'
-import type { createSelector as _createSelector } from './rtkImports'
+import type { AllQueryKeys } from './buildThunks'
+import { getNextPageParam, getPreviousPageParam } from './buildThunks'
+import type { _createSelector } from './rtkImports'
 import { createNextState } from './rtkImports'
-import {
-  type AllQueryKeys,
-  getNextPageParam,
-  getPreviousPageParam,
-} from './buildThunks'
 
 export type SkipToken = typeof skipToken
 /**
@@ -105,10 +105,10 @@ export type BuildSelectorsApiEndpointMutation<
 
 type QueryResultSelectorFactory<
   Definition extends QueryDefinition<any, any, any, any>,
-  RootState,
+  RootStateType,
 > = (
   queryArg: QueryArgFrom<Definition> | SkipToken,
-) => (state: RootState) => QueryResultSelectorResult<Definition>
+) => (state: RootStateType) => QueryResultSelectorResult<Definition>
 
 export type QueryResultSelectorResult<
   Definition extends QueryDefinition<any, any, any, any>,
@@ -116,10 +116,10 @@ export type QueryResultSelectorResult<
 
 type InfiniteQueryResultSelectorFactory<
   Definition extends InfiniteQueryDefinition<any, any, any, any, any>,
-  RootState,
+  RootStateType,
 > = (
   queryArg: InfiniteQueryArgFrom<Definition> | SkipToken,
-) => (state: RootState) => InfiniteQueryResultSelectorResult<Definition>
+) => (state: RootStateType) => InfiniteQueryResultSelectorResult<Definition>
 
 export type InfiniteQueryResultFlags = {
   hasNextPage: boolean
@@ -138,13 +138,13 @@ export type InfiniteQueryResultSelectorResult<
 
 type MutationResultSelectorFactory<
   Definition extends MutationDefinition<any, any, any, any>,
-  RootState,
+  RootStateType,
 > = (
   requestId:
     | string
     | { requestId: string | undefined; fixedCacheKey: string | undefined }
     | SkipToken,
-) => (state: RootState) => MutationResultSelectorResult<Definition>
+) => (state: RootStateType) => MutationResultSelectorResult<Definition>
 
 export type MutationResultSelectorResult<
   Definition extends MutationDefinition<any, any, any, any>,
@@ -178,23 +178,10 @@ export function buildSelectors<
   reducerPath: ReducerPath
   createSelector: typeof _createSelector
 }) {
-  type RootState = _RootState<Definitions, string, string>
+  type RootState = _RootState<Definitions, string, ReducerPath>
 
   const selectSkippedQuery = (state: RootState) => defaultQuerySubState
   const selectSkippedMutation = (state: RootState) => defaultMutationSubState
-
-  return {
-    buildQuerySelector,
-    buildInfiniteQuerySelector,
-    buildMutationSelector,
-    selectInvalidatedBy,
-    selectCachedArgsForQuery,
-    selectApiState,
-    selectQueries,
-    selectMutations,
-    selectQueryEntry,
-    selectConfig,
-  }
 
   function withRequestFlags<T extends { status: QueryStatus }>(
     substate: T,
@@ -216,19 +203,25 @@ export function buildSelectors<
     return state
   }
 
-  function selectQueries(rootState: RootState) {
+  function selectQueries(rootState: RootState): QueryState<Definitions> {
     return selectApiState(rootState)?.queries
   }
 
-  function selectQueryEntry(rootState: RootState, cacheKey: QueryCacheKey) {
+  function selectQueryEntry(
+    rootState: RootState,
+    cacheKey: QueryCacheKey,
+  ):
+    | QuerySubState<Definitions[string], ResultTypeFrom<Definitions[string]>>
+    | InfiniteQuerySubState<Definitions[string]>
+    | undefined {
     return selectQueries(rootState)?.[cacheKey]
   }
 
-  function selectMutations(rootState: RootState) {
+  function selectMutations(rootState: RootState): MutationState<Definitions> {
     return selectApiState(rootState)?.mutations
   }
 
-  function selectConfig(rootState: RootState) {
+  function selectConfig(rootState: RootState): ConfigState<ReducerPath> {
     return selectApiState(rootState)?.config
   }
 
@@ -250,7 +243,14 @@ export function buildSelectors<
         endpointDefinition,
         endpointName,
       })
-      const selectQuerySubstate = (state: RootState) =>
+      const selectQuerySubstate = (
+        state: RootState,
+      ):
+        | QuerySubState<
+            Definitions[string],
+            ResultTypeFrom<Definitions[string]>
+          >
+        | InfiniteQuerySubState<Definitions[string]> =>
         selectQueryEntry(state, serializedArgs) ?? defaultQuerySubState
 
       return createSelector(selectQuerySubstate, combiner)
@@ -286,6 +286,24 @@ export function buildSelectors<
       const isForward = direction === 'forward'
       const isBackward = direction === 'backward'
 
+      function getHasNextPage(
+        options: InfiniteQueryConfigOptions<any, any, any>,
+        data?: InfiniteData<unknown, unknown>,
+        queryArg?: unknown,
+      ): boolean {
+        if (!data) return false
+        return getNextPageParam(options, data, queryArg) != null
+      }
+
+      function getHasPreviousPage(
+        options: InfiniteQueryConfigOptions<any, any, any>,
+        data?: InfiniteData<unknown, unknown>,
+        queryArg?: unknown,
+      ): boolean {
+        if (!data || !options.getPreviousPageParam) return false
+        return getPreviousPageParam(options, data, queryArg) != null
+      }
+
       return {
         ...stateWithRequestFlags,
         hasNextPage: getHasNextPage(
@@ -314,7 +332,7 @@ export function buildSelectors<
 
   function buildMutationSelector() {
     return ((id) => {
-      let mutationId: string | typeof skipToken
+      let mutationId: string | SkipToken
       if (typeof id === 'object') {
         mutationId = getMutationCacheKey(id) ?? skipToken
       } else {
@@ -349,7 +367,7 @@ export function buildSelectors<
         continue
       }
 
-      let invalidateSubscriptions =
+      const invalidateSubscriptions =
         (tag.id !== undefined
           ? // id given: invalidate all queries that provide this type & id
             provided[tag.id]
@@ -393,21 +411,16 @@ export function buildSelectors<
     )
   }
 
-  function getHasNextPage(
-    options: InfiniteQueryConfigOptions<any, any, any>,
-    data?: InfiniteData<unknown, unknown>,
-    queryArg?: unknown,
-  ): boolean {
-    if (!data) return false
-    return getNextPageParam(options, data, queryArg) != null
-  }
-
-  function getHasPreviousPage(
-    options: InfiniteQueryConfigOptions<any, any, any>,
-    data?: InfiniteData<unknown, unknown>,
-    queryArg?: unknown,
-  ): boolean {
-    if (!data || !options.getPreviousPageParam) return false
-    return getPreviousPageParam(options, data, queryArg) != null
+  return {
+    buildQuerySelector,
+    buildInfiniteQuerySelector,
+    buildMutationSelector,
+    selectInvalidatedBy,
+    selectCachedArgsForQuery,
+    selectApiState,
+    selectQueries,
+    selectMutations,
+    selectQueryEntry,
+    selectConfig,
   }
 }

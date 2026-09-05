@@ -32,6 +32,8 @@ typesversions
 *.tgz
 
 tsconfig.vitest-temp.json
+.vitest-dump/
+.vitest/
 
 # node version manager files
 .node-version

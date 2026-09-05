@@ -19,7 +19,7 @@ export const validateActive = (signal: AbortSignal): void => {
  * This avoids `Promise.race()`-related memory leaks:
  * https://github.com/nodejs/node/issues/17469#issuecomment-349794909
  */
-export function raceWithSignal<T>(
+export async function raceWithSignal<T>(
   signal: AbortSignal,
   promise: Promise<T>,
 ): Promise<T> {
