@@ -2,7 +2,9 @@
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "moduleResolution": "node",
+    "ignoreDeprecations": "6.0",
+    "moduleResolution": "bundler",
+    "noUncheckedSideEffectImports": false,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "allowUnusedLabels": true,
@@ -14,7 +16,6 @@
     "target": "ES2020",
     "allowJs": true,
     "checkJs": true,
-    "alwaysStrict": false,
     "baseUrl": "..",
     "jsx": "preserve",
     "traceResolution": false,
