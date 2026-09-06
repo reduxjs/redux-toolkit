@@ -75,7 +75,7 @@
     "ts-node": "^10.9.2",
     "tsdown": "^0.22.14",
     "vite-tsconfig-paths": "^5.0.1",
-    "vitest": "^4",
+    "vitest": "^5",
     "yalc": "^1.0.0-pre.47"
   },
   "dependencies": {
