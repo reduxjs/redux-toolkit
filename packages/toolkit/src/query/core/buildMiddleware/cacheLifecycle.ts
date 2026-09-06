@@ -129,7 +129,9 @@ export interface QueryCacheLifecycleApi<
   BaseQuery extends BaseQueryFn,
   ResultType,
   ReducerPath extends string = string,
-> extends QueryBaseLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
+>
+  extends
+    QueryBaseLifecycleApi<QueryArg, BaseQuery, ResultType, ReducerPath>,
     CacheLifecyclePromises<ResultType, BaseQueryMeta<BaseQuery>> {}
 
 export type MutationCacheLifecycleApi<

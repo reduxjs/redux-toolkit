@@ -6,15 +6,15 @@ description: >
   Toolkit and RTK Query bugs. Covers a practical event -> reducer -> selector ->
   render debugging loop plus RTK Query cache interpretation.
 type: lifecycle
-library: "@reduxjs/toolkit"
-library_version: "2.11.2"
+library: '@reduxjs/toolkit'
+library_version: '2.11.2'
 requires:
   - build-modern-redux-apps/redux-dataflow
 sources:
-  - "reduxjs/redux:docs/style-guide/style-guide.md"
-  - "reduxjs/redux:docs/tutorials/essentials/part-5-async-logic.md"
-  - "reduxjs/redux:docs/tutorials/essentials/part-8-rtk-query-advanced.md"
-  - "reduxjs/redux-toolkit:docs/usage/usage-guide.md"
+  - 'reduxjs/redux:docs/style-guide/style-guide.md'
+  - 'reduxjs/redux:docs/tutorials/essentials/part-5-async-logic.md'
+  - 'reduxjs/redux:docs/tutorials/essentials/part-8-rtk-query-advanced.md'
+  - 'reduxjs/redux-toolkit:docs/usage/usage-guide.md'
 ---
 
 # Debug Redux Toolkit Apps

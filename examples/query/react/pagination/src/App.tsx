@@ -1,9 +1,7 @@
 import { PostsManager } from './features/posts/PostsManager'
 
 function App() {
-  return (
-    <PostsManager />
-  )
+  return <PostsManager />
 }
 
 export default App

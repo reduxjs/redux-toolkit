@@ -1408,7 +1408,7 @@ describe('Accept header handling', () => {
     })
 
     let request: any
-      // Override to json just for this test so we can inspect the echoed request object
+    // Override to json just for this test so we can inspect the echoed request object
     ;({ data: request } = await textBaseQuery(
       { url: '/echo', responseHandler: 'json' },
       commonBaseQueryApi,
@@ -1477,7 +1477,7 @@ describe('Accept header handling', () => {
     })
 
     let request: any
-      // Override to json just for this test so we can inspect the echoed request object
+    // Override to json just for this test so we can inspect the echoed request object
     ;({ data: request } = await textBaseQuery(
       { url: '/echo', responseHandler: 'json' },
       commonBaseQueryApi,

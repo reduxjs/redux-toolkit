@@ -25,6 +25,7 @@ jobs:
               - 'examples/type-portability/**'
               - '.github/workflows/tests.yml'
               - '.oxlintrc.json'
+              - '.oxfmtrc.json'
               - 'yarn.lock'
 
   build:
@@ -54,6 +55,10 @@ jobs:
       - name: Lint
         working-directory: .
         run: yarn lint
+
+      - name: Format check
+        working-directory: .
+        run: yarn format:check
 
       # Read existing version, reuse that, add a Git short hash
       - name: Set build version to Git commit

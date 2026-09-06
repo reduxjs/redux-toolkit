@@ -6,15 +6,15 @@ description: >
   workflows, listener middleware setup, and keeping side effects out of
   reducers and UI components.
 type: core
-library: "@reduxjs/toolkit"
-library_version: "2.11.2"
+library: '@reduxjs/toolkit'
+library_version: '2.11.2'
 requires:
   - build-modern-redux-apps/redux-dataflow
 sources:
-  - "reduxjs/redux-toolkit:docs/api/createAsyncThunk.mdx"
-  - "reduxjs/redux-toolkit:docs/api/createListenerMiddleware.mdx"
-  - "reduxjs/redux:docs/style-guide/style-guide.md"
-  - "reduxjs/redux:docs/tutorials/essentials/part-5-async-logic.md"
+  - 'reduxjs/redux-toolkit:docs/api/createAsyncThunk.mdx'
+  - 'reduxjs/redux-toolkit:docs/api/createListenerMiddleware.mdx'
+  - 'reduxjs/redux:docs/style-guide/style-guide.md'
+  - 'reduxjs/redux:docs/tutorials/essentials/part-5-async-logic.md'
 ---
 
 # Handle Side Effects
@@ -54,8 +54,10 @@ export const store = configureStore({
 export type RootState = ReturnType<typeof store.getState>
 export type AppDispatch = typeof store.dispatch
 
-export const startAppListening =
-  listenerMiddleware.startListening.withTypes<RootState, AppDispatch>()
+export const startAppListening = listenerMiddleware.startListening.withTypes<
+  RootState,
+  AppDispatch
+>()
 ```
 
 ## Core Patterns
@@ -186,14 +188,17 @@ Correct:
 ```ts
 import { createAsyncThunk } from '@reduxjs/toolkit'
 
-const todoSaved = createAsyncThunk('todos/save', async (todo: { id: string }) => {
-  await fetch('/api/todos', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(todo),
-  })
-  return todo
-})
+const todoSaved = createAsyncThunk(
+  'todos/save',
+  async (todo: { id: string }) => {
+    await fetch('/api/todos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(todo),
+    })
+    return todo
+  },
+)
 ```
 
 Reducers must stay pure even when Immer is available.
@@ -205,14 +210,13 @@ Source: reduxjs/redux:docs/style-guide/style-guide.md
 Wrong:
 
 ```ts
-export const waitForSave = () => async (
-  _dispatch: unknown,
-  getState: () => { docs: { status: string } },
-) => {
-  while (getState().docs.status !== 'saved') {
-    await new Promise((resolve) => setTimeout(resolve, 100))
+export const waitForSave =
+  () =>
+  async (_dispatch: unknown, getState: () => { docs: { status: string } }) => {
+    while (getState().docs.status !== 'saved') {
+      await new Promise((resolve) => setTimeout(resolve, 100))
+    }
   }
-}
 ```
 
 Correct:
