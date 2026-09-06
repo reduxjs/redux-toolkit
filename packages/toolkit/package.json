@@ -203,7 +203,6 @@
     "@types/react": "^19.0.1",
     "@types/react-dom": "^19.0.1",
     "axios": "^0.19.2",
-    "esbuild": "^0.25.1",
     "jsdom": "^25.0.1",
     "msw": "2.1.5",
     "node-fetch": "^3.3.2",
