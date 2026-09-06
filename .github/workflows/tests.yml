@@ -24,6 +24,7 @@ jobs:
               - 'examples/publish-ci/**'
               - 'examples/type-portability/**'
               - '.github/workflows/tests.yml'
+              - '.oxlintrc.json'
               - 'yarn.lock'
 
   build:
@@ -49,6 +50,10 @@ jobs:
 
       - name: Install deps
         run: yarn install
+
+      - name: Lint
+        working-directory: .
+        run: yarn lint
 
       # Read existing version, reuse that, add a Git short hash
       - name: Set build version to Git commit

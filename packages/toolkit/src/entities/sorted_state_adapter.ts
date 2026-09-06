@@ -212,19 +212,12 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
     return true
   }
 
-  type MergeFunction = (
+  function mergeFunction(
     state: R,
     addedItems: readonly T[],
     appliedUpdates?: boolean,
     replacedIds?: boolean,
-  ) => void
-
-  const mergeFunction: MergeFunction = (
-    state,
-    addedItems,
-    appliedUpdates,
-    replacedIds,
-  ) => {
+  ): void {
     const currentEntities = getCurrent(state.entities)
     const currentIds = getCurrent(state.ids)
 
