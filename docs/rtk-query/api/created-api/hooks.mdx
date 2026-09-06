@@ -463,6 +463,10 @@ type UseInfiniteQueryOptions = {
   refetchOnMountOrArgChange?: boolean | number
   selectFromResult?: (result: UseQueryStateDefaultResult) => any
   initialPageParam?: PageParam
+  refetchBehavior?:
+    | 'refetch-all-pages'
+    | 'refetch-first-page-discard-rest'
+    | 'refetch-first-page-preserve-rest'
   refetchCachedPages?: boolean
 }
 
@@ -516,6 +520,10 @@ type UseInfiniteQueryResult<Data, PageParam> = {
 
   // A function to force refetch the query - returns a Promise with additional methods
   refetch: (options?: {
+    refetchBehavior?:
+      | 'refetch-all-pages'
+      | 'refetch-first-page-discard-rest'
+      | 'refetch-first-page-preserve-rest'
     refetchCachedPages?: boolean
   }) => InfiniteQueryActionCreatorResult
 

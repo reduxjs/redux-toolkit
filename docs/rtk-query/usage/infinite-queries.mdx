@@ -281,13 +281,21 @@ When an infinite query endpoint is refetched (due to tag invalidation, polling, 
 
 If the cache entry is ever removed and then re-added, it will start with only fetching the initial page.
 
-There may be cases when you want a refetch to _only_ refetch the first page, and not any of the other pages in cache (ie, the refetch shrinks the cache from N pages to 1 page). This can be done via the `refetchCachedPages` option, which can be passed in several different places:
+There may be cases when you want different behavior when refetching an infinite query. This can be done via the `refetchBehavior` option, which can be passed in several different places:
 
-- Defined on the endpoint as part of `infiniteQueryOptions`: applies to all attempted refetches
-- Passed as an option to a `useInfiniteQuery` hook: applies to all attempted refetches
+- Defined on the endpoint as part of `infiniteQueryOptions`: applies to automatic refetches and manual refetches unless overridden
+- Passed as an option to a `useInfiniteQuery` hook: applies to forced refetches started by that hook, and is used as the default for the hook result's `refetch()` method
 - Passed as an option to `endpoint.initiate()`, or the `refetch` method available on the `initiate` or hook result objects: applies only to the manually triggered refetch
 
-Overall, the refetch logic defaults to refetching all pages, but will override that with the option provided to the endpoint or a manual refetch.
+The supported refetch behaviors are:
+
+- `'refetch-all-pages'`: the default behavior. Sequentially refetches all pages currently in the cache.
+- `'refetch-first-page-discard-rest'`: refetches only the first cached page and shrinks the cache from N pages to 1 page.
+- `'refetch-first-page-preserve-rest'`: refetches only the first cached page and preserves cached pages 2..N and their page params. This can be useful for feed-like UIs that deduplicate items while accepting that the preserved pages may be stale.
+
+Because preserving the remaining pages can leave stale page boundaries or cursors, it may also produce duplicate or missing items. Use this mode only when the UI can tolerate or reconcile those inconsistencies.
+
+`refetchCachedPages` is still supported as a backwards-compatible alias. `refetchCachedPages: true` maps to `'refetch-all-pages'`, and `refetchCachedPages: false` maps to `'refetch-first-page-discard-rest'`. If both options are provided at the same level, `refetchBehavior` takes precedence.
 
 ### Limiting Cache Entry Size
 

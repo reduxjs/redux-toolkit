@@ -25,6 +25,11 @@ export type RefetchConfigOptions = {
   refetchOnFocus: boolean
 }
 
+export type InfiniteQueryRefetchBehavior =
+  | 'refetch-all-pages'
+  | 'refetch-first-page-discard-rest'
+  | 'refetch-first-page-preserve-rest'
+
 export type InfiniteQueryConfigOptions<DataType, PageParam, QueryArg> = {
   /**
    * The initial page parameter to use for the first page fetch.
@@ -59,10 +64,18 @@ export type InfiniteQueryConfigOptions<DataType, PageParam, QueryArg> = {
    */
   maxPages?: number
   /**
-   * Defaults to `true`. When this is `true` and an infinite query endpoint is refetched
-   * (due to tag invalidation, polling, arg change configuration, or manual refetching),
-   * RTK Query will try to sequentially refetch all pages currently in the cache.
-   * When `false` only the first page will be refetched.
+   * Defaults to `'refetch-all-pages'`. Controls how an infinite query endpoint is refetched
+   * (due to tag invalidation, polling, arg change configuration, or manual refetching).
+   * `'refetch-all-pages'` sequentially refetches all pages currently in the cache.
+   * `'refetch-first-page-discard-rest'` refetches only the first cached page and shrinks the cache to one page.
+   * `'refetch-first-page-preserve-rest'` refetches only the first cached page and preserves the remaining cached pages.
+   */
+  refetchBehavior?: InfiniteQueryRefetchBehavior
+  /**
+   * Defaults to `true`. This is a backwards-compatible alias for `refetchBehavior`.
+   * `true` maps to `'refetch-all-pages'`.
+   * `false` maps to `'refetch-first-page-discard-rest'`.
+   * If both options are provided at the same level, `refetchBehavior` takes precedence.
    */
   refetchCachedPages?: boolean
 }

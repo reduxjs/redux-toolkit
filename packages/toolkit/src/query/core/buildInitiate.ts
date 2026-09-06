@@ -74,6 +74,7 @@ export type StartQueryActionCreatorOptions = {
 }
 
 type RefetchOptions = {
+  refetchBehavior?: InfiniteQueryConfigOptions<any, any, any>['refetchBehavior']
   refetchCachedPages?: boolean
 }
 
@@ -91,7 +92,7 @@ export type StartInfiniteQueryActionCreatorOptions<
           InfiniteQueryArgFrom<D>
         >
       >,
-      'initialPageParam' | 'refetchCachedPages'
+      'initialPageParam' | 'refetchBehavior' | 'refetchCachedPages'
     >
   >
 
@@ -148,7 +149,7 @@ export type InfiniteQueryActionCreatorResult<
     refetch(
       options?: Pick<
         StartInfiniteQueryActionCreatorOptions<D>,
-        'refetchCachedPages'
+        'refetchBehavior' | 'refetchCachedPages'
       >,
     ): InfiniteQueryActionCreatorResult<D>
   }
@@ -415,17 +416,25 @@ You must add the middleware for RTK-Query to function correctly!`,
         if (isQueryDefinition(endpointDefinition)) {
           thunk = queryThunk(commonThunkArgs)
         } else {
-          const { direction, initialPageParam, refetchCachedPages } =
-            rest as Pick<
-              InfiniteQueryThunkArg<any>,
-              'direction' | 'initialPageParam' | 'refetchCachedPages'
-            >
+          const {
+            direction,
+            initialPageParam,
+            refetchBehavior,
+            refetchCachedPages,
+          } = rest as Pick<
+            InfiniteQueryThunkArg<any>,
+            | 'direction'
+            | 'initialPageParam'
+            | 'refetchBehavior'
+            | 'refetchCachedPages'
+          >
           thunk = infiniteQueryThunk({
             ...(commonThunkArgs as InfiniteQueryThunkArg<any>),
             // Supply these even if undefined. This helps with a field existence
             // check over in `buildSlice.ts`
             direction,
             initialPageParam,
+            refetchBehavior,
             refetchCachedPages,
           })
         }

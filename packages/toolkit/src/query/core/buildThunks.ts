@@ -50,6 +50,7 @@ import type {
   QueryCacheKey,
   InfiniteQueryDirection,
   InfiniteQueryKeys,
+  InfiniteQueryRefetchBehavior,
 } from './apiState'
 import { QueryStatus, STATUS_UNINITIALIZED } from './apiState'
 import type {
@@ -163,6 +164,7 @@ export type InfiniteQueryThunkArg<
     endpointName: string
     param: unknown
     direction?: InfiniteQueryDirection
+    refetchBehavior?: InfiniteQueryRefetchBehavior
     refetchCachedPages?: boolean
   }
 
@@ -198,6 +200,28 @@ export type MutationThunk = AsyncThunk<
   MutationThunkArg,
   ThunkApiMetaConfig
 >
+
+function getInfiniteQueryRefetchBehavior(
+  arg: InfiniteQueryThunkArg<any>,
+  infiniteQueryOptions: InfiniteQueryConfigOptions<any, any, any>,
+): InfiniteQueryRefetchBehavior {
+  const mapRefetchCachedPages = (
+    refetchCachedPages: boolean,
+  ): InfiniteQueryRefetchBehavior =>
+    refetchCachedPages ? 'refetch-all-pages' : 'refetch-first-page-discard-rest'
+
+  return (
+    arg.refetchBehavior ??
+    (arg.refetchCachedPages != null
+      ? mapRefetchCachedPages(arg.refetchCachedPages)
+      : undefined) ??
+    infiniteQueryOptions.refetchBehavior ??
+    (infiniteQueryOptions.refetchCachedPages != null
+      ? mapRefetchCachedPages(infiniteQueryOptions.refetchCachedPages)
+      : undefined) ??
+    'refetch-all-pages'
+  )
+}
 
 function defaultTransformResponse(baseQueryReturnValue: unknown) {
   return baseQueryReturnValue
@@ -684,11 +708,11 @@ export function buildThunks<
         // Runtime checks should guarantee this is a positive number if provided
         const { maxPages = Infinity } = infiniteQueryOptions
 
-        // Priority: per-call override > endpoint config > default (true)
-        const refetchCachedPages =
-          (arg as InfiniteQueryThunkArg<any>).refetchCachedPages ??
-          infiniteQueryOptions.refetchCachedPages ??
-          true
+        // Priority: per-call override > endpoint config > default
+        const refetchBehavior = getInfiniteQueryRefetchBehavior(
+          arg as InfiniteQueryThunkArg<any>,
+          infiniteQueryOptions,
+        )
 
         let result: QueryReturnValue
 
@@ -745,9 +769,33 @@ export function buildThunks<
             result = {
               data: (result.data as InfiniteData<unknown, unknown>).pages[0],
             } as QueryReturnValue
+          } else if (
+            isForcedQueryNeedingRefetch &&
+            refetchBehavior === 'refetch-first-page-preserve-rest' &&
+            cachedData?.pages.length
+          ) {
+            const firstPageData = result.data as InfiniteData<unknown, unknown>
+            const latestCachedData = selectors.selectQueryEntry(
+              getState(),
+              arg.queryCacheKey,
+            )?.data as InfiniteData<unknown, unknown> | undefined
+            const dataToPreserve = latestCachedData ?? cachedData
+            result = {
+              data: {
+                pages: [
+                  firstPageData.pages[0],
+                  ...dataToPreserve.pages.slice(1),
+                ],
+                pageParams: [
+                  firstPageData.pageParams[0],
+                  ...dataToPreserve.pageParams.slice(1),
+                ],
+              },
+              meta: result.meta,
+            }
           }
 
-          if (refetchCachedPages) {
+          if (refetchBehavior === 'refetch-all-pages') {
             // Fetch remaining pages
             for (let i = 1; i < totalPages; i++) {
               const param = getNextPageParam(

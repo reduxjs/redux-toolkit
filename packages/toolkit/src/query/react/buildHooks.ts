@@ -38,7 +38,10 @@ import type {
   TSHelpersOverride,
 } from '@reduxjs/toolkit/query'
 import type { DependencyList } from 'react'
-import type { InfiniteQueryDirection } from '../core/apiState'
+import type {
+  InfiniteQueryDirection,
+  InfiniteQueryRefetchBehavior,
+} from '../core/apiState'
 import type { StartInfiniteQueryActionCreator } from '../core/buildInitiate'
 import type { SubscriptionSelectors } from '../core/buildMiddleware/index'
 import type { InfiniteData } from '../core/index'
@@ -883,13 +886,29 @@ export type UseInfiniteQuerySubscriptionOptions<
   refetchOnMountOrArgChange?: boolean | number
   initialPageParam?: PageParamFrom<D>
   /**
-   * Defaults to `true`. When this is `true` and an infinite query endpoint is refetched
-   * (due to tag invalidation, polling, arg change configuration, or manual refetching),
-   * RTK Query will try to sequentially refetch all pages currently in the cache.
-   * When `false` only the first page will be refetched.
+   * Controls forced refetches started by this hook. When omitted, uses the
+   * endpoint setting, which defaults to `'refetch-all-pages'`.
+   * `'refetch-all-pages'` sequentially refetches all pages currently in the cache.
+   * `'refetch-first-page-discard-rest'` refetches only the first cached page and shrinks the cache to one page.
+   * `'refetch-first-page-preserve-rest'` refetches only the first cached page and preserves the remaining cached pages.
    *
-   * This option applies to all automatic refetches for this subscription (polling, tag invalidation, etc.).
-   * It can be overridden on a per-call basis using the `refetch()` method.
+   * This option applies to forced refetches started by this hook, and is used as
+   * the default for the hook result's `refetch()` method. For shared automatic
+   * refetches such as polling or tag invalidation, define this on the
+   * endpoint.
+   */
+  refetchBehavior?: InfiniteQueryRefetchBehavior
+  /**
+   * This is a backwards-compatible alias for `refetchBehavior`. When omitted,
+   * uses the endpoint setting, whose legacy default is `true`.
+   * `true` maps to `'refetch-all-pages'`.
+   * `false` maps to `'refetch-first-page-discard-rest'`.
+   * If both options are provided at the same level, `refetchBehavior` takes precedence.
+   *
+   * This option applies to forced refetches started by this hook, and is used as
+   * the default for the hook result's `refetch()` method. For shared automatic
+   * refetches such as polling or tag invalidation, define this on the
+   * endpoint.
    */
   refetchCachedPages?: boolean
 }
@@ -916,7 +935,7 @@ export type UseInfiniteQuerySubscriptionResult<
   refetch: (
     options?: Pick<
       UseInfiniteQuerySubscriptionOptions<D>,
-      'refetchCachedPages'
+      'refetchBehavior' | 'refetchCachedPages'
     >,
   ) => InfiniteQueryActionCreatorResult<D>
   trigger: LazyInfiniteQueryTrigger<D>
@@ -1737,6 +1756,10 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       .initialPageParam
     const stableInitialPageParam = useShallowStableValue(initialPageParam)
 
+    const refetchBehavior = (rest as UseInfiniteQuerySubscriptionOptions<any>)
+      .refetchBehavior
+    const stableRefetchBehavior = useShallowStableValue(refetchBehavior)
+
     const refetchCachedPages = (
       rest as UseInfiniteQuerySubscriptionOptions<any>
     ).refetchCachedPages
@@ -1793,6 +1816,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
             ...(isInfiniteQueryDefinition(endpointDefinitions[endpointName])
               ? {
                   initialPageParam: stableInitialPageParam,
+                  refetchBehavior: stableRefetchBehavior,
                   refetchCachedPages: stableRefetchCachedPages,
                 }
               : {}),
@@ -1811,6 +1835,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       stableSubscriptionOptions,
       subscriptionRemoved,
       stableInitialPageParam,
+      stableRefetchBehavior,
       stableRefetchCachedPages,
       endpointName,
     ])
@@ -2098,7 +2123,12 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         subscriptionOptionsRef.current = stableSubscriptionOptions
       }, [stableSubscriptionOptions])
 
-      // Extract and stabilize the hook-level refetchCachedPages option
+      // Extract and stabilize the hook-level refetch behavior options
+      const hookRefetchBehavior = (
+        options as UseInfiniteQuerySubscriptionOptions<any>
+      ).refetchBehavior
+      const stableHookRefetchBehavior =
+        useShallowStableValue(hookRefetchBehavior)
       const hookRefetchCachedPages = (
         options as UseInfiniteQuerySubscriptionOptions<any>
       ).refetchCachedPages
@@ -2134,21 +2164,27 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         (
           options?: Pick<
             UseInfiniteQuerySubscriptionOptions<any>,
-            'refetchCachedPages'
+            'refetchBehavior' | 'refetchCachedPages'
           >,
         ) => {
           if (!promiseRef.current)
             throw new Error(
               'Cannot refetch a query that has not been started yet.',
             )
-          // Merge per-call options with hook-level default
-          const mergedOptions = {
-            refetchCachedPages:
-              options?.refetchCachedPages ?? stableHookRefetchCachedPages,
-          }
-          return promiseRef.current.refetch(mergedOptions)
+          const hasPerCallOverride =
+            options?.refetchBehavior !== undefined ||
+            options?.refetchCachedPages !== undefined
+
+          return promiseRef.current.refetch(
+            hasPerCallOverride
+              ? options
+              : {
+                  refetchBehavior: stableHookRefetchBehavior,
+                  refetchCachedPages: stableHookRefetchCachedPages,
+                },
+          )
         },
-        [promiseRef, stableHookRefetchCachedPages],
+        [promiseRef, stableHookRefetchBehavior, stableHookRefetchCachedPages],
       )
 
       return useMemo(() => {
