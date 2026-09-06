@@ -548,12 +548,18 @@ jobs:
           npm pkg set type=module
           rm -rf dist && node_modules/.bin/tsc -p tsconfig.json --module ESNext --moduleResolution Node10 --preserveSymLinks --verbatimModuleSyntax false
 
-  test-types-native-preview:
-    name: 'Test Types: TypeScript Native Preview'
+  # Advisory only. Reports how RTK's types behave under the next major TypeScript
+  # release without blocking any PR. `@typescript/native-preview` was the
+  # pre-release channel for the Go port and is deprecated now that TypeScript 7
+  # ships from the `typescript` package itself, so this job installs real
+  # `typescript@7` under an npm alias instead.
+  test-types-typescript-7:
+    name: 'Test Types: TypeScript 7 (advisory)'
     needs: [build]
     runs-on: ubuntu-latest
     continue-on-error: true
     strategy:
+      fail-fast: false
       matrix:
         node: ['24.x']
     steps:
@@ -574,8 +580,10 @@ jobs:
       - name: Install deps
         run: pnpm install
 
-      - name: Install TypeScript Native Preview
-        run: pnpm add @typescript/native-preview
+      # npm alias, so the repo's own `typescript` devDependency stays on 6.x and
+      # every other job keeps testing what it tested before.
+      - name: Install TypeScript 7
+        run: pnpm add -D typescript-7@npm:typescript@7
 
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
@@ -591,12 +599,17 @@ jobs:
       - name: Erase path aliases
         run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json
 
-      - name: Test types with tsgo
+      # Invoked by path rather than through `pnpm exec tsc`. The alias also claims
+      # the `tsc` bin, so `pnpm exec tsc` happens to resolve to 7 today, but
+      # depending on that would let this job silently test the wrong compiler.
+      # `--version` must print 7.x for the run below to mean anything.
+      - name: Test types with TypeScript 7
         env:
           TEST_DIST: true
         run: |
-          pnpm exec tsgo --version
-          pnpm exec tsgo -p tsconfig.test.json --noEmit --moduleResolution Bundler
+          TSC7="$(ls -d ../../node_modules/typescript-7 node_modules/typescript-7 2>/dev/null | head -1)/bin/tsc"
+          node "$TSC7" --version
+          node "$TSC7" -p tsconfig.test.json --noEmit --moduleResolution Bundler
 
       # See the note in `test-type-portability`: without `--ignore-workspace`
       # pnpm links `@reduxjs/toolkit` to the workspace sources instead of
@@ -607,14 +620,16 @@ jobs:
           npm pkg delete dependencies.@reduxjs/toolkit
           pnpm add --ignore-workspace --ignore-scripts --node-linker=hoisted "$GITHUB_WORKSPACE/packages/toolkit/package.tgz"
 
-      - name: Install TypeScript Native Preview for type-portability example
+      - name: Install TypeScript 7 for type-portability example
         working-directory: ./examples/type-portability/bundler
-        run: pnpm add --ignore-workspace --ignore-scripts --node-linker=hoisted -D @typescript/native-preview
+        run: pnpm add --ignore-workspace --ignore-scripts --node-linker=hoisted -D typescript-7@npm:typescript@7
 
-      # Invoked by path. `pnpm exec` runs a dependency-status check first, which
-      # installs with `--frozen-lockfile` and fails here: the two steps above
-      # installed with `--ignore-workspace`, so the example's `package.json` no
-      # longer matches the root lockfile.
-      - name: Test type portability with tsgo (bundler example)
+      # Invoked by path for a second reason on top of the one above: `pnpm exec`
+      # runs a dependency-status check that installs with `--frozen-lockfile`,
+      # and the two steps before this one install with `--ignore-workspace`, so
+      # the example's `package.json` no longer matches the root lockfile.
+      - name: Test type portability with TypeScript 7 (bundler example)
         working-directory: ./examples/type-portability/bundler
-        run: node_modules/.bin/tsgo --noEmit
+        run: |
+          node node_modules/typescript-7/bin/tsc --version
+          node node_modules/typescript-7/bin/tsc --noEmit
