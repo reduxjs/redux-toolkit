@@ -6,8 +6,11 @@ import { resolve } from 'node:path'
 import type {
   LinkDocblocksSettings,
   TranspileCodeblocksSettings,
-} from 'remark-typescript-tools'
-import { linkDocblocks, transpileCodeblocks } from 'remark-typescript-tools'
+} from './plugins/remark-typescript-tools/index.js'
+import {
+  linkDocblocks,
+  transpileCodeblocks,
+} from './plugins/remark-typescript-tools/index.js'
 
 const config: Config = {
   future: {

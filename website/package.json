@@ -42,8 +42,6 @@
     "@docusaurus/types": "^3.9.2",
     "@types/node": "^25.5.0",
     "@types/react": "^19.2.14",
-    "netlify-plugin-cache": "^1.0.3",
-    "prettier": "^3.2.5",
-    "remark-typescript-tools": "2.0.0-alpha.1"
+    "netlify-plugin-cache": "^1.0.3"
   }
 }

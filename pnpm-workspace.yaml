@@ -12,6 +12,10 @@ packages:
   - 'packages/*'
   - 'docs'
   - 'website'
+  # The vendored docs plugin is a workspace package purely to isolate its
+  # dependencies. It needs TypeScript 7, and the rest of the repo is on 6.x.
+  # `docusaurus.config.ts` imports it by relative path, not by name.
+  - 'website/plugins/remark-typescript-tools'
   - 'examples/query/react/infinite-queries'
   - 'examples/type-portability/*'
 
