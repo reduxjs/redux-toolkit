@@ -114,6 +114,8 @@ describe('type tests', () => {
           }
 
           if (result.isError) {
+            // `toExtend`, not `toMatchObjectType`: `toMatchObjectType` rejects
+            // union-typed properties.
             expectTypeOf(result).toExtend<{
               error: { status: number; data: unknown } | SerializedError
             }>()
