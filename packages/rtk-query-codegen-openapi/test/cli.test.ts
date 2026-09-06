@@ -6,7 +6,9 @@ import { rimraf } from 'rimraf';
 
 const exec = promisify(_exec);
 
-const cliPath = process.env.TEST_DIST ? 'rtk-query-codegen-openapi' : `yarn cli`;
+// `pnpm run <script>` echoes a `$ <command>` banner to stderr, which several of
+// these tests assert is empty. `--silent` suppresses it. Yarn had no such banner.
+const cliPath = process.env.TEST_DIST ? 'rtk-query-codegen-openapi' : `pnpm --silent cli`;
 
 const cli = async (args: string[]) => {
   return await exec(`${cliPath} ${args.join(' ')}`);

@@ -32,8 +32,8 @@ tarball into a real Next.js app, build it, and run a Playwright test against it.
 ## Scripts
 
 ```bash
-yarn dev         # next dev
-yarn build       # next build
-yarn type-check  # tsc
-yarn test        # build must have run first; starts the server and runs Playwright
+pnpm dev         # next dev
+pnpm build       # next build
+pnpm type-check  # tsc
+pnpm test        # build must have run first; starts the server and runs Playwright
 ```

@@ -15,7 +15,7 @@ To start Metro, run the following command from the _root_ of your React Native p
 npm start
 
 # OR using Yarn
-yarn start
+pnpm start
 ```
 
 ## Step 2: Start your Application
@@ -29,7 +29,7 @@ Let Metro Bundler run in its _own_ terminal. Open a _new_ terminal from the _roo
 npm run android
 
 # OR using Yarn
-yarn android
+pnpm android
 ```
 
 ### For iOS
@@ -39,7 +39,7 @@ yarn android
 npm run ios
 
 # OR using Yarn
-yarn ios
+pnpm ios
 ```
 
 If everything is set up _correctly_, you should see your new app running in your _Android Emulator_ or _iOS Simulator_ shortly provided you have set up your emulator/simulator correctly.
