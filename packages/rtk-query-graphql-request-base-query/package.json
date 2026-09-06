@@ -39,7 +39,7 @@
     "microbundle": "^0.13.3",
     "rimraf": "^6.1.3",
     "typescript": "^6.0.3",
-    "vitest": "^4"
+    "vitest": "^5"
   },
   "publishConfig": {
     "access": "public"
