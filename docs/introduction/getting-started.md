@@ -85,7 +85,45 @@ yarn add react-redux
   </TabItem>
 </Tabs>
 
-The package includes a precompiled ESM build that can be used as a [`<script type="module">` tag](https://unpkg.com/@reduxjs/toolkit/dist/redux-toolkit.browser.mjs) directly in the browser.
+The package includes a precompiled browser ESM build that can be loaded from a `<script type="module">` tag. That build still imports Redux Toolkit's dependencies by package name, so no-bundler browser usage also needs an [import map](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script/type/importmap) that tells the browser where to load those packages from.
+
+For example, a small no-bundler page can load Redux Toolkit from Unpkg like this:
+
+```html
+<script type="importmap">
+  {
+    "imports": {
+      "@reduxjs/toolkit": "https://unpkg.com/@reduxjs/toolkit@2.12.0/dist/redux-toolkit.browser.mjs",
+      "immer": "https://unpkg.com/immer@11.1.16/dist/immer.production.mjs",
+      "redux": "https://unpkg.com/redux@5.0.1/dist/redux.mjs",
+      "redux-thunk": "https://unpkg.com/redux-thunk@3.1.0/dist/redux-thunk.mjs",
+      "reselect": "https://unpkg.com/reselect@5.2.0/dist/reselect.mjs"
+    }
+  }
+</script>
+<script type="module">
+  import { configureStore, createSlice } from '@reduxjs/toolkit'
+
+  const counterSlice = createSlice({
+    name: 'counter',
+    initialState: { value: 0 },
+    reducers: {
+      incremented: (state) => {
+        state.value += 1
+      },
+    },
+  })
+
+  const store = configureStore({
+    reducer: counterSlice.reducer,
+  })
+
+  store.dispatch(counterSlice.actions.incremented())
+  console.log(store.getState())
+</script>
+```
+
+For production, pin dependency versions and adjust the URLs for your hosting environment. For example, a web extension may need to copy those files into the extension bundle and point the import map at local files instead of CDN URLs.
 
 ## Requirements
 

@@ -42,7 +42,7 @@ yarn add @reduxjs/toolkit
 
 If you use an AI agent, run `npx @tanstack/intent@latest install` to install agent skills.
 
-The package includes a precompiled ESM build that can be used as a [`<script type="module">` tag](https://unpkg.com/@reduxjs/toolkit/dist/redux-toolkit.browser.mjs) directly in the browser.
+The package includes a precompiled browser ESM build that can be loaded from a `<script type="module">` tag. No-bundler browser usage also needs an import map, because the build imports Redux Toolkit's dependencies by package name. See the [Getting Started docs](https://redux-toolkit.js.org/introduction/getting-started#an-existing-app) for an example.
 
 ## Documentation
 
