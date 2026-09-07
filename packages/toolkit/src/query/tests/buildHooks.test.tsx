@@ -2583,9 +2583,9 @@ describe('hooks tests', () => {
 
         // A skipped infinite query must not fetch, so no cache entry
         // should have been created and `isFetching` should stay `false`.
-        expect(
-          Object.keys(storeRef.store.getState().api.queries),
-        ).toHaveLength(0)
+        expect(Object.keys(storeRef.store.getState().api.queries)).toHaveLength(
+          0,
+        )
         expect(screen.getByTestId('isFetching').textContent).toBe('false')
       },
     )
