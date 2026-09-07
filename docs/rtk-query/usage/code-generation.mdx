@@ -110,6 +110,7 @@ interface SimpleUsage {
   exportName?: string
   argSuffix?: string
   operationNameSuffix?: string
+  operationIdTransformer?: 'camelCase' | 'none' | ((operationId: string) => string)
   responseSuffix?: string
   hooks?:
     | boolean
@@ -134,6 +135,7 @@ export type EndpointOverrides = {
   invalidatesTags: string[]
 }>
   useEnumType?: boolean
+  enumStyle?: 'union' | 'enum' | 'as-const'
   outputRegexConstants?: boolean
   httpResolverOptions?: SwaggerParser.HTTPResolverOptions
 }
@@ -147,8 +149,8 @@ export type EndpointMatcherFunction = (
 #### Filtering endpoints
 
 If you only want to include a few endpoints, you can use the `filterEndpoints` config option to filter your endpoints.
-Note that endpoints are transformed to camel case. For example, `login_user` will become `loginUser`.
-`filterEndpoints` will be checked against this camel case version of the endpoint.
+Note that endpoints are transformed to camelCase by default. For example, `login_user` will become `loginUser`.
+`filterEndpoints` is checked against the transformed endpoint name (after applying [`operationIdTransformer`](#customizing-endpoint-name-generation)).
 
 ```ts no-transpile title="openapi-config.ts"
 const filteredConfig: ConfigFile = {
@@ -157,6 +159,48 @@ const filteredConfig: ConfigFile = {
   filterEndpoints: ['loginUser', /Order/],
 }
 ```
+
+#### Customizing endpoint name generation
+
+By default, each operation's `operationId` is converted to camelCase using lodash `camelCase` (via `oazapfts`). This means consecutive uppercase letters are lowercased — for example, `fetchMyJWTPlease` becomes `fetchMyJwtPlease`.
+
+Use the `operationIdTransformer` option to control this behavior:
+
+- **`"camelCase"`** _(default)_ - applies lodash `camelCase`, matching prior behavior
+- **`"none"`** - uses the raw `operationId` string verbatim, preserving casing exactly as written in the schema
+- **`(operationId: string) => string`** - applies a custom function for full control
+
+```ts no-transpile title="openapi-config.ts"
+import type { ConfigFile } from '@rtk-query/codegen-openapi'
+
+const config = {
+  // ...
+  // Preserve the exact operationId casing from the schema.
+  // fetchMyJWTPlease stays fetchMyJWTPlease instead of becoming fetchMyJwtPlease.
+  operationIdTransformer: 'none',
+} satisfies ConfigFile
+
+export default config
+```
+
+```ts no-transpile title="openapi-config.ts"
+import type { ConfigFile } from '@rtk-query/codegen-openapi'
+
+const config = {
+  // ...
+  // Custom transformer - capitalize the first letter only
+  operationIdTransformer: (operationId) =>
+    operationId.charAt(0).toUpperCase() + operationId.slice(1),
+} satisfies ConfigFile
+
+export default config
+```
+
+:::note
+When `operationIdTransformer` is `"none"` or a custom function, **every operation in the schema must have an `operationId`**. The codegen will throw an error if any operation is missing one.
+
+When using `filterEndpoints` together with `operationIdTransformer`, the filter is matched against the **transformed** name.
+:::
 
 #### Endpoint overrides
 
@@ -253,6 +297,24 @@ When using tag overrides with `tag: false`, the overridden tags will be emitted 
 
 Setting `hooks: true` will generate `useQuery` and `useMutation` hook exports. If you also want `useLazyQuery` hooks generated or more granular control, you can also pass an object in the shape of: `{ queries: boolean; lazyQueries: boolean; mutations: boolean }`.
 
+#### Controlling enum generation
+
+By default, OpenAPI `enum` definitions are generated as unions of string literals. Use the `enumStyle` option to control this behavior:
+
+- **`"union"`** _(default)_ - a union of string literals: `type Status = 'available' | 'pending'`
+- **`"enum"`** - a TypeScript enum: `enum Status { Available = 'available' }`
+- **`"as-const"`** - a const object with a companion type, which provides runtime values like an enum while remaining tree-shakeable and compatible with `isolatedModules`:
+
+```ts no-transpile
+export const Status = {
+  Available: 'available',
+  Pending: 'pending',
+} as const
+export type Status = (typeof Status)[keyof typeof Status]
+```
+
+`useEnumType: true` is equivalent to `enumStyle: 'enum'`. If both options are specified, `enumStyle` takes precedence.
+
 #### Generating regex constants for schema patterns
 
 If your OpenAPI schema uses the [`pattern` keyword](https://swagger.io/docs/specification/data-models/data-types/#pattern) to specify regex validation on string properties, you can export these patterns as JavaScript regex constants by setting `outputRegexConstants: true`.
@@ -316,7 +378,7 @@ const config: ConfigFile = {
 
 #### Custom HTTP resolver options
 
-If you need to customize the HTTP request issued to your server, you user the `httpResolverOptions` option. This object is passed directly to the `SwaggerParser` instance that fetches the OpenAPI schema.
+If you need to customize the HTTP request issued to your server, you can use the `httpResolverOptions` option. This object is passed directly to the `SwaggerParser` instance that fetches the OpenAPI schema.
 
 For example, you can pass custom headers or set a custom request timeout.
 
@@ -332,5 +394,39 @@ const config: ConfigFile = {
       Authorization: 'Basic cmVkdXgtdG9vbGtpdDppcy1ncmVhdA==',
     },
   },
+}
+```
+
+#### Additional Schemas
+
+By default, the only schemas that are exported are those that are referenced in endpoint definitions. Take the following NestJS example:
+
+```ts no-transpile title="user.controller.ts"
+class User {
+  id: string
+  name: string
+}
+
+class LogoutMessage {
+  reason: string
+}
+
+@ApiExtraModels(LogoutMessage)
+@Controller('user')
+class UserController {
+  getUsers(): User[] {
+    return this.getUsers()
+  }
+}
+```
+
+In this case, only the `User` schema would be exported even though we've added `LogoutMessage` as an extra model that will appear in the OpenAPI spec. Setting `exportAllSchemas: true` will export all available schemas, whether they're referenced in endpoint definitions or not.
+
+```ts no-transpile title="openapi-config.ts"
+const config: ConfigFile = {
+  schemaFile: 'https://petstore3.swagger.io/api/v3/openapi.json',
+  apiFile: './src/store/emptyApi.ts',
+  outputFile: './src/store/petApi.ts',
+  exportAllSchemas: true,
 }
 ```

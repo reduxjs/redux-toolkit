@@ -191,7 +191,7 @@ export function createReducer<S extends NotFunction<any>>(
             if (previousState === null) {
               return previousState
             }
-            throw Error(
+            throw new Error(
               'A case reducer on a non-draftable value must not return undefined',
             )
           }

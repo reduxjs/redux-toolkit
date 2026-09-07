@@ -6,7 +6,7 @@
     "build": "docusaurus build",
     "clear": "docusaurus clear",
     "serve": "docusaurus serve",
-    "netlify-build": "yarn install && yarn build",
+    "netlify-build": "pnpm install && pnpm build",
     "swizzle": "docusaurus swizzle",
     "publish-gh-pages": "docusaurus deploy",
     "deploy": "docusaurus deploy"
@@ -23,7 +23,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-lite-youtube-embed": "^2.0.3",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.3"
   },
   "browserslist": {
     "production": [
@@ -42,8 +42,6 @@
     "@docusaurus/types": "^3.9.2",
     "@types/node": "^25.5.0",
     "@types/react": "^19.2.14",
-    "netlify-plugin-cache": "^1.0.3",
-    "prettier": "^3.2.5",
-    "remark-typescript-tools": "2.0.0-alpha.1"
+    "netlify-plugin-cache": "^1.0.3"
   }
 }

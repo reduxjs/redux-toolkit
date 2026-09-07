@@ -57,6 +57,16 @@ export interface CommonOptions {
    * @default ""
    */
   operationNameSuffix?: string;
+
+  /**
+   * Controls how OpenAPI **`operationId`** values are transformed into
+   * endpoint names.
+   * @see {@linkcode OperationIdTransformer} for details.
+   *
+   * @default "camelCase"
+   * @since 2.3.0
+   */
+  operationIdTransformer?: OperationIdTransformer;
   /**
    * `true` will generate hooks for queries and mutations, but no lazyQueries
    * @default false
@@ -131,7 +141,44 @@ export interface CommonOptions {
    * Will generate regex constants for pattern keywords in the schema
    */
   outputRegexConstants?: boolean;
+  /**
+   * @default false
+   * If set to `true`, all schemas from the OpenAPI document will be exported, regardless of whether they are referenced by any
+   * endpoint definitions.
+   */
+  exportAllSchemas?: boolean;
 }
+
+/**
+ * Controls how OpenAPI **`operationId`** values are transformed into
+ * endpoint names.
+ *
+ * - **`"camelCase"`** *(default)* - applies lodash **`camelCase`** via **`oazapfts`** (current behavior)
+ * - **`"none"`** - uses the raw **`operationId`** string verbatim with no transformation
+ * - **`(operationId: string) => string`** - applies a custom function to each **`operationId`**
+ *
+ * When using **`"none"`** or a custom function every operation **must**
+ * have an **`operationId`** defined in the OpenAPI schema, otherwise
+ * an {@linkcode Error} is thrown during generation.
+ *
+ * @example
+ * <caption>Preserve exact casing (e.g. `fetchMyJWTPlease` stays `fetchMyJWTPlease`)</caption>
+ *
+ * ```ts
+ * operationIdTransformer: 'none'
+ * ```
+ *
+ * @example
+ * <caption>Custom transformer</caption>
+ *
+ * ```ts
+ * operationIdTransformer: (id) => id.replace(/^get/, 'fetch')
+ * ```
+ *
+ * @since 2.3.0
+ * @public
+ */
+export type OperationIdTransformer = 'camelCase' | 'none' | ((operationId: string) => string);
 
 export type TextMatcher = string | RegExp | (string | RegExp)[];
 
@@ -143,6 +190,19 @@ export type ParameterMatcherFunction = (parameterName: string, parameterDefiniti
 
 export type ParameterMatcher = TextMatcher | ParameterMatcherFunction;
 
+/**
+ * Controls how enums are generated in TypeScript.
+ *
+ * - **`"union"`** *(default)* - a union of string literals: `type Status = "available" | "pending"`
+ * - **`"enum"`** - a TypeScript enum: `enum Status { Available = "available" }`
+ * - **`"as-const"`** - a const object with a companion type:
+ *   `const Status = { Available: "available" } as const; type Status = (typeof Status)[keyof typeof Status];`
+ *
+ * @since 2.3.0
+ * @public
+ */
+export type EnumStyle = 'union' | 'enum' | 'as-const';
+
 export interface OutputFileOptions extends Partial<CommonOptions> {
   outputFile: string;
   filterEndpoints?: EndpointMatcher;
@@ -152,6 +212,15 @@ export interface OutputFileOptions extends Partial<CommonOptions> {
    * @default false
    */
   useEnumType?: boolean;
+  /**
+   * Controls how enums are generated in TypeScript.
+   * Takes precedence over `useEnumType` if both are specified.
+   * @see {@linkcode EnumStyle} for details.
+   *
+   * @default "union"
+   * @since 2.3.0
+   */
+  enumStyle?: EnumStyle;
 }
 
 /**

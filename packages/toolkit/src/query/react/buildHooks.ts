@@ -587,7 +587,7 @@ export type UseQueryStateOptions<
    *
    *   return (
    *     <ul>
-   *       {posts?.data?.map((post) => (
+   *       {posts?.map((post) => (
    *         <PostById key={post.id} id={post.id} />
    *       ))}
    *     </ul>
@@ -1171,7 +1171,7 @@ export type UseInfiniteQueryStateOptions<
    *
    *   return (
    *     <ul>
-   *       {posts?.data?.map((post) => (
+   *       {posts?.map((post) => (
    *         <PostById key={post.id} id={post.id} />
    *       ))}
    *     </ul>
@@ -1856,6 +1856,11 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
               (_: ApiRootState, lastResult: any) => lastResult,
               (_: ApiRootState) => stableArg,
             ],
+            // `preSelector` is a union of the standard/infinite query pre-selectors.
+            // `tsc` attributes the resulting overload error to the `createSelector` call
+            // (suppressed above), but `tsgo` attributes it to this argument line, so it
+            // needs its own directive.
+            // @ts-ignore
             preSelector,
             {
               memoizeOptions: {

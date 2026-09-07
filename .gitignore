@@ -21,13 +21,10 @@ coverage/
 
 typesversions
 .cache
+# Nothing in this repo uses Yarn any more. These stay so a stray local `yarn`
+# invocation does not add untracked files.
 .yarnrc
-.yarn/*
-!.yarn/patches
-!.yarn/releases
-!.yarn/plugins
-!.yarn/sdks
-!.yarn/versions
+.yarn/
 .pnp.*
 *.tgz
 

@@ -1,13 +1,15 @@
 // Need to use the React-specific entry point to import `createApi`
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 
-type Quote = {
+export const QUOTES_BASE_URL = 'https://dummyjson.com/quotes'
+
+export type Quote = {
   id: number
   quote: string
   author: string
 }
 
-type QuotesApiResponse = {
+export type QuotesApiResponse = {
   quotes: Quote[]
   total: number
   skip: number
@@ -16,7 +18,7 @@ type QuotesApiResponse = {
 
 // Define a service using a base URL and expected endpoints
 export const quotesApiSlice = createApi({
-  baseQuery: fetchBaseQuery({ baseUrl: 'https://dummyjson.com/quotes' }),
+  baseQuery: fetchBaseQuery({ baseUrl: QUOTES_BASE_URL }),
   reducerPath: 'quotesApi',
   // Tag types are used for caching and invalidation.
   tagTypes: ['Quotes'],

@@ -37,7 +37,6 @@ export type ListenerPredicate<ActionType extends Action, State> = (
 /** @public */
 export interface ConditionFunction<State> {
   (predicate: AnyListenerPredicate<State>, timeout?: number): Promise<boolean>
-  (predicate: AnyListenerPredicate<State>, timeout?: number): Promise<boolean>
   (predicate: () => boolean, timeout?: number): Promise<boolean>
 }
 
@@ -157,7 +156,7 @@ export interface ListenerEffectAPI<
    *
    *     setTimeout(getOriginalState, 0); // async: throws Error
    *
-   *     await Promise().resolve();
+   *     await Promise.resolve();
    *
    *     getOriginalState(); // async: throws Error
    *   },
@@ -324,11 +323,8 @@ export type ListenerMiddleware<
 /** @public */
 export interface ListenerMiddlewareInstance<
   StateType = unknown,
-  DispatchType extends ThunkDispatch<
-    StateType,
-    unknown,
-    Action
-  > = ThunkDispatch<StateType, unknown, UnknownAction>,
+  DispatchType extends ThunkDispatch<StateType, unknown, Action> =
+    ThunkDispatch<StateType, unknown, UnknownAction>,
   ExtraArgument = unknown,
 > {
   middleware: ListenerMiddleware<StateType, DispatchType, ExtraArgument>
@@ -833,7 +829,7 @@ export type TypedCreateListenerEntry<
       UnknownAction
     >,
     OverrideExtraArgument = unknown,
-  >() => TypedStopListening<
+  >() => TypedCreateListenerEntry<
     OverrideStateType,
     OverrideDispatchType,
     OverrideExtraArgument
@@ -870,14 +866,18 @@ export type FallbackAddListenerOptions = {
   type?: string
   matcher?: MatchFunction<any>
   predicate?: ListenerPredicate<any, any>
-} & { effect: ListenerEffect<any, any, any> }
+  effect: ListenerEffect<any, any, any>
+}
 
 /**
  * Utility Types
  */
 
 /** @public */
-export type GuardedType<T> = T extends (x: any, ...args: any[]) => x is infer T
+export type GuardedType<T> = T extends ((
+  x: any,
+  ...args: any[]
+) => x is infer T)
   ? T
   : never
 

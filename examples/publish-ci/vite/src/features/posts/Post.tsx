@@ -1,7 +1,7 @@
 import React from 'react'
 
 // import the file that injects "post" to make sure it has been loaded
-import { useGetPostQuery } from '../../app/services/post'
+import { useGetPostQuery } from '../../app-core/services/post'
 
 export const Post = ({ id }: { id: number }) => {
   const { data, error } = useGetPostQuery(id)

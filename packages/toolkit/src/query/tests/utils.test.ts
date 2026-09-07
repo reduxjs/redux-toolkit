@@ -1,5 +1,10 @@
 import { vi } from 'vitest'
-import { isOnline, isDocumentVisible, joinUrls } from '@internal/query/utils'
+import {
+  isOnline,
+  isDocumentVisible,
+  joinUrls,
+  isAbsoluteUrl,
+} from '@internal/query/utils'
 
 afterAll(() => {
   vi.restoreAllMocks()
@@ -87,7 +92,39 @@ describe('joinUrls', () => {
     ['https://example.com/api/', '/banana', 'https://example.com/api/banana'],
     ['https://example.com/api/', 'https://example.org', 'https://example.org'],
     ['https://example.com/api/', '//example.org', '//example.org'],
+    // a relative url may carry an absolute one in its query string; the base still applies
+    [
+      'https://example.com/api/',
+      'redirect?target=https://example.org',
+      'https://example.com/api/redirect?target=https://example.org',
+    ],
+    [
+      '/api/',
+      'img?src=http://cdn.example/a.png',
+      '/api/img?src=http://cdn.example/a.png',
+    ],
   ])('%s and %s join to %s', (base, url, expected) => {
     expect(joinUrls(base, url)).toBe(expected)
+  })
+})
+
+describe('isAbsoluteUrl', () => {
+  test.each([
+    ['https://example.com', true],
+    ['http://example.com', true],
+    ['ftp://example.com', true],
+    ['web+custom://example.com', true],
+    ['//example.com', true],
+    ['banana', false],
+    ['/banana', false],
+    ['./banana', false],
+    ['banana/split', false],
+    ['?a=1', false],
+    // relative urls that merely contain an absolute one
+    ['redirect?target=https://example.org', false],
+    ['img?src=http://cdn.example/a.png', false],
+    ['search?q=a://b', false],
+  ])('%s is absolute: %s', (url, expected) => {
+    expect(isAbsoluteUrl(url)).toBe(expected)
   })
 })

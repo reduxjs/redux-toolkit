@@ -52,22 +52,20 @@ describe('type tests', () => {
         (state, action: ReturnType<typeof increment>) => state,
       )
 
-      // @ts-expect-error
-      builder.addCase(
-        increment,
-        (state, action: ReturnType<typeof decrement>) => state,
-      )
+      // @ts-expect-error `increment` and `decrement` action types are incompatible.
+      // The call is kept on a single line so `tsc` and `tsgo` attribute the error to the same line.
+      // prettier-ignore
+      builder.addCase(increment, (state, action: ReturnType<typeof decrement>) => state)
 
       builder.addCase(
         'increment',
         (state, action: ReturnType<typeof increment>) => state,
       )
 
-      // @ts-expect-error
-      builder.addCase(
-        'decrement',
-        (state, action: ReturnType<typeof increment>) => state,
-      )
+      // @ts-expect-error The reducer is typed for `increment`, but the case is `'decrement'`.
+      // The call is kept on a single line so `tsc` and `tsgo` attribute the error to the same line.
+      // prettier-ignore
+      builder.addCase('decrement', (state, action: ReturnType<typeof increment>) => state)
 
       // action type is inferred
       builder.addMatcher(increment.match, (state, action) => {
@@ -187,6 +185,10 @@ describe('type tests', () => {
           })
 
           builder.addCase(thunk.rejected, (_, action) => {
+            // `toExtend`, not `toMatchObjectType`: the rejected action's `meta`
+            // is a union (`rejectedWithValue` true/false), and
+            // `toMatchObjectType` cannot deep-pick through a union in the
+            // actual type.
             expectTypeOf(action).toExtend<{
               payload: unknown
               error: SerializedError
@@ -223,6 +225,10 @@ describe('type tests', () => {
               }>()
             },
             rejected(_, action) {
+              // `toExtend`, not `toMatchObjectType`: the rejected action's
+              // `meta` is a union (`rejectedWithValue` true/false), and
+              // `toMatchObjectType` cannot deep-pick through a union in the
+              // actual type.
               expectTypeOf(action).toExtend<{
                 payload: unknown
                 error: SerializedError
@@ -315,6 +321,10 @@ describe('type tests', () => {
           })
 
           builder.addCase(thunk.rejected, (_, action) => {
+            // `toExtend`, not `toMatchObjectType`: the rejected action's `meta`
+            // is a union (`rejectedWithValue` true/false), and
+            // `toMatchObjectType` cannot deep-pick through a union in the
+            // actual type.
             expectTypeOf(action).toExtend<{
               payload: unknown
               error: SerializedError
@@ -358,6 +368,10 @@ describe('type tests', () => {
               }>()
             },
             rejected(_, action) {
+              // `toExtend`, not `toMatchObjectType`: the rejected action's
+              // `meta` is a union (`rejectedWithValue` true/false), and
+              // `toMatchObjectType` cannot deep-pick through a union in the
+              // actual type.
               expectTypeOf(action).toExtend<{
                 payload: unknown
                 error: SerializedError

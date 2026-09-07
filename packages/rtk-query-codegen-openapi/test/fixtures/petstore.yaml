@@ -778,6 +778,16 @@ components:
           type: string
       xml:
         name: '##default'
+    ExtraModel:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+      xml:
+        name: 'extraModel'
   requestBodies:
     Pet:
       description: Pet object that needs to be added to the store

@@ -5,12 +5,12 @@ description: >
   event-style actions, reducer-owned state transitions, derived data, or a
   debugging model for Redux Toolkit apps.
 type: core
-library: "@reduxjs/toolkit"
-library_version: "2.11.2"
+library: '@reduxjs/toolkit'
+library_version: '2.11.2'
 sources:
-  - "reduxjs/redux:docs/tutorials/fundamentals/part-2-concepts-data-flow.md"
-  - "reduxjs/redux:docs/tutorials/essentials/part-3-data-flow.md"
-  - "reduxjs/redux:docs/style-guide/style-guide.md"
+  - 'reduxjs/redux:docs/tutorials/fundamentals/part-2-concepts-data-flow.md'
+  - 'reduxjs/redux:docs/tutorials/essentials/part-3-data-flow.md'
+  - 'reduxjs/redux:docs/style-guide/style-guide.md'
 ---
 
 # Redux Dataflow
@@ -134,9 +134,7 @@ const selectFilter = (state: RootState) => state.posts.filter
 export const selectVisiblePosts = createSelector(
   [selectPosts, selectFilter],
   (posts, filter) =>
-    filter === 'all'
-      ? posts
-      : posts.filter((post) => post.published),
+    filter === 'all' ? posts : posts.filter((post) => post.published),
 )
 ```
 
@@ -159,7 +157,9 @@ if (post) {
 Correct:
 
 ```ts
-store.dispatch(postUpdated({ id: 'p1', changes: { title: 'Changed in place' } }))
+store.dispatch(
+  postUpdated({ id: 'p1', changes: { title: 'Changed in place' } }),
+)
 ```
 
 Objects read from the store are still store state; mutating them outside reducers breaks immutability and stale-render assumptions.
@@ -171,7 +171,10 @@ Source: reduxjs/redux:docs/style-guide/style-guide.md
 Wrong:
 
 ```ts
-const nextPosts = [...selectPosts(store.getState()), { id: 'p2', title: 'Write docs' }]
+const nextPosts = [
+  ...selectPosts(store.getState()),
+  { id: 'p2', title: 'Write docs' },
+]
 store.dispatch(setPosts(nextPosts))
 ```
 
