@@ -44,7 +44,14 @@ _see also: [invalidatesTags API reference](../api/createApi.mdx#invalidatestags)
 
 A _mutation_ can _invalidate_ specific cached data based on the tags. Doing so determines which cached data will be either refetched or removed from the cache.
 
-The `invalidatesTags` argument can either be an array of `string` (such as `['Post']`), `{type: string, id?: string|number}` (such as `[{type: 'Post', id: 1}]`), or a callback that returns such an array. That function will be passed the result as the first argument, the response error as the second argument, and the argument originally passed into the `query` method as the third argument. Note that either the result or error arguments may be undefined based on whether the mutation was successful or not.
+The `invalidatesTags` argument can either be an array of `string` (such as `['Post']`), `{type: string, id?: string|number}` (such as `[{type: 'Post', id: 1}]`), or a callback that returns such an array. That function will be passed:
+
+1. the result as the first argument,
+1. the response error as the second argument,
+1. the argument originally passed into the `query` method as the third argument,
+1. and any optional `meta` property resolved by `baseQuery`.
+
+Note that either the result or error arguments may be undefined based on whether the mutation was successful or not.
 
 ## Cache tags
 
