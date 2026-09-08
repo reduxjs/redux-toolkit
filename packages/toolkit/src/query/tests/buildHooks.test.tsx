@@ -1906,6 +1906,57 @@ describe('hooks tests', () => {
       await screen.findByText(/isUninitialized/i)
       expect(countObjectKeys(storeRef.store.getState().api.queries)).toBe(0)
     })
+
+    // Regression test for issue #5271: useLazyQuery isFetching stays false when trigger args contain undefined values
+    test('useLazyQuery updates isFetching when trigger args contain undefined values', async () => {
+      const user = userEvent.setup()
+
+      function User() {
+        const [getUser, { isFetching, data, isSuccess }] =
+          api.endpoints.getUser.useLazyQuery()
+
+        return (
+          <div>
+            <div data-testid="isFetching">{String(isFetching)}</div>
+            <div data-testid="data">{data ? JSON.stringify(data) : 'no data'}</div>
+            <button onClick={() => getUser({ filterId: '1' })}>
+              Load Filtered
+            </button>
+            <button onClick={() => getUser({ triggeredAddress: undefined, page: 1 })}>
+              Load Full List
+            </button>
+          </div>
+        )
+      }
+
+      render(<User />, { wrapper: storeRef.wrapper })
+
+      // First call with { filterId: '1' }
+      await user.click(screen.getByRole('button', { name: 'Load Filtered' }))
+      await waitFor(() =>
+        expect(screen.getByTestId('isFetching').textContent).toBe('true'),
+      )
+      await waitFor(() =>
+        expect(screen.getByTestId('isFetching').textContent).toBe('false'),
+      )
+      await waitFor(() =>
+        expect(screen.getByTestId('data').textContent).toContain('Alice'),
+      )
+
+      // Second call with { triggeredAddress: undefined, page: 1 }
+      // This should also update isFetching and data (issue #5271)
+      await user.click(screen.getByRole('button', { name: 'Load Full List' }))
+      await waitFor(() =>
+        expect(screen.getByTestId('isFetching').textContent).toBe('true'),
+      )
+      await waitFor(() =>
+        expect(screen.getByTestId('isFetching').textContent).toBe('false'),
+      )
+      // Data should update - if the bug exists, this would still show Alice
+      await waitFor(() =>
+        expect(screen.getByTestId('data').textContent).toContain('Alice'),
+      )
+    })
   })
 
   describe('useInfiniteQuery', () => {
