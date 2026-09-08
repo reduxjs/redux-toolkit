@@ -42,7 +42,7 @@ import type { InfiniteQueryDirection } from '../core/apiState'
 import type { StartInfiniteQueryActionCreator } from '../core/buildInitiate'
 import type { SubscriptionSelectors } from '../core/buildMiddleware/index'
 import type { InfiniteData } from '../core/index'
-import { isInfiniteQueryDefinition } from '../endpointDefinitions'
+import { isInfiniteQueryDefinition, isQueryDefinition } from '../endpointDefinitions'
 import type { UninitializedValue } from './constants'
 import { UNINITIALIZED_VALUE } from './constants'
 import type { ReactHooksModuleOptions } from './module'
@@ -2060,9 +2060,17 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       },
       useQuery(arg, options) {
         const querySubscriptionResults = useQuerySubscription(arg, options)
+        const store = useStore<RootState<Definitions, any, any>>()
+
+        const endpointDefinition = context.endpointDefinitions[endpointName]
+        const shouldSkipFromCondition =
+          isQueryDefinition(endpointDefinition) &&
+          endpointDefinition?.skipCondition &&
+          endpointDefinition?.skipCondition(store.getState())
+
         const queryStateResults = useQueryState(arg, {
           selectFromResult:
-            arg === skipToken || options?.skip
+            arg === skipToken || options?.skip || shouldSkipFromCondition
               ? undefined
               : noPendingQueryStateSelector,
           ...options,
