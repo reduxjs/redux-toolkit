@@ -778,6 +778,27 @@ describe('unwrapResult', () => {
     const unwrapPromise2 = asyncThunk()(dispatch, getState, extra)
     await expect(unwrapPromise2.unwrap()).rejects.toBe('rejectWithValue!')
   })
+
+  test.each([false, 0, '', null, undefined])(
+    'rejectWithValue case with falsy payload %p',
+    async (value) => {
+      const asyncThunk = createAsyncThunk<
+        never,
+        void,
+        { rejectValue: unknown }
+      >('test', (_, { rejectWithValue }) => rejectWithValue(value))
+
+      const promise = asyncThunk()(dispatch, getState, extra)
+      const action = await promise
+
+      expect(asyncThunk.rejected.match(action)).toBe(true)
+      if (!asyncThunk.rejected.match(action)) {
+        throw new Error('Expected a rejected action')
+      }
+      expect(action.meta.rejectedWithValue).toBe(true)
+      await expect(promise.unwrap()).rejects.toBe(value)
+    },
+  )
 })
 
 describe('idGenerator option', () => {

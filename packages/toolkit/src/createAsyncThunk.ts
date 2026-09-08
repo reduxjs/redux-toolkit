@@ -575,27 +575,29 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
     const rejected: AsyncThunkRejectedActionCreator<ThunkArg, ThunkApiConfig> =
       createAction(
         typePrefix + '/rejected',
-        (
+        function (
           error: Error | null,
           requestId: string,
           arg: ThunkArg,
           payload?: RejectedValue,
           meta?: RejectedMeta,
-        ) => ({
-          payload,
-          error: ((options && options.serializeError) || miniSerializeError)(
-            error || 'Rejected',
-          ) as GetSerializedErrorType<ThunkApiConfig>,
-          meta: {
-            ...((meta as any) || {}),
-            arg,
-            requestId,
-            rejectedWithValue: !!payload,
-            requestStatus: 'rejected' as const,
-            aborted: error?.name === 'AbortError',
-            condition: error?.name === 'ConditionError',
-          },
-        }),
+        ) {
+          return {
+            payload,
+            error: ((options && options.serializeError) || miniSerializeError)(
+              error || 'Rejected',
+            ) as GetSerializedErrorType<ThunkApiConfig>,
+            meta: {
+              ...((meta as any) || {}),
+              arg,
+              requestId,
+              rejectedWithValue: arguments.length >= 4,
+              requestStatus: 'rejected' as const,
+              aborted: error?.name === 'AbortError',
+              condition: error?.name === 'ConditionError',
+            },
+          }
+        },
       )
 
     function actionCreator(
