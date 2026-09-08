@@ -107,3 +107,36 @@ it('invalidates a query whose corresponding mutation finished while the query wa
   expect(getQueryState()?.status).toBe(QueryStatus.fulfilled)
   expect(getQueryState()?.data).toBe(1)
 })
+
+it('keeps invalidations delayed after a duplicate query is condition-rejected', async () => {
+  eatenBananas = 0
+
+  const initialQuery = storeRef.store.dispatch(getEatenBananas.initiate())
+  getEatenBananaPromises.resolveOldest()
+  await initialQuery
+
+  const inFlightQuery = storeRef.store.dispatch(
+    getEatenBananas.initiate(undefined, { forceRefetch: true }),
+  )
+  storeRef.store.dispatch(
+    getEatenBananas.initiate(undefined, { forceRefetch: true }),
+  )
+
+  const mutation = storeRef.store.dispatch(eatBanana.initiate())
+  eatBananaPromises.resolveOldest()
+  await mutation
+
+  getEatenBananaPromises.resolveOldest()
+  await inFlightQuery
+
+  const getQueryState = () =>
+    storeRef.store.getState().api.queries[inFlightQuery.queryCacheKey]
+
+  expect(getQueryState()?.status).toBe(QueryStatus.pending)
+
+  getEatenBananaPromises.resolveOldest()
+  await delay(2)
+
+  expect(getQueryState()?.status).toBe(QueryStatus.fulfilled)
+  expect(getQueryState()?.data).toBe(1)
+})
