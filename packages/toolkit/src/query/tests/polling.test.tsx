@@ -166,6 +166,48 @@ describe('polling tests', () => {
     storeRef.store.dispatch(api.util.resetApiState())
   })
 
+  it('uses current focus state when a scheduled poll fires', async () => {
+    mockBaseQuery.mockClear()
+    const subscription = storeRef.store.dispatch(
+      getPosts.initiate(4, {
+        subscriptionOptions: {
+          pollingInterval: 10,
+          skipPollingIfUnfocused: true,
+        },
+        subscribe: true,
+      }),
+    )
+
+    await subscription
+    storeRef.store.dispatch(api.internalActions.onFocusLost())
+    await delay(30)
+
+    expect(mockBaseQuery).toHaveBeenCalledOnce()
+  })
+
+  it('does not revive a cache entry removed after its poll is scheduled', async () => {
+    mockBaseQuery.mockClear()
+    const subscription = storeRef.store.dispatch(
+      getPosts.initiate(5, {
+        subscriptionOptions: { pollingInterval: 10 },
+        subscribe: true,
+      }),
+    )
+
+    await subscription
+    storeRef.store.dispatch(
+      api.internalActions.removeQueryResult({
+        queryCacheKey: subscription.queryCacheKey as any,
+      }),
+    )
+    await delay(30)
+
+    expect(getPosts.select(5)(storeRef.store.getState()).status).toBe(
+      'uninitialized',
+    )
+    expect(mockBaseQuery).toHaveBeenCalledOnce()
+  })
+
   it('respects skipPollingIfUnfocused if at least one subscription has it', async () => {
     storeRef.store.dispatch(
       getPosts.initiate(3, {
