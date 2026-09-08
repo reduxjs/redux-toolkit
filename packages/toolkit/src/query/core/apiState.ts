@@ -370,7 +370,19 @@ export type MutationState<D extends EndpointDefinitions> = {
   [requestId: string]: MutationSubState<D[string]> | undefined
 }
 
-export type RootState<
+/**
+ * Get the root state type for an RTK Query API slice.
+ *
+ * **Note**: This type was previously named **`RootState`**.
+ *
+ * @template Definitions - Endpoint definitions for the API.
+ * @template TagTypes - Tag types used by the API.
+ * @template ReducerPath - The **`reducerPath`** key the API reducer is mounted under.
+ *
+ * @since 3.0.0
+ * @public
+ */
+export type ApiRootState<
   Definitions extends EndpointDefinitions,
   TagTypes extends string,
   ReducerPath extends string,

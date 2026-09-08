@@ -13,7 +13,7 @@ export type {
   QueryCacheKey,
   QueryKeys,
   QuerySubState,
-  RootState,
+  ApiRootState,
   SubscriptionOptions,
 } from './apiState'
 export type {
