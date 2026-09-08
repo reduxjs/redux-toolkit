@@ -39,6 +39,11 @@ const caseMatrix: [ProvidedTags, InvalidatesTags, boolean][] = [
   // type + id invalidates type + id
   [[{ type: 'apple', id: 1 }], [{ type: 'apple', id: 1 }], true],
   [[{ type: 'apple', id: 1 }], [{ type: 'apple', id: 2 }], false],
+  // falsy ids behave as normal ids
+  [[{ type: 'apple', id: 0 }], [{ type: 'apple', id: 0 }], true],
+  [[{ type: 'apple', id: '' }], [{ type: 'apple', id: '' }], true],
+  [[{ type: 'apple', id: 0 }], [{ type: 'apple' }], true],
+  [['apple'], [{ type: 'apple', id: 0 }], false],
   // null and undefined
   [['apple'], [null], false],
   [['apple'], [undefined], false],
