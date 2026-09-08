@@ -1547,25 +1547,31 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     currentState: QueryResultSelectorResult<any>,
     lastResult: UseQueryStateDefaultResult<any> | undefined,
     queryArgs: any,
+    lastResultForReset: UseQueryStateDefaultResult<any> | undefined,
+    lastResultState: QuerySubState<any> | undefined,
   ): UseQueryStateDefaultResult<any> {
     // if we had a last result and the current result is uninitialized,
     // we might have called `api.util.resetApiState`
     // in this case, reset the hook
-    if (lastResult?.endpointName && currentState.isUninitialized) {
-      const { endpointName } = lastResult
+    const resetResult =
+      queryArgs === skipToken ? lastResultForReset : lastResult
+    if (resetResult?.endpointName && currentState.isUninitialized) {
+      const { endpointName } = resetResult
       const endpointDefinition = endpointDefinitions[endpointName]
       if (
-        queryArgs !== skipToken &&
-        serializeQueryArgs({
-          queryArgs: lastResult.originalArgs,
-          endpointDefinition,
-          endpointName,
-        }) ===
-          serializeQueryArgs({
-            queryArgs,
-            endpointDefinition,
-            endpointName,
-          })
+        queryArgs === skipToken
+          ? !lastResultState ||
+            lastResultState.status === QueryStatus.uninitialized
+          : serializeQueryArgs({
+              queryArgs: resetResult.originalArgs,
+              endpointDefinition,
+              endpointName,
+            }) ===
+            serializeQueryArgs({
+              queryArgs,
+              endpointDefinition,
+              endpointName,
+            })
       )
         lastResult = undefined
     }
@@ -1607,25 +1613,31 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     currentState: InfiniteQueryResultSelectorResult<any>,
     lastResult: UseInfiniteQueryStateDefaultResult<any> | undefined,
     queryArgs: any,
+    lastResultForReset: UseInfiniteQueryStateDefaultResult<any> | undefined,
+    lastResultState: InfiniteQuerySubState<any> | undefined,
   ): UseInfiniteQueryStateDefaultResult<any> {
     // if we had a last result and the current result is uninitialized,
     // we might have called `api.util.resetApiState`
     // in this case, reset the hook
-    if (lastResult?.endpointName && currentState.isUninitialized) {
-      const { endpointName } = lastResult
+    const resetResult =
+      queryArgs === skipToken ? lastResultForReset : lastResult
+    if (resetResult?.endpointName && currentState.isUninitialized) {
+      const { endpointName } = resetResult
       const endpointDefinition = endpointDefinitions[endpointName]
       if (
-        queryArgs !== skipToken &&
-        serializeQueryArgs({
-          queryArgs: lastResult.originalArgs,
-          endpointDefinition,
-          endpointName,
-        }) ===
-          serializeQueryArgs({
-            queryArgs,
-            endpointDefinition,
-            endpointName,
-          })
+        queryArgs === skipToken
+          ? !lastResultState ||
+            lastResultState.status === QueryStatus.uninitialized
+          : serializeQueryArgs({
+              queryArgs: resetResult.originalArgs,
+              endpointDefinition,
+              endpointName,
+            }) ===
+            serializeQueryArgs({
+              queryArgs,
+              endpointDefinition,
+              endpointName,
+            })
       )
         lastResult = undefined
     }
@@ -1840,10 +1852,12 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       const stableArg = useStableQueryArgs(skip ? skipToken : arg)
 
       type ApiRootState = Parameters<ReturnType<typeof select>>[0]
+      type SelectorWithLastResult = Selector<ApiRootState, any, [any, any]>
 
       const lastValue = useRef<any>(undefined)
+      const lastValueForReset = useRef<any>(undefined)
 
-      const selectDefaultResult: Selector<ApiRootState, any, [any]> = useMemo(
+      const selectDefaultResult: SelectorWithLastResult = useMemo(
         () =>
           // Normally ts-ignores are bad and should be avoided, but we're
           // already casting this selector to be `Selector<any>` anyway,
@@ -1855,6 +1869,29 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
               select(stableArg),
               (_: ApiRootState, lastResult: any) => lastResult,
               (_: ApiRootState) => stableArg,
+              (_: ApiRootState, _lastResult: any, lastResultForReset: any) =>
+                lastResultForReset,
+              (
+                state: ApiRootState,
+                _lastResult: any,
+                lastResultForReset: any,
+              ) => {
+                if (
+                  stableArg === skipToken &&
+                  lastResultForReset?.endpointName === endpointName
+                ) {
+                  const endpointDefinition = endpointDefinitions[endpointName]
+                  const queryCacheKey = serializeQueryArgs({
+                    queryArgs: lastResultForReset.originalArgs,
+                    endpointDefinition,
+                    endpointName,
+                  })
+
+                  return state[api.reducerPath]?.queries?.[queryCacheKey]
+                }
+
+                return undefined
+              },
             ],
             // `preSelector` is a union of the standard/infinite query pre-selectors.
             // `tsc` attributes the resulting overload error to the `createSelector` call
@@ -1871,7 +1908,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         [select, stableArg],
       )
 
-      const querySelector: Selector<ApiRootState, any, [any]> = useMemo(
+      const querySelector: SelectorWithLastResult = useMemo(
         () =>
           selectFromResult
             ? createSelector([selectDefaultResult], selectFromResult, {
@@ -1883,7 +1920,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
       const currentState = useSelector(
         (state: RootState<Definitions, any, any>) =>
-          querySelector(state, lastValue.current),
+          querySelector(state, lastValue.current, lastValueForReset.current),
         shallowEqual,
       )
 
@@ -1891,9 +1928,13 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       const newLastValue = selectDefaultResult(
         store.getState(),
         lastValue.current,
+        lastValueForReset.current,
       )
       useIsomorphicLayoutEffect(() => {
         lastValue.current = newLastValue
+        if (newLastValue?.endpointName) {
+          lastValueForReset.current = newLastValue
+        }
       }, [newLastValue])
 
       return currentState
