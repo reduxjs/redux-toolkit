@@ -307,6 +307,31 @@ describe('createAsyncThunk', () => {
     expect(errorAction.meta.arg).toBe(args)
   })
 
+  it.each([0, '', false, null])(
+    'flags the rejected action as rejectedWithValue when a user returns rejectWithValue(%p)',
+    async (errorPayload) => {
+      const dispatch = vi.fn()
+
+      const args = 123
+
+      const thunkActionCreator = createAsyncThunk(
+        'testType',
+        async (args: number, { rejectWithValue }) => {
+          return rejectWithValue(errorPayload)
+        },
+      )
+
+      await thunkActionCreator(args)(dispatch, () => {}, undefined)
+
+      expect(dispatch).toHaveBeenCalledTimes(2)
+
+      const errorAction = dispatch.mock.calls[1][0]
+
+      expect(errorAction.payload).toBe(errorPayload)
+      expect(errorAction.meta.rejectedWithValue).toBe(true)
+    },
+  )
+
   it('dispatches a rejected action with a miniSerializeError when rejectWithValue conditions are not satisfied', async () => {
     const dispatch = vi.fn()
 
@@ -777,6 +802,20 @@ describe('unwrapResult', () => {
 
     const unwrapPromise2 = asyncThunk()(dispatch, getState, extra)
     await expect(unwrapPromise2.unwrap()).rejects.toBe('rejectWithValue!')
+  })
+  test('rejectWithValue case with a falsy value', async () => {
+    const asyncThunk = createAsyncThunk('test', (_, { rejectWithValue }) => {
+      return rejectWithValue(0)
+    })
+
+    const unwrapPromise = asyncThunk()(dispatch, getState, extra).then(
+      unwrapResult,
+    )
+
+    await expect(unwrapPromise).rejects.toBe(0)
+
+    const unwrapPromise2 = asyncThunk()(dispatch, getState, extra)
+    await expect(unwrapPromise2.unwrap()).rejects.toBe(0)
   })
 })
 

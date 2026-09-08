@@ -590,7 +590,7 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
             ...((meta as any) || {}),
             arg,
             requestId,
-            rejectedWithValue: !!payload,
+            rejectedWithValue: payload !== undefined,
             requestStatus: 'rejected' as const,
             aborted: error?.name === 'AbortError',
             condition: error?.name === 'ConditionError',
