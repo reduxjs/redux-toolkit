@@ -42,5 +42,9 @@
   "40": "maxPages for endpoint '' must be a number greater than 0",
   "41": "getPreviousPageParam for endpoint '' must be a function if maxPages is used",
   "42": "Duplicate middleware references found when creating the store. Ensure that each middleware is only included once.",
-  "43": "`builder.addAsyncThunk` should only be called before calling `builder.addDefaultCase`"
+  "43": "`builder.addAsyncThunk` should only be called before calling `builder.addDefaultCase`",
+  "44": "\\`builder.\\` can only be called once",
+  "45": "\\`builder.\\` should only be called before calling \\`builder.\\`",
+  "46": "A reducer cannot be defined for an empty action type",
+  "47": "A reducer already exists for the action type ''"
 }
