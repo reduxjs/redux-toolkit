@@ -1286,6 +1286,8 @@ type UseInfiniteQueryStateBaseResult<
   hasPreviousPage: boolean
   isFetchingNextPage: boolean
   isFetchingPreviousPage: boolean
+  isFetchNextPageError: boolean
+  isFetchPreviousPageError: boolean
 }
 
 type UseInfiniteQueryStateDefaultResult<
