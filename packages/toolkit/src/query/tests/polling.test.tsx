@@ -364,6 +364,33 @@ describe('polling tests', () => {
       },
     )
 
+    it('stops polling while retaining a passive subscriber and its cached data', async () => {
+      const pollingSubscription = storeRef.store.dispatch(
+        getPosts.initiate(1, {
+          subscriptionOptions: { pollingInterval: 30 },
+        }),
+      )
+      const passiveSubscription = storeRef.store.dispatch(getPosts.initiate(1))
+
+      setTimeout(() => pollingSubscription.unsubscribe(), 30)
+      await Promise.all([pollingSubscription, passiveSubscription])
+
+      await vi.advanceTimersByTimeAsync(30)
+      expect(mockBaseQuery).toHaveBeenCalledOnce()
+
+      await vi.advanceTimersByTimeAsync(60)
+      expect(mockBaseQuery).toHaveBeenCalledOnce()
+      expect([
+        ...getSubscribersForQueryCacheKey(
+          passiveSubscription.queryCacheKey,
+        ).keys(),
+      ]).toEqual([passiveSubscription.requestId])
+      expect(getPosts.select(1)(storeRef.store.getState())).toMatchObject({
+        status: 'fulfilled',
+        data: { url: 'posts', params: 1 },
+      })
+    })
+
     it('keeps polling when another subscriber remains', async () => {
       const subscription = storeRef.store.dispatch(
         getPosts.initiate(1, {
