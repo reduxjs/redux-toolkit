@@ -14,6 +14,8 @@ description: 'RTK Query > Usage > Polling: re-fetching data on a timer'
 
 Polling gives you the ability to have a 'real-time' effect by causing a query to run at a specified interval. To enable polling for a query, pass a `pollingInterval` to the `useQuery` hook or action creator with an interval in milliseconds:
 
+Polling continues while at least one subscriber for the query requests it, and stops when the last polling subscription is removed or disabled.
+
 :::tip
 Polling additionally has the ability to skip sending requests while the window is out of focus. To enable this behavior, pass `skipPollingIfUnfocused: true` to the `useQuery` hook or action creator.
 
