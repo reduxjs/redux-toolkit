@@ -325,4 +325,121 @@ describe('polling tests', () => {
     // Clean up subscriptions
     subscriptions.forEach((sub) => sub.unsubscribe())
   })
+
+  describe('subscription changes before a due poll', () => {
+    beforeEach(() => {
+      vi.useFakeTimers()
+      mockBaseQuery.mockClear()
+    })
+
+    afterEach(() => {
+      storeRef.store.dispatch(api.util.resetApiState())
+      vi.useRealTimers()
+    })
+
+    it.each(['unsubscribe', 'disable polling'])(
+      'does not refetch after %s before deferred polling cleanup',
+      async (change) => {
+        const subscription = storeRef.store.dispatch(
+          getPosts.initiate(1, {
+            subscriptionOptions: { pollingInterval: 30 },
+          }),
+        )
+
+        // Queue the change before fulfillment schedules the poll at the same time.
+        setTimeout(() => {
+          if (change === 'unsubscribe') {
+            subscription.unsubscribe()
+          } else {
+            subscription.updateSubscriptionOptions({ pollingInterval: 0 })
+          }
+        }, 30)
+        await subscription
+
+        await vi.advanceTimersByTimeAsync(30)
+        expect(mockBaseQuery).toHaveBeenCalledOnce()
+
+        await vi.advanceTimersByTimeAsync(60)
+        expect(mockBaseQuery).toHaveBeenCalledOnce()
+      },
+    )
+
+    it('keeps polling when another subscriber remains', async () => {
+      const subscription = storeRef.store.dispatch(
+        getPosts.initiate(1, {
+          subscriptionOptions: { pollingInterval: 30 },
+        }),
+      )
+      storeRef.store.dispatch(
+        getPosts.initiate(1, {
+          subscriptionOptions: { pollingInterval: 30 },
+        }),
+      )
+
+      setTimeout(() => subscription.unsubscribe(), 30)
+      await subscription
+
+      await vi.advanceTimersByTimeAsync(30)
+      expect(mockBaseQuery).toHaveBeenCalledTimes(2)
+      expect(
+        getSubscribersForQueryCacheKey(subscription.queryCacheKey).size,
+      ).toBe(1)
+
+      await vi.advanceTimersByTimeAsync(30)
+      expect(mockBaseQuery).toHaveBeenCalledTimes(3)
+    })
+
+    it('keeps polling when the last subscriber is replaced before the poll fires', async () => {
+      const subscription = storeRef.store.dispatch(
+        getPosts.initiate(1, {
+          subscriptionOptions: { pollingInterval: 30 },
+        }),
+      )
+
+      setTimeout(() => {
+        subscription.unsubscribe()
+        storeRef.store.dispatch(
+          getPosts.initiate(1, {
+            subscriptionOptions: { pollingInterval: 30 },
+          }),
+        )
+      }, 30)
+      await subscription
+
+      await vi.advanceTimersByTimeAsync(30)
+      expect(mockBaseQuery).toHaveBeenCalledTimes(2)
+      expect(
+        getSubscribersForQueryCacheKey(subscription.queryCacheKey).size,
+      ).toBe(1)
+
+      await vi.advanceTimersByTimeAsync(30)
+      expect(mockBaseQuery).toHaveBeenCalledTimes(3)
+    })
+
+    it('does not abort an in-flight request when the last subscriber leaves', async () => {
+      mockBaseQuery.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            setTimeout(() => resolve({ data: 1 }), 50)
+          }),
+      )
+      const subscription = storeRef.store.dispatch(
+        getPosts.initiate(1, {
+          subscriptionOptions: { pollingInterval: 30 },
+        }),
+      )
+
+      subscription.unsubscribe()
+      await vi.advanceTimersByTimeAsync(30)
+      expect(getPosts.select(1)(storeRef.store.getState()).status).toBe(
+        'pending',
+      )
+
+      await vi.advanceTimersByTimeAsync(20)
+      await expect(subscription.unwrap()).resolves.toBe(1)
+
+      await vi.advanceTimersByTimeAsync(60)
+      expect(mockBaseQuery).toHaveBeenCalledOnce()
+    })
+  })
 })
