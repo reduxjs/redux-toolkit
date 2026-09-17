@@ -151,18 +151,5 @@ export const postApi = createApi({
 
 ## General Pagination Example
 
-In the following example, you'll see `Loading` on the initial query, but then as you move forward we'll use the next/previous buttons as a _fetching_ indicator while any non-cached query is performed. When you go back, the cached data will be served instantaneously.
+The [`infinite-queries` example project](https://github.com/reduxjs/redux-toolkit/tree/master/examples/query/react/infinite-queries) includes a `pagination` feature that shows this pattern. On the initial query you'll see `Loading`; as you move forward, the next/previous buttons act as a _fetching_ indicator while any non-cached page is fetched. When you go back, the cached data is served immediately.
 
-<iframe
-  src="https://codesandbox.io/embed/github/reduxjs/redux-toolkit/tree/master/examples/query/react/pagination?fontsize=12&runonclick=1&hidenavigation=1&theme=dark"
-  style={{
-    width: '100%',
-    height: '600px',
-    border: 0,
-    borderRadius: '4px',
-    overflow: 'hidden',
-  }}
-  title="RTK Query Pagination Example"
-  allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
-  sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
-></iframe>

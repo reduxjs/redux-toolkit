@@ -398,28 +398,59 @@ const api = createApi({
 
 ## Example: Observing caching behavior
 
-This example demonstrates request deduplication and caching behavior:
+This example demonstrates request deduplication and caching behavior. Several `Pokemon` components each call the same query hook:
+
+```tsx no-transpile title="src/Pokemon.tsx"
+import { useGetPokemonByNameQuery } from './services/pokemon'
+
+export const Pokemon = ({ name }: { name: string }) => {
+  const { data, error, isLoading, isFetching, refetch } =
+    useGetPokemonByNameQuery(name)
+
+  if (error) return <>Oh no, there was an error</>
+  if (isLoading) return <>Loading...</>
+  if (!data) return <>No Data</>
+
+  return (
+    <div>
+      <h3>{data.species.name}</h3>
+      <img src={data.sprites.front_shiny} alt={data.species.name} />
+      <button onClick={refetch} disabled={isFetching}>
+        {isFetching ? 'Fetching...' : 'Refetch'}
+      </button>
+    </div>
+  )
+}
+```
+
+```tsx no-transpile title="src/App.tsx"
+export default function App() {
+  const [pokemon, setPokemon] = useState<string[]>(['bulbasaur'])
+
+  useEffect(() => {
+    setTimeout(() => setPokemon((prev) => [...prev, 'bulbasaur']), 1500)
+    setTimeout(() => setPokemon((prev) => [...prev, 'pikachu']), 2000)
+  }, [])
+
+  return (
+    <div>
+      <button onClick={() => setPokemon((prev) => [...prev, 'bulbasaur'])}>
+        Add bulbasaur
+      </button>
+      {pokemon.map((name, index) => (
+        <Pokemon key={index} name={name} />
+      ))}
+    </div>
+  )
+}
+```
+
+If you run this and watch the Network panel:
 
 1. The first `Pokemon` component mounts and immediately fetches 'bulbasaur'
 2. A second later, another `Pokemon` component is rendered with 'bulbasaur'
-   - Notice that this one doesn't ever show 'Loading...' and no new network request happens? It's using the cache here.
+   - This one never shows 'Loading...' and no new network request happens. It's using the cache.
 3. A moment after that, a `Pokemon` component for 'pikachu' is added, and a new request happens.
-4. When you click 'Refetch' for a specific `Pokemon`, it'll update all instances of that `Pokemon` with one request.
+4. Clicking 'Add bulbasaur' adds more components without any new requests.
+5. Clicking 'Refetch' on any `Pokemon` updates all instances of that `Pokemon` with one request.
 
-:::note Try it out
-Click the 'Add bulbasaur' button. You'll observe the same behavior described above until you click the 'Refetch' button on one of the components.
-:::
-
-<iframe
-  src="https://codesandbox.io/embed/github/reduxjs/redux-toolkit/tree/master/examples/query/react/deduping-queries?fontsize=12&runonclick=1&hidenavigation=1&theme=dark"
-  style={{
-    width: '100%',
-    height: '800px',
-    border: 0,
-    borderRadius: '4px',
-    overflow: 'hidden',
-  }}
-  title="RTK Query - Basic query deduplication example"
-  allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
-  sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
-></iframe>

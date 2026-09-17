@@ -100,21 +100,37 @@ This example dispatches a `setCredentials` action to store the user and token in
 
 ### Using `extraReducers`
 
-This example uses a matcher from the endpoint and `extraReducers` in the `authSlice`.
+Instead of dispatching an action from `onQueryStarted`, the `authSlice` can listen for the login endpoint's `matchFulfilled` matcher in `extraReducers`. The rest of the app is the same as the previous example.
 
-<iframe
-  src="https://codesandbox.io/embed/github/reduxjs/redux-toolkit/tree/master/examples/query/react/authentication-with-extrareducers?fontsize=12&hidenavigation=1&module=%2Fsrc%2Ffeatures%2Fauth%2FauthSlice.tsx&theme=dark&runonclick=1"
-  style={{
-    width: '100%',
-    height: '800px',
-    border: 0,
-    borderRadius: '4px',
-    overflow: 'hidden',
-  }}
-  title="RTK Query Authentication Example - extraReducers"
-  allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
-  sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
-></iframe>
+```ts title="src/features/auth/authSlice.ts"
+import { createSlice } from '@reduxjs/toolkit'
+import { api, User } from '../../app/services/auth'
+import type { RootState } from '../../app/store'
+
+type AuthState = {
+  user: User | null
+  token: string | null
+}
+
+const slice = createSlice({
+  name: 'auth',
+  initialState: { user: null, token: null } as AuthState,
+  reducers: {},
+  extraReducers: (builder) => {
+    builder.addMatcher(
+      api.endpoints.login.matchFulfilled,
+      (state, { payload }) => {
+        state.token = payload.token
+        state.user = payload.user
+      },
+    )
+  },
+})
+
+export default slice.reducer
+
+export const selectCurrentUser = (state: RootState) => state.auth.user
+```
 
 ## React Class Components
 

@@ -176,36 +176,49 @@ This is a very basic example that shows how you can prefetch when a user hovers 
 
 ### Automatic Prefetching
 
-Picking up on our last example, we automatically `prefetch` the next page, giving the appearance of no network delay.
+Picking up on our last example, we automatically `prefetch` the next page whenever the current page loads, giving the appearance of no network delay.
 
-<iframe
-  src="https://codesandbox.io/embed/github/reduxjs/redux-toolkit/tree/master/examples/query/react/prefetching-automatic?fontsize=12&runonclick=1&hidenavigation=1&theme=dark"
-  style={{
-    width: '100%',
-    height: '600px',
-    border: 0,
-    borderRadius: '4px',
-    overflow: 'hidden',
-  }}
-  title="RTK Query - Automatic Prefetching Example (on hover)"
-  allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
-  sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
-></iframe>
+```tsx no-transpile title="src/features/posts/PostsManager.tsx"
+const PostList = () => {
+  const [page, setPage] = useState(1)
+  const { data: posts, isLoading, isFetching } = useListPostsQuery(page)
+  const prefetchPage = usePrefetch('listPosts')
+
+  const prefetchNext = useCallback(() => {
+    prefetchPage(page + 1)
+  }, [prefetchPage, page])
+
+  useEffect(() => {
+    if (page !== posts?.total_pages) {
+      prefetchNext()
+    }
+  }, [posts, page, prefetchNext])
+
+  // ...render the list and the prev/next buttons
+}
+```
 
 ### Prefetching All Known Pages
 
-After the first query initialized by `useQuery` runs, we automatically fetch all remaining pages.
+After the first query initialized by `useQuery` runs, we can fetch all remaining pages at once. `force: true` makes sure each page is fetched even if it is already in the cache.
 
-<iframe
-  src="https://codesandbox.io/embed/github/reduxjs/redux-toolkit/tree/master/examples/query/react/prefetching-automatic-waterfall?fontsize=12&runonclick=1&hidenavigation=1&theme=dark&module=%2Fsrc%2Ffeatures%2Fposts%2FPostsManager.tsx"
-  style={{
-    width: '100%',
-    height: '600px',
-    border: 0,
-    borderRadius: '4px',
-    overflow: 'hidden',
-  }}
-  title="RTK Query - Automatic Prefetching Waterfall Example"
-  allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
-  sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
-></iframe>
+```tsx no-transpile title="src/features/posts/PostsManager.tsx"
+const PostList = () => {
+  const [page, setPage] = useState(1)
+  const [hasPrefetchedAll, setHasPrefetchedAll] = useState(false)
+  const { data: posts, isLoading, isFetching } = useListPostsQuery(page)
+  const prefetchPage = usePrefetch('listPosts')
+
+  useEffect(() => {
+    if (!hasPrefetchedAll && posts && posts.total_pages > 1) {
+      for (let i = 1; i <= posts.total_pages; i++) {
+        prefetchPage(i, { force: true })
+      }
+      setHasPrefetchedAll(true)
+    }
+  }, [posts, prefetchPage, hasPrefetchedAll])
+
+  // ...render the list and the prev/next buttons
+}
+```
+
