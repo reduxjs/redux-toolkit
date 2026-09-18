@@ -132,36 +132,8 @@ export default slice.reducer
 export const selectCurrentUser = (state: RootState) => state.auth.user
 ```
 
-## React Class Components
-
-Check out the `PostDetail` component for an example of Class Component usage.
-
-<iframe
-  src="https://codesandbox.io/embed/react-class-component-example-48hyq?fontsize=12&hidenavigation=1&theme=dark&runonclick=1"
-  style={{
-    width: '100%',
-    height: '800px',
-    border: 0,
-    borderRadius: '4px',
-    overflow: 'hidden',
-  }}
-  title="RTK Query React Class Components Example"
-  allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
-  sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
-></iframe>
-
 ## Svelte
 
-<iframe
-  src="https://codesandbox.io/embed/svelte-app-rtk-simplequery-demo-f1ueb?fontsize=12&hidenavigation=1&theme=dark&runonclick=1"
-  style={{
-    width: '100%',
-    height: '800px',
-    border: 0,
-    borderRadius: '4px',
-    overflow: 'hidden',
-  }}
-  title="RTK Query Svelte Example"
-  allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
-  sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"
-></iframe>
+RTK Query's core APIs work without React. This example uses `api.endpoints.getPokemon.initiate()` and manual subscription handling from a Svelte component:
+
+[RTK Query Svelte Example on CodeSandbox](https://codesandbox.io/s/svelte-app-rtk-simplequery-demo-f1ueb)
