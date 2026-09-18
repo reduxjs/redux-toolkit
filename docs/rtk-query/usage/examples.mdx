@@ -102,7 +102,7 @@ This example dispatches a `setCredentials` action to store the user and token in
 
 Instead of dispatching an action from `onQueryStarted`, the `authSlice` can listen for the login endpoint's `matchFulfilled` matcher in `extraReducers`. The rest of the app is the same as the previous example.
 
-```ts title="src/features/auth/authSlice.ts"
+```ts no-transpile title="src/features/auth/authSlice.ts"
 import { createSlice } from '@reduxjs/toolkit'
 import { api, User } from '../../app/services/auth'
 import type { RootState } from '../../app/store'
