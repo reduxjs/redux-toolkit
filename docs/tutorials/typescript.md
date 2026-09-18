@@ -35,7 +35,7 @@ Redux Toolkit is already written in TypeScript, so its TS type definitions are b
 
 As of React Redux v7.2.3, the `react-redux` package has a dependency on `@types/react-redux`, so the type definitions will be automatically installed with the library. Otherwise, you'll need to manually install them yourself (typically `npm install @types/react-redux` ).
 
-The [Redux+TS template for Create-React-App](https://github.com/reduxjs/cra-template-redux-typescript) comes with a working example of these patterns already configured.
+The [Redux+TS template for Vite](https://github.com/reduxjs/redux-templates/tree/master/packages/vite-template-redux) comes with a working example of these patterns already configured.
 
 ## Project Setup
 
