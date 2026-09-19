@@ -9,7 +9,7 @@ import type {
   DefinitionType,
 } from '../../endpointDefinitions'
 import { isAnyQueryDefinition } from '../../endpointDefinitions'
-import type { QueryCacheKey, RootState } from '../apiState'
+import type { QueryCacheKey, ApiRootState } from '../apiState'
 import type {
   MutationResultSelectorResult,
   QueryResultSelectorResult,
@@ -78,7 +78,7 @@ type LifecycleApi<ReducerPath extends string = string> = {
   /**
    * A method to get the current state
    */
-  getState(): RootState<any, any, ReducerPath>
+  getState(): ApiRootState<any, any, ReducerPath>
   /**
    * `extra` as provided as `thunk.extraArgument` to the `configureStore` `getDefaultMiddleware` option.
    */
