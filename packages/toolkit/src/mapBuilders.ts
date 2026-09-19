@@ -200,7 +200,7 @@ export function executeReducerBuilderCallback<S>(
   const actionsMap: CaseReducers<S, any> = {}
   const actionMatchers: ActionMatcherDescriptionCollection<S> = []
   let defaultCaseReducer: CaseReducer<S, Action> | undefined
-  const builder = {
+  const builder: ActionReducerMapBuilder<S> = {
     addCase(
       typeOrActionCreator: string | TypedActionCreator<any>,
       reducer: CaseReducer<S>,
@@ -269,10 +269,7 @@ export function executeReducerBuilderCallback<S>(
         })
       return builder
     },
-    addMatcher<A>(
-      matcher: TypeGuard<A>,
-      reducer: CaseReducer<S, A extends Action ? A : A & Action>,
-    ) {
+    addMatcher(matcher: TypeGuard<any>, reducer: CaseReducer<S, any>) {
       if (process.env.NODE_ENV !== 'production') {
         if (defaultCaseReducer) {
           throw new Error(
