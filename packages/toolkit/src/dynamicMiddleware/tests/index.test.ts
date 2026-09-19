@@ -4,6 +4,7 @@ import {
   createAction,
   createDynamicMiddleware,
   isAllOf,
+  isAction,
 } from '@reduxjs/toolkit'
 import type { BaseActionCreator } from '../../createAction'
 
@@ -74,5 +75,56 @@ describe('createDynamicMiddleware', () => {
     expect(dispatch).toEqual(expect.any(Function))
 
     expect(dispatch(probeMiddleware(2))).toBe(2)
+  })
+
+  it('reuses the applied middleware chain until middleware changes', () => {
+    const dynamicInstance = createDynamicMiddleware()
+    const firstApplied = vi.fn()
+    const secondApplied = vi.fn()
+    const firstMiddleware: Middleware = () => (next) => {
+      firstApplied()
+      return (action) => next(action)
+    }
+    const secondMiddleware: Middleware = () => (next) => {
+      secondApplied()
+      return (action) => next(action)
+    }
+    const store = configureStore({
+      reducer: () => 0,
+      middleware: (gDM) => gDM().prepend(dynamicInstance.middleware),
+    })
+
+    dynamicInstance.addMiddleware(firstMiddleware)
+    store.dispatch({ type: 'first' })
+    store.dispatch({ type: 'second' })
+
+    expect(firstApplied).toHaveBeenCalledTimes(1)
+
+    dynamicInstance.addMiddleware(secondMiddleware)
+    store.dispatch({ type: 'third' })
+    store.dispatch({ type: 'fourth' })
+
+    expect(firstApplied).toHaveBeenCalledTimes(2)
+    expect(secondApplied).toHaveBeenCalledTimes(1)
+  })
+
+  it('applies newly added middleware to nested dispatches immediately', () => {
+    const dynamicInstance = createDynamicMiddleware()
+    const nestedMiddleware = makeProbeableMiddleware(2)
+    const addAndDispatch: Middleware = (api) => (next) => (action) => {
+      if (isAction(action) && action.type === 'add-and-dispatch') {
+        dynamicInstance.addMiddleware(nestedMiddleware)
+        return api.dispatch(probeMiddleware(2))
+      }
+      return next(action)
+    }
+    const store = configureStore({
+      reducer: () => 0,
+      middleware: (gDM) => gDM().prepend(dynamicInstance.middleware),
+    })
+
+    dynamicInstance.addMiddleware(addAndDispatch)
+
+    expect(store.dispatch({ type: 'add-and-dispatch' })).toBe(2)
   })
 })
