@@ -763,9 +763,7 @@ We've updated RTK to depend on the final Immer 10.0 release.
 
 ### Next.js Setup Guide
 
-We now have a docs page that covers [how to set up Redux properly with Next.js](https://redux.js.org/usage/nextjs). We've seen a lot of questions around using Redux, Next, and the App Router together, and this guide should help provide advice.
-
-(At this time, the Next.js `with-redux` example is still showing outdated patterns - we're going to file a PR shortly to update that to match our docs guide.)
+We now have a docs page that covers [how to set up Redux properly with Next.js](https://redux.js.org/usage/nextjs). We've seen a lot of questions around using Redux, Next, and the App Router together, and this guide should help provide advice. The [Next.js `with-redux` example](https://github.com/vercel/next.js/tree/canary/examples/with-redux) has been updated to match that guide.
 
 ## Overriding dependencies
 

@@ -37,7 +37,7 @@ RTK Query is included in the `@reduxjs/toolkit` package as an additional addon. 
 
 ### How to Read This Tutorial
 
-For this tutorial, we assume that you're using Redux Toolkit with React, but you can also use it with other UI layers as well. The examples are based on [a typical Create-React-App folder structure](https://create-react-app.dev/docs/folder-structure) where all the application code is in a `src`, but the patterns can be adapted to whatever project or folder setup you're using.
+For this tutorial, we assume that you're using Redux Toolkit with React, but you can also use it with other UI layers as well. The examples are based on a typical Vite project structure where all the application code is in a `src` folder, but the patterns can be adapted to whatever project or folder setup you're using.
 
 ## Setting up your store and API service
 
@@ -306,4 +306,3 @@ export default function App() {
 ```
 
 Run this and check the Network panel in your browser's dev tools. You will see 3 requests, even though there are 4 subscribed components - `bulbasaur` only makes one request, and the loading state is synchronized between the two components. Try changing the dropdown from `Off` to `1s` to see this behavior continue when the queries re-run on a polling interval.
-

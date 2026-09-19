@@ -86,7 +86,7 @@ If you already know Redux and just want to know how to migrate an existing appli
 
 The RTK docs page on [**Usage with TypeScript**](../usage/usage-with-typescript.md) shows the basic pattern for setting up Redux Toolkit with TypeScript and React, and documents specific TS patterns for each of the RTK APIs.
 
-In addition, the [Redux + TS template for Create-React-App](https://github.com/reduxjs/cra-template-redux-typescript) comes with RTK already configured to use those TS patterns, and serves as a good example of how this should work.
+In addition, the [Redux + TS template for Vite](https://github.com/reduxjs/redux-templates/tree/master/packages/vite-template-redux) comes with RTK already configured to use those TS patterns, and serves as a good example of how this should work.
 
 ## Legacy Redux Toolkit Tutorials
 
