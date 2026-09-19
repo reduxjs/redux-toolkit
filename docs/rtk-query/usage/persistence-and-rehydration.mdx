@@ -31,6 +31,15 @@ persistence might still be a viable option.
 
 ## Redux Persist
 
+:::caution
+
+[Redux Persist](https://github.com/rt2zz/redux-persist) is no longer actively maintained
+(its last release was in 2019). The example below remains valid, and the same
+`extractRehydrationInfo` pattern applies to any other persistence library that dispatches
+a rehydration action.
+
+:::
+
 API state rehydration can be used in conjunction with [Redux Persist](https://github.com/rt2zz/redux-persist)
 by leveraging the `REHYDRATE` action type imported from `redux-persist`. This can be used out of the
 box with the `autoMergeLevel1` or `autoMergeLevel2` [state reconcilers](https://github.com/rt2zz/redux-persist#state-reconciler)
