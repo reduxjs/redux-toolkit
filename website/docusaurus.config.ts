@@ -82,6 +82,18 @@ const config: Config = {
     repoUrl: 'https://github.com/reduxjs/redux-toolkit',
   },
   themes: [require.resolve('@getcanary/docusaurus-theme-search-pagefind')],
+  headTags: [
+    {
+      // The bundler inlines the dynamic `import(path ?? '/pagefind/pagefind.js')`
+      // inside @getcanary/web's pagefind provider instead of leaving it as a
+      // browser import, so it fails at runtime with MODULE_NOT_FOUND and search
+      // shows no results. The provider uses `window.pagefind` when present, so
+      // load the module here.
+      tagName: 'script',
+      attributes: { type: 'module' },
+      innerHTML: `import('/pagefind/pagefind.js').then(m => { window.pagefind = m }).catch(() => {})`,
+    },
+  ],
   themeConfig: {
     tableOfContents: {
       minHeadingLevel: 2,
