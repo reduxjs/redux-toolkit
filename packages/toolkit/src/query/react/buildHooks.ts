@@ -1527,9 +1527,9 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     deps?: DependencyList,
   ) => void = unstable__sideEffectsInRender ? (cb) => cb() : useEffect
 
-  type UnsubscribePromiseRef = React.RefObject<
-    { unsubscribe?: () => void } | undefined
-  >
+  type UnsubscribePromiseRef = {
+    current: { unsubscribe?: () => void } | undefined
+  }
 
   const unsubscribePromiseRef = (ref: UnsubscribePromiseRef) => {
     ref.current?.unsubscribe?.()
