@@ -106,10 +106,8 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
         const currentQuerySubState = currentState.queries[queryCacheKey]
         // The subscription map and cache entry may have changed since this
         // poll was scheduled, because unsubscribe cleanup is deferred.
-        const {
-          lowestPollingInterval: currentPollingInterval,
-          skipPollingIfUnfocused: currentSkipPollingIfUnfocused,
-        } = findLowestPollingInterval(currentSubscriptions.get(queryCacheKey))
+        const { lowestPollingInterval: currentPollingInterval } =
+          findLowestPollingInterval(currentSubscriptions.get(queryCacheKey))
         if (
           !currentQuerySubState ||
           currentQuerySubState.status === STATUS_UNINITIALIZED ||
@@ -118,7 +116,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
           cleanupPollForKey(queryCacheKey)
           return
         }
-        if (currentState.config.focused || !currentSkipPollingIfUnfocused) {
+        if (currentState.config.focused || !skipPollingIfUnfocused) {
           api.dispatch(refetchQuery(currentQuerySubState))
         }
         startNextPoll({ queryCacheKey }, api)
