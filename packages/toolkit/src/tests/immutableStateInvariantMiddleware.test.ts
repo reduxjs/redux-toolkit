@@ -13,6 +13,12 @@ import {
 
 type MWNext = Parameters<ReturnType<Middleware>>[0]
 
+interface CircularNode {
+  name: string
+  self?: CircularNode
+  parent?: unknown
+}
+
 describe('createImmutableStateInvariantMiddleware', () => {
   let state: { foo: { bar: number[]; baz: string } }
   const getState: Store['getState'] = () => state
@@ -87,7 +93,7 @@ describe('createImmutableStateInvariantMiddleware', () => {
     }).not.toThrow()
   })
 
-  it('works correctly with circular references', () => {
+  it('works correctly with circular references in an action', () => {
     const next: MWNext = (action) => action
 
     const dispatch = middleware()(next)
@@ -100,6 +106,95 @@ describe('createImmutableStateInvariantMiddleware', () => {
     expect(() => {
       dispatch({ type: 'SOME_ACTION', x })
     }).not.toThrow()
+  })
+
+  it('works correctly with circular references in the state', () => {
+    const next: MWNext = (action) => action
+
+    const circular: CircularNode = { name: 'circular' }
+    circular.self = circular
+    circular.parent = state.foo
+    Object.assign(state.foo, { circular })
+
+    const dispatch = middleware()(next)
+
+    expect(() => {
+      dispatch({ type: 'SOME_ACTION' })
+    }).not.toThrow()
+
+    expect(() => {
+      dispatch({ type: 'SOME_OTHER_ACTION' })
+    }).not.toThrow()
+  })
+
+  it('detects a mutation inside a circular reference', () => {
+    const circular: CircularNode = { name: 'circular' }
+    circular.self = circular
+    Object.assign(state.foo, { circular })
+
+    const next: MWNext = (action) => {
+      circular.name = 'mutated'
+      return action
+    }
+
+    const dispatch = middleware()(next)
+
+    expect(() => {
+      dispatch({ type: 'SOME_ACTION' })
+    }).toThrow(new RegExp('foo\\.circular\\.name'))
+  })
+
+  it('does not report shared references as mutations', () => {
+    const next: MWNext = (action) => action
+
+    const shared = { value: 'shared' }
+    Object.assign(state.foo, {
+      a: shared,
+      b: shared,
+      list: new Array(10).fill(shared),
+    })
+
+    const dispatch = middleware()(next)
+
+    expect(() => {
+      dispatch({ type: 'SOME_ACTION' })
+    }).not.toThrow()
+
+    expect(() => {
+      dispatch({ type: 'SOME_OTHER_ACTION' })
+    }).not.toThrow()
+  })
+
+  it('detects a mutation of a shared reference', () => {
+    const shared = { value: 'shared' }
+    Object.assign(state.foo, { a: shared, b: shared })
+
+    const next: MWNext = (action) => {
+      shared.value = 'mutated'
+      return action
+    }
+
+    const dispatch = middleware()(next)
+
+    expect(() => {
+      dispatch({ type: 'SOME_ACTION' })
+    }).toThrow(new RegExp('foo\\.a\\.value'))
+  })
+
+  it('respects "ignoredPaths" per path for shared references', () => {
+    const shared = { nested: { value: 'shared' } }
+    Object.assign(state.foo, { first: shared, second: shared })
+
+    const next: MWNext = (action) => {
+      shared.nested.value = 'mutated'
+      return action
+    }
+
+    const dispatch = middleware({ ignoredPaths: ['foo.first.nested'] })(next)
+
+    expect(() => {
+      dispatch({ type: 'SOME_ACTION' })
+    }).toThrow(new RegExp('foo\\.second\\.nested\\.value'))
   })
 
   it('respects "isImmutable" option', function () {
