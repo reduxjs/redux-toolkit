@@ -86,9 +86,10 @@ yarn add react-redux
   </TabItem>
 </Tabs>
 
-The package includes a precompiled browser ESM build that can be loaded from a `<script type="module">` tag. That build still imports Redux Toolkit's dependencies by package name, so no-bundler browser usage also needs an [import map](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script/type/importmap) that tells the browser where to load those packages from.
+The package includes a precompiled browser ESM build that can be loaded from a `<script type="module">` tag. That build imports its dependencies by package name, so using it without a bundler also requires an [import map](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script/type/importmap).
 
-For example, a small no-bundler page can load Redux Toolkit from Unpkg like this:
+<details>
+<summary>Example: loading Redux Toolkit in the browser without a bundler</summary>
 
 ```html
 <script type="importmap">
@@ -124,7 +125,9 @@ For example, a small no-bundler page can load Redux Toolkit from Unpkg like this
 </script>
 ```
 
-For production, pin dependency versions and adjust the URLs for your hosting environment. For example, a web extension may need to copy those files into the extension bundle and point the import map at local files instead of CDN URLs.
+Pin the dependency versions to match your installed packages. If CDN URLs aren't an option (for example, in a browser extension), copy the files into your project and point the import map at those local paths instead.
+
+</details>
 
 ## Requirements
 
