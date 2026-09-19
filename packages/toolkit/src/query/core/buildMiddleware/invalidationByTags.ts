@@ -53,7 +53,10 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
       pendingRequestCount++
     }
 
-    if (isQueryEnd(action)) {
+    if (
+      isQueryEnd(action) &&
+      !(queryThunk.rejected.match(action) && action.meta.condition)
+    ) {
       pendingRequestCount = Math.max(0, pendingRequestCount - 1)
     }
 
