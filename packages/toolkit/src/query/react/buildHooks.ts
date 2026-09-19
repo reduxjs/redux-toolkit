@@ -1529,12 +1529,14 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     deps?: DependencyList,
   ) => void = unstable__sideEffectsInRender ? (cb) => cb() : useEffect
 
-  type UnsubscribePromiseRef = React.RefObject<
-    { unsubscribe?: () => void } | undefined
-  >
+  type UnsubscribePromiseRef = {
+    current: { unsubscribe?: () => void } | undefined
+  }
 
-  const unsubscribePromiseRef = (ref: UnsubscribePromiseRef) =>
+  const unsubscribePromiseRef = (ref: UnsubscribePromiseRef) => {
     ref.current?.unsubscribe?.()
+    ref.current = undefined
+  }
 
   const endpointDefinitions = context.endpointDefinitions
 
@@ -1910,8 +1912,6 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     useEffect(() => {
       return () => {
         unsubscribePromiseRef(promiseRef)
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        ;(promiseRef.current as any) = undefined
       }
     }, [promiseRef])
   }
