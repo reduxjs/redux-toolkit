@@ -365,7 +365,10 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
       extractRehydrationInfo,
       serializeQueryArgs(queryArgsApi) {
         let finalSerializeQueryArgs = defaultSerializeQueryArgs
-        if ('serializeQueryArgs' in queryArgsApi.endpointDefinition) {
+        if (
+          queryArgsApi.endpointDefinition &&
+          'serializeQueryArgs' in queryArgsApi.endpointDefinition
+        ) {
           const endpointSQA =
             queryArgsApi.endpointDefinition.serializeQueryArgs!
           finalSerializeQueryArgs = (queryArgsApi) => {
