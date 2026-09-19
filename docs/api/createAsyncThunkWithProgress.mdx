@@ -1,0 +1,116 @@
+---
+id: createAsyncThunkWithProgress
+title: createAsyncThunkWithProgress
+sidebar_label: createAsyncThunkWithProgress
+hide_title: true
+---
+
+&nbsp;
+
+# `createAsyncThunkWithProgress`
+
+## Overview
+
+A thin wrapper around [`createAsyncThunk`](./createAsyncThunk.mdx) for async operations that can report incremental progress while they run - such as file uploads or downloads.
+
+It accepts the exact same arguments as `createAsyncThunk`, except that the `payloadCreator` callback receives a third argument, `onProgress`, which can be called (repeatedly) with a progress value of your choosing. Every call to `onProgress` dispatches a `progress` action, which is attached to the returned thunk action creator alongside the usual `pending`, `fulfilled`, and `rejected` actions.
+
+The shape of the progress value is not prescribed by Redux Toolkit - pass whatever type fits your use case (such as `AxiosProgressEvent` from `axios`, or a custom `{ loaded: number; total: number }` shape) as the fourth type parameter.
+
+Sample usage with `axios`:
+
+```ts no-transpile {8-17,29-31}
+import { createAsyncThunkWithProgress, createSlice } from '@reduxjs/toolkit'
+import type { AxiosProgressEvent } from 'axios'
+import axios from 'axios'
+
+// First, create the thunk
+const uploadFile = createAsyncThunkWithProgress<
+  string,
+  FormData,
+  {},
+  AxiosProgressEvent
+>('files/upload', async (formData, thunkAPI, onProgress) => {
+  const response = await axios.post('/upload', formData, {
+    onUploadProgress: onProgress,
+    signal: thunkAPI.signal,
+  })
+  return response.data.fileUrl
+})
+
+interface FilesState {
+  uploadProgress: number
+  status: 'idle' | 'pending' | 'succeeded' | 'failed'
+}
+
+const initialState = {
+  uploadProgress: 0,
+  status: 'idle',
+} satisfies FilesState as FilesState
+
+// Then, handle actions in your reducers:
+const filesSlice = createSlice({
+  name: 'files',
+  initialState,
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      .addCase(uploadFile.pending, (state) => {
+        state.status = 'pending'
+        state.uploadProgress = 0
+      })
+      .addCase(uploadFile.progress, (state, action) => {
+        state.uploadProgress = action.payload.progress ?? 0
+      })
+      .addCase(uploadFile.fulfilled, (state) => {
+        state.status = 'succeeded'
+        state.uploadProgress = 1
+      })
+  },
+})
+
+// Later, dispatch the thunk as needed in the app
+dispatch(uploadFile(formData))
+```
+
+## Parameters
+
+`createAsyncThunkWithProgress` accepts the same three parameters as [`createAsyncThunk`](./createAsyncThunk.mdx#parameters): a string action `type` value, a `payloadCreator` callback, and an `options` object.
+
+### `payloadCreator`
+
+Identical to the `payloadCreator` passed to `createAsyncThunk`, but called with a third argument:
+
+- `onProgress(progressEvent)`: a callback that, when called, dispatches the `progress` action described below with `progressEvent` as its `action.payload`. It can be called any number of times while the thunk is running.
+
+## Return Value
+
+`createAsyncThunkWithProgress` returns the same thunk action creator as `createAsyncThunk`, with one additional nested action creator attached:
+
+- `uploadFile.progress`, an action creator that dispatches a `'files/upload/progress'` action whenever `onProgress` is called
+
+Like the `pending` action, each dispatched `progress` action carries the current `requestId` and `arg` under `action.meta`, together with `requestStatus: 'pending'`:
+
+```ts no-transpile
+interface ProgressAction<ThunkArg, ProgressEvent> {
+  type: string
+  payload: ProgressEvent
+  meta: {
+    requestId: string
+    arg: ThunkArg
+    requestStatus: 'pending'
+  }
+}
+```
+
+To handle it in your reducers, reference `uploadFile.progress` in `createReducer` or `createSlice` using the "builder callback" notation, just like any other action creator:
+
+```ts no-transpile
+const reducer = createReducer(initialState, (builder) => {
+  builder.addCase(uploadFile.progress, (state, action) => {
+    state.uploadProgress = action.payload
+  })
+})
+```
+
+Everything else - cancellation, error handling, `unwrapResult`, the `condition` option, and so on - behaves exactly as documented for [`createAsyncThunk`](./createAsyncThunk.mdx), since `createAsyncThunkWithProgress` calls it internally without changing that behavior.

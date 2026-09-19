@@ -132,6 +132,17 @@ export type {
 
 export {
   // js
+  createAsyncThunkWithProgress,
+} from './createAsyncThunkWithProgress'
+export type {
+  // types
+  AsyncThunkWithProgress,
+  AsyncThunkPayloadCreatorWithProgress,
+  AsyncThunkProgressActionCreator,
+} from './createAsyncThunkWithProgress'
+
+export {
+  // js
   isAllOf,
   isAnyOf,
   isPending,
