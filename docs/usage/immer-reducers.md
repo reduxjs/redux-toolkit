@@ -141,7 +141,7 @@ function handwrittenReducer(state, action) {
 
 However, if you're thinking that "writing immutable updates by hand this way looks hard to remember and do correctly"... yeah, you're right! :)
 
-Writing immutable update logic by hand _is_ hard, and **accidentally mutating state in reducers is the single most common mistake Redux users make**.
+Writing immutable update logic by hand _is_ hard, and **accidentally mutating state in reducers is the single most common mistake Redux users make**. If you do need to write updates by hand, [Immutable Update Patterns](/usage/structuring-reducers/immutable-update-patterns) covers the correct patterns for nested objects and arrays and the mistakes that most often cause accidental mutations.
 
 ## Immutable Updates with Immer
 
@@ -248,11 +248,11 @@ const todosSlice = createSlice({
       // "Mutate" the existing state, no return value needed
       state.push(action.payload)
     },
-    todoDeleted(state, action.payload) {
+    todoDeleted(state, action) {
       // Construct a new result array immutably and return it
-      return state.filter(todo => todo.id !== action.payload)
-    }
-  }
+      return state.filter((todo) => todo.id !== action.payload)
+    },
+  },
 })
 ```
 
@@ -261,15 +261,15 @@ However, it _is_ possible to use immutable updates to do part of the work and th
 ```js
 const todosSlice = createSlice({
   name: 'todos',
-  initialState: {todos: [], status: 'idle'}
+  initialState: { todos: [], status: 'idle' },
   reducers: {
-    todoDeleted(state, action.payload) {
+    todoDeleted(state, action) {
       // Construct a new array immutably
-      const newTodos = state.todos.filter(todo => todo.id !== action.payload)
+      const newTodos = state.todos.filter((todo) => todo.id !== action.payload)
       // "Mutate" the existing state to save the new array
       state.todos = newTodos
-    }
-  }
+    },
+  },
 })
 ```
 
