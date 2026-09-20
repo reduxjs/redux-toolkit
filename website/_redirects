@@ -2,9 +2,9 @@
 /docs/*          /:splat
 
 # Deleted old tutorials
-/tutorials/basic-tutorial               /tutorials/overview
-/tutorials/intermediate-tutorial        /tutorials/overview
-/tutorials/advanced-tutorial            /tutorials/overview
+/tutorials/basic-tutorial               https://redux.js.org/tutorials/index
+/tutorials/intermediate-tutorial        https://redux.js.org/tutorials/index
+/tutorials/advanced-tutorial            https://redux.js.org/tutorials/index
 
 # Renamed start page
 /introduction/quick-start               /introduction/getting-started
@@ -13,3 +13,6 @@
 /rtk-query/usage/optimistic-updates     /rtk-query/usage/manual-cache-updates#optimistic-updates
 /rtk-query/api/created-api/cache-management-utils     /rtk-query/api/created-api/api-slice-utils
 /migrations/migrating-1.x-to-2.x     /usage/migrating-rtk-2
+# Quick Start tutorials merged into the core docs Quick Start
+/tutorials/quick-start                  https://redux.js.org/tutorials/quick-start
+/tutorials/typescript                   https://redux.js.org/tutorials/quick-start

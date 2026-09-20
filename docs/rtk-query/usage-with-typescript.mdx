@@ -394,7 +394,7 @@ const api = createApi({
 
 `createApi` exposes the standard Redux `dispatch` and `getState` methods in several places, such as the `lifecycleApi` argument in lifecycle methods, or the `baseQueryApi` argument passed to `queryFn` methods and base query functions.
 
-Normally, [your application infers `RootState` and `AppDispatch` types from the store setup](../tutorials/typescript.md#define-root-state-and-dispatch-types). Since `createApi` has to be called prior to creating the Redux store and is used as part of the store setup sequence, it can't directly know or use those types - it would cause a circular type inference error.
+Normally, [your application infers `RootState` and `AppDispatch` types from the store setup](https://redux.js.org/tutorials/quick-start#define-root-state-and-dispatch-types). Since `createApi` has to be called prior to creating the Redux store and is used as part of the store setup sequence, it can't directly know or use those types - it would cause a circular type inference error.
 
 By default, `dispatch` usages inside of `createApi` will be typed as `ThunkDispatch`, and `getState` usages are typed as `() => unknown`. You will need to assert the type when needed - `getState() as RootState`. You may also include an explicit return type for the function as well, in order to break the circular type inference cycle:
 

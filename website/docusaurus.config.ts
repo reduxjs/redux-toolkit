@@ -119,7 +119,11 @@ const config: Config = {
           label: 'Getting Started',
           position: 'right',
         },
-        { to: 'tutorials/overview', label: 'Tutorials', position: 'right' },
+        {
+          href: 'https://redux.js.org/tutorials/index',
+          label: 'Tutorials',
+          position: 'right',
+        },
         { to: 'usage/usage-guide', label: 'Usage Guide', position: 'right' },
         { to: 'api/configureStore', label: 'API', position: 'right' },
         { to: 'rtk-query/overview', label: 'RTK Query', position: 'right' },
@@ -146,7 +150,7 @@ const config: Config = {
             },
             {
               label: 'Tutorials',
-              to: 'tutorials/overview',
+              href: 'https://redux.js.org/tutorials/index',
             },
             {
               label: 'Usage Guide',

@@ -8,7 +8,11 @@ const sidebars: SidebarsConfig = {
       collapsed: false,
       items: [
         'introduction/getting-started',
-        'introduction/why-rtk-is-redux-today',
+        {
+          type: 'link',
+          label: 'Why Redux Toolkit is How to Use Redux Today',
+          href: 'https://redux.js.org/introduction/why-rtk-is-redux-today',
+        },
       ],
     },
 
@@ -17,9 +21,16 @@ const sidebars: SidebarsConfig = {
       label: 'Tutorials',
       collapsed: false,
       items: [
-        'tutorials/tutorials-overview',
-        'tutorials/quick-start',
-        'tutorials/typescript',
+        {
+          type: 'link',
+          label: 'Tutorials Index',
+          href: 'https://redux.js.org/tutorials/index',
+        },
+        {
+          type: 'link',
+          label: 'Quick Start',
+          href: 'https://redux.js.org/tutorials/quick-start',
+        },
         'tutorials/rtk-query',
       ],
     },
@@ -31,12 +42,27 @@ const sidebars: SidebarsConfig = {
         {
           type: 'category',
           label: 'Migrations',
-          items: ['usage/migrating-to-modern-redux', 'usage/migrating-rtk-2'],
+          items: [
+            {
+              type: 'link',
+              label: 'Migrating to Modern Redux',
+              href: 'https://redux.js.org/usage/migrating-to-modern-redux',
+            },
+            {
+              type: 'link',
+              label: 'Migrating to RTK 2.0 and Redux 5.0',
+              href: 'https://redux.js.org/usage/migrations/migrating-rtk-2',
+            },
+          ],
         },
         'usage/usage-guide',
         'usage/usage-with-typescript',
         'usage/immer-reducers',
-        'usage/nextjs',
+        {
+          type: 'link',
+          label: 'Setup with Next.js',
+          href: 'https://redux.js.org/usage/nextjs',
+        },
       ],
     },
     {
