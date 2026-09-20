@@ -21,7 +21,7 @@ Redux Toolkit is written in TypeScript, and its API is designed to enable great 
 
 This page provides specific details for each of the different APIs included in Redux Toolkit and how to type them correctly with TypeScript.
 
-**See the [Quick Start tutorial page](https://redux.js.org/tutorials/quick-start) for a brief overview of how to set up and use Redux Toolkit and React Redux to work with TypeScript**.
+**See the [Quick Start tutorial page](/tutorials/quick-start) for a brief overview of how to set up and use Redux Toolkit and React Redux to work with TypeScript**.
 
 :::info
 
@@ -49,7 +49,7 @@ If you're unable to upgrade TypeScript, RTK may still work with older versions, 
 
 ## `configureStore`
 
-The basics of using `configureStore` are shown in [Quick Start tutorial page](https://redux.js.org/tutorials/quick-start). Here are some additional details that you might find useful.
+The basics of using `configureStore` are shown in [Quick Start tutorial page](/tutorials/quick-start). Here are some additional details that you might find useful.
 
 ### Getting the `State` type
 
@@ -485,7 +485,7 @@ reducers: (create) => {
 
 ### Wrapping `createSlice`
 
-If you need to reuse reducer logic, it is common to write ["higher-order reducers"](https://redux.js.org/recipes/structuring-reducers/reusing-reducer-logic#customizing-behavior-with-higher-order-reducers) that wrap a reducer function with additional common behavior. This can be done with `createSlice` as well, but due to the complexity of the types for `createSlice`, you have to use the `SliceCaseReducers` and `ValidateSliceCaseReducers` types in a very specific way.
+If you need to reuse reducer logic, it is common to write ["higher-order reducers"](/usage/structuring-reducers/reusing-reducer-logic#customizing-behavior-with-higher-order-reducers) that wrap a reducer function with additional common behavior. This can be done with `createSlice` as well, but due to the complexity of the types for `createSlice`, you have to use the `SliceCaseReducers` and `ValidateSliceCaseReducers` types in a very specific way.
 
 Here is an example of such a "generic" wrapped `createSlice` call:
 

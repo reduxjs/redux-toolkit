@@ -172,7 +172,7 @@ transformResponse: (response: Posts, meta, arg) => {
 }
 ```
 
-While there is less need to store the response in a [normalized lookup table](https://redux.js.org/recipes/structuring-reducers/normalizing-state-shape) with RTK Query managing caching data, `transformResponse` can be leveraged to do so if desired.
+While there is less need to store the response in a [normalized lookup table](/usage/structuring-reducers/normalizing-state-shape) with RTK Query managing caching data, `transformResponse` can be leveraged to do so if desired.
 
 ```ts title="Normalize the response data" no-transpile
 transformResponse: (response) =>

@@ -18,7 +18,7 @@ description: 'RTK Query > Usage > Migrating to RTKQ: how to convert logic to RTK
 
 ## Overview
 
-The most common use case for side effects in Redux apps is fetching data. Redux apps typically use a tool like thunks, sagas, or observables to make an AJAX request, and [dispatch actions based on the results of the request](https://redux.js.org/tutorials/fundamentals/part-7-standard-patterns#async-request-status). Reducers then listen for those actions to manage loading state and cache the fetched data.
+The most common use case for side effects in Redux apps is fetching data. Redux apps typically use a tool like thunks, sagas, or observables to make an AJAX request, and [dispatch actions based on the results of the request](/tutorials/fundamentals/part-7-standard-patterns#async-request-status). Reducers then listen for those actions to manage loading state and cache the fetched data.
 
 RTK Query is purpose-built to solve the use case of data fetching. While it can't replace all of the situations where you'd use thunks or other side effects approaches, **using RTK Query should eliminate the need for most of that hand-written side effects logic**.
 

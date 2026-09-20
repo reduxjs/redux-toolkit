@@ -30,7 +30,7 @@ Every Redux app needs to configure and create a Redux store. This usually involv
 
 ### Manual Store Setup
 
-The following example from the [Configuring Your Store](https://redux.js.org/recipes/configuring-your-store) page in the Redux docs shows a typical store setup process:
+The following example from the [Configuring Your Store](/usage/configuring-your-store) page in the Redux docs shows a typical store setup process:
 
 ```js
 import { applyMiddleware, createStore } from 'redux'
@@ -92,7 +92,7 @@ const store = configureStore({
 export default store
 ```
 
-You can also pass an object full of ["slice reducers"](https://redux.js.org/recipes/structuring-reducers/splitting-reducer-logic), and `configureStore` will call [`combineReducers`](https://redux.js.org/api/combinereducers) for you:
+You can also pass an object full of ["slice reducers"](/usage/structuring-reducers/splitting-reducer-logic), and `configureStore` will call [`combineReducers`](/api/combinereducers) for you:
 
 ```js
 import { configureStore } from '@reduxjs/toolkit'
@@ -146,14 +146,14 @@ call [`getDefaultMiddleware`](../api/getDefaultMiddleware.mdx) and include the r
 
 ## Writing Reducers
 
-[Reducers](https://redux.js.org/basics/reducers) are the most important Redux concept. A typical reducer function needs to:
+[Reducers](/tutorials/fundamentals/part-3-state-actions-reducers) are the most important Redux concept. A typical reducer function needs to:
 
 - Look at the `type` field of the action object to see how it should respond
 - Update its state immutably, by making copies of the parts of the state that need to change and only modifying those copies
 
-While you can [use any conditional logic you want](https://blog.isquaredsoftware.com/2017/05/idiomatic-redux-tao-of-redux-part-2/#switch-statements) in a reducer, the most common approach is a `switch` statement, because it's a straightforward way to handle multiple possible values for a single field. However, many people don't like switch statements. The Redux docs show an example of [writing a function that acts as a lookup table based on action types](https://redux.js.org/recipes/reducing-boilerplate#generating-reducers), but leave it up to users to customize that function themselves.
+While you can [use any conditional logic you want](https://blog.isquaredsoftware.com/2017/05/idiomatic-redux-tao-of-redux-part-2/#switch-statements) in a reducer, the most common approach is a `switch` statement, because it's a straightforward way to handle multiple possible values for a single field. However, many people don't like switch statements. The Redux docs show an example of [writing a function that acts as a lookup table based on action types](/usage/reducing-boilerplate#generating-reducers), but leave it up to users to customize that function themselves.
 
-The other common pain points around writing reducers have to do with updating state immutably. JavaScript is a mutable language, [updating nested immutable data by hand is hard](https://redux.js.org/recipes/structuring-reducers/immutable-update-patterns), and it's easy to make mistakes.
+The other common pain points around writing reducers have to do with updating state immutably. JavaScript is a mutable language, [updating nested immutable data by hand is hard](/usage/structuring-reducers/immutable-update-patterns), and it's easy to make mistakes.
 
 ### Simplifying Reducers with `createReducer`
 
@@ -518,14 +518,14 @@ The article [How to fix circular dependency issues in JS](https://medium.com/vis
 
 By itself, a Redux store doesn't know anything about async logic. It only knows how to synchronously dispatch actions, update the state by calling the root reducer function, and notify the UI that something has changed. Any asynchronicity has to happen outside the store.
 
-But, what if you want to have async logic interact with the store by dispatching or checking the current store state? That's where [Redux middleware](https://redux.js.org/advanced/middleware) come in. They extend the store, and allow you to:
+But, what if you want to have async logic interact with the store by dispatching or checking the current store state? That's where [Redux middleware](/tutorials/fundamentals/part-4-store#middleware) come in. They extend the store, and allow you to:
 
 - Execute extra logic when any action is dispatched (such as logging the action and state)
 - Pause, modify, delay, replace, or halt dispatched actions
 - Write extra code that has access to `dispatch` and `getState`
 - Teach `dispatch` how to accept other values besides plain action objects, such as functions and promises, by intercepting them and dispatching real action objects instead
 
-[The most common reason to use middleware is to allow different kinds of async logic to interact with the store](https://redux.js.org/faq/actions#how-can-i-represent-side-effects-such-as-ajax-calls-why-do-we-need-things-like-action-creators-thunks-and-middleware-to-do-async-behavior). This allows you to write code that can dispatch actions and check the store state, while keeping that logic separate from your UI.
+[The most common reason to use middleware is to allow different kinds of async logic to interact with the store](/faq/actions#how-can-i-represent-side-effects-such-as-ajax-calls-why-do-we-need-things-like-action-creators-thunks-and-middleware-to-do-async-behavior). This allows you to write code that can dispatch actions and check the store state, while keeping that logic separate from your UI.
 
 There are many kinds of async middleware for Redux, and each lets you write your logic using different syntax. The most common async middleware are:
 
@@ -533,7 +533,7 @@ There are many kinds of async middleware for Redux, and each lets you write your
 - [`redux-saga`](https://github.com/redux-saga/redux-saga), which uses generator functions that return descriptions of behavior so they can be executed by the middleware
 - [`redux-observable`](https://github.com/redux-observable/redux-observable/), which uses the RxJS observable library to create chains of functions that process actions
 
-[Each of these libraries has different use cases and tradeoffs](https://redux.js.org/faq/actions#what-async-middleware-should-i-use-how-do-you-decide-between-thunks-sagas-observables-or-something-else).
+[Each of these libraries has different use cases and tradeoffs](/faq/actions#what-async-middleware-should-i-use-how-do-you-decide-between-thunks-sagas-observables-or-something-else).
 
 :::tip
 
@@ -600,7 +600,7 @@ Data fetching logic for Redux typically follows a predictable pattern:
 - The async request is made
 - Depending on the request result, the async logic dispatches either a "success" action containing the result data, or a "failure" action containing error details. The reducer logic clears the loading state in both cases, and either processes the result data from the success case, or stores the error value for potential display.
 
-These steps are not required, but are [recommended in the Redux tutorials as a suggested pattern](https://redux.js.org/advanced/async-actions).
+These steps are not required, but are [recommended in the Redux tutorials as a suggested pattern](/tutorials/fundamentals/part-6-async-logic).
 
 A typical implementation might look like:
 
@@ -692,7 +692,7 @@ You can use any of these as needed inside the payload callback to determine what
 
 ## Managing Normalized Data
 
-Most applications typically deal with data that is deeply nested or relational. The goal of normalizing data is to efficiently organize the data in your state. This is typically done by storing collections as objects with the key of an `id`, while storing a sorted array of those `ids`. For a more in-depth explanation and further examples, there is a great reference in the [Redux docs page on "Normalizing State Shape"](https://redux.js.org/recipes/structuring-reducers/normalizing-state-shape).
+Most applications typically deal with data that is deeply nested or relational. The goal of normalizing data is to efficiently organize the data in your state. This is typically done by storing collections as objects with the key of an `id`, while storing a sorted array of those `ids`. For a more in-depth explanation and further examples, there is a great reference in the [Redux docs page on "Normalizing State Shape"](/usage/structuring-reducers/normalizing-state-shape).
 
 ### Normalizing by hand
 
@@ -1013,7 +1013,7 @@ export const usersAdapter = createEntityAdapter({
 
 ## Working with Non-Serializable Data
 
-One of the core usage principles for Redux is that [you should not put non-serializable values in state or actions](https://redux.js.org/style-guide/#do-not-put-non-serializable-values-in-state-or-actions).
+One of the core usage principles for Redux is that [you should not put non-serializable values in state or actions](/style-guide/#do-not-put-non-serializable-values-in-state-or-actions).
 
 However, like most rules, there are exceptions. There may be occasions when you have to deal with actions that need to accept non-serializable data. This should be done very rarely and only if necessary, and these non-serializable payloads shouldn't ever make it into your application state through a reducer.
 

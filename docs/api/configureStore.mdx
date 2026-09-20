@@ -105,7 +105,7 @@ If this is a single function, it will be directly used as the root reducer for t
 
 If it is an object of slice reducers, like `{users : usersReducer, posts : postsReducer}`,
 `configureStore` will automatically create the root reducer by passing this object to the
-[Redux `combineReducers` utility](https://redux.js.org/api/combinereducers).
+[Redux `combineReducers` utility](/api/combinereducers).
 
 ### `middleware`
 
@@ -167,7 +167,7 @@ An optional initial state value to be passed to the Redux `createStore` function
 
 A callback function to customize the array of enhancers.
 
-Enhancers returned by this callback will be passed to [the Redux `compose` function](https://redux.js.org/api/compose), and the combined enhancer will be passed to `createStore`.
+Enhancers returned by this callback will be passed to [the Redux `compose` function](/api/compose), and the combined enhancer will be passed to `createStore`.
 
 :::tip Dev Tools
 This should _not_ include the Redux DevTools Extension `composeWithDevTools`, as this is already handled by `configureStore`.
