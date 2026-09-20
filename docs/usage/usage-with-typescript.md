@@ -49,22 +49,11 @@ If you're unable to upgrade TypeScript, RTK may still work with older versions, 
 
 ## `configureStore`
 
-The basics of using `configureStore` are shown in [Quick Start tutorial page](/tutorials/quick-start). Here are some additional details that you might find useful.
+The standard setup is shown in [Usage with TypeScript: Define Root State and Dispatch Types](/usage/usage-with-typescript#define-root-state-and-dispatch-types) in the Redux docs: create the store, then extract `RootState` and `AppDispatch` from it, and export pre-typed `useAppSelector` and `useAppDispatch` hooks. Here are some additional details.
 
 ### Getting the `State` type
 
-The easiest way of getting the `State` type is to define the root reducer in advance and extract its `ReturnType`.
-It is recommended to give the type a different name like `RootState` to prevent confusion, as the type name `State` is usually overused.
-
-```typescript
-import { combineReducers } from '@reduxjs/toolkit'
-const rootReducer = combineReducers({})
-// highlight-start
-export type RootState = ReturnType<typeof rootReducer>
-// highlight-end
-```
-
-Alternatively, if you choose to not create a `rootReducer` yourself and instead pass the slice reducers directly to `configureStore()`, you need to slightly modify the typing to correctly infer the root reducer:
+`configureStore` infers the state type from its `reducer` argument, whether you pass a single root reducer or an object of slice reducers. Either way, the safest source for `RootState` is the store itself:
 
 ```ts
 import { configureStore } from '@reduxjs/toolkit'
@@ -76,41 +65,16 @@ const store = configureStore({
   },
 })
 export type RootState = ReturnType<typeof store.getState>
-
-export default store
 ```
 
-If you pass the reducers directly to `configureStore()` and do not define the root reducer explicitly, there is no reference to `rootReducer`.
-Instead, you can refer to `store.getState`, in order to get the `State` type.
-
-```typescript
-import { configureStore } from '@reduxjs/toolkit'
-import rootReducer from './rootReducer'
-const store = configureStore({
-  reducer: rootReducer,
-})
-export type RootState = ReturnType<typeof store.getState>
-```
+If you define a `rootReducer` with `combineReducers` first, you can also extract the type from the reducer directly with `ReturnType<typeof rootReducer>`. This is useful when the state type is needed in a file that cannot import the store without a circular import.
 
 ### Getting the `Dispatch` type
 
-If you want to get the `Dispatch` type from your store, you can extract it after creating the store. It is recommended to give the type a different name like `AppDispatch` to prevent confusion, as the type name `Dispatch` is usually overused. You may also find it to be more convenient to export a hook like `useAppDispatch` shown below, then using it wherever you'd call `useDispatch`.
+Extract `AppDispatch` from the store after creating it. It includes the type changes contributed by any middleware you added, such as the thunk middleware's overloads:
 
-```typescript
-import { configureStore } from '@reduxjs/toolkit'
-import { useDispatch } from 'react-redux'
-import rootReducer from './rootReducer'
-
-const store = configureStore({
-  reducer: rootReducer,
-})
-
-// highlight-start
+```ts
 export type AppDispatch = typeof store.dispatch
-export const useAppDispatch = useDispatch.withTypes<AppDispatch>() // Export a hook that can be reused to resolve types
-// highlight-end
-
-export default store
 ```
 
 ### Correct typings for the `Dispatch` type
@@ -169,7 +133,7 @@ configureStore({
 
 ### Using the extracted `Dispatch` type with React Redux
 
-By default, the React Redux `useDispatch` hook does not contain any types that take middlewares into account. If you need a more specific type for the `dispatch` function when dispatching, you may specify the type of the returned `dispatch` function, or create a custom-typed version of `useSelector`. See [the React Redux documentation](https://react-redux.js.org/using-react-redux/static-typing#typing-the-usedispatch-hook) for details.
+By default, the React Redux `useDispatch` hook does not contain any types that take middlewares into account. Use the pre-typed `useAppDispatch` hook from [Define Typed Hooks](/usage/usage-with-typescript#define-typed-hooks) so that dispatching thunks and other middleware-handled values is typed correctly.
 
 ## `createAction`
 
