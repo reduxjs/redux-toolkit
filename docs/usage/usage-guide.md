@@ -91,7 +91,7 @@ Case reducers run inside [Immer](https://immerjs.github.io/immer/), so they can 
 Export the action creators and the reducer by name, as shown above, and import them where they're needed. Two things to keep in mind when organizing slices:
 
 - **Action types are not exclusive to one slice.** Any slice can respond to any action via the `extraReducers` option. For example, several slices might reset their state when a `userLoggedOut` action is dispatched.
-- **Two slice files that import each other's actions create a circular import**, and one of the imports will be `undefined` at module evaluation time. If two slices need to respond to the same action, define that action in a shared file with [`createAction`](../api/createAction.mdx) and import it into both slices.
+- **Slice files can import each other's actions.** `createSlice` builds its reducer lazily on first use, so a circular import between two slice files that reference each other in `extraReducers` works. If you'd rather avoid the circular import entirely, define the shared action in its own file with [`createAction`](../api/createAction.mdx) and import it into both slices.
 
 [`createReducer`](../api/createReducer.mdx) and [`createAction`](../api/createAction.mdx) are the underlying pieces that `createSlice` uses. You can use them directly for a reducer that isn't tied to a slice, or for an action shared across slices. Action creators made by either API carry their type string as `actionCreator.type` and have a `.match()` method for type-safe checks. If you use one in a `switch` statement, compare against `actionCreator.type`, not the action creator itself:
 
