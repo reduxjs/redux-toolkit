@@ -9,1007 +9,258 @@ hide_title: true
 
 # Usage Guide
 
-The Redux core library is deliberately unopinionated. It lets you decide how you want to handle everything, like store setup, what your state contains, and how you want to build your reducers.
+Redux Toolkit is the standard way to write Redux logic. It includes the store setup, reducer creation, async logic, data fetching, and normalized state utilities that a typical Redux app needs, with good defaults and development checks built in.
 
-This is good in some cases, because it gives you flexibility, but that flexibility isn't always needed. Sometimes we just want the simplest possible way to get started, with some good default behavior out of the box. Or, maybe you're writing a larger application and finding yourself writing some similar code, and you'd like to cut down on how much of that code you have to write by hand.
-
-As described in the [Quick Start](../introduction/getting-started.md) page, the goal of Redux Toolkit is to help simplify common Redux use cases. It is not intended to be a complete solution for everything you might want to do with Redux, but it should make a lot of the Redux-related code you need to write a lot simpler (or in some cases, eliminate some of the hand-written code entirely).
-
-Redux Toolkit exports several individual functions that you can use in your application, and adds dependencies on some other packages that are commonly used with Redux (like Reselect and Redux-Thunk). This lets you decide how to use these in your own application, whether it be a brand new project or updating a large existing app.
-
-Let's look at some of the ways that Redux Toolkit can help make your Redux-related code better.
+This page is an overview of which Redux Toolkit API to reach for in each part of your app, with a short example of each and links to the full API reference and usage pages. It assumes you already know the Redux concepts covered in the [Redux Essentials tutorial](/tutorials/essentials/part-1-overview-concepts). If you're coming from a hand-written Redux codebase, [Migrating to Modern Redux](/usage/migrating-to-modern-redux) walks through converting each pattern to its Redux Toolkit equivalent.
 
 ## Store Setup
 
-Every Redux app needs to configure and create a Redux store. This usually involves several steps:
+[`configureStore`](../api/configureStore.mdx) creates the Redux store. It accepts an options object instead of positional arguments, automatically calls `combineReducers` when given an object of slice reducers, adds the [thunk middleware](../api/getDefaultMiddleware.mdx) and the development-only [immutability](../api/immutabilityMiddleware.mdx) and [serializability](../api/serializabilityMiddleware.mdx) check middleware, and enables the Redux DevTools Extension.
 
-- Importing or creating the root reducer function
-- Setting up middleware, likely including at least one middleware to handle asynchronous logic
-- Configuring the [Redux DevTools Extension](https://github.com/reduxjs/redux-devtools)
-- Possibly altering some of the logic based on whether the application is being built for development or production
+The simplest setup is an object of slice reducers:
 
-### Manual Store Setup
-
-The following example from the [Configuring Your Store](/usage/configuring-your-store) page in the Redux docs shows a typical store setup process:
-
-```js
-import { applyMiddleware, createStore } from 'redux'
-import { composeWithDevTools } from 'redux-devtools-extension'
-import thunkMiddleware from 'redux-thunk'
-
-import monitorReducersEnhancer from './enhancers/monitorReducers'
-import loggerMiddleware from './middleware/logger'
-import rootReducer from './reducers'
-
-export default function configureStore(preloadedState) {
-  const middlewares = [loggerMiddleware, thunkMiddleware]
-  const middlewareEnhancer = applyMiddleware(...middlewares)
-
-  const enhancers = [middlewareEnhancer, monitorReducersEnhancer]
-  const composedEnhancers = composeWithDevTools(...enhancers)
-
-  const store = createStore(rootReducer, preloadedState, composedEnhancers)
-
-  if (process.env.NODE_ENV !== 'production' && module.hot) {
-    module.hot.accept('./reducers', () => store.replaceReducer(rootReducer))
-  }
-
-  return store
-}
-```
-
-This example is readable, but the process isn't always straightforward:
-
-- The basic Redux `createStore` function takes positional arguments: `(rootReducer, preloadedState, enhancer)`. Sometimes it's easy to forget which parameter is which.
-- The process of setting up middleware and enhancers can be confusing, especially if you're trying to add several pieces of configuration.
-- The Redux DevTools Extension docs initially suggest using [some hand-written code that checks the global namespace to see if the extension is available](https://github.com/zalmoxisus/redux-devtools-extension#11-basic-store). Many users copy and paste those snippets, which make the setup code harder to read.
-
-### Simplifying Store Setup with `configureStore`
-
-`configureStore` helps with those issues by:
-
-- Having an options object with "named" parameters, which can be easier to read
-- Letting you provide arrays of middleware and enhancers you want to add to the store, and calling `applyMiddleware` and `compose` for you automatically
-- Enabling the Redux DevTools Extension automatically
-
-In addition, `configureStore` adds some middleware by default, each with a specific goal:
-
-- [`redux-thunk`](https://github.com/reduxjs/redux-thunk) is the most commonly used middleware for working with both synchronous and async logic outside of components
-- In development, middleware that check for common mistakes like mutating the state or using non-serializable values.
-
-This means the store setup code itself is a bit shorter and easier to read, and also that you get good default behavior out of the box.
-
-The simplest way to use it is to just pass the root reducer function as a parameter named `reducer`:
-
-```js
+```ts
 import { configureStore } from '@reduxjs/toolkit'
-import rootReducer from './reducers'
+import usersReducer from '../features/users/usersSlice'
+import postsReducer from '../features/posts/postsSlice'
 
-const store = configureStore({
-  reducer: rootReducer,
-})
-
-export default store
-```
-
-You can also pass an object full of ["slice reducers"](/usage/structuring-reducers/splitting-reducer-logic), and `configureStore` will call [`combineReducers`](/api/combinereducers) for you:
-
-```js
-import { configureStore } from '@reduxjs/toolkit'
-// highlight-start
-import usersReducer from './usersReducer'
-import postsReducer from './postsReducer'
-
-const store = configureStore({
+export const store = configureStore({
   reducer: {
     users: usersReducer,
     posts: postsReducer,
   },
 })
-// highlight-end
-
-export default store
 ```
 
-Note that this only works for one level of reducers. If you want to nest reducers, you'll need to call `combineReducers` yourself to handle the nesting.
+If you need to add middleware or enhancers, use the callback forms so the defaults stay in place:
 
-If you need to customize the store setup, you can pass additional options. Here's what the hot reloading example might look like using Redux Toolkit:
-
-```js
+```ts
 import { configureStore } from '@reduxjs/toolkit'
+import rootReducer from './rootReducer'
+import { loggerMiddleware } from './middleware/logger'
+import { monitorReducersEnhancer } from './enhancers/monitorReducers'
 
-import monitorReducersEnhancer from './enhancers/monitorReducers'
-import loggerMiddleware from './middleware/logger'
-import rootReducer from './reducers'
-
-export default function configureAppStore(preloadedState) {
-  const store = configureStore({
-    reducer: rootReducer,
-    middleware: (getDefaultMiddleware) =>
-      getDefaultMiddleware().concat(loggerMiddleware),
-    preloadedState,
-    enhancers: (getDefaultEnhancers) =>
-      getDefaultEnhancers().concat(monitorReducersEnhancer),
-  })
-
-  if (process.env.NODE_ENV !== 'production' && module.hot) {
-    module.hot.accept('./reducers', () => store.replaceReducer(rootReducer))
-  }
-
-  return store
-}
+export const store = configureStore({
+  reducer: rootReducer,
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(loggerMiddleware),
+  enhancers: (getDefaultEnhancers) =>
+    getDefaultEnhancers().concat(monitorReducersEnhancer),
+})
 ```
 
-If you provide the `middleware` argument, `configureStore` will only use whatever middleware you've listed.
-If you want to have some custom middleware _and_ the defaults all together, you can use the callback notation,
-call [`getDefaultMiddleware`](../api/getDefaultMiddleware.mdx) and include the results in the `middleware` array you return.
+The `reducer` object form only handles one level of nesting. For nested reducers, call `combineReducers` yourself, or use [`combineSlices`](../api/combineSlices.mdx), which also supports lazily injecting slice reducers for code-split apps.
 
-## Writing Reducers
+For the full list of options, including `preloadedState` and DevTools configuration, see the [`configureStore` API reference](../api/configureStore.mdx). The Redux core docs have a longer walkthrough in [Configuring Your Store](/usage/configuring-your-store).
 
-[Reducers](/tutorials/fundamentals/part-3-state-actions-reducers) are the most important Redux concept. A typical reducer function needs to:
+## Writing Reducers and Actions with `createSlice`
 
-- Look at the `type` field of the action object to see how it should respond
-- Update its state immutably, by making copies of the parts of the state that need to change and only modifying those copies
+[`createSlice`](../api/createSlice.mdx) is the standard way to define a piece of Redux state, the reducer that updates it, and the action creators that trigger those updates. You give it a `name`, an `initialState`, and an object of "case reducer" functions. It generates an action type string and an action creator for each case reducer, and combines the case reducers into a single slice reducer:
 
-While you can [use any conditional logic you want](https://blog.isquaredsoftware.com/2017/05/idiomatic-redux-tao-of-redux-part-2/#switch-statements) in a reducer, the most common approach is a `switch` statement, because it's a straightforward way to handle multiple possible values for a single field. However, many people don't like switch statements. The Redux docs show an example of [writing a function that acts as a lookup table based on action types](/usage/reducing-boilerplate#generating-reducers), but leave it up to users to customize that function themselves.
+```ts
+import { createSlice } from '@reduxjs/toolkit'
+import type { PayloadAction } from '@reduxjs/toolkit'
 
-The other common pain points around writing reducers have to do with updating state immutably. JavaScript is a mutable language, [updating nested immutable data by hand is hard](/usage/structuring-reducers/immutable-update-patterns), and it's easy to make mistakes.
-
-### Simplifying Reducers with `createReducer`
-
-Since the "lookup table" approach is popular, Redux Toolkit includes a `createReducer` function similar to the one shown in the Redux docs. However, our `createReducer` utility has some special "magic" that makes it even better. It uses the [Immer](https://github.com/mweststrate/immer) library internally, which lets you write code that "mutates" some data, but actually applies the updates immutably. This makes it effectively impossible to accidentally mutate state in a reducer.
-
-In general, any Redux reducer that uses a `switch` statement can be converted to use `createReducer` directly. Each `case` in the switch becomes a key in the object passed to `createReducer`. Immutable update logic, like spreading objects or copying arrays, can probably be converted to direct "mutation". It's also fine to keep the immutable updates as-is and return the updated copies, too.
-
-Here's some examples of how you can use `createReducer`. We'll start with a typical "todo list" reducer that uses switch statements and immutable updates:
-
-```js
-function todosReducer(state = [], action) {
-  switch (action.type) {
-    case 'ADD_TODO': {
-      return state.concat(action.payload)
-    }
-    case 'TOGGLE_TODO': {
-      const { index } = action.payload
-      return state.map((todo, i) => {
-        if (i !== index) return todo
-
-        return {
-          ...todo,
-          completed: !todo.completed,
-        }
-      })
-    }
-    case 'REMOVE_TODO': {
-      return state.filter((todo, i) => i !== action.payload.index)
-    }
-    default:
-      return state
-  }
+interface Post {
+  id: string
+  title: string
 }
-```
 
-Notice that we specifically call `state.concat()` to return a copied array with the new todo entry, `state.map()` to return a copied array for the toggle case, and use the object spread operator to make a copy of the todo that needs to be updated.
+const initialState: Post[] = []
 
-With `createReducer`, we can shorten that example considerably:
-
-```js
-const todosReducer = createReducer([], (builder) => {
-  builder
-    .addCase('ADD_TODO', (state, action) => {
-      // "mutate" the array by calling push()
+const postsSlice = createSlice({
+  name: 'posts',
+  initialState,
+  reducers: {
+    postAdded(state, action: PayloadAction<Post>) {
       state.push(action.payload)
-    })
-    .addCase('TOGGLE_TODO', (state, action) => {
-      const todo = state[action.payload.index]
-      // "mutate" the object by overwriting a field
-      todo.completed = !todo.completed
-    })
-    .addCase('REMOVE_TODO', (state, action) => {
-      // Can still return an immutably-updated value if we want to
-      return state.filter((todo, i) => i !== action.payload.index)
-    })
-})
-```
-
-The ability to "mutate" the state is especially helpful when trying to update deeply nested state. This complex and painful code:
-
-```js
-case "UPDATE_VALUE":
-  return {
-    ...state,
-    first: {
-      ...state.first,
-      second: {
-        ...state.first.second,
-        [action.someId]: {
-          ...state.first.second[action.someId],
-          fourth: action.someValue
-        }
-      }
-    }
-  }
-```
-
-Can be simplified down to just:
-
-```js
-updateValue(state, action) {
-    const {someId, someValue} = action.payload;
-    state.first.second[someId].fourth = someValue;
-}
-```
-
-Much better!
-
-### Considerations for Using `createReducer`
-
-While the Redux Toolkit `createReducer` function can be really helpful, keep in mind that:
-
-- The "mutative" code only works correctly inside of our `createReducer` function
-- Immer won't let you mix "mutating" the draft state and also returning a new state value
-
-See the [`createReducer` API reference](../api/createReducer.mdx) for more details.
-
-## Writing Action Creators
-
-Redux encourages you to [write "action creator" functions](https://blog.isquaredsoftware.com/2016/10/idiomatic-redux-why-use-action-creators/) that encapsulate the process of creating an action object. While this is not strictly required, it's a standard part of Redux usage.
-
-Most action creators are very simple. They take some parameters, and return an action object with a specific `type` field and the parameters inside the action. These parameters are typically put in a field called `payload`, which is part of the [Flux Standard Action](https://github.com/redux-utilities/flux-standard-action) convention for organizing the contents of action objects. A typical action creator might look like:
-
-```js
-function addTodo(text) {
-  return {
-    type: 'ADD_TODO',
-    payload: { text },
-  }
-}
-```
-
-### Defining Action Creators with `createAction`
-
-Writing action creators by hand can get tedious. Redux Toolkit provides a function called `createAction`, which simply generates an action creator that uses the given action type, and turns its argument into the `payload` field:
-
-```js
-const addTodo = createAction('ADD_TODO')
-addTodo({ text: 'Buy milk' })
-// {type : "ADD_TODO", payload : {text : "Buy milk"}})
-```
-
-`createAction` also accepts a "prepare callback" argument, which allows you to customize the resulting `payload` field and optionally add a `meta` field. See the [`createAction` API reference](../api/createAction.mdx#using-prepare-callbacks-to-customize-action-contents) for details on defining action creators with a prepare callback.
-
-### Using Action Creators as Action Types
-
-Redux reducers need to look for specific action types to determine how they should update their state. Normally, this is done by defining action type strings and action creator functions separately. Redux Toolkit `createAction` function make this easier, by defining the action type as a `type` field on the action creator.
-
-```js
-const actionCreator = createAction('SOME_ACTION_TYPE')
-
-console.log(actionCreator.type)
-// "SOME_ACTION_TYPE"
-
-const reducer = createReducer({}, (builder) => {
-  // if you use TypeScript, the action type will be correctly inferred
-  builder.addCase(actionCreator, (state, action) => {})
-
-  // Or, you can reference the .type field:
-  // if using TypeScript, the action type cannot be inferred that way
-  builder.addCase(actionCreator.type, (state, action) => {})
-})
-```
-
-This means you don't have to write or use a separate action type variable, or repeat the name and value of an action type like `const SOME_ACTION_TYPE = "SOME_ACTION_TYPE"`.
-
-If you want to use one of these action creators in a switch statement, you need to reference `actionCreator.type` yourself:
-
-```js
-const actionCreator = createAction('SOME_ACTION_TYPE')
-
-const reducer = (state = {}, action) => {
-  switch (action.type) {
-    // ERROR: this won't work correctly!
-    case actionCreator: {
-      break
-    }
-    // CORRECT: this will work as expected
-    case actionCreator.type: {
-      break
-    }
-  }
-}
-```
-
-## Creating Slices of State
-
-Redux state is typically organized into "slices", defined by the reducers that are passed to `combineReducers`:
-
-```js
-import { combineReducers } from 'redux'
-import usersReducer from './usersReducer'
-import postsReducer from './postsReducer'
-
-const rootReducer = combineReducers({
-  users: usersReducer,
-  posts: postsReducer,
-})
-```
-
-In this example, both `users` and `posts` would be considered "slices". Both of the reducers:
-
-- "Own" a piece of state, including what the initial value is
-- Define how that state is updated
-- Define which specific actions result in state updates
-
-The common approach is to define a slice's reducer function in its own file, and the action creators in a second file. Because both functions need to refer to the same action types, those are usually defined in a third file and imported in both places:
-
-```js
-// postsConstants.js
-const CREATE_POST = 'CREATE_POST'
-const UPDATE_POST = 'UPDATE_POST'
-const DELETE_POST = 'DELETE_POST'
-
-// postsActions.js
-import { CREATE_POST, UPDATE_POST, DELETE_POST } from './postConstants'
-
-export function addPost(id, title) {
-  return {
-    type: CREATE_POST,
-    payload: { id, title },
-  }
-}
-
-// postsReducer.js
-import { CREATE_POST, UPDATE_POST, DELETE_POST } from './postConstants'
-
-const initialState = []
-
-export default function postsReducer(state = initialState, action) {
-  switch (action.type) {
-    case CREATE_POST: {
-      // omit implementation
-    }
-    default:
-      return state
-  }
-}
-```
-
-The only truly necessary part here is the reducer itself. Consider the other parts:
-
-- We could have written the action types as inline strings in both places
-- The action creators are good, but they're not _required_ to use Redux - a component could skip supplying a `mapDispatch` argument to `connect`, and just call `this.props.dispatch({type : "CREATE_POST", payload : {id : 123, title : "Hello World"}})` itself
-- The only reason we're even writing multiple files is because it's common to separate code by what it does
-
-The ["ducks" file structure](https://github.com/erikras/ducks-modular-redux) proposes putting all of your Redux-related logic for a given slice into a single file, like this:
-
-```js
-// postsDuck.js
-const CREATE_POST = 'CREATE_POST'
-const UPDATE_POST = 'UPDATE_POST'
-const DELETE_POST = 'DELETE_POST'
-
-export function addPost(id, title) {
-  return {
-    type: CREATE_POST,
-    payload: { id, title },
-  }
-}
-
-const initialState = []
-
-export default function postsReducer(state = initialState, action) {
-  switch (action.type) {
-    case CREATE_POST: {
-      // Omit actual code
-      break
-    }
-    default:
-      return state
-  }
-}
-```
-
-That simplifies things because we don't need to have multiple files, and we can remove the redundant imports of the action type constants. But, we still have to write the action types and the action creators by hand.
-
-### Defining Functions in Objects
-
-In modern JavaScript, there are several legal ways to define both keys and functions in an object (and this isn't specific to Redux), and you can mix and match different key definitions and function definitions. For example, these are all legal ways to define a function inside an object:
-
-```js
-const keyName = "ADD_TODO4";
-
-const reducerObject = {
-	// Explicit quotes for the key name, arrow function for the reducer
-	"ADD_TODO1" : (state, action) => { }
-
-	// Bare key with no quotes, function keyword
-	ADD_TODO2 : function(state, action){  }
-
-	// Object literal function shorthand
-	ADD_TODO3(state, action) { }
-
-	// Computed property
-	[keyName] : (state, action) => { }
-}
-```
-
-Using the ["object literal function shorthand"](https://www.sitepoint.com/es6-enhanced-object-literals/) is probably the shortest code, but feel free to use whichever of those approaches you want.
-
-### Simplifying Slices with `createSlice`
-
-To simplify this process, Redux Toolkit includes a `createSlice` function that will auto-generate the action types and action creators for you, based on the names of the reducer functions you provide.
-
-Here's how that posts example would look with `createSlice`:
-
-```js
-const postsSlice = createSlice({
-  name: 'posts',
-  initialState: [],
-  reducers: {
-    createPost(state, action) {},
-    updatePost(state, action) {},
-    deletePost(state, action) {},
-  },
-})
-
-console.log(postsSlice)
-/*
-{
-    name: 'posts',
-    actions : {
-        createPost,
-        updatePost,
-        deletePost,
     },
-    reducer
-}
-*/
-
-const { createPost } = postsSlice.actions
-
-console.log(createPost({ id: 123, title: 'Hello World' }))
-// {type : "posts/createPost", payload : {id : 123, title : "Hello World"}}
-```
-
-`createSlice` looked at all of the functions that were defined in the `reducers` field, and for every "case reducer" function provided, generates an action creator that uses the name of the reducer as the action type itself. So, the `createPost` reducer became an action type of `"posts/createPost"`, and the `createPost()` action creator will return an action with that type.
-
-### Exporting and Using Slices
-
-Most of the time, you'll want to define a slice, and export its action creators and reducers. The recommended way to do this is using ES6 destructuring and export syntax:
-
-```js
-const postsSlice = createSlice({
-  name: 'posts',
-  initialState: [],
-  reducers: {
-    createPost(state, action) {},
-    updatePost(state, action) {},
-    deletePost(state, action) {},
-  },
-})
-
-// Extract the action creators object and the reducer
-const { actions, reducer } = postsSlice
-// Extract and export each action creator by name
-export const { createPost, updatePost, deletePost } = actions
-// Export the reducer, either as a default or named export
-export default reducer
-```
-
-You could also just export the slice object itself directly if you prefer.
-
-Slices defined this way are very similar in concept to the ["Redux Ducks" pattern](https://github.com/erikras/ducks-modular-redux) for defining and exporting action creators and reducers. However, there are a couple potential downsides to be aware of when importing and exporting slices.
-
-First, **Redux action types are not meant to be exclusive to a single slice**. Conceptually, each slice reducer "owns" its own piece of the Redux state, but it should be able to listen to any action type and update its state appropriately. For example, many different slices might want to respond to a "user logged out" action by clearing data or resetting back to initial state values. Keep that in mind as you design your state shape and create your slices.
-
-Second, **JS modules can have "circular reference" problems if two modules try to import each other**. This can result in imports being undefined, which will likely break the code that needs that import. Specifically in the case of "ducks" or slices, this can occur if slices defined in two different files both want to respond to actions defined in the other file.
-
-This CodeSandbox example demonstrates the problem:
-
-<iframe src="https://codesandbox.io/embed/rw7ppj4z0m/?runonclick=1" style={{ width: '100%', height: '500px', border: 0, borderRadius: '4px', overflow: 'hidden' }} sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>
-
-If you encounter this, you may need to restructure your code in a way that avoids the circular references. This will usually require extracting shared code to a separate common file that both modules can import and use. In this case, you might define some common action types in a separate file using `createAction`, import those action creators into each slice file, and handle them using the `extraReducers` argument.
-
-The article [How to fix circular dependency issues in JS](https://medium.com/visual-development/how-to-fix-nasty-circular-dependency-issues-once-and-for-all-in-javascript-typescript-a04c987cf0de) has additional info and examples that can help with this issue.
-
-## Asynchronous Logic and Data Fetching
-
-### Using Middleware to Enable Async Logic
-
-By itself, a Redux store doesn't know anything about async logic. It only knows how to synchronously dispatch actions, update the state by calling the root reducer function, and notify the UI that something has changed. Any asynchronicity has to happen outside the store.
-
-But, what if you want to have async logic interact with the store by dispatching or checking the current store state? That's where [Redux middleware](/tutorials/fundamentals/part-4-store#middleware) come in. They extend the store, and allow you to:
-
-- Execute extra logic when any action is dispatched (such as logging the action and state)
-- Pause, modify, delay, replace, or halt dispatched actions
-- Write extra code that has access to `dispatch` and `getState`
-- Teach `dispatch` how to accept other values besides plain action objects, such as functions and promises, by intercepting them and dispatching real action objects instead
-
-[The most common reason to use middleware is to allow different kinds of async logic to interact with the store](/faq/actions#how-can-i-represent-side-effects-such-as-ajax-calls-why-do-we-need-things-like-action-creators-thunks-and-middleware-to-do-async-behavior). This allows you to write code that can dispatch actions and check the store state, while keeping that logic separate from your UI.
-
-There are many kinds of async middleware for Redux, and each lets you write your logic using different syntax. The most common async middleware are:
-
-- [`redux-thunk`](https://github.com/reduxjs/redux-thunk), which lets you write plain functions that may contain async logic directly
-- [`redux-saga`](https://github.com/redux-saga/redux-saga), which uses generator functions that return descriptions of behavior so they can be executed by the middleware
-- [`redux-observable`](https://github.com/redux-observable/redux-observable/), which uses the RxJS observable library to create chains of functions that process actions
-
-[Each of these libraries has different use cases and tradeoffs](/faq/actions#what-async-middleware-should-i-use-how-do-you-decide-between-thunks-sagas-observables-or-something-else).
-
-:::tip
-
-Redux Toolkit's [**RTK Query data fetching API**](../rtk-query/overview.md) is a purpose built data fetching and caching solution for Redux apps, and can **eliminate the need to write _any_ thunks or reducers to manage data fetching**. We encourage you to try it out and see if it can help simplify the data fetching code in your own apps!
-
-:::
-
-If you do need to write data fetching logic yourself, we recommend [using the Redux Thunk middleware as the standard approach](https://github.com/reduxjs/redux-thunk), as it is sufficient for most typical use cases (such as basic AJAX data fetching). In addition, use of the `async/await` syntax in thunks makes them easier to read.
-
-**The Redux Toolkit `configureStore` function [automatically sets up the thunk middleware by default](../api/getDefaultMiddleware.mdx)**, so you can immediately start writing thunks as part of your application code.
-
-### Defining Async Logic in Slices
-
-Redux Toolkit does not currently provide any special APIs or syntax for writing thunk functions. In particular, **they cannot be defined as part of a `createSlice()` call**. You have to write them separate from the reducer logic, exactly the same as with plain Redux code.
-
-Thunks typically dispatch plain actions, such as `dispatch(dataLoaded(response.data))`.
-
-Many Redux apps have structured their code using a "folder-by-type" approach. In that structure, thunk action creators are usually defined in an "actions" file, alongside the plain action creators.
-
-Because we don't have separate "actions" files, **it makes sense to write these thunks directly in our "slice" files**. That way, they have access to the plain action creators from the slice, and it's easy to find where the thunk function lives.
-
-A typical slice file that includes thunks would look like this:
-
-```js
-// First, define the reducer and action creators via `createSlice`
-const usersSlice = createSlice({
-  name: 'users',
-  initialState: {
-    loading: 'idle',
-    users: [],
-  },
-  reducers: {
-    usersLoading(state, action) {
-      // Use a "state machine" approach for loading state instead of booleans
-      if (state.loading === 'idle') {
-        state.loading = 'pending'
-      }
-    },
-    usersReceived(state, action) {
-      if (state.loading === 'pending') {
-        state.loading = 'idle'
-        state.users = action.payload
-      }
+    postRemoved(state, action: PayloadAction<string>) {
+      return state.filter((post) => post.id !== action.payload)
     },
   },
 })
 
-// Destructure and export the plain action creators
-export const { usersLoading, usersReceived } = usersSlice.actions
-
-// Define a thunk that dispatches those action creators
-const fetchUsers = () => async (dispatch) => {
-  dispatch(usersLoading())
-  const response = await usersAPI.fetchAll()
-  dispatch(usersReceived(response.data))
-}
+// `postAdded` creates actions with type "posts/postAdded"
+export const { postAdded, postRemoved } = postsSlice.actions
+export default postsSlice.reducer
 ```
 
-### Redux Data Fetching Patterns
+Case reducers run inside [Immer](https://immerjs.github.io/immer/), so they can "mutate" the `state` argument and Immer produces a correct immutable update. They can also return a new value instead. See [Writing Reducers with Immer](./immer-reducers.md) for how this works and the rules to follow.
 
-Data fetching logic for Redux typically follows a predictable pattern:
+Export the action creators and the reducer by name, as shown above, and import them where they're needed. Two things to keep in mind when organizing slices:
 
-- A "start" action is dispatched before the request to indicate that the request is in progress. This may be used to track loading state, to allow skipping duplicate requests, or show loading indicators in the UI.
-- The async request is made
-- Depending on the request result, the async logic dispatches either a "success" action containing the result data, or a "failure" action containing error details. The reducer logic clears the loading state in both cases, and either processes the result data from the success case, or stores the error value for potential display.
+- **Action types are not exclusive to one slice.** Any slice can respond to any action via the `extraReducers` option. For example, several slices might reset their state when a `userLoggedOut` action is dispatched.
+- **Two slice files that import each other's actions create a circular import**, and one of the imports will be `undefined` at module evaluation time. If two slices need to respond to the same action, define that action in a shared file with [`createAction`](../api/createAction.mdx) and import it into both slices.
 
-These steps are not required, but are [recommended in the Redux tutorials as a suggested pattern](/tutorials/fundamentals/part-6-async-logic).
+[`createReducer`](../api/createReducer.mdx) and [`createAction`](../api/createAction.mdx) are the underlying pieces that `createSlice` uses. You can use them directly for a reducer that isn't tied to a slice, or for an action shared across slices. Action creators made by either API carry their type string as `actionCreator.type` and have a `.match()` method for type-safe checks. If you use one in a `switch` statement, compare against `actionCreator.type`, not the action creator itself:
 
-A typical implementation might look like:
+```ts
+import type { UnknownAction } from '@reduxjs/toolkit'
 
-```js
-const getRepoDetailsStarted = () => ({
-  type: 'repoDetails/fetchStarted',
-})
-const getRepoDetailsSuccess = (repoDetails) => ({
-  type: 'repoDetails/fetchSucceeded',
-  payload: repoDetails,
-})
-const getRepoDetailsFailed = (error) => ({
-  type: 'repoDetails/fetchFailed',
-  error,
-})
-const fetchIssuesCount = (org, repo) => async (dispatch) => {
-  dispatch(getRepoDetailsStarted())
-  try {
-    const repoDetails = await getRepoDetails(org, repo)
-    dispatch(getRepoDetailsSuccess(repoDetails))
-  } catch (err) {
-    dispatch(getRepoDetailsFailed(err.toString()))
+const reducer = (state = initialState, action: UnknownAction) => {
+  switch (action.type) {
+    // ❌ This is a function, not a string, and will never match
+    case postAdded:
+    // ✅ Compare against the generated type string
+    case postAdded.type: {
+      // ...
+    }
   }
 }
 ```
 
-However, writing code using this approach is tedious. Each separate type of request needs repeated similar implementation:
+## Async Logic and Data Fetching
 
-- Unique action types need to be defined for the three different cases
-- Each of those action types usually has a corresponding action creator function
-- A thunk has to be written that dispatches the correct actions in the right sequence
+A Redux store is synchronous. Any async work, such as fetching data from a server, has to happen outside the reducers and dispatch plain actions when it has results. Redux Toolkit provides several APIs for this, depending on what the async work is.
 
-`createAsyncThunk` abstracts this pattern by generating the action types and action creators and generating a thunk that dispatches those actions.
+### Fetching Server Data with RTK Query
 
-### Async Requests with `createAsyncThunk`
+For loading and caching data from a server, use [**RTK Query**](../rtk-query/overview.md). It is built into Redux Toolkit and handles the request lifecycle, caching, loading state, invalidation, and refetching for you. You define an "API slice" with endpoints, and it generates React hooks and thunks for each one, so you don't have to write thunks, reducers, or loading flags for data fetching:
 
-As a developer, you are probably most concerned with the actual logic needed to make an API request, what action type names show up in the Redux action history log, and how your reducers should process the fetched data. The repetitive details of defining the multiple action types and dispatching the actions in the right sequence aren't what matters.
+```ts
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 
-`createAsyncThunk` simplifies this process - you only need to provide a string for the action type prefix and a payload creator callback that does the actual async logic and returns a promise with the result. In return, `createAsyncThunk` will give you a thunk that will take care of dispatching the right actions based on the promise you return, and action types that you can handle in your reducers:
+interface User {
+  id: number
+  name: string
+}
 
-```js {5-11,22-25,30}
+export const usersApi = createApi({
+  reducerPath: 'usersApi',
+  baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
+  endpoints: (build) => ({
+    getUsers: build.query<User[], void>({
+      query: () => 'users',
+    }),
+  }),
+})
+
+export const { useGetUsersQuery } = usersApi
+```
+
+See the [RTK Query Quick Start](../tutorials/rtk-query.mdx) for a complete setup and [RTK Query Overview](../rtk-query/overview.md) for how it fits into a Redux app.
+
+### Other Async Logic with Thunks and `createAsyncThunk`
+
+For async logic that isn't a straightforward server request, such as chaining several dispatches, checking state before deciding what to do, or calling browser APIs, write a [thunk](/usage/writing-logic-thunks). `configureStore` includes the thunk middleware by default. Thunks are usually written in the same file as the slice whose actions they dispatch.
+
+If the thunk's job is "run a promise and record its pending, fulfilled, and rejected result in the store", use [`createAsyncThunk`](../api/createAsyncThunk.mdx). It generates the three lifecycle action types and a thunk that dispatches them around your promise:
+
+```ts
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import { userAPI } from './userAPI'
+import type { User } from './types'
 
-// First, create the thunk
-const fetchUserById = createAsyncThunk(
-  'users/fetchByIdStatus',
-  async (userId, thunkAPI) => {
+export const fetchUserById = createAsyncThunk(
+  'users/fetchById',
+  async (userId: number) => {
     const response = await userAPI.fetchById(userId)
     return response.data
   },
 )
 
-// Then, handle actions in your reducers:
 const usersSlice = createSlice({
   name: 'users',
-  initialState: { entities: [], loading: 'idle' },
-  reducers: {
-    // standard reducer logic, with auto-generated action types per reducer
-  },
+  initialState: { entities: [] as User[], loading: 'idle' as 'idle' | 'pending' },
+  reducers: {},
   extraReducers: (builder) => {
-    // Add reducers for additional action types here, and handle loading state as needed
-    builder.addCase(fetchUserById.fulfilled, (state, action) => {
-      // Add user to the state array
-      state.entities.push(action.payload)
-    })
+    builder
+      .addCase(fetchUserById.pending, (state) => {
+        state.loading = 'pending'
+      })
+      .addCase(fetchUserById.fulfilled, (state, action) => {
+        state.loading = 'idle'
+        state.entities.push(action.payload)
+      })
   },
 })
 
-// Later, dispatch the thunk as needed in the app
+// Later, in a component or another thunk:
 dispatch(fetchUserById(123))
 ```
 
-The thunk action creator accepts a single argument, which will be passed as the first argument to your payload creator callback.
+The payload creator receives the thunk argument and a `thunkAPI` object with `dispatch`, `getState`, `extra`, `requestId`, `signal`, and `rejectWithValue`. The [`createAsyncThunk` API reference](../api/createAsyncThunk.mdx) covers error handling, cancellation, and conditional execution.
 
-The payload creator will also receive a `thunkAPI` object containing the parameters that are normally passed to a standard Redux thunk function, as well as an auto-generated unique random request ID string and an [`AbortController.signal` object](https://developer.mozilla.org/en-US/docs/Web/API/AbortController/signal):
+### Reacting to Actions with the Listener Middleware
 
-```ts
-interface ThunkAPI {
-  dispatch: Function
-  getState: Function
-  extra?: any
-  requestId: string
-  signal: AbortSignal
-}
-```
-
-You can use any of these as needed inside the payload callback to determine what the final result should be.
+[`createListenerMiddleware`](../api/createListenerMiddleware.mdx) runs logic in response to dispatched actions or state changes, outside of components and reducers. It's a lightweight alternative to sagas and observables for workflows like "when this action is dispatched, wait for that one, then do something", debouncing, or side effects that don't belong in a component. See the [listener middleware API reference](../api/createListenerMiddleware.mdx) for usage patterns and [Side Effects Approaches](/usage/side-effects-approaches) for how it compares to the other options.
 
 ## Managing Normalized Data
 
-Most applications typically deal with data that is deeply nested or relational. The goal of normalizing data is to efficiently organize the data in your state. This is typically done by storing collections as objects with the key of an `id`, while storing a sorted array of those `ids`. For a more in-depth explanation and further examples, there is a great reference in the [Redux docs page on "Normalizing State Shape"](/usage/structuring-reducers/normalizing-state-shape).
+Relational or nested data is usually easiest to work with in a Redux store when it's [normalized](/usage/structuring-reducers/normalizing-state-shape): each type of item is stored in a lookup table keyed by ID, along with an array of IDs for ordering. Redux Toolkit's [`createEntityAdapter`](../api/createEntityAdapter.mdx) implements that `{ ids: [], entities: {} }` shape and generates reducer functions and selectors that work with it.
 
-### Normalizing by hand
-
-Normalizing data doesn't require any special libraries. Here's a basic example of how you might normalize the response from a `fetchAll` API request that returns data in the shape of `{ users: [{id: 1, first_name: 'normalized', last_name: 'person'}] }`, using some hand-written logic:
-
-```js
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import userAPI from './userAPI'
-
-export const fetchUsers = createAsyncThunk('users/fetchAll', async () => {
-  const response = await userAPI.fetchAll()
-  return response.data
-})
-
-export const slice = createSlice({
-  name: 'users',
-  initialState: {
-    ids: [],
-    entities: {},
-  },
-  reducers: {},
-  extraReducers: (builder) => {
-    builder.addCase(fetchUsers.fulfilled, (state, action) => {
-      // reduce the collection by the id property into a shape of { 1: { ...user }}
-      const byId = action.payload.users.reduce((byId, user) => {
-        byId[user.id] = user
-        return byId
-      }, {})
-      state.entities = byId
-      state.ids = Object.keys(byId)
-    })
-  },
-})
-```
-
-Although we're capable of writing this code, it does become repetitive, especially if you're handling multiple types of data. In addition, this example only handles loading entries into the state, not updating them.
-
-### Normalizing with `normalizr`
-
-[`normalizr`](https://github.com/paularmstrong/normalizr) is a popular existing library for normalizing data. You can use it on its own without Redux, but it is very commonly used with Redux. The typical usage is to format collections from an API response and then process them in your reducers.
-
-```js
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import { normalize, schema } from 'normalizr'
-
-import userAPI from './userAPI'
-
-const userEntity = new schema.Entity('users')
-
-export const fetchUsers = createAsyncThunk('users/fetchAll', async () => {
-  const response = await userAPI.fetchAll()
-  // Normalize the data before passing it to our reducer
-  const normalized = normalize(response.data, [userEntity])
-  return normalized.entities
-})
-
-export const slice = createSlice({
-  name: 'users',
-  initialState: {
-    ids: [],
-    entities: {},
-  },
-  reducers: {},
-  extraReducers: (builder) => {
-    builder.addCase(fetchUsers.fulfilled, (state, action) => {
-      state.entities = action.payload.users
-      state.ids = Object.keys(action.payload.users)
-    })
-  },
-})
-```
-
-As with the hand-written version, this doesn't handle adding additional entries into the state, or updating them later - it's just loading in everything that was received.
-
-### Normalizing with `createEntityAdapter`
-
-Redux Toolkit's `createEntityAdapter` API provides a standardized way to store your data in a slice by taking a collection and putting it into the shape of `{ ids: [], entities: {} }`. Along with this predefined state shape, it generates a set of reducer functions and selectors that know how to work with the data.
-
-```js
+```ts
 import {
   createSlice,
   createAsyncThunk,
   createEntityAdapter,
 } from '@reduxjs/toolkit'
-import userAPI from './userAPI'
+import type { RootState } from '../../app/store'
+import { userAPI } from './userAPI'
+
+interface User {
+  id: number
+  first_name: string
+  last_name: string
+}
 
 export const fetchUsers = createAsyncThunk('users/fetchAll', async () => {
   const response = await userAPI.fetchAll()
-  // In this case, `response.data` would be:
-  // [{id: 1, first_name: 'Example', last_name: 'User'}]
+  // response.data is User[]
   return response.data
 })
 
-export const updateUser = createAsyncThunk('users/updateOne', async (arg) => {
-  const response = await userAPI.updateUser(arg)
-  // In this case, `response.data` would be:
-  // { id: 1, first_name: 'Example', last_name: 'UpdatedLastName'}
-  return response.data
+export const updateUser = createAsyncThunk(
+  'users/updateOne',
+  async (arg: Partial<User> & { id: number }) => {
+    const response = await userAPI.updateUser(arg)
+    return response.data
+  },
+)
+
+const usersAdapter = createEntityAdapter<User>({
+  // Sort the `ids` array by last name. Omit `sortComparer` to keep insertion order.
+  sortComparer: (a, b) => a.last_name.localeCompare(b.last_name),
 })
 
-export const usersAdapter = createEntityAdapter()
-
-// By default, `createEntityAdapter` gives you `{ ids: [], entities: {} }`.
-// If you want to track 'loading' or other keys, you would initialize them here:
-// `getInitialState({ loading: false, activeRequestId: null })`
-const initialState = usersAdapter.getInitialState()
-
-export const slice = createSlice({
+// `getInitialState` returns `{ ids: [], entities: {} }`.
+// Pass an object to add extra fields: `getInitialState({ loading: 'idle' })`
+const usersSlice = createSlice({
   name: 'users',
-  initialState,
+  initialState: usersAdapter.getInitialState(),
   reducers: {
-    removeUser: usersAdapter.removeOne,
+    // Adapter functions can be used directly as case reducers...
+    userRemoved: usersAdapter.removeOne,
   },
   extraReducers: (builder) => {
     builder.addCase(fetchUsers.fulfilled, usersAdapter.upsertMany)
-    builder.addCase(updateUser.fulfilled, (state, { payload }) => {
-      const { id, ...changes } = payload
+    // ...or called inside a case reducer as "mutating" helpers
+    builder.addCase(updateUser.fulfilled, (state, action) => {
+      const { id, ...changes } = action.payload
       usersAdapter.updateOne(state, { id, changes })
     })
   },
 })
 
-const reducer = slice.reducer
-export default reducer
+export const { userRemoved } = usersSlice.actions
+export default usersSlice.reducer
 
-export const { removeUser } = slice.actions
-```
-
-You can [view the full code of this example usage on CodeSandbox](https://codesandbox.io/s/rtk-entities-basic-example-1xubt)
-
-### Using `createEntityAdapter` with Normalization Libraries
-
-If you're already using `normalizr` or another normalization library, you could consider using it along with `createEntityAdapter`. To expand on the examples above, here is a demonstration of how we could use `normalizr` to format a payload, then leverage the utilities `createEntityAdapter` provides.
-
-By default, the `setAll`, `addMany`, and `upsertMany` CRUD methods expect an array of entities. However, they also allow you to pass in an object that is in the shape of `{ 1: { id: 1, ... }}` as an alternative, which makes it easier to insert pre-normalized data.
-
-```js
-// features/articles/articlesSlice.js
-import {
-  createSlice,
-  createEntityAdapter,
-  createAsyncThunk,
-  createSelector,
-} from '@reduxjs/toolkit'
-import fakeAPI from '../../services/fakeAPI'
-import { normalize, schema } from 'normalizr'
-
-// Define normalizr entity schemas
-export const userEntity = new schema.Entity('users')
-export const commentEntity = new schema.Entity('comments', {
-  commenter: userEntity,
-})
-export const articleEntity = new schema.Entity('articles', {
-  author: userEntity,
-  comments: [commentEntity],
-})
-
-const articlesAdapter = createEntityAdapter()
-
-export const fetchArticle = createAsyncThunk(
-  'articles/fetchArticle',
-  async (id) => {
-    const data = await fakeAPI.articles.show(id)
-    // Normalize the data so reducers can load a predictable payload, like:
-    // `action.payload = { users: {}, articles: {}, comments: {} }`
-    const normalized = normalize(data, articleEntity)
-    return normalized.entities
-  }
-)
-
-export const slice = createSlice({
-  name: 'articles',
-  initialState: articlesAdapter.getInitialState(),
-  reducers: {},
-  extraReducers: (builder) => {
-    builder.addCase(fetchArticle.fulfilled, (state, action) => {
-      // Handle the fetch result by inserting the articles here
-      articlesAdapter.upsertMany(state, action.payload.articles)
-    })
-  },
-})
-
-const reducer = slice.reducer
-export default reducer
-
-// features/users/usersSlice.js
-
-import { createSlice, createEntityAdapter } from '@reduxjs/toolkit'
-import { fetchArticle } from '../articles/articlesSlice'
-
-const usersAdapter = createEntityAdapter()
-
-export const slice = createSlice({
-  name: 'users',
-  initialState: usersAdapter.getInitialState(),
-  reducers: {},
-  extraReducers: (builder) => {
-    builder.addCase(fetchArticle.fulfilled, (state, action) => {
-      // And handle the same fetch result by inserting the users here
-      usersAdapter.upsertMany(state, action.payload.users)
-    })
-  },
-})
-
-const reducer = slice.reducer
-export default reducer
-
-// features/comments/commentsSlice.js
-
-import { createSlice, createEntityAdapter } from '@reduxjs/toolkit'
-import { fetchArticle } from '../articles/articlesSlice'
-
-const commentsAdapter = createEntityAdapter()
-
-export const slice = createSlice({
-  name: 'comments',
-  initialState: commentsAdapter.getInitialState(),
-  reducers: {},
-  extraReducers: (builder) => {
-    builder.addCase(fetchArticle.fulfilled, (state, action) => {
-      // Same for the comments
-      commentsAdapter.upsertMany(state, action.payload.comments)
-    })
-  },
-})
-
-const reducer = slice.reducer
-export default reducer
-```
-
-You can [view the full code of this example `normalizr` usage on CodeSandbox](https://codesandbox.io/s/rtk-entities-basic-example-with-normalizr-bm3ie)
-
-### Using selectors with `createEntityAdapter`
-
-The entity adapter provides a selector factory that generates the most common selectors for you. Taking the examples above, we can add selectors to our `usersSlice` like this:
-
-```js
-// Rename the exports for readability in component usage
+// `getSelectors` generates memoized selectors for the entity state.
+// Rename them for readability when used in components.
 export const {
+  selectAll: selectAllUsers,
   selectById: selectUserById,
   selectIds: selectUserIds,
-  selectEntities: selectUserEntities,
-  selectAll: selectAllUsers,
   selectTotal: selectTotalUsers,
-} = usersAdapter.getSelectors((state) => state.users)
+} = usersAdapter.getSelectors((state: RootState) => state.users)
 ```
 
-You could then use these selectors in a component like this:
+If your items don't use an `id` field, pass a `selectId` option: `createEntityAdapter<User>({ selectId: (user) => user.idx })`.
 
-```js
-import React from 'react'
-import { useSelector } from 'react-redux'
-import { selectTotalUsers, selectAllUsers } from './usersSlice'
+The adapter's `setAll`, `addMany`, and `upsertMany` functions accept either an array of items or an object already keyed by ID, so if you normalize an API response before it reaches the reducer (for example, with `normalizr` or by hand in a thunk), you can pass the result straight through. Several slices can each pick their own entity type out of the same fulfilled action's payload.
 
-import styles from './UsersList.module.css'
-
-export function UsersList() {
-  const count = useSelector(selectTotalUsers)
-  const users = useSelector(selectAllUsers)
-
-  return (
-    <div>
-      <div className={styles.row}>
-        There are <span className={styles.value}>{count}</span> users.{' '}
-        {count === 0 && `Why don't you fetch some more?`}
-      </div>
-      {users.map((user) => (
-        <div key={user.id}>
-          <div>{`${user.first_name} ${user.last_name}`}</div>
-        </div>
-      ))}
-    </div>
-  )
-}
-```
-
-### Specifying Alternate ID Fields
-
-By default, `createEntityAdapter` assumes that your data has unique IDs in an `entity.id` field. If your data set stores its ID in a different field, you can pass in a `selectId` argument that returns the appropriate field.
-
-```js
-// In this instance, our user data always has a primary key of `idx`
-const userData = {
-  users: [
-    { idx: 1, first_name: 'Test' },
-    { idx: 2, first_name: 'Two' },
-  ],
-}
-
-// Since our primary key is `idx` and not `id`,
-// pass in an ID selector to return that field instead
-export const usersAdapter = createEntityAdapter({
-  selectId: (user) => user.idx,
-})
-```
-
-### Sorting Entities
-
-`createEntityAdapter` provides a `sortComparer` argument that you can leverage to sort the collection of `ids` in state. This can be very useful for when you want to guarantee a sort order and your data doesn't come presorted.
-
-```js
-// In this instance, our user data always has a primary key of `id`, so we do not need to provide `selectId`.
-const userData = {
-  users: [
-    { id: 1, first_name: 'Test' },
-    { id: 2, first_name: 'Banana' },
-  ],
-}
-
-// Sort by `first_name`. `state.ids` would be ordered as
-// `ids: [ 2, 1 ]`, since 'B' comes before 'T'.
-// When using the provided `selectAll` selector, the result would be sorted:
-// [{ id: 2, first_name: 'Banana' }, { id: 1, first_name: 'Test' }]
-export const usersAdapter = createEntityAdapter({
-  sortComparer: (a, b) => a.first_name.localeCompare(b.first_name),
-})
-```
+Note that the adapter's `updateOne`, `updateMany`, `upsertOne`, and `upsertMany` functions do shallow merges: a nested object in the incoming change replaces the whole existing nested object. They work best with flat, normalized items. See the [`createEntityAdapter` API reference](../api/createEntityAdapter.mdx) for the full list of CRUD functions and options, and [Redux Essentials, Part 6](/tutorials/essentials/part-6-performance-normalization) for a worked example.
 
 ## Working with Non-Serializable Data
 
@@ -1017,7 +268,7 @@ One of the core usage principles for Redux is that [you should not put non-seria
 
 However, like most rules, there are exceptions. There may be occasions when you have to deal with actions that need to accept non-serializable data. This should be done very rarely and only if necessary, and these non-serializable payloads shouldn't ever make it into your application state through a reducer.
 
-The [serializability dev check middleware](../api/serializabilityMiddleware.mdx) will automatically warn anytime it detects non-serializable values in your actions or state. We encourage you to leave this middleware active to help avoid accidentally making mistakes. However, if you _do_ need to turnoff those warnings, you can customize the middleware by configuring it to ignore specific action types, or fields in actions and state:
+The [serializability dev check middleware](../api/serializabilityMiddleware.mdx) will automatically warn anytime it detects non-serializable values in your actions or state. We encourage you to leave this middleware active to help avoid accidentally making mistakes. However, if you _do_ need to turn off those warnings, you can customize the middleware by configuring it to ignore specific action types, or fields in actions and state:
 
 ```js
 configureStore({
