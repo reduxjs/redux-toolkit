@@ -1036,7 +1036,17 @@ configureStore({
 })
 ```
 
+### Persistence Libraries
+
+Persistence libraries are a common source of non-serializable values, because they dispatch their own actions and some of them store values like timestamps or `Promise`s in the store. The examples below show how to configure the serializability check for the most common cases. They are configuration examples, not endorsements of any particular library.
+
 ### Use with Redux-Persist
+
+:::info
+
+[Redux-Persist](https://github.com/rt2zz/redux-persist) has been the most widely used persistence library for Redux, and it still works. However, its last release was v6.0.0 in 2019 and the repository has had no commits since 2021, so it is effectively unmaintained. If you're choosing a persistence library for a new project, also look at [`redux-remember`](https://github.com/zewish/redux-remember), which is actively maintained, persists selected slices to a key-value storage driver of your choice, is tested against Redux 5 and Redux Toolkit 2, and integrates as a store enhancer via `configureStore`'s `enhancers` option without needing any serializability check configuration.
+
+:::
 
 If using Redux-Persist, you should specifically ignore all the action types it dispatches:
 
