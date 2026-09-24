@@ -1,22 +1,57 @@
+# The Redux Toolkit docs are published as part of the combined Redux docs site
+# (https://redux.js.org/toolkit). Deploy previews clone the core `redux`
+# repo and build that site with this checkout's `docs/` folder in place of the
+# published Redux Toolkit docs, so a docs PR here previews the pages as they
+# will appear on redux.js.org.
+
 [build]
-base = "website"
-publish = "build"
-command = "pushd ../packages/toolkit && pnpm build && popd && pnpm run netlify-build && ls  && cp _redirects ./build"
-ignore = "git diff --quiet HEAD^ HEAD docs website"
+base = ""
+publish = ".combined/redux/website/build"
+# Fetch into an existing directory (rather than `git clone`) so the cache
+# plugin can restore Docusaurus's node_modules/.cache into it first.
+# Build the package first: fetch-docs links packages/toolkit/dist into the
+# combined site, so code blocks type-check against this branch rather than
+# the published @reduxjs/toolkit.
+command = """
+    pnpm install --frozen-lockfile &&
+    (cd packages/toolkit && pnpm build) &&
+    mkdir -p .combined/redux && cd .combined/redux &&
+    git init -q && (git remote add origin https://github.com/reduxjs/redux.git 2>/dev/null || true) &&
+    git fetch -q --depth 1 origin combined-docs-prototype && git checkout -q -f FETCH_HEAD &&
+    cd docs && pnpm install --frozen-lockfile &&
+    cd ../website && pnpm install --frozen-lockfile &&
+    DOCS_SOURCE_REDUX_TOOLKIT="$(cd ../../.. && pwd)" pnpm fetch-docs --force &&
+    pnpm build && cp _redirects ./build
+  """
+# Skip the build when nothing the combined site reads from this repo changed.
+ignore = "[ \"$CACHED_COMMIT_REF\" = \"$COMMIT_REF\" ] && exit 1; git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- docs/ packages/toolkit/src/ errors.json netlify.toml"
 
 [build.environment]
-NODE_VERSION = "24"
+# pnpm 11 requires Node 22.13 or newer.
+NODE_VERSION = "22"
 NODE_OPTIONS = "--max_old_space_size=4096"
-# Netlify detects pnpm from `pnpm-lock.yaml`; this makes the choice explicit.
-# There is no `PNPM_VERSION` counterpart to `YARN_VERSION` — Netlify's build
-# image runs Corepack, which reads the version from the root `packageManager`
-# field, so the version is pinned in `package.json` instead of here.
+# Netlify detects pnpm from the lockfile; Corepack reads the version from
+# `packageManager` in package.json.
 NETLIFY_USE_PNPM = "true"
+# Branches in the other library repos that carry the combined-site cleanup.
+# Switch back to "master" once those PRs merge.
+DOCS_REF_REACT_REDUX = "combined-docs"
+DOCS_REF_RESELECT = "combined-docs"
+
+# Until the combined site is live, production deploys of redux-toolkit.js.org
+# skip the build and keep the last published deploy, so merging this branch
+# early cannot replace the current site. At cutover, replace this block with
+# the redirect-only block below.
+[context.production]
+ignore = "exit 0"
+
+# At cutover: production deploys only publish redirects to redux.js.org.
+# [context.production]
+#   publish = "redirect-only"
+#   command = "mkdir -p redirect-only && printf '/*  https://redux.js.org/toolkit/:splat  301\\n' > redirect-only/_redirects"
+#   ignore  = "exit 1"
 
 [[plugins]]
 package = "netlify-plugin-cache"
 [plugins.inputs]
-# `.yarn/.cache` is gone with Yarn. pnpm's content-addressable store lives
-# outside the repository (`~/.local/share/pnpm/store` on Linux), and this plugin
-# caches repo-relative paths, so there is nothing to put in its place.
-paths = ["node_modules/.cache", "website/node_modules/.cache"]
+paths = [".combined/redux/website/node_modules/.cache"]

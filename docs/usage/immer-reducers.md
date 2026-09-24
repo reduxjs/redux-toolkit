@@ -141,7 +141,7 @@ function handwrittenReducer(state, action) {
 
 However, if you're thinking that "writing immutable updates by hand this way looks hard to remember and do correctly"... yeah, you're right! :)
 
-Writing immutable update logic by hand _is_ hard, and **accidentally mutating state in reducers is the single most common mistake Redux users make**.
+Writing immutable update logic by hand _is_ hard, and **accidentally mutating state in reducers is the single most common mistake Redux users make**. If you do need to write updates by hand, [Immutable Update Patterns](/usage/structuring-reducers/immutable-update-patterns) covers the correct patterns for nested objects and arrays and the mistakes that most often cause accidental mutations.
 
 ## Immutable Updates with Immer
 
@@ -248,11 +248,11 @@ const todosSlice = createSlice({
       // "Mutate" the existing state, no return value needed
       state.push(action.payload)
     },
-    todoDeleted(state, action.payload) {
+    todoDeleted(state, action) {
       // Construct a new result array immutably and return it
-      return state.filter(todo => todo.id !== action.payload)
-    }
-  }
+      return state.filter((todo) => todo.id !== action.payload)
+    },
+  },
 })
 ```
 
@@ -261,15 +261,15 @@ However, it _is_ possible to use immutable updates to do part of the work and th
 ```js
 const todosSlice = createSlice({
   name: 'todos',
-  initialState: {todos: [], status: 'idle'}
+  initialState: { todos: [], status: 'idle' },
   reducers: {
-    todoDeleted(state, action.payload) {
+    todoDeleted(state, action) {
       // Construct a new array immutably
-      const newTodos = state.todos.filter(todo => todo.id !== action.payload)
+      const newTodos = state.todos.filter((todo) => todo.id !== action.payload)
       // "Mutate" the existing state to save the new array
       state.todos = newTodos
-    }
-  }
+    },
+  },
 })
 ```
 
@@ -363,7 +363,7 @@ const todosSlice = createSlice({
 
 It's common to want to log in-progress state from a reducer to see what it looks like as it's being updated, like `console.log(state)`. Unfortunately, browsers display logged Proxy instances in a format that is hard to read or understand:
 
-![Logged proxy draft](/img/usage/immer-reducers/logged-proxy.png)
+![Logged proxy draft](../assets/usage/immer-reducers/logged-proxy.png)
 
 To work around this, [Immer includes a `current` function that extracts a copy of the wrapped data](https://immerjs.github.io/immer/current), and RTK re-exports `current`. You can use this in your reducers if you need to log or inspect the work-in-progress state:
 
@@ -386,7 +386,7 @@ const todosSlice = createSlice({
 
 The correct output would look like this instead:
 
-![Logged current value](/img/usage/immer-reducers/logged-current-state.png)
+![Logged current value](../assets/usage/immer-reducers/logged-current-state.png)
 
 Immer also provides [`original` and `isDraft` functions](https://immerjs.github.io/immer/original), which retrieves the original data without any updates applied and check to see if a given value is a Proxy-wrapped draft. As of RTK 1.5.1, both of those are re-exported from RTK as well.
 
@@ -480,9 +480,9 @@ It's worth going over the reasons why we consider Immer to be a critical part of
 
 ### Benefits of Immer
 
-Immer has two primary benefits. First, **Immer drastically simplifies immutable update logic**. [Proper immutable updates are extremely verbose](https://redux.js.org/usage/structuring-reducers/immutable-update-patterns#updating-nested-objects). Those verbose operations are hard to read overall, and also obfuscate what the actual intent of the update statement is. Immer eliminates all the nested spreads and array slices. Not only is the code shorter and easier to read, it's much more clear what actual update is supposed to happen.
+Immer has two primary benefits. First, **Immer drastically simplifies immutable update logic**. [Proper immutable updates are extremely verbose](/usage/structuring-reducers/immutable-update-patterns#updating-nested-objects). Those verbose operations are hard to read overall, and also obfuscate what the actual intent of the update statement is. Immer eliminates all the nested spreads and array slices. Not only is the code shorter and easier to read, it's much more clear what actual update is supposed to happen.
 
-Second, [writing immutable updates correctly is _hard_](https://redux.js.org/usage/structuring-reducers/immutable-update-patterns), and it is really easy to make mistakes (like forgetting to copy a level of nesting in a set of object spreads, copying a top-level array and not the item to be updated inside the array, or forgetting that `array.sort()` mutates the array). This is part of why [accidental mutations has always been the most common cause of Redux bugs](https://redux.js.org/faq/react-redux#why-isnt-my-component-re-rendering-or-my-mapstatetoprops-running). **Immer effectively _eliminates_ accidental mutations**. Not only are there no more spread operations that can be mis-written, but Immer freezes state automatically as well. This causes errors to be thrown if you do accidentally mutate, even outside of a reducer. **Eliminating the #1 cause of Redux bugs is a _huge_ improvement.**
+Second, [writing immutable updates correctly is _hard_](/usage/structuring-reducers/immutable-update-patterns), and it is really easy to make mistakes (like forgetting to copy a level of nesting in a set of object spreads, copying a top-level array and not the item to be updated inside the array, or forgetting that `array.sort()` mutates the array). This is part of why [accidental mutations has always been the most common cause of Redux bugs](/faq/react-redux#why-isnt-my-component-re-rendering). **Immer effectively _eliminates_ accidental mutations**. Not only are there no more spread operations that can be mis-written, but Immer freezes state automatically as well. This causes errors to be thrown if you do accidentally mutate, even outside of a reducer. **Eliminating the #1 cause of Redux bugs is a _huge_ improvement.**
 
 Additionally, RTK Query uses Immer's patch capabilities to enable [optimistic updates and manual cache updates](../rtk-query/usage/manual-cache-updates.mdx) as well.
 
@@ -500,7 +500,7 @@ The most realistic pain point with using Immer is that browser debuggers show Pr
 
 Another issue is education and understanding. Redux has always required immutability in reducers, and so seeing "mutating" code can be confusing. It's certainly possible that new Redux users might see those "mutations" in example code, assume that it's normal for Redux usage, and later try to do the same thing outside of `createSlice`. This would indeed cause real mutations and bugs, because it's outside of Immer's ability to wrap the updates.
 
-We've addressed this by [repeatedly emphasizing the important of immutability throughout our docs](https://redux.js.org/tutorials/essentials/part-1-overview-concepts#immutability), including multiple highlighted sections emphasizing that [the "mutations" only work right thanks to Immer's "magic" inside](https://redux.js.org/tutorials/essentials/part-2-app-structure#reducers-and-immutable-updates) and adding this specific docs page you're reading now.
+We've addressed this by [repeatedly emphasizing the important of immutability throughout our docs](/tutorials/essentials/part-1-overview-concepts#immutability), including multiple highlighted sections emphasizing that [the "mutations" only work right thanks to Immer's "magic" inside](/tutorials/essentials/part-2-app-structure#reducers-and-immutable-updates) and adding this specific docs page you're reading now.
 
 ### Architecture and Intent
 

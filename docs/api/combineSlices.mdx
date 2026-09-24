@@ -110,7 +110,7 @@ interface CombinedSliceReducer<InitialState, DeclaredState = InitialState>
 
 ### `withLazyLoadedSlices`
 
-It's recommended to [infer your RootState type from your store](https://redux.js.org/usage/usage-with-typescript#define-root-state-and-dispatch-types), which is inferred from the reducer. However, this can present issues if slices are lazy loaded, and thus not able to be inferred from.
+It's recommended to [infer your RootState type from your store](/usage/usage-with-typescript#define-root-state-and-dispatch-types), which is inferred from the reducer. However, this can present issues if slices are lazy loaded, and thus not able to be inferred from.
 
 `withLazyLoadedSlices` allows you to declare slices that will be added to state later, which will be included in the final state type.
 

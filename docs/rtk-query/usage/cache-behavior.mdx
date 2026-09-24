@@ -399,7 +399,7 @@ Each of these query results would include a Todo object that looks like `{id: 1}
 
 In a fully normalized de-duplicating cache, only a single copy of this Todo object would be stored. However, RTK Query saves each query result independently in the cache. So, this would result in three separate copies of this Todo being cached in the Redux store. However, if all the endpoints are consistently providing the same tags (such as `{type: 'Todo', id: 1}`), then invalidating that tag will force all the matching endpoints to refetch their data for consistency.
 
-The Redux docs have always recommended [keeping data in a normalized lookup table](https://redux.js.org/recipes/structuring-reducers/normalizing-state-shape) to enable easily finding items by ID and updating them in the store, and [RTK's `createEntityAdapter`](../../api/createEntityAdapter.mdx) was designed to help manage normalized state. Those concepts are still valuable and don't go away. However, if you're using RTK Query to manage caching data, there's less need to manipulate the data that way yourself.
+The Redux docs have always recommended [keeping data in a normalized lookup table](/usage/structuring-reducers/normalizing-state-shape) to enable easily finding items by ID and updating them in the store, and [RTK's `createEntityAdapter`](../../api/createEntityAdapter.mdx) was designed to help manage normalized state. Those concepts are still valuable and don't go away. However, if you're using RTK Query to manage caching data, there's less need to manipulate the data that way yourself.
 
 There are a couple additional points that can help here:
 

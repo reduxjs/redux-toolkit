@@ -5,8 +5,6 @@ sidebar_label: Getting Started
 hide_title: true
 ---
 
-import LiteYouTubeEmbed from 'react-lite-youtube-embed';
-import 'react-lite-youtube-embed/dist/LiteYouTubeEmbed.css'
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
@@ -16,7 +14,7 @@ import TabItem from '@theme/TabItem';
 
 ## Purpose
 
-The **Redux Toolkit** package is intended to be the standard way to write [Redux](https://redux.js.org) logic. It was originally created to help address three common concerns about Redux:
+The **Redux Toolkit** package is intended to be the standard way to write [Redux](/) logic. It was originally created to help address three common concerns about Redux:
 
 - "Configuring a Redux store is too complicated"
 - "I have to add a lot of packages to get Redux to do anything useful"
@@ -164,7 +162,7 @@ Redux Toolkit includes these APIs:
 
 [**RTK Query**](../rtk-query/overview.md) is provided as an optional addon within the `@reduxjs/toolkit` package. It is purpose-built to solve the use case of data fetching and caching, supplying a compact, but powerful toolset to define an API interface layer for your app. It is intended to simplify common cases for loading data in a web application, eliminating the need to hand-write data fetching & caching logic yourself.
 
-RTK Query is built on top of the Redux Toolkit core for its implementation, using [Redux](https://redux.js.org/) internally for its architecture. Although knowledge of Redux and RTK are not required to use RTK Query, you should explore all of the additional global store management capabilities they provide, as well as installing the [Redux DevTools browser extension](https://github.com/reduxjs/redux-devtools), which works flawlessly with RTK Query to traverse and replay a timeline of your request & cache behavior.
+RTK Query is built on top of the Redux Toolkit core for its implementation, using [Redux](/) internally for its architecture. Although knowledge of Redux and RTK are not required to use RTK Query, you should explore all of the additional global store management capabilities they provide, as well as installing the [Redux DevTools browser extension](https://github.com/reduxjs/redux-devtools), which works flawlessly with RTK Query to traverse and replay a timeline of your request & cache behavior.
 
 RTK Query is included within the installation of the core Redux Toolkit package. It is available via either of the two entry points below:
 
@@ -189,29 +187,4 @@ See the [**RTK Query Overview**](../rtk-query/overview.md) page for more details
 
 ## Learn Redux
 
-We have a variety of resources available to help you learn Redux.
-
-### Redux Essentials Tutorial
-
-The [**Redux Essentials tutorial**](https://redux.js.org/tutorials/essentials/part-1-overview-concepts) is a "top-down" tutorial that teaches "how to use Redux the right way", using our latest recommended APIs and best practices. We recommend starting there.
-
-### Redux Fundamentals Tutorial
-
-The [**Redux Fundamentals tutorial**](https://redux.js.org/tutorials/fundamentals/part-1-overview) is a "bottom-up" tutorial that teaches "how Redux works" from first principles and without any abstractions, and why standard Redux usage patterns exist.
-
-### Learn Modern Redux Livestream
-
-Redux maintainer Mark Erikson appeared on the "Learn with Jason" show to explain how we recommend using Redux today. The show includes a live-coded example app that shows how to use Redux Toolkit and React-Redux hooks with TypeScript, as well as the new RTK Query data fetching APIs.
-
-See [the "Learn Modern Redux" show notes page](https://www.learnwithjason.dev/let-s-learn-modern-redux) for a transcript and links to the example app source.
-
-<LiteYouTubeEmbed 
-    id="9zySeP5vH9c"
-    title="Learn Modern Redux - Redux Toolkit, React-Redux Hooks, and RTK Query"
-/>
-
-## Help and Discussion
-
-The **[#redux channel](https://discord.gg/0ZcbPKXt5bZ6au5t)** of the **[Reactiflux Discord community](https://www.reactiflux.com)** is our official resource for all questions related to learning and using Redux. Reactiflux is a great place to hang out, ask questions, and learn - come join us!
-
-You can also ask questions on [Stack Overflow](https://stackoverflow.com) using the **[#redux tag](https://stackoverflow.com/questions/tagged/redux)**.
+To learn how to use Redux Toolkit, start with the [**Redux Quick Start**](/tutorials/quick-start), then work through the [**Redux Essentials tutorial**](/tutorials/essentials/part-1-overview-concepts). The [**Tutorials Index**](/tutorials/index) lists all of the tutorials and video resources, and the [**Getting Started with Redux**](/introduction/getting-started) page has links for help and discussion.

@@ -1,6 +1,23 @@
-import type { SidebarsConfig } from '@docusaurus/plugin-content-docs'
+// Sidebar for the Redux Toolkit docs on the combined Redux docs site
+// (https://redux.js.org/toolkit). The site's docs plugin instance for this
+// library reads this file. It has no imports because it is loaded from a copy of
+// this folder inside the redux repo's website build.
 
-const sidebars: SidebarsConfig = {
+// The subset of Docusaurus's `SidebarsConfig` type that this file uses. The
+// site build validates the full sidebar schema and that every doc id exists.
+type SidebarItem =
+  | string
+  | { type: 'doc'; id: string; label?: string }
+  | { type: 'link'; label: string; href: string }
+  | {
+      type: 'category'
+      label: string
+      collapsed?: boolean
+      collapsible?: boolean
+      items: SidebarItem[]
+    }
+
+const sidebars = {
   docs: [
     {
       type: 'category',
@@ -8,7 +25,11 @@ const sidebars: SidebarsConfig = {
       collapsed: false,
       items: [
         'introduction/getting-started',
-        'introduction/why-rtk-is-redux-today',
+        {
+          type: 'link',
+          label: 'Why Redux Toolkit is How to Use Redux Today',
+          href: '/introduction/why-rtk-is-redux-today',
+        },
       ],
     },
 
@@ -17,9 +38,16 @@ const sidebars: SidebarsConfig = {
       label: 'Tutorials',
       collapsed: false,
       items: [
-        'tutorials/tutorials-overview',
-        'tutorials/quick-start',
-        'tutorials/typescript',
+        {
+          type: 'link',
+          label: 'Tutorials Index',
+          href: '/tutorials/index',
+        },
+        {
+          type: 'link',
+          label: 'Quick Start',
+          href: '/tutorials/quick-start',
+        },
         'tutorials/rtk-query',
       ],
     },
@@ -31,12 +59,27 @@ const sidebars: SidebarsConfig = {
         {
           type: 'category',
           label: 'Migrations',
-          items: ['usage/migrating-to-modern-redux', 'usage/migrating-rtk-2'],
+          items: [
+            {
+              type: 'link',
+              label: 'Migrating to Modern Redux',
+              href: '/usage/migrating-to-modern-redux',
+            },
+            {
+              type: 'link',
+              label: 'Migrating to RTK 2.0 and Redux 5.0',
+              href: '/usage/migrations/migrating-rtk-2',
+            },
+          ],
         },
         'usage/usage-guide',
         'usage/usage-with-typescript',
         'usage/immer-reducers',
-        'usage/nextjs',
+        {
+          type: 'link',
+          label: 'Setup with Next.js',
+          href: '/usage/nextjs',
+        },
       ],
     },
     {
@@ -82,7 +125,12 @@ const sidebars: SidebarsConfig = {
             'api/matching-utilities',
             'api/other-exports',
             'api/codemods',
-            { type: 'link', label: 'Error Messages', href: '/errors' },
+            // Page built by the combined site from errors.json in this repo
+            {
+              type: 'link',
+              label: 'Error Messages',
+              href: '/toolkit/errors',
+            },
           ],
         },
       ],
@@ -171,6 +219,6 @@ const sidebars: SidebarsConfig = {
       ],
     },
   ],
-}
+} satisfies Record<string, SidebarItem[]>
 
 export default sidebars
