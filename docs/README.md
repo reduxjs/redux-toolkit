@@ -9,6 +9,7 @@ The pages in this folder are published as part of the combined Redux docs site, 
 | Redux Toolkit pages                                                  | `docs/**/*.{md,mdx}` in this repo           |
 | Redux Toolkit sidebar                                                | `docs/sidebars.ts` in this repo             |
 | Images used by these pages                                           | `docs/assets/`, referenced by relative path |
+| RTK Query internals notes for maintainers (not published)            | `docs/rtk-query/internal/`                  |
 | Tutorials, TypeScript setup, style guide, FAQ, troubleshooting       | `docs/` in `reduxjs/redux`                  |
 | Site config, navbar, theme, search, redirects (`website/_redirects`) | `website/` in `reduxjs/redux`               |
 
