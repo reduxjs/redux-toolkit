@@ -5,14 +5,14 @@
 # will appear on redux.js.org.
 
 [build]
-  base    = ""
-  publish = ".combined/redux/website/build"
-  # Fetch into an existing directory (rather than `git clone`) so the cache
-  # plugin can restore Docusaurus's node_modules/.cache into it first.
-  # Build the package first: fetch-docs links packages/toolkit/dist into the
-  # combined site, so code blocks type-check against this branch rather than
-  # the published @reduxjs/toolkit.
-  command = """
+base = ""
+publish = ".combined/redux/website/build"
+# Fetch into an existing directory (rather than `git clone`) so the cache
+# plugin can restore Docusaurus's node_modules/.cache into it first.
+# Build the package first: fetch-docs links packages/toolkit/dist into the
+# combined site, so code blocks type-check against this branch rather than
+# the published @reduxjs/toolkit.
+command = """
     pnpm install --frozen-lockfile &&
     (cd packages/toolkit && pnpm build) &&
     mkdir -p .combined/redux && cd .combined/redux &&
@@ -23,8 +23,8 @@
     DOCS_SOURCE_REDUX_TOOLKIT="$(cd ../../.. && pwd)" pnpm fetch-docs --force &&
     pnpm build && cp _redirects ./build
   """
-  # Skip the build when nothing the combined site reads from this repo changed.
-  ignore  = "[ \"$CACHED_COMMIT_REF\" = \"$COMMIT_REF\" ] && exit 1; git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- docs/ packages/toolkit/src/ errors.json website/static/img/usage/ netlify.toml"
+# Skip the build when nothing the combined site reads from this repo changed.
+ignore = "[ \"$CACHED_COMMIT_REF\" = \"$COMMIT_REF\" ] && exit 1; git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- docs/ packages/toolkit/src/ errors.json netlify.toml"
 
 [build.environment]
 # pnpm 11 requires Node 22.13 or newer.
@@ -43,7 +43,7 @@ DOCS_REF_RESELECT = "combined-docs"
 # early cannot replace the current site. At cutover, replace this block with
 # the redirect-only block below.
 [context.production]
-  ignore = "exit 0"
+ignore = "exit 0"
 
 # At cutover: production deploys only publish redirects to redux.js.org.
 # [context.production]
@@ -52,6 +52,6 @@ DOCS_REF_RESELECT = "combined-docs"
 #   ignore  = "exit 1"
 
 [[plugins]]
-  package = "netlify-plugin-cache"
-  [plugins.inputs]
-    paths = [".combined/redux/website/node_modules/.cache"]
+package = "netlify-plugin-cache"
+[plugins.inputs]
+paths = [".combined/redux/website/node_modules/.cache"]

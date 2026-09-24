@@ -44,10 +44,8 @@
     "format": "oxfmt",
     "format:check": "oxfmt --check",
     "build:examples": "pnpm --recursive --filter \"@reduxjs/*\" --filter \"@examples-query-react/*\" run build",
-    "build:docs": "pnpm --filter website run build",
     "build:packages": "pnpm --recursive --filter \"@reduxjs/*\" --filter \"@rtk-query/*\" run build",
-    "test:packages": "pnpm --recursive --filter \"@reduxjs/*\" --filter \"@rtk-query/*\" run test",
-    "dev:docs": "pnpm --filter website run start"
+    "test:packages": "pnpm --recursive --filter \"@reduxjs/*\" --filter \"@rtk-query/*\" run test"
   },
   "packageManager": "pnpm@11.23.0"
 }

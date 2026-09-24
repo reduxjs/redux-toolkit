@@ -363,7 +363,7 @@ const todosSlice = createSlice({
 
 It's common to want to log in-progress state from a reducer to see what it looks like as it's being updated, like `console.log(state)`. Unfortunately, browsers display logged Proxy instances in a format that is hard to read or understand:
 
-![Logged proxy draft](/img/usage/immer-reducers/logged-proxy.png)
+![Logged proxy draft](../assets/usage/immer-reducers/logged-proxy.png)
 
 To work around this, [Immer includes a `current` function that extracts a copy of the wrapped data](https://immerjs.github.io/immer/current), and RTK re-exports `current`. You can use this in your reducers if you need to log or inspect the work-in-progress state:
 
@@ -386,7 +386,7 @@ const todosSlice = createSlice({
 
 The correct output would look like this instead:
 
-![Logged current value](/img/usage/immer-reducers/logged-current-state.png)
+![Logged current value](../assets/usage/immer-reducers/logged-current-state.png)
 
 Immer also provides [`original` and `isDraft` functions](https://immerjs.github.io/immer/original), which retrieves the original data without any updates applied and check to see if a given value is a Proxy-wrapped draft. As of RTK 1.5.1, both of those are re-exported from RTK as well.
 
