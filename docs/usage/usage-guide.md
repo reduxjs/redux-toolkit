@@ -162,7 +162,10 @@ export const fetchUserById = createAsyncThunk(
 
 const usersSlice = createSlice({
   name: 'users',
-  initialState: { entities: [] as User[], loading: 'idle' as 'idle' | 'pending' },
+  initialState: {
+    entities: [] as User[],
+    loading: 'idle' as 'idle' | 'pending',
+  },
   reducers: {},
   extraReducers: (builder) => {
     builder
