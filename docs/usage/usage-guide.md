@@ -294,7 +294,7 @@ configureStore({
 
 Persistence libraries are a common source of non-serializable values, because they dispatch their own actions and some of them store values like timestamps or `Promise`s in the store. The examples below show how to configure the serializability check for the most common cases. They are configuration examples, not endorsements of any particular library.
 
-### Use with Redux-Persist
+#### Use with Redux-Persist
 
 :::info
 
@@ -388,7 +388,7 @@ const persistConfig = {
 
 See [Redux Toolkit #121: How to use this with Redux-Persist?](https://github.com/reduxjs/redux-toolkit/issues/121) and [Redux-Persist #988: non-serializable value error](https://github.com/rt2zz/redux-persist/issues/988#issuecomment-552242978) for further discussion.
 
-### Use with React-Redux-Firebase
+#### Use with React-Redux-Firebase
 
 RRF includes timestamp values in most actions and state as of 3.x, but there are PRs that may improve that behavior as of 4.x.
 
