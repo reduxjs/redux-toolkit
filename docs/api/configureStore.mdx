@@ -40,7 +40,6 @@ Redux Toolkit's `configureStore` simplifies that setup process, by doing all tha
 
 interface ConfigureStoreOptions<
   S = any,
-  A extends Action = UnknownAction,
   M extends Tuple<Middlewares<S>> = Tuple<Middlewares<S>>
   E extends Tuple<Enhancers> = Tuple<Enhancers>,
   P = S
@@ -49,13 +48,16 @@ interface ConfigureStoreOptions<
    * A single reducer function that will be used as the root reducer, or an
    * object of slice reducers that will be passed to `combineReducers()`.
    */
-  reducer: Reducer<S, A, P> | ReducersMapObject<S, A, P>
+  reducer: Reducer<S, UnknownAction, P> | ReducersMapObject<S, UnknownAction, P>
 
   /**
-   * An array of Redux middleware to install. If not supplied, defaults to
-   * the set of middleware returned by `getDefaultMiddleware()`.
+   * A callback which receives `getDefaultMiddleware` and should return a Tuple
+   * of middleware to install. If not supplied, defaults to the set of
+   * middleware returned by `getDefaultMiddleware()`.
+   *
+   * @example `middleware: (gDM) => gDM().concat(logger, apiMiddleware, yourCustomMiddleware)`
    */
-  middleware?: ((getDefaultMiddleware: CurriedGetDefaultMiddleware<S>) => M) | M
+  middleware?: (getDefaultMiddleware: GetDefaultMiddleware<S>) => M
 
   /**
    * Whether to enable Redux DevTools integration. Defaults to `true`.
@@ -87,16 +89,15 @@ interface ConfigureStoreOptions<
    * and should return a new array (such as `getDefaultEnhancers().concat(offline)`).
    * If you only need to add middleware, you can use the `middleware` parameter instead.
    */
-  enhancers?: (getDefaultEnhancers: GetDefaultEnhancers<M>) => E | E
+  enhancers?: (getDefaultEnhancers: GetDefaultEnhancers<M>) => E
 }
 
 function configureStore<
   S = any,
-  A extends Action = UnknownAction,
   M extends Tuple<Middlewares<S>> = Tuple<Middlewares<S>>
   E extends Tuple<Enhancers> = Tuple<Enhancers>,
   P = S
->(options: ConfigureStoreOptions<S, A, M, E, P>): EnhancedStore<S, A, M, E>
+>(options: ConfigureStoreOptions<S, M, E, P>): EnhancedStore<S, E>
 ```
 
 ### `reducer`
