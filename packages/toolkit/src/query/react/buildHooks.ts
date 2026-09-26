@@ -1512,7 +1512,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
   api,
   moduleOptions: {
     batch,
-    hooks: { useDispatch, useSelector, useStore },
+    hooks: { useDispatch, useSelector },
     unstable__sideEffectsInRender,
     createSelector,
   },
@@ -1846,6 +1846,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       type ApiRootState = Parameters<ReturnType<typeof select>>[0]
 
       const lastValue = useRef<any>(undefined)
+      const latestDefaultResult = useRef<any>(undefined)
 
       const selectDefaultResult: Selector<ApiRootState, any, [any]> = useMemo(
         () =>
@@ -1875,30 +1876,28 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         [select, stableArg],
       )
 
-      const querySelector: Selector<ApiRootState, any, [any]> = useMemo(
-        () =>
+      const querySelector = useMemo(() => {
+        const selectResult: Selector<ApiRootState, any, [any]> =
           selectFromResult
             ? createSelector([selectDefaultResult], selectFromResult, {
                 devModeChecks: { identityFunctionCheck: 'never' },
               })
-            : selectDefaultResult,
-        [selectDefaultResult, selectFromResult],
-      )
+            : selectDefaultResult
+        return (state: RootState<Definitions, any, any>) => {
+          const lastResult = lastValue.current
+          const result = selectResult(state, lastResult)
+          // Same args as the input selector call that just happened, so this
+          // is a memoized read of the un-narrowed result for the next pass.
+          latestDefaultResult.current = selectDefaultResult(state, lastResult)
+          return result
+        }
+      }, [selectDefaultResult, selectFromResult])
 
-      const currentState = useSelector(
-        (state: RootState<Definitions, any, any>) =>
-          querySelector(state, lastValue.current),
-        shallowEqual,
-      )
+      const currentState = useSelector(querySelector, shallowEqual)
 
-      const store = useStore<RootState<Definitions, any, any>>()
-      const newLastValue = selectDefaultResult(
-        store.getState(),
-        lastValue.current,
-      )
       useIsomorphicLayoutEffect(() => {
-        lastValue.current = newLastValue
-      }, [newLastValue])
+        lastValue.current = latestDefaultResult.current
+      })
 
       return currentState
     }
