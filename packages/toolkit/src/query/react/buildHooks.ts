@@ -1592,10 +1592,14 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     // isSuccess = true when data is present and we're not refetching after an error.
     // That includes cases where the _current_ item is either actively
     // fetching or about to fetch due to an uninitialized entry.
+    // The cache entry keeps `error` set through a pending refetch and only
+    // clears it on success, so the entry itself tells us if this is a
+    // refetch-after-error without consulting `lastResult`.
     const isSuccess =
       currentState.isSuccess ||
       (hasData &&
-        ((isFetching && !lastResult?.isError) || currentState.isUninitialized))
+        ((isFetching && currentState.error === undefined) ||
+          currentState.isUninitialized))
 
     return {
       ...currentState,
@@ -1650,10 +1654,12 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     // isSuccess = true when data is present and we're not refetching after an error.
     // That includes cases where the _current_ item is either actively
     // fetching or about to fetch due to an uninitialized entry.
+    // See `queryStatePreSelector` for why this reads `error` from the entry.
     const isSuccess =
       currentState.isSuccess ||
       (hasData &&
-        ((isFetching && !lastResult?.isError) || currentState.isUninitialized))
+        ((isFetching && currentState.error === undefined) ||
+          currentState.isUninitialized))
 
     return {
       ...currentState,
