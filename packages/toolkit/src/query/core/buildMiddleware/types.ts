@@ -16,7 +16,7 @@ import type {
 import type {
   QueryStatus,
   QuerySubState,
-  RootState,
+  ApiRootState,
   SubscriptionInternalState,
   SubscriptionState,
 } from '../apiState'
@@ -83,7 +83,7 @@ export interface BuildMiddlewareInput<
 
 export type SubMiddlewareApi = MiddlewareAPI<
   ThunkDispatch<any, any, UnknownAction>,
-  RootState<EndpointDefinitions, string, string>
+  ApiRootState<EndpointDefinitions, string, string>
 >
 
 export interface BuildSubMiddlewareInput extends BuildMiddlewareInput<
@@ -102,7 +102,7 @@ export interface BuildSubMiddlewareInput extends BuildMiddlewareInput<
   selectors: AllSelectors
   mwApi: MiddlewareAPI<
     ThunkDispatch<any, any, UnknownAction>,
-    RootState<EndpointDefinitions, string, string>
+    ApiRootState<EndpointDefinitions, string, string>
   >
 }
 
@@ -110,7 +110,7 @@ export type SubMiddlewareBuilder = (
   input: BuildSubMiddlewareInput,
 ) => Middleware<
   {},
-  RootState<EndpointDefinitions, string, string>,
+  ApiRootState<EndpointDefinitions, string, string>,
   ThunkDispatch<any, any, UnknownAction>
 >
 
@@ -119,7 +119,7 @@ type MwNext = Parameters<ReturnType<Middleware>>[0]
 export type ApiMiddlewareInternalHandler<Return = void> = (
   action: Action,
   mwApi: SubMiddlewareApi & { next: MwNext },
-  prevState: RootState<EndpointDefinitions, string, string>,
+  prevState: ApiRootState<EndpointDefinitions, string, string>,
 ) => Return
 
 export type InternalHandlerBuilder<ReturnType = void> = (

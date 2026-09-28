@@ -719,7 +719,7 @@ _(optional, only for query endpoints)_
 type forceRefetch = (params: {
   currentArg: QueryArg | undefined
   previousArg: QueryArg | undefined
-  state: RootState<any, any, string>
+  state: ApiRootState<any, any, string>
   endpointState?: QuerySubState<any>
 }) => boolean
 ```

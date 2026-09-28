@@ -8,7 +8,7 @@ import type {
   EndpointDefinitions,
   FullTagDescription,
 } from '../../endpointDefinitions'
-import type { QueryStatus, QuerySubState, RootState } from '../apiState'
+import type { QueryStatus, QuerySubState, ApiRootState } from '../apiState'
 import type { QueryThunkArg } from '../buildThunks'
 import { createAction, isAction } from '../rtkImports'
 import { buildBatchedActionsHandler } from './batchActions'
@@ -68,7 +68,7 @@ export function buildMiddleware<
 
   const middleware: Middleware<
     {},
-    RootState<Definitions, string, ReducerPath>,
+    ApiRootState<Definitions, string, ReducerPath>,
     ThunkDispatch<any, any, UnknownAction>
   > = (mwApi) => {
     let initialized = false
