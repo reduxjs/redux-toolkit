@@ -167,6 +167,9 @@ jobs:
 
     needs: [build]
     runs-on: ubuntu-latest
+    # `next` is a nightly build. A failure there flags an upcoming TypeScript
+    # change without failing the workflow.
+    continue-on-error: ${{ matrix.ts == 'next' }}
     strategy:
       fail-fast: false
       matrix:
@@ -214,6 +217,14 @@ jobs:
                 react-dom: { version: '^19', types: '^19' },
               }
           - node: '24.x'
+            ts: '7.0'
+            react:
+              {
+                version: '^19',
+                types: '^19',
+                react-dom: { version: '^19', types: '^19' },
+              }
+          - node: '24.x'
             ts: 'next'
             react:
               {
@@ -221,7 +232,7 @@ jobs:
                 types: '^19',
                 react-dom: { version: '^19', types: '^19' },
               }
-          # React 18 × boundary TS versions only (5.6, 6.0, next).
+          # React 18 × boundary TS versions only (5.6, 6.0, 7.0, next).
           # The `@types/*` entries are pinned to exact versions for the same
           # reason as in `test-dist` above: `pnpm update -r @types/react@^18`
           # resolves to 18.3.12, which lacks the
@@ -238,6 +249,14 @@ jobs:
               }
           - node: '24.x'
             ts: '6.0'
+            react:
+              {
+                version: '^18',
+                types: '18.3.31',
+                react-dom: { version: '^18', types: '18.3.7' },
+              }
+          - node: '24.x'
+            ts: '7.0'
             react:
               {
                 version: '^18',
@@ -294,15 +313,15 @@ jobs:
         run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json
 
       - name: Test types (TS 5.x)
-        if: matrix.ts != 'next' && !startsWith(matrix.ts, '6.')
+        if: startsWith(matrix.ts, '5.')
         env:
           TEST_DIST: true
         run: |
           pnpm exec tsc --version
           pnpm type-tests
 
-      - name: Test types (TS 6.x/next)
-        if: matrix.ts == 'next' || startsWith(matrix.ts, '6.')
+      - name: Test types (TS 6.x/7.x/next)
+        if: ${{ !startsWith(matrix.ts, '5.') }}
         env:
           TEST_DIST: true
         run: |
@@ -427,6 +446,9 @@ jobs:
     name: 'Test Type Portability: TS ${{ matrix.ts }} + Node ${{ matrix.node }}'
     needs: [build]
     runs-on: ubuntu-latest
+    # `next` is a nightly build. A failure there flags an upcoming TypeScript
+    # change without failing the workflow.
+    continue-on-error: ${{ matrix.ts == 'next' }}
     strategy:
       fail-fast: false
       matrix:
@@ -449,9 +471,12 @@ jobs:
             ts: '6.0'
             example: { name: 'bundler', moduleResolution: 'Bundler' }
           - node: '24.x'
+            ts: '7.0'
+            example: { name: 'bundler', moduleResolution: 'Bundler' }
+          - node: '24.x'
             ts: 'next'
             example: { name: 'bundler', moduleResolution: 'Bundler' }
-          # nodenext-cjs × boundary TS versions only (5.6, 6.0, next)
+          # nodenext-cjs × boundary TS versions only (5.6, 6.0, 7.0, next)
           - node: '24.x'
             ts: '5.6'
             example: { name: 'nodenext-cjs', moduleResolution: 'NodeNext' }
@@ -459,14 +484,20 @@ jobs:
             ts: '6.0'
             example: { name: 'nodenext-cjs', moduleResolution: 'NodeNext' }
           - node: '24.x'
+            ts: '7.0'
+            example: { name: 'nodenext-cjs', moduleResolution: 'NodeNext' }
+          - node: '24.x'
             ts: 'next'
             example: { name: 'nodenext-cjs', moduleResolution: 'NodeNext' }
-          # nodenext-esm × boundary TS versions only (5.6, 6.0, next)
+          # nodenext-esm × boundary TS versions only (5.6, 6.0, 7.0, next)
           - node: '24.x'
             ts: '5.6'
             example: { name: 'nodenext-esm', moduleResolution: 'NodeNext' }
           - node: '24.x'
             ts: '6.0'
+            example: { name: 'nodenext-esm', moduleResolution: 'NodeNext' }
+          - node: '24.x'
+            ts: '7.0'
             example: { name: 'nodenext-esm', moduleResolution: 'NodeNext' }
           - node: '24.x'
             ts: 'next'
@@ -534,7 +565,7 @@ jobs:
         run: rm -rf dist && node_modules/.bin/tsc -p tsconfig.json
 
       - name: Test type portability with `moduleResolution Node10`
-        if: matrix.ts != 'next' && !startsWith(matrix.ts, '6.')
+        if: startsWith(matrix.ts, '5.')
         working-directory: ./examples/type-portability/${{ matrix.example.name }}
         run: rm -rf dist && node_modules/.bin/tsc -p tsconfig.json --module CommonJS --moduleResolution Node10 --preserveSymLinks --verbatimModuleSyntax false
 
@@ -542,94 +573,8 @@ jobs:
       # resolve the name, and that field went away with Yarn. Run inside the
       # package directory, `npm pkg set` needs no workspace resolution at all.
       - name: Test type portability with `moduleResolution Node10` and `type module` in `package.json`
-        if: (matrix.example.name == 'nodenext-esm' || matrix.example.name == 'bundler') && matrix.ts != 'next' && !startsWith(matrix.ts, '6.')
+        if: (matrix.example.name == 'nodenext-esm' || matrix.example.name == 'bundler') && startsWith(matrix.ts, '5.')
         working-directory: ./examples/type-portability/${{ matrix.example.name }}
         run: |
           npm pkg set type=module
           rm -rf dist && node_modules/.bin/tsc -p tsconfig.json --module ESNext --moduleResolution Node10 --preserveSymLinks --verbatimModuleSyntax false
-
-  # Advisory only. Reports how RTK's types behave under the next major TypeScript
-  # release without blocking any PR. `@typescript/native-preview` was the
-  # pre-release channel for the Go port and is deprecated now that TypeScript 7
-  # ships from the `typescript` package itself, so this job installs real
-  # `typescript@7` under an npm alias instead.
-  test-types-typescript-7:
-    name: 'Test Types: TypeScript 7 (advisory)'
-    needs: [build]
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    strategy:
-      fail-fast: false
-      matrix:
-        node: ['24.x']
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      # Must run before `setup-node`, or `cache: 'pnpm'` cannot locate the store.
-      - uses: pnpm/setup@84cb39b217b10273981911c288cd62326dc7c6d2 # v2.0.2
-        with:
-          install: false
-
-      - name: Use node ${{ matrix.node }}
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: ${{ matrix.node }}
-          cache: 'pnpm'
-
-      - name: Install deps
-        run: pnpm install
-
-      # npm alias, so the repo's own `typescript` devDependency stays on 6.x and
-      # every other job keeps testing what it tested before.
-      - name: Install TypeScript 7
-        run: pnpm add -D typescript-7@npm:typescript@7
-
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          name: package
-          path: packages/toolkit
-
-      - name: Install build artifact
-        run: pnpm add ./package.tgz
-
-      - name: Show installed RTK versions
-        run: pnpm list @reduxjs/toolkit
-
-      - name: Erase path aliases
-        run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json
-
-      # Invoked by path rather than through `pnpm exec tsc`. The alias also claims
-      # the `tsc` bin, so `pnpm exec tsc` happens to resolve to 7 today, but
-      # depending on that would let this job silently test the wrong compiler.
-      # `--version` must print 7.x for the run below to mean anything.
-      - name: Test types with TypeScript 7
-        env:
-          TEST_DIST: true
-        run: |
-          TSC7="$(ls -d ../../node_modules/typescript-7 node_modules/typescript-7 2>/dev/null | head -1)/bin/tsc"
-          node "$TSC7" --version
-          node "$TSC7" -p tsconfig.test.json --noEmit --moduleResolution Bundler
-
-      # See the note in `test-type-portability`: without `--ignore-workspace`
-      # pnpm links `@reduxjs/toolkit` to the workspace sources instead of
-      # installing the tarball.
-      - name: Install build artifact for type-portability example
-        working-directory: ./examples/type-portability/bundler
-        run: |
-          npm pkg delete dependencies.@reduxjs/toolkit
-          pnpm add --ignore-workspace --ignore-scripts --node-linker=hoisted "$GITHUB_WORKSPACE/packages/toolkit/package.tgz"
-
-      - name: Install TypeScript 7 for type-portability example
-        working-directory: ./examples/type-portability/bundler
-        run: pnpm add --ignore-workspace --ignore-scripts --node-linker=hoisted -D typescript-7@npm:typescript@7
-
-      # Invoked by path for a second reason on top of the one above: `pnpm exec`
-      # runs a dependency-status check that installs with `--frozen-lockfile`,
-      # and the two steps before this one install with `--ignore-workspace`, so
-      # the example's `package.json` no longer matches the root lockfile.
-      - name: Test type portability with TypeScript 7 (bundler example)
-        working-directory: ./examples/type-portability/bundler
-        run: |
-          node node_modules/typescript-7/bin/tsc --version
-          node node_modules/typescript-7/bin/tsc --noEmit

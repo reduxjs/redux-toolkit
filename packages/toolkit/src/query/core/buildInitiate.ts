@@ -153,20 +153,22 @@ export type InfiniteQueryActionCreatorResult<
     ): InfiniteQueryActionCreatorResult<D>
   }
 
+type StartMutationActionCreatorOptions = {
+  /**
+   * If this mutation should be tracked in the store.
+   * If you just want to manually trigger this mutation using `dispatch` and don't care about the
+   * result, state & potential errors being held in store, you can set this to false.
+   * (defaults to `true`)
+   */
+  track?: boolean
+  fixedCacheKey?: string
+}
+
 type StartMutationActionCreator<
   D extends MutationDefinition<any, any, any, any>,
 > = (
   arg: QueryArgFrom<D>,
-  options?: {
-    /**
-     * If this mutation should be tracked in the store.
-     * If you just want to manually trigger this mutation using `dispatch` and don't care about the
-     * result, state & potential errors being held in store, you can set this to false.
-     * (defaults to `true`)
-     */
-    track?: boolean
-    fixedCacheKey?: string
-  },
+  options?: StartMutationActionCreatorOptions,
 ) => ThunkAction<MutationActionCreatorResult<D>, any, any, UnknownAction>
 
 export type MutationActionCreatorResult<
@@ -389,7 +391,7 @@ You must add the middleware for RTK-Query to function correctly!`,
           subscriptionOptions,
           [forceQueryFnSymbol]: forceQueryFn,
           ...rest
-        } = {},
+        }: StartQueryActionCreatorOptions = {},
       ) =>
       (dispatch, getState) => {
         const queryCacheKey = serializeQueryArgs({
@@ -545,7 +547,10 @@ You must add the middleware for RTK-Query to function correctly!`,
   function buildInitiateMutation(
     endpointName: string,
   ): StartMutationActionCreator<any> {
-    return (arg, { track = true, fixedCacheKey } = {}) =>
+    return (
+      arg,
+      { track = true, fixedCacheKey }: StartMutationActionCreatorOptions = {},
+    ) =>
       (dispatch, getState) => {
         const thunk = mutationThunk({
           type: 'mutation',
