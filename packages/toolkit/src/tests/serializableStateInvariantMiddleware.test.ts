@@ -118,7 +118,7 @@ describe('serializableStateInvariantMiddleware', () => {
       symbol,
       `\nTake a look at the logic that dispatched this action: `,
       dispatchedAction,
-      `\n(See https://redux.js.org/faq/actions#why-should-type-be-a-string-or-at-least-serializable-why-should-my-action-types-be-constants)`,
+      `\n(See https://redux.js.org/faq/actions#why-should-type-be-a-string-why-should-my-action-types-be-constants)`,
       `\n(To allow non-serializable values see: https://redux-toolkit.js.org/usage/usage-guide#working-with-non-serializable-data)`,
     )
   })
@@ -385,7 +385,7 @@ describe('serializableStateInvariantMiddleware', () => {
         nonSerializableValue,
         `\nTake a look at the logic that dispatched this action: `,
         { type: 'test', meta: { arg: nonSerializableValue } },
-        `\n(See https://redux.js.org/faq/actions#why-should-type-be-a-string-or-at-least-serializable-why-should-my-action-types-be-constants)`,
+        `\n(See https://redux.js.org/faq/actions#why-should-type-be-a-string-why-should-my-action-types-be-constants)`,
         `\n(To allow non-serializable values see: https://redux-toolkit.js.org/usage/usage-guide#working-with-non-serializable-data)`,
       )
     })

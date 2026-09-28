@@ -79,6 +79,10 @@ To continuously watch and run tests, run the following:
 pnpm --filter @reduxjs/toolkit test:watch
 ```
 
+### Docs
+
+The docs in `docs/` are published on the combined Redux docs site at https://redux.js.org/toolkit. See [`docs/README.md`](docs/README.md) for how the docs are organized and how to preview changes.
+
 ## Git workflow / Submitting Changes
 
 - Open a new issue in the [Issue tracker](https://github.com/reduxjs/redux-toolkit/issues).

@@ -24,7 +24,7 @@ RTK Query is **an optional addon included in the Redux Toolkit package**, and it
 
 :::info
 
-To learn how to use RTK Query, see the full ["Redux Essentials" tutorial](https://redux.js.org/tutorials/essentials/part-7-rtk-query-basics) on the Redux core docs site.
+To learn how to use RTK Query, see the full ["Redux Essentials" tutorial](/tutorials/essentials/part-7-rtk-query-basics) on the Redux core docs site.
 
 If you prefer a video course, you can [watch this RTK Query video course by Lenz Weber-Tronic, the creator of RTK Query, for free at Egghead](https://egghead.io/courses/rtk-query-basics-query-endpoints-data-flow-and-typescript-57ea3c43?af=7pnhj6) or take a look at the first lesson right here:
 
@@ -49,7 +49,7 @@ Web applications normally need to fetch data from a server in order to display i
 - Optimistic updates to make the UI feel faster
 - Managing cache lifetimes as the user interacts with the UI
 
-The Redux core has always been very minimal - it's up to developers to write all the actual logic. That means that Redux has never included anything built in to help solve these use cases. The Redux docs have taught [some common patterns for dispatching actions around the request lifecycle to track loading state and request results](https://redux.js.org/tutorials/fundamentals/part-7-standard-patterns#async-request-status), and [Redux Toolkit's `createAsyncThunk` API](../api/createAsyncThunk.mdx) was designed to abstract that typical pattern. However, users still have to write significant amounts of reducer logic to manage the loading state and the cached data.
+The Redux core has always been very minimal - it's up to developers to write all the actual logic. That means that Redux has never included anything built in to help solve these use cases. The Redux docs have taught [some common patterns for dispatching actions around the request lifecycle to track loading state and request results](/tutorials/fundamentals/part-7-standard-patterns#async-request-status), and [Redux Toolkit's `createAsyncThunk` API](../api/createAsyncThunk.mdx) was designed to abstract that typical pattern. However, users still have to write significant amounts of reducer logic to manage the loading state and the cached data.
 
 Over the last couple years, the React community has come to realize that **"data fetching and caching" is really a different set of concerns than "state management"**. While you can use a state management library like Redux to cache data, the use cases are different enough that it's worth using tools that are purpose-built for the data fetching use case.
 
