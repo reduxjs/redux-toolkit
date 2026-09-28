@@ -1953,7 +1953,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       refetchOnFocus,
       pollingInterval = 0,
       skipPollingIfUnfocused = false,
-    } = {}) => {
+    }: SubscriptionOptions = {}) => {
       const { initiate } = api.endpoints[endpointName] as ApiEndpointQuery<
         QueryDefinition<any, any, any, any, any>,
         Definitions
@@ -2213,7 +2213,10 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
   }
 
   function buildMutationHook(name: string): UseMutation<any> {
-    return ({ selectFromResult, fixedCacheKey } = {}) => {
+    return ({
+      selectFromResult,
+      fixedCacheKey,
+    }: UseMutationStateOptions<any, any> = {}) => {
       const { select, initiate } = api.endpoints[name] as ApiEndpointMutation<
         MutationDefinition<any, any, any, any, any>,
         Definitions

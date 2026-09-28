@@ -809,7 +809,10 @@ export function buildCreateSlice({ creators }: BuildCreateSliceConfig = {}) {
       caseReducers: context.sliceCaseReducersByName as any,
       getInitialState,
       ...makeSelectorProps(reducerPath),
-      injectInto(injectable, { reducerPath: pathOpt, ...config } = {}) {
+      injectInto(
+        injectable,
+        { reducerPath: pathOpt, ...config }: InjectIntoConfig<string> = {},
+      ) {
         const newReducerPath = pathOpt ?? reducerPath
         injectable.inject({ reducerPath: newReducerPath, reducer }, config)
         return {
