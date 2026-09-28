@@ -125,12 +125,7 @@ const sidebars = {
             'api/matching-utilities',
             'api/other-exports',
             'api/codemods',
-            // Page built by the combined site from errors.json in this repo
-            {
-              type: 'link',
-              label: 'Error Messages',
-              href: '/toolkit/errors',
-            },
+            'api/errors',
           ],
         },
       ],

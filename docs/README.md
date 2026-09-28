@@ -37,7 +37,7 @@ TypeScript code blocks in `.mdx` files are type-checked during the site build, a
 
 In the build log, a type error shows up as `Module build failed (from ./plugins/toolkit-types-dependency.cjs)`. That loader only tracks dependencies; the lines after it name the page, the code block, and the TypeScript error.
 
-API pages also pull doc comments from `packages/toolkit/src`, and the `/toolkit/errors` page is built from `errors.json`, so changes to either show up on the site.
+API pages also pull doc comments from `packages/toolkit/src`, and the `/toolkit/errors` page (`docs/api/errors.mdx`) renders `errors.json`, so changes to either show up on the site.
 
 ## Previewing a PR
 
