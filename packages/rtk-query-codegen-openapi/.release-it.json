@@ -1,6 +1,6 @@
 {
   "hooks": {
-    "after:bump": "yarn && git add -u"
+    "after:bump": "pnpm i && git add -u"
   },
   "git": {
     "commitMessage": "Release @rtk-query/codegen-openapi ${version}",
