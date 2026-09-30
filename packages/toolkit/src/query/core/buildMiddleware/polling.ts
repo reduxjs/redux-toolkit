@@ -104,9 +104,14 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
       timeout: setTimeout(() => {
         const currentState = api.getState()[reducerPath]
         const currentQuerySubState = currentState.queries[queryCacheKey]
+        // The subscription map and cache entry may have changed since this
+        // poll was scheduled, because unsubscribe cleanup is deferred.
+        const { lowestPollingInterval: currentPollingInterval } =
+          findLowestPollingInterval(currentSubscriptions.get(queryCacheKey))
         if (
           !currentQuerySubState ||
-          currentQuerySubState.status === STATUS_UNINITIALIZED
+          currentQuerySubState.status === STATUS_UNINITIALIZED ||
+          !Number.isFinite(currentPollingInterval)
         ) {
           cleanupPollForKey(queryCacheKey)
           return
