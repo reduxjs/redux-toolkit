@@ -2931,6 +2931,10 @@ describe('hooks tests', () => {
         expect(screen.getByTestId('isFetching').textContent).toBe('false'),
       )
 
+      await waitFor(() =>
+        expect(screen.getByTestId('isFetching').textContent).toBe('false')
+      )
+
       expect(
         api.endpoints.getUser.select(USER_ID)(storeRef.store.getState() as any),
       ).toEqual({
@@ -3070,6 +3074,10 @@ describe('hooks tests', () => {
 
       await waitFor(() =>
         expect(screen.getByTestId('isFetching').textContent).toBe('false'),
+      )
+
+      await waitFor(() =>
+        expect(screen.getByTestId('isFetching').textContent).toBe('false')
       )
 
       expect(
