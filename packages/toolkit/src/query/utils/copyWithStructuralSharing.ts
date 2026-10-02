@@ -14,8 +14,10 @@ export function copyWithStructuralSharing(oldObj: any, newObj: any): any {
   ) {
     return newObj
   }
-  const newKeys = Object.keys(newObj)
-  const oldKeys = Object.keys(oldObj)
+  // Use getOwnPropertyNames to include keys with undefined values
+  // This is important for query args that may contain explicit undefined values
+  const newKeys = Object.getOwnPropertyNames(newObj)
+  const oldKeys = Object.getOwnPropertyNames(oldObj)
 
   let isSameObject = newKeys.length === oldKeys.length
   const mergeObj: any = Array.isArray(newObj) ? [] : {}
