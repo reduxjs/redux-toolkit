@@ -25,14 +25,9 @@ Listeners can be defined statically by calling `listenerMiddleware.startListenin
 
 ```js
 import { configureStore, createListenerMiddleware } from '@reduxjs/toolkit'
+import todosReducer, { todoAdded } from '../features/todos/todosSlice'
 
-import todosReducer, {
-  todoAdded,
-  todoToggled,
-  todoDeleted,
-} from '../features/todos/todosSlice'
-
-// Create the middleware instance and methods
+// Create the middleware instance and methods:
 const listenerMiddleware = createListenerMiddleware()
 
 // Add one or more listener entries that look for specific actions.
@@ -41,6 +36,46 @@ listenerMiddleware.startListening({
   actionCreator: todoAdded,
   effect: async (action, listenerApi) => {
     // Run whatever additional side-effect-y logic you want here
+
+    console.log('Todo added: ', action.payload.text)
+    console.log('State: ', listenerApi.getState())
+
+    // Dispatch some action:
+    listenerApi.dispatch({ type: "SOME_TYPE", payload: "SOME_PAYLOAD" }) // You can use action creators of course
+
+    }
+  },
+})
+
+const store = configureStore({
+  reducer: {
+    todos: todosReducer,
+  },
+  // Add the listener middleware to the store.
+  // NOTE: Since this can receive actions with functions inside,
+  // it should go before the serializability check middleware
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().prepend(listenerMiddleware.middleware),
+})
+```
+
+### Extended Usage
+
+```js
+import { configureStore, createListenerMiddleware } from '@reduxjs/toolkit'
+
+import todosReducer, {
+  todoAdded,
+  todoToggled,
+  todoDeleted,
+} from '../features/todos/todosSlice'
+
+const listenerMiddleware = createListenerMiddleware()
+
+listenerMiddleware.startListening({
+  actionCreator: todoAdded,
+  effect: async (action, listenerApi) => {
+
     console.log('Todo added: ', action.payload.text)
 
     // Can cancel other running instances
@@ -73,16 +108,13 @@ listenerMiddleware.startListening({
   },
 })
 
-const store = configureStore({
-  reducer: {
-    todos: todosReducer,
-  },
-  // Add the listener middleware to the store.
-  // NOTE: Since this can receive actions with functions inside,
-  // it should go before the serializability check middleware
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().prepend(listenerMiddleware.middleware),
-})
+// Add another listener:
+listenerMiddleware.startListening({
+  actionCreator: todoDelete,
+  ...
+});
+
+const store = configureStore(...)
 ```
 
 ## `createListenerMiddleware`
