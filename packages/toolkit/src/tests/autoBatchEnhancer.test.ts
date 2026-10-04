@@ -268,11 +268,33 @@ describe('autoBatchEnhancer raf with background tab fallback', () => {
     expect(subscriptionNotifications).toBe(0)
 
     // Test environments like happy-dom delete window globals on teardown,
-    // while an already-scheduled raf callback can still fire.
+    // but the fallback timer survives and runs the same callback afterwards.
     Reflect.deleteProperty(globalThis, 'cancelAnimationFrame')
 
     try {
       expect(() => rafCallbacks[0](performance.now())).not.toThrow()
+      expect(subscriptionNotifications).toBe(1)
+    } finally {
+      vitest.stubGlobal('cancelAnimationFrame', vitest.fn())
+    }
+  })
+
+  test('Still notifies if the environment has no cancelAnimationFrame', () => {
+    vitest.stubGlobal('cancelAnimationFrame', undefined)
+
+    try {
+      store = makeStore({ type: 'raf' })
+      store.subscribe(() => {
+        subscriptionNotifications++
+      })
+
+      store.dispatch(incrementBatched())
+      expect(subscriptionNotifications).toBe(0)
+
+      expect(() => rafCallbacks[0](performance.now())).not.toThrow()
+      expect(subscriptionNotifications).toBe(1)
+
+      vitest.advanceTimersByTime(100)
       expect(subscriptionNotifications).toBe(1)
     } finally {
       vitest.stubGlobal('cancelAnimationFrame', vitest.fn())

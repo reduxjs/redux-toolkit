@@ -17,7 +17,7 @@ const createQueueWithTimer = (timeout: number) => {
 
 const createRafWithFallbackTimer = (
   raf: typeof requestAnimationFrame,
-  caf: typeof cancelAnimationFrame,
+  caf: typeof cancelAnimationFrame | undefined,
   timeout: number,
 ) => {
   return (notify: () => void) => {
@@ -27,7 +27,7 @@ const createRafWithFallbackTimer = (
     const callback = () => {
       if (called) return
       called = true
-      caf(rafId)
+      caf?.(rafId)
       clearTimeout(timerId)
       notify()
     }
