@@ -327,7 +327,7 @@ type AsyncThunkSliceReducerDefinition<
  */
 type PreventCircular<ThunkApiConfig> = {
   [K in keyof ThunkApiConfig]: K extends 'state' | 'dispatch'
-    ? never
+    ? undefined
     : ThunkApiConfig[K]
 }
 

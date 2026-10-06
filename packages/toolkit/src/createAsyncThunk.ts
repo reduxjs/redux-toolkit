@@ -48,10 +48,10 @@ export type BaseThunkAPI<
  * @public
  */
 export interface SerializedError {
-  name?: string
-  message?: string
-  stack?: string
-  code?: string
+  name?: string | undefined
+  message?: string | undefined
+  stack?: string | undefined
+  code?: string | undefined
 }
 
 const commonProperties: Array<keyof SerializedError> = [
@@ -108,7 +108,7 @@ export const miniSerializeError = (value: any): SerializedError => {
 
 export type AsyncThunkConfig = {
   state?: unknown
-  dispatch?: ThunkDispatch<unknown, unknown, UnknownAction>
+  dispatch?: ThunkDispatch<unknown, unknown, UnknownAction> | undefined
   extra?: unknown
   rejectValue?: unknown
   serializedErrorType?: unknown

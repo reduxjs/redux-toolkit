@@ -773,13 +773,13 @@ export interface SerializableStateInvariantMiddlewareOptions {
 // @public (undocumented)
 export interface SerializedError {
   // (undocumented)
-  code?: string
+  code?: string | undefined
   // (undocumented)
-  message?: string
+  message?: string | undefined
   // (undocumented)
-  name?: string
+  name?: string | undefined
   // (undocumented)
-  stack?: string
+  stack?: string | undefined
 }
 
 // @public
