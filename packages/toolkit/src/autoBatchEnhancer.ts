@@ -17,6 +17,7 @@ const createQueueWithTimer = (timeout: number) => {
 
 const createRafWithFallbackTimer = (
   raf: typeof requestAnimationFrame,
+  caf: typeof cancelAnimationFrame | undefined,
   timeout: number,
 ) => {
   return (notify: () => void) => {
@@ -26,7 +27,7 @@ const createRafWithFallbackTimer = (
     const callback = () => {
       if (called) return
       called = true
-      cancelAnimationFrame(rafId)
+      caf?.(rafId)
       clearTimeout(timerId)
       notify()
     }
@@ -81,7 +82,11 @@ export const autoBatchEnhancer =
         : options.type === 'raf'
           ? // requestAnimationFrame won't exist in SSR environments. Fall back to a vague approximation just to keep from erroring.
             typeof window !== 'undefined' && window.requestAnimationFrame
-            ? createRafWithFallbackTimer(window.requestAnimationFrame, 100)
+            ? createRafWithFallbackTimer(
+                window.requestAnimationFrame,
+                window.cancelAnimationFrame,
+                100,
+              )
             : createQueueWithTimer(10)
           : options.type === 'callback'
             ? options.queueNotification
