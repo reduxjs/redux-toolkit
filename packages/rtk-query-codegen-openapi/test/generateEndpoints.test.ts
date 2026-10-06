@@ -935,6 +935,17 @@ describe('regex constants', () => {
     // The userWebsitePattern should have escaped forward slashes
     expect(api).toContain(String.raw`export const userWebsitePattern = /^https?:\/\/[^\s]+$/`);
   });
+
+  it('should not double escape forward slashes that are already escaped', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.yaml'),
+      outputRegexConstants: true,
+    });
+
+    expect(api).toContain(String.raw`export const userWebsitePattern = /^https?:\/\/[^\s]+$/`);
+  });
 });
 
 describe('esmExtensions option', () => {
