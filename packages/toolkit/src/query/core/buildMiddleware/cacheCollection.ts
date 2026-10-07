@@ -65,10 +65,21 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
   const { removeQueryResult, unsubscribeQueryResult, cacheEntriesUpserted } =
     api.internalActions
 
+  // A `condition`-based rejection means the query bailed out before it ever ran
+  // (e.g. `initiate(arg, { subscribe: false })` served fresh cached data). Nothing
+  // was fetched and no subscription changed, so we must not treat it as an
+  // unsubscribe trigger: rescheduling the removal timer here resets
+  // `keepUnusedDataFor` on every such call and prevents unused data from ever
+  // being collected. See https://github.com/reduxjs/redux-toolkit/issues/4480
+  const isQueryThunkRejectedByError = (
+    action: any,
+  ): action is ReturnType<typeof queryThunk.rejected> =>
+    queryThunk.rejected.match(action) && !action.meta.condition
+
   const canTriggerUnsubscribe = isAnyOf(
     unsubscribeQueryResult.match,
     queryThunk.fulfilled,
-    queryThunk.rejected,
+    isQueryThunkRejectedByError,
     cacheEntriesUpserted.match,
   )
 
