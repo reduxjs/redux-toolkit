@@ -92,6 +92,24 @@ describe('findNonSerializableValue', () => {
 
     expect(result).toEqual(false)
   })
+
+  it('Should report circular references instead of overflowing the stack', () => {
+    const circular: Record<string, unknown> = {}
+    circular.self = circular
+
+    expect(findNonSerializableValue(circular)).toEqual({
+      keyPath: 'self',
+      value: circular,
+    })
+  })
+
+  it('Should accept repeated references that are not circular', () => {
+    const shared = { value: 42 }
+
+    expect(findNonSerializableValue({ first: shared, second: shared })).toBe(
+      false,
+    )
+  })
 })
 
 describe('serializableStateInvariantMiddleware', () => {
@@ -659,5 +677,13 @@ describe('serializableStateInvariantMiddleware', () => {
     numPlainChecks = 0
     store.dispatch({ type: 'NOOP' })
     expect(numPlainChecks).toBeLessThan(10)
+  })
+
+  it('Should identify deeply frozen circular values', () => {
+    const circular: Record<string, unknown> = {}
+    circular.self = circular
+    Object.freeze(circular)
+
+    expect(isNestedFrozen(circular)).toBe(true)
   })
 })
