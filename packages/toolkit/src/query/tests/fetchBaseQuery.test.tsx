@@ -415,6 +415,36 @@ describe('fetchBaseQuery', () => {
       expect(request.body).toEqual(data.join(','))
     })
 
+    test('a null body is sent without a content-type', async () => {
+      let request: any
+      ;({ data: request } = await baseQuery(
+        { url: '/echo', body: null, method: 'POST' },
+        { ...commonBaseQueryApi, type: 'mutation' },
+        {},
+      ))
+
+      expect(request.headers['content-type']).toBeUndefined()
+    })
+
+    test('a non-plain object with a toJSON method provided to body will be serialized when content-type is json', async () => {
+      class Wrapper {
+        constructor(public test: string) {}
+        toJSON() {
+          return { test: this.test }
+        }
+      }
+
+      let request: any
+      ;({ data: request } = await baseQuery(
+        { url: '/echo', body: new Wrapper('value'), method: 'POST' },
+        { ...commonBaseQueryApi, type: 'mutation' },
+        {},
+      ))
+
+      expect(request.headers['content-type']).toBe('application/json')
+      expect(request.body).toEqual({ test: 'value' })
+    })
+
     it('supports a custom jsonContentType', async () => {
       const baseQuery = fetchBaseQuery({
         baseUrl,
