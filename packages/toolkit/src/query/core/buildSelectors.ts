@@ -39,8 +39,10 @@ import {
 // `skipToken` lives in `../utils/skipToken` so that modules which `buildSelectors`
 // already depends on (e.g. `buildThunks`) can import it without creating a cycle.
 // Imported here as well as re-exported, because this module uses the symbol directly.
-import { skipToken, type SkipToken } from '../utils/skipToken'
-export { skipToken, type SkipToken }
+import type { SkipToken } from '../utils/skipToken'
+import { skipToken } from '../utils/skipToken'
+export { skipToken }
+export type { SkipToken }
 
 export type BuildSelectorsApiEndpointQuery<
   Definition extends QueryDefinition<any, any, any, any, any>,
