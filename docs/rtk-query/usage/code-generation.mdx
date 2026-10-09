@@ -110,18 +110,15 @@ interface SimpleUsage {
   exportName?: string
   argSuffix?: string
   operationNameSuffix?: string
-  operationIdTransformer?: 'camelCase' | 'none' | ((operationId: string) => string)
+  operationIdTransformer?:
+    'camelCase' | 'none' | ((operationId: string) => string)
   responseSuffix?: string
   hooks?:
-    | boolean
-    | { queries: boolean; lazyQueries: boolean; mutations: boolean }
+    boolean | { queries: boolean; lazyQueries: boolean; mutations: boolean }
   tag?: boolean
   outputFile: string
   filterEndpoints?:
-    | string
-    | RegExp
-    | EndpointMatcherFunction
-    | Array<string | RegExp>
+    string | RegExp | EndpointMatcherFunction | Array<string | RegExp>
   endpointOverrides?: EndpointOverrides[]
   flattenArg?: boolean
   useEnumType?: boolean
