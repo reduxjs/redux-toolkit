@@ -1,7 +1,8 @@
 import { setupApiStore } from '@internal/tests/utils/helpers'
-import { createApi } from '@reduxjs/toolkit/query/react'
 import { skipToken } from '@reduxjs/toolkit/query'
+import { createApi } from '@reduxjs/toolkit/query/react'
 import { act, renderHook, waitFor } from '@testing-library/react'
+import { delay } from 'msw'
 import * as React from 'react'
 import { describe, expect, test, vi } from 'vitest'
 
@@ -48,7 +49,7 @@ describe('useInfiniteQuery respects skipToken in its imperative triggers', () =>
     )
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
-    expect(baseQuery).toHaveBeenCalledTimes(1)
+    expect(baseQuery).toHaveBeenCalledOnce()
   })
 
   test('useInfiniteQuery(skipToken) does not fetch on mount', async () => {
@@ -79,7 +80,7 @@ describe('useInfiniteQuery respects skipToken in its imperative triggers', () =>
 
     // Give a would-be request time to reach the base query.
     await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 50))
+      await delay(50)
     })
 
     expect(baseQuery).not.toHaveBeenCalled()
@@ -100,7 +101,7 @@ describe('useInfiniteQuery respects skipToken in its imperative triggers', () =>
     })
 
     await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 50))
+      await delay(50)
     })
 
     expect(baseQuery).not.toHaveBeenCalled()
@@ -121,7 +122,7 @@ describe('useInfiniteQuery respects skipToken in its imperative triggers', () =>
         result.current.fetchNextPage()
       })
       await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 20))
+        await delay(20)
       })
     }
 
@@ -143,7 +144,7 @@ describe('useInfiniteQuery respects skipToken in its imperative triggers', () =>
     })
 
     await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 50))
+      await delay(50)
     })
 
     expect(baseQuery).not.toHaveBeenCalled()
