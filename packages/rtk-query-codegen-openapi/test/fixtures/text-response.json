@@ -1,0 +1,107 @@
+{
+  "openapi": "3.0.0",
+  "info": { "title": "Text responses", "version": "1.0" },
+  "components": {
+    "responses": {
+      "Text": { "description": "Referenced text", "content": { "text/html": { "schema": { "type": "string" } } } },
+      "Json": { "description": "Referenced JSON", "content": { "application/json": { "schema": { "type": "object" } } } }
+    }
+  },
+  "paths": {
+    "/mixed": {
+      "get": {
+        "operationId": "mixed",
+        "responses": {
+          "200": { "$ref": "#/components/responses/Text" },
+          "400": { "$ref": "#/components/responses/Json" }
+        }
+      }
+    },
+    "/json-with-text-error": {
+      "get": {
+        "operationId": "jsonWithTextError",
+        "responses": {
+          "200": { "$ref": "#/components/responses/Json" },
+          "400": { "$ref": "#/components/responses/Text" }
+        }
+      }
+    },
+    "/default-text": {
+      "get": { "operationId": "defaultText", "responses": { "default": { "$ref": "#/components/responses/Text" } } }
+    },
+    "/text-with-default-json": {
+      "get": {
+        "operationId": "textWithDefaultJson",
+        "responses": {
+          "200": { "$ref": "#/components/responses/Text" },
+          "default": { "$ref": "#/components/responses/Json" }
+        }
+      }
+    },
+    "/created": {
+      "get": { "operationId": "created", "responses": { "201": { "$ref": "#/components/responses/Text" } } }
+    },
+    "/ref": {
+      "get": { "operationId": "ref", "responses": { "200": { "$ref": "#/components/responses/Text" } } }
+    },
+    "/empty": {
+      "get": {
+        "operationId": "empty",
+        "responses": { "204": { "description": "No content" } }
+      }
+    },
+    "/error-text": {
+      "get": {
+        "operationId": "errorText",
+        "responses": {
+          "204": { "description": "No content" },
+          "400": { "description": "Error", "content": { "text/plain": { "schema": { "type": "string" } } } }
+        }
+      }
+    },
+    "/hello": {
+      "get": {
+        "operationId": "hello",
+        "responses": {
+          "200": {
+            "description": "A greeting",
+            "content": { "text/plain": { "schema": { "type": "string" } } }
+          }
+        }
+      }
+    },
+    "/html": {
+      "get": {
+        "operationId": "html",
+        "responses": {
+          "200": {
+            "description": "A document",
+            "content": { "text/html": { "schema": { "type": "string" } } }
+          }
+        }
+      }
+    },
+    "/json": {
+      "get": {
+        "operationId": "json",
+        "responses": {
+          "200": {
+            "description": "JSON data",
+            "content": { "application/json": { "schema": { "type": "object", "properties": { "ok": { "type": "boolean" } } } } }
+          }
+        }
+      }
+    },
+    "/binary": {
+      "get": {
+        "operationId": "binary",
+        "responses": {
+          "200": {
+            "description": "Binary data",
+            "content": { "application/octet-stream": { "schema": { "type": "string", "format": "binary" } } }
+          }
+        }
+      }
+    }
+  }
+}

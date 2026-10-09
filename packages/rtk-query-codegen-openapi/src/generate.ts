@@ -399,9 +399,21 @@ export async function generateApi(
     const tags = tag ? getTags({ verb, pathItem }) : undefined;
     const isQuery = testIsQuery(verb, overrides);
 
-    const returnsJson = getResponseType(ctx, responses) === 'json';
-    let ResponseType: ts.TypeNode = factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword);
-    if (returnsJson) {
+    const responseType = getResponseType(ctx, responses);
+    const dataResponses = Object.fromEntries(
+      Object.entries(responses || {}).filter(([code, response]) =>
+        isDataResponse(code, includeDefault, resolve(response, ctx), responses || {})
+      )
+    );
+    const returnsText =
+      getResponseType(ctx, dataResponses) === 'text' &&
+      Object.values(dataResponses).some((response) =>
+        Object.keys(resolve(response, ctx).content || {}).some((contentType) => contentType.startsWith('text/'))
+      );
+    let ResponseType: ts.TypeNode = factory.createKeywordTypeNode(
+      returnsText ? ts.SyntaxKind.StringKeyword : ts.SyntaxKind.UnknownKeyword
+    );
+    if (responseType === 'json' && !returnsText) {
       const returnTypes = Object.entries(responses || {})
         .map(
           ([code, response]) =>
@@ -570,6 +582,7 @@ export async function generateApi(
         isFlatArg,
         encodePathParams,
         encodeQueryParams,
+        returnsText,
       }),
       extraEndpointsProps: isQuery
         ? generateQueryEndpointProps({ operationDefinition })
@@ -586,6 +599,7 @@ export async function generateApi(
     isQuery,
     encodePathParams,
     encodeQueryParams,
+    returnsText,
   }: {
     operationDefinition: OperationDefinition;
     queryArg: QueryArgDefinitions;
@@ -593,6 +607,7 @@ export async function generateApi(
     isQuery: boolean;
     encodePathParams: boolean;
     encodeQueryParams: boolean;
+    returnsText: boolean;
   }) {
     const { path, verb } = operationDefinition;
 
@@ -661,6 +676,9 @@ export async function generateApi(
                     ? rootObject
                     : factory.createPropertyAccessExpression(rootObject, factory.createIdentifier(bodyParameter.name))
                 ),
+            returnsText
+              ? factory.createPropertyAssignment('responseHandler', factory.createStringLiteral('text'))
+              : undefined,
             createObjectLiteralProperty(pickParams('cookie'), 'cookies'),
             createObjectLiteralProperty(pickParams('header'), 'headers'),
             createObjectLiteralProperty(pickParams('query'), 'params'),
