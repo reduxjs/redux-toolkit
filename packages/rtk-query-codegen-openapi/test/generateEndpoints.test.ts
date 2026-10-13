@@ -862,6 +862,36 @@ describe('query parameters', () => {
     });
     expect(api).toMatchSnapshot();
   });
+
+  it('should keep `name[]` array params as arrays and only merge `name[prop]` params into an object', async () => {
+    const api = await generateEndpoints({
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/bracketQueryParams.json'),
+      filterEndpoints: ['getBooks'],
+    });
+
+    expect(api).not.toMatch(/""\?:/);
+    expect(api).not.toContain('_queryStatus');
+    expect(api).toContain('status: queryArg.status,');
+    expect(api).toContain('"status[]": queryArg["status[]"],');
+    expect(api).toMatch(/"status\[\]"\?: string\[\]/);
+    expect(api).toMatch(/"ids\[\]"\?: number\[\]/);
+    expect(api).toContain('order: queryArg.order,');
+    expect(api).toMatch(/order\?: \{\s*title\?: "asc" \| "desc";\s*\}/);
+  });
+
+  it('should not merge `name[prop]` params into an object when a plain `name` param exists', async () => {
+    const api = await generateEndpoints({
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/bracketQueryParams.json'),
+      filterEndpoints: ['getProducts'],
+    });
+
+    expect(api).not.toContain('_queryPrice');
+    expect(api).toContain('price: queryArg.price,');
+    expect(api).toContain('"price[gt]": queryArg["price[gt]"],');
+    expect(api).toContain('"price[lt]": queryArg["price[lt]"],');
+  });
 });
 
 describe('regex constants', () => {
