@@ -38,9 +38,11 @@ const v3DocCache: Record<string, OpenAPIV3.Document> = {};
 function supportDeepObjects(params: OpenAPIV3.ParameterObject[]): OpenAPIV3.ParameterObject[] {
   const res: OpenAPIV3.ParameterObject[] = [];
   const merged: Record<string, any> = {};
+  const paramKeys = new Set(params.map((p) => `${p.in}:${p.name}`));
   for (const p of params) {
     const m = /^(.+?)\[(.*?)\]/.exec(p.name);
-    if (!m) {
+    // leave `name[]` array params, and `name[prop]` params that would clash with a plain `name` param, unmerged
+    if (!m || !m[2] || paramKeys.has(`${p.in}:${m[1]}`)) {
       res.push(p);
       continue;
     }
