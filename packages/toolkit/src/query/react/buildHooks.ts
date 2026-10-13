@@ -1622,7 +1622,10 @@ If you replace the store passed to <Provider>, also give the Provider a \`key\` 
 
     // isLoading = true only when loading while no data is present yet (initial load with no data in the cache)
     const isLoading =
-      (!lastResult || lastResult.isLoading || lastResult.isUninitialized) &&
+      (!lastResult ||
+        lastResult.isLoading ||
+        lastResult.isUninitialized ||
+        lastResult.isError) &&
       !hasData &&
       isFetching
 
@@ -1685,7 +1688,10 @@ If you replace the store passed to <Provider>, also give the Provider a \`key\` 
     const isFetching = currentState.isLoading
     // isLoading = true only when loading while no data is present yet (initial load with no data in the cache)
     const isLoading =
-      (!lastResult || lastResult.isLoading || lastResult.isUninitialized) &&
+      (!lastResult ||
+        lastResult.isLoading ||
+        lastResult.isUninitialized ||
+        lastResult.isError) &&
       !hasData &&
       isFetching
     // isSuccess = true when data is present and we're not refetching after an error.
