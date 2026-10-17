@@ -471,6 +471,10 @@ You must add the middleware for RTK-Query to function correctly!`,
             async unwrap() {
               const result = await statePromise
 
+              if (result.isUninitialized) {
+                return (runningQuery ?? thunkResult).unwrap()
+              }
+
               if (result.isError) {
                 throw result.error
               }
