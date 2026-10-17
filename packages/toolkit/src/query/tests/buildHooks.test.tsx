@@ -1759,8 +1759,12 @@ describe('hooks tests', () => {
         const handleClick = async () => {
           const res = getUser(1)
 
-          const result = await res.unwrap()
-          setUnwrappedResult(result)
+          try {
+            const result = await res.unwrap()
+            setUnwrappedResult(result)
+          } catch {
+            // resetApiState after the test aborts the request if it is still running
+          }
         }
 
         return (
