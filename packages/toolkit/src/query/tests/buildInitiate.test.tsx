@@ -177,6 +177,80 @@ describe('calling initiate should have resulting queryCacheKey match baseQuery q
   })
 })
 
+describe('running queries during delayed invalidation', () => {
+  const queryFn = vi.fn<() => Promise<{ data: string }>>()
+  const api = createApi({
+    baseQuery: fakeBaseQuery(),
+    tagTypes: ['Item'],
+    endpoints: (build) => ({
+      getItem: build.query<string, void>({
+        queryFn: () => queryFn(),
+        providesTags: ['Item'],
+      }),
+    }),
+  })
+  const storeRef = setupApiStore(api)
+  let replies: Array<(value: { data: string }) => void>
+
+  beforeEach(() => {
+    replies = []
+    queryFn
+      .mockReset()
+      .mockImplementation(() => new Promise((resolve) => replies.push(resolve)))
+  })
+
+  async function startRefetch() {
+    const initial = storeRef.store.dispatch(api.endpoints.getItem.initiate())
+    storeRef.store.dispatch(api.util.invalidateTags(['Item']))
+    replies[0]({ data: 'initial' })
+    await initial
+    await delay(0)
+    expect(queryFn).toHaveBeenCalledTimes(2)
+    return { initial }
+  }
+
+  test('tracks the refetch and lets subsequent initiations join it', async () => {
+    const { initial } = await startRefetch()
+    const { store } = storeRef
+    const refetch = store.dispatch(
+      api.util.getRunningQueryThunk('getItem', undefined),
+    )
+
+    expect(refetch).toBeDefined()
+    expect(refetch?.requestId).not.toBe(initial.requestId)
+    expect(store.dispatch(api.util.getRunningQueriesThunk())).toEqual([refetch])
+
+    const joined = store.dispatch(api.endpoints.getItem.initiate())
+    const settled = vi.fn()
+    void joined.then(settled)
+    await delay(0)
+    expect(settled).not.toHaveBeenCalled()
+    expect(queryFn).toHaveBeenCalledTimes(2)
+
+    replies[1]({ data: 'refetched' })
+    await expect(joined.unwrap()).resolves.toBe('refetched')
+    await expect(refetch?.unwrap()).resolves.toBe('refetched')
+    expect(store.dispatch(api.util.getRunningQueriesThunk())).toEqual([])
+  })
+
+  test('can abort the refetch through the running query registry', async () => {
+    await startRefetch()
+    const { store } = storeRef
+    const refetch = store.dispatch(
+      api.util.getRunningQueryThunk('getItem', undefined),
+    )
+
+    expect(refetch).toBeDefined()
+    refetch!.abort()
+    await expect(refetch).resolves.toMatchObject({
+      status: 'rejected',
+      error: { name: 'AbortError' },
+    })
+    expect(store.dispatch(api.util.getRunningQueriesThunk())).toEqual([])
+    replies[1]({ data: 'too late' })
+  })
+})
+
 describe('getRunningQueryThunk with multiple stores', () => {
   test('should isolate running queries between different store instances using the same API', async () => {
     // Create a shared API instance
