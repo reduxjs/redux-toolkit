@@ -1377,6 +1377,56 @@ describe('FormData', () => {
   })
 })
 
+describe('binary bodies', () => {
+  test.each([
+    [
+      'ArrayBuffer',
+      () => new Uint8Array([1, 2, 3]).buffer,
+      'application/octet-stream',
+    ],
+    ['Uint8Array', () => new Uint8Array([1, 2, 3]), 'application/octet-stream'],
+    ['Blob', () => new Blob(['hello']), 'image/png'],
+  ])(
+    'keeps an explicit content-type for a %s body',
+    async (_name, makeBody, contentType) => {
+      const res = await baseQuery(
+        {
+          url: '/echo',
+          method: 'POST',
+          body: makeBody(),
+          headers: { 'content-type': contentType },
+        },
+        commonBaseQueryApi,
+        {},
+      )
+
+      const request: any = res.data
+
+      expect(request.headers['content-type']).toBe(contentType)
+    },
+  )
+
+  test('still removes a JSON content-type set by prepareHeaders for a binary body', async () => {
+    const baseQueryWithJsonDefault = fetchBaseQuery({
+      baseUrl,
+      prepareHeaders: (headers) => {
+        headers.set('Content-Type', 'application/json')
+        return headers
+      },
+    })
+
+    const res = await baseQueryWithJsonDefault(
+      { url: '/echo', method: 'POST', body: new Uint8Array([1, 2, 3]).buffer },
+      commonBaseQueryApi,
+      {},
+    )
+
+    const request: any = res.data
+
+    expect(request.headers['content-type']).toBeUndefined()
+  })
+})
+
 describe('Accept header handling', () => {
   test('sets Accept header to application/json for json responseHandler', async () => {
     let request: any
