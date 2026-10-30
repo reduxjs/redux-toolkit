@@ -106,6 +106,9 @@ function stripUndefined(obj: any) {
   return copy
 }
 
+const isFormData = (body: any) =>
+  typeof FormData !== 'undefined' && body instanceof FormData
+
 // Only set the content-type to json if appropriate. Will not be true for FormData, ArrayBuffer, Blob, etc.
 const isJsonifiable = (body: any) =>
   typeof body === 'object' &&
@@ -256,12 +259,15 @@ export function fetchBaseQuery({
 
     const bodyIsJsonifiable = isJsonifiable(config.body)
 
-    // Remove content-type for non-jsonifiable bodies to let the browser set it automatically
-    // Exception: keep content-type for string bodies as they might be intentional (text/plain, text/html, etc.)
+    // For non-jsonifiable bodies, remove content-type when the browser has to set it
+    // (FormData needs its multipart boundary) or when it's a JSON type that doesn't fit the body
+    // (e.g. set for every request in prepareHeaders). Other explicit types are kept, so binary
+    // uploads can send e.g. application/octet-stream. String bodies keep theirs (text/plain, text/html, etc.)
     if (
       config.body != null &&
       !bodyIsJsonifiable &&
-      typeof config.body !== 'string'
+      typeof config.body !== 'string' &&
+      (isFormData(config.body) || isJsonContentType(config.headers))
     ) {
       config.headers.delete('content-type')
     }
