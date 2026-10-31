@@ -46,6 +46,11 @@ const defaultValidateStatus = (response: Response) =>
 const defaultIsJsonContentType = (headers: Headers) =>
   /*applicat*/ /ion\/(vnd\.api\+)?json/.test(headers.get('content-type') || '')
 
+const isTimeoutError = (error: unknown) =>
+  (error instanceof Error ||
+    (typeof DOMException !== 'undefined' && error instanceof DOMException)) &&
+  error.name === 'TimeoutError'
+
 export type FetchBaseQueryError =
   | {
       /**
@@ -304,13 +309,7 @@ export function fetchBaseQuery({
     } catch (e) {
       return {
         error: {
-          status:
-            (e instanceof Error ||
-              (typeof DOMException !== 'undefined' &&
-                e instanceof DOMException)) &&
-            e.name === 'TimeoutError'
-              ? 'TIMEOUT_ERROR'
-              : 'FETCH_ERROR',
+          status: isTimeoutError(e) ? 'TIMEOUT_ERROR' : 'FETCH_ERROR',
           error: String(e),
         },
         meta,
@@ -338,6 +337,15 @@ export function fetchBaseQuery({
       ])
       if (handleResponseError) throw handleResponseError
     } catch (e) {
+      if (config.signal?.aborted && isTimeoutError(config.signal.reason)) {
+        return {
+          error: {
+            status: 'TIMEOUT_ERROR',
+            error: String(config.signal.reason),
+          },
+          meta,
+        }
+      }
       return {
         error: {
           status: 'PARSING_ERROR',
