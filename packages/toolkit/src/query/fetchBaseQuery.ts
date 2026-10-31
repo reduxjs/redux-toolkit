@@ -324,10 +324,14 @@ export function fetchBaseQuery({
     let responseText: string = ''
     try {
       let handleResponseError
+      let responseHandlerFailed = false
       await Promise.all([
         handleResponse(response, responseHandler).then(
           (r) => (resultData = r),
-          (e) => (handleResponseError = e),
+          (e) => {
+            responseHandlerFailed = true
+            handleResponseError = e
+          },
         ),
         // see https://github.com/node-fetch/node-fetch/issues/665#issuecomment-538995182
         // we *have* to "use up" both streams at the same time or they will stop running in node-fetch scenarios
@@ -336,7 +340,7 @@ export function fetchBaseQuery({
           () => {},
         ),
       ])
-      if (handleResponseError) throw handleResponseError
+      if (responseHandlerFailed) throw handleResponseError
     } catch (e) {
       return {
         error: {
