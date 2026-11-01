@@ -39,12 +39,12 @@ export type ReactHooksModule = typeof reactHooksModuleName
 declare module '@reduxjs/toolkit/query' {
   export interface ApiModules<
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    BaseQuery extends BaseQueryFn,
-    Definitions extends EndpointDefinitions,
+    in out BaseQuery extends BaseQueryFn,
+    in out Definitions extends EndpointDefinitions,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    ReducerPath extends string,
+    in out ReducerPath extends string,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    TagTypes extends string,
+    in out TagTypes extends string,
   > {
     [reactHooksModuleName]: {
       /**
