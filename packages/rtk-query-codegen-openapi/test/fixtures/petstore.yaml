@@ -707,7 +707,7 @@ components:
           example: '12345'
         website:
           type: string
-          pattern: '^https?://[^\s]+$'
+          pattern: '^https?:\/\/[^\s]+$'
           example: 'https://example.com'
         userStatus:
           type: integer

@@ -189,7 +189,8 @@ function generateRegexConstantsForType(
     if (!pattern) continue;
 
     const constantName = camelCase(`${typeName} ${propertyName} Pattern`);
-    const escapedPattern = pattern.replaceAll('/', String.raw`\/`);
+    // escape bare slashes, but leave existing escape sequences such as `\/` untouched
+    const escapedPattern = pattern.replace(/\\.|\//g, (match) => (match === '/' ? String.raw`\/` : match));
     const regexLiteral = factory.createRegularExpressionLiteral(`/${escapedPattern}/`);
 
     constants.push(
