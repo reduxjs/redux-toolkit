@@ -505,6 +505,6 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
       return api as any
     }
 
-    return api.injectEndpoints({ endpoints: options.endpoints as any })
+    return api.injectEndpoints({ endpoints: options.endpoints as any }) as any
   }
 }
