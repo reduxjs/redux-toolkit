@@ -1,4 +1,5 @@
 import { setupApiStore } from '@internal/tests/utils/helpers'
+import type { Middleware } from '@reduxjs/toolkit'
 import { delay } from '@internal/utils'
 import { createApi, fakeBaseQuery } from '@reduxjs/toolkit/query'
 import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
@@ -174,6 +175,114 @@ describe('calling initiate should have resulting queryCacheKey match baseQuery q
       }),
       undefined,
     )
+  })
+})
+
+describe('running queries during delayed invalidation', () => {
+  const queryFn = vi.fn<() => Promise<{ data: string }>>()
+  const api = createApi({
+    baseQuery: fakeBaseQuery(),
+    tagTypes: ['Item'],
+    endpoints: (build) => ({
+      getItem: build.query<string, void>({
+        queryFn: () => queryFn(),
+        providesTags: ['Item'],
+      }),
+    }),
+  })
+  const storeRef = setupApiStore(api)
+  let replies: Array<(value: { data: string }) => void>
+
+  beforeEach(() => {
+    replies = []
+    queryFn
+      .mockReset()
+      .mockImplementation(() => new Promise((resolve) => replies.push(resolve)))
+  })
+
+  async function startRefetch() {
+    const initial = storeRef.store.dispatch(api.endpoints.getItem.initiate())
+    storeRef.store.dispatch(api.util.invalidateTags(['Item']))
+    replies[0]({ data: 'initial' })
+    await initial
+    await delay(0)
+    expect(queryFn).toHaveBeenCalledTimes(2)
+    return { initial }
+  }
+
+  test('tracks the refetch and lets subsequent initiations join it', async () => {
+    const { initial } = await startRefetch()
+    const { store } = storeRef
+    const refetch = store.dispatch(
+      api.util.getRunningQueryThunk('getItem', undefined),
+    )
+
+    expect(refetch).toBeDefined()
+    expect(refetch?.requestId).not.toBe(initial.requestId)
+    expect(store.dispatch(api.util.getRunningQueriesThunk())).toEqual([refetch])
+
+    const joined = store.dispatch(api.endpoints.getItem.initiate())
+    const settled = vi.fn()
+    void joined.then(settled)
+    await delay(0)
+    expect(settled).not.toHaveBeenCalled()
+    expect(queryFn).toHaveBeenCalledTimes(2)
+
+    replies[1]({ data: 'refetched' })
+    await expect(joined.unwrap()).resolves.toBe('refetched')
+    await expect(refetch?.unwrap()).resolves.toBe('refetched')
+    expect(store.dispatch(api.util.getRunningQueriesThunk())).toEqual([])
+  })
+
+  test('can abort the refetch through the running query registry', async () => {
+    await startRefetch()
+    const { store } = storeRef
+    const refetch = store.dispatch(
+      api.util.getRunningQueryThunk('getItem', undefined),
+    )
+
+    expect(refetch).toBeDefined()
+    refetch!.abort()
+    await expect(refetch).resolves.toMatchObject({
+      status: 'rejected',
+      error: { name: 'AbortError' },
+    })
+    expect(store.dispatch(api.util.getRunningQueriesThunk())).toEqual([])
+    replies[1]({ data: 'too late' })
+  })
+})
+
+describe('running queries when dispatching the result throws', () => {
+  const error = new Error('middleware failed')
+  const api = createApi({
+    baseQuery: fakeBaseQuery(),
+    endpoints: (build) => ({
+      getItem: build.query<string, void>({
+        queryFn: async () => ({ data: 'item' }),
+      }),
+    }),
+  })
+  const throwOnFulfilled: Middleware = () => (next) => (action) => {
+    const result = next(action)
+    if (api.endpoints.getItem.matchFulfilled(action)) {
+      throw error
+    }
+    return result
+  }
+  const storeRef = setupApiStore(api, undefined, {
+    middleware: { concat: [throwOnFulfilled] },
+  })
+
+  test('removes the running query when the request promise rejects', async () => {
+    const { store } = storeRef
+    const promise = store.dispatch(api.endpoints.getItem.initiate())
+    expect(
+      store.dispatch(api.util.getRunningQueryThunk('getItem', undefined)),
+    ).toBe(promise)
+
+    await expect(promise).rejects.toBe(error)
+    await delay(0)
+    expect(store.dispatch(api.util.getRunningQueriesThunk())).toEqual([])
   })
 })
 

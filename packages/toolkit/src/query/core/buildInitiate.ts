@@ -508,13 +508,16 @@ You must add the middleware for RTK-Query to function correctly!`,
           },
         )
 
-        if (!runningQuery && !skippedSynchronously && !forceQueryFn) {
+        if (!skippedSynchronously && !forceQueryFn) {
           const runningQueries = getRunningQueries(dispatch)!
           runningQueries.set(queryCacheKey, statePromise)
 
-          statePromise.then(() => {
-            runningQueries.delete(queryCacheKey)
-          })
+          const removeRunningQuery = () => {
+            if (runningQueries.get(queryCacheKey) === statePromise) {
+              runningQueries.delete(queryCacheKey)
+            }
+          }
+          statePromise.then(removeRunningQuery, removeRunningQuery)
         }
 
         return statePromise
