@@ -248,7 +248,8 @@ describe('polling tests', () => {
     const callsWithSkip = mockBaseQuery.mock.calls.length
 
     expect(callsWithoutSkip).toBeGreaterThan(2)
-    expect(callsWithSkip).toBe(callsWithoutSkip + 1)
+    // The poll already scheduled sees the current focus and skip settings when it fires
+    expect(callsWithSkip).toBe(callsWithoutSkip)
   })
 
   it('replaces skipPollingIfUnfocused when the subscription options are updated', async () => {
@@ -556,8 +557,7 @@ describe('poll scheduling', () => {
     subscription.unsubscribe()
   })
 
-  it('the poll chain keeps running while a polled request is still pending', async () => {
-    // Polls that fire during the pending request are deduped, not skipped (#5508)
+  it('skips polls while a polled request is still pending', async () => {
     const { api, store, requests, blockRequests, releaseRequests } =
       makePollApi()
 
@@ -576,11 +576,86 @@ describe('poll scheduling', () => {
       .getState()
       .actions.filter(api.endpoints.getThing.matchRejected)
       .filter((action) => action.meta.condition)
-    expect(dedupedPolls.length).toBeGreaterThanOrEqual(2)
+    expect(dedupedPolls).toHaveLength(0)
+    const currentPolls = store.dispatch({
+      type: `${api.reducerPath}/getPolling`,
+    }) as unknown as Map<string, unknown>
+    expect(currentPolls.has(subscription.queryCacheKey)).toBe(false)
 
     releaseRequests()
-    await vi.advanceTimersByTimeAsync(50)
-    expect(requests.length).toBeGreaterThan(2)
+    await vi.advanceTimersByTimeAsync(0)
+    expect(requests).toEqual(['a', 'a'])
+
+    // The settled request starts the next poll
+    await vi.advanceTimersByTimeAsync(20)
+    expect(requests).toEqual(['a', 'a', 'a'])
+
+    subscription.unsubscribe()
+  })
+
+  it('reads skipPollingIfUnfocused when the poll fires', async () => {
+    const { api, store, requests } = makePollApi()
+
+    const subscription = store.dispatch(
+      api.endpoints.getThing.initiate('a', {
+        subscriptionOptions: { pollingInterval: 20 },
+      }),
+    )
+    await vi.advanceTimersByTimeAsync(0)
+    expect(requests).toEqual(['a'])
+
+    subscription.updateSubscriptionOptions({
+      pollingInterval: 20,
+      skipPollingIfUnfocused: true,
+    })
+    store.dispatch(api.internalActions.onFocusLost())
+
+    await vi.advanceTimersByTimeAsync(25)
+    expect(requests).toEqual(['a'])
+
+    subscription.unsubscribe()
+  })
+
+  it('clamps a pollingInterval larger than the maximum timer delay', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { api, store, requests } = makePollApi()
+
+    const subscription = store.dispatch(
+      api.endpoints.getThing.initiate('a', {
+        subscriptionOptions: { pollingInterval: 2 ** 31 },
+      }),
+    )
+    await vi.advanceTimersByTimeAsync(100)
+    expect(requests).toEqual(['a'])
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('larger than the maximum timer delay'),
+    )
+
+    subscription.unsubscribe()
+    warnSpy.mockRestore()
+  })
+
+  it('removes the poll record when polling stops', async () => {
+    const { api, store } = makePollApi()
+
+    const subscription = store.dispatch(
+      api.endpoints.getThing.initiate('a', {
+        subscriptionOptions: { pollingInterval: 20 },
+      }),
+    )
+    await vi.advanceTimersByTimeAsync(0)
+
+    const getPolls = () =>
+      store.dispatch({
+        type: `${api.reducerPath}/getPolling`,
+      }) as unknown as Map<string, unknown>
+
+    expect(getPolls().has(subscription.queryCacheKey)).toBe(true)
+
+    subscription.updateSubscriptionOptions({ pollingInterval: 0 })
+    await subscription.refetch()
+
+    expect(getPolls().has(subscription.queryCacheKey)).toBe(false)
 
     subscription.unsubscribe()
   })
