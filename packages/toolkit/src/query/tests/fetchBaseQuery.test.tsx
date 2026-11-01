@@ -141,6 +141,67 @@ describe('fetchBaseQuery', () => {
     })
   })
 
+  describe('custom response handler failures', () => {
+    const reasons = [
+      undefined,
+      null,
+      false,
+      0,
+      '',
+      NaN,
+      'failure',
+      new Error('failure'),
+    ]
+
+    describe.each(['throw', 'reject'] as const)('%s', (mode) => {
+      it.each(reasons)('returns PARSING_ERROR for %s', async (reason) => {
+        server.use(
+          http.get('https://example.com/success', () =>
+            HttpResponse.text('raw body'),
+          ),
+        )
+        const validateStatus = vi.fn(() => true)
+        const res = await baseQuery(
+          {
+            url: '/success',
+            responseHandler: () => {
+              if (mode === 'throw') throw reason
+              return Promise.reject(reason)
+            },
+            validateStatus,
+          },
+          commonBaseQueryApi,
+          {},
+        )
+
+        expect(res.error).toEqual({
+          status: 'PARSING_ERROR',
+          originalStatus: 200,
+          data: 'raw body',
+          error: String(reason),
+        })
+        expect(res).not.toHaveProperty('data')
+        expect(res.meta?.request).toBeInstanceOf(Request)
+        expect(res.meta?.response?.status).toBe(200)
+        expect(validateStatus).not.toHaveBeenCalled()
+      })
+    })
+
+    it.each([undefined, null, false, 0, ''])(
+      'preserves fulfilled %s',
+      async (value) => {
+        const res = await baseQuery(
+          { url: '/success', responseHandler: async () => value },
+          commonBaseQueryApi,
+          {},
+        )
+
+        expect(res).toHaveProperty('data', value)
+        expect(res).not.toHaveProperty('error')
+      },
+    )
+  })
+
   describe('non-JSON-body', () => {
     it('success: should return data ("text" responseHandler)', async () => {
       server.use(
