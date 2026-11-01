@@ -149,3 +149,40 @@ test.each(caseMatrix)(
     expect(queryCount).toBe(shouldInvalidate ? 2 : 1)
   },
 )
+
+test('resetApiState drops invalidations held back by delayed invalidation', async () => {
+  const api = createApi({
+    baseQuery: fakeBaseQuery(),
+    invalidationBehavior: 'delayed',
+    tagTypes: ['apple'],
+    endpoints: (build) => ({
+      slow: build.query<string, void>({
+        queryFn: async () => {
+          await delay(1000)
+          return { data: 'slow' }
+        },
+      }),
+      fruit: build.query<string, number>({
+        queryFn: () => ({ data: 'fruit' }),
+        providesTags: ['apple'],
+      }),
+    }),
+  })
+  const storeRef = setupApiStore(api, undefined, {
+    withoutTestLifecycles: true,
+  })
+
+  storeRef.store.dispatch(api.endpoints.slow.initiate())
+  storeRef.store.dispatch(api.util.invalidateTags(['apple']))
+  storeRef.store.dispatch(api.util.resetApiState())
+
+  storeRef.store.dispatch(
+    api.util.upsertQueryEntries([
+      { endpointName: 'fruit', arg: 1, value: 'fruit' },
+    ]),
+  )
+  expect(storeRef.store.getState().api.queries['fruit(1)']?.data).toBe('fruit')
+
+  await delay(10)
+  expect(storeRef.store.getState().api.queries['fruit(1)']?.data).toBe('fruit')
+})
