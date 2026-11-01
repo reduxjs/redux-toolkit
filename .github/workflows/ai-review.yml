@@ -109,15 +109,16 @@ jobs:
           fi
 
       # Read the config from the base commit, so a PR cannot rewrite the
-      # reviewer's instructions.
+      # reviewer's instructions. Without one, use DiffLoupe's defaults rather
+      # than the PR's copy.
       - name: Load config from base
         if: steps.size.outputs.skip != 'true'
         env:
           BASE: ${{ steps.pr.outputs.base }}
         run: |
           if ! git show "$BASE:.github/diffloupe.json" > "$CONFIG" 2>/dev/null; then
-            echo "::warning::No .github/diffloupe.json on the base commit; using the PR's copy."
-            cp .github/diffloupe.json "$CONFIG"
+            echo "::warning::No .github/diffloupe.json on the base commit; using DiffLoupe's defaults."
+            echo '{}' > "$CONFIG"
           fi
 
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
