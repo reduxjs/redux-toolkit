@@ -669,3 +669,108 @@ describe('queryFulfilled settlement', () => {
     }
   })
 })
+
+describe('onQueryStarted lifecycle API', () => {
+  test('a synchronous throw in onQueryStarted is logged and does not fail the request', async () => {
+    const consoleErrorSpy = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => {})
+    const thrown = new Error('sync throw')
+    const queryFn = vi.fn(async () => ({ data: 'value' }))
+    const localApi = createApi({
+      baseQuery: async () => ({ data: null }),
+      endpoints: (build) => ({
+        getThing: build.query<string, void>({
+          queryFn,
+          onQueryStarted() {
+            throw thrown
+          },
+        }),
+      }),
+    })
+    const { store } = setupApiStore(localApi, undefined, {
+      withoutTestLifecycles: true,
+    })
+
+    const result = await store.dispatch(
+      localApi.endpoints.getThing.initiate(undefined, { subscribe: false }),
+    )
+
+    expect(queryFn).toHaveBeenCalledOnce()
+    expect(result.data).toBe('value')
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      expect.stringContaining('`onQueryStarted` for the endpoint "getThing"'),
+      thrown,
+    )
+    consoleErrorSpy.mockRestore()
+  })
+
+  test('getCacheEntry finds the entry of a mutation with a fixedCacheKey', async () => {
+    const entries: Array<{ status: string; data?: unknown }> = []
+    const localApi = createApi({
+      baseQuery: async () => ({ data: 'value' }),
+      endpoints: (build) => ({
+        doThing: build.mutation<string, void>({
+          query: () => '',
+          async onQueryStarted(_arg, { getCacheEntry, queryFulfilled }) {
+            entries.push(getCacheEntry())
+            await queryFulfilled
+            entries.push(getCacheEntry())
+          },
+        }),
+      }),
+    })
+    const { store } = setupApiStore(localApi, undefined, {
+      withoutTestLifecycles: true,
+    })
+
+    await store.dispatch(
+      localApi.endpoints.doThing.initiate(undefined, {
+        fixedCacheKey: 'shared',
+      }),
+    )
+    await delay(1)
+
+    expect(entries).toMatchObject([
+      { status: 'pending' },
+      { status: 'fulfilled', data: 'value' },
+    ])
+  })
+
+  test('updateCachedData before the entry has data warns and does nothing', async () => {
+    const consoleWarnSpy = vi
+      .spyOn(console, 'warn')
+      .mockImplementation(() => {})
+    let patches: unknown[] | undefined
+    const localApi = createApi({
+      baseQuery: async () => ({ data: { value: 1 } }),
+      endpoints: (build) => ({
+        getThing: build.query<{ value: number }, void>({
+          query: () => '',
+          onQueryStarted(_arg, { updateCachedData }) {
+            patches = updateCachedData((draft) => {
+              draft.value = 2
+            }).patches
+          },
+        }),
+      }),
+    })
+    const { store } = setupApiStore(localApi, undefined, {
+      withoutTestLifecycles: true,
+    })
+
+    const result = await store.dispatch(
+      localApi.endpoints.getThing.initiate(undefined, { subscribe: false }),
+    )
+
+    expect(patches).toEqual([])
+    expect(result.data).toEqual({ value: 1 })
+    expect(consoleWarnSpy).toHaveBeenCalledOnce()
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      expect.stringContaining(
+        '`updateCachedData` was called in `onQueryStarted` for the endpoint "getThing"',
+      ),
+    )
+    consoleWarnSpy.mockRestore()
+  })
+})
