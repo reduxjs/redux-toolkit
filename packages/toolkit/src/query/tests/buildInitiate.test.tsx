@@ -1,4 +1,5 @@
 import { setupApiStore } from '@internal/tests/utils/helpers'
+import type { Middleware } from '@reduxjs/toolkit'
 import { delay } from '@internal/utils'
 import { createApi, fakeBaseQuery } from '@reduxjs/toolkit/query'
 import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
@@ -248,6 +249,40 @@ describe('running queries during delayed invalidation', () => {
     })
     expect(store.dispatch(api.util.getRunningQueriesThunk())).toEqual([])
     replies[1]({ data: 'too late' })
+  })
+})
+
+describe('running queries when dispatching the result throws', () => {
+  const error = new Error('middleware failed')
+  const api = createApi({
+    baseQuery: fakeBaseQuery(),
+    endpoints: (build) => ({
+      getItem: build.query<string, void>({
+        queryFn: async () => ({ data: 'item' }),
+      }),
+    }),
+  })
+  const throwOnFulfilled: Middleware = () => (next) => (action) => {
+    const result = next(action)
+    if (api.endpoints.getItem.matchFulfilled(action)) {
+      throw error
+    }
+    return result
+  }
+  const storeRef = setupApiStore(api, undefined, {
+    middleware: { concat: [throwOnFulfilled] },
+  })
+
+  test('removes the running query when the request promise rejects', async () => {
+    const { store } = storeRef
+    const promise = store.dispatch(api.endpoints.getItem.initiate())
+    expect(
+      store.dispatch(api.util.getRunningQueryThunk('getItem', undefined)),
+    ).toBe(promise)
+
+    await expect(promise).rejects.toBe(error)
+    await delay(0)
+    expect(store.dispatch(api.util.getRunningQueriesThunk())).toEqual([])
   })
 })
 
