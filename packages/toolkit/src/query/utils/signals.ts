@@ -1,7 +1,7 @@
 // AbortSignal.timeout() is currently baseline 2024
 export const timeoutSignal = (milliseconds: number) => {
   const abortController = new AbortController()
-  setTimeout(() => {
+  const timeoutId = setTimeout(() => {
     const message = 'signal timed out'
     const name = 'TimeoutError'
     abortController.abort(
@@ -11,7 +11,10 @@ export const timeoutSignal = (milliseconds: number) => {
         : Object.assign(new Error(message), { name }),
     )
   }, milliseconds)
-  return abortController.signal
+  return {
+    signal: abortController.signal,
+    clear: () => clearTimeout(timeoutId),
+  }
 }
 
 // AbortSignal.any() is currently baseline 2024
