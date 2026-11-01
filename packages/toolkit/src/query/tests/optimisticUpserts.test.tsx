@@ -1,5 +1,6 @@
-import { createApi } from '@reduxjs/toolkit/query/react'
+import { createApi, fakeBaseQuery } from '@reduxjs/toolkit/query/react'
 import { createAction } from '@reduxjs/toolkit'
+import * as v from 'valibot'
 import {
   actionsReducer,
   hookWaitFor,
@@ -490,6 +491,187 @@ describe('upsertQueryEntries', () => {
       ).toBe(2)
     })
     expect(screen.getByTestId('status-2').textContent).toBe('fulfilled')
+  })
+
+  describe('invalid entries', () => {
+    const extendedApi = api.injectEndpoints({
+      overrideExisting: true,
+      endpoints: (build) => ({
+        throwingTags: build.query<Post, string>({
+          query: (id) => `post/${id}`,
+          providesTags: () => {
+            throw new Error('providesTags failed')
+          },
+        }),
+      }),
+    })
+
+    test('skips unknown and mutation endpoints with a warning and writes the rest', () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+      storeRef.store.dispatch(
+        api.util.upsertQueryEntries([
+          // @ts-expect-error unknown endpoint
+          { endpointName: 'doesNotExist', arg: '1', value: posts[0] },
+          // @ts-expect-error mutation endpoint
+          { endpointName: 'updatePost', arg: { id: '1' }, value: undefined },
+          { endpointName: 'post', arg: '2', value: posts[1] },
+        ]),
+      )
+
+      const state = storeRef.store.getState()
+      expect(api.endpoints.post.select('2')(state).data).toBe(posts[1])
+      expect(Object.keys(state.api.queries)).toEqual(['post("2")'])
+      expect(warnSpy).toHaveBeenCalledTimes(2)
+      expect(warnSpy.mock.calls[0][0]).toMatch(/"doesNotExist"/)
+      expect(warnSpy.mock.calls[1][0]).toMatch(/"updatePost"/)
+
+      warnSpy.mockRestore()
+    })
+
+    test('a throwing providesTags skips only that entry', () => {
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+      storeRef.store.dispatch(
+        extendedApi.util.upsertQueryEntries([
+          { endpointName: 'post', arg: '1', value: posts[0] },
+          { endpointName: 'throwingTags', arg: '2', value: posts[1] },
+          {
+            endpointName: 'postWithSideEffect',
+            arg: posts[2].id,
+            value: posts[2],
+          },
+        ]),
+      )
+
+      const state = storeRef.store.getState()
+      expect(extendedApi.endpoints.post.select('1')(state).data).toBe(posts[0])
+      expect(extendedApi.endpoints.throwingTags.select('2')(state).status).toBe(
+        'uninitialized',
+      )
+      expect(
+        extendedApi.endpoints.postWithSideEffect.select(posts[2].id)(state)
+          .data,
+      ).toBe(posts[2])
+
+      expect(state.api.provided.keys).toEqual({
+        'post("1")': [{ type: 'Post' }],
+        [`postWithSideEffect("${posts[2].id}")`]: [
+          { type: 'Post', id: posts[2].id },
+        ],
+      })
+
+      expect(errorSpy).toHaveBeenCalledOnce()
+      expect(errorSpy.mock.calls[0][0]).toMatch(/"throwingTags"/)
+
+      errorSpy.mockRestore()
+    })
+
+    test('warns when a value is a promise', () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      const promise = Promise.resolve(posts[0])
+
+      storeRef.store.dispatch(
+        api.util.upsertQueryEntries([
+          // @ts-expect-error promise value
+          { endpointName: 'post', arg: '1', value: promise },
+        ]),
+      )
+
+      expect(warnSpy).toHaveBeenCalledOnce()
+      expect(warnSpy.mock.calls[0][0]).toMatch(/is a promise/)
+
+      warnSpy.mockRestore()
+    })
+  })
+})
+
+describe('upsertQueryData failures', () => {
+  const schemaApi = createApi({
+    baseQuery: fakeBaseQuery(),
+    endpoints: (build) => ({
+      getThing: build.query<{ id: number }, number>({
+        queryFn: (id) => ({ data: { id } }),
+        responseSchema: v.object({ id: v.number() }),
+      }),
+    }),
+  })
+  const schemaStoreRef = setupApiStore(schemaApi, undefined, {
+    withoutTestLifecycles: true,
+  })
+
+  test('a responseSchema failure over a fulfilled entry keeps the entry usable', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const { store } = schemaStoreRef
+    const select = schemaApi.endpoints.getThing.select(1)
+
+    await store.dispatch(schemaApi.endpoints.getThing.initiate(1))
+    expect(select(store.getState()).status).toBe('fulfilled')
+
+    await store.dispatch(
+      schemaApi.util.upsertQueryData(
+        'getThing',
+        1,
+        // @ts-expect-error invalid value
+        { id: 'not a number' },
+      ),
+    )
+
+    let entry = select(store.getState())
+    expect(entry.status).toBe('fulfilled')
+    expect(entry.data).toEqual({ id: 1 })
+
+    const refetch = await store.dispatch(
+      schemaApi.endpoints.getThing.initiate(1, { forceRefetch: true }),
+    )
+    expect(refetch.status).toBe('fulfilled')
+    expect(refetch.fulfilledTimeStamp).toBeGreaterThan(0)
+
+    entry = select(store.getState())
+    expect(entry.status).toBe('fulfilled')
+    expect(entry.requestId).toBe(refetch.requestId)
+
+    errorSpy.mockRestore()
+  })
+
+  test('a caught schema failure on upsert keeps the entry tags', async () => {
+    const caughtApi = createApi({
+      baseQuery: fakeBaseQuery(),
+      tagTypes: ['Thing', 'Error'],
+      catchSchemaFailure: (error) => ({ status: 'CUSTOM_ERROR', error }),
+      endpoints: (build) => ({
+        getThing: build.query<{ id: number }, number>({
+          queryFn: (id) => ({ data: { id } }),
+          responseSchema: v.object({ id: v.number() }),
+          providesTags: (result) =>
+            result ? [{ type: 'Thing', id: result.id }] : ['Error'],
+        }),
+      }),
+    })
+    const { store } = setupApiStore(caughtApi, undefined, {
+      withoutTestLifecycles: true,
+    })
+
+    await store.dispatch(caughtApi.endpoints.getThing.initiate(1))
+    const tagsBefore = store.getState().api.provided.keys
+
+    await store.dispatch(
+      caughtApi.util.upsertQueryData(
+        'getThing',
+        1,
+        // @ts-expect-error invalid value
+        { id: 'not a number' },
+      ),
+    )
+
+    const state = store.getState()
+    expect(caughtApi.endpoints.getThing.select(1)(state).status).toBe(
+      'fulfilled',
+    )
+    expect(state.api.provided.keys).toEqual(tagsBefore)
+    expect(state.api.provided.keys).toEqual({
+      'getThing(1)': [{ type: 'Thing', id: 1 }],
+    })
   })
 })
 
