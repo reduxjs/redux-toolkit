@@ -5,12 +5,14 @@ import type {
   BaseQueryMeta,
 } from '../../baseQueryTypes'
 import { isAnyQueryDefinition } from '../../endpointDefinitions'
+import { getMutationCacheKey } from '../buildSlice'
 import type { Recipe } from '../buildThunks'
 import { isFulfilled, isPending, isRejected } from '../rtkImports'
 import type {
   MutationBaseLifecycleApi,
   QueryBaseLifecycleApi,
 } from './cacheLifecycle'
+import { runLifecycleCallback, warnIfNoCachedData } from './cacheLifecycle'
 import type {
   ApiMiddlewareInternalHandler,
   InternalHandlerBuilder,
@@ -463,7 +465,9 @@ export const buildQueryLifecycleHandler: InternalHandlerBuilder = ({
         queryFulfilled.catch(() => {})
         lifecycleMap[requestId] = lifecycle
         const selector = (api.endpoints[endpointName] as any).select(
-          isAnyQueryDefinition(endpointDefinition) ? originalArgs : requestId,
+          isAnyQueryDefinition(endpointDefinition)
+            ? originalArgs
+            : getMutationCacheKey(action.meta),
         )
 
         const extra = mwApi.dispatch((_, __, extra) => extra)
@@ -473,18 +477,30 @@ export const buildQueryLifecycleHandler: InternalHandlerBuilder = ({
           requestId,
           extra,
           updateCachedData: (isAnyQueryDefinition(endpointDefinition)
-            ? (updateRecipe: Recipe<any>) =>
-                mwApi.dispatch(
+            ? (updateRecipe: Recipe<any>) => {
+                if (process.env.NODE_ENV !== 'production') {
+                  warnIfNoCachedData(
+                    selector(mwApi.getState()),
+                    endpointName,
+                    'onQueryStarted',
+                  )
+                }
+                return mwApi.dispatch(
                   api.util.updateQueryData(
                     endpointName as never,
                     originalArgs as never,
                     updateRecipe,
                   ),
                 )
+              }
             : undefined) as any,
           queryFulfilled,
         }
-        onQueryStarted(originalArgs, lifecycleApi as any)
+        runLifecycleCallback(
+          () => onQueryStarted(originalArgs, lifecycleApi as any),
+          endpointName,
+          'onQueryStarted',
+        )
       }
     } else if (isFulfilledThunk(action)) {
       const { requestId, baseQueryMeta } = action.meta

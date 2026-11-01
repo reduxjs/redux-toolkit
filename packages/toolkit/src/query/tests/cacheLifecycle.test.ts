@@ -5,6 +5,7 @@ import {
 } from '@internal/tests/utils/helpers'
 import type { QueryActionCreatorResult } from '@reduxjs/toolkit/query'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+import type { QueryCacheKey } from '../core/apiState'
 
 beforeAll(() => {
   vi.useFakeTimers()
@@ -728,5 +729,223 @@ test('upsertQueryEntries starts a cache lifecycle, and cacheDataLoaded resolves 
 
   await fakeTimerWaitFor(() => {
     expect(gotFirstValue).toHaveBeenCalledWith({ data: 'upserted', meta: {} })
+  })
+})
+
+describe('cacheDataLoaded and stale responses', () => {
+  function createDeferredBaseQuery() {
+    const pending = new Map<string, (data: string) => void>()
+    const baseQuery = (arg: { key: string; reply: string }) =>
+      new Promise<{ data: string }>((resolve) => {
+        pending.set(arg.reply, (data) => resolve({ data }))
+      })
+    const respond = (reply: string) => {
+      pending.get(reply)!(reply)
+      pending.delete(reply)
+    }
+    return { baseQuery, respond }
+  }
+
+  test('a response from a request of a removed entry does not resolve the next lifecycle', async () => {
+    const { baseQuery, respond } = createDeferredBaseQuery()
+    const loaded: Array<{ requestId: string; data: unknown }> = []
+    const localApi = createApi({
+      baseQuery,
+      endpoints: (build) => ({
+        getThing: build.query<string, { key: string; reply: string }>({
+          query: (arg) => arg,
+          serializeQueryArgs: ({ queryArgs }) => queryArgs.key,
+          async onCacheEntryAdded(_arg, { cacheDataLoaded, requestId }) {
+            try {
+              const { data } = await cacheDataLoaded
+              loaded.push({ requestId, data })
+            } catch {}
+          },
+        }),
+      }),
+    })
+    const { store } = setupApiStore(localApi, undefined, {
+      withoutTestLifecycles: true,
+    })
+
+    const first = store.dispatch(
+      localApi.endpoints.getThing.initiate({ key: 'k', reply: 'old' }),
+    )
+    store.dispatch(
+      localApi.internalActions.removeQueryResult({
+        queryCacheKey: first.queryCacheKey as QueryCacheKey,
+      }),
+    )
+    const second = store.dispatch(
+      localApi.endpoints.getThing.initiate({ key: 'k', reply: 'new' }),
+    )
+
+    respond('old')
+    await first
+    expect(loaded).toEqual([])
+
+    respond('new')
+    await second
+    await vi.advanceTimersByTimeAsync(1)
+    expect(loaded).toEqual([{ requestId: second.requestId, data: 'new' }])
+
+    first.unsubscribe()
+    second.unsubscribe()
+  })
+
+  test('a mutation with a reused fixedCacheKey resolves cacheDataLoaded with its own response', async () => {
+    const { baseQuery, respond } = createDeferredBaseQuery()
+    const loaded: Array<{ requestId: string; data: unknown }> = []
+    const localApi = createApi({
+      baseQuery,
+      endpoints: (build) => ({
+        doThing: build.mutation<string, { key: string; reply: string }>({
+          query: (arg) => arg,
+          async onCacheEntryAdded(_arg, { cacheDataLoaded, requestId }) {
+            try {
+              const { data } = await cacheDataLoaded
+              loaded.push({ requestId, data })
+            } catch {}
+          },
+        }),
+      }),
+    })
+    const { store } = setupApiStore(localApi, undefined, {
+      withoutTestLifecycles: true,
+    })
+
+    const first = store.dispatch(
+      localApi.endpoints.doThing.initiate(
+        { key: 'k', reply: 'm1' },
+        { fixedCacheKey: 'shared' },
+      ),
+    )
+    const second = store.dispatch(
+      localApi.endpoints.doThing.initiate(
+        { key: 'k', reply: 'm2' },
+        { fixedCacheKey: 'shared' },
+      ),
+    )
+
+    respond('m1')
+    await first
+    await vi.advanceTimersByTimeAsync(1)
+    expect(loaded).toEqual([])
+
+    respond('m2')
+    await second
+    await vi.advanceTimersByTimeAsync(1)
+    expect(loaded).toEqual([{ requestId: second.requestId, data: 'm2' }])
+  })
+
+  test('a response that was written before an invalidation refetch started still resolves cacheDataLoaded', async () => {
+    const { baseQuery, respond } = createDeferredBaseQuery()
+    const loaded: unknown[] = []
+    const localApi = createApi({
+      baseQuery,
+      tagTypes: ['Thing'],
+      endpoints: (build) => ({
+        getThing: build.query<string, { key: string; reply: string }>({
+          query: (arg) => arg,
+          serializeQueryArgs: ({ queryArgs }) => queryArgs.key,
+          providesTags: ['Thing'],
+          async onCacheEntryAdded(_arg, { cacheDataLoaded }) {
+            loaded.push((await cacheDataLoaded).data)
+          },
+        }),
+      }),
+    })
+    const { store } = setupApiStore(localApi, undefined, {
+      withoutTestLifecycles: true,
+    })
+
+    const first = store.dispatch(
+      localApi.endpoints.getThing.initiate({ key: 'k', reply: 'stale' }),
+    )
+    store.dispatch(localApi.util.invalidateTags(['Thing']))
+
+    respond('stale')
+    await first
+    await vi.advanceTimersByTimeAsync(1)
+    expect(
+      store.getState().api.queries[first.queryCacheKey]?.requestId,
+    ).not.toBe(first.requestId)
+    expect(loaded).toEqual(['stale'])
+
+    respond('stale')
+    first.unsubscribe()
+  })
+})
+
+describe('lifecycle callback errors and warnings', () => {
+  test('a synchronous throw in onCacheEntryAdded is logged and does not fail the request', async () => {
+    const consoleErrorSpy = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => {})
+    const thrown = new Error('sync throw')
+    const localApi = createApi({
+      baseQuery: async () => ({ data: 'value' }),
+      endpoints: (build) => ({
+        getThing: build.query<string, void>({
+          query: () => '',
+          onCacheEntryAdded() {
+            throw thrown
+          },
+        }),
+      }),
+    })
+    const { store } = setupApiStore(localApi, undefined, {
+      withoutTestLifecycles: true,
+    })
+
+    const result = await store.dispatch(
+      localApi.endpoints.getThing.initiate(undefined, { subscribe: false }),
+    )
+
+    expect(result.data).toBe('value')
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      expect.stringContaining(
+        '`onCacheEntryAdded` for the endpoint "getThing"',
+      ),
+      thrown,
+    )
+    consoleErrorSpy.mockRestore()
+  })
+
+  test('updateCachedData before the entry has data warns and does nothing', async () => {
+    const consoleWarnSpy = vi
+      .spyOn(console, 'warn')
+      .mockImplementation(() => {})
+    let patches: unknown[] | undefined
+    const localApi = createApi({
+      baseQuery: async () => ({ data: { value: 1 } }),
+      endpoints: (build) => ({
+        getThing: build.query<{ value: number }, void>({
+          query: () => '',
+          onCacheEntryAdded(_arg, { updateCachedData }) {
+            patches = updateCachedData((draft) => {
+              draft.value = 2
+            }).patches
+          },
+        }),
+      }),
+    })
+    const { store } = setupApiStore(localApi, undefined, {
+      withoutTestLifecycles: true,
+    })
+
+    const result = await store.dispatch(
+      localApi.endpoints.getThing.initiate(undefined, { subscribe: false }),
+    )
+
+    expect(patches).toEqual([])
+    expect(result.data).toEqual({ value: 1 })
+    expect(consoleWarnSpy).toHaveBeenCalledOnce()
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      expect.stringContaining(
+        '`updateCachedData` was called in `onCacheEntryAdded` for the endpoint "getThing"',
+      ),
+    )
+    consoleWarnSpy.mockRestore()
   })
 })
