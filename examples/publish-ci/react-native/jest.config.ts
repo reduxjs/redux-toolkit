@@ -4,12 +4,21 @@ const config: Config = {
   preset: 'react-native',
   verbose: true,
   /**
-   * Without this we will get the following error:
-   * `SyntaxError: Cannot use import statement outside a module`
+   * The preset's own allowlist (`react-native` and `@react-native/*`) plus the
+   * Redux packages, so an ES module build of any of them gets run through
+   * Babel instead of failing with
+   * `SyntaxError: Cannot use import statement outside a module`.
    */
   transformIgnorePatterns: [
-    'node_modules/(?!((jest-)?react-native|...|react-redux))',
+    'node_modules/(?!((jest-)?react-native|@react-native(-community)?|@reduxjs/toolkit|redux|redux-thunk|reselect|react-redux|immer)/)',
   ],
+  /**
+   * The preset only transforms `.js`, `.ts` and `.tsx`, so `.mjs` files
+   * would skip Babel even when the allowlist above includes them.
+   */
+  transform: {
+    '^.+\\.mjs$': 'babel-jest',
+  },
   /**
    * React Native's `jest` preset includes a
    * [polyfill for `window`](https://github.com/facebook/react-native/blob/acb634bc9662c1103bc7c8ca83cfdc62516d0060/packages/react-native/jest/setup.js#L61-L66).

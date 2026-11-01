@@ -1,7 +1,7 @@
 // `require()` of every RTK entry point with require(esm) turned off.
 // Without `module-sync` in the condition list, resolution falls through to the
 // `default` branch and loads the real CommonJS build. This is also how Node
-// versions older than 22.12 resolve RTK.
+// versions without require(esm) (before 20.19 and 22.12) resolve RTK.
 
 const rtk = require('@reduxjs/toolkit')
 const rtkReact = require('@reduxjs/toolkit/react')

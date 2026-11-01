@@ -6,7 +6,9 @@ tarball into a real Next.js app, build it, and run a Playwright test against it.
 
 ## What it covers
 
-- Next 16 with the **App Router** and Turbopack, on React 19.
+- Next 16 with the **App Router**, on React 19. CI builds it twice, once with
+  the default Turbopack build and once with `next build --webpack`, and runs
+  the same checks against each.
 - The client half of the app resolves RTK through Next's bundler, which picks
   the `module-sync` / `module` condition and lands on
   `dist/redux-toolkit.modern.mjs`.
