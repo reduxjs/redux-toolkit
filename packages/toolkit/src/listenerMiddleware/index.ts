@@ -167,10 +167,13 @@ const createTakePattern = <S>(
     })
 
     const promises: (Promise<null> | Promise<[Action, S, S]>)[] = [tuplePromise]
+    let timeoutId: ReturnType<typeof setTimeout> | undefined
 
     if (timeout != null) {
       promises.push(
-        new Promise<null>((resolve) => setTimeout(resolve, timeout, null)),
+        new Promise<null>((resolve) => {
+          timeoutId = setTimeout(resolve, timeout, null)
+        }),
       )
     }
 
@@ -180,6 +183,7 @@ const createTakePattern = <S>(
       validateActive(signal)
       return output
     } finally {
+      clearTimeout(timeoutId)
       // Always clean up the listener
       unsubscribe()
     }
