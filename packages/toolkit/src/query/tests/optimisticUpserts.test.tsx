@@ -633,6 +633,46 @@ describe('upsertQueryData failures', () => {
 
     errorSpy.mockRestore()
   })
+
+  test('a caught schema failure on upsert keeps the entry tags', async () => {
+    const caughtApi = createApi({
+      baseQuery: fakeBaseQuery(),
+      tagTypes: ['Thing', 'Error'],
+      catchSchemaFailure: (error) => ({ status: 'CUSTOM_ERROR', error }),
+      endpoints: (build) => ({
+        getThing: build.query<{ id: number }, number>({
+          queryFn: (id) => ({ data: { id } }),
+          responseSchema: v.object({ id: v.number() }),
+          providesTags: (result) =>
+            result ? [{ type: 'Thing', id: result.id }] : ['Error'],
+        }),
+      }),
+    })
+    const { store } = setupApiStore(caughtApi, undefined, {
+      withoutTestLifecycles: true,
+    })
+
+    await store.dispatch(caughtApi.endpoints.getThing.initiate(1))
+    const tagsBefore = store.getState().api.provided.keys
+
+    await store.dispatch(
+      caughtApi.util.upsertQueryData(
+        'getThing',
+        1,
+        // @ts-expect-error invalid value
+        { id: 'not a number' },
+      ),
+    )
+
+    const state = store.getState()
+    expect(caughtApi.endpoints.getThing.select(1)(state).status).toBe(
+      'fulfilled',
+    )
+    expect(state.api.provided.keys).toEqual(tagsBefore)
+    expect(state.api.provided.keys).toEqual({
+      'getThing(1)': [{ type: 'Thing', id: 1 }],
+    })
+  })
 })
 
 describe('full integration', () => {

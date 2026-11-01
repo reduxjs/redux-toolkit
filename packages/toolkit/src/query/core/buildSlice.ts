@@ -610,6 +610,10 @@ export function buildSlice({
         .addMatcher(
           isAnyOf(isFulfilled(queryThunk), isRejectedWithValue(queryThunk)),
           (draft, action) => {
+            // A failed upsert does not change the entry's data, so it keeps its tags
+            if (isRejectedWithValue(action) && isUpsertQuery(action.meta.arg)) {
+              return
+            }
             writeProvidedTagsForQueries(draft, [action])
           },
         )
