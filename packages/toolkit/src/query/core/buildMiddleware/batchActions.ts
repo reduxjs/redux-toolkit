@@ -134,7 +134,10 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
     if (api.util.resetApiState.match(action)) {
       previousSubscriptions = {}
       internalState.currentSubscriptions.clear()
-      updateSyncTimer = null
+      if (updateSyncTimer) {
+        clearTimeout(updateSyncTimer)
+        updateSyncTimer = null
+      }
       return [true, false]
     }
 
