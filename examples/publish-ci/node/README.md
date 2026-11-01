@@ -11,11 +11,13 @@ There are three test modes, one per way Node can load RTK:
 | `test:require-esm` | `require()` with require(esm) enabled  | `*.modern.mjs`         |
 | `test:require-cjs` | `require()` with require(esm) disabled | `dist/**/cjs/index.js` |
 
-`require(esm)` is on by default from Node 22.12 onward. When it is on, Node adds
-the `module-sync` export condition for `require()` calls, so a CommonJS caller
-gets the ESM build. `test:require-cjs` passes `--no-experimental-require-module`
-to turn that off, which both exercises the real CommonJS build and reproduces
-how Node versions older than 22.12 resolve RTK.
+`require(esm)` is on by default from Node 20.19 and 22.12 onward. When it is on,
+Node adds the `module-sync` export condition for `require()` calls, so a
+CommonJS caller gets the ESM build. `test:require-cjs` passes
+`--no-experimental-require-module` to turn that off, which both exercises the
+real CommonJS build and reproduces how older Node versions resolve RTK.
+
+CI runs this example on Node 20.19.0, 22.12.0, 24.x and 26.x.
 
 Each mode covers all four entry points — `@reduxjs/toolkit`,
 `@reduxjs/toolkit/react`, `@reduxjs/toolkit/query`, and

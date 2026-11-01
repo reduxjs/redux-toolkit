@@ -1,5 +1,5 @@
 // `require()` of every RTK entry point on a Node version where `require(esm)`
-// is enabled by default (22.12+ and 23.1+). Node adds the `module-sync`
+// is enabled by default (20.19+ and 22.12+). Node adds the `module-sync`
 // condition, so these resolve to the `modern.mjs` bundles even though the
 // caller is CommonJS. This is what a plain `require('@reduxjs/toolkit')` does
 // for a user on a current Node release.

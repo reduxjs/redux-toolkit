@@ -329,7 +329,7 @@ jobs:
           pnpm exec tsc -p tsconfig.test.json --noEmit --ignoreDeprecations 6.0
 
   test-published-artifact:
-    name: Test Published Artifact ${{ matrix.example }}
+    name: Test Published Artifact ${{ matrix.example }}${{ matrix.bundler != 'default' && format(' ({0})', matrix.bundler) || '' }}${{ matrix.node != '24.x' && format(' (Node {0})', matrix.node) || '' }}
 
     needs: [build]
     runs-on: ubuntu-latest
@@ -338,6 +338,25 @@ jobs:
       matrix:
         node: ['24.x']
         example: ['next', 'vite', 'node', 'react-native', 'expo']
+        bundler: ['default']
+        include:
+          # The `node` example checks `require()` and `import` resolution, which
+          # changes across Node versions. 20.19.0 and 22.12.0 are the first
+          # releases where `require(esm)` works without a flag.
+          - example: 'node'
+            node: '20.19.0'
+            bundler: 'default'
+          - example: 'node'
+            node: '22.12.0'
+            bundler: 'default'
+          - example: 'node'
+            node: '26.x'
+            bundler: 'default'
+          # Next 16 builds with Turbopack by default. webpack resolves
+          # `exports` conditions on its own, so build with it too.
+          - example: 'next'
+            node: '24.x'
+            bundler: 'webpack'
     defaults:
       run:
         working-directory: ./examples/publish-ci/${{ matrix.example }}
@@ -393,7 +412,12 @@ jobs:
           cache: 'gradle'
 
       - name: Build example
+        if: matrix.bundler == 'default'
         run: pnpm build
+
+      - name: Build example with ${{ matrix.bundler }}
+        if: matrix.bundler != 'default'
+        run: pnpm build --${{ matrix.bundler }}
 
       - name: playwright install
         if: matrix.example == 'next' || matrix.example == 'vite'
