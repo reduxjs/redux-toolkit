@@ -1,9 +1,11 @@
 import { server } from '@internal/query/tests/mocks/server'
 import { setupApiStore } from '@internal/tests/utils/helpers'
+import type { FetchBaseQueryError } from '@reduxjs/toolkit/query'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 import { waitFor } from '@testing-library/react'
-import { HttpResponse, http } from 'msw'
+import { HttpResponse, delay, http } from 'msw'
 import { vi } from 'vitest'
+import type { QueryCacheKey } from '../core/apiState'
 
 const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
@@ -544,4 +546,126 @@ test('query: will only start lifecycle if query is not skipped due to `condition
     extended.endpoints.injected.initiate('arg', { forceRefetch: true }),
   )
   expect(onStart).toHaveBeenCalledTimes(2)
+})
+
+describe('queryFulfilled settlement', () => {
+  test('a stale response is discarded by the reducer, but its queryFulfilled still resolves', async () => {
+    const fulfilledWith: string[] = []
+    const localApi = createApi({
+      baseQuery: async (arg: string) => {
+        await delay(20)
+        return { data: arg }
+      },
+      endpoints: (build) => ({
+        getThing: build.query<string, string>({
+          query: (arg) => arg,
+          async onQueryStarted(_arg, { queryFulfilled }) {
+            const result = await queryFulfilled
+            fulfilledWith.push(result.data)
+          },
+        }),
+      }),
+    })
+    const { store } = setupApiStore(localApi, undefined, {
+      withoutTestLifecycles: true,
+    })
+
+    const first = store.dispatch(localApi.endpoints.getThing.initiate('a'))
+    store.dispatch(
+      localApi.internalActions.removeQueryResult({
+        queryCacheKey: first.queryCacheKey as QueryCacheKey,
+      }),
+    )
+    const second = store.dispatch(localApi.endpoints.getThing.initiate('a'))
+    expect(second.requestId).not.toBe(first.requestId)
+
+    await Promise.all([first, second])
+    await delay(1)
+
+    expect(store.getState().api.queries[first.queryCacheKey]?.requestId).toBe(
+      second.requestId,
+    )
+    // Known current behavior that may change; documenting it as the baseline (#5504)
+    expect(fulfilledWith).toEqual(['a', 'a'])
+
+    first.unsubscribe()
+    second.unsubscribe()
+  })
+
+  test('queryFulfilled rejects with isUnhandledError true for a thrown error and false for a returned error', async () => {
+    const rejections: Array<{ isUnhandledError: boolean }> = []
+    const recordRejection = async (queryFulfilled: Promise<unknown>) => {
+      try {
+        await queryFulfilled
+      } catch (e) {
+        rejections.push(e as { isUnhandledError: boolean })
+      }
+    }
+    const localApi = createApi({
+      baseQuery: async () => ({ data: null }),
+      endpoints: (build) => ({
+        thrown: build.query<string, void>({
+          queryFn: async () => {
+            throw new Error('thrown from queryFn')
+          },
+          onQueryStarted: (_arg, { queryFulfilled }) =>
+            recordRejection(queryFulfilled),
+        }),
+        returned: build.query<string, void>({
+          queryFn: async () => ({
+            error: { status: 400, data: 'returned' } as FetchBaseQueryError,
+          }),
+          onQueryStarted: (_arg, { queryFulfilled }) =>
+            recordRejection(queryFulfilled),
+        }),
+      }),
+    })
+    const { store } = setupApiStore(localApi, undefined, {
+      withoutTestLifecycles: true,
+    })
+
+    await store.dispatch(
+      localApi.endpoints.thrown.initiate(undefined, { subscribe: false }),
+    )
+    await store.dispatch(
+      localApi.endpoints.returned.initiate(undefined, { subscribe: false }),
+    )
+    await delay(1)
+
+    expect(rejections.map((r) => r.isUnhandledError)).toEqual([true, false])
+  })
+
+  test('ignoring a rejected queryFulfilled does not cause an unhandled rejection', async () => {
+    const unhandled: unknown[] = []
+    const onUnhandled = (reason: unknown) => {
+      unhandled.push(reason)
+    }
+    process.on('unhandledRejection', onUnhandled)
+
+    try {
+      const localApi = createApi({
+        baseQuery: async () => ({ data: null }),
+        endpoints: (build) => ({
+          getThing: build.query<number, string>({
+            queryFn: async () => ({
+              error: { status: 500, data: 'boom' } as FetchBaseQueryError,
+            }),
+            onQueryStarted() {},
+          }),
+        }),
+      })
+      const { store } = setupApiStore(localApi, undefined, {
+        withoutTestLifecycles: true,
+      })
+
+      await store.dispatch(
+        localApi.endpoints.getThing.initiate('a', { subscribe: false }),
+      )
+      await delay(10)
+
+      expect(unhandled).toEqual([])
+    } finally {
+      process.off('unhandledRejection', onUnhandled)
+    }
+  })
 })

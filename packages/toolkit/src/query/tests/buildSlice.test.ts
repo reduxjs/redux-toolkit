@@ -267,3 +267,70 @@ describe('provided tag cleanup', () => {
     expect(Object.values(state.provided.tags.Post ?? {}).flat()).toEqual([])
   })
 })
+
+describe('query cache entry writes', () => {
+  test('store subscribers never see a new cache entry in the uninitialized state', async () => {
+    const api = createApi({
+      baseQuery: async (arg: string) => {
+        await delay(1)
+        return { data: arg }
+      },
+      endpoints: (build) => ({
+        getThing: build.query<string, string>({ query: (arg) => arg }),
+      }),
+    })
+    const { store } = setupApiStore(api, undefined, {
+      withoutTestLifecycles: true,
+    })
+
+    const statuses: Array<string | undefined> = []
+    const unsubscribeStore = store.subscribe(() => {
+      statuses.push(store.getState().api.queries['getThing("a")']?.status)
+    })
+
+    const promise = store.dispatch(api.endpoints.getThing.initiate('a'))
+    await promise
+    unsubscribeStore()
+
+    expect(statuses).toContain('pending')
+    expect(statuses).not.toContain('uninitialized')
+    expect(statuses.at(-1)).toBe('fulfilled')
+
+    promise.unsubscribe()
+  })
+
+  test('a thrown query error provides no tags, while a returned error does', async () => {
+    const api = createApi({
+      baseQuery: async () => ({ data: null }),
+      tagTypes: ['Thing'],
+      endpoints: (build) => ({
+        thrown: build.query<string, void>({
+          queryFn: async () => {
+            throw new Error('thrown from queryFn')
+          },
+          providesTags: ['Thing'],
+        }),
+        returned: build.query<string, void>({
+          queryFn: async () => ({ error: { status: 400, data: 'returned' } }),
+          providesTags: ['Thing'],
+        }),
+      }),
+    })
+    const { store } = setupApiStore(api, undefined, {
+      withoutTestLifecycles: true,
+    })
+
+    await store.dispatch(
+      api.endpoints.thrown.initiate(undefined, { subscribe: false }),
+    )
+    await store.dispatch(
+      api.endpoints.returned.initiate(undefined, { subscribe: false }),
+    )
+
+    expect(
+      api.util
+        .selectInvalidatedBy(store.getState(), ['Thing'])
+        .map((entry) => entry.endpointName),
+    ).toEqual(['returned'])
+  })
+})

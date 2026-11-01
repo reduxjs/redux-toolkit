@@ -417,4 +417,22 @@ describe('prefetch', () => {
       expect(getSubscriptionCount(queryCacheKey)).toBe(0)
     })
   })
+
+  it('prefetch with ifOlderThan dispatches no actions while the cached data is fresh', async () => {
+    const promise = storeRef.store.dispatch(api.endpoints.getUser.initiate(1))
+    await promise
+
+    const actionCountBefore = storeRef.store.getState().actions.length
+
+    storeRef.store.dispatch(
+      api.util.prefetch('getUser', 1, { ifOlderThan: 10 }),
+    )
+    await Promise.all(
+      storeRef.store.dispatch(api.util.getRunningQueriesThunk()),
+    )
+
+    expect(storeRef.store.getState().actions.length).toBe(actionCountBefore)
+
+    promise.unsubscribe()
+  })
 })

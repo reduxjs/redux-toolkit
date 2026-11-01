@@ -12,6 +12,7 @@ import { useCallback, useEffect, useRef } from 'react'
 import { Provider } from 'react-redux'
 
 import { act, cleanup } from '@testing-library/react'
+import type { SubscriptionSelectors } from '../../query/core/buildMiddleware/types'
 
 export const ANY = 0 as any
 
@@ -128,6 +129,17 @@ export const actionsReducer = {
 
     return [...state, action]
   },
+}
+
+export function getSubscriptionSelectors(
+  api: {
+    internalActions: { internal_getRTKQSubscriptions: () => UnknownAction }
+  },
+  dispatch: (action: UnknownAction) => unknown,
+) {
+  return dispatch(
+    api.internalActions.internal_getRTKQSubscriptions(),
+  ) as unknown as SubscriptionSelectors
 }
 
 export function setupApiStore<

@@ -1992,3 +1992,211 @@ describe('Infinite queries', () => {
     })
   })
 })
+
+describe('infinite query page fetching and refetching', () => {
+  type Page = { page: number; hit: number }
+
+  const makeInfiniteApi = (
+    options: {
+      maxPages?: number
+      failOnHit?: number
+      hasNext?: () => boolean
+    } = {},
+  ) => {
+    const { maxPages, failOnHit, hasNext = () => true } = options
+    const requestedParams: number[] = []
+    let hit = 0
+    const getNextPageParam = vi.fn(
+      (_lastPage: Page, _allPages: Page[], lastPageParam: number) =>
+        hasNext() ? lastPageParam + 1 : null,
+    )
+
+    const api = createApi({
+      baseQuery: fakeBaseQuery<{ status: number; data: string }>(),
+      endpoints: (build) => ({
+        pages: build.infiniteQuery<Page, string, number>({
+          infiniteQueryOptions: {
+            initialPageParam: 0,
+            maxPages,
+            getNextPageParam,
+            getPreviousPageParam: (_firstPage, _allPages, firstPageParam) =>
+              firstPageParam > 0 ? firstPageParam - 1 : undefined,
+          },
+          queryFn({ pageParam }) {
+            hit++
+            requestedParams.push(pageParam)
+            if (hit === failOnHit) {
+              return { error: { status: 500, data: 'page failed' } }
+            }
+            return { data: { page: pageParam, hit } }
+          },
+        }),
+      }),
+    })
+
+    const { store } = setupApiStore(api, undefined, {
+      withoutTestLifecycles: true,
+    })
+
+    const getEntry = () => store.getState().api.queries['pages("x")']!
+    const getPageParams = () =>
+      (getEntry().data as { pageParams: number[] }).pageParams
+
+    return {
+      api,
+      store,
+      requestedParams,
+      getNextPageParam,
+      getEntry,
+      getPageParams,
+    }
+  }
+
+  test('the last fetch direction stays on the cache entry after the request settles', async () => {
+    const { api, store, getEntry } = makeInfiniteApi()
+    const getDirection = () => (getEntry() as { direction?: string }).direction
+
+    const first = store.dispatch(api.endpoints.pages.initiate('x'))
+    await first
+    expect(getDirection()).toBeUndefined()
+
+    await store.dispatch(
+      api.endpoints.pages.initiate('x', { direction: 'forward' }),
+    )
+    expect(getEntry().status).toBe('fulfilled')
+    expect(getDirection()).toBe('forward')
+
+    // The next request without a direction clears it
+    await first.refetch()
+    expect(getDirection()).toBeUndefined()
+
+    first.unsubscribe()
+  })
+
+  test('a forced request with a direction fetches one page instead of refetching all pages', async () => {
+    const { api, store, requestedParams, getPageParams } = makeInfiniteApi()
+
+    const first = store.dispatch(api.endpoints.pages.initiate('x'))
+    await first
+    await store.dispatch(
+      api.endpoints.pages.initiate('x', { direction: 'forward' }),
+    )
+    expect(requestedParams).toEqual([0, 1])
+
+    await store.dispatch(
+      api.endpoints.pages.initiate('x', {
+        direction: 'forward',
+        forceRefetch: true,
+      }),
+    )
+
+    expect(requestedParams).toEqual([0, 1, 2])
+    expect(getPageParams()).toEqual([0, 1, 2])
+
+    first.unsubscribe()
+  })
+
+  test('a page failure during a refetch rejects the refetch and keeps the previously cached pages', async () => {
+    const { api, store, requestedParams, getEntry } = makeInfiniteApi({
+      failOnHit: 6,
+    })
+
+    const first = store.dispatch(api.endpoints.pages.initiate('x'))
+    await first
+    await store.dispatch(
+      api.endpoints.pages.initiate('x', { direction: 'forward' }),
+    )
+    await store.dispatch(
+      api.endpoints.pages.initiate('x', { direction: 'forward' }),
+    )
+    const cachedBefore = getEntry().data
+
+    requestedParams.length = 0
+    const refetchResult = await first.refetch()
+
+    // The first two pages were refetched, then the third failed
+    expect(requestedParams).toEqual([0, 1, 2])
+    expect(refetchResult.status).toBe('rejected')
+    expect(refetchResult.error).toEqual({ status: 500, data: 'page failed' })
+    expect(getEntry().status).toBe('rejected')
+    expect(getEntry().data).toEqual(cachedBefore)
+
+    first.unsubscribe()
+  })
+
+  test('a refetch stops early when getNextPageParam returns null, leaving fewer pages than were cached', async () => {
+    let allowNext = true
+    const { api, store, requestedParams, getPageParams } = makeInfiniteApi({
+      hasNext: () => allowNext,
+    })
+
+    const first = store.dispatch(api.endpoints.pages.initiate('x'))
+    await first
+    await store.dispatch(
+      api.endpoints.pages.initiate('x', { direction: 'forward' }),
+    )
+    await store.dispatch(
+      api.endpoints.pages.initiate('x', { direction: 'forward' }),
+    )
+    expect(getPageParams()).toEqual([0, 1, 2])
+
+    allowNext = false
+    requestedParams.length = 0
+    await first.refetch()
+
+    expect(requestedParams).toEqual([0])
+    expect(getPageParams()).toEqual([0])
+
+    first.unsubscribe()
+  })
+
+  test('hasNextPage is computed when selecting, and memoized while the cache entry is unchanged', async () => {
+    const { api, store, getNextPageParam } = makeInfiniteApi()
+
+    const first = store.dispatch(api.endpoints.pages.initiate('x'))
+    await first
+
+    const selector = api.endpoints.pages.select('x')
+    getNextPageParam.mockClear()
+
+    const a = selector(store.getState())
+    expect(a.hasNextPage).toBe(true)
+    const callsAfterFirstSelect = getNextPageParam.mock.calls.length
+    expect(callsAfterFirstSelect).toBeGreaterThan(0)
+
+    expect(selector(store.getState())).toBe(a)
+    expect(getNextPageParam).toHaveBeenCalledTimes(callsAfterFirstSelect)
+
+    await store.dispatch(
+      api.endpoints.pages.initiate('x', { direction: 'forward' }),
+    )
+    selector(store.getState())
+    expect(getNextPageParam.mock.calls.length).toBeGreaterThan(
+      callsAfterFirstSelect,
+    )
+
+    first.unsubscribe()
+  })
+
+  test('upsertQueryData writes all given pages even when that exceeds maxPages', async () => {
+    // Known current behavior that may change; documenting it as the baseline (#5488)
+    const { api, store, getPageParams } = makeInfiniteApi({ maxPages: 3 })
+
+    await store.dispatch(
+      api.util.upsertQueryData('pages', 'x', {
+        pages: [0, 1, 2, 3, 4].map((page) => ({ page, hit: page })),
+        pageParams: [0, 1, 2, 3, 4],
+      }),
+    )
+    expect(getPageParams()).toEqual([0, 1, 2, 3, 4])
+
+    // A later page fetch trims only one page, not back down to maxPages
+    const promise = store.dispatch(
+      api.endpoints.pages.initiate('x', { direction: 'forward' }),
+    )
+    await promise
+    expect(getPageParams()).toEqual([1, 2, 3, 4, 5])
+
+    promise.unsubscribe()
+  })
+})
