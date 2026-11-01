@@ -706,3 +706,27 @@ test('dispatching a mutation initializer with `track: false` does not start a li
   await storeRef.store.dispatch(extended.endpoints.injected.initiate(undefined))
   expect(onNewCacheEntry).toHaveBeenCalledOnce()
 })
+
+test('upsertQueryEntries starts a cache lifecycle, and cacheDataLoaded resolves with the upserted value and an empty meta', async () => {
+  const extended = api.injectEndpoints({
+    overrideExisting: true,
+    endpoints: (build) => ({
+      injected: build.query<string, string>({
+        query: () => '/success',
+        async onCacheEntryAdded(_arg, { cacheDataLoaded }) {
+          gotFirstValue(await cacheDataLoaded)
+        },
+      }),
+    }),
+  })
+
+  storeRef.store.dispatch(
+    extended.util.upsertQueryEntries([
+      { endpointName: 'injected', arg: 'arg', value: 'upserted' },
+    ]),
+  )
+
+  await fakeTimerWaitFor(() => {
+    expect(gotFirstValue).toHaveBeenCalledWith({ data: 'upserted', meta: {} })
+  })
+})

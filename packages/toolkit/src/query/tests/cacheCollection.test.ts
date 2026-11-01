@@ -1,6 +1,7 @@
 import type { Middleware, Reducer } from '@reduxjs/toolkit'
-import { configureStore } from '@reduxjs/toolkit'
+import { configureStore, createAction } from '@reduxjs/toolkit'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+import type { CombinedState } from '@reduxjs/toolkit/query'
 import {
   THIRTY_TWO_BIT_MAX_INT,
   THIRTY_TWO_BIT_MAX_TIMER_SECONDS,
@@ -196,6 +197,65 @@ describe('resetApiState cleanup', () => {
     expect(queryPromise1.abort).toHaveBeenCalled()
     expect(queryPromise2.abort).toHaveBeenCalled()
     expect(mutationPromise.abort).toHaveBeenCalled()
+  })
+})
+
+describe('removal timer behavior', () => {
+  const rehydrate = createAction<{ api: CombinedState<any, any, any> }>(
+    'rehydrate',
+  )
+
+  const makeApi = () =>
+    createApi({
+      baseQuery: async (arg: string) => ({ data: `data-${arg}` }),
+      endpoints: (build) => ({
+        getThing: build.query<string, string>({ query: (arg) => arg }),
+      }),
+      extractRehydrationInfo(action, { reducerPath }) {
+        if (rehydrate.match(action)) {
+          return action.payload[reducerPath]
+        }
+        return undefined
+      },
+    })
+
+  const key = 'getThing("a")'
+
+  test('resubscribing before the removal timer fires keeps the entry, and a later unsubscribe restarts the full countdown', async () => {
+    const { store, api } = storeForApi(makeApi())
+
+    const first = store.dispatch(api.endpoints.getThing.initiate('a'))
+    await first
+    first.unsubscribe()
+    await vi.advanceTimersByTimeAsync(30_000)
+
+    const second = store.dispatch(api.endpoints.getThing.initiate('a'))
+    await second
+    await vi.advanceTimersByTimeAsync(31_000)
+    expect(store.getState().api.queries[key]).toBeDefined()
+
+    second.unsubscribe()
+    await vi.advanceTimersByTimeAsync(59_000)
+    expect(store.getState().api.queries[key]).toBeDefined()
+    await vi.advanceTimersByTimeAsync(2_000)
+    expect(store.getState().api.queries[key]).toBeUndefined()
+  })
+
+  test('rehydrated entries with no subscribers are collected after keepUnusedDataFor', async () => {
+    const { store: donor, api } = storeForApi(makeApi())
+    await donor.dispatch(
+      api.endpoints.getThing.initiate('a', { subscribe: false }),
+    )
+    const snapshot = donor.getState().api
+
+    const { store } = storeForApi(api)
+    store.dispatch(rehydrate({ api: snapshot }))
+    expect(store.getState().api.queries[key]?.data).toBe('data-a')
+
+    await vi.advanceTimersByTimeAsync(59_000)
+    expect(store.getState().api.queries[key]).toBeDefined()
+    await vi.advanceTimersByTimeAsync(2_000)
+    expect(store.getState().api.queries[key]).toBeUndefined()
   })
 })
 

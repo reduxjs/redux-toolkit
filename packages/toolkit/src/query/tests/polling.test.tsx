@@ -1,7 +1,7 @@
 import { createApi } from '@reduxjs/toolkit/query'
 import type { QueryActionCreatorResult } from '@reduxjs/toolkit/query'
 import { delay } from 'msw'
-import { setupApiStore } from '../../tests/utils/helpers'
+import { actionsReducer, setupApiStore } from '../../tests/utils/helpers'
 import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
 
 const mockBaseQuery = vi
@@ -324,5 +324,147 @@ describe('polling tests', () => {
 
     // Clean up subscriptions
     subscriptions.forEach((sub) => sub.unsubscribe())
+  })
+})
+
+describe('poll scheduling', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  const makePollApi = () => {
+    const requests: string[] = []
+    let gate: PromiseWithResolvers<void> | undefined
+
+    const api = createApi({
+      baseQuery: async (arg: string) => {
+        requests.push(arg)
+        if (gate) await gate.promise
+        return { data: `data-${arg}-${requests.length}` }
+      },
+      endpoints: (build) => ({
+        getThing: build.query<string, string>({ query: (arg) => arg }),
+      }),
+    })
+
+    const storeRef = setupApiStore(
+      api,
+      { ...actionsReducer },
+      { withoutTestLifecycles: true },
+    )
+
+    const blockRequests = () => {
+      gate = Promise.withResolvers<void>()
+    }
+    const releaseRequests = () => {
+      gate?.resolve()
+      gate = undefined
+    }
+
+    return {
+      api,
+      store: storeRef.store,
+      requests,
+      blockRequests,
+      releaseRequests,
+    }
+  }
+
+  it('pollingInterval: 0 disables polling', async () => {
+    const { api, store, requests } = makePollApi()
+
+    const subscription = store.dispatch(
+      api.endpoints.getThing.initiate('a', {
+        subscriptionOptions: { pollingInterval: 0 },
+      }),
+    )
+    await vi.advanceTimersByTimeAsync(100)
+
+    expect(requests).toEqual(['a'])
+
+    subscription.unsubscribe()
+  })
+
+  it('a duplicate dispatch for a fulfilled entry does not reset the poll timer', async () => {
+    const { api, store, requests } = makePollApi()
+
+    const subscription = store.dispatch(
+      api.endpoints.getThing.initiate('a', {
+        subscriptionOptions: { pollingInterval: 200 },
+      }),
+    )
+    await vi.advanceTimersByTimeAsync(100)
+    expect(requests).toEqual(['a'])
+
+    await store.dispatch(
+      api.endpoints.getThing.initiate('a', { subscribe: false }),
+    )
+    expect(requests).toEqual(['a'])
+
+    // The poll still fires 200ms after the first request, not 200ms after the duplicate
+    await vi.advanceTimersByTimeAsync(120)
+    expect(requests).toEqual(['a', 'a'])
+
+    subscription.unsubscribe()
+  })
+
+  it('the poll chain keeps running while a polled request is still pending', async () => {
+    // Polls that fire during the pending request are deduped, not skipped (#5508)
+    const { api, store, requests, blockRequests, releaseRequests } =
+      makePollApi()
+
+    const subscription = store.dispatch(
+      api.endpoints.getThing.initiate('a', {
+        subscriptionOptions: { pollingInterval: 20 },
+      }),
+    )
+    await vi.advanceTimersByTimeAsync(0)
+    expect(requests).toEqual(['a'])
+
+    blockRequests()
+    await vi.advanceTimersByTimeAsync(70)
+    expect(requests).toEqual(['a', 'a'])
+    const dedupedPolls = store
+      .getState()
+      .actions.filter(api.endpoints.getThing.matchRejected)
+      .filter((action) => action.meta.condition)
+    expect(dedupedPolls.length).toBeGreaterThanOrEqual(2)
+
+    releaseRequests()
+    await vi.advanceTimersByTimeAsync(50)
+    expect(requests.length).toBeGreaterThan(2)
+
+    subscription.unsubscribe()
+  })
+
+  it('regaining focus does not trigger a catch-up poll', async () => {
+    const { api, store, requests } = makePollApi()
+
+    store.dispatch(api.internalActions.onFocusLost())
+
+    const subscription = store.dispatch(
+      api.endpoints.getThing.initiate('a', {
+        subscriptionOptions: {
+          pollingInterval: 40,
+          skipPollingIfUnfocused: true,
+        },
+      }),
+    )
+    await vi.advanceTimersByTimeAsync(120)
+    expect(requests).toEqual(['a'])
+
+    store.dispatch(api.internalActions.onFocus())
+    await vi.advanceTimersByTimeAsync(5)
+    expect(requests).toEqual(['a'])
+
+    // The next poll arrives on the normal interval
+    await vi.advanceTimersByTimeAsync(40)
+    expect(requests).toEqual(['a', 'a'])
+
+    subscription.unsubscribe()
   })
 })

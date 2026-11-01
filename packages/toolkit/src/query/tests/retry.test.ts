@@ -919,3 +919,91 @@ describe('configuration', () => {
     })
   })
 })
+
+describe('retry backoff and error shape', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  test('the default backoff doubles from 300ms per attempt, scaled by a random factor between 0.4 and 1.4', async () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0.6)
+
+    const timestamps: number[] = []
+    const failingBaseQuery: BaseQueryFn = async () => {
+      timestamps.push(Date.now())
+      return { error: { status: 500, data: 'nope' } }
+    }
+    const api = createApi({
+      baseQuery: retry(failingBaseQuery, { maxRetries: 3 }),
+      endpoints: (build) => ({
+        getThing: build.query<string, string>({ query: (arg) => arg }),
+      }),
+    })
+    const storeRef = setupApiStore(api, undefined, {
+      withoutTestLifecycles: true,
+    })
+
+    const promise = storeRef.store.dispatch(
+      api.endpoints.getThing.initiate('a'),
+    )
+    await vi.advanceTimersByTimeAsync(5_000)
+    await promise
+
+    const deltas = timestamps
+      .slice(1)
+      .map((value, index) => value - timestamps[index])
+    expect(deltas).toEqual([600, 1200, 2400])
+
+    promise.unsubscribe()
+  })
+
+  test('retry turns a thrown baseQuery error into a returned error, so the failed query provides its tags', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const throwingBaseQuery: BaseQueryFn = async () => {
+      throw new Error('kaboom')
+    }
+    const makeApi = (baseQuery: BaseQueryFn) =>
+      createApi({
+        tagTypes: ['Thing'],
+        baseQuery,
+        endpoints: (build) => ({
+          getThing: build.query<string, string>({
+            query: (arg) => arg,
+            providesTags: ['Thing'],
+          }),
+        }),
+      })
+
+    const plainApi = makeApi(throwingBaseQuery)
+    const plainStore = setupApiStore(plainApi, undefined, {
+      withoutTestLifecycles: true,
+    }).store
+    const plainResult = await plainStore.dispatch(
+      plainApi.endpoints.getThing.initiate('a', { subscribe: false }),
+    )
+    expect(plainResult.isError).toBe(true)
+    expect(
+      plainApi.util.selectInvalidatedBy(plainStore.getState(), ['Thing']),
+    ).toEqual([])
+
+    const retryApi = makeApi(
+      retry(throwingBaseQuery, { maxRetries: 1, backoff: async () => {} }),
+    )
+    const retryStore = setupApiStore(retryApi, undefined, {
+      withoutTestLifecycles: true,
+    }).store
+    const retryResult = await retryStore.dispatch(
+      retryApi.endpoints.getThing.initiate('a', { subscribe: false }),
+    )
+    expect(retryResult.isError).toBe(true)
+    expect(
+      retryApi.util.selectInvalidatedBy(retryStore.getState(), ['Thing']),
+    ).toEqual([
+      {
+        endpointName: 'getThing',
+        originalArgs: 'a',
+        queryCacheKey: 'getThing("a")',
+      },
+    ])
+  })
+})

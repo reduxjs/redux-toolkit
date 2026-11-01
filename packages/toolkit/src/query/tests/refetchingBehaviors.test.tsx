@@ -445,3 +445,104 @@ describe('customListenersHandler', () => {
     expect(consoleSpy).toHaveBeenCalledWith('cleanup!')
   })
 })
+
+describe('focus and subscription bookkeeping', () => {
+  const makeFocusApi = (
+    apiOptions: { refetchOnFocus?: boolean; refetchOnReconnect?: boolean } = {},
+  ) => {
+    const requests: string[] = []
+
+    const api = createApi({
+      baseQuery: async (arg: string) => {
+        requests.push(arg)
+        return { data: `data-${arg}-${requests.length}` }
+      },
+      endpoints: (build) => ({
+        getThing: build.query<string, string>({ query: (arg) => arg }),
+      }),
+      ...apiOptions,
+    })
+
+    const { store } = setupApiStore(api, undefined, {
+      withoutTestLifecycles: true,
+    })
+
+    return { api, store, requests }
+  }
+
+  const key = 'getThing("a")'
+
+  test('config.focused and config.online are read from the DOM when the store is created', () => {
+    const onLineSpy = vi
+      .spyOn(navigator, 'onLine', 'get')
+      .mockReturnValue(false)
+    const visibilitySpy = vi
+      .spyOn(document, 'visibilityState', 'get')
+      .mockReturnValue('hidden')
+
+    try {
+      const { store } = makeFocusApi()
+
+      expect(store.getState().api.config.online).toBe(false)
+      expect(store.getState().api.config.focused).toBe(false)
+    } finally {
+      onLineSpy.mockRestore()
+      visibilitySpy.mockRestore()
+    }
+  })
+
+  test('state.subscriptions is synced from the middleware after a delay of about 500ms', async () => {
+    vi.useFakeTimers()
+    try {
+      const { api, store } = makeFocusApi()
+
+      const promise = store.dispatch(api.endpoints.getThing.initiate('a'))
+      await vi.advanceTimersByTimeAsync(0)
+      await promise
+
+      await vi.advanceTimersByTimeAsync(480)
+      expect(store.getState().api.subscriptions[key]).toBeUndefined()
+
+      await vi.advanceTimersByTimeAsync(40)
+      expect(
+        Object.keys(store.getState().api.subscriptions[key] ?? {}),
+      ).toEqual([promise.requestId])
+
+      promise.unsubscribe()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  test('a focus refetch reaches a subscriber that is not yet synced into state.subscriptions', async () => {
+    const { api, store, requests } = makeFocusApi()
+
+    const promise = store.dispatch(
+      api.endpoints.getThing.initiate('a', {
+        subscriptionOptions: { refetchOnFocus: true },
+      }),
+    )
+    await promise
+    expect(store.getState().api.subscriptions[key]).toBeUndefined()
+
+    store.dispatch(api.internalActions.onFocus())
+    await delay(10)
+
+    expect(requests).toEqual(['a', 'a'])
+
+    promise.unsubscribe()
+  })
+
+  test('a cache entry with no subscribers is kept on focus when refetchOnFocus is off globally', async () => {
+    const { api, store } = makeFocusApi({ refetchOnFocus: false })
+
+    const promise = store.dispatch(api.endpoints.getThing.initiate('a'))
+    await promise
+    promise.unsubscribe()
+
+    store.dispatch(api.internalActions.onFocus())
+    await delay(10)
+
+    expect(store.getState().api.queries[key]?.status).toBe('fulfilled')
+  })
+})
