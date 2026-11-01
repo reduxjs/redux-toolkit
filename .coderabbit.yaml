@@ -1,0 +1,88 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: en-US
+
+reviews:
+  profile: chill
+  high_level_summary: false
+  review_status: true
+  collapse_walkthrough: true
+  changed_files_summary: true
+  sequence_diagrams: false
+  estimate_code_review_effort: false
+  assess_linked_issues: true
+  related_issues: false
+  related_prs: false
+  suggested_labels: false
+  auto_apply_labels: false
+  suggested_reviewers: false
+  auto_assign_reviewers: false
+  in_progress_fortune: false
+  poem: false
+
+  path_filters:
+    - '!**/pnpm-lock.yaml'
+    - '!**/*.snap'
+    - '!**/__snapshots__/**'
+    - '!**/dist/**'
+
+  path_instructions:
+    - path: 'packages/toolkit/src/**'
+      instructions: |
+        Published library code. Every exported symbol and type is public API.
+        Flag breaking changes to runtime behavior or to exported types, and
+        changes that grow bundle size for code paths most apps do not use.
+        oxlint, oxfmt and tsc already run in CI: do not report formatting,
+        lint, or plain type errors.
+    - path: 'packages/toolkit/src/query/**'
+      instructions: |
+        RTK Query. Focus on cache entry lifecycle (subscriptions, keepUnusedDataFor,
+        removal), tag invalidation, request ordering and stale responses, and
+        React hook timing (render vs. effect, StrictMode double effects,
+        selector stability).
+    - path: '**/*.test.{ts,tsx}'
+      instructions: |
+        Tests run under Vitest. Flag tests that can pass without exercising the
+        behavior they name, and timing-dependent assertions without fake timers
+        or waitFor.
+    - path: '**/*.test-d.{ts,tsx}'
+      instructions: |
+        Type tests using expectTypeOf. Flag assertions that would still pass if
+        the type under test were `any`.
+    - path: 'docs/**'
+      instructions: |
+        User-facing documentation. Check that code samples match the current
+        API. Do not comment on prose style.
+
+  auto_review:
+    enabled: true
+    drafts: false
+    auto_incremental_review: true
+    base_branches:
+      - '.*'
+    ignore_usernames:
+      - 'dependabot[bot]'
+      - 'renovate[bot]'
+
+  finishing_touches:
+    docstrings:
+      enabled: false
+    unit_tests:
+      enabled: false
+
+  pre_merge_checks:
+    docstrings:
+      mode: 'off'
+    title:
+      mode: 'off'
+    description:
+      mode: 'off'
+    issue_assessment:
+      mode: 'off'
+
+  tools:
+    eslint:
+      enabled: false
+    biome:
+      enabled: false
+    languagetool:
+      enabled: false

@@ -1,0 +1,20 @@
+{
+  "surfaces": {
+    "tooling": [
+      "^(\\.github|scripts|docs|website|examples)/",
+      "^packages/[^/]+/scripts/",
+      "(^|/)[^/]*\\.config\\.[cm]?[jt]s$"
+    ]
+  },
+  "extraExcludes": ["pnpm-lock.yaml", "__snapshots__/", "/dist/"],
+  "post": {
+    "minSeverity": "should-fix"
+  },
+  "instructions": [
+    "This is the Redux Toolkit monorepo. packages/toolkit is the published @reduxjs/toolkit library; everything it exports, including types, is public API used by many apps.",
+    "Report breaking changes to exported runtime behavior or types, and new cost on code paths most apps do not use.",
+    "RTK Query (packages/toolkit/src/query) bugs usually involve cache entry lifecycle (subscriptions, keepUnusedDataFor, removal), tag invalidation, request ordering and stale responses, and React hook timing (render vs. effect, StrictMode double effects, selector stability).",
+    "Already covered, do not report: formatting (oxfmt), lint rules (oxlint), and type errors (tsc and type tests run in CI).",
+    "Review environment: no network access. Do not try to install packages or fetch URLs."
+  ]
+}
