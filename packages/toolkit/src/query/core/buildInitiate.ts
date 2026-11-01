@@ -23,10 +23,12 @@ import {
   type ResultTypeFrom,
 } from '../endpointDefinitions'
 import { filterNullishValues } from '../utils'
+import { skipToken } from '../utils/skipToken'
 import type {
   InfiniteData,
   InfiniteQueryConfigOptions,
   InfiniteQueryDirection,
+  QueryCacheKey,
   SubscriptionOptions,
 } from './apiState'
 import type {
@@ -394,11 +396,20 @@ You must add the middleware for RTK-Query to function correctly!`,
         }: StartQueryActionCreatorOptions = {},
       ) =>
       (dispatch, getState) => {
-        const queryCacheKey = serializeQueryArgs({
-          queryArgs: arg,
-          endpointDefinition,
-          endpointName,
-        })
+        // `skipToken` means "do not send a request". The arg is then a symbol
+        // rather than a query argument, and `serializeQueryArgs` is a public,
+        // user-supplied option that is documented to receive the query args —
+        // handing it a symbol makes a custom serializer throw (or build a
+        // nonsense key) before the thunk's `condition` ever gets a chance to
+        // bail out. Short-circuit here so the guard cannot be bypassed.
+        const queryCacheKey =
+          arg === skipToken
+            ? (`${endpointName}(skipToken)` as QueryCacheKey)
+            : serializeQueryArgs({
+                queryArgs: arg,
+                endpointDefinition,
+                endpointName,
+              })
 
         let thunk: AsyncThunkAction<unknown, QueryThunkArg, ThunkApiMetaConfig>
 

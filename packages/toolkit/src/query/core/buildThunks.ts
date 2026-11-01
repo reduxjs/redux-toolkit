@@ -41,6 +41,7 @@ import {
 } from '../endpointDefinitions'
 import { HandledError } from '../HandledError'
 import type { UnwrapPromise } from '../tsHelpers'
+import { skipToken } from '../utils/skipToken'
 import type {
   RootState,
   QueryKeys,
@@ -941,6 +942,16 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
         /// we have to check for that first, otherwise `queryThunk` will bail out and not run at all.
         if (isUpsertQuery(queryThunkArg)) {
           return true
+        }
+
+        // `skipToken` means "do not send a request". The hooks bail out before dispatching
+        // for the automatic subscription, but the imperative triggers returned by
+        // `useInfiniteQuery` (`fetchNextPage()` / `fetchPreviousPage()`) forward their
+        // `stableArg` straight to `initiate()`, and a direct `initiate(skipToken)` does the
+        // same - all of those used to reach this thunk and fire a real request.
+        // Bail out here so every entry point agrees on what `skipToken` means.
+        if (queryThunkArg.originalArgs === skipToken) {
+          return false
         }
 
         // Don't retry a request that's currently in-flight
