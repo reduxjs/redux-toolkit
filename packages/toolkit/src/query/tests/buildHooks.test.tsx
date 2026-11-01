@@ -528,6 +528,52 @@ describe('hooks tests', () => {
       ])
     })
 
+    test('`isLoading` is true when refetching after an error with no data', async () => {
+      const history: Array<{
+        isFetching: boolean
+        isLoading: boolean
+        isError: boolean
+      }> = []
+
+      function Component() {
+        const queryRes = api.endpoints.getUserAndForceError.useQuery(1)
+        const { refetch, status, isFetching, isLoading, isError } = queryRes
+
+        useEffect(() => {
+          history.push({ isFetching, isLoading, isError })
+        }, [isFetching, isLoading, isError])
+
+        return (
+          <div>
+            <button onClick={() => refetch()}>refetch</button>
+            <div data-testid="status">{status}</div>
+          </div>
+        )
+      }
+
+      render(<Component />, { wrapper: storeRef.wrapper })
+
+      await waitFor(() =>
+        expect(screen.getByTestId('status').textContent).toBe('rejected'),
+      )
+
+      fireEvent.click(screen.getByText('refetch'))
+
+      await waitFor(() =>
+        expect(screen.getByTestId('status').textContent).toBe('pending'),
+      )
+      await waitFor(() =>
+        expect(screen.getByTestId('status').textContent).toBe('rejected'),
+      )
+
+      expect(history).toEqual([
+        { isFetching: true, isLoading: true, isError: false },
+        { isFetching: false, isLoading: false, isError: true },
+        { isFetching: true, isLoading: true, isError: false },
+        { isFetching: false, isLoading: false, isError: true },
+      ])
+    })
+
     test('useQuery hook respects refetchOnMountOrArgChange: true', async () => {
       let data, isLoading, isFetching
       function User() {
@@ -1130,65 +1176,6 @@ describe('hooks tests', () => {
       for (const cacheKeyEntry of Object.values(finalSubscriptions)) {
         expect(Object.values(cacheKeyEntry!).length).toBe(0)
       }
-    })
-
-    test('Hook subscription failures do not reset isLoading state', async () => {
-      const states: boolean[] = []
-
-      function Parent() {
-        const { isLoading } = api.endpoints.getUserAndForceError.useQuery(1)
-
-        // Collect loading states to verify that it does not revert back to true.
-        states.push(isLoading)
-
-        // Parent conditionally renders child when loading.
-        if (isLoading) return null
-
-        return <Child />
-      }
-
-      function Child() {
-        // Using the same args as the parent
-        api.endpoints.getUserAndForceError.useQuery(1)
-
-        return null
-      }
-
-      render(<Parent />, { wrapper: storeRef.wrapper })
-
-      expect(states).toHaveLength(2)
-
-      // Allow at least three state effects to hit.
-      // Trying to see if any [true, false, true] occurs.
-      await act(async () => {
-        await waitForFakeTimer(150)
-      })
-
-      expect(states).toHaveLength(4)
-
-      await act(async () => {
-        await waitForFakeTimer(150)
-      })
-
-      expect(states).toHaveLength(5)
-
-      await act(async () => {
-        await waitForFakeTimer(150)
-      })
-
-      expect(states).toHaveLength(5)
-
-      // Find if at any time the isLoading state has reverted
-      // E.G.: `[..., true, false, ..., true]`
-      //              ^^^^  ^^^^^       ^^^^
-      const firstTrue = states.indexOf(true)
-      const firstFalse = states.slice(firstTrue).indexOf(false)
-      const revertedState = states.slice(firstFalse).indexOf(true)
-
-      expect(
-        revertedState,
-        `Expected isLoading state to never revert back to true but did after ${revertedState} renders...`,
-      ).toBe(-1)
     })
 
     test('query thunk should be aborted when component unmounts and cache entry is removed', async () => {
@@ -2577,6 +2564,58 @@ describe('hooks tests', () => {
         expect(getRenderCount()).toBe(2)
       },
     )
+
+    test('useInfiniteQuery `isLoading` is true when refetching after an error with no data', async () => {
+      const storeRef = setupApiStore(pokemonApi, undefined, {
+        withoutTestLifecycles: true,
+      })
+
+      server.use(
+        http.get('https://example.com/listItems', () =>
+          HttpResponse.json({ message: 'boom' }, { status: 500 }),
+        ),
+      )
+
+      const history: Array<{ isFetching: boolean; isLoading: boolean }> = []
+
+      function PokemonList() {
+        const { isFetching, isLoading, isError, refetch } =
+          pokemonApi.useGetInfinitePokemonInfiniteQuery('fire')
+
+        useEffect(() => {
+          history.push({ isFetching, isLoading })
+        }, [isFetching, isLoading])
+
+        return (
+          <div>
+            <div data-testid="isError">{String(isError)}</div>
+            <button onClick={() => refetch()}>refetch</button>
+          </div>
+        )
+      }
+
+      render(<PokemonList />, { wrapper: storeRef.wrapper })
+
+      await waitFor(() =>
+        expect(screen.getByTestId('isError').textContent).toBe('true'),
+      )
+
+      fireEvent.click(screen.getByText('refetch'))
+
+      await waitFor(() =>
+        expect(screen.getByTestId('isError').textContent).toBe('false'),
+      )
+      await waitFor(() =>
+        expect(screen.getByTestId('isError').textContent).toBe('true'),
+      )
+
+      expect(history).toEqual([
+        { isFetching: true, isLoading: true },
+        { isFetching: false, isLoading: false },
+        { isFetching: true, isLoading: true },
+        { isFetching: false, isLoading: false },
+      ])
+    })
 
     test('useInfiniteQuery hook option refetchCachedPages: false only refetches first page', async () => {
       const storeRef = setupApiStore(pokemonApi, undefined, {
