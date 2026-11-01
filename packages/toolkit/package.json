@@ -226,6 +226,7 @@
     "build": "pnpm clean && pnpm run-build && tsx scripts/fixUniqueSymbolExports.mts && tsx scripts/stripSourcemapFileField.mts",
     "build-only": "pnpm clean && pnpm run-build",
     "test": "vitest --typecheck --run ",
+    "bench": "vitest bench --run --config vitest.bench.config.mts --reporter=verbose",
     "test:watch": "vitest --watch",
     "type-tests": "pnpm exec tsc -p tsconfig.test.json --noEmit",
     "prepack": "pnpm build",
