@@ -214,6 +214,8 @@ export function runLifecycleCallback(
         `An error was thrown synchronously in \`${callbackName}\` for the endpoint "${endpointName}". The error was caught and the request continues.`,
         error,
       )
+    } else {
+      console.error(error)
     }
     return undefined
   }
