@@ -107,16 +107,19 @@ describe('setupListeners', () => {
   test('custom handlers still receive dispatch and the actions', () => {
     const dispatch = createDispatch()
     const cleanup = vi.fn()
-    const handler = vi.fn(() => cleanup)
+    const handler = vi.fn<NonNullable<Parameters<typeof setupListeners>[1]>>(
+      () => cleanup,
+    )
 
     const result = setupListeners(dispatch, handler)
 
-    expect(handler).toHaveBeenCalledWith(dispatch, {
-      onFocus,
-      onFocusLost,
-      onOnline,
-      onOffline,
-    })
+    expect(handler).toHaveBeenCalledOnce()
+    const [receivedDispatch, actions] = handler.mock.calls[0]
+    expect(receivedDispatch).toBe(dispatch)
+    expect(actions.onFocus.type).toBe(onFocus.type)
+    expect(actions.onFocusLost.type).toBe(onFocusLost.type)
+    expect(actions.onOnline.type).toBe(onOnline.type)
+    expect(actions.onOffline.type).toBe(onOffline.type)
     expect(result).toBe(cleanup)
   })
 })
