@@ -200,14 +200,14 @@ export function buildSlice({
     }
 
     updateQuerySubstateIfExists(draft, arg.queryCacheKey, (substate) => {
-      substate.status = STATUS_PENDING
-
-      substate.requestId =
-        upserting && substate.requestId
-          ? // for `upsertQuery` **updates**, keep the current `requestId`
-            substate.requestId
-          : // for normal queries or `upsertQuery` **inserts** always update the `requestId`
-            meta.requestId
+      // `upsertQuery` **updates** keep the current status and `requestId`.
+      // The rejected reducer ignores an upsert's rejection because of the
+      // `requestId` mismatch, so writing `pending` would never be undone.
+      const isUpsertUpdate = upserting && substate.requestId
+      if (!isUpsertUpdate) {
+        substate.status = STATUS_PENDING
+        substate.requestId = meta.requestId
+      }
       if (arg.originalArgs !== undefined) {
         substate.originalArgs = arg.originalArgs
       }
