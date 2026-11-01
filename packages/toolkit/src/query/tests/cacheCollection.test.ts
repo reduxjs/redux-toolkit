@@ -221,7 +221,7 @@ describe('removal timer behavior', () => {
 
   const key = 'getThing("a")'
 
-  test('the timer re-checks subscriptions when it fires, and a later unsubscribe restarts the full countdown', async () => {
+  test('resubscribing before the removal timer fires keeps the entry, and a later unsubscribe restarts the full countdown', async () => {
     const { store, api } = storeForApi(makeApi())
 
     const first = store.dispatch(api.endpoints.getThing.initiate('a'))

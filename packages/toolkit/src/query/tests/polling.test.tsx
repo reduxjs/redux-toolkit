@@ -1,7 +1,7 @@
 import { createApi } from '@reduxjs/toolkit/query'
 import type { QueryActionCreatorResult } from '@reduxjs/toolkit/query'
 import { delay } from 'msw'
-import { setupApiStore } from '../../tests/utils/helpers'
+import { actionsReducer, setupApiStore } from '../../tests/utils/helpers'
 import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
 
 const mockBaseQuery = vi
@@ -351,9 +351,11 @@ describe('poll scheduling', () => {
       }),
     })
 
-    const storeRef = setupApiStore(api, undefined, {
-      withoutTestLifecycles: true,
-    })
+    const storeRef = setupApiStore(
+      api,
+      { ...actionsReducer },
+      { withoutTestLifecycles: true },
+    )
 
     const blockRequests = () => {
       gate = Promise.withResolvers<void>()
@@ -426,6 +428,11 @@ describe('poll scheduling', () => {
     blockRequests()
     await vi.advanceTimersByTimeAsync(70)
     expect(requests).toEqual(['a', 'a'])
+    const dedupedPolls = store
+      .getState()
+      .actions.filter(api.endpoints.getThing.matchRejected)
+      .filter((action) => action.meta.condition)
+    expect(dedupedPolls.length).toBeGreaterThanOrEqual(2)
 
     releaseRequests()
     await vi.advanceTimersByTimeAsync(50)

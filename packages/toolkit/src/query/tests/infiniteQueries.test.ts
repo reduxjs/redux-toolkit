@@ -2041,6 +2041,7 @@ describe('infinite query page fetching and refetching', () => {
     const getEntry = () => store.getState().api.queries['pages("x")']!
     const getPageParams = () =>
       (getEntry().data as { pageParams: number[] }).pageParams
+    const getPages = () => (getEntry().data as { pages: Page[] }).pages
 
     return {
       api,
@@ -2049,6 +2050,7 @@ describe('infinite query page fetching and refetching', () => {
       getNextPageParam,
       getEntry,
       getPageParams,
+      getPages,
     }
   }
 
@@ -2126,9 +2128,10 @@ describe('infinite query page fetching and refetching', () => {
 
   test('a refetch stops early when getNextPageParam returns null, leaving fewer pages than were cached', async () => {
     let allowNext = true
-    const { api, store, requestedParams, getPageParams } = makeInfiniteApi({
-      hasNext: () => allowNext,
-    })
+    const { api, store, requestedParams, getPageParams, getPages } =
+      makeInfiniteApi({
+        hasNext: () => allowNext,
+      })
 
     const first = store.dispatch(api.endpoints.pages.initiate('x'))
     await first
@@ -2146,6 +2149,7 @@ describe('infinite query page fetching and refetching', () => {
 
     expect(requestedParams).toEqual([0])
     expect(getPageParams()).toEqual([0])
+    expect(getPages().map((p) => p.page)).toEqual([0])
 
     first.unsubscribe()
   })
@@ -2170,17 +2174,18 @@ describe('infinite query page fetching and refetching', () => {
     await store.dispatch(
       api.endpoints.pages.initiate('x', { direction: 'forward' }),
     )
+    getNextPageParam.mockClear()
     selector(store.getState())
-    expect(getNextPageParam.mock.calls.length).toBeGreaterThan(
-      callsAfterFirstSelect,
-    )
+    expect(getNextPageParam).toHaveBeenCalled()
 
     first.unsubscribe()
   })
 
   test('upsertQueryData writes all given pages even when that exceeds maxPages', async () => {
     // Known current behavior that may change; documenting it as the baseline (#5488)
-    const { api, store, getPageParams } = makeInfiniteApi({ maxPages: 3 })
+    const { api, store, getPageParams, getPages } = makeInfiniteApi({
+      maxPages: 3,
+    })
 
     await store.dispatch(
       api.util.upsertQueryData('pages', 'x', {
@@ -2189,6 +2194,7 @@ describe('infinite query page fetching and refetching', () => {
       }),
     )
     expect(getPageParams()).toEqual([0, 1, 2, 3, 4])
+    expect(getPages().map((p) => p.page)).toEqual([0, 1, 2, 3, 4])
 
     // A later page fetch trims only one page, not back down to maxPages
     const promise = store.dispatch(

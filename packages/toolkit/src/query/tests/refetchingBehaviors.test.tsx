@@ -492,19 +492,26 @@ describe('focus and subscription bookkeeping', () => {
   })
 
   test('state.subscriptions is synced from the middleware after a delay of about 500ms', async () => {
-    const { api, store } = makeFocusApi()
+    vi.useFakeTimers()
+    try {
+      const { api, store } = makeFocusApi()
 
-    const promise = store.dispatch(api.endpoints.getThing.initiate('a'))
-    await promise
+      const promise = store.dispatch(api.endpoints.getThing.initiate('a'))
+      await vi.advanceTimersByTimeAsync(0)
+      await promise
 
-    expect(store.getState().api.subscriptions[key]).toBeUndefined()
+      await vi.advanceTimersByTimeAsync(480)
+      expect(store.getState().api.subscriptions[key]).toBeUndefined()
 
-    await delay(600)
-    expect(Object.keys(store.getState().api.subscriptions[key] ?? {})).toEqual([
-      promise.requestId,
-    ])
+      await vi.advanceTimersByTimeAsync(40)
+      expect(
+        Object.keys(store.getState().api.subscriptions[key] ?? {}),
+      ).toEqual([promise.requestId])
 
-    promise.unsubscribe()
+      promise.unsubscribe()
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   test('a focus refetch reaches a subscriber that is not yet synced into state.subscriptions', async () => {
