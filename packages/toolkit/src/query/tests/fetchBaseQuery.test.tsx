@@ -1540,4 +1540,42 @@ describe('timeout', () => {
       error: expect.stringMatching(/^TimeoutError/),
     })
   })
+
+  describe('timer cleanup', () => {
+    beforeEach(() => {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    })
+
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    test('clears the timeout timer when the request succeeds', async () => {
+      const timeoutBaseQuery = fetchBaseQuery({
+        baseUrl,
+        timeout: 60_000,
+        fetchFn: async () => HttpResponse.json({ value: 1 }),
+      })
+
+      const result = await timeoutBaseQuery('/success', commonBaseQueryApi, {})
+
+      expect(result.data).toEqual({ value: 1 })
+      expect(vi.getTimerCount()).toBe(0)
+    })
+
+    test('clears the timeout timer when the request fails', async () => {
+      const timeoutBaseQuery = fetchBaseQuery({
+        baseUrl,
+        timeout: 60_000,
+        fetchFn: async () => {
+          throw new TypeError('network down')
+        },
+      })
+
+      const result = await timeoutBaseQuery('/success', commonBaseQueryApi, {})
+
+      expect(result.error).toMatchObject({ status: 'FETCH_ERROR' })
+      expect(vi.getTimerCount()).toBe(0)
+    })
+  })
 })
