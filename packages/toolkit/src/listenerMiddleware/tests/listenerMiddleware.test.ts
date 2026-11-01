@@ -1328,6 +1328,166 @@ describe('createListenerMiddleware', () => {
       store.dispatch({ type: 'type' })
       expect(await deferredCompletedEvt).toBeDefined()
     })
+
+    describe('timer cleanup', () => {
+      const setupCounterStore = () =>
+        configureStore({
+          reducer: counterSlice.reducer,
+          middleware: (gDM) => gDM().prepend(middleware),
+        })
+      let store = setupCounterStore()
+
+      beforeEach(() => {
+        vi.useFakeTimers()
+        store = setupCounterStore()
+      })
+
+      afterEach(() => {
+        vi.useRealTimers()
+      })
+
+      test('take clears its timeout when the action arrives first', async () => {
+        let result: unknown
+
+        startListening({
+          actionCreator: testAction1,
+          effect: async (_, listenerApi) => {
+            result = await listenerApi.take(increment.match, 60_000)
+          },
+        })
+
+        store.dispatch(testAction1('a'))
+        store.dispatch(increment())
+        await vi.advanceTimersByTimeAsync(0)
+
+        expect(result).toEqual([increment(), { value: 1 }, { value: 0 }])
+        expect(vi.getTimerCount()).toBe(0)
+      })
+
+      test('take clears its timeout when the listener is cancelled', async () => {
+        const afterTake = vi.fn()
+        let caught: unknown
+
+        startListening({
+          actionCreator: testAction1,
+          effect: async (_, listenerApi) => {
+            try {
+              await listenerApi.take(increment.match, 60_000)
+              afterTake()
+            } catch (e) {
+              caught = e
+            }
+          },
+        })
+
+        store.dispatch(testAction1('a'))
+        clearListeners()
+        await vi.advanceTimersByTimeAsync(0)
+
+        expect(caught).toBeInstanceOf(TaskAbortError)
+        expect(vi.getTimerCount()).toBe(0)
+
+        await vi.advanceTimersByTimeAsync(60_000)
+        expect(afterTake).not.toHaveBeenCalled()
+      })
+
+      test('condition clears its timeout when the listener is cancelled', async () => {
+        let caught: unknown
+
+        startListening({
+          actionCreator: testAction1,
+          effect: async (_, listenerApi) => {
+            listenerApi.cancelActiveListeners()
+            try {
+              await listenerApi.condition(() => false, 60_000)
+            } catch (e) {
+              caught = e
+            }
+          },
+        })
+
+        store.dispatch(testAction1('a'))
+        store.dispatch(testAction1('b'))
+        await vi.advanceTimersByTimeAsync(0)
+
+        expect(caught).toBeInstanceOf(TaskAbortError)
+        // Only the second run is still waiting
+        expect(vi.getTimerCount()).toBe(1)
+      })
+
+      test('delay clears its timer when the listener is cancelled', async () => {
+        const afterDelay = vi.fn()
+        let caught: unknown
+
+        startListening({
+          actionCreator: testAction1,
+          effect: async (_, listenerApi) => {
+            try {
+              await listenerApi.delay(60_000)
+              afterDelay()
+            } catch (e) {
+              caught = e
+            }
+          },
+        })
+
+        store.dispatch(testAction1('a'))
+        clearListeners()
+        await vi.advanceTimersByTimeAsync(0)
+
+        expect(caught).toBeInstanceOf(TaskAbortError)
+        expect(vi.getTimerCount()).toBe(0)
+
+        await vi.advanceTimersByTimeAsync(60_000)
+        expect(afterDelay).not.toHaveBeenCalled()
+      })
+
+      test('forked delay clears its timer when the parent listener is cancelled', async () => {
+        const afterDelay = vi.fn()
+
+        startListening({
+          actionCreator: testAction1,
+          effect: async (_, listenerApi) => {
+            const task = listenerApi.fork(async (forkApi) => {
+              await forkApi.delay(60_000)
+              afterDelay()
+            })
+            await task.result
+          },
+        })
+
+        store.dispatch(testAction1('a'))
+        await vi.advanceTimersByTimeAsync(0)
+        expect(vi.getTimerCount()).toBe(1)
+
+        clearListeners()
+        await vi.advanceTimersByTimeAsync(0)
+        expect(vi.getTimerCount()).toBe(0)
+
+        await vi.advanceTimersByTimeAsync(60_000)
+        expect(afterDelay).not.toHaveBeenCalled()
+      })
+
+      test('delay still resolves after its timeout', async () => {
+        const afterDelay = vi.fn()
+
+        startListening({
+          actionCreator: testAction1,
+          effect: async (_, listenerApi) => {
+            await listenerApi.delay(1000)
+            afterDelay()
+          },
+        })
+
+        store.dispatch(testAction1('a'))
+        await vi.advanceTimersByTimeAsync(999)
+        expect(afterDelay).not.toHaveBeenCalled()
+
+        await vi.advanceTimersByTimeAsync(1)
+        expect(afterDelay).toHaveBeenCalledOnce()
+        expect(vi.getTimerCount()).toBe(0)
+      })
+    })
   })
 
   describe('Job API', () => {

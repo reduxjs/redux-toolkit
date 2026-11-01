@@ -1,4 +1,5 @@
 import { createListenerEntry } from '@internal/listenerMiddleware'
+import type { GuardedType } from '@internal/listenerMiddleware/types'
 import type {
   Action,
   PayloadAction,
@@ -13,6 +14,7 @@ import {
   createAction,
   createListenerMiddleware,
   createSlice,
+  isAllOf,
   isAnyOf,
   isFluxStandardAction,
 } from '@reduxjs/toolkit'
@@ -323,6 +325,47 @@ describe('type tests', () => {
       matcher,
       effect: (action, listenerApi) => {
         expectTypeOf(action).toExtend<ExtraAction>()
+      },
+    })
+  })
+
+  test('isAnyOf and isAllOf matchers infer the action type when assigned to a variable', () => {
+    const anyMatcher = isAnyOf(testAction1, testAction2)
+    const allMatcher = isAllOf(testAction1, isFluxStandardAction)
+
+    startListening({
+      matcher: anyMatcher,
+      effect: (action) => {
+        expectTypeOf(action).toEqualTypeOf<GuardedType<typeof anyMatcher>>()
+        expectTypeOf(action.payload).toBeString()
+      },
+    })
+
+    startListening({
+      matcher: allMatcher,
+      effect: (action) => {
+        expectTypeOf(action).toEqualTypeOf<GuardedType<typeof allMatcher>>()
+        expectTypeOf(action.payload).toBeString()
+      },
+    })
+  })
+
+  // TypeScript fixes the matcher type to its constraint before it can infer
+  // from a generic call nested in the options object (discussion #4018).
+  // If this test starts failing, inline inference works and the docs advice
+  // to assign the matcher to a variable first can be relaxed.
+  test('inline isAnyOf and isAllOf matchers fall back to Action', () => {
+    startListening({
+      matcher: isAnyOf(testAction1, testAction2),
+      effect: (action) => {
+        expectTypeOf(action).toEqualTypeOf<Action>()
+      },
+    })
+
+    startListening({
+      matcher: isAllOf(testAction1, isFluxStandardAction),
+      effect: (action) => {
+        expectTypeOf(action).toEqualTypeOf<Action>()
       },
     })
   })

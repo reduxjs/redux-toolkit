@@ -95,6 +95,14 @@ export const createPause = <T>(signal: AbortSignal) => {
 export const createDelay = (signal: AbortSignal) => {
   const pause = createPause<void>(signal)
   return (timeoutMs: number): Promise<void> => {
-    return pause(new Promise<void>((resolve) => setTimeout(resolve, timeoutMs)))
+    let timeoutId: ReturnType<typeof setTimeout> | undefined
+    // `finally` creates a new promise chain, so it needs its own `catchRejection`
+    return catchRejection(
+      pause(
+        new Promise<void>((resolve) => {
+          timeoutId = setTimeout(resolve, timeoutMs)
+        }),
+      ).finally(() => clearTimeout(timeoutId)),
+    )
   }
 }

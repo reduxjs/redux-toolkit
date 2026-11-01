@@ -460,7 +460,13 @@ export type AddListenerOverloads<
     } & AdditionalOptions,
   ): Return
 
-  /** Accepts an RTK matcher function, such as `incrementByAmount.match` */
+  /**
+   * Accepts an RTK matcher function, such as `incrementByAmount.match`.
+   *
+   * Assign `isAnyOf(...)` / `isAllOf(...)` matchers to a variable before
+   * passing them here. When written inline, TypeScript can't infer the action
+   * type and `effect` receives a plain `Action`.
+   */
   <MatchFunctionType extends MatchFunction<Action>>(
     options: {
       actionCreator?: never

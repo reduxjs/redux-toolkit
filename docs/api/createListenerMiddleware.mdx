@@ -221,7 +221,7 @@ listenerMiddleware.startListening({
 
 Note that the `predicate` option actually allows matching solely against state-related checks, such as "did `state.x` change" or "the current value of `state.x` matches some criteria", regardless of the actual action.
 
-The ["matcher" utility functions included in RTK](./matching-utilities.mdx) are acceptable as either the `matcher` or `predicate` option.
+The ["matcher" utility functions included in RTK](./matching-utilities.mdx) are acceptable as either the `matcher` or `predicate` option. In TypeScript, assign `isAnyOf()` and `isAllOf()` matchers to a variable before passing them in, so that the `effect`'s `action` type is inferred correctly (see [Inferring the action type from a matcher](#inferring-the-action-type-from-a-matcher)).
 
 The return value is an `unsubscribe()` callback that will remove this listener. By default, unsubscribing will _not_ cancel any active instances of the listener. However, you may also pass in `{cancelActive: true}` to cancel running instances.
 
@@ -501,6 +501,26 @@ export const addAppListener = addListener.withTypes<RootState, AppDispatch>()
 
 Then import and use those pre-typed methods in your components.
 
+### Inferring the action type from a matcher
+
+When you pass a matcher built with a generic function like `isAnyOf()` or `isAllOf()` directly as the `matcher` option, TypeScript can't infer the action type for the `effect` callback, and `action` falls back to the plain `Action` type. This is a limitation of how TypeScript infers generic calls nested inside an object argument. Assign the matcher to a variable first, then pass the variable:
+
+```ts no-transpile
+// ❌ `action` is typed as `Action`
+startAppListening({
+  matcher: isAnyOf(todoAdded, todoToggled),
+  effect: (action) => {},
+})
+
+// ✅ `action` is typed as the union of both actions
+const isTodoAction = isAnyOf(todoAdded, todoToggled)
+
+startAppListening({
+  matcher: isTodoAction,
+  effect: (action) => {},
+})
+```
+
 ## Usage Guide
 
 ### Overall Purpose
@@ -516,8 +536,10 @@ The middleware includes several async workflow primitives that are sufficient to
 The most common expected usage is "run some logic after a given action was dispatched". For example, you could set up a simple analytics tracker by looking for certain actions and sending extracted data to the server, including pulling user details from the store:
 
 ```js
+const isTrackedAction = isAnyOf(action1, action2, action3)
+
 listenerMiddleware.startListening({
-  matcher: isAnyOf(action1, action2, action3),
+  matcher: isTrackedAction,
   effect: (action, listenerApi) => {
     const user = selectUserDetails(listenerApi.getState())
 
@@ -726,8 +748,10 @@ test('cancelled', async () => {
   let canceledCheck = false
 
   // Example of canceling prior instances conditionally and checking cancellation
+  const isCounterAction = isAnyOf(increment, decrement, incrementByAmount)
+
   listenerMiddleware.startListening({
-    matcher: isAnyOf(increment, decrement, incrementByAmount),
+    matcher: isCounterAction,
     effect: async (action, listenerApi) => {
       if (increment.match(action)) {
         // Have this branch wait around to be cancelled by the other

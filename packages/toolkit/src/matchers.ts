@@ -32,6 +32,10 @@ const matches = (matcher: Matcher<any>, action: any) => {
  * whether an action matches any one of the supplied type guards or action
  * creators.
  *
+ * When used as a listener middleware `matcher`, assign the result to a
+ * variable first. Written inline in the `startListening` options, TypeScript
+ * can't infer the action type for `effect`.
+ *
  * @param matchers The type guards or action creators to match against.
  *
  * @public
@@ -48,6 +52,10 @@ export function isAnyOf<Matchers extends Matcher<any>[]>(
  * A higher-order function that returns a function that may be used to check
  * whether an action matches all of the supplied type guards or action
  * creators.
+ *
+ * When used as a listener middleware `matcher`, assign the result to a
+ * variable first. Written inline in the `startListening` options, TypeScript
+ * can't infer the action type for `effect`.
  *
  * @param matchers The type guards or action creators to match against.
  *
