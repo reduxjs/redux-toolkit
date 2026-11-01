@@ -99,7 +99,7 @@ jobs:
           set -euo pipefail
           base=$(git merge-base "$BASE" "$HEAD")
           stats=$(git diff --numstat "$base" "$HEAD" -- . \
-            ':(exclude)**/pnpm-lock.yaml' ':(exclude)**/__snapshots__/**' ':(exclude)**/dist/**')
+            ':(exclude,glob)**/pnpm-lock.yaml' ':(exclude,glob)**/__snapshots__/**' ':(exclude,glob)**/dist/**')
           files=$(grep -c . <<<"$stats" || true)
           lines=$(awk '$1 != "-" { n += $1 + $2 } END { print n + 0 }' <<<"$stats")
           echo "Diff: $files files, $lines lines" >> "$GITHUB_STEP_SUMMARY"

@@ -57,6 +57,8 @@ reviews:
     enabled: true
     drafts: false
     auto_incremental_review: true
+    base_branches:
+      - '.*'
     ignore_usernames:
       - 'dependabot[bot]'
       - 'renovate[bot]'
@@ -69,13 +71,13 @@ reviews:
 
   pre_merge_checks:
     docstrings:
-      mode: off
+      mode: 'off'
     title:
-      mode: off
+      mode: 'off'
     description:
-      mode: off
+      mode: 'off'
     issue_assessment:
-      mode: off
+      mode: 'off'
 
   tools:
     eslint:
