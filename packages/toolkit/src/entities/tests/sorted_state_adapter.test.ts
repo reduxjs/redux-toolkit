@@ -196,6 +196,52 @@ describe('Sorted State Adapter', () => {
     })
   })
 
+  it('should keep sorted order and ignore missing or duplicate ids on removeMany', () => {
+    const withAll = adapter.setAll(state, [
+      TheHobbit,
+      TheGreatGatsby,
+      AnimalFarm,
+      AClockworkOrange,
+    ])
+
+    const withoutMany = adapter.removeMany(withAll, [
+      AnimalFarm.id,
+      'missing',
+      TheGreatGatsby.id,
+      AnimalFarm.id,
+    ])
+
+    expect(withoutMany).toEqual({
+      ids: [AClockworkOrange.id, TheHobbit.id],
+      entities: {
+        [AClockworkOrange.id]: AClockworkOrange,
+        [TheHobbit.id]: TheHobbit,
+      },
+    })
+    expect(withAll.ids).toEqual([
+      AClockworkOrange.id,
+      AnimalFarm.id,
+      TheGreatGatsby.id,
+      TheHobbit.id,
+    ])
+  })
+
+  it('should let you remove every entity with removeMany', () => {
+    const withAll = adapter.setAll(state, [
+      TheGreatGatsby,
+      AClockworkOrange,
+      AnimalFarm,
+    ])
+
+    const withoutAll = adapter.removeMany(withAll, [
+      AnimalFarm.id,
+      TheGreatGatsby.id,
+      AClockworkOrange.id,
+    ])
+
+    expect(withoutAll).toEqual({ ids: [], entities: {} })
+  })
+
   it('should let you remove all entities from the state', () => {
     const withAll = adapter.setAll(state, [
       TheGreatGatsby,

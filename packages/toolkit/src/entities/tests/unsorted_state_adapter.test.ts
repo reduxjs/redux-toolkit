@@ -174,6 +174,77 @@ describe('Unsorted State Adapter', () => {
     })
   })
 
+  it('should keep id order and ignore missing or duplicate ids on removeMany', () => {
+    const withAll = adapter.setAll(state, [
+      TheGreatGatsby,
+      AClockworkOrange,
+      AnimalFarm,
+      TheHobbit,
+    ])
+
+    const withoutMany = adapter.removeMany(withAll, [
+      AnimalFarm.id,
+      'missing',
+      TheGreatGatsby.id,
+      AnimalFarm.id,
+    ])
+
+    expect(withoutMany).toEqual({
+      ids: [AClockworkOrange.id, TheHobbit.id],
+      entities: {
+        [AClockworkOrange.id]: AClockworkOrange,
+        [TheHobbit.id]: TheHobbit,
+      },
+    })
+    expect(withAll.ids).toEqual([
+      TheGreatGatsby.id,
+      AClockworkOrange.id,
+      AnimalFarm.id,
+      TheHobbit.id,
+    ])
+  })
+
+  it('should return the same state when removeMany matches no ids', () => {
+    const withAll = adapter.setAll(state, [TheGreatGatsby, AnimalFarm])
+
+    expect(adapter.removeMany(withAll, ['missing'])).toBe(withAll)
+    expect(adapter.removeMany(withAll, [])).toBe(withAll)
+  })
+
+  it('should let you remove every entity with removeMany', () => {
+    const withAll = adapter.setAll(state, [
+      TheGreatGatsby,
+      AClockworkOrange,
+      AnimalFarm,
+    ])
+
+    const withoutAll = adapter.removeMany(withAll, [
+      AnimalFarm.id,
+      TheGreatGatsby.id,
+      AClockworkOrange.id,
+    ])
+
+    expect(withoutAll).toEqual({ ids: [], entities: {} })
+  })
+
+  it('should remove numeric ids passed as strings', () => {
+    const numericAdapter = createEntityAdapter<{ id: number }>()
+    const withAll = numericAdapter.setAll(numericAdapter.getInitialState(), [
+      { id: 1 },
+      { id: 2 },
+      { id: 3 },
+    ])
+
+    const withoutTwo = numericAdapter.removeMany(withAll, [
+      '2' as unknown as number,
+    ])
+
+    expect(withoutTwo).toEqual({
+      ids: [1, 3],
+      entities: { 1: { id: 1 }, 3: { id: 3 } },
+    })
+  })
+
   it('should let you remove all entities from the state', () => {
     const withAll = adapter.setAll(state, [
       TheGreatGatsby,
@@ -783,6 +854,38 @@ describe('Unsorted State Adapter', () => {
         },
         ids: ['aco'],
       })
+    })
+
+    test('removeMany with duplicate and missing ids after other changes', () => {
+      const withThree = adapter.addMany(state, [
+        TheGreatGatsby,
+        AnimalFarm,
+        AClockworkOrange,
+      ])
+      const result = createNextState(withThree, (draft) => {
+        adapter.addOne(draft, TheHobbit)
+        adapter.removeMany(draft, [
+          AnimalFarm.id,
+          'missing',
+          TheHobbit.id,
+          AnimalFarm.id,
+        ])
+      })
+      expect(result).toEqual({
+        entities: {
+          [TheGreatGatsby.id]: TheGreatGatsby,
+          [AClockworkOrange.id]: AClockworkOrange,
+        },
+        ids: [TheGreatGatsby.id, AClockworkOrange.id],
+      })
+    })
+
+    test('removeMany removing every entity', () => {
+      const withTwo = adapter.addMany(state, [TheGreatGatsby, AnimalFarm])
+      const result = createNextState(withTwo, (draft) => {
+        adapter.removeMany(draft, [AnimalFarm.id, TheGreatGatsby.id])
+      })
+      expect(result).toEqual({ entities: {}, ids: [] })
     })
   })
 })
