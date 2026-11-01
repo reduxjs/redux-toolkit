@@ -757,6 +757,16 @@ describe('tests from issues', () => {
     expect(result).toMatch(/export type CreateBarApiArg = \{\s*body:/);
     expect(result).not.toMatch(/export type CreateBarApiArg = \{\s*body\?:/);
   });
+
+  it('issue #4974: a 2XX response range should be used as the response type', async () => {
+    const result = await generateEndpoints({
+      apiFile: './test/fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/issue-4974.json'),
+    });
+
+    expect(result).toMatch(/export type GetFooApiResponse =\s*\/\*\* status 2XX Success \*\/\s*Foo;/);
+    expect(result).not.toMatch(/export type GetFooApiResponse =[^;]*Error/);
+  });
 });
 
 describe('openapi spec', () => {

@@ -67,6 +67,10 @@ function defaultIsDataResponse(code: string, includeDefault: boolean) {
   if (includeDefault && code === 'default') {
     return true;
   }
+  // OpenAPI 3 allows `2XX` as a key covering every 2xx status code
+  if (code === '2XX') {
+    return true;
+  }
   const parsedCode = Number(code);
   return !Number.isNaN(parsedCode) && parsedCode >= 200 && parsedCode < 300;
 }
