@@ -176,14 +176,31 @@ type MutationThunkArg = {
 
 export type ThunkResult = unknown
 
+/**
+ * Assigned when a request's `pending` action is dispatched. Two requests
+ * from the same store and API compare by `(startedTimeStamp, seq)`.
+ */
+export type RequestStartMeta = {
+  /** `Date.now()` at the time the `pending` action was created. */
+  startedTimeStamp: number
+  /**
+   * Increases by one for every request this API starts in a store.
+   * Only comparable between requests from the same store and API.
+   */
+  seq: number
+}
+
 export type ThunkApiMetaConfig = {
-  pendingMeta: { startedTimeStamp: number; [SHOULD_AUTOBATCH]: true }
-  fulfilledMeta: {
+  pendingMeta: RequestStartMeta & { [SHOULD_AUTOBATCH]: true }
+  fulfilledMeta: RequestStartMeta & {
     fulfilledTimeStamp: number
     baseQueryMeta: unknown
     [SHOULD_AUTOBATCH]: true
   }
-  rejectedMeta: { baseQueryMeta: unknown; [SHOULD_AUTOBATCH]: true }
+  rejectedMeta: RequestStartMeta & {
+    baseQueryMeta: unknown
+    [SHOULD_AUTOBATCH]: true
+  }
 }
 export type QueryThunk = AsyncThunk<
   ThunkResult,
@@ -357,6 +374,34 @@ export function buildThunks<
 }) {
   type State = RootState<any, string, ReducerPath>
 
+  // Keyed by `getState` because the thunk middleware passes the same
+  // `store.getState` to every thunk dispatched through one store.
+  const lastSeqByStore = new WeakMap<() => unknown, number>()
+  const requestStarts = new Map<string, RequestStartMeta>()
+
+  function startRequest(
+    requestId: string,
+    getState: () => unknown,
+  ): RequestStartMeta {
+    const seq = (lastSeqByStore.get(getState) ?? 0) + 1
+    lastSeqByStore.set(getState, seq)
+    const requestStart = { startedTimeStamp: Date.now(), seq }
+    requestStarts.set(requestId, requestStart)
+    return requestStart
+  }
+
+  // `createAsyncThunk` calls the payload creator synchronously right after
+  // dispatching `pending`, so the entry is removed as soon as it is read.
+  function takeRequestStart(
+    requestId: string,
+    getState: () => unknown,
+  ): RequestStartMeta {
+    const requestStart =
+      requestStarts.get(requestId) ?? startRequest(requestId, getState)
+    requestStarts.delete(requestId)
+    return requestStart
+  }
+
   const patchQueryData: PatchQueryDataThunk<EndpointDefinitions, State> =
     (endpointName, arg, patches, updateProvided) => (dispatch, getState) => {
       const endpointDefinition = endpointDefinitions[endpointName]
@@ -505,8 +550,10 @@ export function buildThunks<
       dispatch,
       getState,
       extra,
+      requestId,
     },
   ) => {
+    const requestStart = takeRequestStart(requestId, getState)
     const endpointDefinition = endpointDefinitions[arg.endpointName]
     const { metaSchema, skipSchemaValidation = globalSkipSchemaValidation } =
       endpointDefinition
@@ -787,6 +834,7 @@ export function buildThunks<
       return fulfillWithValue(
         finalQueryReturnValue.data,
         addShouldAutoBatch({
+          ...requestStart,
           fulfilledTimeStamp: Date.now(),
           baseQueryMeta: finalQueryReturnValue.meta,
         }),
@@ -838,7 +886,7 @@ export function buildThunks<
 
           return rejectWithValue(
             transformedErrorResponse,
-            addShouldAutoBatch({ baseQueryMeta: meta }),
+            addShouldAutoBatch({ ...requestStart, baseQueryMeta: meta }),
           )
         } catch (e) {
           caughtError = e
@@ -859,7 +907,10 @@ export function buildThunks<
           if (catchSchemaFailure) {
             return rejectWithValue(
               catchSchemaFailure(caughtError, info),
-              addShouldAutoBatch({ baseQueryMeta: caughtError._bqMeta }),
+              addShouldAutoBatch({
+                ...requestStart,
+                baseQueryMeta: caughtError._bqMeta,
+              }),
             )
           }
         }
@@ -912,10 +963,10 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
       ThunkArgType,
       ThunkApiMetaConfig & { state: RootState<any, string, ReducerPath> }
     >(`${reducerPath}/executeQuery`, executeEndpoint, {
-      getPendingMeta({ arg }) {
+      getPendingMeta({ arg, requestId }, { getState }) {
         const endpointDefinition = endpointDefinitions[arg.endpointName]
         return addShouldAutoBatch({
-          startedTimeStamp: Date.now(),
+          ...startRequest(requestId, getState),
           ...(isInfiniteQueryDefinition(endpointDefinition)
             ? { direction: (arg as InfiniteQueryThunkArg<any>).direction }
             : {}),
@@ -1005,8 +1056,8 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
     MutationThunkArg,
     ThunkApiMetaConfig & { state: RootState<any, string, ReducerPath> }
   >(`${reducerPath}/executeMutation`, executeEndpoint, {
-    getPendingMeta() {
-      return addShouldAutoBatch({ startedTimeStamp: Date.now() })
+    getPendingMeta({ requestId }, { getState }) {
+      return addShouldAutoBatch(startRequest(requestId, getState))
     },
   })
 

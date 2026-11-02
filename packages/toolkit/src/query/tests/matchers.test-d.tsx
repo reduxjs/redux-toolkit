@@ -77,4 +77,71 @@ describe('type tests', () => {
       },
     })
   })
+
+  test('request start meta on query and mutation actions', () => {
+    createSlice({
+      name: 'requests',
+      initialState: {},
+      reducers: {},
+      extraReducers: (builder) => {
+        builder
+          .addMatcher(
+            api.endpoints.querySuccess.matchPending,
+            (state, action) => {
+              expectTypeOf(action.meta.startedTimeStamp).toBeNumber()
+              expectTypeOf(action.meta.seq).toBeNumber()
+            },
+          )
+          .addMatcher(
+            api.endpoints.querySuccess.matchFulfilled,
+            (state, action) => {
+              expectTypeOf(action.meta.startedTimeStamp).toBeNumber()
+              expectTypeOf(action.meta.seq).toBeNumber()
+            },
+          )
+          .addMatcher(
+            api.endpoints.querySuccess.matchRejected,
+            (state, action) => {
+              expectTypeOf(action.meta.startedTimeStamp).toEqualTypeOf<
+                number | undefined
+              >()
+              expectTypeOf(action.meta.seq).toEqualTypeOf<number | undefined>()
+
+              if (action.meta.rejectedWithValue) {
+                expectTypeOf(action.meta.startedTimeStamp).toBeNumber()
+                expectTypeOf(action.meta.seq).toBeNumber()
+              }
+            },
+          )
+          .addMatcher(
+            api.endpoints.mutationSuccess.matchPending,
+            (state, action) => {
+              expectTypeOf(action.meta.startedTimeStamp).toBeNumber()
+              expectTypeOf(action.meta.seq).toBeNumber()
+            },
+          )
+          .addMatcher(
+            api.endpoints.mutationSuccess.matchFulfilled,
+            (state, action) => {
+              expectTypeOf(action.meta.startedTimeStamp).toBeNumber()
+              expectTypeOf(action.meta.seq).toBeNumber()
+            },
+          )
+          .addMatcher(
+            api.endpoints.mutationSuccess.matchRejected,
+            (state, action) => {
+              expectTypeOf(action.meta.startedTimeStamp).toEqualTypeOf<
+                number | undefined
+              >()
+              expectTypeOf(action.meta.seq).toEqualTypeOf<number | undefined>()
+
+              if (action.meta.rejectedWithValue) {
+                expectTypeOf(action.meta.startedTimeStamp).toBeNumber()
+                expectTypeOf(action.meta.seq).toBeNumber()
+              }
+            },
+          )
+      },
+    })
+  })
 })
