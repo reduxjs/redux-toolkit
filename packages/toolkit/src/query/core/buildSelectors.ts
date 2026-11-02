@@ -186,7 +186,10 @@ export function buildSelectors<
 
   // Entries and per-endpoint results keep their references while the
   // underlying cache entries are unchanged, so `useSelector` callers do not
-  // re-render when an unrelated query updates.
+  // re-render when an unrelated query updates. The previous result is kept
+  // per endpoint name instead of using `resultEqualityCheck`, which only
+  // remembers one result per selector and would fail whenever more than one
+  // endpoint is being selected.
   const cacheEntries = new WeakMap<object, QueryCacheEntry<any>>()
   const lastEntriesForEndpoint = new Map<string, Array<QueryCacheEntry<any>>>()
 
