@@ -21,7 +21,13 @@ function createApiActionSanitizer(api: {
 
 The sanitizer renames actions whose type starts with `` `${api.reducerPath}/` `` and that have a string `meta.arg.endpointName`. Every other action is returned unchanged.
 
-The sanitizer only affects how actions are displayed in the DevTools. Your reducers, middleware, and listeners still receive the original actions with their original `type`.
+The sanitizer only affects how actions are displayed in the DevTools. Your reducers, middleware, and listeners still receive the original actions with their original `type`, and time travel in the DevTools replays the original actions.
+
+:::caution
+
+A state exported from the DevTools contains the renamed actions. If you import it again, the DevTools replay those actions through your reducers, and the API slice ignores them because their `type` no longer matches. The imported API state will be missing those updates.
+
+:::
 
 ## Usage
 
