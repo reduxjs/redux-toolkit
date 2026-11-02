@@ -1,3 +1,5 @@
+import type { Middleware } from '@reduxjs/toolkit'
+import { configureStore, isAction } from '@reduxjs/toolkit'
 import { createApi } from '@reduxjs/toolkit/query'
 import { delay } from 'msw'
 import { actionsReducer, setupApiStore } from '../../tests/utils/helpers'
@@ -263,4 +265,77 @@ it('does not leak subscription state between multiple stores using the same API 
   const store2InternalSubs = store2SubscriptionSelectors.getSubscriptions()
 
   expect(store2InternalSubs.size).toBe(0)
+})
+
+it(
+  'initializes a large RTK Query middleware chain without overflowing the stack',
+  { timeout: 120_000 },
+  async () => {
+    const middlewareChain = Array.from({ length: 500 }, () => {
+      const middleware = api.middleware
+      return ((mwApi) => middleware(mwApi)) as typeof api.middleware
+    })
+
+    const store = configureStore({
+      reducer: { [api.reducerPath]: api.reducer },
+      middleware: (gdm) =>
+        gdm({
+          serializableCheck: false,
+          immutableCheck: false,
+        }).concat(...middlewareChain),
+    })
+
+    await store.dispatch(getBanana.initiate(1))
+
+    expect(store.getState()[api.reducerPath].config.middlewareRegistered).toBe(
+      true,
+    )
+    expect(store.getState()[api.reducerPath].queries['getBanana(1)']).toEqual(
+      expect.objectContaining({
+        data: { url: 'banana/1' },
+        status: 'fulfilled',
+      }),
+    )
+  },
+)
+
+it('sends the registration action only to middleware after the api middleware', () => {
+  const seenBefore: string[] = []
+  const seenAfter: string[] = []
+  const recordTo =
+    (seen: string[]): Middleware =>
+    () =>
+    (next) =>
+    (action) => {
+      if (isAction(action)) seen.push(action.type)
+      return next(action)
+    }
+
+  const store = configureStore({
+    reducer: { [api.reducerPath]: api.reducer },
+    middleware: (gdm) =>
+      gdm().concat(recordTo(seenBefore), api.middleware, recordTo(seenAfter)),
+  })
+  const registeredType = api.internalActions.middlewareRegistered.type
+
+  store.dispatch({ type: 'first' })
+
+  expect(seenBefore).toEqual(['first'])
+  expect(seenAfter).toEqual([registeredType, 'first'])
+  expect(store.getState()[api.reducerPath].config.middlewareRegistered).toBe(
+    true,
+  )
+
+  store.dispatch(api.util.resetApiState())
+
+  expect(seenBefore).toEqual(['first', api.util.resetApiState.type])
+  expect(seenAfter).toEqual([
+    registeredType,
+    'first',
+    api.util.resetApiState.type,
+    registeredType,
+  ])
+  expect(store.getState()[api.reducerPath].config.middlewareRegistered).toBe(
+    true,
+  )
 })
