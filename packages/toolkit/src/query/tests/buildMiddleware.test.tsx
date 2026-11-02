@@ -1,4 +1,5 @@
-import { configureStore } from '@reduxjs/toolkit'
+import type { Middleware } from '@reduxjs/toolkit'
+import { configureStore, isAction } from '@reduxjs/toolkit'
 import { createApi } from '@reduxjs/toolkit/query'
 import { delay } from 'msw'
 import { actionsReducer, setupApiStore } from '../../tests/utils/helpers'
@@ -297,3 +298,44 @@ it(
     )
   },
 )
+
+it('sends the registration action only to middleware after the api middleware', () => {
+  const seenBefore: string[] = []
+  const seenAfter: string[] = []
+  const recordTo =
+    (seen: string[]): Middleware =>
+    () =>
+    (next) =>
+    (action) => {
+      if (isAction(action)) seen.push(action.type)
+      return next(action)
+    }
+
+  const store = configureStore({
+    reducer: { [api.reducerPath]: api.reducer },
+    middleware: (gdm) =>
+      gdm().concat(recordTo(seenBefore), api.middleware, recordTo(seenAfter)),
+  })
+  const registeredType = api.internalActions.middlewareRegistered.type
+
+  store.dispatch({ type: 'first' })
+
+  expect(seenBefore).toEqual(['first'])
+  expect(seenAfter).toEqual([registeredType, 'first'])
+  expect(store.getState()[api.reducerPath].config.middlewareRegistered).toBe(
+    true,
+  )
+
+  store.dispatch(api.util.resetApiState())
+
+  expect(seenBefore).toEqual(['first', api.util.resetApiState.type])
+  expect(seenAfter).toEqual([
+    registeredType,
+    'first',
+    api.util.resetApiState.type,
+    registeredType,
+  ])
+  expect(store.getState()[api.reducerPath].config.middlewareRegistered).toBe(
+    true,
+  )
+})
