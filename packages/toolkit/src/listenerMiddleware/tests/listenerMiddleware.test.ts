@@ -173,6 +173,75 @@ describe('createListenerMiddleware', () => {
   })
 
   describe('Subscription and unsubscription', () => {
+    test('runs type, actionCreator, matcher and predicate listeners in registration order', () => {
+      const calls: string[] = []
+      const record = (name: string) => () => {
+        calls.push(name)
+      }
+
+      startListening({ predicate: () => true, effect: record('predicate') })
+      startListening({ type: testAction1.type, effect: record('type') })
+      startListening({ matcher: testAction1.match, effect: record('matcher') })
+      startListening({ actionCreator: testAction1, effect: record('creator') })
+      startListening({ actionCreator: testAction2, effect: record('other') })
+      startListening({ predicate: () => true, effect: record('predicate2') })
+
+      store.dispatch(testAction1('a'))
+      expect(calls).toEqual([
+        'predicate',
+        'type',
+        'matcher',
+        'creator',
+        'predicate2',
+      ])
+
+      calls.length = 0
+      store.dispatch(testAction2('b'))
+      expect(calls).toEqual(['predicate', 'other', 'predicate2'])
+    })
+
+    test('listeners added or removed between dispatches are picked up', () => {
+      const effect = vi.fn()
+
+      store.dispatch(testAction1('a'))
+      const unsubscribe = startListening({ actionCreator: testAction1, effect })
+      store.dispatch(testAction1('b'))
+      unsubscribe()
+      store.dispatch(testAction1('c'))
+      startListening({ type: testAction1.type, effect })
+      store.dispatch(testAction1('d'))
+      clearListeners()
+      store.dispatch(testAction1('e'))
+
+      expect(effect.mock.calls.map(([action]) => action.payload)).toEqual([
+        'b',
+        'd',
+      ])
+    })
+
+    test('listeners removed by an earlier effect still run for the current action', () => {
+      const calls: string[] = []
+      let unsubscribeSecond = () => {}
+
+      startListening({
+        actionCreator: testAction1,
+        effect: () => {
+          calls.push('first')
+          unsubscribeSecond()
+        },
+      })
+      unsubscribeSecond = startListening({
+        actionCreator: testAction1,
+        effect: () => {
+          calls.push('second')
+        },
+      })
+
+      store.dispatch(testAction1('a'))
+      store.dispatch(testAction1('b'))
+      expect(calls).toEqual(['first', 'second', 'first'])
+    })
+
     test('directly subscribing', () => {
       const effect = vi.fn((_: TestAction1) => {})
 

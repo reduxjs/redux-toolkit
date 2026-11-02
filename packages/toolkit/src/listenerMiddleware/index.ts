@@ -79,6 +79,8 @@ const INTERNAL_NIL_TOKEN = {} as const
 
 const alm = 'listenerMiddleware' as const
 
+const NO_INDICES: readonly number[] = []
+
 const createFork = (
   parentAbortSignal: AbortSignal,
   parentBlockingPromises: Promise<any>[],
@@ -364,10 +366,54 @@ export const createListenerMiddleware = <
 
   assertFunction(onError, 'onError')
 
-  const insertEntry = (entry: ListenerEntry) => {
-    entry.unsubscribe = () => listenerMap.delete(entry.id)
+  // Listener entries in registration order, rebuilt only after `listenerMap`
+  // changes. Entries registered by `type` or `actionCreator` are indexed by
+  // action type so a dispatch can skip them without calling their predicate.
+  let snapshot:
+    | {
+        entries: ListenerEntry[]
+        byType: Map<string, number[]>
+        untyped: number[]
+      }
+    | undefined
 
-    listenerMap.set(entry.id, entry)
+  const getSnapshot = () => {
+    if (!snapshot) {
+      const entries = Array.from(listenerMap.values())
+      const byType = new Map<string, number[]>()
+      const untyped: number[] = []
+      entries.forEach((entry, index) => {
+        if (typeof entry.type === 'string') {
+          const indices = byType.get(entry.type)
+          if (indices) {
+            indices.push(index)
+          } else {
+            byType.set(entry.type, [index])
+          }
+        } else {
+          untyped.push(index)
+        }
+      })
+      snapshot = { entries, byType, untyped }
+    }
+    return snapshot
+  }
+
+  const addToListenerMap = (entry: ListenerEntry) => {
+    if (!listenerMap.has(entry.id)) {
+      listenerMap.set(entry.id, entry)
+      snapshot = undefined
+    }
+  }
+
+  const insertEntry = (entry: ListenerEntry) => {
+    entry.unsubscribe = () => {
+      if (listenerMap.delete(entry.id)) {
+        snapshot = undefined
+      }
+    }
+
+    addToListenerMap(entry)
     return (cancelOptions?: UnsubscribeListenerOptions) => {
       entry.unsubscribe()
       if (cancelOptions?.cancelActive) {
@@ -441,7 +487,7 @@ export const createListenerMiddleware = <
             fork: createFork(internalTaskController.signal, autoJoinPromises),
             unsubscribe: entry.unsubscribe,
             subscribe: () => {
-              listenerMap.set(entry.id, entry)
+              addToListenerMap(entry)
             },
             cancelActiveListeners: () => {
               entry.pending.forEach((controller, _, set) => {
@@ -476,10 +522,14 @@ export const createListenerMiddleware = <
     }
   }
 
-  const clearListenerMiddleware = createClearListenerMiddleware(
+  const clearListeners = createClearListenerMiddleware(
     listenerMap,
     executingListeners,
   )
+  const clearListenerMiddleware = () => {
+    clearListeners()
+    snapshot = undefined
+  }
 
   const middleware: ListenerMiddleware<
     StateType,
@@ -526,10 +576,22 @@ export const createListenerMiddleware = <
       result = next(action)
 
       if (listenerMap.size > 0) {
-        const currentState = api.getState()
-        // Work around ESBuild+TS transpilation issue
-        const listenerEntries = Array.from(listenerMap.values())
-        for (const entry of listenerEntries) {
+        const { entries, byType, untyped } = getSnapshot()
+        const typed = byType.get(action.type) ?? NO_INDICES
+        let typedPos = 0
+        let untypedPos = 0
+        const currentState =
+          typed.length || untyped.length ? api.getState() : undefined
+
+        // Visit the typed and untyped entries in registration order
+        while (typedPos < typed.length || untypedPos < untyped.length) {
+          const entry =
+            entries[
+              untypedPos === untyped.length ||
+              (typedPos < typed.length && typed[typedPos] < untyped[untypedPos])
+                ? typed[typedPos++]
+                : untyped[untypedPos++]
+            ]
           let runListener = false
 
           try {
