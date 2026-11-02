@@ -192,6 +192,7 @@ describe('type tests', () => {
       },
     })
 
+    expectTypeOf(slice.actions.removeMany).not.toBeAny()
     expectTypeOf(slice.actions.removeMany).toExtend<
       ActionCreatorWithPayload<ReadonlyArray<number>>
     >()

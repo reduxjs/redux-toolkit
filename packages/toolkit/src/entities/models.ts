@@ -26,6 +26,7 @@ export type Update<T, Id extends EntityId> = { id: Id; changes: Partial<T> }
 
 /**
  * Removes every entity whose fields strictly equal (`===`) all of the fields in `where`.
+ * Only string keys are compared. A `where` object with no string keys removes nothing.
  *
  * @public
  */

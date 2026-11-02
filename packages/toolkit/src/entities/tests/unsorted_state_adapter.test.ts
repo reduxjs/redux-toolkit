@@ -284,6 +284,14 @@ describe('Unsorted State Adapter', () => {
     )
   })
 
+  it('should remove nothing when a `where` object has no string keys', () => {
+    const withAll = adapter.setAll(state, [TheGreatGatsby, AnimalFarm])
+    const symbolOnly = { [Symbol('author')]: 'Nobody' } as Partial<BookModel>
+
+    expect(adapter.removeMany(withAll, { where: {} })).toBe(withAll)
+    expect(adapter.removeMany(withAll, { where: symbolOnly })).toBe(withAll)
+  })
+
   it('should accept a `where` object in a payload action', () => {
     const withAll = adapter.setAll(state, [TheGreatGatsby, TheHobbit])
 

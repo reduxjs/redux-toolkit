@@ -108,6 +108,9 @@ export function createUnsortedStateAdapter<T, Id extends EntityId>(
     const ids = getCurrent(state.ids as Id[])
     const entities = getCurrent(state.entities as Record<Id, T>)
     const whereKeys = Object.keys(where) as (keyof T)[]
+    if (whereKeys.length === 0) {
+      return []
+    }
 
     return ids.filter((id) => {
       const entity = entities[id]
