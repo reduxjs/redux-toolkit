@@ -865,10 +865,11 @@ describe('mutation promise and running mutations', () => {
 
   test('identical concurrent mutations each run the base query', async () => {
     let baseQueryCalls = 0
+    const gate = createGate()
     const api = createApi({
       baseQuery: async () => {
         baseQueryCalls++
-        await delay(1)
+        await gate.wait()
         return { data: null }
       },
       endpoints: (build) => ({
@@ -882,9 +883,12 @@ describe('mutation promise and running mutations', () => {
     const first = store.dispatch(api.endpoints.update.initiate(1))
     const second = store.dispatch(api.endpoints.update.initiate(1))
     expect(first.requestId).not.toBe(second.requestId)
-    await Promise.all([first, second])
+    await vi.waitFor(() => expect(baseQueryCalls).toBe(2))
 
-    expect(baseQueryCalls).toBe(2)
+    gate.releaseOldest()
+    gate.releaseOldest()
+    expect(await first).toEqual({ data: null })
+    expect(await second).toEqual({ data: null })
   })
 
   test('a running mutation is registered by requestId and fixedCacheKey until it settles', async () => {

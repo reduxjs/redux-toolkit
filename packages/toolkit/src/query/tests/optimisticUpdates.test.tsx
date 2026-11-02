@@ -592,14 +592,17 @@ describe('updateQueryData patch results', () => {
     expect(store.getState().api.queries['getCount(undefined)']?.data).toBe(1)
 
     // A recipe that returns nothing writes undefined over a class instance.
+    expect(
+      store.getState().api.queries['getInstance(undefined)']!.data,
+    ).toBeInstanceOf(Counter)
     store.dispatch(
       patchApi.util.updateQueryData('getInstance', undefined, (draft) => {
         void draft.value
       }),
     )
-    expect(
-      store.getState().api.queries['getInstance(undefined)']?.data,
-    ).toBeUndefined()
+    const instanceEntry = store.getState().api.queries['getInstance(undefined)']
+    expect(instanceEntry).toBeDefined()
+    expect(instanceEntry!.data).toBeUndefined()
   })
 
   test('provided tags are recalculated with an empty meta object', async () => {

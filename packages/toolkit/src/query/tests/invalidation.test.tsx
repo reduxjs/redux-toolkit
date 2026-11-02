@@ -238,6 +238,7 @@ describe('which results invalidate tags', () => {
 
   test('tag callbacks that return null or undefined provide and invalidate nothing', async () => {
     let queryCount = 0
+    let taggedCount = 0
     const api = createApi({
       baseQuery: fakeBaseQuery(),
       tagTypes: ['Post'],
@@ -245,6 +246,10 @@ describe('which results invalidate tags', () => {
         getPosts: build.query<number, void>({
           queryFn: () => ({ data: ++queryCount }),
           providesTags: () => null as never,
+        }),
+        getTagged: build.query<number, void>({
+          queryFn: () => ({ data: ++taggedCount }),
+          providesTags: ['Post'],
         }),
         update: build.mutation<null, void>({
           queryFn: () => ({ data: null }),
@@ -260,9 +265,20 @@ describe('which results invalidate tags', () => {
     await delay(1)
     expect(store.getState().api.provided.tags).toEqual({})
 
+    await store.dispatch(api.endpoints.getTagged.initiate())
+    expect(taggedCount).toBe(1)
+    expect(api.util.selectInvalidatedBy(store.getState(), ['Post'])).toEqual([
+      {
+        endpointName: 'getTagged',
+        originalArgs: undefined,
+        queryCacheKey: 'getTagged(undefined)',
+      },
+    ])
+
     await store.dispatch(api.endpoints.update.initiate())
     await delay(5)
     expect(queryCount).toBe(1)
+    expect(taggedCount).toBe(1)
   })
 
   test('invalidatesTags on a query endpoint is ignored', async () => {
