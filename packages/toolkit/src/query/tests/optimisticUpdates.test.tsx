@@ -527,3 +527,104 @@ describe('full integration', () => {
     )
   })
 })
+
+describe('updateQueryData patch results', () => {
+  class Counter {
+    constructor(public value: number) {}
+  }
+
+  const providesTagsCalls: unknown[][] = []
+  const patchApi = createApi({
+    baseQuery: async () => ({ data: { name: 'original' }, meta: 'from base' }),
+    tagTypes: ['Post'],
+    endpoints: (build) => ({
+      getPost: build.query<{ name: string }, number>({
+        query: (id) => `${id}`,
+        providesTags: (...args) => {
+          providesTagsCalls.push(args)
+          return ['Post']
+        },
+      }),
+      getCount: build.query<number, void>({ queryFn: () => ({ data: 1 }) }),
+      getInstance: build.query<Counter, void>({
+        queryFn: () => ({ data: new Counter(1) }),
+      }),
+    }),
+  })
+
+  beforeEach(() => {
+    providesTagsCalls.length = 0
+  })
+
+  test('a recipe that changes nothing dispatches no action', async () => {
+    const { store } = setupApiStore(
+      patchApi,
+      { ...actionsReducer },
+      { withoutTestLifecycles: true },
+    )
+    await store.dispatch(patchApi.endpoints.getPost.initiate(1))
+    const actionCount = store.getState().actions.length
+
+    const patchResult = store.dispatch(
+      patchApi.util.updateQueryData('getPost', 1, (draft) => {
+        draft.name = 'original'
+      }),
+    )
+
+    expect(patchResult.patches).toEqual([])
+    expect(store.getState().actions.length).toBe(actionCount)
+    expect(providesTagsCalls).toHaveLength(1)
+  })
+
+  test('non-draftable data is replaced by the recipe return value', async () => {
+    const { store } = setupApiStore(patchApi, undefined, {
+      withoutTestLifecycles: true,
+    })
+    await store.dispatch(patchApi.endpoints.getCount.initiate())
+    await store.dispatch(patchApi.endpoints.getInstance.initiate())
+
+    const countPatch = store.dispatch(
+      patchApi.util.updateQueryData('getCount', undefined, () => 42),
+    )
+    expect(countPatch.patches).toEqual([{ op: 'replace', path: [], value: 42 }])
+    expect(store.getState().api.queries['getCount(undefined)']?.data).toBe(42)
+    countPatch.undo()
+    expect(store.getState().api.queries['getCount(undefined)']?.data).toBe(1)
+
+    // A recipe that returns nothing writes undefined over a class instance.
+    expect(
+      store.getState().api.queries['getInstance(undefined)']!.data,
+    ).toBeInstanceOf(Counter)
+    store.dispatch(
+      patchApi.util.updateQueryData('getInstance', undefined, (draft) => {
+        void draft.value
+      }),
+    )
+    const instanceEntry = store.getState().api.queries['getInstance(undefined)']
+    expect(instanceEntry).toBeDefined()
+    expect(instanceEntry!.data).toBeUndefined()
+  })
+
+  test('provided tags are recalculated with an empty meta object', async () => {
+    const { store } = setupApiStore(patchApi, undefined, {
+      withoutTestLifecycles: true,
+    })
+    await store.dispatch(patchApi.endpoints.getPost.initiate(7))
+    expect(providesTagsCalls).toEqual([
+      [{ name: 'original' }, undefined, 7, 'from base'],
+    ])
+
+    store.dispatch(
+      patchApi.util.updateQueryData('getPost', 7, (draft) => {
+        draft.name = 'patched'
+      }),
+    )
+
+    expect(providesTagsCalls[1]).toEqual([
+      { name: 'patched' },
+      undefined,
+      7,
+      {},
+    ])
+  })
+})

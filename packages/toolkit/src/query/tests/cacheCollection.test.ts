@@ -344,6 +344,27 @@ describe('removal timer behavior', () => {
     await vi.advanceTimersByTimeAsync(2_000)
     expect(store.getState().api.queries[key]).toBeUndefined()
   })
+
+  test('mutation results are never collected, whatever keepUnusedDataFor is', async () => {
+    const api = createApi({
+      baseQuery: async (arg: string) => ({ data: `data-${arg}` }),
+      keepUnusedDataFor: 1,
+      endpoints: (build) => ({
+        update: build.mutation<string, string>({ query: (arg) => arg }),
+      }),
+    })
+    const { store } = storeForApi(api)
+
+    const plain = await store.dispatch(api.endpoints.update.initiate('a'))
+    await store.dispatch(
+      api.endpoints.update.initiate('b', { fixedCacheKey: 'shared' }),
+    )
+    await vi.advanceTimersByTimeAsync(120_000)
+
+    expect(plain.data).toBe('data-a')
+    expect(Object.keys(store.getState().api.mutations)).toHaveLength(2)
+    expect(store.getState().api.mutations.shared?.data).toBe('data-b')
+  })
 })
 
 function storeForApi<

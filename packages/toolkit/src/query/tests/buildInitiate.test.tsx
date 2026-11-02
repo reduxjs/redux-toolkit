@@ -853,3 +853,178 @@ describe('query dedupe and forceRefetch', () => {
     third.unsubscribe()
   })
 })
+
+describe('mutation promise and running mutations', () => {
+  function createGate() {
+    const waiting: (() => void)[] = []
+    return {
+      wait: () => new Promise<void>((resolve) => waiting.push(resolve)),
+      releaseOldest: () => waiting.shift()?.(),
+    }
+  }
+
+  test('identical concurrent mutations each run the base query', async () => {
+    let baseQueryCalls = 0
+    const gate = createGate()
+    const api = createApi({
+      baseQuery: async () => {
+        baseQueryCalls++
+        await gate.wait()
+        return { data: null }
+      },
+      endpoints: (build) => ({
+        update: build.mutation<null, number>({ query: (id) => `${id}` }),
+      }),
+    })
+    const { store } = setupApiStore(api, undefined, {
+      withoutTestLifecycles: true,
+    })
+
+    const first = store.dispatch(api.endpoints.update.initiate(1))
+    const second = store.dispatch(api.endpoints.update.initiate(1))
+    expect(first.requestId).not.toBe(second.requestId)
+    await vi.waitFor(() => expect(baseQueryCalls).toBe(2))
+
+    gate.releaseOldest()
+    gate.releaseOldest()
+    expect(await first).toEqual({ data: null })
+    expect(await second).toEqual({ data: null })
+  })
+
+  test('a running mutation is registered by requestId and fixedCacheKey until it settles', async () => {
+    let seenAfterQueryFulfilled: unknown = 'not run'
+    const api = createApi({
+      baseQuery: fakeBaseQuery(),
+      endpoints: (build) => ({
+        update: build.mutation<null, void>({
+          queryFn: async () => {
+            await delay(1)
+            return { data: null }
+          },
+          async onQueryStarted(_, { dispatch, queryFulfilled }) {
+            await queryFulfilled
+            seenAfterQueryFulfilled = dispatch(
+              api.util.getRunningMutationThunk('update', 'shared'),
+            )
+          },
+        }),
+      }),
+    })
+    const { store } = setupApiStore(api, undefined, {
+      withoutTestLifecycles: true,
+    })
+    const running = (key: string) =>
+      store.dispatch(api.util.getRunningMutationThunk('update', key))
+
+    expect(running('never-started')).toBeUndefined()
+    expect(store.dispatch(api.util.getRunningMutationsThunk())).toEqual([])
+
+    const promise = store.dispatch(
+      api.endpoints.update.initiate(undefined, { fixedCacheKey: 'shared' }),
+    )
+    expect(running(promise.requestId)).toBe(promise)
+    expect(running('shared')).toBe(promise)
+    // The same promise fills both slots, so the list contains it twice.
+    expect(store.dispatch(api.util.getRunningMutationsThunk())).toEqual([
+      promise,
+      promise,
+    ])
+
+    await promise
+
+    expect(seenAfterQueryFulfilled).toBe(promise)
+    expect(running(promise.requestId)).toBeUndefined()
+    expect(running('shared')).toBeUndefined()
+    expect(store.dispatch(api.util.getRunningMutationsThunk())).toEqual([])
+  })
+
+  test('a mutation that settles after being superseded leaves the fixedCacheKey slot to the newer one', async () => {
+    const gate = createGate()
+    const api = createApi({
+      baseQuery: fakeBaseQuery(),
+      endpoints: (build) => ({
+        update: build.mutation<number, number>({
+          queryFn: async (n) => {
+            await gate.wait()
+            return { data: n }
+          },
+        }),
+      }),
+    })
+    const { store } = setupApiStore(api, undefined, {
+      withoutTestLifecycles: true,
+    })
+    const running = (key: string) =>
+      store.dispatch(api.util.getRunningMutationThunk('update', key))
+
+    const first = store.dispatch(
+      api.endpoints.update.initiate(1, { fixedCacheKey: 'shared' }),
+    )
+    const second = store.dispatch(
+      api.endpoints.update.initiate(2, { fixedCacheKey: 'shared' }),
+    )
+    expect(running('shared')).toBe(second)
+
+    gate.releaseOldest()
+    await first
+    await delay(1)
+    expect(running(first.requestId)).toBeUndefined()
+    expect(running('shared')).toBe(second)
+
+    gate.releaseOldest()
+    await second
+    await delay(1)
+    expect(running('shared')).toBeUndefined()
+  })
+
+  test('reset() removes the mutation result at once but does not abort the request', async () => {
+    const gate = createGate()
+    let queryCount = 0
+    let queryFulfilledResolved = false
+    const api = createApi({
+      baseQuery: fakeBaseQuery(),
+      tagTypes: ['Post'],
+      endpoints: (build) => ({
+        getPosts: build.query<number, void>({
+          queryFn: () => ({ data: ++queryCount }),
+          providesTags: ['Post'],
+        }),
+        update: build.mutation<string, void>({
+          queryFn: async () => {
+            await gate.wait()
+            return { data: 'done' }
+          },
+          invalidatesTags: ['Post'],
+          async onQueryStarted(_, { queryFulfilled }) {
+            await queryFulfilled
+            queryFulfilledResolved = true
+          },
+        }),
+      }),
+    })
+    const { store } = setupApiStore(api, undefined, {
+      withoutTestLifecycles: true,
+    })
+
+    store.dispatch(api.endpoints.getPosts.initiate())
+    await delay(1)
+    expect(queryCount).toBe(1)
+
+    const mutation = store.dispatch(api.endpoints.update.initiate())
+    expect(store.getState().api.mutations[mutation.requestId]?.status).toBe(
+      'pending',
+    )
+    mutation.reset()
+    expect(store.getState().api.mutations[mutation.requestId]).toBeUndefined()
+
+    gate.releaseOldest()
+    const result = await mutation
+    await delay(1)
+
+    expect(result).toEqual({ data: 'done' })
+    expect(queryFulfilledResolved).toBe(true)
+    // The late result is not written back, but its tags are still invalidated.
+    expect(store.getState().api.mutations[mutation.requestId]).toBeUndefined()
+    expect(queryCount).toBe(2)
+  })
+})

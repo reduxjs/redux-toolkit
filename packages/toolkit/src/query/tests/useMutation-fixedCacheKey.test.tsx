@@ -1,4 +1,4 @@
-import { createApi } from '@reduxjs/toolkit/query/react'
+import { createApi, fakeBaseQuery } from '@reduxjs/toolkit/query/react'
 import {
   act,
   getByTestId,
@@ -390,5 +390,124 @@ describe('fixedCacheKey', () => {
         },
       },
     })
+  })
+})
+
+describe('fixedCacheKey shared by several mutation calls', () => {
+  function createGate() {
+    const waiting: (() => void)[] = []
+    return {
+      wait: () => new Promise<void>((resolve) => waiting.push(resolve)),
+      releaseOldest: () => waiting.shift()?.(),
+    }
+  }
+
+  test('a mutation replaced in state by a newer call still invalidates its own tags', async () => {
+    const gate = createGate()
+    let aCount = 0
+    let bCount = 0
+    const api = createApi({
+      baseQuery: fakeBaseQuery(),
+      tagTypes: ['A', 'B'],
+      endpoints: (build) => ({
+        providesA: build.query<number, void>({
+          queryFn: () => ({ data: ++aCount }),
+          providesTags: ['A'],
+        }),
+        providesB: build.query<number, void>({
+          queryFn: () => ({ data: ++bCount }),
+          providesTags: ['B'],
+        }),
+        update: build.mutation<string, 'A' | 'B'>({
+          queryFn: async (which) => {
+            await gate.wait()
+            return { data: which }
+          },
+          invalidatesTags: (_result, _error, which) => [which],
+        }),
+      }),
+    })
+    const { store } = setupApiStore(api, undefined, {
+      withoutTestLifecycles: true,
+    })
+
+    store.dispatch(api.endpoints.providesA.initiate())
+    store.dispatch(api.endpoints.providesB.initiate())
+    await delay(1)
+
+    const first = store.dispatch(
+      api.endpoints.update.initiate('A', { fixedCacheKey: 'shared' }),
+    )
+    const second = store.dispatch(
+      api.endpoints.update.initiate('B', { fixedCacheKey: 'shared' }),
+    )
+    expect(store.getState().api.mutations.shared?.requestId).toBe(
+      second.requestId,
+    )
+
+    gate.releaseOldest()
+    gate.releaseOldest()
+    await Promise.all([first, second])
+    await delay(5)
+
+    expect(store.getState().api.mutations.shared?.data).toBe('B')
+    expect(aCount).toBe(2)
+    expect(bCount).toBe(2)
+  })
+
+  function setupLifecycleApi() {
+    let started = 0
+    let cacheEntriesAdded = 0
+    const removed: number[] = []
+    const api = createApi({
+      baseQuery: fakeBaseQuery(),
+      endpoints: (build) => ({
+        update: build.mutation<null, void>({
+          queryFn: () => ({ data: null }),
+          onQueryStarted() {
+            started++
+          },
+          async onCacheEntryAdded(_, { cacheEntryRemoved }) {
+            const index = ++cacheEntriesAdded
+            await cacheEntryRemoved
+            removed.push(index)
+          },
+        }),
+      }),
+    })
+    const { store } = setupApiStore(api, undefined, {
+      withoutTestLifecycles: true,
+    })
+    const triggerTwiceThenReset = async () => {
+      for (let i = 0; i < 2; i++) {
+        await store.dispatch(
+          api.endpoints.update.initiate(undefined, { fixedCacheKey: 'shared' }),
+        )
+      }
+      await delay(1)
+      store.dispatch(api.util.resetApiState())
+      await delay(1)
+    }
+    return {
+      triggerTwiceThenReset,
+      counts: () => ({ started, cacheEntriesAdded, removed }),
+    }
+  }
+
+  test('every call runs onQueryStarted and onCacheEntryAdded', async () => {
+    const { triggerTwiceThenReset, counts } = setupLifecycleApi()
+    await triggerTwiceThenReset()
+
+    // Known current behavior that may change; documenting it as the baseline (#5539)
+    expect(counts()).toEqual({ started: 2, cacheEntriesAdded: 2, removed: [2] })
+  })
+
+  // https://github.com/reduxjs/redux-toolkit/issues/5539
+  test.fails('every started cache lifecycle gets cacheEntryRemoved', async () => {
+    const { triggerTwiceThenReset, counts } = setupLifecycleApi()
+    await triggerTwiceThenReset()
+
+    const { cacheEntriesAdded, removed } = counts()
+    expect(removed).toHaveLength(cacheEntriesAdded)
   })
 })
