@@ -45,6 +45,7 @@ import type {
 import { calculateProvidedByThunk } from './buildThunks'
 import {
   ENDPOINT_QUERY,
+  isAnyQueryDefinition,
   isInfiniteQueryDefinition,
   type AssertTagTypes,
   type EndpointDefinitions,
@@ -89,6 +90,7 @@ type NormalizedQueryUpsertEntryPayload = {
 export type ProcessedQueryUpsertEntry = {
   queryDescription: QueryThunkArg
   value: unknown
+  providedTags: readonly FullTagDescription<string>[]
 }
 
 /**
@@ -200,14 +202,14 @@ export function buildSlice({
     }
 
     updateQuerySubstateIfExists(draft, arg.queryCacheKey, (substate) => {
-      substate.status = STATUS_PENDING
-
-      substate.requestId =
-        upserting && substate.requestId
-          ? // for `upsertQuery` **updates**, keep the current `requestId`
-            substate.requestId
-          : // for normal queries or `upsertQuery` **inserts** always update the `requestId`
-            meta.requestId
+      // `upsertQuery` **updates** keep the current status and `requestId`.
+      // The rejected reducer ignores an upsert's rejection because of the
+      // `requestId` mismatch, so writing `pending` would never be undone.
+      const isUpsertUpdate = upserting && substate.requestId
+      if (!isUpsertUpdate) {
+        substate.status = STATUS_PENDING
+        substate.requestId = meta.requestId
+      }
       if (arg.originalArgs !== undefined) {
         substate.originalArgs = arg.originalArgs
       }
@@ -327,23 +329,66 @@ export function buildSlice({
           }
         },
         prepare: (payload: NormalizedQueryUpsertEntryPayload[]) => {
-          const queryDescriptions: ProcessedQueryUpsertEntry[] = payload.map(
-            (entry) => {
-              const { endpointName, arg, value } = entry
-              const endpointDefinition = definitions[endpointName]
-              const queryDescription: QueryThunkArg = {
-                type: ENDPOINT_QUERY as 'query',
-                endpointName,
-                originalArgs: entry.arg,
-                queryCacheKey: serializeQueryArgs({
-                  queryArgs: arg,
-                  endpointDefinition,
-                  endpointName,
-                }),
+          const queryDescriptions: ProcessedQueryUpsertEntry[] = []
+          for (const { endpointName, arg, value } of payload) {
+            const endpointDefinition = definitions[endpointName]
+            if (
+              !endpointDefinition ||
+              !isAnyQueryDefinition(endpointDefinition)
+            ) {
+              if (process.env.NODE_ENV !== 'production') {
+                console.warn(
+                  `upsertQueryEntries: "${endpointName}" is not a query or infinite query endpoint. This entry will be skipped.`,
+                )
               }
-              return { queryDescription, value }
-            },
-          )
+              continue
+            }
+            if (
+              process.env.NODE_ENV !== 'production' &&
+              typeof (value as PromiseLike<unknown> | undefined)?.then ===
+                'function'
+            ) {
+              console.warn(
+                `upsertQueryEntries: the value for "${endpointName}" is a promise. upsertQueryEntries stores values as-is, so await the promise and upsert the result instead.`,
+              )
+            }
+            const queryDescription: QueryThunkArg = {
+              type: ENDPOINT_QUERY as 'query',
+              endpointName,
+              originalArgs: arg,
+              queryCacheKey: serializeQueryArgs({
+                queryArgs: arg,
+                endpointDefinition,
+                endpointName,
+              }),
+            }
+            let providedTags: readonly FullTagDescription<string>[]
+            try {
+              providedTags = calculateProvidedByThunk(
+                {
+                  type: 'UNKNOWN',
+                  payload: value,
+                  meta: {
+                    requestStatus: 'fulfilled',
+                    requestId: 'UNKNOWN',
+                    arg: queryDescription,
+                  },
+                } as CalculateProvidedByAction,
+                'providesTags',
+                definitions,
+                assertTagType,
+              )
+            } catch (error) {
+              if (process.env.NODE_ENV !== 'production') {
+                console.error(
+                  `upsertQueryEntries: providesTags for "${endpointName}" threw an error. This entry will be skipped.`,
+                  error,
+                )
+              }
+              continue
+            }
+            queryDescriptions.push({ queryDescription, value, providedTags })
+          }
 
           const result = {
             payload: queryDescriptions,
@@ -565,26 +610,25 @@ export function buildSlice({
         .addMatcher(
           isAnyOf(isFulfilled(queryThunk), isRejectedWithValue(queryThunk)),
           (draft, action) => {
+            // A failed upsert does not change the entry's data, so it keeps its tags
+            if (isRejectedWithValue(action) && isUpsertQuery(action.meta.arg)) {
+              return
+            }
             writeProvidedTagsForQueries(draft, [action])
           },
         )
         .addMatcher(
           querySlice.actions.cacheEntriesUpserted.match,
           (draft, action) => {
-            const mockActions: CalculateProvidedByAction[] = action.payload.map(
-              ({ queryDescription, value }) => {
-                return {
-                  type: 'UNKNOWN',
-                  payload: value,
-                  meta: {
-                    requestStatus: 'fulfilled',
-                    requestId: 'UNKNOWN',
-                    arg: queryDescription,
-                  },
-                }
-              },
+            invalidationSlice.caseReducers.updateProvidedBy(
+              draft,
+              invalidationSlice.actions.updateProvidedBy(
+                action.payload.map(({ queryDescription, providedTags }) => ({
+                  queryCacheKey: queryDescription.queryCacheKey,
+                  providedTags,
+                })),
+              ),
             )
-            writeProvidedTagsForQueries(draft, mockActions)
           },
         )
     },
