@@ -1777,19 +1777,54 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       !currentRenderHasSubscription && promiseRef.current !== undefined
 
     // If the Provider's store changed underneath us, the promise tracked in
-    // `promiseRef` belongs to the previous store. Unsubscribe it (which talks
-    // to the old store) and clear it so the effect below re-initiates the
-    // query against the new store.
+    // `promiseRef` belongs to the previous store. Clear it so the effect
+    // below re-initiates the query against the new store. Only the ref is
+    // cleared here: unsubscribing talks to the old store, so it is deferred
+    // until the swap has actually committed (see the effect below).
     const lastDispatchRef =
       useRef<ThunkDispatch<any, any, UnknownAction>>(dispatch)
+    const stalePromisesRef = useRef<T[]>([])
+    const storeChanged = lastDispatchRef.current !== dispatch
+    const promiseFromPreviousStore = storeChanged
+      ? promiseRef.current
+      : undefined
     usePossiblyImmediateEffect((): void | undefined => {
-      if (lastDispatchRef.current !== dispatch) {
+      if (storeChanged) {
         lastDispatchRef.current = dispatch
-        const lastPromise = promiseRef.current
-        promiseRef.current = undefined
-        lastPromise?.unsubscribe()
+        // Only clear if the ref still holds the promise from the previous
+        // store. A consumer may already have replaced it between render and
+        // this effect (e.g. `fetchNextPage` from a layout effect), which
+        // also cleaned up the old promise itself. Cleared promises queue up:
+        // an abandoned render may drop a promise that was itself created by
+        // an earlier uncommitted render, and each of them needs cleanup.
+        if (promiseRef.current === promiseFromPreviousStore) {
+          if (promiseFromPreviousStore) {
+            stalePromisesRef.current.push(promiseFromPreviousStore)
+          }
+          promiseRef.current = undefined
+        }
       }
-    }, [dispatch])
+    }, [dispatch, storeChanged, promiseFromPreviousStore])
+    // Stale promises are never referenced by the committed tree again, so
+    // they are flushed after every commit: after a committed swap, after a
+    // commit back on the original store following an abandoned swap render,
+    // and before a re-run or unmount. Unsubscribing must stay commit-gated
+    // like this - an abandoned or suspended render must not unsubscribe the
+    // promise the committed tree still relies on, which is why this does not
+    // happen in the possibly-immediate effect above.
+    useEffect(() => {
+      const flushStalePromises = () => {
+        const stalePromises = stalePromisesRef.current
+        if (stalePromises.length > 0) {
+          stalePromisesRef.current = []
+          for (const stalePromise of stalePromises) {
+            stalePromise?.unsubscribe()
+          }
+        }
+      }
+      flushStalePromises()
+      return flushStalePromises
+    })
 
     usePossiblyImmediateEffect((): void | undefined => {
       if (subscriptionRemoved) {
