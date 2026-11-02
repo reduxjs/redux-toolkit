@@ -33,7 +33,9 @@ type Definitions = DefinitionsFromApi<typeof api>
 
 describe('type tests', () => {
   test('Api with the core and React modules matches createApi output', () => {
-    expectTypeOf(api).toMatchTypeOf<
+    expectTypeOf(api).not.toBeAny()
+
+    expectTypeOf(api).toEqualTypeOf<
       Api<
         FetchBaseQuery,
         Definitions,
@@ -63,6 +65,8 @@ describe('type tests', () => {
       >
     >()
 
+    // `ApiModules` has `in out` type parameters, so make sure the common
+    // `Api<any, ...>` annotation still accepts a concrete api
     expectTypeOf(api).toMatchTypeOf<Api<any, any, any, any, any>>()
   })
 
@@ -97,6 +101,10 @@ describe('type tests', () => {
           }),
         }),
       })
+
+    expectTypeOf(injected).not.toBeAny()
+
+    expectTypeOf(injected.endpoints.getC).not.toBeAny()
 
     expectTypeOf(injected.endpoints.getC.useQuery).toBeFunction()
 
