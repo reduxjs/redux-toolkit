@@ -1992,15 +1992,25 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
       // If the Provider's store changed, drop the previous store's promise so
       // the reinstate effect below re-runs the last trigger against the new
-      // store.
+      // store. This effect only runs after commit: a suspended or abandoned
+      // render must not unsubscribe the promise that is still committed.
       const lastDispatchRef =
         useRef<ThunkDispatch<any, any, UnknownAction>>(dispatch)
-      usePossiblyImmediateEffect(() => {
-        if (lastDispatchRef.current !== dispatch) {
+      const storeChanged = lastDispatchRef.current !== dispatch
+      const promiseFromPreviousStore = storeChanged
+        ? promiseRef.current
+        : undefined
+      useEffect(() => {
+        if (storeChanged) {
           lastDispatchRef.current = dispatch
-          unsubscribePromiseRef(promiseRef)
+          // Only drop the promise captured during this render. If a trigger
+          // fired between render and this commit (e.g. from a layout effect),
+          // the ref now holds a promise created against the new store.
+          if (promiseRef.current === promiseFromPreviousStore) {
+            unsubscribePromiseRef(promiseRef)
+          }
         }
-      }, [dispatch])
+      }, [dispatch, storeChanged, promiseFromPreviousStore])
 
       const stableSubscriptionOptions = useShallowStableValue({
         refetchOnReconnect,
