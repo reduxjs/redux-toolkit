@@ -14,6 +14,7 @@ import {
   selectIdValue,
   ensureEntitiesArray,
   splitAddedUpdatedEntities,
+  getCurrent,
 } from './utils'
 
 export function createUnsortedStateAdapter<T, Id extends EntityId>(
@@ -78,19 +79,20 @@ export function createUnsortedStateAdapter<T, Id extends EntityId>(
   }
 
   function removeManyMutably(keys: readonly Id[], state: R): void {
-    let didMutate = false
+    // `entities` keys are strings, so compare ids as strings too
+    const removedIds = new Set<string>()
 
-    keys.forEach((key) => {
+    for (const key of keys) {
       if (key in state.entities) {
         delete (state.entities as Record<Id, T>)[key]
-        didMutate = true
+        removedIds.add(String(key))
       }
-    })
+    }
 
-    if (didMutate) {
-      state.ids = (state.ids as Id[]).filter((id) => id in state.entities) as
-        | Id[]
-        | Draft<Id[]>
+    if (removedIds.size > 0) {
+      state.ids = getCurrent(state.ids as Id[]).filter(
+        (id) => !removedIds.has(String(id)),
+      ) as Id[] | Draft<Id[]>
     }
   }
 
