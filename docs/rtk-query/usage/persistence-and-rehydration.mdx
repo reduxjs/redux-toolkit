@@ -54,7 +54,8 @@ function isHydrateAction(action: Action): action is Action<typeof REHYDRATE> & {
 export const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
   // highlight-start
-  // to prevent circular type issues, the return type needs to be annotated as any
+  // annotate the return type as `any` to avoid a circular type reference.
+  // See the `extractRehydrationInfo` API reference for details.
   extractRehydrationInfo(action, { reducerPath }): any {
     if (isHydrateAction(action)) {
       // when persisting the api reducer

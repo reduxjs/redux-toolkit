@@ -190,6 +190,7 @@ export interface CreateApiOptions<
    * export const api = createApi({
    *   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
    *   // highlight-start
+   *   // annotate the return type as `any` to avoid a circular type reference
    *   extractRehydrationInfo(action, { reducerPath }): any {
    *     if (isHydrateAction(action)) {
    *       return action.payload[reducerPath]
