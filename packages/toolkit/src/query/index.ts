@@ -75,6 +75,7 @@ export type {
 } from './core/buildInitiate'
 export type { CreateApi, CreateApiOptions } from './createApi'
 export { buildCreateApi } from './createApi'
+export { createApiActionSanitizer } from './createApiActionSanitizer'
 export { _NEVER, fakeBaseQuery } from './fakeBaseQuery'
 export { copyWithStructuralSharing } from './utils/copyWithStructuralSharing'
 export { createApi, coreModule, coreModuleName } from './core/index'
