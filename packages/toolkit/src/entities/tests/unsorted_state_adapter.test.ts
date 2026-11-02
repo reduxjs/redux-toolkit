@@ -243,6 +243,61 @@ describe('Unsorted State Adapter', () => {
     })
   })
 
+  it('should let you remove many entities matching a `where` object', () => {
+    const withAll = adapter.setAll(state, [
+      { ...TheGreatGatsby, author: 'F. Scott Fitzgerald' },
+      { ...AnimalFarm, author: 'George Orwell' },
+      TheHobbit,
+      { id: 'nineteen-eighty-four', title: '1984', author: 'George Orwell' },
+    ])
+
+    const withoutOrwell = adapter.removeMany(withAll, {
+      where: { author: 'George Orwell' },
+    })
+
+    expect(withoutOrwell.ids).toEqual([TheGreatGatsby.id, TheHobbit.id])
+    expect(Object.keys(withoutOrwell.entities)).toEqual([
+      TheGreatGatsby.id,
+      TheHobbit.id,
+    ])
+  })
+
+  it('should require every `where` field to match', () => {
+    const withAll = adapter.setAll(state, [
+      { id: 'a', title: 'Same', author: 'One' },
+      { id: 'b', title: 'Same', author: 'Two' },
+      { id: 'c', title: 'Other', author: 'One' },
+    ])
+
+    const withoutA = adapter.removeMany(withAll, {
+      where: { title: 'Same', author: 'One' },
+    })
+
+    expect(withoutA.ids).toEqual(['b', 'c'])
+  })
+
+  it('should return the same state when a `where` object matches nothing', () => {
+    const withAll = adapter.setAll(state, [TheGreatGatsby, AnimalFarm])
+
+    expect(adapter.removeMany(withAll, { where: { author: 'Nobody' } })).toBe(
+      withAll,
+    )
+  })
+
+  it('should accept a `where` object in a payload action', () => {
+    const withAll = adapter.setAll(state, [TheGreatGatsby, TheHobbit])
+
+    const withoutHobbit = adapter.removeMany(withAll, {
+      type: 'books/removeByAuthor',
+      payload: { where: { author: TheHobbit.author } },
+    })
+
+    expect(withoutHobbit).toEqual({
+      ids: [TheGreatGatsby.id],
+      entities: { [TheGreatGatsby.id]: TheGreatGatsby },
+    })
+  })
+
   it('should let you remove all entities from the state', () => {
     const withAll = adapter.setAll(state, [
       TheGreatGatsby,
@@ -884,6 +939,21 @@ describe('Unsorted State Adapter', () => {
         adapter.removeMany(draft, [AnimalFarm.id, TheGreatGatsby.id])
       })
       expect(result).toEqual({ entities: {}, ids: [] })
+    })
+
+    test('removeMany with a `where` object sees earlier changes', () => {
+      const withTwo = adapter.addMany(state, [TheGreatGatsby, AnimalFarm])
+      const result = createNextState(withTwo, (draft) => {
+        adapter.updateOne(draft, {
+          id: AnimalFarm.id,
+          changes: { author: 'George Orwell' },
+        })
+        adapter.removeMany(draft, { where: { author: 'George Orwell' } })
+      })
+      expect(result).toEqual({
+        entities: { [TheGreatGatsby.id]: TheGreatGatsby },
+        ids: [TheGreatGatsby.id],
+      })
     })
   })
 })

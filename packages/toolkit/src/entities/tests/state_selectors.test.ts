@@ -66,6 +66,15 @@ describe('Entity State Selectors', () => {
       const second = selectors.selectById(state, AnimalFarm.id)
       expect(second).toBe(AnimalFarm)
     })
+
+    it('should create a selector for selecting many items by ID in the given order', () => {
+      const ids = [TheGreatGatsby.id, 'missing', AClockworkOrange.id]
+      const books = selectors.selectByIds(state, ids)
+
+      expect(books).toEqual([TheGreatGatsby, AClockworkOrange])
+      expect(selectors.selectByIds(state, ids)).toBe(books)
+      expect(selectors.selectByIds(state, [...ids])).toEqual(books)
+    })
   })
 
   describe('Uncomposed Selectors', () => {
@@ -122,6 +131,21 @@ describe('Entity State Selectors', () => {
       expect(first).toBe(AClockworkOrange)
       const second = selectors.selectById(state, AnimalFarm.id)
       expect(second).toBe(AnimalFarm)
+    })
+
+    it('should create a selector for selecting many items by ID in the given order', () => {
+      const ids = [AnimalFarm.id, TheGreatGatsby.id]
+      const books = selectors.selectByIds(state, ids)
+
+      expect(books).toEqual([AnimalFarm, TheGreatGatsby])
+      expect(selectors.selectByIds(state, ids)).toBe(books)
+
+      const nextState = adapter.updateOne(state, {
+        id: AClockworkOrange.id,
+        changes: { author: 'Anthony Burgess' },
+      })
+      expect(selectors.selectByIds(nextState, ids)).not.toBe(books)
+      expect(selectors.selectByIds(nextState, ids)).toEqual(books)
     })
   })
   describe('custom createSelector instance', () => {

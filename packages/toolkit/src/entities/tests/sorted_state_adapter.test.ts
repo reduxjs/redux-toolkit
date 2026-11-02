@@ -242,6 +242,25 @@ describe('Sorted State Adapter', () => {
     expect(withoutAll).toEqual({ ids: [], entities: {} })
   })
 
+  it('should keep sort order when removing many entities matching a `where` object', () => {
+    const withAll = adapter.setAll(state, [
+      TheGreatGatsby,
+      { ...AnimalFarm, author: 'George Orwell' },
+      AClockworkOrange,
+      TheHobbit,
+    ])
+
+    const withoutOrwell = adapter.removeMany(withAll, {
+      where: { author: 'George Orwell' },
+    })
+
+    expect(withoutOrwell.ids).toEqual([
+      AClockworkOrange.id,
+      TheGreatGatsby.id,
+      TheHobbit.id,
+    ])
+  })
+
   it('should let you remove all entities from the state', () => {
     const withAll = adapter.setAll(state, [
       TheGreatGatsby,

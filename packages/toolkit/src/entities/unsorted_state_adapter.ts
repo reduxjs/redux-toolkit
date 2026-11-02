@@ -5,6 +5,7 @@ import type {
   Update,
   EntityId,
   DraftableEntityState,
+  RemoveManyFilter,
 } from './models'
 import {
   createStateOperator,
@@ -15,6 +16,7 @@ import {
   ensureEntitiesArray,
   splitAddedUpdatedEntities,
   getCurrent,
+  isRemoveManyFilter,
 } from './utils'
 
 export function createUnsortedStateAdapter<T, Id extends EntityId>(
@@ -78,7 +80,13 @@ export function createUnsortedStateAdapter<T, Id extends EntityId>(
     return removeManyMutably([key], state)
   }
 
-  function removeManyMutably(keys: readonly Id[], state: R): void {
+  function removeManyMutably(
+    keysOrFilter: readonly Id[] | RemoveManyFilter<T>,
+    state: R,
+  ): void {
+    const keys = isRemoveManyFilter(keysOrFilter)
+      ? selectMatchingIds(keysOrFilter.where, state)
+      : keysOrFilter
     // `entities` keys are strings, so compare ids as strings too
     const removedIds = new Set<string>()
 
@@ -94,6 +102,17 @@ export function createUnsortedStateAdapter<T, Id extends EntityId>(
         (id) => !removedIds.has(String(id)),
       ) as Id[] | Draft<Id[]>
     }
+  }
+
+  function selectMatchingIds(where: Partial<T>, state: R): Id[] {
+    const ids = getCurrent(state.ids as Id[])
+    const entities = getCurrent(state.entities as Record<Id, T>)
+    const whereKeys = Object.keys(where) as (keyof T)[]
+
+    return ids.filter((id) => {
+      const entity = entities[id]
+      return whereKeys.every((key) => entity[key] === where[key])
+    })
   }
 
   function removeAllMutably(state: R): void {
