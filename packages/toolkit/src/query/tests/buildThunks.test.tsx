@@ -1,3 +1,4 @@
+import type { Middleware } from '@reduxjs/toolkit'
 import { configureStore } from '@reduxjs/toolkit'
 import type { BaseQueryApi } from '@reduxjs/toolkit/query/react'
 import { createApi } from '@reduxjs/toolkit/query/react'
@@ -116,6 +117,159 @@ describe('baseline thunk behavior', () => {
 
     await store.dispatch(api.endpoints.hasQueryFn.initiate())
     expect(transformResponse).not.toHaveBeenCalled()
+  })
+})
+
+describe('request start meta', () => {
+  const api = createApi({
+    baseQuery: (arg: string) =>
+      arg === 'fail' ? { error: 'failed' } : { data: arg },
+    endpoints: (build) => ({
+      getItem: build.query<string, string>({
+        query: (arg) => arg,
+      }),
+      getPages: build.infiniteQuery<string, string, number>({
+        query: ({ pageParam }) => String(pageParam),
+        infiniteQueryOptions: {
+          initialPageParam: 0,
+          getNextPageParam: (_lastPage, _allPages, lastPageParam) =>
+            lastPageParam + 1,
+        },
+      }),
+      updateItem: build.mutation<string, string>({
+        query: (arg) => arg,
+      }),
+      throwing: build.query<string, void>({
+        queryFn: () => {
+          throw new Error('boom')
+        },
+      }),
+      slow: build.query<string, void>({
+        queryFn: () => new Promise(() => {}),
+      }),
+    }),
+  })
+
+  type RecordedAction = {
+    type: string
+    meta?: {
+      requestId?: string
+      requestStatus?: string
+      startedTimeStamp?: number
+      seq?: number
+      aborted?: boolean
+    }
+  }
+
+  function makeStore() {
+    const actions: RecordedAction[] = []
+    const recorder: Middleware = () => (next) => (action) => {
+      actions.push(action as RecordedAction)
+      return next(action)
+    }
+    const store = configureStore({
+      reducer: { [api.reducerPath]: api.reducer },
+      middleware: (gDM) => gDM().concat(api.middleware, recorder),
+    })
+    const thunkActions = () =>
+      actions.filter((action) => action.meta?.requestStatus !== undefined)
+    return { store, thunkActions }
+  }
+
+  beforeEach(() => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+  })
+
+  test('pending and settled actions of every thunk share startedTimeStamp and seq', async () => {
+    const { store, thunkActions } = makeStore()
+
+    await store.dispatch(api.endpoints.getItem.initiate('a'))
+    await store.dispatch(api.endpoints.getItem.initiate('fail'))
+    await store.dispatch(api.endpoints.getPages.initiate('x'))
+    await store.dispatch(
+      api.endpoints.getPages.initiate('x', { direction: 'forward' }),
+    )
+    await store.dispatch(api.endpoints.updateItem.initiate('m'))
+    await store.dispatch(api.endpoints.updateItem.initiate('fail'))
+    await store.dispatch(api.util.upsertQueryData('getItem', 'b', 'upserted'))
+
+    const actions = thunkActions()
+    expect(actions).toHaveLength(14)
+
+    const byRequest = new Map<string, RecordedAction[]>()
+    for (const action of actions) {
+      const requestId = action.meta!.requestId!
+      byRequest.set(requestId, [...(byRequest.get(requestId) ?? []), action])
+    }
+    expect(byRequest.size).toBe(7)
+
+    const seqs: number[] = []
+    for (const [pending, settled] of byRequest.values()) {
+      expect(pending.meta!.requestStatus).toBe('pending')
+      expect(settled.meta!.requestStatus).not.toBe('pending')
+      expect(pending.meta!.startedTimeStamp).toEqual(expect.any(Number))
+      expect(settled.meta!.startedTimeStamp).toBe(
+        pending.meta!.startedTimeStamp,
+      )
+      expect(settled.meta!.seq).toBe(pending.meta!.seq)
+      seqs.push(pending.meta!.seq!)
+    }
+    expect(seqs).toEqual([1, 2, 3, 4, 5, 6, 7])
+  })
+
+  test('seq orders requests that start in the same millisecond', async () => {
+    vi.spyOn(Date, 'now').mockReturnValue(1000)
+    const { store, thunkActions } = makeStore()
+
+    await Promise.all([
+      store.dispatch(api.endpoints.getItem.initiate('a')),
+      store.dispatch(api.endpoints.getItem.initiate('b')),
+      store.dispatch(api.endpoints.updateItem.initiate('c')),
+    ])
+    vi.mocked(Date.now).mockRestore()
+
+    const pending = thunkActions().filter(
+      (action) => action.meta!.requestStatus === 'pending',
+    )
+    expect(pending.map((action) => action.meta!.startedTimeStamp)).toEqual([
+      1000, 1000, 1000,
+    ])
+    expect(pending.map((action) => action.meta!.seq)).toEqual([1, 2, 3])
+  })
+
+  test('each store has its own counter', async () => {
+    const first = makeStore()
+    const second = makeStore()
+
+    await first.store.dispatch(api.endpoints.getItem.initiate('a'))
+    await first.store.dispatch(api.endpoints.getItem.initiate('b'))
+    await second.store.dispatch(api.endpoints.getItem.initiate('a'))
+
+    const seqs = (actions: RecordedAction[]) =>
+      actions
+        .filter((action) => action.meta!.requestStatus === 'pending')
+        .map((action) => action.meta!.seq)
+    expect(seqs(first.thunkActions())).toEqual([1, 2])
+    expect(seqs(second.thunkActions())).toEqual([1])
+  })
+
+  test('aborted and unhandled-error rejections have no request start meta', async () => {
+    const { store, thunkActions } = makeStore()
+
+    await store.dispatch(api.endpoints.throwing.initiate())
+    const slowPromise = store.dispatch(api.endpoints.slow.initiate())
+    slowPromise.abort()
+    await slowPromise
+
+    const rejected = thunkActions().filter(
+      (action) => action.meta!.requestStatus === 'rejected',
+    )
+    expect(rejected).toHaveLength(2)
+    expect(rejected[1].meta!.aborted).toBe(true)
+    for (const action of rejected) {
+      expect(action.meta!.startedTimeStamp).toBeUndefined()
+      expect(action.meta!.seq).toBeUndefined()
+    }
   })
 })
 
