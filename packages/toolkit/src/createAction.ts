@@ -285,7 +285,9 @@ export function createAction(type: string, prepareAction?: Function): any {
   actionCreator.type = type
 
   actionCreator.match = (action: unknown): action is PayloadAction =>
-    isAction(action) && action.type === type
+    action != null &&
+    (action as { type?: unknown }).type === type &&
+    isAction(action)
 
   return actionCreator
 }
