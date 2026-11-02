@@ -1,5 +1,6 @@
-import { createSlice, createAction } from '@reduxjs/toolkit'
-import type { CombinedState } from '@reduxjs/toolkit/query'
+import type { Middleware, UnknownAction } from '@reduxjs/toolkit'
+import { configureStore, createSlice, createAction } from '@reduxjs/toolkit'
+import type { CombinedState, QueryCacheKey } from '@reduxjs/toolkit/query'
 import { createApi } from '@reduxjs/toolkit/query'
 import { delay } from 'msw'
 import { setupApiStore } from '../../tests/utils/helpers'
@@ -265,6 +266,148 @@ describe('provided tag cleanup', () => {
     const state = storeRef.store.getState().api
     expect(state.queries).toEqual({})
     expect(Object.values(state.provided.tags.Post ?? {}).flat()).toEqual([])
+  })
+})
+
+describe('skipping unneeded reducer work', () => {
+  const createTagApi = () =>
+    createApi({
+      baseQuery,
+      tagTypes: ['Item', 'Other'],
+      endpoints: (build) => ({
+        getItem: build.query<{ id: number }, number>({
+          queryFn: (id) => ({ data: { id } }),
+          providesTags: (_result, _error, id) => [{ type: 'Item', id }],
+        }),
+      }),
+    })
+
+  function createRecordingStore(api: ReturnType<typeof createTagApi>) {
+    const actions: UnknownAction[] = []
+    const recorder: Middleware = () => (next) => (action) => {
+      actions.push(action as UnknownAction)
+      return next(action)
+    }
+    const store = configureStore({
+      reducer: { [api.reducerPath]: api.reducer },
+      middleware: (gDM) => gDM().concat(api.middleware, recorder),
+    })
+    return { store, actions }
+  }
+
+  test('unrelated actions return the same api state reference', () => {
+    const api = createTagApi()
+    const state = api.reducer(undefined, { type: 'init' })
+
+    expect(api.reducer(state, { type: 'some/unrelated' })).toBe(state)
+    expect(api.reducer(state, { type: 'apiSomething/else' })).toBe(state)
+  })
+
+  test('still handles actions without the reducerPath prefix', () => {
+    const api = createTagApi()
+    const initial = api.reducer(undefined, { type: 'init' })
+
+    const offline = api.reducer(initial, api.internalActions.onOffline())
+    expect(offline.config.online).toBe(false)
+    expect(
+      api.reducer(offline, api.internalActions.onOnline()).config.online,
+    ).toBe(true)
+
+    const unfocused = api.reducer(initial, api.internalActions.onFocusLost())
+    expect(unfocused.config.focused).toBe(false)
+    expect(
+      api.reducer(unfocused, api.internalActions.onFocus()).config.focused,
+    ).toBe(true)
+  })
+
+  test('fills in missing keys of a partial preloaded state on Redux init', () => {
+    const api = createTagApi()
+    const store = configureStore({
+      reducer: { [api.reducerPath]: api.reducer },
+      preloadedState: {
+        api: { queries: {} } as unknown as ReturnType<typeof api.reducer>,
+      },
+      middleware: (gDM) => gDM().concat(api.middleware),
+    })
+
+    expect(store.getState().api).toEqual(
+      api.reducer(undefined, { type: 'init' }),
+    )
+  })
+
+  test('re-dispatching a fulfilled action with unchanged tags does not change state', async () => {
+    const api = createTagApi()
+    const { store, actions } = createRecordingStore(api)
+    await store.dispatch(api.endpoints.getItem.initiate(1))
+    await store.dispatch(api.endpoints.getItem.initiate(2))
+
+    const fulfilled = actions.findLast(api.endpoints.getItem.matchFulfilled)!
+    const before = store.getState().api
+
+    store.dispatch(fulfilled)
+
+    expect(store.getState().api.provided).toBe(before.provided)
+    expect(store.getState().api).toBe(before)
+  })
+
+  test('updateProvidedBy only rewrites entries whose tags changed', () => {
+    const api = createTagApi()
+    const { updateProvidedBy } = api.internalActions
+    const queryCacheKey = 'getItem(1)' as QueryCacheKey
+    const otherCacheKey = 'getItem(2)' as QueryCacheKey
+
+    const state = api.reducer(
+      undefined,
+      updateProvidedBy([
+        { queryCacheKey, providedTags: [{ type: 'Item', id: 1 }] },
+        {
+          queryCacheKey: otherCacheKey,
+          providedTags: [{ type: 'Item', id: 2 }],
+        },
+      ]),
+    )
+
+    const unchanged = api.reducer(
+      state,
+      updateProvidedBy([
+        { queryCacheKey, providedTags: [{ type: 'Item', id: 1 }] },
+      ]),
+    )
+    expect(unchanged).toBe(state)
+
+    const changed = api.reducer(
+      state,
+      updateProvidedBy([
+        { queryCacheKey, providedTags: [{ type: 'Other', id: 1 }] },
+        {
+          queryCacheKey: otherCacheKey,
+          providedTags: [{ type: 'Item', id: 2 }],
+        },
+      ]),
+    )
+    expect(changed.provided.keys[queryCacheKey]).toEqual([
+      { type: 'Other', id: 1 },
+    ])
+    expect(changed.provided.tags.Item[1]).toEqual([])
+    expect(changed.provided.tags.Other[1]).toEqual([queryCacheKey])
+    expect(changed.provided.keys[otherCacheKey]).toBe(
+      state.provided.keys[otherCacheKey],
+    )
+    expect(changed.provided.tags.Item[2]).toBe(state.provided.tags.Item[2])
+
+    // A later entry for the same key wins, even if it matches the old tags
+    const reverted = api.reducer(
+      state,
+      updateProvidedBy([
+        { queryCacheKey, providedTags: [{ type: 'Other', id: 1 }] },
+        { queryCacheKey, providedTags: [{ type: 'Item', id: 1 }] },
+      ]),
+    )
+    expect(reverted.provided.keys[queryCacheKey]).toEqual([
+      { type: 'Item', id: 1 },
+    ])
+    expect(reverted.provided.tags.Item[1]).toEqual([queryCacheKey])
+    expect(reverted.provided.tags.Other[1]).toEqual([])
   })
 })
 
