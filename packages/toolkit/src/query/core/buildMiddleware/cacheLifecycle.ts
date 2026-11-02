@@ -189,6 +189,38 @@ const neverResolvedError = new Error(
   message: 'Promise never resolved before cacheEntryRemoved.'
 }
 
+export function warnIfNoCachedData(
+  entry: object,
+  endpointName: string,
+  callbackName: string,
+) {
+  if (!('data' in entry)) {
+    console.warn(
+      `\`updateCachedData\` was called in \`${callbackName}\` for the endpoint "${endpointName}" before the cache entry had any data, so it did nothing. Await \`cacheDataLoaded\` or \`queryFulfilled\` before updating the cached data.`,
+    )
+  }
+}
+
+export function runLifecycleCallback(
+  callback: () => unknown,
+  endpointName: string,
+  callbackName: string,
+): unknown {
+  try {
+    return callback()
+  } catch (error) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.error(
+        `An error was thrown synchronously in \`${callbackName}\` for the endpoint "${endpointName}". The error was caught and the request continues.`,
+        error,
+      )
+    } else {
+      console.error(error)
+    }
+    return undefined
+  }
+}
+
 export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
   api,
   reducerPath,
@@ -205,6 +237,8 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
   type CacheLifecycle = {
     valueResolved?(value: { data: unknown; meta: unknown }): unknown
     cacheEntryRemoved(): void
+    // requests started while this lifecycle was waiting for its first data
+    requestIds?: Set<string>
   }
   const lifecycleMap: Record<string, CacheLifecycle> = {}
 
@@ -215,15 +249,20 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
     cacheKey: string,
     data: unknown,
     meta: unknown,
+    requestId?: string,
   ) {
     const lifecycle = lifecycleMap[cacheKey]
 
-    if (lifecycle?.valueResolved) {
+    if (
+      lifecycle?.valueResolved &&
+      (requestId === undefined || lifecycle.requestIds?.has(requestId))
+    ) {
       lifecycle.valueResolved({
         data,
         meta,
       })
       delete lifecycle.valueResolved
+      delete lifecycle.requestIds
     }
   }
 
@@ -269,6 +308,7 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
       const [endpointName, originalArgs, requestId] =
         getActionMetaFields(action)
       checkForNewCacheKey(endpointName, cacheKey, requestId, originalArgs)
+      lifecycleMap[cacheKey]?.requestIds?.add(requestId)
     } else if (cacheEntriesUpserted.match(action)) {
       for (const { queryDescription, value } of action.payload) {
         const { endpointName, originalArgs, queryCacheKey } = queryDescription
@@ -289,7 +329,12 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
         handleNewKey(endpointName, originalArgs, cacheKey, mwApi, requestId)
       }
     } else if (isFulfilledThunk(action)) {
-      resolveLifecycleEntry(cacheKey, action.payload, action.meta.baseQueryMeta)
+      resolveLifecycleEntry(
+        cacheKey,
+        action.payload,
+        action.meta.baseQueryMeta,
+        action.meta.requestId,
+      )
     } else if (
       removeQueryResult.match(action) ||
       removeMutationResult.match(action)
@@ -324,7 +369,7 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
     const onCacheEntryAdded = endpointDefinition?.onCacheEntryAdded
     if (!onCacheEntryAdded) return
 
-    const lifecycle = {} as CacheLifecycle
+    const lifecycle = { requestIds: new Set([requestId]) } as CacheLifecycle
 
     const cacheEntryRemoved = new Promise<void>((resolve) => {
       lifecycle.cacheEntryRemoved = resolve
@@ -355,21 +400,33 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
       requestId,
       extra,
       updateCachedData: (isAnyQueryDefinition(endpointDefinition)
-        ? (updateRecipe: Recipe<any>) =>
-            mwApi.dispatch(
+        ? (updateRecipe: Recipe<any>) => {
+            if (process.env.NODE_ENV !== 'production') {
+              warnIfNoCachedData(
+                selector(mwApi.getState()),
+                endpointName,
+                'onCacheEntryAdded',
+              )
+            }
+            return mwApi.dispatch(
               api.util.updateQueryData(
                 endpointName as never,
                 originalArgs as never,
                 updateRecipe,
               ),
             )
+          }
         : undefined) as any,
 
       cacheDataLoaded,
       cacheEntryRemoved,
     }
 
-    const runningHandler = onCacheEntryAdded(originalArgs, lifecycleApi as any)
+    const runningHandler = runLifecycleCallback(
+      () => onCacheEntryAdded(originalArgs, lifecycleApi as any),
+      endpointName,
+      'onCacheEntryAdded',
+    )
     // if a `neverResolvedError` was thrown, but not handled in the running handler, do not let it leak out further
     Promise.resolve(runningHandler).catch((e) => {
       if (e === neverResolvedError) return
