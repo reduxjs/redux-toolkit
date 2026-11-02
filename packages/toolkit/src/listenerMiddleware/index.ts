@@ -364,10 +364,44 @@ export const createListenerMiddleware = <
 
   assertFunction(onError, 'onError')
 
-  const insertEntry = (entry: ListenerEntry) => {
-    entry.unsubscribe = () => listenerMap.delete(entry.id)
+  // Snapshot of `listenerMap`, rebuilt only after it changes. Listeners
+  // added or removed by an effect take effect from the next dispatch.
+  let snapshot:
+    | { entries: ListenerEntry[]; types: Set<string>; anyType: boolean }
+    | undefined
 
-    listenerMap.set(entry.id, entry)
+  const getSnapshot = () => {
+    if (!snapshot) {
+      const entries = Array.from(listenerMap.values())
+      const types = new Set<string>()
+      let anyType = false
+      for (const entry of entries) {
+        if (typeof entry.type === 'string') {
+          types.add(entry.type)
+        } else {
+          anyType = true
+        }
+      }
+      snapshot = { entries, types, anyType }
+    }
+    return snapshot
+  }
+
+  const addToListenerMap = (entry: ListenerEntry) => {
+    if (!listenerMap.has(entry.id)) {
+      listenerMap.set(entry.id, entry)
+      snapshot = undefined
+    }
+  }
+
+  const insertEntry = (entry: ListenerEntry) => {
+    entry.unsubscribe = () => {
+      if (listenerMap.delete(entry.id)) {
+        snapshot = undefined
+      }
+    }
+
+    addToListenerMap(entry)
     return (cancelOptions?: UnsubscribeListenerOptions) => {
       entry.unsubscribe()
       if (cancelOptions?.cancelActive) {
@@ -441,7 +475,7 @@ export const createListenerMiddleware = <
             fork: createFork(internalTaskController.signal, autoJoinPromises),
             unsubscribe: entry.unsubscribe,
             subscribe: () => {
-              listenerMap.set(entry.id, entry)
+              addToListenerMap(entry)
             },
             cancelActiveListeners: () => {
               entry.pending.forEach((controller, _, set) => {
@@ -476,10 +510,14 @@ export const createListenerMiddleware = <
     }
   }
 
-  const clearListenerMiddleware = createClearListenerMiddleware(
+  const clearListeners = createClearListenerMiddleware(
     listenerMap,
     executingListeners,
   )
+  const clearListenerMiddleware = () => {
+    clearListeners()
+    snapshot = undefined
+  }
 
   const middleware: ListenerMiddleware<
     StateType,
@@ -525,11 +563,18 @@ export const createListenerMiddleware = <
       // Actually forward the action to the reducer before we handle listeners
       result = next(action)
 
-      if (listenerMap.size > 0) {
+      const { entries, types, anyType } = getSnapshot()
+
+      // Entries registered by `type` or `actionCreator` can only match their
+      // own type; `matcher` and `predicate` entries can match any action.
+      if (anyType || types.has(action.type)) {
         const currentState = api.getState()
-        // Work around ESBuild+TS transpilation issue
-        const listenerEntries = Array.from(listenerMap.values())
-        for (const entry of listenerEntries) {
+
+        for (const entry of entries) {
+          if (typeof entry.type === 'string' && entry.type !== action.type) {
+            continue
+          }
+
           let runListener = false
 
           try {

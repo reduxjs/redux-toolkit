@@ -119,6 +119,25 @@ describe('createAction', () => {
       const actionCreator = createAction('test')
       expect(actionCreator.match({ type: 'test-abc' })).toBe(false)
     })
+
+    test('should return false for non-action values', () => {
+      const actionCreator = createAction('test')
+      class TestAction {
+        type = 'test'
+      }
+      for (const value of [
+        null,
+        undefined,
+        0,
+        'test',
+        true,
+        Symbol('test'),
+        () => {},
+        new TestAction(),
+      ]) {
+        expect(actionCreator.match(value)).toBe(false)
+      }
+    })
   })
 })
 

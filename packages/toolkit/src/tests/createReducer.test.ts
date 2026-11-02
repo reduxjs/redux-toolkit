@@ -415,6 +415,47 @@ describe('createReducer', () => {
 
     const initialState = { numberActions: 0, stringActions: 0 }
 
+    test('runs every matcher before any case reducer, then reducers in order', () => {
+      const calls: string[] = []
+      const matcher =
+        (name: string, result: boolean) =>
+        (_: UnknownAction): _ is UnknownAction => {
+          calls.push(`matcher ${name}`)
+          return result
+        }
+      const caseReducer = (name: string) => () => {
+        calls.push(`reducer ${name}`)
+      }
+      const reducer = createReducer(initialState, (builder) =>
+        builder
+          .addCase(incrementBy, caseReducer('case'))
+          .addMatcher(matcher('a', true), caseReducer('a'))
+          .addMatcher(matcher('b', false), caseReducer('b'))
+          .addMatcher(matcher('c', true), caseReducer('c'))
+          .addDefaultCase(caseReducer('default')),
+      )
+
+      reducer(undefined, incrementBy(1))
+      expect(calls).toEqual([
+        'matcher a',
+        'matcher b',
+        'matcher c',
+        'reducer case',
+        'reducer a',
+        'reducer c',
+      ])
+
+      calls.length = 0
+      reducer(undefined, decrementBy(1))
+      expect(calls).toEqual([
+        'matcher a',
+        'matcher b',
+        'matcher c',
+        'reducer a',
+        'reducer c',
+      ])
+    })
+
     test('uses the reducer of matching actionMatchers', () => {
       const reducer = createReducer(initialState, (builder) =>
         builder

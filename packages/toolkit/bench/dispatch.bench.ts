@@ -4,6 +4,7 @@ import {
   configureStore,
   createAction,
   createListenerMiddleware,
+  createReducer,
   createSlice,
   Tuple,
 } from '@reduxjs/toolkit'
@@ -93,15 +94,38 @@ async function makeApiStore(cacheEntries: number, recordFulfilled = false) {
   return { api, store, lastFulfilled }
 }
 
-function makeListenerStore(listenerCount: number | undefined) {
+function makeMatcherReducerStore(matcherCount: number) {
+  const reducer = createReducer(0, (builder) => {
+    builder.addCase(createAction('feature/thing'), (state) => state + 1)
+    for (let i = 0; i < matcherCount; i++) {
+      builder.addMatcher(
+        (action): action is UnknownAction => action.type === `matched${i}`,
+        (state) => state + 1,
+      )
+    }
+  })
+  return configureStore({ reducer, middleware: () => new Tuple() })
+}
+
+function makeListenerStore(
+  listenerCount: number | undefined,
+  {
+    type = 'actionCreator',
+  }: { type?: 'actionCreator' | 'type' | 'matcher' } = {},
+) {
   const middleware: Middleware[] = []
   if (listenerCount !== undefined) {
     const listener = createListenerMiddleware()
     for (let i = 0; i < listenerCount; i++) {
-      listener.startListening({
-        actionCreator: createAction(`feature${i}/thing`),
-        effect: () => {},
-      })
+      const actionCreator = createAction(`feature${i}/thing`)
+      const effect = () => {}
+      if (type === 'actionCreator') {
+        listener.startListening({ actionCreator, effect })
+      } else if (type === 'type') {
+        listener.startListening({ type: actionCreator.type, effect })
+      } else {
+        listener.startListening({ matcher: actionCreator.match, effect })
+      }
     }
     middleware.push(listener.middleware)
   }
@@ -225,5 +249,36 @@ test('unrelated action through listener middleware', async ({ bench }) => {
     '0 listeners': () => zero.dispatch(unrelated),
     '10 listeners': () => ten.dispatch(unrelated),
     '200 listeners': () => twoHundred.dispatch(unrelated),
+  })
+})
+
+test('listener middleware, 200 listeners by registration kind', async ({
+  bench,
+}) => {
+  const byActionCreator = makeListenerStore(200)
+  const byType = makeListenerStore(200, { type: 'type' })
+  const byMatcher = makeListenerStore(200, { type: 'matcher' })
+  const matching = { type: 'feature100/thing' }
+
+  await compareCases(bench, 'listener middleware by kind', {
+    'actionCreator, unrelated action': () =>
+      byActionCreator.dispatch(unrelated),
+    'type, unrelated action': () => byType.dispatch(unrelated),
+    'matcher, unrelated action': () => byMatcher.dispatch(unrelated),
+    'actionCreator, matching action': () => byActionCreator.dispatch(matching),
+  })
+})
+
+test('unrelated action through createReducer matchers', async ({ bench }) => {
+  const none = makeMatcherReducerStore(0)
+  const five = makeMatcherReducerStore(5)
+  const fifty = makeMatcherReducerStore(50)
+  const matched = { type: 'matched0' }
+
+  await compareCases(bench, 'createReducer matchers', {
+    'case only, unrelated action': () => none.dispatch(unrelated),
+    '5 matchers, unrelated action': () => five.dispatch(unrelated),
+    '50 matchers, unrelated action': () => fifty.dispatch(unrelated),
+    '5 matchers, one matching action': () => five.dispatch(matched),
   })
 })
