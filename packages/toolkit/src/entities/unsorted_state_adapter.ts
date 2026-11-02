@@ -79,18 +79,19 @@ export function createUnsortedStateAdapter<T, Id extends EntityId>(
   }
 
   function removeManyMutably(keys: readonly Id[], state: R): void {
-    const removedIds = new Set<Id>()
+    // `entities` keys are strings, so compare ids as strings too
+    const removedIds = new Set<string>()
 
     for (const key of keys) {
       if (key in state.entities) {
         delete (state.entities as Record<Id, T>)[key]
-        removedIds.add(key)
+        removedIds.add(String(key))
       }
     }
 
     if (removedIds.size > 0) {
       state.ids = getCurrent(state.ids as Id[]).filter(
-        (id) => !removedIds.has(id),
+        (id) => !removedIds.has(String(id)),
       ) as Id[] | Draft<Id[]>
     }
   }

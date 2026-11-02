@@ -1,4 +1,4 @@
-import type { EntityAdapter, EntityState } from '@reduxjs/toolkit'
+import type { EntityAdapter, EntityId, EntityState } from '@reduxjs/toolkit'
 import { createEntityAdapter, createNextState } from '@reduxjs/toolkit'
 import type { BookModel } from './fixtures/book'
 import {
@@ -225,6 +225,22 @@ describe('Unsorted State Adapter', () => {
     ])
 
     expect(withoutAll).toEqual({ ids: [], entities: {} })
+  })
+
+  it('should remove numeric ids passed as strings', () => {
+    const mixedAdapter = createEntityAdapter<{ id: EntityId }>()
+    const withAll = mixedAdapter.setAll(mixedAdapter.getInitialState(), [
+      { id: 1 },
+      { id: 2 },
+      { id: 3 },
+    ])
+
+    const withoutTwo = mixedAdapter.removeMany(withAll, ['2'])
+
+    expect(withoutTwo).toEqual({
+      ids: [1, 3],
+      entities: { 1: { id: 1 }, 3: { id: 3 } },
+    })
   })
 
   it('should let you remove all entities from the state', () => {
