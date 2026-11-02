@@ -1,7 +1,7 @@
-import type { Middleware, Reducer } from '@reduxjs/toolkit'
+import type { Middleware, Reducer, UnknownAction } from '@reduxjs/toolkit'
 import { configureStore, createAction } from '@reduxjs/toolkit'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
-import type { CombinedState } from '@reduxjs/toolkit/query'
+import type { CombinedState, QueryCacheKey } from '@reduxjs/toolkit/query'
 import {
   THIRTY_TWO_BIT_MAX_INT,
   THIRTY_TWO_BIT_MAX_TIMER_SECONDS,
@@ -198,6 +198,38 @@ describe('resetApiState cleanup', () => {
     expect(queryPromise2.abort).toHaveBeenCalled()
     expect(mutationPromise.abort).toHaveBeenCalled()
   })
+
+  test('resetApiState cancels the pending subscription sync', async () => {
+    const api = createApi({
+      baseQuery: async () => ({ data: 'data' }),
+      endpoints: (build) => ({
+        getThing: build.query<string, void>({ query: () => '' }),
+      }),
+    })
+    const actions: UnknownAction[] = []
+    const recorder: Middleware = () => (next) => (action) => {
+      actions.push(action as UnknownAction)
+      return next(action)
+    }
+    const store = configureStore({
+      reducer: { api: api.reducer },
+      middleware: (gdm) =>
+        gdm({ serializableCheck: false, immutableCheck: false }).concat(
+          api.middleware,
+          recorder,
+        ),
+    })
+
+    await vi.advanceTimersByTimeAsync(1_000)
+    store.dispatch(api.endpoints.getThing.initiate())
+    store.dispatch(api.util.resetApiState())
+    actions.length = 0
+
+    await vi.advanceTimersByTimeAsync(1_000)
+    expect(
+      actions.filter(api.internalActions.subscriptionsUpdated.match),
+    ).toEqual([])
+  })
 })
 
 describe('removal timer behavior', () => {
@@ -239,6 +271,61 @@ describe('removal timer behavior', () => {
     expect(store.getState().api.queries[key]).toBeDefined()
     await vi.advanceTimersByTimeAsync(2_000)
     expect(store.getState().api.queries[key]).toBeUndefined()
+  })
+
+  test('a new subscriber clears the pending removal timer', async () => {
+    const { store, api } = storeForApi(makeApi())
+
+    const first = store.dispatch(api.endpoints.getThing.initiate('a'))
+    await first
+    first.unsubscribe()
+    await vi.advanceTimersByTimeAsync(1_000)
+    expect(vi.getTimerCount()).toBe(1)
+
+    const second = store.dispatch(api.endpoints.getThing.initiate('a'))
+    await second
+    await vi.advanceTimersByTimeAsync(1_000)
+    expect(vi.getTimerCount()).toBe(0)
+
+    second.unsubscribe()
+  })
+
+  test('removeQueryResult clears the removal timer, so it cannot remove a newer entry', async () => {
+    const api = createApi({
+      baseQuery: async (arg: string) => {
+        await new Promise((resolve) => setTimeout(resolve, 20_000))
+        return { data: `data-${arg}` }
+      },
+      endpoints: (build) => ({
+        getThing: build.query<string, string>({ query: (arg) => arg }),
+      }),
+    })
+    const { store } = storeForApi(api)
+
+    const first = store.dispatch(api.endpoints.getThing.initiate('a'))
+    await vi.advanceTimersByTimeAsync(20_000)
+    await first
+    first.unsubscribe()
+
+    await vi.advanceTimersByTimeAsync(10_000)
+    store.dispatch(
+      api.internalActions.removeQueryResult({
+        queryCacheKey: key as QueryCacheKey,
+      }),
+    )
+    expect(store.getState().api.queries[key]).toBeUndefined()
+
+    await vi.advanceTimersByTimeAsync(30_000)
+    const refetch = store.dispatch(
+      api.endpoints.getThing.initiate('a', { subscribe: false }),
+    )
+
+    // The old timer would have fired 60s after the unsubscribe, while the
+    // new request is still running.
+    await vi.advanceTimersByTimeAsync(20_000)
+    const result = await refetch
+    expect(result.isSuccess).toBe(true)
+    expect(store.getState().api.queries[key]?.data).toBe('data-a')
   })
 
   test('rehydrated entries with no subscribers are collected after keepUnusedDataFor', async () => {

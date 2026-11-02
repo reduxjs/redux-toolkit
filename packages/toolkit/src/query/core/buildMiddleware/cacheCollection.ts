@@ -92,9 +92,29 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
     }
   }
 
+  function clearRemovalTimeout(queryCacheKey: string) {
+    const timeout = currentRemovalTimeouts[queryCacheKey]
+    if (timeout) {
+      clearTimeout(timeout)
+      delete currentRemovalTimeouts[queryCacheKey]
+    }
+  }
+
   const handler: ApiMiddlewareInternalHandler = (action, mwApi) => {
     const state = mwApi.getState()
     const config = selectConfig(state)
+
+    if (
+      (queryThunk.pending.match(action) ||
+        (queryThunk.rejected.match(action) && action.meta.condition)) &&
+      action.meta.arg.subscribe
+    ) {
+      clearRemovalTimeout(action.meta.arg.queryCacheKey)
+    }
+
+    if (removeQueryResult.match(action)) {
+      clearRemovalTimeout(action.payload.queryCacheKey)
+    }
 
     if (canTriggerUnsubscribe(action)) {
       let queryCacheKeys: QueryCacheKey[]
@@ -183,6 +203,7 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
       }
 
       currentRemovalTimeouts[queryCacheKey] = setTimeout(() => {
+        delete currentRemovalTimeouts[queryCacheKey]
         if (!anySubscriptionsRemainingForKey(queryCacheKey)) {
           // Try to abort any running query for this cache key
           const entry = selectQueryEntry(api.getState(), queryCacheKey)
@@ -195,7 +216,6 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
           }
           api.dispatch(removeQueryResult({ queryCacheKey }))
         }
-        delete currentRemovalTimeouts![queryCacheKey]
       }, finalKeepUnusedDataFor * 1000)
     }
   }

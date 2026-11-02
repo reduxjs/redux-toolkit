@@ -42,22 +42,25 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
     isRejected(queryThunk, mutationThunk),
   )
   let pendingTagInvalidations: FullTagDescription<string>[] = []
-  // Track via counter so we can avoid iterating over state every time
-  let pendingRequestCount = 0
+  // Track request IDs so we can avoid iterating over state every time
+  const pendingRequestIds = new Set<string>()
 
   const handler: ApiMiddlewareInternalHandler = (action, mwApi) => {
+    if (api.util.resetApiState.match(action)) {
+      pendingRequestIds.clear()
+      pendingTagInvalidations = []
+      return
+    }
+
     if (
       queryThunk.pending.match(action) ||
       mutationThunk.pending.match(action)
     ) {
-      pendingRequestCount++
+      pendingRequestIds.add(action.meta.requestId)
     }
 
-    if (
-      isQueryEnd(action) &&
-      !(queryThunk.rejected.match(action) && action.meta.condition)
-    ) {
-      pendingRequestCount = Math.max(0, pendingRequestCount - 1)
+    if (isQueryEnd(action)) {
+      pendingRequestIds.delete(action.meta.requestId)
     }
 
     if (isThunkActionWithTags(action)) {
@@ -88,7 +91,7 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
   }
 
   function hasPendingRequests() {
-    return pendingRequestCount > 0
+    return pendingRequestIds.size > 0
   }
 
   function invalidateTags(
