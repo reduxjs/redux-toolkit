@@ -1714,8 +1714,13 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     const dispatch = useDispatch<ThunkDispatch<any, any, UnknownAction>>()
 
     const subscriptionSelectorsRef = useRef<SubscriptionSelectors>(undefined)
+    const subscriptionSelectorsDispatchRef =
+      useRef<ThunkDispatch<any, any, UnknownAction>>(undefined)
 
-    if (!subscriptionSelectorsRef.current) {
+    if (
+      !subscriptionSelectorsRef.current ||
+      subscriptionSelectorsDispatchRef.current !== dispatch
+    ) {
       const returnedValue = dispatch(
         api.internalActions.internal_getRTKQSubscriptions(),
       )
@@ -1734,6 +1739,7 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
       subscriptionSelectorsRef.current =
         returnedValue as unknown as SubscriptionSelectors
+      subscriptionSelectorsDispatchRef.current = dispatch
     }
     const stableArg = useStableQueryArgs(skip ? skipToken : arg)
     const stableSubscriptionOptions = useShallowStableValue({
@@ -1769,6 +1775,21 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
 
     const subscriptionRemoved =
       !currentRenderHasSubscription && promiseRef.current !== undefined
+
+    // If the Provider's store changed underneath us, the promise tracked in
+    // `promiseRef` belongs to the previous store. Unsubscribe it (which talks
+    // to the old store) and clear it so the effect below re-initiates the
+    // query against the new store.
+    const lastDispatchRef =
+      useRef<ThunkDispatch<any, any, UnknownAction>>(dispatch)
+    usePossiblyImmediateEffect((): void | undefined => {
+      if (lastDispatchRef.current !== dispatch) {
+        lastDispatchRef.current = dispatch
+        const lastPromise = promiseRef.current
+        promiseRef.current = undefined
+        lastPromise?.unsubscribe()
+      }
+    }, [dispatch])
 
     usePossiblyImmediateEffect((): void | undefined => {
       if (subscriptionRemoved) {
@@ -1968,6 +1989,18 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       const [arg, setArg] = useState<any>(UNINITIALIZED_VALUE)
 
       const promiseRef = useRef<QueryActionCreatorResult<any>>(undefined)
+
+      // If the Provider's store changed, drop the previous store's promise so
+      // the reinstate effect below re-runs the last trigger against the new
+      // store.
+      const lastDispatchRef =
+        useRef<ThunkDispatch<any, any, UnknownAction>>(dispatch)
+      usePossiblyImmediateEffect(() => {
+        if (lastDispatchRef.current !== dispatch) {
+          lastDispatchRef.current = dispatch
+          unsubscribePromiseRef(promiseRef)
+        }
+      }, [dispatch])
 
       const stableSubscriptionOptions = useShallowStableValue({
         refetchOnReconnect,
