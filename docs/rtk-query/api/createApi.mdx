@@ -460,6 +460,14 @@ export const { endpoints, reducerPath, reducer, middleware } = api
 
 [examples](docblock://query/createApi.ts?token=CreateApiOptions.extractRehydrationInfo)
 
+:::note TypeScript
+
+Annotate the return type of `extractRehydrationInfo` as `any`, as in the example above. The rehydration payload is usually typed with your API's own state, either as `ReturnType<typeof api.reducer>` or as a `RootState` from a store that includes the API. Those types depend on the result of the `createApi` call, so TypeScript can't infer the function's return type while it's still inferring `api`. It reports errors like `'api' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer`.
+
+Annotating the return type as `ReturnType<typeof api.reducer>` or `RootState['api']` doesn't help, because those annotations depend on `api` too. The `any` annotation stops TypeScript from checking the return type, which breaks the cycle. Keep a typed `RootState` in your type guard if you want `action.payload` to be typed.
+
+:::
+
 See also [Server Side Rendering](../usage/server-side-rendering.mdx) and
 [Persistence and Rehydration](../usage/persistence-and-rehydration.mdx).
 
