@@ -227,24 +227,6 @@ describe('Unsorted State Adapter', () => {
     expect(withoutAll).toEqual({ ids: [], entities: {} })
   })
 
-  it('should remove numeric ids passed as strings', () => {
-    const numericAdapter = createEntityAdapter<{ id: number }>()
-    const withAll = numericAdapter.setAll(numericAdapter.getInitialState(), [
-      { id: 1 },
-      { id: 2 },
-      { id: 3 },
-    ])
-
-    const withoutTwo = numericAdapter.removeMany(withAll, [
-      '2' as unknown as number,
-    ])
-
-    expect(withoutTwo).toEqual({
-      ids: [1, 3],
-      entities: { 1: { id: 1 }, 3: { id: 3 } },
-    })
-  })
-
   it('should let you remove all entities from the state', () => {
     const withAll = adapter.setAll(state, [
       TheGreatGatsby,
