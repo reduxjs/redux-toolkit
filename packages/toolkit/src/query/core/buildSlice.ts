@@ -1,4 +1,4 @@
-import type { PayloadAction } from '@reduxjs/toolkit'
+import type { PayloadAction, UnknownAction } from '@reduxjs/toolkit'
 import {
   combineReducers,
   createAction,
@@ -54,7 +54,13 @@ import {
 } from '../endpointDefinitions'
 import type { Patch } from 'immer'
 import { applyPatches, original, isDraft } from '../utils/immerImports'
-import { onFocus, onFocusLost, onOffline, onOnline } from './setupListeners'
+import {
+  INTERNAL_PREFIX,
+  onFocus,
+  onFocusLost,
+  onOffline,
+  onOnline,
+} from './setupListeners'
 import {
   isDocumentVisible,
   isOnline,
@@ -154,6 +160,19 @@ function updateMutationSubstateIfExists(
   if (substate) {
     update(substate)
   }
+}
+
+function areTagsEqual(
+  existing: readonly FullTagDescription<string>[] | undefined,
+  next: readonly FullTagDescription<string>[],
+) {
+  if (!existing || existing.length !== next.length) return false
+  for (let i = 0; i < next.length; i++) {
+    if (existing[i].type !== next[i].type || existing[i].id !== next[i].id) {
+      return false
+    }
+  }
+  return true
 }
 
 const initialState = {} as any
@@ -552,7 +571,17 @@ export function buildSlice({
             }>
           >,
         ) {
+          // Read `keys` without drafting it, so unchanged entries cost no copies
+          const currentKeys = getCurrent(draft.keys)
+          const writtenKeys = new Set<QueryCacheKey>()
           for (const { queryCacheKey, providedTags } of action.payload) {
+            if (
+              !writtenKeys.has(queryCacheKey) &&
+              areTagsEqual(currentKeys[queryCacheKey], providedTags)
+            ) {
+              continue
+            }
+            writtenKeys.add(queryCacheKey)
             removeCacheKeyFromTags(draft, queryCacheKey)
 
             for (const { type, id } of providedTags) {
@@ -761,8 +790,32 @@ export function buildSlice({
     config: configSlice.reducer,
   })
 
-  const reducer: typeof combinedReducer = (state, action) =>
-    combinedReducer(resetApiState.match(action) ? undefined : state, action)
+  const ownTypePrefix = `${reducerPath}/`
+
+  // Every action the slices above handle has a type starting with the
+  // reducerPath (slice actions, thunks, `resetApiState`) or `INTERNAL_PREFIX`
+  // (`setupListeners` actions), or is a rehydration action. Redux's own
+  // actions still run so a partial preloaded state gets its missing keys.
+  function mayHandleAction(action: UnknownAction) {
+    const { type } = action
+    return (
+      typeof type !== 'string' ||
+      type.startsWith(ownTypePrefix) ||
+      type.startsWith(INTERNAL_PREFIX) ||
+      type.startsWith('@@redux/') ||
+      hasRehydrationInfo(action)
+    )
+  }
+
+  const reducer: typeof combinedReducer = (state, action) => {
+    if (state !== undefined && !mayHandleAction(action)) {
+      return state as ReturnType<typeof combinedReducer>
+    }
+    return combinedReducer(
+      resetApiState.match(action) ? undefined : state,
+      action,
+    )
+  }
 
   const actions = {
     ...configSlice.actions,
