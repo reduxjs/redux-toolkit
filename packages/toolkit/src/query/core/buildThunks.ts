@@ -197,12 +197,7 @@ export type ThunkApiMetaConfig = {
     baseQueryMeta: unknown
     [SHOULD_AUTOBATCH]: true
   }
-  /**
-   * `startedTimeStamp` and `seq` are missing when the request was aborted
-   * or the endpoint threw an unhandled error, because those rejections
-   * are created by `createAsyncThunk` without endpoint meta.
-   */
-  rejectedMeta: Partial<RequestStartMeta> & {
+  rejectedMeta: RequestStartMeta & {
     baseQueryMeta: unknown
     [SHOULD_AUTOBATCH]: true
   }
