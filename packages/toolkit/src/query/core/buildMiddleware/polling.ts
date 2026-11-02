@@ -4,7 +4,8 @@ import type {
   Subscribers,
   SubscribersInternal,
 } from '../apiState'
-import { QueryStatus, STATUS_UNINITIALIZED } from '../apiState'
+import { STATUS_PENDING, STATUS_UNINITIALIZED } from '../apiState'
+import { THIRTY_TWO_BIT_MAX_INT } from './cacheCollection'
 import type {
   QueryStateMeta,
   SubMiddlewareApi,
@@ -83,11 +84,16 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
     const querySubState = state.queries[queryCacheKey]
     const subscriptions = currentSubscriptions.get(queryCacheKey)
 
-    if (!querySubState || querySubState.status === STATUS_UNINITIALIZED) return
+    const { lowestPollingInterval } = findLowestPollingInterval(subscriptions)
 
-    const { lowestPollingInterval, skipPollingIfUnfocused } =
-      findLowestPollingInterval(subscriptions)
-    if (!Number.isFinite(lowestPollingInterval)) return
+    if (
+      !querySubState ||
+      querySubState.status === STATUS_UNINITIALIZED ||
+      !Number.isFinite(lowestPollingInterval)
+    ) {
+      cleanupPollForKey(queryCacheKey)
+      return
+    }
 
     const currentPoll = currentPolls.get(queryCacheKey)
 
@@ -96,18 +102,42 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
       currentPoll.timeout = undefined
     }
 
-    const nextPollTimestamp = Date.now() + lowestPollingInterval
+    if (
+      process.env.NODE_ENV !== 'production' &&
+      lowestPollingInterval > THIRTY_TWO_BIT_MAX_INT
+    ) {
+      console.warn(
+        `pollingInterval ${lowestPollingInterval} is larger than the maximum timer delay. Using ${THIRTY_TWO_BIT_MAX_INT} instead.`,
+      )
+    }
+    const pollingInterval = Math.min(
+      lowestPollingInterval,
+      THIRTY_TWO_BIT_MAX_INT,
+    )
+    const nextPollTimestamp = Date.now() + pollingInterval
 
     currentPolls.set(queryCacheKey, {
       nextPollTimestamp,
-      pollingInterval: lowestPollingInterval,
+      pollingInterval,
       timeout: setTimeout(() => {
         const currentState = api.getState()[reducerPath]
         const currentQuerySubState = currentState.queries[queryCacheKey]
+        // The subscription map and cache entry may have changed since this
+        // poll was scheduled, because unsubscribe cleanup is deferred.
+        const {
+          lowestPollingInterval: currentPollingInterval,
+          skipPollingIfUnfocused,
+        } = findLowestPollingInterval(currentSubscriptions.get(queryCacheKey))
         if (
           !currentQuerySubState ||
-          currentQuerySubState.status === STATUS_UNINITIALIZED
+          currentQuerySubState.status === STATUS_UNINITIALIZED ||
+          !Number.isFinite(currentPollingInterval)
         ) {
+          cleanupPollForKey(queryCacheKey)
+          return
+        }
+        // The pending request's `fulfilled` or `rejected` action starts the next poll
+        if (currentQuerySubState.status === STATUS_PENDING) {
           cleanupPollForKey(queryCacheKey)
           return
         }
@@ -115,7 +145,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
           api.dispatch(refetchQuery(currentQuerySubState))
         }
         startNextPoll({ queryCacheKey }, api)
-      }, lowestPollingInterval),
+      }, pollingInterval),
     })
   }
 
