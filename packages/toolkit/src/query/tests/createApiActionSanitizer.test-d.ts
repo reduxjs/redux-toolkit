@@ -31,6 +31,7 @@ describe('type tests', () => {
       type: string
       payload: number
     }>()
+    expectTypeOf(sanitize).parameter(0).not.toBeAny()
     expectTypeOf(sanitize).parameter(0).toMatchTypeOf<Action>()
   })
 
