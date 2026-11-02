@@ -172,7 +172,7 @@ test('resetApiState drops invalidations held back by delayed invalidation', asyn
     withoutTestLifecycles: true,
   })
 
-  storeRef.store.dispatch(api.endpoints.slow.initiate())
+  const slowPromise = storeRef.store.dispatch(api.endpoints.slow.initiate())
   storeRef.store.dispatch(api.util.invalidateTags(['apple']))
   storeRef.store.dispatch(api.util.resetApiState())
 
@@ -183,6 +183,6 @@ test('resetApiState drops invalidations held back by delayed invalidation', asyn
   )
   expect(storeRef.store.getState().api.queries['fruit(1)']?.data).toBe('fruit')
 
-  await delay(10)
+  await slowPromise
   expect(storeRef.store.getState().api.queries['fruit(1)']?.data).toBe('fruit')
 })
