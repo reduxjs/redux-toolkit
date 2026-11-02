@@ -1,7 +1,7 @@
 import type { Middleware, UnknownAction } from '@reduxjs/toolkit'
 import { configureStore, createSlice, createAction } from '@reduxjs/toolkit'
 import type { CombinedState, QueryCacheKey } from '@reduxjs/toolkit/query'
-import { createApi } from '@reduxjs/toolkit/query'
+import { createApi, fakeBaseQuery } from '@reduxjs/toolkit/query'
 import { delay } from 'msw'
 import { setupApiStore } from '../../tests/utils/helpers'
 
@@ -475,5 +475,34 @@ describe('query cache entry writes', () => {
         .selectInvalidatedBy(store.getState(), ['Thing'])
         .map((entry) => entry.endpointName),
     ).toEqual(['returned'])
+  })
+})
+
+describe('mutation cache entry writes', () => {
+  test('a mutation result replaces data without structural sharing', async () => {
+    const api = createApi({
+      baseQuery: fakeBaseQuery(),
+      endpoints: (build) => ({
+        update: build.mutation<{ items: { id: number }[] }, void>({
+          structuralSharing: true,
+          queryFn: () => ({ data: { items: [{ id: 1 }] } }),
+        }),
+      }),
+    })
+    const { store } = setupApiStore(api, undefined, {
+      withoutTestLifecycles: true,
+    })
+
+    await store.dispatch(
+      api.endpoints.update.initiate(undefined, { fixedCacheKey: 'shared' }),
+    )
+    const firstData = store.getState().api.mutations.shared?.data
+    await store.dispatch(
+      api.endpoints.update.initiate(undefined, { fixedCacheKey: 'shared' }),
+    )
+    const secondData = store.getState().api.mutations.shared?.data
+
+    expect(secondData).toEqual(firstData)
+    expect(secondData).not.toBe(firstData)
   })
 })

@@ -106,3 +106,36 @@ describe('query selectors', () => {
     expect(removedSelect(store.getState())).toEqual(neverExisted)
   })
 })
+
+describe('mutation selectors', () => {
+  const api = createApi({
+    baseQuery: async () => ({ data: null }),
+    endpoints: (build) => ({
+      update: build.mutation<null, void>({ query: () => '' }),
+    }),
+  })
+
+  test('select with neither requestId nor fixedCacheKey returns the uninitialized state', () => {
+    const { store } = setupApiStore(api, undefined, {
+      withoutTestLifecycles: true,
+    })
+    const state = store.getState()
+
+    const skipped = api.endpoints.update.select({
+      requestId: undefined,
+      fixedCacheKey: undefined,
+    })(state)
+
+    expect(skipped).toMatchObject({
+      status: 'uninitialized',
+      isUninitialized: true,
+      isLoading: false,
+      isSuccess: false,
+      isError: false,
+    })
+    expect('data' in skipped).toBe(false)
+    expect(api.endpoints.update.select('never-dispatched')(state)).toEqual(
+      skipped,
+    )
+  })
+})
