@@ -364,37 +364,40 @@ export const createListenerMiddleware = <
 
   assertFunction(onError, 'onError')
 
-  // Listeners that could match each dispatched action type, cached until
-  // `listenerMap` changes. Entries registered by `type` or `actionCreator`
-  // are only candidates for their own type; `matcher` and `predicate`
-  // entries are candidates for every type.
-  let candidatesByType: Map<string, ListenerEntry[]> | undefined
+  // Snapshot of `listenerMap`, rebuilt only after it changes. Listeners
+  // added or removed by an effect take effect from the next dispatch.
+  let snapshot:
+    | { entries: ListenerEntry[]; types: Set<string>; anyType: boolean }
+    | undefined
 
-  const getCandidates = (type: string) => {
-    candidatesByType ??= new Map()
-    let candidates = candidatesByType.get(type)
-    if (!candidates) {
-      // `listenerMap` iterates in insertion order and `filter` keeps it, so
-      // listeners still run in the order they were registered.
-      candidates = Array.from(listenerMap.values()).filter(
-        (entry) => typeof entry.type !== 'string' || entry.type === type,
-      )
-      candidatesByType.set(type, candidates)
+  const getSnapshot = () => {
+    if (!snapshot) {
+      const entries = Array.from(listenerMap.values())
+      const types = new Set<string>()
+      let anyType = false
+      for (const entry of entries) {
+        if (typeof entry.type === 'string') {
+          types.add(entry.type)
+        } else {
+          anyType = true
+        }
+      }
+      snapshot = { entries, types, anyType }
     }
-    return candidates
+    return snapshot
   }
 
   const addToListenerMap = (entry: ListenerEntry) => {
     if (!listenerMap.has(entry.id)) {
       listenerMap.set(entry.id, entry)
-      candidatesByType = undefined
+      snapshot = undefined
     }
   }
 
   const insertEntry = (entry: ListenerEntry) => {
     entry.unsubscribe = () => {
       if (listenerMap.delete(entry.id)) {
-        candidatesByType = undefined
+        snapshot = undefined
       }
     }
 
@@ -513,7 +516,7 @@ export const createListenerMiddleware = <
   )
   const clearListenerMiddleware = () => {
     clearListeners()
-    candidatesByType = undefined
+    snapshot = undefined
   }
 
   const middleware: ListenerMiddleware<
@@ -560,11 +563,18 @@ export const createListenerMiddleware = <
       // Actually forward the action to the reducer before we handle listeners
       result = next(action)
 
-      if (listenerMap.size > 0) {
-        const candidates = getCandidates(action.type)
-        const currentState = candidates.length > 0 ? api.getState() : undefined
+      const { entries, types, anyType } = getSnapshot()
 
-        for (const entry of candidates) {
+      // Entries registered by `type` or `actionCreator` can only match their
+      // own type; `matcher` and `predicate` entries can match any action.
+      if (anyType || types.has(action.type)) {
+        const currentState = api.getState()
+
+        for (const entry of entries) {
+          if (typeof entry.type === 'string' && entry.type !== action.type) {
+            continue
+          }
+
           let runListener = false
 
           try {
