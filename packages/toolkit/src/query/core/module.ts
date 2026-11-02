@@ -101,10 +101,10 @@ export type ThunkWithReturnValue<T> = ThunkAction<T, any, any, UnknownAction>
 
 export interface ApiModules<
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  BaseQuery extends BaseQueryFn,
-  Definitions extends EndpointDefinitions,
-  ReducerPath extends string,
-  TagTypes extends string,
+  in out BaseQuery extends BaseQueryFn,
+  in out Definitions extends EndpointDefinitions,
+  in out ReducerPath extends string,
+  in out TagTypes extends string,
 > {
   [coreModuleName]: {
     /**

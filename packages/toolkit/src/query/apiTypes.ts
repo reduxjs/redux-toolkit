@@ -60,61 +60,71 @@ export const getEndpointDefinition = <
   endpointName: EndpointName,
 ) => context.endpointDefinitions[endpointName]
 
+type ExtraModules<Modules, Names extends keyof Modules> = [Names] extends [
+  never,
+]
+  ? unknown
+  : UnionToIntersection<Modules[Names]>
+
 export type Api<
   BaseQuery extends BaseQueryFn,
   Definitions extends EndpointDefinitions,
   ReducerPath extends string,
   TagTypes extends string,
   Enhancers extends ModuleName = CoreModule,
-> = UnionToIntersection<
-  ApiModules<BaseQuery, Definitions, ReducerPath, TagTypes>[Enhancers]
-> & {
-  /**
-   * A function to inject the endpoints into the original API, but also give you that same API with correct types for these endpoints back. Useful with code-splitting.
-   */
-  injectEndpoints<NewDefinitions extends EndpointDefinitions>(_: {
-    endpoints: (
-      build: EndpointBuilder<BaseQuery, TagTypes, ReducerPath>,
-    ) => NewDefinitions
+> = (CoreModule extends Enhancers
+  ? ApiModules<BaseQuery, Definitions, ReducerPath, TagTypes>[CoreModule]
+  : unknown) &
+  ExtraModules<
+    ApiModules<BaseQuery, Definitions, ReducerPath, TagTypes>,
+    Exclude<Enhancers, CoreModule>
+  > & {
     /**
-     * Optionally allows endpoints to be overridden if defined by multiple `injectEndpoints` calls.
-     *
-     * If set to `true`, will override existing endpoints with the new definition.
-     * If set to `'throw'`, will throw an error if an endpoint is redefined with a different definition.
-     * If set to `false` (or unset), will not override existing endpoints with the new definition, and log a warning in development.
+     * A function to inject the endpoints into the original API, but also give you that same API with correct types for these endpoints back. Useful with code-splitting.
      */
-    overrideExisting?: boolean | 'throw'
-  }): Api<
-    BaseQuery,
-    Definitions & NewDefinitions,
-    ReducerPath,
-    TagTypes,
-    Enhancers
-  >
-  /**
-   *A function to enhance a generated API with additional information. Useful with code-generation.
-   */
-  enhanceEndpoints<
-    NewTagTypes extends string = never,
-    NewDefinitions extends EndpointDefinitions = never,
-  >(_: {
-    addTagTypes?: readonly NewTagTypes[]
-    endpoints?: UpdateDefinitions<
-      Definitions,
-      TagTypes | NoInfer<NewTagTypes>,
-      NewDefinitions
-    > extends infer NewDefinitions
-      ? {
-          [K in keyof NewDefinitions]?:
-            | Partial<NewDefinitions[K]>
-            | ((definition: NewDefinitions[K]) => void)
-        }
-      : never
-  }): Api<
-    BaseQuery,
-    UpdateDefinitions<Definitions, TagTypes | NewTagTypes, NewDefinitions>,
-    ReducerPath,
-    TagTypes | NewTagTypes,
-    Enhancers
-  >
-}
+    injectEndpoints<NewDefinitions extends EndpointDefinitions>(_: {
+      endpoints: (
+        build: EndpointBuilder<BaseQuery, TagTypes, ReducerPath>,
+      ) => NewDefinitions
+      /**
+       * Optionally allows endpoints to be overridden if defined by multiple `injectEndpoints` calls.
+       *
+       * If set to `true`, will override existing endpoints with the new definition.
+       * If set to `'throw'`, will throw an error if an endpoint is redefined with a different definition.
+       * If set to `false` (or unset), will not override existing endpoints with the new definition, and log a warning in development.
+       */
+      overrideExisting?: boolean | 'throw'
+    }): Api<
+      BaseQuery,
+      Definitions & NewDefinitions,
+      ReducerPath,
+      TagTypes,
+      Enhancers
+    >
+    /**
+     *A function to enhance a generated API with additional information. Useful with code-generation.
+     */
+    enhanceEndpoints<
+      NewTagTypes extends string = never,
+      NewDefinitions extends EndpointDefinitions = never,
+    >(_: {
+      addTagTypes?: readonly NewTagTypes[]
+      endpoints?: UpdateDefinitions<
+        Definitions,
+        TagTypes | NoInfer<NewTagTypes>,
+        NewDefinitions
+      > extends infer NewDefinitions
+        ? {
+            [K in keyof NewDefinitions]?:
+              | Partial<NewDefinitions[K]>
+              | ((definition: NewDefinitions[K]) => void)
+          }
+        : never
+    }): Api<
+      BaseQuery,
+      UpdateDefinitions<Definitions, TagTypes | NewTagTypes, NewDefinitions>,
+      ReducerPath,
+      TagTypes | NewTagTypes,
+      Enhancers
+    >
+  }

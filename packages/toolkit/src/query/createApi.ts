@@ -505,6 +505,8 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
       return api as any
     }
 
-    return api.injectEndpoints({ endpoints: options.endpoints as any })
+    // `Api` for the generic `Modules` contains a deferred conditional type,
+    // so TS can't relate it to the return type here
+    return api.injectEndpoints({ endpoints: options.endpoints as any }) as any
   }
 }
