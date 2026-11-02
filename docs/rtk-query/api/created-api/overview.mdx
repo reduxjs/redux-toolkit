@@ -70,6 +70,11 @@ type Api = {
       state: FullState,
       endpointName: EndpointName,
     ) => Array<QueryArg>
+    selectEntriesForEndpoint: (
+      state: FullState,
+      endpointName: EndpointName,
+    ) => Array<QueryCacheEntry>
+    selectAllQueryEntries: (state: FullState) => Array<QueryCacheEntry>
     resetApiState: ActionCreator<ResetAction>
     getRunningQueryThunk(
       endpointName: EndpointName,

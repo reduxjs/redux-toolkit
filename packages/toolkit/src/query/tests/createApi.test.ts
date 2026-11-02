@@ -547,6 +547,10 @@ describe('endpoint definition typings', () => {
           query1: {},
           // @ts-expect-error
           nonExisting: {},
+        },
+      })
+      api.enhanceEndpoints({
+        endpoints: {
           // @ts-expect-error
           nonExistingFn() {},
         },

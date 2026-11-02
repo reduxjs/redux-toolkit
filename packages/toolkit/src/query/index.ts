@@ -4,6 +4,7 @@ import { formatProdErrorMessage } from '@reduxjs/toolkit'
 
 export type {
   CombinedState,
+  QueryCacheEntry,
   QueryCacheKey,
   QueryKeys,
   QuerySubState,

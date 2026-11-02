@@ -19,6 +19,7 @@ import type {
   InfiniteQueryConfigOptions,
   InfiniteQuerySubState,
   MutationSubState,
+  QueryCacheEntry,
   QueryCacheKey,
   QueryState,
   QuerySubState,
@@ -183,12 +184,34 @@ export function buildSelectors<
   const selectSkippedQuery = (state: RootState) => defaultQuerySubState
   const selectSkippedMutation = (state: RootState) => defaultMutationSubState
 
+  const selectAllQueryEntries = createSelector(selectQueries, (queries) => {
+    const entries: Array<QueryCacheEntry<any>> = []
+    for (const [queryCacheKey, entry] of Object.entries(queries ?? {})) {
+      if (entry && entry.status !== STATUS_UNINITIALIZED) {
+        entries.push({
+          ...entry,
+          queryCacheKey: queryCacheKey as QueryCacheKey,
+        })
+      }
+    }
+    return entries
+  })
+
+  const selectEntriesForEndpoint = createSelector(
+    selectAllQueryEntries,
+    (_state: RootState, endpointName: string) => endpointName,
+    (entries, endpointName) =>
+      entries.filter((entry) => entry.endpointName === endpointName),
+  )
+
   return {
     buildQuerySelector,
     buildInfiniteQuerySelector,
     buildMutationSelector,
     selectInvalidatedBy,
     selectCachedArgsForQuery,
+    selectAllQueryEntries,
+    selectEntriesForEndpoint,
     selectApiState,
     selectQueries,
     selectMutations,

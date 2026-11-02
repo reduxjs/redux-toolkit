@@ -33,6 +33,7 @@ import { assertCast, safeAssign } from '../tsHelpers'
 import type {
   CombinedState,
   MutationKeys,
+  QueryCacheEntry,
   QueryKeys,
   RootState,
 } from './apiState'
@@ -398,6 +399,43 @@ export interface ApiModules<
         state: RootState<Definitions, string, ReducerPath>,
         queryName: QueryName,
       ) => Array<QueryArgFromAnyQuery<Definitions[QueryName]>>
+
+      /**
+       * A memoized selector that returns all cache entries for a given query or infinite query endpoint.
+       *
+       * Each entry contains the query state for that cache entry (`status`, `originalArgs`, `data`, `error`, etc), plus its `queryCacheKey`.
+       * Uninitialized entries are not included.
+       *
+       * @example
+       *
+       * ```ts
+       * const postEntries = api.util.selectEntriesForEndpoint(state, 'getPost')
+       * ```
+       */
+      selectEntriesForEndpoint: <QueryName extends AllQueryKeys<Definitions>>(
+        state: RootState<Definitions, string, ReducerPath>,
+        queryName: QueryName,
+      ) => Array<QueryCacheEntry<Definitions[QueryName]>>
+
+      /**
+       * A memoized selector that returns all query and infinite query cache entries for this api.
+       *
+       * Each entry contains the query state for that cache entry (`status`, `endpointName`, `originalArgs`, `data`, `error`, etc), plus its `queryCacheKey`.
+       * Uninitialized entries are not included.
+       *
+       * @example
+       *
+       * ```ts
+       * const allEntries = api.util.selectAllQueryEntries(state)
+       * ```
+       */
+      selectAllQueryEntries: (
+        state: RootState<Definitions, string, ReducerPath>,
+      ) => Array<
+        [AllQueryKeys<Definitions>] extends [never]
+          ? QueryCacheEntry<any>
+          : QueryCacheEntry<Definitions[AllQueryKeys<Definitions>]>
+      >
     }
     /**
      * Endpoints based on the input endpoints provided to `createApi`, containing `select` and `action matchers`.
@@ -571,12 +609,19 @@ export const coreModule = ({
     const {
       selectInvalidatedBy,
       selectCachedArgsForQuery,
+      selectEntriesForEndpoint,
+      selectAllQueryEntries,
       buildQuerySelector,
       buildInfiniteQuerySelector,
       buildMutationSelector,
     } = selectors
 
-    safeAssign(api.util, { selectInvalidatedBy, selectCachedArgsForQuery })
+    safeAssign(api.util, {
+      selectInvalidatedBy,
+      selectCachedArgsForQuery,
+      selectEntriesForEndpoint,
+      selectAllQueryEntries,
+    })
 
     const {
       queryThunk,

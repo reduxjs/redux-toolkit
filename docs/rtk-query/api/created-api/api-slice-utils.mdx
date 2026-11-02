@@ -438,6 +438,78 @@ It returns an array that contains arguments used for each entry.
 const args = api.util.selectCachedArgsForQuery(state, 'getPosts')
 ```
 
+### `selectEntriesForEndpoint`
+
+A memoized selector that returns all cache entries for one query or infinite query endpoint.
+
+#### Signature
+
+```ts no-transpile
+function selectEntriesForEndpoint(
+  state: RootState,
+  queryName: QueryName,
+): Array<QueryCacheEntry>
+
+type QueryCacheEntry = {
+  queryCacheKey: string
+  endpointName: string
+  status: 'pending' | 'fulfilled' | 'rejected'
+  originalArgs: QueryArg
+  data?: ResultType
+  error?: unknown
+  requestId: string
+  startedTimeStamp: number
+  fulfilledTimeStamp?: number
+}
+```
+
+#### Parameters
+
+- `state`: the root state
+- `queryName`: a string matching an existing query or infinite query endpoint name
+
+#### Description
+
+Returns an array with one item per cache entry for that endpoint. Each item has the same fields as the cache entry in the api state, plus its `queryCacheKey`. Uninitialized entries are skipped. Infinite query entries also include `direction`, and their `data` is the `{ pages, pageParams }` object.
+
+The result is memoized: it returns the same array reference until the api's query state changes.
+
+#### Example
+
+```ts no-transpile
+const postEntries = api.util.selectEntriesForEndpoint(state, 'getPost')
+const loadedPostIds = postEntries
+  .filter((entry) => entry.status === 'fulfilled')
+  .map((entry) => entry.originalArgs)
+```
+
+### `selectAllQueryEntries`
+
+A memoized selector that returns all query and infinite query cache entries for this api.
+
+#### Signature
+
+```ts no-transpile
+function selectAllQueryEntries(state: RootState): Array<QueryCacheEntry>
+```
+
+#### Parameters
+
+- `state`: the root state
+
+#### Description
+
+Returns the same items as [`selectEntriesForEndpoint`](#selectentriesforendpoint), for every query and infinite query endpoint. Use `entry.endpointName` to tell them apart. Mutations are not included.
+
+#### Example
+
+```ts no-transpile
+const entries = api.util.selectAllQueryEntries(state)
+const pendingCount = entries.filter(
+  (entry) => entry.status === 'pending',
+).length
+```
+
 ### `resetApiState`
 
 #### Signature
