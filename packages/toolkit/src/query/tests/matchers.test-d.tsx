@@ -130,7 +130,15 @@ describe('type tests', () => {
           .addMatcher(
             api.endpoints.mutationSuccess.matchRejected,
             (state, action) => {
+              expectTypeOf(action.meta.startedTimeStamp).toEqualTypeOf<
+                number | undefined
+              >()
               expectTypeOf(action.meta.seq).toEqualTypeOf<number | undefined>()
+
+              if (action.meta.rejectedWithValue) {
+                expectTypeOf(action.meta.startedTimeStamp).toBeNumber()
+                expectTypeOf(action.meta.seq).toBeNumber()
+              }
             },
           )
       },

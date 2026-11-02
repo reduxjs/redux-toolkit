@@ -3,6 +3,7 @@ import { configureStore } from '@reduxjs/toolkit'
 import type { BaseQueryApi } from '@reduxjs/toolkit/query/react'
 import { createApi } from '@reduxjs/toolkit/query/react'
 import { renderHook, waitFor } from '@testing-library/react'
+import type { MockInstance } from 'vitest'
 import {
   actionsReducer,
   setupApiStore,
@@ -176,8 +177,14 @@ describe('request start meta', () => {
     return { store, thunkActions }
   }
 
+  let consoleErrorSpy: MockInstance<typeof console.error>
+
   beforeEach(() => {
-    vi.spyOn(console, 'error').mockImplementation(() => {})
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+  })
+
+  afterEach(() => {
+    consoleErrorSpy.mockRestore()
   })
 
   test('pending and settled actions of every thunk share startedTimeStamp and seq', async () => {
