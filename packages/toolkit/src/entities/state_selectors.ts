@@ -41,6 +41,19 @@ export function createSelectorsFactory<T, Id extends EntityId>() {
 
     const selectTotal = createSelector(selectIds, (ids) => ids.length)
 
+    const selectIdsArg = (_: unknown, ids: readonly Id[]) => ids
+
+    const selectByIds = (entities: Record<Id, T>, ids: readonly Id[]): T[] => {
+      const result: T[] = []
+      for (const id of ids) {
+        const entity = entities[id]
+        if (entity !== undefined) {
+          result.push(entity)
+        }
+      }
+      return result
+    }
+
     if (!selectState) {
       return {
         selectIds,
@@ -48,6 +61,7 @@ export function createSelectorsFactory<T, Id extends EntityId>() {
         selectAll,
         selectTotal,
         selectById: createSelector(selectEntities, selectId, selectById),
+        selectByIds: createSelector(selectEntities, selectIdsArg, selectByIds),
       }
     }
 
@@ -65,6 +79,11 @@ export function createSelectorsFactory<T, Id extends EntityId>() {
         selectGlobalizedEntities,
         selectId,
         selectById,
+      ),
+      selectByIds: createSelector(
+        selectGlobalizedEntities,
+        selectIdsArg,
+        selectByIds,
       ),
     }
   }

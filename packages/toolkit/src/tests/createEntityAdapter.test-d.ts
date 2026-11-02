@@ -158,4 +158,60 @@ describe('type tests', () => {
         selectId: (e: Entity) => e.value,
       })
   })
+
+  test('removeMany accepts a `where` object of entity fields', () => {
+    type Entity = { id: number; authorId: number; title: string }
+    const adapter = createEntityAdapter<Entity>()
+    const state = adapter.getInitialState()
+
+    expectTypeOf(
+      adapter.removeMany(state, { where: { authorId: 5 } }),
+    ).toEqualTypeOf(state)
+
+    expectTypeOf(
+      adapter.removeMany(state, {
+        type: 'posts/removeByAuthor',
+        payload: { where: { authorId: 5, title: 'Hello' } },
+      }),
+    ).toEqualTypeOf(state)
+
+    // @ts-expect-error
+    adapter.removeMany(state, { where: { authorId: '5' } })
+
+    // @ts-expect-error
+    adapter.removeMany(state, { where: { unknownField: 5 } })
+
+    // @ts-expect-error
+    adapter.removeMany(state, { where: (entity: Entity) => true })
+
+    const slice = createSlice({
+      name: 'posts',
+      initialState: state,
+      reducers: {
+        removeMany: adapter.removeMany,
+      },
+    })
+
+    expectTypeOf(slice.actions.removeMany).not.toBeAny()
+    expectTypeOf(slice.actions.removeMany).toExtend<
+      ActionCreatorWithPayload<ReadonlyArray<number>>
+    >()
+  })
+
+  test('selectByIds returns an array of entities', () => {
+    type Entity = { id: number; title: string }
+    const adapter = createEntityAdapter<Entity>()
+    const { selectByIds } = adapter.getSelectors(
+      (state: { posts: ReturnType<typeof adapter.getInitialState> }) =>
+        state.posts,
+    )
+    const state = { posts: adapter.getInitialState() }
+
+    expectTypeOf(selectByIds(state, [1, 2])).toEqualTypeOf<Entity[]>()
+
+    expectTypeOf(selectByIds).parameter(1).toEqualTypeOf<readonly number[]>()
+
+    // @ts-expect-error
+    selectByIds(state, ['1'])
+  })
 })

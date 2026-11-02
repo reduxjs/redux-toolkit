@@ -107,6 +107,7 @@ export type {
   EntityStateAdapter,
   EntityId,
   Update,
+  RemoveManyFilter,
   IdSelector,
   Comparer,
 } from './entities/models'

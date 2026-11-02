@@ -25,6 +25,14 @@ export type IdSelector<T, Id extends EntityId> = (model: T) => Id
 export type Update<T, Id extends EntityId> = { id: Id; changes: Partial<T> }
 
 /**
+ * Removes every entity whose fields strictly equal (`===`) all of the fields in `where`.
+ * Only string keys are compared. A `where` object with no string keys removes nothing.
+ *
+ * @public
+ */
+export type RemoveManyFilter<T> = { where: Partial<T> }
+
+/**
  * @public
  */
 export interface EntityState<T, Id extends EntityId> {
@@ -105,6 +113,15 @@ export interface EntityStateAdapter<T, Id extends EntityId> {
     key: PayloadAction<Id>,
   ): S
 
+  // The id-array overloads stay last so that `createSlice` infers their payload type
+  removeMany<S extends DraftableEntityState<T, Id>>(
+    state: PreventAny<S, T, Id>,
+    filter: RemoveManyFilter<T>,
+  ): S
+  removeMany<S extends DraftableEntityState<T, Id>>(
+    state: PreventAny<S, T, Id>,
+    filter: PayloadAction<RemoveManyFilter<T>>,
+  ): S
   removeMany<S extends DraftableEntityState<T, Id>>(
     state: PreventAny<S, T, Id>,
     keys: readonly Id[],
@@ -164,6 +181,7 @@ export interface EntitySelectors<T, V, IdType extends EntityId> {
   selectAll: (state: V) => T[]
   selectTotal: (state: V) => number
   selectById: (state: V, id: IdType) => Id<UncheckedIndexedAccess<T>>
+  selectByIds: (state: V, ids: readonly IdType[]) => T[]
 }
 
 /**

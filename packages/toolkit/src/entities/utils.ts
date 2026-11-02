@@ -4,6 +4,7 @@ import type {
   DraftableEntityState,
   EntityId,
   IdSelector,
+  RemoveManyFilter,
   Update,
 } from './models'
 
@@ -35,6 +36,12 @@ export function ensureEntitiesArray<T, Id extends EntityId>(
   }
 
   return entities
+}
+
+export function isRemoveManyFilter<T, Id extends EntityId>(
+  keysOrFilter: readonly Id[] | RemoveManyFilter<T>,
+): keysOrFilter is RemoveManyFilter<T> {
+  return !Array.isArray(keysOrFilter)
 }
 
 export function getCurrent<T>(value: T | Draft<T>): T {
