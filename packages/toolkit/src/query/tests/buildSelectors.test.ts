@@ -251,6 +251,10 @@ describe('selectEntriesForEndpoint and selectAllQueryEntries', () => {
     expect(
       api.util.selectEntriesForEndpoint(nextState, 'getUser'),
     ).toHaveLength(1)
+    expect(api.util.selectEntriesForEndpoint(nextState, 'getPost')).toBe(
+      postEntries,
+    )
+    expect(api.util.selectAllQueryEntries(nextState)).toContain(postEntries[0])
 
     post.unsubscribe()
   })
