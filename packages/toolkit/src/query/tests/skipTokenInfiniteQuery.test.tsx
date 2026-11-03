@@ -149,4 +149,54 @@ describe('useInfiniteQuery respects skipToken in its imperative triggers', () =>
 
     expect(baseQuery).not.toHaveBeenCalled()
   })
+
+  test('initiate(skipToken) does not wait on a real request that shares its cache key', async () => {
+    let resolveRequest = () => {}
+    const baseQuery = vi.fn(
+      () =>
+        new Promise<{ data: { items: string[] } }>((resolve) => {
+          resolveRequest = () => resolve({ data: { items: ['item'] } })
+        }),
+    )
+
+    const api = createApi({
+      baseQuery: baseQuery as any,
+      endpoints: (build) => ({
+        listThings: build.infiniteQuery<any, string, number>({
+          query: () => ({ url: '/things' }),
+          // A custom serializer that happens to produce the key used for skipToken
+          serializeQueryArgs: () => 'listThings(skipToken)',
+          infiniteQueryOptions: {
+            initialPageParam: 0,
+            getNextPageParam: () => undefined,
+          },
+        }),
+      }),
+    })
+
+    const storeRef = setupApiStore(api, undefined, {
+      withoutTestLifecycles: true,
+    })
+
+    const realPromise = storeRef.store.dispatch(
+      api.endpoints.listThings.initiate('fire'),
+    )
+    expect(baseQuery).toHaveBeenCalledOnce()
+
+    let skippedSettled = false
+    const skippedPromise = storeRef.store
+      .dispatch(api.endpoints.listThings.initiate(skipToken as any))
+      .then((result) => {
+        skippedSettled = true
+        return result
+      })
+
+    await delay(20)
+    expect(skippedSettled).toBe(true)
+    expect((await skippedPromise).isUninitialized).toBe(true)
+    expect(baseQuery).toHaveBeenCalledOnce()
+
+    resolveRequest()
+    await realPromise
+  })
 })
