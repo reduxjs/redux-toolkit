@@ -1,5 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit'
 import { createApi, fakeBaseQuery } from '@reduxjs/toolkit/query'
+import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
 
 const createTestApi = () => {
   const resolvers: (() => void)[] = []
@@ -86,6 +87,79 @@ describe('per-store runtime', () => {
     await storeA.dispatch(api.endpoints.getValue.initiate(2))
 
     expect(seen).toEqual(['a', 'a', 'b', 'b', 'a', 'a'])
+  })
+
+  test('resetApiState clears the timers and cache lifecycles of its own store only', async () => {
+    vi.useFakeTimers()
+    try {
+      const removed: string[] = []
+      const api = createApi({
+        baseQuery: fakeBaseQuery(),
+        endpoints: (build) => ({
+          getValue: build.query<number, number>({
+            queryFn: (arg) => ({ data: arg }),
+            onCacheEntryAdded: async (arg, { cacheEntryRemoved, extra }) => {
+              await cacheEntryRemoved
+              removed.push(`${extra}-${arg}`)
+            },
+          }),
+        }),
+      })
+      const createStoreWithExtra = (extraArgument: string) =>
+        configureStore({
+          reducer: { [api.reducerPath]: api.reducer },
+          middleware: (gdm) =>
+            gdm({ thunk: { extraArgument } }).concat(api.middleware),
+          enhancers: (gde) => gde({ autoBatch: false }),
+        })
+      const getSubscriptions = (
+        store: ReturnType<typeof createStoreWithExtra>,
+      ) =>
+        (
+          store.dispatch(
+            api.internalActions.internal_getRTKQSubscriptions(),
+          ) as unknown as SubscriptionSelectors
+        ).getSubscriptions()
+
+      const storeA = createStoreWithExtra('a')
+      const storeB = createStoreWithExtra('b')
+
+      const startQueries = async (
+        store: ReturnType<typeof createStoreWithExtra>,
+      ) => {
+        // polling timer for key 1, cache collection timer for key 2
+        await store.dispatch(
+          api.endpoints.getValue.initiate(1, {
+            subscriptionOptions: { pollingInterval: 1000 },
+          }),
+        )
+        const unused = store.dispatch(api.endpoints.getValue.initiate(2))
+        await unused
+        unused.unsubscribe()
+      }
+
+      await startQueries(storeA)
+      expect(vi.getTimerCount()).toBeGreaterThan(0)
+
+      storeA.dispatch(api.util.resetApiState())
+      await vi.advanceTimersByTimeAsync(0)
+
+      expect(vi.getTimerCount()).toBe(0)
+      expect(removed).toEqual(['a-1', 'a-2'])
+      expect(getSubscriptions(storeA).size).toBe(0)
+
+      await startQueries(storeB)
+      await startQueries(storeA)
+      storeA.dispatch(api.util.resetApiState())
+      await vi.advanceTimersByTimeAsync(0)
+
+      expect(removed).toEqual(['a-1', 'a-2', 'a-1', 'a-2'])
+      expect(getSubscriptions(storeA).size).toBe(0)
+      expect(getSubscriptions(storeB).get('getValue(1)')?.size).toBe(1)
+      expect(vi.getTimerCount()).toBeGreaterThan(0)
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   test('a store without the middleware does not track running requests', () => {

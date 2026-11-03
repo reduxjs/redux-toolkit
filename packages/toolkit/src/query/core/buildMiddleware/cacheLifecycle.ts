@@ -359,13 +359,6 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
       removeLifecycleEntry(cacheKey, false)
     } else if (removeMutationResult.match(action)) {
       removeLifecycleEntry(cacheKey, true)
-    } else if (api.util.resetApiState.match(action)) {
-      for (const cacheKey of runtime.queries.keys()) {
-        removeLifecycleEntry(cacheKey, false)
-      }
-      for (const cacheKey of runtime.mutationCacheLifecycles.keys()) {
-        removeLifecycleEntry(cacheKey, true)
-      }
     }
   }
 

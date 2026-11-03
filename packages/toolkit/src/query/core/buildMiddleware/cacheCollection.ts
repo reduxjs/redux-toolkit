@@ -128,16 +128,6 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
       handleUnsubscribeMany(queryCacheKeys, mwApi, config)
     }
 
-    if (api.util.resetApiState.match(action)) {
-      for (const record of runtime.queries.values()) {
-        clearRemovalTimeout(record.key)
-        record.request?.abort()
-      }
-      for (const promise of runtime.runningMutations.values()) {
-        promise?.abort()
-      }
-    }
-
     if (context.hasRehydrationInfo(action)) {
       const { queries } = context.extractRehydrationInfo(action)!
       // Gotcha:

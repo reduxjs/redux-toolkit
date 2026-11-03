@@ -104,6 +104,10 @@ export function buildMiddleware<
 
         const stateBefore = mwApi.getState()
 
+        if (api.util.resetApiState.match(action)) {
+          runtime.reset()
+        }
+
         const [actionShouldContinue, internalProbeResult] =
           batchedActionsHandler(action, mwApiWithNext, stateBefore)
 
