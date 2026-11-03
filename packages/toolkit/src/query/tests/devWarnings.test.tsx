@@ -117,6 +117,32 @@ describe('missing middleware', () => {
       /Warning: Middleware for RTK-Query API at reducerPath "api2" has not been added to the store/,
     )
   })
+
+  test('warns once for each store that is missing the middleware', () => {
+    const storeWithMiddleware = configureStore({
+      reducer: { [api1.reducerPath]: api1.reducer },
+      middleware: (gdm) => gdm().concat(api1.middleware),
+    })
+    const createStoreWithoutMiddleware = () =>
+      configureStore({
+        reducer: { [api1.reducerPath]: api1.reducer },
+      })
+    const store1 = createStoreWithoutMiddleware()
+    const store2 = createStoreWithoutMiddleware()
+
+    expect(() =>
+      storeWithMiddleware.dispatch(api1.endpoints.q1.initiate(undefined)),
+    ).not.toThrowError()
+    expect(() =>
+      store1.dispatch(api1.endpoints.q1.initiate(undefined)),
+    ).toThrowError(reMatchMissingMiddlewareError)
+    expect(() =>
+      store1.dispatch(api1.endpoints.q1.initiate(undefined)),
+    ).not.toThrowError()
+    expect(() =>
+      store2.dispatch(api1.endpoints.q1.initiate(undefined)),
+    ).toThrowError(reMatchMissingMiddlewareError)
+  })
 })
 
 describe('missing reducer', () => {

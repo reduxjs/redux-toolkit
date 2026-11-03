@@ -299,6 +299,7 @@ export function buildInitiate({
     getRuntime(dispatch)?.queries.get(queryCacheKey)?.request
   const getRunningMutations = (dispatch: Dispatch) =>
     getRuntime(dispatch)?.runningMutations
+  const checkedStores = new WeakSet<Dispatch>()
 
   const {
     unsubscribeQueryResult,
@@ -362,12 +363,12 @@ export function buildInitiate({
 
   function middlewareWarning(dispatch: Dispatch) {
     if (process.env.NODE_ENV !== 'production') {
-      if ((middlewareWarning as any).triggered) return
+      if (checkedStores.has(dispatch)) return
       const returnedValue = dispatch(
         api.internalActions.internal_getRTKQSubscriptions(),
       )
 
-      ;(middlewareWarning as any).triggered = true
+      checkedStores.add(dispatch)
 
       // The RTKQ middleware should return the internal state object,
       // but it should _not_ be the action object.
