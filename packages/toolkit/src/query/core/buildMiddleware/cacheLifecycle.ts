@@ -326,6 +326,11 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
       if (state) {
         const [endpointName, originalArgs, requestId] =
           getActionMetaFields(action)
+        // A mutation re-triggered with the same `fixedCacheKey` replaces the
+        // cache entry, so the previous trigger's lifecycle ends here.
+        // Without a `fixedCacheKey` the cache key is the new requestId and
+        // there is nothing to remove.
+        removeLifecycleEntry(cacheKey)
         handleNewKey(endpointName, originalArgs, cacheKey, mwApi, requestId)
       }
     } else if (isFulfilledThunk(action)) {

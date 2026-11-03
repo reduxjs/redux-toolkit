@@ -838,6 +838,143 @@ describe('cacheDataLoaded and stale responses', () => {
     expect(loaded).toEqual([{ requestId: second.requestId, data: 'm2' }])
   })
 
+  test('re-triggering a mutation with a fixedCacheKey ends the previous lifecycle', async () => {
+    const removed: number[] = []
+    let started = 0
+    const localApi = createApi({
+      baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
+      endpoints: (build) => ({
+        update: build.mutation<null, void>({
+          queryFn: () => ({ data: null }),
+          async onCacheEntryAdded(_arg, { cacheEntryRemoved }) {
+            const index = ++started
+            await cacheEntryRemoved
+            removed.push(index)
+          },
+        }),
+      }),
+    })
+    const { store } = setupApiStore(localApi, undefined, {
+      withoutTestLifecycles: true,
+    })
+
+    await store.dispatch(
+      localApi.endpoints.update.initiate(undefined, {
+        fixedCacheKey: 'shared',
+      }),
+    )
+    await vi.advanceTimersByTimeAsync(1)
+    expect(removed).toEqual([])
+
+    await store.dispatch(
+      localApi.endpoints.update.initiate(undefined, {
+        fixedCacheKey: 'shared',
+      }),
+    )
+    await vi.advanceTimersByTimeAsync(1)
+    expect(started).toBe(2)
+    expect(removed).toEqual([1])
+
+    store.dispatch(localApi.util.resetApiState())
+    await vi.advanceTimersByTimeAsync(1)
+    expect(removed).toEqual([1, 2])
+  })
+
+  test('re-triggering a fixedCacheKey mutation while the earlier trigger is in flight settles both lifecycles', async () => {
+    const { baseQuery, respond } = createDeferredBaseQuery()
+    const events: Array<[string, unknown]> = []
+    const localApi = createApi({
+      baseQuery,
+      endpoints: (build) => ({
+        doThing: build.mutation<string, { key: string; reply: string }>({
+          query: (arg) => arg,
+          async onCacheEntryAdded(arg, { cacheDataLoaded, cacheEntryRemoved }) {
+            try {
+              const { data } = await cacheDataLoaded
+              events.push([arg.reply, data])
+            } catch {
+              events.push([arg.reply, 'not loaded'])
+            }
+            await cacheEntryRemoved
+            events.push([arg.reply, 'removed'])
+          },
+        }),
+      }),
+    })
+    const { store } = setupApiStore(localApi, undefined, {
+      withoutTestLifecycles: true,
+    })
+
+    const first = store.dispatch(
+      localApi.endpoints.doThing.initiate(
+        { key: 'k', reply: 'm1' },
+        { fixedCacheKey: 'shared' },
+      ),
+    )
+    const second = store.dispatch(
+      localApi.endpoints.doThing.initiate(
+        { key: 'k', reply: 'm2' },
+        { fixedCacheKey: 'shared' },
+      ),
+    )
+    await vi.advanceTimersByTimeAsync(1)
+    expect(events).toEqual([
+      ['m1', 'not loaded'],
+      ['m1', 'removed'],
+    ])
+
+    respond('m1')
+    await first
+    respond('m2')
+    await second
+    await vi.advanceTimersByTimeAsync(1)
+    expect(events).toEqual([
+      ['m1', 'not loaded'],
+      ['m1', 'removed'],
+      ['m2', 'm2'],
+    ])
+
+    store.dispatch(localApi.util.resetApiState())
+    await vi.advanceTimersByTimeAsync(1)
+    expect(events.at(-1)).toEqual(['m2', 'removed'])
+  })
+
+  test('mutations without a fixedCacheKey keep one lifecycle per trigger', async () => {
+    const removed: number[] = []
+    let started = 0
+    const localApi = createApi({
+      baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
+      endpoints: (build) => ({
+        update: build.mutation<null, void>({
+          queryFn: () => ({ data: null }),
+          async onCacheEntryAdded(_arg, { cacheEntryRemoved }) {
+            const index = ++started
+            await cacheEntryRemoved
+            removed.push(index)
+          },
+        }),
+      }),
+    })
+    const { store } = setupApiStore(localApi, undefined, {
+      withoutTestLifecycles: true,
+    })
+
+    const first = store.dispatch(localApi.endpoints.update.initiate())
+    const second = store.dispatch(localApi.endpoints.update.initiate())
+    await Promise.all([first, second])
+    await vi.advanceTimersByTimeAsync(1)
+    expect(started).toBe(2)
+    expect(removed).toEqual([])
+
+    first.reset()
+    await vi.advanceTimersByTimeAsync(1)
+    expect(removed).toEqual([1])
+
+    second.reset()
+    await vi.advanceTimersByTimeAsync(1)
+    expect(removed).toEqual([1, 2])
+  })
+
   test('a response that was written before an invalidation refetch started still resolves cacheDataLoaded', async () => {
     const { baseQuery, respond } = createDeferredBaseQuery()
     const loaded: unknown[] = []
