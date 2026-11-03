@@ -62,6 +62,15 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
   }
 
   function schedulePollingUpdate(queryCacheKey: string, api: SubMiddlewareApi) {
+    if (
+      !currentPolls.has(queryCacheKey) &&
+      !Number.isFinite(
+        findLowestPollingInterval(currentSubscriptions.get(queryCacheKey))
+          .lowestPollingInterval,
+      )
+    ) {
+      return
+    }
     pendingPollingUpdates.add(queryCacheKey)
 
     if (!pollingUpdateTimer) {
@@ -163,12 +172,9 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
 
     const { lowestPollingInterval } = findLowestPollingInterval(subscriptions)
 
-    // HACK add extra data to track how many times this has been called in tests
-    // yes we're mutating a nonexistent field on a Map here
     if (process.env.NODE_ENV === 'test') {
-      const updateCounters = ((currentPolls as any).pollUpdateCounters ??= {})
-      updateCounters[queryCacheKey] ??= 0
-      updateCounters[queryCacheKey]++
+      const updateCounters = (internalState.pollUpdateCounters ??= {})
+      updateCounters[queryCacheKey] = (updateCounters[queryCacheKey] ?? 0) + 1
     }
 
     if (!Number.isFinite(lowestPollingInterval)) {

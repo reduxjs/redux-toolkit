@@ -1,3 +1,4 @@
+import type { UnknownAction } from '@reduxjs/toolkit'
 import { createApi } from '@reduxjs/toolkit/query'
 import type { QueryActionCreatorResult } from '@reduxjs/toolkit/query'
 import { delay } from 'msw'
@@ -31,11 +32,17 @@ beforeEach(() => {
     api.internalActions.internal_getRTKQSubscriptions(),
   ) as unknown as SubscriptionSelectors)
 
-  const currentPolls = storeRef.store.dispatch({
-    type: `${api.reducerPath}/getPolling`,
-  }) as any
-  ;(currentPolls as any).pollUpdateCounters = {}
+  const pollUpdateCounters = getPollUpdateCounters(storeRef.store.dispatch)
+  for (const key of Object.keys(pollUpdateCounters)) {
+    delete pollUpdateCounters[key]
+  }
 })
+
+function getPollUpdateCounters(dispatch: (action: UnknownAction) => unknown) {
+  return dispatch({
+    type: `${api.reducerPath}/getPollUpdateCounters`,
+  }) as Record<string, number>
+}
 
 const getSubscribersForQueryCacheKey = (queryCacheKey: string) =>
   getSubscriptions().get(queryCacheKey) ?? new Map()
@@ -306,17 +313,9 @@ describe('polling tests', () => {
     // Wait for the poll update timer
     await delay(25)
 
-    // Get the polling state using the secret "getPolling" action
-    const currentPolls = storeRef.store.dispatch({
-      type: `${api.reducerPath}/getPolling`,
-    }) as any
-
-    // Get the query cache key for our endpoint
     const queryCacheKey = subscriptions[0].queryCacheKey
-
-    // Check the poll update counters
-    const pollUpdateCounters = currentPolls.pollUpdateCounters || {}
-    const updateCount = pollUpdateCounters[queryCacheKey] || 0
+    const updateCount =
+      getPollUpdateCounters(storeRef.store.dispatch)[queryCacheKey] ?? 0
 
     // With batching optimization, this should be much lower than SUBSCRIBER_COUNT
     // Ideally 1, but could be slightly higher due to timing
