@@ -116,14 +116,15 @@ interface SimpleUsage {
   exportName?: string
   argSuffix?: string
   operationNameSuffix?: string
-  operationIdTransformer?: OperationIdTransformer
+  operationIdTransformer?:
+    'camelCase' | 'none' | ((operationId: string) => string)
   responseSuffix?: string
   hooks?:
-    | boolean
-    | { queries: boolean; lazyQueries: boolean; mutations: boolean }
+    boolean | { queries: boolean; lazyQueries: boolean; mutations: boolean }
   tag?: boolean
   outputFile: string
-  filterEndpoints?: EndpointMatcher
+  filterEndpoints?:
+    string | RegExp | EndpointMatcherFunction | Array<string | RegExp>
   endpointOverrides?: EndpointOverrides[]
   flattenArg?: boolean
   unionUndefined?: boolean
@@ -146,9 +147,7 @@ The supporting types referenced above:
 
 ```ts no-transpile
 export type OperationIdTransformer =
-  | 'camelCase'
-  | 'none'
-  | ((operationId: string) => string)
+  'camelCase' | 'none' | ((operationId: string) => string)
 
 export type EnumStyle = 'union' | 'enum' | 'as-const'
 

@@ -836,8 +836,13 @@ type UseInfiniteQuerySubscriptionOptions = {
 }
 
 type UseInfiniteQuerySubscriptionResult = {
-  trigger: (arg: any, direction: 'forward' | 'backward') => InfiniteQueryActionCreatorResult
-  refetch: (options?: { refetchCachedPages?: boolean }) => InfiniteQueryActionCreatorResult
+  trigger: (
+    arg: any,
+    direction: 'forward' | 'backward',
+  ) => InfiniteQueryActionCreatorResult
+  refetch: (options?: {
+    refetchCachedPages?: boolean
+  }) => InfiniteQueryActionCreatorResult
   fetchNextPage: () => InfiniteQueryActionCreatorResult
   fetchPreviousPage: () => InfiniteQueryActionCreatorResult
 }
