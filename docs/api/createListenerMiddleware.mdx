@@ -521,6 +521,30 @@ startAppListening({
 })
 ```
 
+### Typing the `addListener` and `removeListener` actions
+
+`addListener` and `removeListener` dispatch actions whose `payload` is the options object you passed in. If you write your own middleware or reducer that inspects those actions, use the `TypedAddListenerAction` and `TypedRemoveListenerAction` types to describe them:
+
+```ts no-transpile
+import { addListener } from '@reduxjs/toolkit'
+import type { Middleware, TypedAddListenerAction } from '@reduxjs/toolkit'
+import type { RootState, AppDispatch } from './store'
+
+const isAddAppListenerAction = (
+  action: unknown,
+): action is TypedAddListenerAction<RootState, AppDispatch> =>
+  addListener.match(action)
+
+const logListeners: Middleware = () => (next) => (action) => {
+  if (isAddAppListenerAction(action)) {
+    console.log('Listener added for', action.payload.type)
+  }
+  return next(action)
+}
+```
+
+`TypedRemoveListenerAction` has the same payload, plus the `UnsubscribeListenerOptions` fields such as `cancelActive`.
+
 ## Usage Guide
 
 ### Overall Purpose

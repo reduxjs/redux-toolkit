@@ -390,3 +390,17 @@ export type RootState<
   TagTypes extends string,
   ReducerPath extends string,
 > = { [P in ReducerPath]: CombinedState<Definitions, TagTypes, P> }
+
+/**
+ * The shape of the root state containing an API slice, keyed by its `reducerPath`.
+ *
+ * This is the same type as `RootState`, under a name that does not collide
+ * with an application's own `RootState` type.
+ *
+ * @public
+ */
+export type ApiRootState<
+  Definitions extends EndpointDefinitions,
+  TagTypes extends string,
+  ReducerPath extends string,
+> = RootState<Definitions, TagTypes, ReducerPath>

@@ -1,4 +1,4 @@
-import type { Draft } from 'immer'
+import type { Draft } from './draftTypes'
 import type { Action, Reducer, UnknownAction } from 'redux'
 import { createNextState, isDraft, isDraftable } from './immerImports'
 import type { ActionReducerMapBuilder } from './mapBuilders'

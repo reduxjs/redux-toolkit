@@ -1,4 +1,4 @@
-import type { Draft } from 'immer'
+import type { Draft } from '@reduxjs/toolkit'
 import { current, isDraft } from '../utils/immerImports'
 
 export function getCurrent<T>(value: T | Draft<T>): T {

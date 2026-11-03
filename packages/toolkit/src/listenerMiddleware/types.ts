@@ -516,7 +516,11 @@ export type RemoveListenerOverloads<
   UnsubscribeListenerOptions
 >
 
-/** @public */
+/**
+ * @public
+ * @deprecated This does not match the action dispatched by `removeListener`.
+ * Use {@linkcode TypedRemoveListenerAction} instead.
+ */
 export interface RemoveListenerAction<
   ActionType extends UnknownAction,
   State,
@@ -528,6 +532,75 @@ export interface RemoveListenerAction<
     listener: ListenerEffect<ActionType, State, DispatchType>
   }
 }
+
+/**
+ * The action dispatched by `addListener`. Its payload is the listener options
+ * object that was passed to `addListener`.
+ *
+ * @example
+ * ```ts
+ * const isAddListenerAction = (
+ *   action: UnknownAction,
+ * ): action is TypedAddListenerAction<RootState, AppDispatch> =>
+ *   addListener.match(action)
+ * ```
+ *
+ * @template StateType - The type of state the listener operates on.
+ * @template DispatchType - The type of the `dispatch` function.
+ * @template ExtraArgument - The type of the middleware's extra argument.
+ *
+ * @since 2.14.0
+ * @public
+ */
+export type TypedAddListenerAction<
+  StateType,
+  DispatchType extends Dispatch = ThunkDispatch<
+    StateType,
+    unknown,
+    UnknownAction
+  >,
+  ExtraArgument = unknown,
+> = PayloadAction<
+  {
+    actionCreator?: TypedActionCreatorWithMatchFunction<string>
+    type?: string
+    matcher?: MatchFunction<Action>
+    predicate?: AnyListenerPredicate<StateType>
+    effect: ListenerEffect<
+      UnknownAction,
+      StateType,
+      DispatchType,
+      ExtraArgument
+    >
+  },
+  'listenerMiddleware/add'
+>
+
+/**
+ * The action dispatched by `removeListener`. Its payload is the listener
+ * options object that was passed to `removeListener`, including
+ * {@linkcode UnsubscribeListenerOptions}.
+ *
+ * @template StateType - The type of state the listener operates on.
+ * @template DispatchType - The type of the `dispatch` function.
+ * @template ExtraArgument - The type of the middleware's extra argument.
+ *
+ * @since 2.14.0
+ * @public
+ */
+export type TypedRemoveListenerAction<
+  StateType,
+  DispatchType extends Dispatch = ThunkDispatch<
+    StateType,
+    unknown,
+    UnknownAction
+  >,
+  ExtraArgument = unknown,
+> = PayloadAction<
+  TypedAddListenerAction<StateType, DispatchType, ExtraArgument>['payload'] &
+    UnsubscribeListenerOptions,
+  'listenerMiddleware/remove'
+>
 
 /**
  * A "pre-typed" version of `addListenerAction`, so the listener args are well-typed

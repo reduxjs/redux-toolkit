@@ -775,21 +775,31 @@ type UseQueryStateError<D extends QueryDefinition<any, any, any, any>> =
     { isError: true } & Required<Pick<UseQueryStateBaseResult<D>, 'error'>>
   >
 
-type UseQueryStateDefaultResult<D extends QueryDefinition<any, any, any, any>> =
-  TSHelpersId<
-    | UseQueryStateUninitialized<D>
-    | UseQueryStateLoading<D>
-    | UseQueryStateSuccessFetching<D>
-    | UseQueryStateSuccessNotFetching<D>
-    | UseQueryStateError<D>
-  > & {
-    /**
-     * @deprecated Included for completeness, but discouraged.
-     * Please use the `isLoading`, `isFetching`, `isSuccess`, `isError`
-     * and `isUninitialized` flags instead
-     */
-    status: QueryStatus
-  }
+/**
+ * The default result of `useQuery` and `useQueryState` for a query
+ * definition, before any `selectFromResult` is applied.
+ *
+ * Useful when wrapping these hooks and keeping `selectFromResult` generic.
+ *
+ * @since 2.14.0
+ * @public
+ */
+export type UseQueryStateDefaultResult<
+  D extends QueryDefinition<any, any, any, any>,
+> = TSHelpersId<
+  | UseQueryStateUninitialized<D>
+  | UseQueryStateLoading<D>
+  | UseQueryStateSuccessFetching<D>
+  | UseQueryStateSuccessNotFetching<D>
+  | UseQueryStateError<D>
+> & {
+  /**
+   * @deprecated Included for completeness, but discouraged.
+   * Please use the `isLoading`, `isFetching`, `isSuccess`, `isError`
+   * and `isUninitialized` flags instead
+   */
+  status: QueryStatus
+}
 
 export type LazyInfiniteQueryTrigger<
   D extends InfiniteQueryDefinition<any, any, any, any, any>,
@@ -1290,7 +1300,14 @@ type UseInfiniteQueryStateBaseResult<
   isFetchPreviousPageError: boolean
 }
 
-type UseInfiniteQueryStateDefaultResult<
+/**
+ * The default result of `useInfiniteQuery` and `useInfiniteQueryState` for an
+ * infinite query definition, before any `selectFromResult` is applied.
+ *
+ * @since 2.14.0
+ * @public
+ */
+export type UseInfiniteQueryStateDefaultResult<
   D extends InfiniteQueryDefinition<any, any, any, any, any>,
 > = TSHelpersId<
   | TSHelpersOverride<

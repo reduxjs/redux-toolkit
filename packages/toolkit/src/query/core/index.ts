@@ -5,6 +5,7 @@ export const createApi = /* @__PURE__ */ buildCreateApi(coreModule())
 
 export { QueryStatus } from './apiState'
 export type {
+  ApiRootState,
   CombinedState,
   InfiniteData,
   InfiniteQueryConfigOptions,

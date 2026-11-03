@@ -5,7 +5,7 @@ import { formatProdErrorMessage } from './formatProdErrorMessage'
 export * from 'redux'
 export { freeze, original } from 'immer'
 export { createNextState, current, isDraft } from './immerImports'
-export type { Draft, WritableDraft } from 'immer'
+export type { Draft, WritableDraft } from './draftTypes'
 export { createSelector, lruMemoize } from 'reselect'
 export { createSelectorCreator, weakMapMemoize } from './reselectImports'
 export type { Selector, OutputSelector } from 'reselect'
@@ -158,8 +158,10 @@ export type {
   ListenerErrorHandler,
   TypedStartListening,
   TypedAddListener,
+  TypedAddListenerAction,
   TypedStopListening,
   TypedRemoveListener,
+  TypedRemoveListenerAction,
   UnsubscribeListener,
   UnsubscribeListenerOptions,
   ForkedTaskExecutor,
