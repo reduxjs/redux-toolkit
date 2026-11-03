@@ -1272,6 +1272,81 @@ describe('hooks tests', () => {
       expect(abortSignalFromQueryFn!.aborted).toBe(true)
     })
 
+    test('the first committed render of a cold query is already pending', async () => {
+      const committedStatuses: string[] = []
+
+      function User() {
+        const { status } = api.endpoints.getUser.useQuery(1)
+        useEffect(() => {
+          committedStatuses.push(status)
+        })
+        return <div data-testid="status">{status}</div>
+      }
+
+      render(<User />, { wrapper: storeRef.wrapper })
+
+      expect(committedStatuses[0]).toBe(QueryStatus.pending)
+      await waitFor(() =>
+        expect(screen.getByTestId('status').textContent).toBe(
+          QueryStatus.fulfilled,
+        ),
+      )
+    })
+
+    test('a new but equal object arg keeps the same result object', async () => {
+      const { result, rerender } = renderHook(
+        ({ arg }: { arg: { param: { nested: string } } }) =>
+          api.endpoints.queryWithDeepArg.useQuery(arg),
+        {
+          wrapper: storeRef.wrapper,
+          initialProps: { arg: { param: { nested: 'a' } } },
+        },
+      )
+
+      await waitFor(() => expect(result.current.isSuccess).toBe(true))
+      const firstResult = result.current
+
+      rerender({ arg: { param: { nested: 'a' } } })
+
+      expect(result.current).toBe(firstResult)
+      expect(
+        actions.filter(api.endpoints.queryWithDeepArg.matchPending),
+      ).toHaveLength(1)
+    })
+
+    test('refetch identity stays stable across refetches and re-renders', async () => {
+      const { result, rerender } = renderHook(
+        () => api.endpoints.getUser.useQuery(1),
+        { wrapper: storeRef.wrapper },
+      )
+
+      const firstRefetch = result.current.refetch
+      await waitFor(() => expect(result.current.isSuccess).toBe(true))
+      expect(result.current.refetch).toBe(firstRefetch)
+
+      await act(async () => {
+        await result.current.refetch()
+      })
+      rerender()
+
+      expect(result.current.refetch).toBe(firstRefetch)
+    })
+
+    test('useQueryState on its own does not subscribe or fetch', async () => {
+      const { result } = renderHook(
+        () => api.endpoints.getUser.useQueryState(1),
+        { wrapper: storeRef.wrapper },
+      )
+
+      await act(async () => {
+        await waitMs(10)
+      })
+
+      expect(result.current.isUninitialized).toBe(true)
+      expect(actions.filter(api.endpoints.getUser.matchPending)).toHaveLength(0)
+      expect(getSubscriptionCount('getUser(1)')).toBe(0)
+    })
+
     describe('Hook middleware requirements', () => {
       const consoleErrorSpy = vi
         .spyOn(console, 'error')
@@ -1940,6 +2015,100 @@ describe('hooks tests', () => {
 
       await screen.findByText(/isUninitialized/i)
       expect(countObjectKeys(storeRef.store.getState().api.queries)).toBe(0)
+    })
+
+    test('`reset` removes the cache entry but keeps `lastArg`', async () => {
+      const { result } = renderHook(
+        () => api.endpoints.getUser.useLazyQuery(),
+        {
+          wrapper: storeRef.wrapper,
+        },
+      )
+
+      await act(async () => {
+        await result.current[0](3)
+      })
+      expect(result.current[2].lastArg).toBe(3)
+
+      act(() => {
+        result.current[1].reset()
+      })
+
+      expect(result.current[1].isUninitialized).toBe(true)
+      expect(result.current[1].data).toBeUndefined()
+      // Known current behavior that may change; documenting it as the baseline
+      expect(result.current[2].lastArg).toBe(3)
+    })
+
+    test('trigger identity stays stable when subscription options change', () => {
+      const { result, rerender } = renderHook(
+        ({ pollingInterval }: { pollingInterval: number }) =>
+          api.endpoints.getUser.useLazyQuery({ pollingInterval }),
+        {
+          wrapper: storeRef.wrapper,
+          initialProps: { pollingInterval: 0 },
+        },
+      )
+
+      const firstTrigger = result.current[0]
+      rerender({ pollingInterval: 10000 })
+
+      expect(result.current[0]).toBe(firstTrigger)
+    })
+
+    test('trigger refetches by default and reuses a cached value with `preferCacheValue`', async () => {
+      const { result } = renderHook(
+        () => api.endpoints.getUser.useLazyQuery(),
+        {
+          wrapper: storeRef.wrapper,
+        },
+      )
+      const countFetches = () =>
+        actions.filter(api.endpoints.getUser.matchPending).length
+
+      await act(async () => {
+        await result.current[0](1)
+      })
+      expect(countFetches()).toBe(1)
+
+      let refetched: Awaited<ReturnType<(typeof result.current)[0]>> | undefined
+      await act(async () => {
+        refetched = await result.current[0](1)
+      })
+      expect(countFetches()).toBe(2)
+
+      let cached: typeof refetched
+      await act(async () => {
+        cached = await result.current[0](1, true)
+      })
+      expect(countFetches()).toBe(2)
+      // No request runs, so the result is the cache entry, carrying the
+      // requestId of the request that filled it (see #5506)
+      expect(cached?.requestId).toBe(refetched?.requestId)
+      expect(cached?.data).toEqual({ name: 'Timmy' })
+    })
+
+    test('useLazyQuerySubscription returns the last arg directly, useLazyQuery wraps it in `lastArg`', async () => {
+      const lazyQuery = renderHook(() => api.endpoints.getUser.useLazyQuery(), {
+        wrapper: storeRef.wrapper,
+      })
+      const lazySubscription = renderHook(
+        () => api.endpoints.getUser.useLazyQuerySubscription(),
+        { wrapper: storeRef.wrapper },
+      )
+
+      await act(async () => {
+        await Promise.all([
+          lazyQuery.result.current[0](7),
+          lazySubscription.result.current[0](7),
+        ])
+      })
+
+      expect(lazyQuery.result.current[1].data).toEqual({ name: 'Timmy' })
+      expect(lazyQuery.result.current[2]).toEqual({ lastArg: 7 })
+
+      expect(lazySubscription.result.current[1]).toBe(7)
+      expect(Object.keys(lazySubscription.result.current[2])).toEqual(['reset'])
     })
   })
 
@@ -2709,6 +2878,54 @@ describe('hooks tests', () => {
       const pages = screen.getAllByTestId(/^page-/)
       expect(pages).toHaveLength(1)
     })
+
+    test('useInfiniteQuerySubscription exposes `trigger`, useInfiniteQuery does not', async () => {
+      const storeRef = setupApiStore(pokemonApi, undefined, {
+        withoutTestLifecycles: true,
+      })
+
+      const subscription = renderHook(
+        () =>
+          pokemonApi.endpoints.getInfinitePokemon.useInfiniteQuerySubscription(
+            'fire',
+          ),
+        { wrapper: storeRef.wrapper },
+      )
+      const full = renderHook(
+        () => pokemonApi.endpoints.getInfinitePokemon.useInfiniteQuery('fire'),
+        { wrapper: storeRef.wrapper },
+      )
+
+      await waitFor(() => expect(full.result.current.isSuccess).toBe(true))
+
+      expect(typeof subscription.result.current.trigger).toBe('function')
+      expect('trigger' in full.result.current).toBe(false)
+      expect(typeof full.result.current.fetchNextPage).toBe('function')
+    })
+
+    test('fetchNextPage, fetchPreviousPage and refetch keep their identities', async () => {
+      const storeRef = setupApiStore(pokemonApi, undefined, {
+        withoutTestLifecycles: true,
+      })
+
+      const { result, rerender } = renderHook(
+        () => pokemonApi.endpoints.getInfinitePokemon.useInfiniteQuery('fire'),
+        { wrapper: storeRef.wrapper },
+      )
+
+      await waitFor(() => expect(result.current.isSuccess).toBe(true))
+      const { fetchNextPage, fetchPreviousPage, refetch } = result.current
+
+      rerender()
+      await act(async () => {
+        await result.current.fetchNextPage()
+      })
+
+      expect(result.current.data?.pages).toHaveLength(2)
+      expect(result.current.fetchNextPage).toBe(fetchNextPage)
+      expect(result.current.fetchPreviousPage).toBe(fetchPreviousPage)
+      expect(result.current.refetch).toBe(refetch)
+    })
   })
 
   describe('useMutation', () => {
@@ -2875,6 +3092,82 @@ describe('hooks tests', () => {
       await screen.findByText(/isUninitialized/i)
       expect(screen.queryByText('Yay')).toBeNull()
       expect(countObjectKeys(storeRef.store.getState().api.mutations)).toBe(0)
+    })
+
+    test('the trigger promise resolves before invalidated queries finish refetching', async () => {
+      const { result } = renderHook(
+        () => ({
+          mutation: api.endpoints.triggerUpdatedAmount.useMutation(),
+          query: api.endpoints.getIncrementedAmount.useQuery(),
+        }),
+        { wrapper: storeRef.wrapper },
+      )
+      const selectAmount = api.endpoints.getIncrementedAmount.select()
+
+      await waitFor(() => expect(result.current.query.isSuccess).toBe(true))
+      expect(result.current.query.data).toEqual({ amount: 1 })
+
+      let amountWhenSettled: { amount: number } | undefined
+      await act(async () => {
+        await result.current.mutation[0]()
+        amountWhenSettled = selectAmount(storeRef.store.getState()).data
+      })
+
+      expect(amountWhenSettled).toEqual({ amount: 1 })
+      await waitFor(() =>
+        expect(result.current.query.data).toEqual({ amount: 2 }),
+      )
+    })
+
+    test('trigger identity stays stable while the result object changes', async () => {
+      const { result } = renderHook(
+        () => api.endpoints.updateUser.useMutation(),
+        { wrapper: storeRef.wrapper },
+      )
+      const [firstTrigger, firstResult] = result.current
+
+      await act(async () => {
+        await result.current[0]({ name: 'Yay' })
+      })
+
+      expect(result.current[0]).toBe(firstTrigger)
+      expect(result.current[1]).not.toBe(firstResult)
+    })
+
+    test('an identity `selectFromResult` warns for useMutation but not for useQuery', async () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(noop)
+      const identityWarnings = () =>
+        warnSpy.mock.calls.filter(([message]) =>
+          String(message).includes('returned its own inputs'),
+        )
+
+      try {
+        const query = renderHook(
+          () =>
+            api.endpoints.getUser.useQuery(1, {
+              selectFromResult: (result) => result,
+            }),
+          { wrapper: storeRef.wrapper },
+        )
+        await waitFor(() => expect(query.result.current.isSuccess).toBe(true))
+        expect(identityWarnings()).toHaveLength(0)
+
+        const mutation = renderHook(
+          () =>
+            api.endpoints.updateUser.useMutation({
+              selectFromResult: (result) => result,
+            }),
+          { wrapper: storeRef.wrapper },
+        )
+        await act(async () => {
+          await mutation.result.current[0]({ name: 'Yay' })
+        })
+
+        // Known current behavior that may change; documenting it as the baseline
+        expect(identityWarnings().length).toBeGreaterThan(0)
+      } finally {
+        warnSpy.mockRestore()
+      }
     })
   })
 
@@ -3225,6 +3518,54 @@ describe('hooks tests', () => {
       await waitFor(() => {
         expect(subscriptions.getSubscriptionCount('getTest(undefined)')).toBe(0)
       })
+    })
+
+    test('prefetch callback identity stays stable for shallow-equal default options', () => {
+      const { result, rerender } = renderHook(
+        ({ force }: { force: boolean }) =>
+          api.usePrefetch('getUser', { force }),
+        { wrapper: storeRef.wrapper, initialProps: { force: true } },
+      )
+      const firstPrefetch = result.current
+
+      rerender({ force: true })
+      expect(result.current).toBe(firstPrefetch)
+
+      rerender({ force: false })
+      expect(result.current).not.toBe(firstPrefetch)
+    })
+
+    test('usePrefetch can be called for an endpoint that is injected later', async () => {
+      const lateApi = createApi({
+        baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
+        endpoints: () => ({}),
+      })
+      const storeRef = setupApiStore(lateApi, undefined, {
+        withoutTestLifecycles: true,
+      })
+
+      const { result } = renderHook(
+        // @ts-expect-error `notYet` is not injected yet
+        () => lateApi.usePrefetch('notYet'),
+        { wrapper: storeRef.wrapper },
+      )
+
+      const injected = lateApi.injectEndpoints({
+        endpoints: (build) => ({
+          notYet: build.query<string, void>({
+            queryFn: () => ({ data: 'late' }),
+          }),
+        }),
+      })
+      act(() => {
+        result.current(undefined as never)
+      })
+
+      await waitFor(() =>
+        expect(
+          injected.endpoints.notYet.select()(storeRef.store.getState()).data,
+        ).toBe('late'),
+      )
     })
   })
 

@@ -1,6 +1,7 @@
 import { noop } from '@internal/listenerMiddleware/utils'
 import { configureStore } from '@reduxjs/toolkit'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+import { createApi as createReactApi } from '@reduxjs/toolkit/query/react'
 
 const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
@@ -91,6 +92,26 @@ describe('injectEndpoints', () => {
     })
 
     expect(consoleErrorSpy).not.toHaveBeenCalled()
+  })
+
+  test('overriding an endpoint points the root hook alias at the new endpoint', () => {
+    const reactApi = createReactApi({
+      baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
+      endpoints: (build) => ({
+        thing: build.query<string, void>({ query: () => '/original' }),
+      }),
+    })
+    const originalHook = reactApi.useThingQuery
+
+    const injected = reactApi.injectEndpoints({
+      overrideExisting: true,
+      endpoints: (build) => ({
+        thing: build.query<string, void>({ query: () => '/replacement' }),
+      }),
+    })
+
+    expect(injected.useThingQuery).not.toBe(originalHook)
+    expect(injected.useThingQuery).toBe(injected.endpoints.thing.useQuery)
   })
 
   test('adding the same middleware to the store twice throws an error', () => {
