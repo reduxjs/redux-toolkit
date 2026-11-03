@@ -537,7 +537,10 @@ const isAddAppListenerAction = (
 
 const logListeners: Middleware = () => (next) => (action) => {
   if (isAddAppListenerAction(action)) {
-    console.log('Listener added for', action.payload.type)
+    console.log(
+      'Listener added for',
+      action.payload.type ?? action.payload.actionCreator?.type,
+    )
   }
   return next(action)
 }

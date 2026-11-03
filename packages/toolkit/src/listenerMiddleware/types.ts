@@ -315,7 +315,7 @@ export type ListenerMiddleware<
 > = Middleware<
   {
     (action: Action<'listenerMiddleware/add'>): UnsubscribeListener
-    (action: Action<'listenerMiddleware/remove'>): boolean
+    (action: Action<'listenerMiddleware/remove'> & { payload: object }): boolean
     (action: Action<'listenerMiddleware/removeAll'>): void
   },
   State,

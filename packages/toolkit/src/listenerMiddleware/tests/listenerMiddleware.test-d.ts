@@ -118,6 +118,10 @@ describe('type tests', () => {
 
     expectTypeOf(removed).toEqualTypeOf<boolean>()
 
+    expectTypeOf(
+      store.dispatch({ type: 'listenerMiddleware/remove' }),
+    ).not.toEqualTypeOf<boolean>()
+
     expectTypeOf(store.dispatch(testAction1('a'))).toEqualTypeOf<
       PayloadAction<string>
     >()

@@ -101,13 +101,16 @@ If you wrap a query hook and want to keep `selectFromResult` generic, use `UseQu
 
 ```ts no-transpile
 import type {
+  fetchBaseQuery,
   QueryDefinition,
   UseQueryStateDefaultResult,
 } from '@reduxjs/toolkit/query/react'
+import { pokemonApi } from './pokemon'
+import type { Pokemon } from './types'
 
 type GetPokemonDefinition = QueryDefinition<
   string,
-  typeof baseQuery,
+  ReturnType<typeof fetchBaseQuery>,
   never,
   Pokemon
 >
