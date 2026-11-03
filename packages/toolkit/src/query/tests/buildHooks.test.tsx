@@ -1410,6 +1410,39 @@ describe('hooks tests', () => {
       expect(baseQueryCalls).toBe(1)
     })
 
+    test('a new subscriber refetching an errored query with no data sets `isLoading` back to true', async () => {
+      // Hiding a same-arg child while `isLoading` re-triggers the refetch on
+      // every remount. This is the intended tradeoff: after an error with no
+      // data, `isLoading`, `isError` and `isUninitialized` are never all false.
+      const states: boolean[] = []
+
+      function Parent() {
+        const { isLoading } = api.endpoints.getUserAndForceError.useQuery(1)
+
+        states.push(isLoading)
+
+        if (isLoading) return null
+
+        return <Child />
+      }
+
+      function Child() {
+        api.endpoints.getUserAndForceError.useQuery(1)
+
+        return null
+      }
+
+      const { unmount } = render(<Parent />, { wrapper: storeRef.wrapper })
+
+      await waitFor(() => {
+        const firstFalse = states.indexOf(false)
+        expect(firstFalse).toBeGreaterThan(-1)
+        expect(states.indexOf(true, firstFalse)).toBeGreaterThan(firstFalse)
+      })
+
+      unmount()
+    })
+
     describe('Hook middleware requirements', () => {
       const consoleErrorSpy = vi
         .spyOn(console, 'error')
