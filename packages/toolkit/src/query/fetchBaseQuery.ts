@@ -109,6 +109,7 @@ function stripUndefined(obj: any) {
 // Only set the content-type to json if appropriate. Will not be true for FormData, ArrayBuffer, Blob, etc.
 const isJsonifiable = (body: any) =>
   typeof body === 'object' &&
+  body !== null &&
   (isPlainObject(body) ||
     Array.isArray(body) ||
     typeof body.toJSON === 'function')
