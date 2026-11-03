@@ -35,15 +35,18 @@ describe.each([
     expect(selectByIds(state, [id, AnimalFarm.id])).toEqual([AnimalFarm])
   })
 
-  it.each(prototypeKeys)('globalized selectById returns undefined for %s', (id) => {
-    const { selectById } = adapter.getSelectors(
-      (state: { books: ReturnType<typeof adapter.getInitialState> }) =>
-        state.books,
-    )
-    const books = adapter.setAll(adapter.getInitialState(), [AnimalFarm])
+  it.each(prototypeKeys)(
+    'globalized selectById returns undefined for %s',
+    (id) => {
+      const { selectById } = adapter.getSelectors(
+        (state: { books: ReturnType<typeof adapter.getInitialState> }) =>
+          state.books,
+      )
+      const books = adapter.setAll(adapter.getInitialState(), [AnimalFarm])
 
-    expect(selectById({ books }, id)).toBeUndefined()
-  })
+      expect(selectById({ books }, id)).toBeUndefined()
+    },
+  )
 
   it.each(prototypeKeys)('addOne adds an entity with id %s', (id) => {
     const book = { id, title: 'Prototype' }
