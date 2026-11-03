@@ -3520,7 +3520,7 @@ describe('hooks tests', () => {
       })
     })
 
-    test('prefetch callback identity stays stable for shallow-equal default options', () => {
+    test('prefetch callback identity stays stable for shallow-equal default options', async () => {
       const { result, rerender } = renderHook(
         ({ force }: { force: boolean }) =>
           api.usePrefetch('getUser', { force }),
@@ -3531,8 +3531,25 @@ describe('hooks tests', () => {
       rerender({ force: true })
       expect(result.current).toBe(firstPrefetch)
 
+      act(() => {
+        firstPrefetch(1)
+      })
+      await waitFor(() =>
+        expect(
+          api.endpoints.getUser.select(1)(storeRef.store.getState()).status,
+        ).toBe(QueryStatus.fulfilled),
+      )
+      const pendingCount = () =>
+        actions.filter(api.endpoints.getUser.matchPending).length
+      expect(pendingCount()).toBe(1)
+
       rerender({ force: false })
       expect(result.current).not.toBe(firstPrefetch)
+
+      act(() => {
+        result.current(1)
+      })
+      expect(pendingCount()).toBe(1)
     })
 
     test('usePrefetch can be called for an endpoint that is injected later', async () => {
