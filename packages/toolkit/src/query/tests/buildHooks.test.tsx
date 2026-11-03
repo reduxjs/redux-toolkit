@@ -2803,6 +2803,10 @@ describe('hooks tests', () => {
     ])(
       'useInfiniteQuery hook does not fetch when skipped via %s',
       async (_, useSkipToken) => {
+        const storeRef = setupApiStore(pokemonApi, undefined, {
+          withoutTestLifecycles: true,
+        })
+
         function Pokemon() {
           const [value, setValue] = useState(0)
 
@@ -2839,7 +2843,10 @@ describe('hooks tests', () => {
         await waitFor(() =>
           expect(screen.getByTestId('isFetching').textContent).toBe('true'),
         )
-        expect(getRenderCount()).toBe(2)
+        await waitFor(() =>
+          expect(screen.getByTestId('isFetching').textContent).toBe('false'),
+        )
+        expect(getRenderCount()).toBe(4)
       },
     )
 
