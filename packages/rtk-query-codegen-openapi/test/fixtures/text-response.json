@@ -26,6 +26,15 @@
         }
       }
     },
+    "/text-or-json": {
+      "get": {
+        "operationId": "textOrJson",
+        "responses": {
+          "200": { "$ref": "#/components/responses/Text" },
+          "201": { "$ref": "#/components/responses/Json" }
+        }
+      }
+    },
     "/default-text": {
       "get": { "operationId": "defaultText", "responses": { "default": { "$ref": "#/components/responses/Text" } } }
     },

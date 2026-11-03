@@ -103,6 +103,22 @@ test('JSON success responses excluded by isDataResponse are still parsed as JSON
   expect(result.data).toEqual({ ok: true });
 });
 
+test('mixed text and JSON success responses are each parsed by content type', async () => {
+  const source = await generate();
+  expect(requests(source).textOrJson.query().responseHandler).toBe('content-type');
+  expect(source).toMatch(/export type TextOrJsonApiResponse =[^;]*\| string\s*\|[^;]*\bobject;/);
+  const text = await fetchGenerated(
+    'textOrJson',
+    new Response('Hello world!', { headers: { 'content-type': 'text/plain' } })
+  );
+  expect(text.data).toBe('Hello world!');
+  const json = await fetchGenerated(
+    'textOrJson',
+    new Response('{"ok":true}', { status: 201, headers: { 'content-type': 'application/json' } })
+  );
+  expect(json.data).toEqual({ ok: true });
+});
+
 test.each(['mixed', 'ref', 'created', 'textWithDefaultJson'])('%s selects successful text responses', async (name) => {
   const source = await generate();
   expect(requests(source)[name].query().responseHandler).toBe('content-type');
