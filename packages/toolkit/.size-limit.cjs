@@ -20,19 +20,19 @@ function withRtkPath(suffix, cjs = false) {
   return (config) => {
     config.plugins.push(
       new webpack.NormalModuleReplacementPlugin(
-        /@reduxjs\/toolkit\/query\/react/,
+        /@reduxjs[\\/]toolkit[\\/]query[\\/]react/,
         join(__dirname, 'dist/query/react/rtk-query-react.modern.mjs'),
       ),
       new webpack.NormalModuleReplacementPlugin(
-        /@reduxjs\/toolkit\/query/,
+        /@reduxjs[\\/]toolkit[\\/]query/,
         join(__dirname, 'dist/query/rtk-query.modern.mjs'),
       ),
       new webpack.NormalModuleReplacementPlugin(
-        /@reduxjs\/toolkit\/react/,
+        /@reduxjs[\\/]toolkit[\\/]react/,
         join(__dirname, 'dist/react/redux-toolkit-react.modern.mjs'),
       ),
       new webpack.NormalModuleReplacementPlugin(
-        /@reduxjs\/toolkit/,
+        /@reduxjs[\\/]toolkit/,
         join(__dirname, 'dist/redux-toolkit.modern.mjs'),
       ),
       new webpack.NormalModuleReplacementPlugin(
@@ -134,7 +134,7 @@ const entryPoints = [
   },
 ]
 
-module.exports = entryPoints
+const webpackChecks = entryPoints
   .flatMap((e) =>
     esmSuffixes.map((suffix) => ({
       ...e,
@@ -207,5 +207,28 @@ module.exports = entryPoints
       ...e,
       name: e.name + ` (.modern.mjs)`,
       modifyWebpackConfig: withRtkPath('modern.mjs'),
+    })),
+  )
+
+const esbuildChecks = [
+  {
+    name: `4. createSlice without asyncThunkCreator (esbuild, .modern.mjs)`,
+    path: 'dist/redux-toolkit.modern.mjs',
+    import: '{ createSlice }',
+  },
+].map((e) => ({
+  ...e,
+  modifyEsbuildConfig: (config) => ({
+    ...config,
+    define: { 'process.env.NODE_ENV': '"production"' },
+  }),
+}))
+
+module.exports = webpackChecks
+  .map((e) => ({ ...e, disablePlugins: ['@size-limit/esbuild'] }))
+  .concat(
+    esbuildChecks.map((e) => ({
+      ...e,
+      disablePlugins: ['@size-limit/webpack'],
     })),
   )
