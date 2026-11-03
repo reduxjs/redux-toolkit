@@ -456,7 +456,10 @@ You must add the middleware for RTK-Query to function correctly!`,
 
         const skippedSynchronously = stateAfter.requestId !== requestId
 
-        const runningQuery = getRunningQueries(dispatch)?.get(queryCacheKey)
+        const runningQuery =
+          arg === skipToken
+            ? undefined
+            : getRunningQueries(dispatch)?.get(queryCacheKey)
         const selectFromState = () => selector(getState())
 
         const statePromise: AnyActionCreatorResult = Object.assign(
