@@ -1,15 +1,12 @@
 import type { InternalHandlerBuilder, SubscriptionSelectors } from './types'
-import type {
-  SubscriptionInternalState,
-  SubscriptionOptions,
-} from '../apiState'
+import type { SubscriptionOptions } from '../apiState'
 import type { Action } from '@reduxjs/toolkit'
 import type { Patch } from 'immer'
-import { getOrInsertComputed, createNewMap } from '../../utils/getOrInsert'
+import { ensureRecord, getPollsView, pruneRecord } from './runtime'
 
 export const buildBatchedActionsHandler: InternalHandlerBuilder<
   [actionShouldContinue: boolean, returnValue: SubscriptionSelectors | boolean]
-> = ({ api, queryThunk, internalState, mwApi }) => {
+> = ({ api, queryThunk, runtime, mwApi }) => {
   const subscriptionsPrefix = `${api.reducerPath}/subscriptions`
 
   // Keys whose subscribers changed since the last sync to the store
@@ -28,7 +25,7 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
   const buildSubscriptionPatches = (): Patch[] => {
     const patches: Patch[] = []
     for (const queryCacheKey of changedKeys) {
-      const subscribers = internalState.currentSubscriptions.get(queryCacheKey)
+      const subscribers = runtime.queries.get(queryCacheKey)?.subscribers
       if (subscribers) {
         syncedKeys.add(queryCacheKey)
         patches.push({
@@ -45,17 +42,15 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
     return patches
   }
 
+  const getSubscribers = (queryCacheKey: string) =>
+    (ensureRecord(runtime, queryCacheKey).subscribers ??= new Map())
+
   const addSubscriber = (
-    currentSubscriptions: SubscriptionInternalState,
     queryCacheKey: string,
     requestId: string,
     subscriptionOptions: SubscriptionOptions | undefined,
   ) => {
-    const substate = getOrInsertComputed(
-      currentSubscriptions,
-      queryCacheKey,
-      createNewMap,
-    )
+    const substate = getSubscribers(queryCacheKey)
     const options = subscriptionOptions ?? substate.get(requestId) ?? {}
     substate.set(requestId, options)
     changedKeys.add(queryCacheKey)
@@ -64,14 +59,11 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
   // Actually intentionally mutate the subscriptions state used in the middleware
   // This is done to speed up perf when loading many components.
   // Returns true if subscribers were added, removed or updated.
-  const actuallyMutateSubscriptions = (
-    currentSubscriptions: SubscriptionInternalState,
-    action: Action,
-  ) => {
+  const actuallyMutateSubscriptions = (action: Action) => {
     if (updateSubscriptionOptions.match(action)) {
       const { queryCacheKey, requestId, options } = action.payload
 
-      const sub = currentSubscriptions.get(queryCacheKey)
+      const sub = runtime.queries.get(queryCacheKey)?.subscribers
       if (sub?.has(requestId)) {
         sub.set(requestId, options)
         changedKeys.add(queryCacheKey)
@@ -81,7 +73,7 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
     }
     if (unsubscribeQueryResult.match(action)) {
       const { queryCacheKey, requestId } = action.payload
-      if (currentSubscriptions.get(queryCacheKey)?.delete(requestId)) {
+      if (runtime.queries.get(queryCacheKey)?.subscribers?.delete(requestId)) {
         changedKeys.add(queryCacheKey)
         return true
       }
@@ -89,7 +81,11 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
     }
     if (api.internalActions.removeQueryResult.match(action)) {
       const { queryCacheKey } = action.payload
-      currentSubscriptions.delete(queryCacheKey)
+      const record = runtime.queries.get(queryCacheKey)
+      if (record) {
+        record.subscribers = undefined
+        pruneRecord(runtime, queryCacheKey)
+      }
       if (syncedKeys.has(queryCacheKey) || changedKeys.has(queryCacheKey)) {
         changedKeys.add(queryCacheKey)
         return true
@@ -101,15 +97,10 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
         meta: { arg, requestId },
       } = action
       if (arg.subscribe) {
-        addSubscriber(
-          currentSubscriptions,
-          arg.queryCacheKey,
-          requestId,
-          arg.subscriptionOptions,
-        )
+        addSubscriber(arg.queryCacheKey, requestId, arg.subscriptionOptions)
         return true
       }
-      getOrInsertComputed(currentSubscriptions, arg.queryCacheKey, createNewMap)
+      getSubscribers(arg.queryCacheKey)
       return false
     }
     if (queryThunk.rejected.match(action)) {
@@ -117,12 +108,7 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
         meta: { condition, arg, requestId },
       } = action
       if (condition && arg.subscribe) {
-        addSubscriber(
-          currentSubscriptions,
-          arg.queryCacheKey,
-          requestId,
-          arg.subscriptionOptions,
-        )
+        addSubscriber(arg.queryCacheKey, requestId, arg.subscriptionOptions)
         return true
       }
     }
@@ -130,16 +116,11 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
     return false
   }
 
-  const getSubscriptions = () => internalState.currentSubscriptions
-  const getSubscriptionCount = (queryCacheKey: string) => {
-    const subscriptions = getSubscriptions()
-    const subscriptionsForQueryArg = subscriptions.get(queryCacheKey)
-    return subscriptionsForQueryArg?.size ?? 0
-  }
-  const isRequestSubscribed = (queryCacheKey: string, requestId: string) => {
-    const subscriptions = getSubscriptions()
-    return !!subscriptions?.get(queryCacheKey)?.get(requestId)
-  }
+  const getSubscriptions = () => runtime.subscriptions
+  const getSubscriptionCount = (queryCacheKey: string) =>
+    runtime.queries.get(queryCacheKey)?.subscribers?.size ?? 0
+  const isRequestSubscribed = (queryCacheKey: string, requestId: string) =>
+    !!runtime.queries.get(queryCacheKey)?.subscribers?.get(requestId)
 
   const subscriptionSelectors: SubscriptionSelectors = {
     getSubscriptions,
@@ -157,7 +138,10 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
     if (api.util.resetApiState.match(action)) {
       changedKeys.clear()
       syncedKeys.clear()
-      internalState.currentSubscriptions.clear()
+      for (const record of runtime.queries.values()) {
+        record.subscribers = undefined
+        pruneRecord(runtime, record.key)
+      }
       if (updateSyncTimer) {
         clearTimeout(updateSyncTimer)
         updateSyncTimer = null
@@ -174,18 +158,15 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
     }
 
     // Update subscription data based on this action
-    const didMutate = actuallyMutateSubscriptions(
-      internalState.currentSubscriptions,
-      action,
-    )
+    const didMutate = actuallyMutateSubscriptions(action)
 
     // HACK Sneak the test-only polling state back out
     if (process.env.NODE_ENV === 'test' && typeof action.type === 'string') {
       if (action.type === `${api.reducerPath}/getPolling`) {
-        return [false, internalState.currentPolls] as any
+        return [false, getPollsView(runtime)] as any
       }
       if (action.type === `${api.reducerPath}/getPollUpdateCounters`) {
-        return [false, (internalState.pollUpdateCounters ??= {})] as any
+        return [false, runtime.pollUpdateCounters] as any
       }
     }
 
