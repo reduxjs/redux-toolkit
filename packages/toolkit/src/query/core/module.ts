@@ -676,7 +676,8 @@ export const coreModule = ({
 
     const runtimeMap = new WeakMap<Dispatch, StoreRuntime>()
 
-    const getRuntime = (dispatch: Dispatch) =>
+    const getRuntime = (dispatch: Dispatch) => runtimeMap.get(dispatch)
+    const createRuntime = (dispatch: Dispatch) =>
       getOrInsertComputed(runtimeMap, dispatch, createStoreRuntime)
 
     const {
@@ -714,7 +715,7 @@ export const coreModule = ({
       assertTagType,
       selectors,
       getRunningQueryThunk,
-      getRuntime,
+      createRuntime,
     })
     safeAssign(api.util, middlewareActions)
 

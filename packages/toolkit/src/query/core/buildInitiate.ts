@@ -293,12 +293,12 @@ export function buildInitiate({
   mutationThunk: MutationThunk
   api: Api<any, EndpointDefinitions, any, any>
   context: ApiContext<EndpointDefinitions>
-  getRuntime: (dispatch: Dispatch) => StoreRuntime
+  getRuntime: (dispatch: Dispatch) => StoreRuntime | undefined
 }) {
   const getRunningQuery = (dispatch: Dispatch, queryCacheKey: string) =>
-    getRuntime(dispatch).queries.get(queryCacheKey)?.request
+    getRuntime(dispatch)?.queries.get(queryCacheKey)?.request
   const getRunningMutations = (dispatch: Dispatch) =>
-    getRuntime(dispatch).runningMutations
+    getRuntime(dispatch)?.runningMutations
 
   const {
     unsubscribeQueryResult,
@@ -348,7 +348,7 @@ export function buildInitiate({
   function getRunningQueriesThunk() {
     return (dispatch: Dispatch) => {
       const running: RunningQuery[] = []
-      for (const record of getRuntime(dispatch).queries.values()) {
+      for (const record of getRuntime(dispatch)?.queries.values() ?? []) {
         if (record.request) running.push(record.request)
       }
       return running
@@ -528,8 +528,8 @@ You must add the middleware for RTK-Query to function correctly!`,
           },
         )
 
-        if (!skippedSynchronously && !forceQueryFn) {
-          const runtime = getRuntime(dispatch)
+        const runtime = getRuntime(dispatch)
+        if (runtime && !skippedSynchronously && !forceQueryFn) {
           const record = ensureRecord(runtime, queryCacheKey)
           record.request = statePromise
 
@@ -604,7 +604,8 @@ You must add the middleware for RTK-Query to function correctly!`,
           reset,
         })
 
-        const runningMutations = getRunningMutations(dispatch)!
+        const runningMutations = getRunningMutations(dispatch)
+        if (!runningMutations) return ret
 
         runningMutations.set(requestId, ret)
         ret.then(() => {
