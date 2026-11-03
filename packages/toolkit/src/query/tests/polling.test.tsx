@@ -3,6 +3,7 @@ import { createApi } from '@reduxjs/toolkit/query'
 import type { QueryActionCreatorResult } from '@reduxjs/toolkit/query'
 import { delay } from 'msw'
 import { actionsReducer, setupApiStore } from '../../tests/utils/helpers'
+import type { QueryCacheKey } from '../core/apiState'
 import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
 
 const mockBaseQuery = vi
@@ -655,6 +656,83 @@ describe('poll scheduling', () => {
     await subscription.refetch()
 
     expect(getPolls().has(subscription.queryCacheKey)).toBe(false)
+
+    subscription.unsubscribe()
+  })
+
+  it('a slower polling interval pushes back the pending poll', async () => {
+    const { api, store, requests } = makePollApi()
+
+    const subscription = store.dispatch(
+      api.endpoints.getThing.initiate('a', {
+        subscriptionOptions: { pollingInterval: 50 },
+      }),
+    )
+    await vi.advanceTimersByTimeAsync(10)
+    expect(requests).toEqual(['a'])
+
+    subscription.updateSubscriptionOptions({ pollingInterval: 200 })
+
+    // The old 50ms poll would have fired by now
+    await vi.advanceTimersByTimeAsync(100)
+    expect(requests).toEqual(['a'])
+
+    // The new interval counts from the start of the current wait
+    await vi.advanceTimersByTimeAsync(95)
+    expect(requests).toEqual(['a', 'a'])
+
+    subscription.unsubscribe()
+  })
+
+  it('a faster polling interval keeps the earlier deadline rule', async () => {
+    const { api, store, requests } = makePollApi()
+
+    const subscription = store.dispatch(
+      api.endpoints.getThing.initiate('a', {
+        subscriptionOptions: { pollingInterval: 200 },
+      }),
+    )
+    await vi.advanceTimersByTimeAsync(100)
+    expect(requests).toEqual(['a'])
+
+    subscription.updateSubscriptionOptions({ pollingInterval: 50 })
+
+    await vi.advanceTimersByTimeAsync(45)
+    expect(requests).toEqual(['a'])
+
+    await vi.advanceTimersByTimeAsync(10)
+    expect(requests).toEqual(['a', 'a'])
+
+    subscription.unsubscribe()
+  })
+
+  it('removing the cache entry stops its poll', async () => {
+    const { api, store, requests } = makePollApi()
+
+    const subscription = store.dispatch(
+      api.endpoints.getThing.initiate('a', {
+        subscriptionOptions: { pollingInterval: 50 },
+      }),
+    )
+    await vi.advanceTimersByTimeAsync(10)
+
+    const getPolls = () =>
+      store.dispatch({
+        type: `${api.reducerPath}/getPolling`,
+      }) as unknown as Map<string, unknown>
+
+    expect(getPolls().has(subscription.queryCacheKey)).toBe(true)
+
+    store.dispatch(
+      api.internalActions.removeQueryResult({
+        queryCacheKey: subscription.queryCacheKey as QueryCacheKey,
+      }),
+    )
+
+    expect(getPolls().has(subscription.queryCacheKey)).toBe(false)
+
+    await vi.advanceTimersByTimeAsync(100)
+    expect(requests).toEqual(['a'])
 
     subscription.unsubscribe()
   })

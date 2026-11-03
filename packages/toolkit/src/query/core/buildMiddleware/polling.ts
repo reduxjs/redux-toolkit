@@ -50,6 +50,10 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
       startNextPoll(action.meta.arg, mwApi)
     }
 
+    if (api.internalActions.removeQueryResult.match(action)) {
+      cleanupPollForKey(action.payload.queryCacheKey)
+    }
+
     if (api.util.resetApiState.match(action)) {
       clearPolls()
       // Clear any pending updates
@@ -88,6 +92,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
   function startNextPoll(
     { queryCacheKey }: QuerySubstateIdentifier,
     api: SubMiddlewareApi,
+    delay?: number,
   ) {
     const state = api.getState()[reducerPath]
     const querySubState = state.queries[queryCacheKey]
@@ -123,7 +128,8 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
       lowestPollingInterval,
       THIRTY_TWO_BIT_MAX_INT,
     )
-    const nextPollTimestamp = Date.now() + pollingInterval
+    const timeoutMs = delay ?? pollingInterval
+    const nextPollTimestamp = Date.now() + timeoutMs
 
     currentPolls.set(queryCacheKey, {
       nextPollTimestamp,
@@ -154,7 +160,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
           api.dispatch(refetchQuery(currentQuerySubState))
         }
         startNextPoll({ queryCacheKey }, api)
-      }, pollingInterval),
+      }, timeoutMs),
     })
   }
 
@@ -184,9 +190,26 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
 
     const currentPoll = currentPolls.get(queryCacheKey)
 
-    const nextPollTimestamp = Date.now() + lowestPollingInterval
+    if (!currentPoll) {
+      startNextPoll({ queryCacheKey }, api)
+      return
+    }
 
-    if (!currentPoll || nextPollTimestamp < currentPoll.nextPollTimestamp) {
+    const pollingInterval = Math.min(
+      lowestPollingInterval,
+      THIRTY_TWO_BIT_MAX_INT,
+    )
+    if (pollingInterval > currentPoll.pollingInterval) {
+      // A slower interval pushes the pending poll back, counting from when
+      // the current wait started
+      const lastPollStart =
+        currentPoll.nextPollTimestamp - currentPoll.pollingInterval
+      startNextPoll(
+        { queryCacheKey },
+        api,
+        lastPollStart + pollingInterval - Date.now(),
+      )
+    } else if (Date.now() + pollingInterval < currentPoll.nextPollTimestamp) {
       startNextPoll({ queryCacheKey }, api)
     }
   }
