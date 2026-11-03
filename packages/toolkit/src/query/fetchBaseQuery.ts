@@ -44,7 +44,7 @@ const defaultValidateStatus = (response: Response) =>
   response.status >= 200 && response.status <= 299
 
 const defaultIsJsonContentType = (headers: Headers) =>
-  /*applicat*/ /ion\/(vnd\.api\+)?json/.test(headers.get('content-type') || '')
+  /*applicat*/ /ion\/(vnd\.api\+)?json/i.test(headers.get('content-type') || '')
 
 export type FetchBaseQueryError =
   | {
@@ -105,6 +105,16 @@ function stripUndefined(obj: any) {
   }
   return copy
 }
+
+// Checks the toString tag rather than `instanceof` so bodies from another realm
+// (iframes, jsdom, a polyfilled fetch) are still recognized
+const hasToStringTag = (body: unknown, tag: string) =>
+  Object.prototype.toString.call(body) === `[object ${tag}]`
+
+// The runtime has to set the content-type for these: FormData needs its multipart
+// boundary, URLSearchParams gets the form-urlencoded type
+const needsRuntimeContentType = (body: unknown) =>
+  hasToStringTag(body, 'FormData') || hasToStringTag(body, 'URLSearchParams')
 
 // Only set the content-type to json if appropriate. Will not be true for FormData, ArrayBuffer, Blob, etc.
 const isJsonifiable = (body: any) =>
@@ -259,12 +269,17 @@ export function fetchBaseQuery({
 
       const bodyIsJsonifiable = isJsonifiable(config.body)
 
-      // Remove content-type for non-jsonifiable bodies to let the browser set it automatically
-      // Exception: keep content-type for string bodies as they might be intentional (text/plain, text/html, etc.)
+      // For non-jsonifiable bodies, remove content-type when the runtime has to set it
+      // (FormData, URLSearchParams) or when it's a JSON type that doesn't fit the body
+      // (e.g. set for every request in prepareHeaders). Other explicit types are kept, so binary
+      // uploads can send e.g. application/octet-stream. String bodies keep theirs (text/plain, text/html, etc.)
       if (
         config.body != null &&
         !bodyIsJsonifiable &&
-        typeof config.body !== 'string'
+        typeof config.body !== 'string' &&
+        (needsRuntimeContentType(config.body) ||
+          defaultIsJsonContentType(config.headers) ||
+          isJsonContentType(config.headers))
       ) {
         config.headers.delete('content-type')
       }
