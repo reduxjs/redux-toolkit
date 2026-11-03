@@ -53,6 +53,8 @@ export interface InternalMiddlewareState {
     | undefined
   >
   runningMutations: Map<string, MutationActionCreatorResult<any> | undefined>
+  /** Test-only: how often `updatePollingInterval` ran for each key */
+  pollUpdateCounters?: Record<string, number>
 }
 
 export interface SubscriptionSelectors {

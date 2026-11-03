@@ -1,4 +1,4 @@
-import type { Middleware } from '@reduxjs/toolkit'
+import type { Middleware, UnknownAction } from '@reduxjs/toolkit'
 import { configureStore, isAction } from '@reduxjs/toolkit'
 import { createApi } from '@reduxjs/toolkit/query'
 import { delay } from 'msw'
@@ -156,7 +156,7 @@ it.each([
   },
 )
 
-it('correctly stringifies subscription state and dispatches subscriptionsUpdated', async () => {
+it('syncs subscription state to the store with subscriptionsUpdated', async () => {
   // Create a fresh store for this test to avoid interference
   const testStoreRef = setupApiStore(
     api,
@@ -215,6 +215,81 @@ it('correctly stringifies subscription state and dispatches subscriptionsUpdated
   expect(
     subscriptionState['getBananas(undefined)']?.[subscription3.requestId],
   ).toEqual({})
+})
+
+it('records subscription patches directly and only syncs when subscribers change', async () => {
+  vi.useFakeTimers()
+  try {
+    const syncActions: UnknownAction[] = []
+    const recordSyncs: Middleware = () => (next) => (action) => {
+      if (api.internalActions.subscriptionsUpdated.match(action)) {
+        syncActions.push(action)
+      }
+      return next(action)
+    }
+    const store = configureStore({
+      reducer: { [api.reducerPath]: api.reducer },
+      middleware: (gdm) =>
+        gdm({ serializableCheck: false, immutableCheck: false })
+          .concat(api.middleware)
+          .concat(recordSyncs),
+    })
+    const getSubscriptionState = () =>
+      store.getState()[api.reducerPath].subscriptions
+
+    const sub1 = store.dispatch(getBanana.initiate(1))
+    const sub2 = store.dispatch(
+      getBanana.initiate(1, { subscriptionOptions: { pollingInterval: 1000 } }),
+    )
+    const sub3 = store.dispatch(getBanana.initiate(2))
+    await vi.advanceTimersByTimeAsync(600)
+
+    expect(syncActions).toHaveLength(1)
+    expect(syncActions[0].payload).toEqual([
+      { op: 'add', path: ['getBanana(1)'], value: { [sub1.requestId]: {} } },
+      {
+        op: 'add',
+        path: ['getBanana(1)', sub2.requestId],
+        value: { pollingInterval: 1000 },
+      },
+      { op: 'add', path: ['getBanana(2)'], value: { [sub3.requestId]: {} } },
+    ])
+    expect(getSubscriptionState()).toEqual({
+      'getBanana(1)': {
+        [sub1.requestId]: {},
+        [sub2.requestId]: { pollingInterval: 1000 },
+      },
+      'getBanana(2)': { [sub3.requestId]: {} },
+    })
+
+    // Refetches that do not subscribe, including polls, do not re-arm the sync
+    await store.dispatch(
+      getBanana.initiate(1, { subscribe: false, forceRefetch: true }),
+    )
+    await vi.advanceTimersByTimeAsync(1600)
+    expect(syncActions).toHaveLength(1)
+
+    const stateBeforeUnsubscribe = getSubscriptionState()
+    sub3.unsubscribe()
+    await vi.advanceTimersByTimeAsync(600)
+
+    expect(syncActions).toHaveLength(2)
+    expect(syncActions[1].payload).toEqual([
+      { op: 'remove', path: ['getBanana(2)', sub3.requestId] },
+    ])
+    const stateAfterUnsubscribe = getSubscriptionState()
+    expect(stateAfterUnsubscribe).not.toBe(stateBeforeUnsubscribe)
+    expect(stateAfterUnsubscribe['getBanana(1)']).toBe(
+      stateBeforeUnsubscribe['getBanana(1)'],
+    )
+    expect(stateAfterUnsubscribe['getBanana(2)']).toEqual({})
+
+    sub1.unsubscribe()
+    sub2.unsubscribe()
+    store.dispatch(api.util.resetApiState())
+  } finally {
+    vi.useRealTimers()
+  }
 })
 
 it('does not leak subscription state between multiple stores using the same API instance (SSR scenario)', async () => {
