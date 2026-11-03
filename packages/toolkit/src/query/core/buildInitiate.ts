@@ -44,7 +44,8 @@ import type {
   ThunkApiMetaConfig,
 } from './buildThunks'
 import type { ApiEndpointQuery } from './module'
-import type { InternalMiddlewareState } from './buildMiddleware/types'
+import type { RunningQuery, StoreRuntime } from './buildMiddleware/runtime'
+import { ensureRecord, pruneRecord } from './buildMiddleware/runtime'
 
 export type BuildInitiateApiEndpointQuery<
   Definition extends QueryDefinition<any, any, any, any, any>,
@@ -284,7 +285,7 @@ export function buildInitiate({
   mutationThunk,
   api,
   context,
-  getInternalState,
+  getRuntime,
 }: {
   serializeQueryArgs: InternalSerializeQueryArgs
   queryThunk: QueryThunk
@@ -292,12 +293,12 @@ export function buildInitiate({
   mutationThunk: MutationThunk
   api: Api<any, EndpointDefinitions, any, any>
   context: ApiContext<EndpointDefinitions>
-  getInternalState: (dispatch: Dispatch) => InternalMiddlewareState
+  getRuntime: (dispatch: Dispatch) => StoreRuntime
 }) {
-  const getRunningQueries = (dispatch: Dispatch) =>
-    getInternalState(dispatch)?.runningQueries
+  const getRunningQuery = (dispatch: Dispatch, queryCacheKey: string) =>
+    getRuntime(dispatch).queries.get(queryCacheKey)?.request
   const getRunningMutations = (dispatch: Dispatch) =>
-    getInternalState(dispatch)?.runningMutations
+    getRuntime(dispatch).runningMutations
 
   const {
     unsubscribeQueryResult,
@@ -322,7 +323,7 @@ export function buildInitiate({
         endpointDefinition,
         endpointName,
       })
-      return getRunningQueries(dispatch)?.get(queryCacheKey) as
+      return getRunningQuery(dispatch, queryCacheKey) as
         | QueryActionCreatorResult<never>
         | InfiniteQueryActionCreatorResult<never>
         | undefined
@@ -345,8 +346,13 @@ export function buildInitiate({
   }
 
   function getRunningQueriesThunk() {
-    return (dispatch: Dispatch) =>
-      filterNullishValues(getRunningQueries(dispatch))
+    return (dispatch: Dispatch) => {
+      const running: RunningQuery[] = []
+      for (const record of getRuntime(dispatch).queries.values()) {
+        if (record.request) running.push(record.request)
+      }
+      return running
+    }
   }
 
   function getRunningMutationsThunk() {
@@ -459,7 +465,7 @@ You must add the middleware for RTK-Query to function correctly!`,
         const runningQuery =
           arg === skipToken
             ? undefined
-            : getRunningQueries(dispatch)?.get(queryCacheKey)
+            : getRunningQuery(dispatch, queryCacheKey)
         const selectFromState = () => selector(getState())
 
         const statePromise: AnyActionCreatorResult = Object.assign(
@@ -523,12 +529,14 @@ You must add the middleware for RTK-Query to function correctly!`,
         )
 
         if (!skippedSynchronously && !forceQueryFn) {
-          const runningQueries = getRunningQueries(dispatch)!
-          runningQueries.set(queryCacheKey, statePromise)
+          const runtime = getRuntime(dispatch)
+          const record = ensureRecord(runtime, queryCacheKey)
+          record.request = statePromise
 
           const removeRunningQuery = () => {
-            if (runningQueries.get(queryCacheKey) === statePromise) {
-              runningQueries.delete(queryCacheKey)
+            if (record.request === statePromise) {
+              record.request = undefined
+              pruneRecord(runtime, queryCacheKey)
             }
           }
           statePromise.then(removeRunningQuery, removeRunningQuery)

@@ -18,7 +18,7 @@ import type {
   InternalHandlerBuilder,
   ApiMiddlewareInternalHandler,
 } from './types'
-import { getOrInsertComputed, createNewMap } from '../../utils/getOrInsert'
+import { ensureRecord } from './runtime'
 
 export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
   reducerPath,
@@ -29,7 +29,7 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
   api,
   assertTagType,
   refetchQuery,
-  internalState,
+  runtime,
 }) => {
   const { removeQueryResult } = api.internalActions
   const isThunkActionWithTags = isAnyOf(
@@ -41,14 +41,12 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
     isFulfilled(queryThunk, mutationThunk),
     isRejected(queryThunk, mutationThunk),
   )
-  let pendingTagInvalidations: FullTagDescription<string>[] = []
-  // Track request IDs so we can avoid iterating over state every time
-  const pendingRequestIds = new Set<string>()
+  const { pendingRequestIds } = runtime
 
   const handler: ApiMiddlewareInternalHandler = (action, mwApi) => {
     if (api.util.resetApiState.match(action)) {
       pendingRequestIds.clear()
-      pendingTagInvalidations = []
+      runtime.pendingTagInvalidations = []
       return
     }
 
@@ -101,7 +99,7 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
     const rootState = mwApi.getState()
     const state = rootState[reducerPath]
 
-    pendingTagInvalidations.push(...newTags)
+    runtime.pendingTagInvalidations.push(...newTags)
 
     if (
       state.config.invalidationBehavior === 'delayed' &&
@@ -110,8 +108,8 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
       return
     }
 
-    const tags = pendingTagInvalidations
-    pendingTagInvalidations = []
+    const tags = runtime.pendingTagInvalidations
+    runtime.pendingTagInvalidations = []
     if (tags.length === 0) return
 
     const toInvalidate = api.util.selectInvalidatedBy(rootState, tags)
@@ -120,11 +118,10 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
       const valuesArray = Array.from(toInvalidate.values())
       for (const { queryCacheKey } of valuesArray) {
         const querySubState = state.queries[queryCacheKey]
-        const subscriptionSubState = getOrInsertComputed(
-          internalState.currentSubscriptions,
+        const subscriptionSubState = (ensureRecord(
+          runtime,
           queryCacheKey,
-          createNewMap,
-        )
+        ).subscribers ??= new Map())
 
         if (querySubState) {
           if (subscriptionSubState.size === 0) {

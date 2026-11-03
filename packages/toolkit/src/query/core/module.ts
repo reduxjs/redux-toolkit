@@ -73,7 +73,8 @@ import type {
 import { buildThunks } from './buildThunks'
 import { createSelector as _createSelector } from './rtkImports'
 import { onFocus, onFocusLost, onOffline, onOnline } from './setupListeners'
-import type { InternalMiddlewareState } from './buildMiddleware/types'
+import type { StoreRuntime } from './buildMiddleware/runtime'
+import { createStoreRuntime } from './buildMiddleware/runtime'
 import { getOrInsertComputed } from '../utils'
 import type { CreateSelectorFunction } from 'reselect'
 
@@ -673,18 +674,10 @@ export const coreModule = ({
     })
     safeAssign(api.internalActions, sliceActions)
 
-    const internalStateMap = new WeakMap<Dispatch, InternalMiddlewareState>()
+    const runtimeMap = new WeakMap<Dispatch, StoreRuntime>()
 
-    const getInternalState = (dispatch: Dispatch) => {
-      const state = getOrInsertComputed(internalStateMap, dispatch, () => ({
-        currentSubscriptions: new Map(),
-        currentPolls: new Map(),
-        runningQueries: new Map(),
-        runningMutations: new Map(),
-      }))
-
-      return state
-    }
+    const getRuntime = (dispatch: Dispatch) =>
+      getOrInsertComputed(runtimeMap, dispatch, createStoreRuntime)
 
     const {
       buildInitiateQuery,
@@ -701,7 +694,7 @@ export const coreModule = ({
       api,
       serializeQueryArgs: serializeQueryArgs as any,
       context,
-      getInternalState,
+      getRuntime,
     })
 
     safeAssign(api.util, {
@@ -721,7 +714,7 @@ export const coreModule = ({
       assertTagType,
       selectors,
       getRunningQueryThunk,
-      getInternalState,
+      getRuntime,
     })
     safeAssign(api.util, middlewareActions)
 

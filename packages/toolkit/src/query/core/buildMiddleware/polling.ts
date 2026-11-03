@@ -12,17 +12,18 @@ import type {
   TimeoutId,
   InternalHandlerBuilder,
   ApiMiddlewareInternalHandler,
-  InternalMiddlewareState,
 } from './types'
+import { ensureRecord, pruneRecord } from './runtime'
 
 export const buildPollingHandler: InternalHandlerBuilder = ({
   reducerPath,
   queryThunk,
   api,
   refetchQuery,
-  internalState,
+  runtime,
 }) => {
-  const { currentPolls, currentSubscriptions } = internalState
+  const getSubscribers = (queryCacheKey: string) =>
+    runtime.queries.get(queryCacheKey)?.subscribers
 
   // Batching state for polling updates
   const pendingPollingUpdates = new Set<string>()
@@ -67,9 +68,9 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
 
   function schedulePollingUpdate(queryCacheKey: string, api: SubMiddlewareApi) {
     if (
-      !currentPolls.has(queryCacheKey) &&
+      !runtime.queries.get(queryCacheKey)?.poll &&
       !Number.isFinite(
-        findLowestPollingInterval(currentSubscriptions.get(queryCacheKey))
+        findLowestPollingInterval(getSubscribers(queryCacheKey))
           .lowestPollingInterval,
       )
     ) {
@@ -96,7 +97,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
   ) {
     const state = api.getState()[reducerPath]
     const querySubState = state.queries[queryCacheKey]
-    const subscriptions = currentSubscriptions.get(queryCacheKey)
+    const subscriptions = getSubscribers(queryCacheKey)
 
     const { lowestPollingInterval } = findLowestPollingInterval(subscriptions)
 
@@ -109,7 +110,8 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
       return
     }
 
-    const currentPoll = currentPolls.get(queryCacheKey)
+    const record = ensureRecord(runtime, queryCacheKey)
+    const currentPoll = record.poll
 
     if (currentPoll?.timeout) {
       clearTimeout(currentPoll.timeout)
@@ -131,7 +133,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
     const timeoutMs = delay ?? pollingInterval
     const nextPollTimestamp = Date.now() + timeoutMs
 
-    currentPolls.set(queryCacheKey, {
+    record.poll = {
       nextPollTimestamp,
       pollingInterval,
       timeout: setTimeout(() => {
@@ -142,7 +144,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
         const {
           lowestPollingInterval: currentPollingInterval,
           skipPollingIfUnfocused,
-        } = findLowestPollingInterval(currentSubscriptions.get(queryCacheKey))
+        } = findLowestPollingInterval(getSubscribers(queryCacheKey))
         if (
           !currentQuerySubState ||
           currentQuerySubState.status === STATUS_UNINITIALIZED ||
@@ -161,7 +163,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
         }
         startNextPoll({ queryCacheKey }, api)
       }, timeoutMs),
-    })
+    }
   }
 
   function updatePollingInterval(
@@ -170,7 +172,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
   ) {
     const state = api.getState()[reducerPath]
     const querySubState = state.queries[queryCacheKey]
-    const subscriptions = currentSubscriptions.get(queryCacheKey)
+    const subscriptions = getSubscribers(queryCacheKey)
 
     if (!querySubState || querySubState.status === STATUS_UNINITIALIZED) {
       return
@@ -179,7 +181,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
     const { lowestPollingInterval } = findLowestPollingInterval(subscriptions)
 
     if (process.env.NODE_ENV === 'test') {
-      const updateCounters = (internalState.pollUpdateCounters ??= {})
+      const updateCounters = (runtime.pollUpdateCounters ??= {})
       updateCounters[queryCacheKey] = (updateCounters[queryCacheKey] ?? 0) + 1
     }
 
@@ -188,7 +190,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
       return
     }
 
-    const currentPoll = currentPolls.get(queryCacheKey)
+    const currentPoll = runtime.queries.get(queryCacheKey)?.poll
 
     if (!currentPoll) {
       startNextPoll({ queryCacheKey }, api)
@@ -215,15 +217,16 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
   }
 
   function cleanupPollForKey(key: string) {
-    const existingPoll = currentPolls.get(key)
-    if (existingPoll?.timeout) {
-      clearTimeout(existingPoll.timeout)
+    const record = runtime.queries.get(key)
+    if (record?.poll) {
+      clearTimeout(record.poll.timeout)
+      record.poll = undefined
+      pruneRecord(runtime, key)
     }
-    currentPolls.delete(key)
   }
 
   function clearPolls() {
-    for (const key of currentPolls.keys()) {
+    for (const key of runtime.queries.keys()) {
       cleanupPollForKey(key)
     }
   }

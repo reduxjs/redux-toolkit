@@ -13,6 +13,7 @@ import type {
   QueryBaseLifecycleApi,
 } from './cacheLifecycle'
 import { runLifecycleCallback, warnIfNoCachedData } from './cacheLifecycle'
+import type { RequestLifecycle } from './runtime'
 import type {
   ApiMiddlewareInternalHandler,
   InternalHandlerBuilder,
@@ -431,16 +432,13 @@ export const buildQueryLifecycleHandler: InternalHandlerBuilder = ({
   context,
   queryThunk,
   mutationThunk,
+  runtime,
 }) => {
   const isPendingThunk = isPending(queryThunk, mutationThunk)
   const isRejectedThunk = isRejected(queryThunk, mutationThunk)
   const isFulfilledThunk = isFulfilled(queryThunk, mutationThunk)
 
-  type CacheLifecycle = {
-    resolve(value: { data: unknown; meta: unknown }): unknown
-    reject(value: QueryFulfilledRejectionReason<any>): unknown
-  }
-  const lifecycleMap: Record<string, CacheLifecycle> = {}
+  const lifecycleMap = runtime.requestLifecycles
 
   const handler: ApiMiddlewareInternalHandler = (action, mwApi) => {
     if (isPendingThunk(action)) {
@@ -451,7 +449,7 @@ export const buildQueryLifecycleHandler: InternalHandlerBuilder = ({
       const endpointDefinition = getEndpointDefinition(context, endpointName)
       const onQueryStarted = endpointDefinition?.onQueryStarted
       if (onQueryStarted) {
-        const lifecycle = {} as CacheLifecycle
+        const lifecycle = {} as RequestLifecycle
         const queryFulfilled =
           new (Promise as PromiseConstructorWithKnownReason)<
             { data: unknown; meta: unknown },
@@ -463,7 +461,7 @@ export const buildQueryLifecycleHandler: InternalHandlerBuilder = ({
         // prevent uncaught promise rejections from happening.
         // if the original promise is used in any way, that will create a new promise that will throw again
         queryFulfilled.catch(() => {})
-        lifecycleMap[requestId] = lifecycle
+        lifecycleMap.set(requestId, lifecycle)
         const selector = (api.endpoints[endpointName] as any).select(
           isAnyQueryDefinition(endpointDefinition)
             ? originalArgs
@@ -504,19 +502,19 @@ export const buildQueryLifecycleHandler: InternalHandlerBuilder = ({
       }
     } else if (isFulfilledThunk(action)) {
       const { requestId, baseQueryMeta } = action.meta
-      lifecycleMap[requestId]?.resolve({
+      lifecycleMap.get(requestId)?.resolve({
         data: action.payload,
         meta: baseQueryMeta,
       })
-      delete lifecycleMap[requestId]
+      lifecycleMap.delete(requestId)
     } else if (isRejectedThunk(action)) {
       const { requestId, rejectedWithValue, baseQueryMeta } = action.meta
-      lifecycleMap[requestId]?.reject({
+      lifecycleMap.get(requestId)?.reject({
         error: action.payload ?? action.error,
         isUnhandledError: !rejectedWithValue,
         meta: baseQueryMeta as any,
       })
-      delete lifecycleMap[requestId]
+      lifecycleMap.delete(requestId)
     }
   }
 
