@@ -541,7 +541,10 @@ export const createListenerMiddleware = <
     }
 
     if (removeListener.match(action)) {
-      return stopListening(action.payload)
+      return stopListening(
+        action.payload as FallbackAddListenerOptions &
+          UnsubscribeListenerOptions,
+      )
     }
 
     // Need to get this state _before_ the reducer processes the action

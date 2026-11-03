@@ -316,6 +316,7 @@ export type ListenerMiddleware<
   {
     (action: Action<'listenerMiddleware/add'>): UnsubscribeListener
     (action: Action<'listenerMiddleware/remove'>): boolean
+    (action: Action<'listenerMiddleware/removeAll'>): void
   },
   State,
   DispatchType
@@ -616,7 +617,11 @@ export type TypedAddListener<
     UnknownAction
   >,
   ExtraArgument = unknown,
-  Payload = ListenerEntry<StateType, DispatchType>,
+  Payload = TypedAddListenerAction<
+    StateType,
+    DispatchType,
+    ExtraArgument
+  >['payload'],
   T extends string = 'listenerMiddleware/add',
 > = BaseActionCreator<Payload, T> &
   AddListenerOverloads<
@@ -679,7 +684,11 @@ export type TypedRemoveListener<
     UnknownAction
   >,
   ExtraArgument = unknown,
-  Payload = ListenerEntry<StateType, DispatchType>,
+  Payload = TypedRemoveListenerAction<
+    StateType,
+    DispatchType,
+    ExtraArgument
+  >['payload'],
   T extends string = 'listenerMiddleware/remove',
 > = BaseActionCreator<Payload, T> &
   AddListenerOverloads<
