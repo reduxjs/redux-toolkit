@@ -24,7 +24,7 @@ import type {
   SubMiddlewareApi,
 } from './types'
 import type { CacheLifecycle } from './runtime'
-import { ensureRecord, pruneRecord } from './runtime'
+import { ensureRecord, getThunkExtra, pruneRecord } from './runtime'
 import { getEndpointDefinition } from '@internal/query/apiTypes'
 
 export type ReferenceCacheLifecycle = never
@@ -419,7 +419,7 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
       isAnyQueryDefinition(endpointDefinition) ? originalArgs : queryCacheKey,
     )
 
-    const extra = mwApi.dispatch((_, __, extra) => extra)
+    const extra = getThunkExtra(runtime, mwApi.dispatch)
     const lifecycleApi = {
       ...mwApi,
       getCacheEntry: () => selector(mwApi.getState()),

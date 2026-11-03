@@ -14,6 +14,7 @@ import type {
 } from './cacheLifecycle'
 import { runLifecycleCallback, warnIfNoCachedData } from './cacheLifecycle'
 import type { RequestLifecycle } from './runtime'
+import { getThunkExtra } from './runtime'
 import type {
   ApiMiddlewareInternalHandler,
   InternalHandlerBuilder,
@@ -468,7 +469,7 @@ export const buildQueryLifecycleHandler: InternalHandlerBuilder = ({
             : getMutationCacheKey(action.meta),
         )
 
-        const extra = mwApi.dispatch((_, __, extra) => extra)
+        const extra = getThunkExtra(runtime, mwApi.dispatch)
         const lifecycleApi = {
           ...mwApi,
           getCacheEntry: () => selector(mwApi.getState()),

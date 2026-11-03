@@ -5,7 +5,7 @@ import type {
   MutationActionCreatorResult,
   QueryActionCreatorResult,
 } from '../buildInitiate'
-import type { TimeoutId } from './types'
+import type { SubMiddlewareApi, TimeoutId } from './types'
 
 export type QueryPollState = {
   nextPollTimestamp: number
@@ -50,6 +50,8 @@ export interface StoreRuntime {
   pendingRequestIds: Set<string>
   pendingTagInvalidations: FullTagDescription<string>[]
   subscriptions: SubscriptionsView
+  /** The thunk middleware's `extraArgument`, read on first use */
+  extra?: { value: unknown }
   pollsView?: PollsView
   /** Test-only: how often `updatePollingInterval` ran for each key */
   pollUpdateCounters?: Record<string, number>
@@ -134,6 +136,15 @@ function createSubscriptionsView(
     },
     [Symbol.iterator]: entries,
   }
+}
+
+export function getThunkExtra(
+  runtime: StoreRuntime,
+  dispatch: SubMiddlewareApi['dispatch'],
+): unknown {
+  return (runtime.extra ??= {
+    value: dispatch((_, __, extra) => extra),
+  }).value
 }
 
 export function getPollsView(runtime: StoreRuntime): PollsView {

@@ -56,6 +56,38 @@ describe('per-store runtime', () => {
     expect(storeA.dispatch(api.util.getRunningMutationsThunk())).toEqual([])
   })
 
+  test('lifecycles receive the thunk extra argument of their own store', async () => {
+    const seen: unknown[] = []
+    const api = createApi({
+      baseQuery: fakeBaseQuery(),
+      endpoints: (build) => ({
+        getValue: build.query<number, number>({
+          queryFn: (arg) => ({ data: arg }),
+          onQueryStarted: (_, { extra }) => {
+            seen.push(extra)
+          },
+          onCacheEntryAdded: (_, { extra }) => {
+            seen.push(extra)
+          },
+        }),
+      }),
+    })
+    const createStoreWithExtra = (extraArgument: string) =>
+      configureStore({
+        reducer: { [api.reducerPath]: api.reducer },
+        middleware: (gdm) =>
+          gdm({ thunk: { extraArgument } }).concat(api.middleware),
+      })
+    const storeA = createStoreWithExtra('a')
+    const storeB = createStoreWithExtra('b')
+
+    await storeA.dispatch(api.endpoints.getValue.initiate(1))
+    await storeB.dispatch(api.endpoints.getValue.initiate(1))
+    await storeA.dispatch(api.endpoints.getValue.initiate(2))
+
+    expect(seen).toEqual(['a', 'a', 'b', 'b', 'a', 'a'])
+  })
+
   test('a store without the middleware does not track running requests', () => {
     vi.stubEnv('NODE_ENV', 'production')
     try {
