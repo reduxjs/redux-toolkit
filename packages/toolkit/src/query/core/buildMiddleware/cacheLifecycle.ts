@@ -23,6 +23,8 @@ import type {
   PromiseWithKnownReason,
   SubMiddlewareApi,
 } from './types'
+import type { CacheLifecycle } from './runtime'
+import { ensureRecord, pruneRecord } from './runtime'
 import { getEndpointDefinition } from '@internal/query/apiTypes'
 
 export type ReferenceCacheLifecycle = never
@@ -227,20 +229,26 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
   context,
   queryThunk,
   mutationThunk,
-  internalState,
+  runtime,
   selectors: { selectQueryEntry, selectApiState },
 }) => {
   const isQueryThunk = isAsyncThunkAction(queryThunk)
   const isMutationThunk = isAsyncThunkAction(mutationThunk)
   const isFulfilledThunk = isFulfilled(queryThunk, mutationThunk)
 
-  type CacheLifecycle = {
-    valueResolved?(value: { data: unknown; meta: unknown }): unknown
-    cacheEntryRemoved(): void
-    // requests started while this lifecycle was waiting for its first data
-    requestIds?: Set<string>
+  const getLifecycle = (cacheKey: string, isMutation: boolean) =>
+    isMutation
+      ? runtime.mutationCacheLifecycles.get(cacheKey)
+      : runtime.queries.get(cacheKey)?.cacheLifecycle
+
+  function setLifecycle(
+    cacheKey: string,
+    isMutation: boolean,
+    lifecycle: CacheLifecycle,
+  ) {
+    if (isMutation) runtime.mutationCacheLifecycles.set(cacheKey, lifecycle)
+    else ensureRecord(runtime, cacheKey).cacheLifecycle = lifecycle
   }
-  const lifecycleMap: Record<string, CacheLifecycle> = {}
 
   const { removeQueryResult, removeMutationResult, cacheEntriesUpserted } =
     api.internalActions
@@ -249,9 +257,10 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
     cacheKey: string,
     data: unknown,
     meta: unknown,
+    isMutation: boolean,
     requestId?: string,
   ) {
-    const lifecycle = lifecycleMap[cacheKey]
+    const lifecycle = getLifecycle(cacheKey, isMutation)
 
     if (
       lifecycle?.valueResolved &&
@@ -266,10 +275,15 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
     }
   }
 
-  function removeLifecycleEntry(cacheKey: string) {
-    const lifecycle = lifecycleMap[cacheKey]
+  function removeLifecycleEntry(cacheKey: string, isMutation: boolean) {
+    const lifecycle = getLifecycle(cacheKey, isMutation)
     if (lifecycle) {
-      delete lifecycleMap[cacheKey]
+      if (isMutation) {
+        runtime.mutationCacheLifecycles.delete(cacheKey)
+      } else {
+        runtime.queries.get(cacheKey)!.cacheLifecycle = undefined
+        pruneRecord(runtime, cacheKey)
+      }
       lifecycle.cacheEntryRemoved()
     }
   }
@@ -308,7 +322,7 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
       const [endpointName, originalArgs, requestId] =
         getActionMetaFields(action)
       checkForNewCacheKey(endpointName, cacheKey, requestId, originalArgs)
-      lifecycleMap[cacheKey]?.requestIds?.add(requestId)
+      getLifecycle(cacheKey, false)?.requestIds?.add(requestId)
     } else if (cacheEntriesUpserted.match(action)) {
       for (const { queryDescription, value } of action.payload) {
         const { endpointName, originalArgs, queryCacheKey } = queryDescription
@@ -319,7 +333,7 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
           originalArgs,
         )
 
-        resolveLifecycleEntry(queryCacheKey, value, {})
+        resolveLifecycleEntry(queryCacheKey, value, {}, false)
       }
     } else if (mutationThunk.pending.match(action)) {
       const state = mwApi.getState()[reducerPath].mutations[cacheKey]
@@ -330,7 +344,7 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
         // cache entry, so the previous trigger's lifecycle ends here.
         // Without a `fixedCacheKey` the cache key is the new requestId and
         // there is nothing to remove.
-        removeLifecycleEntry(cacheKey)
+        removeLifecycleEntry(cacheKey, true)
         handleNewKey(endpointName, originalArgs, cacheKey, mwApi, requestId)
       }
     } else if (isFulfilledThunk(action)) {
@@ -338,16 +352,19 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
         cacheKey,
         action.payload,
         action.meta.baseQueryMeta,
+        isMutationThunk(action),
         action.meta.requestId,
       )
-    } else if (
-      removeQueryResult.match(action) ||
-      removeMutationResult.match(action)
-    ) {
-      removeLifecycleEntry(cacheKey)
+    } else if (removeQueryResult.match(action)) {
+      removeLifecycleEntry(cacheKey, false)
+    } else if (removeMutationResult.match(action)) {
+      removeLifecycleEntry(cacheKey, true)
     } else if (api.util.resetApiState.match(action)) {
-      for (const cacheKey of Object.keys(lifecycleMap)) {
-        removeLifecycleEntry(cacheKey)
+      for (const cacheKey of runtime.queries.keys()) {
+        removeLifecycleEntry(cacheKey, false)
+      }
+      for (const cacheKey of runtime.mutationCacheLifecycles.keys()) {
+        removeLifecycleEntry(cacheKey, true)
       }
     }
   }
@@ -393,7 +410,7 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
     // prevent uncaught promise rejections from happening.
     // if the original promise is used in any way, that will create a new promise that will throw again
     cacheDataLoaded.catch(() => {})
-    lifecycleMap[queryCacheKey] = lifecycle
+    setLifecycle(queryCacheKey, !isAnyQueryDefinition(endpointDefinition), lifecycle)
     const selector = (api.endpoints[endpointName] as any).select(
       isAnyQueryDefinition(endpointDefinition) ? originalArgs : queryCacheKey,
     )

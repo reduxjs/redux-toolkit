@@ -17,9 +17,8 @@ import type {
   QueryStatus,
   QuerySubState,
   RootState,
-  SubscriptionInternalState,
-  SubscriptionState,
 } from '../apiState'
+import type { StoreRuntime, SubscriptionsView } from './runtime'
 import type {
   InfiniteQueryThunk,
   MutationThunk,
@@ -37,26 +36,8 @@ import type { AllSelectors } from '../buildSelectors'
 export type QueryStateMeta<T> = Record<string, undefined | T>
 export type TimeoutId = ReturnType<typeof setTimeout>
 
-type QueryPollState = {
-  nextPollTimestamp: number
-  timeout?: TimeoutId
-  pollingInterval: number
-}
-
-export interface InternalMiddlewareState {
-  currentSubscriptions: SubscriptionInternalState
-  currentPolls: Map<string, QueryPollState>
-  runningQueries: Map<
-    string,
-    | QueryActionCreatorResult<any>
-    | InfiniteQueryActionCreatorResult<any>
-    | undefined
-  >
-  runningMutations: Map<string, MutationActionCreatorResult<any> | undefined>
-}
-
 export interface SubscriptionSelectors {
-  getSubscriptions: () => SubscriptionInternalState
+  getSubscriptions: () => SubscriptionsView
   getSubscriptionCount: (queryCacheKey: string) => number
   isRequestSubscribed: (queryCacheKey: string, requestId: string) => boolean
 }
@@ -78,7 +59,7 @@ export interface BuildMiddlewareInput<
     endpointName: string,
     queryArgs: any,
   ) => (dispatch: Dispatch) => QueryActionCreatorResult<any> | undefined
-  getInternalState: (dispatch: Dispatch) => InternalMiddlewareState
+  getRuntime: (dispatch: Dispatch) => StoreRuntime
 }
 
 export type SubMiddlewareApi = MiddlewareAPI<
@@ -91,7 +72,7 @@ export interface BuildSubMiddlewareInput extends BuildMiddlewareInput<
   string,
   string
 > {
-  internalState: InternalMiddlewareState
+  runtime: StoreRuntime
   refetchQuery(
     querySubState: Exclude<
       QuerySubState<any>,

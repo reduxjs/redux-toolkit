@@ -22,7 +22,6 @@ import { registerMiddleware } from './registration'
 import type {
   BuildMiddlewareInput,
   InternalHandlerBuilder,
-  InternalMiddlewareState,
 } from './types'
 import { buildWindowEventHandler } from './windowEventHandling'
 import type { ApiEndpointQuery } from '../module'
@@ -46,7 +45,7 @@ export function buildMiddleware<
   ReducerPath extends string,
   TagTypes extends string,
 >(input: BuildMiddlewareInput<Definitions, ReducerPath, TagTypes>) {
-  const { reducerPath, queryThunk, api, context, getInternalState } = input
+  const { reducerPath, queryThunk, api, context, getRuntime } = input
   const { apiUid } = context
 
   const actions = {
@@ -74,7 +73,7 @@ export function buildMiddleware<
   > = (mwApi) => {
     let initialized = false
 
-    const internalState = getInternalState(mwApi.dispatch)
+    const runtime = getRuntime(mwApi.dispatch)
 
     const builderArgs = {
       ...(input as any as BuildMiddlewareInput<
@@ -82,7 +81,7 @@ export function buildMiddleware<
         string,
         string
       >),
-      internalState,
+      runtime,
       refetchQuery,
       isThisApiSliceAction,
       mwApi,

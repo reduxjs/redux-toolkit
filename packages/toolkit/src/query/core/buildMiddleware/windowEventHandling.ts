@@ -12,7 +12,7 @@ export const buildWindowEventHandler: InternalHandlerBuilder = ({
   context,
   api,
   refetchQuery,
-  internalState,
+  runtime,
 }) => {
   const { removeQueryResult } = api.internalActions
 
@@ -31,12 +31,10 @@ export const buildWindowEventHandler: InternalHandlerBuilder = ({
   ) {
     const state = api.getState()[reducerPath]
     const queries = state.queries
-    const subscriptions = internalState.currentSubscriptions
-
     context.batch(() => {
-      for (const queryCacheKey of subscriptions.keys()) {
+      for (const [queryCacheKey, record] of runtime.queries) {
         const querySubState = queries[queryCacheKey]
-        const subscriptionSubState = subscriptions.get(queryCacheKey)
+        const subscriptionSubState = record.subscribers
 
         if (!subscriptionSubState || !querySubState) continue
 
