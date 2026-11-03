@@ -15,6 +15,10 @@ import type {
 } from './types'
 import { ensureRecord, getPollsView, pruneRecord } from './runtime'
 
+// Prototype switches for the phase 2 normalize experiments
+const NORMALIZE_POLL_INTERVAL = true
+const NORMALIZE_POLL_REMOVAL = true
+
 export const buildPollingHandler: InternalHandlerBuilder = ({
   reducerPath,
   queryThunk,
@@ -51,6 +55,17 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
       startNextPoll(action.meta.arg, mwApi)
     }
 
+    if (NORMALIZE_POLL_REMOVAL) {
+      if (api.internalActions.removeQueryResult.match(action)) {
+        cleanupPollForKey(action.payload.queryCacheKey)
+      }
+      if (api.internalActions.cacheEntriesUpserted.match(action)) {
+        for (const { queryDescription } of action.payload) {
+          schedulePollingUpdate(queryDescription.queryCacheKey, mwApi)
+        }
+      }
+    }
+
     if (api.util.resetApiState.match(action)) {
       clearPolls()
       // Clear any pending updates
@@ -80,6 +95,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
   function startNextPoll(
     { queryCacheKey }: QuerySubstateIdentifier,
     api: SubMiddlewareApi,
+    delay?: number,
   ) {
     const state = api.getState()[reducerPath]
     const querySubState = state.queries[queryCacheKey]
@@ -116,7 +132,8 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
       lowestPollingInterval,
       THIRTY_TWO_BIT_MAX_INT,
     )
-    const nextPollTimestamp = Date.now() + pollingInterval
+    const timeoutMs = delay ?? pollingInterval
+    const nextPollTimestamp = Date.now() + timeoutMs
 
     record.poll = {
       nextPollTimestamp,
@@ -147,7 +164,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
           api.dispatch(refetchQuery(currentQuerySubState))
         }
         startNextPoll({ queryCacheKey }, api)
-      }, pollingInterval),
+      }, timeoutMs),
     }
   }
 
@@ -180,9 +197,27 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
 
     const currentPoll = runtime.queries.get(queryCacheKey)?.poll
 
-    const nextPollTimestamp = Date.now() + lowestPollingInterval
-
-    if (!currentPoll || nextPollTimestamp < currentPoll.nextPollTimestamp) {
+    if (!currentPoll) {
+      startNextPoll({ queryCacheKey }, api)
+      return
+    }
+    const interval = Math.min(lowestPollingInterval, THIRTY_TWO_BIT_MAX_INT)
+    if (
+      NORMALIZE_POLL_INTERVAL &&
+      currentPoll.timeout &&
+      currentPoll.pollingInterval !== interval
+    ) {
+      // Keep the time already waited and move the deadline to match the new
+      // interval, faster or slower.
+      const lastStart = currentPoll.nextPollTimestamp - currentPoll.pollingInterval
+      startNextPoll(
+        { queryCacheKey },
+        api,
+        Math.max(0, lastStart + interval - Date.now()),
+      )
+      return
+    }
+    if (Date.now() + lowestPollingInterval < currentPoll.nextPollTimestamp) {
       startNextPoll({ queryCacheKey }, api)
     }
   }

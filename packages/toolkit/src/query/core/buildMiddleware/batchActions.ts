@@ -156,6 +156,13 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
     ) {
       return [false, getPollsView(runtime)] as any
     }
+    if (
+      process.env.NODE_ENV === 'test' &&
+      typeof action.type === 'string' &&
+      action.type === `${api.reducerPath}/getRuntime`
+    ) {
+      return [false, runtime] as any
+    }
 
     if (didMutate) {
       if (!updateSyncTimer) {
