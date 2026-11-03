@@ -37,6 +37,23 @@ export type {
 } from './queryLifecycle'
 export type { SubscriptionSelectors } from './types'
 
+/**
+ * Handlers for API slice and rehydration actions, run in this order after
+ * the reducer. Subscription sync runs before all of them, ahead of the
+ * reducer, so cache collection sees the updated subscriber count when it
+ * decides whether to start a removal timer. Tag invalidation runs before
+ * polling and the lifecycles, so refetches it starts are dispatched before
+ * those handlers see the action that finished the last pending request.
+ */
+export const handlerBuilders: InternalHandlerBuilder[] = [
+  buildDevCheckHandler,
+  buildCacheCollectionHandler,
+  buildInvalidationByTagsHandler,
+  buildPollingHandler,
+  buildCacheLifecycleHandler,
+  buildQueryLifecycleHandler,
+]
+
 export function buildMiddleware<
   Definitions extends EndpointDefinitions,
   ReducerPath extends string,
@@ -53,15 +70,6 @@ export function buildMiddleware<
 
   const isThisApiSliceAction = (action: Action) =>
     action.type.startsWith(`${reducerPath}/`)
-
-  const handlerBuilders: InternalHandlerBuilder[] = [
-    buildDevCheckHandler,
-    buildCacheCollectionHandler,
-    buildInvalidationByTagsHandler,
-    buildPollingHandler,
-    buildCacheLifecycleHandler,
-    buildQueryLifecycleHandler,
-  ]
 
   const middleware: Middleware<
     {},
