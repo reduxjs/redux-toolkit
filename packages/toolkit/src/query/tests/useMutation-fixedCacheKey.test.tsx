@@ -498,12 +498,16 @@ describe('fixedCacheKey shared by several mutation calls', () => {
     const { triggerTwiceThenReset, counts } = setupLifecycleApi()
     await triggerTwiceThenReset()
 
-    // Known current behavior that may change; documenting it as the baseline (#5539)
-    expect(counts()).toEqual({ started: 2, cacheEntriesAdded: 2, removed: [2] })
+    // Re-triggering ends the previous lifecycle, so both entries are removed (#5539)
+    expect(counts()).toEqual({
+      started: 2,
+      cacheEntriesAdded: 2,
+      removed: [1, 2],
+    })
   })
 
   // https://github.com/reduxjs/redux-toolkit/issues/5539
-  test.fails('every started cache lifecycle gets cacheEntryRemoved', async () => {
+  test('every started cache lifecycle gets cacheEntryRemoved', async () => {
     const { triggerTwiceThenReset, counts } = setupLifecycleApi()
     await triggerTwiceThenReset()
 
