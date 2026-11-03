@@ -8,6 +8,10 @@ import type {
   Update,
 } from './models'
 
+export function hasEntity(entities: object, id: EntityId): boolean {
+  return Object.prototype.hasOwnProperty.call(entities, id)
+}
+
 export function selectIdValue<T, Id extends EntityId>(
   entity: T,
   selectId: IdSelector<T, Id>,

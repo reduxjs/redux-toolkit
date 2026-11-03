@@ -17,6 +17,7 @@ import {
   splitAddedUpdatedEntities,
   getCurrent,
   isRemoveManyFilter,
+  hasEntity,
 } from './utils'
 
 export function createUnsortedStateAdapter<T, Id extends EntityId>(
@@ -27,7 +28,7 @@ export function createUnsortedStateAdapter<T, Id extends EntityId>(
   function addOneMutably(entity: T, state: R): void {
     const key = selectIdValue(entity, selectId)
 
-    if (key in state.entities) {
+    if (key === '__proto__' || hasEntity(state.entities, key)) {
       return
     }
 
@@ -48,7 +49,10 @@ export function createUnsortedStateAdapter<T, Id extends EntityId>(
 
   function setOneMutably(entity: T, state: R): void {
     const key = selectIdValue(entity, selectId)
-    if (!(key in state.entities)) {
+    if (key === '__proto__') {
+      return
+    }
+    if (!hasEntity(state.entities, key)) {
       state.ids.push(key as Id & Draft<Id>)
     }
     ;(state.entities as Record<Id, T>)[key] = entity
@@ -91,7 +95,7 @@ export function createUnsortedStateAdapter<T, Id extends EntityId>(
     const removedIds = new Set<string>()
 
     for (const key of keys) {
-      if (key in state.entities) {
+      if (hasEntity(state.entities, key)) {
         delete (state.entities as Record<Id, T>)[key]
         removedIds.add(String(key))
       }
@@ -162,7 +166,7 @@ export function createUnsortedStateAdapter<T, Id extends EntityId>(
 
     updates.forEach((update) => {
       // Only apply updates to entities that currently exist
-      if (update.id in state.entities) {
+      if (hasEntity(state.entities, update.id)) {
         // If there are multiple updates to one entity, merge them together
         updatesPerEntity[update.id] = {
           id: update.id,

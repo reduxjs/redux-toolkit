@@ -197,7 +197,7 @@ export function executeReducerBuilderCallback<S>(
   ActionMatcherDescriptionCollection<S>,
   CaseReducer<S, Action> | undefined,
 ] {
-  const actionsMap: CaseReducers<S, any> = {}
+  const actionsMap: CaseReducers<S, any> = Object.create(null)
   const actionMatchers: ActionMatcherDescriptionCollection<S> = []
   let defaultCaseReducer: CaseReducer<S, Action> | undefined
   const builder: ActionReducerMapBuilder<S> = {

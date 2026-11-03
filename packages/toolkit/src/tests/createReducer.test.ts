@@ -296,6 +296,27 @@ describe('createReducer', () => {
       expect(reducer(0, increment(5))).toBe(5)
       expect(reducer(5, decrement(5))).toBe(0)
     })
+    test.each(['toString', 'constructor', 'hasOwnProperty', 'valueOf'])(
+      'ignores actions with the Object.prototype key %s as their type',
+      (type) => {
+        const state = { value: 0 }
+        const reducer = createReducer(state, (builder) =>
+          builder.addCase(increment, (state, action) => {
+            state.value += action.payload
+          }),
+        )
+        expect(reducer(state, { type })).toBe(state)
+      },
+    )
+    test.each(['toString', 'constructor', 'hasOwnProperty', 'valueOf'])(
+      'can add a case for the Object.prototype key %s',
+      (type) => {
+        const reducer = createReducer(0, (builder) =>
+          builder.addCase(type, (state) => state + 1),
+        )
+        expect(reducer(0, { type })).toBe(1)
+      },
+    )
     test('will throw an error when returning undefined from a non-draftable state', () => {
       const reducer = createReducer(0, (builder) =>
         builder.addCase(

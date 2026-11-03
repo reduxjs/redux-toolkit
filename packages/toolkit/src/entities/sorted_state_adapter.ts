@@ -13,6 +13,7 @@ import {
   ensureEntitiesArray,
   splitAddedUpdatedEntities,
   getCurrent,
+  hasEntity,
 } from './utils'
 
 // Borrowed from Replay
@@ -136,7 +137,7 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
     for (const update of updates) {
       // Only collect updates for entities that currently exist (same guard
       // used by the unsorted adapter).
-      if (update.id in (state.entities as Record<Id, T>)) {
+      if (hasEntity(state.entities, update.id)) {
         updatesPerEntity[update.id] = {
           id: update.id,
           changes: {

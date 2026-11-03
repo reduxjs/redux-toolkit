@@ -1,6 +1,7 @@
 import type { CreateSelectorFunction, Selector } from 'reselect'
 import { createDraftSafeSelector } from '../createDraftSafeSelector'
 import type { EntityId, EntitySelectors, EntityState } from './models'
+import { hasEntity } from './utils'
 
 type AnyCreateSelectorFunction = CreateSelectorFunction<any, any, any>
 
@@ -37,7 +38,8 @@ export function createSelectorsFactory<T, Id extends EntityId>() {
 
     const selectId = (_: unknown, id: Id) => id
 
-    const selectById = (entities: Record<Id, T>, id: Id) => entities[id]
+    const selectById = (entities: Record<Id, T>, id: Id) =>
+      hasEntity(entities, id) ? entities[id] : (undefined as Record<Id, T>[Id])
 
     const selectTotal = createSelector(selectIds, (ids) => ids.length)
 
@@ -46,9 +48,11 @@ export function createSelectorsFactory<T, Id extends EntityId>() {
     const selectByIds = (entities: Record<Id, T>, ids: readonly Id[]): T[] => {
       const result: T[] = []
       for (const id of ids) {
-        const entity = entities[id]
-        if (entity !== undefined) {
-          result.push(entity)
+        if (hasEntity(entities, id)) {
+          const entity = entities[id]
+          if (entity !== undefined) {
+            result.push(entity)
+          }
         }
       }
       return result
