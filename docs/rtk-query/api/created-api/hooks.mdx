@@ -258,6 +258,20 @@ The provided hooks have a degree of feature overlap in order to provide options 
   </tbody>
 </table>
 
+### Changing the Store Passed to `<Provider>`
+
+Most apps create one Redux store and pass it to `<Provider>` for the lifetime of the app. If your app does replace the store (for example, a separate store per signed-in user or per tenant), give the `<Provider>` a `key` that changes along with the store:
+
+```tsx no-transpile
+<Provider store={store} key={storeId}>
+  <App />
+</Provider>
+```
+
+The hooks hold on to subscriptions and request IDs from the store they first rendered with. Changing the `key` makes React unmount the components under the `Provider` and mount new ones, so the old hooks unsubscribe from the old store and the new hooks subscribe to the new store. Local component state under the `Provider` is reset as part of the remount.
+
+Without a changing `key`, the hooks keep their subscriptions on the original store and do not load data from the new one. In development builds, RTK Query logs a warning when this happens.
+
 ## Primary Hooks
 
 These hooks are the main methods you will use to interact with RTK Query in your React components. They encapsulate all of logic and options needed for most data fetching and update use cases.

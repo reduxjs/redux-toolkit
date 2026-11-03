@@ -1538,6 +1538,24 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     ref.current = undefined
   }
 
+  let hasWarnedAboutStoreChange = false
+
+  // Only called in development builds. The hooks keep subscriptions and
+  // request ids from the store they first rendered with, so a swapped store
+  // needs a remount (a `key` on the Provider) to work correctly.
+  const useWarnIfStoreChanged = (
+    dispatch: ThunkDispatch<any, any, UnknownAction>,
+  ) => {
+    const initialDispatchRef = useRef(dispatch)
+    if (!hasWarnedAboutStoreChange && initialDispatchRef.current !== dispatch) {
+      hasWarnedAboutStoreChange = true
+      console.warn(
+        `RTK Query hooks for the API at reducerPath "${api.reducerPath}" rendered with a different Redux store than the one they first subscribed to. Their subscriptions stay on the original store, so they will not load data from the new one.
+If you replace the store passed to <Provider>, also give the Provider a \`key\` that changes with the store (for example \`<Provider store={store} key={storeId}>\`), so the components under it remount and subscribe to the new store.`,
+      )
+    }
+  }
+
   const endpointDefinitions = context.endpointDefinitions
 
   return {
@@ -1712,6 +1730,10 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
       Definitions
     >
     const dispatch = useDispatch<ThunkDispatch<any, any, UnknownAction>>()
+
+    if (process.env.NODE_ENV !== 'production') {
+      useWarnIfStoreChanged(dispatch)
+    }
 
     const subscriptionSelectorsRef = useRef<SubscriptionSelectors>(undefined)
 
@@ -1964,6 +1986,10 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         Definitions
       >
       const dispatch = useDispatch<ThunkDispatch<any, any, UnknownAction>>()
+
+      if (process.env.NODE_ENV !== 'production') {
+        useWarnIfStoreChanged(dispatch)
+      }
 
       const [arg, setArg] = useState<any>(UNINITIALIZED_VALUE)
 
@@ -2227,6 +2253,11 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
         Definitions
       >
       const dispatch = useDispatch<ThunkDispatch<any, any, UnknownAction>>()
+
+      if (process.env.NODE_ENV !== 'production') {
+        useWarnIfStoreChanged(dispatch)
+      }
+
       const [promise, setPromise] = useState<MutationActionCreatorResult<any>>()
 
       useEffect(
