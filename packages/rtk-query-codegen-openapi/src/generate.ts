@@ -405,15 +405,14 @@ export async function generateApi(
         isDataResponse(code, includeDefault, resolve(response, ctx), responses || {})
       )
     );
-    const returnsText =
-      getResponseType(ctx, dataResponses) === 'text' &&
-      Object.values(dataResponses).some((response) =>
-        Object.keys(resolve(response, ctx).content || {}).some((contentType) => contentType.startsWith('text/'))
-      );
-    let ResponseType: ts.TypeNode = factory.createKeywordTypeNode(
-      returnsText ? ts.SyntaxKind.StringKeyword : ts.SyntaxKind.UnknownKeyword
+    const returnsText = Object.values(dataResponses).some((response) =>
+      Object.keys(resolve(response, ctx).content || {}).some((contentType) => contentType.startsWith('text/'))
     );
-    if (responseType === 'json' && !returnsText) {
+    const returnsOnlyText = returnsText && getResponseType(ctx, dataResponses) === 'text';
+    let ResponseType: ts.TypeNode = factory.createKeywordTypeNode(
+      returnsOnlyText ? ts.SyntaxKind.StringKeyword : ts.SyntaxKind.UnknownKeyword
+    );
+    if (responseType === 'json' && !returnsOnlyText) {
       const returnTypes = Object.entries(responses || {})
         .map(
           ([code, response]) =>
@@ -677,7 +676,7 @@ export async function generateApi(
                     : factory.createPropertyAccessExpression(rootObject, factory.createIdentifier(bodyParameter.name))
                 ),
             returnsText
-              ? factory.createPropertyAssignment('responseHandler', factory.createStringLiteral('text'))
+              ? factory.createPropertyAssignment('responseHandler', factory.createStringLiteral('content-type'))
               : undefined,
             createObjectLiteralProperty(pickParams('cookie'), 'cookies'),
             createObjectLiteralProperty(pickParams('header'), 'headers'),

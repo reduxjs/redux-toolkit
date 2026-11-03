@@ -29,54 +29,95 @@ function requests(source: string) {
 }
 
 test.each(['Hello', 'Html'])('text response %s is typed as string (#3603)', async (name) => {
-  expect(await generate()).toMatch(new RegExp(`export type ${name}ApiResponse =[^;]*string;`));
+  expect(await generate()).toContain(`export type ${name}ApiResponse = string;`);
 });
 
-test.each(['hello', 'html'])('text response %s uses the text response handler', async (name) => {
+test.each(['hello', 'html'])('text response %s uses the content-type response handler', async (name) => {
   expect(requests(await generate())[name].query()).toEqual({
     url: name === 'hello' ? '/hello' : '/html',
-    responseHandler: 'text',
+    responseHandler: 'content-type',
   });
 });
+
+async function fetchGenerated(name: string, response: Response, options?: Parameters<typeof generate>[0]) {
+  const query = requests(await generate(options))[name].query();
+  return fetchBaseQuery({
+    baseUrl: 'https://example.com',
+    fetchFn: async () => response as unknown as globalThis.Response,
+  })(
+    query as { url: string },
+    {
+      signal: new AbortController().signal,
+      abort: () => {},
+      dispatch: vi.fn(),
+      getState: () => ({}),
+      extra: undefined,
+      endpoint: name,
+      type: 'query',
+    },
+    {}
+  );
+}
 
 test.each(['hello', 'html', 'mixed', 'ref', 'created', 'textWithDefaultJson'])(
   'generated text response %s can be read by fetchBaseQuery',
   async (name) => {
-    const query = requests(await generate())[name].query();
-    const result = await fetchBaseQuery({
-      baseUrl: 'https://example.com',
-      fetchFn: async () =>
-        new Response('Hello world!', { headers: { 'content-type': 'text/plain' } }) as unknown as globalThis.Response,
-    })(
-      query as { url: string },
-      {
-        signal: new AbortController().signal,
-        abort: () => {},
-        dispatch: vi.fn(),
-        getState: () => ({}),
-        extra: undefined,
-        endpoint: name,
-        type: 'query',
-      },
-      {}
+    const result = await fetchGenerated(
+      name,
+      new Response('Hello world!', { headers: { 'content-type': 'text/plain' } })
     );
     expect(result.data).toBe('Hello world!');
     expect(result.error).toBeUndefined();
   }
 );
 
+test('JSON error responses of text endpoints are still parsed as JSON', async () => {
+  const result = await fetchGenerated(
+    'mixed',
+    new Response('{"message":"bad"}', { status: 400, headers: { 'content-type': 'application/json' } })
+  );
+  expect(result.error).toEqual({ status: 400, data: { message: 'bad' } });
+});
+
+test('JSON default responses of text endpoints are parsed as JSON with includeDefault', async () => {
+  const text = await fetchGenerated(
+    'textWithDefaultJson',
+    new Response('Hello world!', { headers: { 'content-type': 'text/plain' } }),
+    { includeDefault: true }
+  );
+  expect(text.data).toBe('Hello world!');
+  const json = await fetchGenerated(
+    'textWithDefaultJson',
+    new Response('{"ok":true}', { status: 202, headers: { 'content-type': 'application/json' } }),
+    { includeDefault: true }
+  );
+  expect(json.data).toEqual({ ok: true });
+});
+
+test('JSON success responses excluded by isDataResponse are still parsed as JSON', async () => {
+  const result = await fetchGenerated(
+    'jsonWithTextError',
+    new Response('{"ok":true}', { headers: { 'content-type': 'application/json' } }),
+    { isDataResponse: (code) => code === '400' }
+  );
+  expect(result.data).toEqual({ ok: true });
+});
+
 test.each(['mixed', 'ref', 'created', 'textWithDefaultJson'])('%s selects successful text responses', async (name) => {
   const source = await generate();
-  expect(requests(source)[name].query().responseHandler).toBe('text');
+  expect(requests(source)[name].query().responseHandler).toBe('content-type');
   expect(source).toContain(`export type ${name[0].toUpperCase() + name.slice(1)}ApiResponse = string;`);
 });
 
 test.each([false, true])('default response selection respects includeDefault=%s', async (includeDefault) => {
   const source = await generate({ includeDefault });
   const endpoints = requests(source);
-  expect(endpoints.defaultText.query().responseHandler).toBe(includeDefault ? 'text' : undefined);
+  expect(endpoints.defaultText.query().responseHandler).toBe(includeDefault ? 'content-type' : undefined);
   expect(source).toContain(`export type DefaultTextApiResponse = ${includeDefault ? 'string' : 'unknown'};`);
-  expect(endpoints.textWithDefaultJson.query().responseHandler).toBe(includeDefault ? undefined : 'text');
+  expect(endpoints.textWithDefaultJson.query().responseHandler).toBe('content-type');
+  if (includeDefault) {
+    expect(source).not.toContain('export type TextWithDefaultJsonApiResponse = string;');
+  }
   expect(endpoints.jsonWithTextError.query()).toEqual({ url: '/json-with-text-error' });
 });
 
@@ -90,7 +131,7 @@ test('custom isDataResponse receives resolved responses and determines text sele
   const source = await generate({ isDataResponse });
   const endpoints = requests(source);
   expect(endpoints.mixed.query()).toEqual({ url: '/mixed' });
-  expect(endpoints.jsonWithTextError.query().responseHandler).toBe('text');
+  expect(endpoints.jsonWithTextError.query().responseHandler).toBe('content-type');
   expect(source).toContain('export type JsonWithTextErrorApiResponse = string;');
   expect(endpoints.hello.query()).toEqual({ url: '/hello' });
   expect(source).toContain('export type HelloApiResponse = unknown;');
