@@ -422,13 +422,20 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
           for (const [endpointName, partialDefinition] of Object.entries(
             endpoints,
           )) {
-            if (typeof partialDefinition === 'function') {
-              partialDefinition(getEndpointDefinition(context, endpointName))
-            } else {
-              Object.assign(
-                getEndpointDefinition(context, endpointName) || {},
-                partialDefinition,
+            const definition = getEndpointDefinition(context, endpointName)
+            if (
+              !definition &&
+              typeof process !== 'undefined' &&
+              process.env.NODE_ENV === 'development'
+            ) {
+              console.error(
+                `called \`enhanceEndpoints\` with endpointName ${endpointName}, which does not exist on the api. Known endpoints: ${Object.keys(context.endpointDefinitions).join(', ')}`,
               )
+            }
+            if (typeof partialDefinition === 'function') {
+              partialDefinition(definition)
+            } else {
+              Object.assign(definition || {}, partialDefinition)
             }
           }
         }

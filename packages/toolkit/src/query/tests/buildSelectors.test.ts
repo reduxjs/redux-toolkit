@@ -139,3 +139,152 @@ describe('mutation selectors', () => {
     )
   })
 })
+
+describe('selectEntriesForEndpoint and selectAllQueryEntries', () => {
+  const api = createApi({
+    baseQuery: async (arg: string) => {
+      if (arg === 'fail') return { error: 'failed' }
+      return { data: arg }
+    },
+    endpoints: (build) => ({
+      getPost: build.query<string, string>({
+        query: (arg) => arg,
+      }),
+      getUser: build.query<string, string>({
+        query: (arg) => arg,
+      }),
+      getPages: build.infiniteQuery<string, string, number>({
+        infiniteQueryOptions: {
+          initialPageParam: 0,
+          getNextPageParam: (lastPage, allPages, lastPageParam) =>
+            lastPageParam + 1,
+        },
+        query: ({ queryArg, pageParam }) => `${queryArg}-${pageParam}`,
+      }),
+      updatePost: build.mutation<string, string>({
+        query: (arg) => arg,
+      }),
+    }),
+  })
+
+  const storeRef = setupApiStore(api)
+
+  test('returns empty arrays when there are no cache entries', () => {
+    const state = storeRef.store.getState()
+    expect(api.util.selectAllQueryEntries(state)).toEqual([])
+    expect(api.util.selectEntriesForEndpoint(state, 'getPost')).toEqual([])
+  })
+
+  test('returns cache entries with their queryCacheKey', async () => {
+    const { store } = storeRef
+    const post1 = store.dispatch(api.endpoints.getPost.initiate('1'))
+    const post2 = store.dispatch(api.endpoints.getPost.initiate('fail'))
+    const user = store.dispatch(api.endpoints.getUser.initiate('a'))
+    const pages = store.dispatch(api.endpoints.getPages.initiate('p'))
+    const mutation = store.dispatch(api.endpoints.updatePost.initiate('x'))
+    await Promise.all([post1, post2, user, pages, mutation])
+
+    const state = store.getState()
+    const postEntries = api.util.selectEntriesForEndpoint(state, 'getPost')
+
+    expect(postEntries).toEqual([
+      expect.objectContaining({
+        queryCacheKey: post1.queryCacheKey,
+        endpointName: 'getPost',
+        originalArgs: '1',
+        status: 'fulfilled',
+        data: '1',
+      }),
+      expect.objectContaining({
+        queryCacheKey: post2.queryCacheKey,
+        endpointName: 'getPost',
+        originalArgs: 'fail',
+        status: 'rejected',
+        error: 'failed',
+      }),
+    ])
+
+    expect(api.util.selectEntriesForEndpoint(state, 'getPages')).toEqual([
+      expect.objectContaining({
+        queryCacheKey: pages.queryCacheKey,
+        endpointName: 'getPages',
+        data: { pages: ['p-0'], pageParams: [0] },
+      }),
+    ])
+
+    const allEntries = api.util.selectAllQueryEntries(state)
+    expect(allEntries.map((entry) => entry.queryCacheKey).sort()).toEqual(
+      [
+        post1.queryCacheKey,
+        post2.queryCacheKey,
+        user.queryCacheKey,
+        pages.queryCacheKey,
+      ].sort(),
+    )
+
+    for (const promise of [post1, post2, user, pages]) promise.unsubscribe()
+    mutation.reset()
+
+    store.dispatch(
+      api.internalActions.removeQueryResult({
+        queryCacheKey: post2.queryCacheKey as QueryCacheKey,
+      }),
+    )
+    expect(
+      api.util
+        .selectEntriesForEndpoint(store.getState(), 'getPost')
+        .map((entry) => entry.queryCacheKey),
+    ).toEqual([post1.queryCacheKey])
+  })
+
+  test('includes pending entries', async () => {
+    const { store } = storeRef
+    const post = store.dispatch(api.endpoints.getPost.initiate('pending'))
+
+    expect(
+      api.util.selectEntriesForEndpoint(store.getState(), 'getPost'),
+    ).toEqual([
+      expect.objectContaining({
+        queryCacheKey: post.queryCacheKey,
+        originalArgs: 'pending',
+        status: 'pending',
+      }),
+    ])
+
+    await post
+    post.unsubscribe()
+  })
+
+  test('results are memoized until the queries state changes', async () => {
+    const { store } = storeRef
+    const post = store.dispatch(api.endpoints.getPost.initiate('1'))
+    await post
+
+    const state = store.getState()
+    const allEntries = api.util.selectAllQueryEntries(state)
+    const postEntries = api.util.selectEntriesForEndpoint(state, 'getPost')
+    const userEntries = api.util.selectEntriesForEndpoint(state, 'getUser')
+
+    expect(api.util.selectAllQueryEntries(store.getState())).toBe(allEntries)
+    expect(api.util.selectEntriesForEndpoint(state, 'getPost')).toBe(
+      postEntries,
+    )
+    expect(api.util.selectEntriesForEndpoint(state, 'getUser')).toBe(
+      userEntries,
+    )
+
+    await store.dispatch(api.endpoints.getUser.initiate('a'))
+
+    const nextState = store.getState()
+    expect(api.util.selectAllQueryEntries(nextState)).not.toBe(allEntries)
+    expect(
+      api.util.selectEntriesForEndpoint(nextState, 'getUser'),
+    ).toHaveLength(1)
+    expect(api.util.selectEntriesForEndpoint(nextState, 'getPost')).toBe(
+      postEntries,
+    )
+    expect(api.util.selectAllQueryEntries(nextState)).toContain(postEntries[0])
+
+    post.unsubscribe()
+  })
+})

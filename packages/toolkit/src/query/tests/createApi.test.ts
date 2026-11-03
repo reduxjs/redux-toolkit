@@ -539,6 +539,47 @@ describe('endpoint definition typings', () => {
       ])
     })
 
+    test('warns in development when enhancing an endpoint that does not exist', () => {
+      vi.stubEnv('NODE_ENV', 'development')
+
+      api.enhanceEndpoints({
+        endpoints: {
+          query1: {},
+          // @ts-expect-error
+          nonExisting: {},
+        },
+      })
+      api.enhanceEndpoints({
+        endpoints: {
+          // @ts-expect-error
+          nonExistingFn() {},
+        },
+      })
+
+      expect(consoleErrorSpy).toHaveBeenCalledTimes(2)
+      expect(consoleErrorSpy).toHaveBeenNthCalledWith(
+        1,
+        'called `enhanceEndpoints` with endpointName nonExisting, which does not exist on the api. Known endpoints: query1, query2, mutation1, mutation2',
+      )
+      expect(consoleErrorSpy).toHaveBeenNthCalledWith(
+        2,
+        'called `enhanceEndpoints` with endpointName nonExistingFn, which does not exist on the api. Known endpoints: query1, query2, mutation1, mutation2',
+      )
+    })
+
+    test('does not warn about missing endpoints outside development', () => {
+      vi.stubEnv('NODE_ENV', 'production')
+
+      api.enhanceEndpoints({
+        endpoints: {
+          // @ts-expect-error
+          nonExisting: {},
+        },
+      })
+
+      expect(consoleErrorSpy).not.toHaveBeenCalled()
+    })
+
     test('updated transform response types', async () => {
       const baseApi = createApi({
         baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),

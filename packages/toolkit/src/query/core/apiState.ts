@@ -278,6 +278,21 @@ export type InfiniteQuerySubState<
       }
     : never
 
+/**
+ * A cache entry for a query or infinite query endpoint, as returned by
+ * `api.util.selectEntriesForEndpoint` and `api.util.selectAllQueryEntries`.
+ */
+export type QueryCacheEntry<
+  D extends BaseEndpointDefinition<any, any, any, any>,
+> = Exclude<
+  D extends InfiniteQueryDefinition<any, any, any, any, any>
+    ? InfiniteQuerySubState<D>
+    : QuerySubState<D>,
+  { status: QueryStatus.uninitialized }
+> & {
+  queryCacheKey: QueryCacheKey
+}
+
 type BaseMutationSubState<
   D extends BaseEndpointDefinition<any, any, any, any>,
 > = {

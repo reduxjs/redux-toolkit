@@ -1,0 +1,65 @@
+---
+id: createApiActionSanitizer
+title: createApiActionSanitizer
+sidebar_label: createApiActionSanitizer
+hide_title: true
+hide_table_of_contents: false
+description: 'RTK Query > API: createApiActionSanitizer reference'
+---
+
+&nbsp;
+
+# `createApiActionSanitizer`
+
+Creates an `actionSanitizer` function for the [Redux DevTools](https://github.com/reduxjs/redux-devtools) that adds the endpoint name to the action type of an API slice's query and mutation actions. With it, the DevTools show `api/executeQuery/fulfilled (getPosts)` instead of `api/executeQuery/fulfilled`, so you can tell which endpoint an action belongs to without opening it.
+
+```ts title="createApiActionSanitizer signature" no-transpile
+function createApiActionSanitizer(api: {
+  reducerPath: string
+}): <A extends Action>(action: A) => A
+```
+
+The sanitizer renames actions whose type starts with `` `${api.reducerPath}/` `` and that have a string `meta.arg.endpointName`. Every other action is returned unchanged.
+
+The sanitizer only affects how actions are displayed in the DevTools. Your reducers, middleware, and listeners still receive the original actions with their original `type`, and time travel in the DevTools replays the original actions.
+
+:::caution
+
+A state exported from the DevTools contains the renamed actions. If you import it again, the DevTools replay those actions through your reducers, and the API slice ignores them because their `type` no longer matches. The imported API state will be missing those updates.
+
+:::
+
+## Usage
+
+Pass the sanitizer as the `actionSanitizer` option of the `devTools` setting in `configureStore`:
+
+```ts title="Using createApiActionSanitizer" no-transpile
+import { configureStore } from '@reduxjs/toolkit'
+import { createApiActionSanitizer } from '@reduxjs/toolkit/query'
+import { api } from './api'
+
+export const store = configureStore({
+  reducer: {
+    [api.reducerPath]: api.reducer,
+  },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(api.middleware),
+  devTools: {
+    actionSanitizer: createApiActionSanitizer(api),
+  },
+})
+```
+
+If you have more than one API slice, or your own action sanitizer, chain them:
+
+```ts title="Combining sanitizers" no-transpile
+const sanitizePosts = createApiActionSanitizer(postsApi)
+const sanitizeUsers = createApiActionSanitizer(usersApi)
+
+export const store = configureStore({
+  // ...
+  devTools: {
+    actionSanitizer: (action) => sanitizeUsers(sanitizePosts(action)),
+  },
+})
+```

@@ -19,6 +19,7 @@ import type {
   InfiniteQueryConfigOptions,
   InfiniteQuerySubState,
   MutationSubState,
+  QueryCacheEntry,
   QueryCacheKey,
   QueryState,
   QuerySubState,
@@ -183,12 +184,61 @@ export function buildSelectors<
   const selectSkippedQuery = (state: RootState) => defaultQuerySubState
   const selectSkippedMutation = (state: RootState) => defaultMutationSubState
 
+  // Entries and per-endpoint results keep their references while the
+  // underlying cache entries are unchanged, so `useSelector` callers do not
+  // re-render when an unrelated query updates. The previous result is kept
+  // per endpoint name instead of using `resultEqualityCheck`, which only
+  // remembers one result per selector and would fail whenever more than one
+  // endpoint is being selected.
+  const cacheEntries = new WeakMap<object, QueryCacheEntry<any>>()
+  const lastEntriesForEndpoint = new Map<string, Array<QueryCacheEntry<any>>>()
+
+  const selectAllQueryEntries = createSelector(selectQueries, (queries) => {
+    const entries: Array<QueryCacheEntry<any>> = []
+    for (const [queryCacheKey, subState] of Object.entries(queries ?? {})) {
+      if (subState && subState.status !== STATUS_UNINITIALIZED) {
+        let entry = cacheEntries.get(subState)
+        if (!entry) {
+          entry = {
+            ...subState,
+            queryCacheKey: queryCacheKey as QueryCacheKey,
+          }
+          cacheEntries.set(subState, entry)
+        }
+        entries.push(entry)
+      }
+    }
+    return entries
+  })
+
+  const selectEntriesForEndpoint = createSelector(
+    selectAllQueryEntries,
+    (_state: RootState, endpointName: string) => endpointName,
+    (entries, endpointName) => {
+      const result = entries.filter(
+        (entry) => entry.endpointName === endpointName,
+      )
+      const previous = lastEntriesForEndpoint.get(endpointName)
+      if (
+        previous &&
+        previous.length === result.length &&
+        previous.every((entry, i) => entry === result[i])
+      ) {
+        return previous
+      }
+      lastEntriesForEndpoint.set(endpointName, result)
+      return result
+    },
+  )
+
   return {
     buildQuerySelector,
     buildInfiniteQuerySelector,
     buildMutationSelector,
     selectInvalidatedBy,
     selectCachedArgsForQuery,
+    selectAllQueryEntries,
+    selectEntriesForEndpoint,
     selectApiState,
     selectQueries,
     selectMutations,

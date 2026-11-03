@@ -196,6 +196,7 @@ const sidebars = {
             'rtk-query/api/fetchBaseQuery',
             'rtk-query/api/ApiProvider',
             'rtk-query/api/setupListeners',
+            'rtk-query/api/createApiActionSanitizer',
             {
               type: 'category',
               label: 'Generated API Slices',
