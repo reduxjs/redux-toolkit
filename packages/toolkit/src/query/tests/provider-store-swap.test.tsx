@@ -145,14 +145,11 @@ describe.each([false, true])(
 )
 
 describe('swapping the store of an unkeyed Provider', () => {
-  test.each([
-    ['useQuery', (api: TestApi) => api.endpoints.getPost.useQuery(1)],
-    ['useLazyQuery', (api: TestApi) => api.endpoints.getPost.useLazyQuery()],
-    [
-      'useInfiniteQuery',
-      (api: TestApi) => api.endpoints.getPages.useInfiniteQuery('x'),
-    ],
-    ['useMutation', (api: TestApi) => api.endpoints.addPost.useMutation()],
+  test.each<[string, (api: TestApi) => unknown]>([
+    ['useQuery', (api) => api.endpoints.getPost.useQuery(1)],
+    ['useLazyQuery', (api) => api.endpoints.getPost.useLazyQuery()],
+    ['useInfiniteQuery', (api) => api.endpoints.getPages.useInfiniteQuery('x')],
+    ['useMutation', (api) => api.endpoints.addPost.useMutation()],
   ])('%s warns once in development', (_name, hook) => {
     const { storeA, storeB, swap } = setup(hook, { keyed: false })
     expect(consoleWarnSpy).not.toHaveBeenCalled()
