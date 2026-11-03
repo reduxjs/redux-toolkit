@@ -715,7 +715,8 @@ type UseQueryStateBaseResult<D extends QueryDefinition<any, any, any, any>> =
      */
     isUninitialized: false
     /**
-     * Query is currently loading for the first time. No data yet.
+     * Query is currently loading and has no data yet: either the first
+     * request, or a refetch after an error that left no data.
      */
     isLoading: false
     /**
@@ -1279,7 +1280,8 @@ type UseInfiniteQueryStateBaseResult<
    */
   isUninitialized: false
   /**
-   * Query is currently loading for the first time. No data yet.
+   * Query is currently loading and has no data yet: either the first
+   * request, or a refetch after an error that left no data.
    */
   isLoading: false
   /**
@@ -1620,7 +1622,8 @@ If you replace the store passed to <Provider>, also give the Provider a \`key\` 
     // isFetching = true any time a request is in flight
     const isFetching = currentState.isLoading
 
-    // isLoading = true only when loading while no data is present yet (initial load with no data in the cache)
+    // isLoading = true only when loading while no data is present yet
+    // (initial load, or a refetch after an error that left no data)
     const isLoading =
       (!lastResult ||
         lastResult.isLoading ||
@@ -1686,7 +1689,8 @@ If you replace the store passed to <Provider>, also give the Provider a \`key\` 
 
     // isFetching = true any time a request is in flight
     const isFetching = currentState.isLoading
-    // isLoading = true only when loading while no data is present yet (initial load with no data in the cache)
+    // isLoading = true only when loading while no data is present yet
+    // (initial load, or a refetch after an error that left no data)
     const isLoading =
       (!lastResult ||
         lastResult.isLoading ||
