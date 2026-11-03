@@ -246,11 +246,13 @@ it('records subscription patches directly and only syncs when subscribers change
 
     expect(syncActions).toHaveLength(1)
     expect(syncActions[0].payload).toEqual([
-      { op: 'add', path: ['getBanana(1)'], value: { [sub1.requestId]: {} } },
       {
         op: 'add',
-        path: ['getBanana(1)', sub2.requestId],
-        value: { pollingInterval: 1000 },
+        path: ['getBanana(1)'],
+        value: {
+          [sub1.requestId]: {},
+          [sub2.requestId]: { pollingInterval: 1000 },
+        },
       },
       { op: 'add', path: ['getBanana(2)'], value: { [sub3.requestId]: {} } },
     ])
@@ -275,7 +277,7 @@ it('records subscription patches directly and only syncs when subscribers change
 
     expect(syncActions).toHaveLength(2)
     expect(syncActions[1].payload).toEqual([
-      { op: 'remove', path: ['getBanana(2)', sub3.requestId] },
+      { op: 'add', path: ['getBanana(2)'], value: {} },
     ])
     const stateAfterUnsubscribe = getSubscriptionState()
     expect(stateAfterUnsubscribe).not.toBe(stateBeforeUnsubscribe)
@@ -285,6 +287,47 @@ it('records subscription patches directly and only syncs when subscribers change
     expect(stateAfterUnsubscribe['getBanana(2)']).toEqual({})
 
     sub1.unsubscribe()
+    sub2.unsubscribe()
+    store.dispatch(api.util.resetApiState())
+  } finally {
+    vi.useRealTimers()
+  }
+})
+
+it('applies subscription syncs after the api slice is replaced without resetApiState', async () => {
+  vi.useFakeTimers()
+  try {
+    const apiReducer = api.reducer
+    const store = configureStore({
+      reducer: (
+        state: { [api.reducerPath]: ReturnType<typeof apiReducer> } | undefined,
+        action: UnknownAction,
+      ) => ({
+        [api.reducerPath]: apiReducer(
+          action.type === 'logout' ? undefined : state?.[api.reducerPath],
+          action,
+        ),
+      }),
+      middleware: (gdm) =>
+        gdm({ serializableCheck: false, immutableCheck: false }).concat(
+          api.middleware,
+        ),
+    })
+
+    const sub1 = store.dispatch(getBanana.initiate(1))
+    const sub2 = store.dispatch(getBanana.initiate(1))
+    await vi.advanceTimersByTimeAsync(600)
+
+    store.dispatch({ type: 'logout' })
+    expect(store.getState()[api.reducerPath].subscriptions).toEqual({})
+
+    sub1.unsubscribe()
+    await vi.advanceTimersByTimeAsync(600)
+
+    expect(store.getState()[api.reducerPath].subscriptions).toEqual({
+      'getBanana(1)': { [sub2.requestId]: {} },
+    })
+
     sub2.unsubscribe()
     store.dispatch(api.util.resetApiState())
   } finally {

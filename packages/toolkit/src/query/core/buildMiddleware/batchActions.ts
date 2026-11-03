@@ -12,10 +12,10 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
 > = ({ api, queryThunk, internalState, mwApi }) => {
   const subscriptionsPrefix = `${api.reducerPath}/subscriptions`
 
-  // Patches against the store's `subscriptions` slice, recorded as the
-  // middleware map changes and flushed on the sync timer.
-  let pendingPatches: Patch[] = []
-  // Keys that exist in the store slice once `pendingPatches` are applied
+  // Keys whose subscribers changed since the last sync to the store
+  const changedKeys = new Set<string>()
+  // Keys the sync has written to the store, so removals of keys that were
+  // never synced do not cause an extra sync
   const syncedKeys = new Set<string>()
 
   let updateSyncTimer: ReturnType<typeof window.setTimeout> | null = null
@@ -23,25 +23,26 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
   const { updateSubscriptionOptions, unsubscribeQueryResult } =
     api.internalActions
 
-  const recordSubscriber = (
-    queryCacheKey: string,
-    requestId: string,
-    options: SubscriptionOptions,
-  ) => {
-    if (syncedKeys.has(queryCacheKey)) {
-      pendingPatches.push({
-        op: 'add',
-        path: [queryCacheKey, requestId],
-        value: options,
-      })
-    } else {
-      syncedKeys.add(queryCacheKey)
-      pendingPatches.push({
-        op: 'add',
-        path: [queryCacheKey],
-        value: { [requestId]: options },
-      })
+  // Patches only touch top-level keys, so they apply cleanly even if the
+  // store slice was replaced without a `resetApiState`
+  const buildSubscriptionPatches = (): Patch[] => {
+    const patches: Patch[] = []
+    for (const queryCacheKey of changedKeys) {
+      const subscribers = internalState.currentSubscriptions.get(queryCacheKey)
+      if (subscribers) {
+        syncedKeys.add(queryCacheKey)
+        patches.push({
+          op: 'add',
+          path: [queryCacheKey],
+          value: Object.fromEntries(subscribers),
+        })
+      } else {
+        syncedKeys.delete(queryCacheKey)
+        patches.push({ op: 'remove', path: [queryCacheKey] })
+      }
     }
+    changedKeys.clear()
+    return patches
   }
 
   const addSubscriber = (
@@ -57,7 +58,7 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
     )
     const options = subscriptionOptions ?? substate.get(requestId) ?? {}
     substate.set(requestId, options)
-    recordSubscriber(queryCacheKey, requestId, options)
+    changedKeys.add(queryCacheKey)
   }
 
   // Actually intentionally mutate the subscriptions state used in the middleware
@@ -73,21 +74,15 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
       const sub = currentSubscriptions.get(queryCacheKey)
       if (sub?.has(requestId)) {
         sub.set(requestId, options)
-        recordSubscriber(queryCacheKey, requestId, options)
+        changedKeys.add(queryCacheKey)
         return true
       }
       return false
     }
     if (unsubscribeQueryResult.match(action)) {
       const { queryCacheKey, requestId } = action.payload
-      const sub = currentSubscriptions.get(queryCacheKey)
-      if (sub?.delete(requestId)) {
-        if (syncedKeys.has(queryCacheKey)) {
-          pendingPatches.push({
-            op: 'remove',
-            path: [queryCacheKey, requestId],
-          })
-        }
+      if (currentSubscriptions.get(queryCacheKey)?.delete(requestId)) {
+        changedKeys.add(queryCacheKey)
         return true
       }
       return false
@@ -95,8 +90,8 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
     if (api.internalActions.removeQueryResult.match(action)) {
       const { queryCacheKey } = action.payload
       currentSubscriptions.delete(queryCacheKey)
-      if (syncedKeys.delete(queryCacheKey)) {
-        pendingPatches.push({ op: 'remove', path: [queryCacheKey] })
+      if (syncedKeys.has(queryCacheKey) || changedKeys.has(queryCacheKey)) {
+        changedKeys.add(queryCacheKey)
         return true
       }
       return false
@@ -160,7 +155,7 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
     result: SubscriptionSelectors | boolean,
   ] => {
     if (api.util.resetApiState.match(action)) {
-      pendingPatches = []
+      changedKeys.clear()
       syncedKeys.clear()
       internalState.currentSubscriptions.clear()
       if (updateSyncTimer) {
@@ -201,8 +196,7 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
       // save on overall perf.
       // In 1.9, it was updated in a microtask, but now we do it at most every 500ms.
       updateSyncTimer = setTimeout(() => {
-        const patches = pendingPatches
-        pendingPatches = []
+        const patches = buildSubscriptionPatches()
         updateSyncTimer = null
         if (patches.length) {
           mwApi.next(api.internalActions.subscriptionsUpdated(patches))
@@ -219,6 +213,9 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
       action.meta.condition &&
       !!action.meta.arg.subscribe
 
-    return [!isSubscriptionSliceAction && !isAdditionalSubscriptionAction, false]
+    return [
+      !isSubscriptionSliceAction && !isAdditionalSubscriptionAction,
+      false,
+    ]
   }
 }
