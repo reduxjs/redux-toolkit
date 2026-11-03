@@ -86,6 +86,7 @@ export type {
   InfiniteQueryConfigOptions,
   InfiniteQueryResultSelectorResult,
   InfiniteQuerySubState,
+  Patch,
   TypedMutationOnQueryStarted,
   TypedQueryOnQueryStarted,
 } from './core/index'

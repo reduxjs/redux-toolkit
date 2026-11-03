@@ -12,6 +12,26 @@ type IfAvailable<T, Fallback = void> = true | false extends (
 
 type WeakReferences = IfAvailable<WeakMap<any, any>> | IfAvailable<WeakSet<any>>
 
+type IsPlainArray<T extends readonly any[]> = T extends readonly (infer U)[]
+  ? U[] extends T
+    ? true
+    : false
+  : false
+
+/**
+ * The mutable version of a non-array object type, as seen inside an Immer
+ * recipe. Matches Immer's `WritableNonArrayDraft`.
+ *
+ * @public
+ */
+export type WritableNonArrayDraft<T> = {
+  -readonly [K in keyof T]: { _: T[K] } extends { _: infer V }
+    ? V extends object
+      ? Draft<V>
+      : V
+    : never
+}
+
 /**
  * The mutable version of an object or array type, as seen inside an Immer
  * recipe. Matches Immer's `WritableDraft`, but is declared by Redux Toolkit
@@ -20,9 +40,13 @@ type WeakReferences = IfAvailable<WeakMap<any, any>> | IfAvailable<WeakSet<any>>
  *
  * @public
  */
-export type WritableDraft<T> = {
-  -readonly [K in keyof T]: Draft<T[K]>
-}
+export type WritableDraft<T> = T extends readonly any[]
+  ? number extends T['length']
+    ? IsPlainArray<T> extends true
+      ? Draft<T[number]>[]
+      : WritableNonArrayDraft<T>
+    : WritableNonArrayDraft<T>
+  : WritableNonArrayDraft<T>
 
 /**
  * The type of a value while it is being modified inside an Immer recipe,

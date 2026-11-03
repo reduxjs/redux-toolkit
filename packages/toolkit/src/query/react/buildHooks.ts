@@ -30,7 +30,7 @@ import type {
   QueryResultSelectorResult,
   QuerySubState,
   ResultTypeFrom,
-  RootState,
+  ApiRootState,
   SerializeQueryArgs,
   SkipToken,
   SubscriptionOptions,
@@ -1888,47 +1888,48 @@ If you replace the store passed to <Provider>, also give the Provider a \`key\` 
       >
       const stableArg = useStableQueryArgs(skip ? skipToken : arg)
 
-      type ApiRootState = Parameters<ReturnType<typeof select>>[0]
+      type SelectorRootState = Parameters<ReturnType<typeof select>>[0]
 
       const lastValue = useRef<any>(undefined)
       const latestDefaultResult = useRef<any>(undefined)
 
-      const selectDefaultResult: Selector<ApiRootState, any, [any]> = useMemo(
-        () =>
-          // Normally ts-ignores are bad and should be avoided, but we're
-          // already casting this selector to be `Selector<any>` anyway,
-          // so the inconsistencies don't matter here
-          // @ts-ignore
-          createSelector(
-            [
-              // @ts-ignore
-              select(stableArg),
-              (_: ApiRootState, lastResult: any) => lastResult,
-              (_: ApiRootState) => stableArg,
-            ],
-            // `preSelector` is a union of the standard/infinite query pre-selectors.
-            // `tsc` attributes the resulting overload error to the `createSelector` call
-            // (suppressed above), but `tsgo` attributes it to this argument line, so it
-            // needs its own directive.
+      const selectDefaultResult: Selector<SelectorRootState, any, [any]> =
+        useMemo(
+          () =>
+            // Normally ts-ignores are bad and should be avoided, but we're
+            // already casting this selector to be `Selector<any>` anyway,
+            // so the inconsistencies don't matter here
             // @ts-ignore
-            preSelector,
-            {
-              memoizeOptions: {
-                resultEqualityCheck: shallowEqual,
+            createSelector(
+              [
+                // @ts-ignore
+                select(stableArg),
+                (_: SelectorRootState, lastResult: any) => lastResult,
+                (_: SelectorRootState) => stableArg,
+              ],
+              // `preSelector` is a union of the standard/infinite query pre-selectors.
+              // `tsc` attributes the resulting overload error to the `createSelector` call
+              // (suppressed above), but `tsgo` attributes it to this argument line, so it
+              // needs its own directive.
+              // @ts-ignore
+              preSelector,
+              {
+                memoizeOptions: {
+                  resultEqualityCheck: shallowEqual,
+                },
               },
-            },
-          ),
-        [select, stableArg],
-      )
+            ),
+          [select, stableArg],
+        )
 
       const querySelector = useMemo(() => {
-        const selectResult: Selector<ApiRootState, any, [any]> =
+        const selectResult: Selector<SelectorRootState, any, [any]> =
           selectFromResult
             ? createSelector([selectDefaultResult], selectFromResult, {
                 devModeChecks: { identityFunctionCheck: 'never' },
               })
             : selectDefaultResult
-        return (state: RootState<Definitions, any, any>) => {
+        return (state: ApiRootState<Definitions, any, any>) => {
           const lastResult = lastValue.current
           const result = selectResult(state, lastResult)
           // Same args as the input selector call that just happened, so this
@@ -2301,7 +2302,7 @@ If you replace the store passed to <Provider>, also give the Provider a \`key\` 
         [fixedCacheKey, promise, select],
       )
       const mutationSelector = useMemo(
-        (): Selector<RootState<Definitions, any, any>, any> =>
+        (): Selector<ApiRootState<Definitions, any, any>, any> =>
           selectFromResult
             ? createSelector([selectDefaultResult], selectFromResult)
             : selectDefaultResult,

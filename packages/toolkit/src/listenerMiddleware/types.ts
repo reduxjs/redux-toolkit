@@ -315,6 +315,7 @@ export type ListenerMiddleware<
 > = Middleware<
   {
     (action: Action<'listenerMiddleware/add'>): UnsubscribeListener
+    (action: Action<'listenerMiddleware/remove'>): boolean
   },
   State,
   DispatchType

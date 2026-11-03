@@ -472,8 +472,8 @@ importers:
         specifier: ^0.3.0
         version: 0.3.0
       immer:
-        specifier: ^11.0.0
-        version: 11.0.0
+        specifier: ^11.2.9
+        version: 11.2.9
       redux:
         specifier: ^5.0.1
         version: 5.0.1
@@ -4391,6 +4391,9 @@ packages:
 
   immer@11.0.0:
     resolution: {integrity: sha512-XtRG4SINt4dpqlnJvs70O2j6hH7H0X8fUzFsjMn1rwnETaxwp83HLNimXBjZ78MrKl3/d3/pkzDH0o0Lkxm37Q==}
+
+  immer@11.2.9:
+    resolution: {integrity: sha512-IQ4UEtXjZjyefyWjtLEDXUSrF6T2hwjKPi6BIJl3bY/2XXW24d6cNGdXJSBOA/+KNnuiXkZY6DR0C3efolhitA==}
 
   immer@9.0.21:
     resolution: {integrity: sha512-bc4NBHqOqSfRW7POMkHd51LvClaeMXpm8dx0e8oE2GORbq5aRK7Bxl4FyzVLdGtLmvLKL7BTDBG5ACQm4HWjTA==}
@@ -11735,6 +11738,8 @@ snapshots:
 
   immer@11.0.0: {}
 
+  immer@11.2.9: {}
+
   immer@9.0.21: {}
 
   immutable@3.8.3: {}
@@ -14973,7 +14978,7 @@ snapshots:
   vite@8.2.2(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3):
     dependencies:
       lightningcss: 1.33.0
-      picomatch: 4.0.5
+      picomatch: 4.0.7
       postcss: 8.5.28
       rolldown: 1.2.4
       tinyglobby: 0.2.17

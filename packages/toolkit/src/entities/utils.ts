@@ -45,7 +45,7 @@ export function isRemoveManyFilter<T, Id extends EntityId>(
 }
 
 export function getCurrent<T>(value: T | Draft<T>): T {
-  return (isDraft(value) ? current(value) : value) as T
+  return (isDraft(value) ? current(value as Draft<T>) : value) as T
 }
 
 export function splitAddedUpdatedEntities<T, Id extends EntityId>(

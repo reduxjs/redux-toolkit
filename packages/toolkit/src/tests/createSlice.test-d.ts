@@ -934,7 +934,8 @@ describe('type tests', () => {
             state.status = 'loading'
           }),
           success: create.reducer<T>((state, action) => {
-            state.data = castDraft(action.payload)
+            // Immer 11.2.6+ cannot assign `castDraft(T)` to a generic draft field
+            state.data = castDraft(action.payload) as typeof state.data
             state.status = 'finished'
           }),
           ...reducers(create),

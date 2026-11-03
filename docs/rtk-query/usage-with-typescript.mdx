@@ -450,7 +450,7 @@ const api = createApi({
 })
 ```
 
-If you need the type of the state that contains only the API slice, use `ApiRootState<Definitions, TagTypes, ReducerPath>` from `@reduxjs/toolkit/query`. It is the same type as RTK Query's `RootState` export, under a name that won't be confused with your app's own `RootState` type.
+If you need the type of the state that contains only the API slice, use `ApiRootState<Definitions, TagTypes, ReducerPath>` from `@reduxjs/toolkit/query`. It replaces RTK Query's `RootState` type export, which is now deprecated because it is easy to auto-import by mistake in place of your app's own `RootState` type.
 
 ### Typing `providesTags`/`invalidatesTags`
 

@@ -1,11 +1,11 @@
-// Fails if emitted declarations name Immer's draft types instead of the
-// `Draft` / `WritableDraft` types exported by `@reduxjs/toolkit`.
+// Fails if emitted declarations reference types from `immer` instead of the
+// `Draft` / `WritableDraft` / `Patch` types exported by `@reduxjs/toolkit`.
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 const distDir = process.argv[2] ?? 'dist'
-const immerDraftReference =
-  /import\(["']immer["']\)\.(?:Draft|WritableDraft|WritableNonArrayDraft|Immutable)\b|import\s+(?:type\s+)?\{[^}]*\b(?:Draft|WritableDraft|WritableNonArrayDraft)\b[^}]*\}\s+from\s+["']immer["']/
+const immerReference =
+  /import\(["']immer["']\)|\bfrom\s+["']immer["']|require\(["']immer["']\)/
 
 const failures = []
 
@@ -18,7 +18,7 @@ const visit = (dir) => {
       readFileSync(fullPath, 'utf8')
         .split('\n')
         .forEach((line, index) => {
-          if (immerDraftReference.test(line)) {
+          if (immerReference.test(line)) {
             failures.push(`${fullPath}:${index + 1}: ${line.trim()}`)
           }
         })
@@ -29,9 +29,9 @@ const visit = (dir) => {
 visit(distDir)
 
 if (failures.length > 0) {
-  console.error('Emitted declarations reference Immer draft types:')
+  console.error('Emitted declarations reference Immer types:')
   console.error(failures.join('\n'))
   process.exit(1)
 }
 
-console.log(`No Immer draft types found in ${distDir}`)
+console.log(`No Immer type references found in ${distDir}`)

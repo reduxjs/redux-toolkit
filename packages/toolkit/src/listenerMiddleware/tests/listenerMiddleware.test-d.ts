@@ -17,6 +17,7 @@ import {
   isAllOf,
   isAnyOf,
   isFluxStandardAction,
+  removeListener,
 } from '@reduxjs/toolkit'
 
 const listenerMiddleware = createListenerMiddleware()
@@ -103,6 +104,21 @@ describe('type tests', () => {
     unsubscribe()
     store.dispatch(testAction2('b'))
     store.dispatch(testAction1('c'))
+  })
+
+  test('dispatching removeListener returns whether a listener was removed', () => {
+    const removed = store.dispatch(
+      removeListener({
+        actionCreator: testAction1,
+        effect: () => {},
+      }),
+    )
+
+    expectTypeOf(removed).toEqualTypeOf<boolean>()
+
+    expectTypeOf(store.dispatch(testAction1('a'))).toEqualTypeOf<
+      PayloadAction<string>
+    >()
   })
 
   test('take resolves to `[A, CurrentState, PreviousState] | null` if a possibly undefined timeout parameter is provided', () => {

@@ -66,13 +66,10 @@ describe('type tests', () => {
 
     expectTypeOf(createNextState(todo, recipe)).toEqualTypeOf<Todo>()
 
-    function setData<T>(state: Draft<{ data?: T }>, data: T) {
-      state.data = castDraft(data)
-    }
+    const state = {} as Draft<{ data?: Todo }>
+    state.data = castDraft(todo)
 
-    expectTypeOf(setData<Todo>)
-      .parameter(0)
-      .toEqualTypeOf<{ data?: Draft<Todo> }>()
+    expectTypeOf(state).toEqualTypeOf<{ data?: Draft<Todo> }>()
   })
 
   test('case reducers receive an RTK Draft', () => {

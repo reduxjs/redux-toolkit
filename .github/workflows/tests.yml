@@ -588,9 +588,9 @@ jobs:
         working-directory: ./examples/type-portability/${{ matrix.example.name }}
         run: rm -rf dist && node_modules/.bin/tsc -p tsconfig.json
 
-      - name: Check emitted declarations do not reference Immer draft types
+      - name: Check emitted declarations do not reference Immer types
         working-directory: ./examples/type-portability/${{ matrix.example.name }}
-        run: node ../check-no-immer-drafts.mjs dist
+        run: node ../check-no-immer-types.mjs dist
 
       - name: Test type portability with `moduleResolution Node10`
         if: startsWith(matrix.ts, '5.')

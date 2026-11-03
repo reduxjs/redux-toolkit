@@ -53,7 +53,7 @@ interface PatchCollection {
 
 The thunk action creator accepts three arguments: the name of the endpoint we are updating (such as `'getPost'`), any relevant query arguments, and a callback function. The callback receives an Immer-wrapped `draft` of the current state, and may modify the draft to match the expected results after the mutation completes successfully.
 
-The thunk returns an object containing `{patches: Patch[], inversePatches: Patch[], undo: () => void}`. The `patches` and `inversePatches` are generated using Immer's [`produceWithPatches` method](https://immerjs.github.io/immer/patches).
+The thunk returns an object containing `{patches: Patch[], inversePatches: Patch[], undo: () => void}`. The `patches` and `inversePatches` are generated using Immer's [`produceWithPatches` method](https://immerjs.github.io/immer/patches). The `Patch` type is exported from `@reduxjs/toolkit/query`, and matches Immer's `Patch` type.
 
 This is typically used as the first step in implementing optimistic updates. The generated `inversePatches` can be used to revert the updates by calling `dispatch(patchQueryData(endpointName, arg, inversePatches))`. Alternatively, the `undo` method can be called directly to achieve the same effect.
 
