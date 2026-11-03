@@ -25,6 +25,7 @@ import type {
   FallbackAddListenerOptions,
   ForkOptions,
   ForkedTask,
+  ForkedTaskAPI,
   ForkedTaskExecutor,
   ListenerEntry,
   ListenerErrorHandler,
@@ -84,7 +85,8 @@ const alm = 'listenerMiddleware' as const
 const createFork = (
   parentAbortSignal: AbortSignal,
   parentBlockingPromises: Promise<any>[],
-) => {
+  api: MiddlewareAPI,
+): ForkedTaskAPI['fork'] => {
   const linkControllers = (controller: AbortController) =>
     addAbortSignalListener(parentAbortSignal, () =>
       controller.abort(parentAbortSignal.reason),
@@ -103,11 +105,24 @@ const createFork = (
       async (): Promise<T> => {
         validateActive(parentAbortSignal)
         validateActive(childAbortController.signal)
-        const result = (await taskExecutor({
-          pause: createPause(childAbortController.signal),
-          delay: createDelay(childAbortController.signal),
-          signal: childAbortController.signal,
-        })) as T
+        const childBlockingPromises: Promise<any>[] = []
+        let result: T
+        try {
+          result = (await taskExecutor({
+            getState: api.getState,
+            dispatch: api.dispatch,
+            pause: createPause(childAbortController.signal),
+            delay: createDelay(childAbortController.signal),
+            signal: childAbortController.signal,
+            fork: createFork(
+              childAbortController.signal,
+              childBlockingPromises,
+              api,
+            ),
+          })) as T
+        } finally {
+          await Promise.all(childBlockingPromises)
+        }
         validateActive(childAbortController.signal)
         return result
       },
@@ -474,7 +489,11 @@ export const createListenerMiddleware = <
             pause: createPause<any>(internalTaskController.signal),
             extra,
             signal: internalTaskController.signal,
-            fork: createFork(internalTaskController.signal, autoJoinPromises),
+            fork: createFork(
+              internalTaskController.signal,
+              autoJoinPromises,
+              api,
+            ),
             unsubscribe: entry.unsubscribe,
             subscribe: () => {
               addToListenerMap(entry)

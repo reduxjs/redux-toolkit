@@ -44,7 +44,10 @@ export interface ConditionFunction<State> {
 export type MatchFunction<T> = (v: any) => v is T
 
 /** @public */
-export interface ForkedTaskAPI {
+export interface ForkedTaskAPI<
+  State = unknown,
+  DispatchType extends Dispatch = Dispatch<UnknownAction>,
+> extends MiddlewareAPI<DispatchType, State> {
   /**
    * Returns a promise that resolves when `waitFor` resolves or
    * rejects if the task or the parent listener has been cancelled or is completed.
@@ -62,20 +65,45 @@ export interface ForkedTaskAPI {
    * @see https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal
    */
   signal: AbortSignal
+  /**
+   * Queues in the next microtask the execution of a nested task.
+   * The nested task is cancelled when this task is cancelled or completes.
+   * With `autoJoin: true`, this task does not complete until the nested task has settled.
+   * @param executor
+   * @param options
+   */
+  fork<T>(
+    executor: ForkedTaskExecutor<T, State, DispatchType>,
+    options?: ForkOptions,
+  ): ForkedTask<T>
 }
 
 /** @public */
-export interface AsyncTaskExecutor<T> {
-  (forkApi: ForkedTaskAPI): Promise<T>
+export interface AsyncTaskExecutor<
+  T,
+  State = unknown,
+  DispatchType extends Dispatch = Dispatch<UnknownAction>,
+> {
+  (forkApi: ForkedTaskAPI<State, DispatchType>): Promise<T>
 }
 
 /** @public */
-export interface SyncTaskExecutor<T> {
-  (forkApi: ForkedTaskAPI): T
+export interface SyncTaskExecutor<
+  T,
+  State = unknown,
+  DispatchType extends Dispatch = Dispatch<UnknownAction>,
+> {
+  (forkApi: ForkedTaskAPI<State, DispatchType>): T
 }
 
 /** @public */
-export type ForkedTaskExecutor<T> = AsyncTaskExecutor<T> | SyncTaskExecutor<T>
+export type ForkedTaskExecutor<
+  T,
+  State = unknown,
+  DispatchType extends Dispatch = Dispatch<UnknownAction>,
+> =
+  | AsyncTaskExecutor<T, State, DispatchType>
+  | SyncTaskExecutor<T, State, DispatchType>
 
 /** @public */
 export type TaskResolved<T> = {
@@ -252,7 +280,10 @@ export interface ListenerEffectAPI<
    * @param executor
    * @param options
    */
-  fork<T>(executor: ForkedTaskExecutor<T>, options?: ForkOptions): ForkedTask<T>
+  fork<T>(
+    executor: ForkedTaskExecutor<T, State, DispatchType>,
+    options?: ForkOptions,
+  ): ForkedTask<T>
   /**
    * Returns a promise that resolves when `waitFor` resolves or
    * rejects if the listener has been cancelled or is completed.

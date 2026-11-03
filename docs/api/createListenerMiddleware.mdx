@@ -468,19 +468,53 @@ Note that both `take` and `condition` will only resolve **after the next action*
 
 ### Child Tasks
 
-- `fork: (executor: (forkApi: ForkApi) => T | Promise<T>) => ForkedTask<T>`: Launches a "child task" that may be used to accomplish additional work. Accepts any sync or async function as its argument, and returns a `{result, cancel}` object that can be used to check the final status and return value of the child task, or cancel it while in-progress.
+- `fork: (executor: (forkApi: ForkedTaskAPI) => T | Promise<T>, options?: ForkOptions) => ForkedTask<T>`: Launches a "child task" that may be used to accomplish additional work. Accepts any sync or async function as its argument, and returns a `{result, cancel}` object that can be used to check the final status and return value of the child task, or cancel it while in-progress.
 
-Child tasks can be launched, and waited on to collect their return values. The provided `executor` function will be called asynchronously with a `forkApi` object containing `{pause, delay, signal}`, allowing it to pause or check cancellation status. It can also make use of the `listenerApi` from the listener's scope.
+Child tasks can be launched, and waited on to collect their return values. The provided `executor` function will be called asynchronously with a `forkApi` object containing `{getState, dispatch, fork, pause, delay, signal}`. `pause`, `delay`, and `signal` let it wait or check cancellation status. `getState` and `dispatch` are the same store methods the listener receives, with the same types. `getState` is not tied to the task lifecycle: like `listenerApi.getState`, it keeps returning the current store state after the task or its listener has finished.
 
 An example of this might be a listener that forks a child task containing an infinite loop that listens for events from a server. The parent then uses `listenerApi.condition()` to wait for a "stop" action, and cancels the child task.
+
+A child task is cancelled when it is cancelled directly, when its listener is cancelled, or when its listener finishes. Passing `{ autoJoin: true }` makes the listener wait for that child task to settle before it finishes.
+
+`forkApi.fork()` launches a nested child task with the same API and rules, using the forking task as its parent. A nested task is cancelled when the task that forked it is cancelled or finishes. With `{ autoJoin: true }`, the forking task does not finish until the nested task has settled, so the forking task's `result` resolves after its autoJoined nested tasks. This means a fork executor can be passed to either `listenerApi.fork()` or `forkApi.fork()`:
+
+```ts no-transpile
+const pollServer = async (forkApi: ForkedTaskAPI<RootState, AppDispatch>) => {
+  while (true) {
+    const event = await forkApi.pause(pollForEvent())
+    forkApi.dispatch(serverEventReceived(event))
+  }
+}
+
+startAppListening({
+  actionCreator: connect,
+  effect: async (action, listenerApi) => {
+    listenerApi.fork(async (forkApi) => {
+      forkApi.fork(pollServer)
+      await forkApi.pause(waitForDisconnect())
+      // `pollServer` is cancelled when this task finishes
+    })
+  },
+})
+```
 
 The task and result types are:
 
 ```ts no-transpile
-interface ForkedTaskAPI {
+interface ForkedTaskAPI<State = unknown, DispatchType extends Dispatch = Dispatch<UnknownAction>> {
+  getState(): State
+  dispatch: DispatchType
+  fork<T>(
+    executor: ForkedTaskExecutor<T, State, DispatchType>,
+    options?: ForkOptions,
+  ): ForkedTask<T>
   pause<W>(waitFor: Promise<W>): Promise<W>
   delay(timeoutMs: number): Promise<void>
   signal: AbortSignal
+}
+
+interface ForkOptions {
+  autoJoin: boolean
 }
 
 export type TaskResolved<T> = {
