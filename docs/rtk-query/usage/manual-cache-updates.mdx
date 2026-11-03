@@ -227,8 +227,9 @@ const api = createApi({
 ### Updates Across Queries
 
 The entity you want to update might be present in multiple differently shaped queries, such as
-(infinite) lists, or even inside another entity. If you don't want to invalidate those instead,
-you can avoid manually looping through every single cache entry by using [selectInvalidatedBy](https://redux-toolkit.js.org/rtk-query/api/created-api/api-slice-utils#selectinvalidatedby):
+(infinite) lists, or even inside another entity. If you want to update those queries instead of
+invalidating them, you can use [`selectInvalidatedBy`](../api/created-api/api-slice-utils.mdx#selectinvalidatedby)
+to find the cache entries that provide the entity's tag, rather than looping through every cache entry:
 
 ```ts title="Optimistic update mutation example (promise.catch, across queries)"
 // file: types.ts noEmit
@@ -250,7 +251,8 @@ const api = createApi({
     getPost: build.query<Post, number>({
       query: (id) => `post/${id}`,
       // highlight-start
-      providesTags: (result) => result ? [{ type: 'Post', id: result.id }] : [],
+      providesTags: (result) =>
+        result ? [{ type: 'Post', id: result.id }] : [],
       // highlight-end
     }),
     getPosts: build.infiniteQuery<Post[], void, number>({
@@ -259,7 +261,9 @@ const api = createApi({
       providesTags: (result) => {
         if (!result) return []
 
-        return result.pages.flatMap(page => page.map(post => ({ type: 'Post', id: post.id })))
+        return result.pages.flatMap((page) =>
+          page.map((post) => ({ type: 'Post' as const, id: post.id })),
+        )
       },
       // highlight-end
       infiniteQueryOptions: {
@@ -276,45 +280,51 @@ const api = createApi({
       }),
       // highlight-start
       onQueryStarted({ id, ...patch }, { dispatch, queryFulfilled, getState }) {
-        const entries = api.util.selectInvalidatedBy(getState(), [{ type: 'Post', id }])
+        const entries = api.util.selectInvalidatedBy(getState(), [
+          { type: 'Post', id },
+        ])
 
-        // the structure is somewhat questionable but it allows to add similar queries
-        // much easier, for example adding 'getUserPosts', 'getLikedPosts' would be just
-        // + case 'getUserPosts':
-        // as it's likely to also be an infinite query with the same response schema
-
-        const patches = entries.map(entry => {
+        // Each case handles one response shape. Another endpoint with the same
+        // shape (such as a `getUserPosts` infinite query) can share a case.
+        // Cache entries from endpoints without a case are left unchanged.
+        const patchResults = entries.flatMap((entry) => {
           switch (entry.endpointName) {
             case 'getPost':
-              return dispatch(
-                api.util.updateQueryData(
-                  entry.endpointName,
-                  entry.originalArgs,
-                  (draft) => {
-                    Object.assign(draft, patch)
-                  },
+              return [
+                dispatch(
+                  api.util.updateQueryData(
+                    entry.endpointName,
+                    entry.originalArgs,
+                    (draft) => {
+                      Object.assign(draft, patch)
+                    },
+                  ),
                 ),
-              )
+              ]
             case 'getPosts':
-              return dispatch(
-                api.util.updateQueryData(
-                  entry.endpointName,
-                  entry.originalArgs,
-                  (draft) => {
-                    draft.pages.forEach(page => {
-                      page.forEach(entity => {
-                        if (entity.id === id) Object.assign(entity, patch)
+              return [
+                dispatch(
+                  api.util.updateQueryData(
+                    entry.endpointName,
+                    entry.originalArgs,
+                    (draft) => {
+                      draft.pages.forEach((page) => {
+                        page.forEach((post) => {
+                          if (post.id === id) Object.assign(post, patch)
+                        })
                       })
-                    })
-                  },
+                    },
+                  ),
                 ),
-              )
+              ]
             default:
-              throw new Error(`Unknown endpoint (${entry.endpointName}) in updatePost's optimistic update`)
+              return []
           }
         })
 
-        queryFulfilled.catch(() => patches.forEach(patch => patch.undo()))
+        queryFulfilled.catch(() => {
+          patchResults.forEach((patchResult) => patchResult.undo())
+        })
       },
       // highlight-end
     }),
