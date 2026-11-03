@@ -673,18 +673,41 @@ describe('poll scheduling', () => {
 
     subscription.updateSubscriptionOptions({ pollingInterval: 200 })
 
-    // The old 50ms poll would have fired by now
-    await vi.advanceTimersByTimeAsync(100)
+    // The new interval counts from the start of the current wait, so the
+    // old 50ms poll does not fire and the next one is due at 200ms
+    await vi.advanceTimersByTimeAsync(189)
     expect(requests).toEqual(['a'])
 
-    // The new interval counts from the start of the current wait
-    await vi.advanceTimersByTimeAsync(95)
+    await vi.advanceTimersByTimeAsync(1)
     expect(requests).toEqual(['a', 'a'])
 
     subscription.unsubscribe()
   })
 
-  it('a faster polling interval keeps the earlier deadline rule', async () => {
+  it('a faster polling interval keeps an earlier existing deadline', async () => {
+    const { api, store, requests } = makePollApi()
+
+    const subscription = store.dispatch(
+      api.endpoints.getThing.initiate('a', {
+        subscriptionOptions: { pollingInterval: 200 },
+      }),
+    )
+    await vi.advanceTimersByTimeAsync(180)
+    expect(requests).toEqual(['a'])
+
+    // Restarting at 50ms would push the poll to 230ms
+    subscription.updateSubscriptionOptions({ pollingInterval: 50 })
+
+    await vi.advanceTimersByTimeAsync(19)
+    expect(requests).toEqual(['a'])
+
+    await vi.advanceTimersByTimeAsync(1)
+    expect(requests).toEqual(['a', 'a'])
+
+    subscription.unsubscribe()
+  })
+
+  it('a faster polling interval restarts the poll when that is sooner', async () => {
     const { api, store, requests } = makePollApi()
 
     const subscription = store.dispatch(
