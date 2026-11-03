@@ -1,27 +1,117 @@
 import type SwaggerParser from '@apidevtools/swagger-parser';
 import type { OpenAPIV3 } from 'openapi-types';
 
+/**
+ * A single OpenAPI operation, paired with the path and HTTP verb it was
+ * found under.
+ *
+ * @since 1.0.0
+ * @public
+ */
 export type OperationDefinition = {
+  /**
+   * The path of the API endpoint (e.g. `/users/{id}`).
+   */
   path: string;
+
+  /**
+   * The HTTP verb/method used for the operation (e.g. `get`, `post`).
+   */
   verb: (typeof operationKeys)[number];
+
+  /**
+   * The OpenAPI {@linkcode OpenAPIV3.PathItemObject | PathItemObject}
+   * associated with the operation.
+   */
   pathItem: OpenAPIV3.PathItemObject;
+
+  /**
+   * The OpenAPI {@linkcode OpenAPIV3.OperationObject | OperationObject}
+   * defining the operation.
+   */
   operation: OpenAPIV3.OperationObject;
 };
 
+/**
+ * A single parameter of an OpenAPI operation.
+ *
+ * @since 2.0.0
+ * @public
+ */
 export type ParameterDefinition = OpenAPIV3.ParameterObject;
 
+/**
+ * Makes the keys `K` of `T` required and non-nullable, leaving the rest
+ * of `T` untouched.
+ *
+ * @template T - The object type to modify.
+ * @template K - The keys of `T` to make required.
+ *
+ * @internal
+ */
 type Require<T, K extends keyof T> = { [k in K]-?: NonNullable<T[k]> } & Omit<T, K>;
+
+/**
+ * Makes the keys `K` of `T` optional and non-nullable, leaving the rest
+ * of `T` untouched.
+ *
+ * @template T - The object type to modify.
+ * @template K - The keys of `T` to make optional.
+ *
+ * @internal
+ */
 type Optional<T, K extends keyof T> = { [k in K]?: NonNullable<T[k]> } & Omit<T, K>;
+
+/**
+ * Flattens an intersection into a single object type so editors display it
+ * as one set of properties rather than as `A & B`.
+ *
+ * @template T - The type to flatten.
+ *
+ * @internal
+ */
 type Id<T> = { [K in keyof T]: T[K] } & {};
+
+/**
+ * Produces a union in which at least one key of `T` is required, while all
+ * remaining keys stay optional.
+ *
+ * @template T - The object type at least one key of which must be provided.
+ *
+ * @internal
+ */
 type AtLeastOneKey<T> = {
   [K in keyof T]-?: Pick<T, K> & Partial<T>;
 }[keyof T];
 
+/**
+ * The HTTP verbs that are read off an OpenAPI
+ * {@linkcode OpenAPIV3.PathItemObject | PathItemObject} when collecting
+ * operations.
+ *
+ * @since 1.0.0
+ * @public
+ */
 export const operationKeys = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'] as const;
 
+/**
+ * The fully resolved options for generating a single output file.
+ *
+ * @since 1.0.0
+ * @public
+ */
 export type GenerationOptions = Id<
   CommonOptions &
     Optional<OutputFileOptions, 'outputFile'> & {
+      /**
+       * Function to determine if a response is considered a "data" response.
+       *
+       * @param code - The HTTP status code as a string.
+       * @param includeDefault - Whether the default response is included.
+       * @param response - The OpenAPI response object for the given status code.
+       * @param allResponses - All responses defined for the operation.
+       * @returns `true` if the response is a data response, `false` otherwise.
+       */
       isDataResponse?(
         code: string,
         includeDefault: boolean,
@@ -31,29 +121,55 @@ export type GenerationOptions = Id<
     }
 >;
 
+/**
+ * The options that can be set once and shared by every generated output
+ * file.
+ *
+ * @since 1.0.0
+ * @public
+ */
 export interface CommonOptions {
-  apiFile: string;
   /**
-   * filename or url
+   * The filename of the api file to import the base api from.
+   */
+  apiFile: string;
+
+  /**
+   * The OpenAPI schema filename or URL to generate the API from.
    */
   schemaFile: string;
+
   /**
+   * The name to use for the imported API instance.
+   *
    * @default "api"
    */
   apiImport?: string;
+
   /**
+   * The name to use for the generated API instance.
+   *
    * @default "enhancedApi"
    */
   exportName?: string;
+
   /**
+   * A suffix to append to generated argument type names.
+   *
    * @default "ApiArg"
    */
   argSuffix?: string;
+
   /**
+   * A suffix to append to generated response type names.
+   *
    * @default "ApiResponse"
    */
   responseSuffix?: string;
+
   /**
+   * A suffix to append to generated operation names.
+   *
    * @default ""
    */
   operationNameSuffix?: string;
@@ -61,62 +177,127 @@ export interface CommonOptions {
   /**
    * Controls how OpenAPI **`operationId`** values are transformed into
    * endpoint names.
+   *
    * @see {@linkcode OperationIdTransformer} for details.
    *
    * @default "camelCase"
    * @since 2.3.0
    */
   operationIdTransformer?: OperationIdTransformer;
+
   /**
-   * `true` will generate hooks for queries and mutations, but no lazyQueries
+   * An object can be provided to configure which hooks to generate.
+   * - **`true`:** will generate hooks for `queries` and `mutations`, but no
+   *   `lazyQueries`. Equivalent to:
+   *   ```ts
+   *   {
+   *     lazyQueries: false,
+   *     mutations: true,
+   *     queries: true,
+   *   };
+   *   ```
+   * - **`false` (Default):** will not generate any hooks. Equivalent to:
+   *   ```ts
+   *   {
+   *     lazyQueries: false,
+   *     mutations: false,
+   *     queries: false,
+   *   };
+   *   ```
+   *
    * @default false
    */
   hooks?: boolean | { queries: boolean; lazyQueries: boolean; mutations: boolean };
+
   /**
-   * `true` will generate a union type for `undefined` properties like: `{ id?: string | undefined }` instead of `{ id?: string }`
+   * `true` will generate a union type for `undefined` properties like:
+   * `{ id?: string | undefined }` instead of `{ id?: string }`
+   *
+   * @example
+   * <caption>The effect on a generated property</caption>
+   *
+   * ```diff
+   * {
+   * -  id?: string
+   * +  id?: string | undefined
+   * }
+   * ```
+   *
    * @default false
    */
   unionUndefined?: boolean;
+
   /**
-   * `true` will result in all generated endpoints having `providesTags`/`invalidatesTags` declarations for the `tags` of their respective operation definition
+   * `true` will result in all generated endpoints having
+   * {@linkcode EndpointOverrides.providesTags | providesTags}
+   * and {@linkcode EndpointOverrides.invalidatesTags | invalidatesTags}
+   * declarations for the `tags` of their respective operation definition.
+   *
    * @default false
-   * @see https://redux-toolkit.js.org/rtk-query/usage/code-generation for more information
+   * @see {@link https://redux-toolkit.js.org/rtk-query/usage/code-generation | code-generation docs} for more information
    */
   tag?: boolean;
+
   /**
-   * `true` will add `encodeURIComponent` to the generated path parameters
+   * `true` will add {@linkcode encodeURIComponent()} to the generated
+   * {@linkcode OpenAPIV3.PathItemObject.parameters | Path parameters}.
+   *
    * @default false
    */
   encodePathParams?: boolean;
+
   /**
-   * `true` will add `encodeURIComponent` to the generated query parameters
+   * `true` will add {@linkcode encodeURIComponent()} to the generated
+   * {@linkcode OpenAPIV3.OperationObject.parameters | query parameters}.
+   *
    * @default false
    */
   encodeQueryParams?: boolean;
+
   /**
-   * `true` will "flatten" the arg so that you can do things like `useGetEntityById(1)` instead of `useGetEntityById({ entityId: 1 })`
+   * `true` will "flatten" the arg so that you can do things like
+   * `useGetEntityById(1)` instead of `useGetEntityById({ entityId: 1 })`.
+   *
+   * @example
+   * <caption>The effect on a generated hook call</caption>
+   *
+   * ```diff
+   * - useGetEntityById({ entityId: 1 })
+   * + useGetEntityById(1)
+   * ```
+   *
    * @default false
    */
   flattenArg?: boolean;
+
   /**
-   * If set to `true`, the default response type will be included in the generated code for all endpoints.
+   * If set to `true`, the default response type will be included in
+   * the generated code for all endpoints.
+   *
    * @default false
-   * @see https://swagger.io/docs/specification/describing-responses/#default
+   * @see {@link https://swagger.io/docs/specification/describing-responses/#default | docs}
    */
   includeDefault?: boolean;
+
   /**
-   * `true` will not generate separate types for read-only and write-only properties.
+   * `true` will not generate separate types for
+   * {@link https://swagger.io/docs/specification/v3_0/data-models/data-types/#read-only-and-write-only-properties | read-only and write-only properties}.
+   *
    * @default false
    */
   mergeReadWriteOnly?: boolean;
+
   /**
-   * HTTPResolverOptions object that is passed to the SwaggerParser bundle function.
+   * {@linkcode SwaggerParser.HTTPResolverOptions | HTTPResolverOptions}
+   * object that is passed to the {@linkcode SwaggerParser.bundle()} function.
    */
   httpResolverOptions?: SwaggerParser.HTTPResolverOptions;
 
   /**
-   * If present the given file will be used as prettier config when formatting the generated code. If undefined the default prettier config
-   * resolution mechanism will be used.
+   * If present the given file will be used as the Prettier config when
+   * formatting the generated code. If `undefined` the default Prettier
+   * config resolution mechanism will be used.
+   *
    * @default undefined
    */
   prettierConfigFile?: string;
@@ -131,20 +312,29 @@ export interface CommonOptions {
    * @since 2.1.0
    */
   useUnknown?: boolean;
+
   /**
+   * Will generate imports with file extension matching the expected compiled
+   * output of the {@linkcode CommonOptions.apiFile | apiFile}.
+   *
    * @default false
-   * Will generate imports with file extension matching the expected compiled output of the api file
    */
   esmExtensions?: boolean;
+
   /**
+   * Will generate regex constants for
+   * {@linkcode OpenAPIV3.BaseSchemaObject.pattern | pattern}
+   * keywords in the schema.
+   *
    * @default false
-   * Will generate regex constants for pattern keywords in the schema
    */
   outputRegexConstants?: boolean;
+
   /**
+   * If set to `true`, all schemas from the OpenAPI document will be exported,
+   * regardless of whether they are referenced by any endpoint definitions.
+   *
    * @default false
-   * If set to `true`, all schemas from the OpenAPI document will be exported, regardless of whether they are referenced by any
-   * endpoint definitions.
    */
   exportAllSchemas?: boolean;
 }
@@ -180,14 +370,57 @@ export interface CommonOptions {
  */
 export type OperationIdTransformer = 'camelCase' | 'none' | ((operationId: string) => string);
 
+/**
+ * A name to match against, given either as an exact `string`, as a
+ * {@linkcode RegExp}, or as an array of either.
+ *
+ * @since 1.0.0
+ * @public
+ */
 export type TextMatcher = string | RegExp | (string | RegExp)[];
 
+/**
+ * Decides whether an endpoint should be matched, based on its generated
+ * name and the operation it came from.
+ *
+ * @param operationName - The generated name of the endpoint.
+ * @param operationDefinition - The {@linkcode OperationDefinition} the endpoint was generated from.
+ * @returns `true` if the endpoint matches, `false` otherwise.
+ *
+ * @since 1.0.0
+ * @public
+ */
 export type EndpointMatcherFunction = (operationName: string, operationDefinition: OperationDefinition) => boolean;
 
+/**
+ * Selects endpoints either by name via a {@linkcode TextMatcher}, or by
+ * arbitrary logic via an {@linkcode EndpointMatcherFunction}.
+ *
+ * @since 1.0.0
+ * @public
+ */
 export type EndpointMatcher = TextMatcher | EndpointMatcherFunction;
 
+/**
+ * Decides whether a parameter should be matched, based on its name and
+ * its definition.
+ *
+ * @param parameterName - The name of the parameter.
+ * @param parameterDefinition - The {@linkcode ParameterDefinition} of the parameter.
+ * @returns `true` if the parameter matches, `false` otherwise.
+ *
+ * @since 2.0.0
+ * @public
+ */
 export type ParameterMatcherFunction = (parameterName: string, parameterDefinition: ParameterDefinition) => boolean;
 
+/**
+ * Selects parameters either by name via a {@linkcode TextMatcher}, or by
+ * arbitrary logic via a {@linkcode ParameterMatcherFunction}.
+ *
+ * @since 2.0.0
+ * @public
+ */
 export type ParameterMatcher = TextMatcher | ParameterMatcherFunction;
 
 /**
@@ -195,26 +428,54 @@ export type ParameterMatcher = TextMatcher | ParameterMatcherFunction;
  *
  * - **`"union"`** *(default)* - a union of string literals: `type Status = "available" | "pending"`
  * - **`"enum"`** - a TypeScript enum: `enum Status { Available = "available" }`
- * - **`"as-const"`** - a const object with a companion type:
- *   `const Status = { Available: "available" } as const; type Status = (typeof Status)[keyof typeof Status];`
+ * - **`"as-const"`** - a const object with a companion type: `const Status = { Available: "available" } as const; type Status = (typeof Status)[keyof typeof Status];`
  *
  * @since 2.3.0
  * @public
  */
 export type EnumStyle = 'union' | 'enum' | 'as-const';
 
+/**
+ * The options that apply to one generated output file, on top of the
+ * {@linkcode CommonOptions} shared by every output file.
+ *
+ * @since 1.0.0
+ * @public
+ */
 export interface OutputFileOptions extends Partial<CommonOptions> {
-  outputFile: string;
-  filterEndpoints?: EndpointMatcher;
-  endpointOverrides?: EndpointOverrides[];
   /**
-   * If passed as true it will generate TS enums instead of union of strings
+   * The output file path for the generated code.
+   */
+  outputFile: string;
+
+  /**
+   * Filters which endpoints will be generated in this output file.
+   */
+  filterEndpoints?: EndpointMatcher;
+
+  /**
+   * Configuration for overriding specific endpoint behaviors during
+   * code generation.
+   */
+  endpointOverrides?: EndpointOverrides[];
+
+  /**
+   * If passed as true it will generate
+   * {@link https://www.typescriptlang.org/docs/handbook/enums.html | TypeScript Enums}
+   * instead of
+   * {@link https://www.typescriptlang.org/docs/handbook/typescript-in-5-minutes-func.html#unions | union}
+   * of strings.
+   *
    * @default false
    */
   useEnumType?: boolean;
+
   /**
    * Controls how enums are generated in TypeScript.
-   * Takes precedence over `useEnumType` if both are specified.
+   * Takes precedence over
+   * {@linkcode OutputFileOptions.useEnumType | useEnumType} if both are
+   * specified.
+   *
    * @see {@linkcode EnumStyle} for details.
    *
    * @default "union"
@@ -224,39 +485,82 @@ export interface OutputFileOptions extends Partial<CommonOptions> {
 }
 
 /**
- * Configuration for overriding specific endpoint behaviors during code generation.
- * At least one override option (besides `pattern`) must be specified.
+ * Configuration for overriding specific endpoint behaviors during
+ * code generation. At least one override option
+ * (besides {@linkcode EndpointOverrides.pattern | pattern}) must be specified.
+ *
+ * @since 1.0.0
+ * @public
  */
 export type EndpointOverrides = {
-  /** Pattern to match endpoint names. Can be a string, RegExp, or matcher function. */
+  /**
+   * Pattern to match endpoint names.
+   * Can be a `string`, {@linkcode RegExp}, or
+   * {@linkcode EndpointMatcherFunction | matcher function}.
+   */
   pattern: EndpointMatcher;
 } & AtLeastOneKey<{
-  /** Override the endpoint type (query vs mutation) when the inferred type is incorrect. */
-  type: 'mutation' | 'query';
-  /** Filter which parameters are included in the generated endpoint. Path parameters cannot be filtered. */
-  parameterFilter: ParameterMatcher;
   /**
-   * Override providesTags for this endpoint.
+   * Override the endpoint type (`query` vs `mutation`) when the
+   * inferred type is incorrect.
+   */
+  type: 'mutation' | 'query';
+
+  /**
+   * Filter which parameters are included in the generated endpoint.
+   * {@linkcode OpenAPIV3.PathItemObject.parameters | Path parameters}
+   * cannot be filtered.
+   */
+  parameterFilter: ParameterMatcher;
+
+  /**
+   * Override `providesTags` for this endpoint.
    * Takes precedence over auto-generated tags from OpenAPI spec.
-   * Use an empty array to explicitly omit providesTags.
-   * Works regardless of the global `tag` setting and endpoint type.
-   * @example ['Pet', 'SinglePet']
+   * Use an empty array to explicitly omit `providesTags`.
+   * Works regardless of the global {@linkcode CommonOptions.tag | tag}
+   * setting and endpoint {@linkcode EndpointOverrides.type | type}.
+   *
+   * @example
+   * <caption>Tagging an endpoint that returns a single pet</caption>
+   *
+   * ```ts
+   * ['Pet', 'SinglePet'];
+   * ```
    */
   providesTags: string[];
+
   /**
-   * Override invalidatesTags for this endpoint.
+   * Override `invalidatesTags` for this endpoint.
    * Takes precedence over auto-generated tags from OpenAPI spec.
-   * Use an empty array to explicitly omit invalidatesTags.
-   * Works regardless of the global `tag` setting and endpoint type.
-   * @example ['Pet', 'PetList']
+   * Use an empty array to explicitly omit `invalidatesTags`.
+   * Works regardless of the global {@linkcode CommonOptions.tag | tag}
+   * setting and endpoint {@linkcode EndpointOverrides.type | type}.
+   *
+   * @example
+   * <caption>Invalidating both a pet and the pet list</caption>
+   *
+   * ```ts
+   * ['Pet', 'PetList'];
+   * ```
    */
   invalidatesTags: string[];
 }>;
 
+/**
+ * The shape of the config file passed to the CLI. Either a single output
+ * file described inline, or a set of output files keyed by path under
+ * `outputFiles`.
+ *
+ * @since 1.0.0
+ * @public
+ */
 export type ConfigFile =
   | Id<Require<CommonOptions & OutputFileOptions, 'outputFile'>>
   | Id<
       Omit<CommonOptions, 'outputFile'> & {
+        /**
+         * Mapping of output file paths to their respective output file options.
+         */
         outputFiles: { [outputFile: string]: Omit<OutputFileOptions, 'outputFile'> };
       }
     >;
