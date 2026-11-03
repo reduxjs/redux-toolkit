@@ -385,8 +385,24 @@ export type MutationState<D extends EndpointDefinitions> = {
   [requestId: string]: MutationSubState<D[string]> | undefined
 }
 
-export type RootState<
+/**
+ * The shape of the root state containing an API slice, keyed by its `reducerPath`.
+ *
+ * @since 2.14.0
+ * @public
+ */
+export type ApiRootState<
   Definitions extends EndpointDefinitions,
   TagTypes extends string,
   ReducerPath extends string,
 > = { [P in ReducerPath]: CombinedState<Definitions, TagTypes, P> }
+
+/**
+ * @deprecated Use `ApiRootState` instead. This name is easy to auto-import
+ * by mistake in place of an application's own `RootState` type.
+ */
+export type RootState<
+  Definitions extends EndpointDefinitions,
+  TagTypes extends string,
+  ReducerPath extends string,
+> = ApiRootState<Definitions, TagTypes, ReducerPath>

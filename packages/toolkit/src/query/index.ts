@@ -3,6 +3,7 @@
 import { formatProdErrorMessage } from '@reduxjs/toolkit'
 
 export type {
+  ApiRootState,
   CombinedState,
   QueryCacheEntry,
   QueryCacheKey,
@@ -85,6 +86,7 @@ export type {
   InfiniteQueryConfigOptions,
   InfiniteQueryResultSelectorResult,
   InfiniteQuerySubState,
+  Patch,
   TypedMutationOnQueryStarted,
   TypedQueryOnQueryStarted,
 } from './core/index'

@@ -93,6 +93,43 @@ import { pokemonApi } from './pokemon'
 const useGetPokemonByNameQuery = pokemonApi.endpoints.getPokemonByName.useQuery
 ```
 
+### Typing hook results
+
+The React entry point exports `TypedUseQueryStateResult`, `TypedUseQueryHookResult`, `TypedUseMutationResult` and similar helpers for typing hook results from a result type, argument type and base query.
+
+If you wrap a query hook and want to keep `selectFromResult` generic, use `UseQueryStateDefaultResult` (or `UseInfiniteQueryStateDefaultResult` for infinite queries). It is the result type the hook returns when no `selectFromResult` is given, for a specific endpoint definition:
+
+```ts no-transpile
+import type {
+  fetchBaseQuery,
+  QueryDefinition,
+  UseQueryStateDefaultResult,
+} from '@reduxjs/toolkit/query/react'
+import { pokemonApi } from './pokemon'
+import type { Pokemon } from './types'
+
+type GetPokemonDefinition = QueryDefinition<
+  string,
+  ReturnType<typeof fetchBaseQuery>,
+  never,
+  Pokemon
+>
+
+function usePokemon<
+  R extends Record<string, unknown> =
+    UseQueryStateDefaultResult<GetPokemonDefinition>,
+>(
+  name: string,
+  selectFromResult?: (
+    result: UseQueryStateDefaultResult<GetPokemonDefinition>,
+  ) => R,
+) {
+  return pokemonApi.endpoints.getPokemonByName.useQuery(name, {
+    selectFromResult,
+  })
+}
+```
+
 ### Typing a `baseQuery`
 
 Typing a custom [`baseQuery`](./api/createApi.mdx#basequery) can be done using the `BaseQueryFn` type exported by RTK Query.
@@ -415,6 +452,8 @@ const api = createApi({
   }),
 })
 ```
+
+If you need the type of the state that contains only the API slice, use `ApiRootState<Definitions, TagTypes, ReducerPath>` from `@reduxjs/toolkit/query`. It replaces RTK Query's `RootState` type export, which is now deprecated because it is easy to auto-import by mistake in place of your app's own `RootState` type.
 
 ### Typing `providesTags`/`invalidatesTags`
 

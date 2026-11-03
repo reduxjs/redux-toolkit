@@ -1,4 +1,4 @@
-import type { Draft } from 'immer'
+import type { Draft } from '../draftTypes'
 import type {
   EntityStateAdapter,
   IdSelector,

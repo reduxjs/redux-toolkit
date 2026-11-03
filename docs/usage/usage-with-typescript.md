@@ -506,6 +506,28 @@ const wrappedSlice = createGenericSlice({
 })
 ```
 
+### Typing Immer Drafts
+
+Case reducers receive an Immer draft of the state. RTK exports its own `Draft` and `WritableDraft` types for this, so import them from `@reduxjs/toolkit` rather than from `immer`. They behave the same as Immer's types, but when your code exports a reducer or helper that uses them, the generated `.d.ts` files only reference `@reduxjs/toolkit`:
+
+```ts
+import type { Draft, PayloadAction } from '@reduxjs/toolkit'
+
+interface TodosState {
+  readonly todos: readonly { readonly id: string; done: boolean }[]
+}
+
+export function toggleTodo(
+  state: Draft<TodosState>,
+  action: PayloadAction<string>,
+) {
+  const todo = state.todos.find((todo) => todo.id === action.payload)
+  if (todo) {
+    todo.done = !todo.done
+  }
+}
+```
+
 ## `createAsyncThunk`
 
 ### Basic `createAsyncThunk` Types

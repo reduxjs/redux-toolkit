@@ -39,6 +39,7 @@ import type {
   DataFromAnyQueryDefinition,
   InfiniteQueryThunk,
   MutationThunk,
+  Patch,
   QueryThunk,
   QueryThunkArg,
 } from './buildThunks'
@@ -52,7 +53,6 @@ import {
   type FullTagDescription,
   type QueryDefinition,
 } from '../endpointDefinitions'
-import type { Patch } from 'immer'
 import { applyPatches, original, isDraft } from '../utils/immerImports'
 import {
   INTERNAL_PREFIX,

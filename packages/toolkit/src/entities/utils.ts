@@ -1,4 +1,4 @@
-import type { Draft } from 'immer'
+import type { Draft } from '../draftTypes'
 import { current, isDraft } from '../immerImports'
 import type {
   DraftableEntityState,
@@ -45,7 +45,7 @@ export function isRemoveManyFilter<T, Id extends EntityId>(
 }
 
 export function getCurrent<T>(value: T | Draft<T>): T {
-  return (isDraft(value) ? current(value) : value) as T
+  return (isDraft(value) ? current(value as Draft<T>) : value) as T
 }
 
 export function splitAddedUpdatedEntities<T, Id extends EntityId>(
@@ -55,7 +55,7 @@ export function splitAddedUpdatedEntities<T, Id extends EntityId>(
 ): [T[], Update<T, Id>[], Id[]] {
   newEntities = ensureEntitiesArray(newEntities)
 
-  const existingIdsArray = getCurrent(state.ids)
+  const existingIdsArray = getCurrent(state.ids as Id[])
   const existingIds = new Set<Id>(existingIdsArray)
 
   const added: T[] = []

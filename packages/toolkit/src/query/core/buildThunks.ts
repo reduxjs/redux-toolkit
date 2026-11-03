@@ -6,7 +6,6 @@ import type {
   ThunkDispatch,
   UnknownAction,
 } from '@reduxjs/toolkit'
-import type { Patch } from 'immer'
 import { isDraftable, produceWithPatches } from '../utils/immerImports'
 import type { Api, ApiContext } from '../apiTypes'
 import type {
@@ -42,7 +41,7 @@ import {
 import { HandledError } from '../HandledError'
 import type { UnwrapPromise } from '../tsHelpers'
 import type {
-  RootState,
+  ApiRootState,
   QueryKeys,
   QuerySubstateIdentifier,
   InfiniteData,
@@ -226,6 +225,20 @@ export type UpsertRecipe<T> = (
   data: MaybeDrafted<T> | undefined,
 ) => void | MaybeDrafted<T>
 
+/**
+ * A single cache update patch, as produced by Immer's `produceWithPatches`.
+ * Matches Immer's `Patch` interface, but is declared by RTK so that
+ * emitted declarations reference `@reduxjs/toolkit/query` instead of `immer`.
+ *
+ * @since 2.14.0
+ * @public
+ */
+export interface Patch {
+  op: 'replace' | 'remove' | 'add'
+  path: (string | number)[]
+  value?: any
+}
+
 export type PatchQueryDataThunk<
   Definitions extends EndpointDefinitions,
   PartialState,
@@ -372,7 +385,7 @@ export function buildThunks<
   catchSchemaFailure: SchemaFailureConverter<BaseQuery> | undefined
   skipSchemaValidation: boolean | SchemaType[] | undefined
 }) {
-  type State = RootState<any, string, ReducerPath>
+  type State = ApiRootState<any, string, ReducerPath>
 
   // Keyed by `getState` because the thunk middleware passes the same
   // `store.getState` to every thunk dispatched through one store.
@@ -422,7 +435,7 @@ export function buildThunks<
 
       const newValue = api.endpoints[endpointName].select(arg)(
         // Work around TS 4.1 mismatch
-        getState() as RootState<any, any, any>,
+        getState() as ApiRootState<any, any, any>,
       )
 
       const providedTags = calculateProvidedBy(
@@ -456,7 +469,7 @@ export function buildThunks<
 
       const currentState = endpointDefinition.select(arg)(
         // Work around TS 4.1 mismatch
-        getState() as RootState<any, any, any>,
+        getState() as ApiRootState<any, any, any>,
       )
 
       const ret: PatchCollection = {
@@ -539,7 +552,7 @@ export function buildThunks<
   const executeEndpoint: AsyncThunkPayloadCreator<
     ThunkResult,
     QueryThunkArg | MutationThunkArg | InfiniteQueryThunkArg<any>,
-    ThunkApiMetaConfig & { state: RootState<any, string, ReducerPath> }
+    ThunkApiMetaConfig & { state: ApiRootState<any, string, ReducerPath> }
   > = async (
     arg,
     {
@@ -935,7 +948,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
 
   function isForcedQuery(
     arg: QueryThunkArg,
-    state: RootState<any, string, ReducerPath>,
+    state: ApiRootState<any, string, ReducerPath>,
   ) {
     const requestState = selectors.selectQueryEntry(state, arg.queryCacheKey)
     const baseFetchOnMountOrArgChange =
@@ -961,7 +974,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
     const generatedQueryThunk = createAsyncThunk<
       ThunkResult,
       ThunkArgType,
-      ThunkApiMetaConfig & { state: RootState<any, string, ReducerPath> }
+      ThunkApiMetaConfig & { state: ApiRootState<any, string, ReducerPath> }
     >(`${reducerPath}/executeQuery`, executeEndpoint, {
       getPendingMeta({ arg, requestId }, { getState }) {
         const endpointDefinition = endpointDefinitions[arg.endpointName]
@@ -1054,7 +1067,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
   const mutationThunk = createAsyncThunk<
     ThunkResult,
     MutationThunkArg,
-    ThunkApiMetaConfig & { state: RootState<any, string, ReducerPath> }
+    ThunkApiMetaConfig & { state: ApiRootState<any, string, ReducerPath> }
   >(`${reducerPath}/executeMutation`, executeEndpoint, {
     getPendingMeta({ requestId }, { getState }) {
       return addShouldAutoBatch(startRequest(requestId, getState))

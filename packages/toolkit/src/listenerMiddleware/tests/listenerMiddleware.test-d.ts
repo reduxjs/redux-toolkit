@@ -4,12 +4,14 @@ import type {
   Action,
   PayloadAction,
   TypedAddListener,
+  TypedAddListenerAction,
   TypedStartListening,
   UnknownAction,
   UnsubscribeListener,
 } from '@reduxjs/toolkit'
 import {
   addListener,
+  clearAllListeners,
   configureStore,
   createAction,
   createListenerMiddleware,
@@ -17,6 +19,7 @@ import {
   isAllOf,
   isAnyOf,
   isFluxStandardAction,
+  removeListener,
 } from '@reduxjs/toolkit'
 
 const listenerMiddleware = createListenerMiddleware()
@@ -103,6 +106,52 @@ describe('type tests', () => {
     unsubscribe()
     store.dispatch(testAction2('b'))
     store.dispatch(testAction1('c'))
+  })
+
+  test('dispatching removeListener returns whether a listener was removed', () => {
+    const removed = store.dispatch(
+      removeListener({
+        actionCreator: testAction1,
+        effect: () => {},
+      }),
+    )
+
+    expectTypeOf(removed).toEqualTypeOf<boolean>()
+
+    expectTypeOf(
+      store.dispatch({ type: 'listenerMiddleware/remove' }),
+    ).not.toEqualTypeOf<boolean>()
+
+    expectTypeOf(store.dispatch(testAction1('a'))).toEqualTypeOf<
+      PayloadAction<string>
+    >()
+  })
+
+  test('dispatching clearAllListeners returns void', () => {
+    expectTypeOf(store.dispatch(clearAllListeners())).toBeVoid()
+  })
+
+  test('addListener and removeListener payloads are the listener options', () => {
+    const addAction = addTypedListenerAction({
+      actionCreator: increment,
+      effect: () => {},
+    })
+
+    expectTypeOf(addAction.payload).not.toHaveProperty('id')
+    expectTypeOf(addAction.payload).not.toHaveProperty('unsubscribe')
+    expectTypeOf(addAction.payload.effect).toBeFunction()
+
+    const action = {} as UnknownAction
+
+    if (addTypedListenerAction.match(action)) {
+      expectTypeOf(action).toEqualTypeOf<TypedAddListenerAction<CounterState>>()
+    }
+
+    if (removeListener.match(action)) {
+      expectTypeOf(action.payload.cancelActive).toEqualTypeOf<
+        true | undefined
+      >()
+    }
   })
 
   test('take resolves to `[A, CurrentState, PreviousState] | null` if a possibly undefined timeout parameter is provided', () => {

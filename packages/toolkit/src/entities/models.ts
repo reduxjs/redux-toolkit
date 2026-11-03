@@ -1,4 +1,4 @@
-import type { Draft } from 'immer'
+import type { Draft } from '../draftTypes'
 import type { PayloadAction } from '../createAction'
 import type { CastAny, Id } from '../tsHelpers'
 import type { UncheckedIndexedAccess } from '../uncheckedindexed.js'

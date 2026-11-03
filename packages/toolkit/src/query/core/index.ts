@@ -5,6 +5,7 @@ export const createApi = /* @__PURE__ */ buildCreateApi(coreModule())
 
 export { QueryStatus } from './apiState'
 export type {
+  ApiRootState,
   CombinedState,
   InfiniteData,
   InfiniteQueryConfigOptions,
@@ -40,6 +41,7 @@ export type {
 } from './buildSelectors'
 export type { SliceActions } from './buildSlice'
 export type {
+  Patch,
   PatchQueryDataThunk,
   UpdateQueryDataThunk,
   UpsertQueryDataThunk,

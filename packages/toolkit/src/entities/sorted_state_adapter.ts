@@ -69,7 +69,9 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
   ): void {
     newEntities = ensureEntitiesArray(newEntities)
 
-    const existingKeys = new Set<Id>(existingIds ?? getCurrent(state.ids))
+    const existingKeys = new Set<Id>(
+      existingIds ?? getCurrent(state.ids as Id[]),
+    )
     const addedKeys = new Set<Id>()
     const models = newEntities.filter((model) => {
       const modelId = selectIdValue(model, selectId)
@@ -217,7 +219,7 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
     replacedIds?: boolean,
   ): void {
     const currentEntities = getCurrent(state.entities)
-    const currentIds = getCurrent(state.ids)
+    const currentIds = getCurrent(state.ids as Id[])
 
     const stateEntities = state.entities as Record<Id, T>
 
