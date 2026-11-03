@@ -41,6 +41,26 @@ export function findNonSerializableValue(
   ignoredPaths: IgnoredPaths = [],
   cache?: WeakSet<object>,
 ): NonSerializableValue | false {
+  return findNonSerializableValueRecursive(
+    value,
+    path,
+    isSerializable,
+    getEntries,
+    ignoredPaths,
+    cache,
+    new Set(),
+  )
+}
+
+function findNonSerializableValueRecursive(
+  value: unknown,
+  path: string,
+  isSerializable: (value: unknown) => boolean,
+  getEntries: ((value: unknown) => [string, any][]) | undefined,
+  ignoredPaths: IgnoredPaths,
+  cache: WeakSet<object> | undefined,
+  ancestors: Set<object>,
+): NonSerializableValue | false {
   let foundNestedSerializable: NonSerializableValue | false
 
   if (!isSerializable(value)) {
@@ -55,6 +75,15 @@ export function findNonSerializableValue(
   }
 
   if (cache?.has(value)) return false
+
+  if (ancestors.has(value)) {
+    return {
+      keyPath: path || '<root>',
+      value,
+    }
+  }
+
+  ancestors.add(value)
 
   const entries = getEntries != null ? getEntries(value) : Object.entries(value)
 
@@ -83,13 +112,14 @@ export function findNonSerializableValue(
     }
 
     if (typeof nestedValue === 'object') {
-      foundNestedSerializable = findNonSerializableValue(
+      foundNestedSerializable = findNonSerializableValueRecursive(
         nestedValue,
         nestedPath,
         isSerializable,
         getEntries,
         ignoredPaths,
         cache,
+        ancestors,
       )
 
       if (foundNestedSerializable) {
@@ -98,18 +128,27 @@ export function findNonSerializableValue(
     }
   }
 
+  ancestors.delete(value)
+
   if (cache && isNestedFrozen(value)) cache.add(value)
 
   return false
 }
 
 export function isNestedFrozen(value: object) {
+  return isNestedFrozenRecursive(value, new Set())
+}
+
+function isNestedFrozenRecursive(value: object, visited: Set<object>) {
   if (!Object.isFrozen(value)) return false
+
+  if (visited.has(value)) return true
+  visited.add(value)
 
   for (const nestedValue of Object.values(value)) {
     if (typeof nestedValue !== 'object' || nestedValue === null) continue
 
-    if (!isNestedFrozen(nestedValue)) return false
+    if (!isNestedFrozenRecursive(nestedValue, visited)) return false
   }
 
   return true
