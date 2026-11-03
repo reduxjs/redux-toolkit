@@ -1425,6 +1425,97 @@ describe('binary bodies', () => {
 
     expect(request.headers['content-type']).toBeUndefined()
   })
+
+  test('removes a default JSON content-type for a binary body even with a custom isJsonContentType', async () => {
+    const baseQueryWithCustomPredicate = fetchBaseQuery({
+      baseUrl,
+      isJsonContentType: (headers) =>
+        headers.get('content-type') === 'application/vnd.hal+json',
+      prepareHeaders: (headers) => {
+        headers.set('Content-Type', 'application/json')
+        return headers
+      },
+    })
+
+    const res = await baseQueryWithCustomPredicate(
+      { url: '/echo', method: 'POST', body: new Uint8Array([1, 2, 3]).buffer },
+      commonBaseQueryApi,
+      {},
+    )
+
+    const request: any = res.data
+
+    expect(request.headers['content-type']).toBeUndefined()
+  })
+
+  test('replaces an explicit multipart content-type on a FormData body so the boundary is set', async () => {
+    const body = new FormData()
+    body.append('username', 'test')
+
+    const res = await baseQuery(
+      {
+        url: '/echo',
+        method: 'POST',
+        body,
+        headers: { 'content-type': 'multipart/form-data' },
+      },
+      commonBaseQueryApi,
+      {},
+    )
+
+    const request: any = res.data
+
+    expect(request.headers['content-type']).toMatch(
+      /^multipart\/form-data; boundary=/,
+    )
+  })
+
+  test('lets the runtime set the content-type for a URLSearchParams body', async () => {
+    const baseQueryWithTextDefault = fetchBaseQuery({
+      baseUrl,
+      prepareHeaders: (headers) => {
+        headers.set('Content-Type', 'text/plain')
+        return headers
+      },
+    })
+
+    const res = await baseQueryWithTextDefault(
+      {
+        url: '/echo',
+        method: 'POST',
+        body: new URLSearchParams({ a: '1' }),
+      },
+      commonBaseQueryApi,
+      {},
+    )
+
+    const request: any = res.data
+
+    expect(request.headers['content-type']).toMatch(
+      /^application\/x-www-form-urlencoded/,
+    )
+  })
+})
+
+describe('JSON content-type matching', () => {
+  test('serializes a jsonifiable body when the content-type uses different casing', async () => {
+    const jsonBody = { test: 'value' }
+
+    const res = await baseQuery(
+      {
+        url: '/echo',
+        method: 'POST',
+        body: jsonBody,
+        headers: { 'content-type': 'Application/JSON' },
+      },
+      commonBaseQueryApi,
+      {},
+    )
+
+    const request: any = res.data
+
+    expect(request.body).toEqual(jsonBody)
+  })
 })
 
 describe('Accept header handling', () => {
