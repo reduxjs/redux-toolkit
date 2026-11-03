@@ -224,6 +224,35 @@ describe('selectEntriesForEndpoint and selectAllQueryEntries', () => {
 
     for (const promise of [post1, post2, user, pages]) promise.unsubscribe()
     mutation.reset()
+
+    store.dispatch(
+      api.internalActions.removeQueryResult({
+        queryCacheKey: post2.queryCacheKey as QueryCacheKey,
+      }),
+    )
+    expect(
+      api.util
+        .selectEntriesForEndpoint(store.getState(), 'getPost')
+        .map((entry) => entry.queryCacheKey),
+    ).toEqual([post1.queryCacheKey])
+  })
+
+  test('includes pending entries', async () => {
+    const { store } = storeRef
+    const post = store.dispatch(api.endpoints.getPost.initiate('pending'))
+
+    expect(
+      api.util.selectEntriesForEndpoint(store.getState(), 'getPost'),
+    ).toEqual([
+      expect.objectContaining({
+        queryCacheKey: post.queryCacheKey,
+        originalArgs: 'pending',
+        status: 'pending',
+      }),
+    ])
+
+    await post
+    post.unsubscribe()
   })
 
   test('results are memoized until the queries state changes', async () => {
