@@ -179,4 +179,39 @@ describe('per-store runtime', () => {
       vi.unstubAllEnvs()
     }
   })
+
+  test('an abort listener can restart a query that resetApiState aborted', async () => {
+    let calls = 0
+    let restarted: Promise<unknown> | undefined
+    const api = createApi({
+      baseQuery: fakeBaseQuery(),
+      endpoints: (build) => ({
+        getValue: build.query<number, number>({
+          queryFn: (arg, { signal, dispatch }) => {
+            calls++
+            if (calls === 1) {
+              signal.addEventListener('abort', () => {
+                restarted = dispatch(api.endpoints.getValue.initiate(arg))
+              })
+            }
+            return new Promise((resolve) => {
+              if (calls > 1) resolve({ data: arg })
+            })
+          },
+        }),
+      }),
+    })
+    const store = configureStore({
+      reducer: { [api.reducerPath]: api.reducer },
+      middleware: (gdm) => gdm().concat(api.middleware),
+    })
+
+    store.dispatch(api.endpoints.getValue.initiate(1))
+    await vi.waitFor(() => expect(calls).toBe(1))
+    store.dispatch(api.util.resetApiState())
+
+    const result = await restarted
+    expect(calls).toBe(2)
+    expect(result).toMatchObject({ status: 'fulfilled', data: 1 })
+  })
 })

@@ -112,10 +112,6 @@ export function buildMiddleware<
 
         const stateBefore = mwApi.getState()
 
-        if (api.util.resetApiState.match(action)) {
-          runtime.reset()
-        }
-
         const [actionShouldContinue, internalProbeResult] =
           batchedActionsHandler(action, mwApiWithNext, stateBefore)
 
@@ -125,6 +121,12 @@ export function buildMiddleware<
           res = next(action)
         } else {
           res = internalProbeResult
+        }
+
+        // Runs after the reducer so abort listeners that start a new request
+        // for the same key see the cleared cache entry.
+        if (api.util.resetApiState.match(action)) {
+          runtime.reset()
         }
 
         if (mwApi.getState()[reducerPath]) {
