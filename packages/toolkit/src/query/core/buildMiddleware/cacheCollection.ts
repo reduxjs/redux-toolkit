@@ -5,10 +5,9 @@ import { isAnyOf } from '../rtkImports'
 import type {
   ApiMiddlewareInternalHandler,
   InternalHandlerBuilder,
-  QueryStateMeta,
   SubMiddlewareApi,
-  TimeoutId,
 } from './types'
+import { ensureRecord, pruneRecord } from './runtime'
 
 export type ReferenceCacheCollection = never
 
@@ -57,7 +56,7 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
   api,
   queryThunk,
   context,
-  internalState,
+  runtime,
   selectors: { selectQueryEntry, selectConfig },
   getRunningQueryThunk,
   mwApi,
@@ -84,30 +83,15 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
   )
 
   function anySubscriptionsRemainingForKey(queryCacheKey: string) {
-    const subscriptions = internalState.currentSubscriptions.get(queryCacheKey)
-    if (!subscriptions) {
-      return false
-    }
-
-    const hasSubscriptions = subscriptions.size > 0
-    return hasSubscriptions
-  }
-
-  const currentRemovalTimeouts: QueryStateMeta<TimeoutId> = {}
-
-  function abortAllPromises<T extends { abort?: () => void }>(
-    promiseMap: Map<string, T | undefined>,
-  ): void {
-    for (const promise of promiseMap.values()) {
-      promise?.abort?.()
-    }
+    return !!runtime.queries.get(queryCacheKey)?.subscribers?.size
   }
 
   function clearRemovalTimeout(queryCacheKey: string) {
-    const timeout = currentRemovalTimeouts[queryCacheKey]
-    if (timeout) {
-      clearTimeout(timeout)
-      delete currentRemovalTimeouts[queryCacheKey]
+    const record = runtime.queries.get(queryCacheKey)
+    if (record?.gc) {
+      clearTimeout(record.gc)
+      record.gc = undefined
+      pruneRecord(runtime, queryCacheKey)
     }
   }
 
@@ -145,13 +129,13 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
     }
 
     if (api.util.resetApiState.match(action)) {
-      for (const [key, timeout] of Object.entries(currentRemovalTimeouts)) {
-        if (timeout) clearTimeout(timeout)
-        delete currentRemovalTimeouts[key]
+      for (const record of runtime.queries.values()) {
+        clearRemovalTimeout(record.key)
+        record.request?.abort()
       }
-
-      abortAllPromises(internalState.runningQueries)
-      abortAllPromises(internalState.runningMutations)
+      for (const promise of runtime.runningMutations.values()) {
+        promise?.abort()
+      }
     }
 
     if (context.hasRehydrationInfo(action)) {
@@ -208,13 +192,14 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
     )
 
     if (!anySubscriptionsRemainingForKey(queryCacheKey)) {
-      const currentTimeout = currentRemovalTimeouts[queryCacheKey]
-      if (currentTimeout) {
-        clearTimeout(currentTimeout)
+      const record = ensureRecord(runtime, queryCacheKey)
+      if (record.gc) {
+        clearTimeout(record.gc)
       }
 
-      currentRemovalTimeouts[queryCacheKey] = setTimeout(() => {
-        delete currentRemovalTimeouts[queryCacheKey]
+      record.gc = setTimeout(() => {
+        record.gc = undefined
+        pruneRecord(runtime, queryCacheKey)
         if (!anySubscriptionsRemainingForKey(queryCacheKey)) {
           // Try to abort any running query for this cache key
           const entry = selectQueryEntry(api.getState(), queryCacheKey)
