@@ -501,7 +501,10 @@ startAppListening({
 The task and result types are:
 
 ```ts no-transpile
-interface ForkedTaskAPI<State = unknown, DispatchType extends Dispatch = Dispatch<UnknownAction>> {
+interface ForkedTaskAPI<
+  State = unknown,
+  DispatchType extends Dispatch = Dispatch<UnknownAction>,
+> {
   getState(): State
   dispatch: DispatchType
   fork<T>(
