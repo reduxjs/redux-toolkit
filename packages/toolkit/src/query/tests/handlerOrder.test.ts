@@ -1,5 +1,8 @@
 import { configureStore } from '@reduxjs/toolkit'
-import { createApi, fakeBaseQuery } from '@reduxjs/toolkit/query'
+import { fakeBaseQuery } from '@reduxjs/toolkit/query'
+// The source `createApi`, so its middleware reads the same `handlerBuilders`
+// array this test patches, also when tests run against the build artifact.
+import { createApi } from '../core'
 import { buildCacheCollectionHandler } from '../core/buildMiddleware/cacheCollection'
 import { buildCacheLifecycleHandler } from '../core/buildMiddleware/cacheLifecycle'
 import { buildDevCheckHandler } from '../core/buildMiddleware/devMiddleware'
