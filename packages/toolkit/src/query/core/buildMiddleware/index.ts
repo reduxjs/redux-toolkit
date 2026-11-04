@@ -37,12 +37,29 @@ export type {
 } from './queryLifecycle'
 export type { SubscriptionSelectors } from './types'
 
+/**
+ * Handlers for API slice and rehydration actions, run in this order after
+ * the reducer. Subscription sync runs before all of them, ahead of the
+ * reducer, so cache collection sees the updated subscriber count when it
+ * decides whether to start a removal timer. Tag invalidation runs before
+ * polling and the lifecycles, so refetches it starts are dispatched before
+ * those handlers see the action that finished the last pending request.
+ */
+export const handlerBuilders: InternalHandlerBuilder[] = [
+  buildDevCheckHandler,
+  buildCacheCollectionHandler,
+  buildInvalidationByTagsHandler,
+  buildPollingHandler,
+  buildCacheLifecycleHandler,
+  buildQueryLifecycleHandler,
+]
+
 export function buildMiddleware<
   Definitions extends EndpointDefinitions,
   ReducerPath extends string,
   TagTypes extends string,
 >(input: BuildMiddlewareInput<Definitions, ReducerPath, TagTypes>) {
-  const { reducerPath, queryThunk, api, context, getRuntime } = input
+  const { reducerPath, queryThunk, api, context, createRuntime } = input
   const { apiUid } = context
 
   const actions = {
@@ -54,15 +71,6 @@ export function buildMiddleware<
   const isThisApiSliceAction = (action: Action) =>
     action.type.startsWith(`${reducerPath}/`)
 
-  const handlerBuilders: InternalHandlerBuilder[] = [
-    buildDevCheckHandler,
-    buildCacheCollectionHandler,
-    buildInvalidationByTagsHandler,
-    buildPollingHandler,
-    buildCacheLifecycleHandler,
-    buildQueryLifecycleHandler,
-  ]
-
   const middleware: Middleware<
     {},
     ApiRootState<Definitions, string, ReducerPath>,
@@ -70,7 +78,7 @@ export function buildMiddleware<
   > = (mwApi) => {
     let initialized = false
 
-    const runtime = getRuntime(mwApi.dispatch)
+    const runtime = createRuntime(mwApi.dispatch)
 
     const builderArgs = {
       ...(input as any as BuildMiddlewareInput<
@@ -113,6 +121,12 @@ export function buildMiddleware<
           res = next(action)
         } else {
           res = internalProbeResult
+        }
+
+        // Runs after the reducer so abort listeners that start a new request
+        // for the same key see the cleared cache entry.
+        if (api.util.resetApiState.match(action)) {
+          runtime.reset()
         }
 
         if (mwApi.getState()[reducerPath]) {

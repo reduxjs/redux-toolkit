@@ -24,7 +24,7 @@ import type {
   SubMiddlewareApi,
 } from './types'
 import type { CacheLifecycle } from './runtime'
-import { ensureRecord, pruneRecord } from './runtime'
+import { ensureRecord, getThunkExtra, pruneRecord } from './runtime'
 import { getEndpointDefinition } from '@internal/query/apiTypes'
 
 export type ReferenceCacheLifecycle = never
@@ -359,13 +359,6 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
       removeLifecycleEntry(cacheKey, false)
     } else if (removeMutationResult.match(action)) {
       removeLifecycleEntry(cacheKey, true)
-    } else if (api.util.resetApiState.match(action)) {
-      for (const cacheKey of runtime.queries.keys()) {
-        removeLifecycleEntry(cacheKey, false)
-      }
-      for (const cacheKey of runtime.mutationCacheLifecycles.keys()) {
-        removeLifecycleEntry(cacheKey, true)
-      }
     }
   }
 
@@ -419,7 +412,7 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
       isAnyQueryDefinition(endpointDefinition) ? originalArgs : queryCacheKey,
     )
 
-    const extra = mwApi.dispatch((_, __, extra) => extra)
+    const extra = getThunkExtra(runtime, mwApi.dispatch)
     const lifecycleApi = {
       ...mwApi,
       getCacheEntry: () => selector(mwApi.getState()),

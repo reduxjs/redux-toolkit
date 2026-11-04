@@ -25,9 +25,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
   const getSubscribers = (queryCacheKey: string) =>
     runtime.queries.get(queryCacheKey)?.subscribers
 
-  // Batching state for polling updates
-  const pendingPollingUpdates = new Set<string>()
-  let pollingUpdateTimer: ReturnType<typeof setTimeout> | null = null
+  const { pendingPollingUpdates } = runtime
 
   const handler: ApiMiddlewareInternalHandler = (action, mwApi) => {
     if (
@@ -54,16 +52,6 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
     if (api.internalActions.removeQueryResult.match(action)) {
       cleanupPollForKey(action.payload.queryCacheKey)
     }
-
-    if (api.util.resetApiState.match(action)) {
-      clearPolls()
-      // Clear any pending updates
-      if (pollingUpdateTimer) {
-        clearTimeout(pollingUpdateTimer)
-        pollingUpdateTimer = null
-      }
-      pendingPollingUpdates.clear()
-    }
   }
 
   function schedulePollingUpdate(queryCacheKey: string, api: SubMiddlewareApi) {
@@ -76,16 +64,16 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
     ) {
       return
     }
-    pendingPollingUpdates.add(queryCacheKey)
+    pendingPollingUpdates.keys.add(queryCacheKey)
 
-    if (!pollingUpdateTimer) {
-      pollingUpdateTimer = setTimeout(() => {
+    if (!pendingPollingUpdates.timer) {
+      pendingPollingUpdates.timer = setTimeout(() => {
         // Process all pending updates in a single batch
-        for (const key of pendingPollingUpdates) {
+        for (const key of pendingPollingUpdates.keys) {
           updatePollingInterval({ queryCacheKey: key as any }, api)
         }
-        pendingPollingUpdates.clear()
-        pollingUpdateTimer = null
+        pendingPollingUpdates.keys.clear()
+        pendingPollingUpdates.timer = undefined
       }, 0)
     }
   }
@@ -222,12 +210,6 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
       clearTimeout(record.poll.timeout)
       record.poll = undefined
       pruneRecord(runtime, key)
-    }
-  }
-
-  function clearPolls() {
-    for (const key of runtime.queries.keys()) {
-      cleanupPollForKey(key)
     }
   }
 

@@ -9,13 +9,8 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
 > = ({ api, queryThunk, runtime, mwApi }) => {
   const subscriptionsPrefix = `${api.reducerPath}/subscriptions`
 
-  // Keys whose subscribers changed since the last sync to the store
-  const changedKeys = new Set<string>()
-  // Keys the sync has written to the store, so removals of keys that were
-  // never synced do not cause an extra sync
-  const syncedKeys = new Set<string>()
-
-  let updateSyncTimer: ReturnType<typeof window.setTimeout> | null = null
+  const { subscriptionSync } = runtime
+  const { changedKeys, syncedKeys } = subscriptionSync
 
   const { updateSubscriptionOptions, unsubscribeQueryResult } =
     api.internalActions
@@ -135,20 +130,6 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
     actionShouldContinue: boolean,
     result: SubscriptionSelectors | boolean,
   ] => {
-    if (api.util.resetApiState.match(action)) {
-      changedKeys.clear()
-      syncedKeys.clear()
-      for (const record of runtime.queries.values()) {
-        record.subscribers = undefined
-        pruneRecord(runtime, record.key)
-      }
-      if (updateSyncTimer) {
-        clearTimeout(updateSyncTimer)
-        updateSyncTimer = null
-      }
-      return [true, false]
-    }
-
     // Intercept requests by hooks to see if they're subscribed
     // We return the internal state reference so that hooks
     // can do their own checks to see if they're still active.
@@ -170,15 +151,15 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
       }
     }
 
-    if (didMutate && !updateSyncTimer) {
+    if (didMutate && !subscriptionSync.timer) {
       // We only use the subscription state for the Redux DevTools at this point,
       // as the real data is kept here in the middleware.
       // Given that, we can throttle synchronizing this state significantly to
       // save on overall perf.
       // In 1.9, it was updated in a microtask, but now we do it at most every 500ms.
-      updateSyncTimer = setTimeout(() => {
+      subscriptionSync.timer = setTimeout(() => {
         const patches = buildSubscriptionPatches()
-        updateSyncTimer = null
+        subscriptionSync.timer = undefined
         if (patches.length) {
           mwApi.next(api.internalActions.subscriptionsUpdated(patches))
         }

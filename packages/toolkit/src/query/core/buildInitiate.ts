@@ -293,12 +293,13 @@ export function buildInitiate({
   mutationThunk: MutationThunk
   api: Api<any, EndpointDefinitions, any, any>
   context: ApiContext<EndpointDefinitions>
-  getRuntime: (dispatch: Dispatch) => StoreRuntime
+  getRuntime: (dispatch: Dispatch) => StoreRuntime | undefined
 }) {
   const getRunningQuery = (dispatch: Dispatch, queryCacheKey: string) =>
-    getRuntime(dispatch).queries.get(queryCacheKey)?.request
+    getRuntime(dispatch)?.queries.get(queryCacheKey)?.request
   const getRunningMutations = (dispatch: Dispatch) =>
-    getRuntime(dispatch).runningMutations
+    getRuntime(dispatch)?.runningMutations
+  const checkedStores = new WeakSet<Dispatch>()
 
   const {
     unsubscribeQueryResult,
@@ -348,7 +349,7 @@ export function buildInitiate({
   function getRunningQueriesThunk() {
     return (dispatch: Dispatch) => {
       const running: RunningQuery[] = []
-      for (const record of getRuntime(dispatch).queries.values()) {
+      for (const record of getRuntime(dispatch)?.queries.values() ?? []) {
         if (record.request) running.push(record.request)
       }
       return running
@@ -362,20 +363,10 @@ export function buildInitiate({
 
   function middlewareWarning(dispatch: Dispatch) {
     if (process.env.NODE_ENV !== 'production') {
-      if ((middlewareWarning as any).triggered) return
-      const returnedValue = dispatch(
-        api.internalActions.internal_getRTKQSubscriptions(),
-      )
+      if (checkedStores.has(dispatch)) return
+      checkedStores.add(dispatch)
 
-      ;(middlewareWarning as any).triggered = true
-
-      // The RTKQ middleware should return the internal state object,
-      // but it should _not_ be the action object.
-      if (
-        typeof returnedValue !== 'object' ||
-        typeof returnedValue?.type === 'string'
-      ) {
-        // Otherwise, must not have been added
+      if (!getRuntime(dispatch)) {
         throw new Error(
           `Warning: Middleware for RTK-Query API at reducerPath "${api.reducerPath}" has not been added to the store.
 You must add the middleware for RTK-Query to function correctly!`,
@@ -528,8 +519,8 @@ You must add the middleware for RTK-Query to function correctly!`,
           },
         )
 
-        if (!skippedSynchronously && !forceQueryFn) {
-          const runtime = getRuntime(dispatch)
+        const runtime = getRuntime(dispatch)
+        if (runtime && !skippedSynchronously && !forceQueryFn) {
           const record = ensureRecord(runtime, queryCacheKey)
           record.request = statePromise
 
@@ -604,7 +595,8 @@ You must add the middleware for RTK-Query to function correctly!`,
           reset,
         })
 
-        const runningMutations = getRunningMutations(dispatch)!
+        const runningMutations = getRunningMutations(dispatch)
+        if (!runningMutations) return ret
 
         runningMutations.set(requestId, ret)
         ret.then(() => {

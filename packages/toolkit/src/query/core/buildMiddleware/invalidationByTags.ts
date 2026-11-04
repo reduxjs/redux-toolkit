@@ -44,12 +44,6 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
   const { pendingRequestIds } = runtime
 
   const handler: ApiMiddlewareInternalHandler = (action, mwApi) => {
-    if (api.util.resetApiState.match(action)) {
-      pendingRequestIds.clear()
-      runtime.pendingTagInvalidations = []
-      return
-    }
-
     if (
       queryThunk.pending.match(action) ||
       mutationThunk.pending.match(action)

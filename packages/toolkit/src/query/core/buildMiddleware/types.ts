@@ -55,7 +55,7 @@ export interface BuildMiddlewareInput<
     endpointName: string,
     queryArgs: any,
   ) => (dispatch: Dispatch) => QueryActionCreatorResult<any> | undefined
-  getRuntime: (dispatch: Dispatch) => StoreRuntime
+  createRuntime: (dispatch: Dispatch) => StoreRuntime
 }
 
 export type SubMiddlewareApi = MiddlewareAPI<

@@ -5,7 +5,7 @@ import type {
   MutationActionCreatorResult,
   QueryActionCreatorResult,
 } from '../buildInitiate'
-import type { TimeoutId } from './types'
+import type { SubMiddlewareApi, TimeoutId } from './types'
 
 export type QueryPollState = {
   nextPollTimestamp: number
@@ -50,9 +50,30 @@ export interface StoreRuntime {
   pendingRequestIds: Set<string>
   pendingTagInvalidations: FullTagDescription<string>[]
   subscriptions: SubscriptionsView
+  subscriptionSync: {
+    /** Keys whose subscribers changed since the last sync to the store */
+    changedKeys: Set<string>
+    /**
+     * Keys the sync has written to the store, so removals of keys that were
+     * never synced do not cause an extra sync
+     */
+    syncedKeys: Set<string>
+    timer?: TimeoutId
+  }
+  pendingPollingUpdates: {
+    keys: Set<string>
+    timer?: TimeoutId
+  }
+  /** The thunk middleware's `extraArgument`, read on first use */
+  extra?: { value: unknown }
   pollsView?: PollsView
   /** Test-only: how often `updatePollingInterval` ran for each key */
   pollUpdateCounters?: Record<string, number>
+  /**
+   * Clears every timer, subscriber and cache lifecycle, and aborts running
+   * requests. Called for `resetApiState`.
+   */
+  reset(): void
 }
 
 export interface SubscriptionsView extends Iterable<
@@ -71,7 +92,7 @@ export type PollsView = {
 
 export function createStoreRuntime(): StoreRuntime {
   const queries = new Map<string, QueryKeyRecord>()
-  return {
+  const runtime: StoreRuntime = {
     queries,
     runningMutations: new Map(),
     mutationCacheLifecycles: new Map(),
@@ -79,6 +100,48 @@ export function createStoreRuntime(): StoreRuntime {
     pendingRequestIds: new Set(),
     pendingTagInvalidations: [],
     subscriptions: createSubscriptionsView(queries),
+    subscriptionSync: { changedKeys: new Set(), syncedKeys: new Set() },
+    pendingPollingUpdates: { keys: new Set() },
+    reset: () => resetStoreRuntime(runtime),
+  }
+  return runtime
+}
+
+function resetStoreRuntime(runtime: StoreRuntime) {
+  const { subscriptionSync, pendingPollingUpdates } = runtime
+  clearTimeout(subscriptionSync.timer)
+  subscriptionSync.timer = undefined
+  subscriptionSync.changedKeys.clear()
+  subscriptionSync.syncedKeys.clear()
+  clearTimeout(pendingPollingUpdates.timer)
+  pendingPollingUpdates.timer = undefined
+  pendingPollingUpdates.keys.clear()
+  runtime.pendingRequestIds.clear()
+  runtime.pendingTagInvalidations = []
+
+  const removedLifecycles: CacheLifecycle[] = []
+  for (const record of runtime.queries.values()) {
+    record.subscribers = undefined
+    clearTimeout(record.gc)
+    record.gc = undefined
+    clearTimeout(record.poll?.timeout)
+    record.poll = undefined
+    if (record.cacheLifecycle) {
+      removedLifecycles.push(record.cacheLifecycle)
+      record.cacheLifecycle = undefined
+    }
+    // An aborted request removes itself from the record when it settles
+    record.request?.abort()
+    pruneRecord(runtime, record.key)
+  }
+  for (const promise of runtime.runningMutations.values()) {
+    promise?.abort()
+  }
+  removedLifecycles.push(...runtime.mutationCacheLifecycles.values())
+  runtime.mutationCacheLifecycles.clear()
+
+  for (const lifecycle of removedLifecycles) {
+    lifecycle.cacheEntryRemoved()
   }
 }
 
@@ -134,6 +197,15 @@ function createSubscriptionsView(
     },
     [Symbol.iterator]: entries,
   }
+}
+
+export function getThunkExtra(
+  runtime: StoreRuntime,
+  dispatch: SubMiddlewareApi['dispatch'],
+): unknown {
+  return (runtime.extra ??= {
+    value: dispatch((_, __, extra) => extra),
+  }).value
 }
 
 export function getPollsView(runtime: StoreRuntime): PollsView {
