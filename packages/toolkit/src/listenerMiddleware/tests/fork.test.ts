@@ -527,4 +527,275 @@ describe('fork', () => {
 
     expect(store.getState().value).toEqual(300)
   })
+
+  describe('forkApi store access and nested forks', () => {
+    test('forkApi.getState and forkApi.dispatch use the store', async () => {
+      const deferredStates = deferred<number[]>()
+
+      startListening.withTypes<CounterSlice>()({
+        actionCreator: increment,
+        effect: async (_, listenerApi) => {
+          listenerApi.fork(async (forkApi) => {
+            const states = [forkApi.getState().value]
+            forkApi.dispatch(incrementByAmount(10))
+            states.push(forkApi.getState().value)
+            deferredStates.resolve(states)
+          })
+        },
+      })
+
+      store.dispatch(increment())
+
+      expect(await deferredStates).toEqual([1, 11])
+      expect(store.getState().value).toBe(11)
+    })
+
+    test('forkApi.getState still works after the parent listener completes', async () => {
+      const deferredValue = deferred<number>()
+
+      startListening.withTypes<CounterSlice>()({
+        actionCreator: increment,
+        effect: (_, listenerApi) => {
+          listenerApi.fork((forkApi) => {
+            setTimeout(() => deferredValue.resolve(forkApi.getState().value), 0)
+          })
+        },
+      })
+
+      store.dispatch(increment())
+      store.dispatch(incrementByAmount(5))
+
+      expect(await deferredValue).toBe(6)
+    })
+
+    test('nested forks run with the same API', async () => {
+      const deferredResult = deferred<TaskResult<number>>()
+
+      startListening.withTypes<CounterSlice>()({
+        actionCreator: increment,
+        effect: async (_, listenerApi) => {
+          const outer = listenerApi.fork(async (forkApi) => {
+            const inner = forkApi.fork(async (innerApi) => {
+              innerApi.dispatch(incrementByAmount(5))
+              await innerApi.delay(5)
+              return innerApi.getState().value
+            })
+            const innerResult = await inner.result
+            return innerResult.status === 'ok' ? innerResult.value * 2 : -1
+          })
+
+          deferredResult.resolve(await outer.result)
+        },
+      })
+
+      store.dispatch(increment())
+
+      expect(await deferredResult).toEqual({ status: 'ok', value: 12 })
+    })
+
+    test('nested forks are cancelled when the forking task is cancelled', async () => {
+      const deferredReason = deferred<unknown>()
+
+      startListening({
+        actionCreator: increment,
+        effect: async (_, listenerApi) => {
+          const outer = listenerApi.fork(async (forkApi) => {
+            forkApi.fork(async (innerApi) => {
+              innerApi.signal.addEventListener('abort', () =>
+                deferredReason.resolve(innerApi.signal.reason),
+              )
+              await innerApi.delay(1_000)
+            })
+            await forkApi.delay(1_000)
+          })
+
+          await listenerApi.delay(5)
+          outer.cancel()
+          await outer.result
+        },
+      })
+
+      store.dispatch(increment())
+
+      expect(await deferredReason).toBe(taskCancelled)
+    })
+
+    test('nested forks are cancelled when the parent listener is cancelled', async () => {
+      const deferredReason = deferred<unknown>()
+
+      const unsubscribe = startListening({
+        actionCreator: increment,
+        effect: async (_, listenerApi) => {
+          listenerApi.fork(async (forkApi) => {
+            forkApi.fork(async (innerApi) => {
+              innerApi.signal.addEventListener('abort', () =>
+                deferredReason.resolve(innerApi.signal.reason),
+              )
+              await innerApi.delay(1_000)
+            })
+            await forkApi.delay(1_000)
+          })
+          await listenerApi.delay(1_000)
+        },
+      })
+
+      store.dispatch(increment())
+      await delay(5)
+      unsubscribe({ cancelActive: true })
+
+      expect(await deferredReason).toBe(listenerCancelled)
+    })
+
+    test('nested forks are cancelled when the forking task completes', async () => {
+      const deferredReason = deferred<unknown>()
+
+      startListening({
+        actionCreator: increment,
+        effect: async (_, listenerApi) => {
+          await listenerApi.fork(async (forkApi) => {
+            forkApi.fork(async (innerApi) => {
+              innerApi.signal.addEventListener('abort', () =>
+                deferredReason.resolve(innerApi.signal.reason),
+              )
+              await innerApi.delay(1_000)
+            })
+            await forkApi.delay(5)
+          }).result
+          await listenerApi.delay(1_000)
+        },
+      })
+
+      store.dispatch(increment())
+
+      expect(await deferredReason).toBe(taskCompleted)
+    })
+
+    test('the forking task waits for autoJoined nested forks', async () => {
+      const deferredResult = deferred<TaskResult<number>>()
+      const order: string[] = []
+
+      startListening({
+        actionCreator: increment,
+        effect: async (_, listenerApi) => {
+          const outer = listenerApi.fork((forkApi) => {
+            forkApi.fork(
+              async (innerApi) => {
+                await innerApi.delay(10)
+                order.push('inner')
+                innerApi.dispatch(incrementByAmount(5))
+              },
+              { autoJoin: true },
+            )
+            order.push('outer')
+            return 1
+          })
+
+          deferredResult.resolve(await outer.result)
+          order.push('outer result')
+        },
+      })
+
+      store.dispatch(increment())
+
+      expect(await deferredResult).toEqual({ status: 'ok', value: 1 })
+      expect(order).toEqual(['outer', 'inner', 'outer result'])
+      expect(store.getState().value).toBe(6)
+    })
+
+    test('autoJoined nested forks keep the parent listener running', async () => {
+      let listenerSettled = false
+      const deferredInnerDone = deferred<boolean>()
+
+      startListening({
+        actionCreator: increment,
+        effect: async (_, listenerApi) => {
+          listenerApi.fork(
+            (forkApi) => {
+              forkApi.fork(
+                async (innerApi) => {
+                  await innerApi.delay(10)
+                  deferredInnerDone.resolve(listenerSettled)
+                },
+                { autoJoin: true },
+              )
+            },
+            { autoJoin: true },
+          )
+          listenerApi.signal.addEventListener('abort', () => {
+            listenerSettled = true
+          })
+        },
+      })
+
+      store.dispatch(increment())
+
+      expect(await deferredInnerDone).toBe(false)
+      await delay(5)
+      expect(listenerSettled).toBe(true)
+    })
+
+    test('autoJoined forks started while the listener is joining still finish', async () => {
+      const deferredLateOutcome = deferred<string>()
+
+      startListening({
+        actionCreator: increment,
+        effect: async (_, listenerApi) => {
+          listenerApi.fork(
+            async (forkApi) => {
+              await forkApi.delay(10)
+              listenerApi.fork(
+                async (lateApi) => {
+                  try {
+                    await lateApi.delay(10)
+                    deferredLateOutcome.resolve('finished')
+                  } catch {
+                    deferredLateOutcome.resolve(String(lateApi.signal.reason))
+                  }
+                },
+                { autoJoin: true },
+              )
+            },
+            { autoJoin: true },
+          )
+        },
+      })
+
+      store.dispatch(increment())
+
+      expect(await deferredLateOutcome).toBe('finished')
+    })
+
+    test('completed forks stop listening to the parent abort signal', async () => {
+      const deferredResult = deferred<TaskResult<number>>()
+      const attachedAbortListeners = new Set<unknown>()
+
+      startListening({
+        actionCreator: increment,
+        effect: async (_, listenerApi) => {
+          const { signal } = listenerApi
+          const originalAdd = signal.addEventListener.bind(signal)
+          const originalRemove = signal.removeEventListener.bind(signal)
+          signal.addEventListener = (
+            ...args: Parameters<AbortSignal['addEventListener']>
+          ) => {
+            attachedAbortListeners.add(args[1])
+            originalAdd(...args)
+          }
+          signal.removeEventListener = (
+            ...args: Parameters<AbortSignal['removeEventListener']>
+          ) => {
+            attachedAbortListeners.delete(args[1])
+            originalRemove(...args)
+          }
+
+          deferredResult.resolve(await listenerApi.fork(() => 1).result)
+        },
+      })
+
+      store.dispatch(increment())
+
+      expect(await deferredResult).toEqual({ status: 'ok', value: 1 })
+      expect(attachedAbortListeners.size).toBe(0)
+    })
+  })
 })

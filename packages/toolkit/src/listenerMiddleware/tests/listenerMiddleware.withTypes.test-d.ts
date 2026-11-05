@@ -1,6 +1,11 @@
 import type {
   Action,
+  Dispatch,
+  ForkedTaskAPI,
+  ForkedTaskExecutor,
+  TaskResult,
   ThunkAction,
+  UnknownAction,
   TypedAddListener,
   TypedRemoveListener,
   TypedStartListening,
@@ -106,6 +111,20 @@ describe('listenerMiddleware.withTypes<RootState, AppDispatch>()', () => {
 
         expectTypeOf(listenerApi.extra).toEqualTypeOf<ExtraArgument>()
 
+        listenerApi.fork((forkApi) => {
+          expectTypeOf(forkApi).toEqualTypeOf<
+            ForkedTaskAPI<RootState, AppDispatch>
+          >()
+          expectTypeOf(forkApi.getState()).toEqualTypeOf<RootState>()
+          expectTypeOf(forkApi.dispatch).toEqualTypeOf<AppDispatch>()
+
+          forkApi.fork((nestedApi) => {
+            expectTypeOf(nestedApi.getState()).toEqualTypeOf<RootState>()
+            expectTypeOf(nestedApi.dispatch).toEqualTypeOf<AppDispatch>()
+            nestedApi.dispatch(incrementAsync(1))
+          })
+        })
+
         timeout = 1
         takeResult = await listenerApi.take(increment.match, timeout)
 
@@ -136,9 +155,57 @@ describe('listenerMiddleware.withTypes<RootState, AppDispatch>()', () => {
           expectTypeOf(listenerApi.dispatch).toEqualTypeOf<AppDispatch>()
 
           expectTypeOf(listenerApi.extra).toEqualTypeOf<ExtraArgument>()
+
+          listenerApi.fork((forkApi) => {
+            expectTypeOf(forkApi.getState()).toEqualTypeOf<RootState>()
+            expectTypeOf(forkApi.dispatch).toEqualTypeOf<AppDispatch>()
+          })
         },
       }),
     )
+  })
+
+  test('fork executors declared outside the listener', () => {
+    const startAppListening = listenerMiddleware.startListening.withTypes<
+      RootState,
+      AppDispatch
+    >()
+
+    const typedExecutor: ForkedTaskExecutor<number, RootState, AppDispatch> = (
+      forkApi,
+    ) => forkApi.getState().counter
+
+    const untypedExecutor = async (forkApi: ForkedTaskAPI) => {
+      expectTypeOf(forkApi.getState()).toBeUnknown()
+      expectTypeOf(forkApi.dispatch).toEqualTypeOf<Dispatch<UnknownAction>>()
+      return 'done'
+    }
+
+    const otherStateExecutor = (
+      forkApi: ForkedTaskAPI<{ somethingElse: string }>,
+    ) => forkApi.getState().somethingElse
+
+    startAppListening({
+      actionCreator: increment,
+      effect: async (_, listenerApi) => {
+        expectTypeOf(
+          listenerApi.fork(typedExecutor).result,
+        ).resolves.toEqualTypeOf<TaskResult<number>>()
+
+        expectTypeOf(
+          listenerApi.fork(untypedExecutor).result,
+        ).resolves.toEqualTypeOf<TaskResult<string>>()
+
+        listenerApi.fork((forkApi) => {
+          expectTypeOf(
+            forkApi.fork(typedExecutor).result,
+          ).resolves.toEqualTypeOf<TaskResult<number>>()
+        })
+
+        // @ts-expect-error
+        listenerApi.fork(otherStateExecutor)
+      },
+    })
   })
 
   test('removeListener.withTypes', () => {
