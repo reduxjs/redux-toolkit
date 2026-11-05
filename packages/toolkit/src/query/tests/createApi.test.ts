@@ -701,6 +701,28 @@ describe('endpoint definition typings', () => {
         ])
       })
 
+      test('ignores callback return values that are not plain objects', () => {
+        const storeRef = setupApiStore(api, undefined, {
+          withoutTestLifecycles: true,
+        })
+
+        let enhancedDefinition: object | undefined
+
+        // @ts-expect-error
+        api.enhanceEndpoint('query1', (definition) => {
+          definition.query = () => 'mutated'
+          return ['extra']
+        })
+        api.enhanceEndpoint('query1', (definition) => {
+          enhancedDefinition = definition
+        })
+
+        storeRef.store.dispatch(api.endpoints.query1.initiate('in1'))
+
+        expect(baseQuery.mock.calls.map(([arg]) => arg)).toEqual(['mutated'])
+        expect(enhancedDefinition).not.toHaveProperty('0')
+      })
+
       test('applies enhancements in the order they were added', () => {
         const storeRef = setupApiStore(api, undefined, {
           withoutTestLifecycles: true,

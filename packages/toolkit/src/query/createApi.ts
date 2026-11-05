@@ -4,7 +4,7 @@ import type { Api, ApiContext, Module, ModuleName } from './apiTypes'
 import { getEndpointDefinition } from './apiTypes'
 import type { BaseQueryFn } from './baseQueryTypes'
 import type { CombinedState } from './core/index'
-import { nanoid } from './core/rtkImports'
+import { isPlainObject, nanoid } from './core/rtkImports'
 import type { SerializeQueryArgs } from './defaultSerializeQueryArgs'
 import { defaultSerializeQueryArgs } from './defaultSerializeQueryArgs'
 import type {
@@ -426,7 +426,7 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
         typeof enhancement === 'function'
           ? enhancement(definition)
           : enhancement
-      if (changes) {
+      if (isPlainObject(changes)) {
         Object.assign(definition, changes)
       }
     }
