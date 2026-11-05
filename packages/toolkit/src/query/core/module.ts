@@ -196,11 +196,11 @@ export interface ApiModules<
 /**
  * A collection of utility thunks for various situations.
  */
-export interface ApiUtil<
+export type ApiUtil<
   Definitions extends EndpointDefinitions,
   ReducerPath extends string,
   TagTypes extends string,
-> {
+> = {
   /**
    * A thunk that (if dispatched) will return a specific running query, identified
    * by `endpointName` and `arg`.

@@ -72,9 +72,11 @@ describe('editor hover text', () => {
 
     for (const match of text.matchAll(/\/\*\?(\w+)\*\/\s*/g)) {
       const position = match.index + match[0].length
-      const hover = ts.displayPartsToString(
-        getQuickInfo(fixturePath, position, noTruncation)?.displayParts,
-      )
+      const quickInfo = getQuickInfo(fixturePath, position, noTruncation)
+      if (!quickInfo) {
+        throw new Error(`No hover text for marker "${match[1]}"`)
+      }
+      const hover = ts.displayPartsToString(quickInfo.displayParts)
 
       sections.push(
         `## ${match[1]} (${hover.length} chars)`,

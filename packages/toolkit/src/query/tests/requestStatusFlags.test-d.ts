@@ -83,7 +83,7 @@ describe('request status flags in generic code', () => {
     }
   })
 
-  test('hook result helpers accept the selector results', () => {
+  test('typed hook result helpers can read flags in generic code', () => {
     function useWrapped<ResultType>(
       result: TypedUseQueryStateResult<ResultType, number, any>,
     ) {
