@@ -109,7 +109,7 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
     if (!runtime.queries.get(queryCacheKey)?.subscribers?.size) {
       mwApi.dispatch(removeQueryResult({ queryCacheKey }))
     } else if (querySubState.status !== STATUS_UNINITIALIZED) {
-      mwApi.dispatch(refetchQuery(querySubState))
+      mwApi.dispatch(refetchQuery(querySubState, 'invalidation'))
     }
   }
 

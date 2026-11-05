@@ -12,6 +12,7 @@ import type {
   BaseQueryError,
   BaseQueryFn,
   QueryReturnValue,
+  QueryStartReason,
 } from '../baseQueryTypes'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import type {
@@ -154,6 +155,7 @@ export type QueryThunkArg = QuerySubstateIdentifier &
     type: 'query'
     originalArgs: unknown
     endpointName: string
+    startReason: QueryStartReason
   }
 
 export type InfiniteQueryThunkArg<
@@ -166,6 +168,7 @@ export type InfiniteQueryThunkArg<
     param: unknown
     direction?: InfiniteQueryDirection
     refetchCachedPages?: boolean
+    startReason: QueryStartReason
   }
 
 type MutationThunkArg = {
@@ -591,6 +594,7 @@ export function buildThunks<
         type: arg.type,
         forced: isQuery ? isForcedQuery(arg, getState()) : undefined,
         queryCacheKey: isQuery ? arg.queryCacheKey : undefined,
+        startReason: isQuery ? arg.startReason : undefined,
       }
 
       const forceQueryFn = isQuery ? arg[forceQueryFnSymbol] : undefined

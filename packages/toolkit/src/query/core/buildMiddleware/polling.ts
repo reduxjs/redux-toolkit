@@ -135,7 +135,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
           return
         }
         if (currentState.config.focused || !skipPollingIfUnfocused) {
-          api.dispatch(refetchQuery(currentQuerySubState))
+          api.dispatch(refetchQuery(currentQuerySubState, 'poll'))
         }
         startNextPoll({ queryCacheKey }, api)
       }, timeoutMs),

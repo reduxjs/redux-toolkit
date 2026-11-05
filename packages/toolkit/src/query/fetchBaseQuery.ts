@@ -135,7 +135,7 @@ export type FetchBaseQueryArgs = {
     headers: Headers,
     api: Pick<
       BaseQueryApi,
-      'getState' | 'extra' | 'endpoint' | 'type' | 'forced'
+      'getState' | 'extra' | 'endpoint' | 'type' | 'forced' | 'startReason'
     > & { arg: string | FetchArgs; extraOptions: unknown },
   ) => MaybePromise<Headers | void>
   fetchFn?: (
@@ -196,7 +196,7 @@ export type FetchBaseQueryFn = BaseQueryFn<
  * The base URL for an API service.
  * Typically in the format of https://example.com/
  *
- * @param {(headers: Headers, api: { getState: () => unknown; arg: string | FetchArgs; extra: unknown; endpoint: string; type: 'query' | 'mutation'; forced: boolean; }) => Headers} prepareHeaders
+ * @param {(headers: Headers, api: { getState: () => unknown; arg: string | FetchArgs; extra: unknown; endpoint: string; type: 'query' | 'mutation'; forced: boolean; startReason: QueryStartReason; }) => Headers} prepareHeaders
  * An optional function that can be used to inject headers on requests.
  * Provides a Headers object, most of the `BaseQueryApi` (`dispatch` is not available), and the arg passed into the query function.
  * Useful for setting authentication or headers that need to be set conditionally.
@@ -240,7 +240,7 @@ export function fetchBaseQuery({
     )
   }
   return async (arg, api, extraOptions) => {
-    const { getState, extra, endpoint, forced, type } = api
+    const { getState, extra, endpoint, forced, type, startReason } = api
     let meta: FetchBaseQueryMeta | undefined
     let {
       url,
@@ -271,6 +271,7 @@ export function fetchBaseQuery({
           endpoint,
           forced,
           type,
+          startReason,
           extraOptions,
         })) || headers
 

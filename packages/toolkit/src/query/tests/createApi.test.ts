@@ -326,6 +326,7 @@ describe('endpoint definition typings', () => {
       signal: expect.any(Object),
       type: expect.any(String),
       queryCacheKey: expect.any(String),
+      startReason: 'initial',
     }
     beforeEach(() => {
       baseQuery.mockClear()
@@ -368,6 +369,7 @@ describe('endpoint definition typings', () => {
             forced: expect.any(Boolean),
             type: expect.any(String),
             queryCacheKey: expect.any(String),
+            startReason: 'initial',
           },
           undefined,
         ],
@@ -382,6 +384,7 @@ describe('endpoint definition typings', () => {
             forced: expect.any(Boolean),
             type: expect.any(String),
             queryCacheKey: expect.any(String),
+            startReason: 'initial',
           },
           undefined,
         ],
@@ -524,6 +527,7 @@ describe('endpoint definition typings', () => {
             ...commonBaseQueryApi,
             forced: undefined,
             queryCacheKey: undefined,
+            startReason: undefined,
           },
           undefined,
         ],
@@ -533,6 +537,7 @@ describe('endpoint definition typings', () => {
             ...commonBaseQueryApi,
             forced: undefined,
             queryCacheKey: undefined,
+            startReason: undefined,
           },
           undefined,
         ],
