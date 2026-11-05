@@ -166,6 +166,14 @@ export type FetchBaseQueryArgs = {
 
 export type FetchBaseQueryMeta = { request: Request; response?: Response }
 
+export type FetchBaseQueryFn = BaseQueryFn<
+  string | FetchArgs,
+  unknown,
+  FetchBaseQueryError,
+  {},
+  FetchBaseQueryMeta
+>
+
 /**
  * This is a very small wrapper around fetch that aims to simplify requests.
  *
@@ -225,13 +233,7 @@ export function fetchBaseQuery({
   responseHandler: globalResponseHandler,
   validateStatus: globalValidateStatus,
   ...baseFetchOptions
-}: FetchBaseQueryArgs = {}): BaseQueryFn<
-  string | FetchArgs,
-  unknown,
-  FetchBaseQueryError,
-  {},
-  FetchBaseQueryMeta
-> {
+}: FetchBaseQueryArgs = {}): FetchBaseQueryFn {
   if (typeof fetch === 'undefined' && fetchFn === defaultFetchFn) {
     console.warn(
       'Warning: `fetch` is not available. Please supply a custom `fetchFn` property to use `fetchBaseQuery` on SSR environments.',

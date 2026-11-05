@@ -236,7 +236,20 @@ export type AsyncThunkAction<
   dispatch: NonNullable<GetDispatch<ThunkApiConfig>>,
   getState: () => GetState<ThunkApiConfig>,
   extra: GetExtra<ThunkApiConfig>,
-) => SafePromise<
+) => AsyncThunkPromise<Returned, ThunkArg, ThunkApiConfig>
+
+/**
+ * The promise returned by dispatching an async thunk action.
+ * It resolves to the final fulfilled or rejected action, and has
+ * `abort()`, `requestId`, `arg` and `unwrap()` attached.
+ *
+ * @public
+ */
+export type AsyncThunkPromise<
+  Returned,
+  ThunkArg,
+  ThunkApiConfig extends AsyncThunkConfig,
+> = SafePromise<
   | ReturnType<AsyncThunkFulfilledActionCreator<Returned, ThunkArg>>
   | ReturnType<AsyncThunkRejectedActionCreator<ThunkArg, ThunkApiConfig>>
 > & {

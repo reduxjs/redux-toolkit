@@ -128,3 +128,5 @@ export const myModule = (): Module<CustomModule> => ({
 
 export const myCreateApi = buildCreateApi(coreModule(), myModule())
 ```
+
+The last type parameter of `Api` is the union of the module names used to create it, as in `CustomModule | CoreModule` above. The `createApi` from `@reduxjs/toolkit/query/react` uses `ReactApiModules`, which is `CoreModule | ReactHooksModule`.
