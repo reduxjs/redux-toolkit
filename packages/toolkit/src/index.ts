@@ -123,6 +123,7 @@ export type {
   AsyncThunkDispatchConfig,
   AsyncThunkOptions,
   AsyncThunkAction,
+  AsyncThunkPromise,
   AsyncThunkPayloadCreatorReturnValue,
   AsyncThunkPayloadCreator,
   GetState,
@@ -152,6 +153,7 @@ export { nanoid } from './nanoid'
 export type {
   ListenerEffect,
   ListenerMiddleware,
+  ListenerMiddlewareDispatch,
   ListenerEffectAPI,
   ListenerMiddlewareInstance,
   CreateListenerMiddlewareOptions,
