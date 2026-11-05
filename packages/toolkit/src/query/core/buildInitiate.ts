@@ -45,7 +45,7 @@ import type {
 } from './buildThunks'
 import type { ApiEndpointQuery } from './module'
 import type { RunningQuery, StoreRuntime } from './buildMiddleware/runtime'
-import { ensureRecord, pruneRecord } from './buildMiddleware/runtime'
+import { attachRequestPromise, settleRequest } from './buildMiddleware/runtime'
 
 export type BuildInitiateApiEndpointQuery<
   Definition extends QueryDefinition<any, any, any, any, any>,
@@ -302,7 +302,7 @@ export function buildInitiate({
   getRuntime: (dispatch: Dispatch) => StoreRuntime | undefined
 }) {
   const getRunningQuery = (dispatch: Dispatch, queryCacheKey: string) =>
-    getRuntime(dispatch)?.queries.get(queryCacheKey)?.request
+    getRuntime(dispatch)?.queries.get(queryCacheKey)?.request?.promise
   const getRunningMutations = (dispatch: Dispatch) =>
     getRuntime(dispatch)?.runningMutations
   const checkedStores = new WeakSet<Dispatch>()
@@ -356,7 +356,7 @@ export function buildInitiate({
     return (dispatch: Dispatch) => {
       const running: RunningQuery[] = []
       for (const record of getRuntime(dispatch)?.queries.values() ?? []) {
-        if (record.request) running.push(record.request)
+        if (record.request?.promise) running.push(record.request.promise)
       }
       return running
     }
@@ -450,6 +450,12 @@ You must add the middleware for RTK-Query to function correctly!`,
           api.endpoints[endpointName] as ApiEndpointQuery<any, any>
         ).select(arg)
 
+        // Read before dispatching, because a started request replaces it
+        const runningQuery =
+          arg === skipToken
+            ? undefined
+            : getRunningQuery(dispatch, queryCacheKey)
+
         const thunkResult = dispatch(thunk)
         const stateAfter = selector(getState())
 
@@ -459,10 +465,6 @@ You must add the middleware for RTK-Query to function correctly!`,
 
         const skippedSynchronously = stateAfter.requestId !== requestId
 
-        const runningQuery =
-          arg === skipToken
-            ? undefined
-            : getRunningQuery(dispatch, queryCacheKey)
         const selectFromState = () => selector(getState())
         const runtime = getRuntime(dispatch)
 
@@ -530,17 +532,22 @@ You must add the middleware for RTK-Query to function correctly!`,
           },
         )
 
-        if (runtime && !skippedSynchronously && !forceQueryFn) {
-          const record = ensureRecord(runtime, queryCacheKey)
-          record.request = statePromise
-
-          const removeRunningQuery = () => {
-            if (record.request === statePromise) {
-              record.request = undefined
-              pruneRecord(runtime, queryCacheKey)
-            }
+        if (runtime) {
+          const removeRunningQuery = () =>
+            settleRequest(runtime, queryCacheKey, requestId)
+          if (
+            !skippedSynchronously &&
+            attachRequestPromise(
+              runtime,
+              queryCacheKey,
+              requestId,
+              statePromise,
+            )
+          ) {
+            statePromise.then(removeRunningQuery, removeRunningQuery)
+          } else {
+            removeRunningQuery()
           }
-          statePromise.then(removeRunningQuery, removeRunningQuery)
         }
 
         return statePromise

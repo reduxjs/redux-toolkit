@@ -10,8 +10,10 @@ import { handlerBuilders } from '../core/buildMiddleware/index'
 import { buildInvalidationByTagsHandler } from '../core/buildMiddleware/invalidationByTags'
 import { buildPollingHandler } from '../core/buildMiddleware/polling'
 import { buildQueryLifecycleHandler } from '../core/buildMiddleware/queryLifecycle'
+import { buildQueryRecordHandler } from '../core/buildMiddleware/queryRecord'
 
 const documentedOrder = [
+  buildQueryRecordHandler,
   buildDevCheckHandler,
   buildCacheCollectionHandler,
   buildInvalidationByTagsHandler,

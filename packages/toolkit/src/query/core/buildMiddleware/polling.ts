@@ -13,7 +13,7 @@ import type {
   InternalHandlerBuilder,
   ApiMiddlewareInternalHandler,
 } from './types'
-import { ensureRecord, pruneRecord } from './runtime'
+import { clearPoll, setPoll } from './runtime'
 
 export const buildPollingHandler: InternalHandlerBuilder = ({
   reducerPath,
@@ -47,10 +47,6 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
       (queryThunk.rejected.match(action) && !action.meta.condition)
     ) {
       startNextPoll(action.meta.arg, mwApi)
-    }
-
-    if (api.internalActions.removeQueryResult.match(action)) {
-      cleanupPollForKey(action.payload.queryCacheKey)
     }
   }
 
@@ -98,14 +94,6 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
       return
     }
 
-    const record = ensureRecord(runtime, queryCacheKey)
-    const currentPoll = record.poll
-
-    if (currentPoll?.timeout) {
-      clearTimeout(currentPoll.timeout)
-      currentPoll.timeout = undefined
-    }
-
     if (
       process.env.NODE_ENV !== 'production' &&
       lowestPollingInterval > THIRTY_TWO_BIT_MAX_INT
@@ -121,7 +109,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
     const timeoutMs = delay ?? pollingInterval
     const nextPollTimestamp = Date.now() + timeoutMs
 
-    record.poll = {
+    setPoll(runtime, queryCacheKey, {
       nextPollTimestamp,
       pollingInterval,
       timeout: setTimeout(() => {
@@ -151,7 +139,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
         }
         startNextPoll({ queryCacheKey }, api)
       }, timeoutMs),
-    }
+    })
   }
 
   function updatePollingInterval(
@@ -205,12 +193,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
   }
 
   function cleanupPollForKey(key: string) {
-    const record = runtime.queries.get(key)
-    if (record?.poll) {
-      clearTimeout(record.poll.timeout)
-      record.poll = undefined
-      pruneRecord(runtime, key)
-    }
+    clearPoll(runtime, key)
   }
 
   function findLowestPollingInterval(
