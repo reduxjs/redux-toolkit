@@ -449,9 +449,16 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
         getOrInsertComputed(endpointEnhancements, endpointName, () => []).push(
           enhancement,
         )
-        const definition = getEndpointDefinition(context, endpointName)
-        if (definition) {
-          applyEnhancement(definition, enhancement)
+        if (
+          Object.prototype.hasOwnProperty.call(
+            context.endpointDefinitions,
+            endpointName,
+          )
+        ) {
+          applyEnhancement(
+            getEndpointDefinition(context, endpointName),
+            enhancement,
+          )
         }
         return api
       },

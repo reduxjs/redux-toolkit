@@ -79,6 +79,8 @@ Merges changes into the existing definition of a single endpoint. The enhancemen
 
 If the endpoint has not been injected yet, the enhancement is stored and applied when the endpoint is injected. Multiple enhancements for the same endpoint are applied in the order they were added. Stored enhancements are also applied again if the endpoint is later replaced with `injectEndpoints({ overrideExisting: true })`.
 
+Enhancements are meant to be applied while setting up the API, before the endpoint is used. Data that is already in the cache is not refetched or transformed when an enhancement changes the endpoint, such as a new `transformResponse`.
+
 Returns the same API slice object, typed with the updated endpoint definition.
 
 This is primarily useful for taking an API slice object that was code-generated from an API schema file like OpenAPI, and adding additional specific hand-written configuration for cache invalidation management on top of the generated endpoint definitions.

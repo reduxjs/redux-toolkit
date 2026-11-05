@@ -386,6 +386,10 @@ describe('type tests', () => {
             mutation1: build.mutation<'out1', 'in1'>({
               query: (id) => `${id}`,
             }),
+            rawQuery: build.query<'out1', 'in1', 'raw'>({
+              query: (id) => `${id}`,
+              transformResponse: () => 'out1' as const,
+            }),
             infinite1: build.infiniteQuery<'out1', 'in1', number>({
               query: ({ pageParam }) => `${pageParam}`,
               infiniteQueryOptions: {
@@ -468,6 +472,30 @@ describe('type tests', () => {
           expectTypeOf(enhanced.endpoints.infinite1.Types).toEqualTypeOf<
             typeof api.endpoints.infinite1.Types
           >()
+        })
+
+        test('addTagTypes and enhanceEndpoint keep a declared raw result type', () => {
+          expectTypeOf(
+            api.endpoints.rawQuery.Types.RawResultType,
+          ).toEqualTypeOf<'raw'>()
+
+          const enhanced = api
+            .addTagTypes('new')
+            .enhanceEndpoint('rawQuery', { providesTags: ['new'] })
+            .enhanceEndpoint<'rawQuery', number>('rawQuery', {
+              transformResponse: (raw) => {
+                expectTypeOf(raw).toEqualTypeOf<'raw'>()
+
+                return 1
+              },
+            })
+
+          expectTypeOf(
+            enhanced.endpoints.rawQuery.Types.RawResultType,
+          ).toEqualTypeOf<'raw'>()
+          expectTypeOf(
+            enhanced.endpoints.rawQuery.Types.ResultType,
+          ).toEqualTypeOf<number>()
         })
 
         test('changing the result type requires an explicit ResultType', () => {

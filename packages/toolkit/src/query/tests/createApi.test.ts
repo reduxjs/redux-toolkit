@@ -19,6 +19,7 @@ import type {
 } from '@reduxjs/toolkit/query'
 import {
   createApi,
+  fakeBaseQuery,
   fetchBaseQuery,
   NamedSchemaError,
 } from '@reduxjs/toolkit/query'
@@ -750,8 +751,14 @@ describe('endpoint definition typings', () => {
         api
           // @ts-expect-error `lateQuery` has not been injected yet
           .enhanceEndpoint('lateQuery', { query: () => 'first' })
-          // @ts-expect-error `lateQuery` has not been injected yet
-          .enhanceEndpoint('lateQuery', () => ({ query: () => 'second' }))
+          .enhanceEndpoint(
+            // @ts-expect-error `lateQuery` has not been injected yet
+            'lateQuery',
+            (definition: { query: (arg: string) => string }) => {
+              const previousQuery = definition.query
+              return { query: (arg: string) => `${previousQuery(arg)}-second` }
+            },
+          )
 
         const injected = api.injectEndpoints({
           endpoints: (build) => ({
@@ -761,7 +768,52 @@ describe('endpoint definition typings', () => {
 
         storeRef.store.dispatch(injected.endpoints.lateQuery.initiate('in'))
 
-        expect(baseQuery.mock.calls.map(([arg]) => arg)).toEqual(['second'])
+        expect(baseQuery.mock.calls.map(([arg]) => arg)).toEqual([
+          'first-second',
+        ])
+      })
+
+      test('does not enhance inherited properties of the endpoint map', () => {
+        // @ts-expect-error
+        api.enhanceEndpoint('toString', { keepUnusedDataFor: 5 })
+
+        expect(Object.prototype.toString).not.toHaveProperty(
+          'keepUnusedDataFor',
+        )
+      })
+
+      test('infinite query selectors use enhanced infiniteQueryOptions', async () => {
+        const infiniteApi = createApi({
+          baseQuery: fakeBaseQuery(),
+          endpoints: (build) => ({
+            pages: build.infiniteQuery<number, void, number>({
+              queryFn: ({ pageParam }) => ({ data: pageParam }),
+              infiniteQueryOptions: {
+                initialPageParam: 0,
+                getNextPageParam: () => undefined,
+              },
+            }),
+          }),
+        })
+
+        infiniteApi.enhanceEndpoint('pages', {
+          infiniteQueryOptions: {
+            initialPageParam: 0,
+            getNextPageParam: (lastPage) => lastPage + 1,
+          },
+        })
+
+        const storeRef = setupApiStore(infiniteApi, undefined, {
+          withoutTestLifecycles: true,
+        })
+
+        await storeRef.store.dispatch(infiniteApi.endpoints.pages.initiate())
+
+        const result = infiniteApi.endpoints.pages.select()(
+          storeRef.store.getState(),
+        )
+        expect(result.data?.pages).toEqual([0])
+        expect(result.hasNextPage).toBe(true)
       })
 
       test('re-applies enhancements when an endpoint is overridden', () => {

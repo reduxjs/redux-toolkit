@@ -134,6 +134,8 @@ export type Api<
      *
      * If the endpoint has not been injected yet, the enhancement is stored and applied when it is injected.
      * Enhancements are applied in the order they were added. Useful with code-generation.
+     *
+     * Apply enhancements while setting up the API. Data that is already cached is not refetched or transformed.
      */
     enhanceEndpoint<
       EndpointName extends keyof Definitions & string,

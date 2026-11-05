@@ -305,11 +305,11 @@ export function buildSelectors<
     endpointName: string,
     endpointDefinition: InfiniteQueryDefinition<any, any, any, any, any>,
   ) {
-    const { infiniteQueryOptions } = endpointDefinition
-
     function withInfiniteQueryResultFlags<T extends { status: QueryStatus }>(
       substate: T,
     ): T & RequestStatusFlags & InfiniteQueryResultFlags {
+      // Read the options on each call so later endpoint enhancements are respected
+      const { infiniteQueryOptions } = endpointDefinition
       const stateWithRequestFlags = {
         ...(substate as InfiniteQuerySubState<any>),
         ...getRequestStatusFlags(substate.status),
