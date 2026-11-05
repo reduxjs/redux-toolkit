@@ -320,19 +320,19 @@ export interface CombinedSliceReducer<
 
 type InitialState<Slices extends Array<AnySliceLike | ReducerMap>> =
   UnionToIntersection<
-    Slices[number] extends infer Slice
-      ? Slice extends AnySliceLike
-        ? WithSlice<Slice>
-        : StateFromReducersMapObject<Slice>
+    Slices[number] extends infer S
+      ? S extends AnySliceLike
+        ? WithSlice<S>
+        : StateFromReducersMapObject<S>
       : never
   >
 
 type InitialPreloadedState<Slices extends Array<AnySliceLike | ReducerMap>> =
   UnionToIntersection<
-    Slices[number] extends infer Slice
-      ? Slice extends AnySliceLike
-        ? WithSlicePreloadedState<Slice>
-        : PreloadedStateShapeFromReducersMapObject<Slice>
+    Slices[number] extends infer S
+      ? S extends AnySliceLike
+        ? WithSlicePreloadedState<S>
+        : PreloadedStateShapeFromReducersMapObject<S>
       : never
   >
 

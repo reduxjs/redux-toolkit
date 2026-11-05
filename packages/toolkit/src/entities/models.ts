@@ -1,6 +1,6 @@
 import type { Draft } from '../draftTypes'
 import type { PayloadAction } from '../createAction'
-import type { CastAny, Id } from '../tsHelpers'
+import type { Id } from '../tsHelpers'
 import type { UncheckedIndexedAccess } from '../uncheckedindexed.js'
 import type { GetSelectorsOptions } from './state_selectors'
 
@@ -48,10 +48,11 @@ export interface EntityAdapterOptions<T, Id extends EntityId> {
   sortComparer?: false | Comparer<T>
 }
 
-export type PreventAny<S, T, Id extends EntityId> = CastAny<
-  S,
-  EntityState<T, Id>
->
+export type PreventAny<S, T, Id extends EntityId> = true | false extends (
+  S extends never ? true : false
+)
+  ? EntityState<T, Id>
+  : S
 
 export type DraftableEntityState<T, Id extends EntityId> =
   | EntityState<T, Id>

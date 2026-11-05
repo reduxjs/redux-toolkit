@@ -224,7 +224,7 @@
   "scripts": {
     "clean": "rimraf dist",
     "run-build": "tsdown --config=./tsdown.config.mts --config-loader unrun",
-    "build": "pnpm clean && pnpm run-build && tsx scripts/fixUniqueSymbolExports.mts && tsx scripts/stripSourcemapFileField.mts",
+    "build": "pnpm clean && pnpm run-build && tsx scripts/fixUniqueSymbolExports.mts && tsx scripts/checkRenamedTypeExports.mts && tsx scripts/stripSourcemapFileField.mts",
     "build-only": "pnpm clean && pnpm run-build",
     "test": "vitest --typecheck --run ",
     "bench": "vitest bench --run --config vitest.bench.config.mts --reporter=verbose",
