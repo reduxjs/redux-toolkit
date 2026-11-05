@@ -11,6 +11,7 @@ import type {
 import type { QueryStatus, QuerySubState, ApiRootState } from '../apiState'
 import type { QueryThunkArg } from '../buildThunks'
 import { createAction, isAction } from '../rtkImports'
+import { isUpsertQuery } from '../buildInitiate'
 import { buildBatchedActionsHandler } from './batchActions'
 import { buildCacheCollectionHandler } from './cacheCollection'
 import { buildCacheLifecycleHandler } from './cacheLifecycle'
@@ -20,7 +21,12 @@ import { buildPollingHandler } from './polling'
 import { buildQueryLifecycleHandler } from './queryLifecycle'
 import { buildQueryRecordHandler } from './queryRecord'
 import { registerMiddleware } from './registration'
-import { removeRecord } from './runtime'
+import {
+  releaseRequest,
+  removeRecord,
+  settleRemovedRequest,
+  startRequest,
+} from './runtime'
 import type { BuildMiddlewareInput, InternalHandlerBuilder } from './types'
 import { buildWindowEventHandler } from './windowEventHandling'
 import type { ApiEndpointQuery } from '../module'
@@ -83,7 +89,7 @@ export function buildMiddleware<
   > = (mwApi) => {
     let initialized = false
 
-    const runtime = createRuntime(mwApi.dispatch)
+    const runtime = createRuntime(mwApi.dispatch, mwApi.getState)
 
     const builderArgs = {
       ...(input as any as BuildMiddlewareInput<
@@ -117,12 +123,27 @@ export function buildMiddleware<
 
         const stateBefore = mwApi.getState()
 
-        // Cleared before the reducer, so a listener that subscribes to the key
-        // again while the entry is removed keeps its new subscription
-        const removedLifecycle = api.internalActions.removeQueryResult.match(
-          action,
-        )
-          ? removeRecord(runtime, action.payload.queryCacheKey, false)
+        // Registered before the reducer, so anything that reacts to the
+        // pending entry already sees its running request
+        if (queryThunk.pending.match(action)) {
+          const { arg, requestId } = action.meta
+          startRequest(
+            runtime,
+            arg.queryCacheKey,
+            requestId,
+            isUpsertQuery(arg),
+          )
+        } else if (
+          queryThunk.fulfilled.match(action) ||
+          queryThunk.rejected.match(action)
+        ) {
+          releaseRequest(runtime, action.meta.requestId)
+        }
+
+        // Cleared before the reducer, so a listener that subscribes to or
+        // requests the key again while the entry is removed keeps its record
+        const removed = api.internalActions.removeQueryResult.match(action)
+          ? removeRecord(runtime, action.payload.queryCacheKey, 'removed')
           : undefined
 
         const [actionShouldContinue, internalProbeResult] =
@@ -140,6 +161,10 @@ export function buildMiddleware<
         // for the same key see the cleared cache entry.
         if (api.util.resetApiState.match(action)) {
           runtime.reset()
+        }
+        if (removed) {
+          settleRemovedRequest(runtime, removed.request, 'removed')
+          removed.cacheLifecycle?.cacheEntryRemoved('removed')
         }
 
         if (mwApi.getState()[reducerPath]) {
@@ -159,8 +184,6 @@ export function buildMiddleware<
             }
           }
         }
-
-        removedLifecycle?.cacheEntryRemoved()
 
         return res
       }

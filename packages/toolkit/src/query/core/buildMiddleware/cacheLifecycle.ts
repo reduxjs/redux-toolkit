@@ -23,7 +23,7 @@ import type {
   PromiseWithKnownReason,
   SubMiddlewareApi,
 } from './types'
-import type { CacheLifecycle } from './runtime'
+import type { CacheLifecycle, RemovalReason } from './runtime'
 import { getThunkExtra, setCacheLifecycle } from './runtime'
 import { getEndpointDefinition } from '@internal/query/apiTypes'
 
@@ -124,6 +124,12 @@ type CacheLifecyclePromises<ResultType = unknown, MetaType = unknown> = {
    * in the application for too long or by dispatching `api.util.resetApiState`.
    */
   cacheEntryRemoved: Promise<void>
+  /**
+   * Why the cache entry was removed, once `cacheEntryRemoved` has resolved:
+   * `'reset'` for `api.util.resetApiState`, `'removed'` for every other removal.
+   * Returns `undefined` while the entry is still in the cache.
+   */
+  getCacheEntryRemovedReason(): 'removed' | 'reset' | undefined
 }
 
 export interface QueryCacheLifecycleApi<
@@ -279,7 +285,7 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
     const lifecycle = runtime.mutationCacheLifecycles.get(cacheKey)
     if (lifecycle) {
       runtime.mutationCacheLifecycles.delete(cacheKey)
-      lifecycle.cacheEntryRemoved()
+      lifecycle.cacheEntryRemoved('removed')
     }
   }
 
@@ -378,8 +384,12 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
 
     const lifecycle = { requestIds: new Set([requestId]) } as CacheLifecycle
 
+    let removalReason: RemovalReason | undefined
     const cacheEntryRemoved = new Promise<void>((resolve) => {
-      lifecycle.cacheEntryRemoved = resolve
+      lifecycle.cacheEntryRemoved = (reason) => {
+        removalReason = reason
+        resolve()
+      }
     })
     const cacheDataLoaded: PromiseWithKnownReason<
       { data: unknown; meta: unknown },
@@ -431,6 +441,7 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
 
       cacheDataLoaded,
       cacheEntryRemoved,
+      getCacheEntryRemovedReason: () => removalReason,
     }
 
     const runningHandler = runLifecycleCallback(

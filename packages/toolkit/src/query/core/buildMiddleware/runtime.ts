@@ -13,9 +13,12 @@ export type QueryPollState = {
   pollingInterval: number
 }
 
+/** Why a cache entry was removed while something still waited on it. */
+export type RemovalReason = 'removed' | 'reset'
+
 export type CacheLifecycle = {
   valueResolved?(value: { data: unknown; meta: unknown }): unknown
-  cacheEntryRemoved(): void
+  cacheEntryRemoved(reason: RemovalReason): void
   // requests started while this lifecycle was waiting for its first data
   requestIds?: Set<string>
 }
@@ -30,13 +33,30 @@ export type RunningQuery =
   | InfiniteQueryActionCreatorResult<any>
 
 /**
- * The request a query cache key is waiting for. The middleware registers it
- * on `pending`. `initiate` attaches its promise right after dispatching, and
- * removes the request once that promise settles.
+ * What a request's waiters see: the store state right after the request's own
+ * `fulfilled` or `rejected` reached the reducer, or the reason its entry was
+ * removed first.
+ */
+export type RequestOutcome = {
+  state: unknown
+  removed?: RemovalReason
+}
+
+/**
+ * A query request between its `pending` and its own `fulfilled` or
+ * `rejected`. The middleware registers it on `pending`; `initiate` attaches
+ * its promise right after dispatching.
  */
 export type RunningRequest = {
   readonly requestId: string
+  readonly key: string
+  readonly isUpsert: boolean
   promise?: RunningQuery
+  abort?: () => void
+  readonly outcome: Promise<RequestOutcome>
+  /** Cleared once the outcome is settled */
+  settle?: (outcome: RequestOutcome) => void
+  removed?: RemovalReason
 }
 
 /**
@@ -57,6 +77,13 @@ export interface StoreRuntime {
   runningMutations: Map<string, MutationActionCreatorResult<any> | undefined>
   mutationCacheLifecycles: Map<string, CacheLifecycle>
   requestLifecycles: Map<string, RequestLifecycle>
+  /**
+   * Every running query request by `requestId`, including ones whose entry
+   * was removed or that a newer request replaced in the record
+   */
+  requests: Map<string, RunningRequest>
+  /** Running requests whose entry was invalidated; decided when they settle */
+  invalidatedRequestIds: Set<string>
   pendingRequestIds: Set<string>
   pendingTagInvalidations: FullTagDescription<string>[]
   subscriptionSync: {
@@ -75,6 +102,7 @@ export interface StoreRuntime {
   }
   /** The thunk middleware's `extraArgument`, read on first use */
   extra?: { value: unknown }
+  getState?: () => unknown
   pollsView?: PollsView
   /** Test-only: how often `updatePollingInterval` ran for each key */
   pollUpdateCounters?: Record<string, number>
@@ -97,6 +125,8 @@ export function createStoreRuntime(): StoreRuntime {
     runningMutations: new Map(),
     mutationCacheLifecycles: new Map(),
     requestLifecycles: new Map(),
+    requests: new Map(),
+    invalidatedRequestIds: new Set(),
     pendingRequestIds: new Set(),
     pendingTagInvalidations: [],
     subscriptionSync: { changedKeys: new Set(), syncedKeys: new Set() },
@@ -117,11 +147,15 @@ function resetStoreRuntime(runtime: StoreRuntime) {
   pendingPollingUpdates.keys.clear()
   runtime.pendingRequestIds.clear()
   runtime.pendingTagInvalidations = []
+  runtime.invalidatedRequestIds.clear()
 
   const removedLifecycles: CacheLifecycle[] = []
-  for (const key of runtime.queries.keys()) {
-    const lifecycle = removeRecord(runtime, key, true)
-    if (lifecycle) removedLifecycles.push(lifecycle)
+  // Abort listeners can start new requests, which keep their new records
+  for (const key of [...runtime.queries.keys()]) {
+    const removed = removeRecord(runtime, key, 'reset')
+    if (!removed) continue
+    settleRemovedRequest(runtime, removed.request, 'reset')
+    if (removed.cacheLifecycle) removedLifecycles.push(removed.cacheLifecycle)
   }
   for (const promise of runtime.runningMutations.values()) {
     promise?.abort()
@@ -130,7 +164,7 @@ function resetStoreRuntime(runtime: StoreRuntime) {
   runtime.mutationCacheLifecycles.clear()
 
   for (const lifecycle of removedLifecycles) {
-    lifecycle.cacheEntryRemoved()
+    lifecycle.cacheEntryRemoved('reset')
   }
 }
 
@@ -194,42 +228,106 @@ export function normalizeRecord(runtime: StoreRuntime, key: string) {
 }
 
 /**
- * A newer request for the key replaces the one it was waiting for. Until its
- * own promise is attached, the previous request's promise stays visible to
- * `getRunningQueryThunk`.
+ * Registers a request on `pending`. A forced `upsertQueryData` request only
+ * registers when the key has no running request, because it does not replace
+ * the running request's entry.
  */
 export function startRequest(
   runtime: StoreRuntime,
   key: string,
   requestId: string,
+  isUpsert: boolean,
 ) {
   const record = ensureRecord(runtime, key)
-  record.request = { requestId, promise: record.request?.promise }
+  if (isUpsert && record.request) return
+  let settle!: (outcome: RequestOutcome) => void
+  const outcome = new Promise<RequestOutcome>((resolve) => {
+    settle = resolve
+  })
+  // Until `initiate` attaches its own promise, `getRunningQueryThunk` still
+  // returns the request this one replaced
+  const request: RunningRequest = {
+    requestId,
+    key,
+    isUpsert,
+    outcome,
+    settle,
+    promise: record.request?.promise,
+  }
+  runtime.requests.set(requestId, request)
+  record.request = request
 }
 
-/** Returns whether `requestId` is still the key's running request. */
+/**
+ * Returns the request `initiate` started, if it is still running. Without a
+ * `promise` (`upsertQueryData`), the running query thunks do not list it.
+ */
 export function attachRequestPromise(
   runtime: StoreRuntime,
-  key: string,
   requestId: string,
-  promise: RunningQuery,
-): boolean {
-  const request = runtime.queries.get(key)?.request
-  if (request?.requestId !== requestId) return false
+  promise: RunningQuery | undefined,
+  abort: () => void,
+): RunningRequest | undefined {
+  const request = runtime.requests.get(requestId)
+  if (!request) return undefined
   request.promise = promise
-  return true
+  request.abort = promise ? () => promise.abort() : abort
+  // Removed while its `pending` was still being handled
+  if (request.removed) request.abort()
+  return request
 }
 
-/** Only the request's owner removes it, and only while it is still current. */
-export function settleRequest(
+function settleOutcome(request: RunningRequest, outcome: RequestOutcome) {
+  request.settle?.(outcome)
+  request.settle = undefined
+}
+
+/**
+ * The request a new `initiate` for this key joins. Between a request's
+ * `fulfilled` or `rejected` and the reducer, only the still pending entry
+ * points at it. An `upsertQueryData` that updates an existing entry leaves it
+ * as it was, so it is only joined while the entry it created is pending.
+ */
+export function findRunningRequest(
   runtime: StoreRuntime,
   key: string,
+  entry: { status: string; requestId?: string } | undefined,
+): RunningRequest | undefined {
+  const isPending = entry?.status === 'pending'
+  const request = runtime.queries.get(key)?.request
+  if (request) return request.isUpsert && !isPending ? undefined : request
+  if (!isPending || !entry.requestId) return undefined
+  const settling = runtime.requests.get(entry.requestId)
+  return settling?.key === key && !settling.removed ? settling : undefined
+}
+
+/**
+ * Takes a request off its record when its `fulfilled` or `rejected` arrives,
+ * before the reducer, so anything reacting to the settled entry can start a
+ * new request.
+ */
+export function releaseRequest(runtime: StoreRuntime, requestId: string) {
+  const request = runtime.requests.get(requestId)
+  if (!request) return
+  const record = runtime.queries.get(request.key)
+  if (record?.request === request) record.request = undefined
+}
+
+/**
+ * Ends a request after its own `fulfilled` or `rejected` reached the reducer.
+ * Its waiters get that state, unless its entry was removed first.
+ */
+export function finishRequest(
+  runtime: StoreRuntime,
   requestId: string,
+  state: unknown,
 ) {
-  const record = runtime.queries.get(key)
-  if (record?.request?.requestId !== requestId) return
-  record.request = undefined
-  normalizeRecord(runtime, key)
+  const request = runtime.requests.get(requestId)
+  if (!request) return
+  releaseRequest(runtime, requestId)
+  runtime.requests.delete(requestId)
+  settleOutcome(request, { state })
+  normalizeRecord(runtime, request.key)
 }
 
 export function setRemovalTimer(
@@ -276,16 +374,22 @@ export function setCacheLifecycle(
   ensureRecord(runtime, key).cacheLifecycle = lifecycle
 }
 
+export type RemovedRecord = {
+  cacheLifecycle?: CacheLifecycle
+  request?: RunningRequest
+}
+
 /**
- * The one removal path for a key: drops its subscribers, removal timer, poll
- * and cache lifecycle, and optionally aborts its running request. Returns the
- * cache lifecycle so the caller decides when `cacheEntryRemoved` runs.
+ * The one removal path for a key: drops its subscribers, removal timer, poll,
+ * cache lifecycle and running request, and marks that request as removed.
+ * The caller settles the request with `settleRemovedRequest` and runs
+ * `cacheEntryRemoved` once the entry is gone from the state.
  */
 export function removeRecord(
   runtime: StoreRuntime,
   key: string,
-  abortRequest: boolean,
-): CacheLifecycle | undefined {
+  reason: RemovalReason,
+): RemovedRecord | undefined {
   const record = runtime.queries.get(key)
   if (!record) return undefined
   const { cacheLifecycle, request } = record
@@ -295,8 +399,26 @@ export function removeRecord(
   clearTimeout(record.poll?.timeout)
   record.poll = undefined
   record.cacheLifecycle = undefined
+  record.request = undefined
+  if (request) {
+    request.removed = reason
+    runtime.invalidatedRequestIds.delete(request.requestId)
+  }
   normalizeRecord(runtime, key)
-  // The aborted request removes itself from the record when it settles
-  if (abortRequest) request?.promise?.abort()
-  return cacheLifecycle
+  return { cacheLifecycle, request }
+}
+
+/**
+ * Settles a removed request's waiters with `reason` and aborts it. Abort
+ * listeners run synchronously, so this runs after the entry is removed. The
+ * request stays in `runtime.requests` until its `rejected` arrives.
+ */
+export function settleRemovedRequest(
+  runtime: StoreRuntime,
+  request: RunningRequest | undefined,
+  reason: RemovalReason,
+) {
+  if (!request) return
+  settleOutcome(request, { state: runtime.getState?.(), removed: reason })
+  request.abort?.()
 }

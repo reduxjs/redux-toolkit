@@ -256,13 +256,15 @@ describe('records and nested dispatches', () => {
     expect(store.dispatch(api.util.getRunningQueriesThunk())).toEqual([
       restarted,
     ])
-    let outerSettled = false
-    outer.then(() => (outerSettled = true))
-    await Promise.resolve()
-    expect(outerSettled).toBe(false)
+    await expect(outer).resolves.toMatchObject({
+      isError: true,
+      error: { name: 'AbortError', message: 'reset' },
+    })
     resolveAll()
-    await expect(outer).resolves.toMatchObject({ status: 'fulfilled', data: 1 })
-    await restarted
+    await expect(restarted).resolves.toMatchObject({
+      status: 'fulfilled',
+      data: 1,
+    })
   })
 
   test('a subscription added while the entry is removed is kept', async () => {
@@ -294,7 +296,37 @@ describe('records and nested dispatches', () => {
     expect(resubscribed?.isSubscribed()).toBe(true)
   })
 
-  test('getRunningQueryThunk in onQueryStarted of an overlapping forced request returns the running one', async () => {
+  test('a request started while a running entry is removed keeps running', async () => {
+    const { api, resolveAll } = createTestApi()
+    let restarted:
+      | ReturnType<ReturnType<typeof api.endpoints.getValue.initiate>>
+      | undefined
+    const store = createStoreWithReaction(api, (action, dispatch) => {
+      if (!restarted && api.internalActions.removeQueryResult.match(action)) {
+        restarted = dispatch(api.endpoints.getValue.initiate(1))
+      }
+    })
+
+    const first = store.dispatch(api.endpoints.getValue.initiate(1))
+    store.dispatch(
+      api.internalActions.removeQueryResult({
+        queryCacheKey: first.queryCacheKey as QueryCacheKey,
+      }),
+    )
+
+    expect(store.dispatch(api.util.getRunningQueriesThunk())).toEqual([
+      restarted,
+    ])
+    resolveAll()
+    await expect(first).resolves.toMatchObject({
+      isError: true,
+      error: { name: 'AbortError', message: 'removed' },
+    })
+    await expect(restarted).resolves.toMatchObject({ data: 1 })
+    expect(restarted?.isSubscribed()).toBe(true)
+  })
+
+  test('a forced request while another runs joins it, even after the entry was overwritten', async () => {
     const resolvers: (() => void)[] = []
     const seen: unknown[] = []
     const api = createApi({
@@ -326,8 +358,8 @@ describe('records and nested dispatches', () => {
       api.endpoints.getValue.initiate(1, { forceRefetch: true }),
     )
 
-    expect(seen).toEqual([undefined, first])
-    expect(store.dispatch(api.util.getRunningQueriesThunk())).toEqual([second])
+    expect(seen).toEqual([undefined])
+    expect(store.dispatch(api.util.getRunningQueriesThunk())).toEqual([first])
     resolvers.splice(0).forEach((resolve) => resolve())
     await Promise.all([first, second])
   })

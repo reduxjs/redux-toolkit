@@ -58,7 +58,6 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
   context,
   runtime,
   selectors: { selectQueryEntry, selectConfig },
-  getRunningQueryThunk,
   mwApi,
 }) => {
   const { removeQueryResult, unsubscribeQueryResult, cacheEntriesUpserted } =
@@ -164,15 +163,7 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
       const timer = setTimeout(() => {
         clearRemovalTimer(runtime, queryCacheKey)
         if (!anySubscriptionsRemainingForKey(queryCacheKey)) {
-          // Try to abort any running query for this cache key
-          const entry = selectQueryEntry(api.getState(), queryCacheKey)
-
-          if (entry?.endpointName) {
-            const runningQuery = api.dispatch(
-              getRunningQueryThunk(entry.endpointName, entry.originalArgs),
-            )
-            runningQuery?.abort()
-          }
+          // Removing the entry also aborts a running request for it
           api.dispatch(removeQueryResult({ queryCacheKey }))
         }
       }, finalKeepUnusedDataFor * 1000)

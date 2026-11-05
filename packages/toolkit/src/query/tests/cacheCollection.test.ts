@@ -183,6 +183,19 @@ describe(`query: await cleanup, keepUnusedDataFor set`, () => {
     expect(onCleanup).toHaveBeenCalled()
   })
 
+  test('endpoint keepUnusedDataFor: 0, unsubscribed while running: unwrap rejects', async () => {
+    const promise = store.dispatch(api.endpoints.query3.initiate('arg2'))
+    promise.unsubscribe()
+    vi.advanceTimersByTime(1)
+    await expect(promise).resolves.toMatchObject({
+      isError: true,
+      error: { name: 'AbortError', message: 'removed' },
+    })
+    await expect(promise.unwrap()).rejects.toMatchObject({
+      name: 'AbortError',
+    })
+  })
+
   test('endpoint keepUnusedDataFor: Infinity', async () => {
     expect(onCleanup).not.toHaveBeenCalled()
     store.dispatch(api.endpoints.query4.initiate('arg')).unsubscribe()
@@ -233,6 +246,37 @@ describe('resetApiState cleanup', () => {
     expect(queryPromise1.abort).toHaveBeenCalled()
     expect(queryPromise2.abort).toHaveBeenCalled()
     expect(mutationPromise.abort).toHaveBeenCalled()
+  })
+
+  const makeResetApi = () =>
+    createApi({
+      baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
+      endpoints: (build) => ({
+        query: build.query<unknown, string>({
+          query: () => '/success',
+        }),
+      }),
+    })
+
+  test('unwrap rejects for a query aborted by resetApiState', async () => {
+    const { store, api } = storeForApi(makeResetApi())
+    const promise = store.dispatch(api.endpoints.query.initiate('arg'))
+    store.dispatch(api.util.resetApiState())
+    await expect(promise.unwrap()).rejects.toMatchObject({
+      name: 'AbortError',
+      message: 'reset',
+    })
+  })
+
+  test('unwrap rejects for every caller of a query aborted by resetApiState', async () => {
+    const { store, api } = storeForApi(makeResetApi())
+    const first = store.dispatch(api.endpoints.query.initiate('arg'))
+    const second = store.dispatch(api.endpoints.query.initiate('arg'))
+    store.dispatch(api.util.resetApiState())
+    await expect(first.unwrap()).rejects.toMatchObject({ name: 'AbortError' })
+    await expect(second.unwrap()).rejects.toMatchObject({
+      name: 'AbortError',
+    })
   })
 
   test('resetApiState cancels the pending subscription sync', async () => {

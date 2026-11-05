@@ -59,6 +59,8 @@ import type {
   StartQueryActionCreatorOptions,
 } from './buildInitiate'
 import { forceQueryFnSymbol, isUpsertQuery } from './buildInitiate'
+import type { StoreRuntime } from './buildMiddleware/runtime'
+import { findRunningRequest } from './buildMiddleware/runtime'
 import type { AllSelectors } from './buildSelectors'
 import type { ApiEndpointQuery, PrefetchOptions } from './module'
 import {
@@ -374,6 +376,7 @@ export function buildThunks<
   onSchemaFailure,
   catchSchemaFailure: globalCatchSchemaFailure,
   skipSchemaValidation: globalSkipSchemaValidation,
+  getRuntimeForState,
 }: {
   baseQuery: BaseQuery
   reducerPath: ReducerPath
@@ -385,6 +388,7 @@ export function buildThunks<
   onSchemaFailure: SchemaFailureHandler | undefined
   catchSchemaFailure: SchemaFailureConverter<BaseQuery> | undefined
   skipSchemaValidation: boolean | SchemaType[] | undefined
+  getRuntimeForState: (getState: () => unknown) => StoreRuntime | undefined
 }) {
   type State = ApiRootState<any, string, ReducerPath>
 
@@ -1018,9 +1022,18 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
           return false
         }
 
-        // Don't retry a request that's currently in-flight
-        if (requestState?.status === 'pending') {
+        // Join a request that's currently in flight
+        const runtime = getRuntimeForState(getState)
+        if (
+          runtime &&
+          findRunningRequest(runtime, queryThunkArg.queryCacheKey, requestState)
+        ) {
           return false
+        }
+        // With the middleware installed, a `pending` entry without a running
+        // request came from restored state, so it fetches
+        if (requestState?.status === 'pending') {
+          return !!runtime
         }
 
         // if this is forced, continue
