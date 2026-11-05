@@ -635,6 +635,11 @@ export const coreModule = ({
       createSelector,
     })
 
+    const runtimeMap = new WeakMap<Dispatch, StoreRuntime>()
+    // `condition` only receives `getState`, which is the same function the
+    // middleware gets for that store
+    const runtimeByGetState = new WeakMap<() => unknown, StoreRuntime>()
+
     const {
       selectInvalidatedBy,
       selectCachedArgsForQuery,
@@ -672,6 +677,7 @@ export const coreModule = ({
       onSchemaFailure,
       catchSchemaFailure,
       skipSchemaValidation,
+      getRuntimeForState: (getState) => runtimeByGetState.get(getState),
     })
 
     const { reducer, actions: sliceActions } = buildSlice({
@@ -702,11 +708,14 @@ export const coreModule = ({
     })
     safeAssign(api.internalActions, sliceActions)
 
-    const runtimeMap = new WeakMap<Dispatch, StoreRuntime>()
-
     const getRuntime = (dispatch: Dispatch) => runtimeMap.get(dispatch)
-    const createRuntime = (dispatch: Dispatch) =>
-      getOrInsertComputed(runtimeMap, dispatch, createStoreRuntime)
+    const createRuntime = (dispatch: Dispatch, getState: () => unknown) =>
+      getOrInsertComputed(runtimeMap, dispatch, () => {
+        const runtime = createStoreRuntime()
+        runtime.getState = getState
+        runtimeByGetState.set(getState, runtime)
+        return runtime
+      })
     const getMiddlewareState =
       () =>
       (dispatch: Dispatch): ApiMiddlewareState | undefined => {

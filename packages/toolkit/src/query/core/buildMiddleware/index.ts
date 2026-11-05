@@ -11,6 +11,7 @@ import type {
 import type { QueryStatus, QuerySubState, ApiRootState } from '../apiState'
 import type { QueryThunkArg } from '../buildThunks'
 import { createAction, isAction } from '../rtkImports'
+import { isUpsertQuery } from '../buildInitiate'
 import { buildBatchedActionsHandler } from './batchActions'
 import { buildCacheCollectionHandler } from './cacheCollection'
 import { buildCacheLifecycleHandler } from './cacheLifecycle'
@@ -20,7 +21,7 @@ import { buildPollingHandler } from './polling'
 import { buildQueryLifecycleHandler } from './queryLifecycle'
 import { buildQueryRecordHandler } from './queryRecord'
 import { registerMiddleware } from './registration'
-import { removeRecord } from './runtime'
+import { releaseRequest, startRequest } from './runtime'
 import type { BuildMiddlewareInput, InternalHandlerBuilder } from './types'
 import { buildWindowEventHandler } from './windowEventHandling'
 import type { ApiEndpointQuery } from '../module'
@@ -83,7 +84,7 @@ export function buildMiddleware<
   > = (mwApi) => {
     let initialized = false
 
-    const runtime = createRuntime(mwApi.dispatch)
+    const runtime = createRuntime(mwApi.dispatch, mwApi.getState)
 
     const builderArgs = {
       ...(input as any as BuildMiddlewareInput<
@@ -117,13 +118,22 @@ export function buildMiddleware<
 
         const stateBefore = mwApi.getState()
 
-        // Cleared before the reducer, so a listener that subscribes to the key
-        // again while the entry is removed keeps its new subscription
-        const removedLifecycle = api.internalActions.removeQueryResult.match(
-          action,
-        )
-          ? removeRecord(runtime, action.payload.queryCacheKey, false)
-          : undefined
+        // Registered before the reducer, so anything that reacts to the
+        // pending entry already sees its running request
+        if (queryThunk.pending.match(action)) {
+          const { arg, requestId } = action.meta
+          startRequest(
+            runtime,
+            arg.queryCacheKey,
+            requestId,
+            isUpsertQuery(arg),
+          )
+        } else if (
+          queryThunk.fulfilled.match(action) ||
+          queryThunk.rejected.match(action)
+        ) {
+          releaseRequest(runtime, action.meta.requestId)
+        }
 
         const [actionShouldContinue, internalProbeResult] =
           batchedActionsHandler(action, mwApiWithNext, stateBefore)
@@ -159,8 +169,6 @@ export function buildMiddleware<
             }
           }
         }
-
-        removedLifecycle?.cacheEntryRemoved()
 
         return res
       }

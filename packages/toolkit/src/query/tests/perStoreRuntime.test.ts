@@ -256,13 +256,15 @@ describe('records and nested dispatches', () => {
     expect(store.dispatch(api.util.getRunningQueriesThunk())).toEqual([
       restarted,
     ])
-    let outerSettled = false
-    outer.then(() => (outerSettled = true))
-    await Promise.resolve()
-    expect(outerSettled).toBe(false)
+    await expect(outer).resolves.toMatchObject({
+      isError: true,
+      error: { name: 'AbortError', message: 'reset' },
+    })
     resolveAll()
-    await expect(outer).resolves.toMatchObject({ status: 'fulfilled', data: 1 })
-    await restarted
+    await expect(restarted).resolves.toMatchObject({
+      status: 'fulfilled',
+      data: 1,
+    })
   })
 
   test('a subscription added while the entry is removed is kept', async () => {

@@ -24,12 +24,15 @@ import {
 } from '../endpointDefinitions'
 import { filterNullishValues } from '../utils'
 import { skipToken } from '../utils/skipToken'
-import type {
-  InfiniteData,
-  InfiniteQueryConfigOptions,
-  InfiniteQueryDirection,
-  QueryCacheKey,
-  SubscriptionOptions,
+import {
+  getRequestStatusFlags,
+  QueryStatus,
+  type InfiniteData,
+  type InfiniteQueryConfigOptions,
+  type InfiniteQueryDirection,
+  type QueryCacheKey,
+  type ApiRootState,
+  type SubscriptionOptions,
 } from './apiState'
 import type {
   InfiniteQueryResultSelectorResult,
@@ -44,8 +47,16 @@ import type {
   ThunkApiMetaConfig,
 } from './buildThunks'
 import type { ApiEndpointQuery } from './module'
-import type { RunningQuery, StoreRuntime } from './buildMiddleware/runtime'
-import { attachRequestPromise, settleRequest } from './buildMiddleware/runtime'
+import type {
+  RequestOutcome,
+  RunningQuery,
+  StoreRuntime,
+} from './buildMiddleware/runtime'
+import {
+  attachRequestPromise,
+  findRunningRequest,
+  finishRequest,
+} from './buildMiddleware/runtime'
 
 export type BuildInitiateApiEndpointQuery<
   Definition extends QueryDefinition<any, any, any, any, any>,
@@ -455,40 +466,59 @@ You must add the middleware for RTK-Query to function correctly!`,
 
         middlewareWarning(dispatch)
 
-        // A request this dispatch started has not attached its own promise yet,
-        // so this is the previous request, or one started by a nested dispatch
-        const runningQuery =
-          arg === skipToken
-            ? undefined
-            : getRunningQuery(dispatch, queryCacheKey)
-
         const { requestId, abort } = thunkResult
 
         const skippedSynchronously = stateAfter.requestId !== requestId
 
         const selectFromState = () => selector(getState())
+
         const runtime = getRuntime(dispatch)
+        const ownRequest = runtime?.requests.get(requestId)
+        // A request this call started, or the running request it joined
+        const request =
+          ownRequest ??
+          (arg === skipToken || !runtime
+            ? undefined
+            : findRunningRequest(runtime, queryCacheKey, stateAfter))
+
+        // A removed entry aborts its request with the removal reason
+        const abortRequest = ownRequest
+          ? () => abort(ownRequest.removed)
+          : abort
+
+        const selectOutcome = ({ state, removed }: RequestOutcome) => {
+          const result = selector(state as ApiRootState<any, any, any>)
+          if (!removed) return result
+          return {
+            ...result,
+            ...getRequestStatusFlags(QueryStatus.rejected),
+            error: { name: 'AbortError', message: removed },
+          }
+        }
 
         const statePromise: AnyActionCreatorResult = Object.assign(
           (forceQueryFn
             ? // a query has been forced (upsertQueryData)
               // -> we want to resolve it once data has been written with the data that will be written
               thunkResult.then(selectFromState)
-            : skippedSynchronously && !runningQuery
-              ? // a query has been skipped due to a condition and we do not have any currently running query
-                // -> we want to resolve it immediately with the current data
-                Promise.resolve(stateAfter)
-              : // query just started or one is already in flight
-                // -> wait for the running query, then resolve with data from after that
-                Promise.all([runningQuery, thunkResult]).then(
-                  selectFromState,
-                )) as SafePromise<any>,
+            : request
+              ? // resolve with the state right after this request settled,
+                // or with the reason its entry was removed first
+                Promise.all([request.outcome, thunkResult]).then(([outcome]) =>
+                  selectOutcome(outcome),
+                )
+              : skippedSynchronously
+                ? // a query has been skipped due to a condition and we do not have any currently running query
+                  // -> we want to resolve it immediately with the current data
+                  Promise.resolve(stateAfter)
+                : // no middleware for this store
+                  thunkResult.then(selectFromState)) as SafePromise<any>,
           {
             arg,
             requestId,
             subscriptionOptions,
             queryCacheKey,
-            abort,
+            abort: abortRequest,
             async unwrap() {
               const result = await statePromise
 
@@ -533,22 +563,17 @@ You must add the middleware for RTK-Query to function correctly!`,
           },
         )
 
-        if (runtime) {
-          const removeRunningQuery = () =>
-            settleRequest(runtime, queryCacheKey, requestId)
-          if (
-            !skippedSynchronously &&
-            attachRequestPromise(
-              runtime,
-              queryCacheKey,
-              requestId,
-              statePromise,
-            )
-          ) {
-            statePromise.then(removeRunningQuery, removeRunningQuery)
-          } else {
-            removeRunningQuery()
-          }
+        if (runtime && ownRequest) {
+          attachRequestPromise(
+            runtime,
+            requestId,
+            forceQueryFn ? undefined : statePromise,
+            abortRequest,
+          )
+          // The middleware finishes the request; this covers stores where its
+          // handlers do not run, so the request cannot stay registered
+          const finish = () => finishRequest(runtime, requestId, getState())
+          thunkResult.then(finish, finish)
         }
 
         return statePromise

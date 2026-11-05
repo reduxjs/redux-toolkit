@@ -55,6 +55,18 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
       pendingRequestIds.delete(action.meta.requestId)
     }
 
+    if (
+      (queryThunk.fulfilled.match(action) ||
+        queryThunk.rejected.match(action)) &&
+      runtime.invalidatedRequestIds.delete(action.meta.requestId)
+    ) {
+      settleInvalidatedRequest(
+        action.meta.arg.queryCacheKey,
+        action.meta.requestId,
+        mwApi,
+      )
+    }
+
     if (isThunkActionWithTags(action)) {
       invalidateTags(
         calculateProvidedByThunk(
@@ -86,6 +98,32 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
     return pendingRequestIds.size > 0
   }
 
+  function invalidateEntry(
+    queryCacheKey: QueryCacheKey,
+    mwApi: SubMiddlewareApi,
+  ) {
+    const querySubState = mwApi.getState()[reducerPath].queries[queryCacheKey]
+    if (!querySubState) return
+    if (!runtime.queries.get(queryCacheKey)?.subscribers?.size) {
+      mwApi.dispatch(removeQueryResult({ queryCacheKey }))
+    } else if (querySubState.status !== STATUS_UNINITIALIZED) {
+      mwApi.dispatch(refetchQuery(querySubState))
+    }
+  }
+
+  // An invalidated entry with a running request is decided once that request
+  // has settled, so its own `initiate()` promise still gets its result
+  function settleInvalidatedRequest(
+    queryCacheKey: QueryCacheKey,
+    requestId: string,
+    mwApi: SubMiddlewareApi,
+  ) {
+    if (runtime.queries.get(queryCacheKey)?.request) return
+    const entry = mwApi.getState()[reducerPath].queries[queryCacheKey]
+    if (entry?.requestId !== requestId) return
+    invalidateEntry(queryCacheKey, mwApi)
+  }
+
   function invalidateTags(
     newTags: readonly FullTagDescription<string>[],
     mwApi: SubMiddlewareApi,
@@ -111,22 +149,13 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
     context.batch(() => {
       const valuesArray = Array.from(toInvalidate.values())
       for (const { queryCacheKey } of valuesArray) {
-        const querySubState = state.queries[queryCacheKey]
-        const subscriptionSubState = (ensureRecord(
-          runtime,
-          queryCacheKey,
-        ).subscribers ??= new Map())
+        const record = ensureRecord(runtime, queryCacheKey)
+        record.subscribers ??= new Map()
 
-        if (querySubState) {
-          if (subscriptionSubState.size === 0) {
-            mwApi.dispatch(
-              removeQueryResult({
-                queryCacheKey: queryCacheKey as QueryCacheKey,
-              }),
-            )
-          } else if (querySubState.status !== STATUS_UNINITIALIZED) {
-            mwApi.dispatch(refetchQuery(querySubState))
-          }
+        if (record.request) {
+          runtime.invalidatedRequestIds.add(record.request.requestId)
+        } else {
+          invalidateEntry(queryCacheKey as QueryCacheKey, mwApi)
         }
       }
     })

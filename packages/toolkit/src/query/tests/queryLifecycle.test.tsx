@@ -549,7 +549,7 @@ test('query: will only start lifecycle if query is not skipped due to `condition
 })
 
 describe('queryFulfilled settlement', () => {
-  test('a stale response is discarded by the reducer, but its queryFulfilled still resolves', async () => {
+  test('removing a running entry rejects its queryFulfilled, and a new request for the key resolves on its own', async () => {
     const fulfilledWith: string[] = []
     const localApi = createApi({
       baseQuery: async (arg: string) => {
@@ -560,8 +560,10 @@ describe('queryFulfilled settlement', () => {
         getThing: build.query<string, string>({
           query: (arg) => arg,
           async onQueryStarted(_arg, { queryFulfilled }) {
-            const result = await queryFulfilled
-            fulfilledWith.push(result.data)
+            try {
+              const result = await queryFulfilled
+              fulfilledWith.push(result.data)
+            } catch {}
           },
         }),
       }),
@@ -585,8 +587,13 @@ describe('queryFulfilled settlement', () => {
     expect(store.getState().api.queries[first.queryCacheKey]?.requestId).toBe(
       second.requestId,
     )
-    // Known current behavior that may change; documenting it as the baseline (#5504)
-    expect(fulfilledWith).toEqual(['a', 'a'])
+    // Removing the entry aborted the first request
+    expect(fulfilledWith).toEqual(['a'])
+    await expect(first).resolves.toMatchObject({
+      isError: true,
+      error: { name: 'AbortError', message: 'removed' },
+    })
+    await expect(second).resolves.toMatchObject({ data: 'a' })
 
     first.unsubscribe()
     second.unsubscribe()
