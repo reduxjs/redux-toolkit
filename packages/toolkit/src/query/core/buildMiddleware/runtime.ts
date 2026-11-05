@@ -149,14 +149,20 @@ function resetStoreRuntime(runtime: StoreRuntime) {
   runtime.pendingTagInvalidations = []
   runtime.invalidatedRequestIds.clear()
 
-  const removedLifecycles: CacheLifecycle[] = []
-  // Abort listeners can start new requests, which keep their new records
-  for (const key of [...runtime.queries.keys()]) {
-    const removed = removeRecord(runtime, key, 'reset')
-    if (!removed) continue
-    settleRemovedRequest(runtime, removed.request, 'reset')
-    if (removed.cacheLifecycle) removedLifecycles.push(removed.cacheLifecycle)
+  const removedRequests: RunningRequest[] = []
+  for (const request of runtime.requests.values()) {
+    if (request.removed) continue
+    markRemoved(runtime, request, 'reset')
+    removedRequests.push(request)
   }
+  const removedLifecycles: CacheLifecycle[] = []
+  for (const key of runtime.queries.keys()) {
+    const lifecycle = clearRecord(runtime, key)
+    if (lifecycle) removedLifecycles.push(lifecycle)
+  }
+  // Abort listeners can start new requests, so abort only once every record
+  // is cleared, leaving their new records in place
+  settleRemovedRequests(runtime, removedRequests, 'reset')
   for (const promise of runtime.runningMutations.values()) {
     promise?.abort()
   }
@@ -376,23 +382,45 @@ export function setCacheLifecycle(
 
 export type RemovedRecord = {
   cacheLifecycle?: CacheLifecycle
-  request?: RunningRequest
+  requests: RunningRequest[]
 }
 
 /**
- * The one removal path for a key: drops its subscribers, removal timer, poll,
- * cache lifecycle and running request, and marks that request as removed.
- * The caller settles the request with `settleRemovedRequest` and runs
- * `cacheEntryRemoved` once the entry is gone from the state.
+ * The one removal path for a key: drops its subscribers, removal timer, poll
+ * and cache lifecycle, and marks every running request for the key as
+ * removed. Besides the record's request, that includes an `upsertQueryData`
+ * a newer request replaced, and a request whose own `fulfilled` or `rejected`
+ * is still being dispatched. The caller settles them with
+ * `settleRemovedRequests` and runs `cacheEntryRemoved` once the entry is gone
+ * from the state.
  */
 export function removeRecord(
   runtime: StoreRuntime,
   key: string,
   reason: RemovalReason,
-): RemovedRecord | undefined {
+): RemovedRecord {
+  const requests: RunningRequest[] = []
+  for (const request of runtime.requests.values()) {
+    if (request.key !== key || request.removed) continue
+    markRemoved(runtime, request, reason)
+    requests.push(request)
+  }
+  return { cacheLifecycle: clearRecord(runtime, key), requests }
+}
+
+function markRemoved(
+  runtime: StoreRuntime,
+  request: RunningRequest,
+  reason: RemovalReason,
+) {
+  request.removed = reason
+  runtime.invalidatedRequestIds.delete(request.requestId)
+}
+
+function clearRecord(runtime: StoreRuntime, key: string) {
   const record = runtime.queries.get(key)
   if (!record) return undefined
-  const { cacheLifecycle, request } = record
+  const { cacheLifecycle } = record
   record.subscribers = undefined
   clearTimeout(record.gc)
   record.gc = undefined
@@ -400,25 +428,22 @@ export function removeRecord(
   record.poll = undefined
   record.cacheLifecycle = undefined
   record.request = undefined
-  if (request) {
-    request.removed = reason
-    runtime.invalidatedRequestIds.delete(request.requestId)
-  }
   normalizeRecord(runtime, key)
-  return { cacheLifecycle, request }
+  return cacheLifecycle
 }
 
 /**
- * Settles a removed request's waiters with `reason` and aborts it. Abort
- * listeners run synchronously, so this runs after the entry is removed. The
+ * Settles removed requests' waiters with `reason` and aborts them. Abort
+ * listeners run synchronously, so this runs after the entry is removed. Each
  * request stays in `runtime.requests` until its `rejected` arrives.
  */
-export function settleRemovedRequest(
+export function settleRemovedRequests(
   runtime: StoreRuntime,
-  request: RunningRequest | undefined,
+  requests: RunningRequest[],
   reason: RemovalReason,
 ) {
-  if (!request) return
-  settleOutcome(request, { state: runtime.getState?.(), removed: reason })
-  request.abort?.()
+  for (const request of requests) {
+    settleOutcome(request, { state: runtime.getState?.(), removed: reason })
+  }
+  for (const request of requests) request.abort?.()
 }
