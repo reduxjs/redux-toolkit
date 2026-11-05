@@ -1021,11 +1021,7 @@ export type UseInfiniteQuery<
   arg: InfiniteQueryArgFrom<D> | SkipToken,
   options?: UseInfiniteQuerySubscriptionOptions<D> &
     UseInfiniteQueryStateOptions<D, R>,
-) => UseInfiniteQueryHookResult<D, R> &
-  Pick<
-    UseInfiniteQuerySubscriptionResult<D>,
-    'fetchNextPage' | 'fetchPreviousPage'
-  >
+) => UseInfiniteQueryHookResult<D, R>
 
 export type TypedUseInfiniteQuery<
   ResultType,
