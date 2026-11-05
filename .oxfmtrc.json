@@ -9,6 +9,7 @@
     "**/etc/**",
     "**/temp/**",
     "**/__testfixtures__/**",
+    "**/__snapshots__/**",
     "examples/publish-ci/**",
     ".yarn/**",
     "**/mockServiceWorker.js",
