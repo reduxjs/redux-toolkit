@@ -47,6 +47,32 @@ const { data, status, error, refetch } = store.dispatch(
 )
 ```
 
+## Computing the Interval from the Cache Entry
+
+`pollingInterval` can also be a function. It receives the current cache entry for the query (`data`, `error`, `status`, `originalArgs`, and so on) and returns the interval in milliseconds. This lets a query poll only while the server reports that work is still in progress:
+
+```tsx no-transpile title="src/Job.tsx"
+import * as React from 'react'
+import { useGetJobQuery } from './services/jobs'
+
+export const Job = ({ id }: { id: string }) => {
+  const { data } = useGetJobQuery(id, {
+    // Poll every second until the job finishes
+    pollingInterval: ({ data }) => (data?.status === 'running' ? 1000 : 0),
+  })
+
+  return <div>{data?.status}</div>
+}
+```
+
+The function follows these rules:
+
+- It is called when the next poll is scheduled, after a request for that cache entry settles. It is not called while a request is pending, and it runs at most once per cache entry update.
+- A result of `0`, a negative number, or anything that is not a number means "don't poll". Polling stays stopped until the cache entry changes again, for example after a manual `refetch()` or a refetch triggered by tag invalidation, and the function returns an interval again.
+- When several subscribers to the same cache entry ask for polling, the lowest interval wins, whether it came from a number or a function.
+
+An inline function in a hook can change on every render without updating the subscription; the most recent function is used the next time a poll is scheduled.
+
 ## Polling Without React Hooks
 
 If you use polling without the convenience of React Hooks, you will need to manually call `updateSubscriptionOptions` on the promise ref to update the interval. This approach varies by framework but is possible everywhere. See the [Svelte Example](./examples#svelte) for one possibility, and the [Usage Without React Hooks](./usage-without-react-hooks.mdx) page for more details on working with subscriptions manually.

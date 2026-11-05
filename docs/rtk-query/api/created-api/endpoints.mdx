@@ -43,8 +43,11 @@ type StartMutationActionCreator<D extends MutationDefinition<any, any, any, any>
 type SubscriptionOptions = {
   /**
    * How frequently to automatically re-fetch data (in milliseconds). Defaults to `0` (off).
+   *
+   * Can also be a function that receives the current cache entry and returns the interval.
+   * See [Polling](../../usage/polling.mdx#computing-the-interval-from-the-cache-entry).
    */
-  pollingInterval?: number;
+  pollingInterval?: number | ((cacheEntry: QueryCacheEntry) => number);
   /**
    * Defaults to `false`. This setting allows you to control whether RTK Query will try to refetch all subscribed queries after regaining a network connection.
    *

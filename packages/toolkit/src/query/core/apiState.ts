@@ -141,13 +141,47 @@ export function getRequestStatusFlags(status: QueryStatus): RequestStatusFlags {
 }
 
 /**
+ * Either a fixed polling interval in milliseconds, or a function that returns
+ * one. The function receives the current cache entry and runs when the next
+ * poll is scheduled after a request settles, at most once per cache entry
+ * state. A result that is not a positive number stops polling until the cache
+ * entry changes again.
+ *
  * @public
  */
-export type SubscriptionOptions = {
+export type PollingInterval<
+  D extends BaseEndpointDefinition<any, any, any, any> = QueryDefinition<
+    any,
+    any,
+    any,
+    any
+  >,
+> = number | ((cacheEntry: QueryCacheEntry<D>) => number)
+
+/**
+ * @public
+ */
+export type SubscriptionOptions<
+  D extends BaseEndpointDefinition<any, any, any, any> = QueryDefinition<
+    any,
+    any,
+    any,
+    any
+  >,
+> = {
   /**
    * How frequently to automatically re-fetch data (in milliseconds). Defaults to `0` (off).
+   *
+   * Can also be a function that receives the current cache entry and returns
+   * the interval. It is called when the next poll is scheduled after a request
+   * settles, at most once per cache entry state, and never while a request is
+   * pending. Returning `0` (or any value that is not a positive number) stops
+   * polling until the cache entry changes again, for example after a manual
+   * refetch.
+   *
+   * When several subscribers poll the same cache entry, the lowest interval wins.
    */
-  pollingInterval?: number
+  pollingInterval?: PollingInterval<D>
   /**
    *  Defaults to 'false'. This setting allows you to control whether RTK Query will continue polling if the window is not focused.
    *

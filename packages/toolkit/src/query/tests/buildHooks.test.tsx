@@ -1474,6 +1474,40 @@ describe('hooks tests', () => {
         )
       })
     })
+
+    test('accepts an inline pollingInterval function without updating the subscription on every render', async () => {
+      const names: string[] = []
+      const { rerender } = renderHook(
+        ({ enabled }: { enabled: boolean }) =>
+          api.endpoints.getUser.useQuery(1, {
+            pollingInterval: (entry) => {
+              if (entry.data) names.push(entry.data.name)
+              return enabled ? 50 : 0
+            },
+          }),
+        {
+          wrapper: storeRef.wrapper,
+          initialProps: { enabled: true },
+        },
+      )
+      const countFetches = () =>
+        actions.filter(api.endpoints.getUser.matchPending).length
+
+      rerender({ enabled: true })
+      rerender({ enabled: true })
+
+      await waitFor(() => expect(names).toEqual(['Timmy', 'Timmy']))
+      expect(
+        actions.filter(api.internalActions.updateSubscriptionOptions.match),
+      ).toHaveLength(0)
+
+      // The latest function is used for the next schedule
+      rerender({ enabled: false })
+      await waitFor(() => expect(names).toHaveLength(3))
+      const fetchesAfterStop = countFetches()
+      await waitMs(300)
+      expect(countFetches()).toBe(fetchesAfterStop)
+    })
   })
 
   describe('useLazyQuery', () => {

@@ -5,6 +5,7 @@ import { formatProdErrorMessage } from '@reduxjs/toolkit'
 export type {
   ApiRootState,
   CombinedState,
+  PollingInterval,
   QueryCacheEntry,
   QueryCacheKey,
   QueryKeys,
