@@ -51,6 +51,7 @@ export type {
   ApiEndpointInfiniteQuery,
   ApiEndpointMutation,
   ApiEndpointQuery,
+  ApiMiddlewareState,
   CoreModule,
   InternalActions,
   PrefetchOptions,

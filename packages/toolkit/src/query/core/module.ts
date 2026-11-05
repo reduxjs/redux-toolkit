@@ -101,6 +101,18 @@ export type CoreModule =
 
 export type ThunkWithReturnValue<T> = ThunkAction<T, any, any, UnknownAction>
 
+/**
+ * Read-only access to what an API's middleware tracks for one store, outside
+ * of the Redux state. Returned by `api.util.getMiddlewareState()`.
+ */
+export interface ApiMiddlewareState {
+  /**
+   * The number of active subscriptions to a query cache entry, such as
+   * `api.queryCacheKey` inside `baseQuery`.
+   */
+  getSubscriptionCount(queryCacheKey: string): number
+}
+
 export interface ApiModules<
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   in out BaseQuery extends BaseQueryFn,
@@ -234,6 +246,22 @@ export interface ApiModules<
       getRunningMutationsThunk(): ThunkWithReturnValue<
         Array<MutationActionCreatorResult<any>>
       >
+
+      /**
+       * A thunk that (if dispatched) will return read-only access to the
+       * state this API's middleware keeps for the store, or `undefined` if
+       * the API's middleware has not been added to that store.
+       *
+       * This is not part of the Redux state. The returned object reads the
+       * middleware's current values on each call.
+       *
+       * @example
+       * ```ts no-transpile
+       * const middlewareState = dispatch(api.util.getMiddlewareState())
+       * const count = middlewareState?.getSubscriptionCount('getPosts(undefined)')
+       * ```
+       */
+      getMiddlewareState(): ThunkWithReturnValue<ApiMiddlewareState | undefined>
 
       /**
        * A Redux thunk that can be used to manually trigger pre-fetching of data.
@@ -679,6 +707,17 @@ export const coreModule = ({
     const getRuntime = (dispatch: Dispatch) => runtimeMap.get(dispatch)
     const createRuntime = (dispatch: Dispatch) =>
       getOrInsertComputed(runtimeMap, dispatch, createStoreRuntime)
+    const getMiddlewareState =
+      () =>
+      (dispatch: Dispatch): ApiMiddlewareState | undefined => {
+        const runtime = getRuntime(dispatch)
+        return (
+          runtime && {
+            getSubscriptionCount: (queryCacheKey) =>
+              runtime.queries.get(queryCacheKey)?.subscribers?.size ?? 0,
+          }
+        )
+      }
 
     const {
       buildInitiateQuery,
@@ -703,6 +742,7 @@ export const coreModule = ({
       getRunningMutationsThunk,
       getRunningQueryThunk,
       getRunningQueriesThunk,
+      getMiddlewareState,
     })
 
     const { middleware, actions: middlewareActions } = buildMiddleware({

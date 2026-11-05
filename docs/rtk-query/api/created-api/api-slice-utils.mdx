@@ -554,6 +554,40 @@ or manually dispatching `initiate` actions.
 await Promise.all(dispatch(api.util.getRunningQueriesThunk()))
 ```
 
+## `getMiddlewareState`
+
+#### Signature
+
+```ts no-transpile
+getMiddlewareState(): ThunkWithReturnValue<ApiMiddlewareState | undefined>
+
+interface ApiMiddlewareState {
+  getSubscriptionCount(queryCacheKey: string): number
+}
+```
+
+#### Description
+
+A thunk that (if dispatched) returns read-only access to the state the API's middleware keeps for that store, such as subscription counts.
+This is separate from the API's slice in the Redux state, and is not visible through `getState()`.
+It returns `undefined` if the API's middleware has not been added to the store.
+Dispatching it never creates any state.
+
+- `getSubscriptionCount(queryCacheKey)` returns the number of active subscriptions to a query cache entry. It reads the current value on every call.
+
+To check whether one specific `initiate()` call is still subscribed, use `isSubscribed()` on the [result of `initiate()`](./endpoints.mdx#initiate) instead.
+
+#### Example
+
+```ts no-transpile title="Checking subscriptions inside baseQuery"
+const baseQuery: BaseQueryFn = async (args, api) => {
+  const middlewareState = api.dispatch(myApi.util.getMiddlewareState())
+  const isSubscribed =
+    (middlewareState?.getSubscriptionCount(api.queryCacheKey!) ?? 0) > 0
+  // ...
+}
+```
+
 ## `getRunningQueryThunk` and `getRunningMutationThunk`
 
 #### Signature

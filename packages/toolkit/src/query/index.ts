@@ -95,6 +95,7 @@ export type {
   ApiEndpointQuery,
   ApiEndpointInfiniteQuery,
   ApiModules,
+  ApiMiddlewareState,
   CoreModule,
   PrefetchOptions,
 } from './core/module'

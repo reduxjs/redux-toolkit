@@ -90,6 +90,9 @@ React Hooks users will most likely never need to use these directly, as the hook
 When dispatching an action creator, you're responsible for storing a reference to the promise it returns in the event that you want to update that specific subscription. Also, you have to manually unsubscribe once your component unmounts. To get an idea of what that entails, see the [Svelte Example](../../usage/examples.mdx#svelte) or the [Usage Without React Hooks](../../usage/usage-without-react-hooks.mdx) page
 :::
 
+The result of dispatching a query `initiate` thunk is a promise with extra fields, including `unwrap()`, `refetch()`, `unsubscribe()`, `updateSubscriptionOptions()`, and `isSubscribed()`.
+`isSubscribed()` returns whether this particular request still holds a subscription in the store. It returns `false` after `unsubscribe()` is called, after `resetApiState`, and for requests started with `subscribe: false`.
+
 #### Example
 
 ```tsx no-transpile title="initiate query example"

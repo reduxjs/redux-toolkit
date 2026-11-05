@@ -90,6 +90,7 @@ type Api = {
     getRunningMutationsThunk(): ThunkWithReturnValue<
       Array<MutationActionCreatorResult<any>>
     >
+    getMiddlewareState(): ThunkWithReturnValue<ApiMiddlewareState | undefined>
   }
 
   // Internal actions
