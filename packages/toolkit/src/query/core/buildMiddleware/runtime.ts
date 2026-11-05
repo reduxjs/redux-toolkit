@@ -149,16 +149,20 @@ function resetStoreRuntime(runtime: StoreRuntime) {
   runtime.pendingTagInvalidations = []
   runtime.invalidatedRequestIds.clear()
 
-  const removedLifecycles: CacheLifecycle[] = []
-  // Abort listeners can start new requests, which keep their new records
-  const keys = new Set(runtime.queries.keys())
-  for (const request of runtime.requests.values()) keys.add(request.key)
-  for (const key of keys) {
-    const removed = removeRecord(runtime, key, 'reset')
-    if (!removed) continue
-    settleRemovedRequests(runtime, removed.requests, 'reset')
-    if (removed.cacheLifecycle) removedLifecycles.push(removed.cacheLifecycle)
+  const removedRequests: RunningRequest[] = []
+  for (const request of runtime.requests.values()) {
+    if (request.removed) continue
+    markRemoved(runtime, request, 'reset')
+    removedRequests.push(request)
   }
+  const removedLifecycles: CacheLifecycle[] = []
+  for (const key of runtime.queries.keys()) {
+    const lifecycle = clearRecord(runtime, key)
+    if (lifecycle) removedLifecycles.push(lifecycle)
+  }
+  // Abort listeners can start new requests, so abort only once every record
+  // is cleared, leaving their new records in place
+  settleRemovedRequests(runtime, removedRequests, 'reset')
   for (const promise of runtime.runningMutations.values()) {
     promise?.abort()
   }
@@ -394,16 +398,28 @@ export function removeRecord(
   runtime: StoreRuntime,
   key: string,
   reason: RemovalReason,
-): RemovedRecord | undefined {
+): RemovedRecord {
   const requests: RunningRequest[] = []
   for (const request of runtime.requests.values()) {
     if (request.key !== key || request.removed) continue
-    request.removed = reason
-    runtime.invalidatedRequestIds.delete(request.requestId)
+    markRemoved(runtime, request, reason)
     requests.push(request)
   }
+  return { cacheLifecycle: clearRecord(runtime, key), requests }
+}
+
+function markRemoved(
+  runtime: StoreRuntime,
+  request: RunningRequest,
+  reason: RemovalReason,
+) {
+  request.removed = reason
+  runtime.invalidatedRequestIds.delete(request.requestId)
+}
+
+function clearRecord(runtime: StoreRuntime, key: string) {
   const record = runtime.queries.get(key)
-  if (!record) return requests.length ? { requests } : undefined
+  if (!record) return undefined
   const { cacheLifecycle } = record
   record.subscribers = undefined
   clearTimeout(record.gc)
@@ -413,7 +429,7 @@ export function removeRecord(
   record.cacheLifecycle = undefined
   record.request = undefined
   normalizeRecord(runtime, key)
-  return { cacheLifecycle, requests }
+  return cacheLifecycle
 }
 
 /**

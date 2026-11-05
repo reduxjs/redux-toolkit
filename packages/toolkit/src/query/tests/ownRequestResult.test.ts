@@ -23,15 +23,18 @@ const setup = ({
   after = passThrough(),
   refetchOnFocus = false,
   invalidationBehavior = 'delayed',
+  onAbort,
 }: {
   before?: Middleware
   after?: Middleware
   refetchOnFocus?: boolean
   invalidationBehavior?: 'delayed' | 'immediately'
+  onAbort?: (arg: string) => void
 } = {}) => {
   const gate = createDeferredQueue()
   let calls = 0
   const removalReasons: (string | undefined)[] = []
+  const aborted: string[] = []
   const api = createApi({
     baseQuery: async () => ({ data: undefined }),
     tagTypes: ['Thing'],
@@ -39,7 +42,11 @@ const setup = ({
     invalidationBehavior,
     endpoints: (build) => ({
       getThing: build.query<number, string>({
-        queryFn: async () => {
+        queryFn: async (arg, { signal }) => {
+          signal.addEventListener('abort', () => {
+            aborted.push(arg)
+            onAbort?.(arg)
+          })
           const call = ++calls
           await gate.wait()
           return { data: call }
@@ -72,6 +79,7 @@ const setup = ({
     makeStore,
     store: makeStore(),
     removalReasons,
+    aborted,
     getCalls: () => calls,
   }
 }
@@ -187,6 +195,93 @@ describe('initiate() resolves with its own request result', () => {
     })
     await settle()
     expect(removalReasons).toEqual(['reset'])
+  })
+
+  test('resetApiState while a fulfilled is being dispatched settles the promise with reason "reset"', async () => {
+    let onAction: ((action: unknown) => void) | undefined
+    const callOnAction: Middleware = () => (next) => (action) => {
+      onAction?.(action)
+      return next(action)
+    }
+    const { api, gate, store } = setup({ after: callOnAction })
+
+    const promise = store.dispatch(api.endpoints.getThing.initiate('a'))
+    onAction = (action) => {
+      if (!api.endpoints.getThing.matchFulfilled(action)) return
+      onAction = undefined
+      store.dispatch(api.util.resetApiState())
+    }
+    gate.resolveOldest()
+
+    await expect(promise).resolves.toMatchObject({
+      isError: true,
+      error: { name: 'AbortError', message: 'reset' },
+    })
+    expect(store.getState().api.queries[promise.queryCacheKey]).toBeUndefined()
+  })
+
+  test('resetApiState settles and aborts a running request whose entry was overwritten', async () => {
+    const { api, store, aborted } = setup()
+
+    const promise = store.dispatch(api.endpoints.getThing.initiate('a'))
+    store.dispatch(
+      api.util.upsertQueryEntries([
+        { endpointName: 'getThing', arg: 'a', value: 5 },
+      ]),
+    )
+    store.dispatch(api.util.resetApiState())
+
+    await expect(promise).resolves.toMatchObject({
+      isError: true,
+      error: { name: 'AbortError', message: 'reset' },
+    })
+    expect(aborted).toEqual(['a'])
+  })
+
+  test('a request an abort listener starts during resetApiState keeps running', async () => {
+    let react: ((arg: string) => void) | undefined
+    const { api, gate, store } = setup({ onAbort: (arg) => react?.(arg) })
+
+    const a = store.dispatch(api.endpoints.getThing.initiate('a'))
+    const b = store.dispatch(api.endpoints.getThing.initiate('b'))
+    let restarted: typeof b | undefined
+    react = (arg) => {
+      if (arg !== 'a') return
+      react = undefined
+      restarted = store.dispatch(api.endpoints.getThing.initiate('b'))
+    }
+    store.dispatch(api.util.resetApiState())
+
+    await expect(a).resolves.toMatchObject({ error: { message: 'reset' } })
+    await expect(b).resolves.toMatchObject({ error: { message: 'reset' } })
+    gate.resolveOldest()
+    gate.resolveOldest()
+    gate.resolveOldest()
+    await expect(restarted?.unwrap()).resolves.toBe(3)
+    expect(store.getState().api.queries[b.queryCacheKey]?.data).toBe(3)
+  })
+
+  test('removing an entry while an initiate and an upsertQueryData for it run', async () => {
+    const { api, gate, store } = setup()
+
+    const promise = store.dispatch(api.endpoints.getThing.initiate('a'))
+    const upsert = store.dispatch(api.util.upsertQueryData('getThing', 'a', 42))
+    store.dispatch(
+      api.internalActions.removeQueryResult({
+        queryCacheKey: promise.queryCacheKey as QueryCacheKey,
+      }),
+    )
+
+    await expect(promise).resolves.toMatchObject({
+      isError: true,
+      error: { name: 'AbortError', message: 'removed' },
+    })
+    await expect(upsert).resolves.not.toMatchObject({
+      error: { name: 'AbortError' },
+    })
+    gate.resolveOldest()
+    await settle()
+    expect(store.getState().api.queries[promise.queryCacheKey]).toBeUndefined()
   })
 
   test('a user abort still rejects with the thunk abort error', async () => {
