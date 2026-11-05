@@ -12,6 +12,7 @@ import type {
 import { calculateProvidedBy } from '../../endpointDefinitions'
 import type { CombinedState, QueryCacheKey } from '../apiState'
 import { QueryStatus, STATUS_UNINITIALIZED } from '../apiState'
+import { isUpsertQuery } from '../buildInitiate'
 import { calculateProvidedByThunk } from '../buildThunks'
 import type {
   SubMiddlewareApi,
@@ -63,6 +64,7 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
       settleInvalidatedRequest(
         action.meta.arg.queryCacheKey,
         action.meta.requestId,
+        isUpsertQuery(action.meta.arg),
         mwApi,
       )
     }
@@ -112,15 +114,18 @@ export const buildInvalidationByTagsHandler: InternalHandlerBuilder = ({
   }
 
   // An invalidated entry with a running request is decided once that request
-  // has settled, so its own `initiate()` promise still gets its result
+  // has settled, so its own `initiate()` promise still gets its result.
+  // An upsert that updates an existing entry keeps that entry's requestId, so
+  // only a non-upsert request is checked against it.
   function settleInvalidatedRequest(
     queryCacheKey: QueryCacheKey,
     requestId: string,
+    isUpsert: boolean,
     mwApi: SubMiddlewareApi,
   ) {
     if (runtime.queries.get(queryCacheKey)?.request) return
     const entry = mwApi.getState()[reducerPath].queries[queryCacheKey]
-    if (entry?.requestId !== requestId) return
+    if (!isUpsert && entry?.requestId !== requestId) return
     invalidateEntry(queryCacheKey, mwApi)
   }
 

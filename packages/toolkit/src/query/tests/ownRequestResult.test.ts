@@ -21,13 +21,22 @@ const passThrough = (): Middleware => () => (next) => (action) => next(action)
 const setup = ({
   before = passThrough(),
   after = passThrough(),
-}: { before?: Middleware; after?: Middleware } = {}) => {
+  refetchOnFocus = false,
+  invalidationBehavior = 'delayed',
+}: {
+  before?: Middleware
+  after?: Middleware
+  refetchOnFocus?: boolean
+  invalidationBehavior?: 'delayed' | 'immediately'
+} = {}) => {
   const gate = createDeferredQueue()
   let calls = 0
   const removalReasons: (string | undefined)[] = []
   const api = createApi({
     baseQuery: async () => ({ data: undefined }),
     tagTypes: ['Thing'],
+    refetchOnFocus,
+    invalidationBehavior,
     endpoints: (build) => ({
       getThing: build.query<number, string>({
         queryFn: async () => {
@@ -213,38 +222,99 @@ describe('joining a running request', () => {
 })
 
 describe('invalidating a pending entry', () => {
-  test('an unsubscribed entry is removed after its request settles, and the promise keeps its result', async () => {
-    const { api, gate, store, getCalls, removalReasons } = setup()
+  // The entries are refetching, so they already provide their tags. A first
+  // fetch provides none until it settles.
+  const behaviors = ['delayed', 'immediately'] as const
 
-    const promise = store.dispatch(
-      api.endpoints.getThing.initiate('a', { subscribe: false }),
-    )
-    store.dispatch(api.util.invalidateTags(['Thing']))
-    expect(store.getState().api.queries[promise.queryCacheKey]?.status).toBe(
-      QueryStatus.pending,
-    )
+  test.each(behaviors)(
+    '%s: an unsubscribed entry is removed after its request settles, and the promise keeps its result',
+    async (invalidationBehavior) => {
+      const { api, gate, store, getCalls, removalReasons } = setup({
+        invalidationBehavior,
+      })
 
-    gate.resolveOldest()
-    await expect(promise.unwrap()).resolves.toBe(1)
-    expect(store.getState().api.queries[promise.queryCacheKey]).toBeUndefined()
-    expect(getCalls()).toBe(1)
-    await settle()
-    expect(removalReasons).toEqual(['removed'])
-  })
+      const first = store.dispatch(
+        api.endpoints.getThing.initiate('a', { subscribe: false }),
+      )
+      gate.resolveOldest()
+      await first
 
-  test('a subscribed entry refetches after its request settles', async () => {
-    const { api, gate, store, getCalls } = setup()
+      const promise = store.dispatch(
+        api.endpoints.getThing.initiate('a', {
+          subscribe: false,
+          forceRefetch: true,
+        }),
+      )
+      store.dispatch(api.util.invalidateTags(['Thing']))
+      expect(store.getState().api.queries[promise.queryCacheKey]?.status).toBe(
+        QueryStatus.pending,
+      )
+
+      gate.resolveOldest()
+      await expect(promise.unwrap()).resolves.toBe(2)
+      expect(
+        store.getState().api.queries[promise.queryCacheKey],
+      ).toBeUndefined()
+      expect(getCalls()).toBe(2)
+      await settle()
+      expect(removalReasons).toEqual(['removed'])
+    },
+  )
+
+  test.each(behaviors)(
+    '%s: a subscribed entry refetches after its request settles',
+    async (invalidationBehavior) => {
+      const { api, gate, store, getCalls } = setup({ invalidationBehavior })
+
+      const first = store.dispatch(api.endpoints.getThing.initiate('a'))
+      gate.resolveOldest()
+      await first
+
+      const promise = first.refetch()
+      store.dispatch(api.util.invalidateTags(['Thing']))
+      expect(getCalls()).toBe(2)
+
+      gate.resolveOldest()
+      await expect(promise.unwrap()).resolves.toBe(2)
+      expect(getCalls()).toBe(3)
+
+      gate.resolveOldest()
+      await settle()
+      expect(store.getState().api.queries[promise.queryCacheKey]?.data).toBe(3)
+    },
+  )
+
+  test('an invalidation during an upsert of an existing entry applies after the upsert settles', async () => {
+    const { api, gate, store, getCalls } = setup({
+      invalidationBehavior: 'immediately',
+    })
 
     const promise = store.dispatch(api.endpoints.getThing.initiate('a'))
-    store.dispatch(api.util.invalidateTags(['Thing']))
-    expect(getCalls()).toBe(1)
-
     gate.resolveOldest()
-    await expect(promise.unwrap()).resolves.toBe(1)
+    await promise
+
+    const upsert = store.dispatch(api.util.upsertQueryData('getThing', 'a', 42))
+    store.dispatch(api.util.invalidateTags(['Thing']))
+    await upsert
     expect(getCalls()).toBe(2)
 
     gate.resolveOldest()
     await settle()
     expect(store.getState().api.queries[promise.queryCacheKey]?.data).toBe(2)
+  })
+
+  test('a focus refetch of an unsubscribed running entry removes it after its request settles', async () => {
+    const { api, gate, store, removalReasons } = setup({ refetchOnFocus: true })
+
+    const promise = store.dispatch(
+      api.endpoints.getThing.initiate('a', { subscribe: false }),
+    )
+    store.dispatch(api.internalActions.onFocus())
+
+    gate.resolveOldest()
+    await expect(promise.unwrap()).resolves.toBe(1)
+    expect(store.getState().api.queries[promise.queryCacheKey]).toBeUndefined()
+    await settle()
+    expect(removalReasons).toEqual(['removed'])
   })
 })

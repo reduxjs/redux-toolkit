@@ -45,6 +45,11 @@ export const buildWindowEventHandler: InternalHandlerBuilder = ({
 
         if (shouldRefetch) {
           if (subscriptionSubState.size === 0) {
+            // Like tag invalidation, a running request is decided once it settles
+            if (record.request) {
+              runtime.invalidatedRequestIds.add(record.request.requestId)
+              continue
+            }
             api.dispatch(
               removeQueryResult({
                 queryCacheKey: queryCacheKey as QueryCacheKey,
