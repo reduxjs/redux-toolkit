@@ -13,7 +13,7 @@ Each API slice allows [additional endpoint definitions to be injected at runtime
 
 The individual API slice endpoint definitions can also be split across multiple files. This is primarily useful for working with API slices that were [code-generated from an API schema file](../../usage/code-generation.mdx), allowing you to add additional custom behavior and configuration to a set of automatically-generated endpoint definitions.
 
-Each API slice object has `injectEndpoints` and `enhanceEndpoints` functions to support these use cases.
+Each API slice object has `injectEndpoints`, `addTagTypes`, and `enhanceEndpoint` functions to support these use cases.
 
 ## `injectEndpoints`
 
@@ -46,7 +46,104 @@ Endpoints will not be overridden unless `overrideExisting` is set to `true`. If 
 
 This method is primarily useful for code splitting and hot reloading.
 
+## `addTagTypes`
+
+#### Signature
+
+```ts no-transpile
+const addTagTypes = (...tagTypes: readonly string[]) => EnhancedApiSlice
+```
+
+#### Description
+
+Adds the given tag types to the API slice, so that they can be used in `providesTags` and `invalidatesTags` of existing and later injected endpoints, and in `util.invalidateTags`.
+
+Returns the same API slice object, typed with the combined tag types.
+
+## `enhanceEndpoint`
+
+#### Signature
+
+```ts no-transpile
+const enhanceEndpoint = (
+  endpointName: string,
+  enhancement:
+    | Partial<EndpointDefinition>
+    | ((definition: EndpointDefinition) => Partial<EndpointDefinition> | void),
+) => EnhancedApiSlice
+```
+
+#### Description
+
+Merges changes into the existing definition of a single endpoint. The enhancement is either a partial endpoint definition, or a callback that receives the current definition and returns the changes to merge in. The callback may also modify the definition directly and return nothing. Unlike `injectEndpoints`, the changes do not _replace_ the existing definition, but are merged into it (ie, `Object.assign(existingEndpoint, changes)`).
+
+If the endpoint has not been injected yet, the enhancement is stored and applied when the endpoint is injected. Multiple enhancements for the same endpoint are applied in the order they were added. Stored enhancements are also applied again if the endpoint is later replaced with `injectEndpoints({ overrideExisting: true })`.
+
+Returns the same API slice object, typed with the updated endpoint definition.
+
+This is primarily useful for taking an API slice object that was code-generated from an API schema file like OpenAPI, and adding additional specific hand-written configuration for cache invalidation management on top of the generated endpoint definitions.
+
+For example, `addTagTypes` and `enhanceEndpoint` can be used to modify caching behavior by changing the values of `providesTags`, `invalidatesTags`, and `keepUnusedDataFor`:
+
+```ts
+// file: api.ts noEmit
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+
+export const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  endpoints: (build) => ({
+    getUserByUserId: build.query({
+      query() {
+        return ''
+      },
+    }),
+    patchUserByUserId: build.mutation({
+      query() {
+        return ''
+      },
+    }),
+    getUsers: build.query({
+      query() {
+        return ''
+      },
+    }),
+  }),
+})
+
+// file: enhanceEndpoint.ts
+import { api } from './api'
+
+const enhancedApi = api
+  .addTagTypes('User')
+  .enhanceEndpoint('getUserByUserId', {
+    providesTags: ['User'],
+  })
+  .enhanceEndpoint('patchUserByUserId', {
+    invalidatesTags: ['User'],
+  })
+  // alternatively, pass a function which is called with the endpoint definition as an argument
+  .enhanceEndpoint('getUsers', (definition) => ({
+    ...definition,
+    providesTags: ['User'],
+    keepUnusedDataFor: 120,
+  }))
+```
+
+The result type of an endpoint can only be changed by passing the new result type as an explicit type argument, together with a matching `transformResponse`:
+
+```ts no-transpile
+const enhancedApi = api.enhanceEndpoint<'getUsers', User[]>('getUsers', {
+  transformResponse: (response: { users: User[] }) => response.users,
+})
+```
+
 ## `enhanceEndpoints`
+
+:::warning Deprecated
+
+`enhanceEndpoints` is deprecated in favor of [`addTagTypes`](#addtagtypes) and [`enhanceEndpoint`](#enhanceendpoint), and will be removed in RTK 3.0.
+
+:::
 
 #### Signature
 
@@ -66,9 +163,7 @@ Any provided tag types or endpoint definitions will be merged into the existing 
 
 Returns an updated and enhanced version of the API slice object, containing the combined endpoint definitions.
 
-This is primarily useful for taking an API slice object that was code-generated from an API schema file like OpenAPI, and adding additional specific hand-written configuration for cache invalidation management on top of the generated endpoint definitions.
-
-For example, `enhanceEndpoints` can be used to modify caching behavior by changing the values of `providesTags`, `invalidatesTags`, and `keepUnusedDataFor`:
+For example:
 
 ```ts
 // file: api.ts noEmit
