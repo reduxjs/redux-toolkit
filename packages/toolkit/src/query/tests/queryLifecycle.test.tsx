@@ -550,7 +550,7 @@ test('query: will only start lifecycle if query is not skipped due to `condition
 
 describe('queryFulfilled settlement', () => {
   test('removing a running entry rejects its queryFulfilled, and a new request for the key resolves on its own', async () => {
-    const fulfilledWith: string[] = []
+    const outcomes = new Map<string, unknown>()
     const localApi = createApi({
       baseQuery: async (arg: string) => {
         await delay(20)
@@ -559,11 +559,13 @@ describe('queryFulfilled settlement', () => {
       endpoints: (build) => ({
         getThing: build.query<string, string>({
           query: (arg) => arg,
-          async onQueryStarted(_arg, { queryFulfilled }) {
+          async onQueryStarted(_arg, { queryFulfilled, requestId }) {
             try {
               const result = await queryFulfilled
-              fulfilledWith.push(result.data)
-            } catch {}
+              outcomes.set(requestId, { data: result.data })
+            } catch (e) {
+              outcomes.set(requestId, e)
+            }
           },
         }),
       }),
@@ -588,7 +590,10 @@ describe('queryFulfilled settlement', () => {
       second.requestId,
     )
     // Removing the entry aborted the first request
-    expect(fulfilledWith).toEqual(['a'])
+    expect(outcomes.get(first.requestId)).toMatchObject({
+      error: { name: 'AbortError', message: 'removed' },
+    })
+    expect(outcomes.get(second.requestId)).toEqual({ data: 'a' })
     await expect(first).resolves.toMatchObject({
       isError: true,
       error: { name: 'AbortError', message: 'removed' },

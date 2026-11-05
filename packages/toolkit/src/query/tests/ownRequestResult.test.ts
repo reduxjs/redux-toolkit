@@ -106,14 +106,14 @@ describe('initiate() resolves with its own request result', () => {
       expect(store.getState().api.queries[first.queryCacheKey]?.status).toBe(
         QueryStatus.pending,
       )
-      // A middleware after the api middleware runs before the api middleware
-      // captures the result, so the first promise sees the newer request
-      if (position === 'before') {
-        await expect(first).resolves.toMatchObject({
-          data: 1,
-          status: QueryStatus.fulfilled,
-        })
-      }
+      // Known limitation: a middleware after the api middleware runs before the
+      // api middleware captures the result, so the first promise sees the newer
+      // request's pending state (with the data the first request wrote)
+      await expect(first).resolves.toMatchObject({
+        data: 1,
+        status:
+          position === 'before' ? QueryStatus.fulfilled : QueryStatus.pending,
+      })
 
       gate.resolveOldest()
       await expect(second).resolves.toMatchObject({ data: 2 })
