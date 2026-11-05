@@ -49,13 +49,22 @@ export const pokemonApi = createApi({
 ## Signature
 
 ```ts title="fetchBaseQuery signature" no-transpile
-type FetchBaseQuery = (
-  args: FetchBaseQueryArgs,
-) => (
-  args: string | FetchArgs,
-  api: BaseQueryApi,
-  extraOptions: ExtraOptions,
-) => FetchBaseQueryResult
+type FetchBaseQuery = (args: FetchBaseQueryArgs) => FetchBaseQueryFn
+
+// The base query function returned by `fetchBaseQuery`
+type FetchBaseQueryFn = BaseQueryFn<
+  string | FetchArgs,
+  unknown,
+  FetchBaseQueryError,
+  {},
+  FetchBaseQueryMeta
+>
+// equivalent to:
+// (
+//   args: string | FetchArgs,
+//   api: BaseQueryApi,
+//   extraOptions: {},
+// ) => FetchBaseQueryResult
 
 type FetchBaseQueryArgs = {
   baseUrl?: string
