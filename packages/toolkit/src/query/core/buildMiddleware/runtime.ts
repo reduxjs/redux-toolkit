@@ -50,6 +50,7 @@ export type RequestOutcome = {
 export type RunningRequest = {
   readonly requestId: string
   readonly key: string
+  readonly isUpsert: boolean
   promise?: RunningQuery
   abort?: () => void
   readonly outcome: Promise<RequestOutcome>
@@ -241,7 +242,7 @@ export function startRequest(
   const outcome = new Promise<RequestOutcome>((resolve) => {
     settle = resolve
   })
-  const request: RunningRequest = { requestId, key, outcome, settle }
+  const request: RunningRequest = { requestId, key, isUpsert, outcome, settle }
   runtime.requests.set(requestId, request)
   record.request = request
 }
@@ -273,16 +274,18 @@ function settleOutcome(request: RunningRequest, outcome: RequestOutcome) {
 /**
  * The request a new `initiate` for this key joins. Between a request's
  * `fulfilled` or `rejected` and the reducer, only the still pending entry
- * points at it.
+ * points at it. An `upsertQueryData` that updates an existing entry leaves it
+ * as it was, so it is only joined while the entry it created is pending.
  */
 export function findRunningRequest(
   runtime: StoreRuntime,
   key: string,
   entry: { status: string; requestId?: string } | undefined,
 ): RunningRequest | undefined {
+  const isPending = entry?.status === 'pending'
   const request = runtime.queries.get(key)?.request
-  if (request) return request
-  if (entry?.status !== 'pending' || !entry.requestId) return undefined
+  if (request) return request.isUpsert && !isPending ? undefined : request
+  if (!isPending || !entry.requestId) return undefined
   const settling = runtime.requests.get(entry.requestId)
   return settling?.key === key ? settling : undefined
 }

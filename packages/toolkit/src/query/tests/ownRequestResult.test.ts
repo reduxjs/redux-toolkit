@@ -80,23 +80,21 @@ describe('initiate() resolves with its own request result', () => {
   test.each(['before', 'after'] as const)(
     'a forced refetch started from a middleware %s the api middleware on fulfilled starts a new request',
     async (position) => {
-      let restart: (() => void) | undefined
-      const restartOnFirstFulfilled: Middleware = () => (next) => (action) => {
+      let onAction: ((action: unknown) => void) | undefined
+      const callOnAction: Middleware = () => (next) => (action) => {
         const result = next(action)
-        if (api.endpoints.getThing.matchFulfilled(action) && restart) {
-          const run = restart
-          restart = undefined
-          run()
-        }
+        onAction?.(action)
         return result
       }
       const { api, gate, store, getCalls } = setup({
-        [position]: restartOnFirstFulfilled,
+        [position]: callOnAction,
       })
 
       const first = store.dispatch(api.endpoints.getThing.initiate('a'))
       let second: typeof first | undefined
-      restart = () => {
+      onAction = (action) => {
+        if (!api.endpoints.getThing.matchFulfilled(action)) return
+        onAction = undefined
         second = store.dispatch(
           api.endpoints.getThing.initiate('a', { forceRefetch: true }),
         )
@@ -201,6 +199,24 @@ describe('joining a running request', () => {
       status: QueryStatus.fulfilled,
     })
     expect(getCalls()).toBe(0)
+  })
+
+  test('a forced refetch during an upsert of an existing entry fetches', async () => {
+    const { api, gate, store, getCalls } = setup()
+
+    const first = store.dispatch(api.endpoints.getThing.initiate('a'))
+    gate.resolveOldest()
+    await first
+
+    const upsert = store.dispatch(api.util.upsertQueryData('getThing', 'a', 42))
+    const cached = store.dispatch(api.endpoints.getThing.initiate('a'))
+    const refetched = first.refetch()
+    expect(getCalls()).toBe(2)
+    await expect(cached).resolves.toMatchObject({ data: 1 })
+
+    await upsert
+    gate.resolveOldest()
+    await expect(refetched.unwrap()).resolves.toBe(2)
   })
 
   test('a pending entry restored from state fetches when the middleware is installed', async () => {
