@@ -27,7 +27,10 @@ export type {
   QueryReturnValue,
 } from './baseQueryTypes'
 export type {
+  AddTagTypes,
   BaseEndpointDefinition,
+  EndpointEnhancement,
+  EnhancedDefinition,
   EndpointDefinitions,
   EndpointDefinition,
   EndpointBuilder,

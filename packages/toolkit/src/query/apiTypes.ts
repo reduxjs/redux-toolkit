@@ -4,9 +4,13 @@ import type { CombinedState, CoreModule } from './core/index'
 import type { ApiModules } from './core/module'
 import type { CreateApiOptions } from './createApi'
 import type {
+  AddTagTypes,
   EndpointBuilder,
   EndpointDefinition,
   EndpointDefinitions,
+  EndpointEnhancement,
+  EnhancedDefinition,
+  ResultTypeFrom,
   UpdateDefinitions,
 } from './endpointDefinitions'
 import type { UnionToIntersection, WithRequiredProp } from './tsHelpers'
@@ -66,6 +70,16 @@ type ExtraModules<Modules, Names extends keyof Modules> = [Names] extends [
   ? unknown
   : UnionToIntersection<Modules[Names]>
 
+type EnhanceEndpointDefinitions<
+  Definitions extends EndpointDefinitions,
+  EndpointName extends keyof Definitions,
+  ResultType,
+> = {
+  [K in keyof Definitions]: K extends EndpointName
+    ? EnhancedDefinition<Definitions[K], ResultType>
+    : Definitions[K]
+}
+
 export type Api<
   BaseQuery extends BaseQueryFn,
   Definitions extends EndpointDefinitions,
@@ -102,7 +116,45 @@ export type Api<
       Enhancers
     >
     /**
-     *A function to enhance a generated API with additional information. Useful with code-generation.
+     * Adds tag types to the API, so they can be used in `providesTags` and `invalidatesTags`
+     * of existing and later injected endpoints. Useful with code-generation.
+     */
+    addTagTypes<NewTagTypes extends string = never>(
+      ...tagTypes: readonly NewTagTypes[]
+    ): Api<
+      BaseQuery,
+      AddTagTypes<Definitions, TagTypes | NewTagTypes>,
+      ReducerPath,
+      TagTypes | NewTagTypes,
+      Enhancers
+    >
+    /**
+     * Enhances a single endpoint definition. Accepts either a partial definition that is merged into the
+     * existing definition, or a callback that receives the existing definition and returns the changes to merge in.
+     *
+     * If the endpoint has not been injected yet, the enhancement is stored and applied when it is injected.
+     * Enhancements are applied in the order they were added. Useful with code-generation.
+     */
+    enhanceEndpoint<
+      EndpointName extends keyof Definitions & string,
+      ResultType = ResultTypeFrom<Definitions[EndpointName]>,
+    >(
+      endpointName: EndpointName,
+      enhancement: EndpointEnhancement<
+        Definitions[EndpointName],
+        EnhancedDefinition<Definitions[EndpointName], ResultType>
+      >,
+    ): Api<
+      BaseQuery,
+      EnhanceEndpointDefinitions<Definitions, EndpointName, ResultType>,
+      ReducerPath,
+      TagTypes,
+      Enhancers
+    >
+    /**
+     * A function to enhance a generated API with additional information. Useful with code-generation.
+     *
+     * @deprecated Use `addTagTypes` and `enhanceEndpoint` instead. `enhanceEndpoints` will be removed in RTK 3.0.
      */
     enhanceEndpoints<
       NewTagTypes extends string = never,
