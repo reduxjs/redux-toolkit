@@ -733,5 +733,69 @@ describe('fork', () => {
       await delay(5)
       expect(listenerSettled).toBe(true)
     })
+
+    test('autoJoined forks started while the listener is joining still finish', async () => {
+      const deferredLateOutcome = deferred<string>()
+
+      startListening({
+        actionCreator: increment,
+        effect: async (_, listenerApi) => {
+          listenerApi.fork(
+            async (forkApi) => {
+              await forkApi.delay(10)
+              listenerApi.fork(
+                async (lateApi) => {
+                  try {
+                    await lateApi.delay(10)
+                    deferredLateOutcome.resolve('finished')
+                  } catch {
+                    deferredLateOutcome.resolve(String(lateApi.signal.reason))
+                  }
+                },
+                { autoJoin: true },
+              )
+            },
+            { autoJoin: true },
+          )
+        },
+      })
+
+      store.dispatch(increment())
+
+      expect(await deferredLateOutcome).toBe('finished')
+    })
+
+    test('completed forks stop listening to the parent abort signal', async () => {
+      const deferredResult = deferred<TaskResult<number>>()
+      const attachedAbortListeners = new Set<unknown>()
+
+      startListening({
+        actionCreator: increment,
+        effect: async (_, listenerApi) => {
+          const { signal } = listenerApi
+          const originalAdd = signal.addEventListener.bind(signal)
+          const originalRemove = signal.removeEventListener.bind(signal)
+          signal.addEventListener = (
+            ...args: Parameters<AbortSignal['addEventListener']>
+          ) => {
+            attachedAbortListeners.add(args[1])
+            originalAdd(...args)
+          }
+          signal.removeEventListener = (
+            ...args: Parameters<AbortSignal['removeEventListener']>
+          ) => {
+            attachedAbortListeners.delete(args[1])
+            originalRemove(...args)
+          }
+
+          deferredResult.resolve(await listenerApi.fork(() => 1).result)
+        },
+      })
+
+      store.dispatch(increment())
+
+      expect(await deferredResult).toEqual({ status: 'ok', value: 1 })
+      expect(attachedAbortListeners.size).toBe(0)
+    })
   })
 })

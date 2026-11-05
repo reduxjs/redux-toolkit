@@ -489,11 +489,15 @@ const pollServer = async (forkApi: ForkedTaskAPI<RootState, AppDispatch>) => {
 startAppListening({
   actionCreator: connect,
   effect: async (action, listenerApi) => {
-    listenerApi.fork(async (forkApi) => {
-      forkApi.fork(pollServer)
-      await forkApi.pause(waitForDisconnect())
-      // `pollServer` is cancelled when this task finishes
-    })
+    // `autoJoin` keeps the listener alive until this task finishes
+    listenerApi.fork(
+      async (forkApi) => {
+        forkApi.fork(pollServer)
+        await forkApi.pause(waitForDisconnect())
+        // `pollServer` is cancelled when this task finishes
+      },
+      { autoJoin: true },
+    )
   },
 })
 ```

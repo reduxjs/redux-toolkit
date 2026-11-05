@@ -196,7 +196,11 @@ describe('listenerMiddleware.withTypes<RootState, AppDispatch>()', () => {
           listenerApi.fork(untypedExecutor).result,
         ).resolves.toEqualTypeOf<TaskResult<string>>()
 
-        listenerApi.fork((forkApi) => forkApi.fork(typedExecutor))
+        listenerApi.fork((forkApi) => {
+          expectTypeOf(
+            forkApi.fork(typedExecutor).result,
+          ).resolves.toEqualTypeOf<TaskResult<number>>()
+        })
 
         // @ts-expect-error
         listenerApi.fork(otherStateExecutor)
