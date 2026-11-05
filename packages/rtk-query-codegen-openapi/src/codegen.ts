@@ -81,10 +81,11 @@ export function generateImportNode(pkg: string, namedImports: Record<string, str
  * generated endpoints into the imported base api.
  *
  * When {@linkcode tag} is `true` the injection is chained onto an
- * `enhanceEndpoints({ addTagTypes })` call so the generated tag types are
- * registered first.
+ * `enhanceEndpoints({ addTagTypes })` call, or an `addTagTypes(...addTagTypes)`
+ * call when {@linkcode useAddTagTypes} is `true`, so the generated tag types
+ * are registered first.
  *
- * @param params - The endpoint definitions to inject, plus the builder identifier and tag flag.
+ * @param params - The endpoint definitions to inject, plus the builder identifier and tag flags.
  * @returns The variable statement declaring the injected api.
  *
  * @since 1.0.0
@@ -94,6 +95,7 @@ export function generateCreateApiCall({
   endpointBuilder = defaultEndpointBuilder,
   endpointDefinitions,
   tag,
+  useAddTagTypes = false,
 }: {
   /**
    * The identifier bound as the endpoint builder argument.
@@ -112,6 +114,14 @@ export function generateCreateApiCall({
    * registers the generated tag types.
    */
   tag: boolean;
+
+  /**
+   * Whether to register the generated tag types with `addTagTypes` instead
+   * of `enhanceEndpoints`.
+   *
+   * @default false
+   */
+  useAddTagTypes?: boolean;
 }) {
   const injectEndpointsObjectLiteralExpression = factory.createObjectLiteralExpression(
     generateObjectProperties({
@@ -128,10 +138,28 @@ export function generateCreateApiCall({
     true
   );
   if (tag) {
-    const enhanceEndpointsObjectLiteralExpression = factory.createObjectLiteralExpression(
-      [factory.createShorthandPropertyAssignment(factory.createIdentifier('addTagTypes'), undefined)],
-      true
-    );
+    const addTagTypesCallExpression = useAddTagTypes
+      ? factory.createCallExpression(
+          factory.createPropertyAccessExpression(
+            factory.createIdentifier('api'),
+            factory.createIdentifier('addTagTypes')
+          ),
+          undefined,
+          [factory.createSpreadElement(factory.createIdentifier('addTagTypes'))]
+        )
+      : factory.createCallExpression(
+          factory.createPropertyAccessExpression(
+            factory.createIdentifier('api'),
+            factory.createIdentifier('enhanceEndpoints')
+          ),
+          undefined,
+          [
+            factory.createObjectLiteralExpression(
+              [factory.createShorthandPropertyAssignment(factory.createIdentifier('addTagTypes'), undefined)],
+              true
+            ),
+          ]
+        );
     return factory.createVariableStatement(
       undefined,
       factory.createVariableDeclarationList(
@@ -142,14 +170,7 @@ export function generateCreateApiCall({
             undefined,
             factory.createCallExpression(
               factory.createPropertyAccessExpression(
-                factory.createCallExpression(
-                  factory.createPropertyAccessExpression(
-                    factory.createIdentifier('api'),
-                    factory.createIdentifier('enhanceEndpoints')
-                  ),
-                  undefined,
-                  [enhanceEndpointsObjectLiteralExpression]
-                ),
+                addTagTypesCallExpression,
                 factory.createIdentifier('injectEndpoints')
               ),
               undefined,
