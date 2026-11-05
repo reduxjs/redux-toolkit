@@ -306,6 +306,16 @@ const onClick = async () => {
 }
 ```
 
+In TypeScript, the promise returned by dispatching the thunk has the type `AsyncThunkPromise<Returned, ThunkArg, ThunkApiConfig>`. Besides `unwrap()`, it also has `abort()`, `requestId`, and `arg` (see [Cancellation](#cancellation)):
+
+```ts no-transpile
+import type { AsyncThunkPromise } from '@reduxjs/toolkit'
+
+const promise: AsyncThunkPromise<User, number, {}> = dispatch(
+  fetchUserById(userId),
+)
+```
+
 Using the attached `.unwrap()` property is preferred in most cases, however Redux Toolkit also exports an `unwrapResult` function that can be used for a similar purpose:
 
 ```ts no-transpile
