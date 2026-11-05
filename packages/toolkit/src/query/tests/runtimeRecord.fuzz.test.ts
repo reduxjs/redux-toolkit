@@ -64,6 +64,8 @@ type Handle = {
 
 export type Violation = { invariant: string; key: string; step: string }
 
+const settledRequests = new WeakSet<object>()
+
 function check(
   { api, store, runtime }: Fixture,
   step: string,
@@ -134,8 +136,19 @@ function check(
 
     if (entry?.status === QueryStatus.pending && !record?.request)
       add('pending entry with no registered request')
-    if (record?.request && entry?.status !== QueryStatus.pending)
+    if (record?.request && entry?.status !== QueryStatus.pending) {
+      const { request } = record
       add(`registered request for ${entry?.status ?? 'missing'} entry`)
+      // Each step advances the clock, so a settled promise has run its
+      // callbacks by the next check and the registration must be gone
+      if (settledRequests.has(request))
+        add('registered request outlives its settled promise')
+      else
+        request.promise?.then(
+          () => settledRequests.add(request),
+          () => settledRequests.add(request),
+        )
+    }
 
     if (record?.cacheLifecycle && !entry)
       add('cache lifecycle for missing entry')

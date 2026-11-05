@@ -3,30 +3,28 @@ import type {
   ApiMiddlewareInternalHandler,
   InternalHandlerBuilder,
 } from './types'
-import { normalizeRecord, removeRecord, startRequest } from './runtime'
+import { normalizeRecord, startRequest } from './runtime'
 
 export const buildQueryRecordHandler: InternalHandlerBuilder = ({
-  api,
   queryThunk,
+  reducerPath,
   runtime,
 }) => {
-  const { removeQueryResult } = api.internalActions
-
-  const handler: ApiMiddlewareInternalHandler = (action) => {
+  const handler: ApiMiddlewareInternalHandler = (action, mwApi) => {
     if (queryThunk.pending.match(action)) {
       const { arg, requestId } = action.meta
-      if (!isUpsertQuery(arg)) {
-        startRequest(runtime, arg.queryCacheKey, requestId)
+      const key = arg.queryCacheKey
+      // A request started while this `pending` was dispatched has already
+      // registered and replaced the entry, so this one must not overwrite it
+      if (
+        !isUpsertQuery(arg) &&
+        mwApi.getState()[reducerPath].queries[key]?.requestId === requestId
+      ) {
+        startRequest(runtime, key, requestId)
       }
-      normalizeRecord(runtime, arg.queryCacheKey)
+      normalizeRecord(runtime, key)
     } else if (queryThunk.rejected.match(action) && action.meta.condition) {
       normalizeRecord(runtime, action.meta.arg.queryCacheKey)
-    } else if (removeQueryResult.match(action)) {
-      removeRecord(
-        runtime,
-        action.payload.queryCacheKey,
-        false,
-      )?.cacheEntryRemoved()
     }
   }
 

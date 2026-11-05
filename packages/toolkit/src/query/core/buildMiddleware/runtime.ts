@@ -193,13 +193,18 @@ export function normalizeRecord(runtime: StoreRuntime, key: string) {
   pruneRecord(runtime, key)
 }
 
-/** A newer request for the key replaces the one it was waiting for. */
+/**
+ * A newer request for the key replaces the one it was waiting for. Until its
+ * own promise is attached, the previous request's promise stays visible to
+ * `getRunningQueryThunk`.
+ */
 export function startRequest(
   runtime: StoreRuntime,
   key: string,
   requestId: string,
 ) {
-  ensureRecord(runtime, key).request = { requestId }
+  const record = ensureRecord(runtime, key)
+  record.request = { requestId, promise: record.request?.promise }
 }
 
 /** Returns whether `requestId` is still the key's running request. */
