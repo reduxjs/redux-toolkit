@@ -13,8 +13,13 @@ import type {
   AssertTagTypes,
   EndpointDefinitions,
 } from '../../endpointDefinitions'
-import type { QueryStatus, QuerySubState, ApiRootState } from '../apiState'
-import type { StoreRuntime, SubscriptionsView } from './runtime'
+import type {
+  QueryStatus,
+  QuerySubState,
+  ApiRootState,
+  SubscriptionInternalState,
+} from '../apiState'
+import type { StoreRuntime } from './runtime'
 import type {
   InfiniteQueryThunk,
   MutationThunk,
@@ -33,7 +38,7 @@ export type QueryStateMeta<T> = Record<string, undefined | T>
 export type TimeoutId = ReturnType<typeof setTimeout>
 
 export interface SubscriptionSelectors {
-  getSubscriptions: () => SubscriptionsView
+  getSubscriptions: () => SubscriptionInternalState
   getSubscriptionCount: (queryCacheKey: string) => number
   isRequestSubscribed: (queryCacheKey: string, requestId: string) => boolean
 }

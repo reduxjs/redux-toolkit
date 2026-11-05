@@ -40,7 +40,6 @@ import type {
 import type { DependencyList } from 'react'
 import type { InfiniteQueryDirection } from '../core/apiState'
 import type { StartInfiniteQueryActionCreator } from '../core/buildInitiate'
-import type { SubscriptionSelectors } from '../core/buildMiddleware/index'
 import type { InfiniteData } from '../core/index'
 import { isInfiniteQueryDefinition } from '../endpointDefinitions'
 import type { UninitializedValue } from './constants'
@@ -1760,28 +1759,6 @@ If you replace the store passed to <Provider>, also give the Provider a \`key\` 
       useWarnIfStoreChanged(dispatch)
     }
 
-    const subscriptionSelectorsRef = useRef<SubscriptionSelectors>(undefined)
-
-    if (!subscriptionSelectorsRef.current) {
-      const returnedValue = dispatch(
-        api.internalActions.internal_getRTKQSubscriptions(),
-      )
-
-      if (process.env.NODE_ENV !== 'production') {
-        if (
-          typeof returnedValue !== 'object' ||
-          typeof returnedValue?.type === 'string'
-        ) {
-          throw new Error(
-            `Warning: Middleware for RTK-Query API at reducerPath "${api.reducerPath}" has not been added to the store.
-    You must add the middleware for RTK-Query to function correctly!`,
-          )
-        }
-      }
-
-      subscriptionSelectorsRef.current =
-        returnedValue as unknown as SubscriptionSelectors
-    }
     const stableArg = useStableQueryArgs(skip ? skipToken : arg)
     const stableSubscriptionOptions = useShallowStableValue({
       refetchOnReconnect,
@@ -1801,21 +1778,8 @@ If you replace the store passed to <Provider>, also give the Provider a \`key\` 
 
     const promiseRef = useRef<T>(undefined)
 
-    let { queryCacheKey, requestId } = promiseRef.current || {}
-
-    // HACK We've saved the middleware subscription lookup callbacks into a ref,
-    // so we can directly check here if the subscription exists for this query.
-    let currentRenderHasSubscription = false
-    if (queryCacheKey && requestId) {
-      currentRenderHasSubscription =
-        subscriptionSelectorsRef.current.isRequestSubscribed(
-          queryCacheKey,
-          requestId,
-        )
-    }
-
     const subscriptionRemoved =
-      !currentRenderHasSubscription && promiseRef.current !== undefined
+      promiseRef.current !== undefined && !promiseRef.current.isSubscribed()
 
     usePossiblyImmediateEffect((): void | undefined => {
       if (subscriptionRemoved) {

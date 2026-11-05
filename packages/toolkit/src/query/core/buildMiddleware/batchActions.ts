@@ -1,8 +1,13 @@
 import type { InternalHandlerBuilder, SubscriptionSelectors } from './types'
-import type { SubscriptionOptions } from '../apiState'
+import type {
+  SubscriptionInternalState,
+  SubscriptionOptions,
+} from '../apiState'
 import type { Action } from '@reduxjs/toolkit'
 import type { Patch } from 'immer'
 import { ensureRecord, getPollsView, pruneRecord } from './runtime'
+
+const warnedProbeApis = new WeakSet<object>()
 
 export const buildBatchedActionsHandler: InternalHandlerBuilder<
   [actionShouldContinue: boolean, returnValue: SubscriptionSelectors | boolean]
@@ -111,7 +116,13 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
     return false
   }
 
-  const getSubscriptions = () => runtime.subscriptions
+  const getSubscriptions = () => {
+    const subscriptions: SubscriptionInternalState = new Map()
+    for (const [key, record] of runtime.queries) {
+      if (record.subscribers) subscriptions.set(key, record.subscribers)
+    }
+    return subscriptions
+  }
   const getSubscriptionCount = (queryCacheKey: string) =>
     runtime.queries.get(queryCacheKey)?.subscribers?.size ?? 0
   const isRequestSubscribed = (queryCacheKey: string, requestId: string) =>
@@ -130,11 +141,14 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
     actionShouldContinue: boolean,
     result: SubscriptionSelectors | boolean,
   ] => {
-    // Intercept requests by hooks to see if they're subscribed
-    // We return the internal state reference so that hooks
-    // can do their own checks to see if they're still active.
-    // It's stupid and hacky, but it does cut down on some dispatch calls.
+    // Kept for hooks adapters copied from older RTK versions; removed in 3.0
     if (api.internalActions.internal_getRTKQSubscriptions.match(action)) {
+      if (process.env.NODE_ENV !== 'production' && !warnedProbeApis.has(api)) {
+        warnedProbeApis.add(api)
+        console.warn(
+          `RTK Query: dispatching \`internalActions.internal_getRTKQSubscriptions()\` is deprecated and will be removed in RTK 3.0. Use \`isSubscribed()\` on the result of \`initiate()\` or \`api.util.getMiddlewareState()\` instead.`,
+        )
+      }
       return [false, subscriptionSelectors]
     }
 

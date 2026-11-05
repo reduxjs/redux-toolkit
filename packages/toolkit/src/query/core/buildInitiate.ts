@@ -123,6 +123,12 @@ type QueryActionCreatorFields = {
   abort(): void
   unsubscribe(): void
   updateSubscriptionOptions(options: SubscriptionOptions): void
+  /**
+   * Whether this request still has a subscription in the store it was
+   * dispatched to. `false` after `unsubscribe()`, after `resetApiState`, and
+   * for requests started with `subscribe: false`.
+   */
+  isSubscribed(): boolean
   queryCacheKey: string
 }
 
@@ -458,6 +464,7 @@ You must add the middleware for RTK-Query to function correctly!`,
             ? undefined
             : getRunningQuery(dispatch, queryCacheKey)
         const selectFromState = () => selector(getState())
+        const runtime = getRuntime(dispatch)
 
         const statePromise: AnyActionCreatorResult = Object.assign(
           (forceQueryFn
@@ -516,10 +523,13 @@ You must add the middleware for RTK-Query to function correctly!`,
                 }),
               )
             },
+            isSubscribed: () =>
+              !!runtime?.queries
+                .get(queryCacheKey)
+                ?.subscribers?.has(requestId),
           },
         )
 
-        const runtime = getRuntime(dispatch)
         if (runtime && !skippedSynchronously && !forceQueryFn) {
           const record = ensureRecord(runtime, queryCacheKey)
           record.request = statePromise
