@@ -49,7 +49,6 @@ export interface StoreRuntime {
   requestLifecycles: Map<string, RequestLifecycle>
   pendingRequestIds: Set<string>
   pendingTagInvalidations: FullTagDescription<string>[]
-  subscriptions: SubscriptionsView
   subscriptionSync: {
     /** Keys whose subscribers changed since the last sync to the store */
     changedKeys: Set<string>
@@ -76,15 +75,6 @@ export interface StoreRuntime {
   reset(): void
 }
 
-export interface SubscriptionsView extends Iterable<
-  [string, SubscribersInternal]
-> {
-  readonly size: number
-  get(key: string): SubscribersInternal | undefined
-  has(key: string): boolean
-  keys(): Iterable<string>
-}
-
 export type PollsView = {
   has(key: string): boolean
   get(key: string): QueryPollState | undefined
@@ -99,7 +89,6 @@ export function createStoreRuntime(): StoreRuntime {
     requestLifecycles: new Map(),
     pendingRequestIds: new Set(),
     pendingTagInvalidations: [],
-    subscriptions: createSubscriptionsView(queries),
     subscriptionSync: { changedKeys: new Set(), syncedKeys: new Set() },
     pendingPollingUpdates: { keys: new Set() },
     reset: () => resetStoreRuntime(runtime),
@@ -169,33 +158,6 @@ export function pruneRecord(runtime: StoreRuntime, key: string) {
     !record.cacheLifecycle
   ) {
     runtime.queries.delete(key)
-  }
-}
-
-/**
- * A read-only, `Map`-like view of the subscriber maps, returned by
- * `internal_getRTKQSubscriptions`.
- */
-function createSubscriptionsView(
-  queries: Map<string, QueryKeyRecord>,
-): SubscriptionsView {
-  function* entries(): Generator<[string, SubscribersInternal]> {
-    for (const [key, record] of queries) {
-      if (record.subscribers) yield [key, record.subscribers]
-    }
-  }
-  return {
-    get size() {
-      let size = 0
-      for (const _ of entries()) size++
-      return size
-    },
-    get: (key) => queries.get(key)?.subscribers,
-    has: (key) => !!queries.get(key)?.subscribers,
-    *keys() {
-      for (const [key] of entries()) yield key
-    },
-    [Symbol.iterator]: entries,
   }
 }
 

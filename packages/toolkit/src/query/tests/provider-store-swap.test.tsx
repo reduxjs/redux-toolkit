@@ -3,7 +3,6 @@ import { createApi } from '@reduxjs/toolkit/query/react'
 import { act, renderHook, waitFor } from '@testing-library/react'
 import * as React from 'react'
 import { Provider } from 'react-redux'
-import { getSubscriptionSelectors } from '@internal/tests/utils/helpers'
 
 let calls: string[] = []
 
@@ -70,7 +69,7 @@ function setup<T>(
     utils.rerender()
   }
   const subCount = (store: Store, key: string) =>
-    getSubscriptionSelectors(api, store.dispatch).getSubscriptionCount(key)
+    store.dispatch(api.util.getMiddlewareState())?.getSubscriptionCount(key)
   return { ...utils, api, storeA, storeB, swap, subCount }
 }
 
