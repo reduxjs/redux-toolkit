@@ -251,12 +251,17 @@ describe('records and nested dispatches', () => {
       }
     })
 
-    store.dispatch(api.endpoints.getValue.initiate(1))
+    const outer = store.dispatch(api.endpoints.getValue.initiate(1))
 
     expect(store.dispatch(api.util.getRunningQueriesThunk())).toEqual([
       restarted,
     ])
+    let outerSettled = false
+    outer.then(() => (outerSettled = true))
+    await Promise.resolve()
+    expect(outerSettled).toBe(false)
     resolveAll()
+    await expect(outer).resolves.toMatchObject({ status: 'fulfilled', data: 1 })
     await restarted
   })
 

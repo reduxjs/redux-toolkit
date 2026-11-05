@@ -450,16 +450,17 @@ You must add the middleware for RTK-Query to function correctly!`,
           api.endpoints[endpointName] as ApiEndpointQuery<any, any>
         ).select(arg)
 
-        // Read before dispatching, because a started request replaces it
-        const runningQuery =
-          arg === skipToken
-            ? undefined
-            : getRunningQuery(dispatch, queryCacheKey)
-
         const thunkResult = dispatch(thunk)
         const stateAfter = selector(getState())
 
         middlewareWarning(dispatch)
+
+        // A request this dispatch started has not attached its own promise yet,
+        // so this is the previous request, or one started by a nested dispatch
+        const runningQuery =
+          arg === skipToken
+            ? undefined
+            : getRunningQuery(dispatch, queryCacheKey)
 
         const { requestId, abort } = thunkResult
 
