@@ -1,5 +1,7 @@
+import type { Middleware, ThunkDispatch, UnknownAction } from '@reduxjs/toolkit'
 import { configureStore } from '@reduxjs/toolkit'
 import { createApi, fakeBaseQuery } from '@reduxjs/toolkit/query'
+import type { QueryCacheKey } from '../core/apiState'
 import type { SubscriptionSelectors } from '../core/buildMiddleware/types'
 
 const createTestApi = () => {
@@ -213,5 +215,120 @@ describe('per-store runtime', () => {
     const result = await restarted
     expect(calls).toBe(2)
     expect(result).toMatchObject({ status: 'fulfilled', data: 1 })
+  })
+})
+
+describe('records and nested dispatches', () => {
+  const createStoreWithReaction = (
+    api: ReturnType<typeof createTestApi>['api'],
+    react: (
+      action: unknown,
+      dispatch: ThunkDispatch<unknown, unknown, UnknownAction>,
+    ) => void,
+  ) => {
+    const reaction: Middleware = (mwApi) => (next) => (action) => {
+      const result = next(action)
+      react(action, mwApi.dispatch)
+      return result
+    }
+    return configureStore({
+      reducer: { [api.reducerPath]: api.reducer },
+      middleware: (gdm) => gdm().concat(api.middleware, reaction),
+    })
+  }
+
+  test('a request started while an older pending is dispatched stays registered', async () => {
+    const { api, resolveAll } = createTestApi()
+    let restarted:
+      | ReturnType<ReturnType<typeof api.endpoints.getValue.initiate>>
+      | undefined
+    let reacted = false
+    const store = createStoreWithReaction(api, (action, dispatch) => {
+      if (!reacted && api.endpoints.getValue.matchPending(action)) {
+        reacted = true
+        dispatch(api.util.resetApiState())
+        restarted = dispatch(api.endpoints.getValue.initiate(1))
+      }
+    })
+
+    const outer = store.dispatch(api.endpoints.getValue.initiate(1))
+
+    expect(store.dispatch(api.util.getRunningQueriesThunk())).toEqual([
+      restarted,
+    ])
+    let outerSettled = false
+    outer.then(() => (outerSettled = true))
+    await Promise.resolve()
+    expect(outerSettled).toBe(false)
+    resolveAll()
+    await expect(outer).resolves.toMatchObject({ status: 'fulfilled', data: 1 })
+    await restarted
+  })
+
+  test('a subscription added while the entry is removed is kept', async () => {
+    const { api, resolveAll } = createTestApi()
+    let resubscribed:
+      | ReturnType<ReturnType<typeof api.endpoints.getValue.initiate>>
+      | undefined
+    const store = createStoreWithReaction(api, (action, dispatch) => {
+      if (
+        !resubscribed &&
+        api.internalActions.removeQueryResult.match(action)
+      ) {
+        resubscribed = dispatch(api.endpoints.getValue.initiate(1))
+      }
+    })
+
+    const first = store.dispatch(api.endpoints.getValue.initiate(1))
+    resolveAll()
+    await first
+    store.dispatch(
+      api.internalActions.removeQueryResult({
+        queryCacheKey: first.queryCacheKey as QueryCacheKey,
+      }),
+    )
+
+    expect(resubscribed?.isSubscribed()).toBe(true)
+    resolveAll()
+    await resubscribed
+    expect(resubscribed?.isSubscribed()).toBe(true)
+  })
+
+  test('getRunningQueryThunk in onQueryStarted of an overlapping forced request returns the running one', async () => {
+    const resolvers: (() => void)[] = []
+    const seen: unknown[] = []
+    const api = createApi({
+      baseQuery: fakeBaseQuery(),
+      endpoints: (build) => ({
+        getValue: build.query<number, number>({
+          queryFn: async (arg) => {
+            await new Promise<void>((resolve) => resolvers.push(resolve))
+            return { data: arg }
+          },
+          onQueryStarted: (arg, { dispatch }) => {
+            seen.push(dispatch(api.util.getRunningQueryThunk('getValue', arg)))
+          },
+        }),
+      }),
+    })
+    const store = configureStore({
+      reducer: { [api.reducerPath]: api.reducer },
+      middleware: (gdm) => gdm().concat(api.middleware),
+    })
+
+    const first = store.dispatch(api.endpoints.getValue.initiate(1))
+    store.dispatch(
+      api.util.upsertQueryEntries([
+        { endpointName: 'getValue', arg: 1, value: 5 },
+      ]),
+    )
+    const second = store.dispatch(
+      api.endpoints.getValue.initiate(1, { forceRefetch: true }),
+    )
+
+    expect(seen).toEqual([undefined, first])
+    expect(store.dispatch(api.util.getRunningQueriesThunk())).toEqual([second])
+    resolvers.splice(0).forEach((resolve) => resolve())
+    await Promise.all([first, second])
   })
 })

@@ -7,7 +7,7 @@ import type {
   InternalHandlerBuilder,
   SubMiddlewareApi,
 } from './types'
-import { ensureRecord, pruneRecord } from './runtime'
+import { clearRemovalTimer, setRemovalTimer } from './runtime'
 
 export type ReferenceCacheCollection = never
 
@@ -86,30 +86,9 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
     return !!runtime.queries.get(queryCacheKey)?.subscribers?.size
   }
 
-  function clearRemovalTimeout(queryCacheKey: string) {
-    const record = runtime.queries.get(queryCacheKey)
-    if (record?.gc) {
-      clearTimeout(record.gc)
-      record.gc = undefined
-      pruneRecord(runtime, queryCacheKey)
-    }
-  }
-
   const handler: ApiMiddlewareInternalHandler = (action, mwApi) => {
     const state = mwApi.getState()
     const config = selectConfig(state)
-
-    if (
-      (queryThunk.pending.match(action) ||
-        (queryThunk.rejected.match(action) && action.meta.condition)) &&
-      action.meta.arg.subscribe
-    ) {
-      clearRemovalTimeout(action.meta.arg.queryCacheKey)
-    }
-
-    if (removeQueryResult.match(action)) {
-      clearRemovalTimeout(action.payload.queryCacheKey)
-    }
 
     if (canTriggerUnsubscribe(action)) {
       let queryCacheKeys: QueryCacheKey[]
@@ -182,14 +161,8 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
     )
 
     if (!anySubscriptionsRemainingForKey(queryCacheKey)) {
-      const record = ensureRecord(runtime, queryCacheKey)
-      if (record.gc) {
-        clearTimeout(record.gc)
-      }
-
-      record.gc = setTimeout(() => {
-        record.gc = undefined
-        pruneRecord(runtime, queryCacheKey)
+      const timer = setTimeout(() => {
+        clearRemovalTimer(runtime, queryCacheKey)
         if (!anySubscriptionsRemainingForKey(queryCacheKey)) {
           // Try to abort any running query for this cache key
           const entry = selectQueryEntry(api.getState(), queryCacheKey)
@@ -203,6 +176,7 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
           api.dispatch(removeQueryResult({ queryCacheKey }))
         }
       }, finalKeepUnusedDataFor * 1000)
+      setRemovalTimer(runtime, queryCacheKey, timer)
     }
   }
 

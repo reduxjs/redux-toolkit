@@ -18,7 +18,9 @@ import { buildDevCheckHandler } from './devMiddleware'
 import { buildInvalidationByTagsHandler } from './invalidationByTags'
 import { buildPollingHandler } from './polling'
 import { buildQueryLifecycleHandler } from './queryLifecycle'
+import { buildQueryRecordHandler } from './queryRecord'
 import { registerMiddleware } from './registration'
+import { removeRecord } from './runtime'
 import type { BuildMiddlewareInput, InternalHandlerBuilder } from './types'
 import { buildWindowEventHandler } from './windowEventHandling'
 import type { ApiEndpointQuery } from '../module'
@@ -41,11 +43,14 @@ export type { SubscriptionSelectors } from './types'
  * Handlers for API slice and rehydration actions, run in this order after
  * the reducer. Subscription sync runs before all of them, ahead of the
  * reducer, so cache collection sees the updated subscriber count when it
- * decides whether to start a removal timer. Tag invalidation runs before
+ * decides whether to start a removal timer. The query record handler runs
+ * first, so the other handlers see the key's running request and an entry
+ * removal has already cleared the key's record. Tag invalidation runs before
  * polling and the lifecycles, so refetches it starts are dispatched before
  * those handlers see the action that finished the last pending request.
  */
 export const handlerBuilders: InternalHandlerBuilder[] = [
+  buildQueryRecordHandler,
   buildDevCheckHandler,
   buildCacheCollectionHandler,
   buildInvalidationByTagsHandler,
@@ -112,6 +117,14 @@ export function buildMiddleware<
 
         const stateBefore = mwApi.getState()
 
+        // Cleared before the reducer, so a listener that subscribes to the key
+        // again while the entry is removed keeps its new subscription
+        const removedLifecycle = api.internalActions.removeQueryResult.match(
+          action,
+        )
+          ? removeRecord(runtime, action.payload.queryCacheKey, false)
+          : undefined
+
         const [actionShouldContinue, internalProbeResult] =
           batchedActionsHandler(action, mwApiWithNext, stateBefore)
 
@@ -146,6 +159,8 @@ export function buildMiddleware<
             }
           }
         }
+
+        removedLifecycle?.cacheEntryRemoved()
 
         return res
       }

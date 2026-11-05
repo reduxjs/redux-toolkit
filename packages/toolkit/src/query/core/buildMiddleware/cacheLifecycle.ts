@@ -24,7 +24,7 @@ import type {
   SubMiddlewareApi,
 } from './types'
 import type { CacheLifecycle } from './runtime'
-import { ensureRecord, getThunkExtra, pruneRecord } from './runtime'
+import { getThunkExtra, setCacheLifecycle } from './runtime'
 import { getEndpointDefinition } from '@internal/query/apiTypes'
 
 export type ReferenceCacheLifecycle = never
@@ -247,11 +247,10 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
     lifecycle: CacheLifecycle,
   ) {
     if (isMutation) runtime.mutationCacheLifecycles.set(cacheKey, lifecycle)
-    else ensureRecord(runtime, cacheKey).cacheLifecycle = lifecycle
+    else setCacheLifecycle(runtime, cacheKey, lifecycle)
   }
 
-  const { removeQueryResult, removeMutationResult, cacheEntriesUpserted } =
-    api.internalActions
+  const { removeMutationResult, cacheEntriesUpserted } = api.internalActions
 
   function resolveLifecycleEntry(
     cacheKey: string,
@@ -275,15 +274,11 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
     }
   }
 
-  function removeLifecycleEntry(cacheKey: string, isMutation: boolean) {
-    const lifecycle = getLifecycle(cacheKey, isMutation)
+  // Query lifecycles end through `removeRecord` in the query record handler
+  function removeMutationLifecycle(cacheKey: string) {
+    const lifecycle = runtime.mutationCacheLifecycles.get(cacheKey)
     if (lifecycle) {
-      if (isMutation) {
-        runtime.mutationCacheLifecycles.delete(cacheKey)
-      } else {
-        runtime.queries.get(cacheKey)!.cacheLifecycle = undefined
-        pruneRecord(runtime, cacheKey)
-      }
+      runtime.mutationCacheLifecycles.delete(cacheKey)
       lifecycle.cacheEntryRemoved()
     }
   }
@@ -344,7 +339,7 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
         // cache entry, so the previous trigger's lifecycle ends here.
         // Without a `fixedCacheKey` the cache key is the new requestId and
         // there is nothing to remove.
-        removeLifecycleEntry(cacheKey, true)
+        removeMutationLifecycle(cacheKey)
         handleNewKey(endpointName, originalArgs, cacheKey, mwApi, requestId)
       }
     } else if (isFulfilledThunk(action)) {
@@ -355,10 +350,8 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
         isMutationThunk(action),
         action.meta.requestId,
       )
-    } else if (removeQueryResult.match(action)) {
-      removeLifecycleEntry(cacheKey, false)
     } else if (removeMutationResult.match(action)) {
-      removeLifecycleEntry(cacheKey, true)
+      removeMutationLifecycle(cacheKey)
     }
   }
 
@@ -367,7 +360,6 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
     if (isMutationThunk(action)) {
       return action.meta.arg.fixedCacheKey ?? action.meta.requestId
     }
-    if (removeQueryResult.match(action)) return action.payload.queryCacheKey
     if (removeMutationResult.match(action))
       return getMutationCacheKey(action.payload)
     return ''

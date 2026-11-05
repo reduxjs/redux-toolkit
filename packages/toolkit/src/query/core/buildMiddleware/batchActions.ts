@@ -5,7 +5,7 @@ import type {
 } from '../apiState'
 import type { Action } from '@reduxjs/toolkit'
 import type { Patch } from 'immer'
-import { ensureRecord, getPollsView, pruneRecord } from './runtime'
+import { ensureRecord, getPollsView } from './runtime'
 
 const warnedProbeApis = new WeakSet<object>()
 
@@ -80,12 +80,8 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
       return false
     }
     if (api.internalActions.removeQueryResult.match(action)) {
+      // The query record handler drops the subscribers after the reducer
       const { queryCacheKey } = action.payload
-      const record = runtime.queries.get(queryCacheKey)
-      if (record) {
-        record.subscribers = undefined
-        pruneRecord(runtime, queryCacheKey)
-      }
       if (syncedKeys.has(queryCacheKey) || changedKeys.has(queryCacheKey)) {
         changedKeys.add(queryCacheKey)
         return true
@@ -162,6 +158,9 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
       }
       if (action.type === `${api.reducerPath}/getPollUpdateCounters`) {
         return [false, (runtime.pollUpdateCounters ??= {})] as any
+      }
+      if (action.type === `${api.reducerPath}/getRuntime`) {
+        return [false, runtime] as any
       }
     }
 
