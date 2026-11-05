@@ -163,6 +163,9 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
       if (action.type === `${api.reducerPath}/getPollUpdateCounters`) {
         return [false, (runtime.pollUpdateCounters ??= {})] as any
       }
+      if (action.type === `${api.reducerPath}/getRuntime`) {
+        return [false, runtime] as any
+      }
     }
 
     if (didMutate && !subscriptionSync.timer) {
