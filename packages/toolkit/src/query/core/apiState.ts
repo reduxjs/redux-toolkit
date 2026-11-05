@@ -125,6 +125,11 @@ export type RequestStatusFlags =
       isError: true
     }
 
+export type WithRequestStatusFlags<T extends { status: QueryStatus }> =
+  T extends unknown
+    ? T & Extract<RequestStatusFlags, { status: T['status'] }>
+    : never
+
 export function getRequestStatusFlags(status: QueryStatus): RequestStatusFlags {
   return {
     status,

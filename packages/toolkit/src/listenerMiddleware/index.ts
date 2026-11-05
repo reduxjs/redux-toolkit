@@ -57,6 +57,7 @@ export type {
   ListenerEffectAPI,
   ListenerErrorHandler,
   ListenerMiddleware,
+  ListenerMiddlewareDispatch,
   ListenerMiddlewareInstance,
   SyncTaskExecutor,
   TaskCancelled,

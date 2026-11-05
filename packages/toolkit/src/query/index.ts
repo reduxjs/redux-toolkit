@@ -58,6 +58,7 @@ export type {
   FetchBaseQueryArgs,
   FetchBaseQueryError,
   FetchBaseQueryMeta,
+  FetchBaseQueryFn,
   FetchArgs,
 } from './fetchBaseQuery'
 export { retry } from './retry'
@@ -96,6 +97,7 @@ export type {
   ApiEndpointInfiniteQuery,
   ApiModules,
   ApiMiddlewareState,
+  ApiUtil,
   CoreModule,
   PrefetchOptions,
 } from './core/module'

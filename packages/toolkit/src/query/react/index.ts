@@ -2,13 +2,20 @@
 // does not have to import this into each source file it rewrites.
 import { formatProdErrorMessage } from '@reduxjs/toolkit'
 
+import type { CoreModule, CreateApi } from '@reduxjs/toolkit/query'
 import { buildCreateApi, coreModule } from './rtkqImports'
+import type { ReactHooksModule } from './module'
 import { reactHooksModule, reactHooksModuleName } from './module'
 
 export * from '@reduxjs/toolkit/query'
 export { ApiProvider } from './ApiProvider'
 
-const createApi = /* @__PURE__ */ buildCreateApi(
+/**
+ * The module names included in the `createApi` exported from `@reduxjs/toolkit/query/react`.
+ */
+export type ReactApiModules = CoreModule | ReactHooksModule
+
+const createApi: CreateApi<ReactApiModules> = /* @__PURE__ */ buildCreateApi(
   coreModule(),
   reactHooksModule(),
 )
