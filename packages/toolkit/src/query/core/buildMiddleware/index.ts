@@ -24,7 +24,7 @@ import { registerMiddleware } from './registration'
 import {
   releaseRequest,
   removeRecord,
-  settleRemovedRequest,
+  settleRemovedRequests,
   startRequest,
 } from './runtime'
 import type { BuildMiddlewareInput, InternalHandlerBuilder } from './types'
@@ -163,7 +163,7 @@ export function buildMiddleware<
           runtime.reset()
         }
         if (removed) {
-          settleRemovedRequest(runtime, removed.request, 'removed')
+          settleRemovedRequests(runtime, removed.requests, 'removed')
           removed.cacheLifecycle?.cacheEntryRemoved('removed')
         }
 

@@ -147,6 +147,34 @@ describe('initiate() resolves with its own request result', () => {
     expect(removalReasons).toEqual(['removed'])
   })
 
+  test('removing an entry while its fulfilled is being dispatched settles the promise with an AbortError', async () => {
+    let onAction: ((action: unknown) => void) | undefined
+    const callOnAction: Middleware = () => (next) => (action) => {
+      onAction?.(action)
+      return next(action)
+    }
+    const { api, gate, store, removalReasons } = setup({ after: callOnAction })
+
+    const promise = store.dispatch(api.endpoints.getThing.initiate('a'))
+    onAction = (action) => {
+      if (!api.endpoints.getThing.matchFulfilled(action)) return
+      onAction = undefined
+      store.dispatch(
+        api.internalActions.removeQueryResult({
+          queryCacheKey: promise.queryCacheKey as QueryCacheKey,
+        }),
+      )
+    }
+    gate.resolveOldest()
+
+    await expect(promise).resolves.toMatchObject({
+      isError: true,
+      error: { name: 'AbortError', message: 'removed' },
+    })
+    expect(store.getState().api.queries[promise.queryCacheKey]).toBeUndefined()
+    expect(removalReasons).toEqual(['removed'])
+  })
+
   test('resetApiState settles running promises with reason "reset"', async () => {
     const { api, store, removalReasons } = setup()
 
