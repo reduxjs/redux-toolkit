@@ -152,8 +152,10 @@ function resetStoreRuntime(runtime: StoreRuntime) {
   const removedLifecycles: CacheLifecycle[] = []
   // Abort listeners can start new requests, which keep their new records
   for (const key of [...runtime.queries.keys()]) {
-    const lifecycle = removeRecord(runtime, key, 'reset')
-    if (lifecycle) removedLifecycles.push(lifecycle)
+    const removed = removeRecord(runtime, key, 'reset')
+    if (!removed) continue
+    settleRemovedRequest(runtime, removed.request, 'reset')
+    if (removed.cacheLifecycle) removedLifecycles.push(removed.cacheLifecycle)
   }
   for (const promise of runtime.runningMutations.values()) {
     promise?.abort()
@@ -242,7 +244,16 @@ export function startRequest(
   const outcome = new Promise<RequestOutcome>((resolve) => {
     settle = resolve
   })
-  const request: RunningRequest = { requestId, key, isUpsert, outcome, settle }
+  // Until `initiate` attaches its own promise, `getRunningQueryThunk` still
+  // returns the request this one replaced
+  const request: RunningRequest = {
+    requestId,
+    key,
+    isUpsert,
+    outcome,
+    settle,
+    promise: record.request?.promise,
+  }
   runtime.requests.set(requestId, request)
   record.request = request
 }
@@ -287,7 +298,7 @@ export function findRunningRequest(
   if (request) return request.isUpsert && !isPending ? undefined : request
   if (!isPending || !entry.requestId) return undefined
   const settling = runtime.requests.get(entry.requestId)
-  return settling?.key === key ? settling : undefined
+  return settling?.key === key && !settling.removed ? settling : undefined
 }
 
 /**
@@ -363,17 +374,22 @@ export function setCacheLifecycle(
   ensureRecord(runtime, key).cacheLifecycle = lifecycle
 }
 
+export type RemovedRecord = {
+  cacheLifecycle?: CacheLifecycle
+  request?: RunningRequest
+}
+
 /**
- * The one removal path for a key: drops its subscribers, removal timer, poll
- * and cache lifecycle, settles its running request's waiters with `reason`
- * and aborts that request. Returns the cache lifecycle so the caller decides
- * when `cacheEntryRemoved` runs.
+ * The one removal path for a key: drops its subscribers, removal timer, poll,
+ * cache lifecycle and running request, and marks that request as removed.
+ * The caller settles the request with `settleRemovedRequest` and runs
+ * `cacheEntryRemoved` once the entry is gone from the state.
  */
 export function removeRecord(
   runtime: StoreRuntime,
   key: string,
   reason: RemovalReason,
-): CacheLifecycle | undefined {
+): RemovedRecord | undefined {
   const record = runtime.queries.get(key)
   if (!record) return undefined
   const { cacheLifecycle, request } = record
@@ -387,11 +403,22 @@ export function removeRecord(
   if (request) {
     request.removed = reason
     runtime.invalidatedRequestIds.delete(request.requestId)
-    settleOutcome(request, { state: runtime.getState?.(), removed: reason })
   }
   normalizeRecord(runtime, key)
-  // Abort listeners run synchronously, so abort after the record is updated.
-  // The request stays in `runtime.requests` until its `rejected` arrives.
-  request?.abort?.()
-  return cacheLifecycle
+  return { cacheLifecycle, request }
+}
+
+/**
+ * Settles a removed request's waiters with `reason` and aborts it. Abort
+ * listeners run synchronously, so this runs after the entry is removed. The
+ * request stays in `runtime.requests` until its `rejected` arrives.
+ */
+export function settleRemovedRequest(
+  runtime: StoreRuntime,
+  request: RunningRequest | undefined,
+  reason: RemovalReason,
+) {
+  if (!request) return
+  settleOutcome(request, { state: runtime.getState?.(), removed: reason })
+  request.abort?.()
 }

@@ -2,15 +2,12 @@ import type {
   ApiMiddlewareInternalHandler,
   InternalHandlerBuilder,
 } from './types'
-import { finishRequest, normalizeRecord, removeRecord } from './runtime'
+import { finishRequest, normalizeRecord } from './runtime'
 
 export const buildQueryRecordHandler: InternalHandlerBuilder = ({
-  api,
   queryThunk,
   runtime,
 }) => {
-  const { removeQueryResult } = api.internalActions
-
   const handler: ApiMiddlewareInternalHandler = (action, mwApi) => {
     if (queryThunk.pending.match(action)) {
       normalizeRecord(runtime, action.meta.arg.queryCacheKey)
@@ -21,12 +18,6 @@ export const buildQueryRecordHandler: InternalHandlerBuilder = ({
       queryThunk.rejected.match(action)
     ) {
       finishRequest(runtime, action.meta.requestId, mwApi.getState())
-    } else if (removeQueryResult.match(action)) {
-      removeRecord(
-        runtime,
-        action.payload.queryCacheKey,
-        'removed',
-      )?.cacheEntryRemoved('removed')
     }
   }
 

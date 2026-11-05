@@ -21,7 +21,12 @@ import { buildPollingHandler } from './polling'
 import { buildQueryLifecycleHandler } from './queryLifecycle'
 import { buildQueryRecordHandler } from './queryRecord'
 import { registerMiddleware } from './registration'
-import { releaseRequest, startRequest } from './runtime'
+import {
+  releaseRequest,
+  removeRecord,
+  settleRemovedRequest,
+  startRequest,
+} from './runtime'
 import type { BuildMiddlewareInput, InternalHandlerBuilder } from './types'
 import { buildWindowEventHandler } from './windowEventHandling'
 import type { ApiEndpointQuery } from '../module'
@@ -135,6 +140,12 @@ export function buildMiddleware<
           releaseRequest(runtime, action.meta.requestId)
         }
 
+        // Cleared before the reducer, so a listener that subscribes to or
+        // requests the key again while the entry is removed keeps its record
+        const removed = api.internalActions.removeQueryResult.match(action)
+          ? removeRecord(runtime, action.payload.queryCacheKey, 'removed')
+          : undefined
+
         const [actionShouldContinue, internalProbeResult] =
           batchedActionsHandler(action, mwApiWithNext, stateBefore)
 
@@ -150,6 +161,10 @@ export function buildMiddleware<
         // for the same key see the cleared cache entry.
         if (api.util.resetApiState.match(action)) {
           runtime.reset()
+        }
+        if (removed) {
+          settleRemovedRequest(runtime, removed.request, 'removed')
+          removed.cacheLifecycle?.cacheEntryRemoved('removed')
         }
 
         if (mwApi.getState()[reducerPath]) {
