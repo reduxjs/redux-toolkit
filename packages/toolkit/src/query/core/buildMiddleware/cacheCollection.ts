@@ -7,7 +7,12 @@ import type {
   InternalHandlerBuilder,
   SubMiddlewareApi,
 } from './types'
-import { clearRemovalTimer, setRemovalTimer } from './runtime'
+import {
+  clearRemovalTimer,
+  releaseRetain,
+  retainRecord,
+  setRemovalTimer,
+} from './runtime'
 
 export type ReferenceCacheCollection = never
 
@@ -89,6 +94,22 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
     const state = mwApi.getState()
     const config = selectConfig(state)
 
+    if (
+      (queryThunk.pending.match(action) || queryThunk.rejected.match(action)) &&
+      action.meta.arg.retainFor
+    ) {
+      const { queryCacheKey, retainFor } = action.meta.arg
+      if (selectQueryEntry(state, queryCacheKey)) {
+        retainRecord(runtime, queryCacheKey, retainFor)
+        // A started, cached or joined request does not reach the unsubscribe
+        // handling below until it settles, so restart the removal timer for
+        // the new duration now
+        if (queryThunk.pending.match(action) || action.meta.condition) {
+          handleUnsubscribeMany([queryCacheKey], mwApi, config)
+        }
+      }
+    }
+
     if (canTriggerUnsubscribe(action)) {
       let queryCacheKeys: QueryCacheKey[]
 
@@ -143,11 +164,14 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
       context,
       endpointName,
     ) as QueryDefinition<any, any, any, any>
-    const keepUnusedDataFor =
-      endpointDefinition?.keepUnusedDataFor ?? config.keepUnusedDataFor
+    const keepUnusedDataFor = Math.max(
+      endpointDefinition?.keepUnusedDataFor ?? config.keepUnusedDataFor,
+      runtime.queries.get(queryCacheKey)?.retainFor ?? 0,
+    )
 
     if (keepUnusedDataFor === Infinity) {
       // Hey, user said keep this forever!
+      releaseRetain(runtime, queryCacheKey)
       return
     }
     // Prevent `setTimeout` timers from overflowing a 32-bit internal int, by

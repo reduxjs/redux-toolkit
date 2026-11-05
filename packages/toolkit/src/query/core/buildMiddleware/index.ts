@@ -9,7 +9,7 @@ import type {
   FullTagDescription,
 } from '../../endpointDefinitions'
 import type { QueryStatus, QuerySubState, ApiRootState } from '../apiState'
-import type { QueryThunkArg } from '../buildThunks'
+import type { InfiniteQueryThunkArg, QueryThunkArg } from '../buildThunks'
 import { createAction, isAction } from '../rtkImports'
 import type { QueryStartReason } from '../../baseQueryTypes'
 import { isUpsertQuery, startReasonSymbol } from '../buildInitiate'
@@ -133,6 +133,7 @@ export function buildMiddleware<
             arg.queryCacheKey,
             requestId,
             isUpsertQuery(arg),
+            (arg as InfiniteQueryThunkArg<any>).direction,
           )
         } else if (
           queryThunk.fulfilled.match(action) ||
