@@ -254,10 +254,13 @@ export function fetchBaseQuery({
     try {
       let config: RequestInit = {
         ...baseFetchOptions,
-        signal: timeoutController
-          ? anySignal(api.signal, timeoutController.signal)
-          : api.signal,
+        signal: api.signal,
         ...rest,
+      }
+      if (timeoutController) {
+        config.signal = config.signal
+          ? anySignal(config.signal, timeoutController.signal)
+          : timeoutController.signal
       }
 
       headers = new Headers(stripUndefined(headers))
