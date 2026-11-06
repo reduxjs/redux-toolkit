@@ -184,4 +184,37 @@ describe('refetch option composition', () => {
     await vi.advanceTimersByTimeAsync(110)
     expect(baseQuery).toHaveBeenCalledOnce()
   })
+
+  test('re-evaluates unfocused polling after unsubscribe and option changes', async () => {
+    const { api, store, baseQuery } = makeApi()
+    const skipping = store.dispatch(
+      api.endpoints.getThing.initiate('a', {
+        subscriptionOptions: {
+          pollingInterval: 100,
+          skipPollingIfUnfocused: true,
+        },
+      }),
+    )
+    await skipping
+    const continuing = store.dispatch(
+      api.endpoints.getThing.initiate('a', {
+        subscriptionOptions: { pollingInterval: 100 },
+      }),
+    )
+    await continuing
+    store.dispatch(api.internalActions.onFocusLost())
+    await vi.advanceTimersByTimeAsync(110)
+    expect(baseQuery).toHaveBeenCalledTimes(2)
+
+    continuing.unsubscribe()
+    await vi.advanceTimersByTimeAsync(110)
+    expect(baseQuery).toHaveBeenCalledTimes(2)
+
+    skipping.updateSubscriptionOptions({
+      pollingInterval: 100,
+      skipPollingIfUnfocused: false,
+    })
+    await vi.advanceTimersByTimeAsync(110)
+    expect(baseQuery).toHaveBeenCalledTimes(3)
+  })
 })

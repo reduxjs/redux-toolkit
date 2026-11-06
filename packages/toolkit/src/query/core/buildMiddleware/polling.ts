@@ -199,7 +199,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
   function findLowestPollingInterval(
     subscribers: SubscribersInternal = new Map(),
   ) {
-    let skipPollingIfUnfocused: boolean | undefined = false
+    let skipPollingIfUnfocused = true
     let lowestPollingInterval = Number.POSITIVE_INFINITY
 
     for (const entry of subscribers.values()) {
@@ -208,14 +208,15 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
           entry.pollingInterval!,
           lowestPollingInterval,
         )
-        skipPollingIfUnfocused =
-          entry.skipPollingIfUnfocused || skipPollingIfUnfocused
+        skipPollingIfUnfocused &&= entry.skipPollingIfUnfocused === true
       }
     }
 
     return {
       lowestPollingInterval,
-      skipPollingIfUnfocused,
+      skipPollingIfUnfocused:
+        lowestPollingInterval !== Number.POSITIVE_INFINITY &&
+        skipPollingIfUnfocused,
     }
   }
 

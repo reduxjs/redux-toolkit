@@ -963,10 +963,10 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
     const refetchVal =
       arg.forceRefetch ?? (arg.subscribe && baseFetchOnMountOrArgChange)
 
-    if (refetchVal) {
-      // Return if it's true or compare the dates because it must be a number
+    if (refetchVal === 0 || refetchVal) {
       return (
         refetchVal === true ||
+        refetchVal === 0 ||
         (Number(new Date()) - Number(fulfilledVal)) / 1000 >= refetchVal
       )
     }

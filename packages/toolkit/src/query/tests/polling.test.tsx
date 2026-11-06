@@ -216,7 +216,7 @@ describe('polling tests', () => {
     expect(mockBaseQuery).toHaveBeenCalledOnce()
   })
 
-  it('respects skipPollingIfUnfocused if at least one subscription has it', async () => {
+  it('continues polling while unfocused if a polling subscription allows it', async () => {
     storeRef.store.dispatch(
       getPosts.initiate(3, {
         subscriptionOptions: {
@@ -256,8 +256,7 @@ describe('polling tests', () => {
     const callsWithSkip = mockBaseQuery.mock.calls.length
 
     expect(callsWithoutSkip).toBeGreaterThan(2)
-    // The poll already scheduled sees the current focus and skip settings when it fires
-    expect(callsWithSkip).toBe(callsWithoutSkip)
+    expect(callsWithSkip).toBeGreaterThan(callsWithoutSkip)
   })
 
   it('replaces skipPollingIfUnfocused when the subscription options are updated', async () => {
