@@ -1,4 +1,5 @@
 // @vitest-environment node
+import { getEventListeners } from 'node:events'
 import type { BaseQueryApi } from '@reduxjs/toolkit/query'
 import { fetchBaseQuery } from '@reduxjs/toolkit/query'
 
@@ -191,6 +192,58 @@ describe('fetchBaseQuery response body timeouts', () => {
       error: expect.stringMatching(/^TimeoutError/),
     })
     expect(controller.signal.aborted).toBe(false)
+  })
+
+  test.each([
+    'success',
+    'fetch error',
+    'parser error',
+    'prepareHeaders error',
+    'invalid URL',
+  ] as const)('releases custom signal listeners after %s', async (outcome) => {
+    const controller = new AbortController()
+    const callerListener = vi.fn()
+    controller.signal.addEventListener('abort', callerListener)
+    const baseQuery = fetchBaseQuery({
+      timeout: 1000,
+      prepareHeaders: (headers) => {
+        if (outcome === 'prepareHeaders error') throw new Error('headers')
+        return headers
+      },
+      fetchFn: async () => {
+        if (outcome === 'fetch error') throw new TypeError('offline')
+        return new Response(outcome === 'parser error' ? '{' : '{}')
+      },
+    })
+
+    for (let index = 0; index < 3; index++) {
+      const request = baseQuery(
+        {
+          url: outcome === 'invalid URL' ? 'https://[' : 'https://example.com',
+          signal: controller.signal,
+        },
+        makeApi(),
+        {},
+      )
+      if (outcome === 'prepareHeaders error' || outcome === 'invalid URL') {
+        await expect(request).rejects.toThrow()
+      } else {
+        const result = await request
+        expect(result.meta?.request.signal.aborted).toBe(false)
+        expect(result.error?.status).toBe(
+          outcome === 'fetch error'
+            ? 'FETCH_ERROR'
+            : outcome === 'parser error'
+              ? 'PARSING_ERROR'
+              : undefined,
+        )
+      }
+      expect(getEventListeners(controller.signal, 'abort')).toEqual([
+        callerListener,
+      ])
+    }
+    expect(controller.signal.aborted).toBe(false)
+    expect(callerListener).not.toHaveBeenCalled()
   })
 
   test('keeps a parser TimeoutError as PARSING_ERROR when the signal did not abort', async () => {
