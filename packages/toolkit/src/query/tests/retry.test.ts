@@ -367,6 +367,39 @@ describe('configuration', () => {
     expect(baseBaseQuery).toHaveBeenCalledTimes(6)
   })
 
+  test.each([
+    [1, 2],
+    [0, 1],
+  ])(
+    'endpoint maxRetries of %i overrides a baseQuery retryCondition',
+    async (maxRetries, expectedCalls) => {
+      const baseBaseQuery = vi.fn<BaseQueryFn>()
+      baseBaseQuery.mockResolvedValue({ error: 'rejected' })
+
+      const baseQuery = retry(baseBaseQuery, {
+        retryCondition: (_, __, { attempt }) => attempt <= 5,
+      })
+      const api = createApi({
+        baseQuery,
+        endpoints: (build) => ({
+          q1: build.query({
+            query: () => {},
+            extraOptions: { maxRetries },
+          }),
+        }),
+      })
+
+      const storeRef = setupApiStore(api, undefined, {
+        withoutTestLifecycles: true,
+      })
+      storeRef.store.dispatch(api.endpoints.q1.initiate({}))
+
+      await loopTimers()
+
+      expect(baseBaseQuery).toHaveBeenCalledTimes(expectedCalls)
+    },
+  )
+
   test('retryCondition also works with mutations', async () => {
     const baseBaseQuery = vi.fn<BaseQueryFn>()
 

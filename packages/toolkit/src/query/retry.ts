@@ -138,6 +138,11 @@ const retryWithBackoff: BaseQueryEnhancer<
     backoff: defaultBackoff,
     retryCondition: defaultRetryCondition,
     ...defaultOptions,
+    // `maxRetries` only limits expected errors through the default condition,
+    // so an endpoint setting it replaces a `retryCondition` from `retry()`.
+    ...(((extraOptions as any) || EMPTY_OPTIONS).maxRetries !== undefined && {
+      retryCondition: defaultRetryCondition,
+    }),
     ...extraOptions,
   }
   let retry = 0
