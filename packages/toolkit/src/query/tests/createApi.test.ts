@@ -19,6 +19,7 @@ import type {
 } from '@reduxjs/toolkit/query'
 import {
   createApi,
+  fakeBaseQuery,
   fetchBaseQuery,
   NamedSchemaError,
 } from '@reduxjs/toolkit/query'
@@ -638,6 +639,238 @@ describe('endpoint definition typings', () => {
       )
       expect('data' in mutationResponse && mutationResponse.data).toEqual({
         value: 'transformed',
+      })
+    })
+
+    describe('addTagTypes and enhanceEndpoint', () => {
+      test('addTagTypes allows new tag types without warnings', async () => {
+        vi.stubEnv('NODE_ENV', 'development')
+
+        const storeRef = setupApiStore(api, undefined, {
+          withoutTestLifecycles: true,
+        })
+
+        // @ts-expect-error
+        api.enhanceEndpoint('query1', { providesTags: ['new'] })
+
+        const enhanced = api
+          .addTagTypes('new')
+          .enhanceEndpoint('query1', { providesTags: ['new'] })
+          .enhanceEndpoint('query2', {
+            // @ts-expect-error
+            providesTags: ['missing'],
+          })
+
+        storeRef.store.dispatch(enhanced.endpoints.query1.initiate('in1'))
+        await delay(1)
+        expect(consoleErrorSpy).not.toHaveBeenCalled()
+
+        storeRef.store.dispatch(enhanced.endpoints.query2.initiate('in2'))
+        await delay(1)
+        expect(consoleErrorSpy).toHaveBeenCalledOnce()
+        expect(consoleErrorSpy).toHaveBeenLastCalledWith(
+          "Tag type 'missing' was used, but not specified in `tagTypes`!",
+        )
+      })
+
+      test('accepts partial definitions and callbacks', () => {
+        const storeRef = setupApiStore(api, undefined, {
+          withoutTestLifecycles: true,
+        })
+
+        api
+          .enhanceEndpoint('query1', { query: () => 'modified1' })
+          .enhanceEndpoint('query2', () => ({ query: () => 'modified2' }))
+          .enhanceEndpoint('mutation1', () => ({ query: () => 'modified1' }))
+          .enhanceEndpoint('mutation2', (definition) => {
+            definition.query = () => 'modified2'
+          })
+
+        // @ts-expect-error
+        api.enhanceEndpoint('nonExisting', {})
+
+        storeRef.store.dispatch(api.endpoints.query1.initiate('in1'))
+        storeRef.store.dispatch(api.endpoints.query2.initiate('in2'))
+        storeRef.store.dispatch(api.endpoints.mutation1.initiate('in1'))
+        storeRef.store.dispatch(api.endpoints.mutation2.initiate('in2'))
+
+        expect(baseQuery.mock.calls.map(([arg]) => arg)).toEqual([
+          'modified1',
+          'modified2',
+          'modified1',
+          'modified2',
+        ])
+      })
+
+      test('ignores callback return values that are not plain objects', () => {
+        const storeRef = setupApiStore(api, undefined, {
+          withoutTestLifecycles: true,
+        })
+
+        let enhancedDefinition: object | undefined
+
+        // @ts-expect-error
+        api.enhanceEndpoint('query1', (definition) => {
+          definition.query = () => 'mutated'
+          return ['extra']
+        })
+        api.enhanceEndpoint('query1', (definition) => {
+          enhancedDefinition = definition
+        })
+
+        storeRef.store.dispatch(api.endpoints.query1.initiate('in1'))
+
+        expect(baseQuery.mock.calls.map(([arg]) => arg)).toEqual(['mutated'])
+        expect(enhancedDefinition).not.toHaveProperty('0')
+      })
+
+      test('applies enhancements in the order they were added', () => {
+        const storeRef = setupApiStore(api, undefined, {
+          withoutTestLifecycles: true,
+        })
+
+        api
+          .enhanceEndpoint('query1', { query: () => 'first' })
+          .enhanceEndpoint('query1', (definition) => {
+            const previousQuery = definition.query!
+            return { query: (arg) => `${previousQuery(arg)}-second` }
+          })
+
+        storeRef.store.dispatch(api.endpoints.query1.initiate('in1'))
+
+        expect(baseQuery.mock.calls.map(([arg]) => arg)).toEqual([
+          'first-second',
+        ])
+      })
+
+      test('applies stored enhancements when the endpoint is injected later', () => {
+        const storeRef = setupApiStore(api, undefined, {
+          withoutTestLifecycles: true,
+        })
+
+        api
+          // @ts-expect-error `lateQuery` has not been injected yet
+          .enhanceEndpoint('lateQuery', { query: () => 'first' })
+          .enhanceEndpoint(
+            // @ts-expect-error `lateQuery` has not been injected yet
+            'lateQuery',
+            (definition: { query: (arg: string) => string }) => {
+              const previousQuery = definition.query
+              return { query: (arg: string) => `${previousQuery(arg)}-second` }
+            },
+          )
+
+        const injected = api.injectEndpoints({
+          endpoints: (build) => ({
+            lateQuery: build.query<'out', 'in'>({ query: () => 'original' }),
+          }),
+        })
+
+        storeRef.store.dispatch(injected.endpoints.lateQuery.initiate('in'))
+
+        expect(baseQuery.mock.calls.map(([arg]) => arg)).toEqual([
+          'first-second',
+        ])
+      })
+
+      test('does not enhance inherited properties of the endpoint map', () => {
+        // @ts-expect-error
+        api.enhanceEndpoint('toString', { keepUnusedDataFor: 5 })
+
+        expect(Object.prototype.toString).not.toHaveProperty(
+          'keepUnusedDataFor',
+        )
+      })
+
+      test('infinite query selectors use enhanced infiniteQueryOptions', async () => {
+        const infiniteApi = createApi({
+          baseQuery: fakeBaseQuery(),
+          endpoints: (build) => ({
+            pages: build.infiniteQuery<number, void, number>({
+              queryFn: ({ pageParam }) => ({ data: pageParam }),
+              infiniteQueryOptions: {
+                initialPageParam: 0,
+                getNextPageParam: () => undefined,
+              },
+            }),
+          }),
+        })
+
+        infiniteApi.enhanceEndpoint('pages', {
+          infiniteQueryOptions: {
+            initialPageParam: 0,
+            getNextPageParam: (lastPage) => lastPage + 1,
+          },
+        })
+
+        const storeRef = setupApiStore(infiniteApi, undefined, {
+          withoutTestLifecycles: true,
+        })
+
+        await storeRef.store.dispatch(infiniteApi.endpoints.pages.initiate())
+
+        const result = infiniteApi.endpoints.pages.select()(
+          storeRef.store.getState(),
+        )
+        expect(result.data?.pages).toEqual([0])
+        expect(result.hasNextPage).toBe(true)
+      })
+
+      test('re-applies enhancements when an endpoint is overridden', () => {
+        const storeRef = setupApiStore(api, undefined, {
+          withoutTestLifecycles: true,
+        })
+
+        api.enhanceEndpoint('query1', { query: () => 'enhanced' })
+
+        api.injectEndpoints({
+          endpoints: (build) => ({
+            query1: build.query<'out1', 'in1'>({ query: () => 'overridden' }),
+          }),
+          overrideExisting: true,
+        })
+
+        storeRef.store.dispatch(api.endpoints.query1.initiate('in1'))
+
+        expect(baseQuery.mock.calls.map(([arg]) => arg)).toEqual(['enhanced'])
+      })
+
+      test('can change the result type with transformResponse', async () => {
+        const baseApi = createApi({
+          baseQuery: fetchBaseQuery({ baseUrl: 'https://example.com' }),
+          endpoints: (build) => ({
+            query1: build.query<'out1', void>({ query: () => 'success' }),
+            mutation1: build.mutation<'out1', void>({
+              query: () => 'success',
+            }),
+          }),
+        })
+
+        type Transformed = { value: string }
+
+        const enhancedApi = baseApi
+          .enhanceEndpoint<'query1', Transformed>('query1', {
+            transformResponse: () => ({ value: 'transformed' }),
+          })
+          .enhanceEndpoint<'mutation1', Transformed>('mutation1', () => ({
+            transformResponse: () => ({ value: 'transformed' }),
+          }))
+
+        const storeRef = setupApiStore(enhancedApi, undefined, {
+          withoutTestLifecycles: true,
+        })
+
+        const queryResponse = await storeRef.store.dispatch(
+          enhancedApi.endpoints.query1.initiate(),
+        )
+        expect(queryResponse.data).toEqual({ value: 'transformed' })
+
+        const mutationResponse = await storeRef.store.dispatch(
+          enhancedApi.endpoints.mutation1.initiate(),
+        )
+        expect('data' in mutationResponse && mutationResponse.data).toEqual({
+          value: 'transformed',
+        })
       })
     })
   })

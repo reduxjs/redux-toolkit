@@ -72,11 +72,11 @@ and an error will be throw if set to `'throw'`.
 
 Sometimes you may also need to modify an existing API definition, such as adding additional tag types, or providing additional configuration options to a given endpoint.
 
-`api.enhanceEndpoints` returns an updated and enhanced version of the API slice object, containing the combined endpoint definitions.
+`api.addTagTypes` adds tag types to the API slice, and `api.enhanceEndpoint` merges changes into a single endpoint definition. Both return the API slice object, typed with the updated tag types and endpoint definitions, so the calls can be chained. If an endpoint has not been injected yet, `enhanceEndpoint` stores the changes and applies them when the endpoint is injected.
 
 This is primarily useful for taking an API slice object that was code-generated from an API schema file like OpenAPI, and adding additional specific hand-written configuration for cache invalidation management on top of the generated endpoint definitions.
 
-For example, `enhanceEndpoints` can be used to modify caching behavior by changing the values of `providesTags`, `invalidatesTags`, and `keepUnusedDataFor`:
+For example, `addTagTypes` and `enhanceEndpoint` can be used to modify caching behavior by changing the values of `providesTags`, `invalidatesTags`, and `keepUnusedDataFor`:
 
 ```ts
 // file: api.ts noEmit
@@ -103,23 +103,21 @@ export const api = createApi({
   }),
 })
 
-// file: enhanceEndpoints.ts
+// file: enhanceEndpoint.ts
 import { api } from './api'
 
-const enhancedApi = api.enhanceEndpoints({
-  addTagTypes: ['User'],
-  endpoints: {
-    getUserByUserId: {
-      providesTags: ['User'],
-    },
-    patchUserByUserId: {
-      invalidatesTags: ['User'],
-    },
-    // alternatively, define a function which is called with the endpoint definition as an argument
-    getUsers(endpoint) {
-      endpoint.providesTags = ['User']
-      endpoint.keepUnusedDataFor = 120
-    },
-  },
-})
+const enhancedApi = api
+  .addTagTypes('User')
+  .enhanceEndpoint('getUserByUserId', {
+    providesTags: ['User'],
+  })
+  .enhanceEndpoint('patchUserByUserId', {
+    invalidatesTags: ['User'],
+  })
+  // alternatively, pass a function which is called with the endpoint definition as an argument
+  .enhanceEndpoint('getUsers', (definition) => ({
+    ...definition,
+    providesTags: ['User'],
+    keepUnusedDataFor: 120,
+  }))
 ```
