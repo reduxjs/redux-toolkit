@@ -472,6 +472,14 @@ describe('type tests', () => {
           state.status = 'finished'
           state.data = 'hocus pocus'
         },
+        moreMagic: {
+          reducer(state, action: PayloadAction<string>) {
+            state.data = action.payload
+          },
+          prepare(n: number) {
+            return { payload: String(n) }
+          },
+        },
       },
     })
 
@@ -482,6 +490,28 @@ describe('type tests', () => {
     expectTypeOf(wrappedSlice.actions.magic).toExtend<
       ActionCreatorWithoutPayload<string>
     >()
+
+    expectTypeOf(wrappedSlice.actions.moreMagic).parameters.toEqualTypeOf<
+      [number]
+    >()
+
+    expectTypeOf(wrappedSlice.actions.moreMagic(333).payload).toBeString()
+
+    createGenericSlice({
+      name: 'test',
+      initialState: { status: 'loading' } as GenericState<string>,
+      reducers: {
+        mismatchedMagic: {
+          reducer(state, action: PayloadAction<string>) {
+            state.data = action.payload
+          },
+          // @ts-expect-error
+          prepare(n: number) {
+            return { payload: n }
+          },
+        },
+      },
+    })
   })
 
   test('extraReducers', () => {
