@@ -607,6 +607,8 @@ The default behavior would retry at these intervals:
 
 In the event that you didn't want to retry on a specific endpoint, you can just set `maxRetries: 0`.
 
+Options in an endpoint's `extraOptions` override the ones passed to `retry`. `maxRetries` and `retryCondition` are alternatives: an endpoint that sets `maxRetries` uses the default retry condition with that limit, even if `retry` was given a `retryCondition`.
+
 :::info
 It is possible for a hook to return `data` and `error` at the same time. By default, RTK Query will keep whatever the last 'good' result was in `data` until it can be updated or garbage collected.
 :::
