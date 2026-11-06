@@ -91,6 +91,56 @@ describe('refetch option composition', () => {
     expect(baseQuery).toHaveBeenCalledOnce()
   })
 
+  test.each([
+    { direction: 'forward', globalZero: true },
+    { direction: 'backward', globalZero: true },
+    { direction: 'forward', globalZero: false },
+    { direction: 'backward', globalZero: false },
+  ] as const)(
+    'zero refetch skips exhausted $direction pages with globalZero=$globalZero',
+    async ({ direction, globalZero }) => {
+      const onQueryStarted = vi.fn()
+      const baseQuery = vi.fn(async (page: number) => ({ data: page }))
+      const api = createApi({
+        baseQuery,
+        refetchOnMountOrArgChange: globalZero ? 0 : false,
+        endpoints: (build) => ({
+          pages: build.infiniteQuery<number, string, number>({
+            infiniteQueryOptions: {
+              initialPageParam: 0,
+              getNextPageParam: () => undefined,
+              getPreviousPageParam: () => undefined,
+            },
+            query: ({ pageParam }) => pageParam,
+            onQueryStarted,
+          }),
+        }),
+      })
+      const store = configureStore({
+        reducer: { [api.reducerPath]: api.reducer },
+        middleware: (getDefaultMiddleware) =>
+          getDefaultMiddleware().concat(api.middleware),
+      })
+      cleanups.push(() => store.dispatch(api.util.resetApiState()))
+      await store.dispatch(api.endpoints.pages.initiate('a'))
+      const before = api.endpoints.pages.select('a')(store.getState())
+      vi.setSystemTime(Date.now() + 1000)
+
+      await store.dispatch(
+        api.endpoints.pages.initiate('a', {
+          direction,
+          ...(globalZero ? {} : { forceRefetch: 0 }),
+        }),
+      )
+
+      expect(baseQuery).toHaveBeenCalledOnce()
+      expect(onQueryStarted).toHaveBeenCalledOnce()
+      expect(
+        api.endpoints.pages.select('a')(store.getState()).fulfilledTimeStamp,
+      ).toBe(before.fulfilledTimeStamp)
+    },
+  )
+
   describe.each([
     { option: 'refetchOnFocus', event: 'onFocus' },
     { option: 'refetchOnReconnect', event: 'onOnline' },
