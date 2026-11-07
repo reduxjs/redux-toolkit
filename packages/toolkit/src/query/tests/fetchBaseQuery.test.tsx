@@ -605,6 +605,45 @@ describe('fetchBaseQuery', () => {
       expect(request.url).toEqual(`${baseUrl}/echo?banana=pudding&a=1&b=true`)
     })
 
+    it.each([
+      ['/echo#section', '?a=1', '#section'],
+      ['/echo?banana=pudding#section', '?banana=pudding&a=1', '#section'],
+      ['/echo#section?local=value', '?a=1', '#section?local=value'],
+      ['/echo#section#nested', '?a=1', '#section#nested'],
+      ['https://example.com/echo#section', '?a=1', '#section'],
+    ])(
+      'should serialize params before the fragment in %s',
+      async (url, search, hash) => {
+        const result = await baseQuery(
+          { url, params: { a: 1 } },
+          commonBaseQueryApi,
+          {},
+        )
+
+        expect(result.error).toBeUndefined()
+        const requestUrl = new URL(result.meta!.request.url)
+        expect(requestUrl.search).toBe(search)
+        expect(requestUrl.hash).toBe(hash)
+      },
+    )
+
+    it('should preserve a fragment when using paramsSerializer', async () => {
+      const serialize = vi.fn(() => 'someArray[]=a&someArray[]=b')
+      const query = fetchBaseQuery({ baseUrl, paramsSerializer: serialize })
+      const params = { someArray: ['a', 'b'] }
+      const result = await query(
+        { url: '/echo?banana=pudding#section', params },
+        commonBaseQueryApi,
+        {},
+      )
+
+      expect(result.error).toBeUndefined()
+      expect(serialize).toHaveBeenCalledWith(params)
+      expect(result.meta!.request.url).toBe(
+        `${baseUrl}/echo?banana=pudding&someArray[]=a&someArray[]=b#section`,
+      )
+    })
+
     it('should accept a URLSearchParams instance', async () => {
       const params = new URLSearchParams({ apple: 'fruit' })
 

@@ -308,11 +308,14 @@ export function fetchBaseQuery({
       }
 
       if (params) {
+        const hashIndex = url.indexOf('#')
+        const hash = hashIndex === -1 ? '' : url.slice(hashIndex)
+        url = hashIndex === -1 ? url : url.slice(0, hashIndex)
         const divider = ~url.indexOf('?') ? '&' : '?'
         const query = paramsSerializer
           ? paramsSerializer(params)
           : new URLSearchParams(stripUndefined(params))
-        url += divider + query
+        url += divider + query + hash
       }
 
       url = joinUrls(baseUrl, url)
