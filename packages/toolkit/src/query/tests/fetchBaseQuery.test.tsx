@@ -644,6 +644,88 @@ describe('fetchBaseQuery', () => {
       )
     })
 
+    it.each([
+      [
+        'https://example.com/api',
+        '#section',
+        { a: 1 },
+        'https://example.com/api/?a=1#section',
+      ],
+      [
+        'https://example.com/api/',
+        '#section',
+        { a: 1 },
+        'https://example.com/api/?a=1#section',
+      ],
+      [
+        'https://example.com/echo#section',
+        '',
+        { a: 1 },
+        'https://example.com/echo?a=1#section',
+      ],
+      [
+        'https://example.com/echo?old=value#section',
+        '',
+        { a: 1 },
+        'https://example.com/echo?old=value&a=1#section',
+      ],
+      [
+        'https://example.com',
+        '/echo#section',
+        {},
+        'https://example.com/echo#section',
+      ],
+      [
+        'https://example.com',
+        '/echo?signature=abc#section',
+        {},
+        'https://example.com/echo?signature=abc#section',
+      ],
+      [
+        'https://example.com',
+        '/echo?signature=abc#section',
+        { omitted: undefined },
+        'https://example.com/echo?signature=abc#section',
+      ],
+      ['https://example.com', '/echo', {}, 'https://example.com/echo?'],
+      [
+        'https://example.com',
+        '/echo?old=value',
+        {},
+        'https://example.com/echo?old=value&',
+      ],
+    ])(
+      'should preserve the joined target for base %s and url %s',
+      async (baseUrl, url, params, expected) => {
+        const query = fetchBaseQuery({
+          baseUrl,
+          fetchFn: async () =>
+            new Response('{}', {
+              headers: { 'content-type': 'application/json' },
+            }),
+        })
+        const result = await query({ url, params }, commonBaseQueryApi, {})
+        expect(result.error).toBeUndefined()
+        expect(result.meta!.request.url).toBe(expected)
+      },
+    )
+
+    it.each([
+      [
+        '/echo?signature=abc#section',
+        'https://example.com/echo?signature=abc#section',
+      ],
+      ['/echo?old=value', 'https://example.com/echo?old=value&'],
+    ])(
+      'should preserve empty custom serialization for %s',
+      async (url, expected) => {
+        const query = fetchBaseQuery({ baseUrl, paramsSerializer: () => '' })
+        const result = await query({ url, params: {} }, commonBaseQueryApi, {})
+        expect(result.error).toBeUndefined()
+        expect(result.meta!.request.url).toBe(expected)
+      },
+    )
+
     it('should accept a URLSearchParams instance', async () => {
       const params = new URLSearchParams({ apple: 'fruit' })
 
