@@ -27,6 +27,17 @@ describe('type tests', () => {
     expectTypeOf<Result['inversePatches']>().toEqualTypeOf<Patch[]>()
   })
 
+  test('undo accepts optional ifUnchanged options and returns void', () => {
+    const patch = api.util.updateQueryData('getCount', undefined, () => 1)
+    type Undo = ReturnType<typeof patch>['undo']
+
+    expectTypeOf<Parameters<Undo>>().toEqualTypeOf<
+      [options?: { ifUnchanged?: boolean }]
+    >()
+    expectTypeOf<ReturnType<Undo>>().toBeVoid()
+    expectTypeOf<Undo>().toExtend<(reason: { error: unknown }) => void>()
+  })
+
   test('RTK patches work with Immer and RTKQ patch helpers', () => {
     const patches: Patch[] = []
 

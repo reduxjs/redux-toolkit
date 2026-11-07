@@ -288,7 +288,9 @@ export interface ApiModules<
        *
        * The thunk executes _synchronously_, and returns an object containing `{patches: Patch[], inversePatches: Patch[], undo: () => void}`. The `patches` and `inversePatches` are generated using Immer's [`produceWithPatches` method](https://immerjs.github.io/immer/patches).
        *
-       * This is typically used as the first step in implementing optimistic updates. The generated `inversePatches` can be used to revert the updates by calling `dispatch(patchQueryData(endpointName, arg, inversePatches))`. Alternatively, the `undo` method can be called directly to achieve the same effect.
+       * This is typically used as the first step in implementing optimistic updates. The generated `inversePatches` can be used to revert the updates by calling `dispatch(patchQueryData(endpointName, arg, inversePatches))`. Alternatively, the `undo` method can be called directly to achieve the same effect. Pass `undo({ ifUnchanged: true })` to skip reverting if newer data has replaced the patched data.
+       *
+       * With overlapping updates, a skipped undo may leave changes from a failed mutation in the cache. Invalidate the corresponding tags on error to re-fetch the current server data.
        *
        * Note that the first two arguments (`endpointName` and `arg`) are used to determine which existing cache entry to update. If no existing cache entry is found, the `updateRecipe` callback will not run.
        *
