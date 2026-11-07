@@ -307,15 +307,21 @@ export function fetchBaseQuery({
         // For 'content-type' responseHandler, don't set Accept (let server decide)
       }
 
+      url = joinUrls(baseUrl, url)
+
       if (params) {
+        const hashIndex = url.indexOf('#')
+        const hash = hashIndex === -1 ? '' : url.slice(hashIndex)
+        url = hashIndex === -1 ? url : url.slice(0, hashIndex)
         const divider = ~url.indexOf('?') ? '&' : '?'
         const query = paramsSerializer
           ? paramsSerializer(params)
-          : new URLSearchParams(stripUndefined(params))
-        url += divider + query
+          : new URLSearchParams(stripUndefined(params)).toString()
+        if (query || !hash) {
+          url += divider + query
+        }
+        url += hash
       }
-
-      url = joinUrls(baseUrl, url)
 
       const request = new Request(url, config)
       const requestClone = new Request(url, config)
