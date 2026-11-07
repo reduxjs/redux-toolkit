@@ -129,6 +129,20 @@ const retryWithBackoff: BaseQueryEnhancer<
   const defaultRetryCondition: RetryConditionFunction = (_, __, { attempt }) =>
     attempt <= maxRetries
 
+  // `maxRetries` only limits expected errors through the default condition.
+  // When an endpoint sets it, a `retryCondition` from `retry()` still decides
+  // which errors are retried, and the endpoint's limit caps the attempts.
+  const baseRetryCondition: RetryConditionFunction | undefined = (
+    (defaultOptions as any) || EMPTY_OPTIONS
+  ).retryCondition
+  const endpointRetryCondition: RetryConditionFunction | undefined =
+    ((extraOptions as any) || EMPTY_OPTIONS).maxRetries !== undefined &&
+    baseRetryCondition
+      ? (error, args, extraArgs) =>
+          defaultRetryCondition(error, args, extraArgs) &&
+          baseRetryCondition(error, args, extraArgs)
+      : undefined
+
   const options: {
     maxRetries: number
     backoff: typeof defaultBackoff
@@ -138,11 +152,7 @@ const retryWithBackoff: BaseQueryEnhancer<
     backoff: defaultBackoff,
     retryCondition: defaultRetryCondition,
     ...defaultOptions,
-    // `maxRetries` only limits expected errors through the default condition,
-    // so an endpoint setting it replaces a `retryCondition` from `retry()`.
-    ...(((extraOptions as any) || EMPTY_OPTIONS).maxRetries !== undefined && {
-      retryCondition: defaultRetryCondition,
-    }),
+    ...(endpointRetryCondition && { retryCondition: endpointRetryCondition }),
     ...extraOptions,
   }
   let retry = 0
