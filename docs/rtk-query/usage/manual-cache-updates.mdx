@@ -141,6 +141,19 @@ or, if you prefer the slightly shorter version with `.catch`
       }
 ```
 
+To avoid applying an old rollback to newer data, call `undo({ ifUnchanged: true })`. This only reverts the update if the cached data still has the same reference as immediately after the optimistic update. For example, if a refetch replaces the data while the mutation is pending, the failed mutation's undo leaves the refetched data alone. Plain `undo()` retains its existing unconditional behavior.
+
+With overlapping optimistic mutations, skipping an older undo can leave that failed mutation's changes in the cache. Pair guarded undo with tag invalidation on error so the server's current data is fetched:
+
+```ts no-transpile
+try {
+  await queryFulfilled
+} catch {
+  patchResult.undo({ ifUnchanged: true })
+  dispatch(api.util.invalidateTags([{ type: 'Post', id }]))
+}
+```
+
 #### Example
 
 [React Optimistic Updates](./examples#react-optimistic-updates)
