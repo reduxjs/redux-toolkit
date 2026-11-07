@@ -345,8 +345,14 @@ export type PatchCollection = {
   inversePatches: Patch[]
   /**
    * A function that will undo the cache update.
+   * With `ifUnchanged: true`, skips the undo if the cached data no longer
+   * matches the reference produced by this update. Defaults to false.
    */
-  undo: () => void
+  undo: {
+    // Preserve use as a callback, such as queryFulfilled.catch(undo).
+    (): void
+    (options?: { ifUnchanged?: boolean }): void
+  }
 }
 
 type TransformCallback = (
@@ -470,17 +476,30 @@ export function buildThunks<
   const updateQueryData: UpdateQueryDataThunk<EndpointDefinitions, State> =
     (endpointName, arg, updateRecipe, updateProvided = true) =>
     (dispatch, getState) => {
-      const endpointDefinition = api.endpoints[endpointName]
+      const select = api.endpoints[endpointName].select(arg)
 
-      const currentState = endpointDefinition.select(arg)(
+      const currentState = select(
         // Work around TS 4.1 mismatch
         getState() as ApiRootState<any, any, any>,
       )
 
+      let patchedData: unknown
       const ret: PatchCollection = {
         patches: [],
         inversePatches: [],
-        undo: () =>
+        undo: (options?: { ifUnchanged?: boolean }) => {
+          if (options?.ifUnchanged) {
+            const latestState = select(
+              getState() as ApiRootState<any, any, any>,
+            )
+            if (
+              ret.patches.length === 0 ||
+              latestState.status === STATUS_UNINITIALIZED ||
+              !Object.is(latestState.data, patchedData)
+            ) {
+              return
+            }
+          }
           dispatch(
             api.util.patchQueryData(
               endpointName,
@@ -488,23 +507,22 @@ export function buildThunks<
               ret.inversePatches,
               updateProvided,
             ),
-          ),
+          )
+        },
       }
       if (currentState.status === STATUS_UNINITIALIZED) {
         return ret
       }
-      let newValue
       if ('data' in currentState) {
         if (isDraftable(currentState.data)) {
-          const [value, patches, inversePatches] = produceWithPatches(
+          const [, patches, inversePatches] = produceWithPatches(
             currentState.data,
             updateRecipe,
           )
           ret.patches.push(...patches)
           ret.inversePatches.push(...inversePatches)
-          newValue = value
         } else {
-          newValue = updateRecipe(currentState.data)
+          const newValue = updateRecipe(currentState.data)
           ret.patches.push({ op: 'replace', path: [], value: newValue })
           ret.inversePatches.push({
             op: 'replace',
@@ -521,6 +539,8 @@ export function buildThunks<
       dispatch(
         api.util.patchQueryData(endpointName, arg, ret.patches, updateProvided),
       )
+      // Applying the patches creates a different reference than produceWithPatches.
+      patchedData = select(getState() as ApiRootState<any, any, any>).data
 
       return ret
     }
