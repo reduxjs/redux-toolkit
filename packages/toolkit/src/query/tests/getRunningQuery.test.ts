@@ -219,6 +219,7 @@ describe('initiate retainFor', () => {
   test('a shorter retainFor does not shorten a longer one', async () => {
     const ctx = setup({ keepUnusedDataFor: 1 })
     await fetchUnsubscribed(ctx, 10)
+    await vi.advanceTimersByTimeAsync(5000)
     await ctx.store.dispatch(
       ctx.api.endpoints.thing.initiate(1, { subscribe: false, retainFor: 2 }),
     )
