@@ -123,13 +123,15 @@ const enhancedApi = api
   .enhanceEndpoint('patchUserByUserId', {
     invalidatesTags: ['User'],
   })
-  // alternatively, pass a function which is called with the endpoint definition as an argument
+  // alternatively, pass a function which is called with the endpoint definition
+  // as an argument, and returns only the fields to change
   .enhanceEndpoint('getUsers', (definition) => ({
-    ...definition,
     providesTags: ['User'],
-    keepUnusedDataFor: 120,
+    keepUnusedDataFor: (definition.keepUnusedDataFor ?? 60) * 2,
   }))
 ```
+
+The callback does not need to spread the existing definition into its return value. Only the returned fields are merged into the definition, and all other fields are kept.
 
 The result type of an endpoint can only be changed by passing the new result type as an explicit type argument, together with a matching `transformResponse`:
 

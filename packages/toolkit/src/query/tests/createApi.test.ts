@@ -661,12 +661,10 @@ describe('endpoint definition typings', () => {
             providesTags: ['missing'],
           })
 
-        storeRef.store.dispatch(enhanced.endpoints.query1.initiate('in1'))
-        await delay(1)
+        await storeRef.store.dispatch(enhanced.endpoints.query1.initiate('in1'))
         expect(consoleErrorSpy).not.toHaveBeenCalled()
 
-        storeRef.store.dispatch(enhanced.endpoints.query2.initiate('in2'))
-        await delay(1)
+        await storeRef.store.dispatch(enhanced.endpoints.query2.initiate('in2'))
         expect(consoleErrorSpy).toHaveBeenCalledOnce()
         expect(consoleErrorSpy).toHaveBeenLastCalledWith(
           "Tag type 'missing' was used, but not specified in `tagTypes`!",
@@ -821,7 +819,10 @@ describe('endpoint definition typings', () => {
           withoutTestLifecycles: true,
         })
 
-        api.enhanceEndpoint('query1', { query: () => 'enhanced' })
+        api.enhanceEndpoint('query1', (definition) => {
+          const previousQuery = definition.query!
+          return { query: (arg) => `${previousQuery(arg)}-enhanced` }
+        })
 
         api.injectEndpoints({
           endpoints: (build) => ({
@@ -832,7 +833,9 @@ describe('endpoint definition typings', () => {
 
         storeRef.store.dispatch(api.endpoints.query1.initiate('in1'))
 
-        expect(baseQuery.mock.calls.map(([arg]) => arg)).toEqual(['enhanced'])
+        expect(baseQuery.mock.calls.map(([arg]) => arg)).toEqual([
+          'overridden-enhanced',
+        ])
       })
 
       test('can change the result type with transformResponse', async () => {
