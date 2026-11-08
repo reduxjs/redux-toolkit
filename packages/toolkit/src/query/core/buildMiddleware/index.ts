@@ -133,6 +133,11 @@ export function buildMiddleware<
             arg.queryCacheKey,
             requestId,
             isUpsertQuery(arg),
+            arg.startReason === 'nextPage'
+              ? 'forward'
+              : arg.startReason === 'previousPage'
+                ? 'backward'
+                : undefined,
           )
         } else if (
           queryThunk.fulfilled.match(action) ||

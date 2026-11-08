@@ -737,6 +737,7 @@ export const coreModule = ({
       buildInitiateQuery,
       buildInitiateInfiniteQuery,
       buildInitiateMutation,
+      buildGetRunningQuery,
       getRunningMutationThunk,
       getRunningMutationsThunk,
       getRunningQueriesThunk,
@@ -789,11 +790,15 @@ export const coreModule = ({
 
         if (isQueryDefinition(definition)) {
           safeAssign(
-            endpoint,
+            endpoint as ApiEndpointQuery<any, any>,
             {
               name: endpointName,
               select: buildQuerySelector(endpointName, definition),
               initiate: buildInitiateQuery(endpointName, definition),
+              getRunningQuery: buildGetRunningQuery(
+                endpointName,
+                definition,
+              ) as BuildInitiateApiEndpointQuery<any>['getRunningQuery'],
             },
             buildMatchThunkActions(queryThunk, endpointName),
           )
@@ -819,6 +824,12 @@ export const coreModule = ({
             },
             buildMatchThunkActions(queryThunk, endpointName),
           )
+          safeAssign(endpoint as ApiEndpointInfiniteQuery<any, any>, {
+            getRunningQuery: buildGetRunningQuery(
+              endpointName,
+              definition,
+            ) as BuildInitiateApiEndpointInfiniteQuery<any>['getRunningQuery'],
+          })
         }
       },
     }

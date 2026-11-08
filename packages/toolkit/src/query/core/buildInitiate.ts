@@ -66,12 +66,45 @@ export type BuildInitiateApiEndpointQuery<
   Definition extends QueryDefinition<any, any, any, any, any>,
 > = {
   initiate: StartQueryActionCreator<Definition>
+  /**
+   * A thunk that returns the running request for `arg` in the store it is
+   * dispatched to, or `undefined` when nothing is running for that cache
+   * entry. Awaiting the result waits for that request, whether a hook,
+   * `initiate`, polling, or a tag invalidation started it.
+   *
+   * @example
+   * ```ts
+   * const running = dispatch(api.endpoints.getPost.getRunningQuery(id))
+   * if (running) await running
+   * ```
+   */
+  getRunningQuery: (
+    arg: QueryArgFrom<Definition>,
+  ) => ThunkAction<
+    QueryActionCreatorResult<Definition> | undefined,
+    any,
+    any,
+    UnknownAction
+  >
 }
 
 export type BuildInitiateApiEndpointInfiniteQuery<
   Definition extends InfiniteQueryDefinition<any, any, any, any, any>,
 > = {
   initiate: StartInfiniteQueryActionCreator<Definition>
+  /**
+   * A thunk that returns the running request for `arg` in the store it is
+   * dispatched to, or `undefined` when nothing is running for that cache
+   * entry.
+   */
+  getRunningQuery: (
+    arg: InfiniteQueryArgFrom<Definition>,
+  ) => ThunkAction<
+    InfiniteQueryActionCreatorResult<Definition> | undefined,
+    any,
+    any,
+    UnknownAction
+  >
 }
 
 export type BuildInitiateApiEndpointMutation<
@@ -90,6 +123,17 @@ export type StartQueryActionCreatorOptions = {
   subscribe?: boolean
   forceRefetch?: boolean | number
   subscriptionOptions?: SubscriptionOptions
+  /**
+   * Keeps the cache entry for at least this many seconds after its last
+   * subscriber leaves, or after this request settles when nothing
+   * subscribes. The entry is kept for `max(keepUnusedDataFor, retainFor)`.
+   * Values under 1 second are raised to 1 second.
+   *
+   * Useful for `subscribe: false` prefetches, which would otherwise be
+   * removed after `keepUnusedDataFor` even if a component is about to
+   * subscribe.
+   */
+  retainFor?: number
   [forceQueryFnSymbol]?: () => QueryReturnValue
   [startReasonSymbol]?: QueryStartReason
 }
@@ -334,6 +378,7 @@ export function buildInitiate({
     buildInitiateQuery,
     buildInitiateInfiniteQuery,
     buildInitiateMutation,
+    buildGetRunningQuery,
     getRunningQueryThunk,
     getRunningMutationThunk,
     getRunningQueriesThunk,
@@ -353,6 +398,30 @@ export function buildInitiate({
         | InfiniteQueryActionCreatorResult<never>
         | undefined
     }
+  }
+
+  function buildGetRunningQuery(
+    endpointName: string,
+    endpointDefinition:
+      | QueryDefinition<any, any, any, any>
+      | InfiniteQueryDefinition<any, any, any, any, any>,
+  ) {
+    return (
+      arg: unknown,
+    ): ThunkAction<RunningQuery | undefined, unknown, unknown, UnknownAction> =>
+      (dispatch, getState) => {
+        const runtime = getRuntime(dispatch)
+        if (!runtime || arg === skipToken) return undefined
+        const queryCacheKey = serializeQueryArgs({
+          queryArgs: arg,
+          endpointDefinition,
+          endpointName,
+        })
+        const entry = (
+          getState() as ApiRootState<EndpointDefinitions, string, string>
+        )[api.reducerPath]?.queries[queryCacheKey]
+        return findRunningRequest(runtime, queryCacheKey, entry)?.promise
+      }
   }
 
   function getRunningMutationThunk(
