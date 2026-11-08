@@ -193,6 +193,41 @@ describe('initiate retainFor', () => {
     expect((await promise).data).toBe(2)
   })
 
+  test('does not remove an entry while its retainFor request is running', async () => {
+    const ctx = setup({ keepUnusedDataFor: 0 })
+    const promise = ctx.store.dispatch(
+      ctx.api.endpoints.thing.initiate(1, { subscribe: false, retainFor: 2 }),
+    )
+    await vi.advanceTimersByTimeAsync(5000)
+    expect(ctx.hasEntry(1)).toBe(true)
+
+    ctx.resolveAll()
+    expect((await promise).data).toBe(1)
+    await vi.advanceTimersByTimeAsync(1900)
+    expect(ctx.hasEntry(1)).toBe(true)
+    await vi.advanceTimersByTimeAsync(200)
+    expect(ctx.hasEntry(1)).toBe(false)
+  })
+
+  test('retainFor Infinity keeps the entry', async () => {
+    const ctx = setup({ keepUnusedDataFor: 1 })
+    await fetchUnsubscribed(ctx, Infinity)
+    await vi.advanceTimersByTimeAsync(60_000)
+    expect(ctx.hasEntry(1)).toBe(true)
+  })
+
+  test('a shorter retainFor does not shorten a longer one', async () => {
+    const ctx = setup({ keepUnusedDataFor: 1 })
+    await fetchUnsubscribed(ctx, 10)
+    await ctx.store.dispatch(
+      ctx.api.endpoints.thing.initiate(1, { subscribe: false, retainFor: 2 }),
+    )
+    await vi.advanceTimersByTimeAsync(9900)
+    expect(ctx.hasEntry(1)).toBe(true)
+    await vi.advanceTimersByTimeAsync(200)
+    expect(ctx.hasEntry(1)).toBe(false)
+  })
+
   test('a cache hit without retainFor does not restart the removal timer', async () => {
     const ctx = setup({ keepUnusedDataFor: 1 })
     await fetchUnsubscribed(ctx)
@@ -256,6 +291,24 @@ describe('infinite query direction joins', () => {
     ).toEqual([-1, 0])
 
     for (const sub of [first, previous, sameDirection, next]) sub.unsubscribe()
+    warn.mockRestore()
+  })
+
+  test('does not warn when a page fetch joins an initial load that had a direction', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { api, store, resolveAll } = setup()
+
+    const first = store.dispatch(
+      api.endpoints.pages.initiate(1, { direction: 'forward' }),
+    )
+    const previous = store.dispatch(
+      api.endpoints.pages.initiate(1, { direction: 'backward' }),
+    )
+    expect(warn).not.toHaveBeenCalled()
+
+    resolveAll()
+    await Promise.all([first, previous])
+    for (const sub of [first, previous]) sub.unsubscribe()
     warn.mockRestore()
   })
 

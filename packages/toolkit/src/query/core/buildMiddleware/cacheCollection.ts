@@ -95,16 +95,18 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
     const config = selectConfig(state)
 
     if (
-      (queryThunk.pending.match(action) || queryThunk.rejected.match(action)) &&
+      (queryThunk.pending.match(action) ||
+        (queryThunk.rejected.match(action) && action.meta.condition)) &&
       action.meta.arg.retainFor
     ) {
       const { queryCacheKey, retainFor } = action.meta.arg
       if (selectQueryEntry(state, queryCacheKey)) {
         retainRecord(runtime, queryCacheKey, retainFor)
-        // A started, cached or joined request does not reach the unsubscribe
-        // handling below until it settles, so restart the removal timer for
-        // the new duration now
-        if (queryThunk.pending.match(action) || action.meta.condition) {
+        if (runtime.queries.get(queryCacheKey)?.request) {
+          // The running request's `fulfilled`/`rejected` arms the timer with
+          // the new duration; an older timer must not remove it mid-flight
+          clearRemovalTimer(runtime, queryCacheKey)
+        } else {
           handleUnsubscribeMany([queryCacheKey], mwApi, config)
         }
       }
@@ -164,14 +166,19 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
       context,
       endpointName,
     ) as QueryDefinition<any, any, any, any>
+    const configuredKeepUnusedDataFor =
+      endpointDefinition?.keepUnusedDataFor ?? config.keepUnusedDataFor
     const keepUnusedDataFor = Math.max(
-      endpointDefinition?.keepUnusedDataFor ?? config.keepUnusedDataFor,
+      configuredKeepUnusedDataFor,
       runtime.queries.get(queryCacheKey)?.retainFor ?? 0,
     )
 
     if (keepUnusedDataFor === Infinity) {
       // Hey, user said keep this forever!
-      releaseRetain(runtime, queryCacheKey)
+      clearRemovalTimer(runtime, queryCacheKey)
+      if (configuredKeepUnusedDataFor === Infinity) {
+        releaseRetain(runtime, queryCacheKey)
+      }
       return
     }
     // Prevent `setTimeout` timers from overflowing a 32-bit internal int, by
