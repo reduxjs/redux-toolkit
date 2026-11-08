@@ -405,8 +405,8 @@ describe('configuration', () => {
     baseBaseQuery.mockResolvedValue({ error: { status: 404 } })
 
     const baseQuery = retry(baseBaseQuery, {
-      retryCondition: (error: any, __, { attempt }) =>
-        attempt <= 5 && error.status >= 500,
+      retryCondition: (error, __, { attempt }) =>
+        attempt <= 5 && (error as { status: number }).status >= 500,
     })
     const api = createApi({
       baseQuery,
@@ -426,6 +426,38 @@ describe('configuration', () => {
     await loopTimers()
 
     expect(baseBaseQuery).toHaveBeenCalledTimes(1)
+  })
+
+  test('endpoint options set to undefined do not replace retry() options', async () => {
+    const baseBaseQuery = vi.fn<BaseQueryFn>()
+    baseBaseQuery.mockResolvedValue({ error: 'rejected' })
+
+    const baseQuery = retry(baseBaseQuery, {
+      retryCondition: (_, __, { attempt }) => attempt <= 5,
+    })
+    const api = createApi({
+      baseQuery,
+      endpoints: (build) => ({
+        q1: build.query({
+          query: () => {},
+          extraOptions: {
+            maxRetries: 1,
+            retryCondition: undefined,
+            backoff: undefined,
+          },
+        }),
+      }),
+    })
+
+    const storeRef = setupApiStore(api, undefined, {
+      withoutTestLifecycles: true,
+    })
+    const promise = storeRef.store.dispatch(api.endpoints.q1.initiate({}))
+    await loopTimers()
+    const result = await promise
+
+    expect(result.error).toBe('rejected')
+    expect(baseBaseQuery).toHaveBeenCalledTimes(2)
   })
 
   test('retryCondition also works with mutations', async () => {
