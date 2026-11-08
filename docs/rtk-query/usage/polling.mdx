@@ -19,6 +19,8 @@ Polling continues while at least one subscriber for the query requests it, and s
 :::tip
 Polling additionally has the ability to skip sending requests while the window is out of focus. To enable this behavior, pass `skipPollingIfUnfocused: true` to the `useQuery` hook or action creator.
 
+When subscribers share a query, unfocused polling stops only if every subscriber with polling enabled sets `skipPollingIfUnfocused: true`. Subscribers without a polling interval do not affect this decision.
+
 _Note: `skipPollingIfUnfocused` requires [`setupListeners`](../api/setupListeners.mdx) to have been called._
 :::
 
