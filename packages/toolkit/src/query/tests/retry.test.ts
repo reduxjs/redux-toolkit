@@ -246,6 +246,36 @@ describe('configuration', () => {
     })
   })
 
+  test('calling retry.fail(error) in backoff exposes the error directly', async () => {
+    const error = { message: 'banana' }
+
+    const baseBaseQuery = vi.fn<BaseQueryFn>()
+    baseBaseQuery.mockResolvedValue({ error: 'rejected' })
+
+    const baseQuery = retry(baseBaseQuery, {
+      backoff: async () => {
+        retry.fail(error)
+      },
+    })
+    const api = createApi({
+      baseQuery,
+      endpoints: (build) => ({
+        q1: build.query({
+          query: () => {},
+        }),
+      }),
+    })
+
+    const storeRef = setupApiStore(api, undefined, {
+      withoutTestLifecycles: true,
+    })
+
+    const result = await storeRef.store.dispatch(api.endpoints.q1.initiate({}))
+
+    expect(baseBaseQuery).toHaveBeenCalledOnce()
+    expect(result.error).toEqual(error)
+  })
+
   test('wrapping retry(retry(..., { maxRetries: 3 }), { maxRetries: 3 }) should retry 16 times', async () => {
     /**
      * Note:

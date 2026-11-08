@@ -193,9 +193,15 @@ const retryWithBackoff: BaseQueryEnhancer<
 
       try {
         await options.backoff(retry, options.maxRetries, api.signal)
-      } catch (backoffError) {
+      } catch (backoffError: any) {
         // If backoff was aborted, exit the retry loop
         failIfAborted(api.signal)
+        if (
+          backoffError.throwImmediately &&
+          backoffError instanceof HandledError
+        ) {
+          return backoffError.value
+        }
         // Otherwise, rethrow the backoff error
         throw backoffError
       }
