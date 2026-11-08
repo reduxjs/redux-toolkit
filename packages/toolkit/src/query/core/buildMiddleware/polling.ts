@@ -80,12 +80,15 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
 
     if (!pendingPollingUpdates.timer) {
       pendingPollingUpdates.timer = setTimeout(() => {
-        // Process all pending updates in a single batch
-        for (const key of pendingPollingUpdates.keys) {
-          updatePollingInterval({ queryCacheKey: key as any }, api)
+        try {
+          // Process all pending updates in a single batch
+          for (const key of pendingPollingUpdates.keys) {
+            updatePollingInterval({ queryCacheKey: key as any }, api)
+          }
+        } finally {
+          pendingPollingUpdates.keys.clear()
+          pendingPollingUpdates.timer = undefined
         }
-        pendingPollingUpdates.keys.clear()
-        pendingPollingUpdates.timer = undefined
       }, 0)
     }
   }
@@ -218,7 +221,8 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
     clearPoll(runtime, key)
   }
 
-  // Does not call polling interval functions, so a function counts as polling
+  // Does not call polling interval functions, so a function counts as polling.
+  // Its `skipPollingIfUnfocused` only applies if its last result was a poll.
   function findPollingSubscribers(
     subscribers: SubscribersInternal = new Map(),
   ) {
@@ -226,11 +230,17 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
     let skipPollingIfUnfocused = false
 
     for (const entry of subscribers.values()) {
-      if (
-        typeof entry.pollingInterval === 'function' ||
-        isPositiveInterval(entry.pollingInterval)
-      ) {
+      const { pollingInterval } = entry
+      let isPolling: boolean
+      if (typeof pollingInterval === 'function') {
         hasPollingSubscriber = true
+        const previous = pollingIntervalResults.get(pollingInterval)
+        isPolling = !previous || isPositiveInterval(previous.result)
+      } else {
+        isPolling = isPositiveInterval(pollingInterval)
+        hasPollingSubscriber ||= isPolling
+      }
+      if (isPolling) {
         skipPollingIfUnfocused ||= !!entry.skipPollingIfUnfocused
       }
     }
@@ -275,7 +285,18 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
     if (previous?.querySubState === querySubState) {
       return previous.result
     }
-    const result = pollingInterval({ ...querySubState, queryCacheKey })
+    let result: number
+    try {
+      result = pollingInterval({ ...querySubState, queryCacheKey })
+    } catch (error) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.error(
+          `Error in pollingInterval function for "${queryCacheKey}". Polling is skipped for this subscriber until the cache entry changes.`,
+          error,
+        )
+      }
+      result = 0
+    }
     pollingIntervalResults.set(pollingInterval, { querySubState, result })
     return result
   }

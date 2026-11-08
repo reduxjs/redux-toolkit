@@ -926,6 +926,69 @@ describe('poll scheduling', () => {
       subscription.unsubscribe()
     })
 
+    it('treats a throwing function as no poll without breaking other polls', async () => {
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const { api, store, requests } = makePollApi()
+      const throwing = () => {
+        throw new Error('boom')
+      }
+
+      const a = store.dispatch(
+        api.endpoints.getThing.initiate('a', {
+          subscriptionOptions: { pollingInterval: throwing },
+        }),
+      )
+      await expect(a).resolves.toMatchObject({ data: 'data-a-1' })
+      expect(errorSpy).toHaveBeenCalledOnce()
+
+      const b = store.dispatch(
+        api.endpoints.getThing.initiate('b', {
+          subscriptionOptions: { pollingInterval: 0 },
+        }),
+      )
+      await vi.advanceTimersByTimeAsync(0)
+
+      // Throws inside the batched update for 'a'
+      a.updateSubscriptionOptions({ pollingInterval: () => throwing() })
+      await vi.advanceTimersByTimeAsync(0)
+      expect(errorSpy).toHaveBeenCalledTimes(2)
+
+      b.updateSubscriptionOptions({ pollingInterval: 20 })
+      await vi.advanceTimersByTimeAsync(25)
+      expect(requests).toEqual(['a', 'b', 'b'])
+
+      a.unsubscribe()
+      b.unsubscribe()
+      errorSpy.mockRestore()
+    })
+
+    it('ignores skipPollingIfUnfocused from a function whose last result stopped polling', async () => {
+      const { api, store, requests } = makePollApi()
+
+      const polling = store.dispatch(
+        api.endpoints.getThing.initiate('a', {
+          subscriptionOptions: { pollingInterval: 20 },
+        }),
+      )
+      const stopped = store.dispatch(
+        api.endpoints.getThing.initiate('a', {
+          subscriptionOptions: {
+            pollingInterval: () => 0,
+            skipPollingIfUnfocused: true,
+          },
+        }),
+      )
+      await vi.advanceTimersByTimeAsync(0)
+      expect(requests).toEqual(['a'])
+
+      store.dispatch(api.internalActions.onFocusLost())
+      await vi.advanceTimersByTimeAsync(25)
+      expect(requests).toEqual(['a', 'a'])
+
+      polling.unsubscribe()
+      stopped.unsubscribe()
+    })
+
     it('does not trigger serializability warnings', async () => {
       const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
       const api = createApi({

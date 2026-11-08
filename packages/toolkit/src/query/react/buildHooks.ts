@@ -1555,22 +1555,45 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
   ) => void = unstable__sideEffectsInRender ? (cb) => cb() : useEffect
 
   // Keeps the identity stable for an inline polling interval function, so a
-  // new function on each render does not update the subscription options
+  // new function on each render does not update the subscription options.
+  // While the last result stopped polling, a new function gets a new wrapper,
+  // so the middleware calls it again instead of waiting for the next request.
   function useStablePollingInterval(pollingInterval: PollingInterval) {
     const pollingIntervalRef = useRef(pollingInterval)
     usePossiblyImmediateEffect(() => {
       pollingIntervalRef.current = pollingInterval
     }, [pollingInterval])
-    const callLatestPollingInterval = useCallback(
-      (cacheEntry: QueryCacheEntry<QueryDefinition<any, any, any, any>>) => {
-        const current = pollingIntervalRef.current
-        return typeof current === 'function' ? current(cacheEntry) : current
-      },
-      [],
-    )
-    return typeof pollingInterval === 'function'
-      ? callLatestPollingInterval
-      : pollingInterval
+    const wrapperRef = useRef<{
+      call: (
+        cacheEntry: QueryCacheEntry<QueryDefinition<any, any, any, any>>,
+      ) => number
+      stopped: boolean
+    }>(undefined)
+
+    if (typeof pollingInterval !== 'function') {
+      return pollingInterval
+    }
+    if (
+      !wrapperRef.current ||
+      (wrapperRef.current.stopped &&
+        pollingInterval !== pollingIntervalRef.current)
+    ) {
+      const wrapper = {
+        stopped: false,
+        call: (
+          cacheEntry: QueryCacheEntry<QueryDefinition<any, any, any, any>>,
+        ) => {
+          const current = pollingIntervalRef.current
+          wrapper.stopped = true
+          const result =
+            typeof current === 'function' ? current(cacheEntry) : current
+          wrapper.stopped = !(typeof result === 'number' && result > 0)
+          return result
+        },
+      }
+      wrapperRef.current = wrapper
+    }
+    return wrapperRef.current.call
   }
 
   type UnsubscribePromiseRef = {
