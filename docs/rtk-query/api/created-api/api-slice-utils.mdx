@@ -13,7 +13,7 @@ The API slice object includes various utilities that can be used for cache manag
 such as implementing [optimistic updates](../../usage/manual-cache-updates.mdx#optimistic-updates),
 as well implementing [server side rendering](../../usage/server-side-rendering.mdx).
 
-These are included as `api.util` inside the API object.
+These are included as `api.util` inside the API object. The type of `api.util` is exported as `ApiUtil<Definitions, ReducerPath, TagTypes>`, where the type parameters match the endpoint definitions, `reducerPath`, and tag types of the API.
 
 :::info
 
