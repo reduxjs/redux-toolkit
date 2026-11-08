@@ -258,6 +258,22 @@ describe('initiate retainFor', () => {
     await vi.advanceTimersByTimeAsync(1100)
     expect(ctx.hasEntry(1)).toBe(false)
   })
+
+  test('a request still running at reset does not retain the next entry', async () => {
+    const ctx = setup({ keepUnusedDataFor: 1 })
+    const stale = ctx.store.dispatch(
+      ctx.api.endpoints.thing.initiate(1, { subscribe: false, retainFor: 5 }),
+    )
+    ctx.store.dispatch(ctx.api.util.resetApiState())
+    const fresh = ctx.store.dispatch(
+      ctx.api.endpoints.thing.initiate(1, { subscribe: false }),
+    )
+    ctx.resolveAll()
+    await Promise.all([stale, fresh])
+
+    await vi.advanceTimersByTimeAsync(1100)
+    expect(ctx.hasEntry(1)).toBe(false)
+  })
 })
 
 describe('infinite query direction joins', () => {
