@@ -97,6 +97,7 @@ export const { useGetPokemonByNameQuery } = pokemonApi
   - `type` - Type of request (`query` or `mutation`).
   - `forced` - Indicates if a query has been forced.
   - `queryCacheKey`- The computed query cache key.
+  - `startReason` - Queries only: why this request started. See [`QueryStartReason`](#querystartreason).
 - `extraOptions` - The value of the optional `extraOptions` property provided for a given endpoint
 
 #### baseQuery function signature
@@ -123,6 +124,8 @@ export interface BaseQueryApi {
   endpoint: string
   type: 'query' | 'mutation'
   forced?: boolean
+  queryCacheKey?: string
+  startReason?: QueryStartReason
 }
 
 export type QueryReturnValue<T = unknown, E = unknown, M = unknown> =
@@ -617,6 +620,7 @@ export interface BaseQueryApi {
   - `signal` - An [`AbortSignal`](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal) object that may be used to abort DOM requests and/or read whether the request is aborted.
   - `dispatch` - The `store.dispatch` method for the corresponding Redux store
   - `getState` - A function that may be called to access the current store state
+  - `startReason` - Why this request started, for example `'invalidation'`. See [`QueryStartReason`](#querystartreason).
 - `extraOptions` - The value of the optional `extraOptions` property provided for the endpoint
 - `baseQuery` - The `baseQuery` function provided to the api itself
 
@@ -757,6 +761,7 @@ Can be used in `mutations` for [optimistic updates](../usage/manual-cache-update
   If the query fails, this Promise will reject with the error. This allows you to `await` for the query to finish.
 - `getCacheEntry` - A function that gets the current value of the cache entry.
 - `updateCachedData` _(query endpoints only)_ - A function that accepts a 'recipe' callback specifying how to update the data for the corresponding cache at the time it is called. This uses `immer` internally, and updates can be written 'mutably' while safely producing the next immutable state.
+- `startReason` _(query endpoints only)_ - Why this request started, for example `'initial'`, `'invalidation'` or `'poll'`. See [`QueryStartReason`](#querystartreason).
 
 ```ts title="Mutation onQueryStarted signature" no-transpile
 async function onQueryStarted(
@@ -783,6 +788,7 @@ async function onQueryStarted(
     queryFulfilled,
     getCacheEntry,
     updateCachedData, // available for query endpoints only
+    startReason, // available for query endpoints only
   }: QueryLifecycleApi,
 ): Promise<void>
 ```
@@ -848,6 +854,7 @@ Can be used for [streaming updates](../usage/streaming-updates.mdx).
   Note: If the cache entry is removed from the cache before any value has ever been resolved, this Promise will reject with `new Error('Promise never resolved before cacheEntryRemoved.')` to prevent memory leaks. You can just re-throw that error (or not handle it at all) - it will be caught outside of `cacheEntryAdded`.
 - `getCacheEntry` - A function that gets the current value of the cache entry.
 - `updateCachedData` _(query endpoints only)_ - A function that accepts a 'recipe' callback specifying how to update the data at the time it is called. This uses `immer` internally, and updates can be written 'mutably' while safely producing the next immutable state.
+- `startReason` _(query endpoints only)_ - Why the request that created this cache entry started, or `'upsert'` if `upsertQueryEntries` created it. See [`QueryStartReason`](#querystartreason).
 
 ```ts title="Mutation onCacheEntryAdded signature" no-transpile
 async function onCacheEntryAdded(
@@ -876,8 +883,47 @@ async function onCacheEntryAdded(
     cacheDataLoaded,
     getCacheEntry,
     updateCachedData, // available for query endpoints only
+    startReason, // available for query endpoints only
   }: QueryCacheLifecycleApi,
 ): Promise<void>
+```
+
+### `QueryStartReason`
+
+Query requests carry a `startReason` that says why the request started. It is available as `api.startReason` in `baseQuery` and `queryFn`, in `fetchBaseQuery`'s `prepareHeaders`, and in the `onQueryStarted` and `onCacheEntryAdded` lifecycle APIs of query and infinite query endpoints. Mutations do not have one.
+
+| Value            | The request started because                                                                                                                                     |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `'initial'`      | the cache entry had no data yet: the first subscription, a new argument, `initiate()`, `prefetch`, a lazy trigger, or a retry after an error that left no data  |
+| `'refetch'`      | the cache entry already had data and the request came from `refetch()`, `forceRefetch`, `refetchOnMountOrArgChange`, `prefetch` with `force`, or a lazy trigger |
+| `'invalidation'` | a tag the entry provides was invalidated                                                                                                                        |
+| `'poll'`         | the polling interval elapsed                                                                                                                                    |
+| `'focus'`        | the window regained focus and `refetchOnFocus` is enabled                                                                                                       |
+| `'reconnect'`    | the network reconnected and `refetchOnReconnect` is enabled                                                                                                     |
+| `'upsert'`       | `upsertQueryData` ran, or `upsertQueryEntries` created the entry                                                                                                |
+| `'hydrate'`      | reserved for entries created by hydration; not set yet                                                                                                          |
+| `'nextPage'`     | an infinite query that already has pages fetched its next page                                                                                                  |
+| `'previousPage'` | an infinite query that already has pages fetched its previous page                                                                                              |
+
+More values may be added in minor releases, so don't write an exhaustive `switch` over this type.
+
+A request that joins one already running for the same cache entry does not start a new request, so it gets no reason of its own.
+
+```ts title="Reading from the primary database after an invalidation"
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
+
+const api = createApi({
+  baseQuery: fetchBaseQuery({
+    baseUrl: '/',
+    prepareHeaders: (headers, { startReason }) => {
+      if (startReason === 'invalidation') {
+        headers.set('x-read-from-primary', 'true')
+      }
+      return headers
+    },
+  }),
+  endpoints: () => ({}),
+})
 ```
 
 ### Schema Validation

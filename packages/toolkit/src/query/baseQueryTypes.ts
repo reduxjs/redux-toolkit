@@ -1,6 +1,33 @@
 import type { ThunkDispatch } from '@reduxjs/toolkit'
 import type { MaybePromise, UnwrapPromise } from './tsHelpers'
 
+/**
+ * Why a query request started.
+ *
+ * - `'initial'`: the cache entry had no data yet (first subscription, a new arg, `initiate()`, `prefetch`, a lazy trigger, or a retry after an error that left no data)
+ * - `'refetch'`: the cache entry already had data and the request was started by `refetch()`, `forceRefetch`, `refetchOnMountOrArgChange`, `prefetch` with `force` or `ifOlderThan`, or a lazy trigger
+ * - `'invalidation'`: one of the entry's tags was invalidated
+ * - `'poll'`: the polling interval elapsed
+ * - `'focus'`: `refetchOnFocus`
+ * - `'reconnect'`: `refetchOnReconnect`
+ * - `'upsert'`: `upsertQueryData`, or `upsertQueryEntries` creating the entry
+ * - `'hydrate'`: reserved for entries created by hydration
+ * - `'nextPage'` / `'previousPage'`: `fetchNextPage()` / `fetchPreviousPage()` on an infinite query that already has pages
+ *
+ * More values may be added in minor releases.
+ */
+export type QueryStartReason =
+  | 'initial'
+  | 'refetch'
+  | 'invalidation'
+  | 'poll'
+  | 'focus'
+  | 'reconnect'
+  | 'upsert'
+  | 'hydrate'
+  | 'nextPage'
+  | 'previousPage'
+
 export interface BaseQueryApi {
   signal: AbortSignal
   abort: (reason?: string) => void
@@ -22,6 +49,11 @@ export interface BaseQueryApi {
    * Only available for queries: the cache key that was used to store the query result
    */
   queryCacheKey?: string
+  /**
+   * Only available for queries: why this request started, for example
+   * `'invalidation'` for a refetch caused by tag invalidation.
+   */
+  startReason?: QueryStartReason
 }
 
 export type QueryReturnValue<T = unknown, E = unknown, M = unknown> =

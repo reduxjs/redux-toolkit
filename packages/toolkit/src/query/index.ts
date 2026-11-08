@@ -25,6 +25,7 @@ export type {
   BaseQueryMeta,
   BaseQueryResult,
   QueryReturnValue,
+  QueryStartReason,
 } from './baseQueryTypes'
 export type {
   BaseEndpointDefinition,

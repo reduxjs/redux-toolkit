@@ -8,7 +8,11 @@ import type {
 import type { Dispatch } from 'redux'
 import { asSafePromise } from '../../tsHelpers'
 import { getEndpointDefinition, type Api, type ApiContext } from '../apiTypes'
-import type { BaseQueryError, QueryReturnValue } from '../baseQueryTypes'
+import type {
+  BaseQueryError,
+  QueryReturnValue,
+  QueryStartReason,
+} from '../baseQueryTypes'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import {
   ENDPOINT_QUERY,
@@ -80,11 +84,14 @@ export const forceQueryFnSymbol = Symbol('forceQueryFn')
 export const isUpsertQuery = (arg: QueryThunkArg) =>
   typeof arg[forceQueryFnSymbol] === 'function'
 
+export const startReasonSymbol = Symbol('startReason')
+
 export type StartQueryActionCreatorOptions = {
   subscribe?: boolean
   forceRefetch?: boolean | number
   subscriptionOptions?: SubscriptionOptions
   [forceQueryFnSymbol]?: () => QueryReturnValue
+  [startReasonSymbol]?: QueryStartReason
 }
 
 type RefetchOptions = {
@@ -392,6 +399,19 @@ You must add the middleware for RTK-Query to function correctly!`,
     }
   }
 
+  function getDefaultStartReason(
+    state: ApiRootState<EndpointDefinitions, string, string>,
+    queryCacheKey: QueryCacheKey,
+    direction: InfiniteQueryDirection | undefined,
+  ): QueryStartReason {
+    const data = state[api.reducerPath]?.queries[queryCacheKey]?.data
+    if (data === undefined) return 'initial'
+    if (direction && (data as InfiniteData<unknown, unknown>).pages?.length) {
+      return direction === 'backward' ? 'previousPage' : 'nextPage'
+    }
+    return 'refetch'
+  }
+
   function buildInitiateAnyQuery<T extends 'query' | 'infiniteQuery'>(
     endpointName: string,
     endpointDefinition:
@@ -406,6 +426,7 @@ You must add the middleware for RTK-Query to function correctly!`,
           forceRefetch,
           subscriptionOptions,
           [forceQueryFnSymbol]: forceQueryFn,
+          [startReasonSymbol]: explicitStartReason,
           ...rest
         }: StartQueryActionCreatorOptions = {},
       ) =>
@@ -436,6 +457,15 @@ You must add the middleware for RTK-Query to function correctly!`,
           endpointName,
           originalArgs: arg,
           queryCacheKey,
+          startReason:
+            explicitStartReason ??
+            (forceQueryFn
+              ? 'upsert'
+              : getDefaultStartReason(
+                  getState(),
+                  queryCacheKey,
+                  (rest as { direction?: InfiniteQueryDirection }).direction,
+                )),
           [forceQueryFnSymbol]: forceQueryFn,
         }
 
