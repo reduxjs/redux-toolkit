@@ -110,8 +110,11 @@ function check(
       add('unsubscribed entry with no gc timer and no request')
 
     const intervals = [...(record?.subscribers?.values() ?? [])]
-      .map((o) => o.pollingInterval ?? 0)
-      .filter((i) => i > 0 && Number.isFinite(i))
+      .map((o) => o.pollingInterval)
+      .filter(
+        (i): i is number =>
+          typeof i === 'number' && i > 0 && Number.isFinite(i),
+      )
     if (record?.poll && intervals.length === 0)
       add(
         `poll record with no polling subscriber (${record.subscribers ? 'subscribers map' : 'no subscribers map'}, entry ${entry?.status ?? 'missing'})`,

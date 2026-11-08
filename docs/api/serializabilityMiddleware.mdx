@@ -41,7 +41,7 @@ interface SerializableStateInvariantMiddlewareOptions {
   /**
    * An array of dot-separated path strings or regular expressions to ignore
    * when checking for serializability, Defaults to
-   * ['meta.arg', 'meta.baseQueryMeta']
+   * ['meta.arg', 'meta.baseQueryMeta', 'payload.options.pollingInterval']
    */
   ignoredActionPaths?: (string | RegExp)[]
 

@@ -295,7 +295,7 @@ type UseQuery = (
 ) => UseQueryResult
 
 type UseQueryOptions = {
-  pollingInterval?: number
+  pollingInterval?: number | ((cacheEntry: QueryCacheEntry) => number)
   skipPollingIfUnfocused?: boolean
   refetchOnReconnect?: boolean
   refetchOnFocus?: boolean
@@ -469,7 +469,7 @@ type InfiniteData<Data, PageParam> = {
 }
 
 type UseInfiniteQueryOptions = {
-  pollingInterval?: number
+  pollingInterval?: number | ((cacheEntry: QueryCacheEntry) => number)
   skipPollingIfUnfocused?: boolean
   refetchOnReconnect?: boolean
   refetchOnFocus?: boolean
@@ -570,7 +570,7 @@ type UseLazyQuery = (
 ) => [UseLazyQueryTrigger, UseLazyQueryStateResult, UseLazyQueryLastPromiseInfo]
 
 type UseLazyQueryOptions = {
-  pollingInterval?: number
+  pollingInterval?: number | ((cacheEntry: QueryCacheEntry) => number)
   skipPollingIfUnfocused?: boolean
   refetchOnReconnect?: boolean
   refetchOnFocus?: boolean
@@ -778,7 +778,7 @@ type UseQuerySubscription = (
 type UseQuerySubscriptionOptions = {
   skip?: boolean
   refetchOnMountOrArgChange?: boolean | number
-  pollingInterval?: number
+  pollingInterval?: number | ((cacheEntry: QueryCacheEntry) => number)
   skipPollingIfUnfocused?: boolean
   refetchOnReconnect?: boolean
   refetchOnFocus?: boolean
@@ -827,7 +827,7 @@ type UseInfiniteQuerySubscription = (
 type UseInfiniteQuerySubscriptionOptions = {
   skip?: boolean
   refetchOnMountOrArgChange?: boolean | number
-  pollingInterval?: number
+  pollingInterval?: number | ((cacheEntry: QueryCacheEntry) => number)
   skipPollingIfUnfocused?: boolean
   refetchOnReconnect?: boolean
   refetchOnFocus?: boolean
@@ -875,7 +875,7 @@ type UseLazyQuerySubscription = (
 ) => [UseLazyQuerySubscriptionTrigger, LastArg]
 
 type UseLazyQuerySubscriptionOptions = {
-  pollingInterval?: number
+  pollingInterval?: number | ((cacheEntry: QueryCacheEntry) => number)
   skipPollingIfUnfocused?: boolean
   refetchOnReconnect?: boolean
   refetchOnFocus?: boolean

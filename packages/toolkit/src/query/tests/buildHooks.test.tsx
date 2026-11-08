@@ -1474,6 +1474,67 @@ describe('hooks tests', () => {
         )
       })
     })
+
+    test('accepts an inline pollingInterval function without updating the subscription on every render', async () => {
+      const names: string[] = []
+      const { rerender } = renderHook(
+        ({ enabled }: { enabled: boolean }) =>
+          api.endpoints.getUser.useQuery(1, {
+            pollingInterval: (entry) => {
+              if (entry.data) names.push(entry.data.name)
+              return enabled ? 50 : 0
+            },
+          }),
+        {
+          wrapper: storeRef.wrapper,
+          initialProps: { enabled: true },
+        },
+      )
+      const countFetches = () =>
+        actions.filter(api.endpoints.getUser.matchPending).length
+
+      rerender({ enabled: true })
+      rerender({ enabled: true })
+
+      await waitFor(() => expect(names).toEqual(['Timmy', 'Timmy']))
+      expect(
+        actions.filter(api.internalActions.updateSubscriptionOptions.match),
+      ).toHaveLength(0)
+
+      // The latest function is used for the next schedule
+      rerender({ enabled: false })
+      await waitFor(() => expect(names.length).toBeGreaterThanOrEqual(3))
+      await waitMs(50)
+      const fetchesAfterStop = countFetches()
+      await waitMs(300)
+      expect(countFetches()).toBe(fetchesAfterStop)
+    })
+
+    test('restarts polling when an inline pollingInterval function that returned 0 starts returning an interval', async () => {
+      const { rerender } = renderHook(
+        ({ enabled }: { enabled: boolean }) =>
+          api.endpoints.getUser.useQuery(1, {
+            pollingInterval: () => (enabled ? 50 : 0),
+          }),
+        {
+          wrapper: storeRef.wrapper,
+          initialProps: { enabled: false },
+        },
+      )
+      const countFetches = () =>
+        actions.filter(api.endpoints.getUser.matchPending).length
+
+      await waitFor(() =>
+        expect(
+          storeRef.store.getState().api.queries['getUser(1)']?.status,
+        ).toBe('fulfilled'),
+      )
+      await waitMs(100)
+      expect(countFetches()).toBe(1)
+
+      rerender({ enabled: true })
+      await waitFor(() => expect(countFetches()).toBeGreaterThanOrEqual(3))
+    })
   })
 
   describe('useLazyQuery', () => {

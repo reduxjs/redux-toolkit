@@ -21,9 +21,11 @@ import type {
   MutationDefinition,
   MutationResultSelectorResult,
   PageParamFrom,
+  PollingInterval,
   PrefetchOptions,
   QueryActionCreatorResult,
   QueryArgFrom,
+  QueryCacheEntry,
   QueryCacheKey,
   QueryDefinition,
   QueryKeys,
@@ -125,7 +127,7 @@ export type UseQuery<D extends QueryDefinition<any, any, any, any>> = <
   R extends Record<string, any> = UseQueryStateDefaultResult<D>,
 >(
   arg: QueryArgFrom<D> | SkipToken,
-  options?: UseQuerySubscriptionOptions & UseQueryStateOptions<D, R>,
+  options?: UseQuerySubscriptionOptions<D> & UseQueryStateOptions<D, R>,
 ) => UseQueryHookResult<D, R>
 
 export type TypedUseQuery<
@@ -153,7 +155,14 @@ export type TypedUseQueryHookResult<
 > = TypedUseQueryStateResult<ResultType, QueryArg, BaseQuery, R> &
   TypedUseQuerySubscriptionResult<ResultType, QueryArg, BaseQuery>
 
-export type UseQuerySubscriptionOptions = SubscriptionOptions & {
+export type UseQuerySubscriptionOptions<
+  D extends QueryDefinition<any, any, any, any> = QueryDefinition<
+    any,
+    any,
+    any,
+    any
+  >,
+> = SubscriptionOptions<D> & {
   /**
    * Prevents a query from automatically running.
    *
@@ -228,7 +237,7 @@ export type UseQuerySubscription<
   D extends QueryDefinition<any, any, any, any>,
 > = (
   arg: QueryArgFrom<D> | SkipToken,
-  options?: UseQuerySubscriptionOptions,
+  options?: UseQuerySubscriptionOptions<D>,
 ) => UseQuerySubscriptionResult<D>
 
 export type TypedUseQuerySubscription<
@@ -283,7 +292,7 @@ export type UseLazyQueryLastPromiseInfo<
 export type UseLazyQuery<D extends QueryDefinition<any, any, any, any>> = <
   R extends Record<string, any> = UseQueryStateDefaultResult<D>,
 >(
-  options?: SubscriptionOptions & Omit<UseQueryStateOptions<D, R>, 'skip'>,
+  options?: SubscriptionOptions<D> & Omit<UseQueryStateOptions<D, R>, 'skip'>,
 ) => [
   LazyQueryTrigger<D>,
   UseLazyQueryStateResult<D, R>,
@@ -374,7 +383,7 @@ export type TypedLazyQueryTrigger<
 export type UseLazyQuerySubscription<
   D extends QueryDefinition<any, any, any, any>,
 > = (
-  options?: SubscriptionOptions,
+  options?: SubscriptionOptions<D>,
 ) => readonly [
   LazyQueryTrigger<D>,
   QueryArgFrom<D> | UninitializedValue,
@@ -850,7 +859,7 @@ export type TypedLazyInfiniteQueryTrigger<
 
 export type UseInfiniteQuerySubscriptionOptions<
   D extends InfiniteQueryDefinition<any, any, any, any, any>,
-> = SubscriptionOptions & {
+> = SubscriptionOptions<D> & {
   /**
    * Prevents a query from automatically running.
    *
@@ -1545,6 +1554,48 @@ export function buildHooks<Definitions extends EndpointDefinitions>({
     deps?: DependencyList,
   ) => void = unstable__sideEffectsInRender ? (cb) => cb() : useEffect
 
+  // Keeps the identity stable for an inline polling interval function, so a
+  // new function on each render does not update the subscription options.
+  // While the last result stopped polling, a new function gets a new wrapper,
+  // so the middleware calls it again instead of waiting for the next request.
+  function useStablePollingInterval(pollingInterval: PollingInterval) {
+    const pollingIntervalRef = useRef(pollingInterval)
+    usePossiblyImmediateEffect(() => {
+      pollingIntervalRef.current = pollingInterval
+    }, [pollingInterval])
+    const wrapperRef = useRef<{
+      call: (
+        cacheEntry: QueryCacheEntry<QueryDefinition<any, any, any, any>>,
+      ) => number
+      stopped: boolean
+    }>(undefined)
+
+    if (typeof pollingInterval !== 'function') {
+      return pollingInterval
+    }
+    if (
+      !wrapperRef.current ||
+      (wrapperRef.current.stopped &&
+        pollingInterval !== pollingIntervalRef.current)
+    ) {
+      const wrapper = {
+        stopped: false,
+        call: (
+          cacheEntry: QueryCacheEntry<QueryDefinition<any, any, any, any>>,
+        ) => {
+          const current = pollingIntervalRef.current
+          wrapper.stopped = true
+          const result =
+            typeof current === 'function' ? current(cacheEntry) : current
+          wrapper.stopped = !(typeof result === 'number' && result > 0)
+          return result
+        },
+      }
+      wrapperRef.current = wrapper
+    }
+    return wrapperRef.current.call
+  }
+
   type UnsubscribePromiseRef = {
     current: { unsubscribe?: () => void } | undefined
   }
@@ -1760,10 +1811,11 @@ If you replace the store passed to <Provider>, also give the Provider a \`key\` 
     }
 
     const stableArg = useStableQueryArgs(skip ? skipToken : arg)
+    const stablePollingInterval = useStablePollingInterval(pollingInterval)
     const stableSubscriptionOptions = useShallowStableValue({
       refetchOnReconnect,
       refetchOnFocus,
-      pollingInterval,
+      pollingInterval: stablePollingInterval,
       skipPollingIfUnfocused,
     })
 
@@ -1985,10 +2037,11 @@ If you replace the store passed to <Provider>, also give the Provider a \`key\` 
 
       const promiseRef = useRef<QueryActionCreatorResult<any>>(undefined)
 
+      const stablePollingInterval = useStablePollingInterval(pollingInterval)
       const stableSubscriptionOptions = useShallowStableValue({
         refetchOnReconnect,
         refetchOnFocus,
-        pollingInterval,
+        pollingInterval: stablePollingInterval,
         skipPollingIfUnfocused,
       })
 
