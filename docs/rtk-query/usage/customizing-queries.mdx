@@ -597,7 +597,7 @@ const baseQueryWithReauth: BaseQueryFn<
 
 ### Automatic retries
 
-RTK Query exports a utility called `retry` that you can wrap the `baseQuery` in your API definition with. It defaults to 5 attempts with a basic exponential backoff.
+RTK Query exports a utility called `retry` that you can wrap the `baseQuery` in your API definition with. It defaults to 5 retries after the first request, with a basic exponential backoff.
 
 The default behavior would retry at these intervals:
 
@@ -606,6 +606,8 @@ The default behavior would retry at these intervals:
 [examples](docblock://query/retry.ts?token=retry)
 
 In the event that you didn't want to retry on a specific endpoint, you can just set `maxRetries: 0`.
+
+Options in an endpoint's `extraOptions` override the ones passed to `retry`. If `retry` was given a `retryCondition` and an endpoint sets `maxRetries`, the endpoint's `maxRetries` caps the number of retries and `retry`'s `retryCondition` still decides which errors are retried. `maxRetries` does not count the first request, so `maxRetries: 1` makes at most 2 calls. A `retryCondition` only applies to errors returned by the base query; thrown errors are retried until `maxRetries` is reached.
 
 :::info
 It is possible for a hook to return `data` and `error` at the same time. By default, RTK Query will keep whatever the last 'good' result was in `data` until it can be updated or garbage collected.
