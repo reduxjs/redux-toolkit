@@ -82,6 +82,7 @@ describe('type tests', () => {
   })
 
   it('should allow assigning api.util to a plain record type', () => {
+    expectTypeOf(api.util).not.toBeAny()
     expectTypeOf(api.util).toExtend<Record<string, unknown>>()
   })
 })
