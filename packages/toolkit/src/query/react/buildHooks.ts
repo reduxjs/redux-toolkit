@@ -358,7 +358,7 @@ export type LazyQueryTrigger<D extends QueryDefinition<any, any, any, any>> = {
    */
   (
     arg: QueryArgFrom<D>,
-    options?: boolean | { maxAge?: number; preferCacheValue?: boolean },
+    options?: boolean | { maxAge: number },
   ): QueryActionCreatorResult<D>
 }
 
@@ -2073,10 +2073,6 @@ If you replace the store passed to <Provider>, also give the Provider a \`key\` 
           options: Parameters<LazyQueryTrigger<any>>[1] = false,
         ) {
           let promise: QueryActionCreatorResult<any>
-          const preferCacheValue =
-            typeof options === 'boolean'
-              ? options
-              : (options.preferCacheValue ?? false)
           const maxAge =
             typeof options === 'boolean' ? undefined : options.maxAge
 
@@ -2086,7 +2082,7 @@ If you replace the store passed to <Provider>, also give the Provider a \`key\` 
             promiseRef.current = promise = dispatch(
               initiate(arg, {
                 subscriptionOptions: subscriptionOptionsRef.current,
-                forceRefetch: maxAge === undefined && !preferCacheValue,
+                forceRefetch: typeof options === 'boolean' && !options,
                 maxAge,
               }),
             )

@@ -578,8 +578,7 @@ type UseLazyQueryOptions = {
 }
 
 type UseLazyQueryTrigger<T> = (arg: any, options?: boolean | {
-  maxAge?: number
-  preferCacheValue?: boolean
+  maxAge: number
 }) => Promise<
   QueryResultSelectorResult
 > & {

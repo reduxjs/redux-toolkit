@@ -1,9 +1,7 @@
-import { configureStore } from '@reduxjs/toolkit'
+import { setupApiStore } from '@internal/tests/utils/helpers'
 import { createApi } from '@reduxjs/toolkit/query/react'
-import { act, cleanup, renderHook } from '@testing-library/react'
-import * as React from 'react'
-import type { PropsWithChildren } from 'react'
-import { Provider } from 'react-redux'
+import type { PrefetchOptions } from '@reduxjs/toolkit/query/react'
+import { act, renderHook } from '@testing-library/react'
 
 describe('maxAge in query hooks', () => {
   const baseQuery = vi.fn((arg: number) => ({ data: arg }))
@@ -13,14 +11,7 @@ describe('maxAge in query hooks', () => {
       getValue: build.query<number, number>({ query: (arg) => arg }),
     }),
   })
-  const store = configureStore({
-    reducer: { [api.reducerPath]: api.reducer },
-    middleware: (getDefaultMiddleware) =>
-      getDefaultMiddleware().concat(api.middleware),
-  })
-  const wrapper = ({ children }: PropsWithChildren) => (
-    <Provider store={store}>{children}</Provider>
-  )
+  const storeRef = setupApiStore(api, undefined, { withoutListeners: true })
 
   beforeEach(() => {
     vi.useFakeTimers()
@@ -29,8 +20,6 @@ describe('maxAge in query hooks', () => {
   })
 
   afterEach(() => {
-    cleanup()
-    store.dispatch(api.util.resetApiState())
     vi.useRealTimers()
   })
 
@@ -38,7 +27,7 @@ describe('maxAge in query hooks', () => {
     '%s reuses fresh data and refetches at the maxAge boundary',
     async (hook) => {
       const { result } = renderHook(() => api.endpoints.getValue[hook](), {
-        wrapper,
+        wrapper: storeRef.wrapper,
       })
 
       await act(async () => {
@@ -59,83 +48,65 @@ describe('maxAge in query hooks', () => {
       expect(baseQuery).toHaveBeenCalledTimes(2)
 
       await act(async () => {
-        await result.current[0](1, { maxAge: 0, preferCacheValue: true })
+        await result.current[0](1, { maxAge: 0 })
       })
       expect(baseQuery).toHaveBeenCalledTimes(3)
     },
   )
 
-  test('keeps boolean lazy-trigger arguments and supports preferCacheValue in an options object', async () => {
+  test('keeps boolean lazy-trigger arguments', async () => {
     const { result } = renderHook(() => api.endpoints.getValue.useLazyQuery(), {
-      wrapper,
+      wrapper: storeRef.wrapper,
     })
 
-    for (const options of [undefined, false, {}]) {
+    for (const options of [undefined, false]) {
       await act(async () => {
         await result.current[0](1, options)
       })
     }
-    expect(baseQuery).toHaveBeenCalledTimes(3)
+    expect(baseQuery).toHaveBeenCalledTimes(2)
 
-    for (const options of [true, { preferCacheValue: true }]) {
-      await act(async () => {
-        await result.current[0](1, options)
-      })
-    }
-    expect(baseQuery).toHaveBeenCalledTimes(3)
+    await act(async () => {
+      await result.current[0](1, true)
+    })
+    expect(baseQuery).toHaveBeenCalledTimes(2)
   })
 
   test('usePrefetch accepts maxAge defaults and call-site overrides', async () => {
     const { result } = renderHook(
       () => api.usePrefetch('getValue', { maxAge: 10 }),
-      { wrapper },
+      { wrapper: storeRef.wrapper },
     )
-    const settle = () =>
-      Promise.all(store.dispatch(api.util.getRunningQueriesThunk()))
+    const prefetch = (options?: PrefetchOptions) =>
+      act(async () => {
+        result.current(1, options)
+        await Promise.all(
+          storeRef.store.dispatch(api.util.getRunningQueriesThunk()),
+        )
+      })
 
-    await act(async () => {
-      result.current(1)
-      await settle()
-    })
+    await prefetch()
     expect(baseQuery).toHaveBeenCalledTimes(1)
 
     vi.setSystemTime(Date.now() + 9999)
-    await act(async () => {
-      result.current(1)
-      await settle()
-    })
+    await prefetch()
     expect(baseQuery).toHaveBeenCalledTimes(1)
 
     vi.setSystemTime(Date.now() + 1)
-    await act(async () => {
-      result.current(1)
-      await settle()
-    })
+    await prefetch()
     expect(baseQuery).toHaveBeenCalledTimes(2)
 
-    await act(async () => {
-      result.current(1, { maxAge: 0 })
-      await settle()
-    })
+    await prefetch({ maxAge: 0 })
     expect(baseQuery).toHaveBeenCalledTimes(3)
 
-    await act(async () => {
-      result.current(1, { force: true })
-      await settle()
-    })
+    await prefetch({ force: true })
     expect(baseQuery).toHaveBeenCalledTimes(4)
 
     vi.setSystemTime(Date.now() + 1000)
-    await act(async () => {
-      result.current(1, { ifOlderThan: 0.5 })
-      await settle()
-    })
+    await prefetch({ ifOlderThan: 0.5 })
     expect(baseQuery).toHaveBeenCalledTimes(5)
 
-    await act(async () => {
-      result.current(1, { maxAge: 10, ifOlderThan: 0.5 })
-      await settle()
-    })
+    await prefetch({ maxAge: 10, ifOlderThan: 0.5 })
     expect(baseQuery).toHaveBeenCalledTimes(5)
   })
 })

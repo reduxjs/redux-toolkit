@@ -1144,7 +1144,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
         dispatch(queryAction())
       } else if (maxAge !== undefined) {
         const lastFulfilledTs = latestStateValue?.fulfilledTimeStamp
-        if (lastFulfilledTs === undefined) {
+        if (!lastFulfilledTs) {
           dispatch(queryAction())
           return
         }

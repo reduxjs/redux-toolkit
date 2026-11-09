@@ -55,8 +55,6 @@ describe('type tests', () => {
     api.util.prefetch('getBanana', 5, { force: false })
     api.util.prefetch('getBanana', 5, { ifOlderThan: false })
     api.util.prefetch('getBanana', 5, { ifOlderThan: 30 })
-    api.util.prefetch('getBanana', 5, { maxAge: 30 })
-    api.util.prefetch('getBanana', 5, { maxAge: 0, force: true })
     api.util.prefetch('getBanana', 5, {})
   })
 
@@ -70,30 +68,12 @@ describe('type tests', () => {
     api.util.prefetch('getBananas', undefined, { force: false })
     api.util.prefetch('getBananas', undefined, { ifOlderThan: false })
     api.util.prefetch('getBananas', undefined, { ifOlderThan: 30 })
-    api.util.prefetch('getBananas', undefined, { maxAge: 30 })
     api.util.prefetch('getBananas', undefined, {})
   })
 
   it('should error when pre-fetching with a defined arg when expecting void', () => {
     // @ts-expect-error arg should be void, not number
     api.util.prefetch('getBananas', 5, { force: true })
-  })
-
-  it('should require a numeric maxAge', () => {
-    // @ts-expect-error maxAge is measured in seconds
-    api.util.prefetch('getBanana', 5, { maxAge: true })
-    // @ts-expect-error maxAge is measured in seconds
-    api.endpoints.getBanana.initiate(5, { maxAge: '30' })
-  })
-
-  it('should allow maxAge on initiate', () => {
-    api.endpoints.getBanana.initiate(5, { maxAge: 30 })
-    api.endpoints.getBanana.initiate(5, { maxAge: 0 })
-    api.endpoints.getBanana.initiate(5, {
-      maxAge: 30,
-      forceRefetch: true,
-      subscribe: false,
-    })
   })
 
   it('should error when pre-fetching for an incorrect endpoint name', () => {

@@ -1,7 +1,9 @@
-import { configureStore } from '@reduxjs/toolkit'
+import { setupApiStore } from '@internal/tests/utils/helpers'
 import { createApi } from '@reduxjs/toolkit/query'
-import type { PrefetchOptions } from '../core/module'
-import type { StartQueryActionCreatorOptions } from '../core/buildInitiate'
+import type {
+  PrefetchOptions,
+  StartQueryActionCreatorOptions,
+} from '@reduxjs/toolkit/query'
 
 describe('call-site maxAge', () => {
   const baseQuery = vi.fn((arg: number) => ({ data: arg }))
@@ -12,16 +14,14 @@ describe('call-site maxAge', () => {
       getValue: build.query<number, number>({ query: (arg) => arg }),
     }),
   })
-  const store = configureStore({
-    reducer: { [api.reducerPath]: api.reducer },
-    middleware: (getDefaultMiddleware) =>
-      getDefaultMiddleware().concat(api.middleware),
-  })
+  const storeRef = setupApiStore(api, undefined, { withoutListeners: true })
   const initiate = (options?: StartQueryActionCreatorOptions) =>
-    store.dispatch(api.endpoints.getValue.initiate(1, options))
+    storeRef.store.dispatch(api.endpoints.getValue.initiate(1, options))
   const prefetch = async (options?: PrefetchOptions) => {
-    store.dispatch(api.util.prefetch('getValue', 1, options))
-    await Promise.all(store.dispatch(api.util.getRunningQueriesThunk()))
+    storeRef.store.dispatch(api.util.prefetch('getValue', 1, options))
+    await Promise.all(
+      storeRef.store.dispatch(api.util.getRunningQueriesThunk()),
+    )
   }
 
   beforeEach(() => {
@@ -31,7 +31,6 @@ describe('call-site maxAge', () => {
   })
 
   afterEach(() => {
-    store.dispatch(api.util.resetApiState())
     vi.useRealTimers()
   })
 

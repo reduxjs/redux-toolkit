@@ -13,8 +13,7 @@ test('lazy triggers accept maxAge and preserve boolean arguments', () => {
   trigger(1, true)
   trigger(1, false)
   trigger(1, { maxAge: 30 })
-  trigger(1, { maxAge: 0, preferCacheValue: true })
-  trigger(1, { preferCacheValue: true })
+  trigger(1, { maxAge: 0 })
   expectTypeOf(trigger(1, { maxAge: 30 }).unwrap()).toEqualTypeOf<
     Promise<number>
   >()
@@ -27,6 +26,17 @@ test('lazy triggers accept maxAge and preserve boolean arguments', () => {
   const [subscriptionTrigger] =
     api.endpoints.getValue.useLazyQuerySubscription()
   subscriptionTrigger(1, { maxAge: 30 })
+})
+
+test('initiate and prefetch accept maxAge', () => {
+  api.endpoints.getValue.initiate(1, { maxAge: 30, subscribe: false })
+  api.endpoints.getValue.initiate(1, { maxAge: 0, forceRefetch: true })
+  api.util.prefetch('getValue', 1, { maxAge: 30 })
+  api.util.prefetch('getValue', 1, { maxAge: 0, force: true })
+  // @ts-expect-error maxAge is measured in seconds
+  api.endpoints.getValue.initiate(1, { maxAge: '30' })
+  // @ts-expect-error maxAge is measured in seconds
+  api.util.prefetch('getValue', 1, { maxAge: true })
 })
 
 test('usePrefetch accepts maxAge defaults and overrides', () => {
