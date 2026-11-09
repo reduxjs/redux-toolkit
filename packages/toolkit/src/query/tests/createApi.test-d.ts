@@ -2,6 +2,9 @@ import { setupApiStore } from '@internal/tests/utils/helpers'
 import type { EntityState, SerializedError } from '@reduxjs/toolkit'
 import { configureStore, createEntityAdapter } from '@reduxjs/toolkit'
 import type {
+  AddTagTypes,
+  Api,
+  CoreModule,
   DefinitionsFromApi,
   FetchBaseQueryError,
   FetchBaseQueryMeta,
@@ -372,6 +375,164 @@ describe('type tests', () => {
           | { data: Transformed }
           | { error: FetchBaseQueryError | SerializedError }
         >()
+      })
+
+      describe('addTagTypes and enhanceEndpoint', () => {
+        const api = createApi({
+          baseQuery,
+          tagTypes: ['old'],
+          endpoints: (build) => ({
+            query1: build.query<'out1', 'in1'>({ query: (id) => `${id}` }),
+            mutation1: build.mutation<'out1', 'in1'>({
+              query: (id) => `${id}`,
+            }),
+            rawQuery: build.query<'out1', 'in1', 'raw'>({
+              query: (id) => `${id}`,
+              transformResponse: () => 'out1' as const,
+            }),
+            infinite1: build.infiniteQuery<'out1', 'in1', number>({
+              query: ({ pageParam }) => `${pageParam}`,
+              infiniteQueryOptions: {
+                initialPageParam: 0,
+                getNextPageParam: () => 1,
+              },
+            }),
+          }),
+        })
+
+        test('addTagTypes adds tag types to the api and its endpoints', () => {
+          // @ts-expect-error
+          api.enhanceEndpoint('query1', { providesTags: ['new'] })
+          // @ts-expect-error
+          api.util.invalidateTags(['new'])
+
+          const enhanced = api.addTagTypes('new', 'other')
+
+          enhanced.enhanceEndpoint('query1', { providesTags: ['old', 'new'] })
+          enhanced.enhanceEndpoint('mutation1', {
+            invalidatesTags: ['other'],
+          })
+          enhanced.enhanceEndpoint('infinite1', { providesTags: ['new'] })
+          enhanced.util.invalidateTags(['new', 'other'])
+
+          enhanced.enhanceEndpoint('query1', {
+            // @ts-expect-error
+            providesTags: ['missing'],
+          })
+
+          expectTypeOf(enhanced).toEqualTypeOf<
+            Api<
+              typeof baseQuery,
+              AddTagTypes<
+                DefinitionsFromApi<typeof api>,
+                'old' | 'new' | 'other'
+              >,
+              'api',
+              'old' | 'new' | 'other',
+              CoreModule
+            >
+          >()
+        })
+
+        test('enhanceEndpoint only accepts known endpoint names', () => {
+          // @ts-expect-error
+          api.enhanceEndpoint('nonExisting', {})
+        })
+
+        test('enhanceEndpoint keeps the endpoint types', () => {
+          const enhanced = api
+            .enhanceEndpoint('query1', {
+              query: (arg) => {
+                expectTypeOf(arg).toEqualTypeOf<'in1'>()
+
+                return arg
+              },
+            })
+            .enhanceEndpoint('mutation1', () => ({
+              query: (arg) => {
+                expectTypeOf(arg).toEqualTypeOf<'in1'>()
+
+                return arg
+              },
+            }))
+            .enhanceEndpoint('query1', (definition) => ({
+              ...definition,
+              keepUnusedDataFor: 5,
+            }))
+            .enhanceEndpoint('infinite1', (definition) => {
+              definition.keepUnusedDataFor = 5
+            })
+
+          expectTypeOf(enhanced.endpoints.query1.Types).toEqualTypeOf<
+            typeof api.endpoints.query1.Types
+          >()
+          expectTypeOf(enhanced.endpoints.mutation1.Types).toEqualTypeOf<
+            typeof api.endpoints.mutation1.Types
+          >()
+          expectTypeOf(enhanced.endpoints.infinite1.Types).toEqualTypeOf<
+            typeof api.endpoints.infinite1.Types
+          >()
+        })
+
+        test('addTagTypes and enhanceEndpoint keep a declared raw result type', () => {
+          expectTypeOf(
+            api.endpoints.rawQuery.Types.RawResultType,
+          ).toEqualTypeOf<'raw'>()
+
+          const enhanced = api
+            .addTagTypes('new')
+            .enhanceEndpoint('rawQuery', { providesTags: ['new'] })
+            .enhanceEndpoint<'rawQuery', number>('rawQuery', {
+              transformResponse: (raw) => {
+                expectTypeOf(raw).toEqualTypeOf<'raw'>()
+
+                return 1
+              },
+            })
+
+          expectTypeOf(
+            enhanced.endpoints.rawQuery.Types.RawResultType,
+          ).toEqualTypeOf<'raw'>()
+          expectTypeOf(
+            enhanced.endpoints.rawQuery.Types.ResultType,
+          ).toEqualTypeOf<number>()
+        })
+
+        test('changing the result type requires an explicit ResultType', () => {
+          api.enhanceEndpoint('query1', {
+            // @ts-expect-error
+            transformResponse: () => ({ value: 'transformed' }),
+          })
+
+          type Transformed = { value: string }
+
+          const enhanced = api
+            .enhanceEndpoint<'query1', Transformed>('query1', {
+              transformResponse: () => ({ value: 'transformed' }),
+            })
+            .enhanceEndpoint<'mutation1', Transformed>('mutation1', () => ({
+              transformResponse: () => ({ value: 'transformed' }),
+            }))
+            .enhanceEndpoint<'infinite1', Transformed>('infinite1', {
+              transformResponse: () => ({ value: 'transformed' }),
+            })
+
+          expectTypeOf(
+            enhanced.endpoints.query1.Types.ResultType,
+          ).toEqualTypeOf<Transformed>()
+
+          expectTypeOf(
+            enhanced.endpoints.mutation1.Types.ResultType,
+          ).toEqualTypeOf<Transformed>()
+
+          expectTypeOf(
+            enhanced.endpoints.infinite1.Types.ResultType,
+          ).toEqualTypeOf<Transformed>()
+
+          expectTypeOf(
+            enhanced.endpoints.query1.Types.QueryArg,
+          ).toEqualTypeOf<'in1'>()
+        })
       })
     })
     describe('endpoint schemas', () => {
