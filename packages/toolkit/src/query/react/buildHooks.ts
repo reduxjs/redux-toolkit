@@ -287,7 +287,7 @@ export type UseLazyQueryLastPromiseInfo<
  *
  * Until you call the trigger function, the result stays `uninitialized` and `data` is `undefined`.
  *
- * When the trigger function returned from a LazyQuery is called, it always initiates a new request to the server even if there is cached data. Set `preferCacheValue`(the second argument to the function) as `true` if you want it to immediately return a cached value if one exists.
+ * By default, the trigger starts a new request even if there is cached data. Pass `true` as its second argument to reuse any cached value, or `{ maxAge: seconds }` to reuse cached data only while it is younger than the age limit.
  */
 export type UseLazyQuery<D extends QueryDefinition<any, any, any, any>> = <
   R extends Record<string, any> = UseQueryStateDefaultResult<D>,
@@ -340,6 +340,7 @@ export type LazyQueryTrigger<D extends QueryDefinition<any, any, any, any>> = {
    *
    * By default, this will start a new request even if there is already a value in the cache.
    * If you want to use the cache value and only start a request if there is no cache value, set the second argument to `true`.
+   * Alternatively, pass `{ maxAge: seconds }` to refetch only when the cached data is at least that old. `0` always refetches.
    *
    * @remarks
    * If you need to access the error or success payload immediately after a lazy query, you can chain .unwrap().
@@ -357,7 +358,7 @@ export type LazyQueryTrigger<D extends QueryDefinition<any, any, any, any>> = {
    */
   (
     arg: QueryArgFrom<D>,
-    preferCacheValue?: boolean,
+    options?: boolean | { maxAge: number },
   ): QueryActionCreatorResult<D>
 }
 
@@ -1772,13 +1773,19 @@ If you replace the store passed to <Provider>, also give the Provider a \`key\` 
     const stableDefaultOptions = useShallowStableValue(defaultOptions)
 
     return useCallback(
-      (arg: any, options?: PrefetchOptions) =>
-        dispatch(
-          (api.util.prefetch as GenericPrefetchThunk)(endpointName, arg, {
-            ...stableDefaultOptions,
-            ...options,
-          }),
-        ),
+      (arg: any, options?: PrefetchOptions) => {
+        const mergedOptions = { ...stableDefaultOptions, ...options }
+        if (options && 'ifOlderThan' in options && !('maxAge' in options)) {
+          mergedOptions.maxAge = undefined
+        }
+        return dispatch(
+          (api.util.prefetch as GenericPrefetchThunk)(
+            endpointName,
+            arg,
+            mergedOptions,
+          ),
+        )
+      },
       [endpointName, dispatch, stableDefaultOptions],
     )
   }
@@ -2061,8 +2068,13 @@ If you replace the store passed to <Provider>, also give the Provider a \`key\` 
       }, [stableSubscriptionOptions])
 
       const trigger = useCallback(
-        function (arg: any, preferCacheValue = false) {
+        function (
+          arg: any,
+          options: Parameters<LazyQueryTrigger<any>>[1] = false,
+        ) {
           let promise: QueryActionCreatorResult<any>
+          const maxAge =
+            typeof options === 'boolean' ? undefined : options.maxAge
 
           batch(() => {
             unsubscribePromiseRef(promiseRef)
@@ -2070,7 +2082,8 @@ If you replace the store passed to <Provider>, also give the Provider a \`key\` 
             promiseRef.current = promise = dispatch(
               initiate(arg, {
                 subscriptionOptions: subscriptionOptionsRef.current,
-                forceRefetch: !preferCacheValue,
+                forceRefetch: typeof options === 'boolean' && !options,
+                maxAge,
               }),
             )
 

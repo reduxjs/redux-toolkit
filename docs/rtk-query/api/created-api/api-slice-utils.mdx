@@ -288,7 +288,12 @@ A Redux thunk action creator that can be used to manually trigger pre-fetching o
 #### Signature
 
 ```ts no-transpile
-type PrefetchOptions = { ifOlderThan?: false | number } | { force?: boolean }
+type PrefetchOptions = {
+  maxAge?: number
+  force?: boolean
+  /** @deprecated Use maxAge instead. */
+  ifOlderThan?: false | number
+}
 
 const prefetch = (endpointName: string, arg: any, options: PrefetchOptions) =>
   ThunkAction<void, any, any, UnknownAction>
@@ -299,8 +304,9 @@ const prefetch = (endpointName: string, arg: any, options: PrefetchOptions) =>
 - `endpointName`: a string matching an existing endpoint name
 - `args`: a cache key, used to determine which cached dataset needs to be updated
 - `options`: options to determine whether the request should be sent for a given situation:
-  - `ifOlderThan`: if specified, only runs the query if the difference between `new Date()` and the last`fulfilledTimeStamp` is greater than the given value (in seconds)
-  - `force`: if `true`, it will ignore the `ifOlderThan` value if it is set and the query will be run even if it exists in the cache.
+  - `maxAge`: only refetch cached data when it is at least this many seconds old. `0` always refetches.
+  - `ifOlderThan`: deprecated alias for `maxAge`. `maxAge` takes precedence when both are supplied. The legacy `ifOlderThan: 0` continues to reuse cached data.
+  - `force`: if `true`, runs the query regardless of `maxAge` or `ifOlderThan`, even if it exists in the cache.
 
 #### Description
 

@@ -69,6 +69,8 @@ type SubscriptionOptions = {
 
 interface StartQueryActionCreatorOptions {
   subscribe?: boolean;
+  maxAge?: number;
+  // Numeric values are deprecated; use maxAge instead.
   forceRefetch?: boolean | number;
   subscriptionOptions?: SubscriptionOptions;
   /**
@@ -93,6 +95,8 @@ interface StartMutationActionCreatorOptions {
 #### Description
 
 A Redux thunk action creator that you can dispatch to trigger data fetch queries or mutations.
+
+For queries, `maxAge` sets a call-site freshness limit in seconds. Cached data is reused while it is younger than the limit and refetched once its age is greater than or equal to the limit. `maxAge: 0` always refetches. It takes precedence over the deprecated numeric `forceRefetch` alias; `forceRefetch: true` always forces a request regardless of `maxAge`.
 
 React Hooks users will most likely never need to use these directly, as the hooks automatically dispatch these actions as needed.
 

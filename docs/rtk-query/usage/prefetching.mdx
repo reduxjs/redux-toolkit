@@ -42,14 +42,15 @@ If you need data that automatically refetches on invalidation or stays in the ca
 
 Similar to the [`useMutation`](./mutations) hook, the `usePrefetch` hook will not run automatically — it returns a "trigger function" that can be used to initiate the behavior.
 
-It accepts two arguments: the first is the key of a query action that you [defined in your API service](../api/createApi#endpoints), and the second is an object of two optional parameters:
+It accepts two arguments: the first is the key of a query action that you [defined in your API service](../api/createApi#endpoints), and the second is an options object:
 
 ```ts title="usePrefetch Signature" no-transpile
-export type PrefetchOptions =
-  | { force?: boolean }
-  | {
-      ifOlderThan?: false | number;
-    };
+export type PrefetchOptions = {
+  maxAge?: number;
+  force?: boolean;
+  /** @deprecated Use maxAge instead. */
+  ifOlderThan?: false | number;
+};
 
 usePrefetch<EndpointName extends QueryKeys<Definitions>>(
     endpointName: EndpointName,
@@ -72,8 +73,8 @@ You can specify these prefetch options when declaring the hook or at the call si
 4. If no options are specified and the query _does not exist_ in the cache, the query will be performed.
    - **Assuming** you have a `useQuery` hook in the tree that is subscribed to the same query that you are prefetching:
      - `useQuery` will return `{isLoading: true, isFetching: true, ...rest`}
-5. If `ifOlderThan` is specified but evaluates to false and the query is in the cache, the query will not be performed.
-6. If `ifOlderThan` is specified and evaluates to true, the query will be performed even if there is an existing cache entry.
+5. If `maxAge` is specified and the cached data is younger than that many seconds, the query will not be performed.
+6. If the cached data is at least `maxAge` seconds old, the query will be performed. `maxAge: 0` always requests fresh data. `force: true` takes precedence over the age limit.
    - **Assuming** you have a `useQuery` hook in the tree that is subscribed to the same query that you are prefetching:
      - `useQuery` will return `{isLoading: false, isFetching: true, ...rest`}
 
@@ -81,11 +82,11 @@ You can specify these prefetch options when declaring the hook or at the call si
 function User() {
   const prefetchUser = usePrefetch('getUser')
 
-  // Low priority hover will not fire unless the last request happened more than 35s ago
+  // Low priority hover will not fire unless the cached data is at least 35s old
   // High priority hover will _always_ fire
   return (
     <div>
-      <button onMouseEnter={() => prefetchUser(4, { ifOlderThan: 35 })}>
+      <button onMouseEnter={() => prefetchUser(4, { maxAge: 35 })}>
         Low priority
       </button>
       <button onMouseEnter={() => prefetchUser(4, { force: true })}>
@@ -95,6 +96,10 @@ function User() {
   )
 }
 ```
+
+`ifOlderThan` remains supported as a deprecated alias. If both options are supplied, `maxAge` takes precedence. Unlike `maxAge: 0`, the legacy `ifOlderThan: 0` keeps its existing behavior of reusing cached data.
+
+The same call-site age limit is available on `initiate(arg, { maxAge: 35 })` and lazy query triggers: `trigger(arg, { maxAge: 35 })`. Declarative hooks continue to use `refetchOnMountOrArgChange`; there is no global or endpoint-level `maxAge` setting.
 
 ### Recipe: Prefetch Immediately
 

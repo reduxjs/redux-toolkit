@@ -284,6 +284,13 @@ export type QueryDefinition<
   QueryExtraOptions<TagTypes, ResultType, QueryArg, BaseQuery, ReducerPath>
 
 // @public
+export type PrefetchOptions = {
+  maxAge?: number
+  ifOlderThan?: false | number
+  force?: boolean
+}
+
+// @public
 export enum QueryStatus {
   // (undocumented)
   fulfilled = 'fulfilled',
@@ -326,6 +333,17 @@ export type SkipToken = typeof skipToken
 
 // @public
 export const skipToken: unique symbol
+
+// @public (undocumented)
+export type StartQueryActionCreatorOptions = {
+  subscribe?: boolean
+  maxAge?: number
+  forceRefetch?: boolean | number
+  subscriptionOptions?: SubscriptionOptions
+  retainFor?: number
+  [forceQueryFnSymbol]?: () => QueryReturnValue
+  [startReasonSymbol]?: QueryStartReason
+}
 
 // (No @packageDocumentation comment for this package)
 ```
