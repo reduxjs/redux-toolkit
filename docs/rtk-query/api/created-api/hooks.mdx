@@ -869,9 +869,9 @@ const [trigger, lastArg] =
 ##### `useLazyQuerySubscription` Signature
 
 ```ts no-transpile
-type UseLazyQuerySubscription = (
+type UseLazyQuerySubscription<T> = (
   options?: UseLazyQuerySubscriptionOptions,
-) => [UseLazyQuerySubscriptionTrigger, LastArg]
+) => [UseLazyQuerySubscriptionTrigger<T>, LastArg]
 
 type UseLazyQuerySubscriptionOptions = {
   pollingInterval?: number | ((cacheEntry: QueryCacheEntry) => number)
@@ -880,10 +880,10 @@ type UseLazyQuerySubscriptionOptions = {
   refetchOnFocus?: boolean
 }
 
-type UseLazyQuerySubscriptionTrigger = (
+type UseLazyQuerySubscriptionTrigger<T> = (
   arg: any,
   options?: boolean | { maxAge: number },
-) => void
+) => ReturnType<UseLazyQueryTrigger<T>>
 ```
 
 - **Parameters**
@@ -891,5 +891,5 @@ type UseLazyQuerySubscriptionTrigger = (
   - `options`: A set of options that control the fetching behavior of the hook. The options will only have an effect after the lazy query has been triggered at least once.
 
 - **Returns**: A tuple containing:
-  - `trigger`: A function that fetches the corresponding data for the endpoint when called
+  - `trigger`: A function that fetches the corresponding data for the endpoint when called. With either boolean or `{ maxAge }` options, it returns the same promise as the [`useLazyQuery` trigger](#uselazyquery), including `unwrap`, `abort`, and `unsubscribe` methods.
   - `lastArg`: The last argument used to call the trigger function
