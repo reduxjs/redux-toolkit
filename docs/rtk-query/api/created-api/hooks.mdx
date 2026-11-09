@@ -577,7 +577,10 @@ type UseLazyQueryOptions = {
   selectFromResult?: (result: UseQueryStateDefaultResult) => any
 }
 
-type UseLazyQueryTrigger<T> = (arg: any, preferCacheValue?: boolean) => Promise<
+type UseLazyQueryTrigger<T> = (arg: any, options?: boolean | {
+  maxAge?: number
+  preferCacheValue?: boolean
+}) => Promise<
   QueryResultSelectorResult
 > & {
   // Whatever argument was provided to the query
@@ -667,17 +670,14 @@ type UsePrefetch = (
   options?: UsePrefetchOptions,
 ) => PrefetchCallback
 
-type UsePrefetchOptions =
-  | {
-      // If specified, only runs the query if the difference between `new Date()` and the last
-      // `fulfilledTimeStamp` is greater than the given value (in seconds)
-      ifOlderThan?: false | number
-    }
-  | {
-      // If `force: true`, it will ignore the `ifOlderThan` value if it is set and the query
-      // will be run even if it exists in the cache.
-      force?: boolean
-    }
+type UsePrefetchOptions = {
+  // Refetch cached data that is at least this many seconds old. 0 always refetches.
+  maxAge?: number
+  /** @deprecated Use maxAge instead. */
+  ifOlderThan?: false | number
+  // Always refetch, regardless of the age limit.
+  force?: boolean
+}
 
 type PrefetchCallback = (arg: any, options?: UsePrefetchOptions) => void
 ```
