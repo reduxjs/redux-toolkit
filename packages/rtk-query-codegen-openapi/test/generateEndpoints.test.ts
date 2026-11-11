@@ -555,6 +555,25 @@ it('falls back to the `title` parameter for the body parameter name when no othe
   expect(api).toMatchSnapshot();
 });
 
+test('descriptions containing `*/` do not close the generated comments early', async () => {
+  const api = await generateEndpoints({
+    apiFile: './fixtures/emptyApi.ts',
+    schemaFile: resolve(__dirname, 'fixtures/comment-terminator.json'),
+  });
+  expect(api).toContain(String.raw`/** status 200 The stored file, any type (*\/*) */`);
+  expect(api).toContain(String.raw`/** Media range, defaults to *\/* */`);
+  expect(api).toContain(String.raw`/** File contents, *\/* or text/* with *\/* fallback */`);
+});
+
+test('non-string descriptions are still written to the generated comments', async () => {
+  const api = await generateEndpoints({
+    apiFile: './fixtures/emptyApi.ts',
+    schemaFile: resolve(__dirname, 'fixtures/numeric-description.json'),
+  });
+  expect(api).toContain('/** status 200 200 */');
+  expect(api).toContain('/** 404 */');
+});
+
 test('hooks generation uses overrides', async () => {
   const api = await generateEndpoints({
     unionUndefined: true,
