@@ -238,6 +238,24 @@ function argumentMatches(pattern?: ParameterMatcher) {
 }
 
 /**
+ * Escapes the block comment terminator (an asterisk followed by a slash)
+ * in text that is placed inside a generated JSDoc comment, so a
+ * description such as a media range of any type cannot close the comment
+ * early and break the generated file. Every occurrence gets a backslash
+ * before the slash, similar to the escape `oazapfts` applies to schema
+ * property descriptions.
+ *
+ * @param text - The text to escape, converted to a string first since a
+ * spec that is not validated can hold a non-string description.
+ * @returns The text with every comment terminator escaped.
+ *
+ * @internal
+ */
+function escapeCommentText(text: unknown) {
+  return String(text).replace(/\*\//g, String.raw`*\/`);
+}
+
+/**
  * Attaches the OpenAPI description of a query argument to a node as a
  * leading JSDoc comment, so the generated types carry the spec's own
  * documentation. Returns the node unchanged when there is no description.
@@ -256,7 +274,7 @@ function withQueryComment<T extends ts.Node>(node: T, def: QueryArgDefinition, h
     return ts.addSyntheticLeadingComment(
       node,
       ts.SyntaxKind.MultiLineCommentTrivia,
-      `* ${comment} `,
+      `* ${escapeCommentText(comment)} `,
       hasTrailingNewLine
     );
   }
@@ -628,7 +646,7 @@ export async function generateApi(
           ts.addSyntheticLeadingComment(
             { ...type },
             ts.SyntaxKind.MultiLineCommentTrivia,
-            `* status ${code} ${response.description} `,
+            `* status ${code} ${escapeCommentText(response.description)} `,
             false
           )
         );
