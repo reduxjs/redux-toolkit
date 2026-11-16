@@ -9,6 +9,7 @@ import type {
   UnknownAction,
 } from '@reduxjs/toolkit'
 import type { Api, ApiContext } from '../../apiTypes'
+import type { QueryStartReason } from '../../baseQueryTypes'
 import type {
   AssertTagTypes,
   EndpointDefinitions,
@@ -79,6 +80,7 @@ export interface BuildSubMiddlewareInput extends BuildMiddlewareInput<
       QuerySubState<any>,
       { status: QueryStatus.uninitialized }
     >,
+    startReason: QueryStartReason,
   ): ThunkAction<QueryActionCreatorResult<any>, any, any, UnknownAction>
   isThisApiSliceAction: (action: Action) => boolean
   selectors: AllSelectors

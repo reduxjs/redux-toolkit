@@ -186,9 +186,16 @@ export function createUnsortedStateAdapter<T, Id extends EntityId>(
         0
 
       if (didMutateIds) {
-        state.ids = Object.values(state.entities).map((e) =>
-          selectIdValue(e as T, selectId),
-        )
+        // Swap each renamed ID in place to keep the existing order. Renaming
+        // onto an ID that is already in use leaves only one entry for it.
+        const ids = new Set<Id>()
+        for (const id of state.ids as Id[]) {
+          const newId = newKeys[id] ?? id
+          if (newId in state.entities) {
+            ids.add(newId)
+          }
+        }
+        state.ids = Array.from(ids)
       }
     }
   }

@@ -80,4 +80,9 @@ describe('type tests', () => {
     // @ts-expect-error endpoint name does not exist
     api.util.prefetch('getPomegranates', undefined, { force: true })
   })
+
+  it('should allow assigning api.util to a plain record type', () => {
+    expectTypeOf(api.util).not.toBeAny()
+    expectTypeOf(api.util).toExtend<Record<string, unknown>>()
+  })
 })

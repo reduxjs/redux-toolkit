@@ -5,6 +5,7 @@ import { formatProdErrorMessage } from '@reduxjs/toolkit'
 export type {
   ApiRootState,
   CombinedState,
+  PollingInterval,
   QueryCacheEntry,
   QueryCacheKey,
   QueryKeys,
@@ -25,6 +26,7 @@ export type {
   BaseQueryMeta,
   BaseQueryResult,
   QueryReturnValue,
+  QueryStartReason,
 } from './baseQueryTypes'
 export type {
   BaseEndpointDefinition,
@@ -58,6 +60,7 @@ export type {
   FetchBaseQueryArgs,
   FetchBaseQueryError,
   FetchBaseQueryMeta,
+  FetchBaseQueryFn,
   FetchArgs,
 } from './fetchBaseQuery'
 export { retry } from './retry'
@@ -96,6 +99,7 @@ export type {
   ApiEndpointInfiniteQuery,
   ApiModules,
   ApiMiddlewareState,
+  ApiUtil,
   CoreModule,
   PrefetchOptions,
 } from './core/module'

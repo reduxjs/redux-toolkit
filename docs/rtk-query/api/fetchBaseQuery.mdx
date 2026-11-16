@@ -49,13 +49,22 @@ export const pokemonApi = createApi({
 ## Signature
 
 ```ts title="fetchBaseQuery signature" no-transpile
-type FetchBaseQuery = (
-  args: FetchBaseQueryArgs,
-) => (
-  args: string | FetchArgs,
-  api: BaseQueryApi,
-  extraOptions: ExtraOptions,
-) => FetchBaseQueryResult
+type FetchBaseQuery = (args: FetchBaseQueryArgs) => FetchBaseQueryFn
+
+// The base query function returned by `fetchBaseQuery`
+type FetchBaseQueryFn = BaseQueryFn<
+  string | FetchArgs,
+  unknown,
+  FetchBaseQueryError,
+  {},
+  FetchBaseQueryMeta
+>
+// equivalent to:
+// (
+//   args: string | FetchArgs,
+//   api: BaseQueryApi,
+//   extraOptions: {},
+// ) => FetchBaseQueryResult
 
 type FetchBaseQueryArgs = {
   baseUrl?: string
@@ -63,7 +72,7 @@ type FetchBaseQueryArgs = {
     headers: Headers,
     api: Pick<
       BaseQueryApi,
-      'getState' | 'extra' | 'endpoint' | 'type' | 'forced'
+      'getState' | 'extra' | 'endpoint' | 'type' | 'forced' | 'startReason'
     > & { arg: string | FetchArgs },
   ) => MaybePromise<Headers | void>
   fetchFn?: (
@@ -151,7 +160,7 @@ Typically a string like `https://api.your-really-great-app.com/v1/`. If you don'
 
 _(optional)_
 
-Allows you to inject headers on every request. You can specify headers at the endpoint level, but you'll typically want to set common headers like `authorization` here. As a convenience mechanism, the second argument allows you to use `getState` to access your redux store in the event you store information you'll need there such as an auth token. Additionally, it provides access to `arg`, `extra`, `endpoint`, `type`, and `forced` to unlock more granular conditional behaviors.
+Allows you to inject headers on every request. You can specify headers at the endpoint level, but you'll typically want to set common headers like `authorization` here. As a convenience mechanism, the second argument allows you to use `getState` to access your redux store in the event you store information you'll need there such as an auth token. Additionally, it provides access to `arg`, `extra`, `endpoint`, `type`, `forced`, and `startReason` to unlock more granular conditional behaviors.
 
 You can mutate the `headers` argument directly, and returning it is optional.
 
@@ -165,6 +174,7 @@ type prepareHeaders = (
     endpoint: string
     type: 'query' | 'mutation'
     forced: boolean | undefined
+    startReason: QueryStartReason | undefined
   },
 ) => Headers | void
 ```

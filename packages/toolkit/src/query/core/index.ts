@@ -11,6 +11,7 @@ export type {
   InfiniteQueryConfigOptions,
   InfiniteQuerySubState,
   MutationKeys,
+  PollingInterval,
   QueryCacheKey,
   QueryKeys,
   QuerySubState,

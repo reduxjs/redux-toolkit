@@ -9,6 +9,23 @@ import { ensureRecord, getPollsView } from './runtime'
 
 const warnedProbeApis = new WeakSet<object>()
 
+// The store copy of subscriptions is only for devtools, so function
+// polling intervals are left out to keep it serializable
+const serializableSubscribers = (
+  subscribers: Map<string, SubscriptionOptions>,
+) => {
+  const result: Record<string, SubscriptionOptions> = {}
+  for (const [requestId, options] of subscribers) {
+    if (typeof options.pollingInterval === 'function') {
+      const { pollingInterval, ...rest } = options
+      result[requestId] = rest
+    } else {
+      result[requestId] = options
+    }
+  }
+  return result
+}
+
 export const buildBatchedActionsHandler: InternalHandlerBuilder<
   [actionShouldContinue: boolean, returnValue: SubscriptionSelectors | boolean]
 > = ({ api, queryThunk, runtime, mwApi }) => {
@@ -31,7 +48,7 @@ export const buildBatchedActionsHandler: InternalHandlerBuilder<
         patches.push({
           op: 'add',
           path: [queryCacheKey],
-          value: Object.fromEntries(subscribers),
+          value: serializableSubscribers(subscribers),
         })
       } else {
         syncedKeys.delete(queryCacheKey)

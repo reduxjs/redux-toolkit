@@ -346,6 +346,16 @@ A standard RTK action creator, imported from the package. Dispatching this actio
 store.dispatch(clearAllListeners())
 ```
 
+In TypeScript, the listener middleware adds these return types to `dispatch` through the `ListenerMiddlewareDispatch` type, which has one call signature for each of the three actions:
+
+```ts no-transpile
+interface ListenerMiddlewareDispatch {
+  (action: Action<'listenerMiddleware/add'>): UnsubscribeListener
+  (action: Action<'listenerMiddleware/remove'> & { payload: object }): boolean
+  (action: Action<'listenerMiddleware/removeAll'>): void
+}
+```
+
 ## Listener API
 
 The `listenerApi` object is the second argument to each listener callback. It contains several utility functions that may be called anywhere inside the listener's logic.

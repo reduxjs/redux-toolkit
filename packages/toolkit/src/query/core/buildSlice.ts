@@ -380,6 +380,7 @@ export function buildSlice({
                 endpointDefinition,
                 endpointName,
               }),
+              startReason: 'upsert',
             }
             let providedTags: readonly FullTagDescription<string>[]
             try {

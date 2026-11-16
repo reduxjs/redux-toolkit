@@ -133,7 +133,7 @@ The `queryArg` param will be passed through to the underlying `query` callback t
 The `queryOptions` object accepts several additional parameters that can be used to control the behavior of the data fetching:
 
 - [skip](./conditional-fetching) - Allows a query to 'skip' running for that render. Defaults to `false`
-- [pollingInterval](./polling) - Allows a query to automatically refetch on a provided interval, specified in milliseconds. Defaults to `0` _(off)_
+- [pollingInterval](./polling) - Allows a query to automatically refetch on a provided interval, specified in milliseconds, or computed from the cache entry by a function. Defaults to `0` _(off)_
 - [selectFromResult](#selecting-data-from-a-query-result) - Allows altering the returned value of the hook to obtain a subset of the result, render-optimized for the returned subset.
 - [refetchOnMountOrArgChange](../api/createApi#refetchonmountorargchange) - Allows forcing the query to always refetch on mount (when `true` is provided). Allows forcing the query to refetch if enough time (in seconds) has passed since the last query for the same cache (when a `number` is provided). Defaults to `false`
 - [refetchOnFocus](../api/createApi#refetchonfocus) - Allows forcing the query to refetch when the browser window regains focus. Defaults to `false`

@@ -1,5 +1,5 @@
 import type { FullTagDescription } from '../../endpointDefinitions'
-import type { SubscribersInternal } from '../apiState'
+import type { InfiniteQueryDirection, SubscribersInternal } from '../apiState'
 import type {
   InfiniteQueryActionCreatorResult,
   MutationActionCreatorResult,
@@ -51,6 +51,8 @@ export type RunningRequest = {
   readonly requestId: string
   readonly key: string
   readonly isUpsert: boolean
+  /** The page an infinite query request fetches, if it fetches one page */
+  readonly direction?: InfiniteQueryDirection
   promise?: RunningQuery
   abort?: () => void
   readonly outcome: Promise<RequestOutcome>
@@ -70,6 +72,11 @@ export interface QueryKeyRecord {
   gc?: TimeoutId
   poll?: QueryPollState
   cacheLifecycle?: CacheLifecycle
+  /**
+   * The longest `retainFor` (in seconds) any `initiate` asked for, kept until
+   * the entry is removed
+   */
+  retainFor?: number
 }
 
 export interface StoreRuntime {
@@ -195,7 +202,8 @@ export function pruneRecord(runtime: StoreRuntime, key: string) {
     !record.request &&
     !record.gc &&
     !record.poll &&
-    !record.cacheLifecycle
+    !record.cacheLifecycle &&
+    !record.retainFor
   ) {
     runtime.queries.delete(key)
   }
@@ -243,6 +251,7 @@ export function startRequest(
   key: string,
   requestId: string,
   isUpsert: boolean,
+  direction?: InfiniteQueryDirection,
 ) {
   const record = ensureRecord(runtime, key)
   if (isUpsert && record.request) return
@@ -256,6 +265,7 @@ export function startRequest(
     requestId,
     key,
     isUpsert,
+    direction,
     outcome,
     settle,
     promise: record.request?.promise,
@@ -354,6 +364,28 @@ export function clearRemovalTimer(runtime: StoreRuntime, key: string) {
   normalizeRecord(runtime, key)
 }
 
+/** Raises the key's `retainFor` to `seconds`, at least 1 second. */
+export function retainRecord(
+  runtime: StoreRuntime,
+  key: string,
+  seconds: number,
+) {
+  if (!(seconds > 0)) return
+  const record = ensureRecord(runtime, key)
+  record.retainFor = Math.max(record.retainFor ?? 0, seconds, 1)
+}
+
+/**
+ * Drops `retainFor` when the entry is kept forever anyway, so the record does
+ * not outlive everything else on it.
+ */
+export function releaseRetain(runtime: StoreRuntime, key: string) {
+  const record = runtime.queries.get(key)
+  if (!record?.retainFor) return
+  record.retainFor = undefined
+  normalizeRecord(runtime, key)
+}
+
 export function setPoll(
   runtime: StoreRuntime,
   key: string,
@@ -428,6 +460,7 @@ function clearRecord(runtime: StoreRuntime, key: string) {
   record.poll = undefined
   record.cacheLifecycle = undefined
   record.request = undefined
+  record.retainFor = undefined
   normalizeRecord(runtime, key)
   return cacheLifecycle
 }

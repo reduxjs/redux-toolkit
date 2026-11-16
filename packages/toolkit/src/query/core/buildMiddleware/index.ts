@@ -11,7 +11,8 @@ import type {
 import type { QueryStatus, QuerySubState, ApiRootState } from '../apiState'
 import type { QueryThunkArg } from '../buildThunks'
 import { createAction, isAction } from '../rtkImports'
-import { isUpsertQuery } from '../buildInitiate'
+import type { QueryStartReason } from '../../baseQueryTypes'
+import { isUpsertQuery, startReasonSymbol } from '../buildInitiate'
 import { buildBatchedActionsHandler } from './batchActions'
 import { buildCacheCollectionHandler } from './cacheCollection'
 import { buildCacheLifecycleHandler } from './cacheLifecycle'
@@ -132,6 +133,11 @@ export function buildMiddleware<
             arg.queryCacheKey,
             requestId,
             isUpsertQuery(arg),
+            arg.startReason === 'nextPage'
+              ? 'forward'
+              : arg.startReason === 'previousPage'
+                ? 'backward'
+                : undefined,
           )
         } else if (
           queryThunk.fulfilled.match(action) ||
@@ -197,6 +203,7 @@ export function buildMiddleware<
       QuerySubState<any>,
       { status: QueryStatus.uninitialized }
     >,
+    startReason: QueryStartReason,
   ) {
     return (
       input.api.endpoints[querySubState.endpointName] as ApiEndpointQuery<
@@ -206,6 +213,7 @@ export function buildMiddleware<
     ).initiate(querySubState.originalArgs as any, {
       subscribe: false,
       forceRefetch: true,
+      [startReasonSymbol]: startReason,
     })
   }
 }
