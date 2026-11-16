@@ -39,9 +39,9 @@ export const buildWindowEventHandler: InternalHandlerBuilder = ({
         if (!subscriptionSubState || !querySubState) continue
 
         const values = [...subscriptionSubState.values()]
-        const shouldRefetch =
-          values.some((sub) => sub[type] === true) ||
-          (values.every((sub) => sub[type] === undefined) && state.config[type])
+        const shouldRefetch = values.length
+          ? values.some((sub) => sub[type] ?? state.config[type])
+          : state.config[type]
 
         if (shouldRefetch) {
           if (subscriptionSubState.size === 0) {

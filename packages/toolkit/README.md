@@ -75,7 +75,7 @@ Redux Toolkit includes these APIs:
 - `createSlice()`: combines `createReducer()` + `createAction()`. Accepts an object of reducer functions, a slice name, and an initial state value, and automatically generates a slice reducer with corresponding action creators and action types.
 - `combineSlices()`: combines multiple slices into a single reducer, and allows "lazy loading" of slices after initialisation.
 - `createListenerMiddleware()`: lets you define "listener" entries that contain an "effect" callback with additional logic, and a way to specify when that callback should run based on dispatched actions or state changes. A lightweight alternative to Redux async middleware like sagas and observables.
-- `createAsyncThunk()`: accepts an action type string and a function that returns a promise, and generates a thunk that dispatches `pending/resolved/rejected` action types based on that promise
+- `createAsyncThunk()`: accepts an action type string and a function that returns a promise, and generates a thunk that dispatches `pending/fulfilled/rejected` action types based on that promise
 - `createEntityAdapter()`: generates a set of reusable reducers and selectors to manage normalized data in the store
 - The `createSelector()` utility from the [Reselect](https://github.com/reduxjs/reselect) library, re-exported for ease of use.
 
@@ -104,7 +104,7 @@ RTK Query includes these APIs:
 - `createApi()`: The core of RTK Query's functionality. It allows you to define a set of endpoints describe how to retrieve data from a series of endpoints, including configuration of how to fetch and transform that data. In most cases, you should use this once per app, with "one API slice per base URL" as a rule of thumb.
 - `fetchBaseQuery()`: A small wrapper around fetch that aims to simplify requests. Intended as the recommended baseQuery to be used in createApi for the majority of users.
 - `<ApiProvider />`: Can be used as a Provider if you do not already have a Redux store.
-- `setupListeners()`: A utility used to enable refetchOnMount and refetchOnReconnect behaviors.
+- `setupListeners()`: A utility used to enable refetchOnFocus and refetchOnReconnect behaviors.
 
 See the [**RTK Query Overview**](https://redux-toolkit.js.org/rtk-query/overview) page for more details on what RTK Query is, what problems it solves, and how to use it.
 

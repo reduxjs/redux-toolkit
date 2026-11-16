@@ -172,6 +172,8 @@ Passing a `number` as a value in seconds will use the following behavior:
 - If there is no query, it will fetch the data.
 - If there is an existing query, but the amount of time specified since the last query has not elapsed, it will serve the existing cached data.
 
+A numeric `0` always refetches when a subscriber is added. This also applies to `forceRefetch: 0` on `initiate()`. Use `false` to disable age-based refetching.
+
 ```ts title="Configuring re-fetching on subscription if data exceeds a given time"
 // file: types.ts noEmit
 export interface Post {
@@ -217,6 +219,8 @@ const Component = () => {
 ### Re-fetching on window focus with `refetchOnFocus`
 
 The [`refetchOnFocus`](../api/createApi.mdx#refetchonfocus) option allows you to control whether RTK Query will try to refetch all subscribed queries after the application window regains focus.
+
+Each subscriber uses its own value or inherits the `createApi` default when its value is unset. A shared query refetches if any subscriber resolves to `true`. One subscriber's `false` does not disable another subscriber's inherited `true`.
 
 If you specify this option alongside `skip: true`, this will not be evaluated until skip is false.
 
@@ -296,6 +300,8 @@ export type RootState = ReturnType<typeof store.getState>
 ### Re-fetching on network reconnection with `refetchOnReconnect`
 
 The [`refetchOnReconnect`](../api/createApi.mdx#refetchonreconnect) option on [`createApi`](../api/createApi.mdx) allows you to control whether RTK Query will try to refetch all subscribed queries after regaining a network connection.
+
+Like `refetchOnFocus`, this option resolves separately for each subscriber before the values are combined. The shared query refetches if any subscriber resolves to `true`.
 
 If you specify this option alongside `skip: true`, this **will not be evaluated** until `skip` is false.
 

@@ -68,7 +68,7 @@ function updateWindowListeners(add: boolean) {
 }
 
 /**
- * A utility used to enable `refetchOnMount` and `refetchOnReconnect` behaviors.
+ * A utility used to enable `refetchOnFocus` and `refetchOnReconnect` behaviors.
  * It requires the dispatch method from your store.
  * Calling `setupListeners(store.dispatch)` will configure listeners with the recommended defaults,
  * but you have the option of providing a callback for more granular control.

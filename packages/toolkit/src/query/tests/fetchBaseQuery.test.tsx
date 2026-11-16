@@ -605,6 +605,127 @@ describe('fetchBaseQuery', () => {
       expect(request.url).toEqual(`${baseUrl}/echo?banana=pudding&a=1&b=true`)
     })
 
+    it.each([
+      ['/echo#section', '?a=1', '#section'],
+      ['/echo?banana=pudding#section', '?banana=pudding&a=1', '#section'],
+      ['/echo#section?local=value', '?a=1', '#section?local=value'],
+      ['/echo#section#nested', '?a=1', '#section#nested'],
+      ['https://example.com/echo#section', '?a=1', '#section'],
+    ])(
+      'should serialize params before the fragment in %s',
+      async (url, search, hash) => {
+        const result = await baseQuery(
+          { url, params: { a: 1 } },
+          commonBaseQueryApi,
+          {},
+        )
+
+        expect(result.error).toBeUndefined()
+        const requestUrl = new URL(result.meta!.request.url)
+        expect(requestUrl.search).toBe(search)
+        expect(requestUrl.hash).toBe(hash)
+      },
+    )
+
+    it('should preserve a fragment when using paramsSerializer', async () => {
+      const serialize = vi.fn(() => 'someArray[]=a&someArray[]=b')
+      const query = fetchBaseQuery({ baseUrl, paramsSerializer: serialize })
+      const params = { someArray: ['a', 'b'] }
+      const result = await query(
+        { url: '/echo?banana=pudding#section', params },
+        commonBaseQueryApi,
+        {},
+      )
+
+      expect(result.error).toBeUndefined()
+      expect(serialize).toHaveBeenCalledWith(params)
+      expect(result.meta!.request.url).toBe(
+        `${baseUrl}/echo?banana=pudding&someArray[]=a&someArray[]=b#section`,
+      )
+    })
+
+    it.each([
+      [
+        'https://example.com/api',
+        '#section',
+        { a: 1 },
+        'https://example.com/api/?a=1#section',
+      ],
+      [
+        'https://example.com/api/',
+        '#section',
+        { a: 1 },
+        'https://example.com/api/?a=1#section',
+      ],
+      [
+        'https://example.com/echo#section',
+        '',
+        { a: 1 },
+        'https://example.com/echo?a=1#section',
+      ],
+      [
+        'https://example.com/echo?old=value#section',
+        '',
+        { a: 1 },
+        'https://example.com/echo?old=value&a=1#section',
+      ],
+      [
+        'https://example.com',
+        '/echo#section',
+        {},
+        'https://example.com/echo#section',
+      ],
+      [
+        'https://example.com',
+        '/echo?signature=abc#section',
+        {},
+        'https://example.com/echo?signature=abc#section',
+      ],
+      [
+        'https://example.com',
+        '/echo?signature=abc#section',
+        { omitted: undefined },
+        'https://example.com/echo?signature=abc#section',
+      ],
+      ['https://example.com', '/echo', {}, 'https://example.com/echo?'],
+      [
+        'https://example.com',
+        '/echo?old=value',
+        {},
+        'https://example.com/echo?old=value&',
+      ],
+    ])(
+      'should preserve the joined target for base %s and url %s',
+      async (baseUrl, url, params, expected) => {
+        const query = fetchBaseQuery({
+          baseUrl,
+          fetchFn: async () =>
+            new Response('{}', {
+              headers: { 'content-type': 'application/json' },
+            }),
+        })
+        const result = await query({ url, params }, commonBaseQueryApi, {})
+        expect(result.error).toBeUndefined()
+        expect(result.meta!.request.url).toBe(expected)
+      },
+    )
+
+    it.each([
+      [
+        '/echo?signature=abc#section',
+        'https://example.com/echo?signature=abc#section',
+      ],
+      ['/echo?old=value', 'https://example.com/echo?old=value&'],
+    ])(
+      'should preserve empty custom serialization for %s',
+      async (url, expected) => {
+        const query = fetchBaseQuery({ baseUrl, paramsSerializer: () => '' })
+        const result = await query({ url, params: {} }, commonBaseQueryApi, {})
+        expect(result.error).toBeUndefined()
+        expect(result.meta!.request.url).toBe(expected)
+      },
+    )
+
     it('should accept a URLSearchParams instance', async () => {
       const params = new URLSearchParams({ apple: 'fruit' })
 

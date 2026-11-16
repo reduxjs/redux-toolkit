@@ -253,13 +253,18 @@ export function fetchBaseQuery({
     } = typeof arg == 'string' ? { url: arg } : arg
 
     const timeoutController = timeout ? timeoutSignal(timeout) : undefined
+    let composedSignal: ReturnType<typeof anySignal> | undefined
     try {
       let config: RequestInit = {
         ...baseFetchOptions,
-        signal: timeoutController
-          ? anySignal(api.signal, timeoutController.signal)
-          : api.signal,
+        signal: api.signal,
         ...rest,
+      }
+      if (timeoutController) {
+        if (config.signal) {
+          composedSignal = anySignal(config.signal, timeoutController.signal)
+        }
+        config.signal = composedSignal?.signal ?? timeoutController.signal
       }
 
       headers = new Headers(stripUndefined(headers))
@@ -310,15 +315,21 @@ export function fetchBaseQuery({
         // For 'content-type' responseHandler, don't set Accept (let server decide)
       }
 
+      url = joinUrls(baseUrl, url)
+
       if (params) {
+        const hashIndex = url.indexOf('#')
+        const hash = hashIndex === -1 ? '' : url.slice(hashIndex)
+        url = hashIndex === -1 ? url : url.slice(0, hashIndex)
         const divider = ~url.indexOf('?') ? '&' : '?'
         const query = paramsSerializer
           ? paramsSerializer(params)
-          : new URLSearchParams(stripUndefined(params))
-        url += divider + query
+          : new URLSearchParams(stripUndefined(params)).toString()
+        if (query || !hash) {
+          url += divider + query
+        }
+        url += hash
       }
-
-      url = joinUrls(baseUrl, url)
 
       const request = new Request(url, config)
       const requestClone = new Request(url, config)
@@ -396,6 +407,7 @@ export function fetchBaseQuery({
           }
     } finally {
       timeoutController?.clear()
+      composedSignal?.clear()
     }
   }
 

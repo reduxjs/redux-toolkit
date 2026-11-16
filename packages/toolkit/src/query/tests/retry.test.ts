@@ -246,6 +246,72 @@ describe('configuration', () => {
     })
   })
 
+  test('calling retry.fail(error, meta) in backoff exposes the error and meta directly', async () => {
+    const error = { message: 'banana' }
+    const meta = { request: 'banana-request' }
+
+    const baseBaseQuery = vi.fn<BaseQueryFn>()
+    baseBaseQuery.mockResolvedValue({ error: 'rejected' })
+
+    const baseQuery = retry(baseBaseQuery, {
+      backoff: async () => {
+        retry.fail(error, meta)
+      },
+    })
+    const transformErrorResponse = vi.fn((response: unknown) => response)
+    const api = createApi({
+      baseQuery,
+      endpoints: (build) => ({
+        q1: build.query({
+          query: () => {},
+          transformErrorResponse,
+        }),
+      }),
+    })
+
+    const storeRef = setupApiStore(api, undefined, {
+      withoutTestLifecycles: true,
+    })
+
+    const result = await storeRef.store.dispatch(api.endpoints.q1.initiate({}))
+
+    expect(baseBaseQuery).toHaveBeenCalledOnce()
+    expect(result.error).toEqual(error)
+    expect(transformErrorResponse).toHaveBeenCalledWith(error, meta, {})
+  })
+
+  test('calling retry.fail(error, meta) in retryCondition exposes the error and meta directly', async () => {
+    const error = { message: 'banana' }
+    const meta = { request: 'banana-request' }
+
+    const baseBaseQuery = vi.fn<BaseQueryFn>()
+    baseBaseQuery.mockResolvedValue({ error: 'rejected' })
+
+    const baseQuery = retry(baseBaseQuery, {
+      retryCondition: () => retry.fail(error, meta),
+    })
+    const transformErrorResponse = vi.fn((response: unknown) => response)
+    const api = createApi({
+      baseQuery,
+      endpoints: (build) => ({
+        q1: build.query({
+          query: () => {},
+          transformErrorResponse,
+        }),
+      }),
+    })
+
+    const storeRef = setupApiStore(api, undefined, {
+      withoutTestLifecycles: true,
+    })
+
+    const result = await storeRef.store.dispatch(api.endpoints.q1.initiate({}))
+
+    expect(baseBaseQuery).toHaveBeenCalledOnce()
+    expect(result.error).toEqual(error)
+    expect(transformErrorResponse).toHaveBeenCalledWith(error, meta, {})
+  })
+
   test('wrapping retry(retry(..., { maxRetries: 3 }), { maxRetries: 3 }) should retry 16 times', async () => {
     /**
      * Note:

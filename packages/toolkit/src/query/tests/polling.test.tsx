@@ -220,7 +220,8 @@ describe('polling tests', () => {
     expect(mockBaseQuery).toHaveBeenCalledOnce()
   })
 
-  it('respects skipPollingIfUnfocused if at least one subscription has it', async () => {
+  it('continues polling while unfocused if a polling subscription allows it', async () => {
+    mockBaseQuery.mockClear()
     storeRef.store.dispatch(
       getPosts.initiate(3, {
         subscriptionOptions: {
@@ -231,8 +232,10 @@ describe('polling tests', () => {
       }),
     )
 
-    await delay(50)
-    const callsWithoutSkip = mockBaseQuery.mock.calls.length
+    await vi.waitFor(() => {
+      expect(mockBaseQuery.mock.calls.length).toBeGreaterThan(2)
+    })
+    const callsWhileFocused = mockBaseQuery.mock.calls.length
 
     storeRef.store.dispatch(
       getPosts.initiate(3, {
@@ -256,12 +259,14 @@ describe('polling tests', () => {
 
     storeRef.store.dispatch(api.internalActions?.onFocusLost())
 
-    await delay(50)
-    const callsWithSkip = mockBaseQuery.mock.calls.length
+    await vi.waitFor(() => {
+      expect(mockBaseQuery.mock.calls.length).toBeGreaterThan(
+        callsWhileFocused + 2,
+      )
+    })
 
-    expect(callsWithoutSkip).toBeGreaterThan(2)
-    // The poll already scheduled sees the current focus and skip settings when it fires
-    expect(callsWithSkip).toBe(callsWithoutSkip)
+    storeRef.store.dispatch(api.internalActions.onFocus())
+    storeRef.store.dispatch(api.util.resetApiState())
   })
 
   it('replaces skipPollingIfUnfocused when the subscription options are updated', async () => {
@@ -838,6 +843,42 @@ describe('poll scheduling', () => {
       expect(requests).toEqual(['a', 'a', 'a'])
 
       subscription.unsubscribe()
+    })
+
+    it('keeps the result for each cache entry when one function polls several', async () => {
+      const { api, store, requests } = makePollApi()
+      const pollingInterval: PollingInterval = (entry) =>
+        entry.originalArgs === 'b' ? 0 : 20
+
+      const a1 = store.dispatch(
+        api.endpoints.getThing.initiate('a', {
+          subscriptionOptions: { pollingInterval },
+        }),
+      )
+      const a2 = store.dispatch(
+        api.endpoints.getThing.initiate('a', {
+          subscriptionOptions: {
+            pollingInterval: 20,
+            skipPollingIfUnfocused: true,
+          },
+        }),
+      )
+      await vi.advanceTimersByTimeAsync(5)
+      const b = store.dispatch(
+        api.endpoints.getThing.initiate('b', {
+          subscriptionOptions: { pollingInterval },
+        }),
+      )
+      await vi.advanceTimersByTimeAsync(5)
+      expect(requests).toEqual(['a', 'b'])
+
+      store.dispatch(api.internalActions.onFocusLost())
+      await vi.advanceTimersByTimeAsync(40)
+      expect(requests).toEqual(['a', 'b', 'a', 'a'])
+
+      a1.unsubscribe()
+      a2.unsubscribe()
+      b.unsubscribe()
     })
 
     it('is not called while the entry is pending', async () => {
