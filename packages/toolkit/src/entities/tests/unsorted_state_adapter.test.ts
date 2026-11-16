@@ -382,6 +382,41 @@ describe('Unsorted State Adapter', () => {
     })
   })
 
+  it('should keep the order of ids when updating the id of an entity', () => {
+    const withMany = adapter.setAll(state, [
+      TheGreatGatsby,
+      AClockworkOrange,
+      AnimalFarm,
+    ])
+
+    const withUpdates = adapter.updateOne(withMany, {
+      id: TheGreatGatsby.id,
+      changes: { id: 'A New Id' },
+    })
+
+    expect(withUpdates.ids).toEqual([
+      'A New Id',
+      AClockworkOrange.id,
+      AnimalFarm.id,
+    ])
+  })
+
+  it('should not sort numeric ids when updating the id of an entity', () => {
+    const numericAdapter = createEntityAdapter<{ id: number; title: string }>()
+    const withMany = numericAdapter.setAll(numericAdapter.getInitialState(), [
+      { id: 3, title: 'Third' },
+      { id: 1, title: 'First' },
+      { id: 2, title: 'Second' },
+    ])
+
+    const withUpdates = numericAdapter.updateOne(withMany, {
+      id: 3,
+      changes: { id: 4 },
+    })
+
+    expect(withUpdates.ids).toEqual([4, 1, 2])
+  })
+
   it('should let you update many entities by id in the state', () => {
     const firstChange = { title: 'First Change' }
     const secondChange = { title: 'Second Change' }
