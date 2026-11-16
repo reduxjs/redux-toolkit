@@ -102,7 +102,7 @@ describe('type tests', () => {
       UnknownAction
     >
 
-    // Verify that the the first type args to createAsyncThunk line up right
+    // Verify that the first type args to createAsyncThunk line up right
     const fetchBooksTAC = createAsyncThunk<
       BookModel[],
       number,
