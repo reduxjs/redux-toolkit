@@ -253,13 +253,18 @@ export function fetchBaseQuery({
     } = typeof arg == 'string' ? { url: arg } : arg
 
     const timeoutController = timeout ? timeoutSignal(timeout) : undefined
+    let composedSignal: ReturnType<typeof anySignal> | undefined
     try {
       let config: RequestInit = {
         ...baseFetchOptions,
-        signal: timeoutController
-          ? anySignal(api.signal, timeoutController.signal)
-          : api.signal,
+        signal: api.signal,
         ...rest,
+      }
+      if (timeoutController) {
+        if (config.signal) {
+          composedSignal = anySignal(config.signal, timeoutController.signal)
+        }
+        config.signal = composedSignal?.signal ?? timeoutController.signal
       }
 
       headers = new Headers(stripUndefined(headers))
@@ -396,6 +401,7 @@ export function fetchBaseQuery({
           }
     } finally {
       timeoutController?.clear()
+      composedSignal?.clear()
     }
   }
 

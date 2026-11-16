@@ -21,16 +21,22 @@ export const timeoutSignal = (milliseconds: number) => {
 export const anySignal = (...signals: AbortSignal[]) => {
   // if any are already aborted, return an already aborted signal
   for (const signal of signals)
-    if (signal.aborted) return AbortSignal.abort(signal.reason)
+    if (signal.aborted)
+      return { signal: AbortSignal.abort(signal.reason), clear: () => {} }
 
   // otherwise, create a new signal that aborts when any of the given signals abort
   const abortController = new AbortController()
+  const onAbort = (event: Event) =>
+    abortController.abort((event.target as AbortSignal).reason)
   for (const signal of signals) {
-    signal.addEventListener(
-      'abort',
-      () => abortController.abort(signal.reason),
-      { signal: abortController.signal, once: true },
-    )
+    signal.addEventListener('abort', onAbort, {
+      signal: abortController.signal,
+      once: true,
+    })
   }
-  return abortController.signal
+  return {
+    signal: abortController.signal,
+    clear: () =>
+      signals.forEach((signal) => signal.removeEventListener('abort', onAbort)),
+  }
 }
