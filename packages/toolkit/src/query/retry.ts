@@ -170,34 +170,44 @@ const retryWithBackoff: BaseQueryEnhancer<
         throw e
       }
 
-      if (e instanceof HandledError) {
-        if (
-          !options.retryCondition(e.value.error as FetchBaseQueryError, args, {
-            attempt: retry,
-            baseQueryApi: api,
-            extraOptions,
-          })
-        ) {
-          return e.value // Max retries for expected error
-        }
-      } else {
-        // For unexpected errors, respect maxRetries
-        if (retry > options.maxRetries) {
-          // Return the error as a proper error response instead of throwing
-          return { error: e }
-        }
-      }
-
-      // Check if aborted before backoff
-      failIfAborted(api.signal)
-
       try {
-        await options.backoff(retry, options.maxRetries, api.signal)
-      } catch (backoffError) {
-        // If backoff was aborted, exit the retry loop
+        if (e instanceof HandledError) {
+          if (
+            !options.retryCondition(
+              e.value.error as FetchBaseQueryError,
+              args,
+              {
+                attempt: retry,
+                baseQueryApi: api,
+                extraOptions,
+              },
+            )
+          ) {
+            return e.value // Max retries for expected error
+          }
+        } else {
+          // For unexpected errors, respect maxRetries
+          if (retry > options.maxRetries) {
+            // Return the error as a proper error response instead of throwing
+            return { error: e }
+          }
+        }
+
+        // Check if aborted before backoff
         failIfAborted(api.signal)
-        // Otherwise, rethrow the backoff error
-        throw backoffError
+
+        await options.backoff(retry, options.maxRetries, api.signal)
+      } catch (handlerError: any) {
+        // If the request was aborted, exit the retry loop
+        failIfAborted(api.signal)
+        // `retry.fail()` called from `retryCondition` or `backoff`
+        if (
+          handlerError.throwImmediately &&
+          handlerError instanceof HandledError
+        ) {
+          return handlerError.value
+        }
+        throw handlerError
       }
     }
   }
