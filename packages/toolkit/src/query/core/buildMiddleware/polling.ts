@@ -18,6 +18,7 @@ import type {
   ApiMiddlewareInternalHandler,
 } from './types'
 import { clearPoll, setPoll } from './runtime'
+import type { QueryKeyRecord } from './runtime'
 
 type AnyQueryDefinition = QueryDefinition<any, any, any, any>
 type PollingIntervalFn = (
@@ -40,10 +41,25 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
 
   const { pendingPollingUpdates } = runtime
 
+  // Results are per cache key, because one function can poll several keys
   const pollingIntervalResults = new WeakMap<
-    PollingIntervalFn,
-    { querySubState: InitializedQuerySubState; result: number }
+    QueryKeyRecord,
+    WeakMap<
+      PollingIntervalFn,
+      { querySubState: InitializedQuerySubState; result: number }
+    >
   >()
+
+  function getPollingIntervalResults(queryCacheKey: string) {
+    const record = runtime.queries.get(queryCacheKey)
+    if (!record) return undefined
+    let results = pollingIntervalResults.get(record)
+    if (!results) {
+      results = new WeakMap()
+      pollingIntervalResults.set(record, results)
+    }
+    return results
+  }
 
   const handler: ApiMiddlewareInternalHandler = (action, mwApi) => {
     if (
@@ -71,8 +87,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
   function schedulePollingUpdate(queryCacheKey: string, api: SubMiddlewareApi) {
     if (
       !runtime.queries.get(queryCacheKey)?.poll &&
-      !findPollingSubscribers(getSubscribers(queryCacheKey))
-        .hasPollingSubscriber
+      !findPollingSubscribers(queryCacheKey).hasPollingSubscriber
     ) {
       return
     }
@@ -141,7 +156,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
         // The subscription map and cache entry may have changed since this
         // poll was scheduled, because unsubscribe cleanup is deferred.
         const { hasPollingSubscriber, skipPollingIfUnfocused } =
-          findPollingSubscribers(getSubscribers(queryCacheKey))
+          findPollingSubscribers(queryCacheKey)
         if (
           !currentQuerySubState ||
           currentQuerySubState.status === STATUS_UNINITIALIZED ||
@@ -223,29 +238,35 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
 
   // Does not call polling interval functions, so a function counts as polling.
   // Its `skipPollingIfUnfocused` only applies if its last result was a poll.
-  function findPollingSubscribers(
-    subscribers: SubscribersInternal = new Map(),
-  ) {
+  // Polling is skipped while unfocused only if every polling subscriber skips.
+  function findPollingSubscribers(queryCacheKey: string) {
+    const subscribers = getSubscribers(queryCacheKey) ?? new Map()
+    const results = getPollingIntervalResults(queryCacheKey)
     let hasPollingSubscriber = false
-    let skipPollingIfUnfocused = false
+    let hasActivePoll = false
+    let allActivePollsSkip = true
 
     for (const entry of subscribers.values()) {
       const { pollingInterval } = entry
       let isPolling: boolean
       if (typeof pollingInterval === 'function') {
         hasPollingSubscriber = true
-        const previous = pollingIntervalResults.get(pollingInterval)
+        const previous = results?.get(pollingInterval)
         isPolling = !previous || isPositiveInterval(previous.result)
       } else {
         isPolling = isPositiveInterval(pollingInterval)
         hasPollingSubscriber ||= isPolling
       }
       if (isPolling) {
-        skipPollingIfUnfocused ||= !!entry.skipPollingIfUnfocused
+        hasActivePoll = true
+        allActivePollsSkip &&= entry.skipPollingIfUnfocused === true
       }
     }
 
-    return { hasPollingSubscriber, skipPollingIfUnfocused }
+    return {
+      hasPollingSubscriber,
+      skipPollingIfUnfocused: hasActivePoll && allActivePollsSkip,
+    }
   }
 
   function findLowestPollingInterval(
@@ -281,7 +302,8 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
     querySubState: InitializedQuerySubState,
     queryCacheKey: QueryCacheKey,
   ) {
-    const previous = pollingIntervalResults.get(pollingInterval)
+    const results = getPollingIntervalResults(queryCacheKey)
+    const previous = results?.get(pollingInterval)
     if (previous?.querySubState === querySubState) {
       return previous.result
     }
@@ -297,7 +319,7 @@ export const buildPollingHandler: InternalHandlerBuilder = ({
       }
       result = 0
     }
-    pollingIntervalResults.set(pollingInterval, { querySubState, result })
+    results?.set(pollingInterval, { querySubState, result })
     return result
   }
 
