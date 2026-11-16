@@ -91,19 +91,24 @@ describe('refetch option composition', () => {
     expect(baseQuery).toHaveBeenCalledOnce()
   })
 
-  test.each([
-    { direction: 'forward', globalZero: true },
-    { direction: 'backward', globalZero: true },
-    { direction: 'forward', globalZero: false },
-    { direction: 'backward', globalZero: false },
-  ] as const)(
-    'zero refetch skips exhausted $direction pages with globalZero=$globalZero',
-    async ({ direction, globalZero }) => {
+  test.each(
+    (['forward', 'backward'] as const).flatMap((direction) =>
+      ([0, true] as const).flatMap((refetch) =>
+        ([true, false] as const).map((global) => ({
+          direction,
+          refetch,
+          global,
+        })),
+      ),
+    ),
+  )(
+    'refetch $refetch skips exhausted $direction pages with global=$global',
+    async ({ direction, refetch, global }) => {
       const onQueryStarted = vi.fn()
       const baseQuery = vi.fn(async (page: number) => ({ data: page }))
       const api = createApi({
         baseQuery,
-        refetchOnMountOrArgChange: globalZero ? 0 : false,
+        refetchOnMountOrArgChange: global ? refetch : false,
         endpoints: (build) => ({
           pages: build.infiniteQuery<number, string, number>({
             infiniteQueryOptions: {
@@ -129,7 +134,7 @@ describe('refetch option composition', () => {
       await store.dispatch(
         api.endpoints.pages.initiate('a', {
           direction,
-          ...(globalZero ? {} : { forceRefetch: 0 }),
+          ...(global ? {} : { forceRefetch: refetch }),
         }),
       )
 

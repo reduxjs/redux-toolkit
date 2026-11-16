@@ -1050,6 +1050,27 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
           return !!runtime
         }
 
+        // A page fetch past the first or last page has nothing to request,
+        // even when forced
+        if (direction && isInfiniteQueryDefinition(endpointDefinition)) {
+          const cachedData = requestState?.data as
+            | InfiniteData<unknown, unknown>
+            | undefined
+          if (cachedData?.pages.length) {
+            const { infiniteQueryOptions } = endpointDefinition
+            const pageParamFn =
+              direction === 'forward' ? getNextPageParam : getPreviousPageParam
+            const nextParam = pageParamFn(
+              infiniteQueryOptions,
+              cachedData,
+              currentArg,
+            )
+            if (nextParam == null) {
+              return false
+            }
+          }
+        }
+
         // if this is forced, continue
         if (isForcedQuery(queryThunkArg, state)) {
           return true
@@ -1071,25 +1092,6 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
         if (fulfilledVal && !direction) {
           // Value is cached and we didn't specify to refresh, skip it.
           return false
-        }
-
-        if (direction && isInfiniteQueryDefinition(endpointDefinition)) {
-          const cachedData = requestState?.data as
-            | InfiniteData<unknown, unknown>
-            | undefined
-          if (cachedData?.pages.length) {
-            const { infiniteQueryOptions } = endpointDefinition
-            const pageParamFn =
-              direction === 'forward' ? getNextPageParam : getPreviousPageParam
-            const nextParam = pageParamFn(
-              infiniteQueryOptions,
-              cachedData,
-              currentArg,
-            )
-            if (nextParam == null) {
-              return false
-            }
-          }
         }
 
         return true
