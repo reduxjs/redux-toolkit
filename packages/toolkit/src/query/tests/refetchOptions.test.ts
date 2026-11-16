@@ -186,10 +186,14 @@ describe('refetch option composition', () => {
       )
       const inherited = store.dispatch(api.endpoints.getThing.initiate('a'))
       await inherited
+      store.dispatch(api.internalActions[event]())
+      await vi.advanceTimersByTimeAsync(0)
+      expect(baseQuery).toHaveBeenCalledTimes(2)
+
       inherited.unsubscribe()
       store.dispatch(api.internalActions[event]())
       await vi.advanceTimersByTimeAsync(0)
-      expect(baseQuery).toHaveBeenCalledOnce()
+      expect(baseQuery).toHaveBeenCalledTimes(2)
     })
   })
 
