@@ -9,7 +9,6 @@ describe('call-site maxAge', () => {
   const baseQuery = vi.fn((arg: number) => ({ data: arg }))
   const api = createApi({
     baseQuery,
-    refetchOnMountOrArgChange: true,
     endpoints: (build) => ({
       getValue: build.query<number, number>({ query: (arg) => arg }),
     }),
@@ -116,5 +115,31 @@ describe('call-site maxAge', () => {
     vi.setSystemTime(Date.now() + 1000)
     await prefetch({ ifOlderThan: 1 })
     expect(baseQuery).toHaveBeenCalledTimes(2)
+  })
+
+  describe('with refetchOnMountOrArgChange: true', () => {
+    const refetchingApi = createApi({
+      baseQuery,
+      refetchOnMountOrArgChange: true,
+      endpoints: (build) => ({
+        getValue: build.query<number, number>({ query: (arg) => arg }),
+      }),
+    })
+    const refetchingStoreRef = setupApiStore(refetchingApi, undefined, {
+      withoutListeners: true,
+    })
+    const initiateRefetching = (options?: StartQueryActionCreatorOptions) =>
+      refetchingStoreRef.store.dispatch(
+        refetchingApi.endpoints.getValue.initiate(1, options),
+      )
+
+    test('call-site maxAge takes precedence over the api option', async () => {
+      await initiateRefetching()
+      await initiateRefetching({ maxAge: 10 })
+      expect(baseQuery).toHaveBeenCalledTimes(1)
+
+      await initiateRefetching()
+      expect(baseQuery).toHaveBeenCalledTimes(2)
+    })
   })
 })
