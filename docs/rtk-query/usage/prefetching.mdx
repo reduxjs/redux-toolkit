@@ -99,7 +99,7 @@ function User() {
 
 `ifOlderThan` remains supported as a deprecated alias. If both options are supplied, `maxAge` takes precedence. Unlike `maxAge: 0`, the legacy `ifOlderThan: 0` keeps its existing behavior of reusing cached data.
 
-The same call-site age limit is available on `initiate(arg, { maxAge: 35 })` and lazy query triggers: `trigger(arg, { maxAge: 35 })`. Declarative hooks continue to use `refetchOnMountOrArgChange`; there is no global or endpoint-level `maxAge` setting.
+The same call-site age limit is available on `initiate(arg, { maxAge: 35 })` and lazy query triggers: `trigger(arg, { maxAge: 35 })`. Lazy triggers also accept `{ preferCacheValue: true }`, which replaces the deprecated `trigger(arg, true)` form. Declarative hooks continue to use `refetchOnMountOrArgChange`; there is no global or endpoint-level `maxAge` setting.
 
 ### Recipe: Prefetch Immediately
 

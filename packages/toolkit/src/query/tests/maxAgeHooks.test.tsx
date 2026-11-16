@@ -54,7 +54,31 @@ describe('maxAge in query hooks', () => {
     },
   )
 
-  test('keeps boolean lazy-trigger arguments', async () => {
+  test('lazy trigger options object', async () => {
+    const { result } = renderHook(() => api.endpoints.getValue.useLazyQuery(), {
+      wrapper: storeRef.wrapper,
+    })
+
+    for (const options of [undefined, {}, { preferCacheValue: false }]) {
+      await act(async () => {
+        await result.current[0](1, options)
+      })
+    }
+    expect(baseQuery).toHaveBeenCalledTimes(3)
+
+    await act(async () => {
+      await result.current[0](1, { preferCacheValue: true })
+    })
+    expect(baseQuery).toHaveBeenCalledTimes(3)
+
+    vi.setSystemTime(Date.now() + 10_000)
+    await act(async () => {
+      await result.current[0](1, { preferCacheValue: true, maxAge: 10 })
+    })
+    expect(baseQuery).toHaveBeenCalledTimes(4)
+  })
+
+  test('keeps deprecated boolean lazy-trigger arguments', async () => {
     const { result } = renderHook(() => api.endpoints.getValue.useLazyQuery(), {
       wrapper: storeRef.wrapper,
     })

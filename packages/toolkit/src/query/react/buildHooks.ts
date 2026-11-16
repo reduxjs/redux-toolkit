@@ -287,7 +287,7 @@ export type UseLazyQueryLastPromiseInfo<
  *
  * Until you call the trigger function, the result stays `uninitialized` and `data` is `undefined`.
  *
- * By default, the trigger starts a new request even if there is cached data. Pass `true` as its second argument to reuse any cached value, or `{ maxAge: seconds }` to reuse cached data only while it is younger than the age limit.
+ * By default, the trigger starts a new request even if there is cached data. Pass `{ preferCacheValue: true }` as its second argument to reuse any cached value, or `{ maxAge: seconds }` to reuse cached data only while it is younger than the age limit.
  */
 export type UseLazyQuery<D extends QueryDefinition<any, any, any, any>> = <
   R extends Record<string, any> = UseQueryStateDefaultResult<D>,
@@ -334,13 +334,34 @@ export type TypedUseLazyQueryStateResult<
   R
 >
 
+export type LazyQueryTriggerOptions = {
+  /**
+   * Reuse any cached value and only start a request if there is no cached value.
+   */
+  preferCacheValue?: boolean
+  /**
+   * Reuse cached data younger than this many seconds, and start a request if it is at least that old.
+   * `0` always starts a request. Takes precedence over `preferCacheValue`.
+   */
+  maxAge?: number
+}
+
 export type LazyQueryTrigger<D extends QueryDefinition<any, any, any, any>> = {
   /**
    * Triggers a lazy query.
    *
+   * @deprecated Pass `{ preferCacheValue: true }` instead of `true`. Omit the options instead of passing `false`.
+   */
+  (
+    arg: QueryArgFrom<D>,
+    preferCacheValue: boolean | undefined,
+  ): QueryActionCreatorResult<D>
+  /**
+   * Triggers a lazy query.
+   *
    * By default, this will start a new request even if there is already a value in the cache.
-   * If you want to use the cache value and only start a request if there is no cache value, set the second argument to `true`.
-   * Alternatively, pass `{ maxAge: seconds }` to refetch only when the cached data is at least that old. `0` always refetches.
+   * Pass `{ preferCacheValue: true }` to use the cached value and only start a request if there is no cached value.
+   * Pass `{ maxAge: seconds }` to refetch only when the cached data is at least that old. `0` always refetches.
    *
    * @remarks
    * If you need to access the error or success payload immediately after a lazy query, you can chain .unwrap().
@@ -358,7 +379,7 @@ export type LazyQueryTrigger<D extends QueryDefinition<any, any, any, any>> = {
    */
   (
     arg: QueryArgFrom<D>,
-    options?: boolean | { maxAge: number },
+    options?: LazyQueryTriggerOptions,
   ): QueryActionCreatorResult<D>
 }
 
@@ -2068,13 +2089,12 @@ If you replace the store passed to <Provider>, also give the Provider a \`key\` 
       }, [stableSubscriptionOptions])
 
       const trigger = useCallback(
-        function (
-          arg: any,
-          options: Parameters<LazyQueryTrigger<any>>[1] = false,
-        ) {
+        function (arg: any, options: boolean | LazyQueryTriggerOptions = {}) {
           let promise: QueryActionCreatorResult<any>
-          const maxAge =
-            typeof options === 'boolean' ? undefined : options.maxAge
+          const { preferCacheValue, maxAge } =
+            typeof options === 'boolean'
+              ? { preferCacheValue: options, maxAge: undefined }
+              : options
 
           batch(() => {
             unsubscribePromiseRef(promiseRef)
@@ -2082,7 +2102,7 @@ If you replace the store passed to <Provider>, also give the Provider a \`key\` 
             promiseRef.current = promise = dispatch(
               initiate(arg, {
                 subscriptionOptions: subscriptionOptionsRef.current,
-                forceRefetch: typeof options === 'boolean' && !options,
+                forceRefetch: !preferCacheValue && maxAge === undefined,
                 maxAge,
               }),
             )
@@ -2115,7 +2135,7 @@ If you replace the store passed to <Provider>, also give the Provider a \`key\` 
       /* if "cleanup on unmount" was triggered from a fast refresh, we want to reinstate the query */
       useEffect(() => {
         if (arg !== UNINITIALIZED_VALUE && !promiseRef.current) {
-          trigger(arg, true)
+          trigger(arg, { preferCacheValue: true })
         }
       }, [arg, trigger])
 

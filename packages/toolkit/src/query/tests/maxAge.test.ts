@@ -79,14 +79,17 @@ describe('call-site maxAge', () => {
     expect(baseQuery).toHaveBeenCalledTimes(2)
   })
 
-  test('numeric forceRefetch keeps its existing behavior', async () => {
+  test('numeric forceRefetch behaves like maxAge', async () => {
     await initiate()
     await initiate({ forceRefetch: 0 })
-    expect(baseQuery).toHaveBeenCalledTimes(1)
+    expect(baseQuery).toHaveBeenCalledTimes(2)
+
+    await initiate({ forceRefetch: 1 })
+    expect(baseQuery).toHaveBeenCalledTimes(2)
 
     vi.setSystemTime(Date.now() + 1000)
     await initiate({ forceRefetch: 1 })
-    expect(baseQuery).toHaveBeenCalledTimes(2)
+    expect(baseQuery).toHaveBeenCalledTimes(3)
   })
 
   test('maxAge takes precedence over ifOlderThan', async () => {
