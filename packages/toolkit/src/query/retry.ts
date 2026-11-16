@@ -116,29 +116,34 @@ const retryWithBackoff: BaseQueryEnhancer<
   RetryOptions,
   RetryOptions | void
 > = (baseQuery, defaultOptions) => async (args, api, extraOptions) => {
-  // We need to figure out `maxRetries` before we define `defaultRetryCondition.
-  // This is probably goofy, but ought to work.
-  // Put our defaults in one array, filter out undefineds, grab the last value.
-  const possibleMaxRetries: number[] = [
-    5,
-    ((defaultOptions as any) || EMPTY_OPTIONS).maxRetries,
-    ((extraOptions as any) || EMPTY_OPTIONS).maxRetries,
-  ].filter((x) => x !== undefined)
-  const [maxRetries] = possibleMaxRetries.slice(-1)
+  const baseOptions: RetryOptions = defaultOptions || EMPTY_OPTIONS
+  const endpointOptions: RetryOptions = extraOptions || EMPTY_OPTIONS
+
+  const maxRetries = endpointOptions.maxRetries ?? baseOptions.maxRetries ?? 5
 
   const defaultRetryCondition: RetryConditionFunction = (_, __, { attempt }) =>
     attempt <= maxRetries
 
-  const options: {
-    maxRetries: number
-    backoff: typeof defaultBackoff
-    retryCondition: typeof defaultRetryCondition
-  } = {
+  const baseRetryCondition = baseOptions.retryCondition
+
+  // `maxRetries` only limits expected errors through the default condition.
+  // When an endpoint sets it, a `retryCondition` from `retry()` still decides
+  // which errors are retried, and the endpoint's limit caps the retries.
+  const endpointMaxRetriesCondition: RetryConditionFunction | undefined =
+    endpointOptions.maxRetries !== undefined && baseRetryCondition
+      ? (error, args, extraArgs) =>
+          defaultRetryCondition(error, args, extraArgs) &&
+          baseRetryCondition(error, args, extraArgs)
+      : undefined
+
+  const options = {
     maxRetries,
-    backoff: defaultBackoff,
-    retryCondition: defaultRetryCondition,
-    ...defaultOptions,
-    ...extraOptions,
+    backoff: endpointOptions.backoff ?? baseOptions.backoff ?? defaultBackoff,
+    retryCondition:
+      endpointOptions.retryCondition ??
+      endpointMaxRetriesCondition ??
+      baseRetryCondition ??
+      defaultRetryCondition,
   }
   let retry = 0
 

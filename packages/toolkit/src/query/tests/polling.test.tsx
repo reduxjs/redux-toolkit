@@ -1,6 +1,10 @@
+import { configureStore } from '@reduxjs/toolkit'
 import type { UnknownAction } from '@reduxjs/toolkit'
 import { createApi } from '@reduxjs/toolkit/query'
-import type { QueryActionCreatorResult } from '@reduxjs/toolkit/query'
+import type {
+  PollingInterval,
+  QueryActionCreatorResult,
+} from '@reduxjs/toolkit/query'
 import { delay } from 'msw'
 import { actionsReducer, setupApiStore } from '../../tests/utils/helpers'
 import type { QueryCacheKey } from '../core/apiState'
@@ -784,5 +788,235 @@ describe('poll scheduling', () => {
     expect(requests).toEqual(['a', 'a'])
 
     subscription.unsubscribe()
+  })
+
+  describe('pollingInterval as a function', () => {
+    it('is called with the settled cache entry once per scheduled poll', async () => {
+      const { api, store, requests } = makePollApi()
+      const pollingInterval = vi.fn<Exclude<PollingInterval, number>>(
+        (entry) => (entry.data === 'data-a-3' ? 0 : 20),
+      )
+
+      const subscription = store.dispatch(
+        api.endpoints.getThing.initiate('a', {
+          subscriptionOptions: { pollingInterval },
+        }),
+      )
+      await vi.advanceTimersByTimeAsync(200)
+
+      expect(requests).toEqual(['a', 'a', 'a'])
+      expect(pollingInterval).toHaveBeenCalledTimes(3)
+      for (const [entry] of pollingInterval.mock.calls) {
+        expect(entry).toMatchObject({
+          status: 'fulfilled',
+          queryCacheKey: subscription.queryCacheKey,
+          endpointName: 'getThing',
+        })
+      }
+
+      subscription.unsubscribe()
+    })
+
+    it('resumes polling when a later request makes it return an interval again', async () => {
+      const { api, store, requests } = makePollApi()
+      let enabled = false
+
+      const subscription = store.dispatch(
+        api.endpoints.getThing.initiate('a', {
+          subscriptionOptions: { pollingInterval: () => (enabled ? 20 : 0) },
+        }),
+      )
+      await vi.advanceTimersByTimeAsync(100)
+      expect(requests).toEqual(['a'])
+
+      enabled = true
+      await subscription.refetch()
+      expect(requests).toEqual(['a', 'a'])
+
+      await vi.advanceTimersByTimeAsync(25)
+      expect(requests).toEqual(['a', 'a', 'a'])
+
+      subscription.unsubscribe()
+    })
+
+    it('is not called while the entry is pending', async () => {
+      const { api, store, requests, blockRequests, releaseRequests } =
+        makePollApi()
+      const pollingInterval = vi.fn<Exclude<PollingInterval, number>>(() => 20)
+
+      blockRequests()
+      const subscription = store.dispatch(
+        api.endpoints.getThing.initiate('a', {
+          subscriptionOptions: { pollingInterval },
+        }),
+      )
+      await vi.advanceTimersByTimeAsync(100)
+      expect(requests).toEqual(['a'])
+      expect(pollingInterval).not.toHaveBeenCalled()
+
+      releaseRequests()
+      await vi.advanceTimersByTimeAsync(0)
+      expect(pollingInterval).toHaveBeenCalledOnce()
+
+      await vi.advanceTimersByTimeAsync(20)
+      expect(requests).toEqual(['a', 'a'])
+
+      subscription.unsubscribe()
+    })
+
+    it('uses the lowest interval across number and function subscribers', async () => {
+      const { api, store, requests } = makePollApi()
+
+      const slow = store.dispatch(
+        api.endpoints.getThing.initiate('a', {
+          subscriptionOptions: { pollingInterval: 100 },
+        }),
+      )
+      const fast = store.dispatch(
+        api.endpoints.getThing.initiate('a', {
+          subscriptionOptions: { pollingInterval: () => 30 },
+        }),
+      )
+      await vi.advanceTimersByTimeAsync(0)
+      expect(requests).toEqual(['a'])
+
+      await vi.advanceTimersByTimeAsync(30)
+      expect(requests).toEqual(['a', 'a'])
+
+      fast.unsubscribe()
+      await vi.advanceTimersByTimeAsync(60)
+      expect(requests).toEqual(['a', 'a'])
+
+      await vi.advanceTimersByTimeAsync(50)
+      expect(requests).toEqual(['a', 'a', 'a'])
+
+      slow.unsubscribe()
+    })
+
+    it.each([
+      ['a negative number', () => -5],
+      ['NaN', () => Number.NaN],
+      ['a non-number', () => undefined as unknown as number],
+    ])('treats %s as no poll', async (_, pollingInterval) => {
+      const { api, store, requests } = makePollApi()
+
+      const subscription = store.dispatch(
+        api.endpoints.getThing.initiate('a', {
+          subscriptionOptions: { pollingInterval },
+        }),
+      )
+      await vi.advanceTimersByTimeAsync(100)
+      expect(requests).toEqual(['a'])
+
+      subscription.unsubscribe()
+    })
+
+    it('treats a negative number interval as no poll', async () => {
+      const { api, store, requests } = makePollApi()
+
+      const subscription = store.dispatch(
+        api.endpoints.getThing.initiate('a', {
+          subscriptionOptions: { pollingInterval: -5 },
+        }),
+      )
+      await vi.advanceTimersByTimeAsync(100)
+      expect(requests).toEqual(['a'])
+
+      subscription.unsubscribe()
+    })
+
+    it('treats a throwing function as no poll without breaking other polls', async () => {
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const { api, store, requests } = makePollApi()
+      const throwing = () => {
+        throw new Error('boom')
+      }
+
+      const a = store.dispatch(
+        api.endpoints.getThing.initiate('a', {
+          subscriptionOptions: { pollingInterval: throwing },
+        }),
+      )
+      await expect(a).resolves.toMatchObject({ data: 'data-a-1' })
+      expect(errorSpy).toHaveBeenCalledOnce()
+
+      const b = store.dispatch(
+        api.endpoints.getThing.initiate('b', {
+          subscriptionOptions: { pollingInterval: 0 },
+        }),
+      )
+      await vi.advanceTimersByTimeAsync(0)
+
+      // Throws inside the batched update for 'a'
+      a.updateSubscriptionOptions({ pollingInterval: () => throwing() })
+      await vi.advanceTimersByTimeAsync(0)
+      expect(errorSpy).toHaveBeenCalledTimes(2)
+
+      b.updateSubscriptionOptions({ pollingInterval: 20 })
+      await vi.advanceTimersByTimeAsync(25)
+      expect(requests).toEqual(['a', 'b', 'b'])
+
+      a.unsubscribe()
+      b.unsubscribe()
+      errorSpy.mockRestore()
+    })
+
+    it('ignores skipPollingIfUnfocused from a function whose last result stopped polling', async () => {
+      const { api, store, requests } = makePollApi()
+
+      const polling = store.dispatch(
+        api.endpoints.getThing.initiate('a', {
+          subscriptionOptions: { pollingInterval: 20 },
+        }),
+      )
+      const stopped = store.dispatch(
+        api.endpoints.getThing.initiate('a', {
+          subscriptionOptions: {
+            pollingInterval: () => 0,
+            skipPollingIfUnfocused: true,
+          },
+        }),
+      )
+      await vi.advanceTimersByTimeAsync(0)
+      expect(requests).toEqual(['a'])
+
+      store.dispatch(api.internalActions.onFocusLost())
+      await vi.advanceTimersByTimeAsync(25)
+      expect(requests).toEqual(['a', 'a'])
+
+      polling.unsubscribe()
+      stopped.unsubscribe()
+    })
+
+    it('does not trigger serializability warnings', async () => {
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const api = createApi({
+        baseQuery: (arg: string) => ({ data: arg }),
+        endpoints: (build) => ({
+          getThing: build.query<string, string>({ query: (arg) => arg }),
+        }),
+      })
+      const store = configureStore({
+        reducer: { [api.reducerPath]: api.reducer },
+        middleware: (gdm) => gdm().concat(api.middleware),
+      })
+
+      const subscription = store.dispatch(
+        api.endpoints.getThing.initiate('a', {
+          subscriptionOptions: { pollingInterval: () => 20 },
+        }),
+      )
+      await vi.advanceTimersByTimeAsync(0)
+      subscription.updateSubscriptionOptions({ pollingInterval: () => 30 })
+      await vi.advanceTimersByTimeAsync(600)
+
+      expect(errorSpy).not.toHaveBeenCalled()
+      expect(
+        store.getState().api.subscriptions[subscription.queryCacheKey],
+      ).toEqual({ [subscription.requestId]: {} })
+
+      subscription.unsubscribe()
+      errorSpy.mockRestore()
+    })
   })
 })

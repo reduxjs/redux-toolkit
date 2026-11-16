@@ -24,6 +24,7 @@ import type {
   QueryState,
   QuerySubState,
   RequestStatusFlags,
+  WithRequestStatusFlags,
   ApiRootState as _RootState,
   QueryStatus,
 } from './apiState'
@@ -96,7 +97,7 @@ type QueryResultSelectorFactory<
 
 export type QueryResultSelectorResult<
   Definition extends QueryDefinition<any, any, any, any>,
-> = QuerySubState<Definition> & RequestStatusFlags
+> = WithRequestStatusFlags<QuerySubState<Definition>>
 
 type InfiniteQueryResultSelectorFactory<
   Definition extends InfiniteQueryDefinition<any, any, any, any, any>,
@@ -116,8 +117,7 @@ export type InfiniteQueryResultFlags = {
 
 export type InfiniteQueryResultSelectorResult<
   Definition extends InfiniteQueryDefinition<any, any, any, any, any>,
-> = InfiniteQuerySubState<Definition> &
-  RequestStatusFlags &
+> = WithRequestStatusFlags<InfiniteQuerySubState<Definition>> &
   InfiniteQueryResultFlags
 
 type MutationResultSelectorFactory<
@@ -132,7 +132,7 @@ type MutationResultSelectorFactory<
 
 export type MutationResultSelectorResult<
   Definition extends MutationDefinition<any, any, any, any>,
-> = MutationSubState<Definition> & RequestStatusFlags
+> = WithRequestStatusFlags<MutationSubState<Definition>>
 
 const initialSubState: QuerySubState<any> = {
   status: STATUS_UNINITIALIZED,

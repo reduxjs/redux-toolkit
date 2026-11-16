@@ -474,6 +474,10 @@ export const buildQueryLifecycleHandler: InternalHandlerBuilder = ({
           ...mwApi,
           getCacheEntry: () => selector(mwApi.getState()),
           requestId,
+          startReason:
+            'startReason' in action.meta.arg
+              ? action.meta.arg.startReason
+              : undefined,
           extra,
           updateCachedData: (isAnyQueryDefinition(endpointDefinition)
             ? (updateRecipe: Recipe<any>) => {

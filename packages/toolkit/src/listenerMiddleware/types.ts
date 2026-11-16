@@ -334,6 +334,18 @@ export interface CreateListenerMiddlewareOptions<ExtraArgument = unknown> {
   onError?: ListenerErrorHandler
 }
 
+/**
+ * The `dispatch` extension added by the listener middleware, which handles
+ * the `addListener`, `removeListener`, and `clearAllListeners` actions.
+ *
+ * @public
+ */
+export interface ListenerMiddlewareDispatch {
+  (action: Action<'listenerMiddleware/add'>): UnsubscribeListener
+  (action: Action<'listenerMiddleware/remove'> & { payload: object }): boolean
+  (action: Action<'listenerMiddleware/removeAll'>): void
+}
+
 /** @public */
 export type ListenerMiddleware<
   State = unknown,
@@ -343,15 +355,7 @@ export type ListenerMiddleware<
     UnknownAction
   >,
   ExtraArgument = unknown,
-> = Middleware<
-  {
-    (action: Action<'listenerMiddleware/add'>): UnsubscribeListener
-    (action: Action<'listenerMiddleware/remove'> & { payload: object }): boolean
-    (action: Action<'listenerMiddleware/removeAll'>): void
-  },
-  State,
-  DispatchType
->
+> = Middleware<ListenerMiddlewareDispatch, State, DispatchType>
 
 /** @public */
 export interface ListenerMiddlewareInstance<

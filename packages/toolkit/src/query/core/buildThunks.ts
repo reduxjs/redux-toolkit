@@ -12,6 +12,7 @@ import type {
   BaseQueryError,
   BaseQueryFn,
   QueryReturnValue,
+  QueryStartReason,
 } from '../baseQueryTypes'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import type {
@@ -154,6 +155,7 @@ export type QueryThunkArg = QuerySubstateIdentifier &
     type: 'query'
     originalArgs: unknown
     endpointName: string
+    startReason: QueryStartReason
   }
 
 export type InfiniteQueryThunkArg<
@@ -166,6 +168,7 @@ export type InfiniteQueryThunkArg<
     param: unknown
     direction?: InfiniteQueryDirection
     refetchCachedPages?: boolean
+    startReason: QueryStartReason
   }
 
 type MutationThunkArg = {
@@ -591,6 +594,7 @@ export function buildThunks<
         type: arg.type,
         forced: isQuery ? isForcedQuery(arg, getState()) : undefined,
         queryCacheKey: isQuery ? arg.queryCacheKey : undefined,
+        startReason: isQuery ? arg.startReason : undefined,
       }
 
       const forceQueryFn = isQuery ? arg[forceQueryFnSymbol] : undefined
@@ -1024,10 +1028,20 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
 
         // Join a request that's currently in flight
         const runtime = getRuntimeForState(getState)
-        if (
+        const running =
           runtime &&
           findRunningRequest(runtime, queryThunkArg.queryCacheKey, requestState)
-        ) {
+        if (running) {
+          if (
+            process.env.NODE_ENV !== 'production' &&
+            direction &&
+            running.direction &&
+            running.direction !== direction
+          ) {
+            console.warn(
+              `RTK Query: a ${direction} page fetch for "${queryThunkArg.queryCacheKey}" joined a running ${running.direction} page fetch and will not fetch its own page. Wait for the running request to finish before fetching another page.`,
+            )
+          }
           return false
         }
         // With the middleware installed, a `pending` entry without a running

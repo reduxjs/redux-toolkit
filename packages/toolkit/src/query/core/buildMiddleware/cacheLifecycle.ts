@@ -3,6 +3,7 @@ import type {
   BaseQueryFn,
   BaseQueryMeta,
   BaseQueryResult,
+  QueryStartReason,
 } from '../../baseQueryTypes'
 import type {
   BaseEndpointDefinition,
@@ -51,6 +52,12 @@ export interface QueryBaseLifecycleApi<
    * For documentation see `api.util.updateQueryData`.
    */
   updateCachedData(updateRecipe: Recipe<ResultType>): PatchCollection
+  /**
+   * Why the request began, for example `'initial'`, `'invalidation'` or
+   * `'poll'`. In `onCacheEntryAdded` this is the reason of the request that
+   * created the cache entry, or `'upsert'` when `upsertQueryEntries` created it.
+   */
+  startReason: QueryStartReason
 }
 
 export type MutationBaseLifecycleApi<
@@ -311,18 +318,32 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
       cacheKey: QueryCacheKey,
       requestId: string,
       originalArgs: unknown,
+      startReason: QueryStartReason,
     ) {
       const oldEntry = selectQueryEntry(stateBefore, cacheKey)
       const newEntry = selectQueryEntry(mwApi.getState(), cacheKey)
       if (!oldEntry && newEntry) {
-        handleNewKey(endpointName, originalArgs, cacheKey, mwApi, requestId)
+        handleNewKey(
+          endpointName,
+          originalArgs,
+          cacheKey,
+          mwApi,
+          requestId,
+          startReason,
+        )
       }
     }
 
     if (queryThunk.pending.match(action)) {
       const [endpointName, originalArgs, requestId] =
         getActionMetaFields(action)
-      checkForNewCacheKey(endpointName, cacheKey, requestId, originalArgs)
+      checkForNewCacheKey(
+        endpointName,
+        cacheKey,
+        requestId,
+        originalArgs,
+        action.meta.arg.startReason,
+      )
       getLifecycle(cacheKey, false)?.requestIds?.add(requestId)
     } else if (cacheEntriesUpserted.match(action)) {
       for (const { queryDescription, value } of action.payload) {
@@ -332,6 +353,7 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
           queryCacheKey,
           action.meta.requestId,
           originalArgs,
+          'upsert',
         )
 
         resolveLifecycleEntry(queryCacheKey, value, {}, false)
@@ -377,6 +399,7 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
     queryCacheKey: string,
     mwApi: SubMiddlewareApi,
     requestId: string,
+    startReason?: QueryStartReason,
   ) {
     const endpointDefinition = getEndpointDefinition(context, endpointName)
     const onCacheEntryAdded = endpointDefinition?.onCacheEntryAdded
@@ -419,6 +442,7 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
       ...mwApi,
       getCacheEntry: () => selector(mwApi.getState()),
       requestId,
+      startReason,
       extra,
       updateCachedData: (isAnyQueryDefinition(endpointDefinition)
         ? (updateRecipe: Recipe<any>) => {

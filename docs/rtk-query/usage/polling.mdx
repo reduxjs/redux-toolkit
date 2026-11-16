@@ -49,6 +49,33 @@ const { data, status, error, refetch } = store.dispatch(
 )
 ```
 
+## Computing the Interval from the Cache Entry
+
+`pollingInterval` can also be a function. It receives the current cache entry for the query (`data`, `error`, `status`, `originalArgs`, and so on) and returns the interval in milliseconds. This lets a query poll only while the server reports that work is still in progress:
+
+```tsx no-transpile title="src/Job.tsx"
+import * as React from 'react'
+import { useGetJobQuery } from './services/jobs'
+
+export const Job = ({ id }: { id: string }) => {
+  const { data } = useGetJobQuery(id, {
+    // Poll every second until the job finishes
+    pollingInterval: ({ data }) => (data?.status === 'running' ? 1000 : 0),
+  })
+
+  return <div>{data?.status}</div>
+}
+```
+
+The function follows these rules:
+
+- It is called when the next poll is scheduled, after a request for that cache entry settles. It is not called while a request is pending, and it runs at most once per cache entry update.
+- A result of `0`, a negative number, or anything that is not a number means "don't poll". The function is called again when the cache entry changes (for example after a manual `refetch()` or a refetch triggered by tag invalidation) or when a different function is passed, and polling resumes if it returns an interval.
+- If the function throws, that subscriber does not poll until the function is called again. The error is logged in development.
+- When several subscribers to the same cache entry ask for polling, the lowest interval wins, whether it came from a number or a function. A function subscriber's `skipPollingIfUnfocused` only applies while its last result was an interval.
+
+An inline function in a hook can change on every render without updating the subscription while it is polling; the most recent function is used the next time a poll is scheduled. When its last result stopped polling, a re-render with a new function calls it again right away, so a function like `() => (isActive ? 1000 : 0)` starts polling as soon as `isActive` becomes true.
+
 ## Polling Without React Hooks
 
 If you use polling without the convenience of React Hooks, you will need to manually call `updateSubscriptionOptions` on the promise ref to update the interval. This approach varies by framework but is possible everywhere. See the [Svelte Example](./examples#svelte) for one possibility, and the [Usage Without React Hooks](./usage-without-react-hooks.mdx) page for more details on working with subscriptions manually.

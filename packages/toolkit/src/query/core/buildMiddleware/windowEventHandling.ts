@@ -56,7 +56,12 @@ export const buildWindowEventHandler: InternalHandlerBuilder = ({
               }),
             )
           } else if (querySubState.status !== STATUS_UNINITIALIZED) {
-            api.dispatch(refetchQuery(querySubState))
+            api.dispatch(
+              refetchQuery(
+                querySubState,
+                type === 'refetchOnFocus' ? 'focus' : 'reconnect',
+              ),
+            )
           }
         }
       }

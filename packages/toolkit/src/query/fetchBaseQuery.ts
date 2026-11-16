@@ -135,7 +135,7 @@ export type FetchBaseQueryArgs = {
     headers: Headers,
     api: Pick<
       BaseQueryApi,
-      'getState' | 'extra' | 'endpoint' | 'type' | 'forced'
+      'getState' | 'extra' | 'endpoint' | 'type' | 'forced' | 'startReason'
     > & { arg: string | FetchArgs; extraOptions: unknown },
   ) => MaybePromise<Headers | void>
   fetchFn?: (
@@ -166,6 +166,14 @@ export type FetchBaseQueryArgs = {
 
 export type FetchBaseQueryMeta = { request: Request; response?: Response }
 
+export type FetchBaseQueryFn = BaseQueryFn<
+  string | FetchArgs,
+  unknown,
+  FetchBaseQueryError,
+  {},
+  FetchBaseQueryMeta
+>
+
 /**
  * This is a very small wrapper around fetch that aims to simplify requests.
  *
@@ -188,7 +196,7 @@ export type FetchBaseQueryMeta = { request: Request; response?: Response }
  * The base URL for an API service.
  * Typically in the format of https://example.com/
  *
- * @param {(headers: Headers, api: { getState: () => unknown; arg: string | FetchArgs; extra: unknown; endpoint: string; type: 'query' | 'mutation'; forced: boolean; }) => Headers} prepareHeaders
+ * @param {(headers: Headers, api: { getState: () => unknown; arg: string | FetchArgs; extra: unknown; endpoint: string; type: 'query' | 'mutation'; forced: boolean; startReason: QueryStartReason; }) => Headers} prepareHeaders
  * An optional function that can be used to inject headers on requests.
  * Provides a Headers object, most of the `BaseQueryApi` (`dispatch` is not available), and the arg passed into the query function.
  * Useful for setting authentication or headers that need to be set conditionally.
@@ -225,20 +233,14 @@ export function fetchBaseQuery({
   responseHandler: globalResponseHandler,
   validateStatus: globalValidateStatus,
   ...baseFetchOptions
-}: FetchBaseQueryArgs = {}): BaseQueryFn<
-  string | FetchArgs,
-  unknown,
-  FetchBaseQueryError,
-  {},
-  FetchBaseQueryMeta
-> {
+}: FetchBaseQueryArgs = {}): FetchBaseQueryFn {
   if (typeof fetch === 'undefined' && fetchFn === defaultFetchFn) {
     console.warn(
       'Warning: `fetch` is not available. Please supply a custom `fetchFn` property to use `fetchBaseQuery` on SSR environments.',
     )
   }
   return async (arg, api, extraOptions) => {
-    const { getState, extra, endpoint, forced, type } = api
+    const { getState, extra, endpoint, forced, type, startReason } = api
     let meta: FetchBaseQueryMeta | undefined
     let {
       url,
@@ -269,6 +271,7 @@ export function fetchBaseQuery({
           endpoint,
           forced,
           type,
+          startReason,
           extraOptions,
         })) || headers
 

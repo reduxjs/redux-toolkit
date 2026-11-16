@@ -17,6 +17,7 @@ Each endpoint structure contains the following fields:
 type EndpointLogic = {
   initiate: InitiateRequestThunk
   select: CreateCacheSelectorFactory
+  getRunningQuery: GetRunningQuery // queries and infinite queries only
   matchPending: Matcher<PendingAction>
   matchFulfilled: Matcher<FulfilledAction>
   matchRejected: Matcher<RejectedAction>
@@ -43,8 +44,11 @@ type StartMutationActionCreator<D extends MutationDefinition<any, any, any, any>
 type SubscriptionOptions = {
   /**
    * How frequently to automatically re-fetch data (in milliseconds). Defaults to `0` (off).
+   *
+   * Can also be a function that receives the current cache entry and returns the interval.
+   * See [Polling](../../usage/polling.mdx#computing-the-interval-from-the-cache-entry).
    */
-  pollingInterval?: number;
+  pollingInterval?: number | ((cacheEntry: QueryCacheEntry) => number);
   /**
    * Defaults to `false`. This setting allows you to control whether RTK Query will try to refetch all subscribed queries after regaining a network connection.
    *
@@ -67,6 +71,12 @@ interface StartQueryActionCreatorOptions {
   subscribe?: boolean;
   forceRefetch?: boolean | number;
   subscriptionOptions?: SubscriptionOptions;
+  /**
+   * Keep the cache entry for at least this many seconds after its last
+   * subscriber leaves. The entry is kept for
+   * `Math.max(keepUnusedDataFor, retainFor)` seconds.
+   */
+  retainFor?: number;
 }
 
 interface StartMutationActionCreatorOptions {
@@ -92,6 +102,15 @@ When dispatching an action creator, you're responsible for storing a reference t
 
 The result of dispatching a query `initiate` thunk is a promise with extra fields, including `unwrap()`, `refetch()`, `unsubscribe()`, `updateSubscriptionOptions()`, and `isSubscribed()`.
 `isSubscribed()` returns whether this particular request still holds a subscription in the store. It returns `false` after `unsubscribe()` is called, after `resetApiState`, and for requests started with `subscribe: false`.
+
+`retainFor` keeps a cache entry around after its last subscriber leaves, without changing the endpoint's `keepUnusedDataFor`. This is useful for prefetching or `subscribe: false` requests whose data will be read soon. The entry is removed after `Math.max(keepUnusedDataFor, retainFor)` seconds. Values under one second are raised to one second. When several requests pass `retainFor` for the same entry, the longest value is used until the entry is removed. Dispatching `initiate` with `retainFor` for an entry that is already cached restarts its removal timer.
+
+```ts no-transpile
+// Fetch now, and keep the data for 60 seconds even if nothing subscribes
+dispatch(
+  api.endpoints.getPost.initiate(id, { subscribe: false, retainFor: 60 }),
+)
+```
 
 #### Example
 
@@ -146,6 +165,31 @@ function App() {
       <button onClick={handleClick}>Add post</button>
     </div>
   )
+}
+```
+
+## `getRunningQuery`
+
+#### Signature
+
+```ts no-transpile
+type GetRunningQuery = (
+  arg: any,
+) => ThunkAction<QueryActionCreatorResult | undefined, any, any, UnknownAction>
+```
+
+#### Description
+
+A thunk action creator for query and infinite query endpoints. Dispatching it returns the promise of the request currently running for that cache entry, or `undefined` if no request is running.
+
+The returned promise is the same one that the `initiate` call which started the request returned. Awaiting it does not add a subscription. This is the typed per-endpoint form of [`api.util.getRunningQueryThunk`](./api-slice-utils.mdx#getrunningquerythunk-and-getrunningmutationthunk).
+
+#### Example
+
+```ts no-transpile
+const running = dispatch(api.endpoints.getPost.getRunningQuery(id))
+if (running) {
+  const { data } = await running
 }
 ```
 

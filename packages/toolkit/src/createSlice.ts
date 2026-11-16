@@ -544,10 +544,7 @@ type SliceDefinedSelectors<
  *
  * @public
  */
-export type ValidateSliceCaseReducers<
-  S,
-  ACR extends SliceCaseReducers<S>,
-> = ACR & {
+export type ValidateSliceCaseReducers<S, ACR extends SliceCaseReducers<S>> = {
   [T in keyof ACR]: ACR[T] extends {
     reducer(s: S, action?: infer A): any
   }
@@ -555,7 +552,7 @@ export type ValidateSliceCaseReducers<
         prepare(...a: never[]): Omit<A, 'type'>
       }
     : {}
-}
+} & ACR
 
 function getType(slice: string, actionKey: string): string {
   return `${slice}/${actionKey}`

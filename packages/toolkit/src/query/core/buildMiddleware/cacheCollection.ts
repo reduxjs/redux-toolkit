@@ -7,7 +7,12 @@ import type {
   InternalHandlerBuilder,
   SubMiddlewareApi,
 } from './types'
-import { clearRemovalTimer, setRemovalTimer } from './runtime'
+import {
+  clearRemovalTimer,
+  releaseRetain,
+  retainRecord,
+  setRemovalTimer,
+} from './runtime'
 
 export type ReferenceCacheCollection = never
 
@@ -89,6 +94,24 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
     const state = mwApi.getState()
     const config = selectConfig(state)
 
+    if (
+      (queryThunk.pending.match(action) ||
+        (queryThunk.rejected.match(action) && action.meta.condition)) &&
+      action.meta.arg.retainFor
+    ) {
+      const { queryCacheKey, retainFor } = action.meta.arg
+      if (selectQueryEntry(state, queryCacheKey)) {
+        retainRecord(runtime, queryCacheKey, retainFor)
+        if (runtime.queries.get(queryCacheKey)?.request) {
+          // The running request's `fulfilled`/`rejected` arms the timer with
+          // the new duration; an older timer must not remove it mid-flight
+          clearRemovalTimer(runtime, queryCacheKey)
+        } else {
+          handleUnsubscribeMany([queryCacheKey], mwApi, config)
+        }
+      }
+    }
+
     if (canTriggerUnsubscribe(action)) {
       let queryCacheKeys: QueryCacheKey[]
 
@@ -143,11 +166,19 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
       context,
       endpointName,
     ) as QueryDefinition<any, any, any, any>
-    const keepUnusedDataFor =
+    const configuredKeepUnusedDataFor =
       endpointDefinition?.keepUnusedDataFor ?? config.keepUnusedDataFor
+    const keepUnusedDataFor = Math.max(
+      configuredKeepUnusedDataFor,
+      runtime.queries.get(queryCacheKey)?.retainFor ?? 0,
+    )
 
     if (keepUnusedDataFor === Infinity) {
       // Hey, user said keep this forever!
+      clearRemovalTimer(runtime, queryCacheKey)
+      if (configuredKeepUnusedDataFor === Infinity) {
+        releaseRetain(runtime, queryCacheKey)
+      }
       return
     }
     // Prevent `setTimeout` timers from overflowing a 32-bit internal int, by
