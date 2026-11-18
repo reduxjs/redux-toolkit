@@ -905,15 +905,29 @@ async function onCacheEntryAdded(
   }: QueryCacheLifecycleApi,
 ) {
   const ws = new WebSocket('ws://localhost:8080')
+  let subscribed = false
   try {
-    await cacheDataLoaded
+    const opened = new Promise((resolve, reject) => {
+      ws.addEventListener('open', resolve)
+      ws.addEventListener('error', reject)
+    })
+    // either promise rejects if the entry is removed or the socket fails first
+    await Promise.all([cacheDataLoaded, opened])
     ws.send(JSON.stringify({ type: 'subscribe', channel: arg }))
+    subscribed = true
   } catch {}
-  await cacheEntryRemoved
-  if (getCacheEntryRemovedReason() !== 'reset') {
-    ws.send(JSON.stringify({ type: 'unsubscribe', channel: arg }))
+  try {
+    await cacheEntryRemoved
+    if (
+      subscribed &&
+      ws.readyState === WebSocket.OPEN &&
+      getCacheEntryRemovedReason() !== 'reset'
+    ) {
+      ws.send(JSON.stringify({ type: 'unsubscribe', channel: arg }))
+    }
+  } finally {
+    ws.close()
   }
-  ws.close()
 }
 ```
 
