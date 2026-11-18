@@ -16,7 +16,7 @@ type CustomRequestInit = Override<
     headers?:
       | Headers
       | string[][]
-      | Record<string, string | undefined>
+      | Record<string, string | number | boolean | undefined>
       | undefined
   }
 >
