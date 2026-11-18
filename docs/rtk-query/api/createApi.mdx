@@ -893,41 +893,19 @@ async function onCacheEntryAdded(
 ): Promise<void>
 ```
 
-`getCacheEntryRemovedReason` lets cleanup code tell a full API reset apart from a normal removal. For example, a socket connection can skip sending an "unsubscribe" message when the whole API state is being reset:
+`getCacheEntryRemovedReason` lets cleanup code tell a full API reset apart from a normal removal. For example, cleanup can skip telling the server to unsubscribe when the whole API state is being reset:
 
 ```ts title="Checking the removal reason" no-transpile
 async function onCacheEntryAdded(
   arg: string,
-  {
-    cacheDataLoaded,
-    cacheEntryRemoved,
-    getCacheEntryRemovedReason,
-  }: QueryCacheLifecycleApi,
+  { cacheEntryRemoved, getCacheEntryRemovedReason }: QueryCacheLifecycleApi,
 ) {
-  const ws = new WebSocket('ws://localhost:8080')
-  let subscribed = false
-  try {
-    const opened = new Promise((resolve, reject) => {
-      ws.addEventListener('open', resolve)
-      ws.addEventListener('error', reject)
-    })
-    // either promise rejects if the entry is removed or the socket fails first
-    await Promise.all([cacheDataLoaded, opened])
-    ws.send(JSON.stringify({ type: 'subscribe', channel: arg }))
-    subscribed = true
-  } catch {}
-  try {
-    await cacheEntryRemoved
-    if (
-      subscribed &&
-      ws.readyState === WebSocket.OPEN &&
-      getCacheEntryRemovedReason() !== 'reset'
-    ) {
-      ws.send(JSON.stringify({ type: 'unsubscribe', channel: arg }))
-    }
-  } finally {
-    ws.close()
+  const connection = openConnection(arg)
+  await cacheEntryRemoved
+  if (getCacheEntryRemovedReason() !== 'reset') {
+    connection.unsubscribe()
   }
+  connection.close()
 }
 ```
 
