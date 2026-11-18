@@ -195,7 +195,7 @@ If you don't use `getDefaultEnhancers` and instead return an array, the `applyMi
 configureStore({
   reducer,
   middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(logger),
-  enhancers: [offline(offlineConfig)],
+  enhancers: () => new Tuple(offline(offlineConfig)),
 })
 
 // fine - default enhancers included
@@ -208,8 +208,8 @@ configureStore({
 // also allowed
 configureStore({
   reducer,
-  middleware: () => [],
-  enhancers: () => [offline(offlineConfig)],
+  middleware: () => new Tuple(),
+  enhancers: () => new Tuple(offline(offlineConfig)),
 })
 ```
 
