@@ -79,18 +79,20 @@ import { getOrInsertComputed } from '../utils'
 import type { CreateSelectorFunction } from 'reselect'
 
 /**
- * `ifOlderThan` - (default: `false` | `number`) - _number is value in seconds_
- * - If specified, it will only run the query if the difference between `new Date()` and the last `fulfilledTimeStamp` is greater than the given value
+ * `maxAge` - cached data is refetched when it is at least this many seconds old.
+ * `0` always refetches. `ifOlderThan` is a deprecated alias.
  *
  * @overloadSummary
  * `force`
- * - If `force: true`, it will ignore the `ifOlderThan` value if it is set and the query will be run even if it exists in the cache.
+ * - If `force: true`, the query will run regardless of `maxAge` or `ifOlderThan`.
  */
-export type PrefetchOptions =
-  | {
-      ifOlderThan?: false | number
-    }
-  | { force?: boolean }
+export type PrefetchOptions = {
+  /** Refetch cached data at least this many seconds old. `0` always refetches. */
+  maxAge?: number
+  /** @deprecated Use `maxAge` instead. */
+  ifOlderThan?: false | number
+  force?: boolean
+}
 
 export const coreModuleName = /* @__PURE__ */ Symbol()
 export type CoreModule =

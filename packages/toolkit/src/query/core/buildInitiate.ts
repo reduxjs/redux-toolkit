@@ -121,6 +121,15 @@ export const startReasonSymbol = Symbol('startReason')
 
 export type StartQueryActionCreatorOptions = {
   subscribe?: boolean
+  /**
+   * Refetch if the cached data is at least this many seconds old.
+   * `0` always refetches. Takes precedence over numeric `forceRefetch`.
+   */
+  maxAge?: number
+  /**
+   * `true` always refetches, even when `maxAge` is set.
+   * Numeric values are deprecated; use `maxAge` instead.
+   */
   forceRefetch?: boolean | number
   subscriptionOptions?: SubscriptionOptions
   /**
