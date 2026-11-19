@@ -38,6 +38,7 @@ import type {
   QueryArgFromAnyQueryDefinition,
   DataFromAnyQueryDefinition,
   InfiniteQueryThunk,
+  InfiniteQueryThunkArg,
   MutationThunk,
   Patch,
   QueryThunk,
@@ -237,8 +238,12 @@ export function buildSlice({
       const endpointDefinition = definitions[meta.arg.endpointName]
 
       if (isInfiniteQueryDefinition(endpointDefinition) && 'direction' in arg) {
-        ;(substate as InfiniteQuerySubState<any>).direction =
-          arg.direction as InfiniteQueryDirection
+        const infiniteSubstate = substate as InfiniteQuerySubState<any>
+        infiniteSubstate.direction = arg.direction as InfiniteQueryDirection
+        const { initialPageParam } = arg as InfiniteQueryThunkArg<any>
+        if (initialPageParam !== undefined) {
+          infiniteSubstate.initialPageParam = initialPageParam
+        }
       }
     })
   }
