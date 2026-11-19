@@ -2205,4 +2205,33 @@ describe('infinite query page fetching and refetching', () => {
 
     promise.unsubscribe()
   })
+
+  test('upsertQueryData replaces an existing entry that has several cached pages', async () => {
+    const { api, store, requestedParams, getPageParams, getPages } =
+      makeInfiniteApi()
+
+    const first = store.dispatch(api.endpoints.pages.initiate('x'))
+    await first
+    await store.dispatch(
+      api.endpoints.pages.initiate('x', { direction: 'forward' }),
+    )
+    await store.dispatch(
+      api.endpoints.pages.initiate('x', { direction: 'forward' }),
+    )
+    expect(getPageParams()).toEqual([0, 1, 2])
+
+    requestedParams.length = 0
+    await store.dispatch(
+      api.util.upsertQueryData('pages', 'x', {
+        pages: [{ page: 10, hit: 0 }],
+        pageParams: [10],
+      }),
+    )
+
+    expect(requestedParams).toEqual([])
+    expect(getPages()).toEqual([{ page: 10, hit: 0 }])
+    expect(getPageParams()).toEqual([10])
+
+    first.unsubscribe()
+  })
 })

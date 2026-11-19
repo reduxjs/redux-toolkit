@@ -814,9 +814,7 @@ export function buildThunks<
             result = {
               data: (result.data as InfiniteData<unknown, unknown>).pages[0],
             } as QueryReturnValue
-          }
-
-          if (refetchCachedPages) {
+          } else if (refetchCachedPages) {
             // Fetch remaining pages
             for (let i = 1; i < totalPages; i++) {
               const param = getNextPageParam(
