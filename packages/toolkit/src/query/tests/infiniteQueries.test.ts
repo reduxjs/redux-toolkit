@@ -2154,6 +2154,34 @@ describe('infinite query page fetching and refetching', () => {
     first.unsubscribe()
   })
 
+  test.each(['refetch', 'forward fetch'])(
+    'a %s after a failed first page starts from the initialPageParam the query was started with',
+    async (request) => {
+      const { api, store, requestedParams, getPageParams } = makeInfiniteApi({
+        failOnHit: 1,
+      })
+
+      const first = store.dispatch(
+        api.endpoints.pages.initiate('x', { initialPageParam: 5 }),
+      )
+      await first
+      expect(requestedParams).toEqual([5])
+
+      if (request === 'refetch') {
+        await first.refetch()
+      } else {
+        await store.dispatch(
+          api.endpoints.pages.initiate('x', { direction: 'forward' }),
+        )
+      }
+
+      expect(requestedParams).toEqual([5, 5])
+      expect(getPageParams()).toEqual([5])
+
+      first.unsubscribe()
+    },
+  )
+
   test('hasNextPage is computed when selecting, and memoized while the cache entry is unchanged', async () => {
     const { api, store, getNextPageParam } = makeInfiniteApi()
 
