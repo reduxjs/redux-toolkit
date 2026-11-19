@@ -10,6 +10,8 @@ import type { BuiltInParserName } from 'prettier';
  */
 const EXTENSION_TO_PARSER: Record<string, BuiltInParserName> = {
   ts: 'typescript',
+  mts: 'typescript',
+  cts: 'typescript',
   tsx: 'typescript',
   js: 'babel',
   jsx: 'babel',
