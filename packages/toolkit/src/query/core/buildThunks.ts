@@ -1154,7 +1154,17 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
         if (shouldRetrigger) {
           await dispatch(queryAction())
         } else {
-          await dispatch(endpoint.getRunningQuery(arg))
+          const runtime = getRuntimeForState(getState)
+          const endpointDefinition = endpointDefinitions[endpointName]
+          if (runtime && endpointDefinition) {
+            const queryCacheKey = serializeQueryArgs({
+              queryArgs: arg,
+              endpointDefinition,
+              endpointName: endpointName as string,
+            })
+            await findRunningRequest(runtime, queryCacheKey, latestStateValue)
+              ?.outcome
+          }
         }
       } else {
         // If prefetching with no options, just let it try
