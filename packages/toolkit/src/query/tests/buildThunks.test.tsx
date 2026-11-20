@@ -770,66 +770,72 @@ describe('prefetch', () => {
     })
 
     it('waits for an in-flight forced refetch when prefetch with ifOlderThan is dispatched synchronously from baseQuery', async () => {
-      let callCount = 0
-      let resolveSecondRequest!: () => void
-      let reentrantPrefetchPromise: Promise<void> | undefined
-      let reentrantSettled = false
+      vi.useFakeTimers()
+      try {
+        let callCount = 0
+        let resolveSecondRequest!: () => void
+        let reentrantPrefetchPromise: Promise<void> | undefined
+        let reentrantSettled = false
 
-      const reentrantApi = createApi({
-        baseQuery: async (id: number, baseQueryApi) => {
-          callCount += 1
-          if (callCount === 1) {
-            return { data: { id, version: 1 } }
-          }
-          reentrantPrefetchPromise = (
-            baseQueryApi.dispatch(
-              reentrantApi.util.prefetch('getUser', id, { ifOlderThan: 60 }),
-            ) as unknown as Promise<void>
-          ).then((val) => {
-            reentrantSettled = true
-            return val
-          })
-          await new Promise<void>((resolve) => {
-            resolveSecondRequest = resolve
-          })
-          return { data: { id, version: 2 } }
-        },
-        endpoints: (build) => ({
-          getUser: build.query<{ id: number; version: number }, number>({
-            query: (id) => id,
+        const reentrantApi = createApi({
+          baseQuery: async (id: number, baseQueryApi) => {
+            callCount += 1
+            if (callCount === 1) {
+              return { data: { id, version: 1 } }
+            }
+            reentrantPrefetchPromise = (
+              baseQueryApi.dispatch(
+                reentrantApi.util.prefetch('getUser', id, { ifOlderThan: 60 }),
+              ) as unknown as Promise<void>
+            ).then((val) => {
+              reentrantSettled = true
+              return val
+            })
+            await new Promise<void>((resolve) => {
+              resolveSecondRequest = resolve
+            })
+            return { data: { id, version: 2 } }
+          },
+          endpoints: (build) => ({
+            getUser: build.query<{ id: number; version: number }, number>({
+              query: (id) => id,
+            }),
           }),
-        }),
-      })
-      const reentrantStore = setupApiStore(reentrantApi, undefined, {
-        withoutListeners: true,
-      })
+        })
+        const reentrantStore = setupApiStore(reentrantApi, undefined, {
+          withoutListeners: true,
+        })
 
-      // 1. Initial load populates fulfilledTimeStamp
-      await reentrantStore.store.dispatch(
-        reentrantApi.util.prefetch('getUser', 1),
-      )
+        // 1. Initial load populates fulfilledTimeStamp
+        await reentrantStore.store.dispatch(
+          reentrantApi.util.prefetch('getUser', 1),
+        )
 
-      // 2. Forced refetch synchronously dispatches prefetch({ ifOlderThan: 60 }) inside baseQuery
-      const forcedPromise = reentrantStore.store.dispatch(
-        reentrantApi.endpoints.getUser.initiate(1, {
-          subscribe: false,
-          forceRefetch: true,
-        }),
-      )
+        // 2. Forced refetch synchronously dispatches prefetch({ ifOlderThan: 60 }) inside baseQuery
+        const forcedPromise = reentrantStore.store.dispatch(
+          reentrantApi.endpoints.getUser.initiate(1, {
+            subscribe: false,
+            forceRefetch: true,
+          }),
+        )
 
-      await Promise.resolve()
-      expect(reentrantPrefetchPromise).toBeInstanceOf(Promise)
-      expect(reentrantSettled).toBe(false)
+        await vi.advanceTimersByTimeAsync(0)
+        expect(reentrantPrefetchPromise).toBeInstanceOf(Promise)
+        expect(reentrantSettled).toBe(false)
 
-      resolveSecondRequest()
-      await expect(reentrantPrefetchPromise).resolves.toBeUndefined()
-      await forcedPromise
-      expect(reentrantSettled).toBe(true)
-      expect(
-        reentrantApi.endpoints.getUser.select(1)(
-          reentrantStore.store.getState(),
-        ).data,
-      ).toEqual({ id: 1, version: 2 })
+        resolveSecondRequest()
+        await vi.advanceTimersByTimeAsync(0)
+        await expect(reentrantPrefetchPromise).resolves.toBeUndefined()
+        await forcedPromise
+        expect(reentrantSettled).toBe(true)
+        expect(
+          reentrantApi.endpoints.getUser.select(1)(
+            reentrantStore.store.getState(),
+          ).data,
+        ).toEqual({ id: 1, version: 2 })
+      } finally {
+        vi.useRealTimers()
+      }
     })
 
     it('prefetches the first page of an infinite query endpoint and resolves when settled', async () => {

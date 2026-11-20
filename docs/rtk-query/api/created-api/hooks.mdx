@@ -691,7 +691,7 @@ type PrefetchCallback = (
   - `options`: A set of options that control whether the prefetch request should occur
 
 - **Returns**
-  - A `prefetch` callback that when called, will initiate fetching the data for the provided endpoint and return a `Promise<void>` that resolves when the request settles (or immediately if no request was needed) and never rejects
+  - A `prefetch` callback that when called, will initiate fetching the data for the provided endpoint and return a `Promise<void>` that resolves when the request settles (or immediately if no request was needed) and does not reject on request errors
 
 ## Implementation Hooks
 
