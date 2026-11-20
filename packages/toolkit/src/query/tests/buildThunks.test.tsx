@@ -585,15 +585,216 @@ describe('prefetch', () => {
 
     const actionCountBefore = storeRef.store.getState().actions.length
 
-    storeRef.store.dispatch(
+    const prefetchPromise = storeRef.store.dispatch(
       api.util.prefetch('getUser', 1, { ifOlderThan: 10 }),
     )
-    await Promise.all(
-      storeRef.store.dispatch(api.util.getRunningQueriesThunk()),
-    )
+    expect(prefetchPromise).toBeInstanceOf(Promise)
+    expect(await prefetchPromise).toBeUndefined()
 
     expect(storeRef.store.getState().actions.length).toBe(actionCountBefore)
 
     promise.unsubscribe()
+  })
+
+  describe('settled promise return value', () => {
+    it('resolves when the request it started fulfills', async () => {
+      let resolveRequest!: () => void
+      const delayedApi = createApi({
+        baseQuery: async (arg: string) => {
+          await new Promise<void>((resolve) => {
+            resolveRequest = resolve
+          })
+          return { data: `result:${arg}` }
+        },
+        endpoints: (build) => ({
+          getItem: build.query<string, string>({
+            query: (id) => id,
+          }),
+        }),
+      })
+      const delayedStore = setupApiStore(delayedApi, undefined, {
+        withoutListeners: true,
+      })
+
+      let settled = false
+      const promise = delayedStore.store
+        .dispatch(delayedApi.util.prefetch('getItem', 'a'))
+        .then((val) => {
+          settled = true
+          return val
+        })
+
+      await Promise.resolve()
+      expect(settled).toBe(false)
+      expect(
+        delayedApi.endpoints.getItem.select('a')(delayedStore.store.getState())
+          .status,
+      ).toBe('pending')
+
+      resolveRequest()
+      expect(await promise).toBeUndefined()
+      expect(settled).toBe(true)
+      expect(
+        delayedApi.endpoints.getItem.select('a')(delayedStore.store.getState())
+          .data,
+      ).toBe('result:a')
+    })
+
+    it('resolves when a running request it joined settles', async () => {
+      let resolveRequest!: () => void
+      const baseQuerySpy = vi.fn(async (arg: string) => {
+        await new Promise<void>((resolve) => {
+          resolveRequest = resolve
+        })
+        return { data: `joined:${arg}` }
+      })
+      const joinApi = createApi({
+        baseQuery: baseQuerySpy,
+        endpoints: (build) => ({
+          getItem: build.query<string, string>({
+            query: (id) => id,
+          }),
+        }),
+      })
+      const joinStore = setupApiStore(joinApi, undefined, {
+        withoutListeners: true,
+      })
+
+      const running = joinStore.store.dispatch(
+        joinApi.endpoints.getItem.initiate('a'),
+      )
+
+      let prefetchSettled = false
+      const prefetchPromise = joinStore.store
+        .dispatch(joinApi.util.prefetch('getItem', 'a'))
+        .then((val) => {
+          prefetchSettled = true
+          return val
+        })
+
+      await Promise.resolve()
+      expect(baseQuerySpy).toHaveBeenCalledTimes(1)
+      expect(prefetchSettled).toBe(false)
+
+      resolveRequest()
+      expect(await prefetchPromise).toBeUndefined()
+      expect(prefetchSettled).toBe(true)
+      expect(
+        joinApi.endpoints.getItem.select('a')(joinStore.store.getState()).data,
+      ).toBe('joined:a')
+
+      running.unsubscribe()
+    })
+
+    it('never rejects when the request fails and stores the error in the cache entry', async () => {
+      const failingApi = createApi({
+        baseQuery: async (arg: string) =>
+          arg === 'ok'
+            ? { data: arg }
+            : { error: { status: 500, data: 'server exploded' } },
+        endpoints: (build) => ({
+          getFailing: build.query<string, number>({
+            query: (id) => `${id}`,
+          }),
+        }),
+      })
+      const failingStore = setupApiStore(failingApi, undefined, {
+        withoutListeners: true,
+      })
+
+      await expect(
+        failingStore.store.dispatch(failingApi.util.prefetch('getFailing', 1)),
+      ).resolves.toBeUndefined()
+
+      const entry = failingApi.endpoints.getFailing.select(1)(
+        failingStore.store.getState(),
+      )
+      expect(entry.isError).toBe(true)
+      expect(entry.error).toEqual({ status: 500, data: 'server exploded' })
+    })
+
+    it('resolves right away without refetching when cached data is fresh', async () => {
+      const baseQuerySpy = vi.fn(async (id: number) => ({
+        data: { id, name: 'Cached User' },
+      }))
+      const cachedApi = createApi({
+        baseQuery: baseQuerySpy,
+        endpoints: (build) => ({
+          getUser: build.query<{ id: number; name: string }, number>({
+            query: (id) => id,
+          }),
+        }),
+      })
+      const cachedStore = setupApiStore(cachedApi, undefined, {
+        withoutListeners: true,
+      })
+
+      await cachedStore.store.dispatch(
+        cachedApi.util.prefetch('getUser', 1, {}),
+      )
+      expect(baseQuerySpy).toHaveBeenCalledTimes(1)
+
+      await expect(
+        cachedStore.store.dispatch(cachedApi.util.prefetch('getUser', 1, {})),
+      ).resolves.toBeUndefined()
+      await expect(
+        cachedStore.store.dispatch(
+          cachedApi.util.prefetch('getUser', 1, { ifOlderThan: 60 }),
+        ),
+      ).resolves.toBeUndefined()
+      expect(baseQuerySpy).toHaveBeenCalledTimes(1)
+    })
+
+    it('prefetches the first page of an infinite query endpoint and resolves when settled', async () => {
+      const baseQuerySpy = vi.fn(
+        async ({
+          queryArg,
+          pageParam,
+        }: {
+          queryArg: string
+          pageParam: number
+        }) => ({
+          data: {
+            items: [`${queryArg}-page-${pageParam}`],
+            nextPage: pageParam + 1,
+          },
+        }),
+      )
+      const infiniteApi = createApi({
+        baseQuery: baseQuerySpy,
+        endpoints: (build) => ({
+          getItems: build.infiniteQuery<
+            { items: string[]; nextPage: number },
+            string,
+            number
+          >({
+            infiniteQueryOptions: {
+              initialPageParam: 1,
+              getNextPageParam: (lastPage) => lastPage.nextPage,
+            },
+            query: ({ queryArg, pageParam }) => ({ queryArg, pageParam }),
+          }),
+        }),
+      })
+      const infiniteStore = setupApiStore(infiniteApi, undefined, {
+        withoutListeners: true,
+      })
+
+      await expect(
+        infiniteStore.store.dispatch(
+          infiniteApi.util.prefetch('getItems', 'books'),
+        ),
+      ).resolves.toBeUndefined()
+
+      expect(baseQuerySpy).toHaveBeenCalledTimes(1)
+      const entry = infiniteApi.endpoints.getItems.select('books')(
+        infiniteStore.store.getState(),
+      )
+      expect(entry.isSuccess).toBe(true)
+      expect(entry.data).toEqual({
+        pages: [{ items: ['books-page-1'], nextPage: 2 }],
+        pageParams: [1],
+      })
+    })
   })
 })

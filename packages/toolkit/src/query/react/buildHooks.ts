@@ -5,6 +5,7 @@ import type {
   UnknownAction,
 } from '@reduxjs/toolkit'
 import type {
+  AllQueryKeys,
   Api,
   ApiContext,
   ApiEndpointMutation,
@@ -1523,7 +1524,7 @@ type GenericPrefetchThunk = (
   endpointName: any,
   arg: any,
   options: PrefetchOptions,
-) => ThunkAction<void, any, any, UnknownAction>
+) => ThunkAction<Promise<void>, any, any, UnknownAction>
 
 /**
  *
@@ -1764,7 +1765,7 @@ If you replace the store passed to <Provider>, also give the Provider a \`key\` 
     } as UseInfiniteQueryStateDefaultResult<any>
   }
 
-  function usePrefetch<EndpointName extends QueryKeys<Definitions>>(
+  function usePrefetch<EndpointName extends AllQueryKeys<Definitions>>(
     endpointName: EndpointName,
     defaultOptions?: PrefetchOptions,
   ) {

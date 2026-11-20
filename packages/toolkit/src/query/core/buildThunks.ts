@@ -1121,45 +1121,48 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
   ): options is { ifOlderThan: false | number } => 'ifOlderThan' in options
 
   const prefetch =
-    <EndpointName extends QueryKeys<Definitions>>(
+    <EndpointName extends AllQueryKeys<Definitions>>(
       endpointName: EndpointName,
       arg: any,
       options: PrefetchOptions = {},
-    ): ThunkAction<void, any, any, UnknownAction> =>
-    (dispatch: ThunkDispatch<any, any, any>, getState: () => any) => {
+    ): ThunkAction<Promise<void>, any, any, UnknownAction> =>
+    async (dispatch: ThunkDispatch<any, any, any>, getState: () => any) => {
       const force = hasTheForce(options) && options.force
       const maxAge = hasMaxAge(options) && options.ifOlderThan
 
+      const endpoint = api.endpoints[endpointName] as ApiEndpointQuery<any, any>
       const queryAction = (force: boolean = true) => {
         const options: StartQueryActionCreatorOptions = {
           forceRefetch: force,
           subscribe: false,
         }
-        return (
-          api.endpoints[endpointName] as ApiEndpointQuery<any, any>
-        ).initiate(arg, options)
+        return endpoint.initiate(arg, options)
       }
-      const latestStateValue = (
-        api.endpoints[endpointName] as ApiEndpointQuery<any, any>
-      ).select(arg)(getState())
+      const latestStateValue = endpoint.select(arg)(getState())
 
-      if (force) {
-        dispatch(queryAction())
-      } else if (maxAge) {
-        const lastFulfilledTs = latestStateValue?.fulfilledTimeStamp
-        if (!lastFulfilledTs) {
-          dispatch(queryAction())
-          return
+      try {
+        if (force) {
+          await dispatch(queryAction())
+        } else if (maxAge) {
+          const lastFulfilledTs = latestStateValue?.fulfilledTimeStamp
+          if (!lastFulfilledTs) {
+            await dispatch(queryAction())
+            return
+          }
+          const shouldRetrigger =
+            (Number(new Date()) - Number(new Date(lastFulfilledTs))) / 1000 >=
+            maxAge
+          if (shouldRetrigger) {
+            await dispatch(queryAction())
+          } else {
+            await dispatch(endpoint.getRunningQuery(arg))
+          }
+        } else {
+          // If prefetching with no options, just let it try
+          await dispatch(queryAction(false))
         }
-        const shouldRetrigger =
-          (Number(new Date()) - Number(new Date(lastFulfilledTs))) / 1000 >=
-          maxAge
-        if (shouldRetrigger) {
-          dispatch(queryAction())
-        }
-      } else {
-        // If prefetching with no options, just let it try
-        dispatch(queryAction(false))
+      } catch {
+        // `prefetch` never rejects; errors land in the cache entry as usual
       }
     }
 

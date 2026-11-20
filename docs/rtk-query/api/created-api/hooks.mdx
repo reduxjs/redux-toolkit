@@ -679,16 +679,19 @@ type UsePrefetchOptions =
       force?: boolean
     }
 
-type PrefetchCallback = (arg: any, options?: UsePrefetchOptions) => void
+type PrefetchCallback = (
+  arg: any,
+  options?: UsePrefetchOptions,
+) => Promise<void>
 ```
 
 - **Parameters**
 
-  - `endpointName`: The name of the endpoint to prefetch data for
+  - `endpointName`: The name of the query or infinite query endpoint to prefetch data for
   - `options`: A set of options that control whether the prefetch request should occur
 
 - **Returns**
-  - A `prefetch` callback that when called, will initiate fetching the data for the provided endpoint
+  - A `prefetch` callback that when called, will initiate fetching the data for the provided endpoint and return a `Promise<void>` that resolves when the request settles (or immediately if no request was needed) and never rejects
 
 ## Implementation Hooks
 

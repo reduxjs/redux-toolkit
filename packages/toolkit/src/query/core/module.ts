@@ -299,19 +299,21 @@ export type ApiUtil<
    *
    * The thunk accepts three arguments: the name of the endpoint we are updating (such as `'getPost'`), the appropriate query arg values to construct the desired cache key, and a set of options used to determine if the data actually should be re-fetched based on cache staleness.
    *
+   * Dispatched `prefetch` thunks return a `Promise<void>` that resolves when the request they started (or the running request they joined) settles, or immediately if no request was needed. The promise never rejects; errors land in the cache entry as usual.
+   *
    * React Hooks users will most likely never need to use this directly, as the `usePrefetch` hook will dispatch this thunk internally as needed when you call the prefetching function supplied by the hook.
    *
    * @example
    *
    * ```ts no-transpile
-   * dispatch(api.util.prefetch('getPosts', undefined, { force: true }))
+   * await dispatch(api.util.prefetch('getPosts', undefined, { force: true }))
    * ```
    */
-  prefetch<EndpointName extends QueryKeys<Definitions>>(
+  prefetch<EndpointName extends AllQueryKeys<Definitions>>(
     endpointName: EndpointName,
-    arg: QueryArgFrom<Definitions[EndpointName]>,
+    arg: QueryArgFromAnyQueryDefinition<Definitions, EndpointName>,
     options?: PrefetchOptions,
-  ): ThunkAction<void, any, any, UnknownAction>
+  ): ThunkAction<Promise<void>, any, any, UnknownAction>
   /**
    * A Redux thunk action creator that, when dispatched, creates and applies a set of JSON diff/patch objects to the current state. This immediately updates the Redux state with those changes.
    *
