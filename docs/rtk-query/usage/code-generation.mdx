@@ -73,6 +73,8 @@ The config file may be `.js`, `.cjs`, `.mjs`, `.ts`, `.cts`, `.mts`, `.jsx`, `.t
 If your OpenAPI specification uses [tags](https://swagger.io/docs/specification/grouping-operations-with-tags/), you can specify the `tag` option to the codegen.
 That will result in all generated endpoints having `providesTags`/`invalidatesTags` declarations for the `tags` of their respective operation definition - `providesTags` on queries and `invalidatesTags` on mutations.
 
+The generated file registers its tag types with `api.enhanceEndpoints({ addTagTypes })` before injecting the endpoints. Set `useAddTagTypes: true` to generate `api.addTagTypes(...addTagTypes)` instead. This requires `@rtk-query/codegen-openapi` 2.3.0 or later, and a version of `@reduxjs/toolkit` that includes [`addTagTypes`](../api/created-api/code-splitting.mdx#addtagtypes).
+
 Note that this will only result in string tags with no ids, so it might lead to scenarios where too much is invalidated and unnecessary requests are made on mutation.
 
 In that case you have two options:
@@ -122,6 +124,7 @@ interface SimpleUsage {
   hooks?:
     boolean | { queries: boolean; lazyQueries: boolean; mutations: boolean }
   tag?: boolean
+  useAddTagTypes?: boolean
   outputFile: string
   filterEndpoints?:
     string | RegExp | EndpointMatcherFunction | Array<string | RegExp>
