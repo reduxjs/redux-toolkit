@@ -1670,6 +1670,124 @@ export type OverrideResultType<Definition, NewResultType> =
           >
         : never
 
+/**
+ * An enhancement for a single endpoint: either a partial definition that is merged into the existing definition,
+ * or a callback that receives the existing definition and returns the changes to merge in (or mutates it and returns nothing).
+ */
+export type EndpointEnhancement<Definition, NewDefinition> =
+  | Partial<NewDefinition>
+  | ((definition: Definition) => Partial<NewDefinition> | void)
+
+export type EnhancedDefinition<Definition, NewResultType> =
+  Definition extends QueryDefinition<
+    infer QueryArg,
+    infer BaseQuery,
+    infer TagTypes,
+    any,
+    infer ReducerPath,
+    infer RawResultType
+  >
+    ? QueryDefinition<
+        QueryArg,
+        BaseQuery,
+        TagTypes,
+        NewResultType,
+        ReducerPath,
+        RawResultType
+      >
+    : Definition extends MutationDefinition<
+          infer QueryArg,
+          infer BaseQuery,
+          infer TagTypes,
+          any,
+          infer ReducerPath,
+          infer RawResultType
+        >
+      ? MutationDefinition<
+          QueryArg,
+          BaseQuery,
+          TagTypes,
+          NewResultType,
+          ReducerPath,
+          RawResultType
+        >
+      : Definition extends InfiniteQueryDefinition<
+            infer QueryArg,
+            infer PageParam,
+            infer BaseQuery,
+            infer TagTypes,
+            any,
+            infer ReducerPath,
+            infer RawResultType
+          >
+        ? InfiniteQueryDefinition<
+            QueryArg,
+            PageParam,
+            BaseQuery,
+            TagTypes,
+            NewResultType,
+            ReducerPath,
+            RawResultType
+          >
+        : never
+
+export type AddTagTypes<
+  Definitions extends EndpointDefinitions,
+  NewTagTypes extends string,
+> = {
+  [K in keyof Definitions]: Definitions[K] extends QueryDefinition<
+    infer QueryArg,
+    infer BaseQuery,
+    any,
+    infer ResultType,
+    infer ReducerPath,
+    infer RawResultType
+  >
+    ? QueryDefinition<
+        QueryArg,
+        BaseQuery,
+        NewTagTypes,
+        ResultType,
+        ReducerPath,
+        RawResultType
+      >
+    : Definitions[K] extends MutationDefinition<
+          infer QueryArg,
+          infer BaseQuery,
+          any,
+          infer ResultType,
+          infer ReducerPath,
+          infer RawResultType
+        >
+      ? MutationDefinition<
+          QueryArg,
+          BaseQuery,
+          NewTagTypes,
+          ResultType,
+          ReducerPath,
+          RawResultType
+        >
+      : Definitions[K] extends InfiniteQueryDefinition<
+            infer QueryArg,
+            infer PageParam,
+            infer BaseQuery,
+            any,
+            infer ResultType,
+            infer ReducerPath,
+            infer RawResultType
+          >
+        ? InfiniteQueryDefinition<
+            QueryArg,
+            PageParam,
+            BaseQuery,
+            NewTagTypes,
+            ResultType,
+            ReducerPath,
+            RawResultType
+          >
+        : never
+}
+
 export type UpdateDefinitions<
   Definitions extends EndpointDefinitions,
   NewTagTypes extends string,

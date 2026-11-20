@@ -29,7 +29,10 @@ export type {
   QueryStartReason,
 } from './baseQueryTypes'
 export type {
+  AddTagTypes,
   BaseEndpointDefinition,
+  EndpointEnhancement,
+  EnhancedDefinition,
   EndpointDefinitions,
   EndpointDefinition,
   EndpointBuilder,

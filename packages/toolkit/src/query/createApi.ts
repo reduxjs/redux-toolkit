@@ -4,11 +4,12 @@ import type { Api, ApiContext, Module, ModuleName } from './apiTypes'
 import { getEndpointDefinition } from './apiTypes'
 import type { BaseQueryFn } from './baseQueryTypes'
 import type { CombinedState } from './core/index'
-import { nanoid } from './core/rtkImports'
+import { isPlainObject, nanoid } from './core/rtkImports'
 import type { SerializeQueryArgs } from './defaultSerializeQueryArgs'
 import { defaultSerializeQueryArgs } from './defaultSerializeQueryArgs'
 import type {
   EndpointBuilder,
+  EndpointDefinition,
   EndpointDefinitions,
   SchemaFailureConverter,
   SchemaFailureHandler,
@@ -20,6 +21,7 @@ import {
   ENDPOINT_QUERY,
   isInfiniteQueryDefinition,
 } from './endpointDefinitions'
+import { getOrInsertComputed } from './utils/getOrInsert'
 
 export interface CreateApiOptions<
   BaseQuery extends BaseQueryFn,
@@ -408,15 +410,61 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
       ),
     }
 
+    type EndpointEnhancement =
+      | Partial<EndpointDefinition<any, any, any, any>>
+      | ((
+          definition: EndpointDefinition<any, any, any, any>,
+        ) => Partial<EndpointDefinition<any, any, any, any>> | void)
+
+    const endpointEnhancements = new Map<string, EndpointEnhancement[]>()
+
+    function applyEnhancement(
+      definition: EndpointDefinition<any, any, any, any>,
+      enhancement: EndpointEnhancement,
+    ) {
+      const changes =
+        typeof enhancement === 'function'
+          ? enhancement(definition)
+          : enhancement
+      if (isPlainObject(changes)) {
+        Object.assign(definition, changes)
+      }
+    }
+
+    function addTagTypes(newTagTypes: readonly string[]) {
+      for (const eT of newTagTypes) {
+        if (!optionsWithDefaults.tagTypes!.includes(eT as any)) {
+          ;(optionsWithDefaults.tagTypes as any[]).push(eT)
+        }
+      }
+    }
+
     const api = {
       injectEndpoints,
-      enhanceEndpoints({ addTagTypes, endpoints }) {
-        if (addTagTypes) {
-          for (const eT of addTagTypes) {
-            if (!optionsWithDefaults.tagTypes!.includes(eT as any)) {
-              ;(optionsWithDefaults.tagTypes as any[]).push(eT)
-            }
-          }
+      addTagTypes(...newTagTypes: string[]) {
+        addTagTypes(newTagTypes)
+        return api
+      },
+      enhanceEndpoint(endpointName: string, enhancement: EndpointEnhancement) {
+        getOrInsertComputed(endpointEnhancements, endpointName, () => []).push(
+          enhancement,
+        )
+        if (
+          Object.prototype.hasOwnProperty.call(
+            context.endpointDefinitions,
+            endpointName,
+          )
+        ) {
+          applyEnhancement(
+            getEndpointDefinition(context, endpointName),
+            enhancement,
+          )
+        }
+        return api
+      },
+      enhanceEndpoints({ addTagTypes: newTagTypes, endpoints }) {
+        if (newTagTypes) {
+          addTagTypes(newTagTypes)
         }
         if (endpoints) {
           for (const [endpointName, partialDefinition] of Object.entries(
@@ -477,6 +525,11 @@ export function buildCreateApi<Modules extends [Module<any>, ...Module<any>[]]>(
           }
 
           continue
+        }
+
+        for (const enhancement of endpointEnhancements.get(endpointName) ??
+          []) {
+          applyEnhancement(definition, enhancement)
         }
 
         if (
