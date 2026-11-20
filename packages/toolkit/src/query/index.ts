@@ -84,12 +84,14 @@ export { _NEVER, fakeBaseQuery } from './fakeBaseQuery'
 export { copyWithStructuralSharing } from './utils/copyWithStructuralSharing'
 export { createApi, coreModule, coreModuleName } from './core/index'
 export type {
+  AllQueryKeys,
   InfiniteData,
   InfiniteQueryActionCreatorResult,
   InfiniteQueryConfigOptions,
   InfiniteQueryResultSelectorResult,
   InfiniteQuerySubState,
   Patch,
+  QueryArgFromAnyQueryDefinition,
   TypedMutationOnQueryStarted,
   TypedQueryOnQueryStarted,
 } from './core/index'

@@ -1,4 +1,5 @@
-import { createApi } from '@reduxjs/toolkit/query'
+import type { ThunkAction, UnknownAction } from '@reduxjs/toolkit'
+import { createApi } from '@reduxjs/toolkit/query/react'
 
 const baseQuery = (args?: any) => ({ data: args })
 
@@ -23,6 +24,17 @@ const api = createApi({
         return { url: `bread/${id}` }
       },
       providesTags: ['Bread'],
+    }),
+    getInfiniteBananas: build.infiniteQuery<unknown, string, number>({
+      infiniteQueryOptions: {
+        initialPageParam: 1,
+        getNextPageParam: (_lastPage, _allPages, lastPageParam) =>
+          lastPageParam + 1,
+      },
+      query({ queryArg, pageParam }) {
+        return { url: `bananas/${queryArg}?page=${pageParam}` }
+      },
+      providesTags: ['Banana'],
     }),
   }),
 })
@@ -79,6 +91,36 @@ describe('type tests', () => {
   it('should error when pre-fetching for an incorrect endpoint name', () => {
     // @ts-expect-error endpoint name does not exist
     api.util.prefetch('getPomegranates', undefined, { force: true })
+  })
+
+  it('should return a ThunkAction<Promise<void>> from api.util.prefetch and allow infinite queries', () => {
+    const thunk = api.util.prefetch('getBanana', 5, { force: true })
+    expectTypeOf(thunk).toEqualTypeOf<
+      ThunkAction<Promise<void>, any, any, UnknownAction>
+    >()
+
+    const infiniteThunk = api.util.prefetch('getInfiniteBananas', 'yellow', {
+      force: true,
+    })
+    expectTypeOf(infiniteThunk).toEqualTypeOf<
+      ThunkAction<Promise<void>, any, any, UnknownAction>
+    >()
+
+    // @ts-expect-error infinite query arg should be string, not number
+    api.util.prefetch('getInfiniteBananas', 123, { force: true })
+
+    expectTypeOf(api.usePrefetch('getBanana')).toEqualTypeOf<
+      (
+        arg: number,
+        options?: { ifOlderThan?: false | number } | { force?: boolean },
+      ) => Promise<void>
+    >()
+    expectTypeOf(api.usePrefetch('getInfiniteBananas')).toEqualTypeOf<
+      (
+        arg: string,
+        options?: { ifOlderThan?: false | number } | { force?: boolean },
+      ) => Promise<void>
+    >()
   })
 
   it('should allow assigning api.util to a plain record type', () => {

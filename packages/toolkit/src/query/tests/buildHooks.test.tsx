@@ -3804,6 +3804,91 @@ describe('hooks tests', () => {
         ).toBe('late'),
       )
     })
+
+    test('usePrefetch callback returns a Promise<void> that resolves when the request settles and never rejects', async () => {
+      let resolveSuccess!: () => void
+      const customApi = createApi({
+        baseQuery: async (arg: string) => {
+          if (arg === 'fail') {
+            return { error: { status: 500, data: 'boom' } }
+          }
+          await new Promise<void>((resolve) => {
+            resolveSuccess = resolve
+          })
+          return { data: `ok:${arg}` }
+        },
+        endpoints: (build) => ({
+          getItem: build.query<string, string>({
+            query: (id) => id,
+          }),
+          getItemsInfinite: build.infiniteQuery<string[], string, number>({
+            infiniteQueryOptions: {
+              initialPageParam: 1,
+              getNextPageParam: (_lastPage, _allPages, lastParam) =>
+                lastParam + 1,
+            },
+            query: ({ queryArg, pageParam }) => `${queryArg}:${pageParam}`,
+          }),
+        }),
+      })
+      const customStoreRef = setupApiStore(customApi, undefined, {
+        withoutListeners: true,
+      })
+
+      const { result } = renderHook(() => customApi.usePrefetch('getItem'), {
+        wrapper: customStoreRef.wrapper,
+      })
+
+      let settled = false
+      let prefetchPromise!: Promise<void>
+      act(() => {
+        prefetchPromise = result.current('item-1').then((val) => {
+          settled = true
+          return val
+        })
+      })
+
+      await Promise.resolve()
+      expect(settled).toBe(false)
+
+      resolveSuccess()
+      await expect(prefetchPromise).resolves.toBeUndefined()
+      expect(settled).toBe(true)
+      expect(
+        customApi.endpoints.getItem.select('item-1')(
+          customStoreRef.store.getState(),
+        ).data,
+      ).toBe('ok:item-1')
+
+      // Never rejects on error
+      let failPromise!: Promise<void>
+      act(() => {
+        failPromise = result.current('fail', { force: true })
+      })
+      await expect(failPromise).resolves.toBeUndefined()
+      expect(
+        customApi.endpoints.getItem.select('fail')(
+          customStoreRef.store.getState(),
+        ).isError,
+      ).toBe(true)
+
+      // Works with infiniteQuery endpoints
+      const { result: infinitePrefetch } = renderHook(
+        () => customApi.usePrefetch('getItemsInfinite'),
+        { wrapper: customStoreRef.wrapper },
+      )
+      let infinitePromise!: Promise<void>
+      act(() => {
+        infinitePromise = infinitePrefetch.current('feed')
+      })
+      resolveSuccess()
+      await expect(infinitePromise).resolves.toBeUndefined()
+      expect(
+        customApi.endpoints.getItemsInfinite.select('feed')(
+          customStoreRef.store.getState(),
+        ).isSuccess,
+      ).toBe(true)
+    })
   })
 
   describe('useQuery and useMutation invalidation behavior', () => {

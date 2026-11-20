@@ -1121,45 +1121,54 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
   ): options is { ifOlderThan: false | number } => 'ifOlderThan' in options
 
   const prefetch =
-    <EndpointName extends QueryKeys<Definitions>>(
+    <EndpointName extends AllQueryKeys<Definitions>>(
       endpointName: EndpointName,
       arg: any,
       options: PrefetchOptions = {},
-    ): ThunkAction<void, any, any, UnknownAction> =>
-    (dispatch: ThunkDispatch<any, any, any>, getState: () => any) => {
+    ): ThunkAction<Promise<void>, any, any, UnknownAction> =>
+    async (dispatch: ThunkDispatch<any, any, any>, getState: () => any) => {
       const force = hasTheForce(options) && options.force
       const maxAge = hasMaxAge(options) && options.ifOlderThan
 
+      const endpoint = api.endpoints[endpointName] as ApiEndpointQuery<any, any>
       const queryAction = (force: boolean = true) => {
         const options: StartQueryActionCreatorOptions = {
           forceRefetch: force,
           subscribe: false,
         }
-        return (
-          api.endpoints[endpointName] as ApiEndpointQuery<any, any>
-        ).initiate(arg, options)
+        return endpoint.initiate(arg, options)
       }
-      const latestStateValue = (
-        api.endpoints[endpointName] as ApiEndpointQuery<any, any>
-      ).select(arg)(getState())
 
       if (force) {
-        dispatch(queryAction())
+        await dispatch(queryAction())
       } else if (maxAge) {
+        const latestStateValue = endpoint.select(arg)(getState())
         const lastFulfilledTs = latestStateValue?.fulfilledTimeStamp
         if (!lastFulfilledTs) {
-          dispatch(queryAction())
+          await dispatch(queryAction())
           return
         }
         const shouldRetrigger =
           (Number(new Date()) - Number(new Date(lastFulfilledTs))) / 1000 >=
           maxAge
         if (shouldRetrigger) {
-          dispatch(queryAction())
+          await dispatch(queryAction())
+        } else {
+          const runtime = getRuntimeForState(getState)
+          const endpointDefinition = endpointDefinitions[endpointName]
+          if (runtime && endpointDefinition) {
+            const queryCacheKey = serializeQueryArgs({
+              queryArgs: arg,
+              endpointDefinition,
+              endpointName: endpointName as string,
+            })
+            await findRunningRequest(runtime, queryCacheKey, latestStateValue)
+              ?.outcome
+          }
         }
       } else {
         // If prefetching with no options, just let it try
-        dispatch(queryAction(false))
+        await dispatch(queryAction(false))
       }
     }
 

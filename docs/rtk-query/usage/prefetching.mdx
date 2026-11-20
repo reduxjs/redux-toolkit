@@ -26,7 +26,7 @@ Prefetching is designed as a "fire and forget" operation that loads data into th
 - **No automatic refetching**: Prefetched data will not automatically refetch when tags are invalidated
 - **No subscription management**: You don't need to (and can't) manually unsubscribe from prefetched data
 - **Cache cleanup**: Prefetched data without active subscriptions may be removed during normal cache cleanup
-- **Returns void**: The prefetch trigger function doesn't return a promise or subscription handle
+- **Returns a settling promise**: The prefetch trigger and thunk return a `Promise<void>` that resolves when the request finishes (or immediately if no request was needed) and does not reject on request errors, without returning a subscription handle
 
 If you need data that automatically refetches on invalidation or stays in the cache as long as a component is mounted, use a query hook like `useQuery` or `useQuerySubscription` instead. Prefetch is ideal for warming the cache before a user action, while query hooks are for ongoing data needs.
 
@@ -51,10 +51,13 @@ export type PrefetchOptions =
       ifOlderThan?: false | number;
     };
 
-usePrefetch<EndpointName extends QueryKeys<Definitions>>(
+usePrefetch<EndpointName extends AllQueryKeys<Definitions>>(
     endpointName: EndpointName,
     options?: PrefetchOptions
-  ): (arg: QueryArgFrom<Definitions[EndpointName]>, options?: PrefetchOptions) => void;
+  ): (
+    arg: QueryArgFromAnyQueryDefinition<Definitions, EndpointName>,
+    options?: PrefetchOptions
+  ) => Promise<void>;
 ```
 
 ### Customizing the Hook Behavior
@@ -66,7 +69,7 @@ You can specify these prefetch options when declaring the hook or at the call si
 
 ### Trigger Function Behavior
 
-1. The trigger function _always_ returns `void`.
+1. The trigger function returns a `Promise<void>` that resolves when the started or joined request settles (or immediately if the data is already cached and fresh), and does not reject on request errors.
 2. If `force: true` is set during the declaration or at the call site, the query will be run no matter what. The one exception to that is if the same query is already in-flight.
 3. If no options are specified and the query exists in the cache, the query will not be performed.
 4. If no options are specified and the query _does not exist_ in the cache, the query will be performed.
@@ -132,7 +135,14 @@ store.dispatch(
 
 ### Prefetch vs `initiate()`
 
-While you can also use `initiate()` directly, there are important differences:
+`api.util.prefetch()` and `endpoint.initiate()` both start or join a query request, but they cover different use cases depending on whether you want a cache subscription, whether you want the resolved result value, and whether errors should throw:
+
+| Goal                                                                         | Call                                                                                                           | Holds subscription?                                                 | Return value                                                                        | On error                                                                   |
+| ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| **Prefetch** (warm the cache; optionally wait for it to finish)              | `await dispatch(api.util.prefetch('getPost', id, { force, ifOlderThan }))`                                     | No (`subscribe: false`)                                             | `Promise<void>`                                                                     | Does not reject on request errors; error is stored in the cache entry      |
+| **Fetch and wait** (run without subscribing and inspect the cache snapshot)  | `const result = await dispatch(api.endpoints.getPost.initiate(id, { subscribe: false, forceRefetch }))`        | No (`subscribe: false`)                                             | `QueryActionCreatorResult` (resolves to `{ data, error, isSuccess, isError, ... }`) | Does not reject on request errors; check `result.isError` / `result.error` |
+| **Fetch and throw** (run without subscribing and get `data` or catch errors) | `const data = await dispatch(api.endpoints.getPost.initiate(id, { subscribe: false, forceRefetch })).unwrap()` | No (`subscribe: false`)                                             | `Promise<ResultType>`                                                               | Rejects with the query error (or `AbortError` if removed/reset)            |
+| **Subscribe and wait** (keep the cache entry alive while in use)             | `const sub = dispatch(api.endpoints.getPost.initiate(id, { forceRefetch })); const data = await sub.unwrap()`  | Yes (`subscribe: true` default; call `sub.unsubscribe()` when done) | `QueryActionCreatorResult` / `Promise<ResultType>`                                  | `.unwrap()` rejects on error; plain `await sub` resolves with status flags |
 
 ```ts title="Using initiate() directly" no-transpile
 // This creates a subscription that must be manually cleaned up
@@ -149,10 +159,10 @@ promise.unsubscribe()
 
 **Key differences:**
 
-- **`api.util.prefetch()`**: Automatically uses `subscribe: false`, no cleanup needed
-- **`endpoint.initiate()`**: Defaults to `subscribe: true`, requires manual `unsubscribe()` call
+- **`api.util.prefetch()`**: Automatically uses `subscribe: false`, returns `Promise<void>` that settles when the request ends and does not reject on request errors, and supports both standard and infinite query endpoints (fetching the initial page when uncached, or following the endpoint's refetch policy when pages are already cached)
+- **`endpoint.initiate()`**: Defaults to `subscribe: true` (pass `subscribe: false` for one-off fetches, and optionally `retainFor` to keep unsubscribed data cached longer), returns a result promise with `.unwrap()` and `.unsubscribe()`
 
-Use `prefetch()` for simple "load and forget" scenarios. Use `initiate()` directly only when you need fine-grained control over subscriptions and are prepared to manage the subscription lifecycle yourself.
+Use `prefetch()` for "load and forget" warming or router loaders that only need to wait until a background prefetch settles. Use `initiate()` with `{ subscribe: false }` and `.unwrap()` when you need the resolved data or want errors to throw.
 
 ## Prefetching Examples
 
