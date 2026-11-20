@@ -687,14 +687,21 @@ describe('prefetch', () => {
     })
 
     it('never rejects when the request fails and stores the error in the cache entry', async () => {
+      const consoleErrorSpy = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => {})
       const failingApi = createApi({
-        baseQuery: async (arg: string) =>
-          arg === 'ok'
+        baseQuery: async (arg: string) => {
+          if (arg === 'throw') {
+            throw new Error('unhandled baseQuery error')
+          }
+          return arg === 'ok'
             ? { data: arg }
-            : { error: { status: 500, data: 'server exploded' } },
+            : { error: { status: 500, data: 'server exploded' } }
+        },
         endpoints: (build) => ({
-          getFailing: build.query<string, number>({
-            query: (id) => `${id}`,
+          getFailing: build.query<string, string>({
+            query: (id) => id,
           }),
         }),
       })
@@ -702,15 +709,32 @@ describe('prefetch', () => {
         withoutListeners: true,
       })
 
-      await expect(
-        failingStore.store.dispatch(failingApi.util.prefetch('getFailing', 1)),
-      ).resolves.toBeUndefined()
+      try {
+        await expect(
+          failingStore.store.dispatch(
+            failingApi.util.prefetch('getFailing', 'err'),
+          ),
+        ).resolves.toBeUndefined()
 
-      const entry = failingApi.endpoints.getFailing.select(1)(
-        failingStore.store.getState(),
-      )
-      expect(entry.isError).toBe(true)
-      expect(entry.error).toEqual({ status: 500, data: 'server exploded' })
+        const entry = failingApi.endpoints.getFailing.select('err')(
+          failingStore.store.getState(),
+        )
+        expect(entry.isError).toBe(true)
+        expect(entry.error).toEqual({ status: 500, data: 'server exploded' })
+
+        await expect(
+          failingStore.store.dispatch(
+            failingApi.util.prefetch('getFailing', 'throw'),
+          ),
+        ).resolves.toBeUndefined()
+
+        const thrownEntry = failingApi.endpoints.getFailing.select('throw')(
+          failingStore.store.getState(),
+        )
+        expect(thrownEntry.isError).toBe(true)
+      } finally {
+        consoleErrorSpy.mockRestore()
+      }
     })
 
     it('resolves right away without refetching when cached data is fresh', async () => {

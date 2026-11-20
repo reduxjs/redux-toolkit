@@ -159,7 +159,7 @@ promise.unsubscribe()
 
 **Key differences:**
 
-- **`api.util.prefetch()`**: Automatically uses `subscribe: false`, returns `Promise<void>` that settles when the request ends and never rejects, and supports both standard and infinite query endpoints (fetching the first page)
+- **`api.util.prefetch()`**: Automatically uses `subscribe: false`, returns `Promise<void>` that settles when the request ends and never rejects, and supports both standard and infinite query endpoints (fetching the initial page when uncached, or following the endpoint's refetch policy when pages are already cached)
 - **`endpoint.initiate()`**: Defaults to `subscribe: true` (pass `subscribe: false` for one-off fetches, and optionally `retainFor` to keep unsubscribed data cached longer), returns a result promise with `.unwrap()` and `.unsubscribe()`
 
 Use `prefetch()` for "load and forget" warming or router loaders that only need to wait until a background prefetch settles. Use `initiate()` with `{ subscribe: false }` and `.unwrap()` when you need the resolved data or want errors to throw.

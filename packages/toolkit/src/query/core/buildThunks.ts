@@ -1138,31 +1138,27 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
         }
         return endpoint.initiate(arg, options)
       }
-      const latestStateValue = endpoint.select(arg)(getState())
 
-      try {
-        if (force) {
+      if (force) {
+        await dispatch(queryAction())
+      } else if (maxAge) {
+        const latestStateValue = endpoint.select(arg)(getState())
+        const lastFulfilledTs = latestStateValue?.fulfilledTimeStamp
+        if (!lastFulfilledTs) {
           await dispatch(queryAction())
-        } else if (maxAge) {
-          const lastFulfilledTs = latestStateValue?.fulfilledTimeStamp
-          if (!lastFulfilledTs) {
-            await dispatch(queryAction())
-            return
-          }
-          const shouldRetrigger =
-            (Number(new Date()) - Number(new Date(lastFulfilledTs))) / 1000 >=
-            maxAge
-          if (shouldRetrigger) {
-            await dispatch(queryAction())
-          } else {
-            await dispatch(endpoint.getRunningQuery(arg))
-          }
-        } else {
-          // If prefetching with no options, just let it try
-          await dispatch(queryAction(false))
+          return
         }
-      } catch {
-        // `prefetch` never rejects; errors land in the cache entry as usual
+        const shouldRetrigger =
+          (Number(new Date()) - Number(new Date(lastFulfilledTs))) / 1000 >=
+          maxAge
+        if (shouldRetrigger) {
+          await dispatch(queryAction())
+        } else {
+          await dispatch(endpoint.getRunningQuery(arg))
+        }
+      } else {
+        // If prefetching with no options, just let it try
+        await dispatch(queryAction(false))
       }
     }
 
