@@ -1,11 +1,13 @@
-import { configureStore } from '@reduxjs/toolkit'
+import { configureStore, isAction } from '@reduxjs/toolkit'
+import type { UnknownAction } from '@reduxjs/toolkit'
 import { createApi, QueryStatus } from '@reduxjs/toolkit/query/react'
-import { renderHook, waitFor } from '@testing-library/react'
+import { act, renderHook, waitFor } from '@testing-library/react'
 import { withProvider } from '../../tests/utils/helpers'
 
 const setup = ({ keepUnusedDataFor = 60 } = {}) => {
   const calls: string[] = []
   const aborted: string[] = []
+  const responded: string[] = []
   const removalReasons: (string | undefined)[] = []
   const pendingResponses: (() => void)[] = []
   let holdResponses = false
@@ -21,6 +23,7 @@ const setup = ({ keepUnusedDataFor = 60 } = {}) => {
           if (holdResponses) {
             await new Promise<void>((resolve) => pendingResponses.push(resolve))
           }
+          responded.push(arg)
           return { data: `thing ${arg}` }
         },
         async onCacheEntryAdded(
@@ -48,9 +51,16 @@ const setup = ({ keepUnusedDataFor = 60 } = {}) => {
     }),
   })
 
+  const actions: UnknownAction[] = []
   const store = configureStore({
     reducer: { [api.reducerPath]: api.reducer },
-    middleware: (gdm) => gdm().concat(api.middleware),
+    middleware: (gdm) =>
+      gdm()
+        .concat(api.middleware)
+        .concat(() => (next) => (action) => {
+          if (isAction(action)) actions.push(action)
+          return next(action)
+        }),
   })
 
   return {
@@ -58,6 +68,8 @@ const setup = ({ keepUnusedDataFor = 60 } = {}) => {
     store,
     calls,
     aborted,
+    responded,
+    actions,
     removalReasons,
     holdResponses: () => {
       holdResponses = true
@@ -68,8 +80,6 @@ const setup = ({ keepUnusedDataFor = 60 } = {}) => {
     },
   }
 }
-
-const settle = () => new Promise((resolve) => setTimeout(resolve, 0))
 
 describe('api.util.removeQueryData', () => {
   afterEach(() => {
@@ -93,8 +103,7 @@ describe('api.util.removeQueryData', () => {
     expect(api.endpoints.getThing.select('b')(store.getState()).data).toBe(
       'thing b',
     )
-    await settle()
-    expect(removalReasons).toEqual(['removed'])
+    await waitFor(() => expect(removalReasons).toEqual(['removed']))
   })
 
   test('returns false when there is no entry for the arg', () => {
@@ -141,7 +150,15 @@ describe('api.util.removeQueryData', () => {
   })
 
   test('aborts a running request, and its late response does not restore the entry', async () => {
-    const { api, store, aborted, holdResponses, releaseResponses } = setup()
+    const {
+      api,
+      store,
+      aborted,
+      responded,
+      actions,
+      holdResponses,
+      releaseResponses,
+    } = setup()
     holdResponses()
     const promise = store.dispatch(api.endpoints.getThing.initiate('a'))
 
@@ -153,7 +170,8 @@ describe('api.util.removeQueryData', () => {
       error: { name: 'AbortError', message: 'removed' },
     })
     releaseResponses()
-    await settle()
+    await waitFor(() => expect(responded).toEqual(['a']))
+    expect(actions.some(api.endpoints.getThing.matchFulfilled)).toBe(false)
     expect(api.endpoints.getThing.select('a')(store.getState()).status).toBe(
       QueryStatus.uninitialized,
     )
@@ -232,6 +250,23 @@ describe('api.util.removeQueryData', () => {
       data: undefined,
     })
     expect(result.current.data).toBe('thing a')
+  })
+
+  test('a mounted lazy query hook does not refetch', async () => {
+    const { api, store, calls } = setup()
+    const { result } = renderHook(() => api.endpoints.getThing.useLazyQuery(), {
+      wrapper: withProvider(store),
+    })
+    await act(() => result.current[0]('a'))
+    expect(result.current[1].data).toBe('thing a')
+
+    act(() => {
+      store.dispatch(api.util.removeQueryData('getThing', 'a'))
+    })
+
+    await waitFor(() => expect(result.current[1].isUninitialized).toBe(true))
+    expect(result.current[1].data).toBeUndefined()
+    expect(calls).toEqual(['a'])
   })
 
   test('arguments are typed per endpoint', () => {

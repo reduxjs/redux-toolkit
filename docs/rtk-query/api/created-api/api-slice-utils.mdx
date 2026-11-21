@@ -323,7 +323,8 @@ Removing an entry does the same cleanup as the automatic removal of unused data:
 
 If something is still subscribed to the entry when you remove it:
 
-- Query hooks still mounted for that arg go back to `isLoading: true` with no data, and fetch the data again.
+- `useQuery`, `useQuerySubscription`, `useInfiniteQuery`, and `useInfiniteQuerySubscription` hooks still mounted for that arg go back to `isLoading: true` with no data, and fetch the data again.
+- `useLazyQuery` and `useLazyQuerySubscription` do not refetch. Their subscription is dropped, and the result goes back to the uninitialized state with no data until you call the trigger function again.
 - Promises returned by `initiate()` for a request that was running resolve with an `AbortError` error, and `unwrap()` rejects with it.
 - Subscriptions created with `initiate()` outside of a hook are dropped. They do not refetch. `isSubscribed()` on the `initiate()` result returns `false` afterwards, so code that holds that result can check it and call `initiate()` again.
 
