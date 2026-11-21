@@ -156,6 +156,7 @@ export type {
   ListenerMiddlewareDispatch,
   ListenerEffectAPI,
   ListenerMiddlewareInstance,
+  ListenerWaitOptions,
   CreateListenerMiddlewareOptions,
   ListenerErrorHandler,
   TypedStartListening,

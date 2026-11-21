@@ -32,6 +32,7 @@ import type {
   ListenerErrorInfo,
   ListenerMiddleware,
   ListenerMiddlewareInstance,
+  ListenerWaitOptions,
   TakePattern,
   TaskResult,
   TypedAddListener,
@@ -59,6 +60,7 @@ export type {
   ListenerMiddleware,
   ListenerMiddlewareDispatch,
   ListenerMiddlewareInstance,
+  ListenerWaitOptions,
   SyncTaskExecutor,
   TaskCancelled,
   TaskRejected,
@@ -156,6 +158,8 @@ const createFork = (
 const createTakePattern = <S>(
   startListening: AddListenerOverloads<UnsubscribeListener, S, Dispatch>,
   signal: AbortSignal,
+  action: UnknownAction,
+  getState: () => S,
 ): TakePattern<S> => {
   /**
    * A function that takes a ListenerPredicate and an optional timeout,
@@ -166,14 +170,26 @@ const createTakePattern = <S>(
    */
   const take = async <P extends AnyListenerPredicate<S>>(
     predicate: P,
-    timeout: number | undefined,
+    timeoutOrOptions: number | ListenerWaitOptions | undefined,
   ) => {
     validateActive(signal)
+    const { timeout, checkCurrent = false } =
+      typeof timeoutOrOptions === 'number'
+        ? { timeout: timeoutOrOptions }
+        : (timeoutOrOptions ?? {})
 
     // Placeholder unsubscribe function until the listener is added
     let unsubscribe: UnsubscribeListener = noop
 
     const tuplePromise = new Promise<[Action, S, S]>((resolve, reject) => {
+      if (checkCurrent) {
+        const state = getState()
+        if (predicate(action, state, state)) {
+          resolve([action, state, state])
+          return
+        }
+      }
+
       // Inside the Promise, we synchronously add the listener.
       let stopListening = startListening({
         predicate: predicate as any,
@@ -217,8 +233,10 @@ const createTakePattern = <S>(
     }
   }
 
-  return ((predicate: AnyListenerPredicate<S>, timeout: number | undefined) =>
-    catchRejection(take(predicate, timeout))) as TakePattern<S>
+  return ((
+    predicate: AnyListenerPredicate<S>,
+    timeoutOrOptions: number | ListenerWaitOptions | undefined,
+  ) => catchRejection(take(predicate, timeoutOrOptions))) as TakePattern<S>
 }
 
 const getListenerEntryPropsFrom = (options: FallbackAddListenerOptions) => {
@@ -442,7 +460,7 @@ export const createListenerMiddleware = <
 
   const notifyListener = async (
     entry: ListenerEntry<unknown, Dispatch<UnknownAction>>,
-    action: unknown,
+    action: UnknownAction,
     api: MiddlewareAPI,
     getOriginalState: () => StateType,
   ) => {
@@ -451,6 +469,8 @@ export const createListenerMiddleware = <
     const take = createTakePattern(
       startListening as AddListenerOverloads<any>,
       signal,
+      action,
+      api.getState,
     )
     const autoJoinPromises = new Set<Promise<unknown>>()
 
@@ -462,8 +482,10 @@ export const createListenerMiddleware = <
         // Use assign() rather than ... to avoid extra helper functions added to bundle
         assign({}, api, {
           getOriginalState,
-          condition: (predicate: AnyListenerPredicate<any>, timeout?: number) =>
-            take(predicate, timeout).then(Boolean),
+          condition: (
+            predicate: AnyListenerPredicate<any>,
+            timeoutOrOptions?: number | ListenerWaitOptions,
+          ) => take(predicate, timeoutOrOptions).then(Boolean),
           take,
           delay: createDelay(signal),
           pause: createPause<any>(signal),

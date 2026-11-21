@@ -35,9 +35,23 @@ export type ListenerPredicate<ActionType extends Action, State> = (
 ) => action is ActionType
 
 /** @public */
+export interface ListenerWaitOptions {
+  /** Maximum time to wait, in milliseconds. */
+  timeout?: number | undefined
+  /** Check the triggering action and current state before waiting for another action. Defaults to false. */
+  checkCurrent?: boolean | undefined
+}
+
+/** @public */
 export interface ConditionFunction<State> {
-  (predicate: AnyListenerPredicate<State>, timeout?: number): Promise<boolean>
-  (predicate: () => boolean, timeout?: number): Promise<boolean>
+  (
+    predicate: AnyListenerPredicate<State>,
+    timeoutOrOptions?: number | ListenerWaitOptions,
+  ): Promise<boolean>
+  (
+    predicate: () => boolean,
+    timeoutOrOptions?: number | ListenerWaitOptions,
+  ): Promise<boolean>
 }
 
 /** @internal */
@@ -207,6 +221,8 @@ export interface ListenerEffectAPI<
    * rejects if the listener has been cancelled or is completed.
    *
    * The return value is `true` if the predicate succeeds or `false` if a timeout is provided and expires first.
+   * With `checkCurrent: true`, first checks the triggering action and current state,
+   * passing the current state as both state arguments.
    *
    * ### Example
    *
@@ -233,7 +249,9 @@ export interface ListenerEffectAPI<
    *
    * The return value is the `[action, currentState, previousState]` combination that the predicate saw as arguments.
    *
-   * The promise resolves to null if a timeout is provided and expires first,
+   * The promise resolves to null if a timeout is provided and expires first.
+   * With `checkCurrent: true`, first checks the triggering action and current state,
+   * passing the current state as both state arguments.
    *
    * ### Example
    *
@@ -412,11 +430,15 @@ export interface TakePattern<State> {
   ): TakePatternOutputWithoutTimeout<State, Predicate>
   <Predicate extends AnyListenerPredicate<State>>(
     predicate: Predicate,
+    options: ListenerWaitOptions & { timeout?: undefined },
+  ): TakePatternOutputWithoutTimeout<State, Predicate>
+  <Predicate extends AnyListenerPredicate<State>>(
+    predicate: Predicate,
     timeout: number,
   ): TakePatternOutputWithTimeout<State, Predicate>
   <Predicate extends AnyListenerPredicate<State>>(
     predicate: Predicate,
-    timeout?: number | undefined,
+    timeoutOrOptions?: number | ListenerWaitOptions | undefined,
   ): TakePatternOutputWithTimeout<State, Predicate>
 }
 

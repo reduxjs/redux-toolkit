@@ -1398,6 +1398,229 @@ describe('createListenerMiddleware', () => {
       expect(await deferredCompletedEvt).toBeDefined()
     })
 
+    describe('checkCurrent options', () => {
+      const setupCounterStore = () =>
+        configureStore({
+          reducer: counterSlice.reducer,
+          middleware: (gDM) => gDM().prepend(middleware),
+        })
+      let store = setupCounterStore()
+
+      beforeEach(() => {
+        vi.useFakeTimers()
+        store = setupCounterStore()
+      })
+
+      afterEach(() => {
+        clearListeners()
+        vi.useRealTimers()
+      })
+
+      test('take checks the triggering action with the state at the time of the call', async () => {
+        let result: unknown
+        const predicate = vi.fn(
+          (action: UnknownAction, current: CounterState) =>
+            incrementByAmount.match(action) && current.value === 3,
+        )
+        startListening.withTypes<CounterState>()({
+          actionCreator: incrementByAmount,
+          effect: async (_, listenerApi) => {
+            listenerApi.dispatch(increment())
+            result = await listenerApi.take(predicate, {
+              checkCurrent: true,
+              timeout: 60_000,
+            })
+          },
+        })
+
+        const action = incrementByAmount(2)
+        store.dispatch(action)
+        const state = store.getState()
+        await vi.advanceTimersByTimeAsync(0)
+
+        expect(result).toEqual([action, state, state])
+        expect(predicate).toHaveBeenCalledExactlyOnceWith(action, state, state)
+        expect(vi.getTimerCount()).toBe(0)
+        store.dispatch(increment())
+        expect(predicate).toHaveBeenCalledTimes(1)
+      })
+
+      test('condition can check the current state after an await', async () => {
+        const ready = deferred()
+        let result: unknown
+        startListening.withTypes<CounterState>()({
+          actionCreator: testAction1,
+          effect: async (_, listenerApi) => {
+            await ready
+            result = await listenerApi.condition(
+              (_, current) => current.value === 2,
+              { checkCurrent: true },
+            )
+          },
+        })
+
+        store.dispatch(testAction1('a'))
+        store.dispatch(incrementByAmount(2))
+        ready.resolve()
+        await vi.advanceTimersByTimeAsync(0)
+
+        expect(result).toBe(true)
+        expect(vi.getTimerCount()).toBe(0)
+      })
+
+      test('take waits for a future action when the current check does not match', async () => {
+        let result: unknown
+        startListening({
+          actionCreator: incrementByAmount,
+          effect: async (_, listenerApi) => {
+            result = await listenerApi.take(increment.match, {
+              checkCurrent: true,
+              timeout: 100,
+            })
+          },
+        })
+
+        store.dispatch(incrementByAmount(1))
+        await vi.advanceTimersByTimeAsync(10)
+        expect(result).toBeUndefined()
+        store.dispatch(increment())
+        await vi.advanceTimersByTimeAsync(0)
+
+        expect(result).toEqual([increment(), { value: 2 }, { value: 1 }])
+        expect(vi.getTimerCount()).toBe(0)
+      })
+
+      test.each([undefined, false])(
+        'checkCurrent: %s still waits for the next action',
+        async (checkCurrent) => {
+          let result: unknown
+          const predicate = vi.fn(() => true)
+          startListening({
+            actionCreator: testAction1,
+            effect: async (_, listenerApi) => {
+              result = await listenerApi.take(predicate, { checkCurrent })
+            },
+          })
+
+          store.dispatch(testAction1('a'))
+          await vi.advanceTimersByTimeAsync(10)
+          expect(result).toBeUndefined()
+          expect(predicate).not.toHaveBeenCalled()
+          store.dispatch(increment())
+          await vi.advanceTimersByTimeAsync(0)
+
+          expect(result).toEqual([increment(), { value: 1 }, { value: 0 }])
+        },
+      )
+
+      test.each(['take', 'condition'] as const)(
+        '%s uses the timeout from the options',
+        async (method) => {
+          let result: unknown
+          startListening({
+            actionCreator: testAction1,
+            effect: async (_, listenerApi) => {
+              const options = {
+                checkCurrent: true,
+                timeout: 20,
+              }
+              result = await (method === 'take'
+                ? listenerApi.take(() => false, options)
+                : listenerApi.condition(() => false, options))
+            },
+          })
+
+          store.dispatch(testAction1('a'))
+          await vi.advanceTimersByTimeAsync(19)
+          expect(result).toBeUndefined()
+          await vi.advanceTimersByTimeAsync(1)
+          expect(result).toBe(method === 'take' ? null : false)
+          expect(vi.getTimerCount()).toBe(0)
+        },
+      )
+
+      test('take remains cancellation-aware when the current check matches', async () => {
+        let caught: unknown
+        startListening({
+          actionCreator: testAction1,
+          effect: async (_, listenerApi) => {
+            const result = listenerApi.take(() => true, {
+              checkCurrent: true,
+              timeout: 60_000,
+            })
+            listenerApi.cancel()
+            try {
+              await result
+            } catch (error) {
+              caught = error
+            }
+          },
+        })
+
+        store.dispatch(testAction1('a'))
+        await vi.advanceTimersByTimeAsync(0)
+        expect(caught).toBeInstanceOf(TaskAbortError)
+        expect(vi.getTimerCount()).toBe(0)
+      })
+
+      test('condition rejects if the current check throws', async () => {
+        const error = new Error('predicate failed')
+        let caught: unknown
+        startListening({
+          actionCreator: testAction1,
+          effect: async (_, listenerApi) => {
+            try {
+              await listenerApi.condition(
+                () => {
+                  throw error
+                },
+                { checkCurrent: true },
+              )
+            } catch (error) {
+              caught = error
+            }
+          },
+        })
+
+        store.dispatch(testAction1('a'))
+        await vi.advanceTimersByTimeAsync(0)
+        expect(caught).toBe(error)
+        expect(vi.getTimerCount()).toBe(0)
+      })
+
+      test('take does not leave an unhandled rejection if the current check cancels the listener', async () => {
+        vi.useRealTimers()
+        const unhandled = vi.fn()
+        process.on('unhandledRejection', unhandled)
+        let caught: unknown
+        startListening({
+          actionCreator: testAction1,
+          effect: async (_, listenerApi) => {
+            try {
+              await listenerApi.take(
+                () => {
+                  listenerApi.cancel()
+                  return false
+                },
+                { checkCurrent: true },
+              )
+            } catch (error) {
+              caught = error
+            }
+          },
+        })
+
+        try {
+          store.dispatch(testAction1('a'))
+          await new Promise((resolve) => setTimeout(resolve, 10))
+          expect(caught).toBeInstanceOf(TaskAbortError)
+          expect(unhandled).not.toHaveBeenCalled()
+        } finally {
+          process.off('unhandledRejection', unhandled)
+        }
+      })
+    })
+
     describe('timer cleanup', () => {
       const setupCounterStore = () =>
         configureStore({

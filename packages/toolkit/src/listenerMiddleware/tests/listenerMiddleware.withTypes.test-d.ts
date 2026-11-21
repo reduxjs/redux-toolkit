@@ -3,6 +3,7 @@ import type {
   Dispatch,
   ForkedTaskAPI,
   ForkedTaskExecutor,
+  ListenerWaitOptions,
   TaskResult,
   ThunkAction,
   UnknownAction,
@@ -129,6 +130,47 @@ describe('listenerMiddleware.withTypes<RootState, AppDispatch>()', () => {
         takeResult = await listenerApi.take(increment.match, timeout)
 
         done = true
+      },
+    })
+  })
+
+  test('take and condition accept options without losing action or state types', () => {
+    listenerMiddleware.startListening.withTypes<RootState, AppDispatch>()({
+      actionCreator: increment,
+      effect: async (_, listenerApi) => {
+        expectTypeOf(
+          await listenerApi.take(increment.match, { checkCurrent: true }),
+        ).toEqualTypeOf<[ReturnType<typeof increment>, RootState, RootState]>()
+
+        expectTypeOf(
+          await listenerApi.take(increment.match, {
+            checkCurrent: true,
+            timeout: 10,
+          }),
+        ).toEqualTypeOf<ExpectedTakeResultType>()
+
+        const options: ListenerWaitOptions = { checkCurrent: true }
+        expectTypeOf(
+          await listenerApi.take(increment.match, options),
+        ).toEqualTypeOf<ExpectedTakeResultType>()
+
+        expectTypeOf(
+          await listenerApi.take(() => true, { checkCurrent: false }),
+        ).toEqualTypeOf<[UnknownAction, RootState, RootState]>()
+
+        expectTypeOf(
+          await listenerApi.condition((action, current, previous) => {
+            expectTypeOf(action).toEqualTypeOf<UnknownAction>()
+            expectTypeOf(current).toEqualTypeOf<RootState>()
+            expectTypeOf(previous).toEqualTypeOf<RootState>()
+            return current.counter > 0
+          }, options),
+        ).toBeBoolean()
+
+        // @ts-expect-error
+        listenerApi.take(increment.match, { checkCurrent: 'true' })
+        // @ts-expect-error
+        listenerApi.condition(() => true, { timeout: '10' })
       },
     })
   })
