@@ -1,7 +1,7 @@
 name: CI
 on:
   push:
-    branches: [master]
+    branches: [master, v3.0-integration]
   pull_request:
 
 permissions:
