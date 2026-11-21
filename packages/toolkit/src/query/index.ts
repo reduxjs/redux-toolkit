@@ -90,6 +90,7 @@ export type {
   InfiniteQueryResultSelectorResult,
   InfiniteQuerySubState,
   Patch,
+  RemoveQueryDataOptions,
   TypedMutationOnQueryStarted,
   TypedQueryOnQueryStarted,
 } from './core/index'

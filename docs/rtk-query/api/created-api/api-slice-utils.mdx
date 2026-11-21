@@ -281,6 +281,66 @@ const api = createApi({
 })
 ```
 
+### `removeQueryData`
+
+A Redux thunk action creator that, when dispatched, removes one query cache entry from the store.
+
+:::tip Check the alternatives first
+
+RTK Query removes unused cache entries on its own after [`keepUnusedDataFor`](../createApi.mdx#keepunuseddatafor) seconds, so most apps never need to remove an entry by hand. Depending on what you are trying to do, one of these usually fits better:
+
+- **Get fresh data:** [`invalidateTags`](#invalidatetags) or `refetch()`. Subscribed entries refetch, and entries with no subscribers are removed.
+- **Clear everything, such as on logout:** [`resetApiState`](#resetapistate).
+- **Avoid showing data for a previous argument:** read `currentData` instead of `data` from the query hook, or give the component a React `key` so it remounts.
+
+:::
+
+#### Signature
+
+```ts no-transpile
+const removeQueryData = (
+  endpointName: string,
+  arg: any,
+  options?: { onlyIfUnused?: boolean },
+) => ThunkAction<boolean, PartialState, any, UnknownAction>
+```
+
+#### Parameters
+
+- `endpointName`: a string matching an existing query or infinite query endpoint name
+- `arg`: the query arg used to build the cache key of the entry to remove, the same value you would pass to the query hook or `api.endpoints.someEndpoint.select()`. The endpoint's `serializeQueryArgs` is applied.
+- `options.onlyIfUnused`: if `true`, the entry is only removed when nothing is subscribed to it. Defaults to `false`.
+
+#### Description
+
+The thunk runs synchronously and returns `true` if it removed an entry. It returns `false` if there was no entry for that arg, or if `onlyIfUnused` is set and the entry still has subscribers.
+
+Removing an entry does the same cleanup as the automatic removal of unused data:
+
+- A running request for the entry is aborted, and its response is ignored.
+- The entry's `keepUnusedDataFor` removal timer is cleared.
+- `cacheEntryRemoved` in [`onCacheEntryAdded`](../../usage/streaming-updates.mdx) resolves.
+
+If something is still subscribed to the entry when you remove it:
+
+- Query hooks still mounted for that arg go back to `isLoading: true` with no data, and fetch the data again.
+- Promises returned by `initiate()` for a request that was running resolve with an `AbortError` error, and `unwrap()` rejects with it.
+- Subscriptions created with `initiate()` outside of a hook are dropped. They do not refetch. `isSubscribed()` on the `initiate()` result returns `false` afterwards, so code that holds that result can check it and call `initiate()` again.
+
+Pass `onlyIfUnused: true` if you only want to clear data that nothing on screen is using.
+
+#### Example
+
+```ts no-transpile
+// The user deleted post 5, so drop its cached data
+dispatch(api.util.removeQueryData('getPost', 5))
+
+// Remove the entry only if no component is using it
+const removed = dispatch(
+  api.util.removeQueryData('getPost', 5, { onlyIfUnused: true }),
+)
+```
+
 ### `prefetch`
 
 A Redux thunk action creator that can be used to manually trigger pre-fetching of data.
