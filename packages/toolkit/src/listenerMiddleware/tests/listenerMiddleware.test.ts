@@ -1587,6 +1587,38 @@ describe('createListenerMiddleware', () => {
         expect(caught).toBe(error)
         expect(vi.getTimerCount()).toBe(0)
       })
+
+      test('take does not leave an unhandled rejection if the current check cancels the listener', async () => {
+        vi.useRealTimers()
+        const unhandled = vi.fn()
+        process.on('unhandledRejection', unhandled)
+        let caught: unknown
+        startListening({
+          actionCreator: testAction1,
+          effect: async (_, listenerApi) => {
+            try {
+              await listenerApi.take(
+                () => {
+                  listenerApi.cancel()
+                  return false
+                },
+                { checkCurrent: true },
+              )
+            } catch (error) {
+              caught = error
+            }
+          },
+        })
+
+        try {
+          store.dispatch(testAction1('a'))
+          await new Promise((resolve) => setTimeout(resolve, 10))
+          expect(caught).toBeInstanceOf(TaskAbortError)
+          expect(unhandled).not.toHaveBeenCalled()
+        } finally {
+          process.off('unhandledRejection', unhandled)
+        }
+      })
     })
 
     describe('timer cleanup', () => {

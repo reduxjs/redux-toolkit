@@ -28,6 +28,7 @@ export function raceWithSignal<T>(
     const notifyRejection = () => reject(new TaskAbortError(signal.reason))
 
     if (signal.aborted) {
+      catchRejection(promise)
       notifyRejection()
       return
     }
