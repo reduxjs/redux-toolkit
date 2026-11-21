@@ -296,6 +296,218 @@ describe('fork', () => {
     expect(result).toEqual(expected)
   })
 
+  describe('autoJoined task errors', () => {
+    let onError = vi.fn()
+
+    beforeEach(() => {
+      onError = vi.fn()
+      listenerMiddleware = createListenerMiddleware({ onError })
+      startListening = listenerMiddleware.startListening
+      store = configureStore({
+        reducer: counterSlice.reducer,
+        middleware: (gDM) => gDM().prepend(listenerMiddleware.middleware),
+      })
+    })
+
+    test.each([false, true])(
+      'reports a rejected task without changing its result (async: %s)',
+      async (isAsync) => {
+        const error = new Error('fork failed')
+        const result = deferred<TaskResult<never>>()
+        const completed = deferred<unknown>()
+
+        startListening({
+          actionCreator: increment,
+          effect: async (_, api) => {
+            api.signal.addEventListener('abort', () =>
+              completed.resolve(api.signal.reason),
+            )
+            const fail = () => {
+              throw error
+            }
+            const task = api.fork<never>(
+              isAsync
+                ? async () => {
+                    await Promise.resolve()
+                    return fail()
+                  }
+                : fail,
+              { autoJoin: true },
+            )
+            result.resolve(await task.result)
+          },
+        })
+
+        store.dispatch(increment())
+
+        expect(await result).toEqual({ status: 'rejected', error })
+        expect(await completed).toBe(listenerCompleted)
+        expect(onError).toHaveBeenCalledExactlyOnceWith(error, {
+          raisedBy: 'effect',
+        })
+      },
+    )
+
+    test.each([false, true])(
+      'reports a nested autoJoined failure once (outer autoJoin: %s)',
+      async (autoJoin) => {
+        const error = new Error('nested fork failed')
+        const result = deferred<TaskResult<number>>()
+        const innerResult = deferred<TaskResult<never>>()
+
+        startListening({
+          actionCreator: increment,
+          effect: async (_, api) => {
+            const outer = api.fork(
+              async (forkApi) => {
+                const inner = forkApi.fork<never>(
+                  async (innerApi) => {
+                    await innerApi.delay(0)
+                    throw error
+                  },
+                  { autoJoin: true },
+                )
+                innerResult.resolve(await inner.result)
+                return 42
+              },
+              { autoJoin },
+            )
+            result.resolve(await outer.result)
+          },
+        })
+
+        store.dispatch(increment())
+
+        expect(await result).toEqual({ status: 'ok', value: 42 })
+        expect(await innerResult).toEqual({ status: 'rejected', error })
+        expect(onError).toHaveBeenCalledExactlyOnceWith(error, {
+          raisedBy: 'effect',
+        })
+      },
+    )
+
+    test('reports each rejected autoJoined task', async () => {
+      const errors = [new Error('first fork failed'), 'second fork failed']
+      const completed = deferred()
+
+      startListening({
+        actionCreator: increment,
+        effect: (_, api) => {
+          api.signal.addEventListener('abort', completed.resolve)
+          for (const error of errors) {
+            api.fork(
+              () => {
+                throw error
+              },
+              { autoJoin: true },
+            )
+          }
+        },
+      })
+
+      store.dispatch(increment())
+      await completed
+
+      expect(onError.mock.calls).toEqual(
+        errors.map((error) => [error, { raisedBy: 'effect' }]),
+      )
+    })
+
+    test('leaves non-autoJoined errors in the task result', async () => {
+      const error = new Error('handled by the listener')
+      const result = deferred<TaskResult<never>>()
+
+      startListening({
+        actionCreator: increment,
+        effect: async (_, api) => {
+          result.resolve(
+            await api.fork(() => {
+              throw error
+            }).result,
+          )
+        },
+      })
+
+      store.dispatch(increment())
+
+      expect(await result).toEqual({ status: 'rejected', error })
+      expect(onError).not.toHaveBeenCalled()
+    })
+
+    test.each([false, true])(
+      'does not report cancellation (cancel parent: %s)',
+      async (cancelParent) => {
+        const completed = deferred()
+        const result = deferred<unknown>()
+
+        startListening({
+          actionCreator: increment,
+          effect: async (_, api) => {
+            api.signal.addEventListener('abort', completed.resolve)
+            const task = api.fork((forkApi) => forkApi.delay(100), {
+              autoJoin: true,
+            })
+            if (cancelParent) api.cancel()
+            else task.cancel()
+            result.resolve(await task.result.catch((error) => error))
+          },
+        })
+
+        store.dispatch(increment())
+        await completed
+
+        expect(await result).toEqual(
+          cancelParent
+            ? new TaskAbortError(listenerCancelled)
+            : {
+                status: 'cancelled',
+                error: new TaskAbortError(taskCancelled),
+              },
+        )
+        expect(onError).not.toHaveBeenCalled()
+      },
+    )
+
+    test('finishes cleanup if onError throws', async () => {
+      const error = new Error('fork failed')
+      const handlerError = new Error('handler failed')
+      const completed = deferred<unknown>()
+      onError.mockImplementation(() => {
+        throw handlerError
+      })
+      vi.useFakeTimers()
+
+      try {
+        startListening({
+          actionCreator: increment,
+          effect: (_, api) => {
+            api.signal.addEventListener('abort', () =>
+              completed.resolve(api.signal.reason),
+            )
+            api.fork(
+              () => {
+                throw error
+              },
+              { autoJoin: true },
+            )
+          },
+        })
+
+        store.dispatch(increment())
+
+        expect(await completed).toBe(listenerCompleted)
+        expect(onError).toHaveBeenCalledExactlyOnceWith(error, {
+          raisedBy: 'effect',
+        })
+        expect(() => vi.runOnlyPendingTimers()).toThrow(handlerError)
+        store.dispatch(incrementByAmount(2))
+        expect(store.getState()).toEqual({ value: 3 })
+      } finally {
+        vi.useRealTimers()
+      }
+    })
+  })
+
   describe('forkAPI', () => {
     test('forkApi.delay rejects as soon as the task is cancelled', async () => {
       let deferredResult = deferred()
