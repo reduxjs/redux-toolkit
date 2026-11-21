@@ -97,6 +97,7 @@ const createFork = (
   parentAbortSignal: AbortSignal,
   parentBlockingPromises: Set<Promise<unknown>>,
   api: MiddlewareAPI,
+  onError: ListenerErrorHandler,
 ): ForkedTaskAPI['fork'] => {
   return <T>(
     taskExecutor: ForkedTaskExecutor<T>,
@@ -123,7 +124,7 @@ const createFork = (
             pause: createPause(signal),
             delay: createDelay(signal),
             signal,
-            fork: createFork(signal, childBlockingPromises, api),
+            fork: createFork(signal, childBlockingPromises, api, onError),
           })) as T
         } finally {
           await joinAll(childBlockingPromises)
@@ -140,8 +141,11 @@ const createFork = (
     if (opts?.autoJoin) {
       // Drop each promise once it settles, so long-running tasks that fork
       // repeatedly don't keep every finished result alive.
-      const blocking = result.then(() => {
+      const blocking = result.then((output) => {
         parentBlockingPromises.delete(blocking)
+        if (output.status === 'rejected') {
+          safelyNotifyError(onError, output.error, { raisedBy: 'fork' })
+        }
       })
       parentBlockingPromises.add(blocking)
     }
@@ -317,11 +321,11 @@ const unsubscribeEntry = (
  * @param errorHandler
  * @param errorToNotify
  */
-const safelyNotifyError = (
+function safelyNotifyError(
   errorHandler: ListenerErrorHandler,
   errorToNotify: unknown,
   errorInfo: ListenerErrorInfo,
-): void => {
+): void {
   try {
     errorHandler(errorToNotify, errorInfo)
   } catch (errorHandlerError) {
@@ -491,7 +495,7 @@ export const createListenerMiddleware = <
           pause: createPause<any>(signal),
           extra,
           signal,
-          fork: createFork(signal, autoJoinPromises, api),
+          fork: createFork(signal, autoJoinPromises, api, onError),
           unsubscribe: entry.unsubscribe,
           subscribe: () => {
             addToListenerMap(entry)

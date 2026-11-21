@@ -329,12 +329,13 @@ export type ListenerEffect<
 export interface ListenerErrorInfo {
   /**
    * Which function has generated the exception.
+   * `'fork'` means a child task started with `autoJoin: true` failed.
    */
-  raisedBy: 'effect' | 'predicate'
+  raisedBy: 'effect' | 'predicate' | 'fork'
 }
 
 /**
- * Gets notified with synchronous and asynchronous errors raised by `listeners` or `predicates`.
+ * Gets notified with errors raised by listeners, autoJoined tasks, or predicates.
  * @param error The thrown error.
  * @param errorInfo Additional information regarding the thrown error.
  * @public
@@ -347,7 +348,7 @@ export interface ListenerErrorHandler {
 export interface CreateListenerMiddlewareOptions<ExtraArgument = unknown> {
   extra?: ExtraArgument
   /**
-   * Receives synchronous errors that are raised by `listener` and `listenerOption.predicate`.
+   * Receives errors raised by listeners, autoJoined tasks, and `listenerOption.predicate`.
    */
   onError?: ListenerErrorHandler
 }

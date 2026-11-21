@@ -136,14 +136,14 @@ type ListenerErrorHandler = (
 ) => void
 
 interface ListenerErrorInfo {
-  raisedBy: 'effect' | 'predicate'
+  raisedBy: 'effect' | 'predicate' | 'fork'
 }
 ```
 
 ### Middleware Options
 
 - `extra`: an optional "extra argument" that will be injected into the `listenerApi` parameter of each listener. Equivalent to [the "extra argument" in the Redux Thunk middleware](/usage/writing-logic-thunks#injecting-config-values-into-thunks)
-- `onError`: an optional error handler that gets called with synchronous and async errors raised by `listener` and synchronous errors thrown by `predicate`.
+- `onError`: an optional error handler that gets called with synchronous and async errors raised by `listener` or autoJoined child tasks, and synchronous errors thrown by `predicate`.
 
 ## Listener Middleware Instance
 
@@ -494,6 +494,8 @@ Child tasks can be launched, and waited on to collect their return values. The p
 An example of this might be a listener that forks a child task containing an infinite loop that listens for events from a server. The parent then uses `listenerApi.condition()` to wait for a "stop" action, and cancels the child task.
 
 A child task is cancelled when it is cancelled directly, when its listener is cancelled, or when its listener finishes. Passing `{ autoJoin: true }` makes the listener wait for that child task to settle before it finishes.
+
+If an autoJoined task fails, its error is passed to the middleware's `onError` handler with `raisedBy: 'fork'`. This also applies to nested autoJoined tasks. This notification does not change the task's result or make its parent fail. Cancellation is not reported to `onError`. Without `autoJoin: true`, errors are only available through the task's `result`.
 
 `forkApi.fork()` launches a nested child task with the same API and rules, using the forking task as its parent. A nested task is cancelled when the task that forked it is cancelled or finishes. With `{ autoJoin: true }`, the forking task does not finish until the nested task has settled, so the forking task's `result` resolves after its autoJoined nested tasks. This means a fork executor can be passed to either `listenerApi.fork()` or `forkApi.fork()`:
 
