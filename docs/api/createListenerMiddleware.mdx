@@ -461,8 +461,8 @@ Dynamically unsubscribing and re-subscribing this listener allows for more compl
 
 ### Conditional Workflow Execution
 
-- `take: (predicate: ListenerPredicate, timeout?: number) => Promise<[Action, State, State] | null>`: returns a promise that will resolve when the `predicate` returns `true`. The return value is the `[action, currentState, previousState]` combination that the predicate saw as arguments. If a `timeout` is provided and expires first, the promise resolves to `null`.
-- `condition: (predicate: ListenerPredicate, timeout?: number) => Promise<boolean>`: Similar to `take`, but resolves to `true` if the predicate succeeds, and `false` if a `timeout` is provided and expires first. This allows async logic to pause and wait for some condition to occur before continuing. See "Writing Async Workflows" below for details on usage.
+- `take: (predicate: ListenerPredicate, timeoutOrOptions?: number | ListenerWaitOptions) => Promise<[Action, State, State] | null>`: returns a promise that will resolve when the `predicate` returns `true`. The return value is the `[action, currentState, previousState]` combination that the predicate saw as arguments. If a `timeout` is provided and expires first, the promise resolves to `null`.
+- `condition: (predicate: ListenerPredicate, timeoutOrOptions?: number | ListenerWaitOptions) => Promise<boolean>`: Similar to `take`, but resolves to `true` if the predicate succeeds, and `false` if a `timeout` is provided and expires first. This allows async logic to pause and wait for some condition to occur before continuing. See "Writing Async Workflows" below for details on usage.
 - `delay: (timeoutMs: number) => Promise<void>`: returns a cancellation-aware promise that resolves after the timeout, or rejects if cancelled before the expiration
 - `pause: (promise: Promise<T>) => Promise<T>`: accepts any promise, and returns a cancellation-aware promise that either resolves with the argument promise or rejects if cancelled before the resolution
 
@@ -474,7 +474,16 @@ These methods provide the ability to write conditional logic based on future dis
 
 Both these methods are cancellation-aware, and will throw a `TaskAbortError` if the listener instance is cancelled while paused.
 
-Note that both `take` and `condition` will only resolve **after the next action** has been dispatched. They do not resolve immediately even if their predicate would return true for the current state.
+By default, both `take` and `condition` only resolve **after the next action** has been dispatched, even if their predicate would return true for the current state. Pass `{ checkCurrent: true }` to first check the state at the time of the call:
+
+```ts
+await listenerApi.condition((action, current) => current.auth.ready, {
+  checkCurrent: true,
+  timeout: 5000,
+})
+```
+
+The initial check receives the action that triggered this listener and the current state as **both** state arguments. If it matches, `condition` resolves to `true`, and `take` resolves to `[triggeringAction, currentState, currentState]`. Otherwise, they wait for future actions as usual. A predicate that checks the action type can therefore match the triggering action itself. `checkCurrent` defaults to `false`; the numeric timeout argument remains supported.
 
 ### Child Tasks
 
@@ -712,18 +721,18 @@ The signatures are:
 ```ts no-transpile
 type ConditionFunction<Action extends ReduxAction, State> = (
   predicate: ListenerPredicate<Action, State> | (() => boolean),
-  timeout?: number,
+  timeoutOrOptions?: number | ListenerWaitOptions,
 ) => Promise<boolean>
 
 type TakeFunction<Action extends ReduxAction, State> = (
   predicate: ListenerPredicate<Action, State> | (() => boolean),
-  timeout?: number,
+  timeoutOrOptions?: number | ListenerWaitOptions,
 ) => Promise<[Action, State, State] | null>
 ```
 
 You can use `await condition(somePredicate)` as a way to pause execution of your listener callback until some criteria is met.
 
-The `predicate` will be called after every action is processed by the reducers, and should return `true` when the condition should resolve. (It is effectively a one-shot listener itself.) If a `timeout` number (in ms) is provided, the promise will resolve `true` if the `predicate` returns first, or `false` if the timeout expires. This allows you to write comparisons like `if (await condition(predicate, timeout))`.
+The `predicate` will be called after every action is processed by the reducers, and should return `true` when the condition should resolve. (It is effectively a one-shot listener itself.) The `{ checkCurrent: true }` option also checks once immediately, as described above. If a `timeout` number (in ms) is provided, the promise will resolve `true` if the `predicate` returns first, or `false` if the timeout expires. This allows you to write comparisons like `if (await condition(predicate, timeout))`.
 
 This should enable writing longer-running workflows with more complex async logic, such as [the "cancellable counter" example from Redux-Saga](https://github.com/redux-saga/redux-saga/blob/1ecb1bed867eeafc69757df8acf1024b438a79e0/examples/cancellable-counter/src/sagas/index.js).
 
