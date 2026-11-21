@@ -142,7 +142,7 @@ const createFork = (
       const blocking = result.then((output) => {
         parentBlockingPromises.delete(blocking)
         if (output.status === 'rejected') {
-          safelyNotifyError(onError, output.error, { raisedBy: 'effect' })
+          safelyNotifyError(onError, output.error, { raisedBy: 'fork' })
         }
       })
       parentBlockingPromises.add(blocking)

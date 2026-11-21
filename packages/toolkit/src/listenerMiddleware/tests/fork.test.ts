@@ -343,7 +343,7 @@ describe('fork', () => {
         expect(await result).toEqual({ status: 'rejected', error })
         expect(await completed).toBe(listenerCompleted)
         expect(onError).toHaveBeenCalledExactlyOnceWith(error, {
-          raisedBy: 'effect',
+          raisedBy: 'fork',
         })
       },
     )
@@ -381,7 +381,7 @@ describe('fork', () => {
         expect(await result).toEqual({ status: 'ok', value: 42 })
         expect(await innerResult).toEqual({ status: 'rejected', error })
         expect(onError).toHaveBeenCalledExactlyOnceWith(error, {
-          raisedBy: 'effect',
+          raisedBy: 'fork',
         })
       },
     )
@@ -409,7 +409,7 @@ describe('fork', () => {
       await completed
 
       expect(onError.mock.calls).toEqual(
-        errors.map((error) => [error, { raisedBy: 'effect' }]),
+        errors.map((error) => [error, { raisedBy: 'fork' }]),
       )
     })
 
@@ -497,7 +497,7 @@ describe('fork', () => {
 
         expect(await completed).toBe(listenerCompleted)
         expect(onError).toHaveBeenCalledExactlyOnceWith(error, {
-          raisedBy: 'effect',
+          raisedBy: 'fork',
         })
         expect(() => vi.runOnlyPendingTimers()).toThrow(handlerError)
         store.dispatch(incrementByAmount(2))

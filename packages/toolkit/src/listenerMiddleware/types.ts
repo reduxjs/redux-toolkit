@@ -311,8 +311,9 @@ export type ListenerEffect<
 export interface ListenerErrorInfo {
   /**
    * Which function has generated the exception.
+   * `'fork'` means a child task started with `autoJoin: true` failed.
    */
-  raisedBy: 'effect' | 'predicate'
+  raisedBy: 'effect' | 'predicate' | 'fork'
 }
 
 /**
