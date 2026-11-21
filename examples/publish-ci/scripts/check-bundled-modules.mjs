@@ -3,10 +3,10 @@
  * Asserts which build artifacts of RTK and its dependencies a bundler actually
  * pulled into an example's output.
  *
- * RTK publishes several builds of every entry point (`modern.mjs`,
- * `legacy-esm.js`, `browser.mjs`, `dist/cjs/*`) and picks between them through
- * the `exports` map. Nothing in the examples proved which one a given bundler
- * chose, so a regression in the conditions map could ship silently. This reads
+ * RTK's dependencies publish several builds of every entry point
+ * (`modern.mjs`, `legacy-esm.js`, `browser.mjs`, `dist/cjs/*`) and pick between
+ * them through their `exports` maps. Nothing in the examples proved which one a
+ * given bundler chose, so a regression in a conditions map could ship silently. This reads
  * the `sources` array out of each build's sourcemaps, keeps the entries that
  * belong to a Redux package, and compares the sorted list to a committed
  * snapshot.

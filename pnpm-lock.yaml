@@ -421,7 +421,7 @@ importers:
         version: 10.9.2(@types/node@25.5.2)(typescript@5.9.3)
       tsdown:
         specifier: ^0.22.14
-        version: 0.22.14(@arethetypeswrong/core@0.18.3)(tsx@4.21.0)(typescript@5.9.3)(unrun@0.3.1)
+        version: 0.22.14(@arethetypeswrong/core@0.18.3)(publint@0.3.25)(tsx@4.21.0)(typescript@5.9.3)(unrun@0.3.1)
       tsx:
         specifier: ^4.21.0
         version: 4.21.0
@@ -553,6 +553,9 @@ importers:
       node-fetch:
         specifier: ^3.3.2
         version: 3.3.2
+      publint:
+        specifier: ^0.3.25
+        version: 0.3.25
       query-string:
         specifier: ^7.0.1
         version: 7.1.3
@@ -573,7 +576,7 @@ importers:
         version: 12.1.0
       tsdown:
         specifier: ^0.22.14
-        version: 0.22.14(@arethetypeswrong/core@0.18.3)(tsx@4.21.0)(typescript@6.0.3)(unrun@0.3.1)
+        version: 0.22.14(@arethetypeswrong/core@0.18.3)(publint@0.3.25)(tsx@4.21.0)(typescript@6.0.3)(unrun@0.3.1)
       tsx:
         specifier: ^4.19.0
         version: 4.21.0
@@ -2158,6 +2161,10 @@ packages:
   '@pkgr/core@0.2.9':
     resolution: {integrity: sha512-QNqXyfVS2wm9hweSYD2O7F0G06uurj9kZ96TRQE5Y9hU7+tgdZwIkbAKc5Ocy1HxEY2kuDQa6cQ1WRs/O5LFKA==}
     engines: {node: ^12.20.0 || ^14.18.0 || >=16.0.0}
+
+  '@publint/pack@0.1.7':
+    resolution: {integrity: sha512-4EDEmvxWtgsCnnVeBvtFIFZtUhPPt1+bA9JrSwU4Sa//6oKtzCSlGGXYJr44OD9aGISymbieJ4mCKHUygUDU+g==}
+    engines: {node: '>=18'}
 
   '@quansync/fs@1.0.0':
     resolution: {integrity: sha512-4TJ3DFtlf1L5LDMaM6CanJ/0lckGNtJcMjQ1NAV6zDmA0tEHKZtxNKin8EgPaVX1YzljbxckyT2tJrpQKAtngQ==}
@@ -5829,6 +5836,9 @@ packages:
     resolution: {integrity: sha512-k3bdm2n25tkyxcjSKzB5x8kfVxlMdgsbPr0GkZcwHsLpba6cBjqCt1KlcChKEvxHIcTB1FVMuwoijZ26xex5MQ==}
     engines: {node: '>=8'}
 
+  package-manager-detector@1.9.0:
+    resolution: {integrity: sha512-zAMfbta9nPA8AKkA4WdmNAT8R8s6Dk0/xwPsqNnRidMFcLo1YkLuPDTgs2f64XdzS8vbLNnoJ+uUIkgbz7oRHA==}
+
   parent-module@1.0.1:
     resolution: {integrity: sha512-GQ2EWRpQV8/o+Aw8YqtfZZPfNRWZYkbidE9k5rpl/hC3vtHHBfGm2Ifi6qWV+coDGkrUKZAxE3Lot5kcsRlh+g==}
     engines: {node: '>=6'}
@@ -6239,6 +6249,11 @@ packages:
 
   psl@1.15.0:
     resolution: {integrity: sha512-JZd3gMVBAVQkSs6HdNZo9Sdo0LNcQeMNP3CozBJb3JYC/QUYZTnKxP+f8oWRX4rHP5EurWxqAHTSwUCjlNKa1w==}
+
+  publint@0.3.25:
+    resolution: {integrity: sha512-WMMbn/d7JqRlfXQL/JUI4n5skC8cJ5WVr8/wT5mmiYWkUdENkZr1I5rgs2+dQPVRgoJd+JRYtB46MTsuDylw9g==}
+    engines: {node: '>=18'}
+    hasBin: true
 
   pump@3.0.4:
     resolution: {integrity: sha512-VS7sjc6KR7e1ukRFhQSY5LM2uBWAUPiOPa/A3mkKmiMwSmRFUITt0xuj+/lesgnCv+dPIEYlkzrcyXgquIHMcA==}
@@ -9412,6 +9427,10 @@ snapshots:
   '@phryneas/ts-version@1.0.2': {}
 
   '@pkgr/core@0.2.9': {}
+
+  '@publint/pack@0.1.7':
+    dependencies:
+      tinyexec: 1.3.0
 
   '@quansync/fs@1.0.0':
     dependencies:
@@ -13614,6 +13633,8 @@ snapshots:
       registry-url: 5.1.0
       semver: 6.3.1
 
+  package-manager-detector@1.9.0: {}
+
   parent-module@1.0.1:
     dependencies:
       callsites: 3.1.0
@@ -13999,6 +14020,13 @@ snapshots:
   psl@1.15.0:
     dependencies:
       punycode: 2.3.1
+
+  publint@0.3.25:
+    dependencies:
+      '@publint/pack': 0.1.7
+      package-manager-detector: 1.9.0
+      picocolors: 1.1.1
+      sade: 1.8.1
 
   pump@3.0.4:
     dependencies:
@@ -15150,7 +15178,7 @@ snapshots:
     optionalDependencies:
       typescript: 6.0.3
 
-  tsdown@0.22.14(@arethetypeswrong/core@0.18.3)(tsx@4.21.0)(typescript@5.9.3)(unrun@0.3.1):
+  tsdown@0.22.14(@arethetypeswrong/core@0.18.3)(publint@0.3.25)(tsx@4.21.0)(typescript@5.9.3)(unrun@0.3.1):
     dependencies:
       ansis: 4.3.1
       cac: 7.0.0
@@ -15169,6 +15197,7 @@ snapshots:
       verkit: 0.3.2
     optionalDependencies:
       '@arethetypeswrong/core': 0.18.3
+      publint: 0.3.25
       tsx: 4.21.0
       typescript: 5.9.3
       unrun: 0.3.1
@@ -15178,7 +15207,7 @@ snapshots:
       - oxc-resolver
       - vue-tsc
 
-  tsdown@0.22.14(@arethetypeswrong/core@0.18.3)(tsx@4.21.0)(typescript@6.0.3)(unrun@0.3.1):
+  tsdown@0.22.14(@arethetypeswrong/core@0.18.3)(publint@0.3.25)(tsx@4.21.0)(typescript@6.0.3)(unrun@0.3.1):
     dependencies:
       ansis: 4.3.1
       cac: 7.0.0
@@ -15197,6 +15226,7 @@ snapshots:
       verkit: 0.3.2
     optionalDependencies:
       '@arethetypeswrong/core': 0.18.3
+      publint: 0.3.25
       tsx: 4.21.0
       typescript: 6.0.3
       unrun: 0.3.1
