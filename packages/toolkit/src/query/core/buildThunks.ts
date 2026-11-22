@@ -1202,7 +1202,10 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
         if (shouldRetrigger) {
           return runQuery()
         }
-        return Promise.resolve()
+        const running = dispatch(
+          api.util.getRunningQueryThunk(endpointName, arg),
+        )
+        return running ? running.then(noop, noop) : Promise.resolve()
       } else {
         // If prefetching with no options, just let it try
         return runQuery(false)

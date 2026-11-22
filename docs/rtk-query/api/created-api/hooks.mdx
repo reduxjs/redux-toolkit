@@ -687,7 +687,7 @@ type PrefetchCallback = (
 
 - **Parameters**
 
-  - `endpointName`: The name of the endpoint to prefetch data for. Infinite query endpoints are supported, and prefetch their first page.
+  - `endpointName`: The name of the endpoint to prefetch data for. Infinite query endpoints are supported. If the infinite query has no cached data, prefetching fetches its first page. If it has cached data, a prefetch that runs refetches it the same way the endpoint normally refetches.
   - `options`: A set of options that control whether the prefetch request should occur
 
 - **Returns**

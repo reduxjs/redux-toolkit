@@ -130,7 +130,7 @@ await store.dispatch(
 )
 ```
 
-Infinite query endpoints can be prefetched too. When the cache entry is empty, prefetching fetches the first page.
+Infinite query endpoints can be prefetched too. When the cache entry is empty, prefetching fetches the first page. When it has cached data, a prefetch that runs refetches it the same way the endpoint normally refetches.
 
 ### Prefetch vs `initiate()`
 

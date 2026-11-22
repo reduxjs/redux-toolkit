@@ -369,7 +369,7 @@ The thunk action creator accepts three arguments: the name of the endpoint we ar
 
 Dispatching the thunk returns a promise. It resolves once the request finishes, including when the prefetch joined a request that was already running for the same cache entry. If the options decide no request is needed, it resolves right away. The promise never rejects: a failed request still resolves it, and the error is stored in the cache entry as usual. Read the cache entry with a selector if you need to know whether the request succeeded.
 
-Prefetching an infinite query endpoint fetches its first page when the cache entry is empty.
+Prefetching an infinite query endpoint fetches its first page when the cache entry is empty. When it has cached data, a prefetch that runs refetches it the same way the endpoint normally refetches.
 
 React Hooks users will most likely never need to use this directly, as the `usePrefetch` hook will dispatch the thunk action creator result internally as needed when you call the prefetching function supplied by the hook. That function returns the same promise.
 

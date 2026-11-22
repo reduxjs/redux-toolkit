@@ -687,6 +687,30 @@ describe('prefetch promise', () => {
     subscription.unsubscribe()
   })
 
+  it('waits for a running refetch when cached data is fresh enough', async () => {
+    const subscription = storeRef.store.dispatch(
+      api.endpoints.double.initiate(4),
+    )
+    await subscription
+    queryFn.mockClear()
+
+    subscription.refetch()
+    expect(
+      api.endpoints.double.select(4)(storeRef.store.getState()),
+    ).toMatchObject({ status: 'pending' })
+
+    await storeRef.store.dispatch(
+      api.util.prefetch('double', 4, { ifOlderThan: 60 }),
+    )
+
+    expect(
+      api.endpoints.double.select(4)(storeRef.store.getState()),
+    ).toMatchObject({ status: 'fulfilled', data: 8 })
+    expect(queryFn).toHaveBeenCalledOnce()
+
+    subscription.unsubscribe()
+  })
+
   it('does not reject when the request fails', async () => {
     await expect(
       storeRef.store.dispatch(api.util.prefetch('double', -1, { force: true })),

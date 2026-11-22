@@ -304,7 +304,7 @@ export type ApiUtil<
    *
    * Dispatching the thunk returns a promise that resolves once the request finishes, including a request that was already running for the same cache entry. It resolves right away when no request is needed. The promise never rejects; read the cache entry to see whether the request succeeded.
    *
-   * For an infinite query endpoint, it fetches the first page if the cache entry has no data.
+   * For an infinite query endpoint, it fetches the first page if the cache entry has no data. If it has data, a prefetch that runs refetches it the same way the endpoint normally refetches.
    *
    * @example
    *
