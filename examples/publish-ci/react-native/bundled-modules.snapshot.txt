@@ -4,9 +4,6 @@
 @standard-schema/utils/dist/index.js
 immer/dist/immer.legacy-esm.js
 react-redux/dist/react-redux.legacy-esm.js
-redux-thunk/dist/cjs/*
 redux-thunk/dist/redux-thunk.mjs
-redux/dist/cjs/*
 redux/dist/redux.mjs
-reselect/dist/cjs/*
 reselect/dist/reselect.mjs
