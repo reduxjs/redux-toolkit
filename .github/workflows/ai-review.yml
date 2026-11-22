@@ -27,9 +27,18 @@ on:
         description: Pull request number
         required: true
         type: number
+  # Seeds the tilth cache on master, where every pull request can restore it.
+  # A cache saved by a pull_request run is visible only to that pull request.
+  push:
+    branches: [master]
+    paths:
+      - '.github/workflows/ai-review.yml'
+  # GitHub evicts a cache entry after 7 days without access.
+  schedule:
+    - cron: '17 6 * * 1'
 
 concurrency:
-  group: ai-review-${{ github.event.pull_request.number || inputs.pr }}
+  group: ai-review-${{ github.event.pull_request.number || inputs.pr || github.ref }}
   cancel-in-progress: true
 
 permissions: {}
@@ -43,10 +52,37 @@ env:
   TILTH_VERSION: '0.9.0'
 
 jobs:
+  # Builds tilth into the master-scoped cache. Runs no model and reads no PR.
+  seed-tilth:
+    if: github.event_name == 'push' || github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions: {}
+    steps:
+      - name: Restore tilth
+        id: tilth
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/tilth/bin
+          key: tilth-${{ env.TILTH_VERSION }}-${{ runner.os }}-${{ runner.arch }}
+
+      - name: Build tilth
+        if: steps.tilth.outputs.cache-hit != 'true'
+        timeout-minutes: 15
+        run: cargo install tilth --version "$TILTH_VERSION" --locked --root "$RUNNER_TEMP/tilth"
+
+      - name: Save tilth
+        if: steps.tilth.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/tilth/bin
+          key: ${{ steps.tilth.outputs.cache-primary-key }}
+
   review:
     if: >-
       github.event_name == 'workflow_dispatch' ||
-      (github.event.pull_request.draft == false &&
+      (github.event_name == 'pull_request' &&
+      github.event.pull_request.draft == false &&
       github.event.pull_request.user.type != 'Bot' &&
       github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
