@@ -138,6 +138,29 @@ const createFork = (
       },
     )
 
+    // Rejects only if the parent finishes or is cancelled while the task is
+    // still running. This `then` is registered before the autoJoin one, so a
+    // settled task's outcome is kept even though settling lets the parent finish.
+    let unlistenParentAbort = noop
+    const exposedResult = catchRejection(
+      new Promise<TaskResult<T>>((resolve, reject) => {
+        const rejectWithParentReason = () =>
+          reject(new TaskAbortError(parentAbortSignal.reason))
+        if (parentAbortSignal.aborted) {
+          rejectWithParentReason()
+          return
+        }
+        unlistenParentAbort = addAbortSignalListener(
+          parentAbortSignal,
+          rejectWithParentReason,
+        )
+        result.then(resolve)
+      }).finally(() => {
+        unlistenParentAbort()
+        unlistenParentAbort = noop
+      }),
+    )
+
     if (opts?.autoJoin) {
       // Drop each promise once it settles, so long-running tasks that fork
       // repeatedly don't keep every finished result alive.
@@ -151,7 +174,7 @@ const createFork = (
     }
 
     return {
-      result: createPause<TaskResult<T>>(parentAbortSignal)(result),
+      result: exposedResult,
       cancel() {
         childAbortController.abort(taskCancelled)
       },

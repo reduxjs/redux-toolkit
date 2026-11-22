@@ -1011,3 +1011,117 @@ describe('fork', () => {
     })
   })
 })
+
+describe('fork result after the listener finishes', () => {
+  const go = createAction('go')
+
+  function setup() {
+    const listenerMiddleware = createListenerMiddleware()
+    const store = configureStore({
+      reducer: () => 0,
+      middleware: (gDM) => gDM().prepend(listenerMiddleware.middleware),
+    })
+    return { store, startListening: listenerMiddleware.startListening }
+  }
+
+  function settleInto(result: Promise<TaskResult<unknown>>) {
+    return result.then(
+      (outcome) => outcome,
+      (error) => ({ thrown: error }),
+    )
+  }
+
+  it('keeps the outcome of an autoJoined task whose result was not awaited', async () => {
+    const { store, startListening } = setup()
+    const outcome = deferred<unknown>()
+
+    startListening({
+      actionCreator: go,
+      effect: (_, listenerApi) => {
+        const task = listenerApi.fork(
+          async (forkApi) => {
+            await forkApi.delay(10)
+            return 4
+          },
+          { autoJoin: true },
+        )
+        outcome.resolve(settleInto(task.result))
+      },
+    })
+
+    store.dispatch(go())
+
+    expect(await outcome).toEqual({ status: 'ok', value: 4 })
+  })
+
+  it('keeps the error of an autoJoined task whose result was not awaited', async () => {
+    const { store, startListening } = setup()
+    const outcome = deferred<unknown>()
+    const error = new Error('task failed')
+
+    startListening({
+      actionCreator: go,
+      effect: (_, listenerApi) => {
+        const task = listenerApi.fork(
+          async (forkApi) => {
+            await forkApi.delay(10)
+            throw error
+          },
+          { autoJoin: true },
+        )
+        outcome.resolve(settleInto(task.result))
+      },
+    })
+
+    store.dispatch(go())
+
+    expect(await outcome).toEqual({ status: 'rejected', error })
+  })
+
+  it('rejects with listener-completed if the task is still running when the listener finishes', async () => {
+    const { store, startListening } = setup()
+    const outcome = deferred<unknown>()
+
+    startListening({
+      actionCreator: go,
+      effect: (_, listenerApi) => {
+        const task = listenerApi.fork(async (forkApi) => {
+          await forkApi.delay(10)
+          return 4
+        })
+        outcome.resolve(settleInto(task.result))
+      },
+    })
+
+    store.dispatch(go())
+
+    expect(await outcome).toEqual({
+      thrown: new TaskAbortError(listenerCompleted),
+    })
+  })
+
+  it('rejects with listener-cancelled when a listener awaiting a running task is cancelled', async () => {
+    const { store, startListening } = setup()
+    const outcome = deferred<unknown>()
+
+    startListening({
+      actionCreator: go,
+      effect: async (_, listenerApi) => {
+        listenerApi.cancelActiveListeners()
+        const task = listenerApi.fork(async (forkApi) => {
+          await forkApi.delay(50)
+          return 4
+        })
+        outcome.resolve(settleInto(task.result))
+        await task.result
+      },
+    })
+    store.dispatch(go())
+    await delay(5)
+    store.dispatch(go())
+
+    expect(await outcome).toEqual({
+      thrown: new TaskAbortError(listenerCancelled),
+    })
+  })
+})
