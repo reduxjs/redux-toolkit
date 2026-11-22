@@ -166,7 +166,9 @@ export interface ForkedTask<T> {
    *
    * If the parent listener finishes before the task settles, the task is cancelled
    * and `result` rejects with a `TaskAbortError` whose code is `'listener-completed'`.
-   * To get the task's value, await `result` inside the listener, or fork with `autoJoin: true`.
+   * To get the task's value, await `result` inside the listener before it returns.
+   * `autoJoin: true` keeps the listener running until the task settles, but `result`
+   * still rejects if the listener does not await it.
    *
    * ### Example
    * ```ts

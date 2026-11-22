@@ -518,7 +518,7 @@ An example of this might be a listener that forks a child task containing an inf
 
 A child task is cancelled when it is cancelled directly, when its listener is cancelled, or when its listener finishes. Passing `{ autoJoin: true }` makes the listener wait for that child task to settle before it finishes.
 
-`ForkedTask.result` follows the same rule. If the listener finishes before the child task settles, the task is cancelled and `result` rejects with a `TaskAbortError` whose code is `'listener-completed'`. This happens even if the task would have succeeded. To get the task's outcome, `await task.result` inside the listener, or fork it with `{ autoJoin: true }`.
+`ForkedTask.result` follows the same rule. If the listener finishes before the child task settles, the task is cancelled and `result` rejects with a `TaskAbortError` whose code is `'listener-completed'`. This happens even if the task would have succeeded. To get the task's outcome, `await task.result` inside the listener before it returns. `{ autoJoin: true }` is not enough on its own: it keeps the listener running until the task settles, but `result` still rejects with `'listener-completed'` if the listener did not await it.
 
 If an autoJoined task fails, its error is passed to the middleware's `onError` handler with `raisedBy: 'fork'`. This also applies to nested autoJoined tasks. This notification does not change the task's result or make its parent fail. Cancellation is not reported to `onError`. Without `autoJoin: true`, errors are only available through the task's `result`.
 
