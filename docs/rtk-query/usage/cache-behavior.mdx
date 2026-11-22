@@ -220,7 +220,13 @@ const Component = () => {
 
 The [`refetchOnFocus`](../api/createApi.mdx#refetchonfocus) option allows you to control whether RTK Query will try to refetch all subscribed queries after the application window regains focus.
 
-Each subscriber uses its own value or inherits the `createApi` default when its value is unset. A shared query refetches if any subscriber resolves to `true`. One subscriber's `false` does not disable another subscriber's inherited `true`.
+The option accepts a boolean or a number of seconds:
+
+- `false` - never refetch on focus (default)
+- `true` - always refetch subscribed queries on focus
+- a number - refetch only if the cached data is at least that many seconds old, or there is no data yet. For example, `refetchOnFocus: 30` skips the refetch when the data arrived less than 30 seconds ago. `0` behaves like `true`.
+
+Each subscriber uses its own value or inherits the `createApi` default when its value is unset. A shared query refetches if any subscriber would refetch, so the most eager value wins: with one subscriber at `60` and another at `10`, data that is 20 seconds old is refetched. One subscriber's `false` does not disable another subscriber's inherited `true`.
 
 If you specify this option alongside `skip: true`, this will not be evaluated until skip is false.
 
@@ -301,7 +307,7 @@ export type RootState = ReturnType<typeof store.getState>
 
 The [`refetchOnReconnect`](../api/createApi.mdx#refetchonreconnect) option on [`createApi`](../api/createApi.mdx) allows you to control whether RTK Query will try to refetch all subscribed queries after regaining a network connection.
 
-Like `refetchOnFocus`, this option resolves separately for each subscriber before the values are combined. The shared query refetches if any subscriber resolves to `true`.
+Like `refetchOnFocus`, this option accepts a boolean or a number of seconds. A number refetches only data that is at least that old. The option resolves separately for each subscriber before the values are combined, and the shared query refetches if any subscriber would refetch.
 
 If you specify this option alongside `skip: true`, this **will not be evaluated** until `skip` is false.
 

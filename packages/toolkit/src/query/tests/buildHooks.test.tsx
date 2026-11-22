@@ -3804,6 +3804,27 @@ describe('hooks tests', () => {
         ).toBe('late'),
       )
     })
+
+    test('the prefetch callback returns a promise that resolves once the data is fetched', async () => {
+      const { result } = renderHook(
+        () => api.usePrefetch('getUser', { force: true }),
+        { wrapper: storeRef.wrapper },
+      )
+
+      let promise: Promise<void> | undefined
+      act(() => {
+        promise = result.current(11)
+      })
+      expect(promise).toBeInstanceOf(Promise)
+
+      await act(async () => {
+        await expect(promise).resolves.toBeUndefined()
+      })
+
+      expect(
+        api.endpoints.getUser.select(11)(storeRef.store.getState()).status,
+      ).toBe(QueryStatus.fulfilled)
+    })
   })
 
   describe('useQuery and useMutation invalidation behavior', () => {

@@ -352,12 +352,12 @@ A Redux thunk action creator that can be used to manually trigger pre-fetching o
 type PrefetchOptions = { ifOlderThan?: false | number } | { force?: boolean }
 
 const prefetch = (endpointName: string, arg: any, options: PrefetchOptions) =>
-  ThunkAction<void, any, any, UnknownAction>
+  ThunkAction<Promise<void>, any, any, UnknownAction>
 ```
 
 #### Parameters
 
-- `endpointName`: a string matching an existing endpoint name
+- `endpointName`: a string matching an existing query or infinite query endpoint name
 - `args`: a cache key, used to determine which cached dataset needs to be updated
 - `options`: options to determine whether the request should be sent for a given situation:
   - `ifOlderThan`: if specified, only runs the query if the difference between `new Date()` and the last`fulfilledTimeStamp` is greater than the given value (in seconds)
@@ -367,12 +367,16 @@ const prefetch = (endpointName: string, arg: any, options: PrefetchOptions) =>
 
 The thunk action creator accepts three arguments: the name of the endpoint we are updating (such as `'getPost'`), any relevant query arguments, and a set of options used to determine if the data actually should be re-fetched based on cache staleness.
 
-React Hooks users will most likely never need to use this directly, as the `usePrefetch` hook will dispatch the thunk action creator result internally as needed when you call the prefetching function supplied by the hook.
+Dispatching the thunk returns a promise. It resolves once the request finishes, including when the prefetch joined a request that was already running for the same cache entry. If the options decide no request is needed, it resolves right away. The promise never rejects: a failed request still resolves it, and the error is stored in the cache entry as usual. Read the cache entry with a selector if you need to know whether the request succeeded.
+
+Prefetching an infinite query endpoint fetches its first page when the cache entry is empty.
+
+React Hooks users will most likely never need to use this directly, as the `usePrefetch` hook will dispatch the thunk action creator result internally as needed when you call the prefetching function supplied by the hook. That function returns the same promise.
 
 #### Example
 
 ```ts no-transpile
-dispatch(api.util.prefetch('getPosts', undefined, { force: true }))
+await dispatch(api.util.prefetch('getPosts', undefined, { force: true }))
 ```
 
 ### `selectInvalidatedBy`

@@ -1162,45 +1162,52 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
   ): options is { ifOlderThan: false | number } => 'ifOlderThan' in options
 
   const prefetch =
-    <EndpointName extends QueryKeys<Definitions>>(
+    <EndpointName extends AllQueryKeys<Definitions>>(
       endpointName: EndpointName,
       arg: any,
       options: PrefetchOptions = {},
-    ): ThunkAction<void, any, any, UnknownAction> =>
+    ): ThunkAction<Promise<void>, any, any, UnknownAction> =>
     (dispatch: ThunkDispatch<any, any, any>, getState: () => any) => {
       const force = hasTheForce(options) && options.force
       const maxAge = hasMaxAge(options) && options.ifOlderThan
 
-      const queryAction = (force: boolean = true) => {
+      const runQuery = (force: boolean = true): Promise<void> => {
         const options: StartQueryActionCreatorOptions = {
           forceRefetch: force,
           subscribe: false,
         }
-        return (
-          api.endpoints[endpointName] as ApiEndpointQuery<any, any>
-        ).initiate(arg, options)
+        const result = dispatch(
+          (api.endpoints[endpointName] as ApiEndpointQuery<any, any>).initiate(
+            arg,
+            options,
+          ),
+        )
+        return result.then(
+          () => {},
+          () => {},
+        )
       }
       const latestStateValue = (
         api.endpoints[endpointName] as ApiEndpointQuery<any, any>
       ).select(arg)(getState())
 
       if (force) {
-        dispatch(queryAction())
+        return runQuery()
       } else if (maxAge) {
         const lastFulfilledTs = latestStateValue?.fulfilledTimeStamp
         if (!lastFulfilledTs) {
-          dispatch(queryAction())
-          return
+          return runQuery()
         }
         const shouldRetrigger =
           (Number(new Date()) - Number(new Date(lastFulfilledTs))) / 1000 >=
           maxAge
         if (shouldRetrigger) {
-          dispatch(queryAction())
+          return runQuery()
         }
+        return Promise.resolve()
       } else {
         // If prefetching with no options, just let it try
-        dispatch(queryAction(false))
+        return runQuery(false)
       }
     }
 

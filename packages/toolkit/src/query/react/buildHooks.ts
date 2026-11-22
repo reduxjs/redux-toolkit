@@ -28,7 +28,6 @@ import type {
   QueryCacheEntry,
   QueryCacheKey,
   QueryDefinition,
-  QueryKeys,
   QueryResultSelectorResult,
   QuerySubState,
   ResultTypeFrom,
@@ -42,6 +41,7 @@ import type {
 import type { DependencyList } from 'react'
 import type { InfiniteQueryDirection } from '../core/apiState'
 import type { StartInfiniteQueryActionCreator } from '../core/buildInitiate'
+import type { AllQueryKeys } from '../core/buildThunks'
 import type { InfiniteData } from '../core/index'
 import { isInfiniteQueryDefinition } from '../endpointDefinitions'
 import type { UninitializedValue } from './constants'
@@ -1523,7 +1523,7 @@ type GenericPrefetchThunk = (
   endpointName: any,
   arg: any,
   options: PrefetchOptions,
-) => ThunkAction<void, any, any, UnknownAction>
+) => ThunkAction<Promise<void>, any, any, UnknownAction>
 
 /**
  *
@@ -1764,7 +1764,7 @@ If you replace the store passed to <Provider>, also give the Provider a \`key\` 
     } as UseInfiniteQueryStateDefaultResult<any>
   }
 
-  function usePrefetch<EndpointName extends QueryKeys<Definitions>>(
+  function usePrefetch<EndpointName extends AllQueryKeys<Definitions>>(
     endpointName: EndpointName,
     defaultOptions?: PrefetchOptions,
   ) {

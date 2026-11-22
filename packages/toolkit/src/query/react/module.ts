@@ -6,9 +6,7 @@ import type {
   Module,
   MutationDefinition,
   PrefetchOptions,
-  QueryArgFrom,
   QueryDefinition,
-  QueryKeys,
 } from '@reduxjs/toolkit/query'
 import {
   batch as rrBatch,
@@ -23,6 +21,10 @@ import {
   isMutationDefinition,
   isQueryDefinition,
 } from '../endpointDefinitions'
+import type {
+  AllQueryKeys,
+  QueryArgFromAnyQueryDefinition,
+} from '../core/buildThunks'
 import { safeAssign } from '../tsHelpers'
 import { capitalize, countObjectKeys } from '../utils'
 import type {
@@ -73,14 +75,16 @@ declare module '@reduxjs/toolkit/query' {
       }
       /**
        * A hook that accepts a string endpoint name, and provides a callback that when called, pre-fetches the data for that endpoint.
+       *
+       * The callback returns the promise from `api.util.prefetch`: it resolves once the request finishes and never rejects.
        */
-      usePrefetch<EndpointName extends QueryKeys<Definitions>>(
+      usePrefetch<EndpointName extends AllQueryKeys<Definitions>>(
         endpointName: EndpointName,
         options?: PrefetchOptions,
       ): (
-        arg: QueryArgFrom<Definitions[EndpointName]>,
+        arg: QueryArgFromAnyQueryDefinition<Definitions, EndpointName>,
         options?: PrefetchOptions,
-      ) => void
+      ) => Promise<void>
     } & HooksWithUniqueNames<Definitions>
   }
 }

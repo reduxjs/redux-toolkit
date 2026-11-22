@@ -21,8 +21,8 @@ export type MutationSubstateIdentifier =
 
 export type RefetchConfigOptions = {
   refetchOnMountOrArgChange: boolean | number
-  refetchOnReconnect: boolean
-  refetchOnFocus: boolean
+  refetchOnReconnect: boolean | number
+  refetchOnFocus: boolean | number
 }
 
 export type InfiniteQueryConfigOptions<DataType, PageParam, QueryArg> = {
@@ -192,21 +192,31 @@ export type SubscriptionOptions<
    */
   skipPollingIfUnfocused?: boolean
   /**
-   * Defaults to `false`. This setting allows you to control whether RTK Query will try to refetch all subscribed queries after regaining a network connection.
+   * Defaults to the `createApi` value, which defaults to `false`. This setting allows you to control whether RTK Query will try to refetch all subscribed queries after regaining a network connection.
+   * - `false` - Will not refetch on reconnect.
+   * - `true` - Will refetch on reconnect.
+   * - `number` - **Value is in seconds**. Will only refetch if the cached data is at least that old, or if there is no data.
+   *
+   * When several subscribers share a cache entry, it refetches if any of them would refetch.
    *
    * If you specify this option alongside `skip: true`, this **will not be evaluated** until `skip` is false.
    *
    * Note: requires [`setupListeners`](./setupListeners) to have been called.
    */
-  refetchOnReconnect?: boolean
+  refetchOnReconnect?: boolean | number
   /**
-   * Defaults to `false`. This setting allows you to control whether RTK Query will try to refetch all subscribed queries after the application window regains focus.
+   * Defaults to the `createApi` value, which defaults to `false`. This setting allows you to control whether RTK Query will try to refetch all subscribed queries after the application window regains focus.
+   * - `false` - Will not refetch on focus.
+   * - `true` - Will refetch on focus.
+   * - `number` - **Value is in seconds**. Will only refetch if the cached data is at least that old, or if there is no data.
+   *
+   * When several subscribers share a cache entry, it refetches if any of them would refetch.
    *
    * If you specify this option alongside `skip: true`, this **will not be evaluated** until `skip` is false.
    *
    * Note: requires [`setupListeners`](./setupListeners) to have been called.
    */
-  refetchOnFocus?: boolean
+  refetchOnFocus?: boolean | number
 }
 export type SubscribersInternal = Map<string, SubscriptionOptions>
 export type Subscribers = { [requestId: string]: SubscriptionOptions }

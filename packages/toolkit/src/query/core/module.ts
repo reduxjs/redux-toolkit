@@ -302,17 +302,21 @@ export type ApiUtil<
    *
    * React Hooks users will most likely never need to use this directly, as the `usePrefetch` hook will dispatch this thunk internally as needed when you call the prefetching function supplied by the hook.
    *
+   * Dispatching the thunk returns a promise that resolves once the request finishes, including a request that was already running for the same cache entry. It resolves right away when no request is needed. The promise never rejects; read the cache entry to see whether the request succeeded.
+   *
+   * For an infinite query endpoint, it fetches the first page if the cache entry has no data.
+   *
    * @example
    *
    * ```ts no-transpile
-   * dispatch(api.util.prefetch('getPosts', undefined, { force: true }))
+   * await dispatch(api.util.prefetch('getPosts', undefined, { force: true }))
    * ```
    */
-  prefetch<EndpointName extends QueryKeys<Definitions>>(
+  prefetch<EndpointName extends AllQueryKeys<Definitions>>(
     endpointName: EndpointName,
-    arg: QueryArgFrom<Definitions[EndpointName]>,
+    arg: QueryArgFromAnyQueryDefinition<Definitions, EndpointName>,
     options?: PrefetchOptions,
-  ): ThunkAction<void, any, any, UnknownAction>
+  ): ThunkAction<Promise<void>, any, any, UnknownAction>
   /**
    * A Redux thunk action creator that, when dispatched, creates and applies a set of JSON diff/patch objects to the current state. This immediately updates the Redux state with those changes.
    *
