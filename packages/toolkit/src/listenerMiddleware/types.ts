@@ -164,11 +164,15 @@ export interface ForkedTask<T> {
    * A promise that resolves when the task is either completed or cancelled or rejects
    * if parent listener execution is cancelled or completed.
    *
-   * If the parent listener finishes before the task settles, the task is cancelled
-   * and `result` rejects with a `TaskAbortError` whose code is `'listener-completed'`.
-   * To get the task's value, await `result` inside the listener before it returns.
-   * `autoJoin: true` keeps the listener running until the task settles, but `result`
-   * still rejects if the listener does not await it.
+   * If the task's parent stops while the task is still running, the task is cancelled
+   * and `result` rejects with a `TaskAbortError`. The error code says why the parent stopped:
+   * - `'listener-completed'`: the parent listener returned
+   * - `'listener-cancelled'`: the parent listener was cancelled
+   * - `'task-completed'` / `'task-cancelled'`: for a task started with `forkApi.fork()`,
+   *   the task that forked it finished or was cancelled
+   *
+   * To get the task's value, either await `result` inside the parent before it returns,
+   * or fork with `autoJoin: true` so the parent waits for the task to settle.
    *
    * ### Example
    * ```ts

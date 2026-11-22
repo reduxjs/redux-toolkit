@@ -257,7 +257,12 @@ The ["matcher" utility functions included in RTK](./matching-utilities.mdx) are 
 
 The return value is an `unsubscribe()` callback that will remove this listener. By default, unsubscribing will _not_ cancel any active instances of the listener. However, you may also pass in `{cancelActive: true}` to cancel running instances.
 
-If you try to add a listener entry but another entry with this exact function reference already exists, no new entry will be added, and the existing `unsubscribe` method will be returned. Two entries count as the same when they have the same `effect` function reference and either the same `type` (for `type` and `actionCreator` listeners) or the same `matcher`/`predicate` function reference. An `effect` written inline, such as an arrow function created inside a component or a function that is called repeatedly, is a new reference each time, so each call adds a separate entry. The same rules apply to `addListener` actions, and `stopListening` / `removeListener` use them to find the entry to remove.
+If you try to add a listener entry but another entry with this exact function reference already exists, no new entry will be added. Instead, you get back a new `unsubscribe` function that removes the existing entry. An entry matches when it has the same `effect` function reference and:
+
+- for a `type` or `actionCreator` lookup, the existing entry was added with the same action type (via `type` or `actionCreator`)
+- for a `matcher` or `predicate` lookup, the existing entry has the same function reference as its matcher or predicate. An `actionCreator` entry stores `actionCreator.match`, so a later lookup with `matcher: actionCreator.match` finds it, but the reverse does not: an entry added with `matcher: actionCreator.match` is not found by an `actionCreator` lookup.
+
+An `effect` written inline, such as an arrow function created inside a component or a function that is called repeatedly, is a new reference each time, so each call adds a separate entry. The same rules apply to `addListener` actions, and `stopListening` / `removeListener` use them to find the entry to remove. Use the same option (`type`, `actionCreator`, `matcher`, or `predicate`) to add and remove a listener.
 
 The `effect` callback will receive the current action as its first argument, as well as a "listener API" object similar to the "thunk API" object in `createAsyncThunk`.
 
@@ -518,7 +523,7 @@ An example of this might be a listener that forks a child task containing an inf
 
 A child task is cancelled when it is cancelled directly, when its listener is cancelled, or when its listener finishes. Passing `{ autoJoin: true }` makes the listener wait for that child task to settle before it finishes.
 
-`ForkedTask.result` follows the same rule. If the listener finishes before the child task settles, the task is cancelled and `result` rejects with a `TaskAbortError` whose code is `'listener-completed'`. This happens even if the task would have succeeded. To get the task's outcome, `await task.result` inside the listener before it returns. `{ autoJoin: true }` is not enough on its own: it keeps the listener running until the task settles, but `result` still rejects with `'listener-completed'` if the listener did not await it.
+`ForkedTask.result` follows the same rule. If the task's parent stops while the task is still running, the task is cancelled and `result` rejects with a `TaskAbortError`, even if the task would have succeeded. The error code says why the parent stopped: `'listener-completed'` when the listener returned, `'listener-cancelled'` when the listener was cancelled, and for nested tasks started with `forkApi.fork()`, `'task-completed'` or `'task-cancelled'` when the task that forked it finished or was cancelled. To get the task's outcome, either `await task.result` inside the parent before it returns, or pass `{ autoJoin: true }` so the parent waits for the task to settle.
 
 If an autoJoined task fails, its error is passed to the middleware's `onError` handler with `raisedBy: 'fork'`. This also applies to nested autoJoined tasks. This notification does not change the task's result or make its parent fail. Cancellation is not reported to `onError`. Without `autoJoin: true`, errors are only available through the task's `result`.
 
