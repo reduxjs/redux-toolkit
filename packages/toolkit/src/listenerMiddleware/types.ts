@@ -147,7 +147,7 @@ export type TaskResult<Value> =
 export interface ForkedTask<T> {
   /**
    * A promise that resolves when the task is either completed or cancelled or rejects
-   * if parent listener execution is cancelled or completed.
+   * if parent listener execution is cancelled or completed while the task is still running.
    *
    * ### Example
    * ```ts
