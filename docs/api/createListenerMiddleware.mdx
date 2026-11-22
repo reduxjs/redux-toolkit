@@ -485,7 +485,7 @@ Both these methods are cancellation-aware, and will throw a `TaskAbortError` if 
 
 By default, both `take` and `condition` only resolve **after the next action** has been dispatched, even if their predicate would return true for the current state. Pass `{ checkCurrent: true }` to first check the state at the time of the call:
 
-```ts
+```ts no-transpile
 await listenerApi.condition((action, current) => current.auth.ready, {
   checkCurrent: true,
   timeout: 5000,
