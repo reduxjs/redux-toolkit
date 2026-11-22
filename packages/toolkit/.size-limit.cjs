@@ -1,18 +1,14 @@
 const webpack = require('webpack')
 let { join } = require('path')
 
-const esmSuffixes = ['modern.mjs', 'browser.mjs' /*, 'legacy-esm.js'*/]
-const cjsSuffixes = [
-  /*'development.cjs',*/
-  /*'production.min.cjs'*/
-]
+const esmSuffixes = ['modern.mjs']
 
-function withRtkPath(suffix, cjs = false) {
+function withRtkPath(suffix) {
   /**
    * @param {string} name
    */
   function alias(name) {
-    return `${cjs ? 'cjs/' : ''}${name}.${suffix}`
+    return `${name}.${suffix}`
   }
   /**
    * @param {webpack.Configuration} config
@@ -78,9 +74,6 @@ function withRtkPath(suffix, cjs = false) {
       ),
     )
 
-    if (suffix === 'production.min.cjs') {
-      ;(config.resolve ??= {}).mainFields = ['main', 'module']
-    }
     ;(config.optimization ??= {}).nodeEnv = 'production'
     return config
   }
@@ -141,15 +134,6 @@ const webpackChecks = entryPoints
       name: e.name + ` (${suffix})`,
       modifyWebpackConfig: withRtkPath(suffix),
     })),
-  )
-  .concat(
-    entryPoints.flatMap((e) =>
-      cjsSuffixes.map((suffix) => ({
-        ...e,
-        name: e.name + ` (cjs, ${suffix})`,
-        modifyWebpackConfig: withRtkPath(suffix, true),
-      })),
-    ),
   )
   .concat(
     [

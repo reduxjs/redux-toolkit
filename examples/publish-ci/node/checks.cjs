@@ -2,21 +2,12 @@ const assert = require('node:assert/strict')
 const path = require('node:path')
 
 // The four entry points RTK publishes, and the file each one is expected to
-// resolve to under a given resolution flavor.
+// resolve to.
 const expectedPaths = {
-  esm: {
-    '@reduxjs/toolkit': 'dist/redux-toolkit.modern.mjs',
-    '@reduxjs/toolkit/react': 'dist/react/redux-toolkit-react.modern.mjs',
-    '@reduxjs/toolkit/query': 'dist/query/rtk-query.modern.mjs',
-    '@reduxjs/toolkit/query/react':
-      'dist/query/react/rtk-query-react.modern.mjs',
-  },
-  cjs: {
-    '@reduxjs/toolkit': 'dist/cjs/index.js',
-    '@reduxjs/toolkit/react': 'dist/react/cjs/index.js',
-    '@reduxjs/toolkit/query': 'dist/query/cjs/index.js',
-    '@reduxjs/toolkit/query/react': 'dist/query/react/cjs/index.js',
-  },
+  '@reduxjs/toolkit': 'dist/redux-toolkit.modern.mjs',
+  '@reduxjs/toolkit/react': 'dist/react/redux-toolkit-react.modern.mjs',
+  '@reduxjs/toolkit/query': 'dist/query/rtk-query.modern.mjs',
+  '@reduxjs/toolkit/query/react': 'dist/query/react/rtk-query-react.modern.mjs',
 }
 
 function toPosix(filePath) {
@@ -25,9 +16,8 @@ function toPosix(filePath) {
 
 // `resolve` is `require.resolve` (returns a path) or a wrapper around
 // `import.meta.resolve` (returns a file:// URL). `endsWith` works on both.
-function checkResolvedPaths(flavor, resolve) {
-  const expected = expectedPaths[flavor]
-  for (const [moduleName, expectedFilename] of Object.entries(expected)) {
+function checkResolvedPaths(resolve) {
+  for (const [moduleName, expectedFilename] of Object.entries(expectedPaths)) {
     const resolved = toPosix(resolve(moduleName))
     console.log(`  ${moduleName} -> ${resolved}`)
     assert.ok(

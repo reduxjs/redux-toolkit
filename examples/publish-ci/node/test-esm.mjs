@@ -10,7 +10,7 @@ import checks from './checks.cjs'
 
 console.log('Testing `import` from an ES module...')
 
-checks.checkResolvedPaths('esm', (moduleName) =>
+checks.checkResolvedPaths((moduleName) =>
   import.meta.resolve(moduleName),
 )
 checks.checkBehavior({ rtk, rtkReact, rtkQuery, rtkQueryReact })

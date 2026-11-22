@@ -469,7 +469,10 @@ jobs:
       # `pnpm <binary>` has no `node_modules/.bin` fallback the way `yarn <binary>`
       # does, so local binaries need `pnpm exec`.
       - name: Run are-the-types-wrong
-        run: pnpm exec attw ./package.tgz --format table
+        run: pnpm exec attw ./package.tgz --profile esm-only --format table
+
+      - name: Run publint
+        run: pnpm exec publint ./package.tgz --strict
 
   test-type-portability:
     name: 'Test Type Portability: TS ${{ matrix.ts }} + Node ${{ matrix.node }}'
@@ -505,9 +508,11 @@ jobs:
           - node: '24.x'
             ts: 'next'
             example: { name: 'bundler', moduleResolution: 'Bundler' }
-          # nodenext-cjs × boundary TS versions only (5.6, 6.0, 7.0, next)
+          # nodenext-cjs × boundary TS versions only (5.8, 6.0, 7.0, next).
+          # TS 5.8 is the first version that types `require()` of an ES
+          # module, which a CommonJS project needs for an ESM-only package.
           - node: '24.x'
-            ts: '5.6'
+            ts: '5.8'
             example: { name: 'nodenext-cjs', moduleResolution: 'NodeNext' }
           - node: '24.x'
             ts: '6.0'
@@ -596,18 +601,3 @@ jobs:
       - name: Check emitted declarations do not reference Immer types
         working-directory: ./examples/type-portability/${{ matrix.example.name }}
         run: node ../check-no-immer-types.mjs dist
-
-      - name: Test type portability with `moduleResolution Node10`
-        if: startsWith(matrix.ts, '5.')
-        working-directory: ./examples/type-portability/${{ matrix.example.name }}
-        run: rm -rf dist && node_modules/.bin/tsc -p tsconfig.json --module CommonJS --moduleResolution Node10 --preserveSymLinks --verbatimModuleSyntax false
-
-      # `npm --workspace=<name> pkg set` needed the root `workspaces` field to
-      # resolve the name, and that field went away with Yarn. Run inside the
-      # package directory, `npm pkg set` needs no workspace resolution at all.
-      - name: Test type portability with `moduleResolution Node10` and `type module` in `package.json`
-        if: (matrix.example.name == 'nodenext-esm' || matrix.example.name == 'bundler') && startsWith(matrix.ts, '5.')
-        working-directory: ./examples/type-portability/${{ matrix.example.name }}
-        run: |
-          npm pkg set type=module
-          rm -rf dist && node_modules/.bin/tsc -p tsconfig.json --module ESNext --moduleResolution Node10 --preserveSymLinks --verbatimModuleSyntax false
