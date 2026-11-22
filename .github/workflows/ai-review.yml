@@ -40,6 +40,7 @@ env:
   DIFFLOUPE_COMMIT: c9fbc6763e620f7a52a3cd42ad81a3860df2dc6c
   MAX_DIFF_LINES: '30000'
   MAX_DIFF_FILES: '200'
+  TILTH_VERSION: '0.9.0'
 
 jobs:
   review:
@@ -127,7 +128,37 @@ jobs:
       # DiffLoupe needs OpenCode 2.x from @opencode/cli; `opencode-ai` is 1.x.
       - name: Install DiffLoupe
         if: steps.size.outputs.skip != 'true'
-        run: npm install -g @opencode/cli@2.0.32 tilth@0.9.0 "@acemarke/diffloupe@$DIFFLOUPE_VERSION"
+        run: npm install -g @opencode/cli@2.0.32 "@acemarke/diffloupe@$DIFFLOUPE_VERSION"
+
+      # tilth is built from crates.io: its npm package only downloads a binary
+      # from the project's GitHub releases, and that repository is gone.
+      - name: Restore tilth
+        id: tilth
+        if: steps.size.outputs.skip != 'true'
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/tilth/bin
+          key: tilth-${{ env.TILTH_VERSION }}-${{ runner.os }}-${{ runner.arch }}
+
+      - name: Build tilth
+        if: steps.size.outputs.skip != 'true' && steps.tilth.outputs.cache-hit != 'true'
+        timeout-minutes: 15
+        run: cargo install tilth --version "$TILTH_VERSION" --locked --root "$RUNNER_TEMP/tilth"
+
+      # Saved here, not at the end of the job: the binary is cached before the
+      # model runs, so nothing the review does can end up in the cache.
+      - name: Save tilth
+        if: steps.size.outputs.skip != 'true' && steps.tilth.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/tilth/bin
+          key: ${{ steps.tilth.outputs.cache-primary-key }}
+
+      - name: Add tilth to PATH
+        if: steps.size.outputs.skip != 'true'
+        run: |
+          echo "$RUNNER_TEMP/tilth/bin" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/tilth/bin/tilth" --version
 
       - name: Doctor
         if: steps.size.outputs.skip != 'true'
