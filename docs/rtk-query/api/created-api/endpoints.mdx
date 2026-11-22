@@ -101,7 +101,7 @@ When dispatching an action creator, you're responsible for storing a reference t
 :::
 
 The result of dispatching a query `initiate` thunk is a promise with extra fields, including `unwrap()`, `refetch()`, `unsubscribe()`, `updateSubscriptionOptions()`, and `isSubscribed()`.
-`isSubscribed()` returns whether this particular request still holds a subscription in the store. It returns `false` after `unsubscribe()` is called, after `resetApiState`, and for requests started with `subscribe: false`.
+`isSubscribed()` returns whether this particular request still holds a subscription in the store. It returns `false` after `unsubscribe()` is called, after `resetApiState` or `removeQueryData` removes its cache entry, and for requests started with `subscribe: false`.
 
 `retainFor` keeps a cache entry around after its last subscriber leaves, without changing the endpoint's `keepUnusedDataFor`. This is useful for prefetching or `subscribe: false` requests whose data will be read soon. The entry is removed after `Math.max(keepUnusedDataFor, retainFor)` seconds. Values under one second are raised to one second. When several requests pass `retainFor` for the same entry, the longest value is used until the entry is removed. Dispatching `initiate` with `retainFor` for an entry that is already cached restarts its removal timer.
 

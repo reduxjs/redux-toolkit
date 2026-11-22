@@ -334,6 +334,23 @@ export type UpsertQueryDataThunk<
   UnknownAction
 >
 
+export type RemoveQueryDataOptions = {
+  /**
+   * Only remove the cache entry if nothing is subscribed to it. Defaults to
+   * `false`.
+   */
+  onlyIfUnused?: boolean
+}
+
+export type RemoveQueryDataThunk<
+  Definitions extends EndpointDefinitions,
+  PartialState,
+> = <EndpointName extends AllQueryKeys<Definitions>>(
+  endpointName: EndpointName,
+  arg: QueryArgFromAnyQueryDefinition<Definitions, EndpointName>,
+  options?: RemoveQueryDataOptions,
+) => ThunkAction<boolean, PartialState, any, UnknownAction>
+
 /**
  * An object returned from dispatching a `api.util.updateQueryData` call.
  */
@@ -545,6 +562,30 @@ export function buildThunks<
       ) as UpsertThunkResult<Definitions, EndpointName>
 
       return res
+    }
+
+  const removeQueryData: RemoveQueryDataThunk<EndpointDefinitions, State> =
+    (endpointName, arg, { onlyIfUnused = false } = {}) =>
+    (dispatch, getState) => {
+      const queryCacheKey = serializeQueryArgs({
+        queryArgs: arg,
+        endpointDefinition: endpointDefinitions[endpointName],
+        endpointName,
+      })
+      if (!selectors.selectQueryEntry(getState(), queryCacheKey)) {
+        return false
+      }
+      if (
+        onlyIfUnused &&
+        getRuntimeForState(getState)?.queries.get(queryCacheKey)?.subscribers
+          ?.size
+      ) {
+        return false
+      }
+      // Goes through the shared removal path, which also aborts a running
+      // request and clears the removal timer
+      dispatch(api.internalActions.removeQueryResult({ queryCacheKey }))
+      return true
     }
 
   const getTransformCallbackForEndpoint = (
@@ -1191,6 +1232,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
     updateQueryData,
     upsertQueryData,
     patchQueryData,
+    removeQueryData,
     buildMatchThunkActions,
   }
 }

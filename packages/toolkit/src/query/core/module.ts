@@ -67,6 +67,7 @@ import type {
   BuildThunksApiEndpointQuery,
   PatchQueryDataThunk,
   QueryArgFromAnyQueryDefinition,
+  RemoveQueryDataThunk,
   UpdateQueryDataThunk,
   UpsertQueryDataThunk,
 } from './buildThunks'
@@ -393,6 +394,33 @@ export type ApiUtil<
   >
 
   /**
+   * A Redux thunk that removes one query cache entry. Prefer `invalidateTags`
+   * to refetch data, `resetApiState` to clear the whole cache, or a hook's
+   * `currentData` to hide data for an old argument.
+   *
+   * The thunk accepts the endpoint name, the query arg used to build the cache
+   * key, and an optional `{ onlyIfUnused }` options object. It returns `true`
+   * if an entry was removed.
+   *
+   * Removing an entry also aborts its running request and clears its removal
+   * timer. Hooks still subscribed to the entry go back to a loading state and
+   * refetch it. Promises from `initiate()` for a running request resolve with
+   * an `AbortError`, and their subscriptions are dropped. Pass
+   * `onlyIfUnused: true` to leave entries that still have subscribers alone.
+   *
+   * @example
+   *
+   * ```ts
+   * dispatch(api.util.removeQueryData('getPost', 1))
+   * dispatch(api.util.removeQueryData('getPost', 1, { onlyIfUnused: true }))
+   * ```
+   */
+  removeQueryData: RemoveQueryDataThunk<
+    Definitions,
+    ApiRootState<Definitions, string, ReducerPath>
+  >
+
+  /**
    * A Redux action creator that can be dispatched to manually reset the api state completely. This will immediately remove all existing cache entries, and all queries will be considered 'uninitialized'.
    *
    * @example
@@ -669,6 +697,7 @@ export const coreModule = ({
       patchQueryData,
       updateQueryData,
       upsertQueryData,
+      removeQueryData,
       prefetch,
       buildMatchThunkActions,
     } = buildThunks({
@@ -707,6 +736,7 @@ export const coreModule = ({
       patchQueryData,
       updateQueryData,
       upsertQueryData,
+      removeQueryData,
       prefetch,
       resetApiState: sliceActions.resetApiState,
       upsertQueryEntries: sliceActions.cacheEntriesUpserted as any,

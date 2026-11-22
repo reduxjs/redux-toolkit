@@ -44,6 +44,8 @@ export type { SliceActions } from './buildSlice'
 export type {
   Patch,
   PatchQueryDataThunk,
+  RemoveQueryDataOptions,
+  RemoveQueryDataThunk,
   UpdateQueryDataThunk,
   UpsertQueryDataThunk,
 } from './buildThunks'
