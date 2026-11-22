@@ -5,7 +5,7 @@ import type { MaybePromise, UnwrapPromise } from './tsHelpers'
  * Why a query request started.
  *
  * - `'initial'`: the cache entry had no data yet (first subscription, a new arg, `initiate()`, `prefetch`, a lazy trigger, or a retry after an error that left no data)
- * - `'refetch'`: the cache entry already had data and the request was started by `refetch()`, `forceRefetch`, `refetchOnMountOrArgChange`, `prefetch` with `force` or `ifOlderThan`, or a lazy trigger
+ * - `'refetch'`: the cache entry already had data and the request was started by `refetch()`, `forceRefetch`, `maxAge`, `refetchOnMountOrArgChange`, `prefetch` with `force`, `maxAge` or `ifOlderThan`, or a lazy trigger
  * - `'invalidation'`: one of the entry's tags was invalidated
  * - `'poll'`: the polling interval elapsed
  * - `'focus'`: `refetchOnFocus`

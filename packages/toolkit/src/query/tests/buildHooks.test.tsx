@@ -2240,7 +2240,7 @@ describe('hooks tests', () => {
 
       let cached: typeof refetched
       await act(async () => {
-        cached = await result.current[0](1, true)
+        cached = await result.current[0](1, { preferCacheValue: true })
       })
       expect(countFetches()).toBe(2)
       // No request runs, so the result is the cache entry, carrying the

@@ -1005,8 +1005,13 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
       selectors.selectConfig(state).refetchOnMountOrArgChange
 
     const fulfilledVal = requestState?.fulfilledTimeStamp
+    if (arg.forceRefetch === true || arg.maxAge === 0) {
+      return true
+    }
     const refetchVal =
-      arg.forceRefetch ?? (arg.subscribe && baseFetchOnMountOrArgChange)
+      arg.maxAge ??
+      arg.forceRefetch ??
+      (arg.subscribe && baseFetchOnMountOrArgChange)
 
     if (refetchVal === 0 || refetchVal) {
       return (
@@ -1155,12 +1160,6 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
     },
   })
 
-  const hasTheForce = (options: any): options is { force: boolean } =>
-    'force' in options
-  const hasMaxAge = (
-    options: any,
-  ): options is { ifOlderThan: false | number } => 'ifOlderThan' in options
-
   const prefetch =
     <EndpointName extends QueryKeys<Definitions>>(
       endpointName: EndpointName,
@@ -1168,8 +1167,8 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
       options: PrefetchOptions = {},
     ): ThunkAction<void, any, any, UnknownAction> =>
     (dispatch: ThunkDispatch<any, any, any>, getState: () => any) => {
-      const force = hasTheForce(options) && options.force
-      const maxAge = hasMaxAge(options) && options.ifOlderThan
+      const force = options.force
+      const maxAge = options.maxAge ?? (options.ifOlderThan || undefined)
 
       const queryAction = (force: boolean = true) => {
         const options: StartQueryActionCreatorOptions = {
@@ -1186,7 +1185,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
 
       if (force) {
         dispatch(queryAction())
-      } else if (maxAge) {
+      } else if (maxAge !== undefined) {
         const lastFulfilledTs = latestStateValue?.fulfilledTimeStamp
         if (!lastFulfilledTs) {
           dispatch(queryAction())

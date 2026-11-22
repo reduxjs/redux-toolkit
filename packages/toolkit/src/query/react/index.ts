@@ -26,6 +26,7 @@ export type {
   TypedUseQueryStateResult,
   TypedUseQuerySubscriptionResult,
   TypedLazyQueryTrigger,
+  LazyQueryTriggerOptions,
   TypedUseLazyQuery,
   TypedUseMutation,
   TypedMutationTrigger,
