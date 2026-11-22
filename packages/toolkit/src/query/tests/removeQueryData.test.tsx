@@ -1,5 +1,5 @@
 import { configureStore, isAction } from '@reduxjs/toolkit'
-import type { UnknownAction } from '@reduxjs/toolkit'
+import type { Middleware, UnknownAction } from '@reduxjs/toolkit'
 import { createApi, QueryStatus } from '@reduxjs/toolkit/query/react'
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { withProvider } from '../../tests/utils/helpers'
@@ -52,15 +52,13 @@ const setup = ({ keepUnusedDataFor = 60 } = {}) => {
   })
 
   const actions: UnknownAction[] = []
+  const recordActions: Middleware = () => (next) => (action) => {
+    if (isAction(action)) actions.push(action)
+    return next(action)
+  }
   const store = configureStore({
     reducer: { [api.reducerPath]: api.reducer },
-    middleware: (gdm) =>
-      gdm()
-        .concat(api.middleware)
-        .concat(() => (next) => (action) => {
-          if (isAction(action)) actions.push(action)
-          return next(action)
-        }),
+    middleware: (gdm) => gdm().concat(api.middleware, recordActions),
   })
 
   return {
