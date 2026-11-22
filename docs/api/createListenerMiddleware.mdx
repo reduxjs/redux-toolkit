@@ -257,7 +257,7 @@ The ["matcher" utility functions included in RTK](./matching-utilities.mdx) are 
 
 The return value is an `unsubscribe()` callback that will remove this listener. By default, unsubscribing will _not_ cancel any active instances of the listener. However, you may also pass in `{cancelActive: true}` to cancel running instances.
 
-If you try to add a listener entry but another entry with this exact function reference already exists, no new entry will be added, and the existing `unsubscribe` method will be returned.
+If you try to add a listener entry but another entry with this exact function reference already exists, no new entry will be added, and the existing `unsubscribe` method will be returned. Two entries count as the same when they have the same `effect` function reference and either the same `type` (for `type` and `actionCreator` listeners) or the same `matcher`/`predicate` function reference. An `effect` written inline, such as an arrow function created inside a component or a function that is called repeatedly, is a new reference each time, so each call adds a separate entry. The same rules apply to `addListener` actions, and `stopListening` / `removeListener` use them to find the entry to remove.
 
 The `effect` callback will receive the current action as its first argument, as well as a "listener API" object similar to the "thunk API" object in `createAsyncThunk`.
 
@@ -466,7 +466,16 @@ Dynamically unsubscribing and re-subscribing this listener allows for more compl
 - `delay: (timeoutMs: number) => Promise<void>`: returns a cancellation-aware promise that resolves after the timeout, or rejects if cancelled before the expiration
 - `pause: (promise: Promise<T>) => Promise<T>`: accepts any promise, and returns a cancellation-aware promise that either resolves with the argument promise or rejects if cancelled before the resolution
 
-These methods provide the ability to write conditional logic based on future dispatched actions and state changes. Both also accept an optional `timeout` in milliseconds.
+These methods provide the ability to write conditional logic based on future dispatched actions and state changes. The second argument is either a `timeout` in milliseconds or an options object:
+
+```ts no-transpile
+interface ListenerWaitOptions {
+  // Milliseconds to wait before giving up
+  timeout?: number
+  // Check the current state first, and resolve immediately if it matches
+  checkCurrent?: boolean // default: false
+}
+```
 
 `take` resolves to a `[action, currentState, previousState]` tuple or `null` if it timed out, whereas `condition` resolves to `true` if it succeeded or `false` if timed out.
 
@@ -483,7 +492,21 @@ await listenerApi.condition((action, current) => current.auth.ready, {
 })
 ```
 
-The initial check receives the action that triggered this listener and the current state as **both** state arguments. If it matches, `condition` resolves to `true`, and `take` resolves to `[triggeringAction, currentState, currentState]`. Otherwise, they wait for future actions as usual. A predicate that checks the action type can therefore match the triggering action itself. `checkCurrent` defaults to `false`; the numeric timeout argument remains supported.
+The initial check receives the action that triggered this listener and the current state as **both** state arguments. If it matches, `condition` resolves to `true`, and `take` resolves to `[triggeringAction, currentState, currentState]`. Otherwise, they wait for future actions as usual. `checkCurrent` defaults to `false`; the numeric timeout argument remains supported.
+
+:::caution
+
+With `checkCurrent: true`, a predicate that checks the action type can match the action that triggered the listener. For example, a listener for `todoAdded` that calls `take(todoAdded.match, { checkCurrent: true })` resolves immediately with that same `todoAdded` action instead of waiting for the next one.
+
+:::
+
+Without `checkCurrent`, you can get the same result by checking `listenerApi.getState()` yourself before calling `condition()`:
+
+```ts no-transpile
+if (!listenerApi.getState().auth.ready) {
+  await listenerApi.condition((action, currentState) => currentState.auth.ready)
+}
+```
 
 ### Child Tasks
 
@@ -494,6 +517,8 @@ Child tasks can be launched, and waited on to collect their return values. The p
 An example of this might be a listener that forks a child task containing an infinite loop that listens for events from a server. The parent then uses `listenerApi.condition()` to wait for a "stop" action, and cancels the child task.
 
 A child task is cancelled when it is cancelled directly, when its listener is cancelled, or when its listener finishes. Passing `{ autoJoin: true }` makes the listener wait for that child task to settle before it finishes.
+
+`ForkedTask.result` follows the same rule. If the listener finishes before the child task settles, the task is cancelled and `result` rejects with a `TaskAbortError` whose code is `'listener-completed'`. This happens even if the task would have succeeded. To get the task's outcome, `await task.result` inside the listener, or fork it with `{ autoJoin: true }`.
 
 If an autoJoined task fails, its error is passed to the middleware's `onError` handler with `raisedBy: 'fork'`. This also applies to nested autoJoined tasks. This notification does not change the task's result or make its parent fail. Cancellation is not reported to `onError`. Without `autoJoin: true`, errors are only available through the task's `result`.
 

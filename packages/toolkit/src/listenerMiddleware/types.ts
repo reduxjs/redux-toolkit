@@ -34,11 +34,26 @@ export type ListenerPredicate<ActionType extends Action, State> = (
   originalState: State,
 ) => action is ActionType
 
-/** @public */
+/**
+ * Options for `listenerApi.take` and `listenerApi.condition`.
+ *
+ * @public
+ */
 export interface ListenerWaitOptions {
-  /** Maximum time to wait, in milliseconds. */
+  /**
+   * Maximum time to wait, in milliseconds. When it expires, `take` resolves
+   * to `null` and `condition` resolves to `false`.
+   */
   timeout?: number | undefined
-  /** Check the triggering action and current state before waiting for another action. Defaults to false. */
+  /**
+   * Run the predicate once right away, with the action that triggered this
+   * listener and the current state passed as both state arguments.
+   * If it matches, the call resolves immediately instead of waiting for another action.
+   *
+   * A predicate that only checks the action type can match the triggering action itself.
+   *
+   * @default false
+   */
   checkCurrent?: boolean | undefined
 }
 
@@ -149,6 +164,10 @@ export interface ForkedTask<T> {
    * A promise that resolves when the task is either completed or cancelled or rejects
    * if parent listener execution is cancelled or completed.
    *
+   * If the parent listener finishes before the task settles, the task is cancelled
+   * and `result` rejects with a `TaskAbortError` whose code is `'listener-completed'`.
+   * To get the task's value, await `result` inside the listener, or fork with `autoJoin: true`.
+   *
    * ### Example
    * ```ts
    * const result = await fork(async (forkApi) => Promise.resolve(4)).result;
@@ -171,6 +190,9 @@ export interface ForkOptions {
   /**
    * If true, causes the parent task to not be marked as complete until
    * all autoJoined forks have completed or failed.
+   *
+   * Errors thrown by an autoJoined fork (other than cancellation) are also
+   * passed to `onError` with `raisedBy: 'fork'`.
    */
   autoJoin: boolean
 }
