@@ -1,4 +1,5 @@
 import type {
+  AllQueryKeys,
   Api,
   BaseQueryFn,
   EndpointDefinitions,
@@ -6,6 +7,7 @@ import type {
   Module,
   MutationDefinition,
   PrefetchOptions,
+  QueryArgFromAnyQueryDefinition,
   QueryDefinition,
 } from '@reduxjs/toolkit/query'
 import {
@@ -21,10 +23,6 @@ import {
   isMutationDefinition,
   isQueryDefinition,
 } from '../endpointDefinitions'
-import type {
-  AllQueryKeys,
-  QueryArgFromAnyQueryDefinition,
-} from '../core/buildThunks'
 import { safeAssign } from '../tsHelpers'
 import { capitalize, countObjectKeys } from '../utils'
 import type {

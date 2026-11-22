@@ -37,11 +37,11 @@ import type {
   SubscriptionOptions,
   TSHelpersId,
   TSHelpersOverride,
+  AllQueryKeys,
 } from '@reduxjs/toolkit/query'
 import type { DependencyList } from 'react'
 import type { InfiniteQueryDirection } from '../core/apiState'
 import type { StartInfiniteQueryActionCreator } from '../core/buildInitiate'
-import type { AllQueryKeys } from '../core/buildThunks'
 import type { InfiniteData } from '../core/index'
 import { isInfiniteQueryDefinition } from '../endpointDefinitions'
 import type { UninitializedValue } from './constants'
