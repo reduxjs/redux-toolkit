@@ -41,6 +41,7 @@ import {
 } from '../endpointDefinitions'
 import { HandledError } from '../HandledError'
 import type { UnwrapPromise } from '../tsHelpers'
+import { noop } from '../utils/noop'
 import { skipToken } from '../utils/skipToken'
 import type {
   ApiRootState,
@@ -1182,10 +1183,7 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
             options,
           ),
         )
-        return result.then(
-          () => {},
-          () => {},
-        )
+        return result.then(noop, noop)
       }
       const latestStateValue = (
         api.endpoints[endpointName] as ApiEndpointQuery<any, any>

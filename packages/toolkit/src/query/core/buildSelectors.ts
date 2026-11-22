@@ -13,7 +13,7 @@ import type {
   TagTypesFrom,
 } from '../endpointDefinitions'
 import { expandTagDescription } from '../endpointDefinitions'
-import { filterMap, isNotNullish } from '../utils'
+import { filterMap, isNotNullish, noop } from '../utils'
 import type {
   InfiniteData,
   InfiniteQueryConfigOptions,
@@ -141,11 +141,11 @@ const initialSubState: QuerySubState<any> = {
 // abuse immer to freeze default states
 const defaultQuerySubState = /* @__PURE__ */ createNextState(
   initialSubState,
-  () => {},
+  noop,
 )
 const defaultMutationSubState = /* @__PURE__ */ createNextState(
   initialSubState as MutationSubState<any>,
-  () => {},
+  noop,
 )
 
 export type AllSelectors = ReturnType<typeof buildSelectors>
