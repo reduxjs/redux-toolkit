@@ -93,6 +93,18 @@ export interface StoreRuntime {
   invalidatedRequestIds: Set<string>
   pendingRequestIds: Set<string>
   pendingTagInvalidations: FullTagDescription<string>[]
+  /** The highest `seq` of any started query or mutation */
+  lastSeq: number
+  /**
+   * `seq` of each running query request, for `invalidationBehavior: 'immediately'`
+   */
+  runningQuerySeqs: Map<string, number>
+  /**
+   * Tag invalidations that ran while queries were running, for
+   * `invalidationBehavior: 'immediately'`. `seq` is the `lastSeq` at the
+   * time, so an entry applies to requests that started at or before it.
+   */
+  invalidationLog: { seq: number; tags: FullTagDescription<string>[] }[]
   subscriptionSync: {
     /** Keys whose subscribers changed since the last sync to the store */
     changedKeys: Set<string>
@@ -136,6 +148,9 @@ export function createStoreRuntime(): StoreRuntime {
     invalidatedRequestIds: new Set(),
     pendingRequestIds: new Set(),
     pendingTagInvalidations: [],
+    lastSeq: 0,
+    runningQuerySeqs: new Map(),
+    invalidationLog: [],
     subscriptionSync: { changedKeys: new Set(), syncedKeys: new Set() },
     pendingPollingUpdates: { keys: new Set() },
     reset: () => resetStoreRuntime(runtime),
@@ -155,6 +170,8 @@ function resetStoreRuntime(runtime: StoreRuntime) {
   runtime.pendingRequestIds.clear()
   runtime.pendingTagInvalidations = []
   runtime.invalidatedRequestIds.clear()
+  runtime.runningQuerySeqs.clear()
+  runtime.invalidationLog = []
 
   const removedRequests: RunningRequest[] = []
   for (const request of runtime.requests.values()) {

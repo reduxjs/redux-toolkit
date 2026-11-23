@@ -168,8 +168,10 @@ export interface CreateApiOptions<
   /**
    * Defaults to `'delayed'`. This setting allows you to control when tags are invalidated after a mutation.
    *
-   * - `'immediately'`: Queries are invalidated instantly after the mutation finished, even if they are running.
-   *   If the query provides tags that were invalidated while it ran, it won't be re-fetched.
+   * - `'immediately'`: Queries are invalidated as soon as the mutation finishes.
+   *   A query that is still running when its tags are invalidated is refetched once it settles,
+   *   including when the tags only become known from that request's result (such as a first fetch).
+   *   Concurrent mutations that invalidate the same tags each trigger their own refetch.
    * - `'delayed'`: Invalidation only happens after all queries and mutations are settled.
    *   This ensures that queries are always invalidated correctly and automatically "batches" invalidations of concurrent mutations.
    *   Note that if you constantly have some queries (or mutations) running, this can delay tag invalidations indefinitely.
