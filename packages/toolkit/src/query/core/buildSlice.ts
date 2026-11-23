@@ -402,7 +402,13 @@ export function buildSlice({
 
             // Not limited to `pending` entries: a default upsert sets the
             // status to `fulfilled` while keeping the in-flight `requestId`.
-            if (ignoreEarlierFetches && existing?.requestId) {
+            // An earlier entry of this same action may have set `requestId`
+            // to this action's ID, which must not be discarded.
+            if (
+              ignoreEarlierFetches &&
+              existing?.requestId &&
+              existing.requestId !== action.meta.requestId
+            ) {
               ;(existing as DiscardableSubstate).discardDataOfRequestId =
                 existing.requestId
             }

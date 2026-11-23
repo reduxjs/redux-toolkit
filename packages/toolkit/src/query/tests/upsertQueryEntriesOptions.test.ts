@@ -147,6 +147,22 @@ describe('upsertQueryEntries options', () => {
       expect(providedTitles()).toEqual(['upserted'])
     })
 
+    test('applies every entry of one action that share a cache key', () => {
+      const second: Post = { id: 1, title: 'second' }
+      storeRef.store.dispatch(
+        api.util.upsertQueryEntries(
+          [
+            { endpointName: 'getPost', arg: 1, value: upserted },
+            { endpointName: 'getPost', arg: 1, value: second },
+          ],
+          { ignoreEarlierFetches: true },
+        ),
+      )
+      expect(selectPost().data).toEqual(second)
+      expect(selectPost()).not.toHaveProperty('discardDataOfRequestId')
+      expect(providedTitles()).toEqual(['second'])
+    })
+
     test('discards an upsertQueryData call started before the write', async () => {
       const promise = storeRef.store.dispatch(
         api.util.upsertQueryData('getPost', 1, fetched),
