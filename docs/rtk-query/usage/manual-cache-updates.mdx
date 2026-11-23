@@ -150,7 +150,7 @@ try {
   await queryFulfilled
 } catch {
   patchResult.undo({ ifUnchanged: true })
-  dispatch(api.util.invalidateTags([{ type: 'Post', id }]))
+  dispatch(api.util.invalidateTags(['Post']))
 }
 ```
 
