@@ -192,6 +192,7 @@ function createGate() {
   return {
     wait: () => new Promise<void>((resolve) => waiting.push(resolve)),
     releaseOldest: () => waiting.shift()?.(),
+    releaseNewest: () => waiting.pop()?.(),
   }
 }
 
@@ -516,11 +517,11 @@ describe('immediate invalidation of running requests', () => {
     expect(counts.provider).toBe(1)
 
     gate.releaseOldest()
-    await delay(5)
-    expect(counts.provider).toBe(2)
+    await waitFor(() => expect(counts.provider).toBe(2))
     gate.releaseOldest()
-    await delay(5)
-    expect(store.getState().api.queries['provider(undefined)']?.data).toBe(2)
+    await waitFor(() =>
+      expect(store.getState().api.queries['provider(undefined)']?.data).toBe(2),
+    )
   })
 
   test('an invalidation of tags the running request does not provide is ignored', async () => {
@@ -541,8 +542,7 @@ describe('immediate invalidation of running requests', () => {
 
     store.dispatch(api.util.invalidateTags([{ type: 'Post', id: '1' }]))
     gate.releaseOldest()
-    await delay(5)
-    expect(counts.post).toBe(2)
+    await waitFor(() => expect(counts.post).toBe(2))
   })
 
   test('a running refetch whose result starts providing the tag refetches', async () => {
@@ -556,9 +556,7 @@ describe('immediate invalidation of running requests', () => {
     await delay(1)
     await store.dispatch(api.endpoints.update.initiate())
     gate.releaseOldest()
-    await delay(5)
-
-    expect(counts.laterProvider).toBe(3)
+    await waitFor(() => expect(counts.laterProvider).toBe(3))
     gate.releaseOldest()
   })
 
@@ -570,7 +568,11 @@ describe('immediate invalidation of running requests', () => {
 
     store.dispatch(api.endpoints.provider.initiate())
     await delay(1)
-    gate.releaseOldest()
+    // Settle `provider` first, so the invalidation is still in the log when
+    // it is checked against a request that started after it
+    gate.releaseNewest()
+    await delay(5)
+    expect(counts.provider).toBe(1)
     gate.releaseOldest()
     await delay(5)
 
@@ -592,9 +594,11 @@ describe('immediate invalidation of running requests', () => {
 
     gate.releaseOldest()
     expect((await promise).data).toBe(1)
-    await delay(5)
-
-    expect(store.getState().api.queries['provider(undefined)']).toBeUndefined()
+    await waitFor(() =>
+      expect(
+        store.getState().api.queries['provider(undefined)'],
+      ).toBeUndefined(),
+    )
     expect(counts.provider).toBe(1)
   })
 
@@ -605,8 +609,7 @@ describe('immediate invalidation of running requests', () => {
 
     await store.dispatch(api.endpoints.update.initiate())
     gate.releaseOldest()
-    await delay(5)
-    expect(counts.pages).toBe(2)
+    await waitFor(() => expect(counts.pages).toBe(2))
     gate.releaseOldest()
   })
 })
