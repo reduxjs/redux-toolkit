@@ -15,6 +15,7 @@ import type {
 import { runLifecycleCallback, warnIfNoCachedData } from './cacheLifecycle'
 import type { RequestLifecycle } from './runtime'
 import { getThunkExtra } from './runtime'
+import { noop } from '../../utils/noop'
 import type {
   ApiMiddlewareInternalHandler,
   InternalHandlerBuilder,
@@ -461,7 +462,7 @@ export const buildQueryLifecycleHandler: InternalHandlerBuilder = ({
           })
         // prevent uncaught promise rejections from happening.
         // if the original promise is used in any way, that will create a new promise that will throw again
-        queryFulfilled.catch(() => {})
+        queryFulfilled.catch(noop)
         lifecycleMap.set(requestId, lifecycle)
         const selector = (api.endpoints[endpointName] as any).select(
           isAnyQueryDefinition(endpointDefinition)

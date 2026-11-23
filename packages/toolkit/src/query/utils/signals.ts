@@ -1,3 +1,5 @@
+import { noop } from './noop'
+
 // AbortSignal.timeout() is currently baseline 2024
 export const timeoutSignal = (milliseconds: number) => {
   const abortController = new AbortController()
@@ -22,7 +24,7 @@ export const anySignal = (...signals: AbortSignal[]) => {
   // if any are already aborted, return an already aborted signal
   for (const signal of signals)
     if (signal.aborted)
-      return { signal: AbortSignal.abort(signal.reason), clear: () => {} }
+      return { signal: AbortSignal.abort(signal.reason), clear: noop }
 
   // otherwise, create a new signal that aborts when any of the given signals abort
   const abortController = new AbortController()

@@ -41,6 +41,7 @@ import {
 } from '../endpointDefinitions'
 import { HandledError } from '../HandledError'
 import type { UnwrapPromise } from '../tsHelpers'
+import { noop } from '../utils/noop'
 import { skipToken } from '../utils/skipToken'
 import type {
   ApiRootState,
@@ -1162,45 +1163,60 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
   ): options is { ifOlderThan: false | number } => 'ifOlderThan' in options
 
   const prefetch =
-    <EndpointName extends QueryKeys<Definitions>>(
+    <EndpointName extends AllQueryKeys<Definitions>>(
       endpointName: EndpointName,
       arg: any,
       options: PrefetchOptions = {},
-    ): ThunkAction<void, any, any, UnknownAction> =>
+    ): ThunkAction<Promise<void>, any, any, UnknownAction> =>
     (dispatch: ThunkDispatch<any, any, any>, getState: () => any) => {
       const force = hasTheForce(options) && options.force
       const maxAge = hasMaxAge(options) && options.ifOlderThan
 
-      const queryAction = (force: boolean = true) => {
+      const runQuery = (force: boolean = true): Promise<void> => {
         const options: StartQueryActionCreatorOptions = {
           forceRefetch: force,
           subscribe: false,
         }
-        return (
-          api.endpoints[endpointName] as ApiEndpointQuery<any, any>
-        ).initiate(arg, options)
+        const result = dispatch(
+          (api.endpoints[endpointName] as ApiEndpointQuery<any, any>).initiate(
+            arg,
+            options,
+          ),
+        )
+        return result.then(noop, noop)
       }
       const latestStateValue = (
         api.endpoints[endpointName] as ApiEndpointQuery<any, any>
       ).select(arg)(getState())
 
       if (force) {
-        dispatch(queryAction())
+        return runQuery()
       } else if (maxAge) {
         const lastFulfilledTs = latestStateValue?.fulfilledTimeStamp
         if (!lastFulfilledTs) {
-          dispatch(queryAction())
-          return
+          return runQuery()
         }
         const shouldRetrigger =
           (Number(new Date()) - Number(new Date(lastFulfilledTs))) / 1000 >=
           maxAge
         if (shouldRetrigger) {
-          dispatch(queryAction())
+          return runQuery()
         }
+        const runtime = getRuntimeForState(getState)
+        const queryCacheKey = serializeQueryArgs({
+          queryArgs: arg,
+          endpointDefinition: endpointDefinitions[endpointName],
+          endpointName: endpointName as string,
+        })
+        // `outcome` exists as soon as the request is pending, before
+        // `initiate` attaches its promise, and also covers upserts
+        const running =
+          runtime &&
+          findRunningRequest(runtime, queryCacheKey, latestStateValue)
+        return running ? running.outcome.then(noop, noop) : Promise.resolve()
       } else {
         // If prefetching with no options, just let it try
-        dispatch(queryAction(false))
+        return runQuery(false)
       }
     }
 

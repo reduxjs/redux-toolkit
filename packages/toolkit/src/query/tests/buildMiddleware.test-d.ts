@@ -81,6 +81,33 @@ describe('type tests', () => {
     api.util.prefetch('getPomegranates', undefined, { force: true })
   })
 
+  it('should return a thunk that resolves to a void promise', () => {
+    expectTypeOf(
+      api.util.prefetch('getBanana', 5, { force: true }),
+    ).returns.toEqualTypeOf<Promise<void>>()
+  })
+
+  it('should allow pre-fetching for an infinite query endpoint', () => {
+    const infiniteApi = createApi({
+      baseQuery,
+      endpoints: (build) => ({
+        getPages: build.infiniteQuery<string, number, number>({
+          query: ({ pageParam }) => `pages/${pageParam}`,
+          infiniteQueryOptions: {
+            initialPageParam: 0,
+            getNextPageParam: (_lastPage, _allPages, lastPageParam) =>
+              lastPageParam + 1,
+          },
+        }),
+      }),
+    })
+
+    infiniteApi.util.prefetch('getPages', 1, { force: true })
+
+    // @ts-expect-error arg should be number, not string
+    infiniteApi.util.prefetch('getPages', '1', { force: true })
+  })
+
   it('should allow assigning api.util to a plain record type', () => {
     expectTypeOf(api.util).not.toBeAny()
     expectTypeOf(api.util).toExtend<Record<string, unknown>>()

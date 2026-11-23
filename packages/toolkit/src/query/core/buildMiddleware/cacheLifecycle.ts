@@ -26,6 +26,7 @@ import type {
 } from './types'
 import type { CacheLifecycle, RemovalReason } from './runtime'
 import { getThunkExtra, setCacheLifecycle } from './runtime'
+import { noop } from '../../utils/noop'
 import { getEndpointDefinition } from '@internal/query/apiTypes'
 
 export type ReferenceCacheLifecycle = never
@@ -427,7 +428,7 @@ export const buildCacheLifecycleHandler: InternalHandlerBuilder = ({
     ])
     // prevent uncaught promise rejections from happening.
     // if the original promise is used in any way, that will create a new promise that will throw again
-    cacheDataLoaded.catch(() => {})
+    cacheDataLoaded.catch(noop)
     setLifecycle(
       queryCacheKey,
       !isAnyQueryDefinition(endpointDefinition),

@@ -31,6 +31,7 @@ export const buildWindowEventHandler: InternalHandlerBuilder = ({
   ) {
     const state = api.getState()[reducerPath]
     const queries = state.queries
+    const now = Date.now()
     context.batch(() => {
       for (const [queryCacheKey, record] of runtime.queries) {
         const querySubState = queries[queryCacheKey]
@@ -38,10 +39,17 @@ export const buildWindowEventHandler: InternalHandlerBuilder = ({
 
         if (!subscriptionSubState || !querySubState) continue
 
+        // `true` always refetches; a number refetches data at least that many seconds old
+        const allowsRefetch = (value: boolean | number | undefined) =>
+          typeof value === 'number'
+            ? querySubState.fulfilledTimeStamp === undefined ||
+              (now - querySubState.fulfilledTimeStamp) / 1000 >= value
+            : !!value
+
         const values = [...subscriptionSubState.values()]
         const shouldRefetch = values.length
-          ? values.some((sub) => sub[type] ?? state.config[type])
-          : state.config[type]
+          ? values.some((sub) => allowsRefetch(sub[type] ?? state.config[type]))
+          : allowsRefetch(state.config[type])
 
         if (shouldRefetch) {
           if (subscriptionSubState.size === 0) {

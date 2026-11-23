@@ -56,7 +56,7 @@ type SubscriptionOptions = {
    *
    * Note: requires `setupListeners` to have been called.
    */
-  refetchOnReconnect?: boolean;
+  refetchOnReconnect?: boolean | number;
   /**
    * Defaults to `false`. This setting allows you to control whether RTK Query will try to refetch all subscribed queries after the application window regains focus.
    *
@@ -64,7 +64,7 @@ type SubscriptionOptions = {
    *
    * Note: requires `setupListeners` to have been called.
    */
-  refetchOnFocus?: boolean;
+  refetchOnFocus?: boolean | number;
 };
 
 interface StartQueryActionCreatorOptions {

@@ -145,20 +145,26 @@ export interface CreateApiOptions<
   refetchOnMountOrArgChange?: boolean | number
   /**
    * Defaults to `false`. This setting allows you to control whether RTK Query will try to refetch all subscribed queries after the application window regains focus.
+   * - `false` - Will not refetch on focus.
+   * - `true` - Will refetch every subscribed query on focus.
+   * - `number` - **Value is in seconds**. Will only refetch a subscribed query if its data is at least that old, or if it has no data.
    *
    * If you specify this option alongside `skip: true`, this **will not be evaluated** until `skip` is false.
    *
    * Note: requires [`setupListeners`](./setupListeners) to have been called.
    */
-  refetchOnFocus?: boolean
+  refetchOnFocus?: boolean | number
   /**
    * Defaults to `false`. This setting allows you to control whether RTK Query will try to refetch all subscribed queries after regaining a network connection.
+   * - `false` - Will not refetch on reconnect.
+   * - `true` - Will refetch every subscribed query on reconnect.
+   * - `number` - **Value is in seconds**. Will only refetch a subscribed query if its data is at least that old, or if it has no data.
    *
    * If you specify this option alongside `skip: true`, this **will not be evaluated** until `skip` is false.
    *
    * Note: requires [`setupListeners`](./setupListeners) to have been called.
    */
-  refetchOnReconnect?: boolean
+  refetchOnReconnect?: boolean | number
   /**
    * Defaults to `'delayed'`. This setting allows you to control when tags are invalidated after a mutation.
    *

@@ -26,7 +26,7 @@ Prefetching is designed as a "fire and forget" operation that loads data into th
 - **No automatic refetching**: Prefetched data will not automatically refetch when tags are invalidated
 - **No subscription management**: You don't need to (and can't) manually unsubscribe from prefetched data
 - **Cache cleanup**: Prefetched data without active subscriptions may be removed during normal cache cleanup
-- **Returns void**: The prefetch trigger function doesn't return a promise or subscription handle
+- **Returns a plain promise**: The prefetch trigger function returns a `Promise<void>` that resolves once the request finishes. It has no subscription handle, no `unwrap()`, and it never rejects
 
 If you need data that automatically refetches on invalidation or stays in the cache as long as a component is mounted, use a query hook like `useQuery` or `useQuerySubscription` instead. Prefetch is ideal for warming the cache before a user action, while query hooks are for ongoing data needs.
 
@@ -51,10 +51,10 @@ export type PrefetchOptions =
       ifOlderThan?: false | number;
     };
 
-usePrefetch<EndpointName extends QueryKeys<Definitions>>(
+usePrefetch<EndpointName extends AllQueryKeys<Definitions>>(
     endpointName: EndpointName,
     options?: PrefetchOptions
-  ): (arg: QueryArgFrom<Definitions[EndpointName]>, options?: PrefetchOptions) => void;
+  ): (arg: QueryArgFrom<Definitions[EndpointName]>, options?: PrefetchOptions) => Promise<void>;
 ```
 
 ### Customizing the Hook Behavior
@@ -66,7 +66,7 @@ You can specify these prefetch options when declaring the hook or at the call si
 
 ### Trigger Function Behavior
 
-1. The trigger function _always_ returns `void`.
+1. The trigger function returns a `Promise<void>`. It resolves when the request finishes, or right away if no request is needed. If a request for the same cache entry is already running, the promise waits for that request. It never rejects; check the cache entry to see whether the request succeeded.
 2. If `force: true` is set during the declaration or at the call site, the query will be run no matter what. The one exception to that is if the same query is already in-flight.
 3. If no options are specified and the query exists in the cache, the query will not be performed.
 4. If no options are specified and the query _does not exist_ in the cache, the query will be performed.
@@ -125,10 +125,12 @@ If you're not using the `usePrefetch` hook, you can recreate the same behavior o
 When dispatching the `prefetch` thunk as shown below you will see the same exact behavior as [described here](#trigger-function-behavior).
 
 ```ts title="Non-hook prefetching example" no-transpile
-store.dispatch(
+await store.dispatch(
   api.util.prefetch(endpointName, arg, { force: false, ifOlderThan: 10 }),
 )
 ```
+
+Infinite query endpoints can be prefetched too. When the cache entry is empty, prefetching fetches the first page. When it has cached data, a prefetch that runs refetches it the same way the endpoint normally refetches.
 
 ### Prefetch vs `initiate()`
 

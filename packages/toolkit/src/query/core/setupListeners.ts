@@ -2,6 +2,7 @@ import type {
   ThunkDispatch,
   ActionCreatorWithoutPayload, // Workaround for API-Extractor
 } from '@reduxjs/toolkit'
+import { noop } from '../utils/noop'
 import { createAction } from './rtkImports'
 
 export const INTERNAL_PREFIX = '__rtkq/'
@@ -97,7 +98,7 @@ export function setupListeners(
 ) {
   function defaultHandler() {
     if (typeof window === 'undefined' || !window.addEventListener) {
-      return () => {}
+      return noop
     }
 
     if (registeredDispatches.size === 0) {

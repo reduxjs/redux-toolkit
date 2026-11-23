@@ -597,3 +597,157 @@ describe('prefetch', () => {
     promise.unsubscribe()
   })
 })
+
+describe('prefetch promise', () => {
+  const queryFn = vi.fn(async (arg: number) => {
+    await new Promise((resolve) => setTimeout(resolve, 10))
+    if (arg < 0) {
+      return { error: { status: 500, data: 'negative' } }
+    }
+    return { data: arg * 2 }
+  })
+
+  const pageQueryFn = vi.fn(async ({ pageParam }: { pageParam: number }) => {
+    await new Promise((resolve) => setTimeout(resolve, 10))
+    return { data: `page ${pageParam}` }
+  })
+
+  const api = createApi({
+    baseQuery: () => ({ data: undefined }),
+    endpoints: (build) => ({
+      double: build.query<number, number>({
+        queryFn: (arg) => queryFn(arg),
+      }),
+      pages: build.infiniteQuery<string, string, number>({
+        queryFn: (arg) => pageQueryFn(arg),
+        infiniteQueryOptions: {
+          initialPageParam: 0,
+          getNextPageParam: (_lastPage, _allPages, lastPageParam) =>
+            lastPageParam + 1,
+        },
+      }),
+    }),
+  })
+
+  const storeRef = setupApiStore(api, undefined, { withoutListeners: true })
+
+  beforeEach(() => {
+    queryFn.mockClear()
+    pageQueryFn.mockClear()
+  })
+
+  it('resolves after the request finishes', async () => {
+    const promise = storeRef.store.dispatch(
+      api.util.prefetch('double', 1, { force: true }),
+    )
+
+    expect(
+      api.endpoints.double.select(1)(storeRef.store.getState()),
+    ).toMatchObject({ status: 'pending' })
+
+    await expect(promise).resolves.toBeUndefined()
+
+    expect(
+      api.endpoints.double.select(1)(storeRef.store.getState()),
+    ).toMatchObject({ status: 'fulfilled', data: 2 })
+    expect(queryFn).toHaveBeenCalledOnce()
+  })
+
+  it('joins a request that is already running', async () => {
+    const running = storeRef.store.dispatch(api.endpoints.double.initiate(2))
+
+    await storeRef.store.dispatch(api.util.prefetch('double', 2, {}))
+
+    expect(
+      api.endpoints.double.select(2)(storeRef.store.getState()),
+    ).toMatchObject({ status: 'fulfilled', data: 4 })
+    expect(queryFn).toHaveBeenCalledOnce()
+
+    running.unsubscribe()
+  })
+
+  it('resolves without fetching when cached data is fresh enough', async () => {
+    const subscription = storeRef.store.dispatch(
+      api.endpoints.double.initiate(3),
+    )
+    await subscription
+    queryFn.mockClear()
+
+    await expect(
+      storeRef.store.dispatch(
+        api.util.prefetch('double', 3, { ifOlderThan: 60 }),
+      ),
+    ).resolves.toBeUndefined()
+    await expect(
+      storeRef.store.dispatch(api.util.prefetch('double', 3, {})),
+    ).resolves.toBeUndefined()
+
+    expect(queryFn).not.toHaveBeenCalled()
+
+    subscription.unsubscribe()
+  })
+
+  it('waits for a running refetch when cached data is fresh enough', async () => {
+    vi.useFakeTimers()
+    try {
+      const subscription = storeRef.store.dispatch(
+        api.endpoints.double.initiate(4),
+      )
+      await vi.advanceTimersByTimeAsync(10)
+      await subscription
+      queryFn.mockClear()
+
+      subscription.refetch()
+      expect(
+        api.endpoints.double.select(4)(storeRef.store.getState()),
+      ).toMatchObject({ status: 'pending' })
+
+      let settled = false
+      const prefetched = storeRef.store
+        .dispatch(api.util.prefetch('double', 4, { ifOlderThan: 60 }))
+        .then(() => {
+          settled = true
+        })
+
+      await vi.advanceTimersByTimeAsync(0)
+      expect(settled).toBe(false)
+
+      await vi.advanceTimersByTimeAsync(10)
+      await prefetched
+
+      expect(
+        api.endpoints.double.select(4)(storeRef.store.getState()),
+      ).toMatchObject({ status: 'fulfilled', data: 8 })
+      expect(queryFn).toHaveBeenCalledOnce()
+
+      subscription.unsubscribe()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('does not reject when the request fails', async () => {
+    await expect(
+      storeRef.store.dispatch(api.util.prefetch('double', -1, { force: true })),
+    ).resolves.toBeUndefined()
+
+    expect(
+      api.endpoints.double.select(-1)(storeRef.store.getState()),
+    ).toMatchObject({
+      status: 'rejected',
+      error: { status: 500, data: 'negative' },
+    })
+  })
+
+  it('fetches the first page of an infinite query endpoint', async () => {
+    await storeRef.store.dispatch(api.util.prefetch('pages', 'a', {}))
+
+    expect(pageQueryFn).toHaveBeenCalledOnce()
+    expect(
+      api.endpoints.pages.select('a')(storeRef.store.getState()),
+    ).toMatchObject({
+      status: 'fulfilled',
+      data: { pages: ['page 0'], pageParams: [0] },
+    })
+  })
+})

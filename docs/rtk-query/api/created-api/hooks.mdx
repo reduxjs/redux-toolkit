@@ -297,8 +297,8 @@ type UseQuery = (
 type UseQueryOptions = {
   pollingInterval?: number | ((cacheEntry: QueryCacheEntry) => number)
   skipPollingIfUnfocused?: boolean
-  refetchOnReconnect?: boolean
-  refetchOnFocus?: boolean
+  refetchOnReconnect?: boolean | number
+  refetchOnFocus?: boolean | number
   skip?: boolean
   refetchOnMountOrArgChange?: boolean | number
   selectFromResult?: (result: UseQueryStateDefaultResult) => any
@@ -471,8 +471,8 @@ type InfiniteData<Data, PageParam> = {
 type UseInfiniteQueryOptions = {
   pollingInterval?: number | ((cacheEntry: QueryCacheEntry) => number)
   skipPollingIfUnfocused?: boolean
-  refetchOnReconnect?: boolean
-  refetchOnFocus?: boolean
+  refetchOnReconnect?: boolean | number
+  refetchOnFocus?: boolean | number
   skip?: boolean
   refetchOnMountOrArgChange?: boolean | number
   selectFromResult?: (result: UseQueryStateDefaultResult) => any
@@ -572,8 +572,8 @@ type UseLazyQuery = (
 type UseLazyQueryOptions = {
   pollingInterval?: number | ((cacheEntry: QueryCacheEntry) => number)
   skipPollingIfUnfocused?: boolean
-  refetchOnReconnect?: boolean
-  refetchOnFocus?: boolean
+  refetchOnReconnect?: boolean | number
+  refetchOnFocus?: boolean | number
   selectFromResult?: (result: UseQueryStateDefaultResult) => any
 }
 
@@ -679,16 +679,19 @@ type UsePrefetchOptions =
       force?: boolean
     }
 
-type PrefetchCallback = (arg: any, options?: UsePrefetchOptions) => void
+type PrefetchCallback = (
+  arg: any,
+  options?: UsePrefetchOptions,
+) => Promise<void>
 ```
 
 - **Parameters**
 
-  - `endpointName`: The name of the endpoint to prefetch data for
+  - `endpointName`: The name of the endpoint to prefetch data for. Infinite query endpoints are supported. If the infinite query has no cached data, prefetching fetches its first page. If it has cached data, a prefetch that runs refetches it the same way the endpoint normally refetches.
   - `options`: A set of options that control whether the prefetch request should occur
 
 - **Returns**
-  - A `prefetch` callback that when called, will initiate fetching the data for the provided endpoint
+  - A `prefetch` callback that when called, will initiate fetching the data for the provided endpoint. The callback returns the promise from [`api.util.prefetch`](./api-slice-utils.mdx#prefetch), which resolves once the request finishes and never rejects.
 
 ## Implementation Hooks
 
@@ -780,8 +783,8 @@ type UseQuerySubscriptionOptions = {
   refetchOnMountOrArgChange?: boolean | number
   pollingInterval?: number | ((cacheEntry: QueryCacheEntry) => number)
   skipPollingIfUnfocused?: boolean
-  refetchOnReconnect?: boolean
-  refetchOnFocus?: boolean
+  refetchOnReconnect?: boolean | number
+  refetchOnFocus?: boolean | number
 }
 
 type UseQuerySubscriptionResult = {
@@ -829,8 +832,8 @@ type UseInfiniteQuerySubscriptionOptions = {
   refetchOnMountOrArgChange?: boolean | number
   pollingInterval?: number | ((cacheEntry: QueryCacheEntry) => number)
   skipPollingIfUnfocused?: boolean
-  refetchOnReconnect?: boolean
-  refetchOnFocus?: boolean
+  refetchOnReconnect?: boolean | number
+  refetchOnFocus?: boolean | number
   initialPageParam?: PageParam
   refetchCachedPages?: boolean
 }
@@ -877,8 +880,8 @@ type UseLazyQuerySubscription = (
 type UseLazyQuerySubscriptionOptions = {
   pollingInterval?: number | ((cacheEntry: QueryCacheEntry) => number)
   skipPollingIfUnfocused?: boolean
-  refetchOnReconnect?: boolean
-  refetchOnFocus?: boolean
+  refetchOnReconnect?: boolean | number
+  refetchOnFocus?: boolean | number
 }
 
 type UseLazyQuerySubscriptionTrigger = (

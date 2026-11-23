@@ -1,4 +1,4 @@
-import { joinUrls } from './utils'
+import { joinUrls, noop } from './utils'
 import { isPlainObject } from './core/rtkImports'
 import type { BaseQueryApi, BaseQueryFn } from './baseQueryTypes'
 import type { MaybePromise, Override } from './tsHelpers'
@@ -366,10 +366,7 @@ export function fetchBaseQuery({
           ),
           // see https://github.com/node-fetch/node-fetch/issues/665#issuecomment-538995182
           // we *have* to "use up" both streams at the same time or they will stop running in node-fetch scenarios
-          responseClone.text().then(
-            (r) => (responseText = r),
-            () => {},
-          ),
+          responseClone.text().then((r) => (responseText = r), noop),
         ])
         if (responseHandlerFailed) throw handleResponseError
       } catch (e) {

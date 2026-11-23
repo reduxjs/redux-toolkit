@@ -3,8 +3,8 @@ import { createApi } from '@reduxjs/toolkit/query'
 
 type RefetchDefaults = {
   refetchOnMountOrArgChange?: boolean | number
-  refetchOnFocus?: boolean
-  refetchOnReconnect?: boolean
+  refetchOnFocus?: boolean | number
+  refetchOnReconnect?: boolean | number
 }
 
 const cleanups: Array<() => void> = []
@@ -194,6 +194,129 @@ describe('refetch option composition', () => {
       store.dispatch(api.internalActions[event]())
       await vi.advanceTimersByTimeAsync(0)
       expect(baseQuery).toHaveBeenCalledTimes(2)
+    })
+
+    test('a createApi number of seconds only refetches data at least that old', async () => {
+      const { api, store, baseQuery } = makeApi({ [option]: 30 })
+      await store.dispatch(api.endpoints.getThing.initiate('a'))
+
+      vi.setSystemTime(Date.now() + 29_000)
+      store.dispatch(api.internalActions[event]())
+      await vi.advanceTimersByTimeAsync(0)
+      expect(baseQuery).toHaveBeenCalledOnce()
+
+      vi.setSystemTime(Date.now() + 1000)
+      store.dispatch(api.internalActions[event]())
+      await vi.advanceTimersByTimeAsync(0)
+      expect(baseQuery).toHaveBeenCalledTimes(2)
+
+      store.dispatch(api.internalActions[event]())
+      await vi.advanceTimersByTimeAsync(0)
+      expect(baseQuery).toHaveBeenCalledTimes(2)
+    })
+
+    test('a subscriber number of seconds overrides the createApi value', async () => {
+      const { api, store, baseQuery } = makeApi({ [option]: true })
+      await store.dispatch(
+        api.endpoints.getThing.initiate('a', {
+          subscriptionOptions: { [option]: 30 },
+        }),
+      )
+
+      vi.setSystemTime(Date.now() + 10_000)
+      store.dispatch(api.internalActions[event]())
+      await vi.advanceTimersByTimeAsync(0)
+      expect(baseQuery).toHaveBeenCalledOnce()
+
+      vi.setSystemTime(Date.now() + 20_000)
+      store.dispatch(api.internalActions[event]())
+      await vi.advanceTimersByTimeAsync(0)
+      expect(baseQuery).toHaveBeenCalledTimes(2)
+    })
+
+    test('zero seconds always refetches', async () => {
+      const { api, store, baseQuery } = makeApi({ [option]: 0 })
+      await store.dispatch(api.endpoints.getThing.initiate('a'))
+      store.dispatch(api.internalActions[event]())
+      await vi.advanceTimersByTimeAsync(0)
+      expect(baseQuery).toHaveBeenCalledTimes(2)
+    })
+
+    test.each([
+      { first: 60, second: 10, calls: 2 },
+      { first: 60, second: true, calls: 2 },
+      { first: 60, second: false, calls: 1 },
+      { first: 60, second: undefined, calls: 1 },
+      { first: 10, second: undefined, calls: 2 },
+    ])(
+      'combines subscribers $first/$second for data 20 seconds old',
+      async ({ first, second, calls }) => {
+        const { api, store, baseQuery } = makeApi()
+        await store.dispatch(
+          api.endpoints.getThing.initiate('a', {
+            subscriptionOptions: { [option]: first },
+          }),
+        )
+        await store.dispatch(
+          api.endpoints.getThing.initiate('a', {
+            subscriptionOptions: { [option]: second },
+          }),
+        )
+        vi.setSystemTime(Date.now() + 20_000)
+        store.dispatch(api.internalActions[event]())
+        await vi.advanceTimersByTimeAsync(0)
+        expect(baseQuery).toHaveBeenCalledTimes(calls)
+      },
+    )
+
+    test('a number of seconds refetches an entry that has no data', async () => {
+      let fail = true
+      const baseQuery = vi.fn(async (arg: string) =>
+        fail ? { error: 'failed' } : { data: arg },
+      )
+      const api = createApi({
+        baseQuery,
+        endpoints: (build) => ({
+          getThing: build.query<string, string>({ query: (arg) => arg }),
+        }),
+        [option]: 60,
+      })
+      const store = configureStore({
+        reducer: { [api.reducerPath]: api.reducer },
+        middleware: (getDefaultMiddleware) =>
+          getDefaultMiddleware().concat(api.middleware),
+      })
+      cleanups.push(() => store.dispatch(api.util.resetApiState()))
+      await store.dispatch(api.endpoints.getThing.initiate('a'))
+      expect(api.endpoints.getThing.select('a')(store.getState()).status).toBe(
+        'rejected',
+      )
+
+      fail = false
+      store.dispatch(api.internalActions[event]())
+      await vi.advanceTimersByTimeAsync(0)
+      expect(baseQuery).toHaveBeenCalledTimes(2)
+      expect(api.endpoints.getThing.select('a')(store.getState()).data).toBe(
+        'a',
+      )
+    })
+
+    test('a number of seconds keeps unused data younger than that', async () => {
+      const { api, store } = makeApi({ [option]: 30 })
+      const select = api.endpoints.getThing.select('a')
+      const sub = store.dispatch(api.endpoints.getThing.initiate('a'))
+      await sub
+      sub.unsubscribe()
+
+      vi.setSystemTime(Date.now() + 10_000)
+      store.dispatch(api.internalActions[event]())
+      await vi.advanceTimersByTimeAsync(0)
+      expect(select(store.getState()).data).toBe('a')
+
+      vi.setSystemTime(Date.now() + 20_000)
+      store.dispatch(api.internalActions[event]())
+      await vi.advanceTimersByTimeAsync(0)
+      expect(select(store.getState()).data).toBeUndefined()
     })
   })
 

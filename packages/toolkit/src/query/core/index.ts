@@ -42,8 +42,10 @@ export type {
 } from './buildSelectors'
 export type { SliceActions } from './buildSlice'
 export type {
+  AllQueryKeys,
   Patch,
   PatchQueryDataThunk,
+  QueryArgFromAnyQueryDefinition,
   RemoveQueryDataOptions,
   RemoveQueryDataThunk,
   UpdateQueryDataThunk,

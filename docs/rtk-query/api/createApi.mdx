@@ -76,8 +76,8 @@ export const { useGetPokemonByNameQuery } = pokemonApi
   serializeQueryArgs?: SerializeQueryArgs<InternalQueryArgs>;
   keepUnusedDataFor?: number; // value is in seconds
   refetchOnMountOrArgChange?: boolean | number; // value is in seconds
-  refetchOnFocus?: boolean;
-  refetchOnReconnect?: boolean;
+  refetchOnFocus?: boolean | number; // number value is in seconds
+  refetchOnReconnect?: boolean | number; // number value is in seconds
 ```
 
 ### `baseQuery`
