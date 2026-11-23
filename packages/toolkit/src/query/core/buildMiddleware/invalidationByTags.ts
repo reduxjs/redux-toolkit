@@ -20,14 +20,18 @@ import type {
   ApiMiddlewareInternalHandler,
 } from './types'
 
-// An invalidated tag without an id matches every id of its type
+// Matches the way `selectInvalidatedBy` looks tags up: an invalidated tag
+// without an id matches every id of its type, and ids are compared as object
+// keys, so `1` and `'1'` are the same id
 function tagMatches(
   provided: FullTagDescription<string>,
   invalidated: FullTagDescription<string>,
 ) {
   return (
     provided.type === invalidated.type &&
-    (invalidated.id === undefined || provided.id === invalidated.id)
+    (invalidated.id === undefined ||
+      (provided.id !== undefined &&
+        String(provided.id) === String(invalidated.id)))
   )
 }
 

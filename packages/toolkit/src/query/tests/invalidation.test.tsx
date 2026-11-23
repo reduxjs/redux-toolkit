@@ -446,7 +446,7 @@ describe('immediate invalidation of running requests', () => {
   // Every query only settles when its gate is released
   function setupImmediateApi() {
     const gate = createGate()
-    const counts = { provider: 0, laterProvider: 0, pages: 0 }
+    const counts = { provider: 0, laterProvider: 0, pages: 0, post: 0 }
     const api = createApi({
       invalidationBehavior: 'immediately',
       baseQuery: fakeBaseQuery(),
@@ -468,6 +468,14 @@ describe('immediate invalidation of running requests', () => {
             return { data: result }
           },
           providesTags: (result) => (result && result > 1 ? ['Post'] : []),
+        }),
+        post: build.query<number, void>({
+          queryFn: async () => {
+            const result = ++counts.post
+            await gate.wait()
+            return { data: result }
+          },
+          providesTags: [{ type: 'Post', id: 1 }],
         }),
         pages: build.infiniteQuery<number, void, number>({
           infiniteQueryOptions: {
@@ -526,6 +534,17 @@ describe('immediate invalidation of running requests', () => {
     expect(counts.provider).toBe(1)
   })
 
+  test('a string id matches a numeric id provided by a running request', async () => {
+    const { api, store, counts, gate } = setupImmediateApi()
+    store.dispatch(api.endpoints.post.initiate())
+    await delay(1)
+
+    store.dispatch(api.util.invalidateTags([{ type: 'Post', id: '1' }]))
+    gate.releaseOldest()
+    await delay(5)
+    expect(counts.post).toBe(2)
+  })
+
   test('a running refetch whose result starts providing the tag refetches', async () => {
     const { api, store, counts, gate } = setupImmediateApi()
     const subscription = store.dispatch(api.endpoints.laterProvider.initiate())
@@ -555,7 +574,12 @@ describe('immediate invalidation of running requests', () => {
     gate.releaseOldest()
     await delay(5)
 
-    expect(counts).toEqual({ provider: 1, laterProvider: 1, pages: 0 })
+    expect(counts).toEqual({
+      provider: 1,
+      laterProvider: 1,
+      pages: 0,
+      post: 0,
+    })
   })
 
   test('an unsubscribed first fetch invalidated while running is removed once it settles', async () => {
