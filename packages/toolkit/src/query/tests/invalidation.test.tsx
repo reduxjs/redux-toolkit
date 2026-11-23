@@ -192,6 +192,7 @@ function createGate() {
   return {
     wait: () => new Promise<void>((resolve) => waiting.push(resolve)),
     releaseOldest: () => waiting.shift()?.(),
+    releaseNewest: () => waiting.pop()?.(),
   }
 }
 
@@ -439,6 +440,177 @@ describe('delayed invalidation', () => {
     unrelatedGate.releaseOldest()
     await delay(5)
     expect(counts.provider).toBe(2)
+  })
+})
+
+describe('immediate invalidation of running requests', () => {
+  // Every query only settles when its gate is released
+  function setupImmediateApi() {
+    const gate = createGate()
+    const counts = { provider: 0, laterProvider: 0, pages: 0, post: 0 }
+    const api = createApi({
+      invalidationBehavior: 'immediately',
+      baseQuery: fakeBaseQuery(),
+      tagTypes: ['Post', 'Other'],
+      endpoints: (build) => ({
+        provider: build.query<number, void>({
+          queryFn: async () => {
+            const result = ++counts.provider
+            await gate.wait()
+            return { data: result }
+          },
+          providesTags: ['Post'],
+        }),
+        // Only provides the tag from its second result on
+        laterProvider: build.query<number, void>({
+          queryFn: async () => {
+            const result = ++counts.laterProvider
+            await gate.wait()
+            return { data: result }
+          },
+          providesTags: (result) => (result && result > 1 ? ['Post'] : []),
+        }),
+        post: build.query<number, void>({
+          queryFn: async () => {
+            const result = ++counts.post
+            await gate.wait()
+            return { data: result }
+          },
+          providesTags: [{ type: 'Post', id: 1 }],
+        }),
+        pages: build.infiniteQuery<number, void, number>({
+          infiniteQueryOptions: {
+            initialPageParam: 0,
+            getNextPageParam: (_lastPage, _allPages, lastPageParam) =>
+              lastPageParam + 1,
+          },
+          queryFn: async ({ pageParam }) => {
+            counts.pages++
+            await gate.wait()
+            return { data: pageParam }
+          },
+          providesTags: ['Post'],
+        }),
+        update: build.mutation<null, void>({
+          queryFn: () => ({ data: null }),
+          invalidatesTags: ['Post'],
+        }),
+        updateOther: build.mutation<null, void>({
+          queryFn: () => ({ data: null }),
+          invalidatesTags: ['Other'],
+        }),
+      }),
+    })
+    const { store } = setupApiStore(api, undefined, {
+      withoutTestLifecycles: true,
+    })
+    return { api, store, counts, gate }
+  }
+
+  test('a first fetch invalidated while running refetches once it settles', async () => {
+    const { api, store, counts, gate } = setupImmediateApi()
+    store.dispatch(api.endpoints.provider.initiate())
+    await delay(1)
+
+    await store.dispatch(api.endpoints.update.initiate())
+    await delay(5)
+    expect(counts.provider).toBe(1)
+
+    gate.releaseOldest()
+    await waitFor(() => expect(counts.provider).toBe(2))
+    gate.releaseOldest()
+    await waitFor(() =>
+      expect(store.getState().api.queries['provider(undefined)']?.data).toBe(2),
+    )
+  })
+
+  test('an invalidation of tags the running request does not provide is ignored', async () => {
+    const { api, store, counts, gate } = setupImmediateApi()
+    store.dispatch(api.endpoints.provider.initiate())
+    await delay(1)
+
+    await store.dispatch(api.endpoints.updateOther.initiate())
+    gate.releaseOldest()
+    await delay(5)
+    expect(counts.provider).toBe(1)
+  })
+
+  test('a string id matches a numeric id provided by a running request', async () => {
+    const { api, store, counts, gate } = setupImmediateApi()
+    store.dispatch(api.endpoints.post.initiate())
+    await delay(1)
+
+    store.dispatch(api.util.invalidateTags([{ type: 'Post', id: '1' }]))
+    gate.releaseOldest()
+    await waitFor(() => expect(counts.post).toBe(2))
+  })
+
+  test('a running refetch whose result starts providing the tag refetches', async () => {
+    const { api, store, counts, gate } = setupImmediateApi()
+    const subscription = store.dispatch(api.endpoints.laterProvider.initiate())
+    gate.releaseOldest()
+    await subscription
+    expect(api.util.selectInvalidatedBy(store.getState(), ['Post'])).toEqual([])
+
+    subscription.refetch()
+    await delay(1)
+    await store.dispatch(api.endpoints.update.initiate())
+    gate.releaseOldest()
+    await waitFor(() => expect(counts.laterProvider).toBe(3))
+    gate.releaseOldest()
+  })
+
+  test('a request started after the invalidation is not refetched', async () => {
+    const { api, store, counts, gate } = setupImmediateApi()
+    store.dispatch(api.endpoints.laterProvider.initiate())
+    await delay(1)
+    await store.dispatch(api.endpoints.update.initiate())
+
+    store.dispatch(api.endpoints.provider.initiate())
+    await delay(1)
+    // Settle `provider` first, so the invalidation is still in the log when
+    // it is checked against a request that started after it
+    gate.releaseNewest()
+    await delay(5)
+    expect(counts.provider).toBe(1)
+    gate.releaseOldest()
+    await delay(5)
+
+    expect(counts).toEqual({
+      provider: 1,
+      laterProvider: 1,
+      pages: 0,
+      post: 0,
+    })
+  })
+
+  test('an unsubscribed first fetch invalidated while running is removed once it settles', async () => {
+    const { api, store, counts, gate } = setupImmediateApi()
+    const promise = store.dispatch(
+      api.endpoints.provider.initiate(undefined, { subscribe: false }),
+    )
+    await delay(1)
+    await store.dispatch(api.endpoints.update.initiate())
+
+    gate.releaseOldest()
+    expect((await promise).data).toBe(1)
+    await waitFor(() =>
+      expect(
+        store.getState().api.queries['provider(undefined)'],
+      ).toBeUndefined(),
+    )
+    expect(counts.provider).toBe(1)
+  })
+
+  test('a first infinite query page invalidated while running refetches once it settles', async () => {
+    const { api, store, counts, gate } = setupImmediateApi()
+    store.dispatch(api.endpoints.pages.initiate())
+    await delay(1)
+
+    await store.dispatch(api.endpoints.update.initiate())
+    gate.releaseOldest()
+    await waitFor(() => expect(counts.pages).toBe(2))
+    gate.releaseOldest()
   })
 })
 
