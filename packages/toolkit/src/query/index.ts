@@ -92,6 +92,7 @@ export type {
   Patch,
   TypedMutationOnQueryStarted,
   TypedQueryOnQueryStarted,
+  UpsertEntriesOptions,
 } from './core/index'
 export type {
   ApiEndpointMutation,

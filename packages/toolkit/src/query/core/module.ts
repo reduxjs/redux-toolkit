@@ -403,6 +403,26 @@ export type ApiUtil<
    */
   resetApiState: SliceActions['resetApiState']
 
+  /**
+   * A Redux action creator that writes values into several query cache entries at once, creating entries that do not exist yet.
+   *
+   * The optional second argument controls how the write interacts with requests for the same entries. All options default to `false`, which keeps the existing behavior.
+   *
+   * - `ignoreEarlierFetches`: a fetch that was in flight when the write happened still settles the entry's status, but its data is ignored.
+   * - `keepRequestState`: entries that already have a request keep their `status`, `requestId`, `error` and timestamps; only `data` changes.
+   * - `keepUnusedDataTimer`: the `keepUnusedDataFor` timer of existing entries is not restarted.
+   *
+   * @example
+   *
+   * ```ts
+   * dispatch(
+   *   api.util.upsertQueryEntries(
+   *     [{ endpointName: 'getPost', arg: post.id, value: post }],
+   *     { ignoreEarlierFetches: true, keepRequestState: true },
+   *   ),
+   * )
+   * ```
+   */
   upsertQueryEntries: UpsertEntries<Definitions>
 
   /**

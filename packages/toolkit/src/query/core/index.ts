@@ -40,7 +40,7 @@ export type {
   QueryResultSelectorResult,
   SkipToken,
 } from './buildSelectors'
-export type { SliceActions } from './buildSlice'
+export type { SliceActions, UpsertEntriesOptions } from './buildSlice'
 export type {
   Patch,
   PatchQueryDataThunk,
