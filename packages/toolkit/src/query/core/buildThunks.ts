@@ -1202,10 +1202,18 @@ In the case of an unhandled error, no tags will be "provided" or "invalidated".`
         if (shouldRetrigger) {
           return runQuery()
         }
-        const running = dispatch(
-          api.util.getRunningQueryThunk(endpointName, arg),
-        )
-        return running ? running.then(noop, noop) : Promise.resolve()
+        const runtime = getRuntimeForState(getState)
+        const queryCacheKey = serializeQueryArgs({
+          queryArgs: arg,
+          endpointDefinition: endpointDefinitions[endpointName],
+          endpointName: endpointName as string,
+        })
+        // `outcome` exists as soon as the request is pending, before
+        // `initiate` attaches its promise, and also covers upserts
+        const running =
+          runtime &&
+          findRunningRequest(runtime, queryCacheKey, latestStateValue)
+        return running ? running.outcome.then(noop, noop) : Promise.resolve()
       } else {
         // If prefetching with no options, just let it try
         return runQuery(false)
