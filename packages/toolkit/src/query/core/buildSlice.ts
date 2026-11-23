@@ -219,9 +219,10 @@ type UpsertEntriesMeta = {
   options?: UpsertEntriesOptions
 }
 
-// Set by `upsertQueryEntries` with `ignoreEarlierFetches` on an entry whose
-// request was in flight. That request still settles the entry's request
-// state, but its data is not written.
+// Set by `upsertQueryEntries` with `ignoreEarlierFetches` to the entry's
+// current `requestId`. If that request is still in flight, it settles the
+// entry's request state, but its data is not written. The next request
+// clears the marker.
 type DiscardableSubstate = { discardDataOfRequestId?: string }
 
 function getDiscardedRequestId(substate: object | undefined) {
@@ -311,7 +312,7 @@ export function buildSlice({
     updateQuerySubstateIfExists(draft, meta.arg.queryCacheKey, (substate) => {
       if (substate.requestId !== meta.requestId && !upserting) return
       substate.status = STATUS_FULFILLED
-      if (!upserting && getDiscardedRequestId(substate) === meta.requestId) {
+      if (getDiscardedRequestId(substate) === meta.requestId) {
         clearDiscardedRequestId(substate)
       } else {
         writeCacheData(substate, meta, payload)
@@ -399,11 +400,9 @@ export function buildSlice({
             const { queryDescription: arg, value } = entry
             const existing = draft[arg.queryCacheKey]
 
-            if (
-              ignoreEarlierFetches &&
-              existing?.status === STATUS_PENDING &&
-              existing.requestId
-            ) {
+            // Not limited to `pending` entries: a default upsert sets the
+            // status to `fulfilled` while keeping the in-flight `requestId`.
+            if (ignoreEarlierFetches && existing?.requestId) {
               ;(existing as DiscardableSubstate).discardDataOfRequestId =
                 existing.requestId
             }

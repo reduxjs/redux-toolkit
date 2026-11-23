@@ -135,11 +135,31 @@ describe('upsertQueryEntries options', () => {
       expect(selectPost()).not.toHaveProperty('discardDataOfRequestId')
     })
 
-    test('has no effect when no request is in flight', async () => {
-      await fetchInitialData()
+    test('discards an earlier request after a default upsert set the status to fulfilled', async () => {
+      const { promise, request } = startFetch()
+      upsert()
+      expect(selectPost().status).toBe(QueryStatus.fulfilled)
       upsert({ ignoreEarlierFetches: true })
-      expect(selectPost()).not.toHaveProperty('discardDataOfRequestId')
+
+      request.resolve(fetched)
+      await promise
       expect(selectPost().data).toEqual(upserted)
+      expect(providedTitles()).toEqual(['upserted'])
+    })
+
+    test('discards an upsertQueryData call started before the write', async () => {
+      const promise = storeRef.store.dispatch(
+        api.util.upsertQueryData('getPost', 1, fetched),
+      )
+      upsert({ ignoreEarlierFetches: true })
+
+      await promise
+      expect(selectPost()).toMatchObject({
+        status: QueryStatus.fulfilled,
+        data: upserted,
+      })
+      expect(selectPost()).not.toHaveProperty('discardDataOfRequestId')
+      expect(providedTitles()).toEqual(['upserted'])
     })
   })
 
@@ -182,18 +202,24 @@ describe('upsertQueryEntries options', () => {
     })
 
     test('keeps the timestamps of a fulfilled request', async () => {
-      await fetchInitialData()
-      const before = selectPost()
+      vi.useFakeTimers()
+      try {
+        await fetchInitialData()
+        const before = selectPost()
+        await vi.advanceTimersByTimeAsync(1_000)
 
-      upsert({ keepRequestState: true })
-      expect(selectPost()).toMatchObject({
-        status: QueryStatus.fulfilled,
-        requestId: before.requestId,
-        startedTimeStamp: before.startedTimeStamp,
-        fulfilledTimeStamp: before.fulfilledTimeStamp,
-        data: upserted,
-      })
-      expect(providedTitles()).toEqual(['upserted'])
+        upsert({ keepRequestState: true })
+        expect(selectPost()).toMatchObject({
+          status: QueryStatus.fulfilled,
+          requestId: before.requestId,
+          startedTimeStamp: before.startedTimeStamp,
+          fulfilledTimeStamp: before.fulfilledTimeStamp,
+          data: upserted,
+        })
+        expect(providedTitles()).toEqual(['upserted'])
+      } finally {
+        vi.useRealTimers()
+      }
     })
 
     test('creates a missing entry as fulfilled', () => {
@@ -246,6 +272,11 @@ describe('upsertQueryEntries options', () => {
         expect(selectPost().status).toBe(
           restarts ? QueryStatus.fulfilled : QueryStatus.uninitialized,
         )
+
+        if (restarts) {
+          await vi.advanceTimersByTimeAsync(36_000)
+          expect(selectPost().status).toBe(QueryStatus.uninitialized)
+        }
       },
     )
 
