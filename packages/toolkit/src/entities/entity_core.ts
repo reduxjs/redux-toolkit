@@ -313,7 +313,11 @@ export function createEntityCore<T, Id extends EntityId>(
       }
 
       const candidate: T = Array.isArray(original)
-        ? (Object.assign([], original, update.changes) as unknown as T)
+        ? (Object.assign(
+            new Array(original.length),
+            original,
+            update.changes,
+          ) as unknown as T)
         : Object.assign(
             Object.create(Object.getPrototypeOf(original)),
             original,
