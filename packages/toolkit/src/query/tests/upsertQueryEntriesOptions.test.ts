@@ -106,7 +106,6 @@ describe('upsertQueryEntries options', () => {
         data: upserted,
         isSuccess: true,
       })
-      expect(selectPost()).not.toHaveProperty('discardDataOfRequestId')
       expect(providedTitles()).toEqual(['upserted'])
     })
 
@@ -132,7 +131,6 @@ describe('upsertQueryEntries options', () => {
         error: 'failed',
         data: upserted,
       })
-      expect(selectPost()).not.toHaveProperty('discardDataOfRequestId')
     })
 
     test('discards an earlier request after a default upsert set the status to fulfilled', async () => {
@@ -159,7 +157,6 @@ describe('upsertQueryEntries options', () => {
         ),
       )
       expect(selectPost().data).toEqual(second)
-      expect(selectPost()).not.toHaveProperty('discardDataOfRequestId')
       expect(providedTitles()).toEqual(['second'])
     })
 
@@ -174,8 +171,33 @@ describe('upsertQueryEntries options', () => {
         status: QueryStatus.fulfilled,
         data: upserted,
       })
-      expect(selectPost()).not.toHaveProperty('discardDataOfRequestId')
       expect(providedTitles()).toEqual(['upserted'])
+    })
+
+    test('discards an upsertQueryData call started before the write on an entry that already has a request', async () => {
+      await fetchInitialData()
+      const promise = storeRef.store.dispatch(
+        api.util.upsertQueryData('getPost', 1, fetched),
+      )
+      upsert({ ignoreEarlierFetches: true })
+
+      await promise
+      expect(selectPost().data).toEqual(upserted)
+      expect(providedTitles()).toEqual(['upserted'])
+    })
+
+    test('applies requests started after an earlier request was discarded', async () => {
+      const first = startFetch()
+      upsert({ ignoreEarlierFetches: true })
+      first.request.resolve(fetched)
+      await first.promise
+      expect(selectPost().data).toEqual(upserted)
+
+      const second = startFetch()
+      second.request.resolve({ id: 1, title: 'later' })
+      await second.promise
+      expect(selectPost().data).toEqual({ id: 1, title: 'later' })
+      expect(providedTitles()).toEqual(['later'])
     })
   })
 

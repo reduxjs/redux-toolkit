@@ -219,18 +219,18 @@ type UpsertEntriesMeta = {
   options?: UpsertEntriesOptions
 }
 
-// Set by `upsertQueryEntries` with `ignoreEarlierFetches` to the entry's
-// current `requestId`. If that request is still in flight, it settles the
-// entry's request state, but its data is not written. The next request
-// clears the marker.
-type DiscardableSubstate = { discardDataOfRequestId?: string }
-
-function getDiscardedRequestId(substate: object | undefined) {
-  return (substate as DiscardableSubstate | undefined)?.discardDataOfRequestId
-}
-
-function clearDiscardedRequestId(substate: object) {
-  delete (substate as DiscardableSubstate).discardDataOfRequestId
+// `startedSeq` is the `seq` of the last request started for the entry,
+// including `upsertQueryData` calls. `upsertQueryEntries` with
+// `ignoreEarlierFetches` copies it to `ignoreDataUpToSeq`. Requests with a
+// `seq` up to that value still settle the entry's request state when they
+// finish, but their data is not written. `seq` only increases within one
+// store, so later requests always pass.
+function isIgnoredRequest(
+  substate: { ignoreDataUpToSeq?: number } | undefined,
+  seq: number | undefined,
+) {
+  const ignoreUpTo = substate?.ignoreDataUpToSeq
+  return ignoreUpTo !== undefined && seq !== undefined && seq <= ignoreUpTo
 }
 
 export function buildSlice({
@@ -269,7 +269,7 @@ export function buildSlice({
       arg: QueryThunkArg
       requestId: string
       // requestStatus: 'pending'
-    } & { startedTimeStamp: number },
+    } & { startedTimeStamp: number; seq?: number },
   ) {
     draft[arg.queryCacheKey] ??= {
       status: STATUS_UNINITIALIZED,
@@ -284,7 +284,15 @@ export function buildSlice({
       if (!isUpsertUpdate) {
         substate.status = STATUS_PENDING
         substate.requestId = meta.requestId
-        clearDiscardedRequestId(substate)
+      }
+      if (meta.seq !== undefined) {
+        substate.startedSeq = meta.seq
+        // A new request in this store always has a higher `seq` than any
+        // value recorded here, so a value at least as high came from
+        // another store through preloaded or rehydrated state.
+        if (isIgnoredRequest(substate, meta.seq)) {
+          delete substate.ignoreDataUpToSeq
+        }
       }
       if (arg.originalArgs !== undefined) {
         substate.originalArgs = arg.originalArgs
@@ -302,7 +310,7 @@ export function buildSlice({
 
   function writeFulfilledCacheEntry(
     draft: QueryState<any>,
-    meta: { arg: QueryThunkArg; requestId: string } & {
+    meta: { arg: QueryThunkArg; requestId: string; seq?: number } & {
       fulfilledTimeStamp: number
       baseQueryMeta: unknown
     },
@@ -312,9 +320,7 @@ export function buildSlice({
     updateQuerySubstateIfExists(draft, meta.arg.queryCacheKey, (substate) => {
       if (substate.requestId !== meta.requestId && !upserting) return
       substate.status = STATUS_FULFILLED
-      if (getDiscardedRequestId(substate) === meta.requestId) {
-        clearDiscardedRequestId(substate)
-      } else {
+      if (!isIgnoredRequest(substate, meta.seq)) {
         writeCacheData(substate, meta, payload)
       }
       delete substate.error
@@ -400,17 +406,8 @@ export function buildSlice({
             const { queryDescription: arg, value } = entry
             const existing = draft[arg.queryCacheKey]
 
-            // Not limited to `pending` entries: a default upsert sets the
-            // status to `fulfilled` while keeping the in-flight `requestId`.
-            // An earlier entry of this same action may have set `requestId`
-            // to this action's ID, which must not be discarded.
-            if (
-              ignoreEarlierFetches &&
-              existing?.requestId &&
-              existing.requestId !== action.meta.requestId
-            ) {
-              ;(existing as DiscardableSubstate).discardDataOfRequestId =
-                existing.requestId
+            if (ignoreEarlierFetches && existing?.startedSeq !== undefined) {
+              existing.ignoreDataUpToSeq = existing.startedSeq
             }
 
             if (keepRequestState && existing?.requestId) {
@@ -565,7 +562,6 @@ export function buildSlice({
                 } else {
                   // request failed
                   if (substate.requestId !== requestId) return
-                  clearDiscardedRequestId(substate)
                   substate.status = STATUS_REJECTED
                   substate.error = (payload ?? error) as any
                 }
@@ -923,13 +919,15 @@ export function buildSlice({
       resetApiState.match(action) ? undefined : state,
       action,
     )
-    // A discarded request's data was not written, so the tags provided by
+    // An ignored request's data was not written, so the tags provided by
     // the current data stay in place.
     if (
       state?.provided &&
       isQueryFulfilled(action) &&
-      getDiscardedRequestId(state.queries?.[action.meta.arg.queryCacheKey]) ===
-        action.meta.requestId
+      isIgnoredRequest(
+        state.queries?.[action.meta.arg.queryCacheKey],
+        action.meta.seq,
+      )
     ) {
       return { ...nextState, provided: state.provided }
     }
