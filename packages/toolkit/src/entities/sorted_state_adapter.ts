@@ -224,6 +224,9 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
       for (const id of effectiveAdded) {
         delete (state.entities as Record<Id, T>)[id]
       }
+      if (hasRenames && !areArraysEqual(currentIds, survivingIds)) {
+        state.ids = survivingIds
+      }
       throw err
     }
 

@@ -887,8 +887,10 @@ describe('Entity Adapter Shared Core & Property-Based Differential Tests (#5525)
     })
 
     // 3. Partial selectId failure in addMany indexes the committed prefix, and in updateMany is atomic
+    const selectCalls: string[] = []
     const strictAdapter = createEntityAdapter({
       selectId: (item: TestItem) => {
+        selectCalls.push(item.id)
         if (!item.id) throw new Error('missing id')
         return item.id
       },
@@ -914,7 +916,8 @@ describe('Entity Adapter Shared Core & Property-Based Differential Tests (#5525)
       { id: 'valid-1', sortKey: 1, tag: 'ok-1', revision: 1 },
       { id: 'valid-2', sortKey: 2, tag: 'ok-2', revision: 1 },
     ])
-    let updateManyThrew = false
+    selectCalls.length = 0
+    let caughtError: unknown
     const afterCaughtUpdateMany = createNextState(
       initialForUpdateMany,
       (draft) => {
@@ -923,12 +926,14 @@ describe('Entity Adapter Shared Core & Property-Based Differential Tests (#5525)
             { id: 'valid-1', changes: { id: 'renamed-1' } },
             { id: 'valid-2', changes: { id: '' } },
           ])
-        } catch {
-          updateManyThrew = true
+        } catch (err) {
+          caughtError = err
         }
       },
     )
-    expect(updateManyThrew).toBe(true)
+    expect(caughtError).toBeInstanceOf(Error)
+    expect((caughtError as Error).message).toBe('missing id')
+    expect(selectCalls).toEqual(['renamed-1', ''])
     expect(afterCaughtUpdateMany.ids).toEqual(['valid-1', 'valid-2'])
     expect(afterCaughtUpdateMany.entities['valid-1']?.id).toBe('valid-1')
     expect(afterCaughtUpdateMany.entities['valid-2']?.id).toBe('valid-2')
