@@ -476,6 +476,14 @@ describe('Entity Adapter Shared Core & Property-Based Differential Tests (#5525)
       removed: [],
       renamed: { b: 'd' },
     })
+    expect(state.entities.a?.tag).toBe('x2')
+    expect(state.entities.b).toBeUndefined()
+    expect(state.entities.d).toEqual({
+      id: 'd',
+      sortKey: 3,
+      tag: 'y',
+      revision: 2,
+    })
     state.ids = ['a', 'd', 'c']
 
     const upsertChanges = core.upsertMany(
@@ -667,8 +675,15 @@ describe('Entity Adapter Shared Core & Property-Based Differential Tests (#5525)
             for (let i = 0; i < count; i++) {
               const id = idPool[rng.nextInt(idPool.length)]
               // Avoid chained a->b + b->c in the same batch where reference sorted adapter had an indexOf bug
-              const canRename = rng.nextInt(4) === 0 && !usedNewIds.has(id)
-              const newId = canRename ? idPool[rng.nextInt(idPool.length)] : id
+              const wantsRename = rng.nextInt(4) === 0
+              const candidateId = wantsRename
+                ? idPool[rng.nextInt(idPool.length)]
+                : id
+              const canRename =
+                wantsRename &&
+                !usedNewIds.has(id) &&
+                !usedNewIds.has(candidateId)
+              const newId = canRename ? candidateId : id
               usedNewIds.add(id)
               usedNewIds.add(newId)
               updates.push({
@@ -814,15 +829,147 @@ describe('Entity Adapter Shared Core & Property-Based Differential Tests (#5525)
     expect(comparisons).toBe(2)
     expect(afterInPlaceUpdate.ids).toBe(state.ids)
 
-    // 2. Moving one item across the 2,000-element list uses binary reinsertion (< 30 comparisons instead of >= 2,000)
+    // 2. Adding one item into a 2,000-element list uses binary insertion (< 30 comparisons)
     comparisons = 0
-    const afterMovedUpdate = sorted.updateOne(state, {
-      id: 'item-1000',
-      changes: { sortKey: 19995 },
+    const afterAddOne = sorted.addOne(state, {
+      id: 'item-new',
+      sortKey: 10005,
+      tag: 'added',
+      revision: 1,
     })
     expect(comparisons).toBeLessThan(30)
-    expect(afterMovedUpdate.ids[afterMovedUpdate.ids.length - 1]).toBe(
-      'item-1000',
+    expect(afterAddOne.ids[1001]).toBe('item-new')
+  })
+
+  it('handles Object.prototype keys like constructor, live draft references, partial selectId failures, and tied set/upsert ordering', () => {
+    const unsorted = createEntityAdapter({ selectId: selectTestId })
+    const sorted = createEntityAdapter({
+      selectId: selectTestId,
+      sortComparer: (a, b) => a.sortKey - b.sortKey,
+    })
+
+    // 1. Object.prototype key ('constructor') on empty state for addOne and setOne
+    const ctorItem: TestItem = {
+      id: 'constructor',
+      sortKey: 1,
+      tag: 'proto',
+      revision: 1,
+    }
+    expect(unsorted.addOne(unsorted.getInitialState(), ctorItem).ids).toEqual([
+      'constructor',
+    ])
+    expect(sorted.addOne(sorted.getInitialState(), ctorItem).ids).toEqual([
+      'constructor',
+    ])
+    expect(unsorted.setOne(unsorted.getInitialState(), ctorItem).ids).toEqual([
+      'constructor',
+    ])
+    expect(sorted.setOne(sorted.getInitialState(), ctorItem).ids).toEqual([
+      'constructor',
+    ])
+
+    // 2. Preserve live entity draft references on sorted in-place updateOne
+    const initialWithA = sorted.getInitialState(undefined, [
+      { id: 'a', sortKey: 1, tag: 'init', revision: 1 },
+    ])
+    const afterDraftMutation = createNextState(initialWithA, (draft) => {
+      const retainedRef = draft.entities.a!
+      sorted.updateOne(draft, { id: 'a', changes: { tag: 'updated' } })
+      retainedRef.revision = 99
+    })
+    expect(afterDraftMutation.entities.a).toEqual({
+      id: 'a',
+      sortKey: 1,
+      tag: 'updated',
+      revision: 99,
+    })
+
+    // 3. Partial selectId failure in addMany indexes the committed prefix, and in updateMany is atomic
+    const strictAdapter = createEntityAdapter({
+      selectId: (item: TestItem) => {
+        if (!item.id) throw new Error('missing id')
+        return item.id
+      },
+      sortComparer: (a: TestItem, b: TestItem) => a.sortKey - b.sortKey,
+    })
+    const afterCaughtAddMany = createNextState(
+      strictAdapter.getInitialState(),
+      (draft) => {
+        try {
+          strictAdapter.addMany(draft, [
+            { id: 'valid-1', sortKey: 1, tag: 'ok', revision: 1 },
+            { id: '', sortKey: 2, tag: 'bad', revision: 1 },
+          ])
+        } catch {
+          // caught inside producer
+        }
+      },
     )
+    expect(afterCaughtAddMany.ids).toEqual(['valid-1'])
+    expect(afterCaughtAddMany.entities['valid-1']?.tag).toBe('ok')
+
+    const afterCaughtUpdateMany = createNextState(
+      afterCaughtAddMany,
+      (draft) => {
+        try {
+          strictAdapter.updateMany(draft, [
+            { id: 'valid-1', changes: { id: 'renamed-1' } },
+            { id: 'valid-1', changes: { id: '' } },
+          ])
+        } catch {
+          // caught inside producer
+        }
+      },
+    )
+    expect(afterCaughtUpdateMany.ids).toEqual(['valid-1'])
+    expect(afterCaughtUpdateMany.entities['valid-1']?.id).toBe('valid-1')
+
+    // 4. Deduplicate destination keys across rename and addition in upsertMany
+    interface PrefixedItem {
+      id?: string
+      prefix?: string
+      rank: number
+    }
+    const prefixedAdapter = createEntityAdapter<PrefixedItem, string>({
+      selectId: (e) => (e.prefix ?? '') + (e.id ?? ''),
+      sortComparer: (a, b) => a.rank - b.rank,
+    })
+    const startPrefixed = prefixedAdapter.getInitialState(undefined, [
+      { id: 'a', rank: 1 },
+    ])
+    const afterPrefixedUpsert = prefixedAdapter.upsertMany(startPrefixed, [
+      { id: 'aa', rank: 2 },
+      { prefix: 'a', rank: 3 },
+    ])
+    expect(afterPrefixedUpsert.ids).toEqual(['aa'])
+
+    // 5. Preserve pre-update rank tie order in sorted upsertMany
+    const startTieUpsert = sorted.getInitialState(undefined, [
+      { id: 'a', sortKey: 10, tag: 'old', revision: 1 },
+    ])
+    const afterTieUpsert = sorted.upsertMany(startTieUpsert, [
+      { id: 'b', sortKey: 0, tag: 'new', revision: 1 },
+      { id: 'a', sortKey: 0, tag: 'updated', revision: 2 },
+    ])
+    expect(afterTieUpsert.ids).toEqual(['b', 'a'])
+
+    // 6. Preserve sorted setOne and setAll tie order
+    const startSetTie = sorted.getInitialState(undefined, [
+      { id: 'a', sortKey: 0, tag: 'first', revision: 1 },
+      { id: 'b', sortKey: 0, tag: 'second', revision: 1 },
+    ])
+    const afterSetOneTie = sorted.setOne(startSetTie, {
+      id: 'a',
+      sortKey: 0,
+      tag: 'replaced',
+      revision: 2,
+    })
+    expect(afterSetOneTie.ids).toEqual(['b', 'a'])
+
+    const afterSetAllNumericTie = sorted.setAll(sorted.getInitialState(), [
+      { id: '2', sortKey: 0, tag: 'two', revision: 1 },
+      { id: '1', sortKey: 0, tag: 'one', revision: 1 },
+    ])
+    expect(afterSetAllNumericTie.ids).toEqual(['1', '2'])
   })
 })
