@@ -580,9 +580,11 @@ You must add the middleware for RTK-Query to function correctly!`,
             ? undefined
             : findRunningRequest(runtime, queryCacheKey, stateAfter))
 
-        // A removed entry aborts its request with the removal reason
+        // A removed entry aborts its request with the removal reason. Look the
+        // request up instead of closing over it: its settled outcome holds a
+        // whole state, and callers often keep the result long after.
         const abortRequest = ownRequest
-          ? () => abort(ownRequest.removed)
+          ? () => abort(runtime?.requests.get(requestId)?.removed)
           : abort
 
         const selectOutcome = ({ state, removed }: RequestOutcome) => {
