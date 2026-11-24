@@ -127,7 +127,9 @@ export type StartQueryActionCreatorOptions = {
    * Keeps the cache entry for at least this many seconds after its last
    * subscriber leaves, or after this request settles when nothing
    * subscribes. The entry is kept for `max(keepUnusedDataFor, retainFor)`.
-   * Values under 1 second are raised to 1 second.
+   * Values under 1 second are raised to 1 second. The time is counted once:
+   * later subscribers that leave after it has passed only get
+   * `keepUnusedDataFor`.
    *
    * Useful for `subscribe: false` prefetches, which would otherwise be
    * removed after `keepUnusedDataFor` even if a component is about to

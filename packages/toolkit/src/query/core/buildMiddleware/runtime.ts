@@ -73,10 +73,13 @@ export interface QueryKeyRecord {
   poll?: QueryPollState
   cacheLifecycle?: CacheLifecycle
   /**
-   * The longest `retainFor` (in seconds) any `initiate` asked for, kept until
-   * the entry is removed
+   * The longest `retainFor` (in seconds) any `initiate` asked for that has not
+   * started counting yet. It starts once nothing subscribes and no request
+   * runs, and moves to `retainUntil`.
    */
   retainFor?: number
+  /** Timestamp until which `retainFor` keeps the entry */
+  retainUntil?: number
 }
 
 export interface StoreRuntime {
@@ -220,7 +223,8 @@ export function pruneRecord(runtime: StoreRuntime, key: string) {
     !record.gc &&
     !record.poll &&
     !record.cacheLifecycle &&
-    !record.retainFor
+    !record.retainFor &&
+    !record.retainUntil
   ) {
     runtime.queries.delete(key)
   }
@@ -393,13 +397,40 @@ export function retainRecord(
 }
 
 /**
+ * How many more seconds `retainFor` keeps the key. Once nothing subscribes and
+ * no request runs, a pending `retainFor` becomes a deadline counted from now,
+ * so later unsubscribes do not restart it.
+ */
+export function remainingRetainSeconds(
+  runtime: StoreRuntime,
+  key: string,
+): number {
+  const record = runtime.queries.get(key)
+  if (!record) return 0
+  const now = Date.now()
+  if (record.retainFor && !record.subscribers?.size && !record.request) {
+    record.retainUntil = Math.max(
+      record.retainUntil ?? 0,
+      now + record.retainFor * 1000,
+    )
+    record.retainFor = undefined
+  }
+  const fromDeadline = (record.retainUntil ?? 0) - now
+  if (record.retainUntil !== undefined && fromDeadline <= 0) {
+    record.retainUntil = undefined
+  }
+  return Math.max(record.retainFor ?? 0, fromDeadline / 1000, 0)
+}
+
+/**
  * Drops `retainFor` when the entry is kept forever anyway, so the record does
  * not outlive everything else on it.
  */
 export function releaseRetain(runtime: StoreRuntime, key: string) {
   const record = runtime.queries.get(key)
-  if (!record?.retainFor) return
+  if (!record?.retainFor && !record?.retainUntil) return
   record.retainFor = undefined
+  record.retainUntil = undefined
   normalizeRecord(runtime, key)
 }
 
@@ -478,6 +509,7 @@ function clearRecord(runtime: StoreRuntime, key: string) {
   record.cacheLifecycle = undefined
   record.request = undefined
   record.retainFor = undefined
+  record.retainUntil = undefined
   normalizeRecord(runtime, key)
   return cacheLifecycle
 }
