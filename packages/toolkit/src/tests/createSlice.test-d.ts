@@ -7,12 +7,15 @@ import type {
   ActionCreatorWithoutPayload,
   ActionReducerMapBuilder,
   AsyncThunk,
+  BuiltinSliceCreators,
   CaseReducer,
+  CreatorContext,
+  DefinitionsShape,
   PayloadAction,
   PayloadActionCreator,
   Reducer,
-  ReducerCreators,
   SerializedError,
+  SliceActionExposure,
   SliceCaseReducers,
   ThunkDispatch,
   ValidateSliceCaseReducers,
@@ -24,8 +27,11 @@ import {
   createAction,
   createAsyncThunk,
   createSlice,
+  immerAdapter,
   isRejected,
+  makeDefinition,
 } from '@reduxjs/toolkit'
+import { noopAdapter } from '@internal/immutability'
 import { castDraft } from 'immer'
 
 describe('type tests', () => {
@@ -70,7 +76,7 @@ describe('type tests', () => {
         increment: (state: number, action) => state + action.payload,
         decrement: (state: number, action) => state - action.payload,
       },
-      extraReducers: (builder) => {
+      respondTo: (builder) => {
         builder.addCase(
           firstAction,
           (state, action) => state + action.payload.count,
@@ -270,20 +276,37 @@ describe('type tests', () => {
             error: 'error' as const,
           }),
         },
-        // case: meta is typed differently in the reducer than returned from prepare
+      },
+    })
+
+    // An invalid object-form reducer makes every `createSlice` overload fail,
+    // so the error is reported for the whole call.
+
+    // case: meta is typed differently in the reducer than returned from prepare
+    // @ts-expect-error
+    createSlice({
+      name: 'test',
+      initialState: { counter: 0, concat: '' },
+      reducers: {
         testErroneousMeta: {
           reducer(_, action: PayloadAction<number, string, 'meta', 'error'>) {},
-          // @ts-expect-error
           prepare: (payload: number) => ({
             payload,
             meta: 1,
             error: 'error' as const,
           }),
         },
-        // case: error is typed differently in the reducer than returned from prepare
+      },
+    })
+
+    // case: error is typed differently in the reducer than returned from prepare
+    // @ts-expect-error
+    createSlice({
+      name: 'test',
+      initialState: { counter: 0, concat: '' },
+      reducers: {
         testErroneousError: {
           reducer(_, action: PayloadAction<number, string, 'meta', 'error'>) {},
-          // @ts-expect-error
           prepare: (payload: number) => ({
             payload,
             meta: 'meta' as const,
@@ -345,6 +368,7 @@ describe('type tests', () => {
   })
 
   test('prepared payload does not match action payload - should cause an error.', () => {
+    // @ts-expect-error
     const counter = createSlice({
       name: 'counter',
       initialState: { counter: 0 },
@@ -353,7 +377,6 @@ describe('type tests', () => {
           reducer(state, action: PayloadAction<string>) {
             state.counter += action.payload.length
           },
-          // @ts-expect-error
           prepare(x: string) {
             return {
               payload: 6,
@@ -415,12 +438,12 @@ describe('type tests', () => {
     }
   })
 
-  test('builder callback for extraReducers', () => {
+  test('builder callback for respondTo', () => {
     createSlice({
       name: 'test',
       initialState: 0,
       reducers: {},
-      extraReducers: (builder) => {
+      respondTo: (builder) => {
         expectTypeOf(builder).toEqualTypeOf<ActionReducerMapBuilder<number>>()
       },
     })
@@ -514,7 +537,7 @@ describe('type tests', () => {
     })
   })
 
-  test('extraReducers', () => {
+  test('respondTo', () => {
     interface GenericState<T> {
       data: T | null
     }
@@ -534,7 +557,7 @@ describe('type tests', () => {
         name,
         initialState,
         reducers,
-        extraReducers: (builder) => {
+        respondTo: (builder) => {
           builder.addCase(doNothing, (state) => {
             return { ...state }
           })
@@ -627,6 +650,7 @@ describe('type tests', () => {
     const slice = createSlice({
       name: 'test',
       initialState: {} as TestState,
+      creators: (ctx) => ({ asyncThunk: asyncThunkCreator(ctx) }),
       reducers: (create) => {
         const preTypedAsyncThunk = create.asyncThunk.withTypes<{
           rejectValue: TestReject
@@ -944,17 +968,14 @@ describe('type tests', () => {
       status: 'loading' | 'finished' | 'error'
     }
 
-    const createGenericSlice = <
-      T,
-      Reducers extends SliceCaseReducers<GenericState<T>>,
-    >({
+    const createGenericSlice = <T, Reducers extends DefinitionsShape>({
       name = '',
       initialState,
       reducers,
     }: {
       name: string
       initialState: GenericState<T>
-      reducers: (create: ReducerCreators<GenericState<T>>) => Reducers
+      reducers: (create: BuiltinSliceCreators<GenericState<T>>) => Reducers
     }) => {
       return createSlice({
         name,
@@ -1006,12 +1027,103 @@ describe('type tests', () => {
   })
 
   test('buildCreateSlice', () => {
-    expectTypeOf(buildCreateSlice()).toEqualTypeOf(createSlice)
+    expectTypeOf(
+      buildCreateSlice({ immutability: immerAdapter }),
+    ).toEqualTypeOf(createSlice)
+
+    // @ts-expect-error an immutability adapter is required
+    buildCreateSlice({})
 
     buildCreateSlice({
-      // @ts-expect-error not possible to recreate shape because symbol is not exported
-      creators: { asyncThunk: { [Symbol()]: createAsyncThunk } },
+      // @ts-expect-error creators are passed per slice, not to buildCreateSlice
+      creators: { asyncThunk: asyncThunkCreator },
     })
-    buildCreateSlice({ creators: { asyncThunk: asyncThunkCreator } })
+  })
+
+  test('callback form without a creators option only has the builtin creators', () => {
+    createSlice({
+      name: 'todos',
+      initialState: 0,
+      reducers: (create) => ({
+        inc: create.reducer((state) => state + 1),
+        // @ts-expect-error asyncThunk is not available without a creators option
+        bad: create.asyncThunk(async () => 1),
+      }),
+    })
+  })
+
+  test('custom creators expose their declared types', () => {
+    const resetCreator = (ctx: CreatorContext<any>) =>
+      makeDefinition<SliceActionExposure<void>>((details, context) => {
+        const caseReducer = () => context.getInitialState()
+        context
+          .addCase(details.type, caseReducer)
+          .exposeAction(createAction(details.type))
+          .exposeCaseReducer(caseReducer)
+      })
+
+    const slice = createSlice({
+      name: 'counter',
+      initialState: { value: 0 },
+      creators: (ctx) => ({ reset: () => resetCreator(ctx) }),
+      reducers: (create) => ({
+        incremented: create.reducer((state) => {
+          state.value += 1
+        }),
+        reset: create.reset(),
+      }),
+    })
+
+    expectTypeOf(slice.actions.reset).toEqualTypeOf<
+      ActionCreatorWithoutPayload<'counter/reset'>
+    >()
+  })
+
+  test('respondTo only accepts a builder callback and extraReducers is rejected', () => {
+    const base = { name: 'counter', initialState: { value: 0 }, reducers: {} }
+
+    // @ts-expect-error respondTo must be a builder callback, not an object
+    createSlice({ ...base, respondTo: { 'external/set': () => {} } })
+
+    // @ts-expect-error the extraReducers option was renamed to respondTo
+    createSlice({ ...base, extraReducers: (builder: unknown) => {} })
+  })
+
+  test('slice.reducer exposes getInitialState', () => {
+    expectTypeOf(counterSlice.reducer.getInitialState()).toBeNumber()
+  })
+
+  test('the immutability option does not change inference', () => {
+    const slice = createSlice({
+      name: 'todos',
+      initialState: { todos: [] as string[] },
+      immutability: noopAdapter,
+      reducers: {
+        added(state, action: PayloadAction<string>) {
+          return { todos: [...state.todos, action.payload] }
+        },
+      },
+    })
+
+    expectTypeOf(slice.actions.added).toEqualTypeOf<
+      ActionCreatorWithPayload<string, 'todos/added'>
+    >()
+
+    const createNoopSlice = buildCreateSlice({ immutability: noopAdapter })
+
+    const callbackSlice = createNoopSlice({
+      name: 'cb',
+      initialState: { value: 0 },
+      reducers: (create) => ({
+        set: create.reducer<number>((state, action) => {
+          expectTypeOf(action.payload).toBeNumber()
+          return { value: action.payload }
+        }),
+      }),
+    })
+
+    expectTypeOf(callbackSlice.actions.set).toEqualTypeOf<
+      ActionCreatorWithPayload<number, 'cb/set'>
+    >()
   })
 })

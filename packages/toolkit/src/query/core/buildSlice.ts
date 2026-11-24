@@ -439,7 +439,7 @@ export function buildSlice({
         >(),
       },
     },
-    extraReducers(builder) {
+    respondTo(builder) {
       builder
         .addCase(queryThunk.pending, (draft, { meta, meta: { arg } }) => {
           const upserting = isUpsertQuery(arg)
@@ -496,7 +496,7 @@ export function buildSlice({
         prepare: prepareAutoBatched<MutationSubstateIdentifier>(),
       },
     },
-    extraReducers(builder) {
+    respondTo(builder) {
       builder
         .addCase(
           mutationThunk.pending,
@@ -609,7 +609,7 @@ export function buildSlice({
         >(),
       },
     },
-    extraReducers(builder) {
+    respondTo(builder) {
       builder
         .addCase(
           querySlice.actions.removeQueryResult,
@@ -763,7 +763,7 @@ export function buildSlice({
             : true
       },
     },
-    extraReducers: (builder) => {
+    respondTo: (builder) => {
       builder
         .addCase(onOnline, (state) => {
           state.online = true

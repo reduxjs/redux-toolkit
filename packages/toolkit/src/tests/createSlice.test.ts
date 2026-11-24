@@ -1,16 +1,19 @@
 import { noop } from '@internal/listenerMiddleware/utils'
-import type { PayloadAction, WithSlice } from '@reduxjs/toolkit'
+import type {
+  CreatorContext,
+  PayloadAction,
+  SliceActionExposure,
+  WithSlice,
+} from '@reduxjs/toolkit'
 import {
   asyncThunkCreator,
-  buildCreateSlice,
   combineSlices,
   configureStore,
   createAction,
   createAsyncThunk,
   createSlice,
+  makeDefinition,
 } from '@reduxjs/toolkit'
-
-type CreateSlice = typeof createSlice
 
 describe('createSlice', () => {
   const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(noop)
@@ -201,7 +204,7 @@ describe('createSlice', () => {
         increment: (state) => state + 1,
         multiply: (state, action) => state * action.payload,
       },
-      extraReducers: (builder) => {
+      respondTo: (builder) => {
         builder.addCase(
           addMore,
           (state, action) => state + action.payload.amount,
@@ -217,7 +220,7 @@ describe('createSlice', () => {
       expect(result).toBe(15)
     })
 
-    describe('builder callback for extraReducers', () => {
+    describe('builder callback for respondTo', () => {
       const increment = createAction<number, 'increment'>('increment')
 
       test('can be used with actionCreators', () => {
@@ -225,7 +228,7 @@ describe('createSlice', () => {
           name: 'counter',
           initialState: 0,
           reducers: {},
-          extraReducers: (builder) =>
+          respondTo: (builder) =>
             builder.addCase(
               increment,
               (state, action) => state + action.payload,
@@ -239,7 +242,7 @@ describe('createSlice', () => {
           name: 'counter',
           initialState: 0,
           reducers: {},
-          extraReducers: (builder) =>
+          respondTo: (builder) =>
             builder.addCase(
               'increment',
               (state, action: { type: 'increment'; payload: number }) =>
@@ -255,7 +258,7 @@ describe('createSlice', () => {
             name: 'counter',
             initialState: 0,
             reducers: {},
-            extraReducers: (builder) =>
+            respondTo: (builder) =>
               builder
                 .addCase('increment', (state) => state + 1)
                 .addCase('increment', (state) => state + 1),
@@ -276,7 +279,7 @@ describe('createSlice', () => {
             value: 0,
           },
           reducers: {},
-          extraReducers: (builder) =>
+          respondTo: (builder) =>
             builder.addAsyncThunk(asyncThunk, {
               pending(state) {
                 state.loading = true
@@ -323,7 +326,7 @@ describe('createSlice', () => {
           name: 'counter',
           initialState: 0,
           reducers: {},
-          extraReducers: (builder) =>
+          respondTo: (builder) =>
             builder.addMatcher(
               increment.match,
               (state, action: { type: 'increment'; payload: number }) =>
@@ -338,7 +341,7 @@ describe('createSlice', () => {
           name: 'counter',
           initialState: 0,
           reducers: {},
-          extraReducers: (builder) =>
+          respondTo: (builder) =>
             builder.addDefaultCase(
               (state, action) =>
                 state + (action as PayloadAction<number>).payload,
@@ -396,7 +399,7 @@ describe('createSlice', () => {
   })
 
   describe('circularity', () => {
-    test('extraReducers can reference each other circularly', () => {
+    test('respondTo callbacks can reference each other circularly', () => {
       const first = createSlice({
         name: 'first',
         initialState: 'firstInitial',
@@ -405,7 +408,7 @@ describe('createSlice', () => {
             return 'firstSomething'
           },
         },
-        extraReducers(builder) {
+        respondTo(builder) {
           // eslint-disable-next-line @typescript-eslint/no-use-before-define
           builder.addCase(second.actions.other, () => {
             return 'firstOther'
@@ -420,7 +423,7 @@ describe('createSlice', () => {
             return 'secondOther'
           },
         },
-        extraReducers(builder) {
+        respondTo(builder) {
           builder.addCase(first.actions.something, () => {
             return 'secondSomething'
           })
@@ -449,78 +452,130 @@ describe('createSlice', () => {
     })
   })
 
-  describe('Deprecation warnings', () => {
-    beforeEach(() => {
-      vi.resetModules()
+  describe('option validation', () => {
+    it('throws at creation time when `extraReducers` is passed', () => {
+      expect(() =>
+        createSlice({
+          name: 'dummy',
+          initialState: [],
+          reducers: {},
+          extraReducers: () => {},
+        } as any),
+      ).toThrowError(/`extraReducers` option was renamed to `respondTo`/)
     })
 
-    afterEach(() => {
-      vi.unstubAllEnvs()
+    it('throws at creation time when `respondTo` is not a function', () => {
+      expect(() =>
+        createSlice({
+          name: 'dummy',
+          initialState: [],
+          reducers: {},
+          respondTo: { a: () => [] },
+        } as any),
+      ).toThrowError(/`respondTo` must be a builder callback/)
     })
 
-    // NOTE: This needs to be in front of the later `createReducer` call to check the one-time warning
-    it('Throws an error if the legacy object notation is used', async () => {
-      const { createSlice } = await import('../createSlice')
+    it('throws when `creators` is used with the object form of `reducers`', () => {
+      expect(() =>
+        createSlice({
+          name: 'dummy',
+          initialState: 0,
+          creators: () => ({}),
+          reducers: {},
+        } as any),
+      ).toThrowError(/`creators` option requires the callback form/)
+    })
 
-      let dummySlice = (createSlice as CreateSlice)({
-        name: 'dummy',
-        initialState: [],
-        reducers: {},
-        extraReducers: {
-          // @ts-ignore
-          a: () => [],
+    it('throws on the first reducer call when `reducers` and `respondTo` handle the same type', () => {
+      const slice = createSlice({
+        name: 'counter',
+        initialState: 0,
+        reducers: {
+          increment: (state) => state + 1,
+        },
+        respondTo: (builder) => {
+          builder.addCase('counter/increment', (state) => state + 2)
         },
       })
-      let reducer: any
-      // Have to trigger the lazy creation
-      const wrapper = () => {
-        reducer = dummySlice.reducer
-        reducer(undefined, { type: 'dummy' })
-      }
-
-      expect(wrapper).toThrowError(
-        /The object notation for `createSlice.extraReducers` has been removed/,
+      expect(() => slice.reducer(undefined, { type: 'init' })).toThrowError(
+        /handled by both `reducers` and `respondTo`/,
       )
-
-      dummySlice = (createSlice as CreateSlice)({
-        name: 'dummy',
-        initialState: [],
-        reducers: {},
-        extraReducers: {
-          // @ts-ignore
-          a: () => [],
-        },
-      })
-      expect(wrapper).toThrowError(
-        /The object notation for `createSlice.extraReducers` has been removed/,
-      )
-    })
-
-    // TODO Determine final production behavior here
-    it.todo('Crashes in production', () => {
-      vi.stubEnv('NODE_ENV', 'production')
-
-      const { createSlice } = require('../createSlice')
-
-      const dummySlice = (createSlice as CreateSlice)({
-        name: 'dummy',
-        initialState: [],
-        reducers: {},
-        // @ts-ignore
-        extraReducers: {},
-      })
-      const wrapper = () => {
-        const { reducer } = dummySlice
-        reducer(undefined, { type: 'dummy' })
-      }
-
-      expect(wrapper).toThrowError(
-        /The object notation for `createSlice.extraReducers` has been removed/,
-      )
-
-      vi.unstubAllEnvs()
     })
   })
+
+  describe('slice shape', () => {
+    it('exposes the exact user case reducer functions', () => {
+      const increment = (state: number) => state + 1
+      const objectSlice = createSlice({
+        name: 'counter',
+        initialState: 0,
+        reducers: { increment },
+      })
+      expect(objectSlice.caseReducers.increment).toBe(increment)
+
+      const callbackSlice = createSlice({
+        name: 'counter',
+        initialState: 0,
+        reducers: (create) => ({ increment: create.reducer(increment) }),
+      })
+      expect(callbackSlice.caseReducers.increment).toBe(increment)
+    })
+
+    it('has a stable reducer with getInitialState', () => {
+      const slice = createSlice({
+        name: 'counter',
+        initialState: 42,
+        reducers: {},
+      })
+      expect(slice.reducer).toBe(slice.reducer)
+      expect(slice.reducer.getInitialState()).toBe(42)
+    })
+
+    it('throws when the slice state is missing from the root state', () => {
+      const slice = createSlice({
+        name: 'todos',
+        initialState: [] as string[],
+        reducers: {},
+        selectors: { selectCount: (state) => state.length },
+      })
+      expect(() => slice.selectSlice({} as any)).toThrowError(
+        /root state does not contain a "todos" key/,
+      )
+      expect(() => slice.selectors.selectCount({} as any)).toThrowError(
+        /root state does not contain a "todos" key/,
+      )
+    })
+  })
+
+  describe('custom creators', () => {
+    const resetCreator = (ctx: CreatorContext<any>) =>
+      makeDefinition<SliceActionExposure<void>>((details, context) => {
+        context
+          .addCase(details.type, () => context.getInitialState())
+          .exposeAction(createAction(details.type))
+          .exposeCaseReducer(() => context.getInitialState())
+      })
+
+    it('allows custom creators via the `creators` option', () => {
+      const slice = createSlice({
+        name: 'counter',
+        initialState: 0,
+        creators: (ctx) => ({ reset: () => resetCreator(ctx) }),
+        reducers: (create) => ({
+          increment: create.reducer((state) => state + 1),
+          reset: create.reset(),
+        }),
+      })
+
+      const state = slice.reducer(slice.reducer(0, slice.actions.increment()), {
+        type: 'other',
+      })
+      expect(state).toBe(1)
+      expect(slice.reducer(state, slice.actions.reset())).toBe(0)
+      expect(slice.actions.reset.type).toBe('counter/reset')
+    })
+  })
+
   describe('slice selectors', () => {
     const slice = createSlice({
       name: 'counter',
@@ -685,7 +740,7 @@ describe('createSlice', () => {
         // @ts-expect-error
         slice.getSelectors().selectMultiple(undefined, 1),
       ).toThrowErrorMatchingInlineSnapshot(
-        `[Error: selectState returned undefined for an uninjected slice reducer]`,
+        `[Error: [slice counter] selector: selectState returned undefined for an uninjected slice. Is the slice reducer included in the store?]`,
       )
 
       const injected2 = slice.injectInto(combinedReducer, {
@@ -731,19 +786,15 @@ describe('createSlice', () => {
     })
   })
   describe('reducers definition with asyncThunks', () => {
-    it('is disabled by default', () => {
-      expect(() =>
-        createSlice({
-          name: 'test',
-          initialState: [] as any[],
-          reducers: (create) => ({ thunk: create.asyncThunk(() => {}) }),
-        }),
-      ).toThrowErrorMatchingInlineSnapshot(
-        `[Error: Cannot use \`create.asyncThunk\` in the built-in \`createSlice\`. Use \`buildCreateSlice({ creators: { asyncThunk: asyncThunkCreator } })\` to create a customised version of \`createSlice\`.]`,
-      )
-    })
-    const createAppSlice = buildCreateSlice({
-      creators: { asyncThunk: asyncThunkCreator },
+    it('is not available without the creators option', () => {
+      createSlice({
+        name: 'test',
+        initialState: [] as any[],
+        reducers: (create) => {
+          expect('asyncThunk' in create).toBe(false)
+          return {}
+        },
+      })
     })
     function pending(state: any[], action: any) {
       state.push(['pendingReducer', action])
@@ -759,9 +810,10 @@ describe('createSlice', () => {
     }
 
     test('successful thunk', async () => {
-      const slice = createAppSlice({
+      const slice = createSlice({
         name: 'test',
         initialState: [] as any[],
+        creators: (ctx) => ({ asyncThunk: asyncThunkCreator(ctx) }),
         reducers: (create) => ({
           thunkReducers: create.asyncThunk(
             function payloadCreator(arg: string, api) {
@@ -802,9 +854,10 @@ describe('createSlice', () => {
     })
 
     test('rejected thunk', async () => {
-      const slice = createAppSlice({
+      const slice = createSlice({
         name: 'test',
         initialState: [] as any[],
+        creators: (ctx) => ({ asyncThunk: asyncThunkCreator(ctx) }),
         reducers: (create) => ({
           thunkReducers: create.asyncThunk(
             // payloadCreator isn't allowed to return never
@@ -846,9 +899,10 @@ describe('createSlice', () => {
     })
 
     test('with options', async () => {
-      const slice = createAppSlice({
+      const slice = createSlice({
         name: 'test',
         initialState: [] as any[],
+        creators: (ctx) => ({ asyncThunk: asyncThunkCreator(ctx) }),
         reducers: (create) => ({
           thunkReducers: create.asyncThunk(
             function payloadCreator(arg: string, api) {
@@ -895,12 +949,13 @@ describe('createSlice', () => {
     })
 
     test('has caseReducers for the asyncThunk', async () => {
-      const slice = createAppSlice({
+      const slice = createSlice({
         name: 'test',
-        initialState: [],
+        initialState: [] as any[],
+        creators: (ctx) => ({ asyncThunk: asyncThunkCreator(ctx) }),
         reducers: (create) => ({
           thunkReducers: create.asyncThunk(
-            function payloadCreator(arg, api) {
+            function payloadCreator(arg: string, api) {
               return Promise.resolve('resolved payload')
             },
             { pending, fulfilled, settled },
@@ -919,6 +974,7 @@ describe('createSlice', () => {
           slice.actions.thunkReducers.rejected(
             new Error('test'),
             'fakeRequestId',
+            'test',
           ),
         ),
       ).not.toThrow()
@@ -961,27 +1017,48 @@ describe('createSlice', () => {
       `)
     })
 
-    test('throws an error when invoked with a normal `prepare` object that has not gone through a `create.preparedReducer` call', async () => {
+    test('throws an error for an invalid reducer definition', () => {
       expect(() =>
         createSlice({
           name: 'test',
           initialState: [] as any[],
-          reducers: (create) => ({
-            prepared: {
-              prepare: (p: string, m: number, e: { message: string }) => ({
-                payload: p,
-                meta: m,
-                error: e,
-              }),
-              reducer: (state, action) => {
-                state.push(action)
-              },
+          reducers: () => ({ invalid: 'not a reducer' }) as any,
+        }),
+      ).toThrowErrorMatchingInlineSnapshot(
+        `[Error: [slice test] invalid reducer definition for "invalid": expected a case reducer function, a { reducer, prepare } object, or a creator definition]`,
+      )
+    })
+
+    test('dispatches a thunk created by create.asyncThunk through a store', async () => {
+      const slice = createSlice({
+        name: 'users',
+        initialState: { status: 'idle', name: '', settledCount: 0 },
+        creators: (ctx) => ({ asyncThunk: asyncThunkCreator(ctx) }),
+        reducers: (create) => ({
+          fetchUser: create.asyncThunk(async (id: number) => `user ${id}`, {
+            pending: (state) => {
+              state.status = 'loading'
+            },
+            fulfilled: (state, action) => {
+              state.status = 'idle'
+              state.name = action.payload
+            },
+            settled: (state) => {
+              state.settledCount++
             },
           }),
         }),
-      ).toThrowErrorMatchingInlineSnapshot(
-        `[Error: Please use the \`create.preparedReducer\` notation for prepared action creators with the \`create\` notation.]`,
-      )
+      })
+
+      const store = configureStore({ reducer: slice.reducer })
+      const promise = store.dispatch(slice.actions.fetchUser(1))
+      expect(store.getState().status).toBe('loading')
+      await promise
+      expect(store.getState()).toEqual({
+        status: 'idle',
+        name: 'user 1',
+        settledCount: 1,
+      })
     })
   })
 })

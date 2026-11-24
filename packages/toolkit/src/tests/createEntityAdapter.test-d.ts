@@ -111,12 +111,12 @@ describe('type tests', () => {
     }
     const adapter = createEntityAdapter<Entity>()
     const adapter2 = createEntityAdapter<Entity2>()
+    // @ts-expect-error
     createSlice({
       name: 'test',
       initialState: adapter.getInitialState(),
       reducers: {
         addOne: adapter.addOne,
-        // @ts-expect-error
         addOne2: adapter2.addOne,
       },
     })

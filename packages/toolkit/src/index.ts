@@ -45,32 +45,67 @@ export type {
 export {
   // js
   createReducer,
+  buildCreateReducer,
 } from './createReducer'
 export type {
   // types
   Actions,
+  BuildCreateReducerConfig,
   CaseReducer,
   CaseReducers,
+  CreateReducer,
+  ReducerWithInitialState,
 } from './createReducer'
+export { immerAdapter } from './immutability'
+export type { ImmutabilityAdapter } from './immutability'
 export {
   // js
   createSlice,
   buildCreateSlice,
-  asyncThunkCreator,
-  ReducerType,
 } from './createSlice'
 
 export type {
   // types
+  BuildCreateSliceConfig,
+  CreateSlice,
   CreateSliceOptions,
+  CreateSliceObjectOptions,
+  CreateSliceCallbackOptions,
+  CreatorsMap,
+  DefinitionsShape,
+  DefinitionSliceActions,
+  DefinitionSliceCaseReducers,
+  Injectable,
+  InjectedSlice,
+  InjectIntoConfig,
+  ObjectSliceActions,
+  ObjectSliceCaseReducers,
   Slice,
   CaseReducerActions,
   SliceCaseReducers,
   ValidateSliceCaseReducers,
   CaseReducerWithPrepare,
-  ReducerCreators,
   SliceSelectors,
+  WrappedSliceSelectors,
 } from './createSlice'
+export { makeDefinition } from './creators'
+export type {
+  AnyExposure,
+  BuiltinSliceCreators,
+  CreatorContext,
+  PreparedActionExposure,
+  ReducerDefinition,
+  ReducerDetails,
+  ReducerHandlingContext,
+  SliceActionExposure,
+  ValueExposure,
+} from './creators'
+export { asyncThunkCreator } from './asyncThunkCreator'
+export type {
+  AsyncThunkCreator,
+  AsyncThunkCreatorConfig,
+  AsyncThunkDefinition,
+} from './asyncThunkCreator'
 export type { ActionCreatorInvariantMiddlewareOptions } from './actionCreatorInvariantMiddleware'
 export { createActionCreatorInvariantMiddleware } from './actionCreatorInvariantMiddleware'
 export {
