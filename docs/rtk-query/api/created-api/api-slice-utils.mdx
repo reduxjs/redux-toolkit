@@ -223,8 +223,16 @@ export type NormalizedQueryUpsertEntry<
   value: ResultTypeFrom<Definitions[EndpointName]>
 }
 
-const upsertQueryEntries = (entries: NormalizedQueryUpsertEntry[]) =>
-  PayloadAction<NormalizedQueryUpsertEntry[]>
+type UpsertEntriesOptions = {
+  ignoreEarlierFetches?: boolean
+  keepRequestState?: boolean
+  keepUnusedDataTimer?: boolean
+}
+
+const upsertQueryEntries = (
+  entries: NormalizedQueryUpsertEntry[],
+  options?: UpsertEntriesOptions,
+) => PayloadAction<NormalizedQueryUpsertEntry[]>
 ```
 
 #### Parameters
@@ -233,6 +241,10 @@ const upsertQueryEntries = (entries: NormalizedQueryUpsertEntry[]) =>
   - `endpointName`: the name of the endpoint, such as `"getPokemon"`
   - `arg`: the full query key argument needed to identify this cache entry, such as `"pikachu"` (same as you would pass to a `useQuery` hook or `api.endpoints.someEndpoint.select()`)
   - `value`: the data to be upserted into this cache entry, exactly as formatted.
+- `options` (optional): controls how the write interacts with fetches for the same entries. Every option defaults to `false`, which keeps the behavior described below.
+  - `ignoreEarlierFetches`: if a fetch for an entry is in flight when the write happens, that fetch started before the write, so its data is ignored when it resolves. The fetch still sets the entry's `status` (and `error` if it fails). Fetches started after the write are not affected.
+  - `keepRequestState`: entries that already have a request keep their `status`, `requestId`, `error`, `startedTimeStamp` and `fulfilledTimeStamp`. Only `data` (and the provided tags) change. Entries without a request are created as `fulfilled`.
+  - `keepUnusedDataTimer`: the write does not restart the `keepUnusedDataFor` timer of entries that already exist. New entries without subscribers still get a normal timer.
 
 #### Description
 
@@ -252,7 +264,19 @@ Currently, this method has two main use cases. The first is prefilling the cache
 
 If no cache entry for that cache key exists, a cache entry will be created and the data added. If a cache entry already exists, this will _overwrite_ the existing cache entry data.
 
-If dispatched while an actual request is in progress, both the upsert and request will be handled as soon as they resolve, resulting in a "last result wins" update behavior.
+If dispatched while an actual request is in progress, both the upsert and request will be handled as soon as they resolve, resulting in a "last result wins" update behavior. Pass `ignoreEarlierFetches: true` to keep the upserted data instead, since it is newer than the data the in-flight fetch will return.
+
+By default, an upsert also marks an existing entry as `fulfilled`, clears its `error`, and restarts its `keepUnusedDataFor` timer. `keepRequestState: true` and `keepUnusedDataTimer: true` turn those off, so the upsert only changes the data.
+
+```ts no-transpile
+// A websocket message with the latest version of a post
+dispatch(
+  api.util.upsertQueryEntries(
+    [{ endpointName: 'getPost', arg: { id: post.id }, value: post }],
+    { ignoreEarlierFetches: true, keepRequestState: true },
+  ),
+)
+```
 
 #### Example
 

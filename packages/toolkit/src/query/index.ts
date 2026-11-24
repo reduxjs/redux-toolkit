@@ -95,6 +95,7 @@ export type {
   RemoveQueryDataOptions,
   TypedMutationOnQueryStarted,
   TypedQueryOnQueryStarted,
+  UpsertEntriesOptions,
 } from './core/index'
 export type {
   ApiEndpointMutation,

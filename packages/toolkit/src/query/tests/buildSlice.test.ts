@@ -85,6 +85,7 @@ describe('buildSlice', () => {
             originalArgs: 1,
             requestId: expect.any(String),
             startedTimeStamp: expect.any(Number),
+            startedSeq: expect.any(Number),
             status: 'fulfilled',
           },
         },

@@ -90,7 +90,7 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
     return !!runtime.queries.get(queryCacheKey)?.subscribers?.size
   }
 
-  const handler: ApiMiddlewareInternalHandler = (action, mwApi) => {
+  const handler: ApiMiddlewareInternalHandler = (action, mwApi, prevState) => {
     const state = mwApi.getState()
     const config = selectConfig(state)
 
@@ -119,6 +119,11 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
         queryCacheKeys = action.payload.map(
           (entry) => entry.queryDescription.queryCacheKey,
         )
+        if (action.meta.options?.keepUnusedDataTimer) {
+          queryCacheKeys = queryCacheKeys.filter(
+            (queryCacheKey) => !selectQueryEntry(prevState, queryCacheKey),
+          )
+        }
       } else {
         const { queryCacheKey } = unsubscribeQueryResult.match(action)
           ? action.payload

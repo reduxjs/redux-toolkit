@@ -3437,6 +3437,7 @@ describe('hooks tests', () => {
         originalArgs: USER_ID,
         requestId: expect.any(String),
         startedTimeStamp: expect.any(Number),
+        startedSeq: expect.any(Number),
         status: QueryStatus.pending,
       })
 
@@ -3457,6 +3458,7 @@ describe('hooks tests', () => {
         originalArgs: USER_ID,
         requestId: expect.any(String),
         startedTimeStamp: expect.any(Number),
+        startedSeq: expect.any(Number),
         status: QueryStatus.fulfilled,
       })
     })
@@ -3507,6 +3509,7 @@ describe('hooks tests', () => {
         originalArgs: USER_ID,
         requestId: expect.any(String),
         startedTimeStamp: expect.any(Number),
+        startedSeq: expect.any(Number),
         status: QueryStatus.fulfilled,
       })
 
@@ -3525,6 +3528,7 @@ describe('hooks tests', () => {
         originalArgs: USER_ID,
         requestId: expect.any(String),
         startedTimeStamp: expect.any(Number),
+        startedSeq: expect.any(Number),
         status: QueryStatus.fulfilled,
       })
     })
@@ -3578,6 +3582,7 @@ describe('hooks tests', () => {
         originalArgs: USER_ID,
         requestId: expect.any(String),
         startedTimeStamp: expect.any(Number),
+        startedSeq: expect.any(Number),
         status: QueryStatus.pending,
       })
 
@@ -3598,6 +3603,7 @@ describe('hooks tests', () => {
         originalArgs: USER_ID,
         requestId: expect.any(String),
         startedTimeStamp: expect.any(Number),
+        startedSeq: expect.any(Number),
         status: QueryStatus.fulfilled,
       })
     })
@@ -3682,6 +3688,7 @@ describe('hooks tests', () => {
         originalArgs: USER_ID,
         requestId: expect.any(String),
         startedTimeStamp: expect.any(Number),
+        startedSeq: expect.any(Number),
         status: 'pending',
       })
     })

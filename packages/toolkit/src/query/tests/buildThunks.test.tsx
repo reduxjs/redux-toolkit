@@ -52,6 +52,7 @@ describe('baseline thunk behavior', () => {
       requestId: expect.any(String),
       status: 'fulfilled',
       startedTimeStamp: expect.any(Number),
+      startedSeq: expect.any(Number),
       fulfilledTimeStamp: expect.any(Number),
     })
   })

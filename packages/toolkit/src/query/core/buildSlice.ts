@@ -100,6 +100,40 @@ export type ProcessedQueryUpsertEntry = {
 }
 
 /**
+ * Options for `upsertQueryEntries` that control how the write interacts with
+ * requests for the same cache entries. All options default to `false`, which
+ * keeps the existing behavior.
+ */
+export type UpsertEntriesOptions = {
+  /**
+   * If a fetch for the entry is in flight when this write happens, ignore
+   * that fetch's data when it resolves, because it started before this
+   * write. The fetch still settles the entry's status and error.
+   *
+   * Fetches started after this write are not affected.
+   *
+   * Whether this becomes the default in RTK 3.0 is undecided.
+   */
+  ignoreEarlierFetches?: boolean
+  /**
+   * Leave the request state (`status`, `requestId`, `error`,
+   * `startedTimeStamp`, `fulfilledTimeStamp`) of entries that already have
+   * a request unchanged, and only write `data`. Entries without a request
+   * are created as `fulfilled`.
+   *
+   * Planned to become the default in RTK 3.0.
+   */
+  keepRequestState?: boolean
+  /**
+   * Do not restart the `keepUnusedDataFor` timer of entries that already
+   * exist. New unsubscribed entries still get a normal timer.
+   *
+   * Planned to become the default in RTK 3.0.
+   */
+  keepUnusedDataTimer?: boolean
+}
+
+/**
  * A typesafe representation of a util action creator that accepts cache entry descriptions to upsert
  */
 export type UpsertEntries<Definitions extends EndpointDefinitions> = (<
@@ -113,6 +147,7 @@ export type UpsertEntries<Definitions extends EndpointDefinitions> = (<
       >
     },
   ],
+  options?: UpsertEntriesOptions,
 ) => PayloadAction<NormalizedQueryUpsertEntryPayload[]>) & {
   match: (
     action: unknown,
@@ -177,6 +212,27 @@ function areTagsEqual(
 
 const initialState = {} as any
 
+type UpsertEntriesMeta = {
+  RTK_autoBatch: boolean
+  requestId: string
+  timestamp: number
+  options?: UpsertEntriesOptions
+}
+
+// `startedSeq` is the `seq` of the last request started for the entry,
+// including `upsertQueryData` calls. `upsertQueryEntries` with
+// `ignoreEarlierFetches` copies it to `ignoreDataUpToSeq`. Requests with a
+// `seq` up to that value still settle the entry's request state when they
+// finish, but their data is not written. `seq` only increases within one
+// store, so later requests always pass.
+function isIgnoredRequest(
+  substate: { ignoreDataUpToSeq?: number } | undefined,
+  seq: number | undefined,
+) {
+  const ignoreUpTo = substate?.ignoreDataUpToSeq
+  return ignoreUpTo !== undefined && seq !== undefined && seq <= ignoreUpTo
+}
+
 export function buildSlice({
   reducerPath,
   queryThunk,
@@ -213,7 +269,7 @@ export function buildSlice({
       arg: QueryThunkArg
       requestId: string
       // requestStatus: 'pending'
-    } & { startedTimeStamp: number },
+    } & { startedTimeStamp: number; seq?: number },
   ) {
     draft[arg.queryCacheKey] ??= {
       status: STATUS_UNINITIALIZED,
@@ -228,6 +284,15 @@ export function buildSlice({
       if (!isUpsertUpdate) {
         substate.status = STATUS_PENDING
         substate.requestId = meta.requestId
+      }
+      if (meta.seq !== undefined) {
+        substate.startedSeq = meta.seq
+        // A new request in this store always has a higher `seq` than any
+        // value recorded here, so a value at least as high came from
+        // another store through preloaded or rehydrated state.
+        if (isIgnoredRequest(substate, meta.seq)) {
+          delete substate.ignoreDataUpToSeq
+        }
       }
       if (arg.originalArgs !== undefined) {
         substate.originalArgs = arg.originalArgs
@@ -245,7 +310,7 @@ export function buildSlice({
 
   function writeFulfilledCacheEntry(
     draft: QueryState<any>,
-    meta: { arg: QueryThunkArg; requestId: string } & {
+    meta: { arg: QueryThunkArg; requestId: string; seq?: number } & {
       fulfilledTimeStamp: number
       baseQueryMeta: unknown
     },
@@ -254,51 +319,61 @@ export function buildSlice({
   ) {
     updateQuerySubstateIfExists(draft, meta.arg.queryCacheKey, (substate) => {
       if (substate.requestId !== meta.requestId && !upserting) return
-      const { merge } = definitions[meta.arg.endpointName] as QueryDefinition<
-        any,
-        any,
-        any,
-        any
-      >
       substate.status = STATUS_FULFILLED
-
-      if (merge) {
-        if (substate.data !== undefined) {
-          const { fulfilledTimeStamp, arg, baseQueryMeta, requestId } = meta
-          // There's existing cache data. Let the user merge it in themselves.
-          // We're already inside an Immer-powered reducer, and the user could just mutate `substate.data`
-          // themselves inside of `merge()`. But, they might also want to return a new value.
-          // Try to let Immer figure that part out, save the result, and assign it to `substate.data`.
-          let newData = createNextState(substate.data, (draftSubstateData) => {
-            // As usual with Immer, you can mutate _or_ return inside here, but not both
-            return merge(draftSubstateData, payload, {
-              arg: arg.originalArgs,
-              baseQueryMeta,
-              fulfilledTimeStamp,
-              requestId,
-            })
-          })
-          substate.data = newData
-        } else {
-          // Presumably a fresh request. Just cache the response data.
-          substate.data = payload
-        }
-      } else {
-        // Assign or safely update the cache data.
-        substate.data =
-          (definitions[meta.arg.endpointName].structuralSharing ?? true)
-            ? copyWithStructuralSharing(
-                isDraft(substate.data)
-                  ? original(substate.data)
-                  : substate.data,
-                payload,
-              )
-            : payload
+      if (!isIgnoredRequest(substate, meta.seq)) {
+        writeCacheData(substate, meta, payload)
       }
-
       delete substate.error
       substate.fulfilledTimeStamp = meta.fulfilledTimeStamp
     })
+  }
+
+  function writeCacheData(
+    substate: QuerySubState<any> | InfiniteQuerySubState<any>,
+    meta: { arg: QueryThunkArg; requestId: string } & {
+      fulfilledTimeStamp: number
+      baseQueryMeta: unknown
+    },
+    payload: unknown,
+  ) {
+    const { merge } = definitions[meta.arg.endpointName] as QueryDefinition<
+      any,
+      any,
+      any,
+      any
+    >
+
+    if (merge) {
+      if (substate.data !== undefined) {
+        const { fulfilledTimeStamp, arg, baseQueryMeta, requestId } = meta
+        // There's existing cache data. Let the user merge it in themselves.
+        // We're already inside an Immer-powered reducer, and the user could just mutate `substate.data`
+        // themselves inside of `merge()`. But, they might also want to return a new value.
+        // Try to let Immer figure that part out, save the result, and assign it to `substate.data`.
+        let newData = createNextState(substate.data, (draftSubstateData) => {
+          // As usual with Immer, you can mutate _or_ return inside here, but not both
+          return merge(draftSubstateData, payload, {
+            arg: arg.originalArgs,
+            baseQueryMeta,
+            fulfilledTimeStamp,
+            requestId,
+          })
+        })
+        substate.data = newData
+      } else {
+        // Presumably a fresh request. Just cache the response data.
+        substate.data = payload
+      }
+    } else {
+      // Assign or safely update the cache data.
+      substate.data =
+        (definitions[meta.arg.endpointName].structuralSharing ?? true)
+          ? copyWithStructuralSharing(
+              isDraft(substate.data) ? original(substate.data) : substate.data,
+              payload,
+            )
+          : payload
+    }
   }
 
   const querySlice = createSlice({
@@ -322,11 +397,34 @@ export function buildSlice({
           action: PayloadAction<
             ProcessedQueryUpsertEntry[],
             string,
-            { RTK_autoBatch: boolean; requestId: string; timestamp: number }
+            UpsertEntriesMeta
           >,
         ) {
+          const { ignoreEarlierFetches, keepRequestState } =
+            action.meta.options ?? {}
           for (const entry of action.payload) {
             const { queryDescription: arg, value } = entry
+            const existing = draft[arg.queryCacheKey]
+
+            if (ignoreEarlierFetches && existing?.startedSeq !== undefined) {
+              existing.ignoreDataUpToSeq = existing.startedSeq
+            }
+
+            if (keepRequestState && existing?.requestId) {
+              existing.originalArgs = arg.originalArgs
+              writeCacheData(
+                existing,
+                {
+                  arg,
+                  requestId: action.meta.requestId,
+                  fulfilledTimeStamp: action.meta.timestamp,
+                  baseQueryMeta: {},
+                },
+                value,
+              )
+              continue
+            }
+
             writePendingCacheEntry(draft, arg, true, {
               arg,
               requestId: action.meta.requestId,
@@ -347,7 +445,10 @@ export function buildSlice({
             )
           }
         },
-        prepare: (payload: NormalizedQueryUpsertEntryPayload[]) => {
+        prepare: (
+          payload: NormalizedQueryUpsertEntryPayload[],
+          options?: UpsertEntriesOptions,
+        ) => {
           const queryDescriptions: ProcessedQueryUpsertEntry[] = []
           for (const { endpointName, arg, value } of payload) {
             const endpointDefinition = definitions[endpointName]
@@ -410,15 +511,15 @@ export function buildSlice({
             queryDescriptions.push({ queryDescription, value, providedTags })
           }
 
-          const result = {
-            payload: queryDescriptions,
-            meta: {
-              [SHOULD_AUTOBATCH]: true,
-              requestId: nanoid(),
-              timestamp: Date.now(),
-            },
+          const meta: UpsertEntriesMeta = {
+            [SHOULD_AUTOBATCH]: true,
+            requestId: nanoid(),
+            timestamp: Date.now(),
           }
-          return result
+          if (options) {
+            meta.options = options
+          }
+          return { payload: queryDescriptions, meta }
         },
       },
       queryResultPatched: {
@@ -808,14 +909,32 @@ export function buildSlice({
     )
   }
 
+  const isQueryResult = isAnyOf(
+    isFulfilled(queryThunk),
+    isRejectedWithValue(queryThunk),
+  )
+
   const reducer: typeof combinedReducer = (state, action) => {
     if (state !== undefined && !mayHandleAction(action)) {
       return state as ReturnType<typeof combinedReducer>
     }
-    return combinedReducer(
+    const nextState = combinedReducer(
       resetApiState.match(action) ? undefined : state,
       action,
     )
+    // An ignored request's result was not written, so the tags provided by
+    // the current data stay in place, whether it fulfilled or rejected.
+    if (
+      state?.provided &&
+      isQueryResult(action) &&
+      isIgnoredRequest(
+        state.queries?.[action.meta.arg.queryCacheKey],
+        action.meta.seq,
+      )
+    ) {
+      return { ...nextState, provided: state.provided }
+    }
+    return nextState
   }
 
   const actions = {

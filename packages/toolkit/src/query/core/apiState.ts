@@ -290,6 +290,16 @@ type BaseQuerySubState<
    * Time that the latest query was fulfilled
    */
   fulfilledTimeStamp?: number
+  /**
+   * Store-local order of the latest request started for this entry
+   * @internal
+   */
+  startedSeq?: number
+  /**
+   * Data from requests with a `startedSeq` up to this value is not written
+   * @internal
+   */
+  ignoreDataUpToSeq?: number
 }
 
 export type QuerySubState<
@@ -314,6 +324,10 @@ export type QuerySubState<
       endpointName?: string
       startedTimeStamp?: undefined
       fulfilledTimeStamp?: undefined
+      /** @internal */
+      startedSeq?: number
+      /** @internal */
+      ignoreDataUpToSeq?: number
     }
 >
 

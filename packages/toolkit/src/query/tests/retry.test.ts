@@ -242,6 +242,7 @@ describe('configuration', () => {
       originalArgs: expect.any(Object),
       requestId: expect.any(String),
       startedTimeStamp: expect.any(Number),
+      startedSeq: expect.any(Number),
       status: 'rejected',
     })
   })
