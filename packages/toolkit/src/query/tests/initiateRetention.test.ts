@@ -36,6 +36,8 @@ test('a kept initiate result does not keep the state from when it settled', asyn
 
   await store.dispatch(api.endpoints.thing.initiate(2))
 
-  expect(await isCollected(settledState)).toBe(true)
+  await vi.waitFor(async () => {
+    expect(await isCollected(settledState)).toBe(true)
+  })
   expect(result.abort).toBeTypeOf('function')
 })
