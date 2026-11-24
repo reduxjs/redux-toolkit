@@ -19,6 +19,7 @@ export interface EntityChangeRecord<Id extends EntityId> {
   updated: Id[]
   removed: Id[]
   renamed: Record<Id, Id>
+  ordered?: Id[]
 }
 
 export function hasOwnEntity(record: object, key: PropertyKey): boolean {
@@ -48,7 +49,7 @@ export function createEntityCore<T, Id extends EntityId>(
   ): EntityChangeRecord<Id> {
     const key = selectIdValue(entity, selectId)
 
-    if (hasOwnEntity(state.entities, key)) {
+    if (String(key) === '__proto__' || hasOwnEntity(state.entities, key)) {
       return changes
     }
 
@@ -108,6 +109,7 @@ export function createEntityCore<T, Id extends EntityId>(
 
     const seenAdded = new Set<Id>(changes.added)
     const seenUpdated = new Set<Id>(changes.updated)
+    const orderedKeys: Id[] = []
 
     try {
       if (enumerateDeduplicatedKeys) {
@@ -120,6 +122,7 @@ export function createEntityCore<T, Id extends EntityId>(
         }
         for (const strKey of Object.keys(deduplicated)) {
           const key = keyByString[strKey]
+          orderedKeys.push(key)
           const entity = deduplicated[key]
           const existedBefore =
             hasOwnEntity(state.entities, key) && !seenAdded.has(key)
@@ -136,8 +139,14 @@ export function createEntityCore<T, Id extends EntityId>(
           }
         }
       } else {
+        const seenOrdered = new Set<string>()
         for (const entity of entities) {
           const key = selectIdValue(entity, selectId)
+          const strKey = String(key)
+          if (!seenOrdered.has(strKey)) {
+            seenOrdered.add(strKey)
+            orderedKeys.push(key)
+          }
           const existedBefore =
             hasOwnEntity(state.entities, key) && !seenAdded.has(key)
           ;(state.entities as Record<Id, T>)[key] = entity
@@ -153,6 +162,7 @@ export function createEntityCore<T, Id extends EntityId>(
           }
         }
       }
+      changes.ordered = orderedKeys
     } finally {
       if (
         onCommit &&
@@ -177,7 +187,7 @@ export function createEntityCore<T, Id extends EntityId>(
     state.ids = []
     state.entities = {} as Record<Id, T>
 
-    setMany(newEntities, state, changes, undefined, enumerateDeduplicatedKeys)
+    setMany(newEntities, state, changes, onCommit, enumerateDeduplicatedKeys)
 
     if (currentIds.length > 0) {
       const addedSet = new Set<string>(changes.added.map(String))
@@ -186,10 +196,6 @@ export function createEntityCore<T, Id extends EntityId>(
           changes.removed.push(id)
         }
       }
-    }
-
-    if (onCommit) {
-      onCommit(changes)
     }
 
     return changes
@@ -302,7 +308,11 @@ export function createEntityCore<T, Id extends EntityId>(
         continue
       }
 
-      const candidate: T = Object.assign({}, original, update.changes)
+      const candidate: T = Object.assign(
+        Object.create(Object.getPrototypeOf(original)),
+        original,
+        update.changes,
+      )
       const newKey = selectIdValue(candidate, selectId)
 
       preparedUpdates.push({
@@ -316,6 +326,8 @@ export function createEntityCore<T, Id extends EntityId>(
 
     const seenAdded = new Set<Id>(changes.added)
     const seenUpdated = new Set<Id>(changes.updated)
+    const addedRenames = new Map<Id, Id>()
+    const overwrittenAdded = new Set<Id>()
 
     // Pass 2: delete old keys for all renamed entities first so chained or
     // swapped renames in the same batch never delete a newly written entity.
@@ -323,29 +335,36 @@ export function createEntityCore<T, Id extends EntityId>(
       if (newKey !== oldKey) {
         delete (state.entities as Record<Id, T>)[oldKey]
         if (seenAdded.has(oldKey)) {
-          seenAdded.delete(oldKey)
-          const idx = changes.added.indexOf(oldKey)
-          if (idx !== -1) {
-            if (
-              !seenAdded.has(newKey) &&
-              !hasOwnEntity(state.entities, newKey)
-            ) {
-              changes.added[idx] = newKey
-              seenAdded.add(newKey)
-            } else {
-              changes.added.splice(idx, 1)
-            }
-          }
+          addedRenames.set(oldKey, newKey)
         } else {
           changes.renamed[oldKey] = newKey
           if (seenAdded.has(newKey)) {
-            seenAdded.delete(newKey)
-            const idx = changes.added.indexOf(newKey)
-            if (idx !== -1) {
-              changes.added.splice(idx, 1)
-            }
+            overwrittenAdded.add(newKey)
           }
         }
+      }
+    }
+
+    if (addedRenames.size > 0 || overwrittenAdded.size > 0) {
+      const nextAdded: Id[] = []
+      const nextSeenAdded = new Set<Id>()
+      for (const id of changes.added) {
+        if (overwrittenAdded.has(id)) {
+          continue
+        }
+        const finalId = addedRenames.get(id) ?? id
+        if (!nextSeenAdded.has(finalId)) {
+          nextSeenAdded.add(finalId)
+          nextAdded.push(finalId)
+        }
+      }
+      changes.added.length = 0
+      for (const id of nextAdded) {
+        changes.added.push(id)
+      }
+      seenAdded.clear()
+      for (const id of nextSeenAdded) {
+        seenAdded.add(id)
       }
     }
 
@@ -398,28 +417,40 @@ export function createEntityCore<T, Id extends EntityId>(
       const combined = createEmptyChangeRecord<Id>()
       if (added.length > 0) {
         const addChanges = addMany(added, state, undefined, onPhase)
-        combined.added.push(...addChanges.added)
+        combined.added = addChanges.added.slice()
       }
       if (updated.length > 0) {
         const updateChanges = updateMany(updated, state)
         onPhase(updateChanges)
+        const combinedAddedSet = new Set<Id>(combined.added)
+        const addedRenames = new Map<Id, Id>()
+        const overwrittenAdded = new Set<Id>()
         for (const [oldId, newId] of Object.entries(
           updateChanges.renamed,
         ) as Array<[Id, Id]>) {
-          const addedIdx = combined.added.indexOf(oldId)
-          if (addedIdx !== -1) {
-            if (!combined.added.includes(newId)) {
-              combined.added[addedIdx] = newId
-            } else {
-              combined.added.splice(addedIdx, 1)
-            }
+          if (combinedAddedSet.has(oldId)) {
+            addedRenames.set(oldId, newId)
           } else {
             combined.renamed[oldId] = newId
-            const targetAddedIdx = combined.added.indexOf(newId)
-            if (targetAddedIdx !== -1) {
-              combined.added.splice(targetAddedIdx, 1)
+            if (combinedAddedSet.has(newId)) {
+              overwrittenAdded.add(newId)
             }
           }
+        }
+        if (addedRenames.size > 0 || overwrittenAdded.size > 0) {
+          const nextAdded: Id[] = []
+          const nextSeen = new Set<Id>()
+          for (const id of combined.added) {
+            if (overwrittenAdded.has(id)) {
+              continue
+            }
+            const finalId = addedRenames.get(id) ?? id
+            if (!nextSeen.has(finalId)) {
+              nextSeen.add(finalId)
+              nextAdded.push(finalId)
+            }
+          }
+          combined.added = nextAdded
         }
         for (const id of updateChanges.updated) {
           if (!combined.added.includes(id) && !combined.updated.includes(id)) {

@@ -460,6 +460,7 @@ describe('Entity Adapter Shared Core & Property-Based Differential Tests (#5525)
       updated: ['b'],
       removed: [],
       renamed: {},
+      ordered: ['b', 'c'],
     })
 
     const updateChanges = core.updateMany(
@@ -519,6 +520,7 @@ describe('Entity Adapter Shared Core & Property-Based Differential Tests (#5525)
       updated: [],
       removed: ['d', 'e'],
       renamed: {},
+      ordered: ['a'],
     })
   })
 
@@ -908,21 +910,29 @@ describe('Entity Adapter Shared Core & Property-Based Differential Tests (#5525)
     expect(afterCaughtAddMany.ids).toEqual(['valid-1'])
     expect(afterCaughtAddMany.entities['valid-1']?.tag).toBe('ok')
 
+    const initialForUpdateMany = strictAdapter.getInitialState(undefined, [
+      { id: 'valid-1', sortKey: 1, tag: 'ok-1', revision: 1 },
+      { id: 'valid-2', sortKey: 2, tag: 'ok-2', revision: 1 },
+    ])
+    let updateManyThrew = false
     const afterCaughtUpdateMany = createNextState(
-      afterCaughtAddMany,
+      initialForUpdateMany,
       (draft) => {
         try {
           strictAdapter.updateMany(draft, [
             { id: 'valid-1', changes: { id: 'renamed-1' } },
-            { id: 'valid-1', changes: { id: '' } },
+            { id: 'valid-2', changes: { id: '' } },
           ])
         } catch {
-          // caught inside producer
+          updateManyThrew = true
         }
       },
     )
-    expect(afterCaughtUpdateMany.ids).toEqual(['valid-1'])
+    expect(updateManyThrew).toBe(true)
+    expect(afterCaughtUpdateMany.ids).toEqual(['valid-1', 'valid-2'])
     expect(afterCaughtUpdateMany.entities['valid-1']?.id).toBe('valid-1')
+    expect(afterCaughtUpdateMany.entities['valid-2']?.id).toBe('valid-2')
+    expect(afterCaughtUpdateMany.entities['renamed-1']).toBeUndefined()
 
     // 4. Deduplicate destination keys across rename and addition in upsertMany
     interface PrefixedItem {
@@ -942,6 +952,14 @@ describe('Entity Adapter Shared Core & Property-Based Differential Tests (#5525)
       { prefix: 'a', rank: 3 },
     ])
     expect(afterPrefixedUpsert.ids).toEqual(['aa'])
+    expect(afterPrefixedUpsert.entities.aa).toEqual({
+      id: 'a',
+      prefix: 'a',
+      rank: 3,
+    })
+    expect(
+      Object.prototype.hasOwnProperty.call(afterPrefixedUpsert.entities, 'a'),
+    ).toBe(false)
 
     // 5. Preserve pre-update rank tie order in sorted upsertMany
     const startTieUpsert = sorted.getInitialState(undefined, [

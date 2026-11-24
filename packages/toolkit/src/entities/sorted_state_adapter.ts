@@ -107,15 +107,18 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
 
     if (reinsertUpdated) {
       // For setOne / setMany / setAll, replaced entities are reinserted in
-      // their deduplicated order alongside new additions.
-      const reinsertedIds = [...updated, ...added].filter((id) =>
-        hasOwnEntity(currentEntities, id),
+      // their deduplicated batch order alongside new additions.
+      const reinsertedIds = (changes.ordered ?? [...updated, ...added]).filter(
+        (id) => hasOwnEntity(currentEntities, id),
       )
-      const reinsertedSet = new Set<Id>(reinsertedIds)
+      const reinsertedSet = new Set<string>(reinsertedIds.map(String))
       const retainedEntries: SortedEntry[] = []
 
       for (const id of currentIds) {
-        if (!reinsertedSet.has(id) && hasOwnEntity(currentEntities, id)) {
+        if (
+          !reinsertedSet.has(String(id)) &&
+          hasOwnEntity(currentEntities, id)
+        ) {
           retainedEntries.push({ id, entity: currentEntities[id] })
         }
       }
@@ -162,59 +165,66 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
     const wasPreviouslyEmpty = survivingIds.length === 0
     let sortedEntries: SortedEntry[] = []
 
-    if (wasPreviouslyEmpty) {
-      sortedEntries = effectiveAdded
-        .map((id) => ({ id, entity: currentEntities[id] }))
-        .sort(compareEntries)
-    } else if (updated.length === 0 && !hasRenames) {
-      for (const id of survivingIds) {
-        sortedEntries.push({ id, entity: currentEntities[id] })
-      }
-      for (const id of effectiveAdded) {
-        insert(
-          sortedEntries,
-          { id, entity: currentEntities[id] },
-          compareEntries,
-        )
-      }
-    } else {
-      const updatedSet = new Set<Id>(updated)
-      let stillSorted = !hasRenames
+    try {
+      if (wasPreviouslyEmpty) {
+        sortedEntries = effectiveAdded
+          .map((id) => ({ id, entity: currentEntities[id] }))
+          .sort(compareEntries)
+      } else if (updated.length === 0 && !hasRenames) {
+        for (const id of survivingIds) {
+          sortedEntries.push({ id, entity: currentEntities[id] })
+        }
+        for (const id of effectiveAdded) {
+          insert(
+            sortedEntries,
+            { id, entity: currentEntities[id] },
+            compareEntries,
+          )
+        }
+      } else {
+        const updatedSet = new Set<Id>(updated)
+        let stillSorted = !hasRenames
 
-      if (stillSorted) {
-        for (let i = 0; i < survivingIds.length; i++) {
-          const id = survivingIds[i]
-          if (!updatedSet.has(id)) {
-            continue
-          }
-          const entity = currentEntities[id]
-          if (
-            (i > 0 &&
-              comparer(currentEntities[survivingIds[i - 1]], entity) > 0) ||
-            (i < survivingIds.length - 1 &&
-              comparer(entity, currentEntities[survivingIds[i + 1]]) > 0)
-          ) {
-            stillSorted = false
-            break
+        if (stillSorted) {
+          for (let i = 0; i < survivingIds.length; i++) {
+            const id = survivingIds[i]
+            if (!updatedSet.has(id)) {
+              continue
+            }
+            const entity = currentEntities[id]
+            if (
+              (i > 0 &&
+                comparer(currentEntities[survivingIds[i - 1]], entity) > 0) ||
+              (i < survivingIds.length - 1 &&
+                comparer(entity, currentEntities[survivingIds[i + 1]]) > 0)
+            ) {
+              stillSorted = false
+              break
+            }
           }
         }
-      }
 
-      for (const id of survivingIds) {
-        sortedEntries.push({ id, entity: currentEntities[id] })
-      }
+        for (const id of survivingIds) {
+          sortedEntries.push({ id, entity: currentEntities[id] })
+        }
 
-      if (!stillSorted) {
-        sortedEntries.sort(compareEntries)
-      }
+        if (!stillSorted) {
+          sortedEntries.sort(compareEntries)
+        }
 
+        for (const id of effectiveAdded) {
+          insert(
+            sortedEntries,
+            { id, entity: currentEntities[id] },
+            compareEntries,
+          )
+        }
+      }
+    } catch (err) {
       for (const id of effectiveAdded) {
-        insert(
-          sortedEntries,
-          { id, entity: currentEntities[id] },
-          compareEntries,
-        )
+        delete (state.entities as Record<Id, T>)[id]
       }
+      throw err
     }
 
     const newSortedIds = sortedEntries.map((entry) => entry.id)
