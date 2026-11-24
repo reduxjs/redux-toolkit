@@ -82,77 +82,54 @@ export type SliceSelectors<State> = Record<
 >
 
 /**
- * `slice.actions` for the object form of `reducers`.
- * The payload type comes from the case reducer's `action` parameter annotation.
+ * The reducers a slice was created with: either the object form of
+ * `reducers`, or the definitions returned by its callback form.
  *
  * @public
  */
-export type ObjectSliceActions<
-  Name extends string,
-  CRs extends SliceCaseReducers<any>,
-> = {
-  [K in keyof CRs & string]: CRs[K] extends {
-    prepare: infer PA extends PrepareAction<any>
-  }
-    ? _ActionCreatorWithPreparedPayload<PA, `${Name}/${K}`>
-    : CRs[K] extends (state: any, action: infer A) => any
-      ? A extends { payload: infer P }
-        ? PayloadActionCreator<P, `${Name}/${K}`>
-        : PayloadActionCreator<void, `${Name}/${K}`>
-      : PayloadActionCreator<void, `${Name}/${K}`>
-}
+export type SliceReducers<State> = SliceCaseReducers<State> | DefinitionsShape
 
 /**
- * Derives the action creators for an object of case reducers.
+ * Derives the action creators (and other exposed values) for a slice's
+ * reducers.
  *
- * @public
- */
-export type CaseReducerActions<
-  CaseReducers extends SliceCaseReducers<any>,
-  SliceName extends string,
-> = ObjectSliceActions<SliceName, CaseReducers>
-
-/**
- * `slice.caseReducers` for the object form of `reducers`: the functions that
- * were passed in, with `{ reducer, prepare }` objects unwrapped to `reducer`.
- *
- * @public
- */
-export type ObjectSliceCaseReducers<CRs extends SliceCaseReducers<any>> = {
-  [K in keyof CRs]: CRs[K] extends { reducer: infer R } ? R : CRs[K]
-}
-
-/**
- * `slice.actions` for the callback form of `reducers`, derived from what
+ * For the object form, the payload type comes from the case reducer's
+ * `action` parameter annotation. For the callback form, it comes from what
  * each definition exposes.
  *
  * @public
  */
-export type DefinitionSliceActions<
-  Name extends string,
-  Defs extends DefinitionsShape,
-> = {
-  [K in keyof Defs & string]: Defs[K] extends ReducerDefinition<infer E>
+export type CaseReducerActions<Reducers, SliceName extends string> = {
+  [K in keyof Reducers & string]: Reducers[K] extends ReducerDefinition<infer E>
     ? E extends SliceActionExposure<infer P>
-      ? PayloadActionCreator<P, `${Name}/${K}`>
+      ? PayloadActionCreator<P, `${SliceName}/${K}`>
       : E extends PreparedActionExposure<infer PA>
-        ? _ActionCreatorWithPreparedPayload<PA, `${Name}/${K}`>
+        ? _ActionCreatorWithPreparedPayload<PA, `${SliceName}/${K}`>
         : E extends ValueExposure<infer V, any>
           ? V
           : never
-    : never
+    : ActionCreatorForCaseReducer<Reducers[K], `${SliceName}/${K}`>
 }
 
+type ActionCreatorForCaseReducer<CR, Type extends string> = CR extends {
+  prepare: infer PA extends PrepareAction<any>
+}
+  ? _ActionCreatorWithPreparedPayload<PA, Type>
+  : CR extends (state: any, action: infer A) => any
+    ? A extends { payload: infer P }
+      ? PayloadActionCreator<P, Type>
+      : PayloadActionCreator<void, Type>
+    : PayloadActionCreator<void, Type>
+
 /**
- * `slice.caseReducers` for the callback form of `reducers`.
+ * `slice.caseReducers`: the case reducers that were passed in, with
+ * `{ reducer, prepare }` objects unwrapped to `reducer`. For the callback form,
+ * the case reducers each definition exposes.
  *
  * @public
  */
-export type DefinitionSliceCaseReducers<
-  State,
-  Defs extends DefinitionsShape,
-> = {
-  [K in keyof Defs]: Defs[K] extends ReducerDefinition<infer E>
+export type SliceDefinedCaseReducers<Reducers, State> = {
+  [K in keyof Reducers]: Reducers[K] extends ReducerDefinition<infer E>
     ? E extends SliceActionExposure<infer P>
       ? CaseReducer<State, PayloadAction<P>>
       : E extends PreparedActionExposure<infer PA>
@@ -163,7 +140,9 @@ export type DefinitionSliceCaseReducers<
         : E extends ValueExposure<any, infer CRs>
           ? CRs
           : never
-    : never
+    : Reducers[K] extends { reducer: infer R }
+      ? R
+      : Reducers[K]
 }
 
 /**
@@ -221,13 +200,12 @@ export interface Injectable {
  */
 export type InjectedSlice<
   State = any,
+  Reducers extends SliceReducers<State> = SliceCaseReducers<State>,
   Name extends string = string,
-  Actions = any,
-  CaseReducersOut = any,
   ReducerPath extends string = Name,
   Selectors extends SliceSelectors<State> = SliceSelectors<State>,
 > = Omit<
-  Slice<State, Name, Actions, CaseReducersOut, ReducerPath, Selectors>,
+  Slice<State, Reducers, Name, ReducerPath, Selectors>,
   'selectSlice' | 'selectors' | 'getSelectors'
 > & {
   /**
@@ -268,9 +246,8 @@ export type InjectedSlice<
  */
 export interface Slice<
   State = any,
+  Reducers extends SliceReducers<State> = SliceCaseReducers<State>,
   Name extends string = string,
-  Actions = any,
-  CaseReducersOut = any,
   ReducerPath extends string = Name,
   Selectors extends SliceSelectors<State> = SliceSelectors<State>,
 > {
@@ -293,13 +270,13 @@ export interface Slice<
    * Action creators for the types of actions that are handled by the slice
    * reducer.
    */
-  actions: Actions
+  actions: CaseReducerActions<Reducers, Name>
 
   /**
    * The individual case reducer functions that were passed in the `reducers` parameter.
    * This enables reuse and testing if they were defined inline when calling `createSlice`.
    */
-  caseReducers: CaseReducersOut
+  caseReducers: SliceDefinedCaseReducers<Reducers, State>
 
   /**
    * Provides access to the initial state value given to the slice.
@@ -346,14 +323,7 @@ export interface Slice<
   injectInto<NewReducerPath extends string = ReducerPath>(
     injectable: Injectable,
     config?: InjectIntoConfig<NewReducerPath>,
-  ): InjectedSlice<
-    State,
-    Name,
-    Actions,
-    CaseReducersOut,
-    NewReducerPath,
-    Selectors
-  >
+  ): InjectedSlice<State, Reducers, Name, NewReducerPath, Selectors>
 }
 
 interface CommonSliceOptions<
@@ -548,14 +518,7 @@ export interface CreateSlice {
     Selectors extends SliceSelectors<State> = SliceSelectors<State>,
   >(
     options: CreateSliceObjectOptions<State, Name, CRs, ReducerPath, Selectors>,
-  ): Slice<
-    State,
-    Name,
-    ObjectSliceActions<Name, CRs>,
-    ObjectSliceCaseReducers<CRs>,
-    ReducerPath,
-    Selectors
-  >
+  ): Slice<State, CRs, Name, ReducerPath, Selectors>
 
   <
     State,
@@ -573,14 +536,7 @@ export interface CreateSlice {
       ReducerPath,
       Selectors
     >,
-  ): Slice<
-    State,
-    Name,
-    DefinitionSliceActions<Name, Defs>,
-    DefinitionSliceCaseReducers<State, Defs>,
-    ReducerPath,
-    Selectors
-  >
+  ): Slice<State, Defs, Name, ReducerPath, Selectors>
 }
 
 /**

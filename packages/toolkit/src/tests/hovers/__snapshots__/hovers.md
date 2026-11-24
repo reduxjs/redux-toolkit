@@ -155,10 +155,10 @@ const fetchUserById: AsyncThunk<User, string, AsyncThunkConfig>
 const usersAdapter: EntityAdapter<User, string>
 ```
 
-## counterSlice (1138 chars)
+## counterSlice (599 chars)
 
 ```ts
-const counterSlice: Slice<CounterState, "counter", ObjectSliceActions<"counter", {
+const counterSlice: Slice<CounterState, {
     increment: (state: WritableNonArrayDraft<CounterState>) => void;
     incrementBy: (state: WritableNonArrayDraft<CounterState>, action: PayloadAction<number>) => void;
     prepared: {
@@ -172,31 +172,17 @@ const counterSlice: Slice<CounterState, "counter", ObjectSliceActions<"counter",
             };
         };
     };
-}>, ObjectSliceCaseReducers<{
-    increment: (state: WritableNonArrayDraft<CounterState>) => void;
-    incrementBy: (state: WritableNonArrayDraft<CounterState>, action: PayloadAction<number>) => void;
-    prepared: {
-        reducer: (state: WritableNonArrayDraft<CounterState>, action: PayloadAction<number, string, {
-            at: number;
-        }>) => void;
-        prepare: (n: number) => {
-            payload: number;
-            meta: {
-                at: number;
-            };
-        };
-    };
-}>, "counter", {
+}, "counter", "counter", {
     selectValue: (state: CounterState) => number;
 }>
 ```
 
-## usersSlice (835 chars)
+## usersSlice (474 chars)
 
 ```ts
 const usersSlice: Slice<EntityState<User, string> & {
     loading: boolean;
-}, "users", ObjectSliceActions<"users", {
+}, {
     userAdded: {
         <S extends DraftableEntityState<User, string>>(state: PreventAny<S, User, string>, entity: User): S;
         <S extends DraftableEntityState<User, string>>(state: PreventAny<S, User, string>, action: {
@@ -204,15 +190,7 @@ const usersSlice: Slice<EntityState<User, string> & {
             type: string;
         }): S;
     };
-}>, ObjectSliceCaseReducers<{
-    userAdded: {
-        <S extends DraftableEntityState<User, string>>(state: PreventAny<S, User, string>, entity: User): S;
-        <S extends DraftableEntityState<User, string>>(state: PreventAny<S, User, string>, action: {
-            payload: User;
-            type: string;
-        }): S;
-    };
-}>, "users", SliceSelectors<EntityState<User, string> & {
+}, "users", "users", SliceSelectors<EntityState<User, string> & {
     loading: boolean;
 }>>
 ```

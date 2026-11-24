@@ -8,9 +8,9 @@ import type {
 import { combineSlices } from '@reduxjs/toolkit'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query'
 
-declare const stringSlice: Slice<string, 'string'>
+declare const stringSlice: Slice<string, {}, 'string'>
 
-declare const numberSlice: Slice<number, 'number'>
+declare const numberSlice: Slice<number, {}, 'number'>
 
 declare const booleanReducer: Reducer<boolean>
 
