@@ -10,6 +10,7 @@ import type {
 import {
   clearRemovalTimer,
   releaseRetain,
+  remainingRetainSeconds,
   retainRecord,
   setRemovalTimer,
 } from './runtime'
@@ -175,7 +176,7 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
       endpointDefinition?.keepUnusedDataFor ?? config.keepUnusedDataFor
     const keepUnusedDataFor = Math.max(
       configuredKeepUnusedDataFor,
-      runtime.queries.get(queryCacheKey)?.retainFor ?? 0,
+      remainingRetainSeconds(runtime, queryCacheKey),
     )
 
     if (keepUnusedDataFor === Infinity) {

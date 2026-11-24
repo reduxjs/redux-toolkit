@@ -223,7 +223,37 @@ describe('initiate retainFor', () => {
     await ctx.store.dispatch(
       ctx.api.endpoints.thing.initiate(1, { subscribe: false, retainFor: 2 }),
     )
-    await vi.advanceTimersByTimeAsync(9900)
+    await vi.advanceTimersByTimeAsync(4900)
+    expect(ctx.hasEntry(1)).toBe(true)
+    await vi.advanceTimersByTimeAsync(200)
+    expect(ctx.hasEntry(1)).toBe(false)
+  })
+
+  test('an unsubscribe after the retainFor deadline uses keepUnusedDataFor', async () => {
+    const ctx = setup({ keepUnusedDataFor: 1 })
+    await fetchUnsubscribed(ctx, 300)
+    await vi.advanceTimersByTimeAsync(500)
+
+    const sub = ctx.store.dispatch(ctx.api.endpoints.thing.initiate(1))
+    await sub
+    await vi.advanceTimersByTimeAsync(400_000)
+    sub.unsubscribe()
+
+    await vi.advanceTimersByTimeAsync(1100)
+    expect(ctx.hasEntry(1)).toBe(false)
+  })
+
+  test('an unsubscribe before the retainFor deadline keeps the entry until the deadline', async () => {
+    const ctx = setup({ keepUnusedDataFor: 1 })
+    await fetchUnsubscribed(ctx, 10)
+    await vi.advanceTimersByTimeAsync(2000)
+
+    const sub = ctx.store.dispatch(ctx.api.endpoints.thing.initiate(1))
+    await sub
+    await vi.advanceTimersByTimeAsync(2000)
+    sub.unsubscribe()
+
+    await vi.advanceTimersByTimeAsync(5900)
     expect(ctx.hasEntry(1)).toBe(true)
     await vi.advanceTimersByTimeAsync(200)
     expect(ctx.hasEntry(1)).toBe(false)
