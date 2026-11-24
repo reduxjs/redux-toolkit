@@ -174,6 +174,13 @@ export const buildCacheCollectionHandler: InternalHandlerBuilder = ({
     ) as QueryDefinition<any, any, any, any>
     const configuredKeepUnusedDataFor =
       endpointDefinition?.keepUnusedDataFor ?? config.keepUnusedDataFor
+    const record = runtime.queries.get(queryCacheKey)
+    if (record?.request && record.retainFor) {
+      // `retainFor` counts from when the request settles, and its
+      // `fulfilled`/`rejected` arms the timer then
+      clearRemovalTimer(runtime, queryCacheKey)
+      return
+    }
     const keepUnusedDataFor = Math.max(
       configuredKeepUnusedDataFor,
       remainingRetainSeconds(runtime, queryCacheKey),
