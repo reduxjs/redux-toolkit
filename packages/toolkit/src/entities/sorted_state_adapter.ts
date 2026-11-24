@@ -98,25 +98,71 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
     const currentEntities = getCurrent(state.entities) as Record<Id, T>
     const currentIds = getCurrent(state.ids as Id[])
 
-    const ids: Iterable<Id> = hasRenames
-      ? new Set(currentIds.map((id) => renamed[id] ?? id))
+    const survivingIds: Id[] = hasRenames
+      ? Array.from(
+          new Set(
+            currentIds
+              .map((id) => renamed[id] ?? id)
+              .filter((id) => id in currentEntities),
+          ),
+        )
       : currentIds
 
+    const wasPreviouslyEmpty = survivingIds.length === 0
+
     let sortedEntities: T[] = []
-    for (const id of ids) {
-      const entity = currentEntities[id]
-      if (entity) {
-        sortedEntities.push(entity)
-      }
-    }
-    const wasPreviouslyEmpty = sortedEntities.length === 0
 
     if (wasPreviouslyEmpty) {
       sortedEntities = added.map((id) => currentEntities[id]).sort(comparer)
-    } else {
-      if (updated.length > 0 || hasRenames) {
-        sortedEntities.sort(comparer)
+    } else if (updated.length === 0) {
+      for (const id of survivingIds) {
+        const entity = currentEntities[id]
+        if (entity) {
+          sortedEntities.push(entity)
+        }
       }
+      for (const id of added) {
+        insert(sortedEntities, currentEntities[id], comparer)
+      }
+    } else {
+      const updatedSet = new Set<Id>(updated)
+      let stillSorted = true
+
+      for (let i = 0; i < survivingIds.length; i++) {
+        const id = survivingIds[i]
+        if (!updatedSet.has(id)) {
+          continue
+        }
+        const entity = currentEntities[id]
+        if (
+          (i > 0 &&
+            comparer(currentEntities[survivingIds[i - 1]], entity) > 0) ||
+          (i < survivingIds.length - 1 &&
+            comparer(entity, currentEntities[survivingIds[i + 1]]) > 0)
+        ) {
+          stillSorted = false
+          break
+        }
+      }
+
+      if (stillSorted) {
+        for (const id of survivingIds) {
+          sortedEntities.push(currentEntities[id])
+        }
+      } else {
+        const toReinsert: T[] = []
+        for (const id of survivingIds) {
+          if (updatedSet.has(id)) {
+            toReinsert.push(currentEntities[id])
+          } else {
+            sortedEntities.push(currentEntities[id])
+          }
+        }
+        for (const entity of toReinsert) {
+          insert(sortedEntities, entity, comparer)
+        }
+      }
+
       for (const id of added) {
         insert(sortedEntities, currentEntities[id], comparer)
       }

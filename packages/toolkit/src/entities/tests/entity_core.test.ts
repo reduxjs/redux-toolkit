@@ -786,4 +786,43 @@ describe('Entity Adapter Shared Core & Property-Based Differential Tests (#5525)
       a: { id: 'a', sortKey: 20, tag: 'second', revision: 1 },
     })
   })
+
+  it('reorders updated items in O(k log N) comparisons via binary reinsertion instead of O(N) full re-sort', () => {
+    let comparisons = 0
+    const sorted = createEntityAdapter<TestItem>({
+      sortComparer: (a, b) => {
+        comparisons += 1
+        return a.sortKey - b.sortKey
+      },
+    })
+
+    const initialItems: TestItem[] = Array.from({ length: 2000 }, (_, i) => ({
+      id: `item-${i}`,
+      sortKey: i * 10,
+      tag: 'initial',
+      revision: 1,
+    }))
+
+    const state = sorted.getInitialState(undefined, initialItems)
+
+    // 1. Updating a non-sort field checks only immediate neighbors (2 comparisons)
+    comparisons = 0
+    const afterInPlaceUpdate = sorted.updateOne(state, {
+      id: 'item-1000',
+      changes: { tag: 'touched' },
+    })
+    expect(comparisons).toBe(2)
+    expect(afterInPlaceUpdate.ids).toBe(state.ids)
+
+    // 2. Moving one item across the 2,000-element list uses binary reinsertion (< 30 comparisons instead of >= 2,000)
+    comparisons = 0
+    const afterMovedUpdate = sorted.updateOne(state, {
+      id: 'item-1000',
+      changes: { sortKey: 19995 },
+    })
+    expect(comparisons).toBeLessThan(30)
+    expect(afterMovedUpdate.ids[afterMovedUpdate.ids.length - 1]).toBe(
+      'item-1000',
+    )
+  })
 })
