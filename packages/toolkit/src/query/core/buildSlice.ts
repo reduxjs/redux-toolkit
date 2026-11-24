@@ -909,7 +909,10 @@ export function buildSlice({
     )
   }
 
-  const isQueryFulfilled = isFulfilled(queryThunk)
+  const isQueryResult = isAnyOf(
+    isFulfilled(queryThunk),
+    isRejectedWithValue(queryThunk),
+  )
 
   const reducer: typeof combinedReducer = (state, action) => {
     if (state !== undefined && !mayHandleAction(action)) {
@@ -919,11 +922,11 @@ export function buildSlice({
       resetApiState.match(action) ? undefined : state,
       action,
     )
-    // An ignored request's data was not written, so the tags provided by
-    // the current data stay in place.
+    // An ignored request's result was not written, so the tags provided by
+    // the current data stay in place, whether it fulfilled or rejected.
     if (
       state?.provided &&
-      isQueryFulfilled(action) &&
+      isQueryResult(action) &&
       isIgnoredRequest(
         state.queries?.[action.meta.arg.queryCacheKey],
         action.meta.seq,

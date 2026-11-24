@@ -131,6 +131,7 @@ describe('upsertQueryEntries options', () => {
         error: 'failed',
         data: upserted,
       })
+      expect(providedTitles()).toEqual(['upserted'])
     })
 
     test('discards an earlier request after a default upsert set the status to fulfilled', async () => {
