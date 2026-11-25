@@ -768,8 +768,8 @@ export function buildThunks<
         const cachedEntry = selectors.selectQueryEntry(
           getState(),
           arg.queryCacheKey,
-        ) as InfiniteQuerySubState<any>
-        const cachedData = cachedEntry.data as
+        ) as InfiniteQuerySubState<any> | undefined
+        const cachedData = cachedEntry?.data as
           | InfiniteData<unknown, unknown>
           | undefined
 
@@ -799,8 +799,10 @@ export function buildThunks<
         } else {
           // Otherwise, fetch the first page and then any remaining pages
 
-          const { initialPageParam = infiniteQueryOptions.initialPageParam } =
-            cachedEntry
+          const initialPageParam =
+            cachedEntry?.initialPageParam !== undefined
+              ? cachedEntry.initialPageParam
+              : infiniteQueryOptions.initialPageParam
 
           // If we're doing a refetch, we should start from
           // the first page we have cached.
