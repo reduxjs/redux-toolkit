@@ -724,7 +724,8 @@ type UseQueryStateResult<D, R> = R
 // The default result of `useQueryState`, before any `selectFromResult` is
 // applied. It is a discriminated union, so which fields are present depends
 // on the request status. `ResultTypeFrom<D>` is the type of the query's result data.
-// `status` is deprecated - prefer the `is*` flags instead.
+// `status` is deprecated - prefer the `is*` flags instead. It is only narrowed
+// in the uninitialized branch; the other branches type it as `QueryStatus`.
 type UseQueryStateDefaultResult<D> =
   | {
       // Query has not started yet
@@ -752,8 +753,9 @@ type UseQueryStateDefaultResult<D> =
       isError: false
     }
   | {
-      // Query is currently loading for the first time. No data yet.
-      status: 'pending'
+      // Query is currently loading and has no data yet: either the first
+      // request, or a refetch after an error that left no data.
+      status: QueryStatus
       originalArgs: unknown
       data: undefined
       currentData?: ResultTypeFrom<D>
@@ -771,8 +773,7 @@ type UseQueryStateDefaultResult<D> =
     }
   | {
       // Query has data from a successful load, and is currently refetching.
-      // `status` can still be 'pending' while that refetch is in flight.
-      status: 'pending' | 'fulfilled'
+      status: QueryStatus
       originalArgs: unknown
       data: ResultTypeFrom<D>
       currentData?: ResultTypeFrom<D>
@@ -789,7 +790,7 @@ type UseQueryStateDefaultResult<D> =
     }
   | {
       // Query has data from a successful load, and is not fetching
-      status: 'fulfilled'
+      status: QueryStatus
       originalArgs: unknown
       data: ResultTypeFrom<D>
       currentData: ResultTypeFrom<D>
@@ -806,7 +807,7 @@ type UseQueryStateDefaultResult<D> =
     }
   | {
       // Query is currently in an "error" state
-      status: 'rejected'
+      status: QueryStatus
       originalArgs: unknown
       data?: ResultTypeFrom<D>
       currentData?: ResultTypeFrom<D>
