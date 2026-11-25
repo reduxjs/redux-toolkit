@@ -15,7 +15,7 @@ const slice = createSlice({
   reducers: {
     logout: () => initialState,
   },
-  extraReducers: (builder) => {
+  respondTo: (builder) => {
     builder
       .addMatcher(postsApi.endpoints.login.matchPending, (state, action) => {
         console.log('pending', action)

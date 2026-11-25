@@ -120,11 +120,14 @@ export function createReducerImpl<S extends NotFunction<any>>(
   builderCallback: (builder: ActionReducerMapBuilder<S>) => void,
   adapter: ImmutabilityAdapter,
 ): ReducerWithInitialState<S> {
+  if (typeof builderCallback === 'object') {
+    throw new Error(
+      "The object notation for `createReducer` has been removed. Please use the 'builder callback' notation instead: https://redux-toolkit.js.org/api/createReducer",
+    )
+  }
   if (typeof builderCallback !== 'function') {
     throw new Error(
-      typeof builderCallback === 'object'
-        ? "The object notation for `createReducer` has been removed. Please use the 'builder callback' notation instead: https://redux-toolkit.js.org/api/createReducer"
-        : 'createReducer requires a builder callback as its second argument',
+      'createReducer requires a builder callback as its second argument',
     )
   }
 

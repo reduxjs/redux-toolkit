@@ -28,12 +28,21 @@ type SliceLikeReducerPath<A extends AnySliceLike> =
 type SliceLikeState<A extends AnySliceLike> =
   A extends SliceLike<any, infer State, any> ? State : never
 
-type SliceLikePreloadedState<A extends AnySliceLike> = A extends {
-  reducer: { getInitialState(): infer State }
-}
-  ? State
-  : A extends SliceLike<any, any, infer PreloadedState>
-    ? PreloadedState
+// Slice reducers carry `getInitialState`, which stops `PreloadedState` from
+// being inferred through `Reducer` (it comes out as `unknown`). In that case,
+// read it from the reducer's state parameter: whatever is accepted besides
+// `State | undefined` is the declared preloaded state, otherwise it is `State`.
+type SliceLikePreloadedState<A extends AnySliceLike> =
+  A extends SliceLike<any, any, infer PreloadedState>
+    ? unknown extends PreloadedState
+      ? A extends {
+          reducer: (state: infer StateParam, action: any) => infer State
+        }
+        ? [Exclude<StateParam, State | undefined>] extends [never]
+          ? State
+          : Exclude<StateParam, State | undefined>
+        : PreloadedState
+      : PreloadedState
     : never
 
 export type WithSlice<A extends AnySliceLike> = {

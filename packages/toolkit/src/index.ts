@@ -69,8 +69,6 @@ export type {
   BuildCreateSliceConfig,
   CreateSlice,
   CreateSliceOptions,
-  CreateSliceObjectOptions,
-  CreateSliceCallbackOptions,
   CreatorsMap,
   DefinitionsShape,
   Injectable,

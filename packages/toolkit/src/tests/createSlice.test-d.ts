@@ -292,37 +292,20 @@ describe('type tests', () => {
             error: 'error' as const,
           }),
         },
-      },
-    })
-
-    // An invalid object-form reducer makes every `createSlice` overload fail,
-    // so the error is reported for the whole call.
-
-    // case: meta is typed differently in the reducer than returned from prepare
-    // @ts-expect-error
-    createSlice({
-      name: 'test',
-      initialState: { counter: 0, concat: '' },
-      reducers: {
+        // case: meta is typed differently in the reducer than returned from prepare
         testErroneousMeta: {
           reducer(_, action: PayloadAction<number, string, 'meta', 'error'>) {},
+          // @ts-expect-error
           prepare: (payload: number) => ({
             payload,
             meta: 1,
             error: 'error' as const,
           }),
         },
-      },
-    })
-
-    // case: error is typed differently in the reducer than returned from prepare
-    // @ts-expect-error
-    createSlice({
-      name: 'test',
-      initialState: { counter: 0, concat: '' },
-      reducers: {
+        // case: error is typed differently in the reducer than returned from prepare
         testErroneousError: {
           reducer(_, action: PayloadAction<number, string, 'meta', 'error'>) {},
+          // @ts-expect-error
           prepare: (payload: number) => ({
             payload,
             meta: 'meta' as const,
@@ -384,7 +367,6 @@ describe('type tests', () => {
   })
 
   test('prepared payload does not match action payload - should cause an error.', () => {
-    // @ts-expect-error
     const counter = createSlice({
       name: 'counter',
       initialState: { counter: 0 },
@@ -393,6 +375,7 @@ describe('type tests', () => {
           reducer(state, action: PayloadAction<string>) {
             state.counter += action.payload.length
           },
+          // @ts-expect-error
           prepare(x: string) {
             return {
               payload: 6,
@@ -1050,11 +1033,12 @@ describe('type tests', () => {
     // @ts-expect-error an immutability adapter is required
     buildCreateSlice({})
 
-    buildCreateSlice({
+    const unregisteredConfig = {
       immutability: immerAdapter,
-      // @ts-expect-error creator keys must be registered in SliceCreatorRegistry
       creators: { notRegistered: asyncThunkCreator },
-    })
+    }
+    // @ts-expect-error creator keys must be registered in SliceCreatorRegistry
+    buildCreateSlice(unregisteredConfig)
   })
 
   test('buildCreateSlice creators are typed for each slice', () => {
@@ -1145,6 +1129,28 @@ describe('type tests', () => {
     >()
   })
 
+  test('callback form can mix creator definitions and plain case reducers', () => {
+    const slice = createSlice({
+      name: 'polling',
+      initialState: { enabled: true, interval: 0 },
+      reducers: (create) => ({
+        toggle: create.reducer((state) => {
+          state.enabled = !state.enabled
+        }),
+        setInterval(state, { payload }: PayloadAction<number>) {
+          state.interval = payload
+        },
+      }),
+    })
+
+    expectTypeOf(slice.actions.toggle).toEqualTypeOf<
+      ActionCreatorWithoutPayload<'polling/toggle'>
+    >()
+    expectTypeOf(slice.actions.setInterval).toEqualTypeOf<
+      ActionCreatorWithPayload<number, 'polling/setInterval'>
+    >()
+  })
+
   test('callback form without a creators option only has the builtin creators', () => {
     createSlice({
       name: 'todos',
@@ -1230,5 +1236,42 @@ describe('type tests', () => {
     expectTypeOf(callbackSlice.actions.set).toEqualTypeOf<
       ActionCreatorWithPayload<number, 'cb/set'>
     >()
+  })
+
+  test('numeric reducer keys produce action creators', () => {
+    const slice = createSlice({
+      name: 'numeric',
+      initialState: 0,
+      reducers: {
+        1: (state) => state + 1,
+      },
+    })
+
+    expectTypeOf(slice.actions[1]).toEqualTypeOf<
+      ActionCreatorWithoutPayload<'numeric/1'>
+    >()
+  })
+
+  test('a custom creator replaces the builtin creator of the same name', () => {
+    const slice = createSlice({
+      name: 'override',
+      initialState: 0,
+      creators: (ctx) => ({ reducer: factoryResetCreator(ctx) }),
+      reducers: (create) => {
+        expectTypeOf(create.reducer).toEqualTypeOf<
+          ReturnType<typeof factoryResetCreator>
+        >()
+        return { reset: create.reducer() }
+      },
+    })
+
+    expectTypeOf(slice.actions.reset).toEqualTypeOf<
+      ActionCreatorWithoutPayload<'override/reset'>
+    >()
+  })
+
+  test('buildCreateSlice requires a creator for each factory key', () => {
+    // @ts-expect-error creators cannot be explicitly undefined when keys are given
+    buildCreateSlice<'asyncThunk'>({ immutability: immerAdapter })
   })
 })

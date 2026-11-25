@@ -54,5 +54,6 @@
   "52": "[slice ] invalid reducer definition for \"\": expected a case reducer function, a { reducer, prepare } object, or a creator definition",
   "53": "[slice ] action type \"\" is handled by both \\`reducers\\` and \\`respondTo\\`. Each action type must be handled in exactly one place.",
   "54": "[slice ] selectSlice: root state does not contain a \"\" key. Is the slice reducer included in the store?",
-  "55": "[slice ] selector: selectState returned undefined for an uninjected slice. Is the slice reducer included in the store?"
+  "55": "[slice ] selector: selectState returned undefined for an uninjected slice. Is the slice reducer included in the store?",
+  "56": "createReducer requires a builder callback as its second argument"
 }

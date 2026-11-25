@@ -84,12 +84,17 @@ export type SliceSelectors<State> = Record<
 >
 
 /**
- * The reducers a slice was created with: either the object form of
- * `reducers`, or the definitions returned by its callback form.
+ * The reducers a slice was created with: case reducers, `{ reducer, prepare }`
+ * objects, and (from the callback form of `reducers`) reducer definitions.
  *
  * @public
  */
-export type SliceReducers<State> = SliceCaseReducers<State> | DefinitionsShape
+export type SliceReducers<State> = Record<
+  string,
+  | CaseReducer<State, PayloadAction<any>>
+  | CaseReducerWithPrepare<State, PayloadAction<any, string, any, any>>
+  | ReducerDefinition<AnyExposure>
+>
 
 /**
  * Derives the action creators (and other exposed values) for a slice's
@@ -102,7 +107,9 @@ export type SliceReducers<State> = SliceCaseReducers<State> | DefinitionsShape
  * @public
  */
 export type CaseReducerActions<Reducers, SliceName extends string> = {
-  [K in keyof Reducers & string]: Reducers[K] extends ReducerDefinition<infer E>
+  [K in Exclude<keyof Reducers, symbol>]: Reducers[K] extends ReducerDefinition<
+    infer E
+  >
     ? E extends SliceActionExposure<infer P>
       ? PayloadActionCreator<P, `${SliceName}/${K}`>
       : E extends PreparedActionExposure<infer PA>
@@ -412,58 +419,24 @@ interface CommonSliceOptions<
 }
 
 /**
- * Options for `createSlice()` with the object form of `reducers`.
+ * Options for `createSlice()`.
  *
  * @public
  */
-export interface CreateSliceObjectOptions<
+export interface CreateSliceOptions<
   State = any,
-  Name extends string = string,
-  CRs extends SliceCaseReducers<State> = SliceCaseReducers<State>,
-  ReducerPath extends string = Name,
-  Selectors extends SliceSelectors<State> = SliceSelectors<State>,
-> extends CommonSliceOptions<State, Name, ReducerPath, Selectors> {
-  /**
-   * A mapping from action types to action-type-specific *case reducer*
-   * functions. For every action type, a matching action creator will be
-   * generated using `createAction()`.
-   */
-  reducers: ValidateSliceCaseReducers<State, CRs>
-}
-
-/**
- * Options for `createSlice()` with the object form of `reducers`, with the
- * generic parameter order used by RTK 2.x.
- *
- * @public
- */
-export type CreateSliceOptions<
-  State = any,
-  CR extends SliceCaseReducers<State> = SliceCaseReducers<State>,
+  CR extends SliceReducers<State> = SliceReducers<State>,
   Name extends string = string,
   ReducerPath extends string = Name,
   Selectors extends SliceSelectors<State> = SliceSelectors<State>,
-> = CreateSliceObjectOptions<State, Name, CR, ReducerPath, Selectors>
-
-/**
- * Options for `createSlice()` with the callback form of `reducers`.
- *
- * @public
- */
-export interface CreateSliceCallbackOptions<
-  State,
-  Name extends string,
-  CustomCreators extends CreatorsMap,
-  Defs extends DefinitionsShape,
-  ReducerPath extends string,
-  Selectors extends SliceSelectors<State>,
+  CustomCreators extends CreatorsMap = {},
   FactoryCreatorKeys extends RegisteredCreatorKey = never,
 > extends CommonSliceOptions<State, Name, ReducerPath, Selectors> {
   /**
-   * Adds custom creators to the `create` object passed to `reducers`, for
-   * this slice only. Each creator factory is an ordinary function receiving
-   * the creator context. These take precedence over creators of the same
-   * name passed to `buildCreateSlice`.
+   * Adds custom creators to the `create` object passed to the callback form
+   * of `reducers`, for this slice only. Each creator factory is an ordinary
+   * function receiving the creator context. These take precedence over
+   * creators of the same name passed to `buildCreateSlice`.
    *
    * @example
    * ```ts
@@ -480,18 +453,24 @@ export interface CreateSliceCallbackOptions<
   creators?: (ctx: CreatorContext<State, Name>) => CustomCreators
 
   /**
-   * A callback receiving the `create` object, returning a map of reducer
-   * definitions. For every definition, the matching action creator (or other
-   * value) is exposed on `slice.actions`.
+   * A mapping from action types to action-type-specific *case reducer*
+   * functions. For every action type, a matching action creator will be
+   * generated using `createAction()`.
+   *
+   * May also be a callback receiving the `create` object, returning a map of
+   * reducer definitions. For every definition, the matching action creator
+   * (or other value) is exposed on `slice.actions`.
    */
-  reducers: (
-    create: BuiltinSliceCreators<State> &
-      Omit<
-        Pick<SliceCreatorRegistry<State, Name>, FactoryCreatorKeys>,
-        keyof CustomCreators
-      > &
-      CustomCreators,
-  ) => Defs
+  reducers:
+    | ValidateSliceCaseReducers<State, CR>
+    | ((
+        create: Omit<BuiltinSliceCreators<State>, keyof CustomCreators> &
+          Omit<
+            Pick<SliceCreatorRegistry<State, Name>, FactoryCreatorKeys>,
+            keyof CustomCreators
+          > &
+          CustomCreators,
+      ) => CR)
 }
 
 type RegisteredCreatorKey = keyof SliceCreatorRegistry<any, string>
@@ -508,7 +487,7 @@ type RegisteredCreatorKey = keyof SliceCreatorRegistry<any, string>
  *
  * @public
  */
-export type ValidateSliceCaseReducers<S, ACR extends SliceCaseReducers<S>> = {
+export type ValidateSliceCaseReducers<S, ACR extends SliceReducers<S>> = {
   [T in keyof ACR]: ACR[T] extends {
     reducer(s: S, action?: infer A): any
   }
@@ -519,7 +498,7 @@ export type ValidateSliceCaseReducers<S, ACR extends SliceCaseReducers<S>> = {
 } & ACR
 
 /**
- * The `createSlice` function type: one call signature per form of `reducers`.
+ * The `createSlice` function type.
  *
  * @public
  */
@@ -528,32 +507,22 @@ export interface CreateSlice<
 > {
   <
     State,
+    CR extends SliceReducers<State>,
     Name extends string,
-    CRs extends SliceCaseReducers<State>,
-    ReducerPath extends string = Name,
     Selectors extends SliceSelectors<State> = SliceSelectors<State>,
-  >(
-    options: CreateSliceObjectOptions<State, Name, CRs, ReducerPath, Selectors>,
-  ): Slice<State, CRs, Name, ReducerPath, Selectors>
-
-  <
-    State,
-    Name extends string,
+    ReducerPath extends string = Name,
     CustomCreators extends CreatorsMap = {},
-    Defs extends DefinitionsShape = DefinitionsShape,
-    ReducerPath extends string = Name,
-    Selectors extends SliceSelectors<State> = SliceSelectors<State>,
   >(
-    options: CreateSliceCallbackOptions<
+    options: CreateSliceOptions<
       State,
+      CR,
       Name,
-      CustomCreators,
-      Defs,
       ReducerPath,
       Selectors,
+      CustomCreators,
       FactoryCreatorKeys
     >,
-  ): Slice<State, Defs, Name, ReducerPath, Selectors>
+  ): Slice<State, CR, Name, ReducerPath, Selectors>
 }
 
 /**
@@ -593,11 +562,20 @@ export interface BuildCreateSliceConfig<
  *
  * @public
  */
+export function buildCreateSlice(
+  config: BuildCreateSliceConfig & { creators?: undefined },
+): CreateSlice
 export function buildCreateSlice<
-  FactoryCreatorKeys extends RegisteredCreatorKey = never,
+  FactoryCreatorKeys extends RegisteredCreatorKey,
 >(
-  config: BuildCreateSliceConfig<FactoryCreatorKeys>,
-): CreateSlice<FactoryCreatorKeys> {
+  config: BuildCreateSliceConfig<FactoryCreatorKeys> & {
+    creators: { [K in FactoryCreatorKeys]: CreatorFactory }
+  },
+): CreateSlice<FactoryCreatorKeys>
+export function buildCreateSlice(config: {
+  immutability: ImmutabilityAdapter
+  creators?: Record<string, CreatorFactory>
+}): CreateSlice<RegisteredCreatorKey> {
   const { immutability: defaultAdapter, creators: factoryCreators } = config
   if (!defaultAdapter) {
     throw new Error(
@@ -610,7 +588,7 @@ export function buildCreateSlice<
       options,
       defaultAdapter,
       factoryCreators,
-    )) as CreateSlice<FactoryCreatorKeys>
+    )) as CreateSlice<RegisteredCreatorKey>
 }
 
 function createSliceImpl(
@@ -656,10 +634,12 @@ function createSliceImpl(
     }
   }
 
-  const getInitialState =
-    typeof options.initialState === 'function'
-      ? (options.initialState as () => unknown)
-      : () => options.initialState
+  const getInitialState = () =>
+    adapter.freezeDraftable(
+      typeof options.initialState === 'function'
+        ? options.initialState()
+        : options.initialState,
+    )
 
   const sliceCases: Record<string, CaseReducer<any, any>> = {}
   const caseTypes = new Set<string>()

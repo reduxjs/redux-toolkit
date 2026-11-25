@@ -558,6 +558,21 @@ describe('createSlice', () => {
           .exposeCaseReducer(() => context.getInitialState())
       })
 
+    it('gives creators a frozen initial state', () => {
+      const slice = createSlice({
+        name: 'todos',
+        initialState: () => ({ todos: [] as string[] }),
+        creators: (ctx) => ({ reset: () => resetCreator(ctx) }),
+        reducers: (create) => ({
+          reset: create.reset(),
+        }),
+      })
+
+      const state = slice.reducer({ todos: ['a'] }, slice.actions.reset())
+      expect(state).toEqual({ todos: [] })
+      expect(Object.isFrozen(state)).toBe(true)
+    })
+
     it('allows custom creators via the `creators` option', () => {
       const slice = createSlice({
         name: 'counter',
@@ -852,6 +867,7 @@ describe('createSlice', () => {
   })
   describe('reducers definition with asyncThunks', () => {
     it('is not available without the creators option', () => {
+      expect.assertions(1)
       createSlice({
         name: 'test',
         initialState: [] as any[],
