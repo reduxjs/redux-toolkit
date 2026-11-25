@@ -559,14 +559,27 @@ describe('createSlice', () => {
       })
 
     it('gives creators a frozen initial state', () => {
+      let creatorInitialState: unknown
+      const captureCreator = (ctx: CreatorContext<any>) =>
+        makeDefinition<SliceActionExposure<void>>((details, context) => {
+          creatorInitialState = context.getInitialState()
+          context
+            .addCase(details.type, () => context.getInitialState())
+            .exposeAction(createAction(details.type))
+            .exposeCaseReducer(() => context.getInitialState())
+        })
+
       const slice = createSlice({
         name: 'todos',
         initialState: () => ({ todos: [] as string[] }),
-        creators: (ctx) => ({ reset: () => resetCreator(ctx) }),
+        creators: (ctx) => ({ reset: () => captureCreator(ctx) }),
         reducers: (create) => ({
           reset: create.reset(),
         }),
       })
+
+      expect(creatorInitialState).toEqual({ todos: [] })
+      expect(Object.isFrozen(creatorInitialState)).toBe(true)
 
       const state = slice.reducer({ todos: ['a'] }, slice.actions.reset())
       expect(state).toEqual({ todos: [] })
