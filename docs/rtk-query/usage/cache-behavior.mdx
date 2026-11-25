@@ -104,7 +104,7 @@ export const api = createApi({
   keepUnusedDataFor: 30,
   // highlight-end
   endpoints: (build) => ({
-    getPosts: build.query<Post[], number>({
+    getPosts: build.query<Post[], void>({
       query: () => `posts`,
       // highlight-start
       // configuration for an individual endpoint, overriding the api setting
@@ -116,7 +116,7 @@ export const api = createApi({
 ```
 
 - `Infinity` keeps unused entries until something removes them. Very large values are capped at about 24 days.
-- The timer also restarts when a request for an unused entry finishes, and when [`upsertQueryEntries`](../api/created-api/api-slice-utils.mdx#upsertqueryentries) writes the entry. It does not restart when a `subscribe: false` call is served from the cache.
+- The timer also restarts when a request for an unused entry finishes, and when [`upsertQueryEntries`](../api/created-api/api-slice-utils.mdx#upsertqueryentries) writes the entry. It does not restart when a `subscribe: false` call is served from the cache, unless that call passes `retainFor`.
 
 ### `retainFor`
 
@@ -135,13 +135,13 @@ await store.dispatch(
 
 These remove entries before the timer runs out:
 
-| Cause                                                                                | What is removed                                                                                                  |
-| ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
-| [Tag invalidation](./request-behavior.mdx#tag-invalidation)                          | invalidated entries with no subscribers                                                                          |
-| [Focus or reconnect](./request-behavior.mdx#focus-and-reconnect)                     | entries with no subscribers, when the `createApi` `refetchOnFocus` / `refetchOnReconnect` value allows a refetch |
-| [`api.util.removeQueryData`](../api/created-api/api-slice-utils.mdx#removequerydata) | one entry, even if it has subscribers (unless `onlyIfUnused: true`)                                              |
-| `reset()` from a lazy query hook                                                     | that hook's entry                                                                                                |
-| [`api.util.resetApiState`](../api/created-api/api-slice-utils.mdx#resetapistate)     | everything                                                                                                       |
+| Cause                                                                                | What is removed                                                                                                                              |
+| ------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Tag invalidation](./request-behavior.mdx#tag-invalidation)                          | invalidated entries with no subscribers                                                                                                      |
+| [Focus or reconnect](./request-behavior.mdx#focus-and-reconnect)                     | entries that were requested but have no subscribers now, when the `createApi` `refetchOnFocus` / `refetchOnReconnect` value allows a refetch |
+| [`api.util.removeQueryData`](../api/created-api/api-slice-utils.mdx#removequerydata) | one entry, even if it has subscribers (unless `onlyIfUnused: true`)                                                                          |
+| `reset()` from a lazy query hook                                                     | that hook's entry                                                                                                                            |
+| [`api.util.resetApiState`](../api/created-api/api-slice-utils.mdx#resetapistate)     | everything                                                                                                                                   |
 
 Tag invalidation and focus refetch entries that have subscribers, and remove entries that don't. Refetching data nobody is using would waste a request, so RTK Query drops it instead. The next subscriber fetches it again.
 
@@ -165,7 +165,7 @@ subscription.unsubscribe()
 unsubscribeStore()
 ```
 
-The subscription makes the entry respond to tag invalidation, polling, and focus refetches, the same as a mounted hook.
+The subscription makes the entry eligible for the same refetches as a mounted hook. Tag invalidation refetches it. Polling needs a `pollingInterval` in the `initiate()` subscription options, and focus or reconnect refetches need `refetchOnFocus` / `refetchOnReconnect` plus `setupListeners`.
 
 ## Refreshing cached data
 

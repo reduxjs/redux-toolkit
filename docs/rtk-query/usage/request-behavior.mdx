@@ -37,6 +37,8 @@ A `useQuery` hook, `initiate()`, `prefetch`, and a lazy query trigger all go thr
 5. The entry has succeeded at least once: use the cache.
 6. Otherwise, start a request.
 
+`prefetch` with `ifOlderThan` checks the data's age first. If the data is younger than that, it returns without running any of these rules, so the endpoint's `forceRefetch` callback is not called.
+
 A new subscriber to an entry that already has data does not refetch it. Mounting a second component with the same hook and argument reuses the data.
 
 ### Options that force a request
@@ -49,7 +51,7 @@ A new subscriber to an entry that already has data does not refetch it. Mounting
 | `force` / `ifOlderThan`                                                       | [`prefetch`](../api/created-api/api-slice-utils.mdx#prefetch) options | `boolean` / seconds          | not set |
 | [`forceRefetch` callback](../api/createApi.mdx#forcerefetch)                  | endpoint definition                                                   | function returning `boolean` | not set |
 
-How the values work:
+How the values work (`preferCacheValue` is the exception: it is reversed, see below):
 
 - `true` always starts a request.
 - A number `n` starts a request if the data is at least `n` seconds old, or if there is no data yet.
@@ -84,11 +86,13 @@ export const api = createApi({
   refetchOnMountOrArgChange: 30,
   // highlight-end
   endpoints: (build) => ({
-    getPosts: build.query<Post[], number>({
+    getPosts: build.query<Post[], void>({
       query: () => `posts`,
     }),
   }),
 })
+
+export const { useGetPostsQuery } = api
 ```
 
 ```tsx no-transpile title="Always refetch when this component mounts"
@@ -96,7 +100,7 @@ import { useGetPostsQuery } from './api'
 
 const Component = () => {
   const { data } = useGetPostsQuery(
-    { count: 5 },
+    undefined,
     // highlight-start
     // overrides the createApi value for this hook only
     { refetchOnMountOrArgChange: true },
@@ -109,7 +113,7 @@ const Component = () => {
 
 ## What triggers a refetch?
 
-Several events refetch an entry that already has data. Each one only refetches entries that **have subscribers**. Some of them remove unused entries instead. See [Removing data earlier](./cache-behavior.mdx#removing-data-earlier).
+Several events refetch an entry that already has data. The automatic triggers (tag invalidation, focus, reconnect, and polling) only refetch entries that **have subscribers**. `refetch()` is an explicit call and always runs. Some of them remove unused entries instead. See [Removing data earlier](./cache-behavior.mdx#removing-data-earlier).
 
 | Trigger                                       | Where it is set                                                          | Values                      | Default   |
 | --------------------------------------------- | ------------------------------------------------------------------------ | --------------------------- | --------- |
@@ -131,7 +135,7 @@ import { api, useGetPostsQuery } from './api'
 
 const Component = () => {
   const dispatch = useDispatch()
-  const { data, refetch } = useGetPostsQuery({ count: 5 })
+  const { data, refetch } = useGetPostsQuery()
 
   function handleRefetchOne() {
     refetch()
@@ -140,10 +144,10 @@ const Component = () => {
   function handleRefetchTwo() {
     // same effect as `refetch()`
     dispatch(
-      api.endpoints.getPosts.initiate(
-        { count: 5 },
-        { subscribe: false, forceRefetch: true },
-      ),
+      api.endpoints.getPosts.initiate(undefined, {
+        subscribe: false,
+        forceRefetch: true,
+      }),
     )
   }
 

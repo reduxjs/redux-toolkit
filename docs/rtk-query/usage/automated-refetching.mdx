@@ -404,7 +404,7 @@ The table shows which queries each invalidation affects. Each row is what a quer
 | `[{ type: 'Post', id: 1 }, { type: 'Post', id: 'LIST' }]` |    ✔️    |            ✔️             |               ✔️               |
 | `['User']`                                                |          |                           |                                |
 
-From rule 2, `{ type: 'Post', id: 1 }` does **not** invalidate a query that provides only `'Post'`. A list query that should refetch when any item changes has to provide a tag for each item, or a tag with an ID such as `'LIST'` that mutations invalidate. [Advanced Invalidation with abstract tag IDs](#advanced-invalidation-with-abstract-tag-ids) shows this pattern.
+From rule 2, `{ type: 'Post', id: 1 }` does **not** invalidate a query that provides only `'Post'`. A mutation that invalidates `'Post'` without an ID still refetches it. If your mutations invalidate single items by ID, a list query that should refetch when any item changes has to provide a tag for each item, or a tag with an ID such as `'LIST'` that mutations also invalidate. [Advanced Invalidation with abstract tag IDs](#advanced-invalidation-with-abstract-tag-ids) shows this pattern.
 
 What happens to each invalidated entry, and when, is described in [Request Behavior](./request-behavior.mdx#tag-invalidation).
 
