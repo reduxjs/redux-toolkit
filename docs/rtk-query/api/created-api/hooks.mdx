@@ -756,7 +756,7 @@ type UseQueryStateDefaultResult<D> =
       // Query is currently loading and has no data yet: either the first
       // request, or a refetch after an error that left no data.
       status: QueryStatus
-      originalArgs: unknown
+      originalArgs?: unknown
       data: undefined
       currentData?: ResultTypeFrom<D>
       error?: unknown
@@ -774,7 +774,7 @@ type UseQueryStateDefaultResult<D> =
   | {
       // Query has data from a successful load, and is currently refetching.
       status: QueryStatus
-      originalArgs: unknown
+      originalArgs?: unknown
       data: ResultTypeFrom<D>
       currentData?: ResultTypeFrom<D>
       error: undefined
@@ -791,7 +791,7 @@ type UseQueryStateDefaultResult<D> =
   | {
       // Query has data from a successful load, and is not fetching
       status: QueryStatus
-      originalArgs: unknown
+      originalArgs?: unknown
       data: ResultTypeFrom<D>
       currentData: ResultTypeFrom<D>
       error: undefined
@@ -808,7 +808,7 @@ type UseQueryStateDefaultResult<D> =
   | {
       // Query is currently in an "error" state
       status: QueryStatus
-      originalArgs: unknown
+      originalArgs?: unknown
       data?: ResultTypeFrom<D>
       currentData?: ResultTypeFrom<D>
       error: unknown
