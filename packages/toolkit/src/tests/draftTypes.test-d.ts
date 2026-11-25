@@ -1,4 +1,9 @@
-import type { Draft, PayloadAction, WritableDraft } from '@reduxjs/toolkit'
+import type {
+  Draft,
+  PayloadAction,
+  WritableDraft,
+  WritableNonArrayDraft,
+} from '@reduxjs/toolkit'
 import { createNextState, createSlice } from '@reduxjs/toolkit'
 import type {
   Draft as ImmerDraft,
@@ -39,6 +44,16 @@ describe('type tests', () => {
     expectTypeOf<WritableDraft<Todo>>().toEqualTypeOf<
       ImmerWritableDraft<Todo>
     >()
+  })
+
+  test('WritableNonArrayDraft is exported and usable in declarations', () => {
+    expectTypeOf<WritableNonArrayDraft<Todo>>().toEqualTypeOf<{
+      id: string
+      tags: string[]
+      meta: { createdAt: Date }
+      lookup: Map<string, { n: number }>
+      seen: Set<string>
+    }>()
   })
 
   test('Draft and Immer Draft are interchangeable for generic types', () => {
