@@ -11,6 +11,8 @@ import type {
   CaseReducer,
   CreatorContext,
   DefinitionsShape,
+  Draft,
+  ImmutabilityAdapter,
   PayloadAction,
   PayloadActionCreator,
   Reducer,
@@ -32,8 +34,19 @@ import {
   isRejected,
   makeDefinition,
 } from '@reduxjs/toolkit'
-import { noopAdapter } from '@internal/immutability'
 import { castDraft } from 'immer'
+
+const noopAdapter: ImmutabilityAdapter = {
+  isDraft: () => false,
+  isDraftable: () => false,
+  produce<T>(base: T, recipe: (draft: Draft<T>) => T | Draft<T> | void) {
+    const result = recipe(base as Draft<T>)
+    return result === undefined ? base : (result as T)
+  },
+  freezeDraftable: (value) => value,
+  current: <T>(value: T | Draft<T>) => value as T,
+  original: <T>(value: T | Draft<T>) => value as T,
+}
 
 declare module '@reduxjs/toolkit' {
   interface SliceCreatorRegistry<State, Name extends string> {
