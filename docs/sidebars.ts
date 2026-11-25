@@ -153,6 +153,7 @@ const sidebars = {
                 'rtk-query/usage/infinite-queries',
                 'rtk-query/usage/mutations',
                 'rtk-query/usage/cache-behavior',
+                'rtk-query/usage/request-behavior',
                 'rtk-query/usage/automated-refetching',
               ],
             },

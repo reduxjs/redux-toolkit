@@ -1,0 +1,275 @@
+---
+id: request-behavior
+title: 'Request Behavior: When Queries Run and Refetch'
+sidebar_label: Request Behavior
+hide_title: true
+description: 'RTK Query > Usage > Request Behavior: when RTK Query starts a request, reuses cached data, refetches, and retries'
+---
+
+&nbsp;
+
+# Request Behavior: When Queries Run and Refetch
+
+This page explains when RTK Query calls your query function. It answers three questions:
+
+1. [Will this call start a request, or use the cache?](#will-this-call-start-a-request)
+2. [What makes cached data refetch?](#what-triggers-a-refetch)
+3. [What happens when a request fails?](#what-happens-when-a-request-fails)
+
+A "request" here means one call to the endpoint's `query` or `queryFn`. It doesn't have to be an HTTP request.
+
+How long data stays in the store after it is fetched, and what removes it, is covered in [Cache Behavior](./cache-behavior.mdx). That page also explains cache entries and subscriptions, which this page relies on. In short:
+
+- A **cache entry** holds the result of one endpoint called with one argument.
+- A **subscription** is a claim that something is using the entry. Each mounted `useQuery` hook holds one. So does each `initiate()` call, unless it passes `subscribe: false`.
+- A **running request** is a request for the entry that has started and not finished yet.
+
+Cached data has no "stale" state. Data stays valid until something refetches it or removes it. If you know TanStack Query, the default behaves like `staleTime: Infinity`, with tag invalidation deciding when data refetches. See [Coming from TanStack Query](#coming-from-tanstack-query).
+
+## Will this call start a request?
+
+A `useQuery` hook, `initiate()`, `prefetch`, and a lazy query trigger all go through the same check. RTK Query applies these rules in order and stops at the first one that matches:
+
+1. The argument is `skipToken`, or the hook has `skip: true`: no request.
+2. A request for this entry is already running: the call **joins it** and gets its result. This is true even for `refetch()` and `forceRefetch: true`. RTK Query never runs two requests for the same entry at the same time.
+3. The call is forced (see the table below): start a request.
+4. The endpoint's [`forceRefetch`](../api/createApi.mdx#forcerefetch) callback returns `true`: start a request.
+5. The entry has succeeded at least once: use the cache.
+6. Otherwise, start a request.
+
+A new subscriber to an entry that already has data does not refetch it. Mounting a second component with the same hook and argument reuses the data.
+
+### Options that force a request
+
+| Option                                                                        | Where it is set                                                       | Values                       | Default |
+| ----------------------------------------------------------------------------- | --------------------------------------------------------------------- | ---------------------------- | ------- |
+| [`refetchOnMountOrArgChange`](../api/createApi.mdx#refetchonmountorargchange) | `createApi`, `useQuery` hook options                                  | `boolean` or seconds         | `false` |
+| `forceRefetch`                                                                | [`initiate()`](../api/created-api/endpoints.mdx#initiate) options     | `boolean` or seconds         | not set |
+| `preferCacheValue`                                                            | lazy query trigger, second argument                                   | `boolean`                    | `false` |
+| `force` / `ifOlderThan`                                                       | [`prefetch`](../api/created-api/api-slice-utils.mdx#prefetch) options | `boolean` / seconds          | not set |
+| [`forceRefetch` callback](../api/createApi.mdx#forcerefetch)                  | endpoint definition                                                   | function returning `boolean` | not set |
+
+How the values work:
+
+- `true` always starts a request.
+- A number `n` starts a request if the data is at least `n` seconds old, or if there is no data yet.
+- `0` behaves like `true` for `refetchOnMountOrArgChange` and `forceRefetch`. For `prefetch`, `ifOlderThan: 0` does **not** force a request. It behaves like passing no options.
+- `false` uses the normal rules.
+
+What wins when it is set in more than one place:
+
+- The `useQuery` hook's `refetchOnMountOrArgChange` is passed to `initiate()` as `forceRefetch`. An explicit `forceRefetch` (or hook value) overrides the `createApi` value.
+- The `createApi` value of `refetchOnMountOrArgChange` only applies to calls that subscribe. `initiate(arg, { subscribe: false })` and `prefetch` ignore it.
+- A lazy query trigger always fetches, unless you pass `preferCacheValue: true`. Then it uses the normal rules.
+- The endpoint's `forceRefetch` callback runs only when the call isn't already forced. It cannot stop a forced request.
+
+### `refetchOnMountOrArgChange`
+
+Use `refetchOnMountOrArgChange` when a component should not trust cached data that might be old. It is checked each time a hook mounts or its argument changes. It isn't checked on re-renders.
+
+```ts title="Refetch on mount if the data is older than 30 seconds"
+// file: types.ts noEmit
+export interface Post {
+  id: number
+  name: string
+}
+
+// file: api.ts
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import type { Post } from './types'
+
+export const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  // highlight-start
+  refetchOnMountOrArgChange: 30,
+  // highlight-end
+  endpoints: (build) => ({
+    getPosts: build.query<Post[], number>({
+      query: () => `posts`,
+    }),
+  }),
+})
+```
+
+```tsx no-transpile title="Always refetch when this component mounts"
+import { useGetPostsQuery } from './api'
+
+const Component = () => {
+  const { data } = useGetPostsQuery(
+    { count: 5 },
+    // highlight-start
+    // overrides the createApi value for this hook only
+    { refetchOnMountOrArgChange: true },
+    // highlight-end
+  )
+
+  return <div>...</div>
+}
+```
+
+## What triggers a refetch?
+
+Several events refetch an entry that already has data. Each one only refetches entries that **have subscribers**. Some of them remove unused entries instead. See [Removing data earlier](./cache-behavior.mdx#removing-data-earlier).
+
+| Trigger                                       | Where it is set                                                          | Values                      | Default   |
+| --------------------------------------------- | ------------------------------------------------------------------------ | --------------------------- | --------- |
+| [Tag invalidation](#tag-invalidation)         | endpoint `providesTags` / `invalidatesTags`, `api.util.invalidateTags`   | tags                        | none      |
+| [`refetchOnFocus`](#focus-and-reconnect)      | `createApi`, `useQuery` hook options, `initiate()` `subscriptionOptions` | `boolean` or seconds        | `false`   |
+| [`refetchOnReconnect`](#focus-and-reconnect)  | same as `refetchOnFocus`                                                 | `boolean` or seconds        | `false`   |
+| [`pollingInterval`](#polling)                 | `useQuery` hook options, `initiate()` `subscriptionOptions`              | milliseconds, or a function | `0` (off) |
+| [`refetch()`](#refetch-and-forcerefetch-true) | hook result, `initiate()` result                                         | —                           | —         |
+
+### `refetch()` and `forceRefetch: true`
+
+`refetch()` is returned by the query hooks and by `initiate()`. It forces a request for that entry. If a request is already running, `refetch()` joins it instead of starting a new one.
+
+`refetch()` is the same as dispatching `initiate(arg, { subscribe: false, forceRefetch: true })`:
+
+```tsx no-transpile title="Two ways to force a refetch"
+import { useDispatch } from 'react-redux'
+import { api, useGetPostsQuery } from './api'
+
+const Component = () => {
+  const dispatch = useDispatch()
+  const { data, refetch } = useGetPostsQuery({ count: 5 })
+
+  function handleRefetchOne() {
+    refetch()
+  }
+
+  function handleRefetchTwo() {
+    // same effect as `refetch()`
+    dispatch(
+      api.endpoints.getPosts.initiate(
+        { count: 5 },
+        { subscribe: false, forceRefetch: true },
+      ),
+    )
+  }
+
+  return (
+    <div>
+      <button onClick={handleRefetchOne}>Force re-fetch 1</button>
+      <button onClick={handleRefetchTwo}>Force re-fetch 2</button>
+    </div>
+  )
+}
+```
+
+### Focus and reconnect
+
+[`refetchOnFocus`](../api/createApi.mdx#refetchonfocus) refetches subscribed queries when the window regains focus. [`refetchOnReconnect`](../api/createApi.mdx#refetchonreconnect) refetches them when the network connection comes back. Both work the same way.
+
+Both need [`setupListeners`](../api/setupListeners.mdx). Without it, RTK Query never sees focus or network events.
+
+```ts title="src/store.ts"
+// file: src/services/api.ts noEmit
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+
+export const api = createApi({
+  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
+  // highlight-start
+  refetchOnFocus: true,
+  refetchOnReconnect: true,
+  // highlight-end
+  endpoints: () => ({}),
+})
+
+// file: src/store.ts
+import { configureStore } from '@reduxjs/toolkit'
+import { setupListeners } from '@reduxjs/toolkit/query'
+import { api } from './services/api'
+
+export const store = configureStore({
+  reducer: {
+    [api.reducerPath]: api.reducer,
+  },
+  middleware: (gDM) => gDM().concat(api.middleware),
+})
+
+// highlight-start
+setupListeners(store.dispatch)
+// highlight-end
+```
+
+The values:
+
+- `false` (the default) never refetches.
+- `true` always refetches.
+- A number `n` refetches only if the data is at least `n` seconds old, or if there is no data yet. `0` behaves like `true`. This lets you refetch on focus without starting a request every time the user switches tabs:
+
+```ts no-transpile
+// Refetch on focus only if the data is at least 5 minutes old
+const { data } = useGetPostsQuery(undefined, { refetchOnFocus: 300 })
+```
+
+Each subscriber has its own value. A subscriber that doesn't set one uses the `createApi` value. The entry refetches if **any** subscriber's value allows it, so the most eager value wins. With one subscriber at `60` and another at `10`, data that is 20 seconds old is refetched. One subscriber passing `false` does not stop another subscriber from refetching.
+
+Both options can be set on `createApi`, on the `useQuery`, `useQuerySubscription`, `useLazyQuery`, and `useLazyQuerySubscription` hooks, and in `initiate()` `subscriptionOptions`. A hook with `skip: true` holds no subscription, so its value isn't used until `skip` is `false`.
+
+### Polling
+
+[Polling](./polling.mdx) refetches an entry on a timer. These rules matter when polling is combined with other options:
+
+- With several subscribers, the entry polls at the shortest interval.
+- The interval counts from when the previous response arrives, not from when it was sent.
+- Polling needs a subscription. `initiate(arg, { subscribe: false })` never polls.
+- Turning polling on with `updateSubscriptionOptions` does not fetch right away. The first poll runs after one interval.
+- With `skipPollingIfUnfocused`, polls are skipped only if every polling subscriber sets it. Skipped polls are not made up when the window gets focus again. Use `refetchOnFocus` for that. The focus state comes from `setupListeners`.
+
+### Tag invalidation
+
+Queries **provide** tags with `providesTags`. Mutations **invalidate** tags with `invalidatesTags`. `api.util.invalidateTags` invalidates tags directly. [Automated Re-fetching](./automated-refetching.mdx) explains how to design tags. Matching follows two rules:
+
+1. **A tag with only a type**, like `'Post'` or `{ type: 'Post' }`, invalidates every provided tag of that type, with or without an ID.
+2. **A tag with a type and an ID**, like `{ type: 'Post', id: 1 }`, invalidates only provided tags with that exact type and ID.
+
+[Tag Invalidation Behavior](./automated-refetching.mdx#tag-invalidation-behavior) has a table of examples.
+
+A mutation invalidates its tags when it finishes. That includes mutations that fail with an error from the base query. The `invalidatesTags` callback receives the error, so you can return no tags for failures.
+
+When an entry is invalidated:
+
+- If it has subscribers, it refetches.
+- If it has no subscribers, it is **removed** right away. It isn't refetched.
+- If a request for it is running, RTK Query waits for that request to finish, then refetches or removes the entry.
+
+[`invalidationBehavior`](../api/createApi.mdx#invalidationbehavior) controls timing:
+
+- `'delayed'` (the default) waits until no query or mutation in this API is running. Then it applies all queued invalidations at once. This avoids refetching data that a running request is about to change again.
+- `'immediately'` applies each invalidation right away. An entry whose request was running at the time is refetched after that request finishes. This also covers a first fetch that was running when the invalidation happened, and whose result provides a matching tag.
+
+## What happens when a request fails
+
+A failed request sets the entry's `status` to `'rejected'` and stores the `error`. It keeps any `data` from an earlier success.
+
+That earlier success matters for the next caller:
+
+- If the entry **never succeeded**, each new subscriber or `initiate()` call starts a new request.
+- If the entry **succeeded before**, new subscribers use the cached entry and don't refetch. Call `refetch()` or use one of the [refetch triggers](#what-triggers-a-refetch) to try again.
+
+After a failure, polling continues at the same interval. A query can provide tags for an error result, so a later mutation can invalidate it. See [Providing errors to the cache](./automated-refetching.mdx#providing-errors-to-the-cache).
+
+RTK Query does not retry failed requests by default. Wrap the base query with [`retry`](./customizing-queries.mdx#automatic-retries) to add retries:
+
+| Option           | Where it is set                            | Default                     |
+| ---------------- | ------------------------------------------ | --------------------------- |
+| `maxRetries`     | `retry()` options, endpoint `extraOptions` | `5` (six attempts in total) |
+| `retryCondition` | `retry()` options, endpoint `extraOptions` | retry until `maxRetries`    |
+| `backoff`        | `retry()` options, endpoint `extraOptions` | exponential backoff         |
+
+- Endpoint `extraOptions` override the `retry()` options.
+- If an endpoint sets only `maxRetries` and `retry()` has a `retryCondition`, both apply: a retry happens only if the condition passes and the limit isn't reached.
+- `retry.fail(error)` inside a base query stops retrying at once.
+- The entry stays `pending` through all attempts. Other callers join the same request.
+- Endpoints that use `queryFn` don't go through the base query, so `retry` doesn't apply to them.
+
+## Coming from TanStack Query
+
+| TanStack Query                                 | RTK Query                                                                                                                                              |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `staleTime`                                    | No direct equivalent. The default is like `staleTime: Infinity`. Use tags, `refetchOnMountOrArgChange` with seconds, or `refetchOnFocus` with seconds. |
+| `gcTime` (milliseconds)                        | [`keepUnusedDataFor`](./cache-behavior.mdx#how-long-unused-data-is-kept) (seconds)                                                                     |
+| `invalidateQueries` marks unused queries stale | Invalidation removes unused entries and refetches entries with subscribers.                                                                            |
+| `refetch()` can cancel a running request       | `refetch()` joins a running request.                                                                                                                   |
+| `retry: 3` on by default                       | No retries unless you wrap the base query with `retry`.                                                                                                |
