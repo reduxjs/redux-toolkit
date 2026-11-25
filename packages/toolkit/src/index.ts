@@ -91,6 +91,8 @@ export type {
   AnyExposure,
   BuiltinSliceCreators,
   CreatorContext,
+  CreatorFactory,
+  SliceCreatorRegistry,
   PreparedActionExposure,
   ReducerDefinition,
   ReducerDetails,

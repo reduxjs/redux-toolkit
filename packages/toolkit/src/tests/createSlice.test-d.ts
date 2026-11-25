@@ -14,6 +14,7 @@ import type {
   PayloadAction,
   PayloadActionCreator,
   Reducer,
+  ReducerDefinition,
   SerializedError,
   SliceActionExposure,
   SliceCaseReducers,
@@ -33,6 +34,21 @@ import {
 } from '@reduxjs/toolkit'
 import { noopAdapter } from '@internal/immutability'
 import { castDraft } from 'immer'
+
+declare module '@reduxjs/toolkit' {
+  interface SliceCreatorRegistry<State, Name extends string> {
+    reset: () => ReducerDefinition<SliceActionExposure<void>>
+  }
+}
+
+const factoryResetCreator = (ctx: CreatorContext<any>) => () =>
+  makeDefinition<SliceActionExposure<void>>((details, context) => {
+    const caseReducer = () => context.getInitialState()
+    context
+      .addCase(details.type, caseReducer)
+      .exposeAction(createAction(details.type))
+      .exposeCaseReducer(caseReducer)
+  })
 
 describe('type tests', () => {
   const counterSlice = createSlice({
@@ -1035,9 +1051,98 @@ describe('type tests', () => {
     buildCreateSlice({})
 
     buildCreateSlice({
-      // @ts-expect-error creators are passed per slice, not to buildCreateSlice
+      immutability: immerAdapter,
+      // @ts-expect-error creator keys must be registered in SliceCreatorRegistry
+      creators: { notRegistered: asyncThunkCreator },
+    })
+  })
+
+  test('buildCreateSlice creators are typed for each slice', () => {
+    const createAppSlice = buildCreateSlice({
+      immutability: immerAdapter,
+      creators: { asyncThunk: asyncThunkCreator, reset: factoryResetCreator },
+    })
+
+    const slice = createAppSlice({
+      name: 'users',
+      initialState: { status: 'idle', names: [] as string[] },
+      reducers: (create) => ({
+        fetchNames: create.asyncThunk(async (org: string) => [org], {
+          fulfilled: (state, action) => {
+            expectTypeOf(state.names).toEqualTypeOf<string[]>()
+            expectTypeOf(action.payload).toEqualTypeOf<string[]>()
+          },
+        }),
+        saveName: create.asyncThunk.withTypes<{ rejectValue: string }>()(
+          async (name: string, { rejectWithValue }) =>
+            name ? name : rejectWithValue('empty'),
+          {
+            rejected: (state, action) => {
+              expectTypeOf(state.status).toBeString()
+              expectTypeOf(action.payload).toEqualTypeOf<string | undefined>()
+            },
+          },
+        ),
+        reset: create.reset(),
+      }),
+    })
+
+    expectTypeOf(slice.actions.fetchNames).toEqualTypeOf<
+      AsyncThunk<string[], string, {}>
+    >()
+    expectTypeOf(slice.actions.reset).toEqualTypeOf<
+      ActionCreatorWithoutPayload<'users/reset'>
+    >()
+
+    createAppSlice({
+      name: 'counter',
+      initialState: 0,
+      reducers: (create) => ({
+        fetchCount: create.asyncThunk(async () => 1, {
+          fulfilled: (state, action) => {
+            expectTypeOf(state).toBeNumber()
+            expectTypeOf(action.payload).toBeNumber()
+          },
+        }),
+      }),
+    })
+
+    const createThunkSlice = buildCreateSlice({
+      immutability: immerAdapter,
       creators: { asyncThunk: asyncThunkCreator },
     })
+
+    createThunkSlice({
+      name: 'counter',
+      initialState: 0,
+      reducers: (create) => ({
+        // @ts-expect-error reset was not passed to this factory
+        reset: create.reset(),
+      }),
+    })
+  })
+
+  test('per-slice creators override factory creators of the same name', () => {
+    const createAppSlice = buildCreateSlice({
+      immutability: immerAdapter,
+      creators: { reset: factoryResetCreator },
+    })
+
+    const slice = createAppSlice({
+      name: 'counter',
+      initialState: 0,
+      creators: (ctx) => ({
+        reset: (to: number) =>
+          makeDefinition<SliceActionExposure<number>>(() => {}),
+      }),
+      reducers: (create) => ({
+        reset: create.reset(5),
+      }),
+    })
+
+    expectTypeOf(slice.actions.reset).toEqualTypeOf<
+      ActionCreatorWithPayload<number, 'counter/reset'>
+    >()
   })
 
   test('callback form without a creators option only has the builtin creators', () => {

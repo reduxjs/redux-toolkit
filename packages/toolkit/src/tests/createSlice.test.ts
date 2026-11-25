@@ -7,11 +7,13 @@ import type {
 } from '@reduxjs/toolkit'
 import {
   asyncThunkCreator,
+  buildCreateSlice,
   combineSlices,
   configureStore,
   createAction,
   createAsyncThunk,
   createSlice,
+  immerAdapter,
   makeDefinition,
 } from '@reduxjs/toolkit'
 
@@ -573,6 +575,69 @@ describe('createSlice', () => {
       expect(state).toBe(1)
       expect(slice.reducer(state, slice.actions.reset())).toBe(0)
       expect(slice.actions.reset.type).toBe('counter/reset')
+    })
+
+    it('provides creators passed to buildCreateSlice to every slice', async () => {
+      const createAppSlice = buildCreateSlice({
+        immutability: immerAdapter,
+        creators: { asyncThunk: asyncThunkCreator },
+      })
+
+      const slice = createAppSlice({
+        name: 'users',
+        initialState: { names: [] as string[] },
+        reducers: (create) => ({
+          fetchNames: create.asyncThunk(async (org: string) => [org], {
+            fulfilled: (state, action) => {
+              state.names = action.payload
+            },
+          }),
+        }),
+      })
+
+      const store = configureStore({ reducer: slice.reducer })
+      await store.dispatch(slice.actions.fetchNames('redux'))
+      expect(store.getState().names).toEqual(['redux'])
+      expect(slice.actions.fetchNames.typePrefix).toBe('users/fetchNames')
+    })
+
+    it('lets per-slice creators override factory creators', () => {
+      const factoryReset = vi.fn(() => () => {
+        throw new Error('factory creator should not be used')
+      })
+      const createAppSlice = buildCreateSlice({
+        immutability: immerAdapter,
+        creators: { reset: factoryReset as any },
+      })
+
+      const slice = createAppSlice({
+        name: 'counter',
+        initialState: 0,
+        creators: (ctx) => ({ reset: () => resetCreator(ctx) }),
+        reducers: (create) => ({
+          increment: create.reducer((state) => state + 1),
+          reset: create.reset(),
+        }),
+      })
+
+      expect(slice.reducer(5, slice.actions.reset())).toBe(0)
+    })
+
+    it('does not call factory creators for the object form', () => {
+      const factoryThunk = vi.fn(asyncThunkCreator)
+      const createAppSlice = buildCreateSlice({
+        immutability: immerAdapter,
+        creators: { asyncThunk: factoryThunk },
+      })
+
+      const slice = createAppSlice({
+        name: 'counter',
+        initialState: 0,
+        reducers: { increment: (state) => state + 1 },
+      })
+
+      expect(slice.reducer(0, slice.actions.increment())).toBe(1)
+      expect(factoryThunk).not.toHaveBeenCalled()
     })
   })
 

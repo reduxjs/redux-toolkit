@@ -16,11 +16,13 @@ import type {
   AnyExposure,
   BuiltinSliceCreators,
   CreatorContext,
+  CreatorFactory,
   PreparedActionExposure,
   ReducerDefinition,
   ReducerDetails,
   ReducerHandlingContext,
   SliceActionExposure,
+  SliceCreatorRegistry,
   ValueExposure,
 } from './creators'
 import { buildBuiltinCreators, isReducerDefinition } from './creators'
@@ -455,10 +457,13 @@ export interface CreateSliceCallbackOptions<
   Defs extends DefinitionsShape,
   ReducerPath extends string,
   Selectors extends SliceSelectors<State>,
+  FactoryCreatorKeys extends RegisteredCreatorKey = never,
 > extends CommonSliceOptions<State, Name, ReducerPath, Selectors> {
   /**
-   * Adds custom creators to the `create` object passed to `reducers`.
-   * Each creator factory is an ordinary function receiving the creator context.
+   * Adds custom creators to the `create` object passed to `reducers`, for
+   * this slice only. Each creator factory is an ordinary function receiving
+   * the creator context. These take precedence over creators of the same
+   * name passed to `buildCreateSlice`.
    *
    * @example
    * ```ts
@@ -479,8 +484,17 @@ export interface CreateSliceCallbackOptions<
    * definitions. For every definition, the matching action creator (or other
    * value) is exposed on `slice.actions`.
    */
-  reducers: (create: BuiltinSliceCreators<State> & CustomCreators) => Defs
+  reducers: (
+    create: BuiltinSliceCreators<State> &
+      Omit<
+        Pick<SliceCreatorRegistry<State, Name>, FactoryCreatorKeys>,
+        keyof CustomCreators
+      > &
+      CustomCreators,
+  ) => Defs
 }
+
+type RegisteredCreatorKey = keyof SliceCreatorRegistry<any, string>
 
 /**
  * Used on a SliceCaseReducers object.
@@ -509,7 +523,9 @@ export type ValidateSliceCaseReducers<S, ACR extends SliceCaseReducers<S>> = {
  *
  * @public
  */
-export interface CreateSlice {
+export interface CreateSlice<
+  FactoryCreatorKeys extends RegisteredCreatorKey = never,
+> {
   <
     State,
     Name extends string,
@@ -534,7 +550,8 @@ export interface CreateSlice {
       CustomCreators,
       Defs,
       ReducerPath,
-      Selectors
+      Selectors,
+      FactoryCreatorKeys
     >,
   ): Slice<State, Defs, Name, ReducerPath, Selectors>
 }
@@ -542,24 +559,46 @@ export interface CreateSlice {
 /**
  * @public
  */
-export interface BuildCreateSliceConfig {
+export interface BuildCreateSliceConfig<
+  FactoryCreatorKeys extends RegisteredCreatorKey = never,
+> {
   /**
    * The immutability adapter every slice from this `createSlice` uses,
    * unless overridden per slice via the `immutability` option.
    */
   immutability: ImmutabilityAdapter
+
+  /**
+   * Creators added to `create` for every slice built with the callback form
+   * of `reducers`. Keys must be registered in `SliceCreatorRegistry`, which
+   * provides the `create.<key>` type for each slice's state.
+   *
+   * @example
+   * ```ts
+   * const createAppSlice = buildCreateSlice({
+   *   immutability: immerAdapter,
+   *   creators: { asyncThunk: asyncThunkCreator },
+   * })
+   * ```
+   */
+  creators?: { [K in FactoryCreatorKeys]: CreatorFactory }
 }
 
 /**
- * Builds a `createSlice` bound to an immutability adapter.
+ * Builds a `createSlice` bound to an immutability adapter and, optionally,
+ * a set of creators shared by every slice it creates.
  *
  * The prebuilt `createSlice` uses the Immer adapter. Building your own with
  * another adapter lets bundlers drop Immer if nothing else uses it.
  *
  * @public
  */
-export function buildCreateSlice(config: BuildCreateSliceConfig): CreateSlice {
-  const { immutability: defaultAdapter } = config
+export function buildCreateSlice<
+  FactoryCreatorKeys extends RegisteredCreatorKey = never,
+>(
+  config: BuildCreateSliceConfig<FactoryCreatorKeys>,
+): CreateSlice<FactoryCreatorKeys> {
+  const { immutability: defaultAdapter, creators: factoryCreators } = config
   if (!defaultAdapter) {
     throw new Error(
       'buildCreateSlice requires an `immutability` adapter. Use `immerAdapter` for the default Immer behavior.',
@@ -567,12 +606,17 @@ export function buildCreateSlice(config: BuildCreateSliceConfig): CreateSlice {
   }
 
   return ((options: any) =>
-    createSliceImpl(options, defaultAdapter)) as CreateSlice
+    createSliceImpl(
+      options,
+      defaultAdapter,
+      factoryCreators,
+    )) as CreateSlice<FactoryCreatorKeys>
 }
 
 function createSliceImpl(
   options: any,
   defaultAdapter: ImmutabilityAdapter,
+  factoryCreators?: Record<string, CreatorFactory>,
 ): any {
   const { name, reducerPath = name } = options
   const adapter: ImmutabilityAdapter = options.immutability ?? defaultAdapter
@@ -664,15 +708,19 @@ function createSliceImpl(
   }
 
   const builtinCreators = buildBuiltinCreators<any>()
-  const definitions: Record<string, any> =
-    typeof options.reducers === 'function'
-      ? options.reducers({
-          ...builtinCreators,
-          ...(options.creators
-            ? options.creators({ name, $types: null })
-            : undefined),
-        })
-      : (options.reducers ?? {})
+  let definitions: Record<string, any>
+  if (typeof options.reducers === 'function') {
+    const ctx: CreatorContext<any, string> = { name, $types: null }
+    const create: Record<string, unknown> = { ...builtinCreators }
+    for (const key in factoryCreators) {
+      create[key] = factoryCreators[key](ctx)
+    }
+    definitions = options.reducers(
+      options.creators ? { ...create, ...options.creators(ctx) } : create,
+    )
+  } else {
+    definitions = options.reducers ?? {}
+  }
 
   for (const [reducerName, definition] of Object.entries(definitions)) {
     const details: ReducerDetails = {

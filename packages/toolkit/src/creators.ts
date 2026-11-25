@@ -1,4 +1,5 @@
 import type { Action } from 'redux'
+import type { AsyncThunkCreator } from './asyncThunkCreator'
 import type { PayloadAction, PrepareAction } from './createAction'
 import { createAction } from './createAction'
 import type { CaseReducer } from './createReducer'
@@ -31,6 +32,38 @@ export interface CreatorContext<State, Name extends string = string> {
    */
   name: Name
 }
+
+/**
+ * The creators that `buildCreateSlice` accepts in its `creators` option, keyed
+ * by name. Each entry is the type of `create.<name>` in a slice with the given
+ * `State` and `Name`.
+ *
+ * Register a custom creator with module augmentation. The type parameters
+ * must match this declaration exactly:
+ *
+ * ```ts
+ * declare module '@reduxjs/toolkit' {
+ *   interface SliceCreatorRegistry<State, Name extends string> {
+ *     reset: () => ReducerDefinition<SliceActionExposure<void>>
+ *   }
+ * }
+ * ```
+ *
+ * @public
+ */
+export interface SliceCreatorRegistry<State, Name extends string> {
+  asyncThunk: AsyncThunkCreator<State>
+}
+
+/**
+ * A creator factory: called once per slice with that slice's creator
+ * context, returning the function exposed on `create`.
+ *
+ * @public
+ */
+export type CreatorFactory = (
+  ctx: CreatorContext<any, any>,
+) => (...args: any[]) => ReducerDefinition<AnyExposure>
 
 /**
  * Static details about the `reducers` field a definition was assigned to.
