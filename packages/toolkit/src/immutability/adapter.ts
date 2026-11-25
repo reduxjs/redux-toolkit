@@ -17,7 +17,7 @@ import type { Draft } from '../draftTypes'
 export interface Patch {
   op: 'add' | 'remove' | 'replace'
   path: (string | number)[]
-  // Matches the shape RTK Query has exported as `Patch` since 2.14.0.
+  // RTK Query re-exports this type; its `Patch` has had this shape since 2.14.0.
   value?: any
 }
 
@@ -28,7 +28,9 @@ export interface Patch {
  *   changes and their inverse.
  * - `applyPatches`: apply patches to a base. When `base` is a draft (inside
  *   `produce`), the adapter mutates it in place and returns it. Otherwise it
- *   returns the next value and leaves `base` untouched.
+ *   returns the next value and leaves `base` untouched. A `replace` patch
+ *   with path `[]` replaces the whole value: the replacement is returned and
+ *   a draft base is not mutated. Callers must always use the return value.
  *
  * `applyPatches(base, patches)` must equal the `next` that
  * `produceWithPatches` returned, and `applyPatches(next, inversePatches)`
@@ -48,8 +50,12 @@ export interface ImmutabilityPatchSupport {
  * Everything RTK needs from an immutable-update library.
  *
  * - `isDraft`: is this value a draft we are already inside?
- * - `isDraftable`: will `produce` draft this value? When false, `produce`
+ * - `isDraftable`: will `produce` draft this value? For primitives, `produce`
  *   hands the value itself to the recipe, which must return the next value.
+ *   For non-draftable objects (class instances, `Date`), `produce` may throw,
+ *   as Immer and Mutative do, so callers must check `isDraftable` before
+ *   producing over an object. `noopAdapter` drafts nothing and passes every
+ *   value to the recipe as is.
  * - `produce`: run a recipe against a draft of `base` and return the next
  *   value. The recipe may mutate the draft and return `undefined`, or return
  *   a replacement value.

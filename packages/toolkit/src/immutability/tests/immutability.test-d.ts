@@ -20,6 +20,8 @@ describe('type tests', () => {
   })
 
   test('Mutative array-path patches are assignable both ways', () => {
+    expectTypeOf<Patch>().not.toBeAny()
+    expectTypeOf<MutativePatch<{ pathAsArray: true }>>().not.toBeAny()
     expectTypeOf<MutativePatch<{ pathAsArray: true }>>().toExtend<Patch>()
     expectTypeOf<Patch>().toExtend<MutativePatch<{ pathAsArray: true }>>()
   })
@@ -28,6 +30,9 @@ describe('type tests', () => {
     expectTypeOf<ImmutabilityAdapter['patches']>().toEqualTypeOf<
       ImmutabilityPatchSupport | undefined
     >()
+    expectTypeOf(noopAdapter).not.toBeAny()
+    expectTypeOf(immerAdapter).not.toBeAny()
+    expectTypeOf(immerAdapterWithPatches).not.toBeAny()
     expectTypeOf(noopAdapter).toExtend<ImmutabilityAdapter>()
     expectTypeOf(immerAdapter).toExtend<ImmutabilityAdapter>()
     expectTypeOf(immerAdapterWithPatches).toExtend<ImmutabilityAdapter>()
