@@ -67,6 +67,7 @@
     "axios": "^0.19.2",
     "jsdom": "^25.0.1",
     "msw": "2.1.5",
+    "mutative": "^1.3.0",
     "node-fetch": "^3.3.2",
     "publint": "^0.3.25",
     "query-string": "^7.0.1",

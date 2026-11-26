@@ -2,6 +2,7 @@ import type {
   AsyncThunk,
   AsyncThunkPayloadCreator,
   Draft,
+  Patch,
   ThunkAction,
   ThunkDispatch,
   UnknownAction,
@@ -231,19 +232,7 @@ export type UpsertRecipe<T> = (
   data: MaybeDrafted<T> | undefined,
 ) => void | MaybeDrafted<T>
 
-/**
- * A single cache update patch, as produced by Immer's `produceWithPatches`.
- * Matches Immer's `Patch` interface, but is declared by RTK so that
- * emitted declarations reference `@reduxjs/toolkit/query` instead of `immer`.
- *
- * @since 2.14.0
- * @public
- */
-export interface Patch {
-  op: 'replace' | 'remove' | 'add'
-  path: (string | number)[]
-  value?: any
-}
+export type { Patch }
 
 export type PatchQueryDataThunk<
   Definitions extends EndpointDefinitions,

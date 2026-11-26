@@ -6,6 +6,16 @@ export * from 'redux'
 export { freeze, original } from 'immer'
 export { createNextState, current, isDraft } from './immerImports'
 export type { Draft, WritableDraft } from './draftTypes'
+export {
+  immerAdapter,
+  immerAdapterWithPatches,
+  noopAdapter,
+} from './immutability'
+export type {
+  ImmutabilityAdapter,
+  ImmutabilityPatchSupport,
+  Patch,
+} from './immutability'
 export { createSelector, lruMemoize } from 'reselect'
 export { createSelectorCreator, weakMapMemoize } from './reselectImports'
 export type { Selector, OutputSelector } from 'reselect'
@@ -56,8 +66,6 @@ export type {
   CreateReducer,
   ReducerWithInitialState,
 } from './createReducer'
-export { immerAdapter } from './immutability'
-export type { ImmutabilityAdapter } from './immutability'
 export {
   // js
   createSlice,
