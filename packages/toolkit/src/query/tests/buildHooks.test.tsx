@@ -23,6 +23,7 @@ import type {
 import {
   QueryStatus,
   createApi,
+  fakeBaseQuery,
   fetchBaseQuery,
   skipToken,
 } from '@reduxjs/toolkit/query/react'
@@ -2270,6 +2271,43 @@ describe('hooks tests', () => {
 
       expect(lazySubscription.result.current[1]).toBe(7)
       expect(Object.keys(lazySubscription.result.current[2])).toEqual(['reset'])
+    })
+
+    test('useLazyQuery tracks a new arg that has the same number of keys as the previous one', async () => {
+      type FilterArg = { filterId?: string; address?: string }
+      const filterApi = createApi({
+        baseQuery: fakeBaseQuery(),
+        endpoints: (build) => ({
+          getItems: build.query<string, FilterArg>({
+            queryFn: async (arg) => {
+              await delay(5)
+              return { data: arg.filterId ? 'filtered' : 'all' }
+            },
+          }),
+        }),
+      })
+      const storeRef = setupApiStore(filterApi, undefined, {
+        withoutTestLifecycles: true,
+      })
+
+      const { result } = renderHook(
+        () => filterApi.endpoints.getItems.useLazyQuery(),
+        { wrapper: storeRef.wrapper },
+      )
+
+      await act(async () => {
+        await result.current[0]({ filterId: '1' })
+      })
+      expect(result.current[1].data).toBe('filtered')
+
+      act(() => {
+        result.current[0]({ address: undefined })
+      })
+      expect(result.current[1].isFetching).toBe(true)
+      expect(result.current[1].originalArgs).toEqual({ address: undefined })
+
+      await waitFor(() => expect(result.current[1].isFetching).toBe(false))
+      expect(result.current[1].data).toBe('all')
     })
   })
 
