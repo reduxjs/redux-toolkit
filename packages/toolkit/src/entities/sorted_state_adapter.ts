@@ -1,3 +1,6 @@
+import type { Draft } from '../draftTypes'
+import type { EntityChangeRecord } from './entity_core'
+import { createEntityCore } from './entity_core'
 import type {
   IdSelector,
   Comparer,
@@ -5,15 +8,13 @@ import type {
   Update,
   EntityId,
   DraftableEntityState,
+  RemoveManyFilter,
 } from './models'
-import { createStateOperator } from './state_adapter'
-import { createUnsortedStateAdapter } from './unsorted_state_adapter'
 import {
-  selectIdValue,
-  ensureEntitiesArray,
-  splitAddedUpdatedEntities,
-  getCurrent,
-} from './utils'
+  createSingleArgumentStateOperator,
+  createStateOperator,
+} from './state_adapter'
+import { getCurrent, selectIdValue } from './utils'
 
 // Borrowed from Replay
 export function findInsertIndex<T>(
@@ -55,148 +56,7 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
 ): EntityStateAdapter<T, Id> {
   type R = DraftableEntityState<T, Id>
 
-  const { removeOne, removeMany, removeAll } =
-    createUnsortedStateAdapter(selectId)
-
-  function addOneMutably(entity: T, state: R): void {
-    return addManyMutably([entity], state)
-  }
-
-  function addManyMutably(
-    newEntities: readonly T[] | Record<Id, T>,
-    state: R,
-    existingIds?: Id[],
-  ): void {
-    newEntities = ensureEntitiesArray(newEntities)
-
-    const existingKeys = new Set<Id>(
-      existingIds ?? getCurrent(state.ids as Id[]),
-    )
-    const addedKeys = new Set<Id>()
-    const models = newEntities.filter((model) => {
-      const modelId = selectIdValue(model, selectId)
-      const notAdded = !addedKeys.has(modelId)
-      if (notAdded) addedKeys.add(modelId)
-      return !existingKeys.has(modelId) && notAdded
-    })
-
-    if (models.length !== 0) {
-      mergeFunction(state, models)
-    }
-  }
-
-  function setOneMutably(entity: T, state: R): void {
-    return setManyMutably([entity], state)
-  }
-
-  function setManyMutably(
-    newEntities: readonly T[] | Record<Id, T>,
-    state: R,
-  ): void {
-    let deduplicatedEntities = {} as Record<Id, T>
-    newEntities = ensureEntitiesArray(newEntities)
-    if (newEntities.length !== 0) {
-      for (const item of newEntities) {
-        const entityId = selectId(item)
-        // For multiple items with the same ID, we should keep the last one.
-        deduplicatedEntities[entityId] = item
-        delete (state.entities as Record<Id, T>)[entityId]
-      }
-      newEntities = ensureEntitiesArray(deduplicatedEntities)
-      mergeFunction(state, newEntities)
-    }
-  }
-
-  function setAllMutably(
-    newEntities: readonly T[] | Record<Id, T>,
-    state: R,
-  ): void {
-    newEntities = ensureEntitiesArray(newEntities)
-    state.entities = {} as Record<Id, T>
-    state.ids = []
-
-    setManyMutably(newEntities, state)
-  }
-
-  function updateOneMutably(update: Update<T, Id>, state: R): void {
-    return updateManyMutably([update], state)
-  }
-
-  function updateManyMutably(
-    updates: ReadonlyArray<Update<T, Id>>,
-    state: R,
-  ): void {
-    let appliedUpdates = false
-    let replacedIds = false
-
-    // Pre-merge all updates that target the same entity ID so that later
-    // changes always win for every field—including `id`.  Without this step,
-    // the first rename moves the entity to a new key; a subsequent update that
-    // still targets the original key finds nothing and is silently dropped,
-    // producing results inconsistent with the unsorted adapter.
-    const updatesPerEntity: { [id: string]: Update<T, Id> } = {}
-    for (const update of updates) {
-      // Only collect updates for entities that currently exist (same guard
-      // used by the unsorted adapter).
-      if (update.id in (state.entities as Record<Id, T>)) {
-        updatesPerEntity[update.id] = {
-          id: update.id,
-          changes: {
-            ...updatesPerEntity[update.id]?.changes,
-            ...update.changes,
-          },
-        }
-      }
-    }
-
-    for (const update of Object.values(updatesPerEntity) as Update<T, Id>[]) {
-      const entity: T | undefined = (state.entities as Record<Id, T>)[update.id]
-      if (!entity) {
-        continue
-      }
-
-      appliedUpdates = true
-
-      Object.assign(entity, update.changes)
-      const newId = selectId(entity)
-
-      if (update.id !== newId) {
-        // We do support the case where updates can change an item's ID.
-        // This makes things trickier - go ahead and swap the IDs in state now.
-        replacedIds = true
-        delete (state.entities as Record<Id, T>)[update.id]
-        const oldIndex = (state.ids as Id[]).indexOf(update.id)
-        state.ids[oldIndex] = newId
-        ;(state.entities as Record<Id, T>)[newId] = entity
-      }
-    }
-
-    if (appliedUpdates) {
-      mergeFunction(state, [], appliedUpdates, replacedIds)
-    }
-  }
-
-  function upsertOneMutably(entity: T, state: R): void {
-    return upsertManyMutably([entity], state)
-  }
-
-  function upsertManyMutably(
-    newEntities: readonly T[] | Record<Id, T>,
-    state: R,
-  ): void {
-    const [added, updated, existingIdsArray] = splitAddedUpdatedEntities<T, Id>(
-      newEntities,
-      selectId,
-      state,
-    )
-
-    if (added.length) {
-      addManyMutably(added, state, existingIdsArray)
-    }
-    if (updated.length) {
-      updateManyMutably(updated, state)
-    }
-  }
+  const core = createEntityCore<T, Id>(selectId)
 
   function areArraysEqual(a: readonly unknown[], b: readonly unknown[]) {
     if (a.length !== b.length) {
@@ -212,21 +72,35 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
     return true
   }
 
-  function mergeFunction(
-    state: R,
-    addedItems: readonly T[],
-    appliedUpdates?: boolean,
-    replacedIds?: boolean,
-  ): void {
-    const currentEntities = getCurrent(state.entities)
+  function applySortedChanges(state: R, changes: EntityChangeRecord<Id>): void {
+    const { added, updated, removed, renamed } = changes
+    const hasRenames = Object.keys(renamed).length > 0
+
+    if (
+      added.length === 0 &&
+      updated.length === 0 &&
+      removed.length === 0 &&
+      !hasRenames
+    ) {
+      return
+    }
+
+    if (added.length === 0 && updated.length === 0 && !hasRenames) {
+      if (state.ids.length > 0) {
+        const removedIds = new Set<string>(removed.map(String))
+        state.ids = getCurrent(state.ids as Id[]).filter(
+          (id) => !removedIds.has(String(id)),
+        ) as Id[] | Draft<Id[]>
+      }
+      return
+    }
+
+    const currentEntities = getCurrent(state.entities) as Record<Id, T>
     const currentIds = getCurrent(state.ids as Id[])
 
-    const stateEntities = state.entities as Record<Id, T>
-
-    let ids: Iterable<Id> = currentIds
-    if (replacedIds) {
-      ids = new Set(currentIds)
-    }
+    const ids: Iterable<Id> = hasRenames
+      ? new Set(currentIds.map((id) => renamed[id] ?? id))
+      : currentIds
 
     let sortedEntities: T[] = []
     for (const id of ids) {
@@ -237,35 +111,96 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
     }
     const wasPreviouslyEmpty = sortedEntities.length === 0
 
-    // Insert/overwrite all new/updated
-    for (const item of addedItems) {
-      stateEntities[selectId(item)] = item
-
-      if (!wasPreviouslyEmpty) {
-        // Binary search insertion generally requires fewer comparisons
-        insert(sortedEntities, item, comparer)
+    if (wasPreviouslyEmpty) {
+      sortedEntities = added.map((id) => currentEntities[id]).sort(comparer)
+    } else {
+      if (updated.length > 0 || hasRenames) {
+        sortedEntities.sort(comparer)
+      }
+      for (const id of added) {
+        insert(sortedEntities, currentEntities[id], comparer)
       }
     }
 
-    if (wasPreviouslyEmpty) {
-      // All we have is the incoming values, sort them
-      sortedEntities = addedItems.slice().sort(comparer)
-    } else if (appliedUpdates) {
-      // We should have a _mostly_-sorted array already
-      sortedEntities.sort(comparer)
-    }
-
-    const newSortedIds = sortedEntities.map(selectId)
+    const newSortedIds = sortedEntities.map((entity) =>
+      selectIdValue(entity, selectId),
+    )
 
     if (!areArraysEqual(currentIds, newSortedIds)) {
       state.ids = newSortedIds
     }
   }
 
+  function addOneMutably(entity: T, state: R): void {
+    applySortedChanges(state, core.addOne(entity, state))
+  }
+
+  function addManyMutably(
+    newEntities: readonly T[] | Record<Id, T>,
+    state: R,
+  ): void {
+    applySortedChanges(state, core.addMany(newEntities, state))
+  }
+
+  function setOneMutably(entity: T, state: R): void {
+    applySortedChanges(state, core.setOne(entity, state))
+  }
+
+  function setManyMutably(
+    newEntities: readonly T[] | Record<Id, T>,
+    state: R,
+  ): void {
+    applySortedChanges(state, core.setMany(newEntities, state))
+  }
+
+  function setAllMutably(
+    newEntities: readonly T[] | Record<Id, T>,
+    state: R,
+  ): void {
+    applySortedChanges(state, core.setAll(newEntities, state))
+  }
+
+  function removeOneMutably(key: Id, state: R): void {
+    applySortedChanges(state, core.removeOne(key, state))
+  }
+
+  function removeManyMutably(
+    keysOrFilter: readonly Id[] | RemoveManyFilter<T>,
+    state: R,
+  ): void {
+    applySortedChanges(state, core.removeMany(keysOrFilter, state))
+  }
+
+  function removeAllMutably(state: R): void {
+    core.removeAll(state)
+  }
+
+  function updateOneMutably(update: Update<T, Id>, state: R): void {
+    applySortedChanges(state, core.updateOne(update, state))
+  }
+
+  function updateManyMutably(
+    updates: ReadonlyArray<Update<T, Id>>,
+    state: R,
+  ): void {
+    applySortedChanges(state, core.updateMany(updates, state))
+  }
+
+  function upsertOneMutably(entity: T, state: R): void {
+    applySortedChanges(state, core.upsertOne(entity, state))
+  }
+
+  function upsertManyMutably(
+    newEntities: readonly T[] | Record<Id, T>,
+    state: R,
+  ): void {
+    applySortedChanges(state, core.upsertMany(newEntities, state))
+  }
+
   return {
-    removeOne,
-    removeMany,
-    removeAll,
+    removeOne: createStateOperator(removeOneMutably),
+    removeMany: createStateOperator(removeManyMutably),
+    removeAll: createSingleArgumentStateOperator(removeAllMutably),
     addOne: createStateOperator(addOneMutably),
     updateOne: createStateOperator(updateOneMutably),
     upsertOne: createStateOperator(upsertOneMutably),
