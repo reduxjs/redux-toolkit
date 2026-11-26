@@ -336,7 +336,7 @@ To summarize the above behavior - the returned values must be correctly memoized
 
 ### Avoiding unnecessary requests
 
-By default, if you add a component that makes the same query as an existing one, no request will be performed.
+By default, if you add a component that makes the same query as an existing one, no request will be performed. See [Request Behavior](./request-behavior.mdx) for the full rules.
 
 In some cases, you may want to skip this behavior and force a refetch - in that case, you can call `refetch` that is returned by the hook.
 

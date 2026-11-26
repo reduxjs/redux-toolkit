@@ -16,7 +16,7 @@ RTK Query uses a "cache tag" system to automate re-fetching for query endpoints 
 
 Each endpoint + parameter combination contributes its own `queryCacheKey`. The cache tag system enables the ability to inform RTK Query that a particular query cache has _provided_ specific tags. If a mutation is fired which is said to `invalidate` tags that a query cache has _provided_, the cached data will be considered _invalidated_, and re-fetch if there is an active subscription to the cached data.
 
-For triggering re-fetching through other means, see [Manipulating Cache Behavior](./cache-behavior.mdx#manipulating-cache-behavior).
+For the other ways RTK Query refetches data, see [Request Behavior](./request-behavior.mdx).
 
 ## Definitions
 
@@ -386,223 +386,27 @@ In order to provide stronger control over invalidating the appropriate data, you
 
 ## Tag Invalidation Behavior
 
-The matrix below shows examples of which invalidated tags will affect and invalidate which provided tags:
+An invalidated tag matches provided tags by two rules:
 
-<table className="checkbox-table">
-  <thead>
-    <tr>
-      <th className="diagonal-cell">
-        <div className="diagonal-cell--content">
-          <div className="diagonal-cell--topRight">Provided</div>
-          <div className="diagonal-cell--bottomLeft">Invalidated</div>
-        </div>
-      </th>
-      <th>
-        <div>General tag A</div>
-        <div style={{ fontWeight: 'normal', fontSize: '0.9rem' }}>
-          {"['Post']"}
-          <br />
-          {'/'}
-          <br />
-          {"[{ type: 'Post' }]"}
-        </div>
-      </th>
-      <th>
-        <div>General tag B</div>
-        <div style={{ fontWeight: 'normal', fontSize: '0.9rem' }}>
-          {"['User']"}
-          <br />
-          {'/'}
-          <br />
-          {"[{ type: 'User' }]"}
-        </div>
-      </th>
-      <th>
-        <div>Specific tag A1</div>
-        <div style={{ fontWeight: 'normal', fontSize: '0.9rem' }}>
-          {"[{ type: 'Post',"}
-          <br />
-          {' id: 1 }]'}
-        </div>
-      </th>
-      <th>
-        <div>Specific tag A2</div>
-        <div style={{ fontWeight: 'normal', fontSize: '0.9rem' }}>
-          {"[{ type: 'Post', id: 'LIST' }]"}
-        </div>
-      </th>
-      <th>
-        <div>Specific tag B1</div>
-        <div style={{ fontWeight: 'normal', fontSize: '0.9rem' }}>
-          {"[{ type: 'User',"}
-          <br />
-          {' id: 1 }]'}
-        </div>
-      </th>
-      <th>
-        <div>Specific tag B2</div>
-        <div style={{ fontWeight: 'normal', fontSize: '0.9rem' }}>
-          {"[{ type: 'User',"}
-          <br />
-          {' id: 2 }]'}
-        </div>
-      </th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>
-        <div style={{ fontWeight: 'bold' }}>General tag A</div>
-        <div style={{ fontSize: '0.9rem' }}>
-          {"['Post'] / [{ type: 'Post' }]"}
-        </div>
-      </td>
-      <td>✔️</td>
-      <td></td>
-      <td>✔️</td>
-      <td>✔️</td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>
-        <div style={{ fontWeight: 'bold' }}>General tag B</div>
-        <div style={{ fontSize: '0.9rem' }}>
-          {"['User'] /"}
-          <br />
-          {"[{ type: 'User' }]"}
-        </div>
-      </td>
-      <td></td>
-      <td>✔️</td>
-      <td></td>
-      <td></td>
-      <td>✔️</td>
-      <td>✔️</td>
-    </tr>
-    <tr>
-      <td>
-        <div style={{ fontWeight: 'bold' }}>Specific tag A1</div>
-        <div style={{ fontSize: '0.9rem' }}>{"[{ type: 'Post', id: 1 }]"}</div>
-      </td>
-      <td></td>
-      <td></td>
-      <td>✔️</td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>
-        <div style={{ fontWeight: 'bold' }}>Specific tag A2</div>
-        <div style={{ fontSize: '0.9rem' }}>
-          {"[{ type: 'Post', id: 'LIST' }]"}
-        </div>
-      </td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>✔️</td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>
-        <div style={{ fontWeight: 'bold' }}>Specific tag B1</div>
-        <div style={{ fontSize: '0.9rem' }}>{"[{ type: 'User', id: 1 }]"}</div>
-      </td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>✔️</td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>
-        <div style={{ fontWeight: 'bold' }}>Specific tag B2</div>
-        <div style={{ fontSize: '0.9rem' }}>{"[{ type: 'User', id: 2 }]"}</div>
-      </td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td>✔️</td>
-    </tr>
-  </tbody>
-</table>
+1. **A tag with only a type**, like `'Post'` or `{ type: 'Post' }`, invalidates every provided tag of that type, with or without an ID.
+2. **A tag with a type and an ID**, like `{ type: 'Post', id: 1 }`, invalidates only provided tags with that exact type and ID.
 
-The invalidation behavior is summarized based on tag specificity in the sections below.
+A tag never matches a provided tag of a different type. IDs are compared as strings, so `1` and `'1'` match.
 
-### General tag
+The table shows which queries each invalidation affects. Each row is what a query provides. Each column is a tag that a mutation invalidates.
 
-e.g. `['Post'] / [{ type: 'Post' }]`
+| Query provides                                            | `'Post'` | `{ type: 'Post', id: 1 }` | `{ type: 'Post', id: 'LIST' }` |
+| --------------------------------------------------------- | :------: | :-----------------------: | :----------------------------: |
+| `['Post']`                                                |    ✔️    |                           |                                |
+| `[{ type: 'Post', id: 1 }]`                               |    ✔️    |            ✔️             |                                |
+| `[{ type: 'Post', id: 'LIST' }]`                          |    ✔️    |                           |               ✔️               |
+| `['Post', { type: 'Post', id: 1 }]`                       |    ✔️    |            ✔️             |                                |
+| `[{ type: 'Post', id: 1 }, { type: 'Post', id: 'LIST' }]` |    ✔️    |            ✔️             |               ✔️               |
+| `['User']`                                                |          |                           |                                |
 
-Will `invalidate` any `provided` tag with the matching type, including general and specific tags.
+From rule 2, `{ type: 'Post', id: 1 }` does **not** invalidate a query that provides only `'Post'`. A mutation that invalidates `'Post'` without an ID still refetches it. If your mutations invalidate single items by ID, a list query that should refetch when any item changes has to provide a tag for each item, or a tag with an ID such as `'LIST'` that mutations also invalidate. [Advanced Invalidation with abstract tag IDs](#advanced-invalidation-with-abstract-tag-ids) shows this pattern.
 
-Example:  
-If a general tag of `Post` was invalidated, endpoints whose data `provided` the following tags would all have their data invalidated:
-
-- `['Post']`
-- `[{ type: 'Post' }]`
-- `[{ type: 'Post' }, { type: 'Post', id: 1 }]`
-- `[{ type: 'Post', id: 1 }]`
-- `[{ type: 'Post', id: 1 }, { type: 'User' }]`
-- `[{ type: 'Post', id: 'LIST' }]`
-- `[{ type: 'Post', id: 1 }, { type: 'Post', id: 'LIST' }]`
-
-Endpoints whose data `provided` the following tags would _not_ have their data invalidated:
-
-- `['User']`
-- `[{ type: 'User' }]`
-- `[{ type: 'User', id: 1 }]`
-- `[{ type: 'User', id: 'LIST' }]`
-- `[{ type: 'User', id: 1 }, { type: 'User', id: 'LIST' }]`
-
-### Specific tag
-
-e.g. `[{ type: 'Post', id: 1 }]`
-
-Will `invalidate` any `provided` tag with both the matching type, _and_ matching id. Will not cause a `general` tag to be invalidated directly, but _might_ invalidate data for an endpoint that provides a `general` tag _if_ it also provides a matching `specific` tag.
-
-Example 1:
-If a specific tag of `{ type: 'Post', id: 1 }` was invalidated, endpoints whose data `provided` the following tags would all have their data invalidated:
-
-- `[{ type: 'Post' }, { type: 'Post', id: 1 }]`
-- `[{ type: 'Post', id: 1 }]`
-- `[{ type: 'Post', id: 1 }, { type: 'User' }]`
-- `[{ type: 'Post', id: 1 }, { type: 'Post', id: 'LIST' }]`
-
-Endpoints whose data `provided` the following tags would _not_ have their data invalidated:
-
-- `['Post']`
-- `[{ type: 'Post' }]`
-- `[{ type: 'Post', id: 'LIST' }]`
-- `['User']`
-- `[{ type: 'User' }]`
-- `[{ type: 'User', id: 1 }]`
-- `[{ type: 'User', id: 'LIST' }]`
-- `[{ type: 'User', id: 1 }, { type: 'User', id: 'LIST' }]`
-
-Example 2:
-If a specific tag of `{ type: 'Post', id: 'LIST' }` was invalidated, endpoints whose data `provided` the following tags would all have their data invalidated:
-
-- `[{ type: 'Post', id: 'LIST' }]`
-- `[{ type: 'Post', id: 1 }, { type: 'Post', id: 'LIST' }]`
-
-Endpoints whose data `provided` the following tags would _not_ have their data invalidated:
-
-- `['Post']`
-- `[{ type: 'Post' }]`
-- `[{ type: 'Post' }, { type: 'Post', id: 1 }]`
-- `[{ type: 'Post', id: 1 }]`
-- `[{ type: 'Post', id: 1 }, { type: 'User' }]`
-- `['User']`
-- `[{ type: 'User' }]`
-- `[{ type: 'User', id: 1 }]`
-- `[{ type: 'User', id: 'LIST' }]`
-- `[{ type: 'User', id: 1 }, { type: 'User', id: 'LIST' }]`
+What happens to each invalidated entry, and when, is described in [Request Behavior](./request-behavior.mdx#tag-invalidation).
 
 ## Recipes
 

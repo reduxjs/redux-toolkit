@@ -12,7 +12,7 @@ description: 'RTK Query > Usage > Cache Behavior: defaults, cache lifetimes, and
 
 A key feature of RTK Query is its management of cached data. When data is fetched from the server, RTK Query will store the data in the Redux store as a 'cache'. When an additional request is performed for the same data, RTK Query will provide the existing cached data rather than sending an additional request to the server.
 
-RTK Query provides a number of concepts and tools to manipulate the cache behavior and adjust it to your needs.
+This page covers what RTK Query stores, and how long it keeps unused data. For when RTK Query starts a request, reuses cached data, or refetches, see [Request Behavior](./request-behavior.mdx).
 
 ## Default Cache Behavior
 
@@ -71,17 +71,20 @@ Data is kept in the cache as long as at least one active subscriber is intereste
 
 If 'ComponentThree' is unmounted in the example above, regardless of how much time passes, the data will remain in the cache due to 'ComponentFour' still being subscribed to the same data, and the subscribe reference count will be `1`. However, once 'ComponentFour' unmounts, the subscriber reference count will be `0`. The data will remain in the cache for the remainder of the expiration time. If no new subscription has been created before the timer expires, the cached data will finally be removed.
 
-## Manipulating Cache Behavior
+## How long unused data is kept
 
-On top of the default behavior, RTK Query provides a number of methods to re-fetch data earlier in scenarios where it should be considered invalid, or is otherwise deemed suitable to be 'refreshed'.
+When an entry loses its last subscriber, RTK Query starts a timer. When the timer runs out and the entry still has no subscribers, the entry is removed. A new subscriber before then cancels the removal.
 
-### Reducing subscription time with `keepUnusedDataFor`
+| Option                                                        | Where it is set                  | Values                 | Default |
+| ------------------------------------------------------------- | -------------------------------- | ---------------------- | ------- |
+| [`keepUnusedDataFor`](../api/createApi.mdx#keepunuseddatafor) | `createApi`, endpoint definition | seconds, or `Infinity` | `60`    |
+| [`retainFor`](../api/created-api/endpoints.mdx#initiate)      | `initiate()` options             | seconds                | not set |
 
-As mentioned above under [Default Cache Behavior](#default-cache-behavior) and [Cache lifetime & subscription example](#cache-lifetime--subscription-example), by default, data will remain in the cache for 60 seconds after the subscriber reference count hits zero.
+`keepUnusedDataFor` is a memory setting. It controls how long unused data stays in the store. It does not decide when data refetches. For that, see [Request Behavior](./request-behavior.mdx).
 
-This value can be configured using the `keepUnusedDataFor` option for both the API definition, as well as per-endpoint. Note that the per-endpoint version, if provided, will overrule a setting on the API definition.
+### `keepUnusedDataFor`
 
-Providing a value to `keepUnusedDataFor` as a number in seconds specifies how long the data should be kept in the cache after the subscriber reference count reaches zero.
+The endpoint's value overrides the `createApi` value:
 
 ```ts title="keepUnusedDataFor configuration"
 // file: types.ts noEmit
@@ -101,7 +104,7 @@ export const api = createApi({
   keepUnusedDataFor: 30,
   // highlight-end
   endpoints: (build) => ({
-    getPosts: build.query<Post[], number>({
+    getPosts: build.query<Post[], void>({
       query: () => `posts`,
       // highlight-start
       // configuration for an individual endpoint, overriding the api setting
@@ -112,283 +115,61 @@ export const api = createApi({
 })
 ```
 
-### Re-fetching on demand with `refetch`/`initiate`
+- `Infinity` keeps unused entries until something removes them. Very large values are capped at about 24 days.
+- The timer also restarts when a request for an unused entry finishes, and when [`upsertQueryEntries`](../api/created-api/api-slice-utils.mdx#upsertqueryentries) writes the entry. It does not restart when a `subscribe: false` call is served from the cache, unless that call passes `retainFor`.
 
-In order to achieve complete granular control over re-fetching data, you can use the `refetch` function returned as a result property from a [`useQuery`](../api/created-api/hooks.mdx#usequery) or [`useQuerySubscription`](../api/created-api/hooks.mdx#usequerysubscription) hook.
+### `retainFor`
 
-Calling the `refetch` function will force refetch the associated query.
+`retainFor` keeps one entry longer without changing the endpoint. The entry is kept for the longer of `keepUnusedDataFor` and `retainFor`. For a running `subscribe: false` request, the time counts from when the request finishes.
 
-Alternatively, you can dispatch the `initiate` thunk action for an endpoint, passing the option `forceRefetch: true` to the thunk action creator for the same effect.
+Use it when you load data before the component that reads it mounts, for example in a router loader:
 
-```tsx no-transpile title="Force refetch example"
-import { useDispatch } from 'react-redux'
-import { api, useGetPostsQuery } from './api'
-
-const Component = () => {
-  const dispatch = useDispatch()
-  const { data, refetch } = useGetPostsQuery({ count: 5 })
-
-  function handleRefetchOne() {
-    // force re-fetches the data
-    refetch()
-  }
-
-  function handleRefetchTwo() {
-    // has the same effect as `refetch` for the associated query
-    dispatch(
-      api.endpoints.getPosts.initiate(
-        { count: 5 },
-        { subscribe: false, forceRefetch: true },
-      ),
-    )
-  }
-
-  return (
-    <div>
-      <button onClick={handleRefetchOne}>Force re-fetch 1</button>
-      <button onClick={handleRefetchTwo}>Force re-fetch 2</button>
-    </div>
-  )
-}
+```ts no-transpile
+// In a route loader: fetch now, keep the data for at least 30 seconds
+await store.dispatch(
+  api.endpoints.getPost.initiate(id, { subscribe: false, retainFor: 30 }),
+)
 ```
 
-### Encouraging re-fetching with `refetchOnMountOrArgChange`
+## Removing data earlier
 
-Queries can be encouraged to re-fetch more frequently than usual via the [`refetchOnMountOrArgChange`](../api/createApi.mdx#refetchonmountorargchange) property. This can be passed to the endpoint as a whole, to individual hook calls, or when dispatching the [`initiate`](../api/created-api/endpoints.mdx#initiate) action (the name of the action creator's option is `forceRefetch`).
+These remove entries before the timer runs out:
 
-`refetchOnMountOrArgChange` is used to encourage re-fetching in additional situations where the default behavior would instead serve cached data.
+| Cause                                                                                | What is removed                                                                                                                              |
+| ------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Tag invalidation](./request-behavior.mdx#tag-invalidation)                          | invalidated entries with no subscribers                                                                                                      |
+| [Focus or reconnect](./request-behavior.mdx#focus-and-reconnect)                     | entries that were requested but have no subscribers now, when the `createApi` `refetchOnFocus` / `refetchOnReconnect` value allows a refetch |
+| [`api.util.removeQueryData`](../api/created-api/api-slice-utils.mdx#removequerydata) | one entry, even if it has subscribers (unless `onlyIfUnused: true`)                                                                          |
+| `reset()` from a lazy query hook                                                     | that hook's entry                                                                                                                            |
+| [`api.util.resetApiState`](../api/created-api/api-slice-utils.mdx#resetapistate)     | everything                                                                                                                                   |
 
-`refetchOnMountOrArgChange` accepts either a boolean value, or a number as time in seconds.
+Tag invalidation and focus refetch entries that have subscribers, and remove entries that don't. Refetching data nobody is using would waste a request, so RTK Query drops it instead. The next subscriber fetches it again.
 
-Passing `false` (the default value) for this property will use the default behavior [described above](#default-cache-behavior).
+`removeQueryData` also aborts a running request for the entry. Mounted `useQuery` hooks for that entry fetch it again and show `isLoading: true`.
 
-Passing `true` for this property will cause the endpoint to always refetch when a new subscriber to the query is added. If passed to an individual hook call and not the api definition itself, then this applies only to that hook call. I.e., when the component calling the hook mounts, or the argument changes, it will always refetch, regardless of whether cached data for the endpoint + arg combination already exists.
+## Watching a query outside components
 
-Passing a `number` as a value in seconds will use the following behavior:
+A listener or `store.subscribe` callback does not hold a subscription. If nothing else uses the entry, it is removed after `keepUnusedDataFor`. To keep the entry alive and refetching, hold a subscription with `initiate()` and read the data with `select()`:
 
-- At the time a query subscription is created:
-  - if there is an existing query in the cache, it will compare the current time vs the last fulfilled timestamp for that query,
-  - It will refetch if the provided amount of time in seconds has elapsed.
-- If there is no query, it will fetch the data.
-- If there is an existing query, but the amount of time specified since the last query has not elapsed, it will serve the existing cached data.
+```ts no-transpile
+const subscription = store.dispatch(api.endpoints.getPosts.initiate())
+const selectPosts = api.endpoints.getPosts.select()
 
-A numeric `0` always refetches when a subscriber is added. This also applies to `forceRefetch: 0` on `initiate()`. Use `false` to disable age-based refetching.
-
-```ts title="Configuring re-fetching on subscription if data exceeds a given time"
-// file: types.ts noEmit
-export interface Post {
-  id: number
-  name: string
-}
-
-// file: api.ts
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-import type { Post } from './types'
-
-export const api = createApi({
-  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
-  // highlight-start
-  // global configuration for the api
-  refetchOnMountOrArgChange: 30,
-  // highlight-end
-  endpoints: (build) => ({
-    getPosts: build.query<Post[], number>({
-      query: () => `posts`,
-    }),
-  }),
+const unsubscribeStore = store.subscribe(() => {
+  const { data, status } = selectPosts(store.getState())
+  // react to the latest data
 })
+
+// When finished:
+subscription.unsubscribe()
+unsubscribeStore()
 ```
 
-```tsx no-transpile title="Forcing refetch on component mount"
-import { useGetPostsQuery } from './api'
+The subscription makes the entry eligible for the same refetches as a mounted hook. Tag invalidation refetches it. Polling needs a `pollingInterval` in the `initiate()` subscription options, and focus or reconnect refetches need `refetchOnFocus` / `refetchOnReconnect` plus `setupListeners`.
 
-const Component = () => {
-  const { data } = useGetPostsQuery(
-    { count: 5 },
-    // highlight-start
-    // this overrules the api definition setting,
-    // forcing the query to always fetch when this component is mounted
-    { refetchOnMountOrArgChange: true },
-    // highlight-end
-  )
+## Refreshing cached data
 
-  return <div>...</div>
-}
-```
-
-### Re-fetching on window focus with `refetchOnFocus`
-
-The [`refetchOnFocus`](../api/createApi.mdx#refetchonfocus) option allows you to control whether RTK Query will try to refetch all subscribed queries after the application window regains focus.
-
-The option accepts a boolean or a number of seconds:
-
-- `false` - never refetch on focus (default)
-- `true` - always refetch subscribed queries on focus
-- a number - refetch only if the cached data is at least that many seconds old, or there is no data yet. For example, `refetchOnFocus: 30` skips the refetch when the data arrived less than 30 seconds ago. `0` behaves like `true`.
-
-Each subscriber uses its own value or inherits the `createApi` default when its value is unset. A shared query refetches if any subscriber would refetch, so the most eager value wins: with one subscriber at `60` and another at `10`, data that is 20 seconds old is refetched. One subscriber's `false` does not disable another subscriber's inherited `true`.
-
-If you specify this option alongside `skip: true`, this will not be evaluated until skip is false.
-
-Note that this requires [`setupListeners`](../api/setupListeners.mdx) to have been called.
-
-This option is available on both the api definition with [`createApi`](../api/createApi.mdx), as well as on the [`useQuery`](../api/created-api/hooks.mdx#usequery), [`useQuerySubscription`](../api/created-api/hooks.mdx#usequerysubscription), [`useLazyQuery`](../api/created-api/hooks.mdx#uselazyquery), and [`useLazyQuerySubscription`](../api/created-api/hooks.mdx#uselazyquerysubscription) hooks.
-
-```ts title="src/services/api.ts"
-// file: src/services/types.ts noEmit
-export interface Post {
-  id: number
-  name: string
-}
-
-// file: src/services/api.ts
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-import type { Post } from './types'
-
-export const api = createApi({
-  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
-  // highlight-start
-  // global configuration for the api
-  refetchOnFocus: true,
-  // highlight-end
-  endpoints: (build) => ({
-    getPosts: build.query<Post[], number>({
-      query: () => `posts`,
-    }),
-  }),
-})
-```
-
-```ts title="src/store.ts"
-// file: src/services/types.ts noEmit
-export interface Post {
-  id: number
-  name: string
-}
-
-// file: src/services/api.ts noEmit
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-import type { Post } from './types'
-
-export const api = createApi({
-  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
-  // highlight-start
-  // global configuration for the api
-  refetchOnFocus: true,
-  // highlight-end
-  endpoints: (build) => ({
-    getPosts: build.query<Post[], number>({
-      query: () => `posts`,
-    }),
-  }),
-})
-
-// file: src/store.ts
-import { configureStore } from '@reduxjs/toolkit'
-import { setupListeners } from '@reduxjs/toolkit/query'
-import { api } from './services/api'
-
-export const store = configureStore({
-  reducer: {
-    [api.reducerPath]: api.reducer,
-  },
-  middleware: (gDM) => gDM().concat(api.middleware),
-})
-
-// highlight-start
-// enable listener behavior for the store
-setupListeners(store.dispatch)
-// highlight-end
-
-export type RootState = ReturnType<typeof store.getState>
-```
-
-### Re-fetching on network reconnection with `refetchOnReconnect`
-
-The [`refetchOnReconnect`](../api/createApi.mdx#refetchonreconnect) option on [`createApi`](../api/createApi.mdx) allows you to control whether RTK Query will try to refetch all subscribed queries after regaining a network connection.
-
-Like `refetchOnFocus`, this option accepts a boolean or a number of seconds. A number refetches only data that is at least that old. The option resolves separately for each subscriber before the values are combined, and the shared query refetches if any subscriber would refetch.
-
-If you specify this option alongside `skip: true`, this **will not be evaluated** until `skip` is false.
-
-Note that this requires [`setupListeners`](../api/setupListeners.mdx) to have been called.
-
-This option is available on both the api definition with [`createApi`](../api/createApi.mdx), as well as on the [`useQuery`](../api/created-api/hooks.mdx#usequery), [`useQuerySubscription`](../api/created-api/hooks.mdx#usequerysubscription), [`useLazyQuery`](../api/created-api/hooks.mdx#uselazyquery), and [`useLazyQuerySubscription`](../api/created-api/hooks.mdx#uselazyquerysubscription) hooks.
-
-```ts title="src/services/api.ts"
-// file: src/services/types.ts noEmit
-export interface Post {
-  id: number
-  name: string
-}
-
-// file: src/services/api.ts
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-import type { Post } from './types'
-
-export const api = createApi({
-  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
-  // highlight-start
-  // global configuration for the api
-  refetchOnReconnect: true,
-  // highlight-end
-  endpoints: (build) => ({
-    getPosts: build.query<Post[], number>({
-      query: () => `posts`,
-    }),
-  }),
-})
-```
-
-```ts title="src/store.ts"
-// file: src/services/types.ts noEmit
-export interface Post {
-  id: number
-  name: string
-}
-
-// file: src/services/api.ts noEmit
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-import type { Post } from './types'
-
-export const api = createApi({
-  baseQuery: fetchBaseQuery({ baseUrl: '/' }),
-  // highlight-start
-  // global configuration for the api
-  refetchOnReconnect: true,
-  // highlight-end
-  endpoints: (build) => ({
-    getPosts: build.query<Post[], number>({
-      query: () => `posts`,
-    }),
-  }),
-})
-
-// file: src/store.ts
-import { configureStore } from '@reduxjs/toolkit'
-import { setupListeners } from '@reduxjs/toolkit/query'
-import { api } from './services/api'
-
-export const store = configureStore({
-  reducer: {
-    [api.reducerPath]: api.reducer,
-  },
-  middleware: (gDM) => gDM().concat(api.middleware),
-})
-
-// highlight-start
-// enable listener behavior for the store
-setupListeners(store.dispatch)
-// highlight-end
-
-export type RootState = ReturnType<typeof store.getState>
-```
-
-### Re-fetching after mutations by invalidating cache tags
-
-RTK Query uses an optional [cache tag](./automated-refetching.mdx#cache-tags) system to automate re-fetching for query endpoints that have data affected by mutation endpoints.
-
-See [Automated Re-fetching](./automated-refetching.mdx) for full details on this concept.
+By default, cached data is reused until it is removed. RTK Query can also refetch it: on demand with `refetch()`, when a component mounts, on window focus or network reconnect, on a polling timer, or after a mutation invalidates its tags. [Request Behavior](./request-behavior.mdx) covers each of these and how they combine.
 
 ## Tradeoffs
 

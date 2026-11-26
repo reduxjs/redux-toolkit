@@ -519,7 +519,7 @@ You can set this globally in `createApi`, but you can also override the default 
 :::note
 You can set this globally in `createApi`, but you can also override the default value and have more granular control by passing `refetchOnFocus` to each individual hook call or when dispatching the [`initiate`](./created-api/endpoints.mdx#initiate) action.
 
-If you specify `track: false` when manually dispatching queries, RTK Query will not be able to automatically refetch for you.
+If you dispatch `initiate` with `subscribe: false`, the request holds no subscription, so RTK Query will not refetch it for you.
 :::
 
 ### `refetchOnReconnect`
@@ -529,7 +529,7 @@ If you specify `track: false` when manually dispatching queries, RTK Query will 
 :::note
 You can set this globally in `createApi`, but you can also override the default value and have more granular control by passing `refetchOnReconnect` to each individual hook call or when dispatching the [`initiate`](./created-api/endpoints.mdx#initiate) action.
 
-If you specify `track: false` when manually dispatching queries, RTK Query will not be able to automatically refetch for you.
+If you dispatch `initiate` with `subscribe: false`, the request holds no subscription, so RTK Query will not refetch it for you.
 :::
 
 ### `onSchemaFailure`
