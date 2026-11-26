@@ -339,6 +339,7 @@ export type InfiniteQuerySubState<
   D extends InfiniteQueryDefinition<any, any, any, any, any>
     ? QuerySubState<D, InfiniteData<ResultTypeFrom<D>, PageParamFrom<D>>> & {
         direction?: InfiniteQueryDirection
+        initialPageParam?: PageParamFrom<D>
       }
     : never
 

@@ -52,6 +52,7 @@ import type {
   QueryCacheKey,
   InfiniteQueryDirection,
   InfiniteQueryKeys,
+  InfiniteQuerySubState,
 } from './apiState'
 import { QueryStatus, STATUS_UNINITIALIZED } from './apiState'
 import type {
@@ -826,10 +827,13 @@ export function buildThunks<
         // Start by looking up the existing InfiniteData value from state,
         // falling back to an empty value if it doesn't exist yet
         const blankData = { pages: [], pageParams: [] }
-        const cachedData = selectors.selectQueryEntry(
+        const cachedEntry = selectors.selectQueryEntry(
           getState(),
           arg.queryCacheKey,
-        )?.data as InfiniteData<unknown, unknown> | undefined
+        ) as InfiniteQuerySubState<any> | undefined
+        const cachedData = cachedEntry?.data as
+          | InfiniteData<unknown, unknown>
+          | undefined
 
         // When the arg changes or the user forces a refetch,
         // we don't include the `direction` flag. This lets us distinguish
@@ -857,8 +861,10 @@ export function buildThunks<
         } else {
           // Otherwise, fetch the first page and then any remaining pages
 
-          const { initialPageParam = infiniteQueryOptions.initialPageParam } =
-            arg as InfiniteQueryThunkArg<any>
+          const initialPageParam =
+            cachedEntry?.initialPageParam !== undefined
+              ? cachedEntry.initialPageParam
+              : infiniteQueryOptions.initialPageParam
 
           // If we're doing a refetch, we should start from
           // the first page we have cached.
