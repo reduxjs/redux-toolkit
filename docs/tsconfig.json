@@ -22,10 +22,10 @@
     "paths": {
       "react": ["../docs/node_modules/@types/react"],
       "react-dom": ["../docs/node_modules/@types/react-dom"],
-      "@reduxjs/toolkit": ["../packages/toolkit/dist/index.d.ts"],
-      "@reduxjs/toolkit/query": ["../packages/toolkit/dist/query/index.d.ts"],
+      "@reduxjs/toolkit": ["../packages/toolkit/dist/index.d.mts"],
+      "@reduxjs/toolkit/query": ["../packages/toolkit/dist/query/index.d.mts"],
       "@reduxjs/toolkit/query/react": [
-        "../packages/toolkit/dist/query/react/index.d.ts"
+        "../packages/toolkit/dist/query/react/index.d.mts"
       ],
       "@virtual/*": ["../docs/virtual/*"],
       "your-cool-library": ["../docs/virtual/your-cool-library/index.ts"],

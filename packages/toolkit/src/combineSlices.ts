@@ -28,8 +28,22 @@ type SliceLikeReducerPath<A extends AnySliceLike> =
 type SliceLikeState<A extends AnySliceLike> =
   A extends SliceLike<any, infer State, any> ? State : never
 
+// Slice reducers carry `getInitialState`, which stops `PreloadedState` from
+// being inferred through `Reducer` (it comes out as `unknown`). In that case,
+// read it from the reducer's state parameter: whatever is accepted besides
+// `State | undefined` is the declared preloaded state, otherwise it is `State`.
 type SliceLikePreloadedState<A extends AnySliceLike> =
-  A extends SliceLike<any, any, infer PreloadedState> ? PreloadedState : never
+  A extends SliceLike<any, any, infer PreloadedState>
+    ? unknown extends PreloadedState
+      ? A extends {
+          reducer: (state: infer StateParam, action: any) => infer State
+        }
+        ? [Exclude<StateParam, State | undefined>] extends [never]
+          ? State
+          : Exclude<StateParam, State | undefined>
+        : PreloadedState
+      : PreloadedState
+    : never
 
 export type WithSlice<A extends AnySliceLike> = {
   [Path in SliceLikeReducerPath<A>]: SliceLikeState<A>
@@ -353,6 +367,19 @@ const ORIGINAL_STATE = Symbol.for('rtk-state-proxy-original')
 
 const isStateProxy = (value: any) => !!value && !!value[ORIGINAL_STATE]
 
+/**
+ * Uses the reducer's `getInitialState()` when it has one (slice reducers do),
+ * so that running the reducer can't trigger default cases or matchers.
+ * Plain reducers are called with a random action type instead.
+ */
+const getReducerInitialState = (reducer: Reducer) =>
+  typeof (reducer as Partial<{ getInitialState: () => unknown }>)
+    .getInitialState === 'function'
+    ? (
+        reducer as unknown as { getInitialState: () => unknown }
+      ).getInitialState()
+    : reducer(undefined, { type: nanoid() })
+
 const createStateProxy = <State extends object>(
   stateProxyMap: WeakMap<object, object>,
   state: State,
@@ -372,14 +399,11 @@ const createStateProxy = <State extends object>(
             if (typeof cached !== 'undefined') return cached
             const reducer = reducerMap[prop]
             if (reducer) {
-              // ensure action type is random, to prevent reducer treating it differently
-              const reducerResult = reducer(undefined, { type: nanoid() })
+              const reducerResult = getReducerInitialState(reducer)
               if (typeof reducerResult === 'undefined') {
                 throw new Error(
-                  `The slice reducer for key "${prop.toString()}" returned undefined when called for selector(). ` +
-                    `If the state passed to the reducer is undefined, you must ` +
-                    `explicitly return the initial state. The initial state may ` +
-                    `not be undefined. If you don't want to set a value for this reducer, ` +
+                  `The slice reducer for key "${prop.toString()}" returned undefined when asked for its initial state. ` +
+                    `The initial state may not be undefined. If you don't want to set a value for this reducer, ` +
                     `you can use null instead of undefined.`,
                 )
               }

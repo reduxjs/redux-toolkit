@@ -25,9 +25,14 @@ sources:
 
 ```ts
 // file: src/app/createAppSlice.ts
-import { asyncThunkCreator, buildCreateSlice } from '@reduxjs/toolkit'
+import {
+  asyncThunkCreator,
+  buildCreateSlice,
+  immerAdapter,
+} from '@reduxjs/toolkit'
 
 export const createAppSlice = buildCreateSlice({
+  immutability: immerAdapter,
   creators: { asyncThunk: asyncThunkCreator },
 })
 
@@ -143,9 +148,14 @@ Slice selectors keep state-location knowledge next to the slice.
 ### Use `create.asyncThunk` when the async lifecycle belongs to the slice
 
 ```ts
-import { asyncThunkCreator, buildCreateSlice } from '@reduxjs/toolkit'
+import {
+  asyncThunkCreator,
+  buildCreateSlice,
+  immerAdapter,
+} from '@reduxjs/toolkit'
 
 const createAppSlice = buildCreateSlice({
+  immutability: immerAdapter,
   creators: { asyncThunk: asyncThunkCreator },
 })
 
@@ -293,33 +303,9 @@ Hand-written reducers are an escape hatch for proven bottlenecks, not the normal
 
 Source: reduxjs/redux-toolkit:docs/usage/migrating-to-modern-redux.mdx
 
-### HIGH Writing RTK 1.x object syntax for `extraReducers`
+### HIGH Using `extraReducers` instead of `respondTo`
 
 Wrong:
-
-```ts
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
-
-const initialState = { items: [] as { id: string; title: string }[] }
-
-const fetchPosts = createAsyncThunk('posts/fetch', async () => {
-  const response = await fetch('/api/posts')
-  return (await response.json()) as { id: string; title: string }[]
-})
-
-const postsSlice = createSlice({
-  name: 'posts',
-  initialState,
-  reducers: {},
-  extraReducers: {
-    [fetchPosts.fulfilled.type]: (state, action) => {
-      state.items = action.payload
-    },
-  },
-})
-```
-
-Correct:
 
 ```ts
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
@@ -343,7 +329,31 @@ const postsSlice = createSlice({
 })
 ```
 
-RTK 2 removed the object form; agents trained on RTK 1.x still generate it.
+Correct:
+
+```ts
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
+
+const initialState = { items: [] as { id: string; title: string }[] }
+
+const fetchPosts = createAsyncThunk('posts/fetch', async () => {
+  const response = await fetch('/api/posts')
+  return (await response.json()) as { id: string; title: string }[]
+})
+
+const postsSlice = createSlice({
+  name: 'posts',
+  initialState,
+  reducers: {},
+  respondTo: (builder) => {
+    builder.addCase(fetchPosts.fulfilled, (state, action) => {
+      state.items = action.payload
+    })
+  },
+})
+```
+
+RTK 3 renamed `extraReducers` to `respondTo`, and it only accepts the builder callback. `createSlice` throws in development if it sees `extraReducers`; agents trained on RTK 1.x and 2.x still generate it.
 
 Source: reduxjs/redux-toolkit:docs/usage/migrating-rtk-2.md
 

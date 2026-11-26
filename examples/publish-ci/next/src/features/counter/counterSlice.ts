@@ -28,7 +28,7 @@ export const counterSlice = createSlice({
       state.value += 1
     },
   },
-  extraReducers: (builder) => {
+  respondTo: (builder) => {
     builder
       .addCase(incrementAsync.pending, (state) => {
         state.status = 'loading'

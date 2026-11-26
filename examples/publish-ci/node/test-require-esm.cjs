@@ -1,8 +1,6 @@
 // `require()` of every RTK entry point on a Node version where `require(esm)`
-// is enabled by default (20.19+ and 22.12+). Node adds the `module-sync`
-// condition, so these resolve to the `modern.mjs` bundles even though the
-// caller is CommonJS. This is what a plain `require('@reduxjs/toolkit')` does
-// for a user on a current Node release.
+// is enabled by default (20.19+ and 22.12+). RTK only ships ES modules, so
+// this is how a CommonJS caller loads it.
 
 const rtk = require('@reduxjs/toolkit')
 const rtkReact = require('@reduxjs/toolkit/react')
@@ -13,7 +11,7 @@ const checks = require('./checks.cjs')
 
 console.log('Testing `require()` with require(esm) enabled...')
 
-checks.checkResolvedPaths('esm', require.resolve)
+checks.checkResolvedPaths(require.resolve)
 checks.checkBehavior({ rtk, rtkReact, rtkQuery, rtkQueryReact })
 
 console.log('require(esm) test succeeded\n')

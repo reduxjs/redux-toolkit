@@ -6,6 +6,16 @@ export * from 'redux'
 export { freeze, original } from 'immer'
 export { createNextState, current, isDraft } from './immerImports'
 export type { Draft, WritableDraft } from './draftTypes'
+export {
+  immerAdapter,
+  immerAdapterWithPatches,
+  noopAdapter,
+} from './immutability'
+export type {
+  ImmutabilityAdapter,
+  ImmutabilityPatchSupport,
+  Patch,
+} from './immutability'
 export { createSelector, lruMemoize } from 'reselect'
 export { createSelectorCreator, weakMapMemoize } from './reselectImports'
 export type { Selector, OutputSelector } from 'reselect'
@@ -45,32 +55,63 @@ export type {
 export {
   // js
   createReducer,
+  buildCreateReducer,
 } from './createReducer'
 export type {
   // types
   Actions,
+  BuildCreateReducerConfig,
   CaseReducer,
   CaseReducers,
+  CreateReducer,
+  ReducerWithInitialState,
 } from './createReducer'
 export {
   // js
   createSlice,
   buildCreateSlice,
-  asyncThunkCreator,
-  ReducerType,
 } from './createSlice'
 
 export type {
   // types
+  BuildCreateSliceConfig,
+  CreateSlice,
   CreateSliceOptions,
+  CreatorsMap,
+  DefinitionsShape,
+  Injectable,
+  InjectedSlice,
+  InjectIntoConfig,
   Slice,
   CaseReducerActions,
   SliceCaseReducers,
+  SliceDefinedCaseReducers,
+  SliceReducers,
   ValidateSliceCaseReducers,
   CaseReducerWithPrepare,
-  ReducerCreators,
   SliceSelectors,
+  WrappedSliceSelectors,
 } from './createSlice'
+export { makeDefinition } from './creators'
+export type {
+  AnyExposure,
+  BuiltinSliceCreators,
+  CreatorContext,
+  CreatorFactory,
+  SliceCreatorRegistry,
+  PreparedActionExposure,
+  ReducerDefinition,
+  ReducerDetails,
+  ReducerHandlingContext,
+  SliceActionExposure,
+  ValueExposure,
+} from './creators'
+export { asyncThunkCreator } from './asyncThunkCreator'
+export type {
+  AsyncThunkCreator,
+  AsyncThunkCreatorConfig,
+  AsyncThunkDefinition,
+} from './asyncThunkCreator'
 export type { ActionCreatorInvariantMiddlewareOptions } from './actionCreatorInvariantMiddleware'
 export { createActionCreatorInvariantMiddleware } from './actionCreatorInvariantMiddleware'
 export {

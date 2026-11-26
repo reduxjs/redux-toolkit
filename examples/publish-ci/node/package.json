@@ -5,10 +5,9 @@
   "private": true,
   "scripts": {
     "build": "echo Done",
-    "test": "pnpm test:esm && pnpm test:require-esm && pnpm test:require-cjs",
+    "test": "pnpm test:esm && pnpm test:require-esm",
     "test:esm": "node test-esm.mjs",
-    "test:require-esm": "node test-require-esm.cjs",
-    "test:require-cjs": "node --no-experimental-require-module test-require-cjs.cjs"
+    "test:require-esm": "node test-require-esm.cjs"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.12.0",

@@ -42,5 +42,18 @@
   "40": "maxPages for endpoint '' must be a number greater than 0",
   "41": "getPreviousPageParam for endpoint '' must be a function if maxPages is used",
   "42": "Duplicate middleware references found when creating the store. Ensure that each middleware is only included once.",
-  "43": "`builder.addAsyncThunk` should only be called before calling `builder.addDefaultCase`"
+  "43": "`builder.addAsyncThunk` should only be called before calling `builder.addDefaultCase`",
+  "44": "buildCreateReducer requires an `immutability` adapter. Use `immerAdapter` for the default Immer behavior.",
+  "45": "The slice reducer for key \"\" returned undefined when asked for its initial state. The initial state may not be undefined. If you don't want to set a value for this reducer, you can use null instead of undefined.",
+  "46": "buildCreateSlice requires an `immutability` adapter. Use `immerAdapter` for the default Immer behavior.",
+  "47": "[slice ] The \\`extraReducers\\` option was renamed to \\`respondTo\\` in RTK 3.0 and only accepts the builder callback form. See the migration guide.",
+  "48": "[slice ] \\`respondTo\\` must be a builder callback function",
+  "49": "[slice ] the \\`creators\\` option requires the callback form of \\`reducers\\`",
+  "50": "[slice ] \\`addCase\\` requires a non-empty action type",
+  "51": "[slice ] action type \"\" already has a case reducer",
+  "52": "[slice ] invalid reducer definition for \"\": expected a case reducer function, a { reducer, prepare } object, or a creator definition",
+  "53": "[slice ] action type \"\" is handled by both \\`reducers\\` and \\`respondTo\\`. Each action type must be handled in exactly one place.",
+  "54": "[slice ] selectSlice: root state does not contain a \"\" key. Is the slice reducer included in the store?",
+  "55": "[slice ] selector: selectState returned undefined for an uninjected slice. Is the slice reducer included in the store?",
+  "56": "createReducer requires a builder callback as its second argument"
 }

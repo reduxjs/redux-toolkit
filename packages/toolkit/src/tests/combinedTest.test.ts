@@ -74,7 +74,7 @@ describe('Combined entity slice', () => {
           //Deliberately _don't_ return result
         },
       },
-      extraReducers: (builder) => {
+      respondTo: (builder) => {
         builder.addCase(upsertBook, (state, action) => {
           return adapter.upsertOne(state, action)
         })

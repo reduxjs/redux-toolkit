@@ -625,7 +625,7 @@ describe('type tests', () => {
       name: 'slice',
       initialState,
       reducers: {},
-      extraReducers: (builder) => {
+      respondTo: (builder) => {
         builder.addCase(getObj.fulfilled, (state, action) => {
           expectTypeOf(action.payload).toEqualTypeOf<{ magic: string }>()
         })
@@ -835,7 +835,7 @@ describe('type tests', () => {
       name: 'foo',
       initialState: { value: 0 },
       reducers: {},
-      extraReducers(builder) {
+      respondTo(builder) {
         builder
           .addCase(thunk.fulfilled, (state, action) => {
             state.value += action.payload

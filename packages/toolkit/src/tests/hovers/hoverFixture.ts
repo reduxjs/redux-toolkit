@@ -144,7 +144,7 @@ export const /*?usersSlice*/ usersSlice = createSlice({
     reducers: {
       userAdded: usersAdapter.addOne,
     },
-    extraReducers: (builder) => {
+    respondTo: (builder) => {
       builder.addCase(fetchUserById.fulfilled, usersAdapter.upsertOne)
     },
   })

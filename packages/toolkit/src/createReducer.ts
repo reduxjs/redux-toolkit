@@ -1,10 +1,10 @@
 import type { Draft } from './draftTypes'
 import type { Action, Reducer, UnknownAction } from 'redux'
-import { createNextState, isDraft, isDraftable } from './immerImports'
+import type { ImmutabilityAdapter } from './immutability'
+import { immerAdapter } from './immutability'
 import type { ActionReducerMapBuilder } from './mapBuilders'
 import { executeReducerBuilderCallback } from './mapBuilders'
 import type { TypeGuard } from './tsHelpers'
-import { freezeDraftable } from './utils'
 
 /**
  * Defines a mapping from action types to corresponding action object shapes.
@@ -74,6 +74,160 @@ export type ReducerWithInitialState<S extends NotFunction<any>> = Reducer<S> & {
 }
 
 /**
+ * The shape of `createReducer`. The immutability adapter is bound by
+ * `buildCreateReducer`; the optional third argument overrides it for one
+ * reducer.
+ *
+ * @public
+ */
+export type CreateReducer = <S extends NotFunction<any>>(
+  initialState: S | (() => S),
+  builderCallback: (builder: ActionReducerMapBuilder<S>) => void,
+  immutability?: ImmutabilityAdapter,
+) => ReducerWithInitialState<S>
+
+/**
+ * @public
+ */
+export interface BuildCreateReducerConfig {
+  immutability: ImmutabilityAdapter
+}
+
+/**
+ * Builds a `createReducer` bound to a default immutability adapter.
+ * The exported `createReducer` is `buildCreateReducer({ immutability: immerAdapter })`.
+ *
+ * @public
+ */
+export function buildCreateReducer({
+  immutability: defaultAdapter,
+}: BuildCreateReducerConfig): CreateReducer {
+  if (!defaultAdapter) {
+    throw new Error(
+      'buildCreateReducer requires an `immutability` adapter. Use `immerAdapter` for the default Immer behavior.',
+    )
+  }
+  return (initialState, builderCallback, immutability) =>
+    createReducerImpl(
+      initialState,
+      builderCallback,
+      immutability ?? defaultAdapter,
+    )
+}
+
+export function createReducerImpl<S extends NotFunction<any>>(
+  initialState: S | (() => S),
+  builderCallback: (builder: ActionReducerMapBuilder<S>) => void,
+  adapter: ImmutabilityAdapter,
+): ReducerWithInitialState<S> {
+  if (typeof builderCallback === 'object') {
+    throw new Error(
+      "The object notation for `createReducer` has been removed. Please use the 'builder callback' notation instead: https://redux-toolkit.js.org/api/createReducer",
+    )
+  }
+  if (typeof builderCallback !== 'function') {
+    throw new Error(
+      'createReducer requires a builder callback as its second argument',
+    )
+  }
+
+  return createReducerFromCases(
+    initialState,
+    ...executeReducerBuilderCallback(builderCallback),
+    adapter,
+  )
+}
+
+export function createReducerFromCases<S extends NotFunction<any>>(
+  initialState: S | (() => S),
+  actionsMap: CaseReducers<S, any>,
+  finalActionMatchers: ReadonlyActionMatcherDescriptionCollection<S>,
+  finalDefaultCaseReducer: CaseReducer<S, any> | undefined,
+  adapter: ImmutabilityAdapter,
+): ReducerWithInitialState<S> {
+  // Ensure the initial state gets frozen either way (if draftable)
+  let getInitialState: () => S
+  if (isStateFunction(initialState)) {
+    getInitialState = () => adapter.freezeDraftable(initialState())
+  } else {
+    const frozenInitialState = adapter.freezeDraftable(initialState)
+    getInitialState = () => frozenInitialState
+  }
+
+  function applyCaseReducer(
+    previousState: S,
+    caseReducer: CaseReducer<S, any>,
+    action: any,
+  ): S {
+    if (adapter.isDraft(previousState)) {
+      // If it's already a draft, we must already be inside a `produce` call,
+      // likely because this is being wrapped in `createReducer`, `createSlice`, or nested
+      // inside an existing draft. It's safe to just pass the draft to the mutator.
+      const draft = previousState as Draft<S> // We can assume this is already a draft
+      const result = caseReducer(draft, action)
+
+      if (result === undefined) {
+        return previousState
+      }
+
+      return result as S
+    } else if (!adapter.isDraftable(previousState)) {
+      // If state is not draftable (ex: a primitive such as 0, or any value with
+      // an adapter that does not draft), call the case reducer directly.
+      // It must return the next state.
+      const result = caseReducer(previousState as any, action)
+
+      if (result === undefined) {
+        if (previousState === null) {
+          return previousState
+        }
+        throw new Error(
+          'A case reducer on a non-draftable value must not return undefined',
+        )
+      }
+
+      return result as S
+    } else {
+      return adapter.produce(previousState, (draft) =>
+        caseReducer(draft, action),
+      )
+    }
+  }
+
+  function reducer(state = getInitialState(), action: any): S {
+    const caseReducer = actionsMap[action.type]
+    // All matchers run before any case reducer, so only collect matching
+    // reducers into an array when there is at least one.
+    let matchedReducers: CaseReducer<S, any>[] | undefined
+    for (const { matcher, reducer } of finalActionMatchers) {
+      if (matcher(action) && reducer) {
+        ;(matchedReducers ??= []).push(reducer)
+      }
+    }
+
+    if (!caseReducer && !matchedReducers) {
+      return finalDefaultCaseReducer
+        ? applyCaseReducer(state, finalDefaultCaseReducer, action)
+        : state
+    }
+
+    if (caseReducer) {
+      state = applyCaseReducer(state, caseReducer, action)
+    }
+    if (matchedReducers) {
+      for (const matchedReducer of matchedReducers) {
+        state = applyCaseReducer(state, matchedReducer, action)
+      }
+    }
+    return state
+  }
+
+  reducer.getInitialState = getInitialState
+
+  return reducer as ReducerWithInitialState<S>
+}
+
+/**
  * A utility function that allows defining a reducer as a mapping from action
  * type to *case reducer* functions that handle these action types. The
  * reducer's initial state is passed as the first argument.
@@ -94,6 +248,7 @@ export type ReducerWithInitialState<S extends NotFunction<any>> = Reducer<S> & {
  * @param initialState - `State | (() => State)`: The initial state that should be used when the reducer is called the first time. This may also be a "lazy initializer" function, which should return an initial state value when called. This will be used whenever the reducer is called with `undefined` as its state value, and is primarily useful for cases like reading initial state from `localStorage`.
  * @param builderCallback - `(builder: Builder) => void` A callback that receives a *builder* object to define
  *   case reducers via calls to `builder.addCase(actionCreatorOrType, reducer)`.
+ * @param immutability - `ImmutabilityAdapter` (optional): overrides the immutable-update library for this reducer. Defaults to Immer.
  * @example
  * ```ts
  * import type { PayloadAction, UnknownAction } from '@reduxjs/toolkit';
@@ -133,101 +288,6 @@ export type ReducerWithInitialState<S extends NotFunction<any>> = Reducer<S> & {
  * ```
  * @public
  */
-export function createReducer<S extends NotFunction<any>>(
-  initialState: S | (() => S),
-  mapOrBuilderCallback: (builder: ActionReducerMapBuilder<S>) => void,
-): ReducerWithInitialState<S> {
-  if (process.env.NODE_ENV !== 'production') {
-    if (typeof mapOrBuilderCallback === 'object') {
-      throw new Error(
-        "The object notation for `createReducer` has been removed. Please use the 'builder callback' notation instead: https://redux-toolkit.js.org/api/createReducer",
-      )
-    }
-  }
-
-  let [actionsMap, finalActionMatchers, finalDefaultCaseReducer] =
-    executeReducerBuilderCallback(mapOrBuilderCallback)
-
-  // Ensure the initial state gets frozen either way (if draftable)
-  let getInitialState: () => S
-  if (isStateFunction(initialState)) {
-    getInitialState = () => freezeDraftable(initialState())
-  } else {
-    const frozenInitialState = freezeDraftable(initialState)
-    getInitialState = () => frozenInitialState
-  }
-
-  function applyCaseReducer(
-    previousState: S,
-    caseReducer: CaseReducer<S, any>,
-    action: any,
-  ): S {
-    if (isDraft(previousState)) {
-      // If it's already a draft, we must already be inside a `createNextState` call,
-      // likely because this is being wrapped in `createReducer`, `createSlice`, or nested
-      // inside an existing draft. It's safe to just pass the draft to the mutator.
-      const draft = previousState as Draft<S> // We can assume this is already a draft
-      const result = caseReducer(draft, action)
-
-      if (result === undefined) {
-        return previousState
-      }
-
-      return result as S
-    } else if (!isDraftable(previousState)) {
-      // If state is not draftable (ex: a primitive, such as 0), we want to directly
-      // return the caseReducer func and not wrap it with produce.
-      const result = caseReducer(previousState as any, action)
-
-      if (result === undefined) {
-        if (previousState === null) {
-          return previousState
-        }
-        throw new Error(
-          'A case reducer on a non-draftable value must not return undefined',
-        )
-      }
-
-      return result as S
-    } else {
-      // @ts-ignore createNextState() produces an Immutable<Draft<S>> rather
-      // than an Immutable<S>, and TypeScript cannot find out how to reconcile
-      // these two types.
-      return createNextState(previousState, (draft: Draft<S>) => {
-        return caseReducer(draft, action)
-      })
-    }
-  }
-
-  function reducer(state = getInitialState(), action: any): S {
-    const caseReducer = actionsMap[action.type]
-    // All matchers run before any case reducer, so only collect matching
-    // reducers into an array when there is at least one.
-    let matchedReducers: CaseReducer<S, any>[] | undefined
-    for (const { matcher, reducer } of finalActionMatchers) {
-      if (matcher(action) && reducer) {
-        ;(matchedReducers ??= []).push(reducer)
-      }
-    }
-
-    if (!caseReducer && !matchedReducers) {
-      return finalDefaultCaseReducer
-        ? applyCaseReducer(state, finalDefaultCaseReducer, action)
-        : state
-    }
-
-    if (caseReducer) {
-      state = applyCaseReducer(state, caseReducer, action)
-    }
-    if (matchedReducers) {
-      for (const matchedReducer of matchedReducers) {
-        state = applyCaseReducer(state, matchedReducer, action)
-      }
-    }
-    return state
-  }
-
-  reducer.getInitialState = getInitialState
-
-  return reducer as ReducerWithInitialState<S>
-}
+export const createReducer: CreateReducer = /* @__PURE__ */ buildCreateReducer({
+  immutability: immerAdapter,
+})

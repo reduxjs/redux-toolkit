@@ -9,10 +9,9 @@ import * as path from 'node:path'
 
 const entryPointDirectories = ['', 'react', 'query', 'query/react']
 
-const typeDefinitionEntryFiles = entryPointDirectories.flatMap((filePath) => [
-  path.join(import.meta.dirname, '..', 'dist', filePath, 'index.d.ts'),
+const typeDefinitionEntryFiles = entryPointDirectories.map((filePath) =>
   path.join(import.meta.dirname, '..', 'dist', filePath, 'index.d.mts'),
-])
+)
 
 const renamedExportPattern = /^(\w+\$\d+) as (\w+)$/
 

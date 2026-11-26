@@ -5,12 +5,8 @@ import * as path from 'node:path'
 
 const entryPointDirectories = ['', 'react', 'query', 'query/react']
 
-const typeDefinitionEntryFiles = entryPointDirectories.flatMap(
-  (filePath) =>
-    [
-      path.join(import.meta.dirname, '..', 'dist', filePath, 'index.d.ts'),
-      path.join(import.meta.dirname, '..', 'dist', filePath, 'index.d.mts'),
-    ] as const,
+const typeDefinitionEntryFiles = entryPointDirectories.map((filePath) =>
+  path.join(import.meta.dirname, '..', 'dist', filePath, 'index.d.mts'),
 )
 
 const filePathsToContentMap = new Map<string, string>(

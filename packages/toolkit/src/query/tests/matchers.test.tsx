@@ -216,7 +216,7 @@ test('inferred types', () => {
     name: 'auth',
     initialState: {},
     reducers: {},
-    extraReducers: (builder) => {
+    respondTo: (builder) => {
       builder
         .addMatcher(
           api.endpoints.querySuccess.matchPending,
