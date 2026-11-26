@@ -1,6 +1,6 @@
 import type { Draft } from '../draftTypes'
 import type { EntityChangeRecord } from './entity_core'
-import { createEntityCore, hasOwnEntity } from './entity_core'
+import { createEntityCore } from './entity_core'
 import type {
   EntityStateAdapter,
   IdSelector,
@@ -46,8 +46,8 @@ export function createUnsortedStateAdapter<T, Id extends EntityId>(
       // onto an ID that is already in use leaves only one entry for it.
       const ids = new Set<Id>()
       for (const id of state.ids as Id[]) {
-        const newId = hasOwnEntity(renamed, id) ? renamed[id] : id
-        if (hasOwnEntity(state.entities, newId)) {
+        const newId = renamed[id] ?? id
+        if (newId in state.entities) {
           ids.add(newId)
         }
       }
@@ -63,9 +63,7 @@ export function createUnsortedStateAdapter<T, Id extends EntityId>(
     newEntities: readonly T[] | Record<Id, T>,
     state: R,
   ): void {
-    core.addMany(newEntities, state, undefined, (changes) =>
-      applyUnsortedChanges(state, changes),
-    )
+    applyUnsortedChanges(state, core.addMany(newEntities, state))
   }
 
   function setOneMutably(entity: T, state: R): void {
@@ -76,18 +74,14 @@ export function createUnsortedStateAdapter<T, Id extends EntityId>(
     newEntities: readonly T[] | Record<Id, T>,
     state: R,
   ): void {
-    core.setMany(newEntities, state, undefined, (changes) =>
-      applyUnsortedChanges(state, changes),
-    )
+    applyUnsortedChanges(state, core.setMany(newEntities, state))
   }
 
   function setAllMutably(
     newEntities: readonly T[] | Record<Id, T>,
     state: R,
   ): void {
-    core.setAll(newEntities, state, (changes) =>
-      applyUnsortedChanges(state, changes),
-    )
+    applyUnsortedChanges(state, core.setAll(newEntities, state))
   }
 
   function removeOneMutably(key: Id, state: R): void {
@@ -117,18 +111,14 @@ export function createUnsortedStateAdapter<T, Id extends EntityId>(
   }
 
   function upsertOneMutably(entity: T, state: R): void {
-    core.upsertOne(entity, state, (changes) =>
-      applyUnsortedChanges(state, changes),
-    )
+    applyUnsortedChanges(state, core.upsertOne(entity, state))
   }
 
   function upsertManyMutably(
     newEntities: readonly T[] | Record<Id, T>,
     state: R,
   ): void {
-    core.upsertMany(newEntities, state, (changes) =>
-      applyUnsortedChanges(state, changes),
-    )
+    applyUnsortedChanges(state, core.upsertMany(newEntities, state))
   }
 
   return {

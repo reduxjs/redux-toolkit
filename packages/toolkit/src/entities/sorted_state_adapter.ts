@@ -1,6 +1,6 @@
 import type { Draft } from '../draftTypes'
 import type { EntityChangeRecord } from './entity_core'
-import { createEntityCore, hasOwnEntity } from './entity_core'
+import { createEntityCore } from './entity_core'
 import type {
   IdSelector,
   Comparer,
@@ -14,7 +14,7 @@ import {
   createSingleArgumentStateOperator,
   createStateOperator,
 } from './state_adapter'
-import { getCurrent } from './utils'
+import { getCurrent, selectIdValue } from './utils'
 
 // Borrowed from Replay
 export function findInsertIndex<T>(
@@ -55,11 +55,8 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
   comparer: Comparer<T>,
 ): EntityStateAdapter<T, Id> {
   type R = DraftableEntityState<T, Id>
-  type SortedEntry = { id: Id; entity: T }
 
   const core = createEntityCore<T, Id>(selectId)
-  const compareEntries: Comparer<SortedEntry> = (a, b) =>
-    comparer(a.entity, b.entity)
 
   function areArraysEqual(a: readonly unknown[], b: readonly unknown[]) {
     if (a.length !== b.length) {
@@ -75,11 +72,7 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
     return true
   }
 
-  function applySortedChanges(
-    state: R,
-    changes: EntityChangeRecord<Id>,
-    reinsertUpdated: boolean = false,
-  ): void {
+  function applySortedChanges(state: R, changes: EntityChangeRecord<Id>): void {
     const { added, updated, removed, renamed } = changes
     const hasRenames = Object.keys(renamed).length > 0
 
@@ -105,132 +98,33 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
     const currentEntities = getCurrent(state.entities) as Record<Id, T>
     const currentIds = getCurrent(state.ids as Id[])
 
-    if (reinsertUpdated) {
-      // For setOne / setMany / setAll, replaced entities are reinserted in
-      // their deduplicated batch order alongside new additions.
-      const reinsertedIds = (changes.ordered ?? [...updated, ...added]).filter(
-        (id) => hasOwnEntity(currentEntities, id),
-      )
-      const reinsertedSet = new Set<string>(reinsertedIds.map(String))
-      const retainedEntries: SortedEntry[] = []
+    const ids: Iterable<Id> = hasRenames
+      ? new Set(currentIds.map((id) => renamed[id] ?? id))
+      : currentIds
 
-      for (const id of currentIds) {
-        if (
-          !reinsertedSet.has(String(id)) &&
-          hasOwnEntity(currentEntities, id)
-        ) {
-          retainedEntries.push({ id, entity: currentEntities[id] })
-        }
+    let sortedEntities: T[] = []
+    for (const id of ids) {
+      const entity = currentEntities[id]
+      if (entity) {
+        sortedEntities.push(entity)
       }
-
-      let sortedEntries: SortedEntry[]
-      if (retainedEntries.length === 0) {
-        sortedEntries = reinsertedIds
-          .map((id) => ({ id, entity: currentEntities[id] }))
-          .sort(compareEntries)
-      } else {
-        sortedEntries = retainedEntries
-        for (const id of reinsertedIds) {
-          insert(
-            sortedEntries,
-            { id, entity: currentEntities[id] },
-            compareEntries,
-          )
-        }
-      }
-
-      const newSortedIds = sortedEntries.map((entry) => entry.id)
-      if (!areArraysEqual(currentIds, newSortedIds)) {
-        state.ids = newSortedIds
-      }
-      return
     }
+    const wasPreviouslyEmpty = sortedEntities.length === 0
 
-    const addedSet = new Set<Id>(added)
-    const survivingIds: Id[] = []
-    const seenSurviving = new Set<Id>()
-
-    for (const rawId of currentIds) {
-      const id = hasOwnEntity(renamed, rawId) ? renamed[rawId] : rawId
-      if (!seenSurviving.has(id) && hasOwnEntity(currentEntities, id)) {
-        seenSurviving.add(id)
-        survivingIds.push(id)
+    if (wasPreviouslyEmpty) {
+      sortedEntities = added.map((id) => currentEntities[id]).sort(comparer)
+    } else {
+      if (updated.length > 0 || hasRenames) {
+        sortedEntities.sort(comparer)
+      }
+      for (const id of added) {
+        insert(sortedEntities, currentEntities[id], comparer)
       }
     }
 
-    const effectiveAdded = added.filter(
-      (id) => !seenSurviving.has(id) && hasOwnEntity(currentEntities, id),
+    const newSortedIds = sortedEntities.map((entity) =>
+      selectIdValue(entity, selectId),
     )
-
-    const wasPreviouslyEmpty = survivingIds.length === 0
-    let sortedEntries: SortedEntry[] = []
-
-    try {
-      if (wasPreviouslyEmpty) {
-        sortedEntries = effectiveAdded
-          .map((id) => ({ id, entity: currentEntities[id] }))
-          .sort(compareEntries)
-      } else if (updated.length === 0 && !hasRenames) {
-        for (const id of survivingIds) {
-          sortedEntries.push({ id, entity: currentEntities[id] })
-        }
-        for (const id of effectiveAdded) {
-          insert(
-            sortedEntries,
-            { id, entity: currentEntities[id] },
-            compareEntries,
-          )
-        }
-      } else {
-        const updatedSet = new Set<Id>(updated)
-        let stillSorted = !hasRenames
-
-        if (stillSorted) {
-          for (let i = 0; i < survivingIds.length; i++) {
-            const id = survivingIds[i]
-            if (!updatedSet.has(id)) {
-              continue
-            }
-            const entity = currentEntities[id]
-            if (
-              (i > 0 &&
-                comparer(currentEntities[survivingIds[i - 1]], entity) > 0) ||
-              (i < survivingIds.length - 1 &&
-                comparer(entity, currentEntities[survivingIds[i + 1]]) > 0)
-            ) {
-              stillSorted = false
-              break
-            }
-          }
-        }
-
-        for (const id of survivingIds) {
-          sortedEntries.push({ id, entity: currentEntities[id] })
-        }
-
-        if (!stillSorted) {
-          sortedEntries.sort(compareEntries)
-        }
-
-        for (const id of effectiveAdded) {
-          insert(
-            sortedEntries,
-            { id, entity: currentEntities[id] },
-            compareEntries,
-          )
-        }
-      }
-    } catch (err) {
-      for (const id of effectiveAdded) {
-        delete (state.entities as Record<Id, T>)[id]
-      }
-      if (hasRenames && !areArraysEqual(currentIds, survivingIds)) {
-        state.ids = survivingIds
-      }
-      throw err
-    }
-
-    const newSortedIds = sortedEntries.map((entry) => entry.id)
 
     if (!areArraysEqual(currentIds, newSortedIds)) {
       state.ids = newSortedIds
@@ -245,38 +139,25 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
     newEntities: readonly T[] | Record<Id, T>,
     state: R,
   ): void {
-    core.addMany(newEntities, state, undefined, (changes) =>
-      applySortedChanges(state, changes),
-    )
+    applySortedChanges(state, core.addMany(newEntities, state))
   }
 
   function setOneMutably(entity: T, state: R): void {
-    applySortedChanges(state, core.setOne(entity, state), true)
+    applySortedChanges(state, core.setOne(entity, state))
   }
 
   function setManyMutably(
     newEntities: readonly T[] | Record<Id, T>,
     state: R,
   ): void {
-    core.setMany(
-      newEntities,
-      state,
-      undefined,
-      (changes) => applySortedChanges(state, changes, true),
-      true,
-    )
+    applySortedChanges(state, core.setMany(newEntities, state))
   }
 
   function setAllMutably(
     newEntities: readonly T[] | Record<Id, T>,
     state: R,
   ): void {
-    core.setAll(
-      newEntities,
-      state,
-      (changes) => applySortedChanges(state, changes, true),
-      true,
-    )
+    applySortedChanges(state, core.setAll(newEntities, state))
   }
 
   function removeOneMutably(key: Id, state: R): void {
@@ -306,18 +187,14 @@ export function createSortedStateAdapter<T, Id extends EntityId>(
   }
 
   function upsertOneMutably(entity: T, state: R): void {
-    core.upsertOne(entity, state, (changes) =>
-      applySortedChanges(state, changes),
-    )
+    applySortedChanges(state, core.upsertOne(entity, state))
   }
 
   function upsertManyMutably(
     newEntities: readonly T[] | Record<Id, T>,
     state: R,
   ): void {
-    core.upsertMany(newEntities, state, (changes) =>
-      applySortedChanges(state, changes),
-    )
+    applySortedChanges(state, core.upsertMany(newEntities, state))
   }
 
   return {

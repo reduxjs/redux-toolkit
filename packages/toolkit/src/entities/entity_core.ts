@@ -1,4 +1,3 @@
-import { isDraft } from '../immerImports'
 import type {
   DraftableEntityState,
   EntityId,
@@ -19,11 +18,6 @@ export interface EntityChangeRecord<Id extends EntityId> {
   updated: Id[]
   removed: Id[]
   renamed: Record<Id, Id>
-  ordered?: Id[]
-}
-
-export function hasOwnEntity(record: object, key: PropertyKey): boolean {
-  return Object.prototype.hasOwnProperty.call(record, key)
 }
 
 export function createEmptyChangeRecord<
@@ -33,7 +27,7 @@ export function createEmptyChangeRecord<
     added: [],
     updated: [],
     removed: [],
-    renamed: Object.create(null) as Record<Id, Id>,
+    renamed: {} as Record<Id, Id>,
   }
 }
 
@@ -49,7 +43,7 @@ export function createEntityCore<T, Id extends EntityId>(
   ): EntityChangeRecord<Id> {
     const key = selectIdValue(entity, selectId)
 
-    if (String(key) === '__proto__' || hasOwnEntity(state.entities, key)) {
+    if (key in state.entities) {
       return changes
     }
 
@@ -62,17 +56,9 @@ export function createEntityCore<T, Id extends EntityId>(
     newEntities: readonly T[] | Record<Id, T>,
     state: R,
     changes: EntityChangeRecord<Id> = createEmptyChangeRecord(),
-    onCommit?: (committed: EntityChangeRecord<Id>) => void,
   ): EntityChangeRecord<Id> {
-    const entities = ensureEntitiesArray(newEntities)
-    try {
-      for (const entity of entities) {
-        addOne(entity, state, changes)
-      }
-    } finally {
-      if (onCommit && changes.added.length > 0) {
-        onCommit(changes)
-      }
+    for (const entity of ensureEntitiesArray(newEntities)) {
+      addOne(entity, state, changes)
     }
     return changes
   }
@@ -83,10 +69,7 @@ export function createEntityCore<T, Id extends EntityId>(
     changes: EntityChangeRecord<Id> = createEmptyChangeRecord(),
   ): EntityChangeRecord<Id> {
     const key = selectIdValue(entity, selectId)
-    if (String(key) === '__proto__') {
-      return changes
-    }
-    const existedBefore = hasOwnEntity(state.entities, key)
+    const existedBefore = key in state.entities
     ;(state.entities as Record<Id, T>)[key] = entity
 
     if (!existedBefore) {
@@ -102,8 +85,6 @@ export function createEntityCore<T, Id extends EntityId>(
     newEntities: readonly T[] | Record<Id, T>,
     state: R,
     changes: EntityChangeRecord<Id> = createEmptyChangeRecord(),
-    onCommit?: (committed: EntityChangeRecord<Id>) => void,
-    enumerateDeduplicatedKeys: boolean = false,
   ): EntityChangeRecord<Id> {
     const entities = ensureEntitiesArray(newEntities)
     if (entities.length === 0) {
@@ -112,66 +93,20 @@ export function createEntityCore<T, Id extends EntityId>(
 
     const seenAdded = new Set<Id>(changes.added)
     const seenUpdated = new Set<Id>(changes.updated)
-    const orderedKeys: Id[] = []
 
-    try {
-      if (enumerateDeduplicatedKeys) {
-        const deduplicated: Record<Id, T> = {} as Record<Id, T>
-        const keyByString: Record<string, Id> = Object.create(null)
-        for (const entity of entities) {
-          const key = selectIdValue(entity, selectId)
-          deduplicated[key] = entity
-          keyByString[String(key)] = key
-        }
-        for (const strKey of Object.keys(deduplicated)) {
-          const key = keyByString[strKey]
-          orderedKeys.push(key)
-          const entity = deduplicated[key]
-          const existedBefore =
-            hasOwnEntity(state.entities, key) && !seenAdded.has(key)
-          ;(state.entities as Record<Id, T>)[key] = entity
+    for (const entity of entities) {
+      const key = selectIdValue(entity, selectId)
+      const existedBefore = key in state.entities && !seenAdded.has(key)
+      ;(state.entities as Record<Id, T>)[key] = entity
 
-          if (existedBefore) {
-            if (!seenUpdated.has(key)) {
-              seenUpdated.add(key)
-              changes.updated.push(key)
-            }
-          } else if (!seenAdded.has(key)) {
-            seenAdded.add(key)
-            changes.added.push(key)
-          }
+      if (existedBefore) {
+        if (!seenUpdated.has(key)) {
+          seenUpdated.add(key)
+          changes.updated.push(key)
         }
-      } else {
-        const seenOrdered = new Set<string>()
-        for (const entity of entities) {
-          const key = selectIdValue(entity, selectId)
-          const strKey = String(key)
-          if (!seenOrdered.has(strKey)) {
-            seenOrdered.add(strKey)
-            orderedKeys.push(key)
-          }
-          const existedBefore =
-            hasOwnEntity(state.entities, key) && !seenAdded.has(key)
-          ;(state.entities as Record<Id, T>)[key] = entity
-
-          if (existedBefore) {
-            if (!seenUpdated.has(key)) {
-              seenUpdated.add(key)
-              changes.updated.push(key)
-            }
-          } else if (!seenAdded.has(key)) {
-            seenAdded.add(key)
-            changes.added.push(key)
-          }
-        }
-      }
-      changes.ordered = orderedKeys
-    } finally {
-      if (
-        onCommit &&
-        (changes.added.length > 0 || changes.updated.length > 0)
-      ) {
-        onCommit(changes)
+      } else if (!seenAdded.has(key)) {
+        seenAdded.add(key)
+        changes.added.push(key)
       }
     }
 
@@ -181,17 +116,14 @@ export function createEntityCore<T, Id extends EntityId>(
   function setAll(
     newEntities: readonly T[] | Record<Id, T>,
     state: R,
-    onCommit?: (committed: EntityChangeRecord<Id>) => void,
-    enumerateDeduplicatedKeys: boolean = false,
   ): EntityChangeRecord<Id> {
     const changes = createEmptyChangeRecord<Id>()
-    const entities = ensureEntitiesArray(newEntities)
     const currentIds = getCurrent(state.ids as Id[])
 
     state.ids = []
     state.entities = {} as Record<Id, T>
 
-    setMany(entities, state, changes, onCommit, enumerateDeduplicatedKeys)
+    setMany(newEntities, state, changes)
 
     if (currentIds.length > 0) {
       const addedSet = new Set<string>(changes.added.map(String))
@@ -235,7 +167,7 @@ export function createEntityCore<T, Id extends EntityId>(
     const removedIds = new Set<string>()
 
     for (const key of keys) {
-      if (hasOwnEntity(state.entities, key)) {
+      if (key in state.entities) {
         delete (state.entities as Record<Id, T>)[key]
         removedIds.add(String(key))
       }
@@ -253,12 +185,18 @@ export function createEntityCore<T, Id extends EntityId>(
   }
 
   function removeAll(state: R): EntityChangeRecord<Id> {
+    const changes = createEmptyChangeRecord<Id>()
+    const currentIds = getCurrent(state.ids as Id[])
+    if (currentIds.length > 0) {
+      changes.removed.push(...currentIds)
+    }
+
     Object.assign(state, {
       ids: [],
       entities: {},
     })
 
-    return createEmptyChangeRecord<Id>()
+    return changes
   }
 
   function updateOne(update: Update<T, Id>, state: R): EntityChangeRecord<Id> {
@@ -270,11 +208,11 @@ export function createEntityCore<T, Id extends EntityId>(
     state: R,
     changes: EntityChangeRecord<Id> = createEmptyChangeRecord(),
   ): EntityChangeRecord<Id> {
-    const updatesPerEntity: Record<Id, Update<T, Id>> = Object.create(null)
+    const updatesPerEntity: { [id: string]: Update<T, Id> } = {}
 
     for (const update of updates) {
       // Only apply updates to entities that currently exist
-      if (hasOwnEntity(state.entities, update.id)) {
+      if (update.id in state.entities) {
         // If there are multiple updates to one entity, merge them together
         updatesPerEntity[update.id] = {
           id: update.id,
@@ -288,21 +226,14 @@ export function createEntityCore<T, Id extends EntityId>(
       }
     }
 
-    const mergedUpdates: Array<Update<T, Id>> = Object.values(updatesPerEntity)
+    const mergedUpdates = Object.values(updatesPerEntity)
     if (mergedUpdates.length === 0) {
       return changes
     }
 
-    // Pass 1: stage all candidate updates and evaluate selectIdValue before
-    // mutating state.entities or any draft entity so a throwing selectId
-    // cannot leave earlier updates or renames partially applied.
-    const preparedUpdates: Array<{
-      oldKey: Id
-      newKey: Id
-      updateChanges: Partial<T>
-      original: T
-      candidate: T
-    }> = []
+    const seenAdded = new Set<Id>(changes.added)
+    const seenUpdated = new Set<Id>(changes.updated)
+    const preparedUpdates: Array<{ newKey: Id; updated: T }> = []
 
     for (const update of mergedUpdates) {
       const original: T | undefined = (state.entities as Record<Id, T>)[
@@ -312,88 +243,19 @@ export function createEntityCore<T, Id extends EntityId>(
         continue
       }
 
-      const candidate: T = Array.isArray(original)
-        ? (Object.assign(
-            new Array(original.length),
-            original,
-            update.changes,
-          ) as unknown as T)
-        : Object.assign(
-            Object.create(Object.getPrototypeOf(original)),
-            original,
-            update.changes,
-          )
-      const newKey = selectIdValue(candidate, selectId)
+      const updated: T = Object.assign({}, original, update.changes)
+      const newKey = selectIdValue(updated, selectId)
 
-      preparedUpdates.push({
-        oldKey: update.id,
-        newKey,
-        updateChanges: update.changes,
-        original,
-        candidate,
-      })
+      if (newKey !== update.id) {
+        changes.renamed[update.id] = newKey
+        delete (state.entities as Record<Id, T>)[update.id]
+      }
+
+      preparedUpdates.push({ newKey, updated })
     }
 
-    const seenAdded = new Set<Id>(changes.added)
-    const seenUpdated = new Set<Id>(changes.updated)
-    const addedRenames = new Map<Id, Id>()
-    const overwrittenAdded = new Set<Id>()
-
-    // Pass 2: delete old keys for all renamed entities first so chained or
-    // swapped renames in the same batch never delete a newly written entity.
-    for (const { oldKey, newKey } of preparedUpdates) {
-      if (newKey !== oldKey) {
-        delete (state.entities as Record<Id, T>)[oldKey]
-        if (seenAdded.has(oldKey)) {
-          addedRenames.set(oldKey, newKey)
-        } else {
-          changes.renamed[oldKey] = newKey
-          if (seenAdded.has(newKey)) {
-            overwrittenAdded.add(newKey)
-          }
-        }
-      }
-    }
-
-    if (addedRenames.size > 0 || overwrittenAdded.size > 0) {
-      const nextAdded: Id[] = []
-      const nextSeenAdded = new Set<Id>()
-      for (const id of changes.added) {
-        const finalId = addedRenames.get(id) ?? id
-        if (overwrittenAdded.has(finalId)) {
-          continue
-        }
-        if (!nextSeenAdded.has(finalId)) {
-          nextSeenAdded.add(finalId)
-          nextAdded.push(finalId)
-        }
-      }
-      changes.added.length = 0
-      for (const id of nextAdded) {
-        changes.added.push(id)
-      }
-      seenAdded.clear()
-      for (const id of nextSeenAdded) {
-        seenAdded.add(id)
-      }
-    }
-
-    // Pass 3: apply updates. For in-place updates on an Immer draft that keep
-    // the same ID, mutate the existing draft entity in place to preserve live
-    // draft references held by the caller.
-    for (const {
-      oldKey,
-      newKey,
-      updateChanges,
-      original,
-      candidate,
-    } of preparedUpdates) {
-      if (newKey === oldKey && isDraft(original)) {
-        Object.assign(original as object, updateChanges)
-        ;(state.entities as Record<Id, T>)[newKey] = original
-      } else {
-        ;(state.entities as Record<Id, T>)[newKey] = candidate
-      }
+    for (const { newKey, updated } of preparedUpdates) {
+      ;(state.entities as Record<Id, T>)[newKey] = updated
 
       if (!seenAdded.has(newKey) && !seenUpdated.has(newKey)) {
         seenUpdated.add(newKey)
@@ -404,78 +266,21 @@ export function createEntityCore<T, Id extends EntityId>(
     return changes
   }
 
-  function upsertOne(
-    entity: T,
-    state: R,
-    onPhase?: (phaseChanges: EntityChangeRecord<Id>) => void,
-  ): EntityChangeRecord<Id> {
-    return upsertMany([entity], state, onPhase)
+  function upsertOne(entity: T, state: R): EntityChangeRecord<Id> {
+    return upsertMany([entity], state)
   }
 
   function upsertMany(
     newEntities: readonly T[] | Record<Id, T>,
     state: R,
-    onPhase?: (phaseChanges: EntityChangeRecord<Id>) => void,
   ): EntityChangeRecord<Id> {
+    const changes = createEmptyChangeRecord<Id>()
     const [added, updated] = splitAddedUpdatedEntities<T, Id>(
       newEntities,
       selectId,
       state,
     )
 
-    if (onPhase) {
-      const combined = createEmptyChangeRecord<Id>()
-      if (added.length > 0) {
-        const addChanges = addMany(added, state, undefined, onPhase)
-        combined.added = addChanges.added.slice()
-      }
-      if (updated.length > 0) {
-        const updateChanges = updateMany(updated, state)
-        onPhase(updateChanges)
-        const combinedAddedByStr = new Map<string, Id>()
-        for (const id of combined.added) {
-          combinedAddedByStr.set(String(id), id)
-        }
-        const addedRenames = new Map<Id, Id>()
-        const overwrittenAdded = new Set<string>()
-        for (const [oldId, newId] of Object.entries(
-          updateChanges.renamed,
-        ) as Array<[Id, Id]>) {
-          const matchedAddedId = combinedAddedByStr.get(String(oldId))
-          if (matchedAddedId !== undefined) {
-            addedRenames.set(matchedAddedId, newId)
-          } else {
-            combined.renamed[oldId] = newId
-            if (combinedAddedByStr.has(String(newId))) {
-              overwrittenAdded.add(String(newId))
-            }
-          }
-        }
-        if (addedRenames.size > 0 || overwrittenAdded.size > 0) {
-          const nextAdded: Id[] = []
-          const nextSeen = new Set<Id>()
-          for (const id of combined.added) {
-            const finalId = addedRenames.get(id) ?? id
-            if (overwrittenAdded.has(String(finalId))) {
-              continue
-            }
-            if (!nextSeen.has(finalId)) {
-              nextSeen.add(finalId)
-              nextAdded.push(finalId)
-            }
-          }
-          combined.added = nextAdded
-        }
-        for (const id of updateChanges.updated) {
-          if (!combined.added.includes(id) && !combined.updated.includes(id)) {
-            combined.updated.push(id)
-          }
-        }
-      }
-      return combined
-    }
-
-    const changes = createEmptyChangeRecord<Id>()
     if (added.length > 0) {
       addMany(added, state, changes)
     }
