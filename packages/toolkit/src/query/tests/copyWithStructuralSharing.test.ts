@@ -105,3 +105,20 @@ test('unequal objects containing NaN still share unchanged branches', () => {
   expect(newCopy.c).toBe(2)
   expect(newCopy.a).toBe(objA.a)
 })
+
+test('objects with the same key count but different keys are not treated as equal', () => {
+  const objA: Record<string, unknown> = { a: '1' }
+  const objB: Record<string, unknown> = { b: undefined }
+
+  const newCopy = copyWithStructuralSharing(objA, objB)
+  expect(newCopy).not.toBe(objA)
+  expect(newCopy).toStrictEqual(objB)
+
+  const nestedA = { x: { a: undefined }, y: 1 }
+  const nestedB = { x: { b: undefined }, y: 1 }
+
+  const nestedCopy = copyWithStructuralSharing(nestedA, nestedB)
+  expect(nestedCopy).not.toBe(nestedA)
+  expect(nestedCopy.x).not.toBe(nestedA.x)
+  expect(nestedCopy).toStrictEqual(nestedB)
+})
