@@ -1,0 +1,114 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`multipart/form-data request bodies are converted to FormData 1`] = `
+"import { api } from "./fixtures/emptyApi";
+const appendToFormData = (formData: FormData, key: string, value: unknown) => {
+  for (const item of Array.isArray(value) ? value : [value])
+    if (item !== undefined)
+      formData.append(
+        key,
+        typeof item === "string" || item instanceof Blob
+          ? item
+          : typeof item === "number" || typeof item === "boolean"
+            ? String(item)
+            : new Blob([JSON.stringify(item)], { type: "application/json" }),
+      );
+};
+const injectedRtkApi = api.injectEndpoints({
+  endpoints: (build) => ({
+    uploadAvatar: build.mutation<UploadAvatarApiResponse, UploadAvatarApiArg>({
+      query: (queryArg) => {
+        const formData = new FormData();
+        for (const [key, value] of Object.entries(queryArg.body))
+          appendToFormData(formData, key, value);
+        return { url: \`/api/Avatar\`, method: "POST", body: formData };
+      },
+    }),
+  }),
+  overrideExisting: false,
+});
+export { injectedRtkApi as enhancedApi };
+export type UploadAvatarApiResponse = /** status 200 Success */ string;
+export type UploadAvatarApiArg = {
+  body: {
+    file: Blob;
+    caption?: string | undefined;
+    width?: number | undefined;
+    published?: boolean | undefined;
+    tags?: string[] | undefined;
+    meta?:
+      | {
+          author?: string | undefined;
+        }
+      | undefined;
+  };
+};
+"
+`;
+
+exports[`the FormData conversion helper is emitted only once for several multipart endpoints 1`] = `
+"import { api } from "./fixtures/emptyApi";
+const appendToFormData = (formData: FormData, key: string, value: unknown) => {
+  for (const item of Array.isArray(value) ? value : [value])
+    if (item !== undefined)
+      formData.append(
+        key,
+        typeof item === "string" || item instanceof Blob
+          ? item
+          : typeof item === "number" || typeof item === "boolean"
+            ? String(item)
+            : new Blob([JSON.stringify(item)], { type: "application/json" }),
+      );
+};
+const injectedRtkApi = api.injectEndpoints({
+  endpoints: (build) => ({
+    uploadAvatar: build.mutation<UploadAvatarApiResponse, UploadAvatarApiArg>({
+      query: (queryArg) => {
+        const formData = new FormData();
+        for (const [key, value] of Object.entries(queryArg.body))
+          appendToFormData(formData, key, value);
+        return { url: \`/api/Avatar\`, method: "POST", body: formData };
+      },
+    }),
+    createDocument: build.mutation<
+      CreateDocumentApiResponse,
+      CreateDocumentApiArg
+    >({
+      query: (queryArg) => {
+        const formData = new FormData();
+        for (const [key, value] of Object.entries(queryArg.body ?? {}))
+          appendToFormData(formData, key, value);
+        return {
+          url: \`/api/Documents\`,
+          method: "POST",
+          body: queryArg.body === undefined ? undefined : formData,
+        };
+      },
+    }),
+  }),
+  overrideExisting: false,
+});
+export { injectedRtkApi as enhancedApi };
+export type UploadAvatarApiResponse = /** status 200 Success */ string;
+export type UploadAvatarApiArg = {
+  body: {
+    file: Blob;
+    caption?: string | undefined;
+    width?: number | undefined;
+    published?: boolean | undefined;
+    tags?: string[] | undefined;
+    meta?:
+      | {
+          author?: string | undefined;
+        }
+      | undefined;
+  };
+};
+export type CreateDocumentApiResponse = /** status 200 Success */ string;
+export type CreateDocumentApiArg = {
+  body?: {
+    document?: Blob | undefined;
+  };
+};
+"
+`;

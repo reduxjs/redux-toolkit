@@ -256,6 +256,193 @@ function escapeCommentText(text: unknown) {
 }
 
 /**
+ * Whether a request body must be sent as `multipart/form-data`, meaning
+ * the generated query function has to build a `FormData` rather than
+ * passing the argument object through to be JSON-stringified.
+ *
+ * This only applies when the body does not also offer a JSON-compatible
+ * content type (such as `application/json`, a `+json` media type or the
+ * any-type wildcard): a server that accepts JSON keeps the existing
+ * behavior, since either representation is spec-compliant there.
+ *
+ * @param body - The resolved request body to inspect.
+ * @returns `true` when the body has to be encoded as `multipart/form-data`.
+ *
+ * @internal
+ */
+function usesMultipartFormData(body: OpenAPIV3.RequestBodyObject): boolean {
+  const contentTypes = Object.keys(body.content ?? {});
+  if (!contentTypes.includes('multipart/form-data')) return false;
+  return !contentTypes.some((contentType) => contentType === '*/*' || /\bjson\b/i.test(contentType));
+}
+
+/**
+ * Generates the `appendToFormData` helper that multipart endpoints use to
+ * fill in the `FormData` they send, following the encoding rules of the
+ * `oazapfts` runtime: strings and blobs are appended as-is, numbers and
+ * booleans are stringified, arrays are appended item by item under the
+ * same key and anything else is appended as a JSON blob. `undefined`
+ * values are skipped so absent optional properties produce no part.
+ *
+ * @returns The variable statement declaring the helper.
+ *
+ * @internal
+ */
+function generateAppendToFormDataHelper(): ts.VariableStatement {
+  const item = factory.createIdentifier('item');
+  const valueIsStringOrBlob = factory.createBinaryExpression(
+    factory.createBinaryExpression(
+      factory.createTypeOfExpression(item),
+      ts.SyntaxKind.EqualsEqualsEqualsToken,
+      factory.createStringLiteral('string')
+    ),
+    ts.SyntaxKind.BarBarToken,
+    factory.createBinaryExpression(item, ts.SyntaxKind.InstanceOfKeyword, factory.createIdentifier('Blob'))
+  );
+  const valueIsNumberOrBoolean = factory.createBinaryExpression(
+    factory.createBinaryExpression(
+      factory.createTypeOfExpression(item),
+      ts.SyntaxKind.EqualsEqualsEqualsToken,
+      factory.createStringLiteral('number')
+    ),
+    ts.SyntaxKind.BarBarToken,
+    factory.createBinaryExpression(
+      factory.createTypeOfExpression(item),
+      ts.SyntaxKind.EqualsEqualsEqualsToken,
+      factory.createStringLiteral('boolean')
+    )
+  );
+  const appendValue = factory.createConditionalExpression(
+    valueIsStringOrBlob,
+    undefined,
+    item,
+    undefined,
+    factory.createConditionalExpression(
+      valueIsNumberOrBoolean,
+      undefined,
+      factory.createCallExpression(factory.createIdentifier('String'), undefined, [item]),
+      undefined,
+      factory.createNewExpression(factory.createIdentifier('Blob'), undefined, [
+        factory.createArrayLiteralExpression(
+          [
+            factory.createCallExpression(
+              factory.createPropertyAccessExpression(
+                factory.createIdentifier('JSON'),
+                factory.createIdentifier('stringify')
+              ),
+              undefined,
+              [item]
+            ),
+          ],
+          false
+        ),
+        factory.createObjectLiteralExpression(
+          [
+            factory.createPropertyAssignment(
+              factory.createIdentifier('type'),
+              factory.createStringLiteral('application/json')
+            ),
+          ],
+          false
+        ),
+      ])
+    )
+  );
+  return factory.createVariableStatement(
+    undefined,
+    factory.createVariableDeclarationList(
+      [
+        factory.createVariableDeclaration(
+          factory.createIdentifier('appendToFormData'),
+          undefined,
+          undefined,
+          factory.createArrowFunction(
+            undefined,
+            undefined,
+            [
+              factory.createParameterDeclaration(
+                undefined,
+                undefined,
+                factory.createIdentifier('formData'),
+                undefined,
+                factory.createTypeReferenceNode(factory.createIdentifier('FormData'))
+              ),
+              factory.createParameterDeclaration(
+                undefined,
+                undefined,
+                factory.createIdentifier('key'),
+                undefined,
+                factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword)
+              ),
+              factory.createParameterDeclaration(
+                undefined,
+                undefined,
+                factory.createIdentifier('value'),
+                undefined,
+                factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword)
+              ),
+            ],
+            undefined,
+            factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
+            factory.createBlock(
+              [
+                factory.createForOfStatement(
+                  undefined,
+                  factory.createVariableDeclarationList(
+                    [
+                      factory.createVariableDeclaration(
+                        factory.createIdentifier('item'),
+                        undefined,
+                        undefined,
+                        undefined
+                      ),
+                    ],
+                    ts.NodeFlags.Const
+                  ),
+                  factory.createConditionalExpression(
+                    factory.createCallExpression(
+                      factory.createPropertyAccessExpression(
+                        factory.createIdentifier('Array'),
+                        factory.createIdentifier('isArray')
+                      ),
+                      undefined,
+                      [factory.createIdentifier('value')]
+                    ),
+                    undefined,
+                    factory.createIdentifier('value'),
+                    undefined,
+                    factory.createArrayLiteralExpression([factory.createIdentifier('value')], false)
+                  ),
+                  factory.createIfStatement(
+                    factory.createBinaryExpression(
+                      item,
+                      ts.SyntaxKind.ExclamationEqualsEqualsToken,
+                      factory.createIdentifier('undefined')
+                    ),
+                    factory.createExpressionStatement(
+                      factory.createCallExpression(
+                        factory.createPropertyAccessExpression(
+                          factory.createIdentifier('formData'),
+                          factory.createIdentifier('append')
+                        ),
+                        undefined,
+                        [factory.createIdentifier('key'), appendValue]
+                      )
+                    )
+                  )
+                ),
+              ],
+              true
+            )
+          )
+        ),
+      ],
+      ts.NodeFlags.Const
+    )
+  );
+}
+
+/**
  * Attaches the OpenAPI description of a query argument to a node as a
  * leading JSDoc comment, so the generated types carry the spec's own
  * documentation. Returns the node unchanged when there is no description.
@@ -443,6 +630,11 @@ export async function generateApi(
     operationMatches(filterEndpoints, operationIdTransformer)
   );
 
+  const anyMultipartFormData = operationDefinitions.some(({ operation }) => {
+    if (!operation.requestBody) return false;
+    return usesMultipartFormData(resolve(operation.requestBody, ctx));
+  });
+
   const resultFile = ts.createSourceFile(
     'someFileName.ts',
     '',
@@ -503,6 +695,7 @@ export async function generateApi(
     factory.createSourceFile(
       [
         generateImportNode(apiFile, { [apiImport]: 'api' }),
+        ...(anyMultipartFormData ? [generateAppendToFormDataHelper()] : []),
         ...(tag ? [generateTagTypes({ addTagTypes: extractAllTagTypes({ operationDefinitions }) })] : []),
         generateCreateApiCall({
           tag,
@@ -894,8 +1087,27 @@ export async function generateApi(
     const { path, verb } = operationDefinition;
 
     const bodyParameter = Object.values(queryArg).find((def) => def.origin === 'body');
+    const isMultipartFormData = bodyParameter !== undefined && usesMultipartFormData(bodyParameter.body);
 
     const rootObject = factory.createIdentifier('queryArg');
+
+    /**
+     * Builds the expression reading the request body argument, which is
+     * the root object itself when it is the only (flat) argument.
+     *
+     * @returns The expression evaluating to the request body argument.
+     *
+     * @internal
+     */
+    function bodyArgumentExpression() {
+      if (!bodyParameter) return factory.createIdentifier('undefined');
+      return isFlatArg
+        ? factory.createIdentifier(rootObject.text)
+        : factory.createPropertyAccessExpression(
+            factory.createIdentifier(rootObject.text),
+            factory.createIdentifier(bodyParameter.name)
+          );
+    }
 
     /**
      * Selects the query arguments that came from parameters in a given
@@ -949,6 +1161,55 @@ export async function generateApi(
       );
     }
 
+    const bodyAssignment = () => {
+      if (bodyParameter === undefined) return undefined;
+      if (!isMultipartFormData) {
+        return factory.createPropertyAssignment(factory.createIdentifier('body'), bodyArgumentExpression());
+      }
+      // a multipart body is built as a `FormData` below; an optional body that
+      // was not provided keeps being sent as no body at all
+      return factory.createPropertyAssignment(
+        factory.createIdentifier('body'),
+        bodyParameter.required
+          ? factory.createIdentifier('formData')
+          : factory.createConditionalExpression(
+              factory.createBinaryExpression(
+                bodyArgumentExpression(),
+                ts.SyntaxKind.EqualsEqualsEqualsToken,
+                factory.createIdentifier('undefined')
+              ),
+              undefined,
+              factory.createIdentifier('undefined'),
+              undefined,
+              factory.createIdentifier('formData')
+            )
+      );
+    };
+
+    const requestObjectLiteral = () =>
+      factory.createObjectLiteralExpression(
+        [
+          factory.createPropertyAssignment(
+            factory.createIdentifier('url'),
+            generatePathExpression(path, pickParams('path'), rootObject, isFlatArg, encodePathParams)
+          ),
+          isQuery && verb.toUpperCase() === 'GET'
+            ? undefined
+            : factory.createPropertyAssignment(
+                factory.createIdentifier('method'),
+                factory.createStringLiteral(verb.toUpperCase())
+              ),
+          bodyAssignment(),
+          returnsText
+            ? factory.createPropertyAssignment('responseHandler', factory.createStringLiteral('content-type'))
+            : undefined,
+          createObjectLiteralProperty(pickParams('cookie'), 'cookies'),
+          createObjectLiteralProperty(pickParams('header'), 'headers'),
+          createObjectLiteralProperty(pickParams('query'), 'params'),
+        ].filter(removeUndefined),
+        false
+      );
+
     return factory.createArrowFunction(
       undefined,
       undefined,
@@ -957,37 +1218,68 @@ export async function generateApi(
         : [],
       undefined,
       factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
-      factory.createParenthesizedExpression(
-        factory.createObjectLiteralExpression(
-          [
-            factory.createPropertyAssignment(
-              factory.createIdentifier('url'),
-              generatePathExpression(path, pickParams('path'), rootObject, isFlatArg, encodePathParams)
-            ),
-            isQuery && verb.toUpperCase() === 'GET'
-              ? undefined
-              : factory.createPropertyAssignment(
-                  factory.createIdentifier('method'),
-                  factory.createStringLiteral(verb.toUpperCase())
+      isMultipartFormData
+        ? factory.createBlock(
+            [
+              factory.createVariableStatement(
+                undefined,
+                factory.createVariableDeclarationList(
+                  [
+                    factory.createVariableDeclaration(
+                      factory.createIdentifier('formData'),
+                      undefined,
+                      undefined,
+                      factory.createNewExpression(factory.createIdentifier('FormData'), undefined, [])
+                    ),
+                  ],
+                  ts.NodeFlags.Const
+                )
+              ),
+              factory.createForOfStatement(
+                undefined,
+                factory.createVariableDeclarationList(
+                  [
+                    factory.createVariableDeclaration(
+                      factory.createArrayBindingPattern([
+                        factory.createBindingElement(undefined, undefined, factory.createIdentifier('key')),
+                        factory.createBindingElement(undefined, undefined, factory.createIdentifier('value')),
+                      ]),
+                      undefined,
+                      undefined,
+                      undefined
+                    ),
+                  ],
+                  ts.NodeFlags.Const
                 ),
-            bodyParameter === undefined
-              ? undefined
-              : factory.createPropertyAssignment(
-                  factory.createIdentifier('body'),
-                  isFlatArg
-                    ? rootObject
-                    : factory.createPropertyAccessExpression(rootObject, factory.createIdentifier(bodyParameter.name))
+                factory.createCallExpression(
+                  factory.createPropertyAccessExpression(
+                    factory.createIdentifier('Object'),
+                    factory.createIdentifier('entries')
+                  ),
+                  undefined,
+                  [
+                    bodyParameter?.required
+                      ? bodyArgumentExpression()
+                      : factory.createBinaryExpression(
+                          bodyArgumentExpression(),
+                          ts.SyntaxKind.QuestionQuestionToken,
+                          factory.createObjectLiteralExpression([], false)
+                        ),
+                  ]
                 ),
-            returnsText
-              ? factory.createPropertyAssignment('responseHandler', factory.createStringLiteral('content-type'))
-              : undefined,
-            createObjectLiteralProperty(pickParams('cookie'), 'cookies'),
-            createObjectLiteralProperty(pickParams('header'), 'headers'),
-            createObjectLiteralProperty(pickParams('query'), 'params'),
-          ].filter(removeUndefined),
-          false
-        )
-      )
+                factory.createExpressionStatement(
+                  factory.createCallExpression(factory.createIdentifier('appendToFormData'), undefined, [
+                    factory.createIdentifier('formData'),
+                    factory.createIdentifier('key'),
+                    factory.createIdentifier('value'),
+                  ])
+                )
+              ),
+              factory.createReturnStatement(requestObjectLiteral()),
+            ],
+            true
+          )
+        : factory.createParenthesizedExpression(requestObjectLiteral())
     );
   }
 
