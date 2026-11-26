@@ -74,7 +74,7 @@ describe('Entity State', () => {
           return result
         },
       },
-      extraReducers: (builder) => {
+      respondTo: (builder) => {
         builder.addCase(upsertBook, (state, action) => {
           return adapter.upsertOne(state, action)
         })

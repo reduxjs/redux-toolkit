@@ -108,7 +108,7 @@ const draftsSlice = createSlice({
   name: 'drafts',
   initialState: { status: 'idle' as 'idle' | 'pending' | 'failed' },
   reducers: {},
-  extraReducers: (builder) => {
+  respondTo: (builder) => {
     builder
       .addCase(draftSaved.pending, (state) => {
         state.status = 'pending'

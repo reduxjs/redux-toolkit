@@ -33,6 +33,23 @@ const exampleApi = createApi({
 type ExampleApiState = ReturnType<typeof exampleApi.reducer>
 
 describe('type tests', () => {
+  test('WithSlicePreloadedState keeps a declared preloaded state', () => {
+    type ReducerWithInitial = Reducer<string, Action, number> & {
+      getInitialState(): string
+    }
+
+    expectTypeOf<
+      WithSlicePreloadedState<{
+        reducerPath: 'declared'
+        reducer: ReducerWithInitial
+      }>
+    >().toEqualTypeOf<{ declared: number }>()
+
+    expectTypeOf<WithSlicePreloadedState<typeof numberSlice>>().toEqualTypeOf<{
+      number: number
+    }>()
+  })
+
   test('combineSlices correctly combines static state', () => {
     const rootReducer = combineSlices(
       stringSlice,

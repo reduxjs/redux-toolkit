@@ -40,7 +40,7 @@ describe('type tests', () => {
       name: 'auth',
       initialState: {},
       reducers: {},
-      extraReducers: (builder) => {
+      respondTo: (builder) => {
         builder
           .addMatcher(
             api.endpoints.querySuccess.matchPending,
@@ -83,7 +83,7 @@ describe('type tests', () => {
       name: 'requests',
       initialState: {},
       reducers: {},
-      extraReducers: (builder) => {
+      respondTo: (builder) => {
         builder
           .addMatcher(
             api.endpoints.querySuccess.matchPending,

@@ -98,7 +98,7 @@ describe('Infinite queries', () => {
       name: 'pokemon',
       initialState: {} as { data: Pokemon[] },
       reducers: {},
-      extraReducers: (builder) => {
+      respondTo: (builder) => {
         builder.addMatcher(
           pokemonApi.endpoints.getInfinitePokemon.matchFulfilled,
           (state, action) => {

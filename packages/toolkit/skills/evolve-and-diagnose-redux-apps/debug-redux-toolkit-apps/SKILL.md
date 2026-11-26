@@ -47,7 +47,7 @@ const postsSlice = createSlice({
     status: 'idle' as 'idle' | 'pending' | 'succeeded' | 'failed',
   },
   reducers: {},
-  extraReducers: (builder) => {
+  respondTo: (builder) => {
     builder
       .addCase(fetchPosts.pending, (state) => {
         state.status = 'pending'

@@ -322,12 +322,12 @@ const selectUserById: (state: {
 }
 ```
 
-## selectValue (125 chars)
+## selectValue (128 chars)
 
 ```ts
-const selectValue: Selector<{
+const selectValue: ((rootState: {
     counter: CounterState;
-}, number, []> & {
+}) => number) & {
     unwrapped: (state: CounterState) => number;
 }
 ```
