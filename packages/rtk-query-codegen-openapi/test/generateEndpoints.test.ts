@@ -679,6 +679,22 @@ describe('import paths', () => {
   });
 });
 
+describe('output file extensions', () => {
+  test.each(['mts', 'cts'])('should format a `.%s` output file like a `.ts` one', async (extension) => {
+    const options = {
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      hooks: true,
+    };
+    await generateEndpoints({ ...options, outputFile: './test/tmp/out.ts' });
+    await generateEndpoints({ ...options, outputFile: `./test/tmp/out.${extension}` });
+
+    expect(await fs.readFile(`./test/tmp/out.${extension}`, 'utf8')).toBe(
+      await fs.readFile('./test/tmp/out.ts', 'utf8')
+    );
+  });
+});
+
 describe('yaml parsing', () => {
   it('should parse a yaml schema from a URL', async () => {
     const result = await generateEndpoints({
