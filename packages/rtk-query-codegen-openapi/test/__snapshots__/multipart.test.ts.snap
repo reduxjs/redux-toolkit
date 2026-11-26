@@ -7,8 +7,11 @@ const appendToFormData = (formData: FormData, key: string, value: unknown) => {
     if (item !== undefined)
       formData.append(
         key,
-        typeof item === "string" || item instanceof Blob
-          ? item
+        typeof item === "string" ||
+          item instanceof Blob ||
+          Object.prototype.toString.call(item) === "[object Blob]" ||
+          Object.prototype.toString.call(item) === "[object File]"
+          ? (item as string | Blob)
           : typeof item === "number" || typeof item === "boolean"
             ? String(item)
             : new Blob([JSON.stringify(item)], { type: "application/json" }),
@@ -53,8 +56,11 @@ const appendToFormData = (formData: FormData, key: string, value: unknown) => {
     if (item !== undefined)
       formData.append(
         key,
-        typeof item === "string" || item instanceof Blob
-          ? item
+        typeof item === "string" ||
+          item instanceof Blob ||
+          Object.prototype.toString.call(item) === "[object Blob]" ||
+          Object.prototype.toString.call(item) === "[object File]"
+          ? (item as string | Blob)
           : typeof item === "number" || typeof item === "boolean"
             ? String(item)
             : new Blob([JSON.stringify(item)], { type: "application/json" }),

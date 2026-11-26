@@ -256,6 +256,22 @@ function escapeCommentText(text: unknown) {
 }
 
 /**
+ * Finds the `multipart/form-data` media type entry of a request body.
+ * Media type tokens are case-insensitive, so the lookup compares their
+ * lowercase form rather than only the canonical spelling.
+ *
+ * @param body - The resolved request body to inspect.
+ * @returns The multipart media type object, or `undefined` when absent.
+ *
+ * @internal
+ */
+function getMultipartFormDataMediaType(body: OpenAPIV3.RequestBodyObject): OpenAPIV3.MediaTypeObject | undefined {
+  const content = body.content ?? {};
+  const contentType = Object.keys(content).find((type) => type.toLowerCase() === 'multipart/form-data');
+  return contentType ? content[contentType] : undefined;
+}
+
+/**
  * Whether a request body must be sent as `multipart/form-data`, meaning
  * the generated query function has to build a `FormData` rather than
  * passing the argument object through to be JSON-stringified.
@@ -271,8 +287,8 @@ function escapeCommentText(text: unknown) {
  * @internal
  */
 function usesMultipartFormData(body: OpenAPIV3.RequestBodyObject): boolean {
+  if (!getMultipartFormDataMediaType(body)) return false;
   const contentTypes = Object.keys(body.content ?? {});
-  if (!contentTypes.includes('multipart/form-data')) return false;
   return !contentTypes.some((contentType) => contentType === '*/*' || /\bjson\b/i.test(contentType));
 }
 
@@ -290,6 +306,35 @@ function usesMultipartFormData(body: OpenAPIV3.RequestBodyObject): boolean {
  */
 function generateAppendToFormDataHelper(): ts.VariableStatement {
   const item = factory.createIdentifier('item');
+  const objectPrototypeToString = factory.createPropertyAccessExpression(
+    factory.createPropertyAccessExpression(factory.createIdentifier('Object'), factory.createIdentifier('prototype')),
+    factory.createIdentifier('toString')
+  );
+  const objectPrototypeToStringCall = factory.createCallExpression(
+    factory.createPropertyAccessExpression(objectPrototypeToString, 'call'),
+    undefined,
+    [item]
+  );
+  const valueIsBlobInstance = factory.createBinaryExpression(
+    item,
+    ts.SyntaxKind.InstanceOfKeyword,
+    factory.createIdentifier('Blob')
+  );
+  const valueIsBlobTag = factory.createBinaryExpression(
+    objectPrototypeToStringCall,
+    ts.SyntaxKind.EqualsEqualsEqualsToken,
+    factory.createStringLiteral('[object Blob]')
+  );
+  const valueIsFileTag = factory.createBinaryExpression(
+    objectPrototypeToStringCall,
+    ts.SyntaxKind.EqualsEqualsEqualsToken,
+    factory.createStringLiteral('[object File]')
+  );
+  const valueIsBlob = factory.createBinaryExpression(
+    factory.createBinaryExpression(valueIsBlobInstance, ts.SyntaxKind.BarBarToken, valueIsBlobTag),
+    ts.SyntaxKind.BarBarToken,
+    valueIsFileTag
+  );
   const valueIsStringOrBlob = factory.createBinaryExpression(
     factory.createBinaryExpression(
       factory.createTypeOfExpression(item),
@@ -297,7 +342,7 @@ function generateAppendToFormDataHelper(): ts.VariableStatement {
       factory.createStringLiteral('string')
     ),
     ts.SyntaxKind.BarBarToken,
-    factory.createBinaryExpression(item, ts.SyntaxKind.InstanceOfKeyword, factory.createIdentifier('Blob'))
+    valueIsBlob
   );
   const valueIsNumberOrBoolean = factory.createBinaryExpression(
     factory.createBinaryExpression(
@@ -312,10 +357,17 @@ function generateAppendToFormDataHelper(): ts.VariableStatement {
       factory.createStringLiteral('boolean')
     )
   );
+  const stringOrBlobValue = factory.createAsExpression(
+    item,
+    factory.createUnionTypeNode([
+      factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword),
+      factory.createTypeReferenceNode(factory.createIdentifier('Blob')),
+    ])
+  );
   const appendValue = factory.createConditionalExpression(
     valueIsStringOrBlob,
     undefined,
-    item,
+    stringOrBlobValue,
     undefined,
     factory.createConditionalExpression(
       valueIsNumberOrBoolean,
@@ -918,7 +970,8 @@ export async function generateApi(
 
     if (requestBody) {
       const body = resolve(requestBody, ctx);
-      const schema = getSchemaFromContent(body.content);
+      const multipartSchema = usesMultipartFormData(body) ? getMultipartFormDataMediaType(body)?.schema : undefined;
+      const schema = multipartSchema ?? getSchemaFromContent(body.content);
       const type = getTypeFromSchema(ctx, schema);
       const schemaName = camelCase(
         (type as any).name ||

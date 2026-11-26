@@ -74,3 +74,23 @@ test('multipart conversion also applies with flattenArg', async () => {
   expect(api).toContain('body: formData');
   expect(api).not.toContain('body: queryArg');
 });
+
+test('multipart media type matching is case-insensitive and blob detection is realm-independent', async () => {
+  const api = await generateEndpoints({
+    ...baseOptions,
+    filterEndpoints: ['mixedCaseMultipart'],
+  });
+  expect(api).toContain('new FormData()');
+  expect(api).toContain('Object.entries(queryArg.body)');
+  expect(api).toContain('Object.prototype.toString.call(item) === "[object Blob]"');
+});
+
+test('multipart serialization uses the multipart schema for the argument type', async () => {
+  const api = await generateEndpoints({
+    ...baseOptions,
+    filterEndpoints: ['textThenMultipart'],
+  });
+  expect(api).toContain('new FormData()');
+  expect(api).toMatch(/export type TextThenMultipartApiArg = \{\s+body: \{\s+file: Blob;/);
+  expect(api).not.toMatch(/export type TextThenMultipartApiArg = \{\s+body: string/);
+});
