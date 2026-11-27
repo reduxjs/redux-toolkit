@@ -265,6 +265,46 @@ describe('endpoint overrides', () => {
     expect(api).not.toMatch(/invalidatesTags: \["pet"\]/);
   });
 
+  it('registers tag types with enhanceEndpoints by default', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      tag: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      filterEndpoints: 'findPetsByStatus',
+    });
+
+    expect(api).toMatch(/api\s*\.enhanceEndpoints\(\{\s*addTagTypes,?\s*\}\)\s*\.injectEndpoints\(/);
+    expect(api).not.toMatch(/\.addTagTypes\(/);
+  });
+
+  it('registers tag types with addTagTypes when useAddTagTypes is true', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      tag: true,
+      useAddTagTypes: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      filterEndpoints: 'findPetsByStatus',
+    });
+
+    expect(api).toMatch(/api\s*\.addTagTypes\(\.\.\.addTagTypes\)\s*\.injectEndpoints\(/);
+    expect(api).not.toMatch(/enhanceEndpoints/);
+  });
+
+  it('ignores useAddTagTypes when tag generation is disabled', async () => {
+    const api = await generateEndpoints({
+      unionUndefined: true,
+      useAddTagTypes: true,
+      apiFile: './fixtures/emptyApi.ts',
+      schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
+      filterEndpoints: 'findPetsByStatus',
+    });
+
+    expect(api).toMatch(/api\.injectEndpoints\(/);
+    expect(api).not.toMatch(/addTagTypes/);
+  });
+
   it('does not add override tags to addTagTypes when tag generation is disabled', async () => {
     const api = await generateEndpoints({
       unionUndefined: true,

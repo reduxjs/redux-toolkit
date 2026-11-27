@@ -408,6 +408,7 @@ export async function generateApi(
     operationNameSuffix = '',
     hooks = false,
     tag = false,
+    useAddTagTypes = false,
     outputFile,
     isDataResponse = defaultIsDataResponse,
     filterEndpoints,
@@ -506,6 +507,7 @@ export async function generateApi(
         ...(tag ? [generateTagTypes({ addTagTypes: extractAllTagTypes({ operationDefinitions }) })] : []),
         generateCreateApiCall({
           tag,
+          useAddTagTypes,
           endpointDefinitions: factory.createObjectLiteralExpression(
             operationDefinitions.map((operationDefinition) =>
               generateEndpoint({

@@ -239,6 +239,17 @@ export interface CommonOptions {
   tag?: boolean;
 
   /**
+   * When {@linkcode tag} is `true`, register the generated tag types with
+   * `api.addTagTypes(...addTagTypes)` instead of the deprecated
+   * `api.enhanceEndpoints({ addTagTypes })`.
+   * Requires a version of `@reduxjs/toolkit` that includes `api.addTagTypes`.
+   *
+   * @default false
+   * @since 2.3.0
+   */
+  useAddTagTypes?: boolean;
+
+  /**
    * `true` will add {@linkcode encodeURIComponent()} to the generated
    * {@linkcode OpenAPIV3.PathItemObject.parameters | Path parameters}.
    *
