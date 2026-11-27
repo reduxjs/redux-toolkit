@@ -460,6 +460,32 @@ describe('createAsyncThunk with abortController', () => {
     )
   })
 
+  test.each([undefined, 'AbortReason', ''])(
+    'passes the abort reason to the payload creator signal (%s)',
+    async (reason) => {
+      let signal: AbortSignal | undefined
+      const abortableThunk = createAsyncThunk('abortable', (_, thunkAPI) => {
+        signal = thunkAPI.signal
+        return new Promise<void>(() => {})
+      })
+
+      const promise = store.dispatch(abortableThunk())
+      promise.abort(reason)
+      const result = await promise
+
+      expect(signal?.aborted).toBe(true)
+      if (reason === undefined) {
+        expect(signal?.reason).toMatchObject({ name: 'AbortError' })
+      } else {
+        expect(signal?.reason).toBe(reason)
+      }
+      expect(result).toMatchObject({
+        error: { name: 'AbortError', message: reason || 'Aborted' },
+        meta: { aborted: true },
+      })
+    },
+  )
+
   test('even when the payloadCreator does not directly support the signal, no further actions are dispatched', async () => {
     const unawareAsyncThunk = createAsyncThunk('unaware', async () => {
       await new Promise((resolve) => setTimeout(resolve, 100))
