@@ -626,7 +626,7 @@ export const createAsyncThunk = /* @__PURE__ */ (() => {
 
         function abort(reason?: string) {
           abortReason = reason
-          abortController.abort()
+          abortController.abort(reason)
         }
 
         if (signal) {
