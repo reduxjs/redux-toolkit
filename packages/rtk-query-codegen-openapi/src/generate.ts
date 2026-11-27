@@ -417,7 +417,12 @@ function generateAppendToFormDataHelper(): ts.VariableStatement {
                 undefined,
                 factory.createIdentifier('formData'),
                 undefined,
-                factory.createTypeReferenceNode(factory.createIdentifier('FormData'))
+                factory.createTypeReferenceNode(
+                  factory.createQualifiedName(
+                    factory.createIdentifier('globalThis'),
+                    factory.createIdentifier('FormData')
+                  )
+                )
               ),
               factory.createParameterDeclaration(
                 undefined,

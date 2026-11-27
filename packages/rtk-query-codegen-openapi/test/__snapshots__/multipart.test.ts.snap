@@ -2,7 +2,11 @@
 
 exports[`multipart/form-data request bodies are converted to FormData 1`] = `
 "import { api } from "./fixtures/emptyApi";
-const appendToFormData = (formData: FormData, key: string, value: unknown) => {
+const appendToFormData = (
+  formData: globalThis.FormData,
+  key: string,
+  value: unknown,
+) => {
   for (const item of Array.isArray(value) ? value : [value])
     if (item !== undefined)
       formData.append(
@@ -51,7 +55,11 @@ export type UploadAvatarApiArg = {
 
 exports[`the FormData conversion helper is emitted only once for several multipart endpoints 1`] = `
 "import { api } from "./fixtures/emptyApi";
-const appendToFormData = (formData: FormData, key: string, value: unknown) => {
+const appendToFormData = (
+  formData: globalThis.FormData,
+  key: string,
+  value: unknown,
+) => {
   for (const item of Array.isArray(value) ? value : [value])
     if (item !== undefined)
       formData.append(

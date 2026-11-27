@@ -244,6 +244,46 @@
           }
         }
       }
+    },
+    "/api/SchemaNamedFormData": {
+      "post": {
+        "operationId": "uploadSchemaNamedFormData",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/FormData"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "FormData": {
+        "type": "object",
+        "properties": {
+          "caption": {
+            "type": "string"
+          }
+        },
+        "required": ["caption"]
+      }
     }
   }
 }
