@@ -49,7 +49,9 @@ export type {
   RemoveQueryDataOptions,
   RemoveQueryDataThunk,
   UpdateQueryDataThunk,
+  UpdateQueryDataOptions,
   UpsertQueryDataThunk,
+  UpsertQueryDataOptions,
 } from './buildThunks'
 export { coreModuleName } from './module'
 export type {

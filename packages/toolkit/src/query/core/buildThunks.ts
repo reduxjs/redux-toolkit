@@ -60,7 +60,11 @@ import type {
   StartInfiniteQueryActionCreatorOptions,
   StartQueryActionCreatorOptions,
 } from './buildInitiate'
-import { forceQueryFnSymbol, isUpsertQuery } from './buildInitiate'
+import {
+  forceQueryFnSymbol,
+  ignoreEarlierFetchesSymbol,
+  isUpsertQuery,
+} from './buildInitiate'
 import type { StoreRuntime } from './buildMiddleware/runtime'
 import { findRunningRequest } from './buildMiddleware/runtime'
 import type { AllSelectors } from './buildSelectors'
@@ -311,6 +315,24 @@ export type UpsertThunkResult<
       ? QueryActionCreatorResult<Definitions[EndpointName]>
       : QueryActionCreatorResult<never>
 
+export type UpsertQueryDataOptions = {
+  /**
+   * Ignore data from requests started before this upsert. Their status and
+   * errors still settle normally. Defaults to false.
+   */
+  ignoreEarlierFetches?: boolean
+}
+
+export type UpdateQueryDataOptions = {
+  /** Recalculate provided tags after the update. Defaults to true. */
+  updateProvided?: boolean
+  /**
+   * Ignore data from requests started before this update. Their status and
+   * errors still settle normally. Defaults to false.
+   */
+  ignoreEarlierFetches?: boolean
+}
+
 export type UpdateQueryDataThunk<
   Definitions extends EndpointDefinitions,
   PartialState,
@@ -318,7 +340,7 @@ export type UpdateQueryDataThunk<
   endpointName: EndpointName,
   arg: QueryArgFromAnyQueryDefinition<Definitions, EndpointName>,
   updateRecipe: Recipe<DataFromAnyQueryDefinition<Definitions, EndpointName>>,
-  updateProvided?: boolean,
+  options?: boolean | UpdateQueryDataOptions,
 ) => ThunkAction<PatchCollection, PartialState, any, UnknownAction>
 
 export type UpsertQueryDataThunk<
@@ -328,6 +350,7 @@ export type UpsertQueryDataThunk<
   endpointName: EndpointName,
   arg: QueryArgFromAnyQueryDefinition<Definitions, EndpointName>,
   value: DataFromAnyQueryDefinition<Definitions, EndpointName>,
+  options?: UpsertQueryDataOptions,
 ) => ThunkAction<
   UpsertThunkResult<Definitions, EndpointName>,
   PartialState,
@@ -447,8 +470,15 @@ export function buildThunks<
     return requestStart
   }
 
-  const patchQueryData: PatchQueryDataThunk<EndpointDefinitions, State> =
-    (endpointName, arg, patches, updateProvided) => (dispatch, getState) => {
+  const patchQueryData =
+    (
+      endpointName: string,
+      arg: any,
+      patches: readonly Patch[],
+      updateProvided?: boolean,
+      ignoreEarlierFetches = false,
+    ): ThunkAction<void, State, any, UnknownAction> =>
+    (dispatch, getState) => {
       const endpointDefinition = endpointDefinitions[endpointName]
 
       const queryCacheKey = serializeQueryArgs({
@@ -458,7 +488,11 @@ export function buildThunks<
       })
 
       dispatch(
-        api.internalActions.queryResultPatched({ queryCacheKey, patches }),
+        api.internalActions.queryResultPatched({
+          queryCacheKey,
+          patches,
+          ...(ignoreEarlierFetches && { ignoreEarlierFetches }),
+        }),
       )
 
       if (!updateProvided) {
@@ -495,8 +529,10 @@ export function buildThunks<
   }
 
   const updateQueryData: UpdateQueryDataThunk<EndpointDefinitions, State> =
-    (endpointName, arg, updateRecipe, updateProvided = true) =>
+    (endpointName, arg, updateRecipe, options = {}) =>
     (dispatch, getState) => {
+      const { updateProvided = true, ignoreEarlierFetches = false } =
+        typeof options === 'boolean' ? { updateProvided: options } : options
       const select = api.endpoints[endpointName].select(arg)
 
       const currentState = select(
@@ -558,7 +594,13 @@ export function buildThunks<
       }
 
       dispatch(
-        api.util.patchQueryData(endpointName, arg, ret.patches, updateProvided),
+        patchQueryData(
+          endpointName,
+          arg,
+          ret.patches,
+          updateProvided,
+          ignoreEarlierFetches,
+        ),
       )
       // Applying the patches creates a different reference than produceWithPatches.
       patchedData = select(getState() as ApiRootState<any, any, any>).data
@@ -567,7 +609,7 @@ export function buildThunks<
     }
 
   const upsertQueryData: UpsertQueryDataThunk<Definitions, State> =
-    (endpointName, arg, value) => (dispatch) => {
+    (endpointName, arg, value, options) => (dispatch) => {
       type EndpointName = typeof endpointName
       const res = dispatch(
         (
@@ -579,6 +621,9 @@ export function buildThunks<
           subscribe: false,
           forceRefetch: true,
           [forceQueryFnSymbol]: () => ({ data: value }),
+          ...(options?.ignoreEarlierFetches && {
+            [ignoreEarlierFetchesSymbol]: true,
+          }),
         }),
       ) as UpsertThunkResult<Definitions, EndpointName>
 
