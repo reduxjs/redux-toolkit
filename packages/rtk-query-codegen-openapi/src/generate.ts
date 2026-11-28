@@ -276,10 +276,10 @@ function getMultipartFormDataMediaType(body: OpenAPIV3.RequestBodyObject): OpenA
  * the generated query function has to build a `FormData` rather than
  * passing the argument object through to be JSON-stringified.
  *
- * This only applies when the body does not also offer a JSON-compatible
- * content type (such as `application/json`, a `+json` media type or the
- * any-type wildcard): a server that accepts JSON keeps the existing
- * behavior, since either representation is spec-compliant there.
+ * This only applies when the body does not also offer the default JSON
+ * content type or the any-type wildcard. A structured JSON suffix such as
+ * `application/problem+json` is not enough because the default runtime path
+ * would still label the bytes as `application/json`.
  *
  * @param body - The resolved request body to inspect.
  * @returns `true` when the body has to be encoded as `multipart/form-data`.
@@ -289,7 +289,45 @@ function getMultipartFormDataMediaType(body: OpenAPIV3.RequestBodyObject): OpenA
 function usesMultipartFormData(body: OpenAPIV3.RequestBodyObject): boolean {
   if (!getMultipartFormDataMediaType(body)) return false;
   const contentTypes = Object.keys(body.content ?? {});
-  return !contentTypes.some((contentType) => contentType === '*/*' || /\bjson\b/i.test(contentType));
+  return !contentTypes.some(
+    (contentType) => contentType === '*/*' || contentType.split(';', 1)[0].trim().toLowerCase() === 'application/json'
+  );
+}
+
+/**
+ * Builds the expression that selects a part's explicit OpenAPI encoding
+ * `contentType` for the current multipart key. Arbitrary per-part encoding
+ * headers cannot be represented through the standard `FormData` API, so
+ * only `contentType` is emitted.
+ *
+ * @param mediaType - The multipart media type object.
+ * @returns A conditional expression keyed by part name, or `undefined` when no explicit content types exist.
+ *
+ * @internal
+ */
+function getMultipartContentTypeExpression(
+  mediaType: OpenAPIV3.MediaTypeObject | undefined
+): ts.Expression | undefined {
+  const entries = Object.entries(mediaType?.encoding ?? {}).flatMap(([property, encoding]) =>
+    typeof encoding.contentType === 'string' ? [[property, encoding.contentType] as const] : []
+  );
+  if (entries.length === 0) return undefined;
+
+  let expression: ts.Expression = factory.createIdentifier('undefined');
+  for (const [property, contentType] of entries.reverse()) {
+    expression = factory.createConditionalExpression(
+      factory.createBinaryExpression(
+        factory.createIdentifier('key'),
+        ts.SyntaxKind.EqualsEqualsEqualsToken,
+        factory.createStringLiteral(property)
+      ),
+      undefined,
+      factory.createStringLiteral(contentType),
+      undefined,
+      expression
+    );
+  }
+  return expression;
 }
 
 /**
@@ -297,7 +335,19 @@ function usesMultipartFormData(body: OpenAPIV3.RequestBodyObject): boolean {
  * fill in the `FormData` they send, following the encoding rules of the
  * `oazapfts` runtime: strings and blobs are appended as-is, numbers and
  * booleans are stringified, arrays are appended item by item under the
- * same key and anything else is appended as a JSON blob. `undefined`
+ * same key and anything else is JSON serialized. A concrete encoding
+ * content type is carried in a blob part because the standard `FormData`
+ * API cannot attach a content type to a string field. This makes typed
+ * scalar and object parts blob parts in the serialized request, and the
+ * platform multipart serializer gives those parts the default `blob`
+ * filename. The platform `Blob` constructor ASCII-lowercases the complete
+ * type, including parameter values. Types with uppercase ASCII letters in a
+ * parameter value are rejected before sending because standard `FormData`
+ * cannot represent those case-sensitive values exactly. Object values support
+ * only JSON encodings because there is no generic standard serialization for
+ * other object media types; unsupported object encodings fail loudly instead
+ * of being mislabeled. Wildcard values and commas outside quoted parameters mean the
+ * value is not a single concrete type, so they are not applied. `undefined`
  * values are skipped so absent optional properties produce no part.
  *
  * @returns The variable statement declaring the helper.
@@ -305,198 +355,258 @@ function usesMultipartFormData(body: OpenAPIV3.RequestBodyObject): boolean {
  * @internal
  */
 function generateAppendToFormDataHelper(): ts.VariableStatement {
-  const item = factory.createIdentifier('item');
-  const objectPrototypeToString = factory.createPropertyAccessExpression(
-    factory.createPropertyAccessExpression(factory.createIdentifier('Object'), factory.createIdentifier('prototype')),
-    factory.createIdentifier('toString')
+  const source = `const appendToFormData = (
+  formData: globalThis.FormData,
+  key: string,
+  value: unknown,
+  contentType?: string,
+) => {
+  const isBlob = (part: unknown): part is globalThis.Blob =>
+    part instanceof Blob ||
+    Object.prototype.toString.call(part) === "[object Blob]" ||
+    Object.prototype.toString.call(part) === "[object File]";
+  const hasUnquotedComma = (value: string) => {
+    let inQuotes = false;
+    let escaped = false;
+    for (let index = 0; index < value.length; index += 1) {
+      const code = value.charCodeAt(index);
+      if (escaped) {
+        escaped = false;
+      } else if (code === 92 && inQuotes) {
+        escaped = true;
+      } else if (code === 34) {
+        inQuotes = !inQuotes;
+      } else if (code === 44 && !inQuotes) {
+        return true;
+      }
+    }
+    return false;
+  };
+  const hasUpperCaseParameterValue = (value: string) => {
+    const firstParameterIndex = value.indexOf(";");
+    if (firstParameterIndex === -1) return false;
+    let inQuotes = false;
+    let escaped = false;
+    let inParameterValue = false;
+    for (let index = firstParameterIndex + 1; index < value.length; index += 1) {
+      const code = value.charCodeAt(index);
+      if (!inParameterValue) {
+        if (code === 61) {
+          inParameterValue = true;
+          inQuotes = false;
+          escaped = false;
+        }
+        continue;
+      }
+      if (code >= 65 && code <= 90) {
+        return true;
+      }
+      if (escaped) {
+        escaped = false;
+      } else if (code === 92 && inQuotes) {
+        escaped = true;
+      } else if (code === 34) {
+        inQuotes = !inQuotes;
+      } else if (code === 59 && !inQuotes) {
+        inParameterValue = false;
+      }
+    }
+    return false;
+  };
+  const explicitType = contentType?.trim();
+  const isSingleType = explicitType !== undefined && !hasUnquotedComma(explicitType);
+  const mediaType = isSingleType ? explicitType.split(";", 1)[0].trim().toLowerCase() : undefined;
+  const isConcrete = mediaType !== undefined && mediaType.length > 0 && !mediaType.includes("*");
+  const subtype = mediaType?.slice(mediaType.indexOf("/") + 1);
+  const isJson = isConcrete && (subtype === "json" || subtype?.endsWith("+json") === true);
+  const wireContentType = isConcrete ? explicitType : undefined;
+
+  for (const item of Array.isArray(value) ? value : [value]) {
+    if (item === undefined) continue;
+    if (wireContentType !== undefined && hasUpperCaseParameterValue(wireContentType)) {
+      throw new TypeError(
+        "Cannot serialize multipart content type " +
+          wireContentType +
+          " exactly because standard Blob lowercases parameter values",
+      );
+    }
+    if (isBlob(item)) {
+      if (wireContentType !== undefined && item.type !== wireContentType) {
+        const name = (item as { name?: unknown }).name;
+        const encodedBlob = new Blob([item], { type: wireContentType });
+        if (typeof name === "string") {
+          formData.append(key, encodedBlob, name);
+        } else {
+          formData.append(key, encodedBlob);
+        }
+      } else {
+        formData.append(key, item);
+      }
+      continue;
+    }
+    if (typeof item === "string" || typeof item === "number" || typeof item === "boolean") {
+      const serializedScalar = isJson ? JSON.stringify(item) : String(item);
+      if (wireContentType !== undefined) {
+        formData.append(key, new Blob([serializedScalar], { type: wireContentType }));
+      } else {
+        formData.append(key, serializedScalar);
+      }
+      continue;
+    }
+
+    if (wireContentType !== undefined && !isJson) {
+      throw new TypeError(
+        "Cannot serialize an object multipart part as " +
+          wireContentType +
+          "; only JSON object encodings are supported",
+      );
+    }
+    const serialized = new Blob([JSON.stringify(item)], {
+      type: wireContentType ?? "application/json",
+    });
+    formData.append(key, serialized);
+  }
+};`;
+
+  const sourceFile = ts.createSourceFile(
+    'appendToFormData.ts',
+    source,
+    ts.ScriptTarget.ES2022,
+    false,
+    ts.ScriptKind.TS
   );
-  const objectPrototypeToStringCall = factory.createCallExpression(
-    factory.createPropertyAccessExpression(objectPrototypeToString, 'call'),
-    undefined,
-    [item]
-  );
-  const valueIsBlobInstance = factory.createBinaryExpression(
-    item,
-    ts.SyntaxKind.InstanceOfKeyword,
-    factory.createIdentifier('Blob')
-  );
-  const valueIsBlobTag = factory.createBinaryExpression(
-    objectPrototypeToStringCall,
-    ts.SyntaxKind.EqualsEqualsEqualsToken,
-    factory.createStringLiteral('[object Blob]')
-  );
-  const valueIsFileTag = factory.createBinaryExpression(
-    objectPrototypeToStringCall,
-    ts.SyntaxKind.EqualsEqualsEqualsToken,
-    factory.createStringLiteral('[object File]')
-  );
-  const valueIsBlob = factory.createBinaryExpression(
-    factory.createBinaryExpression(valueIsBlobInstance, ts.SyntaxKind.BarBarToken, valueIsBlobTag),
-    ts.SyntaxKind.BarBarToken,
-    valueIsFileTag
-  );
-  const valueIsStringOrBlob = factory.createBinaryExpression(
-    factory.createBinaryExpression(
-      factory.createTypeOfExpression(item),
-      ts.SyntaxKind.EqualsEqualsEqualsToken,
-      factory.createStringLiteral('string')
-    ),
-    ts.SyntaxKind.BarBarToken,
-    valueIsBlob
-  );
-  const valueIsNumberOrBoolean = factory.createBinaryExpression(
-    factory.createBinaryExpression(
-      factory.createTypeOfExpression(item),
-      ts.SyntaxKind.EqualsEqualsEqualsToken,
-      factory.createStringLiteral('number')
-    ),
-    ts.SyntaxKind.BarBarToken,
-    factory.createBinaryExpression(
-      factory.createTypeOfExpression(item),
-      ts.SyntaxKind.EqualsEqualsEqualsToken,
-      factory.createStringLiteral('boolean')
-    )
-  );
-  const stringOrBlobValue = factory.createAsExpression(
-    item,
-    factory.createUnionTypeNode([
-      factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword),
-      factory.createTypeReferenceNode(factory.createIdentifier('Blob')),
-    ])
-  );
-  const appendValue = factory.createConditionalExpression(
-    valueIsStringOrBlob,
-    undefined,
-    stringOrBlobValue,
-    undefined,
-    factory.createConditionalExpression(
-      valueIsNumberOrBoolean,
-      undefined,
-      factory.createCallExpression(factory.createIdentifier('String'), undefined, [item]),
-      undefined,
-      factory.createNewExpression(factory.createIdentifier('Blob'), undefined, [
-        factory.createArrayLiteralExpression(
-          [
-            factory.createCallExpression(
-              factory.createPropertyAccessExpression(
-                factory.createIdentifier('JSON'),
-                factory.createIdentifier('stringify')
-              ),
-              undefined,
-              [item]
-            ),
-          ],
-          false
-        ),
-        factory.createObjectLiteralExpression(
-          [
-            factory.createPropertyAssignment(
-              factory.createIdentifier('type'),
-              factory.createStringLiteral('application/json')
-            ),
-          ],
-          false
-        ),
-      ])
-    )
-  );
-  return factory.createVariableStatement(
-    undefined,
-    factory.createVariableDeclarationList(
-      [
-        factory.createVariableDeclaration(
-          factory.createIdentifier('appendToFormData'),
-          undefined,
-          undefined,
-          factory.createArrowFunction(
-            undefined,
-            undefined,
-            [
-              factory.createParameterDeclaration(
-                undefined,
-                undefined,
-                factory.createIdentifier('formData'),
-                undefined,
-                factory.createTypeReferenceNode(
-                  factory.createQualifiedName(
-                    factory.createIdentifier('globalThis'),
-                    factory.createIdentifier('FormData')
-                  )
-                )
-              ),
-              factory.createParameterDeclaration(
-                undefined,
-                undefined,
-                factory.createIdentifier('key'),
-                undefined,
-                factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword)
-              ),
-              factory.createParameterDeclaration(
-                undefined,
-                undefined,
-                factory.createIdentifier('value'),
-                undefined,
-                factory.createKeywordTypeNode(ts.SyntaxKind.UnknownKeyword)
-              ),
-            ],
-            undefined,
-            factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
-            factory.createBlock(
-              [
-                factory.createForOfStatement(
-                  undefined,
-                  factory.createVariableDeclarationList(
-                    [
-                      factory.createVariableDeclaration(
-                        factory.createIdentifier('item'),
-                        undefined,
-                        undefined,
-                        undefined
-                      ),
-                    ],
-                    ts.NodeFlags.Const
-                  ),
-                  factory.createConditionalExpression(
-                    factory.createCallExpression(
-                      factory.createPropertyAccessExpression(
-                        factory.createIdentifier('Array'),
-                        factory.createIdentifier('isArray')
-                      ),
-                      undefined,
-                      [factory.createIdentifier('value')]
-                    ),
-                    undefined,
-                    factory.createIdentifier('value'),
-                    undefined,
-                    factory.createArrayLiteralExpression([factory.createIdentifier('value')], false)
-                  ),
-                  factory.createIfStatement(
-                    factory.createBinaryExpression(
-                      item,
-                      ts.SyntaxKind.ExclamationEqualsEqualsToken,
-                      factory.createIdentifier('undefined')
-                    ),
-                    factory.createExpressionStatement(
-                      factory.createCallExpression(
-                        factory.createPropertyAccessExpression(
-                          factory.createIdentifier('formData'),
-                          factory.createIdentifier('append')
-                        ),
-                        undefined,
-                        [factory.createIdentifier('key'), appendValue]
-                      )
-                    )
-                  )
-                ),
-              ],
-              true
-            )
-          )
-        ),
-      ],
-      ts.NodeFlags.Const
-    )
-  );
+  const statement = sourceFile.statements[0] as ts.VariableStatement;
+  // Parsed positions refer to the helper template rather than the generated
+  // source file, so the printer can otherwise omit string literals.
+  const makeSynthetic = (node: ts.Node): void => {
+    ts.setTextRange(node, { pos: -1, end: -1 });
+    ts.forEachChild(node, makeSynthetic);
+  };
+  makeSynthetic(statement);
+  return statement;
+}
+
+/**
+ * Qualifies binary `Blob` type references as DOM blobs while walking the
+ * schema in parallel with the generated type. This keeps a component schema
+ * named `Blob` from capturing the binary argument type.
+ *
+ * @internal
+ */
+function mergeSchemaFragments(base: unknown, overlay: unknown): unknown {
+  if (Array.isArray(base) && Array.isArray(overlay)) return [...base, ...overlay];
+  if (
+    typeof base === 'object' &&
+    base !== null &&
+    !Array.isArray(base) &&
+    typeof overlay === 'object' &&
+    overlay !== null &&
+    !Array.isArray(overlay)
+  ) {
+    const merged: Record<string, unknown> = { ...(base as Record<string, unknown>) };
+    for (const [key, overlayValue] of Object.entries(overlay as Record<string, unknown>)) {
+      merged[key] = key in merged ? mergeSchemaFragments(merged[key], overlayValue) : overlayValue;
+    }
+    return merged;
+  }
+  return overlay === undefined ? base : overlay;
+}
+
+function getComposedUnionSchemas(schemaObject: OpenAPIV3.SchemaObject): unknown[] | undefined {
+  if (schemaObject.oneOf) {
+    const baseSchema = { ...schemaObject } as Record<string, unknown>;
+    delete baseSchema.oneOf;
+    delete baseSchema.discriminator;
+    return schemaObject.oneOf.map((variant) =>
+      isReference(variant) ? variant : mergeSchemaFragments(baseSchema, variant)
+    );
+  }
+  if (schemaObject.anyOf) return schemaObject.anyOf;
+  if (Array.isArray(schemaObject.type)) {
+    return schemaObject.type.map((type) => ({ ...schemaObject, type }));
+  }
+  return undefined;
+}
+
+function qualifyBinaryBlobTypes(typeNode: ts.TypeNode, schema: unknown, ctx: OazapftsContext): void {
+  if (typeof schema !== 'object' || schema === null) return;
+  const resolved = isReference(schema) ? resolve(schema, ctx) : schema;
+  if (typeof resolved !== 'object' || resolved === null) return;
+  const schemaObject = resolved as OpenAPIV3.SchemaObject;
+
+  if (
+    schemaObject.type === 'string' &&
+    schemaObject.format === 'binary' &&
+    ts.isTypeReferenceNode(typeNode) &&
+    ts.isIdentifier(typeNode.typeName) &&
+    typeNode.typeName.text === 'Blob'
+  ) {
+    (typeNode as { typeName: ts.EntityName }).typeName = factory.createQualifiedName(
+      factory.createIdentifier('globalThis'),
+      factory.createIdentifier('Blob')
+    );
+    return;
+  }
+
+  if (ts.isParenthesizedTypeNode(typeNode)) {
+    qualifyBinaryBlobTypes(typeNode.type, schemaObject, ctx);
+  } else if (ts.isTypeLiteralNode(typeNode)) {
+    qualifyBinaryBlobMembers(typeNode.members, schemaObject, ctx);
+  } else if (ts.isUnionTypeNode(typeNode)) {
+    const composedSchemas = getComposedUnionSchemas(schemaObject);
+    typeNode.types.forEach((part, index) => {
+      const partSchema = composedSchemas ? composedSchemas[index] : index === 0 ? schemaObject : undefined;
+      if (partSchema) qualifyBinaryBlobTypes(part, partSchema, ctx);
+    });
+  } else if (ts.isIntersectionTypeNode(typeNode) && schemaObject.allOf) {
+    const ownSchema = { ...schemaObject } as Record<string, unknown>;
+    delete ownSchema.allOf;
+    typeNode.types.forEach((part, index) => {
+      const partSchema = index < (schemaObject.allOf?.length ?? 0) ? schemaObject.allOf?.[index] : ownSchema;
+      if (partSchema) qualifyBinaryBlobTypes(part, partSchema, ctx);
+    });
+  } else if (
+    ts.isTypeReferenceNode(typeNode) &&
+    ts.isIdentifier(typeNode.typeName) &&
+    typeNode.typeName.text === 'Record' &&
+    typeNode.typeArguments?.length === 2
+  ) {
+    const additionalProperties = schemaObject.additionalProperties;
+    if (additionalProperties && typeof additionalProperties === 'object') {
+      qualifyBinaryBlobTypes(typeNode.typeArguments[1], additionalProperties, ctx);
+    }
+  } else if (ts.isArrayTypeNode(typeNode)) {
+    const items = (schemaObject as { items?: unknown }).items;
+    if (items) qualifyBinaryBlobTypes(typeNode.elementType, items, ctx);
+  } else if (ts.isTupleTypeNode(typeNode)) {
+    const prefixItems = (schemaObject as { prefixItems?: unknown }).prefixItems;
+    if (Array.isArray(prefixItems)) {
+      typeNode.elements.forEach((part, index) => {
+        const partSchema = prefixItems[index];
+        if (partSchema) qualifyBinaryBlobTypes(part, partSchema, ctx);
+      });
+    }
+  }
+}
+
+function qualifyBinaryBlobMembers(
+  members: ts.NodeArray<ts.TypeElement>,
+  schemaObject: OpenAPIV3.SchemaObject,
+  ctx: OazapftsContext
+): void {
+  for (const member of members) {
+    if (ts.isIndexSignatureDeclaration(member) && member.type) {
+      const additionalProperties = schemaObject.additionalProperties;
+      if (additionalProperties && typeof additionalProperties === 'object') {
+        qualifyBinaryBlobTypes(member.type, additionalProperties, ctx);
+      }
+      continue;
+    }
+    if (!ts.isPropertySignature(member) || !member.type || !member.name) continue;
+    const name = ts.isIdentifier(member.name) || ts.isStringLiteral(member.name) ? member.name.text : undefined;
+    const propertySchema = name ? schemaObject.properties?.[name] : undefined;
+    if (propertySchema) qualifyBinaryBlobTypes(member.type, propertySchema, ctx);
+  }
 }
 
 /**
@@ -747,6 +857,44 @@ export async function generateApi(
     apiFile = apiFile.replace(/\.[jt]sx?$/, '');
   }
 
+  const endpointDefinitions = factory.createObjectLiteralExpression(
+    operationDefinitions.map((operationDefinition) =>
+      generateEndpoint({
+        operationDefinition,
+        overrides: getOverrides(operationDefinition, endpointOverrides, operationIdTransformer),
+      })
+    ),
+    true
+  );
+
+  const schemasByAliasName = new Map<string, unknown>();
+  for (const [reference, typeReferences] of Object.entries(ctx.refs)) {
+    let schema: unknown;
+    try {
+      schema = resolve({ $ref: reference }, ctx);
+    } catch {
+      continue;
+    }
+    for (const typeReference of [typeReferences.base, typeReferences.readOnly, typeReferences.writeOnly]) {
+      if (typeReference && ts.isIdentifier(typeReference.typeName)) {
+        schemasByAliasName.set(typeReference.typeName.text, schema);
+      }
+    }
+  }
+
+  for (const alias of ctx.aliases) {
+    if (!ts.isTypeAliasDeclaration(alias) && !ts.isInterfaceDeclaration(alias)) continue;
+    const schema = schemasByAliasName.get(alias.name.text) ?? v3Doc.components?.schemas?.[alias.name.text];
+    if (!schema || typeof schema === 'boolean') continue;
+    const resolved = isReference(schema) ? resolve(schema, ctx) : schema;
+    if (typeof resolved !== 'object' || resolved === null) continue;
+    if (ts.isTypeAliasDeclaration(alias)) {
+      qualifyBinaryBlobTypes(alias.type, resolved, ctx);
+    } else {
+      qualifyBinaryBlobMembers(alias.members, resolved as OpenAPIV3.SchemaObject, ctx);
+    }
+  }
+
   return printer.printNode(
     ts.EmitHint.Unspecified,
     factory.createSourceFile(
@@ -756,15 +904,7 @@ export async function generateApi(
         ...(tag ? [generateTagTypes({ addTagTypes: extractAllTagTypes({ operationDefinitions }) })] : []),
         generateCreateApiCall({
           tag,
-          endpointDefinitions: factory.createObjectLiteralExpression(
-            operationDefinitions.map((operationDefinition) =>
-              generateEndpoint({
-                operationDefinition,
-                overrides: getOverrides(operationDefinition, endpointOverrides, operationIdTransformer),
-              })
-            ),
-            true
-          ),
+          endpointDefinitions,
         }),
         factory.createExportDeclaration(
           undefined,
@@ -990,7 +1130,11 @@ export async function generateApi(
         origin: 'body',
         name,
         originalName: schemaName,
-        type: getTypeFromSchema(withMode(ctx, 'writeOnly'), schema),
+        type: (() => {
+          const typeNode = getTypeFromSchema(withMode(ctx, 'writeOnly'), schema);
+          qualifyBinaryBlobTypes(typeNode, schema, ctx);
+          return typeNode;
+        })(),
         // A request body is optional unless the spec explicitly marks it required (OpenAPI defaults `required` to `false`).
         required: body.required ?? false,
         body,
@@ -1146,6 +1290,8 @@ export async function generateApi(
 
     const bodyParameter = Object.values(queryArg).find((def) => def.origin === 'body');
     const isMultipartFormData = bodyParameter !== undefined && usesMultipartFormData(bodyParameter.body);
+    const multipartMediaType = isMultipartFormData ? getMultipartFormDataMediaType(bodyParameter.body) : undefined;
+    const multipartContentType = getMultipartContentTypeExpression(multipartMediaType);
 
     const rootObject = factory.createIdentifier('queryArg');
 
@@ -1225,23 +1371,8 @@ export async function generateApi(
         return factory.createPropertyAssignment(factory.createIdentifier('body'), bodyArgumentExpression());
       }
       // a multipart body is built as a `FormData` below; an optional body that
-      // was not provided keeps being sent as no body at all
-      return factory.createPropertyAssignment(
-        factory.createIdentifier('body'),
-        bodyParameter.required
-          ? factory.createIdentifier('formData')
-          : factory.createConditionalExpression(
-              factory.createBinaryExpression(
-                bodyArgumentExpression(),
-                ts.SyntaxKind.EqualsEqualsEqualsToken,
-                factory.createIdentifier('undefined')
-              ),
-              undefined,
-              factory.createIdentifier('undefined'),
-              undefined,
-              factory.createIdentifier('formData')
-            )
-      );
+      // was not provided leaves the variable undefined and keeps being sent as no body at all
+      return factory.createPropertyAssignment(factory.createIdentifier('body'), factory.createIdentifier('formData'));
     };
 
     const requestObjectLiteral = () =>
@@ -1268,6 +1399,88 @@ export async function generateApi(
         false
       );
 
+    const newFormData = factory.createNewExpression(factory.createIdentifier('FormData'), undefined, []);
+    const formDataDeclaration = factory.createVariableStatement(
+      undefined,
+      factory.createVariableDeclarationList(
+        [
+          factory.createVariableDeclaration(
+            factory.createIdentifier('formData'),
+            undefined,
+            undefined,
+            bodyParameter?.required
+              ? newFormData
+              : factory.createConditionalExpression(
+                  factory.createBinaryExpression(
+                    bodyArgumentExpression(),
+                    ts.SyntaxKind.EqualsEqualsEqualsToken,
+                    factory.createIdentifier('undefined')
+                  ),
+                  undefined,
+                  factory.createIdentifier('undefined'),
+                  undefined,
+                  newFormData
+                )
+          ),
+        ],
+        ts.NodeFlags.Const
+      )
+    );
+
+    const appendArguments = [
+      factory.createIdentifier('formData'),
+      factory.createIdentifier('key'),
+      factory.createIdentifier('value'),
+      ...(multipartContentType ? [multipartContentType] : []),
+    ];
+    const multipartLoop = factory.createForOfStatement(
+      undefined,
+      factory.createVariableDeclarationList(
+        [
+          factory.createVariableDeclaration(
+            factory.createArrayBindingPattern([
+              factory.createBindingElement(undefined, undefined, factory.createIdentifier('key')),
+              factory.createBindingElement(undefined, undefined, factory.createIdentifier('value')),
+            ]),
+            undefined,
+            undefined,
+            undefined
+          ),
+        ],
+        ts.NodeFlags.Const
+      ),
+      factory.createCallExpression(
+        factory.createPropertyAccessExpression(factory.createIdentifier('Object'), factory.createIdentifier('entries')),
+        undefined,
+        [
+          bodyParameter?.required
+            ? bodyArgumentExpression()
+            : factory.createBinaryExpression(
+                bodyArgumentExpression(),
+                ts.SyntaxKind.QuestionQuestionToken,
+                factory.createObjectLiteralExpression([], false)
+              ),
+        ]
+      ),
+      factory.createExpressionStatement(
+        factory.createCallExpression(factory.createIdentifier('appendToFormData'), undefined, appendArguments)
+      )
+    );
+    const multipartStatements = [
+      formDataDeclaration,
+      bodyParameter?.required
+        ? multipartLoop
+        : factory.createIfStatement(
+            factory.createBinaryExpression(
+              factory.createIdentifier('formData'),
+              ts.SyntaxKind.ExclamationEqualsEqualsToken,
+              factory.createIdentifier('undefined')
+            ),
+            multipartLoop
+          ),
+      factory.createReturnStatement(requestObjectLiteral()),
+    ];
+
     return factory.createArrowFunction(
       undefined,
       undefined,
@@ -1277,66 +1490,7 @@ export async function generateApi(
       undefined,
       factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
       isMultipartFormData
-        ? factory.createBlock(
-            [
-              factory.createVariableStatement(
-                undefined,
-                factory.createVariableDeclarationList(
-                  [
-                    factory.createVariableDeclaration(
-                      factory.createIdentifier('formData'),
-                      undefined,
-                      undefined,
-                      factory.createNewExpression(factory.createIdentifier('FormData'), undefined, [])
-                    ),
-                  ],
-                  ts.NodeFlags.Const
-                )
-              ),
-              factory.createForOfStatement(
-                undefined,
-                factory.createVariableDeclarationList(
-                  [
-                    factory.createVariableDeclaration(
-                      factory.createArrayBindingPattern([
-                        factory.createBindingElement(undefined, undefined, factory.createIdentifier('key')),
-                        factory.createBindingElement(undefined, undefined, factory.createIdentifier('value')),
-                      ]),
-                      undefined,
-                      undefined,
-                      undefined
-                    ),
-                  ],
-                  ts.NodeFlags.Const
-                ),
-                factory.createCallExpression(
-                  factory.createPropertyAccessExpression(
-                    factory.createIdentifier('Object'),
-                    factory.createIdentifier('entries')
-                  ),
-                  undefined,
-                  [
-                    bodyParameter?.required
-                      ? bodyArgumentExpression()
-                      : factory.createBinaryExpression(
-                          bodyArgumentExpression(),
-                          ts.SyntaxKind.QuestionQuestionToken,
-                          factory.createObjectLiteralExpression([], false)
-                        ),
-                  ]
-                ),
-                factory.createExpressionStatement(
-                  factory.createCallExpression(factory.createIdentifier('appendToFormData'), undefined, [
-                    factory.createIdentifier('formData'),
-                    factory.createIdentifier('key'),
-                    factory.createIdentifier('value'),
-                  ])
-                )
-              ),
-              factory.createReturnStatement(requestObjectLiteral()),
-            ],
-            true
-          )
+        ? factory.createBlock(multipartStatements, true)
         : factory.createParenthesizedExpression(requestObjectLiteral())
     );
   }
@@ -1364,6 +1518,7 @@ export async function generateApi(
       }
 
       const typeNode = getTypeFromSchema(ctx, schema, schemaName);
+      qualifyBinaryBlobTypes(typeNode, schema, ctx);
       const typeAlias = factory.createTypeAliasDeclaration(
         [factory.createModifier(ts.SyntaxKind.ExportKeyword)],
         schemaName,

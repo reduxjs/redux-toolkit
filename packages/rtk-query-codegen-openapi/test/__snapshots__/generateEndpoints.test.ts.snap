@@ -198,7 +198,7 @@ export type UploadFileApiArg = {
   petId: number;
   /** Additional Metadata */
   additionalMetadata?: string;
-  body?: Blob;
+  body?: globalThis.Blob;
 };
 export type GetInventoryApiResponse = /** status 200 successful operation */ {
   [key: string]: number;
@@ -609,7 +609,7 @@ export type UploadFileApiResponse =
 export type UploadFileApiArg = {
   /** ID of pet to update */
   petId: number;
-  body?: Blob;
+  body?: globalThis.Blob;
 };
 export type GetInventoryApiResponse = /** status 200 successful operation */ {
   [key: string]: number;
@@ -888,7 +888,7 @@ export type UploadFileApiArg = {
   petId: number;
   /** Additional Metadata */
   additionalMetadata?: string;
-  body?: Blob;
+  body?: globalThis.Blob;
 };
 export type GetInventoryApiResponse = /** status 200 successful operation */ {
   [key: string]: number;
@@ -1186,7 +1186,7 @@ export type UploadFileApiArg = {
   petId: number;
   /** Additional Metadata */
   additionalMetadata?: string;
-  body?: Blob;
+  body?: globalThis.Blob;
 };
 export type GetInventoryApiResponse = /** status 200 successful operation */ {
   [key: string]: number;
@@ -1470,7 +1470,7 @@ export type UploadFileApiArg = {
   petId: number;
   /** Additional Metadata */
   additionalMetadata?: string;
-  body?: Blob;
+  body?: globalThis.Blob;
 };
 export type GetInventoryApiResponse = /** status 200 successful operation */ {
   [key: string]: number;
@@ -1746,7 +1746,7 @@ export type UploadFileApiResponse =
 export type UploadFileApiArg = {
   /** ID of pet to update */
   petId: number;
-  body?: Blob;
+  body?: globalThis.Blob;
 };
 export type GetInventoryApiResponse = /** status 200 successful operation */ {
   [key: string]: number;
@@ -2299,7 +2299,7 @@ export type UploadFileV2ApiArg = {
   petId: number;
   /** Additional Metadata */
   additionalMetadata?: string;
-  body?: Blob;
+  body?: globalThis.Blob;
 };
 export type GetInventoryV2ApiResponse = /** status 200 successful operation */ {
   [key: string]: number;
@@ -2978,7 +2978,7 @@ export type UploadFileApiArg = {
   petId: number;
   /** Additional Metadata */
   additionalMetadata?: string;
-  body?: Blob;
+  body?: globalThis.Blob;
 };
 export type GetInventoryApiResponse = /** status 200 successful operation */ {
   [key: string]: number;
@@ -3380,7 +3380,7 @@ export type UploadFileApiArg = {
   petId: number;
   /** Additional Metadata */
   additionalMetadata?: string;
-  body?: Blob;
+  body?: globalThis.Blob;
 };
 export type GetInventoryApiResponse = /** status 200 successful operation */ {
   [key: string]: number;

@@ -188,7 +188,7 @@ export type UploadFileApiArg = {
   petId: number;
   /** Additional Metadata */
   additionalMetadata?: string;
-  body?: Blob;
+  body?: globalThis.Blob;
 };
 export type GetInventoryApiResponse = /** status 200 successful operation */ {
   [key: string]: number;
@@ -482,7 +482,7 @@ export type UploadFileApiArg = {
   petId: number;
   /** Additional Metadata */
   additionalMetadata?: string;
-  body?: Blob;
+  body?: globalThis.Blob;
 };
 export type GetInventoryApiResponse = /** status 200 successful operation */ {
   [key: string]: number;

@@ -660,11 +660,16 @@ describe('import paths', () => {
       hooks: true,
       tag: true,
     });
-    expect(await fs.readFile('./test/tmp-generateEndpoints/out.ts', 'utf8')).toContain('import { api } from "../../fixtures/emptyApi";');
+    expect(await fs.readFile('./test/tmp-generateEndpoints/out.ts', 'utf8')).toContain(
+      'import { api } from "../../fixtures/emptyApi";'
+    );
   });
 
   test('should create paths relative to `outFile` when `apiFile` is relative (same folder)', async () => {
-    await fs.writeFile('./test/tmp-generateEndpoints/emptyApi.ts', await fs.readFile('./test/fixtures/emptyApi.ts', 'utf8'));
+    await fs.writeFile(
+      './test/tmp-generateEndpoints/emptyApi.ts',
+      await fs.readFile('./test/fixtures/emptyApi.ts', 'utf8')
+    );
 
     await generateEndpoints({
       unionUndefined: true,
@@ -675,7 +680,9 @@ describe('import paths', () => {
       hooks: true,
       tag: true,
     });
-    expect(await fs.readFile('./test/tmp-generateEndpoints/out.ts', 'utf8')).toContain('import { api } from "./emptyApi";');
+    expect(await fs.readFile('./test/tmp-generateEndpoints/out.ts', 'utf8')).toContain(
+      'import { api } from "./emptyApi";'
+    );
   });
 });
 
