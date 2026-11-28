@@ -1,7 +1,6 @@
 import { generateEndpoints } from '@rtk-query/codegen-openapi';
 import { resolve } from 'node:path';
 import { runInNewContext } from 'node:vm';
-import { JSDOM } from 'jsdom';
 import ts from 'typescript';
 
 const baseOptions = {
@@ -76,6 +75,33 @@ function instantiateAppendToFormData(api: string, blobConstructor: unknown = Blo
     value: unknown,
     contentType?: string
   ) => void;
+}
+
+type ForeignRealmBlobConstructor = new (parts?: BlobPart[], options?: BlobPropertyBag) => globalThis.Blob;
+
+function createForeignRealmBlobConstructor(): ForeignRealmBlobConstructor {
+  return runInNewContext(
+    `
+(() => {
+  class ForeignBlob extends Blob {}
+  for (const key of [
+    ...Object.getOwnPropertyNames(Blob.prototype),
+    ...Object.getOwnPropertySymbols(Blob.prototype),
+  ]) {
+    if (key !== 'constructor') {
+      Object.defineProperty(ForeignBlob.prototype, key, Object.getOwnPropertyDescriptor(Blob.prototype, key));
+    }
+  }
+  Object.setPrototypeOf(ForeignBlob.prototype, null);
+  Object.defineProperty(ForeignBlob.prototype, Symbol.toStringTag, {
+    value: 'Blob',
+    configurable: true,
+  });
+  return ForeignBlob;
+})()
+`,
+    { Blob }
+  ) as ForeignRealmBlobConstructor;
 }
 
 type GeneratedMultipartEndpoints = Record<
@@ -502,20 +528,14 @@ test('actual foreign-realm blobs preserve bytes on unchanged and retyping paths'
     ...baseOptions,
     filterEndpoints: ['encodedMultipart'],
   });
-  const foreignWindow = new JSDOM('').window;
-  const serializerWindow = new JSDOM('').window;
-  const appendToFormData = instantiateAppendToFormData(api, serializerWindow.Blob);
-  const readBlobBytes = (blob: unknown, window: typeof foreignWindow) =>
-    new Promise<Uint8Array>((resolve, reject) => {
-      const reader = new window.FileReader();
-      reader.addEventListener('load', () => resolve(new Uint8Array(reader.result as ArrayBuffer)));
-      reader.addEventListener('error', () => reject(reader.error));
-      reader.readAsArrayBuffer(blob as globalThis.Blob);
-    });
+  const ForeignBlob = createForeignRealmBlobConstructor();
+  const SerializerBlob = createForeignRealmBlobConstructor();
+  const appendToFormData = instantiateAppendToFormData(api, SerializerBlob);
+  const readBlobBytes = async (blob: unknown) => new Uint8Array(await (blob as globalThis.Blob).arrayBuffer());
 
   const unchangedPayload = new Uint8Array([0, 1, 2, 127, 128, 255]);
-  const unchangedForeignBlob = new foreignWindow.Blob([unchangedPayload], { type: 'image/png' });
-  expect(unchangedForeignBlob instanceof serializerWindow.Blob).toBe(false);
+  const unchangedForeignBlob = new ForeignBlob([unchangedPayload], { type: 'image/png' });
+  expect(unchangedForeignBlob instanceof SerializerBlob).toBe(false);
   const unchangedAppends: unknown[] = [];
   appendToFormData(
     { append: (_key: string, item: unknown) => unchangedAppends.push(item) } as unknown as globalThis.FormData,
@@ -524,12 +544,12 @@ test('actual foreign-realm blobs preserve bytes on unchanged and retyping paths'
     'image/png'
   );
   expect(unchangedAppends).toEqual([unchangedForeignBlob]);
-  const unchangedRoundTrip = await readBlobBytes(unchangedAppends[0], foreignWindow);
+  const unchangedRoundTrip = await readBlobBytes(unchangedAppends[0]);
   expect(Array.from(unchangedRoundTrip)).toEqual(Array.from(unchangedPayload));
 
   const retypedPayload = new Uint8Array([255, 128, 127, 2, 1, 0]);
-  const retypedForeignBlob = new foreignWindow.Blob([retypedPayload], { type: 'application/octet-stream' });
-  expect(retypedForeignBlob instanceof serializerWindow.Blob).toBe(false);
+  const retypedForeignBlob = new ForeignBlob([retypedPayload], { type: 'application/octet-stream' });
+  expect(retypedForeignBlob instanceof SerializerBlob).toBe(false);
   const retypedAppends: unknown[] = [];
   appendToFormData(
     { append: (_key: string, item: unknown) => retypedAppends.push(item) } as unknown as globalThis.FormData,
@@ -539,9 +559,9 @@ test('actual foreign-realm blobs preserve bytes on unchanged and retyping paths'
   );
   expect(retypedAppends).toHaveLength(1);
   expect(retypedAppends[0]).not.toBe(retypedForeignBlob);
-  expect(retypedAppends[0] instanceof serializerWindow.Blob).toBe(true);
+  expect(retypedAppends[0] instanceof SerializerBlob).toBe(true);
   expect((retypedAppends[0] as Blob).type).toBe('image/png');
-  const retypedRoundTrip = await readBlobBytes(retypedAppends[0], serializerWindow);
+  const retypedRoundTrip = await readBlobBytes(retypedAppends[0]);
   expect(Array.from(retypedRoundTrip)).toEqual(Array.from(retypedPayload));
 });
 
