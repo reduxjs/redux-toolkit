@@ -114,6 +114,7 @@ export type BuildInitiateApiEndpointMutation<
 }
 
 export const forceQueryFnSymbol = Symbol('forceQueryFn')
+export const ignoreEarlierFetchesSymbol = Symbol('ignoreEarlierFetches')
 export const isUpsertQuery = (arg: QueryThunkArg) =>
   typeof arg[forceQueryFnSymbol] === 'function'
 
@@ -137,6 +138,7 @@ export type StartQueryActionCreatorOptions = {
    */
   retainFor?: number
   [forceQueryFnSymbol]?: () => QueryReturnValue
+  [ignoreEarlierFetchesSymbol]?: boolean
   [startReasonSymbol]?: QueryStartReason
 }
 

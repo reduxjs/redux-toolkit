@@ -32,7 +32,12 @@ const updateQueryData = (
   endpointName: string,
   arg: any,
   updateRecipe: (draft: Draft<CachedState>) => void,
-  updateProvided?: boolean,
+  options?:
+    | boolean
+    | {
+        updateProvided?: boolean
+        ignoreEarlierFetches?: boolean
+      },
 ) => ThunkAction<PatchCollection, PartialState, any, AnyAction>
 
 interface PatchCollection {
@@ -47,7 +52,9 @@ interface PatchCollection {
 - `endpointName`: a string matching an existing endpoint name
 - `arg`: an argument matching that used for a previous query call, used to determine which cached dataset needs to be updated
 - `updateRecipe`: an Immer `produce` callback that can apply changes to the cached state
-- `updateProvided`: a boolean indicating whether the endpoint's provided tags should be re-calculated based on the updated cache. Defaults to `false`.
+- `options` (optional): an object with `updateProvided` (defaults to `true`) and `ignoreEarlierFetches` (defaults to `false`). A boolean is still accepted as the `updateProvided` argument.
+  - `updateProvided`: whether to recalculate the endpoint's provided tags from the updated cache.
+  - `ignoreEarlierFetches`: keep the updated data if a request started before the update later resolves. The request still settles its status and error, but cannot replace the data or provided tags. Requests started afterward are unaffected.
 
 #### Description
 
@@ -62,6 +69,8 @@ Pass `undo({ ifUnchanged: true })` to apply the inverse patches only if the cach
 A skipped undo does not remove the failed mutation's changes from later optimistic updates. Invalidate the relevant tags on error to re-fetch the server data. See [Optimistic Updates](../../usage/manual-cache-updates.mdx#optimistic-updates).
 
 Note that the first two arguments (`endpointName` and `arg`) are used to determine which existing cache entry to update. If no existing cache entry is found, the `updateRecipe` callback will not run.
+
+Ordering protection applies only when the recipe produces patches. A missing entry, an entry without data, or a recipe that produces no patches does not enable it. Calling `undo()` reverts the data as usual; it does not re-enable earlier requests. Refetch or invalidate tags if you need fresh server data after a failed mutation.
 
 #### Example 1
 
@@ -124,8 +133,12 @@ A Redux thunk action creator that, when dispatched, acts as an artificial API re
 #### Signature
 
 ```ts no-transpile
-const upsertQueryData = <T>(endpointName: string, arg: any, newEntryData: T) =>
-  ThunkAction<Promise<CacheEntry<T>>, PartialState, any, UnknownAction>
+const upsertQueryData = <T>(
+  endpointName: string,
+  arg: any,
+  newEntryData: T,
+  options?: { ignoreEarlierFetches?: boolean },
+) => ThunkAction<Promise<CacheEntry<T>>, PartialState, any, UnknownAction>
 ```
 
 #### Parameters
@@ -133,6 +146,7 @@ const upsertQueryData = <T>(endpointName: string, arg: any, newEntryData: T) =>
 - `endpointName`: a string matching an existing endpoint name
 - `arg`: an argument matching that used for a previous query call, used to determine which cached dataset needs to be updated
 - `newEntryValue`: the value to be written into the corresponding cache entry's `data` field
+- `options` (optional): `ignoreEarlierFetches` defaults to `false`. When `true`, a successful upsert protects its data and provided tags from requests started before this call.
 
 #### Description
 
@@ -140,9 +154,11 @@ The thunk action creator accepts three arguments: the name of the endpoint we ar
 
 If no cache entry for that cache key exists, a cache entry will be created and the data added. If a cache entry already exists, this will _overwrite_ the existing cache entry data.
 
-The thunk executes _asynchronously_, and returns a promise that resolves when the store has been updated. This includes executing the `transformResponse` callback if defined for that endpoint.
+The thunk executes _asynchronously_, and returns a promise that resolves when the store has been updated. The endpoint's schemas still apply to the upserted value.
 
 If dispatched while an actual request is in progress, both the upsert and request will be handled as soon as they resolve, resulting in a "last result wins" update behavior.
+
+With `ignoreEarlierFetches: true`, protection begins only when the upsert successfully writes its data. A failed upsert does not suppress an earlier request. Requests started after the upsert call are unaffected, even if they start before the asynchronous upsert finishes. Ignored requests still settle their status, error and lifecycle callbacks.
 
 #### Example
 

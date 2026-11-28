@@ -330,6 +330,12 @@ export type ApiUtil<
    *
    * Note that the first two arguments (`endpointName` and `arg`) are used to determine which existing cache entry to update. If no existing cache entry is found, the `updateRecipe` callback will not run.
    *
+   * The fourth argument accepts an `updateProvided` boolean or an options object.
+   * Pass `{ ignoreEarlierFetches: true }` to keep a successful update from being
+   * overwritten by an earlier request. Missing entries and recipes that produce
+   * no patches do not enable protection. Requests still settle normally, and
+   * requests started after the update can write their data.
+   *
    * @example
    *
    * ```ts
@@ -355,6 +361,10 @@ export type ApiUtil<
    * The thunk executes _asynchronously_, and returns a promise that resolves when the store has been updated.
    *
    * If dispatched while an actual request is in progress, both the upsert and request will be handled as soon as they resolve, resulting in a "last result wins" update behavior.
+   * Pass `{ ignoreEarlierFetches: true }` as the fourth argument to protect a
+   * successful upsert from requests started before this call. Protection is
+   * applied only when the upsert writes its data; failed upserts do not block
+   * earlier requests. Requests started after the call are not affected.
    *
    * @example
    *

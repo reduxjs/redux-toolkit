@@ -67,7 +67,7 @@ import {
   copyWithStructuralSharing,
 } from '../utils'
 import type { ApiContext } from '../apiTypes'
-import { isUpsertQuery } from './buildInitiate'
+import { ignoreEarlierFetchesSymbol, isUpsertQuery } from './buildInitiate'
 import type { InternalSerializeQueryArgs } from '../defaultSerializeQueryArgs'
 import type { UnwrapPromise } from '../tsHelpers'
 import { getCurrent } from '../utils/getCurrent'
@@ -220,8 +220,8 @@ type UpsertEntriesMeta = {
 }
 
 // `startedSeq` is the `seq` of the last request started for the entry,
-// including `upsertQueryData` calls. `upsertQueryEntries` with
-// `ignoreEarlierFetches` copies it to `ignoreDataUpToSeq`. Requests with a
+// including `upsertQueryData` calls. Manual writes with
+// `ignoreEarlierFetches` set `ignoreDataUpToSeq`. Requests with a
 // `seq` up to that value still settle the entry's request state when they
 // finish, but their data is not written. `seq` only increases within one
 // store, so later requests always pass.
@@ -322,6 +322,15 @@ export function buildSlice({
       substate.status = STATUS_FULFILLED
       if (!isIgnoredRequest(substate, meta.seq)) {
         writeCacheData(substate, meta, payload)
+        if (
+          upserting &&
+          meta.arg[ignoreEarlierFetchesSymbol] &&
+          meta.seq !== undefined
+        ) {
+          // Activate protection only after a successful write, excluding this
+          // upsert and any requests that started after it.
+          substate.ignoreDataUpToSeq = meta.seq - 1
+        }
       }
       delete substate.error
       substate.fulfilledTimeStamp = meta.fulfilledTimeStamp
@@ -526,17 +535,26 @@ export function buildSlice({
         reducer(
           draft,
           {
-            payload: { queryCacheKey, patches },
+            payload: { queryCacheKey, patches, ignoreEarlierFetches },
           }: PayloadAction<
-            QuerySubstateIdentifier & { patches: readonly Patch[] }
+            QuerySubstateIdentifier & {
+              patches: readonly Patch[]
+              ignoreEarlierFetches?: boolean
+            }
           >,
         ) {
           updateQuerySubstateIfExists(draft, queryCacheKey, (substate) => {
             substate.data = applyPatches(substate.data as any, patches.concat())
+            if (ignoreEarlierFetches && substate.startedSeq !== undefined) {
+              substate.ignoreDataUpToSeq = substate.startedSeq
+            }
           })
         },
         prepare: prepareAutoBatched<
-          QuerySubstateIdentifier & { patches: readonly Patch[] }
+          QuerySubstateIdentifier & {
+            patches: readonly Patch[]
+            ignoreEarlierFetches?: boolean
+          }
         >(),
       },
     },
