@@ -2,15 +2,15 @@ import { generateEndpoints } from '@rtk-query/codegen-openapi';
 import fs from 'node:fs/promises';
 import path, { resolve } from 'node:path';
 import { rimraf } from 'rimraf';
-import { isDir, removeTempDir } from './cli.test';
+import { isDir, removeDir } from './testUtils';
 
-const tmpDir = path.resolve(__dirname, 'tmp');
+const tmpDir = path.resolve(__dirname, 'tmp-generateEndpoints');
 
 beforeAll(async () => {
   if (!(await isDir(tmpDir))) {
     await fs.mkdir(tmpDir, { recursive: true });
   }
-  return removeTempDir;
+  return () => removeDir(tmpDir);
 });
 
 afterEach(async () => {
@@ -654,28 +654,35 @@ describe('import paths', () => {
     await generateEndpoints({
       unionUndefined: true,
       apiFile: './fixtures/emptyApi.ts',
-      outputFile: './test/tmp/out.ts',
+      outputFile: './test/tmp-generateEndpoints/out.ts',
       schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
       filterEndpoints: [],
       hooks: true,
       tag: true,
     });
-    expect(await fs.readFile('./test/tmp/out.ts', 'utf8')).toContain('import { api } from "../../fixtures/emptyApi";');
+    expect(await fs.readFile('./test/tmp-generateEndpoints/out.ts', 'utf8')).toContain(
+      'import { api } from "../../fixtures/emptyApi";'
+    );
   });
 
   test('should create paths relative to `outFile` when `apiFile` is relative (same folder)', async () => {
-    await fs.writeFile('./test/tmp/emptyApi.ts', await fs.readFile('./test/fixtures/emptyApi.ts', 'utf8'));
+    await fs.writeFile(
+      './test/tmp-generateEndpoints/emptyApi.ts',
+      await fs.readFile('./test/fixtures/emptyApi.ts', 'utf8')
+    );
 
     await generateEndpoints({
       unionUndefined: true,
-      apiFile: './test/tmp/emptyApi.ts',
-      outputFile: './test/tmp/out.ts',
+      apiFile: './test/tmp-generateEndpoints/emptyApi.ts',
+      outputFile: './test/tmp-generateEndpoints/out.ts',
       schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
       filterEndpoints: [],
       hooks: true,
       tag: true,
     });
-    expect(await fs.readFile('./test/tmp/out.ts', 'utf8')).toContain('import { api } from "./emptyApi";');
+    expect(await fs.readFile('./test/tmp-generateEndpoints/out.ts', 'utf8')).toContain(
+      'import { api } from "./emptyApi";'
+    );
   });
 });
 
@@ -1021,71 +1028,71 @@ describe('esmExtensions option', () => {
   test('should convert .ts to .js when esmExtensions is true', async () => {
     await generateEndpoints({
       apiFile: './fixtures/emptyApi.ts',
-      outputFile: './test/tmp/out.ts',
+      outputFile: './test/tmp-generateEndpoints/out.ts',
       schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
       filterEndpoints: [],
       esmExtensions: true,
     });
-    const content = await fs.readFile('./test/tmp/out.ts', 'utf8');
+    const content = await fs.readFile('./test/tmp-generateEndpoints/out.ts', 'utf8');
     expect(content).toContain('import { api } from "../../fixtures/emptyApi.js";');
   });
 
   test('should convert .mts to .mjs when esmExtensions is true', async () => {
     await generateEndpoints({
       apiFile: './fixtures/emptyApi.mts',
-      outputFile: './test/tmp/out.ts',
+      outputFile: './test/tmp-generateEndpoints/out.ts',
       schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
       filterEndpoints: [],
       esmExtensions: true,
     });
-    const content = await fs.readFile('./test/tmp/out.ts', 'utf8');
+    const content = await fs.readFile('./test/tmp-generateEndpoints/out.ts', 'utf8');
     expect(content).toContain('import { api } from "../../fixtures/emptyApi.mjs";');
   });
 
   test('should preserve .jsx when esmExtensions is true', async () => {
     await generateEndpoints({
       apiFile: './fixtures/emptyApi.jsx',
-      outputFile: './test/tmp/out.ts',
+      outputFile: './test/tmp-generateEndpoints/out.ts',
       schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
       filterEndpoints: [],
       esmExtensions: true,
     });
-    const content = await fs.readFile('./test/tmp/out.ts', 'utf8');
+    const content = await fs.readFile('./test/tmp-generateEndpoints/out.ts', 'utf8');
     expect(content).toContain('import { api } from "../../fixtures/emptyApi.jsx";');
   });
 
   test('should convert .tsx to .jsx when esmExtensions is true', async () => {
     await generateEndpoints({
       apiFile: './fixtures/emptyApi.tsx',
-      outputFile: './test/tmp/out.ts',
+      outputFile: './test/tmp-generateEndpoints/out.ts',
       schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
       filterEndpoints: [],
       esmExtensions: true,
     });
-    const content = await fs.readFile('./test/tmp/out.ts', 'utf8');
+    const content = await fs.readFile('./test/tmp-generateEndpoints/out.ts', 'utf8');
     expect(content).toContain('import { api } from "../../fixtures/emptyApi.jsx";');
   });
 
   test('should strip extensions when esmExtensions is false', async () => {
     await generateEndpoints({
       apiFile: './fixtures/emptyApi.ts',
-      outputFile: './test/tmp/out.ts',
+      outputFile: './test/tmp-generateEndpoints/out.ts',
       schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
       filterEndpoints: [],
       esmExtensions: false,
     });
-    const content = await fs.readFile('./test/tmp/out.ts', 'utf8');
+    const content = await fs.readFile('./test/tmp-generateEndpoints/out.ts', 'utf8');
     expect(content).toContain('import { api } from "../../fixtures/emptyApi";');
   });
 
   test('should strip extensions when esmExtensions is undefined (default)', async () => {
     await generateEndpoints({
       apiFile: './fixtures/emptyApi.ts',
-      outputFile: './test/tmp/out.ts',
+      outputFile: './test/tmp-generateEndpoints/out.ts',
       schemaFile: resolve(__dirname, 'fixtures/petstore.json'),
       filterEndpoints: [],
     });
-    const content = await fs.readFile('./test/tmp/out.ts', 'utf8');
+    const content = await fs.readFile('./test/tmp-generateEndpoints/out.ts', 'utf8');
     expect(content).toContain('import { api } from "../../fixtures/emptyApi";');
   });
 });
@@ -1293,7 +1300,7 @@ describe('generateEndpoints return type narrowing', () => {
   test('returns void when outputFile is provided', async () => {
     const result = await generateEndpoints({
       apiFile: './fixtures/emptyApi.ts',
-      outputFile: './test/tmp/out.ts',
+      outputFile: './test/tmp-generateEndpoints/out.ts',
       schemaFile,
     });
 

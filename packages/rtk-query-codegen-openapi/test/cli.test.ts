@@ -3,6 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import { rimraf } from 'rimraf';
+import { isDir } from './testUtils';
 
 const exec = promisify(_exec);
 
@@ -15,19 +16,6 @@ const cli = async (args: string[]) => {
 };
 
 const tmpDir = path.resolve(__dirname, 'tmp');
-
-export const removeTempDir = async () => {
-  await rimraf(tmpDir);
-};
-
-export const isDir = async (filePath: string) => {
-  try {
-    const stat = await fs.lstat(filePath);
-    return stat.isDirectory();
-  } catch {
-    return false;
-  }
-};
 
 describe('CLI options testing', () => {
   beforeAll(async () => {

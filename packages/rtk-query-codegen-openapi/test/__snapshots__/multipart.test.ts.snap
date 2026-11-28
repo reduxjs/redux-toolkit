@@ -1,0 +1,354 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`multipart/form-data request bodies are converted to FormData 1`] = `
+"import { api } from "./fixtures/emptyApi";
+const appendToFormData = (
+  formData: globalThis.FormData,
+  key: string,
+  value: unknown,
+  contentType?: string,
+) => {
+  const isBlob = (part: unknown): part is globalThis.Blob =>
+    part instanceof Blob ||
+    Object.prototype.toString.call(part) === "[object Blob]" ||
+    Object.prototype.toString.call(part) === "[object File]";
+  const hasUnquotedComma = (value: string) => {
+    let inQuotes = false;
+    let escaped = false;
+    for (let index = 0; index < value.length; index += 1) {
+      const code = value.charCodeAt(index);
+      if (escaped) {
+        escaped = false;
+      } else if (code === 92 && inQuotes) {
+        escaped = true;
+      } else if (code === 34) {
+        inQuotes = !inQuotes;
+      } else if (code === 44 && !inQuotes) {
+        return true;
+      }
+    }
+    return false;
+  };
+  const hasUpperCaseParameterValue = (value: string) => {
+    const firstParameterIndex = value.indexOf(";");
+    if (firstParameterIndex === -1) return false;
+    let inQuotes = false;
+    let escaped = false;
+    let inParameterValue = false;
+    for (
+      let index = firstParameterIndex + 1;
+      index < value.length;
+      index += 1
+    ) {
+      const code = value.charCodeAt(index);
+      if (!inParameterValue) {
+        if (code === 61) {
+          inParameterValue = true;
+          inQuotes = false;
+          escaped = false;
+        }
+        continue;
+      }
+      if (code >= 65 && code <= 90) {
+        return true;
+      }
+      if (escaped) {
+        escaped = false;
+      } else if (code === 92 && inQuotes) {
+        escaped = true;
+      } else if (code === 34) {
+        inQuotes = !inQuotes;
+      } else if (code === 59 && !inQuotes) {
+        inParameterValue = false;
+      }
+    }
+    return false;
+  };
+  const explicitType = contentType?.trim();
+  const isSingleType =
+    explicitType !== undefined && !hasUnquotedComma(explicitType);
+  const mediaType = isSingleType
+    ? explicitType.split(";", 1)[0].trim().toLowerCase()
+    : undefined;
+  const isConcrete =
+    mediaType !== undefined && mediaType.length > 0 && !mediaType.includes("*");
+  const subtype = mediaType?.slice(mediaType.indexOf("/") + 1);
+  const isJson =
+    isConcrete && (subtype === "json" || subtype?.endsWith("+json") === true);
+  const wireContentType = isConcrete ? explicitType : undefined;
+  for (const item of Array.isArray(value) ? value : [value]) {
+    if (item === undefined) continue;
+    if (
+      wireContentType !== undefined &&
+      hasUpperCaseParameterValue(wireContentType)
+    ) {
+      throw new TypeError(
+        "Cannot serialize multipart content type " +
+          wireContentType +
+          " exactly because standard Blob lowercases parameter values",
+      );
+    }
+    if (isBlob(item)) {
+      if (wireContentType !== undefined && item.type !== wireContentType) {
+        const name = (
+          item as {
+            name?: unknown;
+          }
+        ).name;
+        const encodedBlob = new Blob([item], { type: wireContentType });
+        if (typeof name === "string") {
+          formData.append(key, encodedBlob, name);
+        } else {
+          formData.append(key, encodedBlob);
+        }
+      } else {
+        formData.append(key, item);
+      }
+      continue;
+    }
+    if (
+      typeof item === "string" ||
+      typeof item === "number" ||
+      typeof item === "boolean"
+    ) {
+      const serializedScalar = isJson ? JSON.stringify(item) : String(item);
+      if (wireContentType !== undefined) {
+        formData.append(
+          key,
+          new Blob([serializedScalar], { type: wireContentType }),
+        );
+      } else {
+        formData.append(key, serializedScalar);
+      }
+      continue;
+    }
+    if (wireContentType !== undefined && !isJson) {
+      throw new TypeError(
+        "Cannot serialize an object multipart part as " +
+          wireContentType +
+          "; only JSON object encodings are supported",
+      );
+    }
+    const serialized = new Blob([JSON.stringify(item)], {
+      type: wireContentType ?? "application/json",
+    });
+    formData.append(key, serialized);
+  }
+};
+const injectedRtkApi = api.injectEndpoints({
+  endpoints: (build) => ({
+    uploadAvatar: build.mutation<UploadAvatarApiResponse, UploadAvatarApiArg>({
+      query: (queryArg) => {
+        const formData = new FormData();
+        for (const [key, value] of Object.entries(queryArg.body))
+          appendToFormData(formData, key, value);
+        return { url: \`/api/Avatar\`, method: "POST", body: formData };
+      },
+    }),
+  }),
+  overrideExisting: false,
+});
+export { injectedRtkApi as enhancedApi };
+export type UploadAvatarApiResponse = /** status 200 Success */ string;
+export type UploadAvatarApiArg = {
+  body: {
+    file: globalThis.Blob;
+    caption?: string | undefined;
+    width?: number | undefined;
+    published?: boolean | undefined;
+    tags?: string[] | undefined;
+    meta?:
+      | {
+          author?: string | undefined;
+        }
+      | undefined;
+  };
+};
+"
+`;
+
+exports[`the FormData conversion helper is emitted only once for several multipart endpoints 1`] = `
+"import { api } from "./fixtures/emptyApi";
+const appendToFormData = (
+  formData: globalThis.FormData,
+  key: string,
+  value: unknown,
+  contentType?: string,
+) => {
+  const isBlob = (part: unknown): part is globalThis.Blob =>
+    part instanceof Blob ||
+    Object.prototype.toString.call(part) === "[object Blob]" ||
+    Object.prototype.toString.call(part) === "[object File]";
+  const hasUnquotedComma = (value: string) => {
+    let inQuotes = false;
+    let escaped = false;
+    for (let index = 0; index < value.length; index += 1) {
+      const code = value.charCodeAt(index);
+      if (escaped) {
+        escaped = false;
+      } else if (code === 92 && inQuotes) {
+        escaped = true;
+      } else if (code === 34) {
+        inQuotes = !inQuotes;
+      } else if (code === 44 && !inQuotes) {
+        return true;
+      }
+    }
+    return false;
+  };
+  const hasUpperCaseParameterValue = (value: string) => {
+    const firstParameterIndex = value.indexOf(";");
+    if (firstParameterIndex === -1) return false;
+    let inQuotes = false;
+    let escaped = false;
+    let inParameterValue = false;
+    for (
+      let index = firstParameterIndex + 1;
+      index < value.length;
+      index += 1
+    ) {
+      const code = value.charCodeAt(index);
+      if (!inParameterValue) {
+        if (code === 61) {
+          inParameterValue = true;
+          inQuotes = false;
+          escaped = false;
+        }
+        continue;
+      }
+      if (code >= 65 && code <= 90) {
+        return true;
+      }
+      if (escaped) {
+        escaped = false;
+      } else if (code === 92 && inQuotes) {
+        escaped = true;
+      } else if (code === 34) {
+        inQuotes = !inQuotes;
+      } else if (code === 59 && !inQuotes) {
+        inParameterValue = false;
+      }
+    }
+    return false;
+  };
+  const explicitType = contentType?.trim();
+  const isSingleType =
+    explicitType !== undefined && !hasUnquotedComma(explicitType);
+  const mediaType = isSingleType
+    ? explicitType.split(";", 1)[0].trim().toLowerCase()
+    : undefined;
+  const isConcrete =
+    mediaType !== undefined && mediaType.length > 0 && !mediaType.includes("*");
+  const subtype = mediaType?.slice(mediaType.indexOf("/") + 1);
+  const isJson =
+    isConcrete && (subtype === "json" || subtype?.endsWith("+json") === true);
+  const wireContentType = isConcrete ? explicitType : undefined;
+  for (const item of Array.isArray(value) ? value : [value]) {
+    if (item === undefined) continue;
+    if (
+      wireContentType !== undefined &&
+      hasUpperCaseParameterValue(wireContentType)
+    ) {
+      throw new TypeError(
+        "Cannot serialize multipart content type " +
+          wireContentType +
+          " exactly because standard Blob lowercases parameter values",
+      );
+    }
+    if (isBlob(item)) {
+      if (wireContentType !== undefined && item.type !== wireContentType) {
+        const name = (
+          item as {
+            name?: unknown;
+          }
+        ).name;
+        const encodedBlob = new Blob([item], { type: wireContentType });
+        if (typeof name === "string") {
+          formData.append(key, encodedBlob, name);
+        } else {
+          formData.append(key, encodedBlob);
+        }
+      } else {
+        formData.append(key, item);
+      }
+      continue;
+    }
+    if (
+      typeof item === "string" ||
+      typeof item === "number" ||
+      typeof item === "boolean"
+    ) {
+      const serializedScalar = isJson ? JSON.stringify(item) : String(item);
+      if (wireContentType !== undefined) {
+        formData.append(
+          key,
+          new Blob([serializedScalar], { type: wireContentType }),
+        );
+      } else {
+        formData.append(key, serializedScalar);
+      }
+      continue;
+    }
+    if (wireContentType !== undefined && !isJson) {
+      throw new TypeError(
+        "Cannot serialize an object multipart part as " +
+          wireContentType +
+          "; only JSON object encodings are supported",
+      );
+    }
+    const serialized = new Blob([JSON.stringify(item)], {
+      type: wireContentType ?? "application/json",
+    });
+    formData.append(key, serialized);
+  }
+};
+const injectedRtkApi = api.injectEndpoints({
+  endpoints: (build) => ({
+    uploadAvatar: build.mutation<UploadAvatarApiResponse, UploadAvatarApiArg>({
+      query: (queryArg) => {
+        const formData = new FormData();
+        for (const [key, value] of Object.entries(queryArg.body))
+          appendToFormData(formData, key, value);
+        return { url: \`/api/Avatar\`, method: "POST", body: formData };
+      },
+    }),
+    createDocument: build.mutation<
+      CreateDocumentApiResponse,
+      CreateDocumentApiArg
+    >({
+      query: (queryArg) => {
+        const formData =
+          queryArg.body === undefined ? undefined : new FormData();
+        if (formData !== undefined)
+          for (const [key, value] of Object.entries(queryArg.body ?? {}))
+            appendToFormData(formData, key, value);
+        return { url: \`/api/Documents\`, method: "POST", body: formData };
+      },
+    }),
+  }),
+  overrideExisting: false,
+});
+export { injectedRtkApi as enhancedApi };
+export type UploadAvatarApiResponse = /** status 200 Success */ string;
+export type UploadAvatarApiArg = {
+  body: {
+    file: globalThis.Blob;
+    caption?: string | undefined;
+    width?: number | undefined;
+    published?: boolean | undefined;
+    tags?: string[] | undefined;
+    meta?:
+      | {
+          author?: string | undefined;
+        }
+      | undefined;
+  };
+};
+export type CreateDocumentApiResponse = /** status 200 Success */ string;
+export type CreateDocumentApiArg = {
+  body?: {
+    document?: globalThis.Blob | undefined;
+  };
+};
+"
+`;
