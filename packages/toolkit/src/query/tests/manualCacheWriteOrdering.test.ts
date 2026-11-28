@@ -10,6 +10,9 @@ type Request = {
 
 let requests: Request[] = []
 let outcomes = new Map<string, unknown>()
+const providesTags = vi.fn((result: Post | undefined) =>
+  result ? [{ type: 'Post' as const, id: result.title }] : [],
+)
 
 const api = createApi({
   baseQuery: fakeBaseQuery<string>(),
@@ -20,8 +23,7 @@ const api = createApi({
         new Promise((resolve) => {
           requests.push({ resolve })
         }),
-      providesTags: (result) =>
-        result ? [{ type: 'Post', id: result.title }] : [],
+      providesTags,
       onQueryStarted: (_, { requestId, queryFulfilled }) => {
         queryFulfilled.then(
           ({ data }) => outcomes.set(requestId, data),
@@ -242,6 +244,7 @@ describe('updateQueryData options', () => {
     'respects updateProvided with %j, including undo',
     async (options) => {
       await seed()
+      providesTags.mockClear()
       const patch = storeRef.store.dispatch(
         api.util.updateQueryData(
           'getPost',
@@ -254,9 +257,11 @@ describe('updateQueryData options', () => {
       )
       expect(select().data).toEqual(manual)
       expect(tags()).toEqual([{ type: 'Post', id: 'initial' }])
+      expect(providesTags).not.toHaveBeenCalled()
       patch.undo({ ifUnchanged: true })
       expect(select().data).toEqual(initial)
       expect(tags()).toEqual([{ type: 'Post', id: 'initial' }])
+      expect(providesTags).not.toHaveBeenCalled()
     },
   )
 
